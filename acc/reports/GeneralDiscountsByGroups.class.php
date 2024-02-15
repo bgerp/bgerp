@@ -2,19 +2,19 @@
 
 
 /**
- * Мениджър на отчети за издадени касови бележки
+ * Мениджър на отчети за начислени общи отстъпки по групи
  *
  * @category  bgerp
- * @package   pos
+ * @package   acc
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     POS  » Издадени касови бележки
+ * @title     POS  » Общи отстъпки по групи
  */
-class pos_reports_CashReceiptsReport extends frame2_driver_TableData
+class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 {
     /**
      * Кои полета от листовия изглед да може да се сортират
@@ -77,14 +77,12 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
         $fieldset->FLD('start', 'datetime(smartTime)', 'caption=От,refreshForm,after=title');
         $fieldset->FLD('end', 'datetime(smartTime)', 'caption=До,refreshForm,after=start');
 
-        $fieldset->FLD('customers', 'keylist(mvc=core_Users,select=names,allowEmpty)', 'caption=Клиент,placeholder=Всички,after=end,single=none');
+        $fieldset->FLD('crmGroupId', 'key2(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група Клиенти,input,silent,after=end,remember,autoFilter');
 
-
-        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС,placeholder=Всички,after=customers,single=none');
-
+        $fieldset->FLD('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група Артикули,input,silent,after=crmGroupId,remember,autoFilter');
 
         //Групиране на резултатите
-        $fieldset->FLD('groupBy', 'enum(no=Без групиране,contragentName=Клиент,pointId=ПОС)', 'caption=Групиране по,after=pos,single=none,refreshForm,silent');
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране,contragentName=Клиент,pointId=ПОС)', 'caption=Групиране по,after=groupId,single=none,refreshForm,silent');
 
     }
 
@@ -118,7 +116,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
             $suggestions[$folderId] = $contragentName;
         }
 
-        $form->setSuggestions('customers', $suggestions);
+      //  $form->setSuggestions('customers', $suggestions);
 
     }
 
@@ -152,43 +150,40 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-
+//bp($rec);
         //Показването да бъде ли ГРУПИРАНО
         if ($rec->groupBy != 'no') {
             $this->groupByField = $rec->groupBy;
         }
 
-        $receiptQuery = pos_Receipts::getQuery();
+        $receiptQuery = pos_ReceiptDetails::getQuery();
+        $receiptQuery->EXT('waitingOn', 'pos_Receipts', 'externalName=waitingOn,externalKey=receiptId');
         $receiptQuery->where("#waitingOn IS NOT NULL");
-        $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->start, $rec->end . ' 23:59:59')
-        );
+        $receiptQuery->where("#autoDiscount IS NOT NULL");
+        $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->start, $rec->end . ' 23:59:59'));
 
-        //Филтър по ПОС
-        if (!is_null($rec->pos)) {
+//bp($receiptQuery->fetchAll());
 
-            $receiptQuery->in('pointId', keylist::toArray($rec->pos));
-
-        }
 
         $totalSum = array();
 
         while ($receiptRec = $receiptQuery->fetch()) {
 
-            $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);
-            $folderId = $contragentRec->folderId;
-            if (!$folderId) {
-                cls::get($receiptRec->contragentClass)->forceCoverAndFolder($receiptRec->contragentObjectId);
-            }
+           // $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);
+           // $folderId = $contragentRec->folderId;
+//            if (!$folderId) {
+//                cls::get($receiptRec->contragentClass)->forceCoverAndFolder($receiptRec->contragentObjectId);
+//            }
 
-            //филтър по контрагент
-            if ($rec->customers) {
-                if (!in_array($folderId, keylist::toArray($rec->customers))) continue;
-            }
+//            //филтър по контрагент
+//            if ($rec->customers) {
+//                if (!in_array($folderId, keylist::toArray($rec->customers))) continue;
+//            }
 
 
             $id = $receiptRec->id;
 
-            $totalSum[$folderId] += $receiptRec->total;
+        //    $totalSum[$folderId] += $receiptRec->total;
 
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -198,10 +193,10 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
                     'total' => $receiptRec->total,
                     'totalSum' => '',
                     'waitingOn' => $receiptRec->waitingOn,
-                    'contragentName' => $contragentRec->name,
+                  //  'contragentName' => $contragentRec->name,
                     'contragentObjectId' => $receiptRec->contragentObjectId,
                     'contragentClass' => $receiptRec->contragentClass,
-                    'folderId' => $folderId,
+                  //  'folderId' => $folderId,
                 );
             } else {
                 $obj = &$recs[$id];
@@ -217,9 +212,9 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
             $v->totalSum = $totalSum[$v->folderId];
         }
         if (countR($recs)) {
-            arr::sortObjects($recs, 'contragentName', 'asc');
+          //  arr::sortObjects($recs, 'contragentName', 'asc');
         }
-
+//bp();
         return $recs;
 
     }
@@ -241,7 +236,6 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
         if ($export === false) {
 
             $fld->FLD('contragentName', 'varchar', 'caption=Клиент');
-            $fld->FLD('pointId', 'datetime', 'caption=ПОС');
             $fld->FLD('datetime', 'datetime', 'caption=Време');
             $fld->FLD('total', 'double(decimals=2)', 'caption=Сума');
 
@@ -275,9 +269,6 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
 
 
         $row->datetime = $Datetime->toVerbal($dRec->waitingOn);
-
-
-        $row->pointId = pos_Points::getHyperlink($dRec->pointId, true);
 
         $row->contragentName = $dRec->contragentName;
         if ($rec->groupBy == 'contragentName') {
@@ -336,3 +327,4 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
     }
 
 }
+

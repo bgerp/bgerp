@@ -426,7 +426,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     private static function importRows($mvc, $masterId, $rows, $fields)
     {
         $added = $failed = 0;
-        
         foreach ($rows as $row) {
          
             // Опитваме се да импортираме записа
@@ -442,7 +441,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             }
         }
-        
+
         $msg = ($added == 1) ? '|Импортиран е|* 1 |артикул|*' : "|Импортирани са|* {$added} |артикула|*";
         if ($failed != 0) {
             $msg .= ". |Не са импортирани|* {$failed} |артикула";

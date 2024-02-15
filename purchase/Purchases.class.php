@@ -580,7 +580,7 @@ class purchase_Purchases extends deals_DealMaster
         $showReffInThread = purchase_Setup::get('SHOW_REFF_IN_PURCHASE_THREAD');
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
-            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId', 'autoDiscount', 'inputDiscount') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
 
@@ -653,7 +653,7 @@ class purchase_Purchases extends deals_DealMaster
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if ($rec->state != 'active' && purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")) {
+            if ($rec->state != 'active' && (purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")  || price_DiscountsPerDocuments::haveDiscount($mvc, $rec->id))) {
                 $res = 'no_one';
             } elseif (!haveRole('purchase,ceo', $userId)) {
                 $res = 'no_one';
@@ -874,19 +874,23 @@ class purchase_Purchases extends deals_DealMaster
     protected static function on_AfterInputSelectActionForm($mvc, &$form, $rec)
     {
         if ($form->isSubmitted()) {
-            $action = type_Set::toArray($form->rec->action);
-            if (isset($action['ship'])) {
-                $dQuery = purchase_PurchasesDetails::getQuery();
-                $dQuery->where("#requestId = {$rec->id}");
-                $dQuery->show('productId');
-                
-                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($dQuery->fetchAll(), 'productId'), 'canBuy');
-                if($productCheck['metasError']){
-                    $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
-                    $form->setError('action', $warning1);
-                } elseif ($productCheck['notActive']) {
-                    $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
-                    $form->setError('action', $error1);
+            if($rec->amountDeal < 0){
+                $form->setError('action', 'Общата сума на продажбата не може да е отрицателна|*!');
+            } else {
+                $action = type_Set::toArray($form->rec->action);
+                if (isset($action['ship'])) {
+                    $dQuery = purchase_PurchasesDetails::getQuery();
+                    $dQuery->where("#requestId = {$rec->id}");
+                    $dQuery->show('productId');
+
+                    $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($dQuery->fetchAll(), 'productId'), 'canBuy');
+                    if($productCheck['metasError']){
+                        $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
+                        $form->setError('action', $warning1);
+                    } elseif ($productCheck['notActive']) {
+                        $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
+                        $form->setError('action', $error1);
+                    }
                 }
             }
         }

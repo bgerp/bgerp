@@ -444,6 +444,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 
             $weightIsLive = !$rec->weightInput;
             $netWeightIsLive = !$rec->netWeightInput;
+            $volumeIsLive = !$rec->volumeInput;
 
             if($rec->calcedWeight && isset($rec->{$mvc->totalWeightFieldName})){
                 $percentChange = abs(round((1 - $rec->{$mvc->totalWeightFieldName} / $rec->calcedWeight) * 100, 3));
@@ -526,7 +527,10 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalVolumeFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->{$mvc->totalVolumeFieldName});
-                $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume, 'notice', false);
+                if($volumeIsLive){
+                    $row->{$mvc->totalVolumeFieldName} = "<span style='color:blue'>{$row->{$mvc->totalVolumeFieldName}}</span>";
+                }
+                $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume, 'noicon', false);
 
                 if($warningVolume){
                     $liveVolumeVerbal = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->calcedVolume);

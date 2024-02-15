@@ -50,7 +50,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, cond_plg_DefaultValues, doc_DocumentPlg, bgerp_plg_Export,
-					doc_EmailCreatePlg, recently_Plugin,deals_plg_DpInvoice,doc_plg_Sequencer2,cat_plg_UsingProductVat,
+					doc_EmailCreatePlg, price_plg_TotalDiscount, recently_Plugin,deals_plg_DpInvoice,doc_plg_Sequencer2,cat_plg_UsingProductVat,
                     doc_plg_HidePrices, doc_plg_TplManager, drdata_plg_Canonize, bgerp_plg_Blank, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search,plg_LastUsedKeys';
     
     
@@ -75,7 +75,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Детайла, на модела
      */
-    public $details = 'sales_InvoiceDetails' ;
+    public $details = 'sales_InvoiceDetails';
     
     
     /**
@@ -237,7 +237,7 @@ class sales_Invoices extends deals_InvoiceMaster
     public function description()
     {
         parent::setInvoiceFields($this);
-        
+
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
         $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Допълнително->Диапазон, after=template,input=hidden,notNull,default=1');
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
@@ -249,7 +249,8 @@ class sales_Invoices extends deals_InvoiceMaster
 
         $this->setDbUnique('number');
     }
-    
+
+
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
@@ -456,7 +457,14 @@ class sales_Invoices extends deals_InvoiceMaster
         parent::inputInvoiceForm($mvc, $form);
         
         if ($form->isSubmitted()) {
-            
+
+            if(isset($rec->id)){
+                if($rec->dpOperation == 'accrued' && price_DiscountsPerDocuments::haveDiscount($mvc, $rec->id)){
+
+                    $form->setError('amountAccrued', 'Не може да се начислява аванс, ако фактурата е със зададени общи отстъпки');
+                }
+            }
+
             // Валидна ли е датата (при само промяна няма да се изпълни)
             $warning = null;
             if (!$mvc->isAllowedToBePosted($rec, $warning) && $rec->__isBeingChanged !== true) {
@@ -916,6 +924,68 @@ class sales_Invoices extends deals_InvoiceMaster
         while($dRec = $dQuery->fetch()){
             $res[$dRec->productId] = (object)array('productId' => $dRec->productId, 'batches' => $dRec->batches);
         }
+
+        return $res;
+    }
+
+
+    /**
+     * Как се казва политиката
+     *
+     * @param stdClass $rec - запис
+     * @return bool
+     */
+    public function canHaveTotalDiscount($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        if($rec->type != 'invoice' || $rec->dpOperation == 'accrued') return false;
+
+        $detailCount = sales_InvoiceDetails::count("#invoiceId = {$rec->id}");
+
+        return !empty($detailCount);
+    }
+
+
+    /**
+     * След обновяване на мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        // Ако е зададено в мода да не се рекалкулират отстъпките
+        $rec = $mvc->fetchRec($id);
+        if($rec->type != 'invoice') return;
+
+        // Преизчисляване ако има автоматични отстъпки
+        if($mvc->recalcAutoTotalDiscount($rec)){
+            $mvc->updateMaster_($rec);
+        }
+    }
+
+
+    /**
+     * Как се казва политиката
+     *
+     * @param stdClass $rec - запис
+     * @return array
+     *            [rate]       - валутен курс
+     *            [valior]     - вальор
+     *            [currencyId] - код на валута
+     *            [chargeVat]  - режим на начисляване на ДДС
+     *            [amount]     - сума в основна валута без ддс и отстъпка
+     */
+    public function getTotalDiscountSourceData($rec)
+    {
+        $rec = $this->fetchRec($rec);
+
+        $amount = core_Math::roundNumber($rec->dealValue - $rec->discountAmount);
+        $res = (object)array('rate' => $rec->rate,
+                             'valior'     => $rec->valior,
+                             'currencyId' => $rec->currencyId,
+                             'chargeVat'  => 'separate',
+                             'amount'     => $amount,
+        );
 
         return $res;
     }

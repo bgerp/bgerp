@@ -2852,16 +2852,16 @@ abstract class deals_Helper
 
         $weightIsCalced = $netWeightIsCalced = $tareWeightIsCalced = false;
         if(empty($weight) && !empty($netWeight) && !empty($tareWeight)) {
-            $weight = $netWeight + $tareWeight;
+            $weight = round($netWeight + $tareWeight, 4);
             $weightIsCalced = true;
         }
 
         if(empty($netWeight) && !empty($weight) && !empty($tareWeight)) {
-            $netWeight = $weight - $tareWeight;
+            $netWeight = round($weight - $tareWeight, 4);
             $netWeightIsCalced = true;
         }
         if(empty($tareWeight) && !empty($weight) && !empty($netWeight)) {
-            $tareWeight = $weight - $netWeight;
+            $tareWeight = round($weight - $netWeight, 4);
             $tareWeightIsCalced = true;
         }
 
@@ -2903,17 +2903,17 @@ abstract class deals_Helper
     public static function getDiscountRow($calcedDiscount, $manualDiscount, $autoDiscount, $state)
     {
         $Percent = core_Type::getByName('percent');
+        $autoDiscountVerbal = $Percent->toVerbal($autoDiscount);
 
         if(!in_array($state, array('draft', 'pending'))){
             $calcedDiscountVerbal = $Percent->toVerbal($calcedDiscount);
             $res = $Percent->toVerbal($manualDiscount);
             if($calcedDiscount != $manualDiscount){
-                $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}", 'notice', false);
+                $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", 'notice', false);
             }
         } else {
             $res = $Percent->toVerbal($calcedDiscount);
             if(isset($autoDiscount)){
-                $autoDiscountVerbal = $Percent->toVerbal($autoDiscount);
                 $type = ($autoDiscount > 1) ? 'warning' : 'notice';
                 if(isset($calcedDiscount)){
                     $middleDiscount = round((1 - (1 - $calcedDiscount) * (1 - $autoDiscount)), 6);

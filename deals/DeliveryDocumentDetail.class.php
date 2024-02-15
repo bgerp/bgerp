@@ -354,7 +354,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     public function import($masterId, $row)
     {
         $Master = $this->Master;
-        
+
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
         $meta = cat_Products::fetch($pRec->productId, $this->metaProducts);
@@ -371,10 +371,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         
         
         if ($meta != 'yes') {
-            
+
             return;
         }
-        
+
         $price = null;
         
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
@@ -388,7 +388,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
             
         }
-        
+
         return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);
     }
 }

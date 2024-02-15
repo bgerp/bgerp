@@ -151,7 +151,7 @@ abstract class rack_MovementAbstract extends core_Manager
                         $row->batch = ht::createLink($row->batch, array('rack_ProductsByBatches', 'list', 'search' => $rec->batch));
                     }
                 } else {
-                    $row->batch = "<i class='quiet'>" . tr("Без партида") . "</i>";
+                    $row->batch = "<i class='quiet small'>" . tr("Без партида") . "</i>";
                 }
             }
         }

@@ -1040,7 +1040,7 @@ class rack_Movements extends rack_MovementAbstract
         $fromPallet = $fromQuantity = $toQuantity = null;
         if (!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR) {
             if($transaction->quantity > 0){
-                $fromPallet = rack_Pallets::getByPosition($transaction->from, $transaction->storeId, $transaction->productId);
+                $fromPallet = rack_Pallets::getByPosition($transaction->from, $transaction->storeId, $transaction->productId, $transaction->batch);
                 if (empty($fromPallet)) {
                     $res->errors = 'Палетът вече не е активен';
                     $res->errorFields[] = 'palletId';
@@ -1067,22 +1067,27 @@ class rack_Movements extends rack_MovementAbstract
                 
                 return $res;
             }
-            
-            if ($toPallet = rack_Pallets::getByPosition($transaction->to, $transaction->storeId, $transaction->productId)) {
+
+            $storeId = $transaction->storeId;
+            $samePosPallets = rack_Pallets::canHaveMultipleOnOnePosition($storeId);
+
+            if ($toPallet = rack_Pallets::getByPosition($transaction->to, $transaction->storeId, $transaction->productId, $transaction->batch)) {
                 $toProductId = $toPallet->productId;
                 $toQuantity = $toPallet->quantity;
-                
-                if($transaction->batch != $toPallet->batch){
-                    $res->errors = "На позицията артикулът е с друга партида";
-                    $res->errorFields[] = 'positionTo,productId';
+
+                if($toProductId == $transaction->productId && $transaction->batch != $toPallet->batch){
+                    if(!$samePosPallets){
+                        $res->errors = " На позицията вече има друга партида от артикула";
+                        $res->errorFields[] = 'positionTo,productId';
+                    } else {
+                        $res->warnings[] = " На позицията вече има друга партида от артикула";
+                        $res->warningFields[] = 'positionTo,productId';
+                    }
                 }
             }
 
             // Ако има нова позиция и тя е заета от различен продукт - грешка
             if (isset($toProductId) && $toProductId != $transaction->productId) {
-                $storeId = $transaction->storeId;
-                $samePosPallets = rack_Pallets::canHaveMultipleOnOnePosition($storeId);
-
                 if(!$samePosPallets) {
                     $res->errors = "|* <b>{$transaction->to}</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . '</b>';
                     $res->errorFields[] = 'positionTo,productId';
@@ -1173,22 +1178,27 @@ class rack_Movements extends rack_MovementAbstract
         
         // Предупреждение: В новия палет се получава по-голямо количество от стандартното
         if (!empty($toPallet) && $transaction->from != $transaction->to && !empty($toQuantity) && !empty($quantityOnPallet)) {
-            if ($toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal > $quantityOnPallet) {
-                $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
-                $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b>";
-                $res->warningFields[] = 'positionTo';
-                $res->warningFields[] = 'packQuantity';
-                $res->warningFields[] = 'zonesQuantityTotal';
+
+            if($toPallet->batch == $transaction->batch){
+                if ($toQuantity + $transaction->quantity - $transaction->zonesQuantityTotal > $quantityOnPallet) {
+                    $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
+                    $res->warnings[] = "В новия палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b>";
+                    $res->warningFields[] = 'positionTo';
+                    $res->warningFields[] = 'packQuantity';
+                    $res->warningFields[] = 'zonesQuantityTotal';
+                }
             }
         }
         
         // Предупреждение: В началния палет се получава по-голямо количество от стандартното
         if (!empty($fromPallet) && $transaction->quantity < 0 && ($fromQuantity - $transaction->quantity > $quantityOnPallet)) {
-            $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
-            $res->warnings[] = "В началния палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b>";
-            $res->warningFields[] = 'positionTo';
-            $res->warningFields[] = 'packQuantity';
-            $res->warningFields[] = 'zonesQuantityTotal';
+            if($toPallet->batch == $transaction->batch){
+                $quantityOnPalletV = core_Type::getByName('double(smartRound)')->toVerbal($quantityOnPallet);
+                $res->warnings[] = "В началния палет се получава по-голямо количество от стандартното|*: <b>{$quantityOnPalletV}</b>";
+                $res->warningFields[] = 'positionTo';
+                $res->warningFields[] = 'packQuantity';
+                $res->warningFields[] = 'zonesQuantityTotal';
+            }
         }
         
         // Ако се палетира от пода проверява се дали е налично количеството

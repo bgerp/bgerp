@@ -1002,6 +1002,11 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function canActivate($rec)
     {
+        // Ако няма сума, но има обща отстъпка да не може да се активира
+        if(isset($rec->id)){
+            if(empty($rec->amountDeal) && price_DiscountsPerDocuments::haveDiscount(get_called_class(), $rec->id)) return false;
+        }
+
         return true;
     }
     
@@ -2158,35 +2163,15 @@ abstract class deals_DealMaster extends deals_DealBase
             'notes' => $notes,
         );
 
-        // Проверяваме дали въвдения детайл е уникален
-        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes, $batch);
-        
-        if (is_object($exRec)) {
-            
-            // Смятаме средно притеглената цена и отстъпка
-            $nPrice = ($exRec->quantity * $exRec->price + $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
-            $nDiscount = ($exRec->quantity * $exRec->discount + $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
-            $nTolerance = ($exRec->quantity * $exRec->tolerance + $dRec->quantity * $dRec->tolerance) / ($dRec->quantity + $exRec->quantity);
-            
-            // Ъпдейтваме к-то, цената и отстъпката на записа с новите
-            if ($term) {
-                $exRec->term = max($exRec->term, $dRec->term);
-            }
-            
-            $exRec->quantity += $dRec->quantity;
-            $exRec->price = $nPrice;
-            $exRec->discount = (empty($nDiscount)) ? null : round($nDiscount, 2);
-            $exRec->tolerance = (!isset($nTolerance)) ? null : round($nTolerance, 2);
-            
-            // Ъпдейтваме съществуващия запис
-            $id = $Detail->save($exRec);
-        } else {
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            $dRec->autoAllocate = false;
+            $dRec->_clonedWithBatches = true;
+        }
 
-            // Ако е уникален, добавяме го
-            $id = $Detail->save($dRec);
-            if(!empty($batch) && core_Packs::isInstalled('batch')){
-                batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
-            }
+        // Ако е уникален, добавяме го
+        $id = $Detail->save($dRec);
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
         }
         
         // Връщаме резултата от записа

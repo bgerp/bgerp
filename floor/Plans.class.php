@@ -168,7 +168,7 @@ class floor_Plans extends core_Master {
     }
 
 
-    public function act_View($planId = null, $design = false)
+    public function act_View($planId = null, $design = false, $tabs = '')
     {
         Mode::set('wrapper', 'page_Empty');
         RequireRole('admin,floor');
@@ -198,17 +198,21 @@ class floor_Plans extends core_Master {
         } else {
             $styleStr = '';
         }
-
-        $tpl = new ET("<div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div>");
+        
+        if($tabs) {
+            $tpl = new ET("<table><tr><td>{$tabs}</td></tr><tr><td><center><div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div></center></td></tr></table>");
+        } else {
+            $tpl = new ET("<div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div>");
+        }
         
         jqueryui_Ui::enable($tpl);
         jquery_Jquery::run($tpl, $design ? 'editFloorplan();' : 'setTimeout(refreshFloor, 3000);');
         $tpl->push('floor/css/floorplan.css', 'CSS');
         $tpl->push('floor/js/floorplan.js', 'JS');
 
-        $Floors = cls::get('floor_Objects');
+        $Objects = cls::get('floor_Objects');
         
-        $query = $Floors->getQuery();
+        $query = $Objects->getQuery();
         
         while($oRec = $query->fetch("#planId = {$planId}")) {
             
@@ -216,9 +220,9 @@ class floor_Plans extends core_Master {
             $h = self::toPix($oRec->height, $pRec->zoom);
             $x = self::toPix($oRec->x, $pRec->zoom);
             $y = self::toPix($oRec->y, $pRec->zoom);
-            $text = $Floors->getVerbal($oRec, 'text');
+            $text = $Objects->getVerbal($oRec, 'text');
             if(!$text) {
-                $text = $Floors->getVerbal($oRec, 'name');
+                $text = $Objects->getVerbal($oRec, 'name');
             }
             $borderWidth = $oRec->borderWidth;
 
@@ -229,17 +233,21 @@ class floor_Plans extends core_Master {
             if($oRec->backgroundColor) {
                 $o = $oRec->opacity ? $oRec->opacity : 1;
                 list($r, $g, $b) = color_Object::hexToRgbArr($oRec->backgroundColor);
-                $style[] = "background-color:rgba($r, $g, $b, $o)";
+                $style['background-color'] = "background-color:rgba($r, $g, $b, $o)";
             }
             
             if($oRec->image) {
-                $style[] = "background-image:url('" . trim(fileman_Download::getDownloadUrl($oRec->image)) . "')";
-                $style[] = "background-size: {$w}px";
+                $style['background-image'] = "background-image:url('" . trim(fileman_Download::getDownloadUrl($oRec->image)) . "')";
+                $style['background-size'] = "background-size: {$w}px";
             }
 
-            if($pRec->decorator && (!$design)) {
-                $d = cls::get($pRec->decorator);
-                $d->decorate($oRec->name, $style, $text);
+            $decorator = null;
+            if($pRec->decorator) $decorator = $pRec->decorator;
+            if($oRec->decorator) $decorator = $oRec->decorator;
+        
+            if($decorator && (!$design)) {
+                $d = cls::get($decorator);
+                $d->decorate($oRec->sysName ? $oRec->sysName : $oRec->name, $style, $text);
             }
 
             if($design) {

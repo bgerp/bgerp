@@ -35,6 +35,8 @@ class doc_plg_TransferDoc extends core_Plugin
             $typeMvc = $mvc->getFieldTypeParam($mvc->transferFolderField, 'mvc');
             expect(cls::haveInterface('doc_FolderIntf', $typeMvc));
         }
+
+        setIfNot($mvc->allwaysAddCurrentUser, true);
     }
     
     
@@ -43,11 +45,11 @@ class doc_plg_TransferDoc extends core_Plugin
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if (empty($rec->id)) {
+        if ($mvc->allwaysAddCurrentUser || empty($rec->id)) {
             if ($mvc->getField('sharedUsers', false)) {
-                $person = crm_Profiles::fetchField("#personId = {$rec->personId}", 'userId');
-                if ($person) {
-                    $rec->sharedUsers = keylist::addKey($rec->sharedUsers, $person);
+                $userId = crm_Profiles::fetchField("#personId = {$rec->personId}", 'userId');
+                if ($userId) {
+                    $rec->sharedUsers = keylist::addKey($rec->sharedUsers, $userId);
                 }
                 if ($rec->alternatePersons) {
                     foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {

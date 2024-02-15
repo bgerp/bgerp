@@ -58,9 +58,11 @@ class cond_type_Product extends cond_type_Varchar
         // Ако няма зададени радио бутони - ще се показва като key2
         if(empty($this->driverRec->maxRadio)) return $CType;
 
-        // Ако има зададен брой радио бутони, но опциите са над тях - ще се показва като key2
-        $options = $CType->getOptions();
-        $optionsCount = countR($options);
+        // Ако има зададен брой радио бутони, но опциите са над тях + 1, ще се рендира като key2
+        $checkLimit = $this->driverRec->maxRadio + 1;
+        $options = $CType->getOptions($checkLimit);
+        $optionsCount = countR($options) - 1;
+
         if($optionsCount > $this->driverRec->maxRadio) return $CType;
 
         // Ако има радио бутони ще се показва като селект
