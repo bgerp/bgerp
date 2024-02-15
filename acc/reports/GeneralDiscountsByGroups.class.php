@@ -160,7 +160,9 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $receiptQuery->EXT('waitingOn', 'pos_Receipts', 'externalName=waitingOn,externalKey=receiptId');
         $receiptQuery->where("#waitingOn IS NOT NULL");
         $receiptQuery->where("#autoDiscount IS NOT NULL");
-        $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->start, $rec->end . ' 23:59:59'));
+
+        $end = substr(($rec->end), 0, 10). ' 23:59:59';
+        $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->start, $end));
 
         //bp($receiptQuery->fetchAll());
         $allCompanyDiscount = 0;
