@@ -31,7 +31,7 @@ class core_UserReg extends core_Manager
     /**
      * Кой има право да го променя?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'debug';
 
 
     /**
@@ -72,10 +72,10 @@ class core_UserReg extends core_Manager
         $this->FLD('classId', 'class', 'caption=Клас, input=hidden, silent');
         $this->FLD('objStr', 'varchar(32)', 'caption=Източник, input=hidden, silent');
         $this->FLD('phone', 'drdata_PhoneType(type=tel,unrecognized=warning)', 'caption=GSM->Номер');
-        $this->FLD('phoneIsVerified', 'enum(no=Не, yes=Да)', 'caption=GSM->Верифициране, input=none');
+        $this->FLD('phoneIsVerified', 'enum(no=Не, yes=Да)', 'caption=GSM->Верифициране');
         $this->FLD('email', 'email', 'caption=Имейл->Имейл');
-        $this->FLD('emailIsVerified', 'enum(no=Не, yes=Да)', 'caption=Имейл->Верифициране, input=none');
-        $this->FLD('uId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител, input=none');
+        $this->FLD('emailIsVerified', 'enum(no=Не, yes=Да)', 'caption=Имейл->Верифициране');
+        $this->FLD('uId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител');
 
         $this->setDbIndex('classId, objStr');
     }
@@ -119,16 +119,17 @@ class core_UserReg extends core_Manager
         $query->where(array("#objStr = '[#1#]'", $objId));
         $query->where(array("#classId = '[#1#]'", $classId));
         $query->orderBy('modifiedOn', 'DESC');
-        $query->limit(1);
 
-        $rec = $query->fetch();
+        while ($rec = $query->fetch()) {
+            if ($rec->uId) {
+                $uRec = core_Users::fetch($rec->uId);
+                if ($uRec && ($uRec->state != 'rejected')) {
+                    // Ако има добавен запис, преминаваме към активиране на акаунта
+                    $retUrl = $this->activateAccount($class, $objId, $rec);
 
-        if ($rec) {
-
-            // Ако има добавен запис, преминаваме към активиране на акаунта
-            $retUrl = $this->activateAccount($class, $objId, $rec);
-
-            return new Redirect($retUrl);
+                    return new Redirect($retUrl);
+                }
+            }
         }
 
         $rec = new stdClass();
