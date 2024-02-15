@@ -290,17 +290,21 @@ class core_UserReg extends core_Manager
             $sendRec->to = $rec->email;
 
             $lockEmailHash = md5('registerUser|' . $sendRec->to);
+            $msg = '|Изпратен имейл за верификация на пощата. Моля проверете СПАМ папката си.';
+            $type = 'notice';
             if (!core_Permanent::get($lockEmailHash)) {
                 $isSend = $this->sendRegistrationEmail($sendRec);
-
-                expect($isSend, $sendRec, $rec);
-
-                core_Permanent::set($lockEmailHash, 'yes', 60);
+                if ($isSend) {
+                    core_Permanent::set($lockEmailHash, 'yes', 60);
+                    $this->logNotice('Изпратен имейл за регистрация', $rec->id);
+                } else {
+                    $this->logErr('Грешка при изпращане на имейл за регистрация', $rec->id);
+                    $msg = '|Грешка при изпращане на имейл за верификация на имейла. Моля опитайте по-късно';
+                    $type = 'warning';
+                }
             }
 
-            $this->logNotice('Изпратен имейл за регистрация', $rec->id);
-
-            status_Messages::newStatus('|Изпратен имейл за верификация на имейла. Моля проверете пощата си.' );
+            status_Messages::newStatus($msg, $type);
 
             return $retUrl;
         }
@@ -310,11 +314,18 @@ class core_UserReg extends core_Manager
 
             $isSend = callcenter_SMS::sendSmart($rec->phone, $sData, array('sendLockPeriod' => 86400, 'encoding' => 'ascii'));
 
-            expect($isSend, $sData, $rec);
+            $statusMsg = '|Изпратен SMS за верификация на GSM номера. Моля проверете телефона си.';
+            $type = 'notice';
+
+            if (!$isSend) {
+                $this->logErr('Грешка при изпращане на SMS за регистрация', $rec->id);
+                $statusMsg = '|Грешка при изпращане на SMS за верификация на GSM номера. Моля опитайте по-късно';
+                $type = 'warning';
+            }
 
             $this->logNotice('Изпратен SMS за регистрация', $rec->id);
 
-            status_Messages::newStatus('Изпратен SMS за верификация на GSM номера. Моля проверете телефона си.');
+            status_Messages::newStatus($statusMsg, $type);
 
             return $retUrl;
         }
