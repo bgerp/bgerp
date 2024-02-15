@@ -297,6 +297,7 @@ class core_UserReg extends core_Manager
                 if ($isSend) {
                     core_Permanent::set($lockEmailHash, 'yes', 60);
                     $this->logNotice('Изпратен имейл за регистрация', $rec->id);
+                    $msg = '|Изпратен имейл за верификация. Моля проверете пощата си.';
                 } else {
                     $this->logErr('Грешка при изпращане на имейл за регистрация', $rec->id);
                     $msg = '|Грешка при изпращане на имейл за верификация на имейла. Моля опитайте по-късно';
