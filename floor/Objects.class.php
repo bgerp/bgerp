@@ -26,7 +26,7 @@ class floor_Objects extends core_Detail {
    /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_SaveAndNew, plg_Sorting';
     
     
     /**
@@ -145,6 +145,18 @@ class floor_Objects extends core_Detail {
                 }
             }
          }
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('name');
     }
 
 

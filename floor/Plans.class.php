@@ -19,7 +19,7 @@ class floor_Plans extends core_Master {
    /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_StructureAndOrder, plg_Modified, plg_Clone';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_StructureAndOrder, plg_Modified, plg_Clone, plg_Sorting';
 
 
     /**
@@ -162,12 +162,34 @@ class floor_Plans extends core_Master {
     }
 
 
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('name');
+    }
+
+
+    /**
+     * @return ET
+     */
     public function act_Design()
     {
         return $this->act_View(null, true);
     }
 
 
+    /**
+     * @param $planId
+     * @param $design
+     * @param $tabs
+     * @return ET
+     * @throws core_exception_Expect
+     */
     public function act_View($planId = null, $design = false, $tabs = '')
     {
         Mode::set('wrapper', 'page_Empty');
@@ -297,6 +319,7 @@ class floor_Plans extends core_Master {
 
         shutdown();
     }
+
 
     /**
      * Екшън, който обновява позицията на даден елемент
