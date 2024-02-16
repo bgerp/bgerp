@@ -92,7 +92,9 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $fieldset->FLD('start', 'datetime(smartTime)', 'caption=От,refreshForm,after=title,single=none');
         $fieldset->FLD('end', 'datetime(smartTime)', 'caption=До,refreshForm,after=start,single=none');
 
-        $fieldset->FLD('srmGroup', 'key2(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група Клиенти,mandatory,input,silent,after=end,remember,autoFilter,single=none');
+        $fieldset->FLD('crmGroup', 'key2(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група Клиенти,mandatory,input,silent,after=end,remember,autoFilter,single=none');
+
+        $fieldset->FLD('catGroup', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група Артикули,input,silent,after=crmGroup,remember,autoFilter,single=none');
 
         //Показване на резултатите
         $fieldset->FLD('seeBy', 'enum(contragentName=Клиент,date=Дата, kross=Клиент по дати)', 'caption=Покажи по,after=groupId,single=none,refreshForm,silent');
@@ -168,17 +170,32 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
         while ($receiptDetailRec = $receiptQuery->fetch()) {
 
-            $autoDiscount = 0;
+            $autoDiscount = $amount =0;
 
             $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
             $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);
             $folderId = $contragentRec->folderId;
 
+            //Филтър по група клиенти
+            if (isset($rec->crmGroup)){
+                if(!in_array($rec->crmGroup,keylist::toArray($contragentRec->groupList)))continue;
+            }
+
+            //Филтър по група артикули
+            if(isset($rec->catGroup)){
+                if(!in_array($rec->catGroup,keylist::toArray(cat_Products::fetchField($receiptDetailRec->productId,'groups'))))continue;
+            }
+
             //ДДС на артикула
             $prodVat = cat_Products::getVat($receiptDetailRec->productId);
 
-            // Автоматично начисления процент отстъпка за този артикул в тази бележка
-            $autoDiscount = $receiptDetailRec->autoDiscount * $receiptDetailRec->amount * (1 + $prodVat);
+            // Стойността намалена с отстъпките по политика $amount
+            $amount = isset($receiptDetailRec->inputDiscount) ? ($receiptDetailRec->amount * (1 - $receiptDetailRec->inputDiscount)) : $receiptDetailRec->amount;
+
+            // Автоматично начислената отстъпка за този артикул в тази бележка $autoDiscount
+            $autoDiscount = isset($amount) ? $amount * $receiptDetailRec->autoDiscount : 0;
+
+            $autoDiscount = $autoDiscount * (1 + $prodVat);
 
             //Обща стойност на отстъпките на фирмата
             $allCompanyDiscount += $autoDiscount;
@@ -334,7 +351,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                                     <div class='small'>
                                         <!--ET_BEGIN start--><div>|От|*: [#start#]</div><!--ET_END start-->
                                         <!--ET_BEGIN end--><div>|До|*: [#end#]</div><!--ET_END end-->
-                                        <!--ET_BEGIN srmGroup--><div>|Фирма|*: [#srmGroup#]</div><!--ET_END srmGroup-->
+                                        <!--ET_BEGIN crmGroup--><div>|Фирма|*: [#crmGroup#]</div><!--ET_END crmGroup-->
                                         <!--ET_BEGIN allCompanyDiscount--><div>|Общо авт. отстъпки|*: [#allCompanyDiscount#] лв.</div><!--ET_END allCompanyDiscount-->     
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
@@ -349,8 +366,8 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         }
 
 
-        if (isset($data->rec->srmGroup)) {
-            $fieldTpl->append(crm_Groups::getTitleById($data->rec->srmGroup), 'srmGroup');
+        if (isset($data->rec->crmGroup)) {
+            $fieldTpl->append(crm_Groups::getTitleById($data->rec->crmGroup), 'crmGroup');
         }
 
         if (isset($data->rec->allCompanyDiscount)) {
