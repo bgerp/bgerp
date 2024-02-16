@@ -193,7 +193,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $amount = isset($receiptDetailRec->inputDiscount) ? ($receiptDetailRec->amount * (1 - $receiptDetailRec->inputDiscount)) : $receiptDetailRec->amount;
 
             // Автоматично начислената отстъпка за този артикул в тази бележка $autoDiscount
-            $autoDiscount = isset($amount) ? $amount * $receiptDetailRec->autoDiscount : 0;
+            $autoDiscount = isset($receiptDetailRec->autoDiscount) ? $amount * $receiptDetailRec->autoDiscount : 0;
 
             $autoDiscount = $autoDiscount * (1 + $prodVat);
 
