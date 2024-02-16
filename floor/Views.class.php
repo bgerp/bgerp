@@ -170,8 +170,8 @@ class floor_Views extends core_Master {
         expect($vRec = floor_Views::fetch($viewId));
 
         $planId = Request::get('planId', 'int');
-        
-        if(!$planId || !floor_ViewDetails::fetch($planId)) {
+
+        if(!$planId || !floor_ViewDetails::fetch(array("#planId = '[#1#]'", $planId))) {
             $dQuery = floor_ViewDetails::getQuery();
             $planRec = $dQuery->fetch("#viewId = {$vRec->id}");
             $planId = $planRec->planId;
