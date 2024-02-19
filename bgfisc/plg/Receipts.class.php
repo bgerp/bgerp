@@ -50,10 +50,10 @@ class bgfisc_plg_Receipts extends core_Plugin
             $attr['disabled'] = 'disabled';
             $warning = '';
         } else {
-            $attr['class'] .= " navigable";
+            $attr['class'] .= " navigable printFiscBtn";
         }
         $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
-        
+
         $attr['title'] = 'Печат на фискален бон';
         $attr['data-url'] = toUrl($url, 'local');
         $closeBtn = ht::createFnBtn('Фискален бон', '', '', $attr);

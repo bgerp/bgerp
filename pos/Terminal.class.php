@@ -2345,10 +2345,11 @@ class pos_Terminal extends peripheral_Terminal
      * @param boolean $refreshTable
      * @param boolean $refreshPanel
      * @param boolean $autoFlush
+     * @param boolean $autoFiscPrintIfPossible
      * 
      * @return array $res
      */
-    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null, $refreshHeader = false, $autoFlush = true, $removeBlurScreen = null)
+    public static function returnAjaxResponse($receiptId, $selectedRecId, $success, $refreshTable = false, $refreshPanel = true, $refreshResult = true, $sound = null, $refreshHeader = false, $autoFlush = true, $removeBlurScreen = null, $autoFiscPrintIfPossible = false)
     {
         $me = cls::get(get_called_class());
         $Receipts = cls::get('pos_Receipts');
@@ -2451,6 +2452,12 @@ class pos_Terminal extends peripheral_Terminal
             $resObj = new stdClass();
             $resObj->func = 'removeBlurScreen';
             $resObj->arg = array('elementClass' => $removeBlurScreen);
+            $res[] = $resObj;
+        }
+
+        if($autoFiscPrintIfPossible){
+            $resObj = new stdClass();
+            $resObj->func = 'autoFiscPrintIfPossible';
             $res[] = $resObj;
         }
 

@@ -1481,6 +1481,14 @@ function render_toggleAddedProductFlag(data)
 
 
 /**
+ * Автоматично разпечатване на КБ
+ */
+function render_autoFiscPrintIfPossible()
+{
+	$( ".printFiscBtn" ).trigger( "click" );
+}
+
+/**
  * Възстановява опаситито на бутоните
  */
 function render_restoreOpacity()
