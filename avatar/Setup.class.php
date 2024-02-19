@@ -61,7 +61,7 @@ class avatar_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'AVATAR_DEFAULT_ICON_TYPE' => array('enum(wavatar, identicon, mysteryperson, mp, 404, robohash, monsterid, retro, blank)', 'caption=Икона по подразбиране в garavatar->Избор'),
+        'AVATAR_DEFAULT_ICON_TYPE' => array('enum(wavatar=Wavatar, identicon=Идентификация, mysteryperson=Мистериозен човек, mp=Мистериозен човек 2, 404=Само наличните, robohash=Робот, monsterid=Чудовище, retro=Ретро, blank=Празно)', 'caption=Икона по подразбиране в garavatar->Избор'),
     );
 
     
