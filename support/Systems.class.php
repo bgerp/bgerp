@@ -134,7 +134,7 @@ class support_Systems extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, description';
+    public $searchFields = 'name, description, defaultTitle';
     
     
     /**
@@ -147,7 +147,10 @@ class support_Systems extends core_Master
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', 'caption=Описание');
         $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Сигнали->Използвани, width=100%, maxColumns=3');
         $this->FLD('defaultType', 'key(mvc=support_IssueTypes, select=type, allowEmpty)', 'caption=Сигнали->По подразбиране');
-        
+        $this->FLD('addFromEveryOne', 'enum(no=Не,yes=Да)', 'caption=Добавяне от външната част->Избор, removeAndRefreshForm=defaultTitle|addContragentValues');
+        $this->FLD('defaultTitle', 'varchar', 'caption=Заглавие на формата->Заглавие, input=none');
+        $this->FLD('addContragentValues', 'enum(mandatory=Задължително, yes=Да, no=Не)', 'caption=Попълване на контрагент данни от нерегистрирани->Избор, input=none');
+
         $this->setDbUnique('name');
     }
     
@@ -250,6 +253,10 @@ class support_Systems extends core_Master
                              false,
                 'ef_icon = img/16/folder_new.png'
             );
+        }
+
+        if ($rec->addFromEveryOne == 'yes') {
+            $row->linkFromOutside = "<div onmouseup='selectInnerText(this);'>" . toUrl(array('cal_Tasks', 'New', $rec->id), 'absolute') . "</div>";
         }
     }
     
@@ -420,6 +427,11 @@ class support_Systems extends core_Master
         }
         
         $data->form->setSuggestions('allowedTypes', $options);
+
+        if ($data->form->rec->addFromEveryOne == 'yes') {
+            $data->form->setField('defaultTitle', array('input' => 'input'));
+            $data->form->setField('addContragentValues', array('input' => 'input'));
+        }
     }
     
     
