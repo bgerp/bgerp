@@ -2,7 +2,7 @@
 
 
 /**
- * Икона по подразбиране в garavatar - identicon, monsterid, wavatar, retro, blank
+ * Икона по подразбиране в garavatar - identicon, monsterid, wavatar, retro, blank, mysteryperson, robohash
  */
 defIfNot('AVATAR_DEFAULT_ICON_TYPE', 'wavatar');
 
@@ -61,7 +61,7 @@ class avatar_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'AVATAR_DEFAULT_ICON_TYPE' => array('enum(wavatar, identicon, monsterid, retro, blank)', 'caption=Икона по подразбиране в garavatar->Избор'),
+        'AVATAR_DEFAULT_ICON_TYPE' => array('enum(wavatar, identicon, mysteryperson, robohash, monsterid, retro, blank)', 'caption=Икона по подразбиране в garavatar->Избор'),
     );
 
     
