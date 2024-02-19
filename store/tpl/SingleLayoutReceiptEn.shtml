@@ -121,9 +121,9 @@
                     </tr>
                     <tr>
                         <td colspan="2">
-                            <div>
-                                Total gross weight: <b>[#weight#]</b> Total net weight: <b>[#netWeight#]</b> Total tare: <b>[#tareWeight#]</b> Total volume: <b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;|Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
-                            </div>
+                            <span class='half-col'>Total gross weight: [#weight#]</span>
+                            <span class='half-col'>Total net weight: [#netWeight#]</span>
+                            <span class='half-col'>Total tare: [#tareWeight#]</span>
                         </td>
                     </tr>
                     <!--ET_BEGIN logisticInfo-->
