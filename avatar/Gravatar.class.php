@@ -36,8 +36,10 @@ class avatar_Gravatar extends core_Manager
     public static function getUrl($email, $width = 100)
     {
         $md5 = md5(strtolower(trim($email)));
-        
-        $imgUrl = "https://www.gravatar.com/avatar/{$md5}?d=wavatar&s={$width}";
+
+        $iconType = avatar_Setup::get('DEFAULT_ICON_TYPE');
+
+        $imgUrl = "https://www.gravatar.com/avatar/{$md5}?d={$iconType}&s={$width}";
         
         $thmb = new thumb_Img($imgUrl, $width, $width, 'url');
         

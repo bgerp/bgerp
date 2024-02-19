@@ -2,6 +2,12 @@
 
 
 /**
+ * Икона по подразбиране в garavatar - identicon, monsterid, wavatar, retro, blank
+ */
+defIfNot('AVATAR_DEFAULT_ICON_TYPE', 'wavatar');
+
+
+/**
  * Клас 'avatar_Setup' -
  *
  *
@@ -49,7 +55,15 @@ class avatar_Setup extends core_ProtoSetup
     /**
      * Плъгини, които трябва да се инсталират
      */
-    
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'AVATAR_DEFAULT_ICON_TYPE' => array('enum(wavatar, identicon, monsterid, retro, blank)', 'caption=Икона по подразбиране в garavatar->Избор'),
+    );
+
     
     /**
      * Инсталиране на пакета
