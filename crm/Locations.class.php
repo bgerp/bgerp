@@ -110,8 +110,14 @@ class crm_Locations extends core_Master
      * Записи за обновяване
      */
     protected $updatedRecs = array();
-    
-    
+
+
+    /**
+     * Локации за обновяване
+     */
+    protected $updateRouteKeywords = array();
+
+
     /**
      * Кой може да създава продажба за локацията
      */
@@ -426,6 +432,15 @@ class crm_Locations extends core_Master
         
         if (isset($rec->contragentCls, $rec->contragentId)) {
             cls::get($rec->contragentCls)->logWrite($rec->_logMsg, $rec->contragentId);
+        }
+
+        // Записване на кои маршрути ще бъдат обновени ключовите думи
+        $rQuery = sales_Routes::getQuery();
+        $rQuery->where("#locationId = {$rec->id}");
+        $rQuery->show('id');
+        $routeIds = arr::extractValuesFromArray($rQuery->fetchAll(), 'id');
+        if(countR($routeIds)){
+            $mvc->updateRouteKeywords = $routeIds;
         }
     }
     
@@ -799,6 +814,12 @@ class crm_Locations extends core_Master
         if (!empty($mvc->updatedRecs)) {
             foreach ((array) $mvc->updatedRecs as $id => $rec) {
                 $mvc->updateRoutingRules($rec);
+            }
+        }
+
+        if (!empty($mvc->updateRouteKeywords)) {
+            foreach ($mvc->updateRouteKeywords as $routeId) {
+                plg_Search::forceUpdateKeywords('sales_Routes', $routeId);
             }
         }
     }
