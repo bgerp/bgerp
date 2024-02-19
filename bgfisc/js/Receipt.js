@@ -3,11 +3,11 @@ function fiscActions() {
 
 	// Опит за отпечатване на фискален бон при натискане на бутона
 	$(document.body).on('click', ".printReceiptBtn, .document-conto-btn", function(e){
-		
 		var url = $(this).attr("data-url");
 		
 		if(!url) return;
 		$('.fullScreenBg').css('display', 'block');
+		$('.select-input-pos').prop("disabled", true);
 
 		// Бутона се дезактивира при натискане, след получаване на резултат ще се активира
 		$(this).addClass( "disabledBtn");
