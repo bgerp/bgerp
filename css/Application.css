@@ -831,12 +831,15 @@ div.productImage {
 
   .products-table a.fancybox img,
   .jobTable a.fancybox img,
-  .general-product-description a.fancybox img,
   .sales_SalesDetails .productImage a.fancybox img {
     max-width: 320px;
     max-height: 320px;
     width: auto;
     height: auto; }
+
+.general-product-description a.fancybox img {
+  max-width: 320px;
+  max-height: 320px; }
 
 .component-title {
   padding: 5px 0;
