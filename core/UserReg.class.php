@@ -305,9 +305,7 @@ class core_UserReg extends core_Manager
                 }
             }
 
-            $this->logNotice('Изпратен имейл за регистрация', $rec->id);
-
-            status_Messages::newStatus('|Изпратен имейл за верификация на имейла. Моля проверете пощата си.' );
+            status_Messages::newStatus($msg, $type);
 
             return $retUrl;
         }
@@ -320,9 +318,15 @@ class core_UserReg extends core_Manager
             $statusMsg = '|Изпратен SMS за верификация на GSM номера. Моля проверете телефона си.';
             $type = 'notice';
 
+            if (!$isSend) {
+                $this->logErr('Грешка при изпращане на SMS за регистрация', $rec->id);
+                $statusMsg = '|Грешка при изпращане на SMS за верификация на GSM номера. Моля опитайте по-късно';
+                $type = 'warning';
+            }
+
             $this->logNotice('Изпратен SMS за регистрация', $rec->id);
 
-            status_Messages::newStatus('Изпратен SMS за верификация на GSM номера. Моля проверете телефона си.');
+            status_Messages::newStatus($statusMsg, $type);
 
             return $retUrl;
         }

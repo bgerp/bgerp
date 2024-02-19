@@ -52,6 +52,11 @@ class price_DiscountsPerDocuments extends core_Detail
      */
     public $canEdit = 'powerUser';
 
+    /**
+     * Кой може да изтрива?
+     */
+    public $canDelete = 'powerUser';
+
 
     /**
      * Кой има право да добавя?

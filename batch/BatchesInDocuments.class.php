@@ -334,37 +334,37 @@ class batch_BatchesInDocuments extends core_Manager
                     $siblingsQuery->show('id');
                     self::$cache[$key] = arr::extractValuesFromArray($siblingsQuery->fetchAll(), 'id');
                 }
-            }
 
-            $query = self::getQuery();
-            $query->where("#detailClassId = {$detailClassId}");
-            $query->in('detailRecId', self::$cache[$key]);
-            $query->show('batch,productId');
-            $query->groupBy('batch');
-            if ($detailRecId) {
-                $query->where("#detailRecId != {$detailRecId}");
-            }
+                $query = self::getQuery();
+                $query->where("#detailClassId = {$detailClassId}");
+                $query->in('detailRecId', self::$cache[$key]);
+                $query->show('batch,productId');
+                $query->groupBy('batch');
+                if ($detailRecId) {
+                    $query->where("#detailRecId != {$detailRecId}");
+                }
 
-            $oSerials = $def->makeArray($batch);
+                $oSerials = $def->makeArray($batch);
 
-            // За всеки
-            while ($oRec = $query->fetch()) {
-                $serials = batch_Defs::getBatchArray($oRec->productId, $oRec->batch);
+                // За всеки
+                while ($oRec = $query->fetch()) {
+                    $serials = batch_Defs::getBatchArray($oRec->productId, $oRec->batch);
 
-                // Проверяваме имали дублирани
-                $intersectArr = array_intersect($oSerials, $serials);
-                $intersect = countR($intersectArr);
+                    // Проверяваме имали дублирани
+                    $intersectArr = array_intersect($oSerials, $serials);
+                    $intersect = countR($intersectArr);
 
-                // Ако има казваме, кои се повтарят
-                // един сериен номер не може да е на повече от един ред
-                if ($intersect) {
-                    $imploded = implode(',', $intersectArr);
-                    if ($intersect == 1) {
+                    // Ако има казваме, кои се повтарят
+                    // един сериен номер не може да е на повече от един ред
+                    if ($intersect) {
+                        $imploded = implode(',', $intersectArr);
+                        if ($intersect == 1) {
 
-                        return "|Серийният номер|*: {$imploded}| се повтаря в документа|*";
+                            return "|Серийният номер|*: {$imploded}| се повтаря в документа|*";
+                        }
+
+                        return "|Серийните номера|*: {$imploded}| се повтарят в документа|*";
                     }
-
-                    return "|Серийните номера|*: {$imploded}| се повтарят в документа|*";
                 }
             }
         }

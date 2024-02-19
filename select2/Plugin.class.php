@@ -346,11 +346,19 @@ class select2_Plugin extends core_Plugin
             } else {
                 $suggV = $sugg;
             }
-            
-            $newSugg[$key]['id'] = trim(preg_replace('/[^a-z0-9\*]+/', ' ', strtolower(str::utf2ascii($suggV))));
+
+            $suggStr = str::utf2ascii($suggV);
+            if ($suggStr) {
+                $iConvStr = @iconv('UTF-8', 'ASCII//TRANSLIT', $suggStr);
+                if (isset($iConvStr)) {
+                    $suggStr = $iConvStr;
+                }
+            }
+
+            $newSugg[$key]['id'] = trim(preg_replace('/[^a-z0-9\*]+/', ' ', strtolower($suggStr)));
             $newSugg[$key]['title'] = $sugg;
         }
-        
+
         return serialize($newSugg);
     }
     
