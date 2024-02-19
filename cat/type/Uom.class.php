@@ -165,12 +165,17 @@ class cat_type_Uom extends type_Varchar
      */
     public function toVerbal_($value)
     {
-        if (!isset($value) || !is_numeric($value)) {
-            
-            return;
-        }
+        if (!isset($value) || !is_numeric($value))return;
         $value = abs($value);
-        
-        return cat_UoM::smartConvert($value, $this->params['unit']);
+
+        $res = cat_UoM::smartConvert($value, $this->params['unit']);
+        if(Mode::is('verbalWithoutSuffix')){
+            $explode = explode(' ', $res);
+            if(countR($explode) == 2){
+                $res = $explode[0];
+            }
+        }
+
+        return $res;
     }
 }
