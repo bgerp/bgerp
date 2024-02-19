@@ -41,7 +41,7 @@ class avatar_Gravatar extends core_Manager
 
         $imgUrl = "https://www.gravatar.com/avatar/{$md5}?d={$iconType}&s={$width}";
         
-        $thmb = new thumb_Img($imgUrl, $width, $width, 'url');
+        $thmb = new thumb_Img(array($imgUrl, $width, $width, 'url', 'default' => 'img/noimage120.gif'));
         
         return $thmb->getUrl();
     }
