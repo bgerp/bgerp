@@ -428,6 +428,8 @@ class support_Systems extends core_Master
         
         $data->form->setSuggestions('allowedTypes', $options);
 
+        $data->form->input('addFromEveryOne');
+
         if ($data->form->rec->addFromEveryOne == 'yes') {
             $data->form->setField('defaultTitle', array('input' => 'input'));
             $data->form->setField('addContragentValues', array('input' => 'input'));
