@@ -905,11 +905,8 @@ class hr_Leaves extends core_Master
         $link = array('hr_Leaves', 'single', $rec->id);
         
         //Променяме статуса на затворено
-        $recUpd = new stdClass();
-        $recUpd->id = $rec->id;
-        $recUpd->state = 'closed';
-        
-        hr_Leaves::save($recUpd);
+        $rec->state = 'closed';
+        hr_Leaves::save($rec);
         
         $subscribedArr = keylist::toArray($rec->sharedUsers);
         $subscribedArr[$rec->createdBy] = $rec->createdBy;
