@@ -11,7 +11,10 @@
 .select2 {
     min-width: 135px;
 }
-
+select.largeSelect + span.select2-container--default{
+    min-width: 400px;
+    max-width: 400px;
+}
 .select2-container--default .select2-selection--single, .select2-dropdown , .select2-container--default .select2-selection--multiple,
 .select2-container--default.select2-container--focus .select2-selection--multiple {
     border: solid 1px #9999ff;
