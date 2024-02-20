@@ -458,7 +458,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalWeightFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->{$mvc->totalWeightFieldName});
-                if($weightIsLive){
+                if($weightIsLive && !Mode::isReadOnly()){
                     $row->{$mvc->totalWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalWeightFieldName}}</span>";
                 }
                 if(isset($rec->calcedWeight) && $rec->weightInput){
@@ -481,7 +481,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalNetWeightFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalNetWeightFieldName} = $mvc->getFieldType($mvc->totalNetWeightFieldName)->toVerbal($rec->{$mvc->totalNetWeightFieldName});
-                if($netWeightIsLive){
+                if($netWeightIsLive && !Mode::isReadOnly()){
                     $row->{$mvc->totalNetWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalNetWeightFieldName}}</span>";
                 }
                 if(isset($rec->calcedNetWeight) && $rec->netWeightInput){
@@ -500,7 +500,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalTareWeightFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalTareWeightFieldName} = $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->{$mvc->totalTareWeightFieldName});
-                if($tareWeightIsLive){
+                if($tareWeightIsLive && !Mode::isReadOnly()){
                     $row->{$mvc->totalTareWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalTareWeightFieldName}}</span>";
                 }
                 if(isset($rec->calcedTareWeight)&& $rec->tareWeightInput){
@@ -528,7 +528,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalVolumeFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->{$mvc->totalVolumeFieldName});
-                if($volumeIsLive){
+                if($volumeIsLive && !Mode::isReadOnly()){
                     $row->{$mvc->totalVolumeFieldName} = "<span style='color:blue'>{$row->{$mvc->totalVolumeFieldName}}</span>";
                 }
                 $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume, 'noicon', false);
