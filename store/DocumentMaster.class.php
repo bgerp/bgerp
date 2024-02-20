@@ -582,56 +582,9 @@ abstract class store_DocumentMaster extends core_Master
 
             $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
-            $row = (object) ((array) $row + (array) $headerInfo);
+            $row = (object) ((array) $row + $headerInfo);
 
             $addressData = array();
-            if (!empty($rec->country)) {
-                $addressData['deliveryCountry'] = $row->country;
-            }
-            if (!empty($rec->pCode)) {
-                $addressData['deliverypCode'] = $row->pCode;
-            }
-            if (!empty($rec->place)) {
-                $addressData['deliveryPlace'] = core_Lg::transliterate($row->place);
-            }
-
-            // Скриваме "Особености" на локацията ПРИ ПЕЧАТ И ИЗПРАЩАНЕ
-            // ВИНАГИ когато ЕН е включено в Транспортна линия и в нея "Изпълнител" НЕ Е "Моята фирма"
-            $showLocationFeatures = true;
-            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-                if($rec->{$mvc->lineFieldName}){
-                    $forwarderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'forwarderId');
-                    if(isset($forwarderId) && $forwarderId != crm_Setup::BGERP_OWN_COMPANY_ID){
-                        $showLocationFeatures = false;
-                    }
-                }
-            }
-
-            foreach (array('address' => 'deliveryAddress', 'company' => 'deliveryCompany', 'person' => 'deliveryPerson', 'tel' => 'deliveryTel', 'features' => 'features', 'addressInfo' => 'addressInfo') as $fld => $delPlaceholder) {
-                if (!empty($rec->{$fld})) {
-                    if ($fld == 'address') {
-                        $addressData[$delPlaceholder] = core_Lg::transliterate($row->{$fld});
-                    } elseif ($fld == 'features') {
-                        unset($row->{$fld});
-                        if($showLocationFeatures){
-                            $addressData[$delPlaceholder] = trans_Features::getVerbalFeatures($rec->{$fld});
-                        }
-                    } elseif ($fld == 'tel') {
-                        if (callcenter_Talks::haveRightFor('list')) {
-                            $addressData[$delPlaceholder] = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
-                        }
-                    } else {
-                        $addressData[$delPlaceholder] = $row->{$fld};
-                    }
-                }
-            }
-
-            if(countR($addressData)){
-                $addressBlock = getTplFromFile('store/tpl/DeliveryAddressTpl.shtml');
-                $addressBlock->placeArray($addressData);
-                $row->deliveryTo = $addressBlock->getContent();
-            }
-
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperlink($rec->locationId);
                 if ($ourLocation = store_Stores::fetchField($rec->storeId, 'locationId')) {
@@ -642,28 +595,57 @@ abstract class store_DocumentMaster extends core_Master
                     }
                 }
 
-                $contLocationAddress = crm_Locations::getAddress($rec->locationId, false, $showLocationFeatures);
-                if ($contLocationAddress != '') {
-                    $row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
+                $Location = cls::get('crm_Locations');
+                $locationRec = $Location->fetch($rec->locationId);
+                $locationRow = $Location->recToVerbal($locationRec, $Location->selectFields());
+                foreach (array('countryId' => 'deliveryCountry', 'pCode' => 'deliverypCode', 'place' => 'deliveryPlace', 'address' => 'deliveryAddress', 'gln' => 'deliveryGln', 'countryId' => 'deliveryCountry', 'tel' => 'deliveryTel', 'mol' => 'deliveryPerson', 'features' => 'features', 'specifics' => 'addressInfo') as $recFld => $recPlaceholder){
+                    if (!empty($locationRec->{$recFld})) {
+                        if($recFld == 'features'){
+                            $addressData[$recPlaceholder] = $locationRec->{$recFld};
+                        } else {
+                            $addressData[$recPlaceholder] = $locationRow->{$recFld};
+                        }
+                    }
+                }
+            } else {
+                foreach (array('address' => 'deliveryAddress', 'company' => 'deliveryCompany', 'person' => 'deliveryPerson', 'tel' => 'deliveryTel', 'features' => 'features', 'addressInfo' => 'addressInfo') as $recFld => $recPlaceholder){
+                    if (!empty($rec->{$recFld})) {
+                        if($recFld == 'features'){
+                            $addressData[$recPlaceholder] = $rec->{$recFld};
+                        } else {
+                            $addressData[$recPlaceholder] = $row->{$recFld};
+                        }
+                    }
+                }
+            }
+
+            // Скриваме "Особености" на локацията ПРИ ПЕЧАТ И ИЗПРАЩАНЕ
+            // ВИНАГИ когато ЕН е включено в Транспортна линия и в нея "Изпълнител" НЕ Е "Моята фирма"
+            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+                if($rec->{$mvc->lineFieldName}){
+                    $forwarderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'forwarderId');
+                    if(isset($forwarderId) && $forwarderId != crm_Setup::BGERP_OWN_COMPANY_ID){
+                        unset($addressData['features']);
+                    }
+                }
+            }
+
+            if(countR($addressData)){
+                foreach ($addressData as $delKey => $delVal){
+                    if (in_array($delKey, array('deliveryAddress', 'deliveryPlace', 'deliveryPerson'))) {
+                        $addressData[$delKey] = core_Lg::transliterate($delVal);
+                    } elseif($delKey == 'features'){
+                        $addressData[$delKey] = trans_Features::getVerbalFeatures($delVal);
+                    } elseif($delKey == 'tel') {
+                        if (callcenter_Talks::haveRightFor('list')) {
+                            $addressData[$delKey] = ht::createLink($delVal, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
+                        }
+                    }
                 }
 
-                $locationRec = crm_Locations::fetch($rec->locationId, 'gln,tel,mol');
-                if ($locationRec->gln) {
-                    $row->deliveryLocationAddress = $locationRec->gln . ', ' . $row->deliveryLocationAddress;
-                    $row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ', ');
-                }
-                
-                if ($locationRec->tel) {
-                    $locTel = core_Type::getByName('varchar')->toVerbal($locationRec->tel);
-                    $row->deliveryLocationAddress .= ", {$locTel}";
-                }
-                
-                if ($locationRec->mol) {
-                    $locMol = core_Type::getByName('varchar')->toVerbal($locationRec->mol);
-                    $row->deliveryLocationAddress .= ", {$locMol}";
-                }
-
-              //  bp($row->deliveryLocationAddress, $row->deliveryTo);
+                $addressBlock = getTplFromFile('store/tpl/DeliveryAddressTpl.shtml');
+                $addressBlock->placeArray($addressData);
+                $row->deliveryTo = $addressBlock->getContent();
             }
 
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
