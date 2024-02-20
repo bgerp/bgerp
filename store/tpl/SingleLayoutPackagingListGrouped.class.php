@@ -207,7 +207,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 }
             } else {
                 if(!$isReadOnly && !empty($transUnitsVerbal)){
-                    $transUnitsVerbal = "<span style='color:blue'>{$transUnitsVerbal}</span>";
+                    $transUnitsVerbal = "<span style='color:black'>{$transUnitsVerbal}</span>";
                 }
             }
 
@@ -241,11 +241,13 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                         $modifyUrl[$fld] = $tariffObject->{$fld};
                     }
                     $modifyUrl['displayDescription'] = $tariffDescription;
+                    core_Lg::pop();
                     $modifyBtn = ht::createBtn('Промяна', $modifyUrl, false, false, 'ef_icon=img/16/edit.png,title=Промяна на обобщения ред на митническия код');
+                    $detail->Master->pushTemplateLg($masterRec->template);
                 }
             }
 
-            $element = ht::createElement('tr', $rowAttr, new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . ' <span style="float:right">' . $modifyBtn->getContent() . '</span></td>'));
+            $element = ht::createElement('tr', $rowAttr, new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . ' <span style="tariffCodeModifyBtn">' . $modifyBtn->getContent() . '</span></td>'));
             $rows['|' . $tariffNumber] = $element;
             
             // За всички записи
