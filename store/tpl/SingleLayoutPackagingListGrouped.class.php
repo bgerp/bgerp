@@ -98,11 +98,12 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         if(!empty($exValue)){
             $weightRecVerbal = core_Type::getByName($type)->toVerbal($exValue);
             if(!$isReadOnly){
-                $res = ht::createHint($weightRecVerbal, "Автоматично: {$res}", 'noicon');
+                $res = ht::createHint($weightRecVerbal, "Изчислено от редовете|*: {$res}", 'noicon');
             }
         } else {
             if(!$isReadOnly && $res != self::EMPTY_TARIFF_NUMBER){
-                $res = "<span style='color:black'>{$res}</span>";
+                $res = "<span style='color:blue'>{$res}</span>";
+                $res = ht::createHint($res, "Изчислено от редовете с този МТК", 'noicon');
             }
         }
 
@@ -182,8 +183,6 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         // За всяко поле за групиране
         foreach ($tariffCodes as $tariffNumber => $tariffObject) {
             $tariffCodeRec = store_ShipmentOrderTariffCodeSummary::getRec($masterRec->id, $tariffNumber);
-
-
             $weightVerbal = $this->getVerbalRow($tariffObject->weight, 'cat_type_Weight', $tariffCodeRec->weight);
             $netWeightVerbal = $this->getVerbalRow($tariffObject->netWeight, 'cat_type_Weight', $tariffCodeRec->netWeight);
             $displayTariffCode = $this->getVerbalRow($tariffObject->code, 'varchar', $tariffCodeRec->displayTariffCode);
@@ -194,7 +193,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $tariffDescriptionVerbal = $this->getVerbalRow($tariffDescription, 'varchar', $tariffCodeRec->displayDescription);
             } else {
                 $code = tr('Без тарифен код');
-                $tariffDescriptionVerbal = null;
+                $tariffDescriptionVerbal = $tariffDescription = null;
             }
 
             // Показване на полето като лайв или ръчно въведеното;
@@ -203,11 +202,12 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $transUnitsConverted = trans_Helper::convertTableToNormalArr($tariffCodeRec->transUnits);
                 $transUnitsInputVerbal = trans_Helper::displayTransUnits($transUnitsConverted);
                 if(!$isReadOnly){
-                    $transUnitsVerbal = ht::createHint($transUnitsInputVerbal, "Автоматично: {$transUnitsVerbal}", 'noicon');
+                    $transUnitsVerbal = ht::createHint($transUnitsInputVerbal, "Изчислено от редовете|*: {$transUnitsVerbal}", 'noicon');
                 }
             } else {
                 if(!$isReadOnly && !empty($transUnitsVerbal)){
-                    $transUnitsVerbal = "<span style='color:black'>{$transUnitsVerbal}</span>";
+                    $transUnitsVerbal = "<span style='color:blue;font-weight:bold'>{$transUnitsVerbal}</span>";
+                    $transUnitsVerbal = ht::createHint($transUnitsVerbal, "Изчислено от редовете с този МТК", 'noicon');
                 }
             }
 

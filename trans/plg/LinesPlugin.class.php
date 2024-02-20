@@ -445,6 +445,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             $weightIsLive = !$rec->weightInput;
             $netWeightIsLive = !$rec->netWeightInput;
             $volumeIsLive = !$rec->volumeInput;
+            $tareWeightIsLive = !$rec->tareWeightInput;
 
             if($rec->calcedWeight && isset($rec->{$mvc->totalWeightFieldName})){
                 $percentChange = abs(round((1 - $rec->{$mvc->totalWeightFieldName} / $rec->calcedWeight) * 100, 3));
@@ -460,7 +461,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if($weightIsLive){
                     $row->{$mvc->totalWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalWeightFieldName}}</span>";
                 }
-                if(isset($rec->calcedWeight)){
+                if(isset($rec->calcedWeight) && $rec->weightInput){
                     $hintWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->calcedWeight);
                 }
 
@@ -483,7 +484,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if($netWeightIsLive){
                     $row->{$mvc->totalNetWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalNetWeightFieldName}}</span>";
                 }
-                if(isset($rec->calcedNetWeight)){
+                if(isset($rec->calcedNetWeight) && $rec->netWeightInput){
                     $hintNetWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalNetWeightFieldName)->toVerbal($rec->calcedNetWeight);
                 }
 
@@ -499,10 +500,10 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalTareWeightFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalTareWeightFieldName} = $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->{$mvc->totalTareWeightFieldName});
-                if($netWeightIsLive){
+                if($tareWeightIsLive){
                     $row->{$mvc->totalTareWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalTareWeightFieldName}}</span>";
                 }
-                if(isset($rec->calcedTareWeight)){
+                if(isset($rec->calcedTareWeight)&& $rec->tareWeightInput){
                     $hintTareWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->calcedTareWeight);
                 }
 
