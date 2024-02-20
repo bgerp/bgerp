@@ -43,9 +43,11 @@ class doc_plg_TransferDoc extends core_Plugin
     /**
      * Преди запис на документ
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = array())
     {
-        if ($mvc->allwaysAddCurrentUser || empty($rec->id)) {
+        $fields = arr::make($fields, true);
+
+        if (($mvc->allwaysAddCurrentUser && (empty($fields) || $fields['sharedUsers'])) || empty($rec->id)) {
             if ($mvc->getField('sharedUsers', false)) {
                 $userId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $rec->personId), 'userId');
                 if ($userId) {
