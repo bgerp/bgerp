@@ -6247,6 +6247,22 @@ function render_removeBlurScreen(data)
 }
 
 
+/**
+ * Копира плейсхолдъра като стойност на полето
+ */
+function copyPlaceholderAsValOnClick()
+{
+    $('.copyPlaceholderAsVal').on('click', function(e) {
+        let val = $(this).val();
+        let placeholder = $(this).attr('placeholder');
+        if(!val && placeholder){
+            $(this).val(placeholder);
+        }
+    });
+}
+
+
+
 runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);

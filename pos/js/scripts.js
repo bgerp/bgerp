@@ -925,6 +925,7 @@ function pressNavigable(element)
 
 			console.log('SEND:' + amount);
 			$(".fullScreenCardPayment").css("display", "block");
+			$('.select-input-pos').prop("disabled", true);
 			getAmount(amount);
 			return;
 		} else {
@@ -999,6 +1000,7 @@ function getAmountRes(res)
 	var element = $("#card-payment");
 	var url = element.attr("data-url");
 	console.log("ANSWER FROM: " + url);
+	$('.select-input-pos').prop("disabled", false);
 
 	if(res == 'OK'){
 		var type = element.attr("data-type");
@@ -1021,6 +1023,7 @@ function getAmountRes(res)
 function getAmountError(err)
 {
 	$(".fullScreenCardPayment").css("display", "none");
+	$('.select-input-pos').prop("disabled", false);
 
 	showPaymentErrorStatus();
 	console.log("ERR:" + err);
@@ -1476,6 +1479,14 @@ function render_toggleAddedProductFlag(data)
 	});
 }
 
+
+/**
+ * Автоматично разпечатване на КБ
+ */
+function render_autoFiscPrintIfPossible()
+{
+	$( ".printFiscBtn" ).trigger( "click" );
+}
 
 /**
  * Възстановява опаситито на бутоните

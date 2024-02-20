@@ -138,6 +138,7 @@ class pos_ReceiptDetails extends core_Detail
         $param = Request::get('param', 'varchar');
         $success = true;
         $rec = null;
+        $autoFiscPrintIfPossible = false;
 
         try{
             if(!pos_Receipts::haveRightFor('pay', $receiptRec)){
@@ -198,8 +199,12 @@ class pos_ReceiptDetails extends core_Detail
                $success = false;
            }
        }
-       
-       return pos_Terminal::returnAjaxResponse($receiptId, $rec, $success, true, true, true, 'add');
+
+       if($success && in_array($param, array('manual', 'card'))){
+           $autoFiscPrintIfPossible = true;
+       }
+
+       return pos_Terminal::returnAjaxResponse($receiptId, $rec, $success, true, true, true, 'add', false, true, null, $autoFiscPrintIfPossible);
     }
     
 

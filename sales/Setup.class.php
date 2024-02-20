@@ -476,6 +476,7 @@ class sales_Setup extends core_ProtoSetup
         'migrate::fixDcNotesModifiedDate3823v2',
         'migrate::migrateDpNotes3823v2',
         'migrate::updateDeltaField2403',
+        'migrate::routesRepairSerchKeywords0824',
     );
     
     
@@ -703,5 +704,14 @@ class sales_Setup extends core_ProtoSetup
         $saleColName = str::phpToMysqlName('sellCost');
         $query = "UPDATE {$Deltas->dbTableName} SET {$colName} = {$saleColName} WHERE ({$colName} IS NULL AND {$saleColName} IS NOT NULL)";
         $Deltas->db->query($query);
+    }
+
+
+    /**
+     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
+     */
+    public static function routesRepairSerchKeywords0824()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'sales_Routes', dt::addSecs(180));
     }
 }

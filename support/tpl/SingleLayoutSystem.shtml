@@ -46,6 +46,24 @@
 	                            <td>[#ShowDocumentsAsButtons#]</td>
 	                        </tr>
 	                        <!--ET_END ShowDocumentsAsButtons-->
+                            <!--ET_BEGIN linkFromOutside-->
+                            <tr>
+                                <td class='dt'>|Външна връзка|*:</td>
+                                <td>[#linkFromOutside#]</td>
+                            </tr>
+                            <!--ET_END linkFromOutside-->
+                            <!--ET_BEGIN defaultTitle-->
+                            <tr>
+                                <td class='dt'>|Заглавие на формата|*:</td>
+                                <td>[#defaultTitle#]</td>
+                            </tr>
+                            <!--ET_END defaultTitle-->
+                            <!--ET_BEGIN addContragentValues-->
+                            <tr>
+                                <td class='dt'>|Контрагент данни|*:</td>
+                                <td>[#addContragentValues#]</td>
+                            </tr>
+                            <!--ET_END addContragentValues-->
                         </table>
                     </div>
                 </fieldset>

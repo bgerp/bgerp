@@ -163,7 +163,12 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $receiptQuery->where("#waitingOn IS NOT NULL");
         $receiptQuery->where("#autoDiscount IS NOT NULL");
 
-        $end = substr(($rec->end), 0, 10) . ' 23:59:59';
+        if($rec->end < substr(($rec->end), 0, 10) . ' 00:00:01'){
+            $end = substr(($rec->end), 0, 10) . ' 23:59:59';
+        }else{
+            $end = $rec->end;
+        }
+
         $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->start, $end));
 
         $allCompanyDiscount = 0;
@@ -317,13 +322,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $row->date = '<span class="fright">' . $d . '</span>';
         }
 
-
         $row->contragentName = $dRec->contragentName;
-
-
-//        if ($rec->groupBy == 'contragentName') {
-//           $row->contragentName .= '<span class="fright">  ОБЩО: ' . $dRec->totalSum . ' лв.</span>';
-//        }
 
         $row->allAutoDiscountContragent = $Double->toVerbal($dRec->allAutoDiscountContragent);
 
@@ -351,7 +350,8 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                                     <div class='small'>
                                         <!--ET_BEGIN start--><div>|От|*: [#start#]</div><!--ET_END start-->
                                         <!--ET_BEGIN end--><div>|До|*: [#end#]</div><!--ET_END end-->
-                                        <!--ET_BEGIN crmGroup--><div>|Фирма|*: [#crmGroup#]</div><!--ET_END crmGroup-->
+                                        <!--ET_BEGIN crmGroup--><div>|Група|*: [#crmGroup#]</div><!--ET_END crmGroup-->
+                                        <!--ET_BEGIN catGroup--><div>|Група артикули|*: [#catGroup#]</div><!--ET_END catGroup-->
                                         <!--ET_BEGIN allCompanyDiscount--><div>|Общо авт. отстъпки|*: [#allCompanyDiscount#] лв.</div><!--ET_END allCompanyDiscount-->     
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
@@ -365,6 +365,10 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $fieldTpl->append($Date->toVerbal($data->rec->end), 'end');
         }
 
+
+        if (isset($data->rec->catGroup)) {
+            $fieldTpl->append(cat_Groups::getTitleById($data->rec->catGroup), 'catGroup');
+        }
 
         if (isset($data->rec->crmGroup)) {
             $fieldTpl->append(crm_Groups::getTitleById($data->rec->crmGroup), 'crmGroup');

@@ -68,7 +68,7 @@
 							                <hr>
 							                <div>[#receiverCaption#]:  [#receiver#]</div>
 							                <!--ET_END responsible-->
-							                
+                                            <td>[#SENDER_SIGN#]</td>
 							                <!--ET_BEGIN username-->
 							                <div>[#senderCaption#]:  [#sender#]</div>
 							                <!--ET_END username-->

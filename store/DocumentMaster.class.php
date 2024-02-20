@@ -584,17 +584,15 @@ abstract class store_DocumentMaster extends core_Master
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + (array) $headerInfo);
 
-            $row->deliveryTo = '';
-            if ($row->country) {
-                $row->deliveryTo .= $row->country;
+            $addressData = array();
+            if (!empty($rec->country)) {
+                $addressData['deliveryCountry'] = $row->country;
             }
-
-            if ($row->pCode) {
-                $row->deliveryTo .= (($row->deliveryTo) ? ', ' : '') . $row->pCode;
+            if (!empty($rec->pCode)) {
+                $addressData['deliverypCode'] = $row->pCode;
             }
-
-            if ($row->pCode) {
-                $row->deliveryTo .= ' ' . core_Lg::transliterate($row->place);
+            if (!empty($rec->place)) {
+                $addressData['deliveryPlace'] = core_Lg::transliterate($row->place);
             }
 
             // Скриваме "Особености" на локацията ПРИ ПЕЧАТ И ИЗПРАЩАНЕ
@@ -609,24 +607,29 @@ abstract class store_DocumentMaster extends core_Master
                 }
             }
 
-            foreach (array('address', 'company', 'person', 'tel', 'features', 'addressInfo') as $fld) {
+            foreach (array('address' => 'deliveryAddress', 'company' => 'deliveryCompany', 'person' => 'deliveryPerson', 'tel' => 'deliveryTel', 'features' => 'features', 'addressInfo' => 'addressInfo') as $fld => $delPlaceholder) {
                 if (!empty($rec->{$fld})) {
                     if ($fld == 'address') {
-                        $row->{$fld} = core_Lg::transliterate($row->{$fld});
+                        $addressData[$delPlaceholder] = core_Lg::transliterate($row->{$fld});
                     } elseif ($fld == 'features') {
                         unset($row->{$fld});
                         if($showLocationFeatures){
-                            $row->{$fld} = trans_Features::getVerbalFeatures($rec->features);
+                            $addressData[$delPlaceholder] = trans_Features::getVerbalFeatures($rec->{$fld});
                         }
                     } elseif ($fld == 'tel') {
                         if (callcenter_Talks::haveRightFor('list')) {
-                            $row->{$fld} = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
+                            $addressData[$delPlaceholder] = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
                         }
+                    } else {
+                        $addressData[$delPlaceholder] = $row->{$fld};
                     }
-
-                    $row->deliveryTo .= ", {$row->{$fld}}";
                 }
-                $row->deliveryTo = rtrim($row->deliveryTo, ', ');
+            }
+
+            if(countR($addressData)){
+                $addressBlock = getTplFromFile('store/tpl/DeliveryAddressTpl.shtml');
+                $addressBlock->placeArray($addressData);
+                $row->deliveryTo = $addressBlock->getContent();
             }
 
             if ($rec->locationId) {
@@ -659,6 +662,8 @@ abstract class store_DocumentMaster extends core_Master
                     $locMol = core_Type::getByName('varchar')->toVerbal($locationRec->mol);
                     $row->deliveryLocationAddress .= ", {$locMol}";
                 }
+
+              //  bp($row->deliveryLocationAddress, $row->deliveryTo);
             }
 
             $row->storeId = store_Stores::getHyperlink($rec->storeId);

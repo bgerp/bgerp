@@ -1042,8 +1042,9 @@ class rack_Pallets extends core_Manager
         if(isset($productId)) {
             $where = "#productId = {$productId} AND #position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}";
             if(!is_null($batch)){
-                $where1 = "{$where} AND #batch = '[#1#]'";
-                $rec = self::fetch(array($where1, $batch));
+                $rec = self::fetch(array("{$where} AND #batch = '[#1#]'", $batch));
+            } else {
+                $rec = self::fetch($where);
             }
         }
 

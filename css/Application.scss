@@ -939,13 +939,18 @@ div.productImage {
 	border-radius:5px;
 }
 
-.products-table,  .jobTable, .general-product-description, .sales_SalesDetails .productImage{
+.products-table,  .jobTable, .sales_SalesDetails .productImage{
 	a.fancybox img{
 		max-width: 320px;
 	    max-height: 320px;
 	    width: auto;
 	    height: auto;
 	}
+}
+
+.general-product-description a.fancybox img{
+	 max-width: 320px;
+	 max-height: 320px;
 }
 
 .component-title {
