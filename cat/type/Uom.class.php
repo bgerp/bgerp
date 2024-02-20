@@ -170,10 +170,8 @@ class cat_type_Uom extends type_Varchar
 
         $res = cat_UoM::smartConvert($value, $this->params['unit']);
         if(Mode::is('verbalWithoutSuffix')){
-            $explode = explode(' ', $res);
-            if(countR($explode) == 2){
-                $res = $explode[0];
-            }
+            // Маха се мерната еденица, ако се иска това
+            $res = preg_replace('/[a-zа-я]/ui', '', $res);
         }
 
         return $res;
