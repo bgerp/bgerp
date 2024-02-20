@@ -27,7 +27,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
     /**
      * Константа за празен тарифен номер
      */
-    const EMPTY_TARIFF_NUMBER = ' ';
+    const EMPTY_TARIFF_NUMBER = '_';
 
 
     /**
@@ -80,8 +80,36 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $row->tariffNumber = $tariffNumber;
         }
     }
-    
-    
+
+
+    /**
+     * Вербално показване на реда
+     *
+     * @param $value
+     * @param $type
+     * @param $exValue
+     * @return core_ET|string
+     */
+    private function getVerbalRow($value, $type, $exValue)
+    {
+        // Показване на полето като лайв или ръчно въведеното;
+        $isReadOnly = Mode::isReadOnly();
+        $res = core_Type::getByName($type)->toVerbal($value);
+        if(!empty($exValue)){
+            $weightRecVerbal = core_Type::getByName($type)->toVerbal($exValue);
+            if(!$isReadOnly){
+                $res = ht::createHint($weightRecVerbal, "Автоматично: {$res}", 'noicon');
+            }
+        } else {
+            if(!$isReadOnly && $res != self::EMPTY_TARIFF_NUMBER){
+                $res = "<span style='color:black'>{$res}</span>";
+            }
+        }
+
+        return $res;
+    }
+
+
     /**
      * Преди рендиране на шаблона на детайла
      *
@@ -106,7 +134,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         foreach ($data->rows as $id => $row) {
             $rec1 = $data->recs[$id];
             if(!array_key_exists($rec1->tariffNumber, $tariffCodes)){
-                $tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'netWeight' => null, 'transUnits' => array(), 'withoutWeightProducts' => array());
+                $tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'netWeight' => null, 'transUnits' => array());
             }
 
             $transUnitId = $transUnitQuantity = null;
@@ -126,10 +154,6 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
             $netWeight = $detail->getNetWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->netWeight);
             $weight = $detail->getWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->weight);
-            if(empty($weight)){
-                $tariffCodes[$rec1->tariffNumber]->withoutWeightProducts[] = cat_Products::getTitleById($rec1->productId);
-            }
-
 
             if($totalInPackListWithTariffCodeVal == 'yes'){
                 $amountR = $rec1->amount * (1 - $rec1->discount);
@@ -153,48 +177,75 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
         ksort($tariffCodes, SORT_STRING);
         $rows = array();
+        $isReadOnly = Mode::isReadOnly();
 
         // За всяко поле за групиране
         foreach ($tariffCodes as $tariffNumber => $tariffObject) {
-            $weight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->weight);
-            $netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->netWeight);
+            $tariffCodeRec = store_ShipmentOrderTariffCodeSummary::getRec($masterRec->id, $tariffNumber);
 
-            if(countR($tariffObject->withoutWeightProducts) && !Mode::isReadOnly()){
-                $imploded = implode(',', $tariffObject->withoutWeightProducts);
-                $weight = ht::createHint($weight, "Следните артикули нямат транспортно тегло|*: {$imploded}", 'warning');
-            }
 
-            if($tariffNumber != self::EMPTY_TARIFF_NUMBER){
-                $code = "{$this->tariffCodeCaption} {$tariffObject->code}";
+            $weightVerbal = $this->getVerbalRow($tariffObject->weight, 'cat_type_Weight', $tariffCodeRec->weight);
+            $netWeightVerbal = $this->getVerbalRow($tariffObject->netWeight, 'cat_type_Weight', $tariffCodeRec->netWeight);
+            $displayTariffCode = $this->getVerbalRow($tariffObject->code, 'varchar', $tariffCodeRec->displayTariffCode);
+
+            if($displayTariffCode != self::EMPTY_TARIFF_NUMBER){
+                $code = "{$this->tariffCodeCaption} {$displayTariffCode}";
                 $tariffDescription = cond_TariffCodes::getDescriptionByCode($tariffObject->code, $masterRec->tplLang);
+                $tariffDescriptionVerbal = $this->getVerbalRow($tariffDescription, 'varchar', $tariffCodeRec->displayDescription);
             } else {
                 $code = tr('Без тарифен код');
-                $tariffDescription = null;
+                $tariffDescriptionVerbal = null;
             }
 
-            $transUnits = trans_Helper::displayTransUnits($tariffObject->transUnits);
+            // Показване на полето като лайв или ръчно въведеното;
+            $transUnitsVerbal = trans_Helper::displayTransUnits($tariffObject->transUnits);
+            if(isset($tariffCodeRec->transUnits)){
+                $transUnitsConverted = trans_Helper::convertTableToNormalArr($tariffCodeRec->transUnits);
+                $transUnitsInputVerbal = trans_Helper::displayTransUnits($transUnitsConverted);
+                if(!$isReadOnly){
+                    $transUnitsVerbal = ht::createHint($transUnitsInputVerbal, "Автоматично: {$transUnitsVerbal}", 'noicon');
+                }
+            } else {
+                if(!$isReadOnly && !empty($transUnitsVerbal)){
+                    $transUnitsVerbal = "<span style='color:blue'>{$transUnitsVerbal}</span>";
+                }
+            }
+
             $groupBlock = getTplFromFile('store/tpl/HScodeBlock.shtml');
             $groupBlock->append($code, 'code');
-            $groupBlock->append($weight, 'weight');
-            $groupBlock->append($tariffDescription, 'description');
+            $groupBlock->append($weightVerbal, 'weight');
+            $groupBlock->append($netWeightVerbal, 'netWeight');
+            $groupBlock->append($tariffDescriptionVerbal, 'description');
             if($totalTareInPackListWithTariffCodeVal == 'yes'){
-                $tareWeight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->tareWeight);
-                $groupBlock->append($tareWeight, 'tareWeight');
+                $tareWeightVerbal = $this->getVerbalRow($tariffObject->tareWeight, 'cat_type_Weight', $tariffCodeRec->tareWeight);
+                $groupBlock->append($tareWeightVerbal, 'tareWeight');
             }
 
-            $groupBlock->append($netWeight, 'netWeight');
-            $groupBlock->append($transUnits, 'transUnits');
+            $groupBlock->append($transUnitsVerbal, 'transUnits');
             if($totalInPackListWithTariffCodeVal == 'yes'){
-                $groupAmount = core_Type::getByName('double(decimals=2)')->toVerbal($tariffObject->amount);
-                $groupAmount .= "<span style='font-weight:normal;'> {$masterRec->currencyId} " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? tr('|с ДДС|*') : tr('|без ДДС|*')) . "</span>";
-                $groupBlock->append($groupAmount, 'groupAmount');
+                $groupAmountVerbal = $this->getVerbalRow($tariffObject->amount, 'double(decimals=2)', $tariffCodeRec->amount);
+                $groupAmountVerbal .= "<span style='font-weight:normal;'> {$masterRec->currencyId} " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? tr('|с ДДС|*') : tr('|без ДДС|*')) . "</span>";
+                $groupBlock->append($groupAmountVerbal, 'groupAmount');
             }
             $groupVerbal = $groupBlock;
             
             // Създаваме по един ред с името му, разпънат в цялата таблица
             $rowAttr = array('class' => ' group-by-field-row');
-            
-            $element = ht::createElement('tr', $rowAttr, new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . '</td>'));
+
+            $modifyBtn = new core_ET("");
+            if(!Mode::isReadOnly()){
+
+                if(store_ShipmentOrderTariffCodeSummary::haveRightFor('modify', (object)array('shipmentId' => $masterRec->id, 'tariffCode' => $tariffNumber))){
+                    $modifyUrl = array('store_ShipmentOrderTariffCodeSummary', 'modify', 'shipmentId' => $masterRec->id, 'tariffCode' => $tariffNumber, 'ret_url' => true);
+                    foreach (array('weight', 'netWeight', 'tareWeight', 'amount', 'transUnits') as $fld){
+                        $modifyUrl[$fld] = $tariffObject->{$fld};
+                    }
+                    $modifyUrl['displayDescription'] = $tariffDescription;
+                    $modifyBtn = ht::createBtn('Промяна', $modifyUrl, false, false, 'ef_icon=img/16/edit.png,title=Промяна на обобщения ред на митническия код');
+                }
+            }
+
+            $element = ht::createElement('tr', $rowAttr, new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . ' <span style="float:right">' . $modifyBtn->getContent() . '</span></td>'));
             $rows['|' . $tariffNumber] = $element;
             
             // За всички записи
