@@ -128,26 +128,34 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
         if($form->cmd != 'save' && $form->cmd != 'empty'){
             if($weightPlaceholder = Request::get('weight', 'varchar')){
                 Mode::push('verbalWithoutSuffix', true);
+                Mode::push('text', 'plain');
                 $weightPlaceholderVerbal = $form->getFieldType('weight')->toVerbal($weightPlaceholder);
+                Mode::pop('text');
                 Mode::pop('verbalWithoutSuffix');
                 $form->setField('weight', "placeholder={$weightPlaceholderVerbal}");
             }
             if($netWeightPlaceholder = Request::get('netWeight', 'varchar')){
                 Mode::push('verbalWithoutSuffix', true);
+                Mode::push('text', 'plain');
                 $netWeightPlaceholderVerbal = $form->getFieldType('netWeight')->toVerbal($netWeightPlaceholder);
+                Mode::pop('text');
                 Mode::pop('verbalWithoutSuffix');
                 $form->setField('netWeight', "placeholder={$netWeightPlaceholderVerbal}");
             }
 
             if($tareWeightPlaceholder = Request::get('tareWeight', 'varchar')){
                 Mode::push('verbalWithoutSuffix', true);
+                Mode::push('text', 'plain');
                 $tareWeightPlaceholderVerbal = $form->getFieldType('tareWeight')->toVerbal($tareWeightPlaceholder);
+                Mode::pop('text');
                 Mode::pop('verbalWithoutSuffix');
                 $form->setField('tareWeight', "placeholder={$tareWeightPlaceholderVerbal}");
             }
 
             if($amountPlaceholder = Request::get('amount', 'double')){
+                Mode::push('text', 'plain');
                 $amountPlaceholderVerbal = $form->getFieldType('amount')->toVerbal($amountPlaceholder);
+                Mode::pop('text');
                 $form->setField('amount', "placeholder={$amountPlaceholderVerbal}");
                 $amountUnit = "{$shipmentRec->currencyId} " . (($shipmentRec->chargeVat == 'yes' || $shipmentRec->chargeVat == 'separate') ? tr('|с ДДС|*') : tr('|без ДДС|*'));
                 $form->setField('amount', "placeholder={$amountPlaceholderVerbal}");
