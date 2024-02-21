@@ -124,6 +124,8 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
                                 } else {
                                     $res[$input] = null;
                                 }
+                            } else {
+                                $res[$input] = null;
                             }
                         }
                     } else {
