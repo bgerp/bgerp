@@ -121,7 +121,11 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
                             if ($prevVal = $valArr[$key]) {
                                 if (isset($res[$input]) && isset($prevVal->{$reg})) {
                                     $res[$input] -= $prevVal->{$reg};
+                                } else {
+                                    $res[$input] = null;
                                 }
+                            } else {
+                                $res[$input] = null;
                             }
                         }
                     } else {

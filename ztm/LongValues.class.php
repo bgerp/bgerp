@@ -83,4 +83,32 @@ class ztm_LongValues extends core_Manager
 
         return isset($value) ? $value : $var;
     }
+
+
+    /**
+     * Изтриване на старите неизползвани регистри
+     *
+     * @return string
+     */
+    public function cron_DeleteUnusedRegisterValues()
+    {
+        // Всички регистри, които имат стойности
+        $query = $this->getQuery();
+        $query->EXT('vHash', 'ztm_RegisterValues', 'externalName=value');
+        $query->where("#vHash = #hash");
+        $query->show('id');
+        $existKeysArr = array_keys($query->fetchAll());
+
+        // Изтриваме останалите
+        $query = $this->getQuery();
+        $query->notIn('id', $existKeysArr);
+        $query->show('id');
+        $dCnt = 0;
+        while ($rec = $query->fetch()) {
+            $this->delete($rec->id);
+            $dCnt++;
+        }
+
+        return "Изтрити са $dCnt неизползвани стойности на регистрите";
+    }
 }
