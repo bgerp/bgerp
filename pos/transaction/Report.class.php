@@ -76,15 +76,32 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         }
         
         if (isset($rec->id)) {
+            core_Debug::startTimer('PRODUCTION_ENTRIES');
+            pos_Reports::logDebug('START PRODUCTION_ENTRIES');
             $entriesProduction = $this->getProductionEntries($rec, $productsArr);
+            pos_Reports::logDebug('END PRODUCTION_ENTRIES');
+            core_Debug::stopTimer('PRODUCTION_ENTRIES');
+            pos_Reports::logDebug("GET PRODUCTION_ENTRIES: " . round(core_Debug::$timers["PRODUCTION_ENTRIES"]->workingTime, 6));
             if (countR($entriesProduction)) {
                 $entries = array_merge($entries, $entriesProduction);
             }
             
             // Генериране на записите
+            core_Debug::startTimer('TAKING_PART');
+            pos_Reports::logDebug('START TAKING_PART');
             $entries = array_merge($entries, $this->getTakingPart($rec, $productsArr, $totalVat, $posRec));
+            pos_Reports::logDebug('END TAKING_PART');
+            core_Debug::stopTimer('TAKING_PART');
+            pos_Reports::logDebug("GET TAKING_PART: " . round(core_Debug::$timers["TAKING_PART"]->workingTime, 6));
+
+            core_Debug::startTimer('PAYMENT_PART');
+            pos_Reports::logDebug('START PAYMENT_PART');
             $entries = array_merge($entries, $this->getPaymentPart($rec, $paymentsArr, $posRec));
-            
+            pos_Reports::logDebug('END PAYMENT_PART');
+            core_Debug::stopTimer('PAYMENT_PART');
+            pos_Reports::logDebug("GET PAYMENT_PART: " . round(core_Debug::$timers["PAYMENT_PART"]->workingTime, 6));
+
+
             // Начисляване на ддс ако има и е разрешено
             if (countR($totalVat) && $rec->chargeVat != 'no') {
                 $entries = array_merge($entries, $this->getVatPart($rec, $totalVat, $posRec));
@@ -106,6 +123,9 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         
         // Проверка на артикулите преди контиране
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            core_Debug::startTimer('META_CHECK');
+            pos_Reports::logDebug('START META_CHECK');
+
             $productsArr = arr::extractValuesFromArray($productsArr, 'value');
             $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canSell');
 
@@ -142,6 +162,10 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
             }
+
+            pos_Reports::logDebug('END META_CHECK');
+            core_Debug::stopTimer('META_CHECK');
+            pos_Reports::logDebug("GET META_CHECK: " . round(core_Debug::$timers["META_CHECK"]->workingTime, 6));
         }
         core_Debug::stopTimer('GET_TRANSACTION');
         pos_Reports::logDebug("GET TRANSACTION: " . round(core_Debug::$timers["GET_TRANSACTION"]->workingTime, 6));
