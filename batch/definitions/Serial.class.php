@@ -32,11 +32,12 @@ class batch_definitions_Serial extends batch_definitions_Proto
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('numbers', 'int', 'caption=Цифри,unit=брой');
+        $fieldset->FLD('numbers', 'int(Min=0)', 'caption=Цифри,unit=брой');
         $fieldset->FLD('prefix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Представка');
         $fieldset->FLD('suffix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Наставка');
         $fieldset->FLD('prefixHistory', 'blob', 'input=none');
         $fieldset->FLD('suffixHistory', 'blob', 'input=none');
+        $fieldset->FLD('totalLength', 'int(Min=0)', 'caption=Обща дължина,unit=Символа');
     }
 
 
@@ -101,6 +102,10 @@ class batch_definitions_Serial extends batch_definitions_Proto
             $errMsg .= " |и да завършват на|* <b>{$this->rec->suffix}</b>";
         }
 
+        if (!empty($this->rec->totalLength)) {
+            $errMsg .= " |и общата дължина на символите да е не повече от|* <b>{$this->rec->totalLength}</b>";
+        }
+
         foreach ($serials as $serial) {
             if ($serial === false) {
                 $msg = 'Не могат да се генерират серийни номера от зададеният диапазон';
@@ -134,6 +139,12 @@ class batch_definitions_Serial extends batch_definitions_Proto
             // Проверка дължината на символите ако има
             if (!empty($this->rec->numbers)) {
                 if (!preg_match('/^[0-9]{' . $this->rec->numbers . '}$/', $middleString)) {
+                    $error = true;
+                }
+            }
+
+            if (!empty($this->rec->totalLength)) {
+                if(mb_strlen($value) > $this->rec->totalLength){
                     $error = true;
                 }
             }
@@ -260,6 +271,14 @@ class batch_definitions_Serial extends batch_definitions_Proto
             $rec->suffixHistory = array();
         }
         $rec->suffixHistory[$rec->suffix] = $rec->suffix;
+
+        if($form->isSubmitted()){
+            if($rec->totalLength && (!empty($rec->prefix) || !empty($rec->suffix))){
+                if(mb_strlen("{$rec->prefix}{$rec->suffix}") > $rec->totalLength){
+                    $form->setError('totalLength,prefix,suffix', "Представката + надставката е по-вече символи от общата дължина");
+                }
+            }
+        }
     }
     
     
