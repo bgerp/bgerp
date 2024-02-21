@@ -608,7 +608,7 @@ abstract class store_DocumentMaster extends core_Master
                     }
                 }
             } else {
-                foreach (array('address' => 'deliveryAddress', 'company' => 'deliveryCompany', 'person' => 'deliveryPerson', 'tel' => 'deliveryTel', 'features' => 'features', 'addressInfo' => 'addressInfo') as $recFld => $recPlaceholder){
+                foreach (array('address' => 'deliveryAddress', 'company' => 'deliveryCompany', 'country' => 'deliveryCountry', 'person' => 'deliveryPerson', 'tel' => 'deliveryTel', 'pCode' => 'deliverypCode', 'place' => 'deliveryPlace', 'features' => 'features', 'addressInfo' => 'addressInfo') as $recFld => $recPlaceholder){
                     if (!empty($rec->{$recFld})) {
                         if($recFld == 'features'){
                             $addressData[$recPlaceholder] = $rec->{$recFld};

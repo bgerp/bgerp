@@ -222,7 +222,7 @@ class floor_Plans extends core_Master {
         }
         
         if($tabs) {
-            $tpl = new ET("<table><tr><td>{$tabs}</td></tr><tr><td><center><div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div></center></td></tr></table>");
+            $tpl = new ET("{$tabs}<div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div>");
         } else {
             $tpl = new ET("<div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div>");
         }

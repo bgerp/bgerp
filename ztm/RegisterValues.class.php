@@ -102,7 +102,7 @@ class ztm_RegisterValues extends core_Manager
             $deviceOptions[$dRec->id] = ztm_Devices::getRecTitle($dRec);
         }
 
-        $data->listFilter->FNC('registers', 'keylist(mvc=ztm_Registers, select=name)', 'caption=Регистри, remember');
+        $data->listFilter->FNC('registers', 'keylist(mvc=ztm_Registers, select=name)', 'caption=Регистри, remember,class=largeSelect');
         
         $data->listFilter->setOptions('deviceId', $deviceOptions);
         $data->listFilter->setFieldTypeParams('deviceId', array('allowEmpty' => 'allowEmpty'));
