@@ -2192,4 +2192,16 @@ class eshop_Products extends core_Master
             $Products->saveArray($save, 'id,haveProductsWithPrice');
         }
     }
+
+
+    /**
+     * Връща вербалното ид на обекта
+     *
+     * @param stdClass $rec
+     * @return string
+     */
+    public function getDefaultVerbalId_($rec)
+    {
+        return "{$rec->code} {$rec->name}";
+    }
 }
