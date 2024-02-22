@@ -163,6 +163,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
             }
 
             if($transUnits = Request::get('transUnits')){
+                $transUnits = is_array($transUnits) ? $transUnits : trans_Helper::convertTableToNormalArr($transUnits);
                 $transUnits = strip_tags(trans_Helper::displayTransUnits($transUnits));
                 $transUnitCaption = "Логистична еденици->{$transUnits}->ЛЕ";
             }
