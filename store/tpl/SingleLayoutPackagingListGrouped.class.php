@@ -190,11 +190,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $displayTariffCode = $this->getVerbalRow($tariffObject->code, 'varchar', $tariffCodeRec->displayTariffCode);
 
             if($displayTariffCode != self::EMPTY_TARIFF_NUMBER){
-                $code = "<span class='quiet'>{$this->tariffCodeCaption}</span> {$displayTariffCode}";
+                $code = "<span class='quiet small'>{$this->tariffCodeCaption}</span> {$displayTariffCode}";
                 $tariffDescription = cond_TariffCodes::getDescriptionByCode($tariffObject->code, $masterRec->tplLang);
                 $tariffDescriptionVerbal = $this->getVerbalRow($tariffDescription, 'varchar', $tariffCodeRec->displayDescription);
             } else {
-                $code = tr('Без тарифен код');
+                $code = "<span class='small'>" . tr('Без тарифен код') . "</span>";
                 $tariffDescriptionVerbal = $tariffDescription = null;
             }
 
