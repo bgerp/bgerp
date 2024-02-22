@@ -248,6 +248,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             // Създаваме по един ред с името му, разпънат в цялата таблица
             $rowAttr = array('class' => ' group-by-field-row');
 
+            $customStyle = "";
             $modifyBtn = new core_ET("");
             if(!Mode::isReadOnly()){
 
@@ -258,11 +259,12 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                     }
                     $modifyUrl['displayDescription'] = $tariffDescription;
                     core_Lg::pop();
+                    $customStyle = ' padding-right: 100px !important; ';
                     $modifyBtn = ht::createBtn('Промяна', $modifyUrl, false, false, 'class=fright,ef_icon=img/16/edit.png,title=Промяна на обобщения ред на митническия код,style=position:absolute; right: 8px; top:8px;');
                     $detail->Master->pushTemplateLg($masterRec->template);
                 }
             }
-            $element = ht::createElement('tr', $rowAttr, new ET("<td style='position:relative;background: #eee;padding-top:9px;padding-left:5px; border-right: none !important;' colspan='{$columnCount}'>" . $groupVerbal .  $modifyBtn->getContent() .'</td>'));
+            $element = ht::createElement('tr', $rowAttr, new ET("<td style='position:relative;background: #eee;padding-top:9px;padding-left:5px; {$customStyle}' colspan='{$columnCount}'>" . $groupVerbal .  $modifyBtn->getContent() .'</td>'));
             $rows['|' . $tariffNumber] = $element;
             
             // За всички записи
