@@ -99,6 +99,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $weightRecVerbal = core_Type::getByName($type)->toVerbal($exValue);
             if(!$isReadOnly){
                 $res = ht::createHint($weightRecVerbal, "Изчислено от редовете|*: {$res}", 'noicon');
+            } else {
+                $res = $weightRecVerbal;
             }
         } else {
             if(!$isReadOnly && $res != self::EMPTY_TARIFF_NUMBER){
@@ -203,6 +205,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $transUnitsInputVerbal = trans_Helper::displayTransUnits($transUnitsConverted);
                 if(!$isReadOnly){
                     $transUnitsVerbal = ht::createHint($transUnitsInputVerbal, "Изчислено от редовете|*: {$transUnitsVerbal}", 'noicon');
+                } else {
+                    $transUnitsVerbal = $transUnitsInputVerbal;
                 }
             } else {
                 if(!$isReadOnly && !empty($transUnitsVerbal)){
