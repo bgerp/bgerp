@@ -28,6 +28,8 @@ class doc_plg_Prototype extends core_Plugin
         'containerId',
         'createdBy',
         'createdOn',
+        'activatedBy',
+        'activatedOn',
         'originId',
         'modifiedBy',
         'modifiedOn',
