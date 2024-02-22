@@ -250,8 +250,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                     $detail->Master->pushTemplateLg($masterRec->template);
                 }
             }
-
-            $element = ht::createElement('tr', $rowAttr, new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . ' <span style="tariffCodeModifyBtn">' . $modifyBtn->getContent() . '</span></td>'));
+            $columns= $columns - 3;
+            $element = ht::createElement('tr', $rowAttr, new ET("<td style='background: #eee;padding-top:9px;padding-left:5px; border-right: none !important;' colspan='{$columns}'>" . $groupVerbal .'</td><td class="tariffCodeModifyBtn aright" style="vertical-align: middle !important; border-left: none !important;background: #eee; ">'.  $modifyBtn->getContent() .'</td>'));
             $rows['|' . $tariffNumber] = $element;
             
             // За всички записи
