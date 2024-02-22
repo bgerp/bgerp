@@ -652,11 +652,14 @@ class crm_Persons extends core_Master
                         $emlArr = type_Emails::toArray($rec->buzEmail);
                         $imgUrl = avatar_Gravatar::getUrl($emlArr[0], 120);
                     } elseif (!Mode::is('screenMode', 'narrow')) {
-                        $imgUrl = sbf('img/noimage120.gif');
+                        $imgUrl = avatar_Gravatar::getDefaultImage(true);
                     }
                     
                     if ($imgUrl) {
-                        $row->image = '<img class="hgsImage" src=' . $imgUrl . " alt='no image'>";
+                        $imgUrl = trim($imgUrl, '"');
+                        $imgUrl = trim($imgUrl, "'");
+
+                        $row->image = '<img class="hgsImage" src="' . $imgUrl . "\" alt='no image'>";
                     }
                 }
             }

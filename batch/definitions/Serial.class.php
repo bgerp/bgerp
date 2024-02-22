@@ -37,7 +37,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
         $fieldset->FLD('suffix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Наставка');
         $fieldset->FLD('prefixHistory', 'blob', 'input=none');
         $fieldset->FLD('suffixHistory', 'blob', 'input=none');
-        $fieldset->FLD('totalLength', 'int(Min=0)', 'caption=Обща дължина,unit=Символа');
+        $fieldset->FLD('length', 'int(Min=0)', 'caption=Дължина,unit=Символа');
     }
 
 
@@ -102,8 +102,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
             $errMsg .= " |и да завършват на|* <b>{$this->rec->suffix}</b>";
         }
 
-        if (!empty($this->rec->totalLength)) {
-            $errMsg .= " |и общата дължина на символите да е не повече от|* <b>{$this->rec->totalLength}</b>";
+        if (!empty($this->rec->length)) {
+            $errMsg .= " |и общата дължина на символите да е точно|* <b>{$this->rec->length}</b>";
         }
 
         foreach ($serials as $serial) {
@@ -143,8 +143,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
                 }
             }
 
-            if (!empty($this->rec->totalLength)) {
-                if(mb_strlen($value) > $this->rec->totalLength){
+            if (!empty($this->rec->length)) {
+                if(mb_strlen($value) != $this->rec->length){
                     $error = true;
                 }
             }
@@ -273,9 +273,9 @@ class batch_definitions_Serial extends batch_definitions_Proto
         $rec->suffixHistory[$rec->suffix] = $rec->suffix;
 
         if($form->isSubmitted()){
-            if($rec->totalLength && (!empty($rec->prefix) || !empty($rec->suffix))){
-                if(mb_strlen("{$rec->prefix}{$rec->suffix}") > $rec->totalLength){
-                    $form->setError('totalLength,prefix,suffix', "Представката + надставката е по-вече символи от общата дължина");
+            if($rec->length && (!empty($rec->prefix) || !empty($rec->suffix))){
+                if(mb_strlen("{$rec->prefix}{$rec->suffix}") > $rec->length){
+                    $form->setError('length,prefix,suffix', "Представката + надставката е повече от дължината");
                 }
             }
         }

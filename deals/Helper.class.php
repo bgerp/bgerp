@@ -2866,8 +2866,8 @@ abstract class deals_Helper
         }
 
         if(!empty($weight) && !empty($netWeight) && !empty($tareWeight)){
-            if(round($weight - $netWeight, 4) != $tareWeight){
-                $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName},{$tareWeightFieldName}", 'text' => 'Разликата между брутото и нетото не отговаря на тарата');
+            if(round($weight - $netWeight) != round($tareWeight)){
+                $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName},{$tareWeightFieldName}", 'text' => 'Разликата между бруто и нето не отговаря на тарата');
             }
         }
 

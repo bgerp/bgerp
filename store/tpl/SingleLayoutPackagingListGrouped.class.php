@@ -90,12 +90,13 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      * @param $exValue
      * @return core_ET|string
      */
-    private function getVerbalRow($value, $type, $exValue)
+    private function getVerbalRow(&$value, $type, $exValue)
     {
         // Показване на полето като лайв или ръчно въведеното;
         $isReadOnly = Mode::isReadOnly();
         $res = core_Type::getByName($type)->toVerbal($value);
         if(!empty($exValue)){
+            $value = $exValue;
             $weightRecVerbal = core_Type::getByName($type)->toVerbal($exValue);
             if(!$isReadOnly){
                 $res = ht::createHint($weightRecVerbal, "Изчислено от редовете|*: {$res}", 'noicon');
@@ -125,19 +126,29 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         if(!countR($data->recs) || Mode::is('renderHtmlInLine')) return;
         if($detail instanceof store_DocumentPackagingDetail) return;
 
-        $columns = countR($data->listFields);
+        // Скриване на колонките за нето/тара/бруто
         $masterRec = $data->masterData->rec;
+        if(store_ShipmentOrderTariffCodeSummary::count("#shipmentId = {$masterRec->id} AND #weight IS NOT NULL") || store_ShipmentOrderDetails::count("#shipmentId = {$masterRec->id} AND #weight IS NOT NULL")){
+            unset($data->listFields['weight']);
+        }
+        if(store_ShipmentOrderTariffCodeSummary::count("#shipmentId = {$masterRec->id} AND #netWeight IS NOT NULL") || store_ShipmentOrderDetails::count("#shipmentId = {$masterRec->id} AND #netWeight IS NOT NULL")){
+            unset($data->listFields['netWeight']);
+        }
+        if(store_ShipmentOrderTariffCodeSummary::count("#shipmentId = {$masterRec->id} AND #tareWeight IS NOT NULL") || store_ShipmentOrderDetails::count("#shipmentId = {$masterRec->id} AND #tareWeight IS NOT NULL")){
+            unset($data->listFields['tareWeight']);
+        }
 
+        $columnCount = countR($data->listFields);
         $totalInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'totalInPackListWithTariffCode');
         $totalTareInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'tareInPackListWithTariffCode');
 
         // Извличане на всички уникални тарифни номера и сумиране на данните им
-        $tariffCodes = array();
+        $data->tariffCodes = array();
 
         foreach ($data->rows as $id => $row) {
             $rec1 = $data->recs[$id];
-            if(!array_key_exists($rec1->tariffNumber, $tariffCodes)){
-                $tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'netWeight' => null, 'transUnits' => array());
+            if(!array_key_exists($rec1->tariffNumber, $data->tariffCodes)){
+                $data->tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'netWeight' => null, 'transUnits' => array());
             }
 
             $transUnitId = $transUnitQuantity = null;
@@ -152,7 +163,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
 
             if(!empty($transUnitQuantity)){
-                $tariffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] += $transUnitQuantity;
+                $data->tariffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] += $transUnitQuantity;
             }
 
             $netWeight = $detail->getNetWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->netWeight);
@@ -165,36 +176,36 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                     $amountR += $amountR * $vat;
                 }
 
-                $tariffCodes[$rec1->tariffNumber]->amount += $amountR;
+                $data->tariffCodes[$rec1->tariffNumber]->amount += $amountR;
             }
 
-            $tariffCodes[$rec1->tariffNumber]->weight += $weight;
-            $tariffCodes[$rec1->tariffNumber]->netWeight += $netWeight;
+            $data->tariffCodes[$rec1->tariffNumber]->weight += $weight;
+            $data->tariffCodes[$rec1->tariffNumber]->netWeight += $netWeight;
             if($totalTareInPackListWithTariffCodeVal == 'yes'){
                 $tareWeight = $detail->getTareWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->tareWeight, $weight, $netWeight);
                 if($tareWeight > 0){
-                    $tariffCodes[$rec1->tariffNumber]->tareWeight += $tareWeight;
+                    $data->tariffCodes[$rec1->tariffNumber]->tareWeight += $tareWeight;
                 }
             }
         }
 
-        ksort($tariffCodes, SORT_STRING);
+        ksort($data->tariffCodes, SORT_STRING);
         $rows = array();
         $isReadOnly = Mode::isReadOnly();
 
         // За всяко поле за групиране
-        foreach ($tariffCodes as $tariffNumber => $tariffObject) {
+        foreach ($data->tariffCodes as $tariffNumber => $tariffObject) {
             $tariffCodeRec = store_ShipmentOrderTariffCodeSummary::getRec($masterRec->id, $tariffNumber);
             $weightVerbal = $this->getVerbalRow($tariffObject->weight, 'cat_type_Weight', $tariffCodeRec->weight);
             $netWeightVerbal = $this->getVerbalRow($tariffObject->netWeight, 'cat_type_Weight', $tariffCodeRec->netWeight);
             $displayTariffCode = $this->getVerbalRow($tariffObject->code, 'varchar', $tariffCodeRec->displayTariffCode);
 
             if($displayTariffCode != self::EMPTY_TARIFF_NUMBER){
-                $code = "<span class='quiet'>{$this->tariffCodeCaption}</span> {$displayTariffCode}";
+                $code = "<span class='quiet small'>{$this->tariffCodeCaption}</span> {$displayTariffCode}";
                 $tariffDescription = cond_TariffCodes::getDescriptionByCode($tariffObject->code, $masterRec->tplLang);
                 $tariffDescriptionVerbal = $this->getVerbalRow($tariffDescription, 'varchar', $tariffCodeRec->displayDescription);
             } else {
-                $code = tr('Без тарифен код');
+                $code = "<span class='small'>" . tr('Без тарифен код') . "</span>";
                 $tariffDescriptionVerbal = $tariffDescription = null;
             }
 
@@ -203,6 +214,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             if(isset($tariffCodeRec->transUnits)){
                 $transUnitsConverted = trans_Helper::convertTableToNormalArr($tariffCodeRec->transUnits);
                 $transUnitsInputVerbal = trans_Helper::displayTransUnits($transUnitsConverted);
+                $tariffObject->transUnits = $tariffCodeRec->transUnits;
                 if(!$isReadOnly){
                     $transUnitsVerbal = ht::createHint($transUnitsInputVerbal, "Изчислено от редовете|*: {$transUnitsVerbal}", 'noicon');
                 } else {
@@ -250,8 +262,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                     $detail->Master->pushTemplateLg($masterRec->template);
                 }
             }
-
-            $element = ht::createElement('tr', $rowAttr, new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . ' <span style="tariffCodeModifyBtn">' . $modifyBtn->getContent() . '</span></td>'));
+            $columns = $columnCount - (($masterRec->state == 'draft') ? 3 : 4);
+            $element = ht::createElement('tr', $rowAttr, new ET("<td style='background: #eee;padding-top:9px;padding-left:5px; border-right: none !important;' colspan='{$columns}'>" . $groupVerbal .'</td><td class="tariffCodeModifyBtn aright" style="vertical-align: middle !important; border-left: none !important;background: #eee; ">'.  $modifyBtn->getContent() .'</td>'));
             $rows['|' . $tariffNumber] = $element;
             
             // За всички записи
@@ -268,7 +280,66 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 }
             }
         }
-        
+
         $data->rows = $rows;
+    }
+
+
+    /**
+     * След рендиране на лист таблицата
+     *
+     * @param core_Mvc $detail
+     * @param core_ET  $tpl
+     * @param stdClass $data
+     */
+    public function afterRenderListTable(core_Mvc $detail, &$tpl, &$data)
+    {
+        if(Mode::isReadOnly()) return;
+
+        $transUnitsByTariffCodes = array();
+        $weightByTariffCodes = $netWeightByTariffCodes = $tareWeightByTariffCodes = 0;
+        array_walk($data->tariffCodes, function($a) use (&$weightByTariffCodes, &$netWeightByTariffCodes, &$tareWeightByTariffCodes, &$transUnitsByTariffCodes) {
+            $weightByTariffCodes += $a->weight;
+            $netWeightByTariffCodes += $a->netWeight;
+            $tareWeightByTariffCodes += $a->tareWeight;
+            trans_Helper::sumTransUnits($transUnitsByTariffCodes, $a->transUnits);
+        });
+
+        $warnings = array();
+        if(!empty($data->masterData->rec->weight)){
+            if($weightByTariffCodes != $data->masterData->rec->weight){
+                $weightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($weightByTariffCodes);
+                $warnings[] = tr("Общото бруто по документа е различна от това по МТК|*: {$weightByTariffCodesVerbal}");
+            }
+        }
+
+        if(!empty($data->masterData->rec->netWeight)){
+            if($netWeightByTariffCodes != $data->masterData->rec->netWeight){
+                $netWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($netWeightByTariffCodes);
+                $warnings[] = tr("Общото нето по документа е различна от това по МТК|*: {$netWeightByTariffCodesVerbal}<br>");
+            }
+        }
+
+        if(!empty($data->masterData->rec->tareWeight)){
+            if($tareWeightByTariffCodes != $data->masterData->rec->tareWeight){
+                $tareWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($tareWeightByTariffCodes);
+                $warnings[] = tr("Общите тара по документа е различна от тези по МТК|*: {$tareWeightByTariffCodesVerbal}<br>");
+            }
+        }
+
+        $checkTransUnits = !empty($data->masterData->rec->transUnitsInput) ? $data->masterData->rec->transUnitsInput : $data->masterData->rec->transUnits;
+        if(!empty($checkTransUnits)){
+            $transUnitsByTariffCodesVerbal = trans_Helper::displayTransUnits($transUnitsByTariffCodes);
+            $checkTransUnitsVerbal = trans_Helper::displayTransUnits($checkTransUnits);
+            if($transUnitsByTariffCodesVerbal != $checkTransUnitsVerbal){
+                $warnings[] = tr("Общо ЛЕ по документа е различна от това по МТК|*: {$transUnitsByTariffCodesVerbal}<br>");
+            }
+        }
+
+        if(countR($warnings)){
+            $blockTpl = new core_ET("<div class='packingListWithTariffCodeTableWarnings'>[#warnings#]</div>");
+            $blockTpl->append(implode('<br>', $warnings), 'warnings');
+            $tpl->append($blockTpl);
+        }
     }
 }
