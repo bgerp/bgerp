@@ -313,16 +313,6 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
         }
 
-        $checkTransUnits = !empty($data->masterData->rec->transUnitsInput) ? $data->masterData->rec->transUnitsInput : $data->masterData->rec->transUnits;
-
-        if(!empty($checkTransUnits)){
-            $transUnitsByTariffCodesVerbal = trans_Helper::displayTransUnits($transUnitsByTariffCodes);
-            $checkTransUnitsVerbal = trans_Helper::displayTransUnits($checkTransUnits);
-            if($transUnitsByTariffCodesVerbal != $checkTransUnitsVerbal){
-                $warnings[] = tr("Общото нето по документа е различна от това по МТК|*: {$transUnitsByTariffCodesVerbal}<br>");
-            }
-        }
-
         if(!empty($data->masterData->rec->netWeight)){
             if($netWeightByTariffCodes != $data->masterData->rec->netWeight){
                 $netWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($netWeightByTariffCodes);
@@ -333,9 +323,19 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         if(!empty($data->masterData->rec->tareWeight)){
             if($tareWeightByTariffCodes != $data->masterData->rec->tareWeight){
                 $tareWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($tareWeightByTariffCodes);
-                $warnings[] = tr("Общите ЛЕ по документа е различна от тези по МТК|*: {$tareWeightByTariffCodesVerbal}<br>");
+                $warnings[] = tr("Общите тара по документа е различна от тези по МТК|*: {$tareWeightByTariffCodesVerbal}<br>");
             }
         }
+
+        $checkTransUnits = !empty($data->masterData->rec->transUnitsInput) ? $data->masterData->rec->transUnitsInput : $data->masterData->rec->transUnits;
+        if(!empty($checkTransUnits)){
+            $transUnitsByTariffCodesVerbal = trans_Helper::displayTransUnits($transUnitsByTariffCodes);
+            $checkTransUnitsVerbal = trans_Helper::displayTransUnits($checkTransUnits);
+            if($transUnitsByTariffCodesVerbal != $checkTransUnitsVerbal){
+                $warnings[] = tr("Общо ЛЕ по документа е различна от това по МТК|*: {$transUnitsByTariffCodesVerbal}<br>");
+            }
+        }
+
 
         if(countR($warnings)){
             $blockTpl = new core_ET("<div class='packingListWithTariffCodeTableWarnings'>[#warnings#]</div>");
