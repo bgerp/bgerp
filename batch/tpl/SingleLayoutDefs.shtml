@@ -47,7 +47,9 @@
                 	<!--ET_BEGIN suffix-->
                 	<tr><td class="quiet">|Наставка|*:</td> <td>[#suffix#]</td></tr>
                 	<!--ET_END suffix-->
-                	
+					<!--ET_BEGIN totalLength-->
+					<tr><td class="quiet">|Обща дължина|*:</td> <td>[#totalLength#]</td></tr>
+					<!--ET_END totalLength-->
 					<!--ET_BEGIN autoValue-->
                 	<tr><td class="quiet">|Генериране|*:</td> <td>[#autoValue#]</td></tr>
                 	<!--ET_END autoValue-->

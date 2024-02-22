@@ -118,6 +118,7 @@ class floor_Views extends core_Master {
     public function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory');
+        $this->FLD('position', 'enum(top=Горе,right=Отдясно)', 'caption=Позиция на табовете');
 
         $this->setDbUnique('name');
     }
@@ -177,7 +178,7 @@ class floor_Views extends core_Master {
             $planId = $planRec->planId;
         }
 
-        $tabs = "";
+        $tabs = "<div class='{$vRec->position}Position floorTabs'>";
 
         $dQuery = floor_ViewDetails::getQuery();
         while($dRec = $dQuery->fetch("#viewId = {$vRec->id}")) {
@@ -192,7 +193,7 @@ class floor_Views extends core_Master {
             $tabs .= '</div>';
         }
 
-
+        $tabs .= '</div>';
 
         $Plans = cls::get('floor_Plans');
 
