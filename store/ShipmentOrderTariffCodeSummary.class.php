@@ -182,28 +182,38 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
         if($form->isSubmitted()){
             $fRec = $form->rec;
 
-            if($form->cmd == 'save'){
-                $isEmpty = empty($fRec->displayTariffCode) && empty($fRec->displayDescription) && !isset($fRec->weight) && !isset($fRec->netWeight) && !isset($fRec->tareWeight) && !isset($fRec->transUnits) && !isset($fRec->amount);
-            } else {
-                $isEmpty = true;
-            }
-
-            // Ако ще се нулира изтрива се съществуващия запис
-            if(is_object($exRec)){
-                if($isEmpty){
-                    static::delete($exRec->id);
-                    store_ShipmentOrders::logWrite('Промяна на обощения ред за МТК', $shipmentRec->id);
-                    followRetUrl(null, 'Промените са записани успешно');
+            // Проверка на логистичната информация
+            $checkTransData = deals_Helper::checkTransData($fRec->weight, $fRec->netWeight, $fRec->tareWeight, 'weight', 'netWeight', 'tareWeight');
+            if(countR($checkTransData['errors'])){
+                foreach ($checkTransData['errors'] as $errArr){
+                    $form->setError($errArr['fields'], $errArr['text']);
                 }
-                $fRec->id = $exRec->id;
             }
 
-            if(!$isEmpty){
-                static::save($fRec);
-                store_ShipmentOrders::logWrite('Промяна на обощения ред за МТК', $shipmentRec->id);
-            }
+            if(!$form->gotErrors()){
+                if($form->cmd == 'save'){
+                    $isEmpty = empty($fRec->displayTariffCode) && empty($fRec->displayDescription) && !isset($fRec->weight) && !isset($fRec->netWeight) && !isset($fRec->tareWeight) && !isset($fRec->transUnits) && !isset($fRec->amount);
+                } else {
+                    $isEmpty = true;
+                }
 
-            followRetUrl(null, 'Промените са записани успешно');
+                // Ако ще се нулира изтрива се съществуващия запис
+                if(is_object($exRec)){
+                    if($isEmpty){
+                        static::delete($exRec->id);
+                        store_ShipmentOrders::logWrite('Промяна на обощения ред за МТК', $shipmentRec->id);
+                        followRetUrl(null, 'Промените са записани успешно');
+                    }
+                    $fRec->id = $exRec->id;
+                }
+
+                if(!$isEmpty){
+                    static::save($fRec);
+                    store_ShipmentOrders::logWrite('Промяна на обощения ред за МТК', $shipmentRec->id);
+                }
+
+                followRetUrl(null, 'Промените са записани успешно');
+            }
         }
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
