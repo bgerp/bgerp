@@ -125,7 +125,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         if(!countR($data->recs) || Mode::is('renderHtmlInLine')) return;
         if($detail instanceof store_DocumentPackagingDetail) return;
 
-        $columns = countR($data->listFields);
+        $columnCount = countR($data->listFields);
         $masterRec = $data->masterData->rec;
 
         $totalInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'totalInPackListWithTariffCode');
@@ -250,7 +250,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                     $detail->Master->pushTemplateLg($masterRec->template);
                 }
             }
-            $columns= $columns - (in_array($masterRec->state, array('draft')) ? 3 : 4);
+            $columns = $columnCount - (($masterRec->state == 'draft') ? 3 : 4);
             $element = ht::createElement('tr', $rowAttr, new ET("<td style='background: #eee;padding-top:9px;padding-left:5px; border-right: none !important;' colspan='{$columns}'>" . $groupVerbal .'</td><td class="tariffCodeModifyBtn aright" style="vertical-align: middle !important; border-left: none !important;background: #eee; ">'.  $modifyBtn->getContent() .'</td>'));
             $rows['|' . $tariffNumber] = $element;
             
