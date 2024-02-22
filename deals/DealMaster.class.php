@@ -1220,6 +1220,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $conditions = $mvc->getConditionArr($rec, true);
                 if(in_array($rec->state, array('pending', 'draft'))){
                     foreach($conditions as &$cArr){
+                        $cArr = core_Type::getByName('richtext')->toVerbal($cArr);
                         if(!Mode::isReadOnly()){
                             $cArr = "<span class='blueText'>{$cArr}</span>";
                         }
@@ -1231,6 +1232,9 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 
             foreach ($conditions as $aCond) {
+                if(!is_object($aCond)){
+                    $aCond = core_Type::getByName('richtext')->toVerbal($aCond);
+                }
                 $row->notes .= "<li>{$aCond}</li>";
             }
 
@@ -1371,8 +1375,7 @@ abstract class deals_DealMaster extends deals_DealBase
         // Показване на допълнителните условия, ако има зададени като търговско условие за контрагента
         $otherConditionSysId = (($this instanceof sales_Sales) ? ($lang == 'bg' ? 'otherConditionSale' : 'otherConditionSaleEn') : ($lang == 'bg' ? 'otherConditionPurchase' : 'otherConditionPurchaseEn'));
         if ($otherCond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $otherConditionSysId)) {
-            $otherConditionId = cond_Parameters::fetchIdBySysId($otherConditionSysId);
-            $conditions[] = cond_Parameters::toVerbal($otherConditionId, $rec->contragentClassId, $rec->contragentId, $otherCond);
+            $conditions[] = $otherCond;
         }
 
         return array_values($conditions);
@@ -2951,6 +2954,15 @@ abstract class deals_DealMaster extends deals_DealBase
     public function getLinkedFiles($rec)
     {
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
+
+        // Добавят се и файловете от допълнителните условия, ако има такова
+        $additionalConditions = $rec->additionalConditions;
+        if(in_array($rec->state, array('active', 'draft'))) {
+            $additionalConditions = $this->getConditionArr($rec);
+        }
+        foreach ($additionalConditions as $aCond) {
+            $files += fileman_RichTextPlg::getFiles($aCond);
+        }
 
         return $files;
     }
