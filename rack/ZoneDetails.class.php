@@ -162,7 +162,7 @@ class rack_ZoneDetails extends core_Detail
                     $row->batch = ht::createLinkRef($row->batch, array('rack_ProductsByBatches', 'list', 'search' => $rec->batch));
                 }
             } else {
-                $row->batch = "<span class='quiet'>" . tr('без партида') . "</span>";
+                $row->batch = "<span class='quiet'>" . tr('Без партида') . "</span>";
             }
 
             if($mvc->haveRightFor('modifybatch', $rec)){
@@ -695,7 +695,7 @@ class rack_ZoneDetails extends core_Detail
         $newRec = static::makeReturnQuantityMovement($rec->zoneId, $rec->productId, $rec->batch, $rec->packagingId, $overQuantity);
         rack_Movements::save($newRec);
 
-        followRetUrl(null, 'Създадено е обратно движение за връщане на останалото количество в зоната');
+        followRetUrl(null, '|Създадено е обратно движение за връщане на останалото количество в зоната');
     }
 
 

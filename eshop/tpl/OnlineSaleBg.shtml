@@ -43,6 +43,7 @@
 <div class="scrolling-holder">
     <div class="details">
         [#sales_SalesDetails#]
+        [#price_DiscountsPerDocuments#]
     </div>
 </div>
 <div class="lines"></div>
@@ -89,7 +90,7 @@
                             <li>|Освободено от ДДС|*[#exemptVat#]</li>
                             <!--ET_END exemptVat-->
                             <!--ET_BEGIN noVat-->
-                            <li>|Цените са без ДДС|*[#noVat#]</li>
+                            <li>|Без начисляване на ДДС|*[#noVat#]</li>
                             <!--ET_END noVat-->
                             <!--ET_BEGIN closedDocuments-->
                             <li>|Обединява|*: [#closedDocuments#]</li>

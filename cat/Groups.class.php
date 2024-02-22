@@ -137,6 +137,12 @@ class cat_Groups extends core_Master
 
 
     /**
+     * Детайла, на модела
+     */
+    protected $changedParentId = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -771,8 +777,34 @@ class cat_Groups extends core_Master
             $queryGr = cat_Groups::getQuery();
             $queryGr->delete("#productCnt = 0 AND #parentId = $grRecOld->id");
         }
-
-
     }
 
+
+    /**
+     * Преди запис на перо
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+        if(isset($rec->id)){
+
+            // Ако е сменен бащата ще се дига флаг за преизчисляване на групите на артикулите
+            $oldParentId = $mvc->fetchField($rec->id, 'parentId', false);
+            if($rec->parentId != $oldParentId){
+                $mvc->changedParentId[$rec->id] = $rec->id;
+            }
+        }
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // Ако има нови записи в групите, ще се преизчисляват тези на всички артикули
+        if(countR($mvc->changedParentId)){
+            $callOn = dt::addSecs(30);
+            core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpandInput', 'cat_Products', $callOn);
+        }
+    }
 }

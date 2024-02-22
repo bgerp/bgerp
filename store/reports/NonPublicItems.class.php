@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Частично експедирани нестандартни артикули
+ * @title     Склад » Нестандартни артикули - количества за експедиране
  */
 class store_reports_NonPublicItems extends frame2_driver_TableData
 {
@@ -27,7 +27,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store,planning,purchase';
+    public $canSelectDriver = 'ceo,manager,store,sales';
 
 
     /**
@@ -75,7 +75,8 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('users', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Потрбители->Търговец,mandatory,after=title,single=none');
+        $fieldset->FLD('users', 'userList(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales|store)', 'caption=Експедиционни нареждания създадени от->Потребители,mandatory,after=title,single=none');
+
     }
 
 
@@ -91,7 +92,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-
+        $form->setField('sharedUsers', 'mandatory,autohide=none');
     }
 
 
@@ -140,9 +141,9 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         $arr = keylist::toArray($rec->users);
 
         //Филтър по потребители
-    $shQuery->where('#createdBy IN (' . implode(',', $arr) . ')');
+        $shQuery->where('#createdBy IN (' . implode(',', $arr) . ')');
 
-        if (!$shQuery->count()){
+        if (!$shQuery->count()) {
             return $recs;
         }
 
@@ -160,6 +161,8 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         while ($shDetRec = $shDetQuery->fetch()) {
 
+            $color = '';
+
             //Количество от артикула в склада от ЕН
             if (!in_array($shDetRec->storeId, $activeStateArr)) continue;
             $storeQuantity = store_Products::getQuantities($shDetRec->productId, $shDetRec->storeId);
@@ -167,6 +170,18 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
             //Експедирано количество общо от всички опаковки
             $shipmentQuantity = $shDetRec->quantityInPack * $shDetRec->packQuantity;
+
+            if (!$rec->data) {
+                $stopNot = false;
+            } else {
+                $stopNot = $rec->data->recs[$shDetRec->productId]->stopNot;
+
+            }
+
+            if (($shipmentQuantity < $storeQuantity->quantity) ||
+            (($shipmentQuantity >= $storeQuantity->quantity) && ($allStoriesQuantity->quantity > $shipmentQuantity))){
+                $color = 'red';
+            }
 
             if (!array_key_exists($shDetRec->productId, $recs)) {
                 $recs[$shDetRec->productId] =
@@ -180,6 +195,8 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
                         'storeQuantity' => $storeQuantity->quantity,
                         'allStoriesQuantity' => $allStoriesQuantity->quantity,
                         'measure' => cat_Products::fetchField($shDetRec->productId, 'measureId'),
+                        'stopNot' => $stopNot,
+                        'color' => $color,
                     );
             } else {
                 $obj = &$recs[$shDetRec->productId];
@@ -193,6 +210,8 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         if (countR($recs)) {
             self::sendNotificationOnThisReport($rec);
         }
+
+        arr::sortObjects($recs, 'color', 'desc');
 
         return $recs;
 
@@ -219,7 +238,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
             $fld->FLD('shipmentQuantity', 'double', 'caption=Количество -> по ЕН');
             $fld->FLD('storeQuantity', 'double', 'caption=Количество -> в склада');
             $fld->FLD('allStoriesQuantity', 'double', 'caption=Количество -> общо');
-            $fld->FLD('tag', 'varchar', 'caption=Таг');
+            $fld->FLD('stopNot', 'text', 'caption=Стоп->нотиф.,tdClass=centered');
         } else {
             $fld->FLD('shipmentId', 'key(mvc=store_ShipmentOrders,select=id)', 'caption=ЕН');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
@@ -252,9 +271,9 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         $row = new stdClass();
 
-            $shipmentHandle = '#' . store_ShipmentOrders::getHandle($dRec->shipmentId);
-            $row->shipmentId = ht::createLink($shipmentHandle, array('store_ShipmentOrders', 'Single', $dRec->shipmentId), null);
-            $oldShipment = $dRec->shipmentId;
+        $shipmentHandle = '#' . store_ShipmentOrders::getHandle($dRec->shipmentId);
+        $row->shipmentId = ht::createLink($shipmentHandle, array('store_ShipmentOrders', 'Single', $dRec->shipmentId), null);
+        $oldShipment = $dRec->shipmentId;
 
         $row->productId = cat_Products::getHyperlink($dRec->productId, 'name');
 
@@ -271,6 +290,14 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
             $row->allStoriesQuantity = "<span class= 'red'>" . '<b>' . $Double->toVerbal($dRec->allStoriesQuantity) . '</b>';
 
         }
+
+        if ($dRec->stopNot === true) {
+            $icon = "ef_icon=img/16/checkbox_yes.png";
+        }
+        if ($dRec->stopNot === false) {
+            $icon = "ef_icon=img/16/checkbox_no.png";
+        }
+        $row->stopNot .= ht::createLink('', array('store_reports_NonPublicItems', 'SetStop', 'productId' => $dRec->productId, 'recId' => $rec->id, 'ret_url' => true), null, $icon);
 
         return $row;
     }
@@ -296,7 +323,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         if (isset($data->rec->users)) {
 
-                $fieldTpl->append(core_Type::getByName('userList')->toVerbal($data->rec->users), 'users');
+            $fieldTpl->append(core_Type::getByName('userList')->toVerbal($data->rec->users), 'users');
 
         }
 
@@ -343,26 +370,27 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
      */
     public function sendNotificationOnThisReport($rec)
     {
-        $art = null;
+        $artArr = array();
         $cond = false;
         $me = cls::get(get_called_class());
+
         if (!$rec->data->recs) return;
+
         foreach ($rec->data->recs as $r) {
 
-            $hashFields = $this->getUiextLabelHashFields($r);
-            $hash = uiext_Labels::getHash($r, $hashFields);
-            $selRec = uiext_ObjectLabels::fetchByDoc(frame2_Reports::getClassId(), $rec->id, $hash);
-
-            if (($r->shipmentQuantity < $r->storeQuantity) && ($selRec === false)) {
+            if (($r->shipmentQuantity < $r->storeQuantity) && ($r->stopNot === false)) {
 
                 $rec->priority = 'alert';
+                array_push($artArr,$r->productId);
 
                 $cond = true;
             }
 
             if (($r->shipmentQuantity >= $r->storeQuantity) &&
                 ($r->shipmentQuantity < $r->allStoriesQuantity) &&
-                ($selRec === false)) {
+                ($r->stopNot === false)) {
+
+                array_push($artArr,$r->productId);
 
                 $cond = true;
 
@@ -371,14 +399,19 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
 
         if ($cond === false) return;
 
-        // Ако няма избрани потребители за нотифициране, не се прави нищо
+        // Нотифицират се избраните потребители
         $userArr = keylist::toArray($rec->sharedUsers);
-        if (!countR($userArr)) {
-
-            return;
+        $arts = '';
+        $mark = 1;
+        foreach ($artArr as $v){
+            $arts .= 'Art'.$v;
+            if($mark < countR($artArr)){
+                $arts .= ', ';
+                $mark++;
+            }
         }
 
-        $text = self::$defaultNotificationText . $art;
+        $text = self::$defaultNotificationText .' '. $arts;
         $msg = new core_ET($text);
 
         // Заместване на параметрите в текста на нотификацията
@@ -392,7 +425,7 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
         $url = array('frame2_Reports', 'single', $rec->id);
         $msg = $msg->getContent();
 
-        // На всеки от абонираните потребители се изпраща нотификацията за промяна на документа
+        // На всеки от абонираните потребители се изпраща нотификацията за наличие на неекспедирани количества
         foreach ($userArr as $userId) {
             bgerp_Notifications::add($msg, $url, $userId, $rec->priority);
         }
@@ -421,5 +454,34 @@ class store_reports_NonPublicItems extends frame2_driver_TableData
             $d2,
             $d3
         );
+    }
+
+    /**
+     * Промяна на стойностите min и max
+     *
+     */
+    public function act_SetStop()
+    {
+        expect($recId = Request::get('recId', 'int'));
+        expect($productId = Request::get('productId', 'int'));
+
+        $rec = frame2_Reports::fetch($recId);
+
+        $stopNot = $rec->data->recs[$productId]->stopNot;
+
+        if ($stopNot === false) {
+
+            $rec->data->recs[$productId]->stopNot = true;
+
+        } elseif ($stopNot === true) {
+
+            $rec->data->recs[$productId]->stopNot = false;
+        }
+
+        cls::get('frame2_Reports')->save_($rec);
+
+        frame2_Reports::refresh($rec);
+
+        return new Redirect(getRetUrl());
     }
 }

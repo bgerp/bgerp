@@ -416,10 +416,12 @@ class price_Updates extends core_Manager
                
                 $minChange = (isset($rec->minChange)) ? $rec->minChange : price_Setup::get('MIN_CHANGE_UPDATE_PRIME_COST');
                 $oldPrimeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId);
+                $oldPrimeCost = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $oldPrimeCost);
+
 
                 // Ако старата себестойност е различна от новата
                 if (empty($oldPrimeCost) || abs(round($primeCost / $oldPrimeCost - 1, 2)) >= $minChange) {
-                    
+
                     // Кеширане на себестойността, ако правилото не е за категория
                     if ($rec->type != 'category') {
                         $rec->costValue = $primeCost;
@@ -538,6 +540,7 @@ class price_Updates extends core_Manager
         // Взимаме всички записи
         $now = dt::now();
         $query = $this->getQuery();
+
 
         // За всеки
         while ($rec = $query->fetch()) {

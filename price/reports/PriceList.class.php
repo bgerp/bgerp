@@ -55,8 +55,8 @@ class price_reports_PriceList extends frame2_driver_TableData
      * Какъв да е класа на групирания ред
      */
     protected $groupByFieldClass = 'pricelist-group-label';
-    
-    
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -77,10 +77,10 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Филтър->Подгрупи,columns=2,after=listingId,single=none');
         $fieldset->FLD('notInGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Без групи,after=expandGroups,single=none');
         $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=expandGroups,single=none');
-        $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=displayDetailed');
-        $fieldset->FLD('showEan', 'enum(yes=Показване ако има,no=Да не се показва)', 'caption=Допълнително->EAN|*?,after=showMeasureId');
-        $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan');
-        $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan');
+        $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=displayDetailed,single=internal');
+        $fieldset->FLD('showEan', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Показване ЕАН,after=showMeasureId,single=internal');
+        $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan,single=internal');
+        $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan,single=internal');
     }
     
     
@@ -198,8 +198,8 @@ class price_reports_PriceList extends frame2_driver_TableData
 
         $dateBefore = (!empty($rec->period)) ? (dt::addSecs(-1 * $rec->period, $date, false) . ' 23:59:59') : null;
         $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
-
         $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, $rec->notInGroups, 'yes');
+
         $sellableProducts = array_keys($sellableProducts);
         unset($sellableProducts[0]);
 
@@ -276,6 +276,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 $obj->differenceHint = $differenceHint;
                 $obj->difference = $difference;
             }
+            price_ListRules::$alreadyReplaced = array();
 
             $obj->price *= $quantity;
 
@@ -350,7 +351,9 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row = new stdClass();
         
         $display = ($rec->displayDetailed == 'yes') ? 'detailed' : 'short';
+        Mode::push('noIconImg', true);
         $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
+        Mode::pop('noIconImg');
         $row->groupName = core_Type::getByName('varchar')->toVerbal($dRec->groupName);
         $row->code = core_Type::getByName('varchar')->toVerbal($dRec->code);
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
@@ -515,7 +518,11 @@ class price_reports_PriceList extends frame2_driver_TableData
         $vatRow = core_Type::getByName('enum(yes=с включено ДДС,no=без ДДС)')->toVerbal($rec->vat);
         $beforeRow = tr("Всички цени са в|* {$rec->currencyId}, |{$vatRow}|*");
         $tpl->prepend($beforeRow, 'TABLE_BEFORE');
-        
+
+        if($rec->displayDetailed == 'yes'){
+            Mode::set('saveJS', true);
+        }
+
         return $tpl;
     }
     
@@ -578,7 +585,14 @@ class price_reports_PriceList extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-        if (Mode::is('printing')) return;
+        if(isset($data->rec->data->variationId)){
+            $data->row->variationId = price_Lists::getHyperlink($data->rec->data->variationId, true);
+        }
+
+        if (Mode::is('printing') || Mode::is('text', 'xhtml')){
+            if($data->rec->showLetterHeadWhenSending == 'no') return;
+            unset($data->row->variationId);
+        }
 
         $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                             <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -593,14 +607,9 @@ class price_reports_PriceList extends frame2_driver_TableData
                                             </div>
                                         </fieldset>"));
 
-        if(isset($data->rec->data->variationId)){
-            $data->row->variationId = price_Lists::getHyperlink($data->rec->data->variationId, true);
-        }
-
         foreach (array('periodDate', 'date', 'period', 'productGroups', 'notInGroups', 'packagings', 'policyId', 'variationId') as $field) {
             $fieldTpl->replace($data->row->{$field}, $field);
         }
-        
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     

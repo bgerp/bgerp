@@ -14,7 +14,7 @@
         <tr>
             <td class="imageCell">[#img2#]</td>
             <td class="shortcuts"><span>Ctrl + S </span></td>
-            <td class="textShortcut"> - |Подробни настройки на избрания артикул|*</td>
+            <td class="textShortcut"> - |Подробна информация зa избрания артикул|*</td>
         </tr>
         <tr>
             <td class="imageCell">[#img3#]</td>
@@ -118,15 +118,15 @@
             <td class="shortcuts"><span>20*</span></td>
             <td class="textShortcut"> - |Промяна на количеството|*</td>
         </tr>
-        <tr>
+        <tr class="[#priceHintTrClass#]">
             <td class="shortcuts"><span>*1.54 </span></td>
             <td class="textShortcut"> - |Промяна на цената|*</td>
         </tr>
-        <tr>
+        <tr class="[#discountHintTrClass#]">
             <td class="shortcuts"><span>5% </span></td>
             <td class="textShortcut"> - |Задаване на отстъпка|*</td>
         <tr>
-		<tr>
+		<tr class="[#discountHintTrClass#]">
             <td class="shortcuts"><span>%5 </span></td>
             <td class="textShortcut"> - |Задаване на надценка|*</td>
         <tr>

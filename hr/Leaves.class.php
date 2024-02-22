@@ -215,20 +215,12 @@ class hr_Leaves extends core_Master
         $this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
-        $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместници, oldFieldName=alternatePerson');
+        $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)', 'caption=По време на отсъствието->Заместници, oldFieldName=alternatePerson');
 
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
-    
-    
-    /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    public static function on_BeforeSave($mvc, &$id, $rec)
-    {
-    }
-    
+
     
     /**
      * Изпълнява се преди опаковане на съдаржанието от мениджъра
@@ -297,18 +289,17 @@ class hr_Leaves extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
         $nowYear = dt::mysql2Verbal(dt::now(), 'Y');
         for ($i = 0; $i <= 1; $i++) {
             $years[$nowYear - $i] = $nowYear - $i;
         }
         $form->setSuggestions('useDaysFromYear', $years);
         
-        //$form->setDefault('useDaysFromYear', $years[$nowYear]);
-        
         // Намират се всички служители
-        $employees = crm_Persons::getEmployeesOptions();
+        $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
         unset($employees[$rec->personId]);
+        $form->setSuggestions('alternatePersons', $employees);
         
         if (countR($employees)) {
             $form->setOptions('personId', $employees);
@@ -502,7 +493,8 @@ class hr_Leaves extends core_Master
         //
         $rec = $mvc->fetchRec($rec);
         $subscribedArr = keylist::toArray($rec->sharedUsers);
-        
+        $subscribedArr[$rec->createdBy] = $rec->createdBy;
+
         if (isset($rec->alternatePersons)) {
             foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
                 $alternatePersonId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
@@ -913,13 +905,11 @@ class hr_Leaves extends core_Master
         $link = array('hr_Leaves', 'single', $rec->id);
         
         //Променяме статуса на затворено
-        $recUpd = new stdClass();
-        $recUpd->id = $rec->id;
-        $recUpd->state = 'closed';
-        
-        hr_Leaves::save($recUpd);
+        $rec->state = 'closed';
+        hr_Leaves::save($rec);
         
         $subscribedArr = keylist::toArray($rec->sharedUsers);
+        $subscribedArr[$rec->createdBy] = $rec->createdBy;
         
         if (isset($rec->alternatePersons)) {
             foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {

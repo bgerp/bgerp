@@ -843,7 +843,7 @@ class store_InventoryNotes extends core_Master
         $form = cls::get('core_Form');
         $form->title = 'Настройки за принтиране на бланка от|* <b>' . static::getHyperlink($id, true) . '</b>';
         
-        if (haveRole('ceo,storeMaster')) {
+        if (haveRole('ceo,storeMaster,inventory')) {
             $directRedirect = false;
             $form->FLD('showBlQuantities', 'enum(no=Скриване,yes=Показване)', 'caption=Очаквани количества,mandatory');
             $form->setDefault('showBlQuantities', 'no');
@@ -1086,7 +1086,7 @@ class store_InventoryNotes extends core_Master
 
         $this->logInAct('Нулиране на невъведените артикули', $id);
         
-        followRetUrl('Всички артикули с невъведени количества са нулирани');
+        followRetUrl('|Всички артикули с невъведени количества са нулирани');
     }
     
     

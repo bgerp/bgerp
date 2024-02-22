@@ -1290,8 +1290,6 @@ div.acc-detail {
   .portal table.listTable {
     width: 100% !important;
     border: none;
-    font-size: 0.95em;
-    line-height: 1.1em !important;
     margin-bottom: 0; }
     .portal table.listTable td {
       border: none !important;
@@ -1307,6 +1305,10 @@ div.acc-detail {
     .portal table.listTable .portal-date {
       width: 1%; }
 
+.wide .portal table.listTable {
+  font-size: 0.95em;
+  line-height: 1.1em !important; }
+
   .planning_ProductionTaskDetails table.listTable>tbody>tr>td {
     border-top: 1px none !important; }
   .planning_ProductionTaskDetails table.listTable>tbody>tr:first-child>td {
@@ -1319,9 +1321,6 @@ div.acc-detail {
     border-left: none; }
   .portal.planning table.listTable th:last-child {
     border-right: none; }
-
-.narrow .portal .listRows {
-  font-size: 0.9em; }
 
 .narrow .portal .legend .addTask {
   top: 2px; }
@@ -1395,6 +1394,10 @@ a.tUnsighted {
 /*
  * край на стилове при тредове
  */
+.narrow .folder-cover .typeTable {
+  min-width: 200px !important;
+  max-width: 300px; }
+
 .typeTable {
   border: none !important; }
   .typeTable .formTypeTable {
@@ -1622,7 +1625,11 @@ a.tUnsighted {
   position: absolute;
   right: 0;
   top: 50%;
-  margin-top: -8px; }
+  margin-top: -8px;
+  display: none; }
+
+.doc_drivers_LatestDocPortal .tagsHolder {
+  display: block; }
 
 .narrow .tagsHolder {
   margin-top: -10px; }
@@ -2017,10 +2024,13 @@ a.tUnsighted {
   display: inline-block; }
 
 .priority-high {
-  color: #882200; }
+  color: #882200 !important; }
 
 .priority-critical {
-  color: #cc0033; }
+  color: #cc0033 !important; }
+
+.priority-low {
+  color: #4488cc !important; }
 
 .docBgIcon {
   position: relative; }
@@ -2096,6 +2106,9 @@ a.tUnsighted {
 
 .centered {
   text-align: center; }
+
+.vtop.centered .defaultDeleteRowCheckbox {
+  margin-top: 0 !important; }
 
 .lighterBold {
   color: #666666; }
@@ -2359,6 +2372,9 @@ pre.document {
 #invoice-info {
   border-left: 1px solid #bbbbbb; }
 
+#inv-holder > tbody >  tr > td {
+  padding: 0 !important; }
+
 .invoiceNoteWarning {
   color: #c51818;
   border: 1px dashed #910404;
@@ -2579,6 +2595,11 @@ pre.document {
     display: inline !important;
     vertical-align: middle; }
 
+.blueText {
+  color: blue !important; }
+  .blueText .richtext {
+    color: blue !important; }
+
 .closedFrameUpdateTimeTitle {
   font-weight: bold;
   color: red !important; }
@@ -2757,9 +2778,11 @@ table.mc-calendar {
   table.mc-calendar td.mc-holiday {
     color: red; }
 
+.wide .portal-cal-day {
+  font-size: 0.95em; }
+
 .portal-cal-day {
   color: #5f1f3e;
-  font-size: 0.95em;
   padding-top: 3px;
   padding-left: 3px;
   border-top: 1px solid #cccccc; }
@@ -3376,7 +3399,7 @@ span.sharing-history-title {
 
 .foorterAdd {
   color: #cccccc;
-  font-size: 0.7em !important; }
+  font-size: 0.65em !important; }
 
 .wide .foorterAdd {
   position: absolute;
@@ -5170,7 +5193,8 @@ div.location.public {
 .flexBox {
   display: flex;
   align-content: baseline;
-  align-items: baseline; }
+  align-items: baseline;
+  margin-bottom: 5px; }
   .flexBox div {
     display: flex;
     align-content: baseline;
@@ -5389,6 +5413,9 @@ div.location.public {
 
 .narrow .details .portal {
   display: table-cell; }
+
+.narrow .top-tab-content .detail-info.portal {
+  display: block; }
 
 .portal-filter .hFormField input {
   height: 1.4em;
@@ -5726,6 +5753,8 @@ div.location.public {
   color: white;
   line-height: 24px;
   text-indent: 5px; }
+  .pricelist-group-label:hover td {
+    background-color: #636363 !important; }
 
 .pricelist-report-pack-table {
   width: 100%; }
@@ -5780,6 +5809,9 @@ div.location.public {
     background-color: #fdc3c3 !important;
     border-color: #fb9292 !important;
     color: #a00505 !important; }
+
+.sel_page {
+  clear: both; }
 
 .favouritesBtn.linkWithIcon:hover {
   cursor: pointer; }
@@ -6193,7 +6225,6 @@ only screen and (max-width: 600px) {
 @media handheld,
 only screen and (max-width: 1024px) {
   .document {
-    max-width: 40em;
     min-width: 30em; }
 
   .wide .app-name {
@@ -6834,6 +6865,9 @@ only screen and (max-width: 320px) {
 
 .labelBreak:last-child {
   margin-bottom: 0mm; }
+
+.qrcode {
+  height: 87px; }
 
 /*
  * стилове за принтиране
@@ -7585,7 +7619,9 @@ only screen and (max-width: 320px) {
 .cd-l3 {
   color: red;
   animation: blink 1s linear infinite;
-  -webkit-animation: blink 1s linear infinite; }
+  -webkit-animation: blink 1s linear infinite;
+  outline: red 2px solid;
+  outline-offset: 2px; }
 
 @keyframes blink {
     from {
@@ -7656,6 +7692,12 @@ only screen and (max-width: 320px) {
 
 .selectTaskOptions tr.createAllTasksForJob {
   font-style: italic; }
+
+.paramVal {
+  font-weight: bold; }
+
+.price_reports_PriceList .paramVal {
+  font-weight: normal; }
 
 .wide .operationTable .paramVal {
   word-break: break-word; }

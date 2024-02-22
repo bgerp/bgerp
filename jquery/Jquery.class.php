@@ -58,7 +58,7 @@ class jquery_Jquery
      * @param string  $code
      * @param bool    $once
      */
-    public static function run(&$tpl, $code, $once = false)
+    public static function run(&$tpl, $code, $once = true)
     {
         $code = trim($code);
         

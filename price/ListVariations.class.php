@@ -206,13 +206,13 @@ class price_ListVariations extends core_Detail
         $query->XPR('validFromTo', 'datetime', "DATE_ADD((DATE_ADD(#validFrom, INTERVAL (COALESCE(#repeatInterval, 0) * (FLOOR(TIMESTAMPDIFF(SECOND, #validFrom, '{$datetime}') / COALESCE(#repeatInterval, 0)))) SECOND)), INTERVAL TIME_TO_SEC(TIMEDIFF(#validUntil , #validFrom)) SECOND)");
         $query->where("#validFrom <= '{$datetime}' && (#validFromNew <= '{$datetime}' && '{$datetime}' <= #validFromTo)");
         $query->where("#variationState != 'rejected'");
-        if(isset($listId)){
+        if(!empty($listId)){
             $query->where("#listId = {$listId}");
         }
 
         $query->orderBy("diff,id", 'ASC');
         if(isset($limit)){
-            $query->limit(1);
+            $query->limit($limit);
         }
         while($rec = $query->fetch()){
             $res[$rec->id] = $rec->variationId;
@@ -241,15 +241,49 @@ class price_ListVariations extends core_Detail
 
 
     /**
+     * Рендиране на детайла
+     *
+     * @param stdClass $data
+     * @return core_ET $resTpl
+     */
+    public function renderDetail_($data)
+    {
+        if($data->hide) return new core_ET("");
+
+        $tpl = parent::renderDetail_($data);
+
+        return $tpl;
+    }
+
+
+    /**
      * Подготовка на Детайлите
      */
     public function prepareDetail_($data)
     {
+        if($data->masterId == price_ListRules::PRICE_LIST_COST){
+            $data->hide = true;
+            return;
+        }
+
         $res = parent::prepareDetail_($data);
         $count = countR($data->recs);
         $data->TabCaption = "Вариации|* ({$count})";
         $data->Tab = 'top';
 
         return $res;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'add' && isset($rec)){
+            if($rec->listId == price_ListRules::PRICE_LIST_COST){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

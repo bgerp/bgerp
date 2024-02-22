@@ -106,6 +106,13 @@
 			<td>[#planning_Steps_interruptOffset#]</td>
 		</tr>
 		<!--ET_END planning_Steps_interruptOffset-->
+
+		<!--ET_BEGIN planning_Steps_mandatoryDocuments-->
+		<tr>
+			<td class='quiet'>|Задължителни документи|*:</td>
+			<td>[#planning_Steps_mandatoryDocuments#]</td>
+		</tr>
+		<!--ET_END planning_Steps_mandatoryDocuments-->
 	</table>
 <!--ET_END PLANNING-->
 <!--ET_BEGIN LABELS-->

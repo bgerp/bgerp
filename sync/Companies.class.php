@@ -26,7 +26,7 @@ class sync_Companies extends sync_Helper
                     array('bank_Accounts' => 'contragentCls|contragentId'),
                     array('cond_ConditionsToCustomers' => 'cClass|cId'),
                     array('price_ListToCustomers' => 'cClass|cId'),
-                    array('crm_ext_Cards' => 'contragentClassId|contragentId'),
+                    array('crm_ext_Cards' => 'companyId'),
             ),
             
             'cat_Listings' => array(
@@ -36,12 +36,18 @@ class sync_Companies extends sync_Helper
             'crm_Locations' => array(
                     array('sales_Routes' => 'locationId'),
             ),
+
             'price_Lists' => array(
                     array('price_ListRules' => 'listId'),
             ),
+
             'cat_Products' => array(
                     array('cat_products_Packagings' => 'productId'),
                     array('cat_products_Params' => 'classId|productId'),
+            ),
+
+            'crm_Persons' => array(
+                array('crm_ext_Cards' => 'personId'),
             ),
     );
     

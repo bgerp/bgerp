@@ -60,7 +60,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
         $res = array();
         
         // Намираме всички покупки с доставка
-        $allPurchases = $this->getPurchasesWithProducts($affectedTargetedProducts, true, false);
+        $allPurchases = $this->getPurchasesWithProducts($affectedTargetedProducts, true);
         $classId = purchase_Purchases::getClassId();
         
         // Тук ще кешираме доставените артикули във всяка

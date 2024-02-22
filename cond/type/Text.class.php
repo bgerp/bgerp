@@ -64,12 +64,17 @@ class cond_type_Text extends cond_type_abstract_Proto
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
         $Type = parent::getType($rec, $domainClass, $domainId, $value);
-        if($rec->richtext == 'yes'){
-            $Type = cls::get('type_Richtext');
+        $params = array();
+        if (isset($rec->rows)) {
+            $params['rows'] = $rec->rows;
         }
 
-        if (isset($rec->rows)) {
-            $Type = cls::get($Type, array('params' => array('rows' => $rec->rows)));
+        if($rec->richtext == 'yes'){
+            $params['bucket'] = 'Notes';
+            $params['passage'] = 'passage';
+            $Type = cls::get('type_Richtext', array('params' => $params));
+        } else {
+            $Type = cls::get($Type, array('params' => $params));
         }
         
         return $Type;

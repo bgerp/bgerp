@@ -3638,10 +3638,10 @@ function efae() {
     efae.prototype.renderPrefix = 'render_';
 
     // Времето в милисекунди, с което ще се увеличава времето на изпълнение
-    efae.prototype.increaseInterval = 100;
+    efae.prototype.increaseInterval = 300;
 
     // Горната граница (в милисекунди), до която може да се увеличи брояча
-    efae.prototype.maxIncreaseInterval = 300000;
+    efae.prototype.maxIncreaseInterval = 500000;
 
     // През колко време да се праща AJAX заяка към сървъра
     efae.prototype.ajaxInterval = efae.prototype.ajaxDefInterval = 5000;
@@ -3650,8 +3650,8 @@ function efae() {
     efae.prototype.ajaxLastTime = new Date();
 
     // Интервал над който ще се нулира брояча
-    // Когато устройството е заспало, да се форсират всички табове след събуждане (30 мин)
-    efae.prototype.forceStartInterval = 1800000;
+    // Когато устройството е заспало, да се форсират всички табове след събуждане (1800000 - 30 мин) (2700000 - 45)
+    efae.prototype.forceStartInterval = 2700000;
 
     // Дали процеса е изпратена AJAX заявка за извличане на данните за показване след рефреш
     efae.prototype.isSendedAfterRefresh = false;
@@ -5959,6 +5959,34 @@ function focusOnHeader() {
 
 
 /**
+ * Екшън за групово изтриване на редовете
+ */
+function detailDeleteRowsAct() {
+    $(document.body).on('change', "input[name=checkAllRows]", function (e) {
+        $(".defaultDeleteRowCheckbox").prop('checked', $(this).prop("checked"));
+    });
+
+    $(document.body).on('click', ".deleteAllCheckedRows", function(e) {
+        var url = $(this).attr("data-url");
+        var chkArray = [];
+
+        // Look for all checkboxes that have a specific class and was checked
+        $(".defaultDeleteRowCheckbox:checked").each(function() {
+            var sysId = $(this).attr("data-selectedId");
+            chkArray.push(sysId);
+        });
+
+        if(!chkArray.length){
+            alert($(this).attr("data-errorMsg"));
+        } else {
+            var selected = chkArray.join('|');
+            window.location = url + "&selected=" + selected;
+        }
+    });
+}
+
+
+/**
  * Групово маркиране на чекбоксове при натиснат шрифт
  */
 function markSelectedChecboxes()
@@ -6206,6 +6234,16 @@ dragToScroll = {
             return false;
         });
     }
+}
+
+
+/**
+ * Скрива елемент на екран
+ */
+function render_removeBlurScreen(data)
+{
+    var elementClass = data.elementClass;
+    $("." + elementClass).css("display", "none");
 }
 
 

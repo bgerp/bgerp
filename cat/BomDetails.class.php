@@ -169,7 +169,7 @@ class cat_BomDetails extends doc_Detail
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate|labelType');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано,autoPrint=Генериране и печат)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
         $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производството->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide,input=none');
         $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък в производството->Начален,autohide,input=none');
@@ -937,8 +937,9 @@ class cat_BomDetails extends doc_Detail
                 $rec->propQuantity = "({$rec->propQuantity}) / ${coefficient}";
             }
         }
-        
+
         $rec->rowQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $rec->params);
+
         $row->propQuantity = static::highlightExpr($propQuantity, $rec->params, $coefficient);
 
         if(!is_numeric($propQuantity)){
@@ -956,7 +957,7 @@ class cat_BomDetails extends doc_Detail
             $row->primeCost = "<span class='red'>???</span>";
             $row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойността', 'warning', false);
         } else {
-            $row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
+            $row->rowQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->rowQuantity);
         }
         
         if (!isset($rec->primeCost) && $rec->type != 'stage') {
@@ -995,7 +996,7 @@ class cat_BomDetails extends doc_Detail
         if (isset($notAllowed[$rec->resourceId])) {
             $productVerbal = cat_Products::getTitleById($masterRec->productId);
             
-            return followRetUrl(null, "Артикулът не може да бъде , защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>", 'error');
+            return followRetUrl(null, "|Артикулът не може да бъде , защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>", 'error');
         }
         
         $bomRec = null;
@@ -1289,10 +1290,7 @@ class cat_BomDetails extends doc_Detail
         if (is_array($data->rows)) {
 
             // Колко е най-голямото закръгляне на използваните мерки
-            $usedMeasures = arr::extractValuesFromArray($data->recs, 'packagingId');
-            $maxDecimals = cat_UoM::getMaxRound($usedMeasures);
-            $Double = core_Type::getByName("double(decimals={$maxDecimals})");
-
+            $Double = core_Type::getByName("double(smartRound)");
             foreach ($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
                 if ($rec->parentId) {

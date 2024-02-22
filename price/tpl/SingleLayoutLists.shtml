@@ -65,13 +65,20 @@
             <td>[#discountComparedShowAbove#]</td>
         </tr>
         <!--ET_END discountComparedShowAbove-->
-        
-        <!--ET_BEGIN discountClass-->
+
+        <!--ET_BEGIN discountClassPeriod-->
         <tr>
-            <td class="title-style">|Автоматични отстъпки|*</td>
-            <td>[#discountClass#]</td>
+            <td class="title-style">|Суми за отстъпки|*</td>
+            <td>[#discountClassPeriod#]</td>
         </tr>
-        <!--ET_END discountClass-->
+        <!--ET_END discountClassPeriod-->
+
+        <!--ET_BEGIN haveBasicDiscounts-->
+        <tr>
+            <td class="title-style">|Общи отстъпки|*</td>
+            <td>[#haveBasicDiscounts#]</td>
+        </tr>
+        <!--ET_END haveBasicDiscounts-->
         
     	<!--ET_BEGIN clientInfo-->
     		[#clientInfo#]

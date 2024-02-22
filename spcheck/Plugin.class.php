@@ -31,8 +31,8 @@ class spcheck_Plugin extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        if (Mode::isReadOnly() || Mode::is('text', 'plain')) {
-            
+        if (Mode::isReadOnly() || Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) {
+
             return ;
         }
         

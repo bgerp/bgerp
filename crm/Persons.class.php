@@ -150,7 +150,7 @@ class crm_Persons extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '1511,1512,1513,1514,1521,1522,1523,1524,153,159,323,401,402,403,404,405,406,409,411,412,413,414,415,419,422';
+    public $balanceRefAccounts = '1511,1512,1513,1514,1521,1522,1523,1524,153,159,323,3231,3232,401,402,403,404,405,406,409,411,412,413,414,415,419,422';
     
     
     /**
@@ -2987,24 +2987,33 @@ class crm_Persons extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
-     * Лицата от група 'Служители'
+     * Връща лицата от група служители
      *
-     * @param bool       $withAccess - да се филтрира ли по права за редакция или не
-     * @param bool|false $hrCode     - null за всички, bool за дали да са с кодове като човешки ресурси или не
+     * @param bool $withAccess - да се филтрира ли по права за редакция или не
+     * @param null|bool $hrCode - null за всички, bool за дали да са с кодове като човешки ресурси или не
+     * @param bool $onlyNames - само имена
+     * @param null|string $state - състояние
      *
-     * @return array $options        - опции
+     * @param $withAccess
+     * @param $hrCodes
+     * @param $onlyNames
+     * @param $state
+     * @return array
      */
-    public static function getEmployeesOptions($withAccess = false, $hrCodes = null, $onlyNames = false)
+    public static function getEmployeesOptions($withAccess = false, $hrCodes = null, $onlyNames = false, $state = null)
     {
         $options = array();
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         
         $query = self::getQuery();
         $query->like('groupList', "|{$emplGroupId}|");
-        
+        if(isset($state)){
+            $query->where("#state = '{$state}'");
+        }
+
         // Ако е указано, само тези които нямат кодове в производствените ресурси
         if (!is_null($hrCodes)) {
             $hrQuery = planning_Hr::getQuery();
@@ -3016,7 +3025,7 @@ class crm_Persons extends core_Master
                 $query->notIn('id', $hrIds);
             }
         }
-        
+
         while ($rec = $query->fetch()) {
             if ($withAccess === true && !crm_Persons::haveRightFor('edit', $rec->id)) {
                 continue;
@@ -3034,7 +3043,7 @@ class crm_Persons extends core_Master
         if (countR($options)) {
             $options = array('e' => (object) array('group' => true, 'title' => tr('Служители'))) + $options;
         }
-        
+
         return $options;
     }
     

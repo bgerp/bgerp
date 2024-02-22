@@ -28,7 +28,7 @@ abstract class deals_DealDetail extends doc_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'tolerance,term,autoDiscount';
+    public $fieldsNotToClone = 'tolerance,term,autoDiscount,inputDiscount';
     
     
     /**
@@ -106,14 +106,17 @@ abstract class deals_DealDetail extends doc_Detail
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
+        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter,tdClass=small-field');
         
         $mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0,warningMax=0.1)', 'caption=Толеранс,input=none');
         $mvc->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,before=showMode,input=none');
         
         $mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=auto');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки');
-        
+
+        $mvc->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none');
+        $mvc->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
+
         // За по-бързо преброяване на Usage
         $mvc->setDbIndex('productId');
         setIfNot($mvc->quantityFld, 'quantity');
@@ -547,7 +550,7 @@ abstract class deals_DealDetail extends doc_Detail
         $form->info = tr('|Списък за листване|*:') . cat_Listings::getLink($listId, 0);
         
         $listed = cat_Listings::getAll($listId, $saleRec->shipmentStoreId, 50, true);
-        if(!countR($listed)) followRetUrl(null, "В избрания списък няма активни артикули|*: " . cat_Listings::getLink($listId, 0, array('ef_icon' => false)), 'warning');
+        if(!countR($listed)) followRetUrl(null, "|В избрания списък няма активни артикули|*: " . cat_Listings::getLink($listId, 0, array('ef_icon' => false)), 'warning');
 
         $form->info .= tr('|* ( |Показване на първите|* <b>50</b> |артикула|* )');
 
@@ -907,7 +910,7 @@ abstract class deals_DealDetail extends doc_Detail
             }
         }
 
-        followRetUrl(null, 'Оригиналните редове са прехвърлени успешно|*!');
+        followRetUrl(null, '|Оригиналните редове са прехвърлени успешно|*!');
     }
 
 

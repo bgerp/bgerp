@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -168,8 +168,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
-        
+
         $folderCover = doc_Folders::getCover($rec->folderId);
         if ($folderCover->isInstanceOf('planning_Centers')) {
             $form->setDefault('departmentId', $folderCover->that);
@@ -202,10 +201,12 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
                 $form->setField('description', "input,mandatory,changable");
                 $form->setField('sender', 'caption=Информация за ремонта->Извършил,input');
                 $form->setField('receiver', 'caption=Информация за ремонта->Приел,input');
+                $form->setDefault('useResourceAccounts', "no");
+                $form->setField('useResourceAccounts', 'input=hidden');
                 $showSenderAndReceiver = true;
             }
         }
-
+        $form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
         if($showSenderAndReceiver){
             $mvc->setEmployeesOptions($form);
         }
@@ -251,7 +252,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Артикулите ще бъдат вкарани в производството по артикули' : 'Артикулите ще бъдат вложени в производството сумарно';
+        $row->useResourceAccounts = ($rec->useResourceAccounts == 'yes') ? 'Артикулите ще бъдат вложени в производството поотделно' : 'Артикулите ще бъдат вложени в производството сумарно';
         $row->useResourceAccounts = tr($row->useResourceAccounts);
         
         if (isset($rec->departmentId)) {

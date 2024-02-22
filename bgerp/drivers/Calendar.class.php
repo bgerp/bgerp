@@ -213,9 +213,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
             
             $header = "<table class='mc-header' style='width:100%'>
                     <tr>
-                    <td class='aleft'><a href='{$data->monthOptions->prevtLink}'>{$data->monthOptions->prevMonth}</a></td>
+                    <td class='aleft'><a href='{$data->monthOptions->prevtLink}'>&lt;&lt;</a></td>
                     <td class='centered'><span class='metro-dropdown-portal'>{$select}</span>
-                    <td class='aright'><a href='{$data->monthOptions->nextLink}'>{$data->monthOptions->nextMonth}</a></td>
+                    <td class='aright'><a href='{$data->monthOptions->nextLink}'>&gt;&gt;</a></td>
                     </tr>
                     </table>";
             

@@ -597,10 +597,27 @@ abstract class store_DocumentMaster extends core_Master
                 $row->deliveryTo .= ' ' . core_Lg::transliterate($row->place);
             }
 
+            // Скриваме "Особености" на локацията ПРИ ПЕЧАТ И ИЗПРАЩАНЕ
+            // ВИНАГИ когато ЕН е включено в Транспортна линия и в нея "Изпълнител" НЕ Е "Моята фирма"
+            $showLocationFeatures = true;
+            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+                if($rec->{$mvc->lineFieldName}){
+                    $forwarderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'forwarderId');
+                    if(isset($forwarderId) && $forwarderId != crm_Setup::BGERP_OWN_COMPANY_ID){
+                        $showLocationFeatures = false;
+                    }
+                }
+            }
+
             foreach (array('address', 'company', 'person', 'tel', 'features', 'addressInfo') as $fld) {
                 if (!empty($rec->{$fld})) {
                     if ($fld == 'address') {
                         $row->{$fld} = core_Lg::transliterate($row->{$fld});
+                    } elseif ($fld == 'features') {
+                        unset($row->{$fld});
+                        if($showLocationFeatures){
+                            $row->{$fld} = trans_Features::getVerbalFeatures($rec->features);
+                        }
                     } elseif ($fld == 'tel') {
                         if (callcenter_Talks::haveRightFor('list')) {
                             $row->{$fld} = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
@@ -609,6 +626,7 @@ abstract class store_DocumentMaster extends core_Master
 
                     $row->deliveryTo .= ", {$row->{$fld}}";
                 }
+                $row->deliveryTo = rtrim($row->deliveryTo, ', ');
             }
 
             if ($rec->locationId) {
@@ -620,8 +638,8 @@ abstract class store_DocumentMaster extends core_Master
                         $row->ourLocationAddress = $ourLocationAddress;
                     }
                 }
-                
-                $contLocationAddress = crm_Locations::getAddress($rec->locationId);
+
+                $contLocationAddress = crm_Locations::getAddress($rec->locationId, false, $showLocationFeatures);
                 if ($contLocationAddress != '') {
                     $row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
                 }
@@ -653,6 +671,7 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             core_Lg::pop();
+
         } elseif (isset($fields['-list'])) {
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
                 $row->title = '<b>' . $row->title . '</b>';
@@ -1382,36 +1401,16 @@ abstract class store_DocumentMaster extends core_Master
             'quantityInPack' => $quantityInPack,
             'notes' => $notes,
         );
-        
-        // Проверяваме дали въвдения детайл е уникален
-        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
-        
-        if (is_object($exRec)) {
-            
-            // Смятаме средно притеглената цена и отстъпка
-            $nPrice = ($exRec->quantity * $exRec->price + $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
-            $nDiscount = ($exRec->quantity * $exRec->discount + $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
-            $nTolerance = ($exRec->quantity * $exRec->tolerance + $dRec->quantity * $dRec->tolerance) / ($dRec->quantity + $exRec->quantity);
-            
-            // Ъпдейтваме к-то, цената и отстъпката на записа с новите
-            if ($term) {
-                $exRec->term = max($exRec->term, $dRec->term);
-            }
-            
-            $exRec->quantity += $dRec->quantity;
-            $exRec->price = $nPrice;
-            $exRec->discount = (empty($nDiscount)) ? null : round($nDiscount, 2);
-            $exRec->tolerance = (!isset($nTolerance)) ? null : round($nTolerance, 2);
-            
-            // Ъпдейтваме съществуващия запис
-            $id = $Detail->save($exRec);
-        } else {
-            
-            // Ако е уникален, добавяме го
-            $id = $Detail->save($dRec);
-            if(!empty($batch) && core_Packs::isInstalled('batch')){
-                batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
-            }
+
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            $dRec->autoAllocate = false;
+            $dRec->_clonedWithBatches = true;
+        }
+
+        // Ако е уникален, добавяме го
+        $id = $Detail->save($dRec);
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
         }
         
         // Връщаме резултата от записа

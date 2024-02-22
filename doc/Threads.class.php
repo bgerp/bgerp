@@ -1058,6 +1058,7 @@ class doc_Threads extends core_Manager
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
             Mode::push('onlyTitleInGetRecTitle', true);
+            $dRec = $docProxy->fetch();
             $docRow = $docProxy->getDocumentRow();
             Mode::pop('onlyTitleInGetRecTitle');
             $attr = array();
@@ -1080,6 +1081,10 @@ class doc_Threads extends core_Manager
             
             if ($mvc->addThreadStateClassToLink) {
                 $attr['class'] .= " state-{$rec->state}";
+            }
+
+            if ($dRec->priority) {
+                $attr['class'] .= 'priority-' . $dRec->priority;
             }
             
             $row->onlyTitle = $row->title = ht::createLink(
@@ -2189,12 +2194,12 @@ class doc_Threads extends core_Manager
         $returnUrl = array($firstDocument->getInstance(), 'single', $firstDocument->that);
         if (!self::haveRightForAllDocs('start', $id, $errorHandlers)) {
             $errorHandlers = implode(', ', $errorHandlers);
-            followRetUrl($returnUrl, "Нямате права да реконтирате|*: {$errorHandlers}", 'error');
+            followRetUrl($returnUrl, "|Нямате права да реконтирате|*: {$errorHandlers}", 'error');
         }
         
         self::startDocuments($rec->id);
 
-        return new redirect($returnUrl, 'Бизнес документите в нишката са успешно пуснати');
+        return new redirect($returnUrl, '|Бизнес документите в нишката са успешно пуснати');
     }
     
     

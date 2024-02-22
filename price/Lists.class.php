@@ -170,7 +170,9 @@ class price_Lists extends core_Master
         $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка / Отстъпка по подразбиране->Процент', "unit= |(със знак минус за Отстъпка)");
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
-        $this->FLD('discountClass', 'class(interface=price_SaleAutoDiscountIntf,select=title,allowEmpty)', 'caption=Автоматични отстъпки->Избор,autohide');
+
+        $this->FLD('discountClassPeriod', 'enum(default=За продажба,daily=За ден,monthly=За текущ месец)', 'caption=Автоматични отстъпки->Сума за отстъпки,autohide,notNull,value=default');
+        $this->FLD('haveBasicDiscounts', 'enum(no=Няма,yes=Има)', 'caption=Автоматични отстъпки->Има ли,notNull,value=no');
         $this->setDbUnique('title');
         $this->setDbIndex('cId,cClass');
     }
@@ -372,7 +374,7 @@ class price_Lists extends core_Master
             foreach ($parentOptions as $k => $v){
                 $parents = $mvc->getParents($k);
                 if(array_key_exists($rec->id, $parents)){
-                    unset($parentOptions[$rec->id]);
+                    unset($parentOptions[$k]);
                 }
             }
 
@@ -409,7 +411,11 @@ class price_Lists extends core_Master
     {
         $rec = $this->fetchRec($id);
         $parents = array($rec->id => $rec->id);
+        if(isset($rec->parent)){
+            $parents[$rec->parent] = $rec->parent;
+        }
         $parent = $rec->parent;
+
         while ($parent && ($lRec = $this->fetch($parent, 'parent'))) {
             if(!empty($lRec->parent)){
                 $parents[$lRec->parent] = $lRec->parent;
@@ -652,7 +658,13 @@ class price_Lists extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-        
+
+        if ($action == 'edit' && isset($rec->threadId)) {
+            if(!doc_Threads::haveRightFor('single', $rec->threadId)){
+                $requiredRoles = 'no_one';
+            }
+        }
+
         if($action == 'changepublic' && isset($rec)){
             if($rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
@@ -864,5 +876,63 @@ class price_Lists extends core_Master
         }
 
         return false;
+    }
+
+
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     *
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+        $rec = $this->fetchRec($id);
+        $discountCount = price_ListBasicDiscounts::count("#listId = {$rec->id}");
+        $rec->haveBasicDiscounts = $discountCount ? 'yes' : 'no';
+        $this->save($rec, 'haveBasicDiscounts');
+    }
+
+
+    /**
+     * Кой е първия лист с автоматични отстъпки
+     *
+     * @param mixed $Master
+     * @param stdClass $masterRec
+     * @return null|stdClass
+     */
+    public static function getListWithBasicDiscounts($Master, $masterRec)
+    {
+        $Master = cls::get($Master);
+        if($Master instanceof sales_Sales){
+            $listId = $masterRec->priceListId ?? price_ListToCustomers::getListForCustomer($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior);
+
+        } else {
+            $listId = pos_Receipts::isForDefaultContragent($masterRec) ? pos_Points::getSettings($masterRec->pointId)->policyId : price_ListToCustomers::getListForCustomer($masterRec->contragentClass, $masterRec->contragentObjectId);
+        }
+
+        // Обикаля се тази политика+бащите ѝ дали има поне една с общи отстъпки
+        $listIds = array($listId => $listId);
+        $count = 1;
+        $parent = $listId;
+        $where = "CASE #id";
+        while ($parent && ($pRec = price_Lists::fetch("#id = {$parent}", "id,parent"))) {
+            $listIds[$pRec->id] = $pRec->id;
+            $parent = $pRec->parent;
+            $where .= " WHEN {$pRec->id} THEN {$count}";
+            $count++;
+        }
+        $where .= " ELSE {$count} END";
+
+        $lQuery = price_Lists::getQuery();
+        $lQuery->XPR('order', 'int', "({$where})");
+        $lQuery->where("#haveBasicDiscounts = 'yes'");
+        $lQuery->orderBy('order', 'ASC');
+        $lQuery->in('id', $listIds);
+
+        $foundRec = $lQuery->fetch();
+
+        return is_object($foundRec) ? $foundRec : null;
     }
 }

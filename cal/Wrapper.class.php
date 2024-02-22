@@ -25,7 +25,8 @@ class cal_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $period = Request::get('selectPeriod');
-        if (!isset($period)) {
+
+        if (!isset($period) || (Request::get('Ctr') != 'cal_Calendar')) {
             $period = 'today';
         }
 

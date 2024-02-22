@@ -45,7 +45,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,plg_Clone, doc_DocumentPlg,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, acc_plg_DocumentSummary, drdata_plg_Canonize,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export';
+                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_UsingProductVat, drdata_plg_Canonize,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export';
     
     
     /**
@@ -236,7 +236,11 @@ class purchase_Invoices extends deals_InvoiceMaster
             $additionalInfo = tr('|Към авансов отчет|*: #') . $origin->getHandle() . PHP_EOL;
             $form->setDefault('additionalInfo', $additionalInfo);
         }
-        
+
+        if(!haveRole('acc,ceo')){
+            $form->setField('journalDate', 'input=none');
+        }
+
         parent::prepareInvoiceForm($mvc, $data);
         if(empty($rec->id)){
             $form->setDefault('importProducts', 'shippedNotInvoiced');

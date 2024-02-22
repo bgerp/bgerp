@@ -167,25 +167,8 @@ class sales_SalesDetails extends deals_DealDetail
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         parent::getDealDetailFields($this);
-        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'input=none');
         $this->setField('packPrice', 'silent');
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = &$data->form;
-        
-        if(isset($form->rec->autoDiscount)){
-            $placeholder = core_Type::getByName('percent')->toVerbal($form->rec->autoDiscount);
-            $form->setField('discount', "placeholder={$placeholder}");
-        }
+        $this->setField('discount', 'class=w1');
     }
     
     
@@ -234,31 +217,7 @@ class sales_SalesDetails extends deals_DealDetail
             $rec = $data->recs[$id];
             $pInfo = cat_Products::getProductInfo($rec->productId);
 
-            if(isset($rec->autoDiscount)){
-                $hint = '';
-                if(in_array($masterRec->state, array('draft', 'pending'))){
-                    $autoDiscountVerbal = $mvc->getFieldType('discount')->toVerbal($rec->autoDiscount);
-                    if(isset($rec->discount)){
-                        $manualDiscount = $row->discount;
-                        $middleDiscount = round((1 - (1 - $rec->discount) * (1 - $rec->autoDiscount)), 4);
-                        $row->discount = $mvc->getFieldType('discount')->toVerbal($middleDiscount);
-                        $row->discount = "<span style='color:blue'>{$row->discount}</span>";
-                        $autoDiscountVerbal = $mvc->getFieldType('discount')->toVerbal($middleDiscount - $rec->discount);
-                        $hint .= "Зададена отстъпка|*: {$manualDiscount}; ";
-                    } else {
-                        $row->discount = "<span style='color:blue'>{$row->discount}</span>";
-                    }
-                    $hint .= "Разпределена отстъпка за документа|*: {$autoDiscountVerbal}";
-                    $row->discount = ht::createHint($row->discount, $hint, 'notice', false);
-                }
-            }
-
-            if(!isset($rec->discount) && isset($rec->autoDiscount)){
-                $row->discount = $mvc->getFieldType('discount')->toVerbal($rec->autoDiscount);
-                $row->discount = "<span style='color:blue'>{$row->discount}</span>";
-                $row->discount = ht::createHint($row->discount, 'Автоматично изчислена отстъпка', 'notice', false);
-            }
-            
+            $row->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
             if (isset($pInfo->meta['canStore'])) {
                 $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
                 deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
@@ -289,9 +248,9 @@ class sales_SalesDetails extends deals_DealDetail
                    
                    // Предупреждение дали цената е под очакваната за клиента
                    $useQuotationPrice = isset($masterRec->originId);
-                   $discount = $rec->discount ?? $rec->autoDiscount;
+                   $discountPercent = ($rec->autoDiscount) ? round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4) : $rec->discount;
                    $transportFeeRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
-                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
+                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discountPercent, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
                         $row->{$hintField} = ht::createHint($row->{$hintField}, $checkedObject['hint'], $checkedObject['hintType'], false);
                    }
                }
@@ -335,12 +294,16 @@ class sales_SalesDetails extends deals_DealDetail
             $rec->price = $policyInfo->price;
             $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
             $rec->discount = $policyInfo->discount;
-        } else {
+        } else {;
+            $rec->discount = $oldRec->inputDiscount;
             $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
             if (isset($cRec->fee) && $cRec->fee > 0) {
                 $rec->price -= $cRec->fee / $rec->quantity;
             }
         }
+
+
+
     }
     
     

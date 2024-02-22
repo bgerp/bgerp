@@ -28,8 +28,14 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      * Константа за празен тарифен номер
      */
     const EMPTY_TARIFF_NUMBER = ' ';
-    
-    
+
+
+    /**
+     * Префикс за тарифен код
+     */
+    protected $tariffCodeCaption = 'HS Code / CTN';
+
+
     /**
      * Метод който подава данните на мастъра за обработка на скрипта
      *
@@ -55,14 +61,21 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
     public function modifyDetailData(core_Mvc $detail, &$data)
     {
         if(!countR($data->recs) || Mode::is('renderHtmlInLine')) return;
-        
+
         // Извлича се тарифния номер на артикулите
         $length = store_Setup::get('TARIFF_NUMBER_LENGTH');
+        $getLiveTariffCode = in_array($data->masterData->rec->state, array('pending', 'draft'));
+
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
-            
-            $tariffNumber = cat_Products::getParams($rec->productId, 'customsTariffNumber', true);
-            $tariffNumber = !empty($tariffNumber) ? substr($tariffNumber, 0, $length) : self::EMPTY_TARIFF_NUMBER;
+
+            $tariffNumber = $rec->tariffCode;
+            if(empty($tariffNumber) && $getLiveTariffCode){
+                $tariffNumber = cat_Products::getParams($rec->productId, 'customsTariffNumber', true);
+                $tariffNumber = !empty($tariffNumber) ? $tariffNumber : self::EMPTY_TARIFF_NUMBER;
+            }
+
+            $tariffNumber = !empty($tariffNumber) ? mb_substr($tariffNumber, 0, $length) : self::EMPTY_TARIFF_NUMBER;
             $rec->tariffNumber = $tariffNumber;
             $row->tariffNumber = $tariffNumber;
         }
@@ -79,13 +92,19 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
     public function beforeRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
         if(!countR($data->recs) || Mode::is('renderHtmlInLine')) return;
+        if($detail instanceof store_DocumentPackagingDetail) return;
 
         $columns = countR($data->listFields);
         $masterRec = $data->masterData->rec;
 
+        $totalInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'totalInPackListWithTariffCode');
+        $totalTareInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'tareInPackListWithTariffCode');
+
         // Извличане на всички уникални тарифни номера и сумиране на данните им
         $tariffCodes = array();
-        foreach ($data->recs as $rec1) {
+
+        foreach ($data->rows as $id => $row) {
+            $rec1 = $data->recs[$id];
             if(!array_key_exists($rec1->tariffNumber, $tariffCodes)){
                 $tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'netWeight' => null, 'transUnits' => array(), 'withoutWeightProducts' => array());
             }
@@ -105,43 +124,72 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $tariffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] += $transUnitQuantity;
             }
 
-            if ($kgWeight = cat_Products::convertToUom($rec1->productId, 'kg')) {
-                $tariffCodes[$rec1->tariffNumber]->netWeight += $kgWeight * $rec1->quantity;
-            }
-
+            $netWeight = $detail->getNetWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->netWeight);
             $weight = $detail->getWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->weight);
             if(empty($weight)){
                 $tariffCodes[$rec1->tariffNumber]->withoutWeightProducts[] = cat_Products::getTitleById($rec1->productId);
             }
 
-            $amountR = $rec1->amount * (1 - $rec1->discount);
-            if($masterRec->chargeVat == 'separate'){
-                $vat = cat_Products::getVat($rec1->productId, $masterRec->valior);
-                $amountR += $amountR * $vat;
+
+            if($totalInPackListWithTariffCodeVal == 'yes'){
+                $amountR = $rec1->amount * (1 - $rec1->discount);
+                if($masterRec->chargeVat == 'separate'){
+                    $vat = cat_Products::getVat($rec1->productId, $masterRec->valior);
+                    $amountR += $amountR * $vat;
+                }
+
+                $tariffCodes[$rec1->tariffNumber]->amount += $amountR;
             }
 
-            $tariffCodes[$rec1->tariffNumber]->amount += $amountR;
             $tariffCodes[$rec1->tariffNumber]->weight += $weight;
+            $tariffCodes[$rec1->tariffNumber]->netWeight += $netWeight;
+            if($totalTareInPackListWithTariffCodeVal == 'yes'){
+                $tareWeight = $detail->getTareWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->tareWeight, $weight, $netWeight);
+                if($tareWeight > 0){
+                    $tariffCodes[$rec1->tariffNumber]->tareWeight += $tareWeight;
+                }
+            }
         }
-        
+
         ksort($tariffCodes, SORT_STRING);
         $rows = array();
 
         // За всяко поле за групиране
         foreach ($tariffCodes as $tariffNumber => $tariffObject) {
-            
-            $weight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->weight);
-            $netWeight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->netWeight);
+            $weight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->weight);
+            $netWeight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->netWeight);
+
             if(countR($tariffObject->withoutWeightProducts) && !Mode::isReadOnly()){
                 $imploded = implode(',', $tariffObject->withoutWeightProducts);
                 $weight = ht::createHint($weight, "Следните артикули нямат транспортно тегло|*: {$imploded}", 'warning');
             }
 
-            $groupAmount = core_Type::getByName('double(decimals=2)')->toVerbal($tariffObject->amount);
-            $groupAmount .= " {$masterRec->currencyId}, " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? '|с ДДС|*' : '|без ДДС|*');
-            $code = ($tariffNumber != self::EMPTY_TARIFF_NUMBER) ? "HS Code / CTN {$tariffObject->code}" : tr('Без тарифен код');
+            if($tariffNumber != self::EMPTY_TARIFF_NUMBER){
+                $code = "{$this->tariffCodeCaption} {$tariffObject->code}";
+                $tariffDescription = cond_TariffCodes::getDescriptionByCode($tariffObject->code, $masterRec->tplLang);
+            } else {
+                $code = tr('Без тарифен код');
+                $tariffDescription = null;
+            }
+
             $transUnits = trans_Helper::displayTransUnits($tariffObject->transUnits);
-            $groupVerbal = tr("|*<b>{$code}</b>, |Бруто|*: {$weight}, |Нето|*: {$netWeight}, {$transUnits}, |Сума|*: {$groupAmount}");
+            $groupBlock = getTplFromFile('store/tpl/HScodeBlock.shtml');
+            $groupBlock->append($code, 'code');
+            $groupBlock->append($weight, 'weight');
+            $groupBlock->append($tariffDescription, 'description');
+            if($totalTareInPackListWithTariffCodeVal == 'yes'){
+                $tareWeight = core_Type::getByName('cat_type_Weight')->toVerbal($tariffObject->tareWeight);
+                $groupBlock->append($tareWeight, 'tareWeight');
+            }
+
+            $groupBlock->append($netWeight, 'netWeight');
+            $groupBlock->append($transUnits, 'transUnits');
+            if($totalInPackListWithTariffCodeVal == 'yes'){
+                $groupAmount = core_Type::getByName('double(decimals=2)')->toVerbal($tariffObject->amount);
+                $groupAmount .= "<span style='font-weight:normal;'> {$masterRec->currencyId} " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? tr('|с ДДС|*') : tr('|без ДДС|*')) . "</span>";
+                $groupBlock->append($groupAmount, 'groupAmount');
+            }
+            $groupVerbal = $groupBlock;
             
             // Създаваме по един ред с името му, разпънат в цялата таблица
             $rowAttr = array('class' => ' group-by-field-row');
@@ -150,8 +198,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $rows['|' . $tariffNumber] = $element;
             
             // За всички записи
-            foreach ($data->recs as $id => $rec) {
-                
+            foreach ($data->rows as $id => $row) {
+                $rec = $data->recs[$id];
                 // Ако стойността на полето им за групиране е същата като текущото
                 if ($rec->tariffNumber == $tariffNumber) {
                     if (is_object($data->rows[$id])) {

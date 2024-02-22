@@ -899,6 +899,9 @@ class core_Manager extends core_Mvc
             $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->hideListFieldsIfEmpty);
         }
         
+        // Инвоукване на ивент, който да се изпълнява след като са минали всички ивенти `beforeRenderListTable`
+        $this->invoke('rightBeforeRenderListTable', array(&$data, &$data));
+
         // Рендираме таблицата
         $tpl = $table->get($data->rows, $data->listFields);
         

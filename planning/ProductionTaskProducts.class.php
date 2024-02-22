@@ -360,7 +360,7 @@ class planning_ProductionTaskProducts extends core_Detail
         }
         
         if ($action == 'delete' && isset($rec->taskId)) {
-            if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")) {
+            if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #state != 'rejected' AND #productId = {$rec->productId}")) {
                 $requiredRoles = 'no_one';
             } elseif($rec->type == 'waste'){
                 if(planning_Tasks::fetchField($rec->taskId, 'wasteProductId') == $rec->productId){

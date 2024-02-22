@@ -1083,7 +1083,8 @@ class type_Richtext extends type_Blob
         
         if ($title[0] != ' ' && !Mode::is('text', 'xhtml')) {
             $bgPlace = $this->getPlace();
-            $thumb = new thumb_Img(array("https://www.google.com/s2/favicons?domain=${domain}&sz=16", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly()));
+            $sDomain = $urlArr['scheme'] . '://' . $domain;
+            $thumb = new thumb_Img(array("https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url={$sDomain}&size=16", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly(), 'default' => 'img/16/link.png'));
             $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
             
@@ -1229,6 +1230,10 @@ class type_Richtext extends type_Blob
         }
 
         $dArr = cms_Domains::getDomainOptions(true);
+        if (defined('BGERP_ABSOLUTE_HTTP_HOST')) {
+            $dArr[-1] = BGERP_ABSOLUTE_HTTP_HOST;
+        }
+        $dArr = array_diff($dArr, array('localhost'));
 
         if (core_Url::isLocal($url, $rest, $dArr)) {
             $result = $this->internalUrl($url, str::limitLen(decodeUrl($url), 120), $rest);

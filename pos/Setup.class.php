@@ -110,6 +110,18 @@ defIfNot('POS_SHOW_EXACT_QUANTITIES', 'no');
 
 
 /**
+ *  Към кой ценоразпис да се показват отстъпките в ПОС-а
+ */
+defIfNot('POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID', '');
+
+
+/**
+ *  Начин за плащане с карта
+ */
+defIfNot('POS_CARD_PAYMENT_METHOD_ID', '');
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -176,6 +188,8 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване (1),delete1=Изтриване (2),filedelete=Изтриване (3))', 'caption=Звуци в терминала->Изтриване'),
         'POS_RATINGS_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
         'POS_SHOW_EXACT_QUANTITIES' => array('enum(no=Не,yes=Да)', 'caption=Показване на наличните к-ва в терминала->Избор'),
+        'POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценоразпис спрямо който да се показват отстъпките в POS-а->Избор'),
+        'POS_CARD_PAYMENT_METHOD_ID' => array('key(mvc=cond_Payments,select=title)', 'caption=Метод за плащане с карта->Избор'),
     );
     
     
@@ -188,6 +202,8 @@ class pos_Setup extends core_ProtoSetup
         'pos_ReceiptDetails',
         'pos_Reports',
         'pos_SellableProductsCache',
+        'migrate::resyncSearchStrings2350',
+        'migrate::updateInputPercent2403',
     );
 
 
@@ -244,7 +260,7 @@ class pos_Setup extends core_ProtoSetup
     /**
      * Класове за зареждане
      */
-    public $defClasses = 'pos_Terminal';
+    public $defClasses = 'pos_Terminal, pos_reports_CashReceiptsReport';
     
     
     /**
@@ -260,13 +276,55 @@ class pos_Setup extends core_ProtoSetup
 
         return $html;
     }
-    
-    
+
+
+    /**
+     * Зареждане на данните
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        $config = core_Packs::getConfig('pos');
+
+        if (strlen($config->POS_CARD_PAYMENT_METHOD_ID) === 0) {
+            $cardPaymentId = cond_Payments::fetchField("#code = 7 AND #state = 'active'");
+            core_Packs::setConfig('pos', array('POS_CARD_PAYMENT_METHOD_ID' => $cardPaymentId));
+            $res .= "<li style='color:green'>Задаване на начин за плащане с карта</li>";
+        }
+
+        return $res;
+    }
+
+
     /**
      * Обновява статистическите данни в POS-а
      */
     public function cron_UpdateStatistic()
     {
         pos_ReceiptDetails::getMostUsedTexts(24, true);
+    }
+
+
+    /**
+     * Ресинхронизира ключовите думи
+     */
+    public function resyncSearchStrings2350()
+    {
+        cls::get('pos_SellableProductsCache')->sync(true);
+    }
+
+
+    /**
+     * Миграция на новото поле на делтите
+     */
+    public function updateInputPercent2403()
+    {
+        $Receipts = cls::get('pos_ReceiptDetails');
+        $Receipts->setupMvc();
+
+        $inputDiscColName = str::phpToMysqlName('inputDiscount');
+        $discColName = str::phpToMysqlName('discountPercent');
+        $query = "UPDATE {$Receipts->dbTableName} SET {$inputDiscColName} = {$discColName} WHERE {$discColName} IS NOT NULL";
+        $Receipts->db->query($query);
     }
 }

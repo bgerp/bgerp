@@ -438,7 +438,7 @@ class acc_RatesDifferences extends core_Master
             }
         }
 
-        followRetUrl(null, "Оттеглени документи|*: {$rejected}");
+        followRetUrl(null, "|Оттеглени документи|*: {$rejected}");
     }
 
 

@@ -431,6 +431,19 @@ class core_App
      */
     public static function checkHitStatus()
     {
+        if (!defined('DEBUG_CHECK_HIT_STATUS') || (DEBUG_CHECK_HIT_STATUS !== true)) {
+
+            return ;
+        }
+
+        // Предпазване от много репортвания в един хит
+        static $isReported = false;
+        if ($isReported) {
+
+            return ;
+        }
+        $isReported = true;
+
         $memUsagePercentLimit = 80;
         $executionTimePercentLimit = 70;
         $dbTimePercentLimit = 50;
@@ -445,7 +458,9 @@ class core_App
 
             // Ако сме доближили до ограничението на паметта
             if ($peakMemUsagePercent > $memUsagePercentLimit) {
-                wp();
+                wp('Доближено е до пиковото ограничение на паметта', $peakMemUsagePercent, $memUsagePercentLimit);
+
+                return ;
             }
         }
         
@@ -455,7 +470,9 @@ class core_App
             
             // Ако сме доближили до ограничението на паметта
             if ($memUsagePercent > $memUsagePercentLimit) {
-                wp();
+                wp('Доближено е до ограничението на паметта', $memUsagePercent, $memUsagePercentLimit);
+
+                return ;
             }
         }
         
@@ -468,7 +485,9 @@ class core_App
                 
                 // Ако сме доближили до ограничението за времето
                 if ($maxExecutionTimePercent > $executionTimePercentLimit) {
-                    wp();
+                    wp('Доближено е до ограничението за времето', $maxExecutionTimePercent, $executionTimePercentLimit);
+
+                    return ;
                 }
 
                 $qTime = core_Debug::getWorkingTime('DB::query()');
@@ -478,6 +497,8 @@ class core_App
                     if ($dbTimePercent >= $dbTimePercentLimit) {
                         if ($executionTime > 7) {
                             wp('Голям брой заявки, които минават бавно', (int) $dbTimePercent, $dbTimePercentLimit, $qTime, $executionTime);
+
+                            return ;
                         }
                     }
                 }
@@ -1225,7 +1246,7 @@ class core_App
         }
 
         if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
-            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : (defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null)) + $repos;
+            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : null) + $repos;
             $havePrivate = true;
         }
 

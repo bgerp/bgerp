@@ -1093,13 +1093,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->method = 'GET';
                 $form->cmd = 'save';
             } else {
-                followRetUrl(null, 'Документът не може да бъде контиран, защото няма себестойност', 'error');
+                followRetUrl(null, '|Документът не може да бъде контиран, защото няма себестойност', 'error');
             }
         } else {
             $origin = doc_Containers::getDocument($rec->originId);
             if($origin->isInstanceOf('planning_Tasks')){
                 if(isset($form->rec->debitPrice)) {
-                    $form->info = "<div class='formCustomInfo'>Артикулът е към ПО и не може да му се променя очакваната сб-ст</div>";
+                    $form->info = "<div class='formCustomInfo'>Себестойността на произвежданите по операции заготовки не може да бъде различна от '0'</div>";
                     $form->setReadOnly('debitPrice');
                 }
             }
@@ -1572,7 +1572,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         planning_DirectProductNoteDetails::delete("#noteId = {$rec->id}");
         static::on_AfterCreate($this, $rec);
 
-        followRetUrl(null, 'Записите са заредени от начало');
+        followRetUrl(null, '|Записите са заредени от начало');
     }
 
 

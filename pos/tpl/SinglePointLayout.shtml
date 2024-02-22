@@ -30,6 +30,12 @@
 								<td class='dt'>|Политика|*:</td>
 								<td>[#policyId#]</td>
 							</tr>
+							<!--ET_BEGIN discountPolicyId-->
+							<tr>
+								<td class='dt'>|Политика за отстъпки|*:</td>
+								<td>[#discountPolicyId#]</td>
+							</tr>
+							<!--ET_END discountPolicyId-->
 							<tr>
 								<td class='dt'>|Контрагент|*:</td>
 								<td>[#contragent#]</td>

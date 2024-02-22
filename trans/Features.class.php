@@ -128,4 +128,30 @@ class trans_Features extends core_Manager
             }
         }
     }
+
+
+    /**
+     * Умно показване на особеностите
+     * първо преведени, после транслитерирани
+     *
+     * @param string $featureKeylist
+     * @param bool $transliterate
+     * @return string
+     */
+    public static function getVerbalFeatures($featureKeylist, $transliterate = true)
+    {
+        $featureStr = core_Type::getByName('keylist(mvc=trans_Features,select=name)')->toVerbal($featureKeylist);
+
+        $featuresArr = array();
+        $featuresExploded = explode(',', $featureStr);
+        array_walk($featuresExploded, function($a) use (&$featuresArr, $transliterate){
+            $string = tr(strip_tags(trim($a)));
+            if($transliterate){
+                $string = transliterate($string);
+            }
+            $featuresArr[] = $string;
+        });
+
+        return implode(', ', $featuresArr);
+    }
 }

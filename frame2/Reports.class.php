@@ -641,11 +641,6 @@ class frame2_Reports extends embed_Manager
         } else {
              $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
         }
-        
-        // Връщане на оригиналния рек ако е пушнат
-        if (isset($data->originalRec)) {
-            $rec = $data->originalRec;
-        }
     }
     
     
@@ -771,8 +766,10 @@ class frame2_Reports extends embed_Manager
         self::logDebug("Приключи обновление на отчет за {$timer}s", $rec->id);
 
         if ($timer > 30) {
-            self::logNotice("Бавно обновяване на отчет за {$timer}s", $rec->id);
+            self::logNotice("Много бавно обновяване на отчет за {$timer}s", $rec->id);
 //            wp('Бавно обновяване на отчет', $timer, $rec);
+        } elseif ($timer > 10) {
+            self::logNotice("Бавно обновяване на отчет за {$timer}s", $rec->id);
         }
     }
 
@@ -970,8 +967,10 @@ class frame2_Reports extends embed_Manager
         }
         
         if (!empty($rec->updateDays) || !empty($rec->updateTime) || !empty($row->nextUpdate)) {
-            $resArr['update'] = array('name' => $updateHeaderName, 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
+            if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+                $resArr['update'] = array('name' => $updateHeaderName, 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
         																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime--><!--ET_BEGIN nextUpdate--><div><span style='font-weight:normal'>|Следващо|*</span> [#nextUpdate#]</div><!--ET_END nextUpdate-->"));
+            }
         }
         
         if (isset($rec->lastRefreshed)) {
@@ -979,7 +978,9 @@ class frame2_Reports extends embed_Manager
         }
         
         if (isset($rec->sharedUsers)) {
-            $resArr['notify'] = array('name' => tr('Известия'), 'row' => 2, 'val' => tr('|*[#sharedUsers#]'));
+            if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+                $resArr['notify'] = array('name' => tr('Известия'), 'row' => 2, 'val' => tr('|*[#sharedUsers#]'));
+            }
         }
     }
     

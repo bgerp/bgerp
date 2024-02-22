@@ -27,7 +27,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>Supplier</b>
+                    <td class="cell custom-header-bg"><b>|Supplier|*</b>
                         <!--ET_BEGIN isDelivered-->
                         <div class='stamp fright'>[#isDelivered#]</div>
                         <!--ET_END isDelivered--></td>
@@ -44,6 +44,7 @@
 <div class="scrolling-holder">
     <div class="details">
         [#purchase_PurchasesDetails#]
+        [#price_DiscountsPerDocuments#]
     </div>
 </div><div class="lines"></div>
 <div class="scrolling-holder">

@@ -9,7 +9,7 @@
  * @package   purchase
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -33,8 +33,8 @@ class purchase_Purchases extends deals_DealMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, purchase_Wrapper,purchase_plg_ExtractPurchasesData, acc_plg_Registry, plg_Sorting, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
-				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, change_Plugin, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
+				        cond_plg_DefaultValues, recently_Plugin,price_plg_TotalDiscount, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
+				        doc_EmailCreatePlg, bgerp_plg_Blank,cat_plg_UsingProductVat, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, change_Plugin, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
     
     
     /**
@@ -580,7 +580,7 @@ class purchase_Purchases extends deals_DealMaster
         $showReffInThread = purchase_Setup::get('SHOW_REFF_IN_PURCHASE_THREAD');
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
-            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId', 'autoDiscount', 'inputDiscount') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
 
@@ -653,7 +653,7 @@ class purchase_Purchases extends deals_DealMaster
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if ($rec->state != 'active' && purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")) {
+            if ($rec->state != 'active' && (purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")  || price_DiscountsPerDocuments::haveDiscount($mvc, $rec->id))) {
                 $res = 'no_one';
             } elseif (!haveRole('purchase,ceo', $userId)) {
                 $res = 'no_one';
@@ -874,19 +874,23 @@ class purchase_Purchases extends deals_DealMaster
     protected static function on_AfterInputSelectActionForm($mvc, &$form, $rec)
     {
         if ($form->isSubmitted()) {
-            $action = type_Set::toArray($form->rec->action);
-            if (isset($action['ship'])) {
-                $dQuery = purchase_PurchasesDetails::getQuery();
-                $dQuery->where("#requestId = {$rec->id}");
-                $dQuery->show('productId');
-                
-                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($dQuery->fetchAll(), 'productId'), 'canBuy');
-                if($productCheck['metasError']){
-                    $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
-                    $form->setError('action', $warning1);
-                } elseif ($productCheck['notActive']) {
-                    $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
-                    $form->setError('action', $error1);
+            if($rec->amountDeal < 0){
+                $form->setError('action', 'Общата сума на продажбата не може да е отрицателна|*!');
+            } else {
+                $action = type_Set::toArray($form->rec->action);
+                if (isset($action['ship'])) {
+                    $dQuery = purchase_PurchasesDetails::getQuery();
+                    $dQuery->where("#requestId = {$rec->id}");
+                    $dQuery->show('productId');
+
+                    $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($dQuery->fetchAll(), 'productId'), 'canBuy');
+                    if($productCheck['metasError']){
+                        $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
+                        $form->setError('action', $warning1);
+                    } elseif ($productCheck['notActive']) {
+                        $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
+                        $form->setError('action', $error1);
+                    }
                 }
             }
         }
@@ -955,6 +959,21 @@ class purchase_Purchases extends deals_DealMaster
                     $res = $defaultRequestTplId;
                 }
             }
+        }
+    }
+
+
+    /**
+     * След обновяване на мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        // Ако има твърда отстъпка за целия документ, изчислява се тя
+        $rec = $mvc->fetchRec($id);
+        if($mvc->recalcAutoTotalDiscount($rec)){
+            $mvc->updateMaster_($rec);
         }
     }
 }

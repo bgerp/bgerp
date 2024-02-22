@@ -8,7 +8,9 @@
 		background-color:rgba(204,102,102,.8);
 	}
 }
-
+.sale-summary table td {
+	font-weight: normal;
+}
 #single-receipt-holder {
 	float: left;
 	font-family: 'Source Sans Pro', sans-serif;
@@ -365,6 +367,30 @@
 		transition-duration: 1s;
 	}
 }
+.no-border {
+	font-size: 0.9em;
+	tr td.border-bottom {
+		border-bottom: 1px dashed #aaa !important;
+	}
+	tr:last-child td.border-bottom {
+		border: none !important;
+	}
+	td {
+		padding: 2px !important;
+
+	}
+	.title-info {
+		font-weight: bold !important;
+		background: #ddd;
+
+	}
+	.aleft {
+		text-align: left !important;
+	}
+	.aright {
+		text-align: right !important;
+	}
+}
 
 .updatedDiv {
 	color: red !important;
@@ -561,28 +587,62 @@ select.tabHolder {
 .grid.pictureAndText .element {
 	display: flex;
 	padding: 3px !important;
-	height: 130px;
+	height: 164px;
 	box-sizing: border-box;
 	overflow: hidden;
 	flex-direction: column;
 	align-content: center;
+	background: #fff !important;
+	position: relative;
+	&.notSellable {
+		background-color: #aaa !important;
+	}
 	&.selected {
 		padding: 1px !important;
+		.pos-price {
+			padding-bottom: 0px !important;
+		}
 	}
 	.photo {
 		display: flex;
-		width: 130px;
-		height: 100px;
+		width: 100%;
+		height: 140px;
 		justify-content: center;
-		align-items: center;
+		align-items: center;overflow: hidden;
 	}
 	.short-title {
 		height: 20px;
-		padding: 2px;
+		text-align: center;
+		padding: 2px 0;
 		overflow: hidden;
 		font-size: 0.95em;
 		box-sizing: border-box;
+		margin-bottom: 2px;
 	}
+	&.noPhoto {
+		.short-title {
+			height: 100%;
+			font-size: 1.25em;
+			max-height: 133px;
+			overflow: hidden;
+		}
+		.photo {
+			display: none;
+		}
+	}
+	.pos-price {
+		position: absolute;
+		bottom: 0px;
+		left: 0px;
+		background: rgba(0,0,0,0.6);
+		color: #fff;
+		text-align: center;
+		padding: 3px 0 2px;
+		width: 100%;
+		text-shadow: 1px 1px 2px #000;
+		font-weight: bold;
+	}
+
 }
 .grid.short {
 	font-size: 15px;
@@ -743,6 +803,11 @@ select.tabHolder {
 	&.revertReceipt {
 		color: #a00000 !important;
 	}
+}
+
+.notActiveHint {
+	color: #999;
+	opacity: 0.4;
 }
 
 .resultPack {
@@ -907,7 +972,6 @@ select.tabHolder {
 	height: 118px;
 	background: #f1f1f1;
 	user-select: none;
-	opacity: 0.7;
 	&:focus, &.selected {
 		box-shadow: 0px 0px 10px rgb(252, 164, 11) !important;
 		border: 3px solid #fa0606;
@@ -1111,7 +1175,62 @@ select.tabHolder {
 		display: none;
 	}
 }
+.fadedElement {
+	opacity: 0.2 !important;
+}
+.flexBtns {
+	display: flex;
+	justify-content: space-around;
+	padding: 0 250px;
+}
+@media handheld, only screen and (max-width: 1280px) {
+	.flexBtns {
+		padding: 0 100px;
+	}
+}
+.modalBtn {
+	height: 70px;
+	width: 450px;
+	vertical-align: middle;
+	cursor: pointer;
+	box-sizing: border-box;
+	padding: 10px 20px;
+	color: white;
+	font-size: 1.5em !important;
+	text-align: center;
+	border-radius: 10px;
+	color: white !important;
+	font-weight: bold;
+	border: 1px solid #666;
+	border-radius: 3px;
+	box-shadow: rgba(233,233,233,.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0,0,0,.1);
+	text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+	background-color: #ccc;
+	&.disabledBtn {
+		color: #999 !important
+	}
 
+}
+.confirmPayment {
+	background-color: #4c9d2c !important;
+	&.disabledBtn {
+		background-color: mix(#4c9d2c, #333) !important;
+	}
+}
+.closePaymentModal {
+	background-color: #c51818 !important;
+	&.disabledBtn {
+		background-color: mix(#c51818, #333) !important;
+	}
+}
+#card-payment-manual:not(.disabledBtn) {
+	color:white !important;
+	background-color:red !important;
+}
+
+#card-payment:not(.disabledBtn) {
+	background-color: #7bcae9 !important;
+}
 .imagePreview {
 	box-shadow: 0 0 5px #333;
 	padding: 5px;
@@ -1126,6 +1245,10 @@ select.tabHolder {
 	background-position: center;
 }
 
+.anotherPos {
+	background-color: #f87a7a !important;
+}
+
 table.total {
 	width:100%;
 }
@@ -1133,13 +1256,19 @@ table.total {
 table.total th{
 	font-weight:normal;
 	text-align: right;
-	padding: 2px 15px;
+	padding: 0px 15px;
 }
 
 table.total td{
 	text-align:right;
 	font-weight:bold;
-	padding: 2px 15px;
+	padding: 0px 15px;
+}
+.largeCell {
+	min-width: 350px !important;
+}
+hr {
+	margin: 5px 0 1px;
 }
 
 td.totalLabel {

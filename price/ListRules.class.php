@@ -314,6 +314,10 @@ class price_ListRules extends core_Detail
      */
     public static function getPrice($listId, $productId, $packagingId = null, $datetime = null, &$validFrom = null, $isFirstCall = true, $rate = 1, $chargeVat = 'no', &$discountIncluded = null)
     {
+        if($isFirstCall){
+            price_ListRules::$alreadyReplaced = array();
+        }
+
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
 
@@ -378,7 +382,7 @@ class price_ListRules extends core_Detail
                     if ($parent = $listRec->parent) {
 
                         // Питаме бащата за цената
-                        $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, true, 1, 'no', $discountIncluded);
+                        $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom, false, 1, 'no', $discountIncluded);
                         
                         // Ако има цена добавяме и дефолтната надценка
                         if (isset($price)) {
@@ -810,7 +814,7 @@ class price_ListRules extends core_Detail
         }
 
         // По подразбиране задаваме в текуща валута
-        $currencyCode = isset($currencyCode) ? $currencyCode : acc_Periods::getBaseCurrencyCode();
+        $currencyCode = !empty($currencyCode) ? $currencyCode : acc_Periods::getBaseCurrencyCode();
         
         // Във всяка API функция проверките за входните параметри са задължителни
         expect(!empty($productId) && !empty($validFrom) && !empty($primeCost), $productId, $primeCost, $validFrom, $currencyCode, $vat);
@@ -835,8 +839,10 @@ class price_ListRules extends core_Detail
      */
     public function prepareDetail_($data)
     {
-        $data->TabCaption = 'Правила';
-        $data->Tab = 'top';
+        if(!($data->masterId == price_ListRules::PRICE_LIST_COST)){
+            $data->TabCaption = 'Правила';
+            $data->Tab = 'top';
+        }
 
         setIfNot($data->masterKey, $this->masterKey);
         setIfNot($data->masterMvc, $this->Master);

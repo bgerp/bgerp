@@ -35,6 +35,22 @@ function posActions() {
 		calculateWidth();
 	});
 
+	$(document.body).on('click', ".closePaymentModal", function(e){
+		$(".fullScreenCardPayment").css("display", "none");
+		var element = $("#card-payment");
+		var msg = element.attr("data-oncancel");
+		render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+	});
+
+	$(document.body).on('click', ".confirmPayment", function(e){
+		var element = $("#card-payment");
+		var url = element.attr("data-url");
+
+		var type = element.attr("data-type");
+		doPayment(url, type, 'manual');
+		$(".fullScreenCardPayment").css("display", "none");
+	});
+
 	// Използване на числата за въвеждане в пулта
 	$(document.body).on('click', ".numPad", function(e){
 		var val = $(this).val();
@@ -623,14 +639,20 @@ function calculateWidth(){
 }
 
 // Направа на плащане
-function doPayment(url, type){
+function doPayment(url, type, value){
+
 	if(!url || !type) return;
+
 	var amount = $("input[name=ean]").val();
 	if(!amount){
 		amount = $("input[name=ean]").attr('data-defaultpayment');
 	}
 	
 	var data = {amount:amount, type:type};
+	if(value){
+		data.param = value;
+	}
+
 	processUrl(url, data);
 }
 
@@ -874,10 +896,42 @@ function pressNavigable(element)
 		params = {string:string,recId:getSelectedRowId()};
 	} else if(element.hasClass('payment')){
 		var type = element.attr("data-type");
-		type = (!type) ? '-1' : type;
-		doPayment(url, type);
-		return;
-		
+		var warning = element.attr("data-warning");
+		if(warning){
+			if (!confirm(warning)) return false;
+		}
+
+		var sendAmount = element.attr("data-sendamount");
+		if(sendAmount == 'yes'){
+
+			var maxamount = parseFloat(element.attr("data-maxamount")).toFixed(2);
+			var amount = $("input[name=ean]").val();
+			if(!amount){
+				amount = $("input[name=ean]").attr('data-defaultpayment');
+			}
+
+			if(!$.isNumeric(amount) || amount == 0){
+				var msg = element.attr("data-notnumericmsg");
+				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+				return;
+			}
+
+			amount = parseFloat(amount).toFixed(2);
+			if(amount > maxamount){
+				var msg = element.attr("data-amountoverallowed");
+				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+				return;
+			}
+
+			console.log('SEND:' + amount);
+			$(".fullScreenCardPayment").css("display", "block");
+			getAmount(amount);
+			return;
+		} else {
+			type = (!type) ? '-1' : type;
+			doPayment(url, type, null);
+			return;
+		}
 	} else if(element.hasClass('contragentRedirectBtn')){
 		
 		clearTimeout(timeout);
@@ -929,10 +983,54 @@ function pressNavigable(element)
 }
 
 
+function showPaymentErrorStatus()
+{
+	var error = $("#card-payment").attr("data-onerror");
+	render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+}
+
+/**
+ * Връща резултат при успешно свързване с банковия терминал
+ *
+ * @param res
+ */
+function getAmountRes(res)
+{
+	var element = $("#card-payment");
+	var url = element.attr("data-url");
+	console.log("ANSWER FROM: " + url);
+
+	if(res == 'OK'){
+		var type = element.attr("data-type");
+		console.log("RES IS OK");
+		doPayment(url, type, 'card');
+	} else {
+		showPaymentErrorStatus();
+		console.log("RES ERROR/" + res + "/");
+	}
+
+	$(".fullScreenCardPayment").css("display", "none");
+}
+
+
+/**
+ * Връща резултат при грешка със свързването с банковия терминал
+ *
+ * @param res
+ */
+function getAmountError(err)
+{
+	$(".fullScreenCardPayment").css("display", "none");
+
+	showPaymentErrorStatus();
+	console.log("ERR:" + err);
+}
+
+
 /**
  * Извикване на урл-то след потвърждение на предупреждението
  */
-function confirmAndRefirect(warning, url)
+function confirmAndRedirect(warning, url)
 {
 	if (!confirm(warning)){
 		
@@ -1136,8 +1234,8 @@ function isInViewport(el){
 
 
 function scrollToHighlight(){
-	if ($(".highlighted").length && !isInViewport($(".highlighted")[0])) {
-		$(".highlighted")[0].scrollIntoView({block: "end", inline: "end"});
+	if ($(".highlighted").length) {
+		$(".highlighted")[0].scrollIntoView(false);
 	}
 }
 
@@ -1237,6 +1335,9 @@ function disableOrEnableEnlargeBtn()
  * Добавя артикул от натиснатия елемент в резултати
  */
 function addProduct(el) {
+
+	$(el).addClass('fadedElement');
+	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
 	clearTimeout(timeout);
 
 	var elemRow = $(el).closest('.receiptRow');
@@ -1376,6 +1477,18 @@ function render_toggleAddedProductFlag(data)
 }
 
 
+/**
+ * Възстановява опаситито на бутоните
+ */
+function render_restoreOpacity()
+{
+	var restoreOpacityId = sessionStorage.getItem('changedOpacityElementId');
+	$("#" + restoreOpacityId).removeClass('fadedElement');
+
+	sessionStorage.removeItem("changedOpacityElementId");
+}
+
+
 /*
  * Активира таба
  */
@@ -1386,6 +1499,8 @@ function activateTab(element, timeOut)
 	
 	triggerSearchInput($(".large-field"), timeOut, false);
 }
+
+
 
 
 /*

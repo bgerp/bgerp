@@ -27,15 +27,21 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
      * Обща сума
      */
     public $totalAmount = 0;
-    
-    
+
+
+    /**
+     * Обща сума
+     */
+    public $instantProducts = array();
+
+
     /**
      * Връща транзакцията на бележката
      */
     public function getTransaction($id)
     {
         set_time_limit(300);
-        
+
         $rec = $this->class->fetchRec($id);
         $posRec = pos_Points::fetch($rec->pointId);
         $paymentsArr = $productsArr = $totalVat = $entries = array();
@@ -44,12 +50,10 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             $this->class->extractData($rec);
         }
 
-        $productsByStore = array();
         if (countR($rec->details['receiptDetails'])) {
             foreach ($rec->details['receiptDetails'] as $dRec) {
                 if ($dRec->action == 'sale') {
                     $productsArr[] = $dRec;
-                    $productsByStore[$dRec->storeId][] = $dRec;
                 } elseif ($dRec->action == 'payment') {
                     $paymentsArr[] = $dRec;
                 }
@@ -64,7 +68,6 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             
             // Генериране на записите
             $entries = array_merge($entries, $this->getTakingPart($rec, $productsArr, $totalVat, $posRec));
-            
             $entries = array_merge($entries, $this->getPaymentPart($rec, $paymentsArr, $posRec));
             
             // Начисляване на ддс ако има и е разрешено
@@ -90,7 +93,17 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             $productsArr = arr::extractValuesFromArray($productsArr, 'value');
             $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canSell');
-            
+
+            // Извличане от контировката на артикулите за изписване
+            $productsByStore = array();
+            foreach ($entries as $d){
+                if($d['credit'][0] == '321') {
+                    if(!array_key_exists($d['credit'][2][1], $this->instantProducts)){
+                        $productsByStore[$d['credit'][1][1]][] = (object)array('value' => $d['credit'][2][1], 'quantity' => $d['credit']['quantity']);
+                    }
+                }
+            }
+
             // Проверка на артикулите
             if(countR($productCheck['notActive'])){
                 doc_Threads::doUpdateThread($rec->threadId);
@@ -101,12 +114,13 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             }
 
             if(!store_Setup::canDoShippingWhenStockIsNegative()){
-                $contoWarnings = array();
+                $contoWarnings =  array();
                 foreach ($productsByStore as $storeId => $productArr){
-                    if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($productArr, $storeId, $rec->state, 'value', 'totalQuantity')) {
+                    if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($productArr, $storeId, $rec->state, 'value', 'quantity')) {
                         $contoWarnings[] = $warning;
                     }
                 }
+
                 if(countR($contoWarnings)) {
                     $warning = implode('. ', $contoWarnings);
                     doc_Threads::doUpdateThread($rec->threadId);
@@ -374,9 +388,12 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                 
                 // Извличане на записите за производството
                 $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($dRec->value, $quantity,  $dRec->storeId, null, pos_Reports::getClassId(), $rec->id, null, $rec->createdOn, $bomInfo['expenses'], $bomInfo['resources']);
-                foreach ($prodArr as $pRec){
-                    $this->totalAmount += $pRec['amount'];
-                    $entries[] = $pRec;
+                if(countR($prodArr)){
+                    $this->instantProducts[$dRec->value] = $dRec->value;
+                    foreach ($prodArr as $pRec){
+                        $this->totalAmount += $pRec['amount'];
+                        $entries[] = $pRec;
+                    }
                 }
             }
         }

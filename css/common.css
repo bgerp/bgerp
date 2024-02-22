@@ -448,8 +448,7 @@ textarea:hover {
   outline: none; }
 
 #simpleSearch {
-  width: 15em;
-  max-width: 100%;
+  width: 100%;
   border: solid 1px #cccccc;
   display: block;
   position: relative;
@@ -466,6 +465,7 @@ textarea:hover {
 
 .narrow #cmsNavigation #simpleSearch {
   height: 1.5em;
+  min-width: 300px;
   margin-top: 15px !important; }
 
 .narrow #searchform {
@@ -493,7 +493,7 @@ textarea:hover {
   margin-right: 0px;
   padding: 0;
   height: 1.8em;
-  right: 0px;
+  right: 0;
   position: absolute;
   border: none;
   background-color: rgba(0, 0, 0, 0);
@@ -1458,6 +1458,9 @@ table.listTable {
     color: #990000; }
   table.listTable .rowNumColumn {
     width: 1%; }
+
+.formSection .listTable td {
+  vertical-align: top; }
 
   .listAction table.listTable > tbody > tr > td,
   table.listTable.listAction > tbody > tr > td {
@@ -3011,9 +3014,6 @@ div.richtextHide {
 /*
  * richtext elements
  */
-.narrow .richtext {
-  font-size: 0.9em; }
-
 .richtext h1,
 .richtext h2,
 .richtext h3,

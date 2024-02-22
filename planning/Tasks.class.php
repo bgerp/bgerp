@@ -303,14 +303,15 @@ class planning_Tasks extends core_Master
         }
 
         $this->FLD('manualPreviousTask', 'key(mvc=planning_Tasks,select=title)', 'caption=Предходна операция,input=none');
+
+        $this->FLD('mandatoryDocuments', 'classes(select=title)', 'caption=Задължителни,hint=Задължително изискуеми документи (поне един от всеки избран тип) за да може да бъде приключена операцията');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,class=w25,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=individual');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
-        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both,input=hidden');
+        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано,autoPrint=Генериране и Печат)', 'caption=Етикиране->Производ. №,tdClass=small-field nowrap,notNull,value=both,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelPrintFromProgress', 'enum(no=Изключено,yes=Включено)', 'caption=Етикиране->Етикет от прогреса,tdClass=small-field nowrap,notNull,value=no,input=hidden');
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
@@ -794,6 +795,12 @@ class planning_Tasks extends core_Master
                     $row->notConvertedFromPreviousTasks = tr("Няма");
                 }
             }
+
+            if(!empty($rec->mandatoryDocuments)){
+                $row->mandatoryDocuments = ht::createHint(tr('Има посочени'), $row->mandatoryDocuments);
+            } else {
+                $row->mandatoryDocuments = tr('Няма');
+            }
         } else {
             // Ако има предишна операция, ще може да се поставя след нея
             if(Request::get('assetId', 'int')){
@@ -1070,22 +1077,11 @@ class planning_Tasks extends core_Master
             }
         }
 
-        unset($row->labelPrintFromProgress);
-        if (core_Packs::isInstalled('label')) {
-            $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress != 'no') {
-                $row->labelPrintFromProgress = $mvc->getFieldType('labelPrintFromProgress')->toVerbal($rec->labelPrintFromProgress);
-            }
-        }
-
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>|Производ. №|*:</td><td>[#labelType#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#labelPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#labelQuantityInPack#]</td></tr>
                 <tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>
-                <!--ET_BEGIN labelPrintFromProgress-->
-                <tr><td style='font-weight:normal'>|Етикет от прогреса|*:</td><td>[#labelPrintFromProgress#]</td></tr>
-                <!--ET_END labelPrintFromProgress-->
                 <!--ET_BEGIN printCount-->
                 <tr><td style='font-weight:normal'>|Отпечатвания|*:</td><td>[#printCount#]</td></tr>
                 <!--ET_END printCount-->
@@ -1581,13 +1577,6 @@ class planning_Tasks extends core_Master
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
 
-        if (core_Packs::isInstalled('label')) {
-            $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress != 'no') {
-                $form->setField('labelPrintFromProgress', "input");
-            }
-        }
-
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
         }
@@ -1619,7 +1608,7 @@ class planning_Tasks extends core_Master
         try {
             $origin = doc_Containers::getDocument($rec->originId);
         } catch (core_exception_Expect $e) {
-            followRetUrl(null, 'Има грешка при създаването', 'error');
+            followRetUrl(null, '|Има грешка при създаването', 'error');
         }
 
         $originRec = $origin->fetch();
@@ -1642,6 +1631,9 @@ class planning_Tasks extends core_Master
                 $form->setDefault('isFinal', $isFinal);
             }
         }
+
+        $mandatoryClassOptions = planning_Steps::getMandatoryClassOptions();
+        $form->setSuggestions("mandatoryDocuments", array('' => '') + $mandatoryClassOptions);
 
         if (isset($rec->productId)) {
 
@@ -1676,7 +1668,7 @@ class planning_Tasks extends core_Master
             }
 
             if (!isset($rec->systemId) && empty($rec->id)) {
-                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode");
+                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode,mandatoryDocuments=mandatoryDocuments");
                 foreach ($defFields as $fld => $val) {
                     $form->setDefault($fld, $productionData[$val]);
                 }
@@ -2060,8 +2052,9 @@ class planning_Tasks extends core_Master
             if(core_Packs::isInstalled('batch')){
                 if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
                     $autoTaskBatchValue = $BatchDef->getAutoValue('planning_Tasks', $rec->id, null, null);
+
                     if(!empty($autoTaskBatchValue)){
-                        $batches = batch_Items::getBatchQuantitiesInStore($rec->productId);
+                        $batches = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $autoTaskBatchValue);
                         if(array_key_exists($autoTaskBatchValue, $batches)){
                             $notConvertedQuantity = $batches[$autoTaskBatchValue];
                         }
@@ -2342,7 +2335,7 @@ class planning_Tasks extends core_Master
             // Добавяне на драйвера на артикула в ключовите думи
             $productDriverClass = cat_Products::getVerbal($jobRec->productId, 'innerClass');
             $res .= ' ' . plg_Search::normalizeText($productDriverClass);
-            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getHandle($jobRec->id));
+            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getTitleById($jobRec->id));
         }
 
         // Добавяне на всички ключови думи от прогреса
@@ -2633,7 +2626,7 @@ class planning_Tasks extends core_Master
             } else {
                 $selected = Request::get('selected', 'varchar');
                 $selectedArr = empty($selected) ? array() : array_combine(explode('|', $selected), explode('|', $selected));
-                if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
+                if(!countR($selectedArr)) followRetUrl(null, '|Не са избрани шаблонни операции за клониране', 'warning');
 
                 // От предходните ще се клонират САМО избраните
                 $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
@@ -2698,7 +2691,7 @@ class planning_Tasks extends core_Master
                     $newTask = clone $defaultTask;
                     $newTask->originId = $jobRec->containerId;
                     $newTask->systemId = $sysId;
-                    $newTask->state = 'pending';
+
                     if(empty($defaultTask->plannedQuantity)){
                         $newTask->plannedQuantity = $jobRec->quantity;
                         $newTask->quantityInPack = 1;
@@ -2716,10 +2709,16 @@ class planning_Tasks extends core_Master
                     if (!planning_Tasks::canAddToFolder($folderId)) {
                         $folderId = planning_Centers::getUndefinedFolderId();
                     }
+
+                    $Cover = doc_Folders::getCover($folderId);
+                    $autoCreateTaskState = $Cover->fetchField('autoCreateTaskState');
+                    $newTask->state = ($autoCreateTaskState == 'auto') ? planning_Setup::get('AUTO_CREATE_TASK_STATE'): $autoCreateTaskState;
+
                     $newTask->folderId = $folderId;
                     $newTask->saoOrder = $num;
                     $ProductionData = cat_Products::getDriver($newTask->productId)->getProductionData($newTask->productId);
                     $newTask->isFinal = $ProductionData['isFinal'];
+
                     $this->save($newTask);
 
                     // Ако има параметри от рецептата се прехвърлят 1 към 1
@@ -2774,7 +2773,7 @@ class planning_Tasks extends core_Master
             followRetUrl(null, $msg, $msgType);
         }
 
-        followRetUrl(null, 'Имаше проблем', 'error');
+        followRetUrl(null, '|Имаше проблем', 'error');
     }
 
 
@@ -3180,14 +3179,18 @@ class planning_Tasks extends core_Master
 
         if($rec->state == 'pending' && in_array($rec->brState, array('draft', 'waiting'))){
             if($Driver = cat_Products::getDriver($rec->productId)){
-                $saveRecs = array();
                 $pData = $Driver->getProductionData($rec->productId);
 
                 // Ако има планиращи действия
                 if(is_array($pData['actions'])){
+                    $actionsWithNorms = planning_AssetResourcesNorms::getNormOptions($rec->assetId, array(), true);
+
                     $now = dt::now();
                     foreach ($pData['actions'] as $actionId){
                         if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'input' AND #productId = {$actionId}")) continue;
+
+                        // Ако няма норма за планираното действие - ще се пропуска
+                        if(!in_array($actionId, $actionsWithNorms)) continue;
 
                         // Ще се създава запис за планираното действие за влагане
                         $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'), 'createdOn' => $now, 'modifiedBy' => core_Users::SYSTEM_USER, 'modifiedOn' => $now);
@@ -3466,7 +3469,7 @@ class planning_Tasks extends core_Master
         $this->touchRec($rec);
         $this->logWrite('Преизчисляване на заработките', $rec->id);
 
-        followRetUrl(null, 'Заработките са преизчислени успешно|*!');
+        followRetUrl(null, '|Заработките са преизчислени успешно|*!');
     }
 
 
@@ -3926,5 +3929,32 @@ class planning_Tasks extends core_Master
         }
 
         return $prevRecValues;
+    }
+
+
+    /**
+     * След намиране на текста за грешка на бутона за 'Приключване'
+     *
+     * @param stdClass $rec
+     * @return null|string
+     */
+    public function getCloseBtnError($rec)
+    {
+        if(empty($rec->mandatoryDocuments)) return;
+
+        // Ако няма някой от задължителните документи да не може да се приключи операцията
+        $errorArr = array();
+        $mandatoryArr = keylist::toArray($rec->mandatoryDocuments);
+        foreach ($mandatoryArr as $classId){
+            if(!doc_Containers::count("#threadId = {$rec->threadId} AND #state IN ('active', 'pending') AND #docClass = {$classId}")){
+                $errorArr[] = tr(cls::get($classId)->singleTitle);
+            }
+        }
+
+        if(countR($errorArr)){
+            $msg = 'Задължително е да има|* създадени на заявка/активни следните документи|*: ' . implode(', ', $errorArr);
+
+            return $msg;
+        }
     }
 }

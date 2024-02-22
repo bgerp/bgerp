@@ -87,7 +87,7 @@ class cat_plg_Grouping extends core_Plugin
                 if (!$retUrl) {
                     $retUrl = array($mvc, 'list');
                 }
-                $res = new Redirect($retUrl, 'В избраните няма опции, които може да се променят');
+                $res = new Redirect($retUrl, '|В избраните няма опции, които може да се променят');
 
                 return false;
             }

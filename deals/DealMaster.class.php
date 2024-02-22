@@ -1002,6 +1002,11 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function canActivate($rec)
     {
+        // Ако няма сума, но има обща отстъпка да не може да се активира
+        if(isset($rec->id)){
+            if(empty($rec->amountDeal) && price_DiscountsPerDocuments::haveDiscount(get_called_class(), $rec->id)) return false;
+        }
+
         return true;
     }
     
@@ -1043,23 +1048,26 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
 
-            if(isset($dRec->autoDiscount)){
-                if(isset($dRec->discount)){
-                    $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4);
-                } else {
-                    $dRec->discount = $dRec->autoDiscount;
+            if(!empty($dRec->discount) || !empty($dRec->autoDiscount)){
+                $dRec->inputDiscount = $dRec->discount;
+                if(isset($dRec->autoDiscount)){
+                    if(isset($dRec->discount)){
+                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 6);
+                    } else {
+                        $dRec->discount = $dRec->autoDiscount;
+                    }
                 }
                 $save = true;
             }
-            
-            if ($save === true) {
+
+            if ($save) {
                 $saveRecs[] = $dRec;
             }
         }
         
         // Ако има детайли за обновяване
         if (countR($saveRecs)) {
-            $Detail->saveArray($saveRecs, 'id,tolerance,term,discount');
+            $Detail->saveArray($saveRecs, 'id,tolerance,term,discount,inputDiscount');
         }
         
         $update = false;
@@ -1207,14 +1215,17 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Допълнителните условия
             $conditions = $rec->additionalConditions;
+
             if(empty($rec->additionalConditions)){
                 $conditions = $mvc->getConditionArr($rec, true);
                 if(in_array($rec->state, array('pending', 'draft'))){
                     foreach($conditions as &$cArr){
                         if(!Mode::isReadOnly()){
-                            $cArr = "<span style='color:blue'>{$cArr}</span>";
+                            $cArr = "<span class='blueText'>{$cArr}</span>";
                         }
                         $cArr = ht::createHint($cArr, 'Условието, ще бъде записано при активиране');
+                        $cArr->prepend("<span class='inlineRichtextCond'>");
+                        $cArr->append("</span>");
                     }
                 }
             }
@@ -2065,21 +2076,21 @@ abstract class deals_DealMaster extends deals_DealBase
      * Ако има вече такъв артикул добавен към сделката, наслагва к-то, цената и отстъпката
      * на новия запис към съществуващия (цените и отстъпките стават по средно притеглени)
      *
-     * @param int    $id           - ид на сделка
-     * @param int    $productId    - ид на артикул
-     * @param float  $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
-     * @param float  $price        - цена на единична бройка в основната мярка (ако не е подадена, определя се от политиката)
-     * @param int    $packagingId  - ид на опаковка (не е задължителна)
-     * @param float  $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
-     * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
-     * @param string $term         - срок (не е задължителен)
-     * @param string $notes        - забележки
+     * @param int    $id            - ид на сделка
+     * @param int    $productId     - ид на артикул
+     * @param float  $packQuantity  - количество продадени опаковки (ако няма опаковки е цялото количество)
+     * @param float  $price         - цена на единична бройка в основната мярка (ако не е подадена, определя се от политиката)
+     * @param int    $packagingId   - ид на опаковка (не е задължителна)
+     * @param float  $discount      - отстъпка между 0(0%) и 1(100%) (не е задължителна)
+     * @param float  $tolerance     - толеранс между 0(0%) и 1(100%) (не е задължителен)
+     * @param string $term          - срок (не е задължителен)
+     * @param string $notes         - забележки
      * @param  string $batch        - партида
-     *
+     * @param  string $autoDiscount - авт. отстъпка
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch = null)
+    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch = null, $autoDiscount = null)
     {
         $me = cls::get(get_called_class());
         $Detail = cls::get($me->mainDetail);
@@ -2091,7 +2102,11 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($discount)) {
             expect($discount >= 0 && $discount <= 1);
         }
-        
+
+        if (isset($autoDiscount)) {
+            expect($autoDiscount >= 0 && $autoDiscount <= 1);
+        }
+
         // Дали толеранса е между 0 и 1
         if (isset($tolerance)) {
             expect($tolerance >= 0 && $tolerance <= 1);
@@ -2130,10 +2145,9 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             $price = ($price) ? $price : cat_Products::getPrimeCost($productId, null, null, null);
-            
         }
-        
-                $packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
+
+        $packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
         
         // Подготвяме детайла
         $dRec = (object) array($Detail->masterKey => $id,
@@ -2145,38 +2159,19 @@ abstract class deals_DealMaster extends deals_DealBase
             'term' => $term,
             'price' => $price,
             'quantityInPack' => $quantityInPack,
+            'autoDiscount' => $autoDiscount,
             'notes' => $notes,
         );
 
-        // Проверяваме дали въвдения детайл е уникален
-        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes, $batch);
-        
-        if (is_object($exRec)) {
-            
-            // Смятаме средно притеглената цена и отстъпка
-            $nPrice = ($exRec->quantity * $exRec->price + $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
-            $nDiscount = ($exRec->quantity * $exRec->discount + $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
-            $nTolerance = ($exRec->quantity * $exRec->tolerance + $dRec->quantity * $dRec->tolerance) / ($dRec->quantity + $exRec->quantity);
-            
-            // Ъпдейтваме к-то, цената и отстъпката на записа с новите
-            if ($term) {
-                $exRec->term = max($exRec->term, $dRec->term);
-            }
-            
-            $exRec->quantity += $dRec->quantity;
-            $exRec->price = $nPrice;
-            $exRec->discount = (empty($nDiscount)) ? null : round($nDiscount, 2);
-            $exRec->tolerance = (!isset($nTolerance)) ? null : round($nTolerance, 2);
-            
-            // Ъпдейтваме съществуващия запис
-            $id = $Detail->save($exRec);
-        } else {
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            $dRec->autoAllocate = false;
+            $dRec->_clonedWithBatches = true;
+        }
 
-            // Ако е уникален, добавяме го
-            $id = $Detail->save($dRec);
-            if(!empty($batch) && core_Packs::isInstalled('batch')){
-                batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
-            }
+        // Ако е уникален, добавяме го
+        $id = $Detail->save($dRec);
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
         }
         
         // Връщаме резултата от записа
@@ -2624,7 +2619,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $rec->contoActions = null;
                 $mvc->save_($rec, 'contoActions');
             }
-            redirect(array($mvc, 'single', $rec->id), false, 'Преди активирането, трябва задължително да е посочено време/дата на доставка', 'error');
+            redirect(array($mvc, 'single', $rec->id), false, '|Преди активирането, трябва задължително да е посочено време/дата на доставка', 'error');
         }
     }
     
@@ -2675,7 +2670,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         } catch(core_exception_Expect $e){
             reportException($e);
-            followRetUrl(null, "Проблем при създаване на|* " . mb_strtolower($this->singleTitle));
+            followRetUrl(null, "|Проблем при създаване на|* " . mb_strtolower($this->singleTitle));
         }
         
         $redirectUrl = array($this, 'single', $masterId);
@@ -2799,7 +2794,7 @@ abstract class deals_DealMaster extends deals_DealBase
     protected static function on_BeforeChangeState($mvc, &$rec, $state)
     {
         if(acc_plg_Contable::haveDocumentInThreadWithStates($rec->threadId, 'pending,draft', $rec->containerId)){
-            followRetUrl(null, 'Сделката не може да се открие/закрие, защото има документи на заявка и/или чернова', 'error');
+            followRetUrl(null, '|Сделката не може да се открие/закрие, защото има документи на заявка и/или чернова', 'error');
         }
     }
 

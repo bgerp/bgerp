@@ -26,6 +26,12 @@ defIfNot('BATCH_SHOW_IN_INVOICES', 'yes');
 
 
 /**
+ * Дали експорт-а на движениеята да е с минус
+ */
+defIfNot('BATCH_CSV_EXPORT_MOVEMENT_OUT_QUANTITY_SIGN', 'withoutMinus');
+
+
+/**
  * class batch_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -86,6 +92,7 @@ class batch_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(
+        array('contoNegativeBatches'),
         array('batch'),
         array('batchMaster', 'batch'),
     );
@@ -125,6 +132,7 @@ class batch_Setup extends core_ProtoSetup
         'BATCH_CLOSE_OLD_BATCHES' => array('time', 'caption=Затваряне на изчерпани партиди->След'),
         'BATCH_COUNT_IN_EDIT_WINDOW' => array('int', 'caption=Колко партиди да се показват в прозореца за промяна->Брой'),
         'BATCH_SHOW_IN_INVOICES' => array('enum(yes=Да,no=Не)', 'caption=Показване на партиди във фактурите->Избор'),
+        'BATCH_CSV_EXPORT_MOVEMENT_OUT_QUANTITY_SIGN' => array('enum(withMinus=Да се показва,withoutMinus=Да не се показва)', 'caption=Експорт на движенията в csv->Минус при "Излиза"'),
     );
     
     

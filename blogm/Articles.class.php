@@ -161,7 +161,10 @@ class blogm_Articles extends core_Master
                 $row->commentsCnt .= '&nbsp;' . tr('коментара');
             }
         }
-        
+
+        if($rec->commentsMode == 'disabled'){
+            unset($row->commentsCnt);
+        }
         if (!$rec->publishedOn) {
             $rec->publishedOn = $rec->createdOn;
         }
@@ -173,6 +176,10 @@ class blogm_Articles extends core_Master
             $url['cMenuId'] = static::getDefaultMenuId($rec);
 
             $row->title = ht::createLink($row->title, $url, null, 'ef_icon=img/16/monitor.png');
+        }
+
+        if(blogm_Setup::get('TYPE') == 'news'){
+            unset($row->author);
         }
     }
     
@@ -358,8 +365,6 @@ class blogm_Articles extends core_Master
         $data->menuRec = cms_Content::fetch($data->menuId);
         $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->category);
         $data->rec = $rec;
-        
-
 
         cms_Content::setCurrent($cMenuId);
 
@@ -377,7 +382,8 @@ class blogm_Articles extends core_Master
         
         // Подготвяме данните за единичния изглед
         $this->prepareArticle($data);
-        
+        $data->row->categories = blogm_Categories::getCategoryLinks($rec->categories, $data->menuId);
+
         // Обработка на формата за добавяне на коментари
         if ($cForm = $data->commentForm) {
             
@@ -656,6 +662,7 @@ class blogm_Articles extends core_Master
      */
     public function prepareBrowse($data)
     {
+        $blogType = (blogm_Setup::get('TYPE') == 'blog');
         if ($data->category) {
             $data->query->where(array("#categories LIKE '%|[#1#]|%'", $data->category));
             $data->selectedCategories[$data->category] = true;
@@ -697,7 +704,8 @@ class blogm_Articles extends core_Master
             $url['q'] = $data->q;
             $url['cMenuId'] = $data->menuId;
             $row->title = ht::createLink($row->title, $url);
-            
+            $row->categories = blogm_Categories::getCategoryLinks($rec->categories, $data->menuId);
+
             $txt = explode("\n", $rec->body, 2);
             
             if (countR($txt) > 1) {
@@ -706,8 +714,10 @@ class blogm_Articles extends core_Master
             }
             
             $row->body = $this->getVerbal($rec, 'body');
-            
-            $row->commentsCnt = $this->getVerbal($rec, 'commentsCnt');
+
+            if($rec->commentsMode != 'disabled'){
+                $row->commentsCnt = $this->getVerbal($rec, 'commentsCnt');
+            }
             
             if ($data->q) {
                 $url += array('q' => $data->q);
@@ -739,16 +749,19 @@ class blogm_Articles extends core_Master
             if (!$catRec) {
                 error('404 Липсваща категория', array("Липсва категория:  {$data->category}"));
             }
-            
-            $data->title = tr('Статии в') .  ' "<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
+
+            $str = $blogType ? 'Статии в' : 'Новини в';
+            $data->title = tr($str) .  ' "<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
             $data->descr = blogm_Categories::getVerbal($catRec, 'description');
             if (!countR($data->rows)) {
-                $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в тази категория') . '</b></p>';
+                $str = (blogm_Setup::get('TYPE') == 'blog') ? 'Няма статии в тази категория' : 'Няма новини в тази категория';
+                $data->descr .= "<p><b style='color:#666;'>" . tr($str) . '</b></p>';
             }
         } else {
             $data->title = tr(blogm_Setup::get('ALL_ARTICLES_IN_PAGE_TITLE'));
             if (!countR($data->rows)) {
-                $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в този блог') . '</b></p>';
+                $str = ($blogType == 'blog') ? 'Няма статии в този блог' : 'Няма новини в този блог';
+                $data->descr .= "<p><b style='color:#666;'>" . tr($str) . '</b></p>';
             }
         }
 
@@ -765,7 +778,7 @@ class blogm_Articles extends core_Master
     public function renderBrowse_($data)
     {
         $layout = $data->ThemeClass->getBrowseLayout();
-        
+
         if (countR($data->rows)) {
             foreach ($data->rows as $row) {
                 $rowTpl = $layout->getBlock('ROW');

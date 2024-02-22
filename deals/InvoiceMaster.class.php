@@ -182,8 +182,22 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,mandatory');
         $mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
-
         $mvc->setDbIndex('dueDate');
+    }
+
+
+    /**
+     * Извиква се след описанието на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+        // Ако е указано да се кешират допълни данни
+        setIfNot($mvc->cacheAdditionalConditions, false);
+        if($mvc->cacheAdditionalConditions){
+            $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
+        }
     }
 
 
@@ -548,18 +562,19 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
         if ($rec->type == 'dc_note' && isset($rec->changeAmount)) {
-            return $res = true;
+            $res = true;
+            return ;
         }
         
         // Ако няма ид, не може да се активира документа
         if (empty($rec->id) && !isset($rec->dpAmount)) {
-            return $res = false;
+            $res = false;
+            return;
         }
         
         // Ако има Авансово плащане може да се активира
         if (isset($rec->dpAmount)) {
             $res = !((round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)));
-            
             return;
         }
     }
@@ -638,6 +653,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $det->_importBatches = $rec->importBatches;
                     $det->{$Detail->masterKey} = $rec->id;
                     unset($det->batches);
+                    unset($det->autoDiscount);
                     $Detail->save($det);
                 }
             }
@@ -1204,7 +1220,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         if (isset($fields['-list'])) {
-            $row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), null, 'ef_icon=img/16/invoice.png') : $mvc->getLink($rec->id, 0);
+            $row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), null, "ef_icon={$mvc->getIcon()}") : $mvc->getLink($rec->id, 0);
             $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
             $noVat = $rec->dealValue - $rec->discountAmount;
 
@@ -1236,7 +1252,8 @@ abstract class deals_InvoiceMaster extends core_Master
                         $row->vatReason = $vatReason;
 
                         if($rec->state == 'draft'){
-                            if(!Mode::isReadOnly()){$row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
+                            if(!Mode::isReadOnly()){
+                                $row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
                             }
 
                             $row->vatReason = ht::createHint($row->vatReason, 'Основанието е определено автоматично. Ще бъде записано при активиране|*!', 'notice', false);
@@ -1380,7 +1397,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
             if($rec->type == 'dc_note' && $rec->state != 'rejected'){
                 if(!Mode::isReadOnly()){
-                    $documents = deals_InvoicesToDocuments::getDocumentsToInvoices($rec->containerId, 'acc_ValueCorrections,store_Receipts,store_ShipmentOrders');
+                    $documents = deals_InvoicesToDocuments::getDocumentsToInvoices($rec->containerId, 'acc_ValueCorrections,store_Receipts,store_ShipmentOrders,sales_Services,purchase_Services');
                     if(!countR($documents)){
                         $string = "Към Дебитно/Кредитно известие ЗАДЪЛЖИТЕЛНО трябва да се създаде и втори документ: Корекция на стойности (при промяна само на стойността) или ЕН/СР/ПП (при промяна на количества)!
                            В полето \"Към фактура\" на създадения втори документ изберете настоящото Известие, за да премахнете това съобщение!";
@@ -1390,6 +1407,32 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             core_Lg::pop();
+
+            // Показване на допълнителните условия от банковата сметка
+            if($mvc->cacheAdditionalConditions){
+                $conditions = $rec->additionalConditions;
+                if (empty($conditions)) {
+                    if (in_array($rec->state, array('pending', 'draft'))) {
+                        if(!empty($rec->accountId)){
+                            $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                            $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $rec->tplLang);
+                            if (!empty($condition)) {
+                                if (!Mode::isReadOnly()) {
+                                    $condition = "<span style='color:blue'>{$condition}</span>";
+                                }
+                                $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
+                                $conditions = array($condition);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (is_array($conditions)) {
+                foreach ($conditions as $cond) {
+                    $row->additionalInfo .= "\n" . $cond;
+                }
+            }
         }
     }
     
@@ -1884,35 +1927,90 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = $mvc->fetchRec($rec);
 
+        $saveFields = array();
+        if($mvc->cacheAdditionalConditions){
+            if (empty($rec->additionalConditions)) {
+                if(!empty($rec->accountId)) {
+                    $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                    $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
+                    $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $lang);
+                    $rec->additionalConditions = array($condition);
+                    $saveFields[] = 'additionalConditions';
+                }
+            }
+        }
+
         if(!in_array($rec->vatRate, array('yes', 'separate'))) {
             if (empty($rec->vatReason)) {
                 $vatReason = $mvc->getNoVatReason($rec->contragentCountryId, $rec->contragentVatNo);
                 if(!empty($vatReason)){
                     $rec->vatReason = $vatReason;
-                    $mvc->save_($rec, 'vatReason');
+                    $saveFields[] = 'vatReason';
+                    $mvc->save_($rec, $saveFields);
                 }
             }
         }
 
+        $mvc->save_($rec, $saveFields);
+
         // Ако има посочен параметър за информация към фактурата от артикула
         $Detail = cls::get($mvc->mainDetail);
-        if(isset($Detail->productInvoiceInfoParamName)) {
+        if($Detail instanceof sales_InvoiceDetails) {
             $saveRecs = array();
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-            $dQuery->show('productId,notes');
+            $dQuery->show('productId,notes,discount,autoDiscount');
             while($dRec = $dQuery->fetch()){
+                $save = false;
                 $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
                 if(!empty($invoiceInfo)){
                     if (strpos($dRec->notes, "{$invoiceInfo}") === false) {
                         $dRec->notes = $invoiceInfo . ((!empty($dRec->notes) ? "\n" : '') . $dRec->notes);
-                        $saveRecs[] = $dRec;
+                        $save = true;
                     }
+                }
+
+                if(!empty($dRec->discount) || !empty($dRec->autoDiscount)){
+                    $dRec->inputDiscount = $dRec->discount;
+                    if(isset($dRec->autoDiscount)){
+                        if(isset($dRec->discount)){
+                            $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 6);
+                        } else {
+                            $dRec->discount = $dRec->autoDiscount;
+                        }
+                    }
+                    $save = true;
+                }
+
+                if($save){
+                    $saveRecs[] = $dRec;
                 }
             }
 
             if(countR($saveRecs)){
-                $Detail->saveArray($saveRecs, 'id,notes');
+                $Detail->saveArray($saveRecs, 'id,notes,discount,inputDiscount');
+            }
+        }
+
+        // Има ли полета, чиито стойности да се преизчислят при активиране
+        $cacheFields = $Detail->getFieldsToCalcOnActivation($rec);
+
+        if(countR($cacheFields)){
+            $saveDetails = array();
+            $updateFields = implode(',', $cacheFields);
+
+            // Извличат се детайлите
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                $params = cat_Products::getParams($dRec->productId);
+                if($Detail->calcFieldsOnActivation($dRec, $rec, $params)){
+                    $saveDetails[] = $dRec;
+                }
+            }
+
+            if(countR($saveDetails)){
+                $Detail->saveArray($saveDetails, "id,{$updateFields}");
             }
         }
     }

@@ -209,4 +209,65 @@ class plg_ExpandInput extends core_Plugin
             $res .= '<li>Мигрирани данни: ' . $cnt;
         }
     }
+
+
+    /**
+     * Преизчисляване на разпънатите полета
+     *
+     * @param $mvc
+     * @param $res
+     * @param $id
+     * @return void
+     */
+    public static function on_AfterRecalcExpandedInput($mvc, &$res, $id = null)
+    {
+        if(!isset($res)){
+            core_Debug::startTimer('recalcExpandedInputs');
+
+            // За кои записи
+            $query = $mvc->getQuery();
+            $query->show("id,{$mvc->expandInputFieldName},{$mvc->expandFieldName}");
+            if(isset($id)){
+                $query->where("#id = {$id}");
+            }
+
+            $count = 0;
+            $updateRecs = array();
+            while($rec = $query->fetch()){
+                $count++;
+
+                // За всеки запис се гледа има ли промени при разпънатите полета
+                $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
+                $resArr = $mvc->expandInput($inputArr);
+                $expandField = $mvc->getField($mvc->expandFieldName);
+                $oldVal = $rec->{$mvc->expandFieldName};
+                $newVal = $expandField->type->fromArray($resArr);
+                if($oldVal != $newVal){
+                    $rec->{$mvc->expandFieldName} = $newVal;
+                    $updateRecs[] = $rec;
+                }
+            }
+
+            // Ако има промени само те ще се запишат
+            if(countR($updateRecs)){
+                $mvc->saveArray($updateRecs, "id,{$mvc->expandFieldName},{$mvc->expandInputFieldName}}");
+            }
+            core_Debug::stopTimer('recalcExpandedInputs');
+            core_Debug::log("{$mvc->className} Total {$count} : REGEN FIELDS: " . round(core_Debug::$timers['recalcExpandedInputs']->workingTime, 2));
+        }
+    }
+
+
+    /**
+     * Извиква се от core_CallOnTime
+     *
+     * @see core_CallOnTime
+     *
+     * @param int $userId
+     */
+    public static function callback_recalcExpandInput($mvc)
+    {
+        $mvc = cls::get($mvc);
+        $mvc->recalcExpandedInput();
+    }
 }

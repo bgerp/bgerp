@@ -433,7 +433,7 @@ class cat_ListingDetails extends doc_Detail
                 }
                 
                 // Редирект
-                followRetUrl(null, "Импортирани са|* '{$count}' |артикула|*");
+                followRetUrl(null, "|Импортирани са|* '{$count}' |артикула|*");
             }
         }
         

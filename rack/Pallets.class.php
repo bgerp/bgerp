@@ -122,7 +122,7 @@ class rack_Pallets extends core_Manager
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell,silent');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,silent');
-        $this->FLD('batch', 'text', 'caption=Партида');
+        $this->FLD('batch', 'text', 'caption=Партида,tdClass=small');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none,notNull,value=active');
@@ -901,27 +901,13 @@ class rack_Pallets extends core_Manager
         
         $cacheType = 'UsedRacksPositions' . $storeId;
         $cacheKey = '@' . $productId;
-
-        if (!($res = core_Cache::get($cacheType, $cacheKey))) {
+        //!($res = core_Cache::get($cacheType, $cacheKey))
+        if (true) {
             $res = array();
             $query = self::getQuery();
             $query->orderBy('id', 'DESC');
             while ($rec = $query->fetch("#storeId = {$storeId} AND #state != 'closed'")) {
-                if ($rec->position) {
-                    if(isset($res[$rec->position])) {
-                        if($rec->productId == $productId) {
-                            // Swap
-                            $res[$rec->position]->all[ $res[$rec->position]->productId] = 
-                                (object)array('productId' => $res[$rec->position]->productId, 'batch' => $res[$rec->position]->batch);
-                            $res[$rec->position]->productId = $rec->productId;
-                            $res[$rec->position]->batch = $rec->batch;
-                        } else {
-                            $res[$rec->position]->all[$rec->productId] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
-                        }
-                    } else {
-                        $res[$rec->position] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
-                    }
-                }
+                $res[$rec->position][$rec->productId][$rec->batch] = $rec->batch;
             }
             core_Cache::set($cacheType, $cacheKey, $res, 1440);
         }
@@ -1045,16 +1031,21 @@ class rack_Pallets extends core_Manager
      *
      * @param string $position
      * @param int    $storeId
-     *
+     * @param int    $batch
      * @return null|stdClass
      */
-    public static function getByPosition($position, $storeId, $productId = null)
+    public static function getByPosition($position, $storeId, $productId = null, $batch = null)
     {
         if (empty($position) || $position == rack_PositionType::FLOOR) return;
 
         $rec = null;
         if(isset($productId)) {
-            $rec = self::fetch(array("#productId = {$productId} AND #position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+            $where = "#productId = {$productId} AND #position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}";
+            if(!is_null($batch)){
+                $rec = self::fetch(array("{$where} AND #batch = '[#1#]'", $batch));
+            } else {
+                $rec = self::fetch($where);
+            }
         }
 
         if(!$rec) {
@@ -1079,6 +1070,15 @@ class rack_Pallets extends core_Manager
         if ($action == 'edit' && isset($rec)) {
             if ($rec->state == 'closed') {
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'forceopen'){
+            $requiredRoles = $mvc->getRequiredRoles('list', $rec, $userId);
+            if(isset($rec->storeId)){
+                if(!store_Stores::haveRightFor('select', $rec->storeId)){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -1226,7 +1226,7 @@ class rack_Pallets extends core_Manager
             }
 
             static::logWrite('Изтриване на палетите');
-            followRetUrl(null, 'Успешно премахване на палетите');
+            followRetUrl(null, '|Успешно премахване на палетите');
         }
 
         $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png');
@@ -1287,5 +1287,22 @@ class rack_Pallets extends core_Manager
         foreach ($query->getDeletedRecs() as $rec) {
             rack_Pallets::recalc($rec->productId, $rec->storeId);
         }
+    }
+
+
+    /**
+     * Екшън форсиращ избор на склад и отваряне на позиция
+     */
+    public function act_forceOpen()
+    {
+        $this->requireRightFor('forceopen');
+        expect($storeId = Request::get('storeId', 'int'));
+        $this->requireRightFor('forceopen', (object)array('storeId' => $storeId));
+
+        $productId = Request::get('productId', 'int');
+        $position = Request::get('position', 'varchar');
+        store_Stores::selectCurrent($storeId);
+
+        redirect(array('rack_Pallets', 'list', 'productId' => $productId, 'search' => $position));
     }
 }

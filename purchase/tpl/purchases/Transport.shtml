@@ -51,6 +51,7 @@
 
 <div class="lines"></div>
 [#purchase_PurchasesDetails#]
+[#price_DiscountsPerDocuments#]
 
 <div class="lines"></div>
 <table class="innerTable footer-notes paddingCells">
@@ -65,7 +66,7 @@
                 <li>|Цените са с отделно ДДС|*.[#sepVat#]</li>
                 <!--ET_END sepVat-->
                 <!--ET_BEGIN noVat-->
-                <li>|Цените са без ДДС|*.[#noVat#]</li>
+                <li>|Без начисляване на ДДС|*.[#noVat#]</li>
                 <!--ET_END noVat-->
 
                 <!--ET_BEGIN closedDocuments-->

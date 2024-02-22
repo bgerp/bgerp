@@ -455,6 +455,6 @@ class acc_Features extends core_Manager
         $this->logWrite('Синхронизиране на счетоводните свойства');
         
         // Редирект към списъка на свойствата
-        return new Redirect(array($this, 'list'), 'Всички свойства са синхронизирани успешно');
+        return new Redirect(array($this, 'list'), '|Всички свойства са синхронизирани успешно');
     }
 }

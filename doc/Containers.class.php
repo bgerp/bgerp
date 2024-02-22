@@ -420,7 +420,7 @@ class doc_Containers extends core_Manager
             $query = self::getQuery();
             $query->where(array("#threadId = '[#1#]'", $threadId));
             
-            $query->orderBy('#createdOn, #id', 'DESC');
+            $query->orderBy('#id', 'DESC');
             
             $query->limit(1);
             
@@ -466,7 +466,7 @@ class doc_Containers extends core_Manager
             bgerp_Recently::add('folder', $data->threadRec->folderId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         }
 
-        $data->query->orderBy('#createdOn, #id');
+        $data->query->orderBy('#id');
         
         $threadId = Request::get('threadId', 'int');
         

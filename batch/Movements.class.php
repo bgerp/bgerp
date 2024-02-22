@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,7 +25,7 @@ class batch_Movements extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_AlignDecimals2,batch_Wrapper, plg_RowNumbering, plg_Sorting, plg_Created, plg_SelectPeriod';
+    public $loadList = 'plg_AlignDecimals2, batch_Wrapper, plg_RowNumbering, plg_Sorting, plg_Created, plg_SelectPeriod, bgerp_plg_Export, bgerp_plg_CsvExport';
     
     
     /**
@@ -50,6 +50,12 @@ class batch_Movements extends core_Detail
      * Кой може да пише?
      */
     public $canWrite = 'no_one';
+
+
+    /**
+     * Кой има право да експортва?
+     */
+    public $canExport = 'ceo,batch';
     
     
     /**
@@ -62,8 +68,14 @@ class batch_Movements extends core_Detail
      * Брой записи на страница
      */
     public $listItemsPerPage = 50;
-    
-    
+
+
+    /**
+     * Полета, които могат да бъдат експортирани
+     */
+    public $exportableCsvFields = 'date,operation,quantity,docId,date';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -250,9 +262,15 @@ class batch_Movements extends core_Detail
         $jQuery = batch_BatchesInDocuments::getQuery();
         $jQuery->where("#containerId = {$containerId}");
         $jQuery->orderBy('id', 'ASC');
-        
+        $docRec = $doc->fetch();
+
         // За всяка
         while ($jRec = $jQuery->fetch()) {
+            if(Mode::is('recontoMovement')){
+                if(isset($doc->valiorFld)){
+                    $jRec->date = $docRec->{$doc->valiorFld};
+                }
+            }
             $batches = batch_Defs::getBatchArray($jRec->productId, $jRec->batch);
             $quantity = (countR($batches) == 1) ? $jRec->quantity : $jRec->quantity / countR($batches);
             
@@ -434,5 +452,61 @@ class batch_Movements extends core_Detail
         $lastRow->replace($totalVerbal, 'total');
         $lastRow->replace($measureShortName, 'measureShortName');
         $tpl->append($lastRow, 'ROW_AFTER');
+    }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        $fieldset->setField('docId', 'caption=Документ');
+        $fieldset->setFieldType('quantity', 'double');
+        $fieldset->FLD('code', 'varchar', 'caption=Код,before=productId');
+        $fieldset->FLD('productId', 'varchar', 'caption=Артикул,before=date');
+        $fieldset->FLD('batch', 'varchar', 'caption=Партида,after=productId');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,after=batch');
+        $fieldset->FLD('contragentId', 'varchar', 'caption=Контрагент');
+        $fieldset->FLD('measureId', 'varchar', 'caption=Мярка,after=quantity');
+    }
+
+
+    /**
+     * Преди експортиране като CSV
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_BeforeExportCsv($mvc, &$recs)
+    {
+        if(!is_array($recs)) return;
+
+        $showSign = batch_Setup::get('CSV_EXPORT_MOVEMENT_OUT_QUANTITY_SIGN');
+
+        // Подготовка на данните за експорт
+        foreach ($recs as &$rec){
+            $pRec = cat_Products::fetch($rec->productId, 'code,name,nameEn,measureId');
+            $Document = new core_ObjectReference($rec->docType, $rec->docId);
+            $rec->docId = "#" . $Document->getHandle();
+            $Cover = doc_Folders::getCover($Document->fetchField('folderId'));
+            if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+                $rec->contragentId = $Cover->getTitleById();
+            }
+            $rec->productId = cat_Products::getVerbal($pRec->id, 'name');
+            $rec->measureId = cat_UoM::getTitleById($pRec->measureId);
+            $rec->code = cat_Products::getVerbal($pRec->id, 'code');
+            if($Def = batch_Defs::getBatchDef($pRec->id)){
+                if(!empty($rec->batch)){
+                    Mode::push('text', 'plain');
+                    $rec->batch = strip_tags($Def->toVerbal($rec->batch));
+                    Mode::pop('text');
+                }
+            }
+
+            if($rec->operation == 'out' && $showSign == 'withMinus'){
+                $rec->quantity *= -1;
+            }
+        }
     }
 }

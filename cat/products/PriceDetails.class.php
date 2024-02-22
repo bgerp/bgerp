@@ -312,7 +312,12 @@ class cat_products_PriceDetails extends core_Manager
         
         // Рендираме информацията за себестойностите
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
-        
+        foreach ($data->primeCostRows as $row){
+            if (!doc_plg_HidePrices::canSeePriceFields('cat_Products', $data->masterData->rec)) {
+                $row->price = doc_plg_HidePrices::getBuriedElement();
+            }
+        }
+
         $fields = arr::make("price=Стойност|* <small>({$baseCurrencyCode})</small>,type=Вид,updatedOn=В сила от||Valid from,buttons=Действия / Документ");
         $primeCostTpl = $table->get($data->primeCostRows, $fields);
         $primeCostTpl->prepend(tr('|*<div>|Цени без ДДС|*:</div>'));

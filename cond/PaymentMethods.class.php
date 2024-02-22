@@ -135,7 +135,7 @@ class cond_PaymentMethods extends embed_Manager
         $this->FLD('name', 'varchar', 'caption=Наименование');
         $this->FNC('title', 'varchar', 'caption=Описание, input=none, oldFieldName=description');
         $this->FLD('type', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Вид плащане');
-        $this->FLD('onlinePaymentDriver', 'class(interface=cond_OnlinePaymentIntf,allowEmpty,select=title)', 'caption=Онлайн плащане->Вид,silent,removeAndRefreshForm=type');
+        $this->FLD('onlinePaymentDriver', 'class(interface=cond_OnlinePaymentIntf,allowEmpty,select=title)', 'caption=Онлайн плащане->Вид,silent,removeAndRefreshForm');
         $this->FLD('onlinePaymentText', 'text(rows=3)', 'caption=Онлайн плащане->Текст');
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');
         $this->FLD('paymentBeforeShipping', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,hint=Процент,oldFieldName=payBeforeReceiveShare');
@@ -224,7 +224,9 @@ class cond_PaymentMethods extends embed_Manager
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+
+        $sysId = isset($rec->id) ? $mvc->fetchField($rec->id, 'sysId', false) : null;
+
         // Ако има избран драйвер за онлайн плащане, с дефиниран вид плащане задава се той
         if(isset($rec->onlinePaymentDriver)){
             if($Driver = self::getDriver($rec)){
@@ -234,8 +236,8 @@ class cond_PaymentMethods extends embed_Manager
                 }
             }
         }
-        
-        if(isset($rec->id) && $rec->createdBy == core_Users::SYSTEM_USER){
+
+        if(isset($sysId)){
             foreach (array('name', 'type', 'downpayment', 'paymentBeforeShipping', 'discountPeriod', 'paymentOnDelivery', 'discountPercent', 'timeBalancePayment', 'eventBalancePayment') as $fld){
                 $form->setReadOnly($fld);
             }

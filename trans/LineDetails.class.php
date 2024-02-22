@@ -369,11 +369,10 @@ class trans_LineDetails extends doc_Detail
             }
         }
 
-
         if(!empty($transportInfo['features'])){
             $featuresString = '';
             foreach ($transportInfo['features'] as $transFeatureId){
-                $featuresString .= "<span class='lineFeature'>" . trans_Features::getVerbal($transFeatureId, 'name') . "</span>";
+                $featuresString .= "<span class='lineFeature'>" . transliterate(tr(trans_Features::getVerbal($transFeatureId, 'name'))) . "</span>";
             }
             $row->containerId .= " {$featuresString}";
         }

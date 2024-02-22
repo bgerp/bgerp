@@ -106,7 +106,8 @@ class price_Setup extends core_ProtoSetup
         'price_Updates',
         'price_Cache',
         'price_ListBasicDiscounts',
-        'migrate::listUpdateAutoDiscount2346',
+        'price_DiscountsPerDocuments',
+        'migrate::deleteOldDiscounts2403',
     );
 
 
@@ -114,6 +115,7 @@ class price_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(array('priceDealer'),
+        array('noPrice'),
         array('price', 'priceDealer'),
         array('priceMaster', 'price'),
     );
@@ -143,7 +145,7 @@ class price_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'price_reports_PriceList,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_ListRulesImport,price_interface_AverageCostStorePricePolicyImpl,price_interface_LastQuotationFromSupplier,price_interface_LastActiveBomCostWithExpenses,price_interface_BasicDiscountImpl';
+    public $defClasses = 'price_reports_PriceList,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_ListRulesImport,price_interface_AverageCostStorePricePolicyImpl,price_interface_LastQuotationFromSupplier,price_interface_LastActiveBomCostWithExpenses';
 
 
     /**
@@ -177,19 +179,12 @@ class price_Setup extends core_ProtoSetup
 
 
     /**
-     * Форсира регенерирането на ключовите думи за planning_Tasks
+     * Изтриване на старите твърди отстъпки
      */
-    public static function listUpdateAutoDiscount2346()
+    public function deleteOldDiscounts2403()
     {
-        core_Classes::add('price_interface_BasicDiscountImpl');
-        $DiscClass = cls::get('price_interface_BasicDiscountImpl');
-        $Lists = cls::get('price_Lists');
-
-        $query = price_Lists::getQuery();
-        $query->where("#discountClass IS NOT NULL AND #discountClass != '{$DiscClass->getClassId()}'");
-        while($rec = $query->fetch()){
-            $rec->discountClass = null;
-            $Lists->save($rec, 'discountClass');
-        }
+        $Discounts = cls::get('price_ListBasicDiscounts');
+        $Discounts->setupMvc();
+        $Discounts->delete("#groupId IS NULL");
     }
 }

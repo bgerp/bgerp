@@ -389,13 +389,18 @@ abstract class deals_DealBase extends core_Master
                 $logisticData = $this->getLogisticData($d1);
                 if(isset($logisticData['toCountry'])){
                     $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
-                    $dealCountries[$toCountryId] = $d1;
+                    $dealCountries[$toCountryId][] = $d1;
                 }
                 if (acc_plg_Contable::haveDocumentInThreadWithStates($dealRec->threadId, 'pending,draft')) {
                     $err[] = $this->getLink($d1, 0);
                 }
                 $warning[$dealRec->currencyRate] = $dealRec->currencyRate;
                 $threads[$dealRec->threadId] = $dealRec->threadId;
+            }
+
+            if (countR($err)) {
+                $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
+                $form->setError('closeWith', $msg);
             }
 
             $countryWarningMsg = array();
@@ -405,10 +410,15 @@ abstract class deals_DealBase extends core_Master
                 if(isset($toCountryId)){
                     $dealList = array();
                     $diffCountries = array_diff_key($dealCountries, array($toCountryId => $toCountryId));
-                    foreach ($diffCountries as $diffDealId){
-                        $dealList[] = "#" . $this->getHandle($diffDealId);
+
+                    if(countR($diffCountries)){
+                        foreach ($diffCountries as $dArr){
+                            foreach ($dArr as $d1){
+                                $dealList[] = "#" . $this->getHandle($d1);
+                            }
+                        }
+                        $countryWarningMsg = "Държавата на доставка в обединяващия договор е различна от държавата на доставка в|*: " . implode(', ', $dealList);
                     }
-                    $countryWarningMsg = "Държавата на доставка в обединяващия договор е различна от държавата на доставка в|*: " . implode(',', $dealList);
                 } else {
                     $countryWarningMsg = "Обединяват се договори с избрана държава на доставка в договор без посочена такава|*!";
                 }
@@ -789,7 +799,7 @@ abstract class deals_DealBase extends core_Master
         $fh = fileman::absorbStr($csv, 'exportCsv', "{$this->abbr}{$rec->id}_OrderedAndShipped.csv");
         
         // Редирект към експортиртния файл
-        redirect(array('fileman_Files', 'single', $fh), 'Справката е експортирана успешно');
+        redirect(array('fileman_Files', 'single', $fh), '|Справката е експортирана успешно');
     }
     
     
@@ -1014,7 +1024,7 @@ abstract class deals_DealBase extends core_Master
                 $this->recalcDocumentsWithNewRate($rec, $fRec->newRate);
             } catch(acc_journal_Exception $e){
                 $url = $this->getSingleUrlArray($rec->id);
-                redirect($url, false, 'Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
+                redirect($url, false, '|Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
             }
 
             // Нотифициране на обекта за да се преизчисли статистиката за всеки случай
@@ -1028,7 +1038,7 @@ abstract class deals_DealBase extends core_Master
                 acc_Items::notifyObject($itemRec);
             }
 
-            followRetUrl(null, 'Документите са преизчислени успешно|*!');
+            followRetUrl(null, '|Документите са преизчислени успешно|*!');
         }
 
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс,order=9');

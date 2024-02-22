@@ -50,7 +50,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, change_Plugin, store_plg_StoreFilter,deals_plg_SaveValiorOnActivation,store_Wrapper,purchase_plg_ExtractPurchasesData, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,deals_plg_SelectInvoicesToDocument,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,cat_plg_UsingProductVat, doc_SharablePlg,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
 
 
     /**
@@ -300,7 +300,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         if (isset($fields['-single'])) {
             $logisticData = $mvc->getLogisticData($rec);
-            $logisticData['toCountry'] = ($rec->tplLang == 'bg') ? drdata_Countries::fetchField("#commonName = '{$logisticData['toCountry']}'", 'commonNameBg') : $logisticData['toCountry'];
+            $logisticData['toCountry'] = ($rec->tplLang == 'bg') ? drdata_Countries::fetchField(array("#commonName = '[#1#]'", $logisticData['toCountry']), 'commonNameBg') : $logisticData['toCountry'];
             $logisticData['toPCode'] = core_Lg::transliterate($logisticData['toPCode']);
             $logisticData['toPlace'] = core_Lg::transliterate($logisticData['toPlace']);
             $logisticData['toAddress'] = core_Lg::transliterate($logisticData['toAddress']);
@@ -746,11 +746,25 @@ class store_ShipmentOrders extends store_DocumentMaster
         $rec = $mvc->fetchRec($rec);
 
         if (empty($rec->additionalConditions)) {
-            $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
+            $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
             $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $lang);
             $rec->additionalConditions = array($condition);
             $mvc->save_($rec, 'additionalConditions');
         }
+
+        // Кеширане на тарифния код
+        $saveRecs = array();
+        $Details = cls::get('store_ShipmentOrderDetails');
+        $dQuery = store_ShipmentOrderDetails::getQuery();
+        $dQuery->where("#shipmentId = {$rec->id}");
+        while($dRec = $dQuery->fetch()){
+            if(empty($dRec->tariffCode)){
+                $dRec->tariffCode = cat_Products::getParams($dRec->productId, 'customsTariffNumber');
+                $saveRecs[] = $dRec;
+            }
+        }
+
+        $Details->saveArray($saveRecs, 'id,tariffCode');
     }
 
 

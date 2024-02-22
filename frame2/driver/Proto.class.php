@@ -42,8 +42,20 @@ abstract class frame2_driver_Proto extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
     }
-    
-    
+
+    /**
+     * След полетата за добавяне
+     *
+     * @param frame2_driver_Proto $Driver   - драйвер
+     * @param embed_Manager       $Embedder - ембедър
+     * @param core_Fieldset       $fieldset - форма
+     */
+    protected static function on_AfterAddFields(frame2_driver_Proto $Driver, embed_Manager $Embedder, core_Fieldset &$fieldset)
+    {
+        $fieldset->FLD('showLetterHeadWhenSending', "enum(yes=Показване при печат/експорт,no=Скриване при печат/експорт)", "caption=Други настройки->Антетка,autohide");
+    }
+
+
     /**
      * Кой може да избере драйвера
      */
@@ -137,9 +149,16 @@ abstract class frame2_driver_Proto extends core_BaseClass
         
         foreach ($fields as $name => $fld) {
             if (isset($rec->{$name}) && $fld->single !== 'none') {
+                if($fld->single == 'internal' && (Mode::is('text', 'xhtml') || Mode::is('printing'))) continue;
                 $captionArr = explode('->', $fld->caption);
                 $caption = (countR($captionArr) == 1) ? $captionArr[0] : $captionArr[1];
                 $resArr[$name] = array('name' => tr($caption), 'val' => $row->{$name});
+            }
+        }
+
+        if(Mode::is('text', 'xhtml') || Mode::is('printing')){
+            if($rec->showLetterHeadWhenSending == 'no'){
+                $resArr = array();
             }
         }
     }

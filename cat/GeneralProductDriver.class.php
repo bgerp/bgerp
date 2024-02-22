@@ -368,6 +368,13 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             $size = array(280, 150);
             $Fancybox = cls::get('fancybox_Fancybox');
             $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(1200, 1200));
+        } else {
+
+            // Ако няма изображение, но в сесията се иска да се показва картинка за без изображение - показва се дефолтна
+            if(Mode::is('noIconImg')){
+                $thumb = new thumb_Img(getFullPath('img/noimage120.gif'), 280, 150, 'path');
+                $data->row->image = $thumb->createImg(array('class' => 'noIconImg', 'title' => 'Артикулът все още няма изображение'))->getContent();
+            }
         }
         
         // @TODO ревербализиране на описанието

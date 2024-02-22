@@ -71,6 +71,12 @@ class deals_QuotationDetails extends doc_Detail
 
 
     /**
+     * Кой може да маркира за изтриване всички редове
+     */
+    public $addDeleteSelectRows = false;
+
+
+    /**
      * Добавяне на нужните полета
      */
     protected function addDetailFields($mvc)
@@ -381,7 +387,12 @@ class deals_QuotationDetails extends doc_Detail
 
         // Заределяме рековете и роуовете на опционални и неопционални
         $optionalRows = $notOptionalRows = $optionalRecs = $notOptionalRecs = array();
-        foreach ($data->recs as $ind => $r) {
+        if($data->masterData->rec->detailOrderBy == 'auto'){
+            ksort($data->rows);
+        }
+
+        foreach ($data->rows as $ind => $ro) {
+            $r = $data->recs[$ind];
             if ($r->optional == 'no') {
                 $notOptionalRecs[$ind] = $r;
                 $notOptionalRows[$ind] = $data->rows[$ind];
@@ -682,7 +693,6 @@ class deals_QuotationDetails extends doc_Detail
     protected static function on_AfterPrepareListRecs($mvc, $data)
     {
         $recs = &$data->recs;
-        ksort($recs);
 
         $masterRec = $data->masterData->rec;
         $notOptional = $optional = array();
