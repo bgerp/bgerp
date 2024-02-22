@@ -323,7 +323,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         if(!empty($data->masterData->rec->tareWeight)){
             if($tareWeightByTariffCodes != $data->masterData->rec->tareWeight){
                 $tareWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($tareWeightByTariffCodes);
-                $warnings[] = tr("Общите тара по документа е различна от тези по МТК|*: {$tareWeightByTariffCodesVerbal}<br>");
+                $warnings[] = tr("Общата тара по документа е различна от тези по МТК|*: {$tareWeightByTariffCodesVerbal}<br>");
             }
         }
 
