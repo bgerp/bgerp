@@ -309,21 +309,21 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         if(!empty($data->masterData->rec->weight)){
             if($weightByTariffCodes != $data->masterData->rec->weight){
                 $weightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($weightByTariffCodes);
-                $warnings[] = tr("Общото бруто по документа е различна от това по МТК|*: {$weightByTariffCodesVerbal}");
+                $warnings[] = tr("Общото бруто по документа е различно от сбора по МТК|*: {$weightByTariffCodesVerbal}");
             }
         }
 
         if(!empty($data->masterData->rec->netWeight)){
             if($netWeightByTariffCodes != $data->masterData->rec->netWeight){
                 $netWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($netWeightByTariffCodes);
-                $warnings[] = tr("Общото нето по документа е различна от това по МТК|*: {$netWeightByTariffCodesVerbal}<br>");
+                $warnings[] = tr("Общото нето по документа е различно от сбора по МТК|*: {$netWeightByTariffCodesVerbal}<br>");
             }
         }
 
         if(!empty($data->masterData->rec->tareWeight)){
             if($tareWeightByTariffCodes != $data->masterData->rec->tareWeight){
                 $tareWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($tareWeightByTariffCodes);
-                $warnings[] = tr("Общата тара по документа е различна от тези по МТК|*: {$tareWeightByTariffCodesVerbal}<br>");
+                $warnings[] = tr("Общата тара по документа е различна от сбора по МТК|*: {$tareWeightByTariffCodesVerbal}<br>");
             }
         }
 
@@ -332,7 +332,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $transUnitsByTariffCodesVerbal = trans_Helper::displayTransUnits($transUnitsByTariffCodes);
             $checkTransUnitsVerbal = trans_Helper::displayTransUnits($checkTransUnits);
             if($transUnitsByTariffCodesVerbal != $checkTransUnitsVerbal){
-                $warnings[] = tr("Общо ЛЕ по документа е различна от това по МТК|*: {$transUnitsByTariffCodesVerbal}<br>");
+                $warnings[] = tr("Общо ЛЕ по документа са различни от сбора им по МТК|*: {$transUnitsByTariffCodesVerbal}<br>");
             }
         }
 
