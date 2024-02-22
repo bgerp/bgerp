@@ -258,12 +258,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                     }
                     $modifyUrl['displayDescription'] = $tariffDescription;
                     core_Lg::pop();
-                    $modifyBtn = ht::createBtn('Промяна', $modifyUrl, false, false, 'ef_icon=img/16/edit.png,title=Промяна на обобщения ред на митническия код');
+                    $modifyBtn = ht::createBtn('Промяна', $modifyUrl, false, false, 'class=fright,ef_icon=img/16/edit.png,title=Промяна на обобщения ред на митническия код,style=position:absolute; right: 8px; top:8px;');
                     $detail->Master->pushTemplateLg($masterRec->template);
                 }
             }
-            $columns = $columnCount - (($masterRec->state == 'draft') ? 3 : 4);
-            $element = ht::createElement('tr', $rowAttr, new ET("<td style='background: #eee;padding-top:9px;padding-left:5px; border-right: none !important;' colspan='{$columns}'>" . $groupVerbal .'</td><td class="tariffCodeModifyBtn aright" style="vertical-align: middle !important; border-left: none !important;background: #eee; ">'.  $modifyBtn->getContent() .'</td>'));
+            $element = ht::createElement('tr', $rowAttr, new ET("<td style='position:relative;background: #eee;padding-top:9px;padding-left:5px; border-right: none !important;' colspan='{$columnCount}'>" . $groupVerbal .  $modifyBtn->getContent() .'</td>'));
             $rows['|' . $tariffNumber] = $element;
             
             // За всички записи
