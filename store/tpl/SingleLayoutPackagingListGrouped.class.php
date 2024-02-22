@@ -336,7 +336,6 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
         }
 
-
         if(countR($warnings)){
             $blockTpl = new core_ET("<div class='packingListWithTariffCodeTableWarnings'>[#warnings#]</div>");
             $blockTpl->append(implode('<br>', $warnings), 'warnings');
