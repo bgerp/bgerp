@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -155,8 +155,14 @@ class acc_Articles extends core_Master
      * Дали може да се използват затворени пера
      */
     public $canUseClosedItems = false;
-    
-    
+
+
+    /**
+     * Дали да се показват последно видяните документи при избора на шаблонен
+     */
+    public $showInPrototypesLastVisited = true;
+
+
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
@@ -228,9 +234,12 @@ class acc_Articles extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $valior = self::getVerbal($rec, 'valior');
-        
-        return tr('Мемориален ордер') . " №{$rec->id} / {$valior}";
+        $self = cls::get(get_called_class());
+        $valior = $self->getVerbal($rec, 'valior');
+        $reason = str::limitLen($self->getVerbal($rec, 'reason'), 32);
+        $title = "{$self->getHandle($rec)}/{$valior}/{$reason}";
+
+        return $title;
     }
     
     
