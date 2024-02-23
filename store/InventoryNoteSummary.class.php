@@ -701,16 +701,14 @@ class store_InventoryNoteSummary extends doc_Detail
      * @param string $nameFld
      * @param string $groupFld
      * @param boolean $expand
+     * @param string $orderByField
+     *
      * @return void
      */
-    public static function filterRecs($selectedGroups, &$recs, $codeFld = 'orderCode', $nameFld = 'orderName', $groupFld = 'groups', $expand = false)
+    public static function filterRecs($selectedGroups, &$recs, $codeFld = 'orderCode', $nameFld = 'orderName', $groupFld = 'groups', $expand = false, $orderByField = 'auto')
     {
         // Ако няма записи не правим нищо
-        if (!is_array($recs)) {
-            
-            return;
-        }
-        
+        if (!is_array($recs)) return;
         $ordered = array();
         
         // Вербализираме и подреждаме групите
@@ -758,9 +756,9 @@ class store_InventoryNoteSummary extends doc_Detail
         }
         
         // Правилна подредба
-        uasort($ordered, function ($a, $b) use ($codeFld, $nameFld) {
+        uasort($ordered, function ($a, $b) use ($codeFld, $nameFld, $orderByField) {
              if ($a->groupName == $b->groupName) {
-                  $orderProductBy = cat_Groups::fetchField($a->_groupId, 'orderProductBy');
+                  $orderProductBy = ($orderByField == 'auto') ? cat_Groups::fetchField($a->_groupId, 'orderProductBy') : $orderByField;
                   $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
                   $result = strcasecmp($a->{$field}, $b->{$field});
              } else {
@@ -802,7 +800,8 @@ class store_InventoryNoteSummary extends doc_Detail
     {
         // Филтрираме записите
         $expand = $data->masterData->rec->expandGroups == 'yes';
-        self::filterRecs($data->masterData->rec->groups, $data->recs, 'orderCode', 'orderName', 'groups', $expand);
+        $orderByField = $data->masterData->rec->orderProductBy;
+        self::filterRecs($data->masterData->rec->groups, $data->recs, 'orderCode', 'orderName', 'groups', $expand, $orderByField);
 
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);

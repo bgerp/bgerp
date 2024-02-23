@@ -140,7 +140,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
         $columnCount = countR($data->listFields);
         $totalInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'totalInPackListWithTariffCode');
-        $totalTareInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'tareInPackListWithTariffCode');
+        $data->totalTareInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'tareInPackListWithTariffCode');
 
         // Извличане на всички уникални тарифни номера и сумиране на данните им
         $data->tariffCodes = array();
@@ -181,7 +181,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
             $data->tariffCodes[$rec1->tariffNumber]->weight += $weight;
             $data->tariffCodes[$rec1->tariffNumber]->netWeight += $netWeight;
-            if($totalTareInPackListWithTariffCodeVal == 'yes'){
+            if($data->totalTareInPackListWithTariffCodeVal == 'yes'){
                 $tareWeight = $detail->getTareWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->tareWeight, $weight, $netWeight);
                 if($tareWeight > 0){
                     $data->tariffCodes[$rec1->tariffNumber]->tareWeight += $tareWeight;
@@ -233,7 +233,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupBlock->append($weightVerbal, 'weight');
             $groupBlock->append($netWeightVerbal, 'netWeight');
             $groupBlock->append($tariffDescriptionVerbal, 'description');
-            if($totalTareInPackListWithTariffCodeVal == 'yes'){
+            if($data->totalTareInPackListWithTariffCodeVal == 'yes'){
                 $tareWeightVerbal = $this->getVerbalRow($tariffObject->tareWeight, 'cat_type_Weight', $tariffCodeRec->tareWeight);
                 $groupBlock->append($tareWeightVerbal, 'tareWeight');
             }
@@ -324,7 +324,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
         }
 
-        if(!empty($data->masterData->rec->tareWeight)){
+        if(!empty($data->masterData->rec->tareWeight) && $data->totalTareInPackListWithTariffCodeVal == 'yes'){
             if(round($tareWeightByTariffCodes, 2) != round($data->masterData->rec->tareWeight, 2)){
                 $tareWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($tareWeightByTariffCodes);
                 $warnings[] = tr("Общата тара по документа е различна от сбора по МТК|*: {$tareWeightByTariffCodesVerbal}<br>");
