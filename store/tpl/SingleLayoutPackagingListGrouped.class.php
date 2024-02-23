@@ -192,6 +192,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         ksort($data->tariffCodes, SORT_STRING);
         $rows = array();
         $isReadOnly = Mode::isReadOnly();
+        $count = 0;
 
         // За всяко поле за групиране
         foreach ($data->tariffCodes as $tariffNumber => $tariffObject) {
@@ -273,8 +274,10 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 // Ако стойността на полето им за групиране е същата като текущото
                 if ($rec->tariffNumber == $tariffNumber) {
                     if (is_object($data->rows[$id])) {
+                        $count++;
                         $rows[$id] = clone $data->rows[$id];
-                        
+                        $rows[$id]->RowNumb = $count;
+
                         // Веднъж групирано, премахваме записа от старите записи
                         unset($data->rows[$id]);
                     }
