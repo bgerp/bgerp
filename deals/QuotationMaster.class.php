@@ -382,6 +382,10 @@ abstract class deals_QuotationMaster extends core_Master
             $titleArr[] = $contragent;
         }
 
+        if (!empty($rec->reff)) {
+            $titleArr[] = $rec->reff;
+        }
+
         return implode('/', $titleArr);
     }
 
