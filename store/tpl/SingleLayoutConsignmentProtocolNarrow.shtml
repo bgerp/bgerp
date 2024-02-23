@@ -163,11 +163,11 @@
                             <hr>
                             <!--ET_BEGIN responsible-->
 
-                            <div>|Получил|*:  [#responsible#]</div>
+                            <div>|Получил|*:[#RESPONSIBLE_SIGN#]  [#responsible#]</div>
                             <!--ET_END responsible-->
                             
                             <!--ET_BEGIN username-->
-                            <div>|Съставил|*:  [#username#]</div>
+                            <div>|Съставил|*:[#USERNAME_SIGN#]  [#username#]</div>
                             <!--ET_END username-->
                         </td>
                     </tr>

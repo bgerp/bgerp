@@ -298,7 +298,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      */
     public function afterRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
-        if(Mode::isReadOnly()) return;
+        if(Mode::isReadOnly() || !is_array($data->tariffCodes)) return;
 
         $transUnitsByTariffCodes = array();
         $weightByTariffCodes = $netWeightByTariffCodes = $tareWeightByTariffCodes = 0;
@@ -311,21 +311,21 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
         $warnings = array();
         if(!empty($data->masterData->rec->weight)){
-            if($weightByTariffCodes != $data->masterData->rec->weight){
+            if(round($weightByTariffCodes, 2) != round($data->masterData->rec->weight, 2)){
                 $weightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($weightByTariffCodes);
                 $warnings[] = tr("Общото бруто по документа е различно от сбора по МТК|*: {$weightByTariffCodesVerbal}");
             }
         }
 
         if(!empty($data->masterData->rec->netWeight)){
-            if($netWeightByTariffCodes != $data->masterData->rec->netWeight){
+            if(round($netWeightByTariffCodes, 2) != round($data->masterData->rec->netWeight, 2)){
                 $netWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($netWeightByTariffCodes);
                 $warnings[] = tr("Общото нето по документа е различно от сбора по МТК|*: {$netWeightByTariffCodesVerbal}<br>");
             }
         }
 
         if(!empty($data->masterData->rec->tareWeight)){
-            if($tareWeightByTariffCodes != $data->masterData->rec->tareWeight){
+            if(round($tareWeightByTariffCodes, 2) != round($data->masterData->rec->tareWeight, 2)){
                 $tareWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($tareWeightByTariffCodes);
                 $warnings[] = tr("Общата тара по документа е различна от сбора по МТК|*: {$tareWeightByTariffCodesVerbal}<br>");
             }

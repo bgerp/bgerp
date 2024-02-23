@@ -159,8 +159,8 @@
                                     <td class='centered'>|Съставил|*:</td>
                                 </tr>
                                 <tr>
-                                    <td class='centered border-right' style='height:40px;'></td>
-                                    <td></td>
+                                    <td class='centered border-right' style='height:40px;'>[#RESPONSIBLE_SIGN#]</td>
+                                    <td>[#USERNAME_SIGN#]</td>
                                 </tr>
                                 <tr>
                                     <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
