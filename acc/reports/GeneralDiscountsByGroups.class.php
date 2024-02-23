@@ -89,8 +89,8 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('from', 'datetime(smartTime)', 'caption=От,refreshForm,after=title,single=none');
-        $fieldset->FLD('to', 'datetime(smartTime)', 'caption=До,refreshForm,after=from,single=none');
+        $fieldset->FLD('from', 'date', 'caption=От,refreshForm,after=title,single=none');
+        $fieldset->FLD('to', 'date', 'caption=До,refreshForm,after=from,single=none');
 
         $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
 
