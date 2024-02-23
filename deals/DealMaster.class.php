@@ -2957,7 +2957,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
         // Добавят се и файловете от допълнителните условия, ако има такова
         $additionalConditions = $rec->additionalConditions;
-        if(in_array($rec->state, array('active', 'draft'))) {
+        if(in_array($rec->state, array('pending', 'draft'))) {
             $additionalConditions = $this->getConditionArr($rec);
         }
         foreach ($additionalConditions as $aCond) {
