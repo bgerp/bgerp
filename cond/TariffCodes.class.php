@@ -69,9 +69,9 @@ class cond_TariffCodes extends core_Manager
      */
     public function description()
     {
-        $this->FLD('tariffCode', 'varchar(32)', 'caption=МТК,mandatory');
-        $this->FLD('descriptionBg', 'varchar(32)', 'caption=Описание,mandatory');
-        $this->FLD('descriptionEn', 'varchar(32)', 'caption=Описание (межд.),mandatory');
+        $this->FLD('tariffCode', 'varchar(16)', 'caption=МТК,mandatory');
+        $this->FLD('descriptionBg', 'varchar(48)', 'caption=Описание,mandatory');
+        $this->FLD('descriptionEn', 'varchar(48)', 'caption=Описание (межд.),mandatory');
 
         $this->setDbUnique('tariffCode');
     }
