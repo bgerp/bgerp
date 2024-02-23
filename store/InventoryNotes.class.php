@@ -204,6 +204,7 @@ class store_InventoryNotes extends core_Master
         $this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNull,value=no,maxRadio=2');
         $this->FLD('cache', 'blob', 'input=none');
         $this->FLD('expandByBatches', 'enum(no=Само ако има въведени,yes=Винаги)', 'caption=Разпъване по партиди при показване->Избор');
+        $this->FLD('orderProductBy', 'enum(auto=Автоматично,name=Име,code=Код)', 'caption=Сортиране на артикулите в групите->Избор,notNull,value=auto');
 
         // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
         if (haveRole('accMaster,ceo')) {
