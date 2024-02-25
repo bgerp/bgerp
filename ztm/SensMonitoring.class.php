@@ -20,12 +20,6 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
      * Заглавие на драйвера
      */
     public $title = 'Наблюдение на ZTM';
-    
-    
-    /**
-     * Интерфейси, поддържани от всички наследници
-     */
-    public $interfaces = 'sens2_ControllerIntf';
 
 
     /**
@@ -33,13 +27,24 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
      */
     public $inputs = array(
         'kWhImport' => array('caption' => 'Входяща енергия', 'uom' => 'kWh', 'logPeriod' => 3600),
+        'kWhImportDelta' => array('caption' => 'Делта входяща енергия', 'uom' => 'kWh', 'logPeriod' => 3600),
         'coldWater' => array('caption' => 'Студена вода', 'uom' => 'm³', 'logPeriod' => 3600),
         'hotWater' => array('caption' => 'Топла вода', 'uom' => 'm³', 'logPeriod' => 3600),
-        'airTempLower' => array('caption' => 'Температура долу', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
+//        'airTempLower' => array('caption' => 'Температура долу', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
         'airTempCent' => array('caption' => 'Температура център', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
-        'airTempUpper' => array('caption' => 'Температура горе', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
-        'ventLowerFan' => array('caption' => 'Вентилатор долу', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
-        'ventUpperFan' => array('caption' => 'Вентилатор горе', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
+//        'airTempUpper' => array('caption' => 'Температура горе', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
+//        'ventLowerFan' => array('caption' => 'Вентилатор долу', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
+//        'ventUpperFan' => array('caption' => 'Вентилатор горе', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
+    );
+
+
+    /**
+     * Изходи на контролера
+     */
+    public $outputs = array(
+        'goalBuildingTemp' => array('caption' => 'Температура на сградата', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
+        'floorMode' => array('caption' => 'Мод на отоплението', 'uom' => 'ENUM', 'logPeriod' => 3600, 'readPeriod' => 60),
+        'convMode' => array('caption' => 'Мод на отоплението', 'uom' => 'ENUM', 'logPeriod' => 3600, 'readPeriod' => 60)
     );
 
 
@@ -47,6 +52,7 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
      * Мапинг на входовете и регистрите
      */
     protected $inputRegistryMaps = array('kWhImport|ImportActiveEnergy' => 'monitoring.pa.measurements',
+                                         'kWhImportDelta|ImportActiveEnergy|delta' => 'monitoring.pa.measurements',
                                          'coldWater|CumulativeTraffic' => 'monitoring.cw.measurements',
                                          'hotWater|CumulativeTraffic' => 'monitoring.hw.measurements',
                                          'airTempLower' => 'hvac.air_temp_lower_1.value',
@@ -73,16 +79,12 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
         }
 
         foreach ($this->inputRegistryMaps as $iVal => $registry) {
-            list($input, $reg) = explode('|', $iVal);
+            list($input, $reg, $delta) = explode('|', $iVal);
             if ($inputs[$input]) {
                 $regId = ztm_Registers::fetchField(array("#name = '[#1#]'", $registry));
-                $rQuery = ztm_RegisterValues::getQuery();
-                $rQuery->where(array("#registerId = '[#1#]'", $regId));
-                $rQuery->where(array("#deviceId = '[#1#]'", $dId));
-                $rQuery->show('deviceId, value');
 
-                while ($rRec = $rQuery->fetch()) {
-                    $val = ztm_LongValues::getValueByHash($rRec->value);
+                if ($rRec = ztm_RegisterValues::get($dId, $regId)) {
+                    $val = $rRec->value;
                     // Ако е подадена стойност, търсим в масива иначе приемаме, че е стринг
                     if ($reg) {
                         $valArr = @json_decode($val);
@@ -111,6 +113,21 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
                         }
                         $valObj = end($valArr);
                         $res[$input] = $valObj->{$reg};
+
+                        // Вземаме делта с предишната стойност
+                        if ($delta) {
+                            $key = key($valArr);
+                            $key--;
+                            if ($prevVal = $valArr[$key]) {
+                                if (isset($res[$input]) && isset($prevVal->{$reg})) {
+                                    $res[$input] -= $prevVal->{$reg};
+                                } else {
+                                    $res[$input] = null;
+                                }
+                            } else {
+                                $res[$input] = null;
+                            }
+                        }
                     } else {
                         $res[$input] = $val;
                     }
@@ -119,6 +136,38 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
         }
 
         return $res;
+    }
+
+
+    /**
+     * Записва стойностите на изходите на контролера
+     *
+     * @param array $outputs         масив със системните имена на изходите и стойностите, които трябва да бъдат записани
+     * @param array $config          конфигурациони параметри
+     * @param array $persistentState персистентно състояние на контролера от базата данни
+     *
+     * @return array Масив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
+     */
+    public function writeOutputs($outputs, $config, &$persistentState)
+    {
+        foreach ($outputs as $oKey => $oVal) {
+            $rKey = null;
+            if ($oKey == 'goalBuildingTemp') {
+                $rKey = 'hvac.goal_building_temp';
+            }
+            if ($oKey == 'floorMode') {
+                $rKey = 'glob.floor.mode';
+            }
+            if ($oKey == 'convMode') {
+                $rKey = 'glob.conv.mode';
+            }
+            expect($rKey);
+
+            $regId = ztm_Registers::fetchField(array("#name = '[#1#]'", $rKey));
+            if ($regId) {
+                ztm_RegisterValues::forceSync($regId, $oVal);
+            }
+        }
     }
 
 

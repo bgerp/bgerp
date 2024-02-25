@@ -282,4 +282,16 @@ class batch_Templates extends embed_Manager
             }
         }
     }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('id', 'DESC');
+    }
 }

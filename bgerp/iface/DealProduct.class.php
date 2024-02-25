@@ -73,8 +73,24 @@ class bgerp_iface_DealProduct
      * @var float в интервала [0..1]
      */
     public $discount;
-    
-    
+
+
+    /**
+     * Автоматична отстъпка
+     *
+     * @var float в интервала [0..1]
+     */
+    public $autoDiscount;
+
+
+    /**
+     * Ръчна отстъпка
+     *
+     * @var float в интервала [0..1]
+     */
+    public $inputDiscount;
+
+
     /**
      * Тегло на продукта (ако има)
      *

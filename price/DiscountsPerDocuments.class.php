@@ -52,6 +52,11 @@ class price_DiscountsPerDocuments extends core_Detail
      */
     public $canEdit = 'powerUser';
 
+    /**
+     * Кой може да изтрива?
+     */
+    public $canDelete = 'powerUser';
+
 
     /**
      * Кой има право да добавя?
@@ -78,6 +83,12 @@ class price_DiscountsPerDocuments extends core_Detail
 
 
     /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 20;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -86,7 +97,7 @@ class price_DiscountsPerDocuments extends core_Detail
         $this->FLD('documentId', 'int', 'column=none,notNull,silent,input=hidden,mandatory,tdClass=leftCol');
 
         $this->FLD('amount', 'double(decimals=2,Min=0)', 'mandatory,caption=Сума');
-        $this->FLD('description', 'varchar', 'mandatory,caption=Пояснение,recently');
+        $this->FLD('description', 'varchar', 'mandatory,caption=Основание');
 
         $this->setDbIndex('documentClassId,documentId');
     }
@@ -133,13 +144,21 @@ class price_DiscountsPerDocuments extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if(in_array($action, array('add', 'delete', 'edit')) && isset($rec)){
+        if($action == 'add' && isset($rec)){
             if(empty($rec->documentClassId) || empty($rec->documentId)){
                 $requiredRoles = 'no_one';
             } else {
-                if(!cls::get($rec->documentClassId)->haveRightFor('edit', $rec->documentId)){
+                $Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
+                if(!$Document->canHaveTotalDiscount()){
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+
+        if(in_array($action, array('add', 'delete', 'edit')) && isset($rec)){
+            $Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
+            if(!$Document->haveRightFor('edit')){
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -169,6 +188,16 @@ class price_DiscountsPerDocuments extends core_Detail
         $sourceData = cls::get($rec->documentClassId)->getTotalDiscountSourceData($rec->documentId);
         $vatUnit = ($sourceData->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
         $form->setField('amount', array('unit' => "|*{$sourceData->currencyId}, {$vatUnit}"));
+
+        // Зареждат се последните основания за този документ
+        $query = $mvc->getQuery();
+        $query->where("#documentClassId = {$rec->documentClassId}");
+        $query->show('description');
+        $descriptions = arr::extractValuesFromArray($query->fetchAll(), 'description');
+        if(countR($descriptions)){
+            $descriptions = array_combine($descriptions, $descriptions);
+            $form->setSuggestions('description', array('' => '') + $descriptions);
+        }
     }
 
 
@@ -202,6 +231,7 @@ class price_DiscountsPerDocuments extends core_Detail
 
         $query = $this->getQuery();
         $query->where("#documentClassId = {$data->masterMvc->getClassId()} AND #documentId = {$data->masterId}");
+        $query->orderBy('id', 'ASC');
 
         // Подготовка на детайлите
         while($rec = $query->fetch()){
@@ -305,8 +335,31 @@ class price_DiscountsPerDocuments extends core_Detail
     public static function haveDiscount($mvc, $id)
     {
         $mvc = cls::get($mvc);
-        $rec = price_DiscountsPerDocuments::fetchField("#documentClassId = {$mvc->getClassId()} AND #documentId = {$id}");
+        $rec = price_DiscountsPerDocuments::fetch("#documentClassId = {$mvc->getClassId()} AND #documentId = {$id}");
 
         return is_object($rec);
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
+        $data->listFilter->showFields = 'document';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+        $data->query->orderBy('id', 'DESC');
+
+        if ($fRec = $data->listFilter->rec) {
+            if (isset($fRec->document)) {
+                $document = doc_Containers::getDocumentByHandle($fRec->document);
+                if (is_object($document)) {
+                    $data->query->where("#documentClassId = {$document->getClassId()} AND #documentId = {$document->that}");
+                }
+            }
+        }
     }
 }

@@ -10,7 +10,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -30,7 +30,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public $fieldsNotToClone = 'tolerance,term,autoDiscount,inputDiscount';
     
-    
+
     /**
      * Изчисляване на сумата на реда
      *
@@ -132,6 +132,7 @@ abstract class deals_DealDetail extends doc_Detail
         // Скриване на полетата за създаване
         $mvc->setField('createdOn', 'column=none');
         $mvc->setField('createdBy', 'column=none');
+        setIfNot($mvc->combineSameRecsWhenImport, false);
     }
     
     

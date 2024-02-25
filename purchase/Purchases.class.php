@@ -580,7 +580,7 @@ class purchase_Purchases extends deals_DealMaster
         $showReffInThread = purchase_Setup::get('SHOW_REFF_IN_PURCHASE_THREAD');
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
-            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId', 'autoDiscount', 'inputDiscount') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
 

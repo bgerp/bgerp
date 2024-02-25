@@ -32,12 +32,12 @@ class store_plg_TransportDataDetail extends core_Plugin
         setIfNot($mvc->packagingFld, 'packagingId');
         setIfNot($mvc->quantityFld, 'quantity');
 
-        $mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Бруто,forceField,autohide');
-        $mvc->FLD($mvc->netWeightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Нето,forceField,autohide');
-        $mvc->FLD($mvc->tareWeightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Тара,forceField,autohide');
-        $mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField,autohide');
-        $mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,tdClass=nowrap,after={$mvc->volumeField},smartCenter,input=none");
-        $mvc->FLD('transUnitQuantity', 'int(min=1)', 'caption=Логистична информация->К-во,autohide,inlineTo=transUnitId,forceField,unit=бр.,input=none');
+        $mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Бруто,forceField');
+        $mvc->FLD($mvc->netWeightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Нето,forceField');
+        $mvc->FLD($mvc->tareWeightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Тара,forceField');
+        $mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField');
+        $mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,tdClass=nowrap,after={$mvc->volumeField},smartCenter,input=none");
+        $mvc->FLD('transUnitQuantity', 'int(min=1)', 'caption=Логистична информация->К-во,inlineTo=transUnitId,forceField,unit=бр.,input=none');
     }
     
     
@@ -66,6 +66,14 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $form->setField('tareWeight', 'input');
                 $form->setField('transUnitId', 'input');
                 $form->setField('transUnitQuantity', 'input');
+            }
+        }
+
+        if(!Mode::get(plg_PrevAndNext::getModeKey($mvc))){
+            foreach (array('tariffCode', $mvc->weightField, $mvc->netWeightField, $mvc->tareWeightField, $mvc->volumeField, 'transUnitId', 'transUnitQuantity') as $fld){
+                if($form->getField($fld, false)){
+                    $form->setField($fld, 'autohide');
+                }
             }
         }
     }

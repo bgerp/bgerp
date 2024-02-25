@@ -32,8 +32,8 @@ class support_TaskType extends core_Mvc
         $fieldset->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
 
         $fieldset->FLD('issueTemplateId', 'key(mvc=planning_AssetGroupIssueTemplates,select=string,allowEmpty)', 'caption=Готов сигнал,input=none,before=description,changable');
-        $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none, silent');
-        $fieldset->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input=none, silent');
+        $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, input=none, silent');
+        $fieldset->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, input=none, silent');
         $fieldset->FLD('url', 'varchar(500)', 'caption=Данни за обратна връзка->URL, input=none');
         $fieldset->FLD('ip', 'ip', 'caption=Ип,input=none');
         $fieldset->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
@@ -92,15 +92,33 @@ class support_TaskType extends core_Mvc
         $form->setField('systemId', 'input=hidden');
         $form->setField('typeId', 'input');
         $form->setField('assetResourceId', 'input=none');
-        if (!haveRole('user')) {
-            $form->setField('name', 'input');
-            $form->setField('email', 'input');
-        }
-        
+
         $form->setField('url', 'input=hidden, silent');
-        
+
         $systemId = Request::get('systemId', 'int');
-        
+        if (!$systemId) {
+            $systemId = $form->rec->systemId;
+        }
+
+        expect($systemId);
+
+        $sRec = support_Systems::fetch($systemId);
+        if (!haveRole('user')) {
+            expect($sRec->addFromEveryOne == 'yes', $sRec);
+        }
+
+        if (!haveRole('user')) {
+            if ($sRec->addContragentValues != 'no') {
+                $form->setField('name', 'input');
+                $form->setField('email', 'input');
+
+                if ($sRec->addContragentValues == 'mandatory') {
+                    $form->setField('name', 'mandatory');
+                    $form->setField('email', 'mandatory');
+                }
+            }
+        }
+
         $allowedTypesArr = support_Systems::getAllowedFieldsArr($systemId);
         
         $atOpt = array();
@@ -128,6 +146,19 @@ class support_TaskType extends core_Mvc
         $sRec = support_Systems::fetch($systemId);
         if ($sRec->defaultType) {
             $form->setDefault('typeId', $sRec->defaultType);
+            if (!isset($atOpt[$sRec->defaultType])) {
+                $form->setDefault('typeId', key($atOpt));
+            }
+        }
+
+        if (!haveRole('user')) {
+            if (countr((array)$atOpt) == 1) {
+                $form->setField('typeId', 'input=hidden');
+            }
+        }
+
+        if ($sRec->defaultTitle) {
+            $form->title = $sRec->defaultTitle;
         }
     }
     

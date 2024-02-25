@@ -255,9 +255,12 @@ class thumb_Img
                     $ctx = stream_context_create(array('http' => array('timeout' => $this->timeout)));
                     $this->imgAsString = @file_get_contents($this->source, 0, $ctx);
                     if ($this->imgAsString === false) {
-                        $fPath = getFullPath($this->default);
-                        if ($fPath) {
-                            $this->imgAsString = @file_get_contents($fPath);
+                        if ($this->default) {
+                            if ($fPath = getFullPath($this->default)) {
+                                $this->imgAsString = @file_get_contents($fPath);
+                            } else {
+                                $this->imgAsString = fileman_Files::getContent($this->default);
+                            }
                         }
 
                         log_System::add('thumb_Img', "Грешка при вземане на изображение от URL: {$this->source}", null, 'notice');

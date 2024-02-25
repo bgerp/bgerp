@@ -124,7 +124,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)', 'input=none,notNull,value=411');
 
-        $mvc->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->Избор,silent,removeAndRefreshForm=company|person|tel|country|pCode|place|address|features|addressInfo,placeholder=От предишна доставка,autohide');
+        $mvc->FLD('prevShipment', 'int', 'caption=Адрес за доставка->Избор,silent,removeAndRefreshForm=company|person|tel|country|pCode|place|address|features|addressInfo,placeholder=От предишна доставка,autohide');
         $mvc->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма,autohide');
         $mvc->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, class=contactData,autohide');
         $mvc->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., class=contactData,autohide');
@@ -194,8 +194,8 @@ abstract class store_DocumentMaster extends core_Master
             $sQuery->limit(100);
 
             while ($sRec = $sQuery->fetch()) {
-                if (!$mvc->haveRightFor('asClient', $sRec)) continue;
-                if (!$mvc->haveRightFor('single', $sRec)) continue;
+                if (!store_ShipmentOrders::haveRightFor('asClient', $sRec)) continue;
+                if (!store_ShipmentOrders::haveRightFor('single', $sRec)) continue;
 
                 $name = '#' . $mvc->getHandle($sRec->id);
                 if ($sRec->company) {
@@ -582,53 +582,9 @@ abstract class store_DocumentMaster extends core_Master
 
             $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
-            $row = (object) ((array) $row + (array) $headerInfo);
+            $row = (object) ((array) $row + $headerInfo);
 
-            $row->deliveryTo = '';
-            if ($row->country) {
-                $row->deliveryTo .= $row->country;
-            }
-
-            if ($row->pCode) {
-                $row->deliveryTo .= (($row->deliveryTo) ? ', ' : '') . $row->pCode;
-            }
-
-            if ($row->pCode) {
-                $row->deliveryTo .= ' ' . core_Lg::transliterate($row->place);
-            }
-
-            // Скриваме "Особености" на локацията ПРИ ПЕЧАТ И ИЗПРАЩАНЕ
-            // ВИНАГИ когато ЕН е включено в Транспортна линия и в нея "Изпълнител" НЕ Е "Моята фирма"
-            $showLocationFeatures = true;
-            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-                if($rec->{$mvc->lineFieldName}){
-                    $forwarderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'forwarderId');
-                    if(isset($forwarderId) && $forwarderId != crm_Setup::BGERP_OWN_COMPANY_ID){
-                        $showLocationFeatures = false;
-                    }
-                }
-            }
-
-            foreach (array('address', 'company', 'person', 'tel', 'features', 'addressInfo') as $fld) {
-                if (!empty($rec->{$fld})) {
-                    if ($fld == 'address') {
-                        $row->{$fld} = core_Lg::transliterate($row->{$fld});
-                    } elseif ($fld == 'features') {
-                        unset($row->{$fld});
-                        if($showLocationFeatures){
-                            $row->{$fld} = trans_Features::getVerbalFeatures($rec->features);
-                        }
-                    } elseif ($fld == 'tel') {
-                        if (callcenter_Talks::haveRightFor('list')) {
-                            $row->{$fld} = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
-                        }
-                    }
-
-                    $row->deliveryTo .= ", {$row->{$fld}}";
-                }
-                $row->deliveryTo = rtrim($row->deliveryTo, ', ');
-            }
-
+            $addressData = array();
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperlink($rec->locationId);
                 if ($ourLocation = store_Stores::fetchField($rec->storeId, 'locationId')) {
@@ -639,26 +595,57 @@ abstract class store_DocumentMaster extends core_Master
                     }
                 }
 
-                $contLocationAddress = crm_Locations::getAddress($rec->locationId, false, $showLocationFeatures);
-                if ($contLocationAddress != '') {
-                    $row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
+                $Location = cls::get('crm_Locations');
+                $locationRec = $Location->fetch($rec->locationId);
+                $locationRow = $Location->recToVerbal($locationRec, $Location->selectFields());
+                foreach (array('countryId' => 'deliveryCountry', 'pCode' => 'deliverypCode', 'place' => 'deliveryPlace', 'address' => 'deliveryAddress', 'gln' => 'deliveryGln', 'countryId' => 'deliveryCountry', 'tel' => 'deliveryTel', 'mol' => 'deliveryPerson', 'features' => 'features', 'specifics' => 'addressInfo') as $recFld => $recPlaceholder){
+                    if (!empty($locationRec->{$recFld})) {
+                        if($recFld == 'features'){
+                            $addressData[$recPlaceholder] = $locationRec->{$recFld};
+                        } else {
+                            $addressData[$recPlaceholder] = $locationRow->{$recFld};
+                        }
+                    }
+                }
+            } else {
+                foreach (array('address' => 'deliveryAddress', 'company' => 'deliveryCompany', 'country' => 'deliveryCountry', 'person' => 'deliveryPerson', 'tel' => 'deliveryTel', 'pCode' => 'deliverypCode', 'place' => 'deliveryPlace', 'features' => 'features', 'addressInfo' => 'addressInfo') as $recFld => $recPlaceholder){
+                    if (!empty($rec->{$recFld})) {
+                        if($recFld == 'features'){
+                            $addressData[$recPlaceholder] = $rec->{$recFld};
+                        } else {
+                            $addressData[$recPlaceholder] = $row->{$recFld};
+                        }
+                    }
+                }
+            }
+
+            // Скриваме "Особености" на локацията ПРИ ПЕЧАТ И ИЗПРАЩАНЕ
+            // ВИНАГИ когато ЕН е включено в Транспортна линия и в нея "Изпълнител" НЕ Е "Моята фирма"
+            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+                if($rec->{$mvc->lineFieldName}){
+                    $forwarderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'forwarderId');
+                    if(isset($forwarderId) && $forwarderId != crm_Setup::BGERP_OWN_COMPANY_ID){
+                        unset($addressData['features']);
+                    }
+                }
+            }
+
+            if(countR($addressData)){
+                foreach ($addressData as $delKey => $delVal){
+                    if (in_array($delKey, array('deliveryAddress', 'deliveryPlace', 'deliveryPerson'))) {
+                        $addressData[$delKey] = core_Lg::transliterate($delVal);
+                    } elseif($delKey == 'features'){
+                        $addressData[$delKey] = trans_Features::getVerbalFeatures($delVal);
+                    } elseif($delKey == 'tel') {
+                        if (callcenter_Talks::haveRightFor('list')) {
+                            $addressData[$delKey] = ht::createLink($delVal, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
+                        }
+                    }
                 }
 
-                $locationRec = crm_Locations::fetch($rec->locationId, 'gln,tel,mol');
-                if ($locationRec->gln) {
-                    $row->deliveryLocationAddress = $locationRec->gln . ', ' . $row->deliveryLocationAddress;
-                    $row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ', ');
-                }
-                
-                if ($locationRec->tel) {
-                    $locTel = core_Type::getByName('varchar')->toVerbal($locationRec->tel);
-                    $row->deliveryLocationAddress .= ", {$locTel}";
-                }
-                
-                if ($locationRec->mol) {
-                    $locMol = core_Type::getByName('varchar')->toVerbal($locationRec->mol);
-                    $row->deliveryLocationAddress .= ", {$locMol}";
-                }
+                $addressBlock = getTplFromFile('store/tpl/DeliveryAddressTpl.shtml');
+                $addressBlock->placeArray($addressData);
+                $row->deliveryTo = $addressBlock->getContent();
             }
 
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
@@ -1401,36 +1388,16 @@ abstract class store_DocumentMaster extends core_Master
             'quantityInPack' => $quantityInPack,
             'notes' => $notes,
         );
-        
-        // Проверяваме дали въвдения детайл е уникален
-        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
-        
-        if (is_object($exRec)) {
-            
-            // Смятаме средно притеглената цена и отстъпка
-            $nPrice = ($exRec->quantity * $exRec->price + $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
-            $nDiscount = ($exRec->quantity * $exRec->discount + $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
-            $nTolerance = ($exRec->quantity * $exRec->tolerance + $dRec->quantity * $dRec->tolerance) / ($dRec->quantity + $exRec->quantity);
-            
-            // Ъпдейтваме к-то, цената и отстъпката на записа с новите
-            if ($term) {
-                $exRec->term = max($exRec->term, $dRec->term);
-            }
-            
-            $exRec->quantity += $dRec->quantity;
-            $exRec->price = $nPrice;
-            $exRec->discount = (empty($nDiscount)) ? null : round($nDiscount, 2);
-            $exRec->tolerance = (!isset($nTolerance)) ? null : round($nTolerance, 2);
-            
-            // Ъпдейтваме съществуващия запис
-            $id = $Detail->save($exRec);
-        } else {
-            
-            // Ако е уникален, добавяме го
-            $id = $Detail->save($dRec);
-            if(!empty($batch) && core_Packs::isInstalled('batch')){
-                batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
-            }
+
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            $dRec->autoAllocate = false;
+            $dRec->_clonedWithBatches = true;
+        }
+
+        // Ако е уникален, добавяме го
+        $id = $Detail->save($dRec);
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
         }
         
         // Връщаме резултата от записа

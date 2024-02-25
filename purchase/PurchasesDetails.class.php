@@ -152,6 +152,12 @@ class purchase_PurchasesDetails extends deals_DealDetail
 
 
     /**
+     * Дали при импорт да се обединяват редовете с еднакви стойности
+     */
+    public $combineSameRecsWhenImport = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -225,5 +231,14 @@ class purchase_PurchasesDetails extends deals_DealDetail
 
             $row->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
         }
+    }
+
+
+    /**
+     * Изпълнява се преди клониране на детайла
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        $rec->discount = $oldRec->inputDiscount;
     }
 }

@@ -114,10 +114,11 @@
                   <!--ET_END lineVehicleId-->
                   <tr>
                      <td colspan="2">
-                        <div>
-                           <hr>
-                           |Общо бруто тегло|*:&nbsp;<b>[#weight#]</b> |Общо нето тегло|*:&nbsp;<b>[#netWeight#]</b> |Общо тара|*:&nbsp;<b>[#tareWeight#]</b> |Общ обем|*:&nbsp;<b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
-                        </div>
+                        <hr>
+                        <div>|Общо бруто тегло|*:&nbsp;[#weight#]</div>
+                        <div>|Общо нето тегло|*:&nbsp;[#netWeight#]</div>
+                        <div>|Общо тара|*:&nbsp;[#tareWeight#]</div>
+                        <div>|Общ обем|*:&nbsp;[#volume#]</div>
                      </td>
                   </tr>
                   <!--ET_BEGIN logisticInfo-->

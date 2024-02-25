@@ -3447,10 +3447,12 @@ class cal_Tasks extends embed_Manager
     {
         $this->requireRightFor('new');
         
-        $systemId = Request::get('systemId', 'int');
-        
+        $systemId = Request::get('id', 'int');
+
+        Request::push(array('systemId' => $systemId, 'id' => false));
+
         expect($systemId);
-        
+
         $debugFileHnd = null;
         
         // Качваме файла
@@ -3487,7 +3489,7 @@ class cal_Tasks extends embed_Manager
         
         // Подготовка на формата
         $form = $this->getForm();
-        
+
         // Скриваме всички полета
         foreach ($this->fields as $fName => $dummy) {
             $form->setField($fName, 'input=none');
@@ -3509,7 +3511,7 @@ class cal_Tasks extends embed_Manager
         }
         
         $form->input(null, true);
-        
+
         // Подготвяме полетата от драйвера
         if ($form->rec->{$this->driverClassField}) {
             $Driver = cls::get($form->rec->{$this->driverClassField});
@@ -3566,9 +3568,9 @@ class cal_Tasks extends embed_Manager
         if (!$sTitle) {
             $sTitle = 'Задача';
         }
-        
-        $form->title = str::mbUcfirst($sTitle) . ' към екипа за поддръжка на|* ' . '"|' . support_Systems::getTitleById($systemId) . '|*"';
-        
+
+        setIfNot($form->title, str::mbUcfirst($sTitle) . ' към екипа за поддръжка на|* ' . '"|' . support_Systems::getTitleById($systemId) . '|*"');
+
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
         if (countR(getRetUrl())) {
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');

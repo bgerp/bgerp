@@ -65,7 +65,7 @@ class ztm_Setup extends core_ProtoSetup
     /**
      * @var string
      */
-    public $defClasses = 'ztm_SensMonitoring';
+    public $defClasses = 'ztm_SensMonitoring, ztm_StatMonitoring';
     
     
     /**
@@ -79,6 +79,21 @@ class ztm_Setup extends core_ProtoSetup
         'ztm_LongValues',
         'ztm_Profiles',
         'ztm_ProfileDetails',
+    );
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'DeleteUnusedRegisterValues',
+            'description' => 'Изтриване на неизползвани стойности на регистрите',
+            'controller' => 'ztm_LongValues',
+            'action' => 'DeleteUnusedRegisterValues',
+            'period' => 1440,
+            'offset' => 66,
+            'timeLimit' => 200
+        ),
     );
 
 

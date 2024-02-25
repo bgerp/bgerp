@@ -562,18 +562,19 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
         if ($rec->type == 'dc_note' && isset($rec->changeAmount)) {
-            return $res = true;
+            $res = true;
+            return ;
         }
         
         // Ако няма ид, не може да се активира документа
         if (empty($rec->id) && !isset($rec->dpAmount)) {
-            return $res = false;
+            $res = false;
+            return;
         }
         
         // Ако има Авансово плащане може да се активира
         if (isset($rec->dpAmount)) {
             $res = !((round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)));
-            
             return;
         }
     }
@@ -652,6 +653,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $det->_importBatches = $rec->importBatches;
                     $det->{$Detail->masterKey} = $rec->id;
                     unset($det->batches);
+                    unset($det->autoDiscount);
                     $Detail->save($det);
                 }
             }
@@ -1953,23 +1955,40 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // Ако има посочен параметър за информация към фактурата от артикула
         $Detail = cls::get($mvc->mainDetail);
-        if(isset($Detail->productInvoiceInfoParamName)) {
+        if($Detail instanceof sales_InvoiceDetails) {
             $saveRecs = array();
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-            $dQuery->show('productId,notes');
+            $dQuery->show('productId,notes,discount,autoDiscount');
             while($dRec = $dQuery->fetch()){
+                $save = false;
                 $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
                 if(!empty($invoiceInfo)){
                     if (strpos($dRec->notes, "{$invoiceInfo}") === false) {
                         $dRec->notes = $invoiceInfo . ((!empty($dRec->notes) ? "\n" : '') . $dRec->notes);
-                        $saveRecs[] = $dRec;
+                        $save = true;
                     }
+                }
+
+                if(!empty($dRec->discount) || !empty($dRec->autoDiscount)){
+                    $dRec->inputDiscount = $dRec->discount;
+                    if(isset($dRec->autoDiscount)){
+                        if(isset($dRec->discount)){
+                            $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 6);
+                        } else {
+                            $dRec->discount = $dRec->autoDiscount;
+                        }
+                    }
+                    $save = true;
+                }
+
+                if($save){
+                    $saveRecs[] = $dRec;
                 }
             }
 
             if(countR($saveRecs)){
-                $Detail->saveArray($saveRecs, 'id,notes');
+                $Detail->saveArray($saveRecs, 'id,notes,discount,inputDiscount');
             }
         }
 

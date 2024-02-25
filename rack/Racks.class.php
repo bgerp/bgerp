@@ -449,9 +449,7 @@ class rack_Racks extends core_Master
                 $pos = "{$row}-{$i}";
                 $posFull = "{$rec->num}-{$row}-{$i}";
 
-
                 $hint = '';
-                
                 $title = null;
                 
                 $url = toUrl(array('rack_RackDetails', 'add', 'rackId' => $rec->id, 'row' => $row, 'col' => $i));
@@ -465,6 +463,8 @@ class rack_Racks extends core_Master
                     $prodTitle = '';
                     foreach ($pArr as $productId => $batches){
                         $pName = cat_Products::getTitleById($productId);
+                        $bgColorAll .= ',#' . self::getColor($pName, 130, 240);
+
                         if(is_array($batches)){
                             foreach ($batches as $batch){
                                 $bName = !empty($batch) ? $batch : tr('без партида');
@@ -487,7 +487,7 @@ class rack_Racks extends core_Master
 
                     if(countR($pArr) > 1) {
                         $attrA['style'] = "color:#{$color};";
-                        $tdBackground = "background: linear-gradient(to right,#{$bgColor}{$bgColorAll});";
+                        $tdBackground = "background: linear-gradient(to right{$bgColorAll});";
                     } else {
                         $attrA['style'] = "color:#{$color};";
                         $tdBackground = "background-color:#{$bgColor};";

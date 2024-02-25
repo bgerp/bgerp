@@ -1075,12 +1075,12 @@ class rack_Movements extends rack_MovementAbstract
                 $toProductId = $toPallet->productId;
                 $toQuantity = $toPallet->quantity;
 
-                if($transaction->batch != $toPallet->batch){
+                if($toProductId == $transaction->productId && $transaction->batch != $toPallet->batch){
                     if(!$samePosPallets){
-                        $res->errors = "На позицията артикулът е с друга партида";
+                        $res->errors = " На позицията вече има друга партида от артикула";
                         $res->errorFields[] = 'positionTo,productId';
                     } else {
-                        $res->warnings[] = "На позицията артикулът е с друга партида";
+                        $res->warnings[] = " На позицията вече има друга партида от артикула";
                         $res->warningFields[] = 'positionTo,productId';
                     }
                 }

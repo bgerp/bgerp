@@ -1172,6 +1172,7 @@ class cat_Products extends embed_Manager
         if(isset($filtersArr['closedProducts'])) {
             $wherePartSeven .= (!empty($wherePartSeven) ? ' OR ' : '') . "#{$stateFld} = 'closed'";
         }
+
         if(!empty($wherePartSeven)){
             $whereArr[] = $wherePartSeven;
         }
@@ -1197,6 +1198,20 @@ class cat_Products extends embed_Manager
                 }
             }
             $whereArr[] = $wherePartEight;
+        }
+
+        // Филтър по резервни части без оборудване
+        if(isset($filtersArr['replacementsWithoutAsset'])) {
+            $sQuery = planning_AssetSparePartsDetail::getQuery();
+            $sQuery->show('productId');
+            $productWithAssets = arr::extractValuesFromArray($sQuery->fetchAll(), 'productId');
+            $replacementsGroupId = cat_Groups::fetchField("#sysId = 'replacements'");
+            $wherePartNine = "#canStore = 'yes' AND #canConvert = 'yes' AND LOCATE('|{$replacementsGroupId}|', #groups)";
+            if(countR($productWithAssets)) {
+                $productWithAssetsStr = implode(',', $productWithAssets);
+                $wherePartNine .= " AND #id NOT IN ($productWithAssetsStr)";
+            }
+            $whereArr[] = $wherePartNine;
         }
 
         foreach ($whereArr as $where){

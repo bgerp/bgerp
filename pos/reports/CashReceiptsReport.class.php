@@ -160,13 +160,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
 
         $receiptQuery = pos_Receipts::getQuery();
         $receiptQuery->where("#waitingOn IS NOT NULL");
-        $receiptQuery->where(
-            array(
-                "#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'",
-                $rec->start,
-                $rec->end . ' 23:59:59'
-            )
-
+        $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->start, $rec->end . ' 23:59:59')
         );
 
         //Филтър по ПОС
@@ -177,6 +171,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
         }
 
         $totalSum = array();
+
         while ($receiptRec = $receiptQuery->fetch()) {
 
             $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);

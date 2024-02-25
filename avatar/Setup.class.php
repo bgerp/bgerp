@@ -2,6 +2,18 @@
 
 
 /**
+ * Икона по подразбиране в gravatar - identicon, monsterid, wavatar, retro, blank, mysteryperson, robohash, mp, 404
+ */
+defIfNot('AVATAR_DEFAULT_ICON_TYPE', 'wavatar');
+
+
+/**
+ * Икона, която да се използва при липса на изображение
+ */
+defIfNot('AVATAR_NO_IMAGE_ICON', '');
+
+
+/**
  * Клас 'avatar_Setup' -
  *
  *
@@ -49,7 +61,16 @@ class avatar_Setup extends core_ProtoSetup
     /**
      * Плъгини, които трябва да се инсталират
      */
-    
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'AVATAR_DEFAULT_ICON_TYPE' => array('enum(wavatar=Wavatar, identicon=Идентификация, mysteryperson=Мистериозен човек, mp=Мистериозен човек 2, 404=Само наличните, robohash=Робот, monsterid=Чудовище, retro=Ретро, blank=Празно)', 'caption=Икона по подразбиране в gravatar->Избор'),
+        'AVATAR_NO_IMAGE_ICON' => array('fileman_FileType(bucket=pictures,focus=none)', 'caption=Икона за липсващо изображение->Избор'),
+    );
+
     
     /**
      * Инсталиране на пакета
