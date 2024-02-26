@@ -181,12 +181,6 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
             $data->tariffCodes[$rec1->tariffNumber]->weight += $weight;
             $data->tariffCodes[$rec1->tariffNumber]->netWeight += $netWeight;
-            if($data->totalTareInPackListWithTariffCodeVal == 'yes'){
-                $tareWeight = $detail->getTareWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->tareWeight, $weight, $netWeight);
-                if($tareWeight > 0){
-                    $data->tariffCodes[$rec1->tariffNumber]->tareWeight += $tareWeight;
-                }
-            }
         }
 
         ksort($data->tariffCodes, SORT_STRING);
@@ -197,6 +191,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         // За всяко поле за групиране
         foreach ($data->tariffCodes as $tariffNumber => $tariffObject) {
             $tariffCodeRec = store_ShipmentOrderTariffCodeSummary::getRec($masterRec->id, $tariffNumber);
+
             $weightVerbal = $this->getVerbalRow($tariffObject->weight, 'cat_type_Weight', $tariffCodeRec->weight);
             $netWeightVerbal = $this->getVerbalRow($tariffObject->netWeight, 'cat_type_Weight', $tariffCodeRec->netWeight);
             $displayTariffCode = $this->getVerbalRow($tariffObject->code, 'varchar', $tariffCodeRec->displayTariffCode);
@@ -234,8 +229,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupBlock->append($netWeightVerbal, 'netWeight');
             $groupBlock->append($tariffDescriptionVerbal, 'description');
             if($data->totalTareInPackListWithTariffCodeVal == 'yes'){
-                $tareWeightVerbal = $this->getVerbalRow($tariffObject->tareWeight, 'cat_type_Weight', $tariffCodeRec->tareWeight);
-                $groupBlock->append($tareWeightVerbal, 'tareWeight');
+                $tareWeight = $tariffObject->weight - $tariffObject->netWeight;
+                if($tareWeight >= 0){
+                    $tareWeightVerbal = $this->getVerbalRow($tareWeight, 'cat_type_Weight', $tariffCodeRec->tareWeight);
+                    $groupBlock->append($tareWeightVerbal, 'tareWeight');
+                }
             }
 
             $groupBlock->append($transUnitsVerbal, 'transUnits');
