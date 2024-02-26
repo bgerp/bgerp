@@ -145,6 +145,12 @@ defIfNot('CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC', '');
 
 
 /**
+ * Показване на изображението на универсалния артикул във външни документи
+ */
+defIfNot('CAT_SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC', 'yes');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -273,7 +279,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_DEFAULT_PRODUCT_OVERHEAD_COST' => array('percent(min=0)', array('caption' => 'Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Режийни разходи'), 'unit= по подразбиране общо за системата'),
         'CAT_GROUPS_WITH_OVERHEAD_COSTS' => array('keylist(mvc=cat_Groups,select=name)', array('caption' => 'Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Задаване в групи')),
         'CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC' => array('keylist(mvc=cat_UoM,select=name)', array('caption' => 'Кои опаковки да се пропускат, при избор на опаковка за транспортен обем->Избор')),
-
+        'CAT_SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC' => array('enum(yes=Да,no=Не)', array('caption' => 'Показване на изображението на универсалния артикул във външните документи->Избор')),
     );
     
     
