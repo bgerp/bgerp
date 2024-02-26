@@ -1225,6 +1225,8 @@ class rack_Pallets extends core_Manager
                 }
             }
 
+            cls::get('rack_Racks')->cron_Update();
+
             static::logWrite('Изтриване на палетите');
             followRetUrl(null, '|Успешно премахване на палетите');
         }
