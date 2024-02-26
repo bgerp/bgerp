@@ -1554,7 +1554,8 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
 .formError,
 .formNotice,
 .formWarning,
-.formCustomInfo {
+.formCustomInfo,
+.formMiddleCaption {
   font-size: 0.9em;
   padding: 10px;
   margin-bottom: 10px;
@@ -1563,10 +1564,14 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   -ms-border-radius: 5px;
   border-radius: 5px; }
 
-.formCustomInfo {
+.formCustomInfo,
+.formMiddleCaption {
   background-color: #fdfdc0;
   border: solid 1px #cccccc;
   color: #666666; }
+
+.formMiddleCaption {
+  margin: 0 !important; }
 
 .formNotice {
   background-color: #ffff66;
