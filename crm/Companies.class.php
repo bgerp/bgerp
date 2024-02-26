@@ -919,7 +919,10 @@ class crm_Companies extends core_Master
             if ($rec->logo) {
                 $row->image = $Fancybox->getImage($rec->logo, $tArr, $mArr);
             } elseif (!Mode::is('screenMode', 'narrow')) {
-                $row->image = '<img class="hgsImage" src=' . sbf('img/noimage120.gif') . " alt='no image'>";
+                $imgUrl = avatar_Gravatar::getDefaultImage(true);
+                $imgUrl = trim($imgUrl, '"');
+                $imgUrl = trim($imgUrl, "'");
+                $row->image = '<img class="hgsImage" src="' . $imgUrl . "\" alt='no image'>";
             }
             
             $VatType = new drdata_VatType();

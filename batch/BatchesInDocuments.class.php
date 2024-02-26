@@ -887,10 +887,11 @@ class batch_BatchesInDocuments extends core_Manager
      * @param int   $detailRecId
      * @param array $batchesArr
      * @param bool  $sync
+     * @param bool $increment
      *
      * @return void
      */
-    public static function saveBatches($detailClassId, $detailRecId, $batchesArr, $sync = false)
+    public static function saveBatches($detailClassId, $detailRecId, $batchesArr, $sync = false, $increment = false)
     {
         if (!is_array($batchesArr)) {
             
@@ -913,6 +914,9 @@ class batch_BatchesInDocuments extends core_Manager
                 $b1 = ($sync === true) ? null : $obj->batch;
                 if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b1, $operation)) {
                     $obj->id = $id;
+                    if($increment){
+                        $obj->quantity = $q + static::fetchField($id, 'quantity');
+                    }
                 }
                 
                 $update[] = $obj;

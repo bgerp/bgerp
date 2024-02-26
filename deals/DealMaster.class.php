@@ -1220,6 +1220,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $conditions = $mvc->getConditionArr($rec, true);
                 if(in_array($rec->state, array('pending', 'draft'))){
                     foreach($conditions as &$cArr){
+                        $cArr = core_Type::getByName('richtext')->toVerbal($cArr);
                         if(!Mode::isReadOnly()){
                             $cArr = "<span class='blueText'>{$cArr}</span>";
                         }
@@ -1231,6 +1232,9 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 
             foreach ($conditions as $aCond) {
+                if(!is_object($aCond)){
+                    $aCond = core_Type::getByName('richtext')->toVerbal($aCond);
+                }
                 $row->notes .= "<li>{$aCond}</li>";
             }
 
@@ -1371,8 +1375,7 @@ abstract class deals_DealMaster extends deals_DealBase
         // Показване на допълнителните условия, ако има зададени като търговско условие за контрагента
         $otherConditionSysId = (($this instanceof sales_Sales) ? ($lang == 'bg' ? 'otherConditionSale' : 'otherConditionSaleEn') : ($lang == 'bg' ? 'otherConditionPurchase' : 'otherConditionPurchaseEn'));
         if ($otherCond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $otherConditionSysId)) {
-            $otherConditionId = cond_Parameters::fetchIdBySysId($otherConditionSysId);
-            $conditions[] = cond_Parameters::toVerbal($otherConditionId, $rec->contragentClassId, $rec->contragentId, $otherCond);
+            $conditions[] = $otherCond;
         }
 
         return array_values($conditions);
@@ -2163,15 +2166,46 @@ abstract class deals_DealMaster extends deals_DealBase
             'notes' => $notes,
         );
 
+        // Проверяваме дали въвдения детайл е уникален
+        $exRec = null;
+        if($Detail->combineSameRecsWhenImport) {
+            $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
+        }
+
+        if (is_object($exRec)) {
+
+            // Смятаме средно притеглената цена и отстъпка
+            $nPrice = ($exRec->quantity * $exRec->price + $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
+            $nDiscount = ($exRec->quantity * $exRec->discount + $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
+            if($tolerance) {
+                $nTolerance = ($exRec->quantity * $exRec->tolerance + $dRec->quantity * $dRec->tolerance) / ($dRec->quantity + $exRec->quantity);
+            }
+
+            // Ъпдейтваме к-то, цената и отстъпката на записа с новите
+            if ($term) {
+                $exRec->term = max($exRec->term, $dRec->term);
+            }
+
+            $exRec->quantity += $dRec->quantity;
+            $exRec->price = $nPrice;
+            $exRec->discount = (empty($nDiscount)) ? null : round($nDiscount, 2);
+            $exRec->tolerance = (!isset($nTolerance)) ? null : round($nTolerance, 2);
+
+            $saveRec = $exRec;
+        } else {
+            $saveRec = $dRec;
+        }
+
         if(!empty($batch) && core_Packs::isInstalled('batch')){
-            $dRec->autoAllocate = false;
-            $dRec->_clonedWithBatches = true;
+            $saveRec->autoAllocate = false;
+            $saveRec->_clonedWithBatches = true;
         }
 
         // Ако е уникален, добавяме го
-        $id = $Detail->save($dRec);
+        $id = $Detail->save($saveRec);
+
         if(!empty($batch) && core_Packs::isInstalled('batch')){
-            batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
+            batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), false, true);
         }
         
         // Връщаме резултата от записа
@@ -2950,7 +2984,17 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public function getLinkedFiles($rec)
     {
+        $rec = $this->fetchRec($rec);
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
+
+        // Добавят се и файловете от допълнителните условия, ако има такова
+        $additionalConditions = is_array($rec->additionalConditions) ? $rec->additionalConditions : array();
+        if(in_array($rec->state, array('pending', 'draft'))) {
+            $additionalConditions = $this->getConditionArr($rec);
+        }
+        foreach ($additionalConditions as $aCond) {
+            $files += fileman_RichTextPlg::getFiles($aCond);
+        }
 
         return $files;
     }

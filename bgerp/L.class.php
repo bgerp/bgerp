@@ -693,7 +693,7 @@ class bgerp_L extends core_Manager
             
             $optArr = $this->getDocOptions($cId, $mId);
             
-            Mode::push('saveObjectsToCid', $cid);
+            Mode::push('saveObjectsToCid', $cId);
             
             // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на
             // документа за показване

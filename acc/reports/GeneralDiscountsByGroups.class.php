@@ -89,10 +89,13 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('start', 'datetime(smartTime)', 'caption=От,refreshForm,after=title,single=none');
-        $fieldset->FLD('end', 'datetime(smartTime)', 'caption=До,refreshForm,after=start,single=none');
+        $fieldset->FLD('from', 'date', 'caption=От,refreshForm,after=title,single=none');
+        $fieldset->FLD('to', 'date', 'caption=До,refreshForm,after=from,single=none');
 
-        $fieldset->FLD('crmGroup', 'key2(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група Клиенти,mandatory,input,silent,after=end,remember,autoFilter,single=none');
+        $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
+
+
+        $fieldset->FLD('crmGroup', 'key2(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група Клиенти,mandatory,input,silent,after=to,remember,autoFilter,single=none');
 
         $fieldset->FLD('catGroup', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група Артикули,input,silent,after=crmGroup,remember,autoFilter,single=none');
 
@@ -163,13 +166,13 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $receiptQuery->where("#waitingOn IS NOT NULL");
         $receiptQuery->where("#autoDiscount IS NOT NULL");
 
-        if($rec->end < substr(($rec->end), 0, 10) . ' 00:00:01'){
-            $end = substr(($rec->end), 0, 10) . ' 23:59:59';
+        if($rec->to < substr(($rec->to), 0, 10) . ' 00:00:01'){
+            $end = substr(($rec->to), 0, 10) . ' 23:59:59';
         }else{
-            $end = $rec->end;
+            $end = $rec->to;
         }
 
-        $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->start, $end));
+        $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->from, $end));
 
         $allCompanyDiscount = 0;
 
@@ -348,8 +351,8 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-                                        <!--ET_BEGIN start--><div>|От|*: [#start#]</div><!--ET_END start-->
-                                        <!--ET_BEGIN end--><div>|До|*: [#end#]</div><!--ET_END end-->
+                                        <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
+                                        <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN crmGroup--><div>|Група|*: [#crmGroup#]</div><!--ET_END crmGroup-->
                                         <!--ET_BEGIN catGroup--><div>|Група артикули|*: [#catGroup#]</div><!--ET_END catGroup-->
                                         <!--ET_BEGIN allCompanyDiscount--><div>|Общо авт. отстъпки|*: [#allCompanyDiscount#] лв.</div><!--ET_END allCompanyDiscount-->     
@@ -357,12 +360,12 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"));
 
 
-        if (isset($data->rec->start)) {
-            $fieldTpl->append($Date->toVerbal($data->rec->start), 'start');
+        if (isset($data->rec->from)) {
+            $fieldTpl->append($Date->toVerbal($data->rec->from), 'from');
         }
 
-        if (isset($data->rec->end)) {
-            $fieldTpl->append($Date->toVerbal($data->rec->end), 'end');
+        if (isset($data->rec->to)) {
+            $fieldTpl->append($Date->toVerbal($data->rec->to), 'to');
         }
 
 
