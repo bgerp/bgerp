@@ -229,9 +229,9 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupBlock->append($netWeightVerbal, 'netWeight');
             $groupBlock->append($tariffDescriptionVerbal, 'description');
             if($data->totalTareInPackListWithTariffCodeVal == 'yes'){
-                $tareWeight = $tariffObject->weight - $tariffObject->netWeight;
-                if($tareWeight >= 0){
-                    $tareWeightVerbal = $this->getVerbalRow($tareWeight, 'cat_type_Weight', $tariffCodeRec->tareWeight);
+                $tariffObject->tareWeight = $tariffObject->weight - $tariffObject->netWeight;
+                if($tariffObject->tareWeight >= 0){
+                    $tareWeightVerbal = $this->getVerbalRow($tariffObject->tareWeight, 'cat_type_Weight', $tariffCodeRec->tareWeight);
                     $groupBlock->append($tareWeightVerbal, 'tareWeight');
                 }
             }
