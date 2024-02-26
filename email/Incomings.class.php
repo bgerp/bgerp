@@ -947,15 +947,24 @@ class email_Incomings extends core_Master
                 if (countR($vals)) {
                     $ourImgArr = core_Permanent::get('ourImgEmailArr');
                     $row->files = '';
-                    
+
+                    $nFilesArr = array();
+
                     foreach ($vals as $keyD) {
                         $fRec = fileman::fetch($keyD);
-                        
+
                         if ($ourImgArr[$fRec->dataId]) {
                             continue;
                         }
-                        
-                        $row->files .= fileman_Files::getLink($fRec->fileHnd);
+                        $keyD = $fRec->fileLen . '|' . $keyD;
+                        $nFilesArr[$keyD] = fileman_Files::getLink($fRec->fileHnd);
+                    }
+
+                    if (countR($nFilesArr)) {
+                        krsort($nFilesArr);
+                        foreach ($nFilesArr as $fVerb) {
+                            $row->files .= $fVerb;
+                        }
                     }
                 } else {
                     $row->files = '';
