@@ -319,7 +319,7 @@ class doc_SharablePlg extends core_Plugin
                 if(!$firstDoc->isVisibleForPartners() && $data->action != 'changefields'){
                     $showPartners = false;
                 } else {
-                    $firstRec = $firstDoc->fetch('createdBy,sharedUsers,containerId');
+                    $firstRec = $firstDoc->fetch();
                     if($form->rec->containerId != $firstRec->containerId) {
                         foreach ($contractorIds as $contractorId) {
                             if($firstRec->createdBy != $contractorId && !keylist::isIn($contractorId, $firstRec->sharedUsers)) {
