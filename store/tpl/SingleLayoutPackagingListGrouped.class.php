@@ -183,7 +183,14 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $data->tariffCodes[$rec1->tariffNumber]->netWeight += $netWeight;
         }
 
+        // Подредба по МТК, като без МТК ще е най-накрая
+        $emptyArr = $data->tariffCodes[static::EMPTY_TARIFF_NUMBER];
+        unset($data->tariffCodes[static::EMPTY_TARIFF_NUMBER]);
         ksort($data->tariffCodes, SORT_STRING);
+        if(is_object($emptyArr)){
+            $data->tariffCodes += array(static::EMPTY_TARIFF_NUMBER => $emptyArr);
+        }
+
         $rows = array();
         $isReadOnly = Mode::isReadOnly();
         $count = 0;
