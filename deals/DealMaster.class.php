@@ -2984,10 +2984,11 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public function getLinkedFiles($rec)
     {
+        $rec = $this->fetchRec($rec);
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
 
         // Добавят се и файловете от допълнителните условия, ако има такова
-        $additionalConditions = $rec->additionalConditions;
+        $additionalConditions = is_array($rec->additionalConditions) ? $rec->additionalConditions : array();
         if(in_array($rec->state, array('pending', 'draft'))) {
             $additionalConditions = $this->getConditionArr($rec);
         }
