@@ -165,7 +165,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
             if($transUnits = Request::get('transUnits')){
                 $transUnits = is_array($transUnits) ? $transUnits : trans_Helper::convertTableToNormalArr($transUnits);
                 $transUnits = strip_tags(trans_Helper::displayTransUnits($transUnits));
-                $transUnitCaption = "Логистична еденици->{$transUnits}->ЛЕ";
+                $transUnitCaption = "Логистични единици->{$transUnits}->ЛЕ";
             }
 
             if($displayDescription = Request::get('displayDescription')){
@@ -219,7 +219,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         if(is_object($exRec)){
-            $form->toolbar->addSbBtn('Нулиране', 'empty', 'ef_icon = img/16/reject.png,warning=Наистина ли искате да нулирате ръчно въведените данни|*?');
+            $form->toolbar->addSbBtn('Нулиране', 'empty', 'ef_icon = img/16/reject.png,warning=Премахване на всички ръчно въведени данни|*?');
         }
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
