@@ -66,11 +66,11 @@
                                             <!--ET_END note-->
 							                <!--ET_BEGIN responsible-->
 							                <hr>
-							                <div>[#receiverCaption#]:  [#receiver#]</div>
+							                <div>[#receiverCaption#][#RECEIVER_SIGN_PAD#]:  [#receiver#]</div>
 							                <!--ET_END responsible-->
                                             <td>[#SENDER_SIGN#]</td>
 							                <!--ET_BEGIN username-->
-							                <div>[#senderCaption#]:  [#sender#]</div>
+							                <div>[#senderCaption#][#SENDER_SIGN_PAD#]:  [#sender#]</div>
 							                <!--ET_END username-->
                                         </td>
                                     </tr>

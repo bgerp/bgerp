@@ -78,8 +78,8 @@
                                         <td>
                                             <table class='centered special-borders' style='width:100%;'>
                                                 <tr>
-                                                    <td class='centered border-right' style='width:50%;'>[#receiverCaption#]:</td>
-                                                    <td class='centered'>[#senderCaption#]:</td>
+                                                    <td class='centered border-right' style='width:50%;'>[#receiverCaption#][#RECEIVER_SIGN_PAD#]:</td>
+                                                    <td class='centered'>[#senderCaption#][#SENDER_SIGN_PAD#]:</td>
                                                 </tr>
                                                 <tr>
                                                     <td class='border-right' style='height:40px;'>[#RECEIVER_SIGN#]</td>
