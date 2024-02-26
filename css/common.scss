@@ -1639,16 +1639,20 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHo
 
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
-.formError, .formNotice, .formWarning, .formCustomInfo {
+.formError, .formNotice, .formWarning, .formCustomInfo, .formMiddleCaption  {
     font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
 }
-.formCustomInfo {
+.formCustomInfo, .formMiddleCaption  {
 	background-color: #fdfdc0;
 	border: solid 1px #ccc;
 	color:#666;
+}
+
+.formMiddleCaption {
+	margin: 0 !important;
 }
 
 .formNotice {
