@@ -1102,9 +1102,9 @@ class core_Form extends core_FieldSet
                 if (!empty($rowCaption)) {
                     $mandatoryClass = ($field->mandatory) ? 'mandatoryMiddleCaption' : '';
                     if (Mode::is('screenMode', 'narrow')) {
-                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='formMiddleCaption {$mandatoryClass}'>{$rowCaption}</td></tr>"));
+                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='{$mandatoryClass}'><div class='formMiddleCaption'>{$rowCaption}</div></td></tr>"));
                     } else {
-                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='formMiddleCaption {$mandatoryClass}'>{$rowCaption}</td></tr>"));
+                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='{$mandatoryClass}'><div class='formMiddleCaption'>{$rowCaption}</div></td></tr>"));
                     }
                 }
                 
