@@ -64,14 +64,14 @@
                                             <hr>
                                             [#note#]
                                             <!--ET_END note-->
-							                <!--ET_BEGIN responsible-->
-							                <hr>
-							                <div>[#receiverCaption#][#RECEIVER_SIGN_PAD#]:  [#receiver#]</div>
-							                <!--ET_END responsible-->
-                                            <td>[#SENDER_SIGN#]</td>
-							                <!--ET_BEGIN username-->
-							                <div>[#senderCaption#][#SENDER_SIGN_PAD#]:  [#sender#]</div>
-							                <!--ET_END username-->
+							<!--ET_BEGIN responsible-->
+							<hr>
+							<div>[#receiverCaption#]:[#RECEIVER_SIGN_PAD#]  [#receiver#]</div>
+							<!--ET_END responsible-->
+                                            		<td>[#SENDER_SIGN#]</td>
+							<!--ET_BEGIN username-->
+							<div>[#senderCaption#]:[#SENDER_SIGN_PAD#]  [#sender#]</div>
+							<!--ET_END username-->
                                         </td>
                                     </tr>
                                 </tbody>
