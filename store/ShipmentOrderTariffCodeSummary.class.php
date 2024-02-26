@@ -124,7 +124,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
         }
 
         // Зареждане на плейсхолдъри от рекуеста
-        $transUnitCaption = "Логистична еденици->ЛЕ";
+        $transUnitCaption = "Логистични единици->ЛЕ";
         if($form->cmd != 'save' && $form->cmd != 'empty'){
             if($weightPlaceholder = Request::get('weight', 'varchar')){
                 Mode::push('verbalWithoutSuffix', true);
@@ -203,7 +203,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
                     if($isEmpty){
                         static::delete($exRec->id);
                         store_ShipmentOrders::logWrite('Промяна на обощения ред за МТК', $shipmentRec->id);
-                        followRetUrl(null, 'Промените са записани успешно');
+                        followRetUrl(null, 'Промените са записани успешно|*!');
                     }
                     $fRec->id = $exRec->id;
                 }
@@ -213,7 +213,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
                     store_ShipmentOrders::logWrite('Промяна на обощения ред за МТК', $shipmentRec->id);
                 }
 
-                followRetUrl(null, 'Промените са записани успешно');
+                followRetUrl(null, 'Промените са записани успешно|*!');
             }
         }
 
