@@ -199,7 +199,7 @@ class floor_Views extends core_Master {
         $vPos = $vRec->position ? $vRec->position : 'top';
         $vPos = ucfirst($vPos);
 
-        return "<div class='viewPosition{$vPos}'" . $Plans->act_View($planId, false, $tabs) . "</div>";
+        return "<div class='viewPosition{$vPos}'>" . $Plans->act_View($planId, false, $tabs) . "</div>";
     }
  
 }
