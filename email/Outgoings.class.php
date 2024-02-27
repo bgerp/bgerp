@@ -1196,9 +1196,10 @@ class email_Outgoings extends core_Master
     protected static function checkForSending($form, $fieldsArr = array('email'))
     {
         $stopSendTo = email_Setup::get('STOP_SEND_TO');
-        $stopSendToCorpAcc = email_Setup::get('STOP_SEND_CORPORATE_ACC');
+        $allowSendTo = email_Setup::get('ALLOW_SEND_TO');
 
         $stopSendToArr = type_Set::toArray($stopSendTo);
+        $allowSendToArr = type_Set::toArray($allowSendTo);
 
         // Подготвяме регулярния израз
         foreach ($stopSendToArr as &$stopStr) {
@@ -1208,11 +1209,15 @@ class email_Outgoings extends core_Master
             $stopStr = str_replace($r, '.*', $stopStr);
         }
 
-        if (!$stopSendToCorpAcc) {
-            $corporateDomains = email_Accounts::getCorporateDomainsArr();
-        } else {
-            $corporateDomains = array();
+        // Подготвяме регулярния израз
+        foreach ($allowSendToArr as &$allowStr) {
+            $r = '__' . rand() . '__';
+            $allowStr = str_replace('*', $r, $allowStr);
+            $allowStr = preg_quote($allowStr, '/');
+            $allowStr = str_replace($r, '.*', $allowStr);
         }
+
+        $corporateDomains = email_Accounts::getCorporateDomainsArr();
 
         $rec = $form->rec;
         foreach ($fieldsArr as $fieldName) {
@@ -1239,8 +1244,23 @@ class email_Outgoings extends core_Master
                 
                 // Проверяваме и дали това не е опит за изпращане към вътрешен потребител
                 list($nick, $domain) = explode('@', $fVal);
-                
+
                 if ($corporateDomains && $corporateDomains[$domain]) {
+                    $allow = false;
+                    foreach ($allowSendToArr as $allowReg) {
+                        $allowReg = "/{$allowReg}/i";
+
+                        if (preg_match($allowReg, $fVal)) {
+                            $allow = true;
+                            break;
+                        }
+                    }
+
+                    if ($allow) {
+
+                        continue;
+                    }
+
                     $haveErr = true;
                     
                     $errMsg .= '<br>|';

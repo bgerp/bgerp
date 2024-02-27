@@ -200,9 +200,9 @@ defIfNot('EMAIL_STOP_SEND_TO', 'no-reply@*,noreply@*');
 
 
 /**
- * Дали да спира изпращането на имейли към корпоративната сметка
+ * Списък с разрешени имейли за изпращане
  */
-defIfNot('EMAIL_STOP_SEND_CORPORATE_ACC', false);
+defIfNot('EMAIL_ALLOW_SEND_TO', '');
 
 
 /**
