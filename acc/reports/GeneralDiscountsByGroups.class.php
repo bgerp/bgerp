@@ -49,6 +49,11 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
      */
     public $groupByField;
 
+    /**
+     * По-кое поле да се групират данните след групиране, вътре в групата
+     */
+    protected $subGroupFieldOrder;
+
 
     /**
      * Брой записи на страница
@@ -157,6 +162,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         //Показването да бъде ли ГРУПИРАНО
         if ($rec->seeBy == 'kross') {
             $this->groupByField = 'contragentName';
+            $this->subGroupFieldOrder = 'waitingOn';
             $this->summaryListFields = '';
 
         }
