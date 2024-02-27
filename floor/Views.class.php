@@ -196,8 +196,10 @@ class floor_Views extends core_Master {
         $tabs .= '</div>';
 
         $Plans = cls::get('floor_Plans');
+        $vPos = $vRec->position ? $vRec->position : 'top';
+        $vPos = ucfirst($vPos);
 
-        return $Plans->act_View($planId, false, $tabs);
+        return "<div class='viewPosition{$vPos}'" . $Plans->act_View($planId, false, $tabs) . "</div>";
     }
  
 }
