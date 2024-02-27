@@ -324,7 +324,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $weightByTariffCodesDiff = abs(round($weightByTariffCodes, 2) - round($data->masterData->rec->weight, 2));
             if($weightByTariffCodesDiff > 0.05){
                 $weightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($weightByTariffCodes);
-                $warnings[] = tr("Общото бруто по документа е различно от сбора по МТК|*: {$weightByTariffCodesVerbal}");
+                $warnings[] = tr("Общото бруто по документа е различно от сбора по МТК|*: <b>{$weightByTariffCodesVerbal}</b>");
             }
         }
 
@@ -332,7 +332,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $netWeightByTariffCodesDiff = abs(round($netWeightByTariffCodes, 2) - round($data->masterData->rec->netWeight, 2));
             if($netWeightByTariffCodesDiff > 0.05){
                 $netWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($netWeightByTariffCodes);
-                $warnings[] = tr("Общото нето по документа е различно от сбора по МТК|*: {$netWeightByTariffCodesVerbal}");
+                $warnings[] = tr("Общото нето по документа е различно от сбора по МТК|*: <b>{$netWeightByTariffCodesVerbal}</b>");
             }
         }
 
@@ -340,7 +340,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $tareWeightByTariffCodesDiff = abs(round($tareWeightByTariffCodes, 2) - round($data->masterData->rec->tareWeight, 2));
             if($tareWeightByTariffCodesDiff > 0.05){
                 $tareWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($tareWeightByTariffCodes);
-                $warnings[] = tr("Общата тара по документа е различна от сбора по МТК|*: {$tareWeightByTariffCodesVerbal}");
+                $warnings[] = tr("Общата тара по документа е различна от сбора по МТК|*: <b>{$tareWeightByTariffCodesVerbal}</b>");
             }
         }
 
@@ -349,7 +349,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $transUnitsByTariffCodesVerbal = trans_Helper::displayTransUnits($transUnitsByTariffCodes);
             $checkTransUnitsVerbal = trans_Helper::displayTransUnits($checkTransUnits);
             if($transUnitsByTariffCodesVerbal != $checkTransUnitsVerbal){
-                $warnings[] = tr("Общо ЛЕ по документа са различни от сбора им по МТК|*: {$transUnitsByTariffCodesVerbal}");
+                $warnings[] = tr("Общо ЛЕ по документа са различни от сбора им по МТК|*: <b>{$transUnitsByTariffCodesVerbal}</b>");
             }
         }
 
