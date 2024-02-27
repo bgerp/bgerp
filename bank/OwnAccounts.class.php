@@ -479,12 +479,9 @@ class bank_OwnAccounts extends core_Master
             } else {
 
                 // Ако е редактиран IBAN проверява се дали новия не е вече добавен
-                $currentIban = bank_Accounts::fetch("#id={$rec->bankAccountId}", 'iban', false);
-                if($currentIban != $rec->iban){
-                    if(bank_Accounts::fetch(array("#iban = '[#1#]' AND #id != {$rec->bankAccountId}", $rec->iban))){
-                        $form->setError('iban', 'Вече има наша сметка с този|* IBAN');
-                        return;
-                    }
+                if(bank_Accounts::fetch(array("#iban = '[#1#]' AND #id != {$rec->bankAccountId}", $rec->iban))){
+                    $form->setError('iban', 'Вече има наша сметка с този|* IBAN');
+                    return;
                 }
             }
             
