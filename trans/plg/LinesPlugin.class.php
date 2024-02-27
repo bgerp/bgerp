@@ -118,7 +118,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         }
 
         if (Request::get('editTrans')) {
-            bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $mvc->getHandle($rec->id), 'editTrans' => true), '*');
+            bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'editTrans' => true), '*');
         }
     }
 
@@ -174,7 +174,6 @@ class trans_plg_LinesPlugin extends core_Plugin
         // Ако има избрана линия за избрана папка е избраната на линията
         if(isset($rec->{$mvc->lineFieldName})){
             $lineFolderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'folderId');
-
             $form->setDefault('lineFolderId', $lineFolderId);
             $form->setDefault('lineId', $rec->{$mvc->lineFieldName});
             if(!array_key_exists($lineFolderId, $folderOptions)){
