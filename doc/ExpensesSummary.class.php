@@ -251,7 +251,7 @@ class doc_ExpensesSummary extends core_Manager
         $tableHtml = $table->get($data->rows, "count=№,valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
         
         if (countR($data->rows)) {
-            $total = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($total);
+            $total = core_Type::getByName('double(decimals=2)')->toVerbal($total);
             $afterRow = "<tr style='background-color:#eee'><td colspan=5 style='text-align:right'><b>" . tr('Общо') . "</b></td><td style='text-align:right'><b>{$total}</b></td></tr>";
             $tableHtml->append($afterRow, 'ROW_AFTER');
         }
