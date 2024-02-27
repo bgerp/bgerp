@@ -283,7 +283,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             // Ако има цена, показват се и избраните опаковки с техните цени
             if (!empty($priceByPolicy) && countR($packArr)) {
                 $packQuery = cat_products_Packagings::getQuery();
-                $packQuery->where("#productId = {$productRec->id}");
+                $packQuery->where("#productId = {$productRec->id} AND #state != 'closed'");
                 $packQuery->in('packagingId', $packArr);
                 $packQuery->show('eanCode,quantity,packagingId');
                 while ($packRec = $packQuery->fetch()) {
