@@ -2904,9 +2904,11 @@ abstract class deals_Helper
     {
         $Percent = core_Type::getByName('percent');
         $autoDiscountVerbal = $Percent->toVerbal($autoDiscount);
-
         if(!in_array($state, array('draft', 'pending'))){
             $calcedDiscountVerbal = $Percent->toVerbal($calcedDiscount);
+            if(empty($manualDiscount) && !empty($calcedDiscount) && empty($autoDiscount)) {
+                $manualDiscount = $calcedDiscount;
+            }
             $res = $Percent->toVerbal($manualDiscount);
             if($calcedDiscount != $manualDiscount){
                 $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", 'notice', false);
