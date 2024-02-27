@@ -359,7 +359,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
             if($detail->Master->haveRightFor('changeline', $data->masterId)){
                 $changeLineUrl = array($detail->Master, 'changeline', $data->masterId, 'ret_url' => true) + $forceArr;
-                $btnTransfer = ht::createBtn('Отразяване в общо за документа', $changeLineUrl, false, false, 'ef_icon=img/16/arrow_refresh.png,title=Отразяване на сумарните данни по МТК в общото за документа');
+                $btnTransfer = ht::createBtn('Отразяване в общо за документа', $changeLineUrl, false, false, 'ef_icon=img/16/arrow_refresh.png,title=Отразяване на сумарните данни по МТК в общото за документа, style=margin-top:10px;');
                 $blockTpl->append($btnTransfer, 'btnTransfer');
             }
 
