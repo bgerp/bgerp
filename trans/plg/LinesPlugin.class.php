@@ -215,11 +215,16 @@ class trans_plg_LinesPlugin extends core_Plugin
             $form->FLD('tareWeight', 'cat_type_Weight', 'caption=Логистична информация->Тара');
             $form->FLD('volume', 'cat_type_Volume', 'caption=Логистична информация->Обем');
 
-            $rec->transUnitsInput = trans_Helper::convertToUnitTableArr($rec->transUnitsInput);
+            $weightInput = Request::get('forceWeight', 'varchar') ? Request::get('forceWeight', 'varchar') : $rec->weightInput;
+            $netWeightInput = Request::get('forceNetWeight', 'varchar') ? Request::get('forceNetWeight', 'varchar') : $rec->netWeightInput;
+            $tareWeightInput = Request::get('forceTareWeight', 'varchar') ? Request::get('forceTareWeight', 'varchar') : $rec->tareWeightInput;
+            $forceTransUnits = Request::get('forceTransUnits') ? Request::get('forceTransUnits') : $rec->transUnitsInput;
+
+            $rec->transUnitsInput = trans_Helper::convertToUnitTableArr($forceTransUnits);
             trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
-            $form->setDefault('weight', $rec->weightInput);
-            $form->setDefault('netWeight', $rec->netWeightInput);
-            $form->setDefault('tareWeight', $rec->tareWeightInput);
+            $form->setDefault('weight', $weightInput);
+            $form->setDefault('netWeight', $netWeightInput);
+            $form->setDefault('tareWeight', $tareWeightInput);
             $form->setDefault('volume', $rec->volumeInput);
         }
 

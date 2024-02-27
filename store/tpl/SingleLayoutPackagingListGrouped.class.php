@@ -235,8 +235,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupBlock->append($weightVerbal, 'weight');
             $groupBlock->append($netWeightVerbal, 'netWeight');
             $groupBlock->append($tariffDescriptionVerbal, 'description');
+            $tariffObject->tareWeight = $tariffObject->weight - $tariffObject->netWeight;
             if($data->totalTareInPackListWithTariffCodeVal == 'yes'){
-                $tariffObject->tareWeight = $tariffObject->weight - $tariffObject->netWeight;
                 if($tariffObject->tareWeight >= 0){
                     $tareWeightVerbal = $this->getVerbalRow($tariffObject->tareWeight, 'cat_type_Weight', $tariffCodeRec->tareWeight);
                     $groupBlock->append($tareWeightVerbal, 'tareWeight');
@@ -314,7 +314,12 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             trans_Helper::sumTransUnits($transUnitsByTariffCodes, $a->transUnits);
         });
 
-        $warnings = array();
+        $warnings = $forceArr = array();
+        $forceArr['forceWeight'] = $weightByTariffCodes;
+        $forceArr['forceNetWeight'] = $netWeightByTariffCodes;
+        $forceArr['forceTareWeight'] = $tareWeightByTariffCodes;
+        $forceArr['forceTransUnits'] = $transUnitsByTariffCodes;
+
         if(!empty($data->masterData->rec->weight)){
             if(round($weightByTariffCodes, 2) != round($data->masterData->rec->weight, 2)){
                 $weightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($weightByTariffCodes);
@@ -325,29 +330,36 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         if(!empty($data->masterData->rec->netWeight)){
             if(round($netWeightByTariffCodes, 2) != round($data->masterData->rec->netWeight, 2)){
                 $netWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($netWeightByTariffCodes);
-                $warnings[] = tr("Общото нето по документа е различно от сбора по МТК|*: {$netWeightByTariffCodesVerbal}<br>");
+                $warnings[] = tr("Общото нето по документа е различно от сбора по МТК|*: {$netWeightByTariffCodesVerbal}");
             }
         }
 
         if(!empty($data->masterData->rec->tareWeight) && $data->totalTareInPackListWithTariffCodeVal == 'yes'){
             if(round($tareWeightByTariffCodes, 2) != round($data->masterData->rec->tareWeight, 2)){
                 $tareWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($tareWeightByTariffCodes);
-                $warnings[] = tr("Общата тара по документа е различна от сбора по МТК|*: {$tareWeightByTariffCodesVerbal}<br>");
+                $warnings[] = tr("Общата тара по документа е различна от сбора по МТК|*: {$tareWeightByTariffCodesVerbal}");
             }
         }
 
         $checkTransUnits = !empty($data->masterData->rec->transUnitsInput) ? $data->masterData->rec->transUnitsInput : $data->masterData->rec->transUnits;
-        if(!empty($checkTransUnits)){
+        if(!empty($checkTransUnits) && !empty($transUnitsByTariffCodes)){
             $transUnitsByTariffCodesVerbal = trans_Helper::displayTransUnits($transUnitsByTariffCodes);
             $checkTransUnitsVerbal = trans_Helper::displayTransUnits($checkTransUnits);
             if($transUnitsByTariffCodesVerbal != $checkTransUnitsVerbal){
-                $warnings[] = tr("Общо ЛЕ по документа са различни от сбора им по МТК|*: {$transUnitsByTariffCodesVerbal}<br>");
+                $warnings[] = tr("Общо ЛЕ по документа са различни от сбора им по МТК|*: {$transUnitsByTariffCodesVerbal}");
             }
         }
 
         if(countR($warnings)){
-            $blockTpl = new core_ET("<div class='invoiceNoteWarning' style='margin-top: 10px;'>[#warnings#]</div>");
+            $blockTpl = new core_ET("<div class='invoiceNoteWarning' style='margin-top: 10px;'>[#warnings#]<br>[#btnTransfer#]</div>");
             $blockTpl->append(implode('<br>', $warnings), 'warnings');
+
+            if($detail->Master->haveRightFor('changeline', $data->masterId)){
+                $changeLineUrl = array($detail->Master, 'changeline', $data->masterId, 'ret_url' => true) + $forceArr;
+                $btnTransfer = ht::createBtn('Отразяване в общо за документа', $changeLineUrl, false, false, 'ef_icon=img/16/arrow_refresh.png,title=Отразяване на сумарните данни по МТК в общото за документа');
+                $blockTpl->append($btnTransfer, 'btnTransfer');
+            }
+
             $tpl->append($blockTpl);
         }
     }
