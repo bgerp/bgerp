@@ -200,6 +200,12 @@ defIfNot('EMAIL_STOP_SEND_TO', 'no-reply@*,noreply@*');
 
 
 /**
+ * Дали да спира изпращането на имейли към корпоративната сметка
+ */
+defIfNot('EMAIL_STOP_SEND_CORPORATE_ACC', false);
+
+
+/**
  * Добавяне на наши файлове
  */
 defIfNot('EMAIL_OUR_IMGS', '');

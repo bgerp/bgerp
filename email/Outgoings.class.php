@@ -1196,16 +1196,10 @@ class email_Outgoings extends core_Master
     protected static function checkForSending($form, $fieldsArr = array('email'))
     {
         $stopSendTo = email_Setup::get('STOP_SEND_TO');
-        
-        if ($stopSendTo === false) {
-            
-            return;
-        }
-        
+        $stopSendToCorpAcc = email_Setup::get('STOP_SEND_CORPORATE_ACC');
+
         $stopSendToArr = type_Set::toArray($stopSendTo);
-        
-        $corpAcc = email_Accounts::getCorporateDomainsArr();
-        
+
         // Подготвяме регулярния израз
         foreach ($stopSendToArr as &$stopStr) {
             $r = '__' . rand() . '__';
@@ -1213,9 +1207,13 @@ class email_Outgoings extends core_Master
             $stopStr = preg_quote($stopStr, '/');
             $stopStr = str_replace($r, '.*', $stopStr);
         }
-        
-        $corporateDomains = email_Accounts::getCorporateDomainsArr();
-        
+
+        if (!$stopSendToCorpAcc) {
+            $corporateDomains = email_Accounts::getCorporateDomainsArr();
+        } else {
+            $corporateDomains = array();
+        }
+
         $rec = $form->rec;
         foreach ($fieldsArr as $fieldName) {
             $fValStr = $rec->{$fieldName};
@@ -1242,7 +1240,7 @@ class email_Outgoings extends core_Master
                 // Проверяваме и дали това не е опит за изпращане към вътрешен потребител
                 list($nick, $domain) = explode('@', $fVal);
                 
-                if ($corporateDomains[$domain]) {
+                if ($corporateDomains && $corporateDomains[$domain]) {
                     $haveErr = true;
                     
                     $errMsg .= '<br>|';
