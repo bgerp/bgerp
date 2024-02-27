@@ -161,9 +161,9 @@ class floor_Views extends core_Master {
     {
         // Изискваме brid / ip или определени роли
         RequireRole('admin,floor');
-        
+
         // Кой изглед трябва да покажем
-     
+
         if(!isset($viewId)) {
             $viewId = Request::get('id', 'int');
         }
@@ -188,7 +188,7 @@ class floor_Views extends core_Master {
             } else {
                 $active = '';
             }
-            
+
             $tabs .= "<div class='tab {$active}'>" . ht::createLink($planRec->name, array($this, 'View', $viewId, 'planId' => $dRec->planId));
             $tabs .= '</div>';
         }
@@ -196,10 +196,8 @@ class floor_Views extends core_Master {
         $tabs .= '</div>';
 
         $Plans = cls::get('floor_Plans');
-        $vPos = $vRec->position ? $vRec->position : 'top';
-        $vPos = ucfirst($vPos);
 
-        return "<div class='viewPosition{$vPos}'>" . $Plans->act_View($planId, false, $tabs) . "</div>";
+        return $Plans->act_View($planId, false, $tabs);
     }
  
 }
