@@ -482,7 +482,7 @@ class bank_OwnAccounts extends core_Master
                 $currentIban = bank_Accounts::fetch("#id={$rec->bankAccountId}", 'iban', false);
                 if($currentIban != $rec->iban){
                     if(bank_Accounts::fetch(array("#iban = '[#1#]' AND #id != {$rec->bankAccountId}", $rec->iban))){
-                        $form->setError('iban', "Има вече съществуваща сметка с този IBAN");
+                        $form->setError('iban', 'Вече има наша сметка с този|* IBAN');
                         return;
                     }
                 }
