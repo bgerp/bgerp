@@ -333,14 +333,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         });
 
         $warnings = $forceArr = array();
-        $forceArr['forceWeight'] = $weightByTariffCodes;
-        $forceArr['forceNetWeight'] = $netWeightByTariffCodes;
-        $forceArr['forceTareWeight'] = $tareWeightByTariffCodes;
-        $forceArr['forceTransUnits'] = $transUnitsByTariffCodes;
 
         if(!empty($data->masterData->rec->weight)){
             $weightByTariffCodesDiff = abs(round($weightByTariffCodes, 2) - round($data->masterData->rec->weight, 2));
             if($weightByTariffCodesDiff > 0.05){
+                $forceArr['forceWeight'] = $weightByTariffCodes;
                 $weightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($weightByTariffCodes);
                 $warnings[] = tr("Общото бруто по документа е различно от сбора по МТК|*: <b>{$weightByTariffCodesVerbal}</b>");
             }
@@ -349,6 +346,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         if(!empty($data->masterData->rec->netWeight)){
             $netWeightByTariffCodesDiff = abs(round($netWeightByTariffCodes, 2) - round($data->masterData->rec->netWeight, 2));
             if($netWeightByTariffCodesDiff > 0.05){
+                $forceArr['forceNetWeight'] = $netWeightByTariffCodes;
                 $netWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($netWeightByTariffCodes);
                 $warnings[] = tr("Общото нето по документа е различно от сбора по МТК|*: <b>{$netWeightByTariffCodesVerbal}</b>");
             }
@@ -357,6 +355,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         if(!empty($data->masterData->rec->tareWeight) && $data->totalTareInPackListWithTariffCodeVal == 'yes'){
             $tareWeightByTariffCodesDiff = abs(round($tareWeightByTariffCodes, 2) - round($data->masterData->rec->tareWeight, 2));
             if($tareWeightByTariffCodesDiff > 0.05){
+                $forceArr['forceTareWeight'] = $tareWeightByTariffCodes;
                 $tareWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($tareWeightByTariffCodes);
                 $warnings[] = tr("Общата тара по документа е различна от сбора по МТК|*: <b>{$tareWeightByTariffCodesVerbal}</b>");
             }
@@ -367,6 +366,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $transUnitsByTariffCodesVerbal = trans_Helper::displayTransUnits($transUnitsByTariffCodes);
             $checkTransUnitsVerbal = trans_Helper::displayTransUnits($checkTransUnits);
             if($transUnitsByTariffCodesVerbal != $checkTransUnitsVerbal){
+                $forceArr['forceTransUnits'] = $transUnitsByTariffCodes;
                 $warnings[] = tr("Общо ЛЕ по документа са различни от сбора им по МТК|*: <b>{$transUnitsByTariffCodesVerbal}</b>");
             }
         }
