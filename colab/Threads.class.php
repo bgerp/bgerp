@@ -497,7 +497,7 @@ class colab_Threads extends core_Manager
         $res->in('folderId', $sharedFolders);
         
         if(!haveRole('powerPartner', $cu)){
-            $res->where("#createdBy = '{$cu}' || #createdBy = '0'");
+            $res->where("#createdBy = '{$cu}' || #createdBy = '0' || LOCATE('|{$cu}|', #shared)");
             
             // От записите създадени от анонимен потребител ще се проверява имейла му дали съвпада с този на текущия
             $availableRecs = array();
