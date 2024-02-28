@@ -487,9 +487,6 @@ class colab_Threads extends core_Manager
         
         $cu = core_Users::getCurrent();
         $sharedFolders = colab_Folders::getSharedFolders();
-        $sharedUsers = colab_Folders::getSharedUsers($folderId);
-        $sharedUsers[$cu] = $cu;
-        $sharedUsers = implode(',', $sharedUsers);
         
         $params['where'][] = "#folderId = {$folderId}";
         $res = $this->Threads->getQuery($params);
