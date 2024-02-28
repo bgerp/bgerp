@@ -242,7 +242,7 @@ class ztm_Registers extends core_Master
         }
         
         // Не бива до тук да стигат нескаларни стойностти
-        if (!is_scalar($extValue)) {
+        if ($extValue && !is_scalar($extValue)) {
             wp($extValue, $registerId, $type);
             $extValue = serialize($extValue);
             
