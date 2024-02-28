@@ -444,7 +444,7 @@ class colab_Threads extends core_Manager
             }
             
             if(isset($userId) && !haveRole('powerPartner', $userId)){
-                if(!empty($rec->createdBy) && $rec->createdBy != $userId){
+                if(!empty($rec->createdBy) && ($rec->createdBy != $userId && !keylist::isIn($userId, $rec->shared))){
                     $requiredRoles = 'no_one';
                 } elseif(empty($rec->createdBy)) {
                     $email = core_Users::fetchField($userId, 'email');

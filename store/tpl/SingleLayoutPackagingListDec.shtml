@@ -155,7 +155,7 @@
                              <td colspan="2" >
                                  <span class='half-col'>Total gross weight: [#weight#]</span>
                                  <span class='half-col'>Total net weight: [#netWeight#]</span>
-                                 <span class='half-col'>Total tare: [#tareWeight#]</span>
+                                 <span class='half-col'>Total packing weight: [#tareWeight#]</span>
                              </td>
                          </tr>
                          <!--ET_BEGIN logisticInfo-->

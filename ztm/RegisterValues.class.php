@@ -728,11 +728,20 @@ class ztm_RegisterValues extends core_Manager
      */
     public static function on_BeforeImportRec($mvc, $rec)
     {
-        $rec->deviceId = ztm_Devices::fetchField(array("#name = '[#1#]' AND #state='active'", $rec->deviceId));
-        if (!$rec->deviceId) {
-            $rec->deviceId = ztm_Devices::fetchField(array("#name = '[#1#]' AND #state='draft'", $rec->deviceId));
+        $dId = ztm_Devices::fetchField(array("#name = '[#1#]' AND #state = 'active'", $rec->deviceId));
+        if (!$dId) {
+            $dId = ztm_Devices::fetchField(array("#name = '[#1#]' AND #state = 'draft'", $rec->deviceId));
         }
-        $rec->registerId = ztm_Registers::fetchField(array("#name = '[#1#]' AND #state='active'", $rec->registerId));
+
+        if (!$dId) {
+            list(, $dId) = explode('№', $rec->deviceId);
+        }
+
+        if ($dId) {
+            $rec->deviceId = $dId;
+        }
+
+        $rec->registerId = ztm_Registers::fetchField(array("#name = '[#1#]' AND #state = 'active'", $rec->registerId));
         $rec->extValue = $rec->value;
 
         if (!$rec->deviceId || !$rec->registerId) {

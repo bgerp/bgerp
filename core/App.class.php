@@ -1189,6 +1189,8 @@ class core_App
             } else {
                 if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
+                } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+                    $boot = $protocol . '://' . $auth . FORCE_BGERP_ABSOLUTE_HTTP_HOST . $dirName;
                 } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {

@@ -128,7 +128,7 @@ class doc_SharablePlg extends core_Plugin
         if (!Mode::is('text', 'xhtml')) {
             $data->rec->sharedUsers = $mvc->getShared($data->rec->id);
             $history = static::prepareHistory($data->rec);
-            
+
             // показваме (ако има) с кого е споделен файла
             if (!empty($history)) {
                 $tpl->replace(static::renderSharedHistory($history), 'shareLog');
@@ -319,23 +319,18 @@ class doc_SharablePlg extends core_Plugin
                 if(!$firstDoc->isVisibleForPartners() && $data->action != 'changefields'){
                     $showPartners = false;
                 } else {
-                    $createdBy = $firstDoc->fetchField('createdBy');
-                    foreach ($contractorIds as $contractorId) {
-                        if($createdBy != $contractorId) {
-                            if(!haveRole('powerPartner', $contractorId)) {
-                                unset($contractorIds[$contractorId]);
+                    $firstRec = $firstDoc->fetch();
+                    if($form->rec->containerId != $firstRec->containerId) {
+                        foreach ($contractorIds as $contractorId) {
+                            if($firstRec->createdBy != $contractorId && !keylist::isIn($contractorId, $firstRec->sharedUsers)) {
+                                if(!haveRole('powerPartner', $contractorId)) {
+                                    unset($contractorIds[$contractorId]);
+                                }
                             }
                         }
-                    }
-                    $showPartners = countR($contractorIds);
-                }
-            } else {
-                foreach ($contractorIds as $contractorId) {
-                    if(!haveRole('powerPartner', $contractorId)) {
-                        unset($contractorIds[$contractorId]);
+                        $showPartners = countR($contractorIds);
                     }
                 }
-                $showPartners = countR($contractorIds);
             }
 
             if($showPartners){

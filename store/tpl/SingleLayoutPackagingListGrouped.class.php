@@ -183,7 +183,14 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $data->tariffCodes[$rec1->tariffNumber]->netWeight += $netWeight;
         }
 
+        // Подредба по МТК, като без МТК ще е най-накрая
+        $emptyArr = $data->tariffCodes[static::EMPTY_TARIFF_NUMBER];
+        unset($data->tariffCodes[static::EMPTY_TARIFF_NUMBER]);
         ksort($data->tariffCodes, SORT_STRING);
+        if(is_object($emptyArr)){
+            $data->tariffCodes += array(static::EMPTY_TARIFF_NUMBER => $emptyArr);
+        }
+
         $rows = array();
         $isReadOnly = Mode::isReadOnly();
         $count = 0;
@@ -317,7 +324,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $weightByTariffCodesDiff = abs(round($weightByTariffCodes, 2) - round($data->masterData->rec->weight, 2));
             if($weightByTariffCodesDiff > 0.05){
                 $weightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($weightByTariffCodes);
-                $warnings[] = tr("Общото бруто по документа е различно от сбора по МТК|*: {$weightByTariffCodesVerbal}");
+                $warnings[] = tr("Общото бруто по документа е различно от сбора по МТК|*: <b>{$weightByTariffCodesVerbal}</b>");
             }
         }
 
@@ -325,7 +332,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $netWeightByTariffCodesDiff = abs(round($netWeightByTariffCodes, 2) - round($data->masterData->rec->netWeight, 2));
             if($netWeightByTariffCodesDiff > 0.05){
                 $netWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($netWeightByTariffCodes);
-                $warnings[] = tr("Общото нето по документа е различно от сбора по МТК|*: {$netWeightByTariffCodesVerbal}");
+                $warnings[] = tr("Общото нето по документа е различно от сбора по МТК|*: <b>{$netWeightByTariffCodesVerbal}</b>");
             }
         }
 
@@ -333,7 +340,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $tareWeightByTariffCodesDiff = abs(round($tareWeightByTariffCodes, 2) - round($data->masterData->rec->tareWeight, 2));
             if($tareWeightByTariffCodesDiff > 0.05){
                 $tareWeightByTariffCodesVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($tareWeightByTariffCodes);
-                $warnings[] = tr("Общата тара по документа е различна от сбора по МТК|*: {$tareWeightByTariffCodesVerbal}");
+                $warnings[] = tr("Общата тара по документа е различна от сбора по МТК|*: <b>{$tareWeightByTariffCodesVerbal}</b>");
             }
         }
 
@@ -342,7 +349,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $transUnitsByTariffCodesVerbal = trans_Helper::displayTransUnits($transUnitsByTariffCodes);
             $checkTransUnitsVerbal = trans_Helper::displayTransUnits($checkTransUnits);
             if($transUnitsByTariffCodesVerbal != $checkTransUnitsVerbal){
-                $warnings[] = tr("Общо ЛЕ по документа са различни от сбора им по МТК|*: {$transUnitsByTariffCodesVerbal}");
+                $warnings[] = tr("Общо ЛЕ по документа са различни от сбора им по МТК|*: <b>{$transUnitsByTariffCodesVerbal}</b>");
             }
         }
 
@@ -352,7 +359,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
             if($detail->Master->haveRightFor('changeline', $data->masterId)){
                 $changeLineUrl = array($detail->Master, 'changeline', $data->masterId, 'ret_url' => true) + $forceArr;
-                $btnTransfer = ht::createBtn('Отразяване в общо за документа', $changeLineUrl, false, false, 'ef_icon=img/16/arrow_refresh.png,title=Отразяване на сумарните данни по МТК в общото за документа');
+                $btnTransfer = ht::createBtn('Отразяване в общо за документа', $changeLineUrl, false, false, 'ef_icon=img/16/arrow_refresh.png,title=Отразяване на сумарните данни по МТК в общото за документа, style=margin-top:10px;');
                 $blockTpl->append($btnTransfer, 'btnTransfer');
             }
 
