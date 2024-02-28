@@ -369,7 +369,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             }
         }
 
-        $checkTransUnits = !empty($data->masterData->rec->transUnitsInput) ? $data->masterData->rec->transUnitsInput : $data->masterData->rec->transUnits;
+        $checkTransUnits = !empty($data->masterData->rec->transUnitsInput) ? $data->masterData->rec->transUnitsInput : $data->masterData->rec->transUnitsCalced;
         if(!empty($checkTransUnits) && !empty($transUnitsByTariffCodes)){
             $transUnitsByTariffCodesVerbal = trans_Helper::displayTransUnits($transUnitsByTariffCodes);
             $checkTransUnitsVerbal = trans_Helper::displayTransUnits($checkTransUnits);
