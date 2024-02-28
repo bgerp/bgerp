@@ -128,15 +128,6 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
         // Скриване на колонките за нето/тара/бруто
         $masterRec = $data->masterData->rec;
-        if(store_ShipmentOrderTariffCodeSummary::count("#shipmentId = {$masterRec->id} AND #weight IS NOT NULL") || store_ShipmentOrderDetails::count("#shipmentId = {$masterRec->id} AND #weight IS NOT NULL")){
-            unset($data->listFields['weight']);
-        }
-        if(store_ShipmentOrderTariffCodeSummary::count("#shipmentId = {$masterRec->id} AND #netWeight IS NOT NULL") || store_ShipmentOrderDetails::count("#shipmentId = {$masterRec->id} AND #netWeight IS NOT NULL")){
-            unset($data->listFields['netWeight']);
-        }
-        if(store_ShipmentOrderTariffCodeSummary::count("#shipmentId = {$masterRec->id} AND #tareWeight IS NOT NULL") || store_ShipmentOrderDetails::count("#shipmentId = {$masterRec->id} AND #tareWeight IS NOT NULL")){
-            unset($data->listFields['tareWeight']);
-        }
 
         $columnCount = countR($data->listFields);
         $totalInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'totalInPackListWithTariffCode');
@@ -196,9 +187,11 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         $count = 0;
 
         // За всяко поле за групиране
+        $unsetWeightCol = $unsetNetWeightCol = $unsetTareWeightCol = false;
         foreach ($data->tariffCodes as $tariffNumber => $tariffObject) {
             $tariffCodeRec = store_ShipmentOrderTariffCodeSummary::getRec($masterRec->id, $tariffNumber);
             $typeOfPacking = $tariffCodeRec->typeOfPacking;
+            $typeOfPackingVerbal = null;
             if(empty($typeOfPacking)){
                 $typeOfPackingDefault = store_Setup::get('SO_TYPE_OF_PACKING_DEFAULT');
                 if(!empty($typeOfPackingDefault)){
@@ -213,7 +206,10 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $typeOfPackingVerbal = core_Type::getByName('varchar')->toVerbal($typeOfPacking);
             }
 
+            $unsetWeightCol = (!empty($tariffObject->weight) && !empty($tariffCodeRec->weight) && $tariffObject->weight != $tariffCodeRec->weight);
             $weightVerbal = $this->getVerbalRow($tariffObject->weight, 'cat_type_Weight', $tariffCodeRec->weight);
+
+            $unsetNetWeightCol = (!empty($tariffObject->netWeight) && !empty($tariffCodeRec->netWeight) && $tariffObject->netWeight != $tariffCodeRec->netWeight);
             $netWeightVerbal = $this->getVerbalRow($tariffObject->netWeight, 'cat_type_Weight', $tariffCodeRec->netWeight);
             $displayTariffCode = $this->getVerbalRow($tariffObject->code, 'varchar', $tariffCodeRec->displayTariffCode);
 
@@ -254,6 +250,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $tariffObject->tareWeight = $tariffObject->weight - $tariffObject->netWeight;
             if($data->totalTareInPackListWithTariffCodeVal == 'yes'){
                 if($tariffObject->tareWeight >= 0){
+                    $unsetTareWeightCol = (!empty($tariffObject->tareWeight) && !empty($tariffCodeRec->tareWeight) && $tariffObject->tareWeight != $tariffCodeRec->tareWeight);
                     $tareWeightVerbal = $this->getVerbalRow($tariffObject->tareWeight, 'cat_type_Weight', $tariffCodeRec->tareWeight);
                     $groupBlock->append($tareWeightVerbal, 'tareWeight');
                 }
@@ -309,6 +306,17 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         }
 
         $data->rows = $rows;
+
+        // Ънсетване на колонките ако има разминаване между общо по мтк и въведеното
+        if($unsetWeightCol){
+            unset($data->listFields['weight']);
+        }
+        if($unsetNetWeightCol){
+            unset($data->listFields['netWeight']);
+        }
+        if($unsetTareWeightCol){
+            unset($data->listFields['tareWeight']);
+        }
     }
 
 
