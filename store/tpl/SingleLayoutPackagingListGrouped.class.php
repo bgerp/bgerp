@@ -198,6 +198,20 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         // За всяко поле за групиране
         foreach ($data->tariffCodes as $tariffNumber => $tariffObject) {
             $tariffCodeRec = store_ShipmentOrderTariffCodeSummary::getRec($masterRec->id, $tariffNumber);
+            $typeOfPacking = $tariffCodeRec->typeOfPacking;
+            if(empty($typeOfPacking)){
+                $typeOfPackingDefault = store_Setup::get('SO_TYPE_OF_PACKING_DEFAULT');
+                if(!empty($typeOfPackingDefault)){
+                    $typeOfPacking = $typeOfPackingDefault;
+                    $typeOfPackingVerbal = core_Type::getByName('varchar')->toVerbal($typeOfPacking);
+                    if(!Mode::isReadOnly()){
+                        $typeOfPackingVerbal = "<span style='color:blue'>{$typeOfPackingVerbal}</span>";
+                        $typeOfPackingVerbal = ht::createHint($typeOfPackingVerbal, 'Дефолтна настройка за системата', 'noicon');
+                    }
+                }
+            } else {
+                $typeOfPackingVerbal = core_Type::getByName('varchar')->toVerbal($typeOfPacking);
+            }
 
             $weightVerbal = $this->getVerbalRow($tariffObject->weight, 'cat_type_Weight', $tariffCodeRec->weight);
             $netWeightVerbal = $this->getVerbalRow($tariffObject->netWeight, 'cat_type_Weight', $tariffCodeRec->netWeight);
@@ -235,6 +249,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupBlock->append($weightVerbal, 'weight');
             $groupBlock->append($netWeightVerbal, 'netWeight');
             $groupBlock->append($tariffDescriptionVerbal, 'description');
+            $groupBlock->append($typeOfPackingVerbal, 'typeOfPacking');
+
             $tariffObject->tareWeight = $tariffObject->weight - $tariffObject->netWeight;
             if($data->totalTareInPackListWithTariffCodeVal == 'yes'){
                 if($tariffObject->tareWeight >= 0){
@@ -263,6 +279,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                     foreach (array('weight', 'netWeight', 'tareWeight', 'amount', 'transUnits') as $fld){
                         $modifyUrl[$fld] = $tariffObject->{$fld};
                     }
+
+                    $modifyUrl['typeOfPacking'] = $typeOfPacking;
                     $modifyUrl['displayDescription'] = $tariffDescription;
                     core_Lg::pop();
                     $customStyle = ' padding-right: 100px !important; ';
