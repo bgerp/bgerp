@@ -340,7 +340,7 @@ class store_ConsignmentProtocols extends core_Master
         $Contragent = cls::get($data->rec->contragentClassId);
         if (!$Contragent->haveRightFor('single', $data->rec->contragentId)) return;
 
-        if (!haveRole($Contragent->canReports)) return;
+        if (!haveRole($Contragent->canReports) || Mode::isReadOnly()) return;
         
         $snapshot = $data->rec->snapshot;
         $mvcTable = new core_Mvc;
