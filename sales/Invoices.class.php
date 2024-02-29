@@ -363,6 +363,9 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($data->aggregateInfo) {
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
                 $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
+            } else {
+                $previousAccId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'accountId', 'lastDocUser|lastDoc');
+                $form->setDefault('accountId', $previousAccId);
             }
         }
         

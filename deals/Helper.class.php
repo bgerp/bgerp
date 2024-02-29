@@ -2159,8 +2159,40 @@ abstract class deals_Helper
 
         return $stRec->quantity - $quantity;
     }
-    
-    
+
+
+    /**
+     * Връща вербално представяне на съставителя на документа
+     *
+     * @param string $username
+     * @param int $createdBy
+     * @param int $activatedBy
+     * @param string $state
+     * @param int|null $issuerId
+     * @return core_ET|mixed|string
+     */
+    public static function getIssuerRow($username, $createdBy, $activatedBy, $state, &$issuerId = null)
+    {
+        if($username) return $username;
+
+        $issuerName = deals_Helper::getIssuer($createdBy, $activatedBy, $issuerId);
+        $issuerName = transliterate($issuerName);
+
+        if(!Mode::isReadOnly() && in_array($state, array('pending', 'draft'))) {
+            if(empty($issuerName)) {
+                $hint = "За съставител ще се запише потребителя, контирал документа!";
+            } else {
+                $hint = "Ще бъде записан след активиране";
+                $issuerName = "<span style='color:blue'>{$issuerName}</span>";
+            }
+
+            $issuerName = ht::createHint($issuerName, $hint);
+        }
+
+        return $issuerName;
+    }
+
+
     /**
      * Кой потребител да се показва, като съставителя на документа
      *

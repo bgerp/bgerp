@@ -249,6 +249,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $startTime = trans_Setup::get('START_WORK_TIME');
         $this->FLD('deliveryOn', "datetime(defaultTime={$endTime})", 'input,caption=Доставка,after=deliveryTime');
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
+        $this->FLD('username', 'varchar', 'caption=Съставил,after=responsible');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
         $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'input=hidden,placeholder=Автоматично,caption=Допълнително->Куриерско Api,after=template,notChangeableIfHidden');
@@ -296,7 +297,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         // Кой е съставителя на документа
         core_Lg::push($rec->tplLang);
-        $row->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy));
+        $row->username = deals_Helper::getIssuerRow($rec->username, $rec->createdBy, $rec->activatedBy, $rec->state);
 
         if (isset($fields['-single'])) {
             $logisticData = $mvc->getLogisticData($rec);
@@ -745,11 +746,21 @@ class store_ShipmentOrders extends store_DocumentMaster
         // Ако потребителя не е в група доставчици го включваме
         $rec = $mvc->fetchRec($rec);
 
+        $saveFields = array();
         if (empty($rec->additionalConditions)) {
             $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
             $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $lang);
             $rec->additionalConditions = array($condition);
-            $mvc->save_($rec, 'additionalConditions');
+            $saveFields['additionalConditions'] = 'additionalConditions';
+        }
+
+        if(empty($rec->username)){
+            $rec->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
+            $saveFields['username'] = 'username';
+        }
+
+        if(countR($saveFields)){
+            $mvc->save_($rec, $saveFields);
         }
 
         // Кеширане на тарифния код

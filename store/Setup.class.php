@@ -32,6 +32,12 @@ defIfNot('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES', '');
 
 
 /**
+ * ЕН за митница - вид на опаковката
+ */
+defIfNot('STORE_SO_TYPE_OF_PACKING_DEFAULT', '');
+
+
+/**
  * class store_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -140,6 +146,7 @@ class store_Setup extends core_ProtoSetup
         'STORE_PREPARATION_BEFORE_SHIPMENT' => array('time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди експедиция->Време'),
         'STORE_EARLIEST_SHIPMENT_READY_IN' => array('int(min=0)', 'caption=Изчисляване на най-ранната наличност на артикулите в ЕН-та за следващите->Дни'),
         'STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => array('keylist(mvc=core_Roles,select=role)', 'caption=Изписване на минус->Да се използва с повишено внимание и на собствен риск! Формираните отрицателни количества ТРЯБВА да бъдат коригирани в рамките на счетоводния период (месец) в който са възникнали! Основни причини: невъведени/грешновъведени доставки/изписване от грешен склад/детайлно изписване от незавършено производство без такова влагане и т.н... Отрицателни наличности в края на периода водят до нереални счетоводни себестойности!->Роли'),
+        'STORE_SO_TYPE_OF_PACKING_DEFAULT' => array('varchar', 'caption=Обобщен ред на "Packing list за митница"->Вид на опаковката'),
     );
     
     

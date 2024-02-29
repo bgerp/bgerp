@@ -82,6 +82,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
         $this->FLD('tareWeight', 'cat_type_Weight', 'caption=Тегло->Тара');
         $this->FLD('transUnits', 'blob(serialize, compress)', 'input');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Друго->Сума');
+        $this->FLD('typeOfPacking', 'varchar', 'caption=Друго->Опаковка(Материал),recently');
         $this->setDbUnique('shipmentId,tariffCode');
     }
 
@@ -118,7 +119,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
         $form->setField('displayTariffCode', "placeholder={$dCode},caption=Митнически код|*: <b>{$dCode}</b>->Код");
         $form->setField('displayDescription', "caption=Митнически код|*: <b>{$dCode}</b>->Описание");
         if(is_object($exRec)) {
-            foreach (array('displayTariffCode', 'displayDescription', 'weight', 'netWeight', 'tareWeight', 'transUnits', 'amount') as $fld) {
+            foreach (array('displayTariffCode', 'displayDescription', 'weight', 'netWeight', 'tareWeight', 'transUnits', 'amount', 'typeOfPacking') as $fld) {
                 $form->setDefault($fld, $exRec->{$fld});
             }
         }
@@ -171,6 +172,10 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
             if($displayDescription = Request::get('displayDescription')){
                 $form->setField('displayDescription', "placeholder={$displayDescription}");
             }
+
+            if($typeOfPacking = Request::get('typeOfPacking')){
+                $form->setField('typeOfPacking', "placeholder={$typeOfPacking}");
+            }
         }
 
         // Визуализиране на хинт с избраните ЛЕ и показване на таблицата за задаване на конкретни
@@ -193,7 +198,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
 
             if(!$form->gotErrors()){
                 if($form->cmd == 'save'){
-                    $isEmpty = empty($fRec->displayTariffCode) && empty($fRec->displayDescription) && !isset($fRec->weight) && !isset($fRec->netWeight) && !isset($fRec->tareWeight) && !isset($fRec->transUnits) && !isset($fRec->amount);
+                    $isEmpty = empty($fRec->displayTariffCode) && empty($fRec->displayDescription) && !isset($fRec->weight) && !isset($fRec->netWeight) && !isset($fRec->tareWeight) && !isset($fRec->transUnits) && !isset($fRec->amount) && !isset($fRec->typeOfPacking);
                 } else {
                     $isEmpty = true;
                 }

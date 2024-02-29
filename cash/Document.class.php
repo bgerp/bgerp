@@ -199,6 +199,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min77=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
+        $mvc->FLD('issuer', 'varchar', 'caption=Допълнително->Съставил');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     }
@@ -526,8 +527,8 @@ abstract class cash_Document extends deals_PaymentDocument
             }
             
             // Кой е съставителя на документа
-            $row->issuer = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
-            
+            $row->issuer = deals_Helper::getIssuerRow($rec->issuer, $rec->createdBy, $rec->activatedBy, $rec->state);
+
             if (isset($rec->peroCase)) {
                 $row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
             } else {
@@ -723,5 +724,20 @@ abstract class cash_Document extends deals_PaymentDocument
         }
         
         return "|Наистина ли желаете документът да бъде контиран|*?";
+    }
+
+
+    /**
+     * След контиране на документа
+     *
+     * @param accda_Da $mvc
+     * @param stdClass $rec
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        if(empty($rec->issuer)){
+            $rec->issuer = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
+            $mvc->save_($rec, 'issuer');
+        }
     }
 }

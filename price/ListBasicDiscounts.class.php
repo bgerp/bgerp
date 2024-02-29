@@ -78,6 +78,12 @@ class price_ListBasicDiscounts extends core_Detail
 
 
     /**
+     * Работен кеш
+     */
+    public $invalidateListsOnShutdown = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -452,5 +458,37 @@ class price_ListBasicDiscounts extends core_Detail
         }
 
         return $sumByGroups;
+    }
+
+
+    /**
+     * Изпълнява се преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+        if(isset($rec->id)){
+            $exRec = $mvc->fetch($rec->id, '*', false);
+            $checkExFields = md5("{$exRec->groupId}|{$exRec->amountFrom}|{$exRec->amountTo}|{$exRec->discountPercent}|{$exRec->discountAmount}");
+            $checkCurrentFields = md5("{$rec->groupId}|{$rec->amountFrom}|{$rec->amountTo}|{$rec->discountPercent}|{$rec->discountAmount}");
+            if($checkExFields != $checkCurrentFields){
+                $mvc->invalidateListsOnShutdown[$rec->listId] = $rec->listId;
+            }
+        } else {
+            $mvc->invalidateListsOnShutdown[$rec->listId] = $rec->listId;
+        }
+    }
+
+
+    /**
+     * Изпълнява се на шътдаун
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // Ако има списъци за инвалидиране на кешираните цени да се инвалидират
+        if (is_array($mvc->invalidateListsOnShutdown)) {
+            foreach ($mvc->invalidateListsOnShutdown as $listId) {
+                price_Cache::callback_InvalidatePriceList($listId);
+            }
+        }
     }
 }

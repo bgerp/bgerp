@@ -48,7 +48,7 @@ class pwa_SubscribePlg extends core_Plugin
             pwa_PushSubscriptions::requireRightFor('subscribe');
 
             $brid = log_Browsers::getBrid();
-            core_Permanent::set('pwa_firstLogin_' . $brid, dt::mysql2timestamp(dt::now()));
+            core_Permanent::set('pwa_firstLogin_' . $brid, dt::mysql2timestamp(dt::now()), 1000000);
             Mode::setPermanent('pwaSubscribe', false);
 
             if ($pRec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]'", $brid))) {
@@ -162,7 +162,7 @@ class pwa_SubscribePlg extends core_Plugin
                     }
                 }
             } else {
-                core_Permanent::set('pwa_firstLogin_' . $brid, dt::mysql2timestamp(dt::now()));
+                core_Permanent::set('pwa_firstLogin_' . $brid, dt::mysql2timestamp(dt::now()), 1000000);
             }
         }
     }

@@ -550,6 +550,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $hintType = 'notice';
                 } else {
                     $units = ($rec->transUnits) ? $rec->transUnits : $transInfo->transUnits;
+                    $rec->transUnitsCalced = ($rec->transUnits) ? $rec->transUnits : $transInfo->transUnits;
                     $hint = tr('Лог. ед. са изчислени сумарно за документа');
                     $hintType = 'noicon';
                 }
