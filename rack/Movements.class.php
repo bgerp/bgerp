@@ -422,7 +422,7 @@ class rack_Movements extends rack_MovementAbstract
         if($rec->fromIncomingDocument == 'yes'){
             $form->setReadOnly('productId');
         }
-        
+
         if (isset($rec->productId)) {
             $form->setField('packagingId', 'input');
             
@@ -555,6 +555,13 @@ class rack_Movements extends rack_MovementAbstract
                 case 'floor2rack':
                     $form->setField('zones', 'input=none');
                     $form->setField('palletId', 'input=none');
+                    if(isset($rec->productId)){
+                        $middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId);
+                    }
+
+                    $caption = !empty($middleCaption) ? "Движение->|*{$middleCaption}->Партида" : "Движение->Партида";
+                    $form->setField('batch', "caption={$caption}");
+
                     if (isset($bestPos)) {
                         $form->setDefault('positionTo', $bestPos);
                     }
@@ -572,16 +579,59 @@ class rack_Movements extends rack_MovementAbstract
                     $form->setField('zones', 'input=none');
                     $form->setReadOnly('productId');
                     $form->setReadOnly('palletId');
-                    $form->setField('palletId', 'caption=Преместване на нова позиция->Палет');
+
                     $form->setField('positionTo', 'caption=Преместване на нова позиция->Позиция');
                     $form->setField('note', 'caption=Преместване на нова позиция->Забележка');
-                    
+
+                    $middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId);
+                    $caption = !empty($middleCaption) ? "Преместване на нова позиция->|*{$middleCaption}->Палет" : "Преместване на нова позиция->Палет";
+                    $form->setField('palletId', "caption={$caption}");
+
                     if (isset($bestPos)) {
                         $form->setDefault('positionTo', $bestPos);
                     }
                     break;
             }
         }
+    }
+
+
+    /**
+     * Показване на наличните позиции на артикула към движението
+     *
+     * @param int $productId
+     * @param int $storeId
+     * @return null|string
+     */
+    private static function getMovementProductInfo($productId, $storeId)
+    {
+        $pQuery = rack_Pallets::getQuery();
+        $pQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state = 'active'");
+        $pQuery->orderBy('position');
+        $palletRecs = $pQuery->fetchAll();
+        if(!countR($palletRecs)) return null;
+
+        $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
+        $tpl = new core_ET(tr("|*<table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table>"));
+        $batchDef = batch_Defs::getBatchDef($productId);
+
+        foreach($palletRecs as $pRec){
+            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
+            $quantityVerbal = "{$quantityVerbal} {$measureName}";
+            $positionVerbal = $pRec->position;
+            $batchVerbal = null;
+            if ($batchDef) {
+                if (!empty($pRec->batch)) {
+                    $batchVerbal = $batchDef->toVerbal($pRec->batch);
+                } else {
+                    $batchVerbal = tr('Без партида');
+                }
+            }
+            $batchVerbal = !empty($batchVerbal) ? "/ <small>{$batchVerbal}</small>" : ' ';
+            $tpl->append("<tr><td>{$positionVerbal} {$batchVerbal}: </td><td>{$quantityVerbal}</td></tr>", 'PALLET_BLOCK');
+        }
+
+        return $tpl->getContent();
     }
 
 
