@@ -609,26 +609,40 @@ class rack_Movements extends rack_MovementAbstract
         $pQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state = 'active'");
         $pQuery->orderBy('position');
         $palletRecs = $pQuery->fetchAll();
-        if(!countR($palletRecs)) return null;
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $tpl = new core_ET(tr("|*<table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table>"));
         $batchDef = batch_Defs::getBatchDef($productId);
 
-        foreach($palletRecs as $pRec){
-            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
-            $quantityVerbal = "{$quantityVerbal} {$measureName}";
-            $positionVerbal = $pRec->position;
-            $batchVerbal = null;
-            if ($batchDef) {
-                if (!empty($pRec->batch)) {
-                    $batchVerbal = $batchDef->toVerbal($pRec->batch);
-                } else {
-                    $batchVerbal = tr('Без партида');
+        // Показване на позицията от която последно е смъкнат артикула
+        $floor = rack_PositionType::FLOOR;
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state IN ('active', 'closed')");
+        $mQuery->where("#positionTo IS NULL OR #positionTo = '{$floor}' AND #position IS NOT NULL");
+        $mQuery->orderBy('createdOn', 'DESC');
+        $mQuery->show('position');
+        if($lastPosition = $mQuery->fetch()->position){
+            $positionVerbal = core_Type::getByName('varchar')->toVerbal($lastPosition);
+            $tpl->prepend("|*<div>|Последно смъкнато от|*:{$positionVerbal}</div>");
+        }
+
+        // Наличните активни палети за този артикул в склада
+        if(countR($palletRecs)){
+            foreach($palletRecs as $pRec){
+                $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
+                $quantityVerbal = "{$quantityVerbal} {$measureName}";
+                $positionVerbal = core_Type::getByName('varchar')->toVerbal($pRec->position);
+                $batchVerbal = null;
+                if ($batchDef) {
+                    if (!empty($pRec->batch)) {
+                        $batchVerbal = $batchDef->toVerbal($pRec->batch);
+                    } else {
+                        $batchVerbal = tr('Без партида');
+                    }
                 }
+                $batchVerbal = !empty($batchVerbal) ? "/ <small>{$batchVerbal}</small>" : ' ';
+                $tpl->append("<tr><td>{$positionVerbal} {$batchVerbal}: </td><td>{$quantityVerbal}</td></tr>", 'PALLET_BLOCK');
             }
-            $batchVerbal = !empty($batchVerbal) ? "/ <small>{$batchVerbal}</small>" : ' ';
-            $tpl->append("<tr><td>{$positionVerbal} {$batchVerbal}: </td><td>{$quantityVerbal}</td></tr>", 'PALLET_BLOCK');
         }
 
         return $tpl->getContent();
