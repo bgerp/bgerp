@@ -97,7 +97,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->volumeField});
         $row->netWeight = deals_Helper::getNetWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->netWeightField});
 
-        if(empty($rec->tareWeight)){
+        if(!isset($rec->tareWeight)){
             if(!empty($rec->weight) && !empty($rec->netWeight)){
                 $rec->tareWeight = $rec->weight - $rec->netWeight;
                 if($rec->tareWeight >= 0){
@@ -205,9 +205,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             } else {
                 $tW = $rec->{$mvc->tareWeightField};
             }
-
-            // Форсира се при нужда
-            if ($force === true && empty($rec->{$mvc->tareWeightField}) && !empty($tW)) {
+            if ($force === true && empty($rec->{$mvc->tareWeightField}) && isset($tW)) {
                 $clone->{$mvc->tareWeightField} = $tW;
                 $saveFields[] = $mvc->tareWeightField;
             }
