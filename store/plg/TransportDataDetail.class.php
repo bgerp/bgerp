@@ -100,7 +100,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         if(empty($rec->tareWeight)){
             if(!empty($rec->weight) && !empty($rec->netWeight)){
                 $rec->tareWeight = $rec->weight - $rec->netWeight;
-                if($rec->tareWeight > 0){
+                if($rec->tareWeight >= 0){
                     $row->tareWeight = core_Type::getByName('cat_type_Weight')->toVerbal($rec->tareWeight);
                     $row->tareWeight = "<span style='color:blue'>{$row->tareWeight}</span>";
                     $row->tareWeight = ht::createHint($row->tareWeight, 'Тарата е сметната на база брутото и нетото', 'notice', false);
@@ -213,7 +213,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
 
             // Сумира се
-            if (empty($rec->{$mvc->quantityFld}) || (!empty($tW) && !is_null($cTareWeight))) {
+            if (empty($rec->{$mvc->quantityFld}) || (isset($tW) && !is_null($cTareWeight))) {
                 $cTareWeight += $tW;
             } else {
                 $cTareWeight = null;
@@ -250,11 +250,11 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $mvc->save_($clone, $saveFields);
             }
         }
-        
+
         // Връщане на обема и теглото
         $weight = (!empty($cWeight)) ? $cWeight : null;
         $netWeight = (!empty($cNetWeight)) ? $cNetWeight : null;
-        $tareWeight = (!empty($cTareWeight)) ? $cTareWeight : null;
+        $tareWeight = (isset($cTareWeight)) ? $cTareWeight : null;
         $volume = (!empty($cVolume)) ? $cVolume : null;
 
         $res = (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units, 'netWeight' => $netWeight, 'tareWeight' => $tareWeight);
@@ -345,7 +345,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             if(isset($weight) && isset($netWeight)){
                 $res = $weight - $netWeight;
 
-                if($res <= 0){
+                if($res < 0){
                     $res = null;
                 }
             }
