@@ -366,17 +366,20 @@ class rack_Pallets extends core_Manager
         }
         
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
-        $used = rack_Pallets::getUsed($productId);
         list(, $movedTo) = rack_Movements::getExpected();
-        
+
         // Ако намерим палет с този продукт и свободно място към края на стелажа - вземаме него
-        $haveInRack = $nearProds = array();
+        $haveInRack = $nearProds = $used = array();
+        $usedCached = rack_Pallets::getUsed($productId);
+        array_walk($usedCached, function ($a, $k) use (&$used, $productId){
+            if(array_key_exists($productId, $a)){
+                $used[$k] = (object)array('productId' => $productId);
+            }
+        });
+
         $inFirstRow = 0;
         foreach ($used as $pos => $pRec) {
-            if ($productId != $pRec->productId) {
-                continue;
-            }
-            
+            if ($productId != $pRec->productId) continue;
             list($n, $r, ) = rack_PositionType::toArray($pos);
             
             if($r == 'A') {
@@ -384,7 +387,7 @@ class rack_Pallets extends core_Manager
             }
             $haveInRack[$n] = $n;
         }
-        
+
         // Търсим най-доброто място
         $rQuery = rack_Racks::getQuery();
         $bestScore = 0;
@@ -901,8 +904,7 @@ class rack_Pallets extends core_Manager
         
         $cacheType = 'UsedRacksPositions' . $storeId;
         $cacheKey = '@' . $productId;
-        //!($res = core_Cache::get($cacheType, $cacheKey))
-        if (true) {
+        if (!($res = core_Cache::get($cacheType, $cacheKey))) {
             $res = array();
             $query = self::getQuery();
             $query->orderBy('id', 'DESC');
