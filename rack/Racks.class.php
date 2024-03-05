@@ -498,7 +498,10 @@ class rack_Racks extends core_Master
                 
                 // Ако е неизползваемо
                 if (!isset($title) && $unusable[$posFull]) {
-                    $title = '&nbsp;';
+                    $title = 'X';
+                    $attr['style'] = 'text-align:center;color:#7c7c7c;';
+                    $tdBackground = "background-color:#d3d3d35c;";
+                    $hint = tr('Мястото е неизползваемо|*!');
                 }
                 
                 // Ако е резервирано за нещо
@@ -550,7 +553,10 @@ class rack_Racks extends core_Master
                 if ($hint) {
                     $attr['title'] = "{$hint}";
                 }
-                
+
+                if($posFull == '2-F-23'){
+                    //bp($attr, $title, $tdBackground);
+                }
                 $res .= ht::createElement('td', $attr, $title);
             }
             
