@@ -252,7 +252,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         // Връщане на обема и теглото
         $weight = (!empty($cWeight)) ? $cWeight : null;
         $netWeight = (!empty($cNetWeight)) ? $cNetWeight : null;
-        $tareWeight = (isset($cTareWeight)) ? $cTareWeight : null;
+        $tareWeight = (isset($cTareWeight) && !empty($cWeight) && !empty($cNetWeight)) ? $cTareWeight : null;
         $volume = (!empty($cVolume)) ? $cVolume : null;
 
         $res = (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units, 'netWeight' => $netWeight, 'tareWeight' => $tareWeight);
