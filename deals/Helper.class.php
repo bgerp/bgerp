@@ -2173,7 +2173,16 @@ abstract class deals_Helper
      */
     public static function getIssuerRow($username, $createdBy, $activatedBy, $state, &$issuerId = null)
     {
-        if($username) return $username;
+        if($username) {
+
+            return core_Type::getByName('varchar')->toVerbal($username);
+        }
+
+        if(isset($issuerId)) {
+            $fixedIssuerName = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($issuerId, 'names'));
+
+            return transliterate($fixedIssuerName);
+        }
 
         $issuerName = deals_Helper::getIssuer($createdBy, $activatedBy, $issuerId);
         $issuerName = transliterate($issuerName);
@@ -2214,7 +2223,7 @@ abstract class deals_Helper
         
         $names = null;
         if (isset($userId)) {
-            $names = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($userId, 'names'));
+            $names = core_Users::fetchField($userId, 'names');
         }
         
         return $names;

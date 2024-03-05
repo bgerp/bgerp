@@ -77,7 +77,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions,username';
+    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions,username,issuerId';
     
     
     /**
@@ -174,7 +174,8 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
         $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6, passage)', 'caption=Допълнително->Бележки');
-        $mvc->FLD('username', 'varchar', 'caption=Допълнително->Съставил');
+        $mvc->FLD('issuerId', 'user(roles=ceo|salesMaster,allowEmpty)', 'caption=Допълнително->Съставил,removeAndRefreshForm=username');
+        $mvc->FLD('username', 'varchar', 'caption=Допълнително->Съставил име', 'input=none');
         $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
         $mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
@@ -1279,13 +1280,12 @@ abstract class deals_InvoiceMaster extends core_Master
             } else {
                 $row->contragentUicCaption = tr('ЕИК||TAX ID');
             }
-            
-            $issuerId = null;
-            $row->username = deals_Helper::getIssuerRow($rec->username, $rec->createdBy, $rec->activatedBy, $rec->state, $issuerId);
 
-            // От потребителя се прави уникален код
+            // Кой е съставителя и какъв е неговия ПИК
+            $issuerId = $rec->issuerId;
+            $row->username = deals_Helper::getIssuerRow($rec->username, $rec->createdBy, $rec->activatedBy, $rec->state, $issuerId);
             if (!empty($issuerId)) {
-                $row->userCode = abs(crc32("{$row->username}|{$issuerId}"));
+                $row->userCode = abs(crc32("{$issuerId}"));
                 $row->userCode = substr($row->userCode, 0, 6);
             }
             
@@ -1940,9 +1940,13 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        if(empty($rec->username)){
-            $rec->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
+        // Кеширане на ид-то на съставителя
+        if(empty($rec->issuerId)){
+            $issuerId = null;
+            $rec->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId);
+            $rec->issuerId = $issuerId;
             $saveFields[] = 'username';
+            $saveFields[] = 'issuerId';
         }
 
         if(!in_array($rec->vatRate, array('yes', 'separate'))) {
