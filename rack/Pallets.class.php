@@ -920,18 +920,20 @@ class rack_Pallets extends core_Manager
     /**
      * Кои са наличните палети
      *
-     * @param int $productId - артикул
-     * @param int $storeId   - склад
+     * @param int $productId   - артикул
+     * @param int $storeId     - склад
+     * @param array $positions - наличните позиции на палетите
      *
      * @return array $options
      */
-    public static function getPalletOptions($productId, $storeId)
+    public static function getPalletOptions($productId, $storeId, &$positions = array())
     {
         $options = array();
         $pallets = self::getAvailablePallets($productId, $storeId);
         
         Mode::push('text', 'plain');
         foreach ($pallets as $id => $rec) {
+            $positions[$rec->position] = $rec->position;
             $options[$id] = self::getRecTitle($id, false);
         }
         Mode::pop('text');

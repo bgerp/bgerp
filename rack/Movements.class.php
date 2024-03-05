@@ -446,9 +446,10 @@ class rack_Movements extends rack_MovementAbstract
             }
             
             // Възможния избор на палети от склада
-            $pallets = rack_Pallets::getPalletOptions($rec->productId, $rec->storeId);
+            $exPositions = array();
+            $pallets = rack_Pallets::getPalletOptions($rec->productId, $rec->storeId, $exPositions);
             $form->setOptions('palletId', array('' => tr('Под||Floor')) + $pallets);
-            
+
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             $rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
@@ -460,9 +461,9 @@ class rack_Movements extends rack_MovementAbstract
                 // Показване колко има заскладено от документа досега
                 $documents = keylist::toArray($rec->documents);
                 if(countR($documents) == 1 || isset($rec->containerId)){
-                    $fromDocumentId = isset($rec->containerId) ? $rec->containerId : key($documents);
+                    $fromDocumentId = $rec->containerId ?? key($documents);
                     $createdByNowQuantity = rack_Movements::getQuantitiesByContainerId($rec->storeId, $rec->productId, $rec->batch, $fromDocumentId);
-                    $createdByNowQuantity = isset($createdByNowQuantity) ? $createdByNowQuantity : 0;
+                    $createdByNowQuantity = $createdByNowQuantity ?? 0;
                     $createdByNowQuantity = $createdByNowQuantity / $rec->quantityInPack;
                     $packName = cat_UoM::getSmartName($rec->packagingId, $createdByNowQuantity);
                     if(rack_Movements::haveRightFor('list')){
@@ -531,16 +532,19 @@ class rack_Movements extends rack_MovementAbstract
             }
             
             // Добавяне на предложения за нова позиция
+            $positionSuggestions = $exPositions;
             if ($bestPos = rack_Pallets::getBestPos($rec->productId, $rec->storeId)) {
-                $form->setSuggestions('positionTo', array('' => '', tr('Под') => tr('Под'), $bestPos => $bestPos));
+                $positionSuggestions = array('' => '', tr('Под') => tr('Под'), $bestPos => $bestPos) + $positionSuggestions;
                 if ($form->rec->positionTo == rack_PositionType::FLOOR) {
                     $form->rec->positionTo = tr('Под');
                 }
             }
+
+            $form->setSuggestions('positionTo', $positionSuggestions);
         } else {
             $form->setField('packagingId', 'input=none');
         }
-        
+
         // Състоянието е последното избрано от текущия потребител
         $lQuery = self::getQuery();
         $lQuery->where('#createdBy = ' . core_Users::getCurrent());
