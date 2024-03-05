@@ -554,19 +554,25 @@ class rack_Movements extends rack_MovementAbstract
         if ($lastState = $lQuery->fetch()->state) {
             $form->setDefault('state', $lastState);
         }
-        
+
+        if(isset($rec->productId)){
+            $middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId);
+        }
+
+        if($form->getField('batch')->input != 'none'){
+            $caption = !empty($middleCaption) ? "Движение->|*{$middleCaption}->Партида" : "Движение->Партида";
+            $form->setField('batch', "caption={$caption}");
+        } else {
+            $caption = !empty($middleCaption) ? "Движение->|*{$middleCaption}->Към" : "Движение->Към";
+            $form->setField('positionTo', "caption={$caption}");
+        }
+
         // Замаскиране на формата според избрания тип движение
         if ($movementType = Request::get('movementType')) {
             switch ($movementType) {
                 case 'floor2rack':
                     $form->setField('zones', 'input=none');
                     $form->setField('palletId', 'input=none');
-                    if(isset($rec->productId)){
-                        $middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId);
-                    }
-
-                    $caption = !empty($middleCaption) ? "Движение->|*{$middleCaption}->Партида" : "Движение->Партида";
-                    $form->setField('batch', "caption={$caption}");
 
                     if (isset($bestPos)) {
                         $form->setDefault('positionTo', $bestPos);
