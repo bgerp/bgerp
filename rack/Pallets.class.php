@@ -937,7 +937,9 @@ class rack_Pallets extends core_Manager
             $options[$id] = self::getRecTitle($id, false);
         }
         Mode::pop('text');
-        
+
+        ksort($positions);
+
         return $options;
     }
     
