@@ -330,17 +330,16 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!$data->rows) {
-            
-            return;
-        }
-        
+        if (!$data->rows) return;
+
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('btns', 'varchar', 'tdClass=small-field nowrap,smartCenter');
         $data->listTableMvc->setField('charge', 'tdClass=charge-td');
         $masterRec = $data->masterData->rec;
-        
+        $pageVar = core_Pager::getPageVar('store_InventoryNotes', $masterRec->id);
+        $pageVal = Request::get($pageVar, 'varchar');
+
         // Намиране на всички заявки ако има
         $pendingDocuments = self::getPendingDocuments($masterRec->valior, $masterRec->storeId);
         
@@ -417,7 +416,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
                 // Добавяне на бутон за редакция на реда
                 if ($rec->productId && !$isNoBatchRow && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
-                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId));
+                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId, $pageVar => $pageVal));
 
                     // Ако се редактира сумарен ред. Маркира се в урл-то
                     if(isset($rec->quantity) || isset($rec->_batch)){

@@ -446,9 +446,10 @@ class rack_Movements extends rack_MovementAbstract
             }
             
             // Възможния избор на палети от склада
-            $pallets = rack_Pallets::getPalletOptions($rec->productId, $rec->storeId);
+            $exPositions = array();
+            $pallets = rack_Pallets::getPalletOptions($rec->productId, $rec->storeId, $exPositions);
             $form->setOptions('palletId', array('' => tr('Под||Floor')) + $pallets);
-            
+
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             $rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
@@ -460,9 +461,9 @@ class rack_Movements extends rack_MovementAbstract
                 // Показване колко има заскладено от документа досега
                 $documents = keylist::toArray($rec->documents);
                 if(countR($documents) == 1 || isset($rec->containerId)){
-                    $fromDocumentId = isset($rec->containerId) ? $rec->containerId : key($documents);
+                    $fromDocumentId = $rec->containerId ?? key($documents);
                     $createdByNowQuantity = rack_Movements::getQuantitiesByContainerId($rec->storeId, $rec->productId, $rec->batch, $fromDocumentId);
-                    $createdByNowQuantity = isset($createdByNowQuantity) ? $createdByNowQuantity : 0;
+                    $createdByNowQuantity = $createdByNowQuantity ?? 0;
                     $createdByNowQuantity = $createdByNowQuantity / $rec->quantityInPack;
                     $packName = cat_UoM::getSmartName($rec->packagingId, $createdByNowQuantity);
                     if(rack_Movements::haveRightFor('list')){
@@ -531,16 +532,21 @@ class rack_Movements extends rack_MovementAbstract
             }
             
             // Добавяне на предложения за нова позиция
+            $positionSuggestions = countR($exPositions) ? (array('pr' => (object) array('group' => true, 'title' => tr('Наличен на'))) + $exPositions) : $exPositions;
             if ($bestPos = rack_Pallets::getBestPos($rec->productId, $rec->storeId)) {
-                $form->setSuggestions('positionTo', array('' => '', tr('Под') => tr('Под'), $bestPos => $bestPos));
+                $positionSuggestions = array('' => '', tr('Под') => tr('Под'), $bestPos => $bestPos) + $positionSuggestions;
                 if ($form->rec->positionTo == rack_PositionType::FLOOR) {
                     $form->rec->positionTo = tr('Под');
                 }
             }
+
+            if(countR($positionSuggestions)){
+                $form->setSuggestions('positionTo', $positionSuggestions);
+            }
         } else {
             $form->setField('packagingId', 'input=none');
         }
-        
+
         // Състоянието е последното избрано от текущия потребител
         $lQuery = self::getQuery();
         $lQuery->where('#createdBy = ' . core_Users::getCurrent());
@@ -548,19 +554,25 @@ class rack_Movements extends rack_MovementAbstract
         if ($lastState = $lQuery->fetch()->state) {
             $form->setDefault('state', $lastState);
         }
-        
+
+        if(isset($rec->productId)){
+            $middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId);
+        }
+
+        if($form->getField('batch')->input != 'none'){
+            $caption = !empty($middleCaption) ? "Движение->|*{$middleCaption}->Партида" : "Движение->Партида";
+            $form->setField('batch', "caption={$caption}");
+        } else {
+            $caption = !empty($middleCaption) ? "Движение->|*{$middleCaption}->Към" : "Движение->Към";
+            $form->setField('positionTo', "caption={$caption}");
+        }
+
         // Замаскиране на формата според избрания тип движение
         if ($movementType = Request::get('movementType')) {
             switch ($movementType) {
                 case 'floor2rack':
                     $form->setField('zones', 'input=none');
                     $form->setField('palletId', 'input=none');
-                    if(isset($rec->productId)){
-                        $middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId);
-                    }
-
-                    $caption = !empty($middleCaption) ? "Движение->|*{$middleCaption}->Партида" : "Движение->Партида";
-                    $form->setField('batch', "caption={$caption}");
 
                     if (isset($bestPos)) {
                         $form->setDefault('positionTo', $bestPos);
@@ -611,7 +623,7 @@ class rack_Movements extends rack_MovementAbstract
         $palletRecs = $pQuery->fetchAll();
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-        $tpl = new core_ET(tr("|*<table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table>"));
+        $tpl = new core_ET(tr("|*<small><table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table></small>"));
         $batchDef = batch_Defs::getBatchDef($productId);
 
         // Показване на позицията от която последно е смъкнат артикула
@@ -640,7 +652,7 @@ class rack_Movements extends rack_MovementAbstract
                         $batchVerbal = tr('Без партида');
                     }
                 }
-                $batchVerbal = !empty($batchVerbal) ? "/ <small>{$batchVerbal}</small>" : ' ';
+                $batchVerbal = !empty($batchVerbal) ? "/ {$batchVerbal}" : ' ';
                 $tpl->append("<tr><td>{$positionVerbal} {$batchVerbal}: </td><td>{$quantityVerbal}</td></tr>", 'PALLET_BLOCK');
             }
         }

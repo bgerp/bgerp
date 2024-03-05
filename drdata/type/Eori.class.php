@@ -98,7 +98,7 @@ class drdata_type_Eori extends type_Varchar
         
         $value = parent::escape($value);
 
-        if (Mode::is('text', 'plain')) {
+        if (Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('printing')) {
             
             return $value;
         }
