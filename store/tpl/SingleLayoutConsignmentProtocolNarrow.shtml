@@ -171,8 +171,8 @@
                                     <td>[#USERNAME_SIGN#]</td>
                                 </tr>
                                 <tr>
-                                    <td class='centered border-right'><span class="sign_names nowrap"><!--ET_BEGIN receiver-->( [#responsible#] )<!--ET_END receiver--></span></td>
-                                    <td class='centered'><span class="sign_names nowrap"><!--ET_BEGIN sender-->( [#username#] )<!--ET_END sender--></span></td>
+                                    <td class='centered border-right'><span class="sign_names nowrap"><!--ET_BEGIN responsible-->( [#responsible#] )<!--ET_END responsible--></span></td>
+                                    <td class='centered'><span class="sign_names nowrap"><!--ET_BEGIN username-->( [#username#] )<!--ET_END username--></span></td>
                                 </tr>
                             </table>
                         </td>
