@@ -927,9 +927,6 @@ class batch_BatchesInDocuments extends core_Manager
 
         // Запис
         if (countR($update)) {
-            echo "<pre>";
-            print_r($update);
-            echo "</pre>";
             cls::get(get_called_class())->saveArray($update);
         }
     }
