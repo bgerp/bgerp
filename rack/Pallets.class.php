@@ -371,9 +371,10 @@ class rack_Pallets extends core_Manager
         // Ако намерим палет с този продукт и свободно място към края на стелажа - вземаме него
         $haveInRack = $nearProds = $used = array();
         $usedCached = rack_Pallets::getUsed($productId);
+
         array_walk($usedCached, function ($a, $k) use (&$used, $productId){
-            if(array_key_exists($productId, $a)){
-                $used[$k] = (object)array('productId' => $productId);
+            foreach ($a as $k1 => $v1){
+                $used[$k] = (object)array('productId' => $k1);
             }
         });
 
@@ -381,22 +382,21 @@ class rack_Pallets extends core_Manager
         foreach ($used as $pos => $pRec) {
             if ($productId != $pRec->productId) continue;
             list($n, $r, ) = rack_PositionType::toArray($pos);
-            
             if($r == 'A') {
                 $inFirstRow++;
             }
             $haveInRack[$n] = $n;
         }
 
+        $pRec = (object)array('productId' => $productId);
+
         // Търсим най-доброто място
         $rQuery = rack_Racks::getQuery();
         $bestScore = 0;
         $bestPos = '';
-        
-        if(isset($pRec->productId)){
-            $nearProds[$pRec->productId] = 1;
-            $relData = sales_ProductRelations::fetchField("#productId = {$pRec->productId}", 'data');
-        }
+
+        $nearProds[$pRec->productId] = 1;
+        $relData = sales_ProductRelations::fetchField("#productId = {$pRec->productId}", 'data');
         
         if(is_array($relData)) {
             $i = 2;
@@ -405,24 +405,23 @@ class rack_Pallets extends core_Manager
                 $i++;
             }
         }
-        
+
         while ($rRec = $rQuery->fetch("#storeId = {$storeId}")) {
             for ($cInd = 1; $cInd <= $rRec->columns; $cInd++) {
                 for ($rInd = 'A'; $rInd <= $rRec->rows; $rInd++) {
                     
                     $pos = "{$rRec->num}-{$rInd}-{$cInd}";
-                    
+
                     if ($used[$pos] || $unusable[$pos] || ($reserved[$pos] && $reserved[$pos] != $pRec->productId) || $movedTo[$pos]) {
                         continue;
                     }
-                    
+
                     $score = 0;
-                    
                     $posUp = "{$rRec->num}-" . chr(ord($rInd)+1) . "-{$cInd}";
                     $posDw = "{$rRec->num}-" . chr(ord($rInd)-1) . "-{$cInd}";
                     $posLf = "{$rRec->num}-{$rInd}-" . ($cInd - 1);
                     $posRg = "{$rRec->num}-{$rInd}-" . ($cInd + 1);
-                    
+
                     // Ако продукта се съдържа в стелажа
                     if($haveInRack[$rRec->num]) {
                         $score += 0.2;
@@ -444,13 +443,13 @@ class rack_Pallets extends core_Manager
                     
                     // По-ниското е по-добре
                     $score += 1 - (ord($rInd) - ord('A'))/10;
-                    
+
                     // Ако горния или долния са от този продукт
-                    if($used[$posUp] == $pRec->productId) {
+                    if($used[$posUp]->productId == $pRec->productId) {
                         $score += 3;
                     }
                     
-                    if($used[$posDw] == $pRec->productId) {
+                    if($used[$posDw]->productId == $pRec->productId) {
                         $score += 3.5;
                     }
                     
@@ -471,7 +470,7 @@ class rack_Pallets extends core_Manager
                 }
             }
         }
-        
+
         return $bestPos;
     }
     
