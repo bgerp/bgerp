@@ -532,7 +532,7 @@ class rack_Movements extends rack_MovementAbstract
             }
             
             // Добавяне на предложения за нова позиция
-            $positionSuggestions = $exPositions;
+            $positionSuggestions = countR($exPositions) ? (array('pr' => (object) array('group' => true, 'title' => tr('Наличен на'))) + $exPositions) : $exPositions;
             if ($bestPos = rack_Pallets::getBestPos($rec->productId, $rec->storeId)) {
                 $positionSuggestions = array('' => '', tr('Под') => tr('Под'), $bestPos => $bestPos) + $positionSuggestions;
                 if ($form->rec->positionTo == rack_PositionType::FLOOR) {
@@ -540,7 +540,9 @@ class rack_Movements extends rack_MovementAbstract
                 }
             }
 
-            $form->setSuggestions('positionTo', $positionSuggestions);
+            if(countR($positionSuggestions)){
+                $form->setSuggestions('positionTo', $positionSuggestions);
+            }
         } else {
             $form->setField('packagingId', 'input=none');
         }
