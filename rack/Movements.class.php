@@ -623,7 +623,7 @@ class rack_Movements extends rack_MovementAbstract
         $palletRecs = $pQuery->fetchAll();
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-        $tpl = new core_ET(tr("|*<table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table>"));
+        $tpl = new core_ET(tr("|*<small><table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table></small>"));
         $batchDef = batch_Defs::getBatchDef($productId);
 
         // Показване на позицията от която последно е смъкнат артикула
@@ -652,7 +652,7 @@ class rack_Movements extends rack_MovementAbstract
                         $batchVerbal = tr('Без партида');
                     }
                 }
-                $batchVerbal = !empty($batchVerbal) ? "/ <small>{$batchVerbal}</small>" : ' ';
+                $batchVerbal = !empty($batchVerbal) ? "/ {$batchVerbal}" : ' ';
                 $tpl->append("<tr><td>{$positionVerbal} {$batchVerbal}: </td><td>{$quantityVerbal}</td></tr>", 'PALLET_BLOCK');
             }
         }
