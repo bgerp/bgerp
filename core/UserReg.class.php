@@ -205,8 +205,49 @@ class core_UserReg extends core_Manager
 
             $this->logNotice('Добавен запис за активиране на лице', $rec->id);
 
-            $uId = $Users->save($form->rec);
+            // Ако има предишна незавършена регистрация с изтрит потребител, ще използваме лицето от там
+            $oRec = $this->fetch(array("#classId = '[#1#]' AND #objStr = '[#2#]' AND #id != '[#3#]' AND #phone = '[#4#]' AND #email = '[#5#]' AND (#phoneIsVerified = 'no' OR #emailIsVerified = 'no')",
+                    $classId, $objId, $rec->id, $rec->phone, $rec->email));
 
+            if ($oRec) {
+                $pQuery = crm_Persons::getQuery();
+                $pQuery->where(array("#state != 'rejected'"));
+                if ($oRec->email) {
+                    $pQuery->where(array("#email = '[#1#]'", $oRec->email));
+                }
+                $bCompanyId = $class->getUserBuzCompanyId($objId, $oRec->uId);
+                if ($bCompanyId) {
+                    $pQuery->where(array("#buzCompanyId = '[#1#]'", $bCompanyId));
+                }
+
+                $pQuery->orderBy('modifiedOn', 'DESC');
+
+                $nNames = core_Users::prepareUserNames($form->rec->names);
+                if ($oRec->phone) {
+                    $nTel = drdata_PhoneType::getNumberStr($oRec->phone);
+                } else {
+                    $nTel = '';
+                }
+
+                // Трябва имената, телефона и имейла да съвпадат
+                // В папката не трябва да има документи
+                while ($pRec = $pQuery->fetch()) {
+                    if (!$nTel || ($nTel == drdata_PhoneType::getNumberStr($pRec->mobile))) {
+                        if ($nNames == core_Users::prepareUserNames($pRec->name)) {
+                            $folderId = $pRec->folderId;
+                            if ($folderId && !doc_Threads::fetch(array("#folderId = '[#1#]'", $folderId))) {
+                                if (!crm_Profiles::getUserByPerson($pRec->id)) {
+                                    $form->rec->personId = $pRec->id;
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $uId = $Users->save($form->rec);
             expect($uId);
 
             // Добавяне userId към записа
@@ -230,8 +271,10 @@ class core_UserReg extends core_Manager
                     crm_Persons::save($personRec, 'buzCompanyId');
 
                     $this->logNotice('Лицето е добавено към фирма', $rec->id);
-                    $uGroupArr = $class->getUserDefaultGroups($objId, $uId);
+                }
 
+                if ($personRec->buzCompanyId) {
+                    $uGroupArr = $class->getUserDefaultGroups($objId, $uId);
                     if (!empty($uGroupArr)) {
                         $uGroups = type_Keylist::fromArray($uGroupArr);
                         $pRec->groupList = type_Keylist::merge($pRec->groupList, $uGroups);
@@ -241,9 +284,7 @@ class core_UserReg extends core_Manager
 
                         $this->logNotice('Лицето е добавено към група', $rec->id);
                     }
-                }
 
-                if ($personRec->buzCompanyId) {
                     $listId = cond_Parameters::getParameter(crm_Companies::getClassId(), $personRec->buzCompanyId, 'employeesList');
                     if ($listId) {
                         price_ListToCustomers::add($listId, crm_Persons::getClassId(), $personId);
@@ -461,14 +502,15 @@ class core_UserReg extends core_Manager
         // Изпращане на имейл с phpmailer
         $PML = email_Accounts::getPML($rec->from);
 
+        $to = '';
+
         // Ако има дестинационни имейли, ще изпратим имейла до тези които са избрани
         if ($rec->to) {
             $toArr = type_Emails::toArray($rec->to);
             foreach ($toArr as $to) {
                 $PML->AddAddress($to);
-                if (!core_Users::fetch(array("#email = '[#1#]'", $to))) {
-                    $userEmail = $to;
-                }
+
+                break;
             }
         }
 
@@ -488,7 +530,7 @@ class core_UserReg extends core_Manager
         $PML->Body = $bodyTpl->getContent();
         $PML->IsHTML(true);
         $PML->Subject = $rec->subject;
-        $PML->AddCustomHeader("Customer-Origin-Email: {$rec->to}");
+        $PML->AddCustomHeader("Customer-Origin-Email: {$to}");
 
         $files = fileman_RichTextPlg::getFiles($rec->body);
 
