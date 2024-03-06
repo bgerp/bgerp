@@ -337,7 +337,9 @@ class store_ShipmentOrders extends store_DocumentMaster
 
             if (is_array($conditions)) {
                 foreach ($conditions as $cond) {
-                    $row->note .= "\n" . $cond;
+                    if(isset($cond)){
+                        $row->note .= "\n" . $cond;
+                    }
                 }
             }
         }
@@ -745,15 +747,19 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         // Ако потребителя не е в група доставчици го включваме
         $rec = $mvc->fetchRec($rec);
-
         $saveFields = array();
+
+        // Кеширане на допълнителните условия от склада
         if (empty($rec->additionalConditions)) {
             $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
             $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $lang);
-            $rec->additionalConditions = array($condition);
-            $saveFields['additionalConditions'] = 'additionalConditions';
+            if(!empty($condition)){
+                $rec->additionalConditions = array($condition);
+                $saveFields['additionalConditions'] = 'additionalConditions';
+            }
         }
 
+        // Кеширане на съставителя
         if(empty($rec->username)){
             $rec->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
             $saveFields['username'] = 'username';
