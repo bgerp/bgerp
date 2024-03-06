@@ -1544,12 +1544,12 @@ abstract class deals_Helper
        
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
-        if ($hint === true) {
+        if(!Mode::isReadOnly() && $hint === true) {
             $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : (($type == 'volume') ? 'Транспортният обем е прогнозен' : (($type == 'netWeight') ? 'Нето теглото е прогнозно' : 'Тарата е прогнозна'));
             $valueRow = "<span style='color:blue'>{$valueRow}</span>";
             $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството", 'notice', false);
         }
-       
+
         // Показване на предупреждение
         if ($warning === true) {
             $liveValueVerbal = core_Type::getByName($valueType)->toVerbal($liveValue);

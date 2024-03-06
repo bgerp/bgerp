@@ -102,8 +102,10 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $rec->tareWeight = $rec->weight - $rec->netWeight;
                 if($rec->tareWeight >= 0){
                     $row->tareWeight = core_Type::getByName('cat_type_Weight')->toVerbal($rec->tareWeight);
-                    $row->tareWeight = "<span style='color:blue'>{$row->tareWeight}</span>";
-                    $row->tareWeight = ht::createHint($row->tareWeight, 'Тарата е сметната на база брутото и нетото', 'notice', false);
+                    if(!Mode::isReadOnly()){
+                        $row->tareWeight = "<span style='color:blue'>{$row->tareWeight}</span>";
+                        $row->tareWeight = ht::createHint($row->tareWeight, 'Тарата е сметната на база брутото и нетото', 'notice', false);
+                    }
                 }
             }
         }
@@ -252,7 +254,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         // Връщане на обема и теглото
         $weight = (!empty($cWeight)) ? $cWeight : null;
         $netWeight = (!empty($cNetWeight)) ? $cNetWeight : null;
-        $tareWeight = (isset($cTareWeight)) ? $cTareWeight : null;
+        $tareWeight = (isset($cTareWeight) && !empty($cWeight) && !empty($cNetWeight)) ? $cTareWeight : null;
         $volume = (!empty($cVolume)) ? $cVolume : null;
 
         $res = (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units, 'netWeight' => $netWeight, 'tareWeight' => $tareWeight);
