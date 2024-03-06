@@ -533,7 +533,7 @@ class rack_Movements extends rack_MovementAbstract
             
             // Добавяне на предложения за нова позиция
             $positionSuggestions = countR($exPositions) ? (array('pr' => (object) array('group' => true, 'title' => tr('Наличен на'))) + $exPositions) : $exPositions;
-            if ($bestPos = rack_Pallets::getBestPos($rec->productId, $rec->storeId)) {
+            if ($bestPos = static::getRecommendedPosition($rec->productId, $rec->storeId)) {
                 $positionSuggestions = array('' => '', tr('Под') => tr('Под'), $bestPos => $bestPos) + $positionSuggestions;
                 if ($form->rec->positionTo == rack_PositionType::FLOOR) {
                     $form->rec->positionTo = tr('Под');
@@ -623,22 +623,11 @@ class rack_Movements extends rack_MovementAbstract
         $palletRecs = $pQuery->fetchAll();
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-        $tpl = new core_ET(tr("|*<small><table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table></small>"));
+        $tpl = new core_ET(tr("|*<small><table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table></small><!--ET_BEGIN LAST--><hr>[#LAST#]<!--ET_END LAST-->"));
         $batchDef = batch_Defs::getBatchDef($productId);
 
         // Показване на позицията от която последно е смъкнат артикула
         $haveWhatToShow = false;
-        $floor = rack_PositionType::FLOOR;
-        $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state IN ('active', 'closed')");
-        $mQuery->where("#positionTo IS NULL OR #positionTo = '{$floor}' AND #position IS NOT NULL");
-        $mQuery->orderBy('createdOn', 'DESC');
-        $mQuery->show('position');
-        if($lastPosition = $mQuery->fetch()->position){
-            $positionVerbal = core_Type::getByName('varchar')->toVerbal($lastPosition);
-            $tpl->prepend("|*<div>|Последно смъкнато от|*:{$positionVerbal}</div>");
-            $haveWhatToShow = true;
-        }
 
         // Наличните активни палети за този артикул в склада
         if(countR($palletRecs)){
@@ -658,6 +647,12 @@ class rack_Movements extends rack_MovementAbstract
                 $batchVerbal = !empty($batchVerbal) ? "/ {$batchVerbal}" : ' ';
                 $tpl->append("<tr><td>{$positionVerbal} {$batchVerbal}: </td><td>{$quantityVerbal}</td></tr>", 'PALLET_BLOCK');
             }
+        }
+
+        if($lastPosition = rack_Pallets::getLastPalletPosition($productId, $storeId)){
+            $positionVerbal = core_Type::getByName('varchar')->toVerbal($lastPosition);
+            $tpl->append(tr("|*<div>|Последно смъкнато от|*:{$positionVerbal}</div>"), 'LAST');
+            $haveWhatToShow = true;
         }
 
         return ($haveWhatToShow) ? $tpl->getContent() : null;
@@ -1574,5 +1569,28 @@ class rack_Movements extends rack_MovementAbstract
         $rec = $query->fetch();
 
         return is_object($rec) ? $rec->totalQuantity : null;
+    }
+
+
+    /**
+     * Коя е препоръчителната позиция на която да се палетира артикула
+     *
+     * @param int $productId
+     * @param int $storeId
+     * @return string|null
+     */
+    private static function getRecommendedPosition($productId, $storeId)
+    {
+        // Гледа се избраната стратегия за склада/системата
+        $palletBestPositionStrategy =  store_Stores::fetchField($storeId, 'palletBestPositionStrategy');
+        $palletBestPositionStrategy = empty($palletBestPositionStrategy) ? rack_Setup::get('POSITION_TO_STRATEGY') : $palletBestPositionStrategy;
+
+        // Ако е най-добрата позиция - нея
+        if($palletBestPositionStrategy == 'bestPos') return rack_Pallets::getBestPos($productId, $storeId);
+
+        // Ако е последната на която е палетирана нея
+        if($palletBestPositionStrategy == 'lastUp') return rack_Pallets::getLastPalletPosition($productId, $storeId, 'up');
+
+        return null;
     }
 }
