@@ -1117,13 +1117,13 @@ class pos_Receipts extends core_Master
      * @param int|null $locationId
      * @return void
      */
-    private function setContragent(&$rec, $contragentClassId, $contragentId, $locationId = null)
+    public static function setContragent(&$rec, $contragentClassId, $contragentId, $locationId = null)
     {
         $rec->contragentClass = $contragentClassId;
         $rec->contragentObjectId = $contragentId;
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $rec->contragentLocationId = $locationId;
-        $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
+        static::save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
         $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
 
         // Ако има детайли
@@ -1212,11 +1212,11 @@ class pos_Receipts extends core_Master
         // Ако бележката е на клиент и е сканирана нова карта и тя не е на този клиент ще се върне на анонимния за да се преизчислят цените
         if(!$isDefaultContragent && $autoSelect && ($rec->contragentClass != $contragentClassId || $rec->contragentObjectId != $contragentId)){
             $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
-            $this->setContragent($rec, crm_Persons::getClassId(), $defaultContragentId);
+            static::setContragent($rec, crm_Persons::getClassId(), $defaultContragentId);
         }
 
         // Задаване на новия контрагент
-        $this->setContragent($rec, $contragentClassId, $contragentId, $locationId);
+        static::setContragent($rec, $contragentClassId, $contragentId, $locationId);
         $this->logWrite('Избор на контрагент в бележка', $id);
 
         if (Request::get('ajax_mode')) {
