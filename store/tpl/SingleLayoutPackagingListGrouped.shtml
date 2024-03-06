@@ -80,7 +80,7 @@
     <table class="innerTable footer-notes paddingCells" style="width:100%">
         <tbody>
             <tr>
-                <td class="topCell first vtop"  style="width:50%">
+                <td class="topCell first vtop"  style="width:60%">
                     <!--ET_BEGIN delivery_table-->
                     [#delivery_table#]
                    <table class='shipment-table' style="width:100%">
@@ -184,7 +184,7 @@
                         </tr>
                         <tr>
                             <td class='centered' style='border-right:1px solid #999'> <span class="sign_names">[#responsible#]</span></td>
-                            <td class='nowrap centared'><span class="sign_names">[#username#]</span></td>
+                            <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
                         </tr>
                     </table>
                 </td>
