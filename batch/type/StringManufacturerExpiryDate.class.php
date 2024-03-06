@@ -193,7 +193,9 @@ class batch_type_StringManufacturerExpiryDate extends type_Varchar
             }
         } else {
             $valString = $valDate = null;
-            $valManifacture = key($manifactureOptions);
+            if(!$this->params['autohide']){
+                $valManifacture = key($manifactureOptions);
+            }
         }
 
         $attrString = $attrMan = $attrDate = $attr;

@@ -200,6 +200,12 @@ defIfNot('EMAIL_STOP_SEND_TO', 'no-reply@*,noreply@*');
 
 
 /**
+ * Списък с разрешени имейли за изпращане
+ */
+defIfNot('EMAIL_ALLOW_SEND_TO', '');
+
+
+/**
  * Добавяне на наши файлове
  */
 defIfNot('EMAIL_OUR_IMGS', '');

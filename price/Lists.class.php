@@ -172,7 +172,7 @@ class price_Lists extends core_Master
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
 
         $this->FLD('discountClassPeriod', 'enum(default=За продажба,daily=За ден,monthly=За текущ месец)', 'caption=Автоматични отстъпки->Сума за отстъпки,autohide,notNull,value=default');
-        $this->FLD('haveBasicDiscounts', 'enum(no=Няма,yes=Има)', 'caption=Автоматични отстъпки->Има ли,notNull,value=no');
+        $this->FLD('haveBasicDiscounts', 'enum(no=Няма,yes=Има)', 'caption=Автоматични отстъпки->Има ли,notNull,value=no,input=none');
         $this->setDbUnique('title');
         $this->setDbIndex('cId,cClass');
     }
@@ -210,6 +210,15 @@ class price_Lists extends core_Master
                 $rec->cId = $Cover->that;
             } else {
                 $rec->public = 'yes';
+            }
+        }
+
+        if(isset($rec->id)){
+            $exRec = $mvc->fetch($rec->id, '*', false);
+            $checkExFields = md5("{$exRec->parent}|{$exRec->currency}|{$exRec->vat}|{$exRec->discountCompared}|{$exRec->discountComparedShowAbove}|{$exRec->defaultSurcharge}|{$exRec->defaultSurcharge}|{$exRec->minSurcharge}|{$exRec->maxSurcharge}");
+            $checkCurrentFields = md5("{$rec->parent}|{$rec->currency}|{$rec->vat}|{$rec->discountCompared}|{$rec->discountComparedShowAbove}|{$rec->defaultSurcharge}|{$rec->defaultSurcharge}|{$rec->minSurcharge}|{$rec->maxSurcharge}");
+            if($checkExFields != $checkCurrentFields){
+                $rec->_invalidateCache = true;
             }
         }
     }
@@ -731,6 +740,10 @@ class price_Lists extends core_Master
     {
         if (isset($rec->cClass, $rec->cId)) {
             price_ListToCustomers::updateStates($rec->cClass, $rec->cId);
+        }
+
+        if($rec->_invalidateCache){
+            price_Cache::callback_InvalidatePriceList($rec->id);
         }
     }
     

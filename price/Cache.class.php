@@ -181,10 +181,7 @@ class price_Cache extends core_Manager
     public static function callback_InvalidatePriceList($priceListId)
     {
         self::delete("#listId IN ({$priceListId})");
-        
         $plQuery = price_Lists::getQuery();
-        
-        $list = '';
         while ($plRec = $plQuery->fetch("#parent = {$priceListId}")) {
             self::callback_InvalidatePriceList($plRec->id);
         }

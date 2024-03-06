@@ -199,7 +199,7 @@ class barcode_Search extends core_Manager
         $tpl->append($a);
 
         if ($haveRes === false) {
-            $tpl->append(tr('Няма открити съвпадения в базата'));
+            $tpl->append(tr('Няма открити съвпадения'));
         } else {
             $tpl->append($tableTpl);
         }

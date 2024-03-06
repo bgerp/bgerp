@@ -1544,12 +1544,12 @@ abstract class deals_Helper
        
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
-        if ($hint === true) {
+        if(!Mode::isReadOnly() && $hint === true) {
             $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : (($type == 'volume') ? 'Транспортният обем е прогнозен' : (($type == 'netWeight') ? 'Нето теглото е прогнозно' : 'Тарата е прогнозна'));
             $valueRow = "<span style='color:blue'>{$valueRow}</span>";
             $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството", 'notice', false);
         }
-       
+
         // Показване на предупреждение
         if ($warning === true) {
             $liveValueVerbal = core_Type::getByName($valueType)->toVerbal($liveValue);
@@ -2159,8 +2159,49 @@ abstract class deals_Helper
 
         return $stRec->quantity - $quantity;
     }
-    
-    
+
+
+    /**
+     * Връща вербално представяне на съставителя на документа
+     *
+     * @param string $username
+     * @param int $createdBy
+     * @param int $activatedBy
+     * @param string $state
+     * @param int|null $issuerId
+     * @return core_ET|mixed|string
+     */
+    public static function getIssuerRow($username, $createdBy, $activatedBy, $state, &$issuerId = null)
+    {
+        if($username) {
+
+            return core_Type::getByName('varchar')->toVerbal($username);
+        }
+
+        if(isset($issuerId)) {
+            $fixedIssuerName = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($issuerId, 'names'));
+
+            return transliterate($fixedIssuerName);
+        }
+
+        $issuerName = deals_Helper::getIssuer($createdBy, $activatedBy, $issuerId);
+        $issuerName = transliterate($issuerName);
+
+        if(!Mode::isReadOnly() && in_array($state, array('pending', 'draft'))) {
+            if(empty($issuerName)) {
+                $hint = "За съставител ще се запише потребителя, контирал документа!";
+            } else {
+                $hint = "Ще бъде записан след активиране";
+                $issuerName = "<span style='color:blue'>{$issuerName}</span>";
+            }
+
+            $issuerName = ht::createHint($issuerName, $hint);
+        }
+
+        return $issuerName;
+    }
+
+
     /**
      * Кой потребител да се показва, като съставителя на документа
      *
@@ -2182,7 +2223,7 @@ abstract class deals_Helper
         
         $names = null;
         if (isset($userId)) {
-            $names = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($userId, 'names'));
+            $names = core_Users::fetchField($userId, 'names');
         }
         
         return $names;

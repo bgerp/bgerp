@@ -204,9 +204,11 @@ abstract class deals_ManifactureDetail extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $singleUrl = cat_Products::getSingleUrlArray($rec->productId);
         $row->productId = cat_Products::getVerbal($rec->productId, 'name');
-        $row->productId = ht::createLinkRef($row->productId, $singleUrl);
+        if(!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))){
+            $singleUrl = cat_Products::getSingleUrlArray($rec->productId);
+            $row->productId = ht::createLinkRef($row->productId, $singleUrl);
+        }
         deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
         
         // Показваме подробната информация за опаковката при нужда

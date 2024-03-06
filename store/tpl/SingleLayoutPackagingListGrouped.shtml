@@ -156,7 +156,7 @@
                            <td colspan="2" >
                                <span class='half-col'>Total gross weight: [#weight#]</span>
                                <span class='half-col'>Total net weight: [#netWeight#]</span>
-                               <span class='half-col'>Total tare: [#tareWeight#]</span>
+                               <span class='half-col'>Total packing weight: [#tareWeight#]</span>
                            </td>
                        </tr>
                        <!--ET_BEGIN logisticInfo-->
@@ -175,12 +175,12 @@
                 <td>
                     <table class='centered' style="width:100%">
                         <tr>
-                            <td class='centered' style='border-right:1px solid #999;width:50%;'>Received:</td>
-                            <td class='centered'>Created by:</td>
+                            <td class='centered' style='border-right:1px solid #999;width:50%;'>Received: [#RESPONSIBLE_SIGN_PAD#]</td>
+                            <td class='centered'>Created by: [#USERNAME_SIGN_PAD#]</td>
                         </tr>
                         <tr>
-                            <td style='height:40px;border-right:1px solid #999'></td>
-                            <td></td>
+                            <td style='height:40px;border-right:1px solid #999'>[#RESPONSIBLE_SIGN#]</td>
+                            <td>[#USERNAME_SIGN#]</td>
                         </tr>
                         <tr>
                             <td class='centered' style='border-right:1px solid #999'> <span class="sign_names">[#responsible#]</span></td>

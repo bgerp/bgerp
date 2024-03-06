@@ -1723,15 +1723,13 @@ class cat_Boms extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-
         jquery_Jquery::run($tpl,"toggleDisplayBomStepDetails();", TRUE);
         jquery_Jquery::run($tpl,"openBoomRows();", TRUE);
-
-
         jquery_Jquery::runAfterAjax($tpl, 'toggleDisplayBomStepDetails');
         jquery_Jquery::runAfterAjax($tpl, 'openBoomRows');
     }
-    
+
+
     /**
      * Опит за връщане на масив със задачи за производство от рецептата
      *
@@ -1765,6 +1763,7 @@ class cat_Boms extends core_Master
         // За всеки етап намираме подетапите му
         $tasks = array();
         foreach ($allStages as $dRec) {
+            $dRec->params['$T'] = $quantity;
             $quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
             if ($quantityP == cat_BomDetails::CALC_ERROR) {
                 $quantityP = 0;

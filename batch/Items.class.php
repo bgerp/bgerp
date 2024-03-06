@@ -452,10 +452,11 @@ class batch_Items extends core_Master
         
         // Подготвяме формата за филтър по склад
         $form = cls::get('core_Form');
-        
         $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $form->FLD("state{$data->masterId}", 'enum(active=Активни,closed=Затворени,inStock=Налични,notInStock=Без наличност,all=Всички)', 'caption=Състояние,silent');
         $form->setDefault("state{$data->masterId}", 'active');
+
+        $form->input(null, 'silent');
         $form->view = 'horizontal';
         $form->setAction(getCurrentUrl());
         $form->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon=img/16/funnel.png');
@@ -463,7 +464,7 @@ class batch_Items extends core_Master
         // Инпутваме формата
         $form->input();
         $data->form = $form;
-        
+
         // Намираме наличните партиди на артикула
         $query = $this->getQuery();
         $query->where("#productId = {$data->masterId}");
@@ -517,7 +518,12 @@ class batch_Items extends core_Master
         arr::sortObjects($data->recs, 'storeId', 'ASC');
 
         // Подготвяме страницирането
-        $pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $url = getCurrentUrl();
+        $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"};
+        $url["state{$data->masterId}"] = $form->rec->{"state{$data->masterId}"};
+        $url["#"] = "batchBlock{$data->masterId}";
+
+        $pager = cls::get('core_Pager', array('itemsPerPage' => 20, 'url' => toUrl($url)));
         $pager->setPageVar($data->masterMvc->className, $data->masterId);
         $pager->itemsCount = countR($data->recs);
         $data->pager = $pager;
@@ -563,14 +569,12 @@ class batch_Items extends core_Master
     public function renderBatches($data)
     {
         // Ако не рендираме таба, не правим нищо
-        if ($data->hide === true) {
-            
-            return;
-        }
+        if ($data->hide === true) return;
         
         // Кой е шаблона?
         $title = new core_ET('( [#def#] [#btn#])');
         $tpl = getTplFromFile('batch/tpl/ProductItemDetail.shtml');
+        $tpl->replace($data->masterId, 'PRODUCT_ID');
         if (!empty($data->definitionRec)) {
             $title->replace(batch_Templates::getHyperlink($data->definitionRec->templateId), 'def');
             if (isset($data->deleteBatchUrl)) {
@@ -591,15 +595,15 @@ class batch_Items extends core_Master
         $fieldSet = cls::get('core_FieldSet');
         $fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol');
         $fieldSet->FLD('storeId', 'varchar', 'tdClass=leftCol');
+        $fieldSet->FLD('icon', 'varchar', 'tdClass=small-field');
         $fieldSet->FLD('quantity', 'double');
         
         // Подготвяме таблицата за рендиране
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
-        $fields = arr::make('storeId=Склад,batch=Партида,measureId=Мярка,quantity=Количество', true);
-        if (countR($data->rows)) {
-            $fields = array('icon' => ' ') + $fields;
-        }
-        
+        $fields = arr::make('icon=|*&nbsp;,storeId=Склад,batch=Партида,measureId=Мярка,quantity=Количество', true);
+        $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'icon');
+
+
         // Ако е филтрирано по склад, скриваме колонката на склада
         if (isset($data->storeId)) {
             unset($fields['storeId']);

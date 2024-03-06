@@ -64,14 +64,21 @@
                                             <hr>
                                             [#note#]
                                             <!--ET_END note-->
-							                <!--ET_BEGIN responsible-->
-							                <hr>
-							                <div>[#receiverCaption#]:  [#receiver#]</div>
-							                <!--ET_END responsible-->
-                                            <td>[#SENDER_SIGN#]</td>
-							                <!--ET_BEGIN username-->
-							                <div>[#senderCaption#]:  [#sender#]</div>
-							                <!--ET_END username-->
+                                            <hr>
+                                            <table class='centered special-borders' style='width:100%;'>
+                                                <tr>
+                                                    <td class='centered border-right' style='width:50%;'>[#receiverCaption#]: [#RECEIVER_SIGN_PAD#]</td>
+                                                    <td class='centered'>[#senderCaption#]: [#SENDER_SIGN_PAD#]</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class='border-right' style='height:40px;'>[#RECEIVER_SIGN#]</td>
+                                                    <td>[#SENDER_SIGN#]</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class='centered border-right'><span class="sign_names nowrap"><!--ET_BEGIN receiver-->( [#receiver#] )<!--ET_END receiver--></span></td>
+                                                    <td class='centered'><span class="sign_names nowrap"><!--ET_BEGIN sender-->( [#sender#] )<!--ET_END sender--></span></td>
+                                                </tr>
+                                            </table>
                                         </td>
                                     </tr>
                                 </tbody>

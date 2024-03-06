@@ -444,7 +444,7 @@ class colab_Threads extends core_Manager
             }
             
             if(isset($userId) && !haveRole('powerPartner', $userId)){
-                if(!empty($rec->createdBy) && $rec->createdBy != $userId){
+                if(!empty($rec->createdBy) && ($rec->createdBy != $userId && !keylist::isIn($userId, $rec->shared))){
                     $requiredRoles = 'no_one';
                 } elseif(empty($rec->createdBy)) {
                     $email = core_Users::fetchField($userId, 'email');
@@ -487,9 +487,6 @@ class colab_Threads extends core_Manager
         
         $cu = core_Users::getCurrent();
         $sharedFolders = colab_Folders::getSharedFolders();
-        $sharedUsers = colab_Folders::getSharedUsers($folderId);
-        $sharedUsers[$cu] = $cu;
-        $sharedUsers = implode(',', $sharedUsers);
         
         $params['where'][] = "#folderId = {$folderId}";
         $res = $this->Threads->getQuery($params);
@@ -497,7 +494,7 @@ class colab_Threads extends core_Manager
         $res->in('folderId', $sharedFolders);
         
         if(!haveRole('powerPartner', $cu)){
-            $res->where("#createdBy = '{$cu}' || #createdBy = '0'");
+            $res->where("#createdBy = '{$cu}' || #createdBy = '0' || LOCATE('|{$cu}|', #shared)");
             
             // От записите създадени от анонимен потребител ще се проверява имейла му дали съвпада с този на текущия
             $availableRecs = array();

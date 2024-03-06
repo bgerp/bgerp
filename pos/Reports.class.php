@@ -288,6 +288,7 @@ class pos_Reports extends core_Master
                 $statRow->receiptTotalVerbal = ht::styleNumber($statRow->receiptTotalVerbal, $statRow->receiptTotal);
                 $statRow->receiptTotalVerbal = currency_Currencies::decorate($statRow->receiptTotalVerbal, $data->row->baseCurrency);
                 $operatorBlock->append($statRow->receiptTotalVerbal, 'operatorTotal');
+                ksort($statRow->payments);
 
                 foreach ($statRow->payments as $paymentRec){
                     $paymentBlocks = clone $operatorBlock->getBlock('PAYMENT_ROW');

@@ -97,13 +97,15 @@ class store_plg_TransportDataDetail extends core_Plugin
         $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->volumeField});
         $row->netWeight = deals_Helper::getNetWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->netWeightField});
 
-        if(empty($rec->tareWeight)){
+        if(!isset($rec->tareWeight)){
             if(!empty($rec->weight) && !empty($rec->netWeight)){
                 $rec->tareWeight = $rec->weight - $rec->netWeight;
-                if($rec->tareWeight > 0){
+                if($rec->tareWeight >= 0){
                     $row->tareWeight = core_Type::getByName('cat_type_Weight')->toVerbal($rec->tareWeight);
-                    $row->tareWeight = "<span style='color:blue'>{$row->tareWeight}</span>";
-                    $row->tareWeight = ht::createHint($row->tareWeight, 'Тарата е сметната на база брутото и нетото', 'notice', false);
+                    if(!Mode::isReadOnly()){
+                        $row->tareWeight = "<span style='color:blue'>{$row->tareWeight}</span>";
+                        $row->tareWeight = ht::createHint($row->tareWeight, 'Тарата е сметната на база брутото и нетото', 'notice', false);
+                    }
                 }
             }
         }
@@ -205,15 +207,13 @@ class store_plg_TransportDataDetail extends core_Plugin
             } else {
                 $tW = $rec->{$mvc->tareWeightField};
             }
-
-            // Форсира се при нужда
-            if ($force === true && empty($rec->{$mvc->tareWeightField}) && !empty($tW)) {
+            if ($force === true && empty($rec->{$mvc->tareWeightField}) && isset($tW)) {
                 $clone->{$mvc->tareWeightField} = $tW;
                 $saveFields[] = $mvc->tareWeightField;
             }
 
             // Сумира се
-            if (empty($rec->{$mvc->quantityFld}) || (!empty($tW) && !is_null($cTareWeight))) {
+            if (empty($rec->{$mvc->quantityFld}) || (isset($tW) && !is_null($cTareWeight))) {
                 $cTareWeight += $tW;
             } else {
                 $cTareWeight = null;
@@ -250,11 +250,11 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $mvc->save_($clone, $saveFields);
             }
         }
-        
+
         // Връщане на обема и теглото
         $weight = (!empty($cWeight)) ? $cWeight : null;
         $netWeight = (!empty($cNetWeight)) ? $cNetWeight : null;
-        $tareWeight = (!empty($cTareWeight)) ? $cTareWeight : null;
+        $tareWeight = (isset($cTareWeight) && !empty($cWeight) && !empty($cNetWeight)) ? $cTareWeight : null;
         $volume = (!empty($cVolume)) ? $cVolume : null;
 
         $res = (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units, 'netWeight' => $netWeight, 'tareWeight' => $tareWeight);
@@ -345,7 +345,7 @@ class store_plg_TransportDataDetail extends core_Plugin
             if(isset($weight) && isset($netWeight)){
                 $res = $weight - $netWeight;
 
-                if($res <= 0){
+                if($res < 0){
                     $res = null;
                 }
             }
