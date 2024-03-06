@@ -627,6 +627,7 @@ class rack_Movements extends rack_MovementAbstract
         $batchDef = batch_Defs::getBatchDef($productId);
 
         // Показване на позицията от която последно е смъкнат артикула
+        $haveWhatToShow = false;
         $floor = rack_PositionType::FLOOR;
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state IN ('active', 'closed')");
@@ -636,10 +637,12 @@ class rack_Movements extends rack_MovementAbstract
         if($lastPosition = $mQuery->fetch()->position){
             $positionVerbal = core_Type::getByName('varchar')->toVerbal($lastPosition);
             $tpl->prepend("|*<div>|Последно смъкнато от|*:{$positionVerbal}</div>");
+            $haveWhatToShow = true;
         }
 
         // Наличните активни палети за този артикул в склада
         if(countR($palletRecs)){
+            $haveWhatToShow = true;
             foreach($palletRecs as $pRec){
                 $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
                 $quantityVerbal = "{$quantityVerbal} {$measureName}";
@@ -657,7 +660,7 @@ class rack_Movements extends rack_MovementAbstract
             }
         }
 
-        return $tpl->getContent();
+        return ($haveWhatToShow) ? $tpl->getContent() : null;
     }
 
 
