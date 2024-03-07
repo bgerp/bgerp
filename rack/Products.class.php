@@ -440,6 +440,9 @@ class rack_Products extends store_Products
                 $row->position = "<i>" . tr('В зони') . "</i>";
             } elseif($rec->position == rack_PositionType::FLOOR){
                 $row->position = "<i>" . tr('На пода') . "</i>";
+                if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($rec->storeId, $data->masterId, $rec->packagingId, $rec->quantity, null)) {
+                    $row->quantity = $palletImgLink . $row->quantity;
+                }
             } else {
                 $row->position = core_Type::getByName('varchar')->toVerbal($rec->position);
                 if(rack_Pallets::haveRightFor('forceopen', (object)array('storeId' => $rec->storeId))){
