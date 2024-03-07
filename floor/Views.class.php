@@ -138,6 +138,7 @@ class floor_Views extends core_Master {
         return $res;
     }
 
+
     /**
      *
      * След подготовка на тулбара на единичен изглед.
