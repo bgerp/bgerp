@@ -391,6 +391,17 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
                 $fiscalArr['IS_PRINT_VAT'] = bgfisc_Setup::get('PRINT_VAT_GROUPS') == 'yes';
 
+                $discountVal = 0;
+                foreach ($products as $pArr){
+                    $discountVal += abs($pArr['DISC_ADD_V']);
+                }
+                if($discountVal){
+                    $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
+                    $discountVal = round($discountVal, $fiscFuRound);
+                    $discountVal = number_format($discountVal, $fiscFuRound, '.', '');
+                    $fiscalArr['END_TEXT'] = "Обща отстъпка: {$discountVal}лв";
+                }
+
                 if (cls::haveInterface('peripheral_FiscPrinterWeb', $Driver)) {
                     $interface = core_Cls::getInterface('peripheral_FiscPrinterWeb', $lRec->driverClass);
 
