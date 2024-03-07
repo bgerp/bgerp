@@ -133,6 +133,7 @@ class rack_Racks extends core_Master
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('firstRowTo', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Първи ред до,notNull,value=A');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
+        $this->FLD('direction', 'enum(leftToRight=От ляво на дясно,rightToLeft=От дясно на ляво)', 'caption=Подредба,mandatory,notNull,value=leftToRight');
         $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
         $this->FLD('groups', 'text', 'caption=Приоритетно използване в зони->Групи,input=none');
         $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
@@ -430,18 +431,25 @@ class rack_Racks extends core_Master
         $row = $rec->rows;
         $hlPos = Request::get('pos');
         $hlFullPos = "{$rec->num}-{$hlPos}";
-        
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
-
         $hlProdId = $used[$hlFullPos];
+
+        // Откъде започва номерацията
+        if($rec->direction == 'leftToRight'){
+            $from = 1;
+            $to = $rec->columns;
+        } else {
+            $from = $rec->columns;
+            $to = 1;
+        }
 
         while ($row >= 'A') {
             $trStyle = ($row <= $rec->firstRowTo) ? 'border:1px solid #2cc3229e;' : '';
             $res .= "<tr style='{$trStyle}'>";
             
-            for ($i = 1; $i <= $rec->columns; $i++) {
+             foreach (range($from, $to) as $i){
                 $attr = array();
                 
                 $attr['style'] = 'color:#ccc;';
@@ -461,11 +469,13 @@ class rack_Racks extends core_Master
                 // Ако е заето с нещо
                 if (!isset($title) && ($pArr = $used[$posFull])) {
                     $prodTitle = '';
+
                     foreach ($pArr as $productId => $batches){
+                        $BatchDef = batch_Defs::getBatchDef($productId);
                         $pName = cat_Products::getTitleById($productId);
                         $bgColorAll .= ',#' . self::getColor($pName, 130, 240);
 
-                        if(is_array($batches)){
+                        if($BatchDef && is_array($batches)){
                             foreach ($batches as $batch){
                                 $bName = !empty($batch) ? $batch : tr('без партида');
                                 $prodTitle .= "\n" . "{$pName} / {$bName}";
