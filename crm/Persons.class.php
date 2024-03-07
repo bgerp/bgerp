@@ -326,7 +326,7 @@ class crm_Persons extends core_Master
         $this->FLD('tel', 'drdata_PhoneType(type=tel,unrecognized=warning)', 'caption=Лични комуникации->Телефони,class=contactData,silent,export=Csv');
         $this->FLD('mobile', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Мобилен,class=contactData,silent,export=Csv');
         $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Лични комуникации->Факс,class=contactData,silent,export=Csv');
-        $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
+        $this->FLD('website', 'urls', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles, passage)', 'caption=Информация->Бележки,height=150px,class=contactData,export=Csv');
