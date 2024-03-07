@@ -469,11 +469,13 @@ class rack_Racks extends core_Master
                 // Ако е заето с нещо
                 if (!isset($title) && ($pArr = $used[$posFull])) {
                     $prodTitle = '';
+
                     foreach ($pArr as $productId => $batches){
+                        $BatchDef = batch_Defs::getBatchDef($productId);
                         $pName = cat_Products::getTitleById($productId);
                         $bgColorAll .= ',#' . self::getColor($pName, 130, 240);
 
-                        if(is_array($batches)){
+                        if($BatchDef && is_array($batches)){
                             foreach ($batches as $batch){
                                 $bName = !empty($batch) ? $batch : tr('без партида');
                                 $prodTitle .= "\n" . "{$pName} / {$bName}";
