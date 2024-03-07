@@ -1475,7 +1475,7 @@ class pos_Receipts extends core_Master
             $contragentPriceListId = ($defaultContragentId == $contragentId) ? pos_Points::getSettings($pointId, 'policyId') : price_ListToCustomers::getListForCustomer($contragentClassId, $contragentId, $date);
 
             $title = tr("Политика|*: ") . price_Lists::getTitleById($contragentPriceListId);
-            if($link){
+            if($link && !Mode::isReadOnly()){
                 $singleUrl = $Class->getSingleUrlArray($contragentId);
                 if($singleUrl){
                     $title = ht::createLinkRef($title, $singleUrl, false, array('title' => $Class->getTitleById($contragentId)));
