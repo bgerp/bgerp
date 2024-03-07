@@ -2438,7 +2438,8 @@ pre.document {
   float: left; }
 
 .shipment-table .half-col {
-  float: none; }
+  float: none;
+  white-space: nowrap; }
 
 .narrow .document .half_block {
   width: 100% !important;

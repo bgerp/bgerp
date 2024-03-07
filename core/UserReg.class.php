@@ -285,11 +285,6 @@ class core_UserReg extends core_Manager
                         $this->logNotice('Лицето е добавено към група', $rec->id);
                     }
 
-                    $listId = cond_Parameters::getParameter(crm_Companies::getClassId(), $personRec->buzCompanyId, 'employeesList');
-                    if ($listId) {
-                        price_ListToCustomers::add($listId, crm_Persons::getClassId(), $personId);
-                    }
-
                     $this->logNotice('Към потребителя е добавена ценова политика', $rec->id);
                 }
             }

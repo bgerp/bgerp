@@ -460,6 +460,7 @@ class pos_Terminal extends peripheral_Terminal
             // Запис на новата визитка
             $contragentRec = $data->form->rec;
             $Contragent->save($contragentRec);
+            $Contragent->flushUpdatePriceLists();
 
             // Бележката се прехвърля автоматично на новосъздадения контрагент
             pos_Receipts::setContragent($rec, $Contragent->getClassId(), $contragentRec->id);
