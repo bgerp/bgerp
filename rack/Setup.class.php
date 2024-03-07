@@ -74,6 +74,12 @@ defIfNot('RACK_ENABLE_PRIORITY_RACKS', 'no');
 
 
 /**
+ * Стратегия за предлагане за позиция за палетиране
+ */
+defIfNot('RACK_POSITION_TO_STRATEGY', 'bestPos');
+
+
+/**
  * class rack_Setup
  *
  * Инсталиране/Деинсталиране на пакета за палетния склад
@@ -236,6 +242,7 @@ class rack_Setup extends core_ProtoSetup
         'RACK_TIME_RETURN' => array('int', 'caption=Средни времена по операции->Връщане'),
         'RACK_TIME_COUNT' => array('int', 'caption=Средни времена по операции->Броене'),
         'RACK_ENABLE_PRIORITY_RACKS' => array('enum(yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване'),
+        'RACK_POSITION_TO_STRATEGY' => array('enum(bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Стратегия'),
     );
 
 

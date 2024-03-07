@@ -81,6 +81,13 @@
                                 <td>[#prioritizeRackGroups#]</td>
                             </tr>
                             <!--ET_END prioritizeRackGroups-->
+
+                            <!--ET_BEGIN palletBestPositionStrategy-->
+                            <tr>
+                                <td class='dt'>|Стратегия за предлагане на позиция за палетиране|*:</td>
+                                <td>[#palletBestPositionStrategy#]</td>
+                            </tr>
+                            <!--ET_END palletBestPositionStrategy-->
                         </table>
                     </div>
                 </fieldset>

@@ -805,8 +805,21 @@ class crm_Persons extends core_Master
         
         return $title;
     }
-    
-    
+
+
+    /**
+     * Изпълнява се преди записа
+     * Ако липсва - записваме id-то на връзката към титлата
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(isset($id)){
+            // Коя е старата фирма на лицето
+            $rec->_exBuzCompanyId = $mvc->fetchField($rec->id, 'buzCompanyId', false);
+        }
+    }
+
+
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -821,6 +834,14 @@ class crm_Persons extends core_Master
         if (crm_Profiles::fetch("#personId = {$rec->id}")) {
             $Profiles = cls::get('crm_Profiles');
             $Profiles->invoke('AfterMasterSave', array($rec, $mvc));
+        }
+
+        // Ако има променена служебна фирма и тя има търговско условие за доставка, то ще се прехвърли към клиента
+        if(isset($rec->buzCompanyId) && $rec->_exBuzCompanyId != $rec->buzCompanyId){
+            $listId = cond_Parameters::getParameter(crm_Companies::getClassId(), $rec->buzCompanyId, 'employeesList');
+            if ($listId) {
+                $mvc->updatedListsOnShutdown[$id] = $listId;
+            }
         }
     }
     
@@ -888,9 +909,28 @@ class crm_Persons extends core_Master
                 static::updateBirthdaysToCalendar($id);
             }
         }
+
+        $mvc->flushUpdatePriceLists();
     }
-    
-    
+
+
+    /**
+     * Флъшване на заопашените за добавяне ЦП на лицето
+     * @return void
+     */
+    public function flushUpdatePriceLists()
+    {
+        // Записване на заопашените ЦП за добавяне
+        if (countR($this->updatedListsOnShutdown)) {
+            foreach ($this->updatedListsOnShutdown as $id => $listId) {
+                price_ListToCustomers::add($listId, $this, $id);
+                core_Statuses::newStatus("На лицето е добавена ценовата политика за клиенти на фирмата|*: " . price_Lists::getTitleById($listId));
+                unset($this->updatedListsOnShutdown[$id]);
+            }
+        }
+    }
+
+
     /**
      * Обновяване на рожденните дни по разписание
      * (Еженощно)

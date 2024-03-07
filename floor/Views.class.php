@@ -138,6 +138,7 @@ class floor_Views extends core_Master {
         return $res;
     }
 
+
     /**
      *
      * След подготовка на тулбара на единичен изглед.
@@ -181,6 +182,7 @@ class floor_Views extends core_Master {
         $tabs = "<div class='{$vRec->position}Position floorTabs'>";
 
         $dQuery = floor_ViewDetails::getQuery();
+        $dQuery->where("#state = 'active'");
         while($dRec = $dQuery->fetch("#viewId = {$vRec->id}")) {
             $planRec = floor_Plans::fetch($dRec->planId);
             if($planId == $dRec->planId) {

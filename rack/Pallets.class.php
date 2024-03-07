@@ -1312,4 +1312,32 @@ class rack_Pallets extends core_Manager
 
         redirect(array('rack_Pallets', 'list', 'productId' => $productId, 'search' => $position));
     }
+
+
+    /**
+     * Коя е последната позиция на която артикула е качен/свален
+     *
+     * @param int $productId    - ид на артикул
+     * @param int $storeId      - ид на склад
+     * @param string $direction - посока 'down' за свален, 'up' за качен
+     * @return null|string
+     */
+    public static function getLastPalletPosition($productId, $storeId, $direction = 'down')
+    {
+        $floor = rack_PositionType::FLOOR;
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state IN ('active', 'closed')");
+        if($direction == 'down'){
+            $field = 'position';
+            $mQuery->where("#positionTo IS NULL OR #positionTo = '{$floor}' AND #position IS NOT NULL");
+        } else {
+            $field = 'positionTo';
+            $mQuery->where("#position = '{$floor}' AND #positionTo IS NOT NULL");
+        }
+
+        $mQuery->orderBy('createdOn', 'DESC');
+        $mQuery->show($field);
+
+        return $mQuery->fetch()->{$field};
+    }
 }
