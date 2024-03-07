@@ -73,7 +73,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,leftColBtns=Зап.,rightColBtns=Д-ие,workerId=Изп.,documents,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
+    public $listFields = 'productId,movement=Движение,leftColBtns=Зап.,rightColBtns=Д-ие,workerId=Изп.,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
 
 
     /**
@@ -1592,5 +1592,17 @@ class rack_Movements extends rack_MovementAbstract
         if($palletBestPositionStrategy == 'lastUp') return rack_Pallets::getLastPalletPosition($productId, $storeId, 'up');
 
         return null;
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $data->listTableMvc->setField('createdOn', 'tdClass=small');
+        $data->listTableMvc->setField('createdBy', 'tdClass=small');
+        $data->listTableMvc->setField('modifiedOn', 'tdClass=small');
+        $data->listTableMvc->setField('modifiedBy', 'tdClass=small');
     }
 }
