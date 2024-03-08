@@ -507,12 +507,13 @@ class ztm_RegisterValues extends core_Manager
             reportException($e);
         }
 
-        $srvRegName = 'sys.srv.last_sync';
-        $result->{$srvRegName} = $resLastSync;
-
         if ((array) $result) {
             ztm_Devices::logDebug('Result registers: ' . serialize($result), $deviceRec);
         }
+
+        $srvRegName = 'sys.srv.last_sync';
+        $result->{$srvRegName} = $resLastSync;
+
 
         // Връщане на резултатния обект
         core_App::outputJson($result);
