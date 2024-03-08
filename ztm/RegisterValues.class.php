@@ -418,6 +418,7 @@ class ztm_RegisterValues extends core_Manager
     {
         $token = Request::get('token');
         $lastSync = Request::get('last_sync');
+        $resLastSync = dt::mysql2timestamp();
         
         // Кое е устройството
         $deviceRec = ztm_Devices::getRecForToken($token);
@@ -505,13 +506,13 @@ class ztm_RegisterValues extends core_Manager
             $result = $registers;
             reportException($e);
         }
-        
+
+        $srvRegName = 'sys.srv.last_sync';
+        $result->{$srvRegName} = $resLastSync;
+
         if ((array) $result) {
             ztm_Devices::logDebug('Result registers: ' . serialize($result), $deviceRec);
         }
-
-        $srvRegName = 'sys.srv.last_sync';
-        $result->{$srvRegName} = dt::mysql2timestamp();
 
         // Връщане на резултатния обект
         core_App::outputJson($result);
