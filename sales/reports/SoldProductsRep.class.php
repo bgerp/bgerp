@@ -100,9 +100,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
 
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, groups=Групи, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=6,columns=3,after=primeCostType');
+        $fieldset->FLD('orderBy', 'enum(code=Код, group=Групи, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=6,columns=3,after=primeCostType');
         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
 
+        $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
+        $fieldset->FNC('exportFilter', 'varchar', 'caption=Експорт филтър,input=none,single=none');
+        $fieldset->FNC('grFilter', 'varchar', 'caption=Филтър по група,input=none,single=none');
     }
 
 
@@ -169,8 +172,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     public static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
-bp();
-       bp( Request::get());
+
 
     }
 
@@ -1767,6 +1769,8 @@ bp();
                                         <!--ET_BEGIN compare--><div>|Сравнение|*: [#compare#]</div><!--ET_END compare-->
                                         <!--ET_BEGIN currency--><div>|Валута|*: [#currency#]</div><!--ET_END currency-->
                                         <!--ET_BEGIN minDelta--><div>|Мин. делта|*: [#minDelta#]</div><!--ET_END minDelta-->
+                                        <!--ET_BEGIN grFilter--><div>|Филтър по група |*: [#grFilter#]</div><!--ET_END grFilter-->
+                                        <!--ET_BEGIN button--><div>|Филтри |*: [#button#]</div><!--ET_END button-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -1882,6 +1886,28 @@ bp();
             $fieldTpl->append('<b>' . $coefDelta*100 .'%'. '</b>', 'minDelta');
 
         }
+
+        //Филтър по група
+        $grFilter = $data->rec->grFilter;
+
+        if ($grFilter) {
+            $grFilterName = cat_Groups::fetch($grFilter)->name;
+        } else {
+            $grFilterName = 'Не е избрана';
+        }
+        $fieldTpl->append('<b>' . "$grFilterName" . '</b>', 'grFilter');
+
+        $grUrl = array('store_reports_ProductAvailableQuantity1', 'groupfilter', 'recId' => $data->rec->id, 'ret_url' => true);
+        $artUrl = array('store_reports_ProductAvailableQuantity1', 'artfilter', 'recId' => $data->rec->id, 'ret_url' => true);
+        //$exportUrl = array('store_reports_ProductAvailableQuantity1', 'exportfilter', 'recId' => $data->rec->id, 'ret_url' => true);
+
+        $toolbar = cls::get('core_Toolbar');
+
+        $toolbar->addBtn('Избери група', toUrl($grUrl));
+        $toolbar->addBtn('Избери артикул', toUrl($artUrl));
+        //$toolbar->addBtn('Филтър за експорт', toUrl($exportUrl));
+
+        $fieldTpl->append('<b>' . $toolbar->renderHtml() . '</b>', 'button');
 
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
