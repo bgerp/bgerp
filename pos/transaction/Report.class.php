@@ -108,8 +108,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             }
         }
         
-        $rec->valior = !empty($rec->valior) ? $rec->valior : dt::verbal2mysql($rec->createdOn);
-        
+        $rec->valior = !empty($rec->valior) ? $rec->valior : dt::today();
         $transaction = (object) array(
             'reason' => 'Отчет за POS продажба №' . $rec->id,
             'valior' => $rec->valior,
