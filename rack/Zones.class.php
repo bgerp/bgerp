@@ -603,8 +603,8 @@ class rack_Zones extends core_Master
         expect($containerId = Request::get('containerId', 'int'));
         expect($document = doc_Containers::getDocument($containerId));
         $documentRec = $document->fetch();
-        $this->requireRightFor('selectdocument', (object)array('containerId' => $containerId, 'storeId' => $documentRec->{$document->storeFieldName}));
-        $storeId = $documentRec->{$document->storeFieldName};
+        $this->requireRightFor('selectdocument', (object)array('containerId' => $containerId, 'storeId' => $documentRec->{$document->rackStoreFieldName}));
+        $storeId = $documentRec->{$document->rackStoreFieldName};
 
         // Подготовка на формата
         $form = cls::get('core_Form');
@@ -678,6 +678,7 @@ class rack_Zones extends core_Master
                         $redirectUrl = $document->getSingleUrlArray();
                     }
 
+                    store_Stores::selectCurrent($storeId);
                     redirect($redirectUrl, false, $msg);
                 } elseif(isset($zoneRec->id)) {
                     $document->getInstance()->logWrite('Премахване от зона', $document->that);
@@ -754,7 +755,7 @@ class rack_Zones extends core_Master
                 if (!rack_Zones::fetchField("#storeId = {$rec->storeId} AND #state != 'closed'")) {
                     $requiredRoles = 'no_one';
                 } else {
-                    $documentRec = $document->fetch("state,{$document->storeFieldName}");
+                    $documentRec = $document->fetch("state,{$document->rackStoreFieldName}");
                     if (!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending'))) {
                         $requiredRoles = 'no_one';
                     }
