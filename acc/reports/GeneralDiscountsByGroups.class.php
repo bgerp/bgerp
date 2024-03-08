@@ -296,10 +296,10 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 if ($rec->seeBy == 'date') {
                     $fld->FLD('date', 'varchar', 'caption=Дата');
                 } elseif ($rec->seeBy == 'contragentName') {
-                    $fld->FLD('contragentName', 'varchar', 'caption=Клиент->име');
+                    $fld->FLD('contragentName', 'varchar', 'caption=Клиент');
                     if($rec->seeBy){
                         if($rec->inDet == 'yes'){
-                            $fld->FLD('receipts', 'varchar', 'caption=Клиент->Бележки->номер>>отстъпка>>дата>>час');
+                            $fld->FLD('receipts', 'varchar', 'caption=Бележки->номер >> дата >> час');
                         }
 
                     }
@@ -309,8 +309,6 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 $fld->FLD('date', 'varchar', 'caption=Дата');
             }
 
-
-            //$fld->FLD('datetime', 'datetime', 'caption=Време');
             $fld->FLD('allAutoDiscountContragent', 'double(decimals=2)', 'caption=Отстъпка,smartCenter');
 
         } else {
@@ -350,25 +348,32 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         }
 
         $row->contragentName = $dRec->contragentName;
-
+        $row->receipts ='</br>';
         foreach ($dRec->personalReceipts as $val) {
            $counter = 3;
             foreach ($val as $v) {
-                if (is_double($v)) {
-                    $prv = $Double->toVerbal($v);
-                } else {
-                    $prv = $v;
+
+                if ($counter == 3) {
+                    $prv = ht::createLink($v, array('pos_Receipts', 'single', $v));
+
+                }elseif($counter == 1){
+                    $prv = $Datetime->toVerbal($v);
                 }
-                $row->receipts .= $prv ;
-                if($counter > 1) {
+                $row->receipts .= '<span class="small">'.$prv.'</span>' ;
+                if($counter == 3) {
                     $row->receipts .= ', ';
                 }
                 $counter--;
+                unset($prv);
             }
             $row->receipts .= '</br>';
         }
 
-        $row->allAutoDiscountContragent = $Double->toVerbal($dRec->allAutoDiscountContragent);
+        $row->allAutoDiscountContragent ='<b>' . $Double->toVerbal($dRec->allAutoDiscountContragent). '</b>'.'</br>';
+        foreach ($dRec->personalReceipts as $val) {
+            $row->allAutoDiscountContragent .= '<span class="small">'.$Double->toVerbal($val['allAutoDiscountContragent']).'</span>'.'</br>';
+
+        }
 
         return $row;
     }

@@ -1943,7 +1943,9 @@ abstract class deals_InvoiceMaster extends core_Master
         // Кеширане на ид-то на съставителя
         if(empty($rec->issuerId)){
             $issuerId = null;
-            $rec->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId);
+            $mvc->pushTemplateLg($rec->template);
+            $rec->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId));
+            core_Lg::pop();
             $rec->issuerId = $issuerId;
             $saveFields[] = 'username';
             $saveFields[] = 'issuerId';

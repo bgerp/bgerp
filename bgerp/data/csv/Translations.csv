@@ -272,6 +272,7 @@ en,Ведомост,Payroll
 en,Великден,Easter
 en,Вербално ID,Verbal ID
 en,Версии,Versions
+en,Версия,Version
 en,Вече съществув_3488,There is already a record with the same data
 en,Вземи файла от _4ad6,Take the file from this URL
 en,Вземи,Take
@@ -525,6 +526,8 @@ en,Добавяне на оп_42af5,Add packaging for
 en,Добавяне на файл(ове),Add file(s)
 en,Добавяне на файлове/документи,Add files/documents
 en,Добавяне на,Add new
+en,Добавяне на линия,Add line
+en,Добавяне на линк,Add link
 en,Договор,Contract
 en,договор,contract
 en,Договори за по_be298,Purchase contracts
@@ -1447,6 +1450,7 @@ en,Подпапка,Subfolder
 en,Подпис за изхо_85f04,Signature for outgoing emails
 en,Подпис,Signature
 en,Подразделение,Subdivision
+en,Подравняване на текста,Text align
 en,Подредба на те_1a2fe,Themes ordering
 en,Подредба,Order
 en,Подреждане,Ordering
