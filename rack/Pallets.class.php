@@ -1177,22 +1177,19 @@ class rack_Pallets extends core_Manager
      */
     public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null, $containerId = null)
     {
-        if (store_Stores::getCurrent('id', false) != $storeId || core_Mode::isReadOnly()) return false;
+        if(!store_Stores::haveRightFor('select', $storeId) || core_Mode::isReadOnly()) return false;
+        if (!rack_Movements::haveRightFor('add', (object) array('productId' => $productId))) return false;
 
-        if (rack_Movements::haveRightFor('add', (object) array('productId' => $productId))){
-            $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'maxPackQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'ret_url' => true);
-            if(!empty($batch)){
-                $addPalletUrl['batch'] = $batch;
-            }
-            
-            if($containerId){
-                $addPalletUrl['containerId'] = $containerId;
-            }
-            
-            return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,class=smallIcon,title=Палетиране на артикул');
+        $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'maxPackQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'forceStoreId' => $storeId, 'ret_url' => true);
+        if(!empty($batch)){
+            $addPalletUrl['batch'] = $batch;
         }
-        
-        return false;
+
+        if($containerId){
+            $addPalletUrl['containerId'] = $containerId;
+        }
+
+        return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,class=smallIcon,title=Палетиране на артикул');
     }
 
 

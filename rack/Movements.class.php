@@ -413,6 +413,10 @@ class rack_Movements extends rack_MovementAbstract
         $form = $data->form;
         $rec = &$form->rec;
 
+        // Форсиране на склада от урл-то ако може
+        if($forceStoreId = Request::get('forceStoreId', 'key(mvc=store_Stores)')){
+            store_Stores::selectCurrent($forceStoreId);
+        }
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setDefault('fromIncomingDocument', 'no');
         $form->setField('storeId', 'input=hidden');
