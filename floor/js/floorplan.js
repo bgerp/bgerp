@@ -194,7 +194,6 @@ function editFloorplan()
 }
 
 function refreshFloor() {
-	return;
 	var floorId = $("#floor").attr('data-id');
 	$.post("/floor_Plans/RefreshFloor",  {'floorId': floorId}, function(result) {
 		$("#floor").replaceWith(result.html);
