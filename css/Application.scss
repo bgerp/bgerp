@@ -939,13 +939,18 @@ div.productImage {
 	border-radius:5px;
 }
 
-.products-table,  .jobTable, .general-product-description, .sales_SalesDetails .productImage{
+.products-table,  .jobTable, .sales_SalesDetails .productImage{
 	a.fancybox img{
 		max-width: 320px;
 	    max-height: 320px;
 	    width: auto;
 	    height: auto;
 	}
+}
+
+.general-product-description a.fancybox img{
+	 max-width: 320px;
+	 max-height: 320px;
 }
 
 .component-title {
@@ -2835,6 +2840,12 @@ max-width: 400px;
 	width: 49%;
 	float: left;
 }
+
+.shipment-table .half-col {
+	float: none;
+	white-space: nowrap;
+}
+
 .narrow .document .half_block {
 	width: 100% !important;
 	clear: both;

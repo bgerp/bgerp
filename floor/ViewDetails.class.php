@@ -26,7 +26,7 @@ class floor_ViewDetails extends core_Detail {
    /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_SaveAndNew, plg_StructureAndOrder';
     
     
     /**
@@ -95,35 +95,17 @@ class floor_ViewDetails extends core_Detail {
 
 
     /**
-     * @TODO описание
-     *
-     * След потготовка на формата за добавяне / редактиране.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     *
-     * @return bool|null
+     * Необходим метод за подреждането
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    public static function getSaoItems($rec)
     {
-        $form = $data->form;
-        $rec = $form->rec;
- 
+        $res = array();
+        $query = self::getQuery();
+        $query->where(array("#viewId = '[#1#]'", $rec->viewId));
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $rec;
+        }
 
+        return $res;
     }
-
-
-    /**
-     * Извиква се преди запис в модела
-     *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode    Режим на записа: replace, ignore
-     */
-    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-    }
-
 }

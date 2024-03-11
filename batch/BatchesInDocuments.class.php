@@ -873,9 +873,11 @@ class batch_BatchesInDocuments extends core_Manager
         $where = "#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #productId = {$productId} AND #operation = '{$operation}'";
         if (!empty($batch)) {
             $where .= " AND #batch = '[#1#]'";
-            return self::fetchField(array($where, $batch));
+
+            return self::fetchField(array($where, $batch), 'id', false);
         } else {
-            return self::fetchField($where);
+            $where .= " AND #batch = '[#1#]'";
+            return self::fetchField($where, 'id', false);
         }
     }
     
@@ -887,10 +889,11 @@ class batch_BatchesInDocuments extends core_Manager
      * @param int   $detailRecId
      * @param array $batchesArr
      * @param bool  $sync
+     * @param bool $increment
      *
      * @return void
      */
-    public static function saveBatches($detailClassId, $detailRecId, $batchesArr, $sync = false)
+    public static function saveBatches($detailClassId, $detailRecId, $batchesArr, $sync = false, $increment = false)
     {
         if (!is_array($batchesArr)) {
             
@@ -913,6 +916,9 @@ class batch_BatchesInDocuments extends core_Manager
                 $b1 = ($sync === true) ? null : $obj->batch;
                 if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b1, $operation)) {
                     $obj->id = $id;
+                    if($increment){
+                        $obj->quantity = $q + static::fetchField($id, 'quantity', false);
+                    }
                 }
                 
                 $update[] = $obj;

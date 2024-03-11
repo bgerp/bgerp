@@ -96,6 +96,12 @@ class price_ListRules extends core_Detail
 
 
     /**
+     * Работен кеш
+     */
+    public $invalidateListsOnShutdown = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -626,6 +632,7 @@ class price_ListRules extends core_Detail
     protected static function on_AfterSave($mvc, &$id, &$rec, $fields = null)
     {
         if ($rec->listId) {
+
             if ($rec->validFrom <= dt::now() || empty($rec->validFrom)) {
                 $mvc->invalidateListsOnShutdown[$rec->listId] = $rec->listId;
             } else {

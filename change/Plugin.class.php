@@ -173,7 +173,7 @@ class change_Plugin extends core_Plugin
 
         // Масива с първата и последната версия
         $versionArr = change_Log::getFirstAndLastVersion($classId, $rec->id);
-        $form->setField('sharedUsers', 'input=none');
+
         // Ако формата е изпратена без грешки
         if ($form->isSubmitted()) {
             if (is_null($rec->version) && is_null($rec->subVersion)) {

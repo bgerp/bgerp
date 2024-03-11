@@ -905,6 +905,7 @@ class hr_Leaves extends core_Master
         $link = array('hr_Leaves', 'single', $rec->id);
         
         //Променяме статуса на затворено
+        $rec->brState = $rec->state;
         $rec->state = 'closed';
         hr_Leaves::save($rec);
         

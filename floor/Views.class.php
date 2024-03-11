@@ -118,6 +118,7 @@ class floor_Views extends core_Master {
     public function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory');
+        $this->FLD('position', 'enum(top=Горе,right=Отдясно)', 'caption=Позиция на табовете');
 
         $this->setDbUnique('name');
     }
@@ -136,6 +137,7 @@ class floor_Views extends core_Master {
         
         return $res;
     }
+
 
     /**
      *
@@ -160,9 +162,9 @@ class floor_Views extends core_Master {
     {
         // Изискваме brid / ip или определени роли
         RequireRole('admin,floor');
-        
+
         // Кой изглед трябва да покажем
-     
+
         if(!isset($viewId)) {
             $viewId = Request::get('id', 'int');
         }
@@ -177,9 +179,10 @@ class floor_Views extends core_Master {
             $planId = $planRec->planId;
         }
 
-        $tabs = "";
+        $tabs = "<div class='{$vRec->position}Position floorTabs'>";
 
         $dQuery = floor_ViewDetails::getQuery();
+        $dQuery->where("#state = 'active'");
         while($dRec = $dQuery->fetch("#viewId = {$vRec->id}")) {
             $planRec = floor_Plans::fetch($dRec->planId);
             if($planId == $dRec->planId) {
@@ -187,12 +190,12 @@ class floor_Views extends core_Master {
             } else {
                 $active = '';
             }
-            
+
             $tabs .= "<div class='tab {$active}'>" . ht::createLink($planRec->name, array($this, 'View', $viewId, 'planId' => $dRec->planId));
             $tabs .= '</div>';
         }
 
-
+        $tabs .= '</div>';
 
         $Plans = cls::get('floor_Plans');
 

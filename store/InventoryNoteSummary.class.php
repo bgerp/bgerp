@@ -330,17 +330,16 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!$data->rows) {
-            
-            return;
-        }
-        
+        if (!$data->rows) return;
+
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('btns', 'varchar', 'tdClass=small-field nowrap,smartCenter');
         $data->listTableMvc->setField('charge', 'tdClass=charge-td');
         $masterRec = $data->masterData->rec;
-        
+        $pageVar = core_Pager::getPageVar('store_InventoryNotes', $masterRec->id);
+        $pageVal = Request::get($pageVar, 'varchar');
+
         // Намиране на всички заявки ако има
         $pendingDocuments = self::getPendingDocuments($masterRec->valior, $masterRec->storeId);
         
@@ -417,7 +416,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
                 // Добавяне на бутон за редакция на реда
                 if ($rec->productId && !$isNoBatchRow && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
-                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId));
+                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId, $pageVar => $pageVal));
 
                     // Ако се редактира сумарен ред. Маркира се в урл-то
                     if(isset($rec->quantity) || isset($rec->_batch)){
@@ -701,16 +700,14 @@ class store_InventoryNoteSummary extends doc_Detail
      * @param string $nameFld
      * @param string $groupFld
      * @param boolean $expand
+     * @param string $orderByField
+     *
      * @return void
      */
-    public static function filterRecs($selectedGroups, &$recs, $codeFld = 'orderCode', $nameFld = 'orderName', $groupFld = 'groups', $expand = false)
+    public static function filterRecs($selectedGroups, &$recs, $codeFld = 'orderCode', $nameFld = 'orderName', $groupFld = 'groups', $expand = false, $orderByField = 'auto')
     {
         // Ако няма записи не правим нищо
-        if (!is_array($recs)) {
-            
-            return;
-        }
-        
+        if (!is_array($recs)) return;
         $ordered = array();
         
         // Вербализираме и подреждаме групите
@@ -758,9 +755,9 @@ class store_InventoryNoteSummary extends doc_Detail
         }
         
         // Правилна подредба
-        uasort($ordered, function ($a, $b) use ($codeFld, $nameFld) {
+        uasort($ordered, function ($a, $b) use ($codeFld, $nameFld, $orderByField) {
              if ($a->groupName == $b->groupName) {
-                  $orderProductBy = cat_Groups::fetchField($a->_groupId, 'orderProductBy');
+                  $orderProductBy = ($orderByField == 'auto') ? cat_Groups::fetchField($a->_groupId, 'orderProductBy') : $orderByField;
                   $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
                   $result = strcasecmp($a->{$field}, $b->{$field});
              } else {
@@ -802,7 +799,8 @@ class store_InventoryNoteSummary extends doc_Detail
     {
         // Филтрираме записите
         $expand = $data->masterData->rec->expandGroups == 'yes';
-        self::filterRecs($data->masterData->rec->groups, $data->recs, 'orderCode', 'orderName', 'groups', $expand);
+        $orderByField = $data->masterData->rec->orderProductBy;
+        self::filterRecs($data->masterData->rec->groups, $data->recs, 'orderCode', 'orderName', 'groups', $expand, $orderByField);
 
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);

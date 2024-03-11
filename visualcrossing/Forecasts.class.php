@@ -33,7 +33,7 @@ class visualcrossing_Forecasts extends core_Manager
     /**
      * Зареждане на използваните мениджъри
      */
-    public $loadList = 'plg_RowTools2';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Modified';
 
 
     /**
@@ -237,8 +237,9 @@ class visualcrossing_Forecasts extends core_Manager
     public function prepareRegValues($result, $regArr, $oDeviceRec, $deviceRec)
     {
 //        $rArr = $this->prepareRegs();
-//        foreach ($rArr as $reg => $val) {
-//            $result->{$reg} = $val;
+//
+//        foreach ($rArr as $reg => $valArr) {
+//            $result->{$reg} = $valArr['val'];
 //        }
 
         return $result;
@@ -269,7 +270,7 @@ class visualcrossing_Forecasts extends core_Manager
             }
             foreach (array('icon' => 'icon', 'rh' => 'rh', 'temp' => 'low', 'wind' => 'wind') as $key => $field) {
                 $eKey = "envm.forecast.{$key}_{$h}";
-                $regArr[$eKey] = $forecast->{$field};
+                $regArr[$eKey] = array('val' => $forecast->{$field}, 'time' => $forecast->modifiedOn);
                 if (is_numeric($regArr[$eKey])) {
                     $regArr[$eKey] = (double) $regArr[$eKey];
                 }

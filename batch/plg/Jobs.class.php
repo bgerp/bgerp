@@ -116,6 +116,10 @@ class batch_plg_Jobs extends core_Plugin
                         }
 
                         if(countR($saveBatches)){
+                            if($batchDef instanceof batch_definitions_Serial){
+                                array_walk($saveBatches, function(&$a){$a = 1;});
+                            }
+
                             batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $saveBatches, true);
                         } elseif($batchDef instanceof batch_definitions_Job){
 

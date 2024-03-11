@@ -157,7 +157,6 @@ class sales_Invoices extends deals_InvoiceMaster
         'contragentPCode' => 'clientData|lastDocUser|lastDoc',
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',
         'contragentAddress' => 'clientData|lastDocUser|lastDoc',
-        'accountId' => 'lastDocUser|lastDoc',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
     
@@ -360,10 +359,13 @@ class sales_Invoices extends deals_InvoiceMaster
         
         $form->setField('contragentPlace', 'mandatory');
         $form->setField('contragentAddress', 'mandatory');
-        
+
         if ($data->aggregateInfo) {
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
                 $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
+            } else {
+                $previousAccId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'accountId', 'lastDocUser|lastDoc');
+                $form->setDefault('accountId', $previousAccId);
             }
         }
         
@@ -585,18 +587,27 @@ class sales_Invoices extends deals_InvoiceMaster
         parent::getVerbalInvoice($mvc, $rec, $row, $fields);
         
         if ($fields['-single']) {
-            if ($rec->accountId && $rec->paymentType != 'factoring') {
-                $Varchar = cls::get('type_Varchar');
-                $ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
-                
-                $row->accountId = cls::get('iban_Type')->toVerbal($ownAcc->iban);
-                $row->bank = $Varchar->toVerbal($ownAcc->bank);
-                core_Lg::push($rec->tplLang);
-                $row->bank = transliterate(tr($row->bank));
-                $row->place = transliterate($row->place);
-                core_Lg::pop();
-                
-                $row->bic = $Varchar->toVerbal($ownAcc->bic);
+            if ($rec->accountId) {
+                if($rec->paymentType != 'factoring'){
+                    $Varchar = cls::get('type_Varchar');
+                    $ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+
+                    $row->accountId = cls::get('iban_Type')->toVerbal($ownAcc->iban);
+                    $row->bank = $Varchar->toVerbal($ownAcc->bank);
+                    core_Lg::push($rec->tplLang);
+                    $row->bank = transliterate(tr($row->bank));
+                    $row->place = transliterate($row->place);
+                    core_Lg::pop();
+                    $row->bic = $Varchar->toVerbal($ownAcc->bic);
+
+                    if(!Mode::isReadOnly()){
+                        $accountInfo = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+                        if($accountInfo->currencyId != currency_Currencies::getIdByCode($rec->currencyId)){
+                            $row->accountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->accountId}</span>";
+                            $row->accountId = ht::createHint($row->accountId, 'Банковата сметка е във валута различна от тази на сделката|*!', 'warning');
+                        }
+                    }
+                }
             }
 
             $displayRange = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));

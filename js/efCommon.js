@@ -3638,10 +3638,10 @@ function efae() {
     efae.prototype.renderPrefix = 'render_';
 
     // Времето в милисекунди, с което ще се увеличава времето на изпълнение
-    efae.prototype.increaseInterval = 300;
+    efae.prototype.increaseInterval = 600;
 
     // Горната граница (в милисекунди), до която може да се увеличи брояча
-    efae.prototype.maxIncreaseInterval = 500000;
+    efae.prototype.maxIncreaseInterval = 900000;
 
     // През колко време да се праща AJAX заяка към сървъра
     efae.prototype.ajaxInterval = efae.prototype.ajaxDefInterval = 5000;
@@ -3651,7 +3651,7 @@ function efae() {
 
     // Интервал над който ще се нулира брояча
     // Когато устройството е заспало, да се форсират всички табове след събуждане (1800000 - 30 мин) (2700000 - 45)
-    efae.prototype.forceStartInterval = 2700000;
+    efae.prototype.forceStartInterval = 3900000;
 
     // Дали процеса е изпратена AJAX заявка за извличане на данните за показване след рефреш
     efae.prototype.isSendedAfterRefresh = false;
@@ -6245,6 +6245,22 @@ function render_removeBlurScreen(data)
     var elementClass = data.elementClass;
     $("." + elementClass).css("display", "none");
 }
+
+
+/**
+ * Копира плейсхолдъра като стойност на полето
+ */
+function copyPlaceholderAsValOnClick()
+{
+    $('.copyPlaceholderAsVal').on('click', function(e) {
+        let val = $(this).val();
+        let placeholder = $(this).attr('placeholder');
+        if(!val && placeholder){
+            $(this).val(placeholder);
+        }
+    });
+}
+
 
 
 runOnLoad(markSelectedChecboxes);

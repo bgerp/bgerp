@@ -36,6 +36,12 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
 
     /**
+     * Кеш на свойствата
+     */
+    protected $cachedMetas = array();
+
+
+    /**
      * Връща транзакцията на бележката
      */
     public function getTransaction($id)
@@ -45,7 +51,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $rec = $this->class->fetchRec($id);
         $posRec = pos_Points::fetch($rec->pointId);
         $paymentsArr = $productsArr = $totalVat = $entries = array();
-        
+        core_Debug::startTimer('GET_TRANSACTION');
+
         if(!Mode::is('recontoTransaction')){
             $this->class->extractData($rec);
         }
@@ -58,26 +65,50 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                     $paymentsArr[] = $dRec;
                 }
             }
+
+            $productIds = arr::extractValuesFromArray($productsArr, 'value');
+            if(countR($productIds)){
+                $mQuery = cat_Products::getQuery();
+                $mQuery->in('id', $productIds);
+                $mQuery->show('canManifacture,canStore,canConvert');
+                $this->cachedMetas = $mQuery->fetchAll();
+            }
         }
         
         if (isset($rec->id)) {
+            core_Debug::startTimer('PRODUCTION_ENTRIES');
+            pos_Reports::logDebug('START PRODUCTION_ENTRIES');
             $entriesProduction = $this->getProductionEntries($rec, $productsArr);
+            pos_Reports::logDebug('END PRODUCTION_ENTRIES');
+            core_Debug::stopTimer('PRODUCTION_ENTRIES');
+            pos_Reports::logDebug("GET PRODUCTION_ENTRIES: " . round(core_Debug::$timers["PRODUCTION_ENTRIES"]->workingTime, 6));
             if (countR($entriesProduction)) {
                 $entries = array_merge($entries, $entriesProduction);
             }
             
             // Генериране на записите
+            core_Debug::startTimer('TAKING_PART');
+            pos_Reports::logDebug('START TAKING_PART');
             $entries = array_merge($entries, $this->getTakingPart($rec, $productsArr, $totalVat, $posRec));
+            pos_Reports::logDebug('END TAKING_PART');
+            core_Debug::stopTimer('TAKING_PART');
+            pos_Reports::logDebug("GET TAKING_PART: " . round(core_Debug::$timers["TAKING_PART"]->workingTime, 6));
+
+            core_Debug::startTimer('PAYMENT_PART');
+            pos_Reports::logDebug('START PAYMENT_PART');
             $entries = array_merge($entries, $this->getPaymentPart($rec, $paymentsArr, $posRec));
-            
+            pos_Reports::logDebug('END PAYMENT_PART');
+            core_Debug::stopTimer('PAYMENT_PART');
+            pos_Reports::logDebug("GET PAYMENT_PART: " . round(core_Debug::$timers["PAYMENT_PART"]->workingTime, 6));
+
+
             // Начисляване на ддс ако има и е разрешено
             if (countR($totalVat) && $rec->chargeVat != 'no') {
                 $entries = array_merge($entries, $this->getVatPart($rec, $totalVat, $posRec));
             }
         }
         
-        $rec->valior = !empty($rec->valior) ? $rec->valior : dt::verbal2mysql($rec->createdOn);
-        
+        $rec->valior = !empty($rec->valior) ? $rec->valior : dt::today();
         $transaction = (object) array(
             'reason' => 'Отчет за POS продажба №' . $rec->id,
             'valior' => $rec->valior,
@@ -91,6 +122,9 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         
         // Проверка на артикулите преди контиране
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            core_Debug::startTimer('META_CHECK');
+            pos_Reports::logDebug('START META_CHECK');
+
             $productsArr = arr::extractValuesFromArray($productsArr, 'value');
             $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canSell');
 
@@ -127,9 +161,14 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
             }
+
+            pos_Reports::logDebug('END META_CHECK');
+            core_Debug::stopTimer('META_CHECK');
+            pos_Reports::logDebug("GET META_CHECK: " . round(core_Debug::$timers["META_CHECK"]->workingTime, 6));
         }
-        
-        
+        core_Debug::stopTimer('GET_TRANSACTION');
+        pos_Reports::logDebug("GET TRANSACTION: " . round(core_Debug::$timers["GET_TRANSACTION"]->workingTime, 6));
+
         return $transaction;
     }
     
@@ -144,7 +183,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
      *
      * @param stdClass $rec      - записа
      * @param array    $products - продуктите
-     * @param float    $totalVat - общото ддс
+     * @param array    $totalVat - общото ддс
      * @param stdClass $posRec   - точката на продажба
      */
     protected function getTakingPart($rec, $products, &$totalVat, $posRec)
@@ -161,10 +200,9 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             if ($product->param) {
                 $totalVat[$product->contragentClassId .'|'. $product->contragentId] += $product->param * $product->amount;
             }
-            
+
             $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
-            $pRec = cat_Products::fetch($product->value, 'canStore,canConvert');
-            
+            $pRec = $this->cachedMetas[$product->value];
             $creditAccId = ($pRec->canStore == 'yes') ? '701' : '703';
             $credit = array(
                 $creditAccId,
@@ -189,7 +227,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             $this->totalAmount += $totalAmount;
             
             if ($pRec->canStore == 'yes') {
-                $entries = array_merge($entries, $this->getDeliveryPart($rec, $product, $posRec, $convertable));
+                $entries = array_merge($entries, $this->getDeliveryPart($rec, $product, $posRec));
             }
         }
         
@@ -208,11 +246,10 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
      * @param stdClass $rec         - записа
      * @param array    $product     - артикула
      * @param stdClass $posRec      - точката на продажба
-     * @param bool     $convertable - вложим ли е продукта
      *
      * @return array
      */
-    protected function getDeliveryPart($rec, $product, $posRec, $convertable)
+    protected function getDeliveryPart($rec, $product, $posRec)
     {
         $entries = array();
         $creditAccId = '321';
@@ -364,32 +401,40 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     private function getProductionEntries($rec, $productsArr)
     {
         $entries = array();
-        
+
+        $bomDataCombined = array();
         foreach ($productsArr as $dRec){
-            
+
             // Всички производими артикули
-            $canManifacture = cat_Products::fetchField($dRec->value, 'canManifacture');
-            if($canManifacture != 'yes') continue;
+            if($this->cachedMetas[$dRec->value]->canManifacture != 'yes') continue;
             
             // Ако имат моментна рецепта
             $instantBomRec = cat_Products::getLastActiveBom($dRec->value, 'instant');
-            
             if(!is_object($instantBomRec)) continue;
             $quantity = $dRec->quantity * $dRec->quantityInPack;
-            
-                // И тя има ресурси, произвежда се по нея
-            $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $quantity, $rec->createdOn);
+
+            if(!array_key_exists("{$instantBomRec->id}|{$dRec->storeId}", $bomDataCombined)){
+                $bomDataCombined["{$instantBomRec->id}|{$dRec->storeId}"] = (object)array('bomRec' => $instantBomRec, 'storeId' => $dRec->storeId, 'quantity' => 0, 'productId' => $dRec->value);
+            }
+            $bomDataCombined["{$instantBomRec->id}|{$dRec->storeId}"]->quantity += $quantity;
+        }
+
+        // За всяка момента рецепта+склад се прави еднократно извличане
+        foreach ($bomDataCombined as $bomData){
+
+            // И тя има ресурси, произвежда се по нея
+            $bomInfo = cat_Boms::getResourceInfo($bomData->bomRec, $bomData->quantity, $rec->createdOn);
             if(is_array($bomInfo['resources'])){
                 foreach ($bomInfo['resources'] as &$resRec){
                     $resRec->quantity = $resRec->propQuantity;
-                    $resRec->storeId = $dRec->storeId;
+                    $resRec->storeId = $bomData->storeId;
                     $resRec->fromAccId = '61102';
                 }
-                
+
                 // Извличане на записите за производството
-                $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($dRec->value, $quantity,  $dRec->storeId, null, pos_Reports::getClassId(), $rec->id, null, $rec->createdOn, $bomInfo['expenses'], $bomInfo['resources']);
+                $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($bomData->productId, $bomData->quantity,  $bomData->storeId, null, pos_Reports::getClassId(), $rec->id, null, $rec->createdOn, $bomInfo['expenses'], $bomInfo['resources']);
                 if(countR($prodArr)){
-                    $this->instantProducts[$dRec->value] = $dRec->value;
+                    $this->instantProducts[$bomData->productId] = $bomData->productId;
                     foreach ($prodArr as $pRec){
                         $this->totalAmount += $pRec['amount'];
                         $entries[] = $pRec;

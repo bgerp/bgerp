@@ -266,6 +266,7 @@
                 <div class="row-fluid">
                     <div class="span4 basicFontSize" style=" border:1px; border-top:0px; border-style:solid;    padding:6px; min-height:110px">
                         <b>&nbsp;&nbsp; 22. Signature and stamp of the sender</b>
+                        [#SENDER_SIGN#]
                     </div>
                     <div class="span4 basicFontSize" style=" border:1px; border-top:0px; border-left:0px; border-style:solid;    padding:6px; min-height:110px; margin-left:0px">
                         <b>&nbsp;&nbsp; 23. Signature and stamp of the carrier</b>

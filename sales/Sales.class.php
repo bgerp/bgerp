@@ -1538,8 +1538,8 @@ class sales_Sales extends deals_DealMaster
             if(in_array($ownBankRec->state, array('closed', 'rejected'))){
                 $errorStr = 'Банковата сметка е закрита|*!';
             }
-            
-            $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId), 'state,countries');
+			
+            $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
             if(in_array($rec->state, array('draft', 'pending'))){
                 $cData = doc_Folders::getContragentData($rec->folderId);
                 $defBankId = null;
@@ -1557,6 +1557,10 @@ class sales_Sales extends deals_DealMaster
                 }
             }
 
+            $accountRec = bank_Accounts::fetch($rec->bankAccountId);
+            if(currency_Currencies::getIdByCode($rec->currencyId) != $accountRec->currencyId){
+                $errorStr = (!empty($errorStr) ? "{$errorStr} " : "") . '|Банковата сметка е в различна валута от тази на сделката|*!';
+            }
             if(!empty($errorStr) && $rec->paymentType != 'cash'){
                 $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
                 $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');

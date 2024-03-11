@@ -80,7 +80,7 @@
     <table class="innerTable footer-notes paddingCells" style='width:100%'>
         <tbody>
             <tr>
-                <td class="topCell first vtop" style='width:50%'>
+                <td class="topCell first vtop" style='width:60%'>
                     <!--ET_BEGIN delivery_table-->
                     [#delivery_table#]
                      <table class='shipment-table' style='width: 100%'>
@@ -155,7 +155,7 @@
                              <td colspan="2" >
                                  <span class='half-col'>Total gross weight: [#weight#]</span>
                                  <span class='half-col'>Total net weight: [#netWeight#]</span>
-                                 <span class='half-col'>Total tare: [#tareWeight#]</span>
+                                 <span class='half-col'>Total packing weight: [#tareWeight#]</span>
                              </td>
                          </tr>
                          <!--ET_BEGIN logisticInfo-->

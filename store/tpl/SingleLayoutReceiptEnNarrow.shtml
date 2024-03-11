@@ -114,10 +114,10 @@
                     <!--ET_END lineVehicleId-->
                     <tr>
                         <td colspan="2">
-                            <div>
-                                <hr>
-                                Total gross weight: <b>[#weight#]</b> Total net weight: <b>[#netWeight#]</b> Total tare: <b>[#tareWeight#]</b> Total volume: <b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;|Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
-                            </div>
+                            <hr>
+                            <div>Total gross weight:&nbsp;[#weight#]</div>
+                            <div>Total net weight:&nbsp;[#netWeight#]</div>
+                            <div>Total packing weight:&nbsp;[#tareWeight#]</div>
                         </td>
                     </tr>
                     <!--ET_BEGIN logisticInfo-->

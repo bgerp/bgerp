@@ -94,7 +94,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 
                 // Иначе се добавя полето за нова партида
                 $form->setFieldType('batchNew', $Def->getBatchClassType($mvc, $rec));
-                
+                $form->setFieldTypeParams('batchNew', array('autohide' => true));
                 if (countR($quantities)) {
                     $options = array();
                     foreach ($quantities as $k => $v) {

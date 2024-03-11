@@ -199,62 +199,67 @@ class rtac_Plugin extends core_Plugin
     public function act_GetUsers()
     {
         // Ако заявката е по ajax
-        if (Request::get('ajax_mode') && haveRole('powerUser')) {
+        if (Request::get('ajax_mode')) {
+            if (haveRole('powerUser')) {
 
-            // id на ричтекста
-            $id = Request::get('rtid');
-            
-            // Началото на ника на потребителя
-            $term = Request::get('term');
-            
-            // Роли на потребителите
-            $roles = Request::get('roles');
-            $roles = str_replace('|', ',', $roles);
-            
-            $conf = core_Packs::getConfig('rtac');
-            
-            // Лимит на показване
-            $limit = $conf->RTAC_MAX_SHOW_COUNT;
-            
-            // Масив с потребителите
-            $usersArr = core_Users::getUsersArr($roles, $term, $limit);
-            $i = 0;
-            $usersArrRes = array();
+                // id на ричтекста
+                $id = Request::get('rtid');
 
-            if ($users = Request::get('users')) {
-                $users = explode(',', $users);
-                foreach ((array) $users as $uId) {
-                    $uRec = core_Users::fetch($uId);
-                    $usersArr[$uRec->nick] = core_Users::prepareUserNames($uRec->names);
+                // Началото на ника на потребителя
+                $term = Request::get('term');
+
+                // Роли на потребителите
+                $roles = Request::get('roles');
+                $roles = str_replace('|', ',', $roles);
+
+                $conf = core_Packs::getConfig('rtac');
+
+                // Лимит на показване
+                $limit = $conf->RTAC_MAX_SHOW_COUNT;
+
+                // Масив с потребителите
+                $usersArr = core_Users::getUsersArr($roles, $term, $limit);
+                $i = 0;
+                $usersArrRes = array();
+
+                if ($users = Request::get('users')) {
+                    $users = explode(',', $users);
+                    foreach ((array) $users as $uId) {
+                        $uRec = core_Users::fetch($uId);
+                        $usersArr[$uRec->nick] = core_Users::prepareUserNames($uRec->names);
+                    }
                 }
-            }
-            
-            // Добавяме потребителите в нов масив
-            foreach ((array) $usersArr as $key => $users) {
-                if ($term) {
-                    if (mb_stripos($key, $term) !== 0) {
-                        if (mb_stripos($users, $term) !== 0) {
-                            if (mb_stripos($users, ' ' . $term) === false) {
-                                continue;
+
+                // Добавяме потребителите в нов масив
+                foreach ((array) $usersArr as $key => $users) {
+                    if ($term) {
+                        if (mb_stripos($key, $term) !== 0) {
+                            if (mb_stripos($users, $term) !== 0) {
+                                if (mb_stripos($users, ' ' . $term) === false) {
+                                    continue;
+                                }
                             }
                         }
                     }
+                    $usersArrRes[$i]['nick'] = $key;
+                    $usersArrRes[$i]['names'] = $users;
+                    $i++;
                 }
-                $usersArrRes[$i]['nick'] = $key;
-                $usersArrRes[$i]['names'] = $users;
-                $i++;
-            }
 
-            if ($limit) {
-                $usersArrRes = array_slice($usersArrRes, 0, $limit);
-            }
+                if ($limit) {
+                    $usersArrRes = array_slice($usersArrRes, 0, $limit);
+                }
 
-            // Добавяме резултата
-            $resObj = new stdClass();
-            $resObj->func = 'sharedUsers';
-            $resObj->arg = array('id' => $id, 'users' => $usersArrRes);
-            
-            return array($resObj);
+                // Добавяме резултата
+                $resObj = new stdClass();
+                $resObj->func = 'sharedUsers';
+                $resObj->arg = array('id' => $id, 'users' => $usersArrRes);
+
+                return array($resObj);
+            } else {
+
+                return array();
+            }
         }
     }
 }

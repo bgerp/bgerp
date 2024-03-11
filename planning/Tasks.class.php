@@ -44,7 +44,7 @@ class planning_Tasks extends core_Master
     /**
      * На колко време да се рефрешва лист изгледа
      */
-    public $refreshRowsTime = 3000;
+    public $refreshRowsTime = 15000;
 
 
     /**

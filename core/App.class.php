@@ -210,7 +210,7 @@ class core_App
                 
                 if ((countR($vUrl) - $id) % 2 || floor($prm) > 0) {
                     if (!isset($q['id']) && !$name) {
-                        $q['id'] = decodeUrl($prm);
+                        $q['id'] = urldecode($prm);
                     } else {
                         if ($name) {
                             $q[$name] = $prm;
@@ -807,7 +807,7 @@ class core_App
             for ($i = $begin; $i < $cnt; $i += 2) {
                 $key = $arr[$i];
                 $value = $arr[$i + 1];
-                $value = decodeUrl($value);
+                $value = urldecode($value);
                 $key = explode(',', $key);
                 
                 if (countR($key) == 1) {
@@ -1189,6 +1189,8 @@ class core_App
             } else {
                 if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
+                } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+                    $boot = $protocol . '://' . $auth . FORCE_BGERP_ABSOLUTE_HTTP_HOST . $dirName;
                 } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {

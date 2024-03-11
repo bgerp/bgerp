@@ -118,7 +118,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         }
 
         if (Request::get('editTrans')) {
-            bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $mvc->getHandle($rec->id), 'editTrans' => true), '*');
+            bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'editTrans' => true), '*');
         }
     }
 
@@ -174,7 +174,6 @@ class trans_plg_LinesPlugin extends core_Plugin
         // Ако има избрана линия за избрана папка е избраната на линията
         if(isset($rec->{$mvc->lineFieldName})){
             $lineFolderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'folderId');
-
             $form->setDefault('lineFolderId', $lineFolderId);
             $form->setDefault('lineId', $rec->{$mvc->lineFieldName});
             if(!array_key_exists($lineFolderId, $folderOptions)){
@@ -215,11 +214,16 @@ class trans_plg_LinesPlugin extends core_Plugin
             $form->FLD('tareWeight', 'cat_type_Weight', 'caption=Логистична информация->Тара');
             $form->FLD('volume', 'cat_type_Volume', 'caption=Логистична информация->Обем');
 
-            $rec->transUnitsInput = trans_Helper::convertToUnitTableArr($rec->transUnitsInput);
+            $weightInput = Request::get('forceWeight', 'varchar') ? Request::get('forceWeight', 'varchar') : $rec->weightInput;
+            $netWeightInput = Request::get('forceNetWeight', 'varchar') ? Request::get('forceNetWeight', 'varchar') : $rec->netWeightInput;
+            $tareWeightInput = Request::get('forceTareWeight', 'varchar') ? Request::get('forceTareWeight', 'varchar') : $rec->tareWeightInput;
+            $forceTransUnits = Request::get('forceTransUnits') ? Request::get('forceTransUnits') : $rec->transUnitsInput;
+
+            $rec->transUnitsInput = trans_Helper::convertToUnitTableArr($forceTransUnits);
             trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
-            $form->setDefault('weight', $rec->weightInput);
-            $form->setDefault('netWeight', $rec->netWeightInput);
-            $form->setDefault('tareWeight', $rec->tareWeightInput);
+            $form->setDefault('weight', $weightInput);
+            $form->setDefault('netWeight', $netWeightInput);
+            $form->setDefault('tareWeight', $tareWeightInput);
             $form->setDefault('volume', $rec->volumeInput);
         }
 
@@ -445,6 +449,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             $weightIsLive = !$rec->weightInput;
             $netWeightIsLive = !$rec->netWeightInput;
             $volumeIsLive = !$rec->volumeInput;
+            $tareWeightIsLive = !$rec->tareWeightInput;
 
             if($rec->calcedWeight && isset($rec->{$mvc->totalWeightFieldName})){
                 $percentChange = abs(round((1 - $rec->{$mvc->totalWeightFieldName} / $rec->calcedWeight) * 100, 3));
@@ -457,10 +462,10 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalWeightFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->{$mvc->totalWeightFieldName});
-                if($weightIsLive){
+                if($weightIsLive && !Mode::isReadOnly()){
                     $row->{$mvc->totalWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalWeightFieldName}}</span>";
                 }
-                if(isset($rec->calcedWeight)){
+                if(isset($rec->calcedWeight) && $rec->weightInput){
                     $hintWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->calcedWeight);
                 }
 
@@ -480,10 +485,10 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalNetWeightFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalNetWeightFieldName} = $mvc->getFieldType($mvc->totalNetWeightFieldName)->toVerbal($rec->{$mvc->totalNetWeightFieldName});
-                if($netWeightIsLive){
+                if($netWeightIsLive && !Mode::isReadOnly()){
                     $row->{$mvc->totalNetWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalNetWeightFieldName}}</span>";
                 }
-                if(isset($rec->calcedNetWeight)){
+                if(isset($rec->calcedNetWeight) && $rec->netWeightInput){
                     $hintNetWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalNetWeightFieldName)->toVerbal($rec->calcedNetWeight);
                 }
 
@@ -499,10 +504,10 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalTareWeightFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalTareWeightFieldName} = $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->{$mvc->totalTareWeightFieldName});
-                if($netWeightIsLive){
+                if($tareWeightIsLive && !Mode::isReadOnly()){
                     $row->{$mvc->totalTareWeightFieldName} = "<span style='color:blue'>{$row->{$mvc->totalTareWeightFieldName}}</span>";
                 }
-                if(isset($rec->calcedTareWeight)){
+                if(isset($rec->calcedTareWeight)&& $rec->tareWeightInput){
                     $hintTareWeight .= "|*. |Сумарно от редовете|*: " . $mvc->getFieldType($mvc->totalTareWeightFieldName)->toVerbal($rec->calcedTareWeight);
                 }
 
@@ -527,7 +532,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalVolumeFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->{$mvc->totalVolumeFieldName});
-                if($volumeIsLive){
+                if($volumeIsLive && !Mode::isReadOnly()){
                     $row->{$mvc->totalVolumeFieldName} = "<span style='color:blue'>{$row->{$mvc->totalVolumeFieldName}}</span>";
                 }
                 $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume, 'noicon', false);
@@ -545,6 +550,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $hintType = 'notice';
                 } else {
                     $units = ($rec->transUnits) ? $rec->transUnits : $transInfo->transUnits;
+                    $rec->transUnitsCalced = ($rec->transUnits) ? $rec->transUnits : $transInfo->transUnits;
                     $hint = tr('Лог. ед. са изчислени сумарно за документа');
                     $hintType = 'noicon';
                 }

@@ -36,14 +36,40 @@ class avatar_Gravatar extends core_Manager
     public static function getUrl($email, $width = 100)
     {
         $md5 = md5(strtolower(trim($email)));
+
+        $iconType = avatar_Setup::get('DEFAULT_ICON_TYPE');
+
+        $imgUrl = "https://www.gravatar.com/avatar/{$md5}?d={$iconType}&s={$width}";
+
+        $thumb = new thumb_Img(array($imgUrl, $width, $width, 'url', 'default' => self::getDefaultImage()));
         
-        $imgUrl = "https://www.gravatar.com/avatar/{$md5}?d=wavatar&s={$width}";
-        
-        $thmb = new thumb_Img($imgUrl, $width, $width, 'url');
-        
-        return $thmb->getUrl();
+        return $thumb->getUrl();
     }
-    
+
+
+    /**
+     * Връща изображението, което ще се използва по подразбиране
+     *
+     * @return mixed|string
+     */
+    public static function getDefaultImage($sbf = false)
+    {
+        $defImage = avatar_Setup::get('NO_IMAGE_ICON');
+
+        if (!$defImage) {
+            $defImage = 'img/noimage120.gif';
+            if ($sbf) {
+                $defImage = sbf($defImage);
+            }
+        } else {
+            if ($sbf) {
+                $defImage = fileman_Download::getDownloadUrl($defImage, 100, 'handler', false);
+            }
+        }
+
+        return $defImage;
+    }
+
     
     /**
      * @todo Чака за документация...

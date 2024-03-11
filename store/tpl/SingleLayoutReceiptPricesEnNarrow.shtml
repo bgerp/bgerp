@@ -113,20 +113,12 @@
                     </tr>
                     <!--ET_END lineVehicleId-->
                     <tr>
-                        <td class='quiet nowrap aright' style='width:1%;'>Total gross weight:</td>
-                        <td>[#weight#]</td>
-                    </tr>
-                    <tr>
-                        <td class='quiet nowrap aright' style='width:1%;'>Total net weight:</td>
-                        <td>[#netWeight#]</td>
-                    </tr>
-                    <tr>
-                        <td class='quiet nowrap aright' style='width:1%;'>Total tare:</td>
-                        <td>[#tareWeight#]</td>
-                    </tr>
-                    <tr>
-                        <td class='quiet nowrap aright' style='width:1%;'>Total volume:</td>
-                        <td>[#volume#]</td>
+                        <td colspan="2">
+                            <hr>
+                            <div>Total gross weight:&nbsp;[#weight#]</div>
+                            <div>Total net weight:&nbsp;[#netWeight#]</div>
+                            <div>Total packing weight:&nbsp;[#tareWeight#]</div>
+                        </td>
                     </tr>
                     <!--ET_BEGIN logisticInfo-->
                     <tr>

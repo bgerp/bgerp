@@ -249,6 +249,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $startTime = trans_Setup::get('START_WORK_TIME');
         $this->FLD('deliveryOn', "datetime(defaultTime={$endTime})", 'input,caption=Доставка,after=deliveryTime');
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
+        $this->FLD('username', 'varchar', 'caption=Съставил,after=responsible');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
         $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'input=hidden,placeholder=Автоматично,caption=Допълнително->Куриерско Api,after=template,notChangeableIfHidden');
@@ -296,7 +297,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         // Кой е съставителя на документа
         core_Lg::push($rec->tplLang);
-        $row->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy));
+        $row->username = deals_Helper::getIssuerRow($rec->username, $rec->createdBy, $rec->activatedBy, $rec->state);
 
         if (isset($fields['-single'])) {
             $logisticData = $mvc->getLogisticData($rec);
@@ -336,7 +337,9 @@ class store_ShipmentOrders extends store_DocumentMaster
 
             if (is_array($conditions)) {
                 foreach ($conditions as $cond) {
-                    $row->note .= "\n" . $cond;
+                    if(isset($cond)){
+                        $row->note .= "\n" . $cond;
+                    }
                 }
             }
         }
@@ -744,12 +747,28 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         // Ако потребителя не е в група доставчици го включваме
         $rec = $mvc->fetchRec($rec);
+        $saveFields = array();
 
+        // Кеширане на допълнителните условия от склада
         if (empty($rec->additionalConditions)) {
             $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
             $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $lang);
-            $rec->additionalConditions = array($condition);
-            $mvc->save_($rec, 'additionalConditions');
+            if(!empty($condition)){
+                $rec->additionalConditions = array($condition);
+                $saveFields['additionalConditions'] = 'additionalConditions';
+            }
+        }
+
+        // Кеширане на съставителя
+        if(empty($rec->username)){
+            $mvc->pushTemplateLg($rec->template);
+            $rec->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy));
+            core_Lg::pop();
+            $saveFields['username'] = 'username';
+        }
+
+        if(countR($saveFields)){
+            $mvc->save_($rec, $saveFields);
         }
 
         // Кеширане на тарифния код
@@ -808,7 +827,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $res = array('readyOn' => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden", 'autoCalcFieldName' => 'readyOnCalc', 'displayExternal' => false),
                      'deliveryTime' => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => true, "input" => "input", 'autoCalcFieldName' => 'deliveryTimeCalc', 'displayExternal' => false),
                      'shipmentOn' => array('caption' => 'Експедиране', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input=hidden", 'autoCalcFieldName' => 'shipmentOnCalc', 'displayExternal' => false),
-                     'deliveryOn' => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
+                     'deliveryOn' => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => false));
 
         if (isset($rec)) {
             $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn);

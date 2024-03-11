@@ -69,7 +69,7 @@
    <table class="innerTable footer-notes paddingCells" style='width:100%;'>
       <tbody>
          <tr>
-            <td class="topCell first vtop" style='width:50%;'>
+            <td class="topCell first vtop" style='width:60%;'>
                <table class='shipment-table' style='width:100%;'>
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
@@ -112,9 +112,10 @@
                   <!--ET_END lineVehicleId-->
                   <tr>
                      <td colspan="2">
-                        <div>
-                           |Общо бруто тегло|*:&nbsp;<b>[#weight#]</b> |Общо нето тегло|*:&nbsp;<b>[#netWeight#]</b> |Общо тара|*:&nbsp;<b>[#tareWeight#]</b> |Общ обем|*:&nbsp;<b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
-                        </div>
+                        <span class='half-col'>|Общо бруто тегло|*:&nbsp;[#weight#]</span>
+                        <span class='half-col'>|Общо нето тегло|*:&nbsp;[#netWeight#]</span>
+                        <span class='half-col'>|Общо тара|*:&nbsp;[#tareWeight#]</span>
+                        <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
                      </td>
                   </tr>
                   <!--ET_BEGIN logisticInfo-->

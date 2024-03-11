@@ -152,6 +152,12 @@ class purchase_PurchasesDetails extends deals_DealDetail
 
 
     /**
+     * Дали при импорт да се обединяват редовете с еднакви стойности
+     */
+    public $combineSameRecsWhenImport = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

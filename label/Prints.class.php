@@ -376,6 +376,10 @@ class label_Prints extends core_Master
                 } elseif ($v->readonly) {
                     $form->setReadonly($fieldName);
                 }
+
+                if($v->recently){
+                    $form->setField($fieldName, 'recently');
+                }
             }
             
             $form->input(null, true);
