@@ -239,10 +239,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         $details = array_filter($details, function($a) {return !empty($a->quantity);});
 
         $saleRec = null;
-        $productsOnConsignment = array();
         if(isset($saleId)){
             $saleRec = sales_Sales::fetch($saleId, 'threadId,contragentClassId,contragentId');
-            $productsOnConsignment = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($saleRec->threadId, false);
         }
 
         $outsourced = array_filter($details, function($a){ return $a->isOutsourced == 'yes';});

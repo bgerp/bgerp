@@ -370,9 +370,11 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         }
 
         $row->allAutoDiscountContragent ='<b>' . $Double->toVerbal($dRec->allAutoDiscountContragent). '</b>'.'</br>';
-        foreach ($dRec->personalReceipts as $val) {
-            $row->allAutoDiscountContragent .= '<span class="small">'.$Double->toVerbal($val['allAutoDiscountContragent']).'</span>'.'</br>';
+        if($rec->inDet == 'yes') {
+            foreach ($dRec->personalReceipts as $val) {
+                $row->allAutoDiscountContragent .= '<span class="small">' . $Double->toVerbal($val['allAutoDiscountContragent']) . '</span>' . '</br>';
 
+            }
         }
 
         return $row;
