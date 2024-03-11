@@ -631,27 +631,33 @@ class rack_Movements extends rack_MovementAbstract
 
         // Наличните активни палети за този артикул в склада
         if(countR($palletRecs)){
+            $positionArr = array();
             $haveWhatToShow = true;
             foreach($palletRecs as $pRec){
                 $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
                 $quantityVerbal = "{$quantityVerbal} {$measureName}";
                 $positionVerbal = core_Type::getByName('varchar')->toVerbal($pRec->position);
-                $batchVerbal = null;
+                $string = "<b>{$quantityVerbal}</b>";
                 if ($batchDef) {
                     if (!empty($pRec->batch)) {
                         $batchVerbal = $batchDef->toVerbal($pRec->batch);
                     } else {
                         $batchVerbal = tr('Без партида');
                     }
+                    $string = "{$batchVerbal} <b>{$quantityVerbal}</b>";
                 }
-                $batchVerbal = !empty($batchVerbal) ? "/ {$batchVerbal}" : ' ';
-                $tpl->append("<tr><td>{$positionVerbal} {$batchVerbal}: </td><td>{$quantityVerbal}</td></tr>", 'PALLET_BLOCK');
+
+                $positionArr[$positionVerbal][] = $string;
+            }
+
+            foreach ($positionArr as $position => $batchArr){
+                $tpl->append("<tr><td><b>{$position}</b>: </td><td>" . implode(' / ', $batchArr) . "</td></tr>", 'PALLET_BLOCK');
             }
         }
 
         if($lastPosition = rack_Pallets::getLastPalletPosition($productId, $storeId)){
             $positionVerbal = core_Type::getByName('varchar')->toVerbal($lastPosition);
-            $tpl->append(tr("|*<div>|Последно смъкнато от|*:{$positionVerbal}</div>"), 'LAST');
+            $tpl->append(tr("|*<div>|Последно смъкнато от|*: <b>{$positionVerbal}</b></div>"), 'LAST');
             $haveWhatToShow = true;
         }
 
