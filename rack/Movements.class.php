@@ -1594,12 +1594,13 @@ class rack_Movements extends rack_MovementAbstract
         // Гледа се избраната стратегия за склада/системата
         $palletBestPositionStrategy =  store_Stores::fetchField($storeId, 'palletBestPositionStrategy');
         $palletBestPositionStrategy = empty($palletBestPositionStrategy) ? rack_Setup::get('POSITION_TO_STRATEGY') : $palletBestPositionStrategy;
+        $lastPosition = rack_Pallets::getLastPalletPosition($productId, $storeId, 'up');
 
         // Ако е най-добрата позиция - нея
-        if($palletBestPositionStrategy == 'bestPos') return rack_Pallets::getBestPos($productId, $storeId);
+        if($palletBestPositionStrategy == 'bestPos') return rack_Pallets::getBestPos($productId, $storeId, $lastPosition);
 
-        // Ако е последната на която е палетирана нея
-        if($palletBestPositionStrategy == 'lastUp') return rack_Pallets::getLastPalletPosition($productId, $storeId, 'up');
+        // Ако е последната, на която е палетирана - нея
+        if($palletBestPositionStrategy == 'lastUp') return $lastPosition;
 
         return null;
     }

@@ -358,8 +358,13 @@ class rack_Pallets extends core_Manager
 
     /**
      * Връща най-добрата позиция за разполагане на дадения продукт
+     *
+     * @param int $productId            - ид на артикул
+     * @param int $storeId              - в кой склад
+     * @param null|string $lastPosition - последна позиция, на която е отишъл артикула
+     * @return string
      */
-    public static function getBestPos($productId, $storeId = null)
+    public static function getBestPos($productId, $storeId = null, $lastPosition = null)
     {
         if (!$storeId) {
             $storeId = store_Stores::getCurrent();
@@ -461,7 +466,12 @@ class rack_Pallets extends core_Manager
                     if($weight = $nearProds[$used[$posLf]->productId]) {
                         $score += 1.2 * $weight;
                     }
-                    
+
+                    // Ако последно е сложено отдолу, текущото е с по-висок приоритет
+                    if($posDw == $lastPosition){
+                        $score += 1;
+                    }
+
                     // Отделяме най-добрият резултат
                     if ($score > $bestScore) {
                         $bestPos = $pos;
