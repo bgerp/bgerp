@@ -2713,7 +2713,7 @@ class cat_Products extends embed_Manager
             $data->documentType = $documentType;
             $descriptionTpl = cat_Products::renderDescription($data);
         }
-        $title = "<div class='productName'>{$title}</div>";
+        $title = "<span class='productName'>{$title}</span>";
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $singleUrl = static::getSingleUrlArray($rec->id);
             $title = ht::createLinkRef($title, $singleUrl);
