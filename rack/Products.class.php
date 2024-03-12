@@ -476,9 +476,9 @@ class rack_Products extends store_Products
      */
     public function renderPallets_($data)
     {
-        $tpl = getTplFromFile('rack/tpl/PalletDetail.shtml');
-        if($data->hide) return $tpl;
+        if($data->hide) return new core_ET("");
 
+        $tpl = getTplFromFile('rack/tpl/PalletDetail.shtml');
         if(isset($data->form)){
             $tpl->append($data->form->renderHtml(), 'FILTER');
         }
