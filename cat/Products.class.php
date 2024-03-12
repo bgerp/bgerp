@@ -2712,13 +2712,8 @@ class cat_Products extends embed_Manager
             }
             $data->documentType = $documentType;
             $descriptionTpl = cat_Products::renderDescription($data);
-            
-            // Удебеляваме името само ако има допълнително описание
-            if (strlen($descriptionTpl->getContent())) {
-                $title = "<b class='productName'>{$title}</b>";
-            }
         }
-        
+        $title = "<div class='productName'>{$title}</div>";
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $singleUrl = static::getSingleUrlArray($rec->id);
             $title = ht::createLinkRef($title, $singleUrl);
