@@ -2231,7 +2231,9 @@ box-shadow: none !important;
 }
 
 .productName {
-white-space: normal !important;
+	white-space: normal !important;
+	font-weight:bold;
+	color:#444;
 }
 
 .narrow .halfTable {

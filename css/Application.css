@@ -1904,7 +1904,9 @@ a.tUnsighted {
     margin-left: 20px; }
 
 .productName {
-  white-space: normal !important; }
+  white-space: normal !important;
+  font-weight: bold;
+  color: #444444; }
 
 .narrow .halfTable {
   margin-top: 10px; }
