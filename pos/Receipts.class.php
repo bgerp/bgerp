@@ -274,16 +274,21 @@ class pos_Receipts extends core_Master
     {
         $rec = new stdClass();
         $posId = pos_Points::getCurrent();
-        
-        $rec->contragentName = 'Анонимен Клиент';
-        $rec->contragentClass = core_Classes::getId('crm_Persons');
-        $rec->contragentObjectId = pos_Points::defaultContragent($posId);
+
         $rec->pointId = $posId;
         $rec->valior = dt::now();
         $this->requireRightFor('add', $rec);
         
         if (!empty($revertId)) {
+            $recToRevert = static::fetch($revertId);
+            $rec->contragentName = $recToRevert->contragentName;
+            $rec->contragentClass = $recToRevert->contragentClass;
+            $rec->contragentObjectId = $recToRevert->contragentObjectId;
             $rec->revertId = $revertId;
+        } else {
+            $rec->contragentName = 'Анонимен Клиент';
+            $rec->contragentClass = core_Classes::getId('crm_Persons');
+            $rec->contragentObjectId = pos_Points::defaultContragent($posId);
         }
         
         return $this->save($rec);
@@ -513,8 +518,11 @@ class pos_Receipts extends core_Master
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        if ($rec->state != 'draft') return;
 
+        // Ако не е чернова или е сторнираща - няма да се преизчислява нищо
+        if ($rec->state != 'draft' || !empty($rec->revertId)) return;
+
+        // Преизчисляване на общите отстъпки
         core_Debug::startTimer('CALC_AUTO_DISCOUNT');
         static::recalcAutoDiscount($rec);
         core_Debug::stopTimer('CALC_AUTO_DISCOUNT');
