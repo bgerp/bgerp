@@ -157,16 +157,19 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      */
     private function getEntries($rec, &$total)
     {
-        $entries = $byStores = $rec->_details = array();
+        $entries = $byStores = $instantServices = $rec->_details = array();
         if (isset($rec->id)) {
             $dQuery = planning_DirectProductNoteDetails::getQuery();
             $dQuery->where("#noteId = {$rec->id}");
             $dQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+            $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $dQuery->orderBy('id,type', 'ASC');
             while($dRec = $dQuery->fetch()){
                 $rec->_details[$dRec->id] = $dRec;
                 if(isset($dRec->storeId)){
                     $byStores[$dRec->storeId][$dRec->id] = $dRec;
+                } elseif(isset($dRec->fromAccId)){
+                    $instantServices[$dRec->id] = $dRec;
                 }
             }
         }
@@ -176,6 +179,17 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $clone = clone $rec;
             $clone->storeId = $storeId;
             $clone->details = $dRecs;
+            $entriesProduction = sales_transaction_Sale::getProductionEntries($clone, 'planning_DirectProductionNote', 'storeId', $this->instantProducts);
+            if (countR($entriesProduction)) {
+                $entries = array_merge($entries, $entriesProduction);
+            }
+        }
+
+        // Кои услуги ще се произвеждат ако не се влагат
+        if(countR($instantServices)){
+            $clone = clone $rec;
+            $clone->storeId = null;
+            $clone->details = $instantServices;
             $entriesProduction = sales_transaction_Sale::getProductionEntries($clone, 'planning_DirectProductionNote', 'storeId', $this->instantProducts);
             if (countR($entriesProduction)) {
                 $entries = array_merge($entries, $entriesProduction);
