@@ -192,6 +192,10 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $autoDiscount = $amount = 0;
 
             $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
+
+            //Филтър по състояние
+            if(in_array($receiptRec->state, array('rejected','draft','active'))) continue;
+
             $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);
             $folderId = $contragentRec->folderId;
 
