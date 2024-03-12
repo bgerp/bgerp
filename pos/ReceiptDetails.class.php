@@ -1177,6 +1177,7 @@ class pos_ReceiptDetails extends core_Detail
                 }
             }
 
+            $exRec->discountPercent = $exRec->inputDiscount;
             if(!empty($exRec->amount)) {
                 $exRec->amount *= -1;
             }
@@ -1196,7 +1197,7 @@ class pos_ReceiptDetails extends core_Detail
         $this->Master->flushUpdateQueue($receiptId);
         $paid = $this->Master->fetchField($receiptId, 'paid', false);
         
-        Mode::setPermanent("currentOperation{$receiptId}", (empty($paid)) ? 'add' : 'payment');
+        Mode::setPermanent("currentOperation{$receiptId}", (!isset($paid)) ? 'add' : 'payment');
         $this->Master->logInAct('Зареждане на всичко от сторнираната бележка', $receiptId);
         
         if(Request::get('ajax_mode')){
