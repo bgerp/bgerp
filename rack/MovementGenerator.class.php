@@ -443,7 +443,7 @@ class rack_MovementGenerator extends core_Manager
             arsort($cnt);
             $best = key($cnt);
             foreach($cnt as $q => $n) {
-                if($q != $best) unset($ctn[$q]);
+                if($q != $best) unset($cnt[$q]);
             }
 
             krsort($cnt);
