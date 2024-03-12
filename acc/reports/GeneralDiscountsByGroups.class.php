@@ -384,13 +384,14 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 if ($counter == 3) {
                     $prv = ht::createLink($v, array('pos_Receipts', 'single', $v));
 
-                } elseif ($counter == 1) {
+                } elseif ($counter == 2) {
                     $prv = $Datetime->toVerbal($v);
                 }
                 $row->receipts .= '<span class="small">' . $prv . '</span>';
                 if ($counter == 3) {
                     $row->receipts .= ', ';
                 }
+
                 $counter--;
                 unset($prv);
             }
