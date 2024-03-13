@@ -559,16 +559,13 @@ class rack_Movements extends rack_MovementAbstract
             $form->setDefault('state', $lastState);
         }
 
-        if(isset($rec->productId)){
-            $middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId);
-        }
-
         if($form->getField('batch')->input != 'none'){
-            $caption = !empty($middleCaption) ? "Движение->|*{$middleCaption}->Партида" : "Движение->Партида";
-            $form->setField('batch', "caption={$caption}");
+            $form->setField('batch', "caption=Движение->Партида");
+            $middleCaptionFld = 'batch';
+
         } else {
-            $caption = !empty($middleCaption) ? "Движение->|*{$middleCaption}->Към" : "Движение->Към";
-            $form->setField('positionTo', "caption={$caption}");
+            $form->setField('positionTo', "caption=Движение->Към");
+            $middleCaptionFld = 'positionTo';
         }
 
         // Замаскиране на формата според избрания тип движение
@@ -589,6 +586,7 @@ class rack_Movements extends rack_MovementAbstract
                     $form->setField('positionTo', 'input=hidden');
                     $form->setField('palletId', 'caption=Сваляне на пода->Палет');
                     $form->setField('note', 'caption=Сваляне на пода->Забележка');
+                    $form->setField('batch', 'caption=Сваляне на пода->Партида');
                     $form->setDefault('positionTo', rack_PositionType::FLOOR);
                     break;
                 case 'rack2rack':
@@ -598,15 +596,19 @@ class rack_Movements extends rack_MovementAbstract
 
                     $form->setField('positionTo', 'caption=Преместване на нова позиция->Позиция');
                     $form->setField('note', 'caption=Преместване на нова позиция->Забележка');
-
-                    $middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId);
-                    $caption = !empty($middleCaption) ? "Преместване на нова позиция->|*{$middleCaption}->Палет" : "Преместване на нова позиция->Палет";
-                    $form->setField('palletId', "caption={$caption}");
+                    $form->setField('palletId', "caption=Преместване на нова позиция->Палет");
+                    $middleCaptionFld = 'palletId';
 
                     if (isset($bestPos)) {
                         $form->setDefault('positionTo', $bestPos);
                     }
                     break;
+            }
+        }
+
+        if(isset($rec->productId)){
+            if($middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId)){
+                $form->setInfoBeforeField($middleCaptionFld, $middleCaption);
             }
         }
     }
@@ -627,7 +629,7 @@ class rack_Movements extends rack_MovementAbstract
         $palletRecs = $pQuery->fetchAll();
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-        $tpl = new core_ET(tr("|*<small><table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table></small><!--ET_BEGIN LAST--><hr>[#LAST#]<!--ET_END LAST-->"));
+        $tpl = new core_ET(tr("|*<div class='formMiddleCaption'><small><table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table><!--ET_BEGIN LAST--><hr>[#LAST#]</div><!--ET_END LAST--></small></div>"));
         $batchDef = batch_Defs::getBatchDef($productId);
 
         // Показване на позицията от която последно е смъкнат артикула
@@ -644,9 +646,7 @@ class rack_Movements extends rack_MovementAbstract
                 $string = "<b>{$quantityVerbal}</b>";
                 if ($batchDef) {
                     if (!empty($pRec->batch)) {
-                        Mode::push('text', 'plain');
                         $batchVerbal = $batchDef->toVerbal($pRec->batch);
-                        Mode::pop();
                     } else {
                         $batchVerbal = tr('Без партида');
                     }
@@ -662,9 +662,15 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if($lastPosition = rack_Pallets::getLastPalletPosition($productId, $storeId)){
-            $positionVerbal = core_Type::getByName('varchar')->toVerbal($lastPosition);
+            $positionVerbal = ($lastPosition == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($lastPosition);
             $tpl->append(tr("|*<div>|Последно смъкнато от|*: <b>{$positionVerbal}</b></div>"), 'LAST');
             $haveWhatToShow = true;
+        }
+
+        if($rackRec = rack_Products::fetch("#productId = $productId AND #storeId = $storeId")){
+            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rackRec->quantityNotOnPallets);
+            $quantityVerbal = "{$quantityVerbal} {$measureName}";
+            $tpl->append(tr("|*<div>|На пода|*: <b>{$quantityVerbal}</b></div>"), 'LAST');
         }
 
         return ($haveWhatToShow) ? $tpl->getContent() : null;
