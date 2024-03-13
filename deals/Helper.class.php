@@ -1505,14 +1505,13 @@ abstract class deals_Helper
         if ($isStorable != 'yes') {
             return;
         }
+
         if(in_array($masterState, array('draft', 'pending'))) {
             $liveValue = null;
             if ($type == 'weight') {
                 $liveValue = cat_Products::getTransportWeight($productId, $quantity);
             } elseif($type == 'netWeight') {
-                $netWeight = cat_Products::convertToUom($productId, 'kg');
-
-                if(isset($netWeight)) {
+                if($netWeight = cat_Products::convertToUom($productId, 'kg')) {
                     $liveValue = $netWeight * $quantity;
                 }
             } elseif($type == 'volume') {
@@ -1527,7 +1526,6 @@ abstract class deals_Helper
                     $hint = true;
                 }
             } elseif ($liveValue) {
-
                 $percentChange = abs(round((1 - $value / $liveValue) * 100, 3));
                 if ($percentChange >= 25) {
                     $warning = true;
@@ -2891,33 +2889,34 @@ abstract class deals_Helper
         $res = array('errors' => array());
 
         $weightIsCalced = $netWeightIsCalced = $tareWeightIsCalced = false;
-        if(!isset($weight) && isset($netWeight) && isset($tareWeight)) {
+        if(empty($weight) && !empty($netWeight) && !empty($tareWeight)) {
             $weight = round($netWeight + $tareWeight, 4);
             $weightIsCalced = true;
         }
 
-        if(!isset($netWeight) && isset($weight) && isset($tareWeight)) {
+        if(empty($netWeight) && !empty($weight) && !empty($tareWeight)) {
             $netWeight = round($weight - $tareWeight, 4);
             $netWeightIsCalced = true;
         }
-        if(!isset($tareWeight) && isset($weight) && isset($netWeight)) {
+        if(empty($tareWeight) && !empty($weight) && !empty($netWeight)) {
             $tareWeight = round($weight - $netWeight, 4);
             $tareWeightIsCalced = true;
         }
 
-        if(isset($weight) && isset($netWeight) && isset($tareWeight)){
+        if(!empty($weight) && !empty($netWeight) && !empty($tareWeight)){
             if(round($weight - $netWeight) != round($tareWeight)){
                 $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName},{$tareWeightFieldName}", 'text' => 'Разликата между бруто и нето не отговаря на тарата');
             }
         }
 
-        if(isset($weight) && isset($netWeight)){
+        if(!empty($weight) && !empty($netWeight)){
             if($weight < $netWeight){
                 $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName}", 'text' => 'Брутото е по-малко от нетото');
             }
         }
 
-        if(isset($tareWeight) && isset($weight)){
+        if(!empty($tareWeight) && !empty($weight)){
+
             if($weight < $tareWeight){
                 $res['errors'][] = array('fields' => "{$weightFieldName},{$tareWeightFieldName}", 'text' => 'Тарата е по-малко от брутото');
             }
