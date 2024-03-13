@@ -43,6 +43,7 @@ body.wide {
     justify-content: center;
 	background-color:black;
     height: 100vh;
+    flex-direction: row-reverse;
 }
 
 body.narrow {
@@ -54,17 +55,6 @@ a.active {
 	color:yellow;
 }
 
-body>table {
-	height: 100vh;
-	width: 100vw;
-}
-
-body>table tr:first-child {
- height:1px;
-}
-body>table>tbody>tr>td {
-	text-align:center;
-}
 
 div.tab {
     display:inline-block;
@@ -78,4 +68,36 @@ div.tab {
 
 div.active {
  background-color:yellow;
+}
+
+.floorTabs {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.floorTabs.topPosition {
+    flex-direction: row ;
+    padding: 10px 50px;
+}
+
+.floorTabs.rightPosition {
+    padding: 0px 0px 50px 20px;
+    flex-direction: column-reverse ;
+}
+.floorTabs .tab {
+    box-sizing: border-box;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.floorTabs .tab  a {
+    color: #333 !important;
+    display: block;
+    padding: 5px 20px;
+}
+
+.floorTabs .tab:hover, .floorTabs .tab.active {
+    background-color: yellow;
 }

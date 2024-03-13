@@ -124,10 +124,9 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
-        $transaction = (object) array(
-            'reason' => 'Експедиционно нареждане №' . $rec->id,
-            'valior' => $rec->valior,
-            'entries' => $entries,
+        $transaction = (object) array('reason' => 'Експедиционно нареждане №' . $rec->id,
+                                      'valior' => $rec->valior,
+                                      'entries' => $entries,
         );
         
         return $transaction;
@@ -140,7 +139,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
     private function getEntries($rec, $origin, $reverse = false)
     {
         // Записите от тип 1 (вземане от клиент)
-        $entries = $instantProducts = array();
+        $entries = array();
         
         if(!$reverse){
 

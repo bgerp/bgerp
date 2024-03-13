@@ -8,7 +8,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -41,29 +41,28 @@ class sales_transaction_Service extends acc_DocumentTransactionSource
             $dQuery->where("#shipmentId = {$rec->id}");
             $rec->details = $dQuery->fetchAll();
         }
-        
-        $entries = array();
-        
+
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+
         // Всяко ЕН трябва да има поне един детайл
-        if (countR($rec->details) > 0) {
+        if (countR($rec->details)) {
             if ($rec->isReverse == 'yes') {
                 
                 // Ако ЕН е обратна, тя прави контировка на СР но с отрицателни стойностти
                 $reverseSource = cls::getInterface('acc_TransactionSourceIntf', 'purchase_Services');
                 $entries = $reverseSource->getReverseEntries($rec, $origin);
             } else {
+
                 // Записите от тип 1 (вземане от клиент)
-                $entries = $this->getEntries($rec, $origin);
+                $entries = sales_transaction_Sale::getProductionEntries($rec, 'sales_Services', 'storeId');
+                $entries1 = $this->getEntries($rec, $origin);
+                $entries = array_merge($entries, $entries1);
             }
         }
         
-        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
-        
-        $transaction = (object) array(
-            'reason' => 'Протокол за доставка на услуги #' . $rec->id,
-            'valior' => $rec->valior,
-            'entries' => $entries,
-        );
+        $transaction = (object) array('reason' => 'Протокол за доставка на услуги #' . $rec->id,
+                                      'valior' => $rec->valior,
+                                      'entries' => $entries,);
         
         // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правим редирект със съобщението
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {

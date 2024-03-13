@@ -396,50 +396,34 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         
         return $entries;
     }
-    
-    
+
+
+    /**
+     * Записи за произвеждане
+     *
+     * @param stdClass $rec
+     * @param array $productsArr
+     * @return array
+     */
     private function getProductionEntries($rec, $productsArr)
     {
-        $entries = array();
-
-        $bomDataCombined = array();
+        $entries = $byStores = array();
         foreach ($productsArr as $dRec){
-
-            // Всички производими артикули
-            if($this->cachedMetas[$dRec->value]->canManifacture != 'yes') continue;
-            
-            // Ако имат моментна рецепта
-            $instantBomRec = cat_Products::getLastActiveBom($dRec->value, 'instant');
-            if(!is_object($instantBomRec)) continue;
-            $quantity = $dRec->quantity * $dRec->quantityInPack;
-
-            if(!array_key_exists("{$instantBomRec->id}|{$dRec->storeId}", $bomDataCombined)){
-                $bomDataCombined["{$instantBomRec->id}|{$dRec->storeId}"] = (object)array('bomRec' => $instantBomRec, 'storeId' => $dRec->storeId, 'quantity' => 0, 'productId' => $dRec->value);
-            }
-            $bomDataCombined["{$instantBomRec->id}|{$dRec->storeId}"]->quantity += $quantity;
+            $byStores[$dRec->storeId][$dRec->id] = $dRec;
         }
 
-        // За всяка момента рецепта+склад се прави еднократно извличане
-        foreach ($bomDataCombined as $bomData){
+        // Кои материали ще се произвеждат преди да се вложат
+        foreach ($byStores as $storeId => $dRecs){
+            $clone = clone $rec;
+            $clone->storeId = $storeId;
+            $clone->details = $dRecs;
+            $entriesProduction = sales_transaction_Sale::getProductionEntries($clone, 'pos_Reports', 'storeId', $this->instantProducts, 'value');
 
-            // И тя има ресурси, произвежда се по нея
-            $bomInfo = cat_Boms::getResourceInfo($bomData->bomRec, $bomData->quantity, $rec->createdOn);
-            if(is_array($bomInfo['resources'])){
-                foreach ($bomInfo['resources'] as &$resRec){
-                    $resRec->quantity = $resRec->propQuantity;
-                    $resRec->storeId = $bomData->storeId;
-                    $resRec->fromAccId = '61102';
+            if (countR($entriesProduction)) {
+                foreach ($entriesProduction as $pRec){
+                    $this->totalAmount += $pRec['amount'];
                 }
-
-                // Извличане на записите за производството
-                $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($bomData->productId, $bomData->quantity,  $bomData->storeId, null, pos_Reports::getClassId(), $rec->id, null, $rec->createdOn, $bomInfo['expenses'], $bomInfo['resources']);
-                if(countR($prodArr)){
-                    $this->instantProducts[$bomData->productId] = $bomData->productId;
-                    foreach ($prodArr as $pRec){
-                        $this->totalAmount += $pRec['amount'];
-                        $entries[] = $pRec;
-                    }
-                }
+                $entries = array_merge($entries, $entriesProduction);
             }
         }
         

@@ -413,6 +413,10 @@ class rack_Movements extends rack_MovementAbstract
         $form = $data->form;
         $rec = &$form->rec;
 
+        // Форсиране на склада от урл-то ако може
+        if($forceStoreId = Request::get('forceStoreId', 'key(mvc=store_Stores)')){
+            store_Stores::selectCurrent($forceStoreId);
+        }
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setDefault('fromIncomingDocument', 'no');
         $form->setField('storeId', 'input=hidden');
@@ -631,27 +635,35 @@ class rack_Movements extends rack_MovementAbstract
 
         // Наличните активни палети за този артикул в склада
         if(countR($palletRecs)){
+            $positionArr = array();
             $haveWhatToShow = true;
             foreach($palletRecs as $pRec){
                 $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
                 $quantityVerbal = "{$quantityVerbal} {$measureName}";
                 $positionVerbal = core_Type::getByName('varchar')->toVerbal($pRec->position);
-                $batchVerbal = null;
+                $string = "<b>{$quantityVerbal}</b>";
                 if ($batchDef) {
                     if (!empty($pRec->batch)) {
+                        Mode::push('text', 'plain');
                         $batchVerbal = $batchDef->toVerbal($pRec->batch);
+                        Mode::pop();
                     } else {
                         $batchVerbal = tr('Без партида');
                     }
+                    $string = "{$batchVerbal} <b>{$quantityVerbal}</b>";
                 }
-                $batchVerbal = !empty($batchVerbal) ? "/ {$batchVerbal}" : ' ';
-                $tpl->append("<tr><td>{$positionVerbal} {$batchVerbal}: </td><td>{$quantityVerbal}</td></tr>", 'PALLET_BLOCK');
+
+                $positionArr[$positionVerbal][] = $string;
+            }
+
+            foreach ($positionArr as $position => $batchArr){
+                $tpl->append("<tr><td><b>{$position}</b>: </td><td>" . implode(' / ', $batchArr) . "</td></tr>", 'PALLET_BLOCK');
             }
         }
 
         if($lastPosition = rack_Pallets::getLastPalletPosition($productId, $storeId)){
             $positionVerbal = core_Type::getByName('varchar')->toVerbal($lastPosition);
-            $tpl->append(tr("|*<div>|Последно смъкнато от|*:{$positionVerbal}</div>"), 'LAST');
+            $tpl->append(tr("|*<div>|Последно смъкнато от|*: <b>{$positionVerbal}</b></div>"), 'LAST');
             $haveWhatToShow = true;
         }
 
@@ -1584,12 +1596,13 @@ class rack_Movements extends rack_MovementAbstract
         // Гледа се избраната стратегия за склада/системата
         $palletBestPositionStrategy =  store_Stores::fetchField($storeId, 'palletBestPositionStrategy');
         $palletBestPositionStrategy = empty($palletBestPositionStrategy) ? rack_Setup::get('POSITION_TO_STRATEGY') : $palletBestPositionStrategy;
+        $lastPosition = rack_Pallets::getLastPalletPosition($productId, $storeId, 'up');
 
         // Ако е най-добрата позиция - нея
-        if($palletBestPositionStrategy == 'bestPos') return rack_Pallets::getBestPos($productId, $storeId);
+        if($palletBestPositionStrategy == 'bestPos') return rack_Pallets::getBestPos($productId, $storeId, $lastPosition);
 
-        // Ако е последната на която е палетирана нея
-        if($palletBestPositionStrategy == 'lastUp') return rack_Pallets::getLastPalletPosition($productId, $storeId, 'up');
+        // Ако е последната, на която е палетирана - нея
+        if($palletBestPositionStrategy == 'lastUp') return $lastPosition;
 
         return null;
     }
