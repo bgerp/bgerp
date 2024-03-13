@@ -519,6 +519,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      * Връща записите за моментното производство на артикулите, ако има такива
      *
      * @param stdClass $rec
+     * @throws acc_journal_RejectRedirect
      * @return array $entries
      */
     public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId', &$instantProducts = array(), $productFieldName = 'productId')
@@ -554,6 +555,19 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 if(countR($prodArr)){
                     $entries = array_merge($entries, $prodArr);
                 }
+            }
+        }
+
+        // Проверка дали материалите са вложими и генерични
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            $shipped = array();
+            foreach ($entries as $d) {
+                if ($d['credit'][0] == '321') {
+                    $shipped[$d['credit'][2][1]] = $d['credit'][2][1];
+                }
+            }
+            if($redirectError = deals_Helper::getContoRedirectError($shipped, 'canConvert', 'generic', 'трябва да са вложими и да не са генерични')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
 
