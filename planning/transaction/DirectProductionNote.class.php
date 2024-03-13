@@ -18,6 +18,12 @@
 class planning_transaction_DirectProductionNote extends acc_DocumentTransactionSource
 {
     /**
+     * Артикули с моментни рецепти
+     */
+    private $instantProducts = array();
+
+
+    /**
      * @param int $id
      *
      * @return stdClass
@@ -69,10 +75,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
             // Ако е забранено да се изписва на минус, прави се проверка
             if(!store_Setup::canDoShippingWhenStockIsNegative()){
+                // Проверка за неналичните експедирани артикули
                 $shippedProductsFromStores = array();
-                foreach ($rec->_details as $d){
-                    if(isset($d->storeId)){
-                        $shippedProductsFromStores[$d->storeId][] = $d;
+                foreach ($entries as $d){
+                    if($d['credit'][0] == '321') {
+                        if(!array_key_exists($d['credit'][2][1], $this->instantProducts)){
+                            $shippedProductsFromStores[] = (object)array('productId' => $d['credit'][2][1], 'quantity' => $d['credit']['quantity']);
+                        }
                     }
                 }
 
@@ -148,18 +157,51 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      */
     private function getEntries($rec, &$total)
     {
-        $dRecs = array();
+        $entries = $byStores = $instantServices = $rec->_details = array();
         if (isset($rec->id)) {
             $dQuery = planning_DirectProductNoteDetails::getQuery();
             $dQuery->where("#noteId = {$rec->id}");
             $dQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+            $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $dQuery->orderBy('id,type', 'ASC');
-            $dRecs = $dQuery->fetchAll();
-            $rec->_details = $dRecs;
+            while($dRec = $dQuery->fetch()){
+                $rec->_details[$dRec->id] = $dRec;
+                if(isset($dRec->storeId)){
+                    $byStores[$dRec->storeId][$dRec->id] = $dRec;
+                } elseif(isset($dRec->fromAccId)){
+                    $instantServices[$dRec->id] = $dRec;
+                }
+            }
         }
 
+        // Кои материали ще се произвеждат преди да се вложат
+        foreach ($byStores as $storeId => $dRecs){
+            $clone = clone $rec;
+            $clone->storeId = $storeId;
+            $clone->details = $dRecs;
+            $entriesProduction = sales_transaction_Sale::getProductionEntries($clone, 'planning_DirectProductionNote', 'storeId', $this->instantProducts);
+            if (countR($entriesProduction)) {
+                $entries = array_merge($entries, $entriesProduction);
+            }
+        }
+
+        // Кои услуги ще се произвеждат ако не се влагат
+        if(countR($instantServices)){
+            $clone = clone $rec;
+            $clone->storeId = null;
+            $clone->details = $instantServices;
+            $entriesProduction = sales_transaction_Sale::getProductionEntries($clone, 'planning_DirectProductionNote', 'storeId', $this->instantProducts);
+            if (countR($entriesProduction)) {
+                $entries = array_merge($entries, $entriesProduction);
+            }
+        }
+
+        // Генериране на транзакцията за произвеждане на основния артикул
         $equalizePrimeCost = $rec->equalizePrimeCost == 'yes';
-        $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs, $rec->jobQuantity, $equalizePrimeCost);
+        $entries1 = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $rec->_details, $rec->jobQuantity, $equalizePrimeCost);
+        if (countR($entries1)) {
+            $entries = array_merge($entries, $entries1);
+        }
 
         return $entries;
     }
@@ -239,10 +281,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         $details = array_filter($details, function($a) {return !empty($a->quantity);});
 
         $saleRec = null;
-        $productsOnConsignment = array();
         if(isset($saleId)){
             $saleRec = sales_Sales::fetch($saleId, 'threadId,contragentClassId,contragentId');
-            $productsOnConsignment = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($saleRec->threadId, false);
         }
 
         $outsourced = array_filter($details, function($a){ return $a->isOutsourced == 'yes';});

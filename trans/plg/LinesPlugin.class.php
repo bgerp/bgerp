@@ -200,12 +200,11 @@ class trans_plg_LinesPlugin extends core_Plugin
             $form->setOptions('lineFolderId', $folderOptions);
             $form->setOptions('lineId', array('' => '') + $linesArr);
         }
+
         if(!countR($linesArr)){
-            $form->info = tr("Няма транспортни линии на заявка с бъдеща дата в избраната папка");
+            $form->info = tr("|*<div class='formCustomInfo'>|Няма транспортни линии на заявка с бъдеща дата в избраната папка|*!</div>");
         }
-
         $form->setDefault('lineNotes', $rec->lineNotes);
-
 
         // Ако е складов документ показват се и полета за складова информация
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){

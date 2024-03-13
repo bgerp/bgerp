@@ -1532,15 +1532,12 @@ abstract class deals_Helper
                 }
             }
         }
-        
+
         // Ако няма тегло не се прави нищо
         if (!isset($value)) return;
         
         $valueType = ($type == 'volume') ? 'cat_type_Volume' : 'cat_type_Weight(decimals=2)';
         $value = round($value, 3);
-        
-        // Ако стойноста е 0 да не се показва
-        if (empty($value)) return;
        
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);

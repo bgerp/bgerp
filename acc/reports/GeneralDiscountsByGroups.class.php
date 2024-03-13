@@ -126,7 +126,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
         $form->setDefault('groupBy', 'contragentName');
 
-        if($rec->seeBy == 'contragentName'){
+        if ($rec->seeBy == 'contragentName') {
             $form->setField('inDet', 'input');
         }
 
@@ -185,13 +185,17 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
         $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->from, $end));
 
-        $allCompanyDiscount = 0;
+        $allCompanyDiscount = array();
 
         while ($receiptDetailRec = $receiptQuery->fetch()) {
 
             $autoDiscount = $amount = 0;
 
             $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
+
+            //Филтър по състояние
+            if(in_array($receiptRec->state, array('rejected','draft','active'))) continue;
+
             $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);
             $folderId = $contragentRec->folderId;
 
@@ -217,7 +221,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $autoDiscount = $autoDiscount * (1 + $prodVat);
 
             //Обща стойност на отстъпките на фирмата
-            $allCompanyDiscount += $autoDiscount;
+            $allCompanyDiscount[$folderId] += $autoDiscount;
 
             //Ключ
             if ($rec->seeBy == 'date') {
@@ -234,7 +238,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
 
-                    'receiptId' => $receiptDetailRec->receiptId,                       // id на бележката
+                    // 'receiptId' => $receiptDetailRec->receiptId,                       // id на бележката
                     'allAutoDiscountContragent' => $autoDiscount,                      // обща отстъпка по този ключ
                     'waitingOn' => $receiptDetailRec->waitingOn,                       // дата
                     'allCompanyDiscount' => 0,                                         // обща стойност на отстъпките на тази фирма
@@ -260,7 +264,27 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         //Добавям общата стойност на отстъпките
         foreach ($recs as $v) {
 
-            $v->allCompanyDiscount = $allCompanyDiscount;
+            $v->allCompanyDiscount = $allCompanyDiscount[$v->folderId];
+
+            $arr = array();
+            foreach ($v->personalReceipts as $r) {
+
+                if (!array_key_exists($r['receiptId'], $arr)) {
+
+                    $arr[$r['receiptId']] = (object)array(
+
+                        'receiptId' => $r['receiptId'],                       // id на бележката
+                        'waitingOn' => $r['waitingOn'],
+                        'allAutoDiscountContragent' => $r['allAutoDiscountContragent'],
+                    );
+                } else {
+                    $obj = &$arr[$r['receiptId']];
+                    $obj->allAutoDiscountContragent += $r['allAutoDiscountContragent'];
+
+                }
+            }
+            $v->personalReceipts = $arr;
+            unset($arr);
         }
 
         $rec->allCompanyDiscount = $allCompanyDiscount;
@@ -296,10 +320,10 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 if ($rec->seeBy == 'date') {
                     $fld->FLD('date', 'varchar', 'caption=Дата');
                 } elseif ($rec->seeBy == 'contragentName') {
-                    $fld->FLD('contragentName', 'varchar', 'caption=Клиент->име');
-                    if($rec->seeBy){
-                        if($rec->inDet == 'yes'){
-                            $fld->FLD('receipts', 'varchar', 'caption=Клиент->Бележки->номер>>отстъпка>>дата>>час');
+                    $fld->FLD('contragentName', 'varchar', 'caption=Клиент');
+                    if ($rec->seeBy) {
+                        if ($rec->inDet == 'yes') {
+                            $fld->FLD('receipts', 'varchar', 'caption=Бележки->номер >> дата >> час');
                         }
 
                     }
@@ -309,9 +333,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 $fld->FLD('date', 'varchar', 'caption=Дата');
             }
 
-
-            //$fld->FLD('datetime', 'datetime', 'caption=Време');
-            $fld->FLD('allAutoDiscountContragent', 'double(decimals=2)', 'caption=Отстъпка,smartCenter');
+            $fld->FLD('allAutoDiscountContragent', 'double(decimals=2)', 'caption=Отстъпка');
 
         } else {
             $fld->FLD('datetime', 'datetime', 'caption=Време');
@@ -350,25 +372,42 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         }
 
         $row->contragentName = $dRec->contragentName;
+        if ($rec->seeBy == 'kross') {
+            $row->contragentName .= '<span class="fright">' . $Double->toVerbal($dRec->allCompanyDiscount) . '</span>';
+        }
 
+        $row->receipts = '</br>';
         foreach ($dRec->personalReceipts as $val) {
-           $counter = 3;
+            $counter = 3;
             foreach ($val as $v) {
-                if (is_double($v)) {
-                    $prv = $Double->toVerbal($v);
-                } else {
-                    $prv = $v;
+
+                if ($counter == 3) {
+                    $prv = ht::createLink($v, array('pos_Receipts', 'single', $v));
+
+                } elseif ($counter == 2) {
+                    $prv = $Datetime->toVerbal($v);
                 }
-                $row->receipts .= $prv ;
-                if($counter > 1) {
+                $row->receipts .= '<span class="small">' . $prv . '</span>';
+                if ($counter == 3) {
                     $row->receipts .= ', ';
                 }
+
                 $counter--;
+                unset($prv);
             }
             $row->receipts .= '</br>';
         }
+        if ($rec->inDet == 'yes' && $rec->seeBy == 'contragentName') {
+            $row->allAutoDiscountContragent = '<b>' . $Double->toVerbal($dRec->allAutoDiscountContragent) . '</b>' . '</br>';
+        } else {
+            $row->allAutoDiscountContragent = $Double->toVerbal($dRec->allAutoDiscountContragent) . '</br>';
+        }
+        if ($rec->inDet == 'yes' && $rec->seeBy == 'contragentName') {
+            foreach ($dRec->personalReceipts as $val) {
+                $row->allAutoDiscountContragent .= '<span class="small">' . $Double->toVerbal($val->allAutoDiscountContragent) . '</span>' . '</br>';
 
-        $row->allAutoDiscountContragent = $Double->toVerbal($dRec->allAutoDiscountContragent);
+            }
+        }
 
         return $row;
     }
@@ -419,7 +458,8 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         }
 
         if (isset($data->rec->allCompanyDiscount)) {
-            $fieldTpl->append($Double->toVerbal($data->rec->allCompanyDiscount), 'allCompanyDiscount');
+
+            $fieldTpl->append($Double->toVerbal(array_sum($data->rec->allCompanyDiscount)), 'allCompanyDiscount');
         }
 
 

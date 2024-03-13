@@ -358,8 +358,13 @@ class rack_Pallets extends core_Manager
 
     /**
      * Връща най-добрата позиция за разполагане на дадения продукт
+     *
+     * @param int $productId            - ид на артикул
+     * @param int $storeId              - в кой склад
+     * @param null|string $lastPosition - последна позиция, на която е отишъл артикула
+     * @return string
      */
-    public static function getBestPos($productId, $storeId = null)
+    public static function getBestPos($productId, $storeId = null, $lastPosition = null)
     {
         if (!$storeId) {
             $storeId = store_Stores::getCurrent();
@@ -461,7 +466,12 @@ class rack_Pallets extends core_Manager
                     if($weight = $nearProds[$used[$posLf]->productId]) {
                         $score += 1.2 * $weight;
                     }
-                    
+
+                    // Ако последно е сложено отдолу, текущото е с по-висок приоритет
+                    if($posDw == $lastPosition){
+                        $score += 1;
+                    }
+
                     // Отделяме най-добрият резултат
                     if ($score > $bestScore) {
                         $bestPos = $pos;
@@ -1177,22 +1187,19 @@ class rack_Pallets extends core_Manager
      */
     public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null, $containerId = null)
     {
-        if (store_Stores::getCurrent('id', false) != $storeId || core_Mode::isReadOnly()) return false;
+        if(!store_Stores::haveRightFor('select', $storeId) || core_Mode::isReadOnly()) return false;
+        if (!rack_Movements::haveRightFor('add', (object) array('productId' => $productId))) return false;
 
-        if (rack_Movements::haveRightFor('add', (object) array('productId' => $productId))){
-            $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'maxPackQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'ret_url' => true);
-            if(!empty($batch)){
-                $addPalletUrl['batch'] = $batch;
-            }
-            
-            if($containerId){
-                $addPalletUrl['containerId'] = $containerId;
-            }
-            
-            return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,class=smallIcon,title=Палетиране на артикул');
+        $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'maxPackQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'forceStoreId' => $storeId, 'ret_url' => true);
+        if(!empty($batch)){
+            $addPalletUrl['batch'] = $batch;
         }
-        
-        return false;
+
+        if($containerId){
+            $addPalletUrl['containerId'] = $containerId;
+        }
+
+        return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,class=smallIcon,title=Палетиране на артикул');
     }
 
 

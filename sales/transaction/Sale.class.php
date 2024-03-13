@@ -519,38 +519,58 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      * Връща записите за моментното производство на артикулите, ако има такива
      *
      * @param stdClass $rec
+     * @throws acc_journal_RejectRedirect
      * @return array $entries
      */
-    public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId', &$instantProducts = array())
+    public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId', &$instantProducts = array(), $productFieldName = 'productId')
     {
-        $entries = array();
-        if(is_array($rec->details)){
-            foreach ($rec->details as $dRec){
-                
-                // Ако имат моментна рецепта
-                $instantBomRec = cat_Products::getLastActiveBom($dRec->productId, 'instant');
-                if(!is_object($instantBomRec)) continue;
-                
-                // И тя има ресурси, произвежда се по нея
-                $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
-                if(is_array($bomInfo['resources'])){
-                    foreach ($bomInfo['resources'] as &$resRec){
-                        $resRec->quantity = $resRec->propQuantity;
-                        $resRec->storeId = $rec->{$storeField};
-                        $resRec->fromAccId = '61102';
-                    }
-                   
-                    // Извличане на записите за производството
-                    $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($dRec->productId, $dRec->quantity, $rec->{$storeField}, null, $class, $rec->id, null, $rec->valior, $bomInfo['expenses'], $bomInfo['resources']);
-                    
-                    if(countR($prodArr)){
-                        $instantProducts[$dRec->productId] = $dRec->productId;
-                        $entries = array_merge($entries, $prodArr);
-                    }
+        $entries = $bomDataCombined = array();
+        if(!is_array($rec->details)) return $entries;
+
+        foreach ($rec->details as $dRec1){
+            // Ако имат моментна рецепта
+            $instantBomRec = cat_Products::getLastActiveBom($dRec1->{$productFieldName}, 'instant');
+            if(!is_object($instantBomRec)) continue;
+            $quantity = $dRec1->quantity * $dRec1->quantityInPack;
+            if(!array_key_exists($instantBomRec->id, $bomDataCombined)){
+                $bomDataCombined[$instantBomRec->id] = (object)array('rec' => $instantBomRec, 'storeId' => $rec->{$storeField}, 'quantity' => 0, 'productId' => $dRec1->{$productFieldName});
+                $instantProducts[$dRec1->{$productFieldName}] = $dRec1->{$productFieldName};
+            }
+            $bomDataCombined[$instantBomRec->id]->quantity += $quantity;
+        }
+
+        foreach ($bomDataCombined as $bomData){
+
+            // И тя има ресурси, произвежда се по нея
+            $bomInfo = cat_Boms::getResourceInfo($bomData->rec, $bomData->quantity, $rec->valior);
+            if(is_array($bomInfo['resources'])){
+                foreach ($bomInfo['resources'] as &$resRec){
+                    $resRec->quantity = $resRec->propQuantity;
+                    $resRec->storeId = $bomData->storeId;
+                    $resRec->fromAccId = '61102';
+                }
+
+                // Извличане на записите за производството
+                $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($bomData->productId, $bomData->quantity, $bomData->storeId, null, $class, $rec->id, null, $rec->valior, $bomInfo['expenses'], $bomInfo['resources']);
+                if(countR($prodArr)){
+                    $entries = array_merge($entries, $prodArr);
                 }
             }
         }
-        
+
+        // Проверка дали материалите са вложими и генерични
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            $shipped = array();
+            foreach ($entries as $d) {
+                if ($d['credit'][0] == '321') {
+                    $shipped[$d['credit'][2][1]] = $d['credit'][2][1];
+                }
+            }
+            if($redirectError = deals_Helper::getContoRedirectError($shipped, 'canConvert', 'generic', 'трябва да са вложими и да не са генерични')){
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+        }
+
         return $entries;
     }
 }

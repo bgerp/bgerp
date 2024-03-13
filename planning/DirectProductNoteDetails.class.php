@@ -574,4 +574,19 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $rec->quantityFromBom = round($q1 * $newTaskQuantity, $round);
         }
     }
+
+
+    /**
+     * След подготовка на заявката за синхронизиране на детайлите със зоните
+     * @see rack_plg_Shipments
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $masterRec
+     * @param core_Query $query
+     * @return void
+     */
+    protected static function on_AfterGetZoneSummaryQuery($mvc, $masterRec, &$query)
+    {
+        $query->where("#storeId = '{$masterRec->inputStoreId}' AND #type = 'input'");
+    }
 }

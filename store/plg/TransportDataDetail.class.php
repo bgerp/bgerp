@@ -98,7 +98,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         $row->netWeight = deals_Helper::getNetWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->netWeightField});
 
         if(!isset($rec->tareWeight)){
-            if(!empty($rec->weight) && !empty($rec->netWeight)){
+            if(isset($rec->weight) && isset($rec->netWeight)){
                 $rec->tareWeight = $rec->weight - $rec->netWeight;
                 if($rec->tareWeight >= 0){
                     $row->tareWeight = core_Type::getByName('cat_type_Weight')->toVerbal($rec->tareWeight);
@@ -169,13 +169,13 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
 
             // Форсира се при нужда
-            if ($force === true && empty($rec->{$mvc->netWeightField}) && !empty($w1)) {
+            if ($force === true && empty($rec->{$mvc->netWeightField}) && isset($w1)) {
                 $clone->{$mvc->netWeightField} = $w1;
                 $saveFields[] = $mvc->netWeightField;
             }
 
             // Сумира се
-            if (empty($rec->{$mvc->quantityFld}) || (!empty($w1) && !is_null($cNetWeight))) {
+            if (empty($rec->{$mvc->quantityFld}) || (isset($w1) && !is_null($cNetWeight))) {
                 $cNetWeight += $w1;
             } else {
                 $cNetWeight = null;
@@ -253,8 +253,8 @@ class store_plg_TransportDataDetail extends core_Plugin
 
         // Връщане на обема и теглото
         $weight = (!empty($cWeight)) ? $cWeight : null;
-        $netWeight = (!empty($cNetWeight)) ? $cNetWeight : null;
-        $tareWeight = (isset($cTareWeight) && !empty($cWeight) && !empty($cNetWeight)) ? $cTareWeight : null;
+        $netWeight = (isset($cNetWeight)) ? $cNetWeight : null;
+        $tareWeight = (isset($cTareWeight) && !empty($cWeight) && isset($cNetWeight)) ? $cTareWeight : null;
         $volume = (!empty($cVolume)) ? $cVolume : null;
 
         $res = (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units, 'netWeight' => $netWeight, 'tareWeight' => $tareWeight);
@@ -317,10 +317,10 @@ class store_plg_TransportDataDetail extends core_Plugin
     {
         if (!isset($netWeight)) {
             $netWeight = cat_Products::convertToUom($productId, 'kg');
-            if($netWeight){
+            if(isset($netWeight)){
                 $netWeight *= $quantity;
+                $netWeight = deals_Helper::roundPrice($netWeight, 3);
             }
-            $netWeight = deals_Helper::roundPrice($netWeight, 3);
         }
 
         $res = $netWeight;

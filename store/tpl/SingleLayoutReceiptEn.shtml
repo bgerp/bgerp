@@ -141,7 +141,7 @@
                 <table class="centered" style='width:100%;'>
                     <tr>
                         <td class='centered' style='border-right:1px solid #999;width:50%;'>Received:</td>
-                        <td class='centered' >Created by:</td>
+                        <td class='centered nowrap' >Created by:</td>
                     </tr>
                     <tr>
                         <td style='height:40px;border-right:1px solid #999'></td>

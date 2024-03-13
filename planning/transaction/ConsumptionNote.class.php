@@ -54,17 +54,31 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
      */
     private static function getEntries($rec, &$total)
     {
-        $entries = array();
-        $productsArr = array();
+        $entries = $productsArr = $instantProducts = array();
         
         $dQuery = planning_ConsumptionNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         $details = $dQuery->fetchAll();
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $rec->details = $details;
 
+        // Ако има артикули с моментно производство - произвеждат се
+        $entriesProduction = sales_transaction_Sale::getProductionEntries($rec, 'planning_ConsumptionNotes', 'storeId', $instantProducts);
+        if (countR($entriesProduction)) {
+            $entries = array_merge($entries, $entriesProduction);
+        }
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if(!store_Setup::canDoShippingWhenStockIsNegative()){
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->storeId, $rec->state)) {
+
+                // Проверка за неналичните експедирани артикули
+                $shipped = array();
+                foreach ($entries as $d){
+                    if($d['credit'][0] == '321') {
+                        if(!array_key_exists($d['credit'][2][1], $instantProducts)){
+                            $shipped[] = (object)array('productId' => $d['credit'][2][1], 'quantity' => $d['credit']['quantity']);
+                        }
+                    }
+                }
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($shipped, $rec->storeId, $rec->state)) {
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
             }
