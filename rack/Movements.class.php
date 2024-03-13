@@ -644,7 +644,9 @@ class rack_Movements extends rack_MovementAbstract
                 $string = "<b>{$quantityVerbal}</b>";
                 if ($batchDef) {
                     if (!empty($pRec->batch)) {
+                        Mode::push('text', 'plain');
                         $batchVerbal = $batchDef->toVerbal($pRec->batch);
+                        Mode::pop();
                     } else {
                         $batchVerbal = tr('Без партида');
                     }
