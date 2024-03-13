@@ -440,7 +440,7 @@ class rack_Pallets extends core_Manager
                     // Ако нямаме достатъчно на ниска позиция
                     if($rInd == 'A') {
                         if($inFirstRow < 1) {
-                            $score += 5;
+                            $score += 2;
                         } else {
                             $score -= 2;
                         }
@@ -469,7 +469,7 @@ class rack_Pallets extends core_Manager
 
                     // Ако последно е сложено отдолу, текущото е с по-висок приоритет
                     if($posDw == $lastPosition){
-                        $score += 1;
+                        $score += 2;
                     }
 
                     // Отделяме най-добрият резултат
