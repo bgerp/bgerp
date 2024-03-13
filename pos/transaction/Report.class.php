@@ -409,7 +409,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     {
         $entries = $byStores = array();
         foreach ($productsArr as $dRec){
-            $byStores[$dRec->storeId][$dRec->id] = $dRec;
+            $byStores[$dRec->storeId][] = $dRec;
         }
 
         // Кои материали ще се произвеждат преди да се вложат
