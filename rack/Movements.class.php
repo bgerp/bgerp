@@ -607,7 +607,7 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if(isset($rec->productId)){
-            if($middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId){
+            if($middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId)){
                 $form->setInfoBeforeField($middleCaptionFld, $middleCaption);
             }
         }
