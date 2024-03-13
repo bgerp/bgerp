@@ -623,54 +623,68 @@ class rack_Movements extends rack_MovementAbstract
      */
     private static function getMovementProductInfo($productId, $storeId)
     {
+        $foundRecs = array();
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state = 'active'");
         $pQuery->orderBy('position');
-        $palletRecs = $pQuery->fetchAll();
+        while($pRec = $pQuery->fetch()){
+            $foundRecs['PALLET_BLOCK'][] = (object)array('position' => $pRec->position, 'quantity' => $pRec->quantity, 'batch' => $pRec->batch);
+        }
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-        $tpl = new core_ET(tr("|*<div class='formMiddleCaption'><small><table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table><!--ET_BEGIN LAST--><hr>[#LAST#]</div><!--ET_END LAST--></small></div>"));
+        $tpl = new core_ET(tr("|*<div class='formMiddleCaption'><small><!--ET_BEGIN PALLET_BLOCK--><table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN MOVEMENT_BLOCK--><table><tr><th>|Чакащи|*</th></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN LAST--><hr><table>[#LAST#]</table></div><!--ET_END LAST--></small></div>"));
         $batchDef = batch_Defs::getBatchDef($productId);
 
         // Показване на позицията от която последно е смъкнат артикула
         $haveWhatToShow = false;
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state = 'pending' AND #positionTo IS NOT NULL");
+        while($mRec = $mQuery->fetch()){
+            $foundRecs['MOVEMENT_BLOCK'][] = (object)array('position' => $mRec->positionTo, 'quantity' => $mRec->quantity, 'batch' => $mRec->batch);
+        }
 
         // Наличните активни палети за този артикул в склада
-        if(countR($palletRecs)){
-            $positionArr = array();
+        if(countR($foundRecs)){
             $haveWhatToShow = true;
-            foreach($palletRecs as $pRec){
-                $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
-                $quantityVerbal = "{$quantityVerbal} {$measureName}";
-                $positionVerbal = core_Type::getByName('varchar')->toVerbal($pRec->position);
-                $string = "<b>{$quantityVerbal}</b>";
-                if ($batchDef) {
-                    if (!empty($pRec->batch)) {
-                        $batchVerbal = $batchDef->toVerbal($pRec->batch);
-                    } else {
-                        $batchVerbal = tr('Без партида');
+
+            // Показване на информацията
+            foreach ($foundRecs as $placeholder => $pData){
+                $positionArr = array();
+                foreach($pData as $pRec){
+
+                    // Групиране на партидите по позиции
+                    $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
+                    $quantityVerbal = "{$quantityVerbal} {$measureName}";
+                    $positionVerbal = core_Type::getByName('varchar')->toVerbal($pRec->position);
+                    $string = "<b>{$quantityVerbal}</b>";
+                    if ($batchDef) {
+                        if (!empty($pRec->batch)) {
+                            $batchVerbal = $batchDef->toVerbal($pRec->batch);
+                        } else {
+                            $batchVerbal = tr('Без партида');
+                        }
+                        $string = "{$batchVerbal} <b>{$quantityVerbal}</b>";
                     }
-                    $string = "{$batchVerbal} <b>{$quantityVerbal}</b>";
+                    $positionArr[$positionVerbal][] = $string;
                 }
 
-                $positionArr[$positionVerbal][] = $string;
-            }
-
-            foreach ($positionArr as $position => $batchArr){
-                $tpl->append("<tr><td><b>{$position}</b>: </td><td>" . implode(' / ', $batchArr) . "</td></tr>", 'PALLET_BLOCK');
+                // Показват се на съответното място
+                foreach ($positionArr as $position => $batchArr){
+                    $tpl->append("<tr><td><b>{$position}</b>: </td><td>" . implode(' / ', $batchArr) . "</td></tr>", $placeholder);
+                }
             }
         }
 
         if($lastPosition = rack_Pallets::getLastPalletPosition($productId, $storeId)){
             $positionVerbal = ($lastPosition == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($lastPosition);
-            $tpl->append(tr("|*<div>|Последно смъкнато от|*: <b>{$positionVerbal}</b></div>"), 'LAST');
+            $tpl->append(tr("|*<tr><td>|Последно смъкнато от|*:</td><td><b>{$positionVerbal}</b></td></tr>"), 'LAST');
             $haveWhatToShow = true;
         }
 
         if($rackRec = rack_Products::fetch("#productId = $productId AND #storeId = $storeId")){
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rackRec->quantityNotOnPallets);
             $quantityVerbal = "{$quantityVerbal} {$measureName}";
-            $tpl->append(tr("|*<div>|На пода|*: <b>{$quantityVerbal}</b></div>"), 'LAST');
+            $tpl->append(tr("|*<tr><td>|На пода|*:</td><td><b>{$quantityVerbal}</b></td></tr>"), 'LAST');
         }
 
         return ($haveWhatToShow) ? $tpl->getContent() : null;
