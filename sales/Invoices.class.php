@@ -353,7 +353,7 @@ class sales_Invoices extends deals_InvoiceMaster
             list(, $vies) = $Vats->check($form->rec->contragentVatNo);
             $vies = trim($vies);
             if(!empty($vies)){
-                $form->info = "<b>VIES</b>: {$vies}";
+                $form->info = "<div class='formCustomInfo'><b>VIES</b>: {$vies}</div>";
             }
         }
         
