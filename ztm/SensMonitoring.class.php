@@ -107,7 +107,7 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
                         }
 
                         if (empty($valArr)) {
-                            ztm_RegisterValues::logWarning('В регистъра се очаква попълнен масив', $rRec);
+                            ztm_RegisterValues::logDebug('В регистъра се очаква попълнен масив', $rRec);
 
                             continue;
                         }
