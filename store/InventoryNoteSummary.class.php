@@ -455,7 +455,8 @@ class store_InventoryNoteSummary extends doc_Detail
                     }
                 }
             }
-            
+
+            $row->quantity = ht::styleIfNegative($row->quantity, $rec->quantity);
             $row->blQuantity = ht::styleIfNegative($row->blQuantity, $rec->blQuantity);
         }
         
