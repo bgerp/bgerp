@@ -61,6 +61,7 @@
                 <div class="scrolling-holder">
                     <div class='details'>
                         [#purchase_InvoiceDetails#]
+                        [#price_DiscountsPerDocuments#]
                     </div>
                 </div>
                 <!--ET_END sales_InvoiceDetails-->

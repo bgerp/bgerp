@@ -434,13 +434,13 @@ class rack_Pallets extends core_Manager
                     
                     // Ако имаме резервирана позиция за този продукт
                     if($reserved[$pos] == $pRec->productId) {
-                        $score += 6;
+                        $score += 15;
                     }
                     
                     // Ако нямаме достатъчно на ниска позиция
                     if($rInd == 'A') {
                         if($inFirstRow < 1) {
-                            $score += 2;
+                            $score += 5;
                         } else {
                             $score -= 2;
                         }
@@ -455,7 +455,7 @@ class rack_Pallets extends core_Manager
                     }
                     
                     if($used[$posDw]->productId == $pRec->productId) {
-                        $score += 3.5;
+                        $score += 9;
                     }
                     
                     // Ако левия или десния са от този продукт или близки на него
@@ -469,7 +469,7 @@ class rack_Pallets extends core_Manager
 
                     // Ако последно е сложено отдолу, текущото е с по-висок приоритет
                     if($posDw == $lastPosition){
-                        $score += 2;
+                        $score += 5;
                     }
 
                     // Отделяме най-добрият резултат

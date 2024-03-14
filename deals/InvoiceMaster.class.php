@@ -1967,41 +1967,39 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // Ако има посочен параметър за информация към фактурата от артикула
         $Detail = cls::get($mvc->mainDetail);
-        if($Detail instanceof sales_InvoiceDetails) {
-            $saveRecs = array();
-            $dQuery = $Detail->getQuery();
-            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-            $dQuery->show('productId,notes,discount,autoDiscount');
-            while($dRec = $dQuery->fetch()){
-                $save = false;
-                $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
-                if(!empty($invoiceInfo)){
-                    if (strpos($dRec->notes, "{$invoiceInfo}") === false) {
-                        $dRec->notes = $invoiceInfo . ((!empty($dRec->notes) ? "\n" : '') . $dRec->notes);
-                        $save = true;
-                    }
-                }
-
-                if(!empty($dRec->discount) || !empty($dRec->autoDiscount)){
-                    $dRec->inputDiscount = $dRec->discount;
-                    if(isset($dRec->autoDiscount)){
-                        if(isset($dRec->discount)){
-                            $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 6);
-                        } else {
-                            $dRec->discount = $dRec->autoDiscount;
-                        }
-                    }
+        $saveRecs = array();
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+        $dQuery->show('productId,notes,discount,autoDiscount');
+        while($dRec = $dQuery->fetch()){
+            $save = false;
+            $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
+            if(!empty($invoiceInfo)){
+                if (strpos($dRec->notes, "{$invoiceInfo}") === false) {
+                    $dRec->notes = $invoiceInfo . ((!empty($dRec->notes) ? "\n" : '') . $dRec->notes);
                     $save = true;
                 }
+            }
 
-                if($save){
-                    $saveRecs[] = $dRec;
+            if(!empty($dRec->discount) || !empty($dRec->autoDiscount)){
+                $dRec->inputDiscount = $dRec->discount;
+                if(isset($dRec->autoDiscount)){
+                    if(isset($dRec->discount)){
+                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 6);
+                    } else {
+                        $dRec->discount = $dRec->autoDiscount;
+                    }
                 }
+                $save = true;
             }
 
-            if(countR($saveRecs)){
-                $Detail->saveArray($saveRecs, 'id,notes,discount,inputDiscount');
+            if($save){
+                $saveRecs[] = $dRec;
             }
+        }
+
+        if(countR($saveRecs)){
+            $Detail->saveArray($saveRecs, 'id,notes,discount,inputDiscount');
         }
 
         // Има ли полета, чиито стойности да се преизчислят при активиране
@@ -2081,5 +2079,67 @@ abstract class deals_InvoiceMaster extends core_Master
     protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
     {
         $fieldset->setFieldType('dealValueWithoutDiscount', 'double');
+    }
+
+
+    /**
+     * Как се казва политиката
+     *
+     * @param stdClass $rec - запис
+     * @return array
+     *            [rate]       - валутен курс
+     *            [valior]     - вальор
+     *            [currencyId] - код на валута
+     *            [chargeVat]  - режим на начисляване на ДДС
+     *            [amount]     - сума в основна валута без ддс и отстъпка
+     */
+    public function getTotalDiscountSourceData($rec)
+    {
+        $rec = $this->fetchRec($rec);
+
+        $amount = core_Math::roundNumber($rec->dealValue - $rec->discountAmount);
+        $res = (object)array('rate' => $rec->rate,
+            'valior'     => $rec->valior,
+            'currencyId' => $rec->currencyId,
+            'chargeVat'  => 'separate',
+            'amount'     => $amount,
+        );
+
+        return $res;
+    }
+
+
+    /**
+     * Как се казва политиката
+     *
+     * @param stdClass $rec - запис
+     * @return bool
+     */
+    public function canHaveTotalDiscount($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        if($rec->type != 'invoice' || $rec->dpOperation == 'accrued') return false;
+
+        $detailCount = cls::get($this->mainDetail)->count("#invoiceId = {$rec->id}");
+
+        return !empty($detailCount);
+    }
+
+
+    /**
+     * След обновяване на мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        // Ако е зададено в мода да не се рекалкулират отстъпките
+        $rec = $mvc->fetchRec($id);
+        if($rec->type != 'invoice') return;
+
+        // Преизчисляване ако има автоматични отстъпки
+        if($mvc->recalcAutoTotalDiscount($rec)){
+            $mvc->updateMaster_($rec);
+        }
     }
 }
