@@ -77,10 +77,15 @@ class batch_definitions_Serial extends batch_definitions_Proto
         $count = countR($serials);
         
         if ($count != $quantity) {
-            $mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
-            $msg = ($quantity != 1) ? "|Въведени са|* <b>{$count}</b> |{$mMsg}, вместо очакваните|* <b>{$quantity}</b>" : 'Трябва да е въведен само един сериен номер';
-            
-            return false;
+
+            // Проверка дали въведените серийни номера отговарят на количеството
+            // освен ако к-то не е 0, но е позволено да е 0
+            if(!(empty($quantity) && $this->params['allowZero'])){
+                $mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
+                $msg = ($quantity != 1) ? "|Въведени са|* <b>{$count}</b> |{$mMsg}, вместо очакваните|* <b>{$quantity}</b>" : 'Трябва да е въведен само един сериен номер';
+
+                return false;
+            }
         }
         
         // Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
