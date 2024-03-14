@@ -47,7 +47,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
     /**
      * По кое поле да се групира
      */
-    public $groupByField;
+    public $groupByField ;
 
     /**
      * По-кое поле да се групират данните след групиране, вътре в групата
@@ -97,7 +97,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,refreshForm,after=title,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,refreshForm,after=from,single=none');
 
-        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС трминали->ПОС,placeholder=Всички,after=to,single=none');
+        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС терминали->ПОС,placeholder=Всички,after=to,single=none');
 
         $fieldset->FLD('begin', 'hour', 'caption=Времена на засичане->Начало,after=pos');
         $fieldset->FLD('mark', 'hour', 'caption=Времена на засичане->Граница,after=begin');
@@ -156,8 +156,12 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
         $receiptQuery = pos_ReceiptDetails::getQuery();
         $receiptQuery->EXT('waitingOn', 'pos_Receipts', 'externalName=waitingOn,externalKey=receiptId');
+        $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
         $receiptQuery->where("#waitingOn IS NOT NULL");
-        $receiptQuery->where("#autoDiscount IS NOT NULL");
+        $receiptQuery->where("#productId IS NOT NULL");
+
+        //Филтър по състояние
+        $receiptQuery->in('state', array('waiting', 'closed'));
 
         if ($rec->to < substr(($rec->to), 0, 10) . ' 00:00:01') {
             $end = substr(($rec->to), 0, 10) . ' 23:59:59';
@@ -166,25 +170,22 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         }
 
         $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->from, $end));
-
+       // bp($receiptQuery->fetchAll());
         $prodInbeginArr = $prodInEndArr = array();
         $a = 0;
         while ($receiptDetailRec = $receiptQuery->fetch()) {
 
-            $autoDiscount = $amount = 0;
-
             $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
 
-            //Филтър по състояние
-            if (!in_array($receiptRec->state, array('waiting', 'closed'))) continue;
-
             //Филтър по POS
-            if (!in_array($receiptRec->pointId, keylist::toArray($rec->pos))) continue;
+            if (isset($rec->pos) && (!in_array($receiptRec->pointId, keylist::toArray($rec->pos)))) continue;
 
             //Време на продажбата
-            $sellTime = DateTime::createFromFormat("Y-m-d H:i:s", "$receiptRec->waitingOn");
-            $sellTime = $sellTime->format('H:i');
+            $sellDT = DateTime::createFromFormat("Y-m-d H:i:s", "$receiptRec->waitingOn");
+            $sellTime = $sellDT->format('H:i');
+            $sellDate = $sellDT->format('Y-m-d');
 
+           // $id = $receiptDetailRec->productId.'|'.$sellDate;
             $id = $receiptDetailRec->productId;
 
             //Масив с артикули, които ги има  в бележките издадени между началото и границата
@@ -193,6 +194,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
                 if (!array_key_exists($id, $prodInbeginArr)) {
                     $prodInbeginArr[$id] = (object)array(
 
+                        'date' => $sellDate,
                         'productId' => $receiptDetailRec->productId,
                         'quantity' => $receiptDetailRec->quantity,
                         'amount' => $receiptDetailRec->price * $receiptDetailRec->quantity,
@@ -208,10 +210,11 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
             //Масив с артикули, които ги има  в бележките издадени между границата и края
             if (($sellTime > $rec->mark) && ($sellTime < $rec->end)) {
-                $a++;
+
                 if (!array_key_exists($id, $prodInEndArr)) {
                     $prodInEndArr[$id] = (object)array(
 
+                        'date' => $sellDate,
                         'productId' => $receiptDetailRec->productId,
                         'quantity' => $receiptDetailRec->quantity,
                         'amount' => $receiptDetailRec->price * $receiptDetailRec->quantity,
@@ -234,6 +237,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
                 if (!array_key_exists($key, $recs)) {
                     $recs[$key] = (object)array(
+                        'date' => $val->date,
                         'productId' => $val->productId,
                         'quantity' => $val->quantity,
                         'amount' => $val->amount,
@@ -267,6 +271,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
 
+           // $fld->FLD('date',  'date', 'caption=Дата');
             $fld->FLD('productId',  'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
             $fld->FLD('amount', 'double(decimals=2)', 'caption=Стойност');
@@ -298,10 +303,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
         $row = new stdClass();
 
-
-        $d = substr(dt::mysql2verbal($dRec->waitingOn), 0, 8);
-
-        $row->date = $d;
+        $row->date = $dRec->date;
 
         $row->productId = cat_Products::getHyperlink($dRec->productId, true);
         $row->quantity = $Double->toVerbal($dRec->quantity) ;
