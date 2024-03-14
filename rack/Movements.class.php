@@ -536,18 +536,25 @@ class rack_Movements extends rack_MovementAbstract
             } else {
                 $form->setField('positionTo', 'placeholder=Остава');
             }
-            
+
             // Добавяне на предложения за нова позиция
-            $positionSuggestions = countR($exPositions) ? (array('pr' => (object) array('group' => true, 'title' => tr('Наличен на'))) + $exPositions) : $exPositions;
+            $positionSuggestions = array(tr('Под') => tr('Под'));
             if ($bestPos = static::getRecommendedPosition($rec->productId, $rec->storeId)) {
-                $positionSuggestions = array('' => '', tr('Под') => tr('Под'), $bestPos => $bestPos) + $positionSuggestions;
+                $positionSuggestions +=  array($bestPos => $bestPos);
                 if ($form->rec->positionTo == rack_PositionType::FLOOR) {
                     $form->rec->positionTo = tr('Под');
                 }
             }
+            if($lastPosition = rack_Pallets::getLastPalletPosition($rec->productId, $rec->storeId)){
+                $positionSuggestions += array($lastPosition => $lastPosition);
+            }
+
+            if(countR($exPositions)){
+                $positionSuggestions += array('pr' => (object) array('group' => true, 'title' => tr('Наличен на'))) + $exPositions;
+            }
 
             if(countR($positionSuggestions)){
-                $form->setSuggestions('positionTo', $positionSuggestions);
+                $form->setSuggestions('positionTo', array('' => '') + $positionSuggestions);
             }
         } else {
             $form->setField('packagingId', 'input=none');
@@ -656,7 +663,6 @@ class rack_Movements extends rack_MovementAbstract
 
                     // Групиране на партидите по позиции
                     $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
-                    $quantityVerbal = "{$quantityVerbal} {$measureName}";
                     $positionVerbal = core_Type::getByName('varchar')->toVerbal($pRec->position);
                     $string = "<b>{$quantityVerbal}</b>";
                     if ($batchDef) {
@@ -667,6 +673,7 @@ class rack_Movements extends rack_MovementAbstract
                         }
                         $string = "{$batchVerbal} <b>{$quantityVerbal}</b>";
                     }
+                    $string .= " {$measureName}";
                     $positionArr[$positionVerbal][] = $string;
                 }
 
@@ -685,8 +692,8 @@ class rack_Movements extends rack_MovementAbstract
 
         if($rackRec = rack_Products::fetch("#productId = $productId AND #storeId = $storeId")){
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rackRec->quantityNotOnPallets);
-            $quantityVerbal = "{$quantityVerbal} {$measureName}";
-            $tpl->append(tr("|*<tr><td>|На пода|*:</td><td><b>{$quantityVerbal}</b></td></tr>"), 'LAST');
+            $quantityVerbal = "<b>{$quantityVerbal}</b> {$measureName}";
+            $tpl->append(tr("|*<tr><td>|На пода|*:</td><td>{$quantityVerbal}</td></tr>"), 'LAST');
         }
 
         return ($haveWhatToShow) ? $tpl->getContent() : null;
