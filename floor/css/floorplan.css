@@ -18,7 +18,10 @@ div.selected {
 
 .floor {
    position: relative;
-   max-height:95vh;
+
+}
+.wide .floor {
+    max-height:95vh;
 }
 .narrow{
     padding: 4px;
@@ -49,6 +52,8 @@ body.wide {
 body.narrow {
     min-height: 100vh;
     background-color:black;
+    padding: 5px;
+    box-sizing: border-box;
 }
 
 a.active {
@@ -59,30 +64,26 @@ a.active {
 div.tab {
     display:inline-block;
 	background-color:white;
-	margin-right:10px;
 	padding:3px;
 	border-radius:3px;
-	margin-top:3px;
-	margin-bottom:3px;
 }
 
 div.active {
  background-color:yellow;
 }
-
-.floorTabs {
-    display: flex;
+.wide .floorTabs {
     gap: 20px;
+    display: flex;
     justify-content: center;
     box-sizing: border-box;
 }
 
 .floorTabs.topPosition {
     flex-direction: row ;
-    padding: 10px 50px;
+    padding: 20px 50px;
 }
 
-.floorTabs.rightPosition {
+.wide .floorTabs.rightPosition {
     padding: 0px 0px 50px 20px;
     flex-direction: column-reverse ;
 }
@@ -97,7 +98,22 @@ div.active {
     display: block;
     padding: 5px 20px;
 }
-
+.narrow .floorTabs .tab  a {
+    padding: 5px 10px;
+}
 .floorTabs .tab:hover, .floorTabs .tab.active {
     background-color: yellow;
+}
+.narrow .holder {
+    box-sizing: border-box;
+    width: 100%;
+    overflow: auto;
+}
+.narrow .floorTabs{
+    padding: 5px;
+    overflow: auto;
+    white-space: nowrap;
+}
+.narrow .floorTabs .tab {
+    margin-right: 10px;
 }

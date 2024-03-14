@@ -344,12 +344,6 @@ class deals_plg_DpInvoice extends core_Plugin
                 return;
             }
 
-            if(!empty($rec->dpVatGroupId) && (empty($rec->amountAccrued) && empty($rec->amountDeducted))){
-                $form->setError('dpVatGroupId,amountAccrued,amountDeducted', 'Не може да е попълнена ДДС група на аванса, без да е въведен аванс');
-
-                return;
-            }
-
             $rec->dpAmount = ($rec->amountAccrued) ? $rec->amountAccrued : $rec->amountDeducted;
             $rec->dpOperation = 'none';
             $warningUnit = ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') ? 'без ДДС' : 'с ДДС';
@@ -689,6 +683,17 @@ class deals_plg_DpInvoice extends core_Plugin
         } else {
             $total->vats["{$vat}"]->amount += $dpVat;
             $total->vats["{$vat}"]->sum += $masterRec->dpAmount / $masterRec->rate;
+        }
+    }
+
+
+    /**
+     * Преди запис в модела
+     */
+    public static function on_BeforeSave($mvc, $id, $rec)
+    {
+        if(empty($rec->dpAmount) && !empty($rec->dpVatGroupId)){
+            unset($rec->dpVatGroupId);
         }
     }
 }

@@ -40,7 +40,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         $form = &$data->form;
         $rec = &$form->rec;
         $masterRec = $data->masterRec;
-        
+
         // Ако има артикул
         if (isset($rec->productId)) {
             $Def = batch_Defs::getBatchDef($rec->productId);
@@ -48,7 +48,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 
                 return;
             }
-            
+
             $form->notMandatoryQ = true;
             if (isset($form->rec->id)) {
                 $form->setReadOnly('productId');
@@ -67,7 +67,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                     }
                 }
             }
-            
+
             // Добавяне на поле за избор на съществуваща партида
             $form->FNC('batchEx', 'varchar', 'caption=Партида');
             $autohide = countR($quantities) ? 'autohide' : '';
@@ -76,19 +76,19 @@ class batch_plg_InventoryNotes extends core_Plugin
             
             // Ако е сериен номер само едно поле се показва
             if ($Def instanceof batch_definitions_Serial) {
-                $form->setField('batchEx', 'input=none');
-                $form->setFieldType('batchNew', $Def->getBatchClassType($mvc, $rec->id));
+                $form->setFieldType('packQuantity', 'enum(,0,1)');
+                $form->setFieldType('batchNew', 'varchar');
                 $form->setField('batchNew', 'caption=Серийни номера');
-                $autohide = '';
-                
-                if (countR($selected)) {
-                    $batches = implode(' ', $selected);
-                    $form->setDefault('batchNew', $batches);
+                if(isset($rec->editBatch) || isset($rec->batch)){
+                    $b = $rec->editBatch ?? $rec->batch;
+                    $form->setField('batchEx', 'input');
+                    $form->setDefault('batchEx', $b);
                 }
+                $autohide = '';
                 
                 if (countR($quantities)) {
                     $suggestions = array_combine(array_keys($quantities), array_keys($quantities));
-                    $form->setSuggestions('batchNew', $suggestions);
+                    $form->setSuggestions('batchNew', array('' => '') + $suggestions);
                 }
             } else {
                 
@@ -344,12 +344,16 @@ class batch_plg_InventoryNotes extends core_Plugin
 
         $r = array();
         $recs = array();
+
+
+
         foreach ($summaryRows as $id => $sRow) {
             $sRec = $summaryRecs[$id];
             $recs[$id] = $sRec;
             $r[$id] = $sRow;
 
             $summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior, $alwaysShowBatches);
+
             if(!$summary) continue;
             $Def = batch_Defs::getBatchDef($sRec->productId);
 
@@ -369,7 +373,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $clone = clone $sRow;
                 $productId = new core_ET("<span class='note-batch-row'><span class='note-batch-product-name'>[#product#]</span>: <span class='note-batch-name'>[#batch#]</span></span>");
                 $productId->replace(strip_tags($clone->productId), 'product');
-                $productId->replace(($batch) ? $Def->toVerbal($batch) : tr('Без партида'), 'batch');
+                $productId->replace(($batch) ? $Def->toVerbal($batch) : "<i class='quiet'>" . tr('Без партида') . "</i>", 'batch');
                 $clone->productId = $productId;
 
                 $clone->blQuantity = $Double->toVerbal($bRec->blQuantity);

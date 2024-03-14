@@ -475,7 +475,7 @@ class rack_Movements extends rack_MovementAbstract
                     if(rack_Movements::haveRightFor('list')){
                         $packName = ht::createLinkRef($packName, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($fromDocumentId)->getHandle()));
                     }
-                    $form->info = tr("Създадени движения от документа за сега|*: <b>{$packName}</b>");
+                    $form->info = "<div class='formCustomInfo'>" . tr("Създадени движения от документа за сега|*: <b>{$packName}</b>") . "</div>";
 
                     // Приспадане на създаденото досега от документа
                     $availableQuantity = $rec->maxPackQuantity * $rec->quantityInPack;

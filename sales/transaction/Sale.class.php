@@ -562,10 +562,11 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             $shipped = array();
             foreach ($entries as $d) {
-                if ($d['credit'][0] == '321') {
+                if (in_array($d['credit'][0], array('60201', '321'))) {
                     $shipped[$d['credit'][2][1]] = $d['credit'][2][1];
                 }
             }
+
             if($redirectError = deals_Helper::getContoRedirectError($shipped, 'canConvert', 'generic', 'трябва да са вложими и да не са генерични')){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
