@@ -162,6 +162,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
          $this->subGroupFieldOrder = 'date';
           }elseif($rec->groupBy == 'date'){
              $this->groupByField = 'date';
+             $this->subGroupFieldOrder = 'quantity';
          }
 
         $recs = array();
