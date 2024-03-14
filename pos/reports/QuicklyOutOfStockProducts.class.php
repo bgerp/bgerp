@@ -28,7 +28,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields ;
+    protected $summaryListFields;
 
 
     /**
@@ -97,6 +97,13 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,refreshForm,after=title,single=none');
         $fieldset->FLD('to', 'date', 'caption=До,refreshForm,after=from,single=none');
 
+        $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС трминали->ПОС,placeholder=Всички,after=to,single=none');
+
+        $fieldset->FLD('begin', 'hour', 'caption=Времена на засичане->Начало,after=pos');
+        $fieldset->FLD('mark', 'hour', 'caption=Времена на засичане->Граница,after=begin');
+        $fieldset->FLD('end', 'hour', 'caption=Времена на засичане->Край,after=mark');
+
+
     }
 
 
@@ -147,8 +154,97 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
     {
         $recs = array();
 
-        bp($rec);
+        $receiptQuery = pos_ReceiptDetails::getQuery();
+        $receiptQuery->EXT('waitingOn', 'pos_Receipts', 'externalName=waitingOn,externalKey=receiptId');
+        $receiptQuery->where("#waitingOn IS NOT NULL");
+        $receiptQuery->where("#autoDiscount IS NOT NULL");
 
+        if ($rec->to < substr(($rec->to), 0, 10) . ' 00:00:01') {
+            $end = substr(($rec->to), 0, 10) . ' 23:59:59';
+        } else {
+            $end = $rec->to;
+        }
+
+        $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->from, $end));
+
+        $prodInbeginArr = $prodInEndArr = array();
+        $a = 0;
+        while ($receiptDetailRec = $receiptQuery->fetch()) {
+
+            $autoDiscount = $amount = 0;
+
+            $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
+
+            //Филтър по състояние
+            if (!in_array($receiptRec->state, array('waiting', 'closed'))) continue;
+
+            //Филтър по POS
+            if (!in_array($receiptRec->pointId, keylist::toArray($rec->pos))) continue;
+
+            //Време на продажбата
+            $sellTime = DateTime::createFromFormat("Y-m-d H:i:s", "$receiptRec->waitingOn");
+            $sellTime = $sellTime->format('H:i');
+
+            $id = $receiptDetailRec->productId;
+
+            //Масив с артикули, които ги има  в бележките издадени между началото и границата
+            if (($sellTime > $rec->begin) && ($sellTime < $rec->mark)) {
+
+                if (!array_key_exists($id, $prodInbeginArr)) {
+                    $prodInbeginArr[$id] = (object)array(
+
+                        'productId' => $receiptDetailRec->productId,
+                        'quantity' => $receiptDetailRec->quantity,
+                        'amount' => $receiptDetailRec->price * $receiptDetailRec->quantity,
+                    );
+                } else {
+
+                    $obj = &$prodInbeginArr[$id];
+                    $obj->quantity += $receiptDetailRec->quantity;
+                    $obj->amount += $receiptDetailRec->price * $receiptDetailRec->quantity;
+
+                }
+            }
+
+            //Масив с артикули, които ги има  в бележките издадени между границата и края
+            if (($sellTime > $rec->mark) && ($sellTime < $rec->end)) {
+                $a++;
+                if (!array_key_exists($id, $prodInEndArr)) {
+                    $prodInEndArr[$id] = (object)array(
+
+                        'productId' => $receiptDetailRec->productId,
+                        'quantity' => $receiptDetailRec->quantity,
+                        'amount' => $receiptDetailRec->price * $receiptDetailRec->quantity,
+                    );
+                } else {
+
+                    $obj = &$prodInEndArr[$id];
+                    $obj->quantity += $receiptDetailRec->quantity;
+                    $obj->amount += $receiptDetailRec->price * $receiptDetailRec->quantity;
+
+                }
+            }
+        }
+
+        $prodsAfterMarktArr = arr::extractValuesFromArray($prodInEndArr, 'productId');
+
+        foreach ($prodInbeginArr as $key => $val) {
+
+            if (!in_array($key, $prodsAfterMarktArr)) {
+
+                if (!array_key_exists($key, $recs)) {
+                    $recs[$key] = (object)array(
+                        'productId' => $val->productId,
+                        'quantity' => $val->quantity,
+                        'amount' => $val->amount,
+                    );
+                }
+            }
+        }
+
+        if (countR($recs)) {
+            arr::sortObjects($recs, 'quantity', 'desc');
+        }
 
         return $recs;
 
@@ -171,9 +267,9 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
 
-            $fld->FLD('date', 'varchar', 'caption=Дата');
-
-            $fld->FLD('allAutoDiscountContragent', 'double(decimals=2)', 'caption=Отстъпка');
+            $fld->FLD('productId',  'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
+            $fld->FLD('amount', 'double(decimals=2)', 'caption=Стойност');
 
         } else {
 
@@ -207,7 +303,9 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
         $row->date = $d;
 
-            $row->date = '<span class="fright">' . $d . '</span>';
+        $row->productId = cat_Products::getHyperlink($dRec->productId, true);
+        $row->quantity = $Double->toVerbal($dRec->quantity) ;
+        $row->amount = $Double->toVerbal($dRec->amount) ;
 
         return $row;
     }
