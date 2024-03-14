@@ -1100,7 +1100,7 @@ class core_App
         }
         
         $pre = rtrim($pre, '/');
-        
+
         switch ($type) {
             case 'local':
                 $url = ltrim($pre . $urlQuery, '/');
@@ -1189,7 +1189,7 @@ class core_App
             } else {
                 if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
-                } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+                } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST')) {
                     $boot = $protocol . '://' . $auth . FORCE_BGERP_ABSOLUTE_HTTP_HOST . $dirName;
                 } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
@@ -1217,7 +1217,7 @@ class core_App
         if (EF_APP_NAME_FIXED !== true && $addAppName) {
             $boot .= '/' . (Request::get('App') ? Request::get('App') : EF_APP_NAME);
         }
-        
+
         return $boot;
     }
     
