@@ -76,7 +76,10 @@ class batch_plg_InventoryNotes extends core_Plugin
             
             // Ако е сериен номер само едно поле се показва
             if ($Def instanceof batch_definitions_Serial) {
-                $form->setFieldType('packQuantity', 'enum(,0,1)');
+                if(isset($rec->editBatch) || isset($rec->batch)){
+                    $form->setFieldType('packQuantity', 'enum(,0,1)');
+                }
+
                 $form->setFieldType('batchNew', 'varchar');
                 $form->setField('batchNew', 'caption=Серийни номера');
                 if(isset($rec->editBatch) || isset($rec->batch)){
