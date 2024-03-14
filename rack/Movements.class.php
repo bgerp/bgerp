@@ -546,7 +546,9 @@ class rack_Movements extends rack_MovementAbstract
                 }
             }
             if($lastPosition = rack_Pallets::getLastPalletPosition($rec->productId, $rec->storeId)){
-                $positionSuggestions += array($lastPosition => $lastPosition);
+                if($lastPosition != rack_PositionType::FLOOR){
+                    $positionSuggestions += array($lastPosition => $lastPosition);
+                }
             }
 
             if(countR($exPositions)){
