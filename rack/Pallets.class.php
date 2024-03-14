@@ -440,7 +440,7 @@ class rack_Pallets extends core_Manager
                     
                     // Ако имаме резервирана позиция за този продукт
                     if($reserved[$pos] == $pRec->productId) {
-                        $score += 15;
+                        $score += 13;
                     }
                     
                     // Ако нямаме достатъчно на ниска позиция

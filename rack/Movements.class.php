@@ -547,12 +547,12 @@ class rack_Movements extends rack_MovementAbstract
             }
             if($lastPosition = rack_Pallets::getLastPalletPosition($rec->productId, $rec->storeId)){
                 if($lastPosition != rack_PositionType::FLOOR){
-                    $positionSuggestions += array($lastPosition => $lastPosition);
+                    $positionSuggestions += array('pr' => (object) array('group' => true, 'title' => tr('Последно от'))) + array($lastPosition => $lastPosition);
                 }
             }
 
             if(countR($exPositions)){
-                $positionSuggestions += array('pr' => (object) array('group' => true, 'title' => tr('Наличен на'))) + $exPositions;
+                $positionSuggestions += array('pp' => (object) array('group' => true, 'title' => tr('Наличен на'))) + $exPositions;
             }
 
             if(countR($positionSuggestions)){
@@ -688,7 +688,7 @@ class rack_Movements extends rack_MovementAbstract
 
         if($lastPosition = rack_Pallets::getLastPalletPosition($productId, $storeId)){
             $positionVerbal = ($lastPosition == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($lastPosition);
-            $tpl->append(tr("|*<tr><td>|Последно смъкнато от|*:</td><td><b>{$positionVerbal}</b></td></tr>"), 'LAST');
+            $tpl->append(tr("|*<tr><td>|Последно смъкнат от|*:</td><td><b>{$positionVerbal}</b></td></tr>"), 'LAST');
             $haveWhatToShow = true;
         }
 
