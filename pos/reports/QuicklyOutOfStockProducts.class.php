@@ -257,7 +257,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
                 if($val->productId == $endVal->productId){
                     $marker = 1;
-
+                    unset($recs[$key]);
                 }
                 if($marker == 0) {
                     $recs[$key] = (object)array(
