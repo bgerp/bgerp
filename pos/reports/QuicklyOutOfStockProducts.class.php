@@ -247,12 +247,17 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $totalProdQuantity = array();
         foreach ($prodInbeginArr as $key => $val) {
 
+            if(countR($prodInEndArr) == 0){
+                $recs = $prodInbeginArr;
+                break;
+            }
+
             $marker = 0;
             foreach ($prodInEndArr as $endKey => $endVal) {
 
                 if($val->productId == $endVal->productId){
                     $marker = 1;
-
+                    unset($recs[$key]);
                 }
                 if($marker == 0) {
                     $recs[$key] = (object)array(
@@ -265,7 +270,6 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
                 }
             }
         }
-
         foreach ($recs as $key => $val){
             $totalProdQuantity[$val->productId] += $val->quantity;
         }

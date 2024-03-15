@@ -730,7 +730,7 @@ class doc_Linked extends core_Manager
                 $unsetStr = ",unsetId={$originFId}";
             }
             
-            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
+            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
             $form->input();
             
             $form->FNC('linkContainerId', 'key2(forceAjax, mvc=doc_Search, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . "{$unsetStr})", 'caption=Документ, class=w100, input, mandatory, refreshForm');
@@ -753,7 +753,7 @@ class doc_Linked extends core_Manager
             $form->input();
             
             if ($form->rec->linkDocType) {
-                $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, class=w100, input, mandatory, removeAndRefreshForm=linkThreadId');
+                $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, class=w100, input, mandatory, removeAndRefreshForm=linkThreadId');
                 $form->input();
                 
                 $dInst = cls::get($form->rec->linkDocType);
@@ -766,7 +766,7 @@ class doc_Linked extends core_Manager
                         $mandatory = ' ,mandatory';
                     }
                     
-                    $form->FNC('linkThreadId', 'key2(forceAjax, mvc=doc_Threads, titleFld=firstContainerId, maxSuggestions=100, selectSourceArr=doc_Linked::prepareThreadsForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', "caption=Нишка, class=w100, input, refreshForm{$mandatory}");
+                    $form->FNC('linkThreadId', 'key2(forceAjax, mvc=doc_ThreadsProxy, titleFld=firstContainerId, maxSuggestions=100, selectSourceArr=doc_Linked::prepareThreadsForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . ')', "caption=Нишка, class=w100, input, refreshForm{$mandatory}");
                 }
             }
         }
@@ -1097,7 +1097,6 @@ class doc_Linked extends core_Manager
         $sArr = array();
         
         $cInst = cls::get($params['mvc']);
-        
         $cQuery = $cInst->getQuery();
         
         doc_Threads::restrictAccess($cQuery);
@@ -1264,9 +1263,10 @@ class doc_Linked extends core_Manager
         if ($params['docType']) {
             $docTypeInst = cls::get($params['docType']);
         }
-        
-        $query = doc_Folders::getQuery();
-        
+
+        $cInst = cls::get($params['mvc']);
+        $query = $cInst->getQuery();
+
         doc_Folders::restrictAccess($query, null, false);
         
         if (!$includeHiddens) {
@@ -1481,8 +1481,9 @@ class doc_Linked extends core_Manager
         }
         
         $folderId = $params['folderId'];
-        
-        $query = doc_Threads::getQuery();
+
+        $cInst = cls::get($params['mvc']);
+        $query = $cInst->getQuery();
         
         if ($folderId) {
             $query->where(array("#folderId = '[#1#]'", $folderId));

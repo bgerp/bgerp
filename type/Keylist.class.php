@@ -59,11 +59,13 @@ class type_Keylist extends core_Type
         }
         
         $value = trim($value);
-        
+
+        $minSignRegex = $this->params['allowMinus'] ? $minSignRegex = '\-' : '';
+
         // Очакваме валиден keylist
-        if (preg_match('/^[0-9\\|]*$/', $value)) {
+        if (preg_match("/^[0-9{$minSignRegex}\\|]*$/", $value)) {
             $div = '|';
-        } elseif (preg_match('/^[0-9\\,]*$/', $value)) {
+        } elseif (preg_match("/^[0-9{$minSignRegex}\\,]*$/", $value)) {
             $div = ',';
         } else {
             error('500 Очакваме валиден keylist');
