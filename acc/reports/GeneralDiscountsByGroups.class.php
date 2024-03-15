@@ -247,7 +247,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                     'contragentClass' => $receiptDetailRec->contragentClass,
                     'folderId' => $folderId,
                     'personalReceipts' => array(0 => array('receiptId' => $receiptDetailRec->receiptId,
-                        'allAutoDiscountContragent' => round($autoDiscount, 2),
+                        'allAutoDiscountContragent' => $autoDiscount,
                         'waitingOn' => $receiptDetailRec->waitingOn),
                     ));
             } else {
@@ -255,7 +255,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 $obj = &$recs[$id];
                 $obj->allAutoDiscountContragent += $autoDiscount;
                 array_push($obj->personalReceipts, array('receiptId' => $receiptDetailRec->receiptId,
-                    'allAutoDiscountContragent' => round($autoDiscount, 2),
+                    'allAutoDiscountContragent' => $autoDiscount,
                     'waitingOn' => $receiptDetailRec->waitingOn));
 
             }
