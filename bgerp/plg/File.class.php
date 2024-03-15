@@ -46,8 +46,8 @@ class bgerp_plg_File extends core_Plugin
         $mode = Mode::get('text');
         
         // Ако не се изпраща имейла, да не сработва
-        if ($mode != 'xhtml' && $mode != 'plain') {
-            
+        if ($mode != 'xhtml' && $mode != 'plain' && !Mode::is('exporting') && !Mode::is('printing') && !Mode::is('pdf')) {
+
             return ;
         }
         
