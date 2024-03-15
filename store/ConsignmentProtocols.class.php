@@ -345,7 +345,6 @@ class store_ConsignmentProtocols extends core_Master
         $snapshot = $data->rec->snapshot;
         $mvcTable = new core_Mvc;
         $mvcTable->FLD('blQuantity', 'int', 'tdClass=accCell');
-        
         $productCaption = ($data->rec->productType == 'ours') ? 'Наш артикул' : 'Чужд артикул';
         $table = cls::get('core_TableView', array('mvc' => $mvcTable));
         $details = $table->get($snapshot->rows, "count=№,productId={$productCaption},blQuantity=Количество");
@@ -393,6 +392,7 @@ class store_ConsignmentProtocols extends core_Master
             $recs[] = (object)array('count' => $count,
                                     'productId' => acc_Items::fetchField($b['ent2Id'], 'objectId'),
                                     'blQuantity' => $b['blQuantity'],);
+            $count++;
         }
 
         return $recs;
@@ -584,6 +584,7 @@ class store_ConsignmentProtocols extends core_Master
         $tplArr = array();
         $tplArr[] = array('name' => 'Протокол за отговорно пазене', 'content' => 'store/tpl/SingleLayoutConsignmentProtocol.shtml',
             'narrowContent' => 'store/tpl/SingleLayoutConsignmentProtocolNarrow.shtml', 'lang' => 'bg');
+			
         $res = doc_TplManager::addOnce($this, $tplArr);
         
         return $res;
