@@ -936,18 +936,14 @@ class core_App
         }
         
         if ($type === null) {
-            if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('BGERP_CURRENT_DOMAIN')) {
+            if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')
+                || Mode::is('printing') || Mode::is('exporting') || Mode::is('BGERP_CURRENT_DOMAIN')) {
                 $type = 'absolute';
             } else {
                 $type = 'relative';
             }
         }
 
-        if ($type == 'absolute' && Mode::is('exporting')) {
-            $type = 'absolute-force';
-        }
-        
-        // TRUE == 'absolute', FALSE == 'relative'
         if ($type === true) {
             $type = 'absolute';
         } elseif ($type === false) {
@@ -1189,7 +1185,7 @@ class core_App
             } else {
                 if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
-                } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST')) {
+                } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
                     $boot = $protocol . '://' . $auth . FORCE_BGERP_ABSOLUTE_HTTP_HOST . $dirName;
                 } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
