@@ -67,25 +67,7 @@ class doc_Search extends core_Manager
      */
     public function description()
     {
-        $DC = cls::get('doc_Containers');
-        
-        $this->fields = $DC->fields;
-        $this->dbTableName = $DC->dbTableName;
-        $this->dbIndexes = $DC->dbIndexes;
-        if (defined('SEARCH_DB_HOST')) {
-            $error = core_App::isReplicationOK();
-            if (!empty($error)) {
-                if (rand(1, 100)%99 == 0) {
-                    $this->logNotice($error);
-                    // todo: да праща signal msg на админа
-                }
-            } else {
-                $this->db->dbName = SEARCH_DB_NAME;
-                $this->db->dbPass = SEARCH_DB_PASS;
-                $this->db->dbUser = SEARCH_DB_USER;
-                $this->db->dbHost = SEARCH_DB_HOST;
-            }
-        }
+        $this->forceProxy('doc_Containers');
     }
     
     
