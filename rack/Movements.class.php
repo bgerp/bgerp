@@ -1196,9 +1196,6 @@ class rack_Movements extends rack_MovementAbstract
                     if(!$samePosPallets){
                         $res->errors = " На позицията вече има друга партида от артикула";
                         $res->errorFields[] = 'positionTo,productId';
-                    } else {
-                        $res->warnings[] = " На позицията вече има друга партида от артикула";
-                        $res->warningFields[] = 'positionTo,productId';
                     }
                 }
             }
@@ -1208,9 +1205,6 @@ class rack_Movements extends rack_MovementAbstract
                 if(!$samePosPallets) {
                     $res->errors = "|* <b>{$transaction->to}</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . '</b>';
                     $res->errorFields[] = 'positionTo,productId';
-                } else {
-                    $res->warnings[] = "|* <b>{$transaction->to}</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . '</b>';
-                    $res->warningFields[] = 'positionTo,productId';
                 }
                 
                 return $res;
