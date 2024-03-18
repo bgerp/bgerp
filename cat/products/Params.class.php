@@ -250,9 +250,12 @@ class cat_products_Params extends doc_Detail
                     } elseif ($weightPackagingsCount || cat_UoM::isWeightMeasure($measureId)) {
                         $mSysId = ($pSysId == 'weight') ? 'g' : 'kg';
                         $packagingId = cat_UoM::fetchBySysId($mSysId)->id;
-                        $v = 1 / $rec->paramValue;
-                        if ($error = cat_products_Packagings::checkWeightQuantity($rec->productId, $packagingId, $v)) {
-                            $form->setError('paramValue', $error);
+                        if(empty($rec->paramValue)){
+                            $form->setError('paramValue', 'Теглото не може да е|* 0');
+                        } else {
+                            if ($error = cat_products_Packagings::checkWeightQuantity($rec->productId, $packagingId, $v)) {
+                                $form->setError('paramValue', $error);
+                            }
                         }
                     }
                 }
