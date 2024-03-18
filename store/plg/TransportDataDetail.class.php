@@ -97,6 +97,12 @@ class store_plg_TransportDataDetail extends core_Plugin
         $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->volumeField});
         $row->netWeight = deals_Helper::getNetWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $masterState, $rec->{$mvc->netWeightField});
 
+        if(Mode::isReadOnly()){
+           if(isset($rec->{$mvc->netWeightField}) && empty($rec->{$mvc->netWeightField})){
+               $row->netWeight = null;
+           }
+        }
+
         if(!isset($rec->tareWeight)){
             if(isset($rec->weight) && isset($rec->netWeight)){
                 $rec->tareWeight = $rec->weight - $rec->netWeight;
