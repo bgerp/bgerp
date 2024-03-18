@@ -1973,14 +1973,19 @@ abstract class deals_InvoiceMaster extends core_Master
         $dQuery->show('productId,notes,discount,autoDiscount');
         while($dRec = $dQuery->fetch()){
             $save = false;
-            $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
-            if(!empty($invoiceInfo)){
-                if (strpos($dRec->notes, "{$invoiceInfo}") === false) {
-                    $dRec->notes = $invoiceInfo . ((!empty($dRec->notes) ? "\n" : '') . $dRec->notes);
-                    $save = true;
+
+            // Ако има посочен параметър за информация за фактура - ще се записва в забележките
+            if(isset($Detail->productInvoiceInfoParamName)){
+                $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
+                if(!empty($invoiceInfo)){
+                    if (strpos($dRec->notes, "{$invoiceInfo}") === false) {
+                        $dRec->notes = $invoiceInfo . ((!empty($dRec->notes) ? "\n" : '') . $dRec->notes);
+                        $save = true;
+                    }
                 }
             }
 
+            // Ако има ръчна отстъпка или авт. остъпка - ще се записва осреднената и ще се запомни ръчната
             if(!empty($dRec->discount) || !empty($dRec->autoDiscount)){
                 $dRec->inputDiscount = $dRec->discount;
                 if(isset($dRec->autoDiscount)){
