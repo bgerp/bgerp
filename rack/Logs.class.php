@@ -97,6 +97,7 @@ class rack_Logs extends core_Manager
 
         $this->setDbIndex('storeId');
         $this->setDbIndex('action');
+        $this->setDbIndex('movementId');
     }
 
 
