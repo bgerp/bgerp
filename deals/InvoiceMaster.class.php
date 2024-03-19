@@ -2141,6 +2141,7 @@ abstract class deals_InvoiceMaster extends core_Master
         // Ако е зададено в мода да не се рекалкулират отстъпките
         $rec = $mvc->fetchRec($id);
         if($rec->type != 'invoice') return;
+        if(!$mvc->hasPlugin('price_plg_TotalDiscount')) return;
 
         // Преизчисляване ако има автоматични отстъпки
         if($mvc->recalcAutoTotalDiscount($rec)){
