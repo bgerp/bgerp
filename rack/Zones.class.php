@@ -1202,7 +1202,7 @@ class rack_Zones extends core_Master
                     $packQuery->show('quantity,packagingId');
                     $packagings = array();
                     while($packRec = $packQuery->fetch()) {
-                        $packagings[] = $packRec;
+                        $packagings[$packRec->packagingId] = $packRec;
                     }
 
                     // Ако артикула няма опаковка палет намира се к-то на най-големия палет в системата
@@ -1210,7 +1210,7 @@ class rack_Zones extends core_Master
                     if(!array_key_exists($palletId, $packagings)){
                         $maxPalletQuantity = max(array_map(function($o) { return $o->quantity;}, $pallets));
                         if($maxPalletQuantity){
-                            $packagings[] = (object)array('packagingId' => $palletId, 'quantity' => $maxPalletQuantity);
+                            $packagings[$palletId] = (object)array('packagingId' => $palletId, 'quantity' => $maxPalletQuantity);
                         }
                     }
 
