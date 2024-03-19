@@ -144,6 +144,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             // Ако артикула е партиден
             $rec = $form->rec;
             $BatchClass = batch_Defs::getBatchDef($rec->productId);
+            $BatchClass->params['allowZero'] = true;
             if (!$BatchClass) {
                 
                 return;
@@ -347,12 +348,16 @@ class batch_plg_InventoryNotes extends core_Plugin
 
         $r = array();
         $recs = array();
+
+
+
         foreach ($summaryRows as $id => $sRow) {
             $sRec = $summaryRecs[$id];
             $recs[$id] = $sRec;
             $r[$id] = $sRow;
 
             $summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior, $alwaysShowBatches);
+
             if(!$summary) continue;
             $Def = batch_Defs::getBatchDef($sRec->productId);
 
@@ -372,7 +377,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $clone = clone $sRow;
                 $productId = new core_ET("<span class='note-batch-row'><span class='note-batch-product-name'>[#product#]</span>: <span class='note-batch-name'>[#batch#]</span></span>");
                 $productId->replace(strip_tags($clone->productId), 'product');
-                $productId->replace(($batch) ? $Def->toVerbal($batch) : tr('Без партида'), 'batch');
+                $productId->replace(($batch) ? $Def->toVerbal($batch) : "<i class='quiet'>" . tr('Без партида') . "</i>", 'batch');
                 $clone->productId = $productId;
 
                 $clone->blQuantity = $Double->toVerbal($bRec->blQuantity);

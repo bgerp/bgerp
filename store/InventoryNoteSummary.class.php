@@ -130,8 +130,8 @@ class store_InventoryNoteSummary extends doc_Detail
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,silent,removeAndRefreshForm=groups,tdClass=large-field');
-        $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
-        $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
+        $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,notNull,value=0');
+        $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
         $this->FLD('charge', 'user', 'caption=Начет');
@@ -455,7 +455,8 @@ class store_InventoryNoteSummary extends doc_Detail
                     }
                 }
             }
-            
+
+            $row->quantity = ht::styleIfNegative($row->quantity, $rec->quantity);
             $row->blQuantity = ht::styleIfNegative($row->blQuantity, $rec->blQuantity);
         }
         

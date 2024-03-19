@@ -82,8 +82,16 @@ class purchase_InvoiceDetails extends deals_InvoiceDetail
      * Полета, които се експортват
      */
     public $exportToMaster = 'quantity, productId=code|name';
-    
-    
+
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'autoDiscount,inputDiscount';
+
+
     /**
      * Описание на модела
      */

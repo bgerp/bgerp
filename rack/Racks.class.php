@@ -530,7 +530,7 @@ class rack_Racks extends core_Master
                 if (!isset($title) && $movedTo[$posFull]) {
                     $title = $pos;
                     $attr['style'] = 'color:#6c6;';
-                    $hint = tr('Очаква се палет');
+                    $hint = tr('Очаква се палет') . " {$prodTitle}";
                 }
                 
                 // Ако ще се премества палет
@@ -562,10 +562,6 @@ class rack_Racks extends core_Master
                 
                 if ($hint) {
                     $attr['title'] = "{$hint}";
-                }
-
-                if($posFull == '2-F-23'){
-                    //bp($attr, $title, $tdBackground);
                 }
                 $res .= ht::createElement('td', $attr, $title);
             }

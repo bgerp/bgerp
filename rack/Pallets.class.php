@@ -113,6 +113,12 @@ class rack_Pallets extends core_Manager
 
 
     /**
+     * Работен кеш
+     */
+    private static $lastPositionCache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -434,7 +440,7 @@ class rack_Pallets extends core_Manager
                     
                     // Ако имаме резервирана позиция за този продукт
                     if($reserved[$pos] == $pRec->productId) {
-                        $score += 6;
+                        $score += 13;
                     }
                     
                     // Ако нямаме достатъчно на ниска позиция
@@ -455,7 +461,7 @@ class rack_Pallets extends core_Manager
                     }
                     
                     if($used[$posDw]->productId == $pRec->productId) {
-                        $score += 3.5;
+                        $score += 9;
                     }
                     
                     // Ако левия или десния са от този продукт или близки на него
@@ -469,7 +475,7 @@ class rack_Pallets extends core_Manager
 
                     // Ако последно е сложено отдолу, текущото е с по-висок приоритет
                     if($posDw == $lastPosition){
-                        $score += 1;
+                        $score += 5;
                     }
 
                     // Отделяме най-добрият резултат
@@ -1331,12 +1337,15 @@ class rack_Pallets extends core_Manager
      */
     public static function getLastPalletPosition($productId, $storeId, $direction = 'down')
     {
+        $key = "{$productId}|{$storeId}|{$direction}";
+        if(array_key_exists($key, static::$lastPositionCache)) return static::$lastPositionCache[$key];
+
         $floor = rack_PositionType::FLOOR;
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state IN ('active', 'closed')");
         if($direction == 'down'){
             $field = 'position';
-            $mQuery->where("#positionTo IS NULL OR #positionTo = '{$floor}' AND #position IS NOT NULL");
+            $mQuery->where("(#positionTo IS NULL OR #positionTo = '{$floor}') AND #position IS NOT NULL");
         } else {
             $field = 'positionTo';
             $mQuery->where("#position = '{$floor}' AND #positionTo IS NOT NULL");
@@ -1344,7 +1353,8 @@ class rack_Pallets extends core_Manager
 
         $mQuery->orderBy('createdOn', 'DESC');
         $mQuery->show($field);
+        static::$lastPositionCache[$key] = $mQuery->fetch()->{$field};
 
-        return $mQuery->fetch()->{$field};
+        return static::$lastPositionCache[$key];
     }
 }
