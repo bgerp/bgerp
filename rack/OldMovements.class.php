@@ -50,12 +50,18 @@ class rack_OldMovements extends rack_MovementAbstract
      * Кой може да приключи движение
      */
     public $canDone = 'no_one';
+        
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'ceo,rackMaster';
 
 
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,documents,,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
+    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,documents,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
 
 
     /**
