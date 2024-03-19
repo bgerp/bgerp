@@ -144,12 +144,11 @@ class batch_plg_InventoryNotes extends core_Plugin
             // Ако артикула е партиден
             $rec = $form->rec;
             $BatchClass = batch_Defs::getBatchDef($rec->productId);
-            $BatchClass->params['allowZero'] = true;
             if (!$BatchClass) {
                 
                 return;
             }
-            
+            $BatchClass->params['allowZero'] = true;
             if (!empty($rec->batchEx) && !empty($rec->batchNew)) {
                 $form->setError('batchNew,batchEx', 'Само едното поле може да е попълнено, или никое');
             }
