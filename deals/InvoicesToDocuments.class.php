@@ -407,7 +407,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 $count++;
                 $unallocated -= $rec->amount;
                 $data->rows[$key] = $this->recToVerbal($rec);
-                $data->rows[$key]->documentName = tr("Kъм {$data->rows[$key]->documentName}");
+                $data->rows[$key]->documentName = tr("Към {$data->rows[$key]->documentName}");
 
                 if(!Mode::isReadOnly()){
                     $data->rows[$key]->currencyId = $currencyCode;
