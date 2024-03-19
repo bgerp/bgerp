@@ -342,10 +342,13 @@ class rack_Movements extends rack_MovementAbstract
     {
         // Ако записите се изтриват по крон, няма да се трият от архива
         if(Mode::is('movementDeleteByCron')) return;
+        $deletedRecs = $query->getDeletedRecs();
+        $deletedIds = arr::extractValuesFromArray($deletedRecs, 'id');
 
-        foreach ($query->getDeletedRecs() as $rec) {
-            rack_OldMovements::delete("#movementId = {$rec->id}");
-            rack_Logs::delete("#movementId = {$rec->id}");
+        if(countR($deletedIds)){
+            $deletedIdInline = implode(',', $deletedIds);
+            rack_OldMovements::delete("#movementId IN ({$deletedIdInline})");
+            rack_Logs::delete("#movementId IN ({$deletedIdInline})");
         }
     }
 
