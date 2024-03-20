@@ -179,6 +179,7 @@ class rack_Zones extends core_Master
         $this->setDbUnique('num,storeId');
         $this->setDbIndex('storeId');
         $this->setDbIndex('containerId');
+        $this->setDbIndex('groupId');
     }
 
 
