@@ -87,6 +87,11 @@ div.active {
     padding: 0px 0px 50px 20px;
     flex-direction: column-reverse ;
 }
+
+.wide .floorTabs.rightPosition a {
+    text-align: center;
+}
+
 .floorTabs .tab {
     box-sizing: border-box;
     font-weight: bold;
