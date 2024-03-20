@@ -222,9 +222,9 @@ class floor_Plans extends core_Master {
         }
         
         if($tabs) {
-            $tpl = new ET("{$tabs}<div class='holder'><div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div></div>");
+            $tpl = new ET("{$tabs}<div class='holder' data-id=\"{$planId}\" id=\"floor\"><div  class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div></div>");
         } else {
-            $tpl = new ET("<div class='holder'> <div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div></div>");
+            $tpl = new ET("<div class='holder' data-id=\"{$planId}\" id=\"floor\"> <div  class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div></div>");
         }
         
         jqueryui_Ui::enable($tpl);

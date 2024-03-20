@@ -202,7 +202,7 @@ function refreshFloor() {
 }
 
 function calculatePosition(){
-	if($('.floorTabs').hasClass('topPosition')) {
-		$('body').css('flex-direction', 'row');
+	if($('.wide .floorTabs').hasClass('topPosition')) {
+		$('body').css('flex-direction', 'column');
 	}
 }
