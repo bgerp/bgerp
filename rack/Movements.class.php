@@ -1196,10 +1196,10 @@ class rack_Movements extends rack_MovementAbstract
                 $toQuantity = $toPallet->quantity;
 
                 if($toProductId == $transaction->productId && $transaction->batch != $toPallet->batch){
-                    if(!$samePosPallets){
+                    if($samePosPallets == 'no'){
                         $res->errors = " На позицията вече има друга партида от артикула";
                         $res->errorFields[] = 'positionTo,productId';
-                    } else {
+                    } elseif($samePosPallets == 'yes'){
                         $res->warnings[] = " На позицията вече има друга партида от артикула";
                         $res->warningFields[] = 'positionTo,productId';
                     }
@@ -1208,10 +1208,10 @@ class rack_Movements extends rack_MovementAbstract
 
             // Ако има нова позиция и тя е заета от различен продукт - грешка
             if (isset($toProductId) && $toProductId != $transaction->productId) {
-                if(!$samePosPallets) {
+                if($samePosPallets == 'no'){
                     $res->errors = "|* <b>{$transaction->to}</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . '</b>';
                     $res->errorFields[] = 'positionTo,productId';
-                } else {
+                } elseif($samePosPallets == 'yes'){
                     $res->warnings[] = "|* <b>{$transaction->to}</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . '</b>';
                     $res->warningFields[] = 'positionTo,productId';
                 }

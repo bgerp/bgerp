@@ -568,6 +568,9 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
 
             if($redirectError = deals_Helper::getContoRedirectError($shipped, 'canConvert', 'generic', 'трябва да са вложими и да не са генерични')){
+                if($class == 'pos_Reports'){
+                    doc_Threads::doUpdateThread($rec->threadId);
+                }
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }

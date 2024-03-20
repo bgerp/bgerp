@@ -616,20 +616,15 @@ class rack_Pallets extends core_Manager
     /**
      * Може ли в склада да има повече от един палет на една позиция
      *
-     * @param $storeId
-     * @return bool
+     * @param $storeId - ид на склад
+     * @return string  - no [забранено], yes [да с предупреждение], yesWithoutWarning [да без предупреждение]
      */
     public static function canHaveMultipleOnOnePosition($storeId)
     {
         $sRec = store_Stores::fetch($storeId);
-        if($sRec) {
-            $samePosPallets = $sRec->samePosPallets;
-        }
-        if(!isset($samePosPallets)) {
-            $samePosPallets = rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
-        }
+        if(isset($sRec) && !empty($sRec->samePosPallets)) return $sRec->samePosPallets;
 
-        return $samePosPallets == 'yes';
+        return rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
     }
 
 
@@ -663,7 +658,7 @@ class rack_Pallets extends core_Manager
 
         if(!$rec) {
             $samePosPallets = static::canHaveMultipleOnOnePosition($storeId);
-            if(!$samePosPallets) {
+            if($samePosPallets == 'no') {
                 $rQuery2 = static::getQuery();
                 $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
                 if(core_Packs::isInstalled('batch')){
