@@ -5,8 +5,8 @@ function cashActions() {
 
     // При натискане на бутона за банково плащане
     $(document.body).on('click', ".cardPaymentBtn", function(e){
-        var element = $(this);
-        var amount = parseFloat(element.attr("data-amount")).toFixed(2);
+        let element = $(this);
+        let amount = parseFloat(element.attr("data-amount")).toFixed(2);
         console.log("SEND " + amount);
         $(".fullScreenCardPayment").css("display", "block");
 
@@ -19,8 +19,8 @@ function cashActions() {
         $(".fullScreenCardPayment").css("display", "none");
 
         // Показване на статуса за отказ
-        var element = getPressedContoBtn();
-        var msg = element.attr("data-oncancel");
+        let element = getPressedContoBtn();
+        let msg = element.attr("data-oncancel");
         render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
     });
 
@@ -36,7 +36,7 @@ function cashActions() {
         resObj['url'] = successUrl;
 
         // Директно обръщане към успешното плащане - без да се чака отговор от терминала
-        var params = {param:'manual',redirectUrl:returnUrl};
+        let params = {param:'manual',redirectUrl:returnUrl};
         console.log("MANUAL CALL TO: " + successUrl);
         getEfae().process(resObj, params);
         $(".fullScreenCardPayment").css("display", "none");
@@ -49,8 +49,8 @@ function cashActions() {
  */
 function getPressedContoBtn()
 {
-    var pressed = sessionStorage.getItem('pressed');
-    var element = $("#" + pressed);
+    let pressed = sessionStorage.getItem('pressed');
+    let element = $("#" + pressed);
 
     return element;
 }
