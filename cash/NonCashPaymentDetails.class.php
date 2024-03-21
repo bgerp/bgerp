@@ -8,7 +8,7 @@
  * @package   cash
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -65,7 +65,8 @@ class cash_NonCashPaymentDetails extends core_Manager
         $this->FLD('documentId', 'key(mvc=cash_Pko)', 'input=hidden,mandatory,silent');
         $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title)', 'caption=Метод');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
-        
+        $this->FLD('param', 'varchar', 'caption=Параметър,input=none');
+
         $this->setDbIndex('documentId');
         $this->setDbUnique('documentId,paymentId');
     }
@@ -147,6 +148,15 @@ class cash_NonCashPaymentDetails extends core_Manager
                 $row->buttons = $toolbar->renderHtml(2);
              }
         }
+
+        $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+        if($rec->paymentId == $cardPaymentId){
+            if(!empty($rec->param) && !Mode::isReadOnly()){
+                $paramString = ($rec->param == 'card') ? "<span style='color:blue;'>" . tr('потвърдено') . "</span>" : "<span style='color:red;'>" . tr('ръчно') . "</span>";
+                $row->paymentId .= " ({$paramString})";
+            }
+        }
+
     }
     
     
