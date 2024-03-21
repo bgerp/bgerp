@@ -6610,13 +6610,14 @@ div.location.public {
 .eshop-group-button {
     float: left;
     width: 46%;
-    margin: 10px 2%;
+    margin: 5px 2%;
     text-align: center;
     .eshop-group-button-title {
 		background: none !important;
 		font-size: 1em;
         margin-top: 2px;
 		font-weight: normal;
+		height: 50px;
         a{
 	        color: #048;
         }
