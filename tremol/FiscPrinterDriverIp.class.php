@@ -1234,9 +1234,11 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                         }
                     } else {
                         if ($isDetailed) {
-                            $fp->PrintDetailedFMReportByDate($fromDate, $toDate);
+//                            $fp->PrintDetailedFMReportByDate($fromDate, $toDate);
+                            $fp->PrintDetailedFMPaymentsReportByDate($fromDate, $toDate);
                         } else {
-                            $fp->PrintBriefFMReportByDate($fromDate, $toDate);
+//                            $fp->PrintBriefFMReportByDate($fromDate, $toDate);
+                            $fp->PrintBriefFMPaymentsReportByDate($fromDate, $toDate);
                         }
                     }
                 }
