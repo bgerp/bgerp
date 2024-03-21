@@ -508,9 +508,21 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
                 if (!is_null($rec->inDet) && ($rec->seeBy == 'contragentName')) {
-                    foreach ($dRec->personalReceipts as $pReceipt) {
+                    $mark = 0;
+                    $dRec->personalReceipts[0] = (object)array(
+
+                        'receiptId' => '',
+                        'waitingOn' => '',
+                        'allAutoDiscountContragent' => '',
+                    );
+                    ksort($dRec->personalReceipts);
+                    foreach ($dRec->personalReceipts as $pKey => $pReceipt) {
 
                         $dCloneRec = clone $dRec;
+                        if ($pKey != 0) {
+                            $dCloneRec->contragentName = '';
+                            $dCloneRec->allAutoDiscountContragent = '';
+                        }
 
                         $dCloneRec->receiptId = $pReceipt->receiptId;
 
