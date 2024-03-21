@@ -5792,7 +5792,8 @@ div.location.public {
     background: none !important;
     font-size: 1em;
     margin-top: 2px;
-    font-weight: normal; }
+    font-weight: normal;
+    height: 50px; }
     .eshop-group-button .eshop-group-button-title a {
       color: #004488; }
   .eshop-group-button .eshop-group-button-img a {

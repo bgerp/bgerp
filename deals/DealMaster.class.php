@@ -2040,17 +2040,17 @@ abstract class deals_DealMaster extends deals_DealBase
             $fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
         }
         
-        // Ако не е подадено да се начислявали ддс, определяме от контрагента
-        if (empty($fields['makeInvoice'])) {
-            $fields['makeInvoice'] = 'yes';
-        }
-        
         // Състояние на плащането, чакащо
         $fields['paymentState'] = 'pending';
         
         // Опиваме се да запишем мастъра на сделката
         $rec = (object)$fields;
-        
+
+        // Ако не е подадено да се начислявали ддс, определяме от контрагента
+        if (empty($fields['makeInvoice'])) {
+            $rec->makeInvoice = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'makeInvoice', 'lastDocUser|lastDoc');
+        }
+
         if($me instanceof sales_Sales){
             if(isset($fields['deliveryTermId'])){
                 if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
