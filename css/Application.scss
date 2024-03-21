@@ -1800,6 +1800,43 @@ a.tUnsighted {
 		color: #999;
 	}
 }
+
+.modalBtn {
+	height: 70px;
+	width: 450px;
+	vertical-align: middle;
+	cursor: pointer;
+	box-sizing: border-box;
+	padding: 10px 20px;
+	color: white;
+	font-size: 1.5em !important;
+	text-align: center;
+	border-radius: 10px;
+	color: white !important;
+	font-weight: bold;
+	border: 1px solid #666;
+	border-radius: 3px;
+	box-shadow: rgba(233,233,233,.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0,0,0,.1);
+	text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+	background-color: #ccc;
+	&.disabledBtn {
+		color: #999 !important
+	}
+
+}
+.confirmPayment {
+	background-color: #4c9d2c !important;
+	&.disabledBtn {
+		background-color: mix(#4c9d2c, #333) !important;
+	}
+}
+.closePaymentModal {
+	background-color: #c51818 !important;
+	&.disabledBtn {
+		background-color: mix(#c51818, #333) !important;
+	}
+}
+
 .header .documentTags {
 	position: relative;
 	top: -4px;
