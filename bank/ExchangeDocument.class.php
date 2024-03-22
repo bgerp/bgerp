@@ -162,7 +162,7 @@ class bank_ExchangeDocument extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
             'caption=Статус, input=none'
         );
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
     
     

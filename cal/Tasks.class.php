@@ -311,7 +311,7 @@ class cal_Tasks extends embed_Manager
         $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable,autohide');
+        $this->FLD('sharedUsers', 'userList(showClosedUsers=no)', 'caption=Споделяне->Потребители,changable,autohide');
         
         // Приоритет
         $this->FLD(
