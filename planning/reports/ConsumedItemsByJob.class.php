@@ -295,7 +295,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
 
 
-            $pQuery->in('state', array('rejected', 'draft'), true);
+            $pQuery->in('state', array('rejected', 'draft', 'pending'), true);
 
             //Включване на не складируемите артикули
             if($rec->unstackableOn != 'yes'){
