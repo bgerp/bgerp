@@ -211,6 +211,13 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 $cQuantity = $sign * $amount;
                 $amount = $sign * $amount * $rec->currencyRate;
 
+                if($reverse){
+                    $amountInStore = cat_Products::getWacAmountInStore($detailRec->quantity, $detailRec->productId, $rec->valior, $rec->storeId);
+                    if(isset($amountInStore)){
+                        $amount = $sign * $amountInStore;
+                    }
+                }
+
                 $entries[] = array(
                     'amount' => $amount,
                     'debit' => $debit,
