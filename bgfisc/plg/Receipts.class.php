@@ -234,27 +234,30 @@ class bgfisc_plg_Receipts extends core_Plugin
      */
     private static function getReceiptPayments($rec, $Driver, $driverRec)
     {
-        $res = array();
+        $res = $errors = array();
         
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#receiptId = '{$rec->id}'");
         $query->where("#action LIKE '%payment%'");
         $query->show('action,amount');
-        $errors = array();
         
         while ($dRec = $query->fetch()) {
             list(, $paymentType) = explode('|', $dRec->action);
-            if ($paymentType != -1) {
+            $code = 0;
+            if ($paymentType != -1){
                 $paymentCode = $Driver->getPaymentCode($driverRec, $paymentType);
                 if(isset($paymentCode)){
-                    if (!array_key_exists($paymentType, $res)) {
-                        $res[$paymentCode] = array('PAYMENT_TYPE' => $paymentCode, 'PAYMENT_AMOUNT' => 0);
-                    }
-                    $res[$paymentCode]['PAYMENT_AMOUNT'] += abs($dRec->amount);
+                    $code = $paymentCode;
                 } else {
                     $errors[] = cond_Payments::getTitleById($paymentType);
+                    continue;
                 }
             }
+
+            if (!array_key_exists($code, $res)) {
+                $res[$code] = array('PAYMENT_TYPE' => $code, 'PAYMENT_AMOUNT' => 0);
+            }
+            $res[$code]['PAYMENT_AMOUNT'] += abs($dRec->amount);
         }
         
         if (count($errors)) {
