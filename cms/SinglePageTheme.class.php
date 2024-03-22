@@ -2,9 +2,9 @@
 
 
 /**
- * Безкрайна тема за статии във външната част
+ * Единична страница
  *
- * @title     Безкрайна CMS тема
+ * @title     Единична страница
  *
  * @category  bgerp
  * @package   cms
@@ -15,8 +15,13 @@
  *
  * @since     v 0.1
  */
-class cms_InfinityTheme extends cms_FancyTheme
+class cms_SinglePageTheme extends cms_FancyTheme
 {
+
+    /**
+     * Общ лейаут за темата
+     */
+    public $layout = 'cms/tpl/SinglePage.shtml';
 
 
     /**
@@ -30,8 +35,13 @@ class cms_InfinityTheme extends cms_FancyTheme
     {
         parent::prepareWrapper($tpl);
 
-        $tpl->append(".title {border: 1px solid black;}", 'STYLES');
-        $tpl->append(".menu {border: 1px solid red;}", 'STYLES');
+
+        // добавяме css-a за структурата
+        $tpl->push('cms/css/bootstrap.css', 'CSS');
+        $tpl->push('cms/bootstrap-icons/bootstrap-icons.css', 'CSS');
+        $tpl->push('cms/css/SinglePage.css', 'CSS');
+
+        $tpl->push('cms/js/main.js', 'JS');
     }
 
 
@@ -49,11 +59,12 @@ class cms_InfinityTheme extends cms_FancyTheme
 
             return false;
         }
+        $menu->append("<nav id='navbar' class='navbar order-last order-lg-0'><ul>");
 
         foreach ($aArr as $aRec) {
-            $menu->append("<span class='menu' id=menu_'{$aRec->id}'> {$aRec->title} </span>");
+            $menu->append("<li> <a href='#item{$aRec->id}'> {$aRec->title}</a> </li>");
         }
-
+        $menu->append("</ul></nav>");
         return $menu;
     }
 
@@ -73,10 +84,11 @@ class cms_InfinityTheme extends cms_FancyTheme
             return false;
         }
 
+
         foreach ($aArr as $aRec) {
-            $content->append("<div class='title' id=title_'{$aRec->id}'>{$aRec->title}</div>");
             $body = cms_Articles::getVerbal($aRec, 'body');
-            $content->append("<div class='body' id=body_'{$aRec->id}'>{$body}</div>");
+            $content->append("<section id='item{$aRec->id}'><div class='container'><h3>{$aRec->title}</h3>{$body}</div></section>");
+
         }
 
         return $content;

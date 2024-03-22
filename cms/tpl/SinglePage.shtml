@@ -1,0 +1,34 @@
+<!--ET_BEGIN cookies-->
+[#cookies#]
+<div class = 'cookies'>
+        [#COOKIE_TEXT#]
+        <span class="agree">Съгласен съм</span>
+</div>
+<!--ET_END cookies-->
+[#TOP_PAGE#]
+
+
+<header id="header" class="fixed-top ">
+    <div class="container-fluid">
+
+        <div class="row justify-content-center">
+            <div class="col-xl-9 d-flex align-items-center justify-content-lg-between">
+                <h1 class="logo me-auto me-lg-0">[#CORE_APP_NAME#]</h1>
+                <!-- Uncomment below if you prefer to use an image logo -->
+                <!-- <a href="index.html" class="logo me-auto me-lg-0"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
+
+               [#MENU#]
+                <i class="bi bi-list mobile-nav-toggle"></i>
+
+            </div>
+        </div>
+
+    </div>
+</header><!-- End Header -->
+
+
+<main id="main">
+    [#CMS_LAYOUT#]
+
+
+</main>
