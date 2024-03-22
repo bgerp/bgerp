@@ -551,7 +551,10 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 }
 
                 // Извличане на записите за производството
-                $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($bomData->productId, $bomData->quantity, $bomData->storeId, null, $class, $rec->id, null, $rec->valior, $bomInfo['expenses'], $bomInfo['resources']);
+                $isComplete = ($bomData->rec->isComplete == 'auto') ? cat_Setup::get('DEFAULT_BOM_IS_COMPLETE') : $bomData->rec->isComplete;
+                $equalizePrimeCost = ($isComplete == 'yes') ? true : null;
+                $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($bomData->productId, $bomData->quantity, $bomData->storeId, null, $class, $rec->id, null, $rec->valior, $bomInfo['expenses'], $bomInfo['resources'], null, $equalizePrimeCost);
+
                 if(countR($prodArr)){
                     $entries = array_merge($entries, $prodArr);
                 }
