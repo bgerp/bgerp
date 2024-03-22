@@ -149,7 +149,7 @@ class cash_NonCashPaymentDetails extends core_Manager
             }
         }
 
-        $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+        $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
         if ($rec->paymentId == $cardPaymentId) {
             if (!empty($rec->param) && !Mode::isReadOnly()) {
                 $paramString = ($rec->param == 'card') ? "<span style='color:blue;'>" . tr('потвърдено') . "</span>" : "<span style='color:red;'>" . tr('ръчно') . "</span>";
@@ -281,7 +281,7 @@ class cash_NonCashPaymentDetails extends core_Manager
      */
     public static function getCardPaymentRec($pkoId)
     {
-        $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+        $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
 
         return cash_NonCashPaymentDetails::fetch("#paymentId = {$cardPaymentId} AND #documentId = {$pkoId}");
     }

@@ -1351,7 +1351,7 @@ class pos_Terminal extends peripheral_Terminal
         $payments = pos_Points::fetchSelected($rec->pointId);
 
         if(!isset($rec->revertId)){
-            $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+            $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
             foreach ($payments as $paymentId => $paymentTitle){
                 $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl);
                 $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');

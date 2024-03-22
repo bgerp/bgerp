@@ -563,7 +563,7 @@ class pos_Receipts extends core_Master
         $paymentOptions = array();
         $pQuery = cond_Payments::getQuery();
         $pQuery->where("#state = 'active'");
-        $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+        $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
         while($pRec = $pQuery->fetch()){
             $paymentName = cond_Payments::getTitleById($pRec->id, false);
             $paymentOptions[$pRec->id] = $paymentName;

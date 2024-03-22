@@ -179,7 +179,7 @@ class pos_ReceiptDetails extends core_Detail
             $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
 
             if(!empty($param)){
-                $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+                $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if($type == $cardPaymentId){
                     $rec->param = $param;
                 }
@@ -814,7 +814,7 @@ class pos_ReceiptDetails extends core_Detail
                 $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
                 $row->amount = ht::styleNumber($row->amount, $rec->amount);
 
-                $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+                $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if($action->value == $cardPaymentId){
                     if(!empty($rec->param)){
                         $paramVal = ($rec->param == 'card') ? tr('Потв.') : tr('Ръчно потв.');
