@@ -196,6 +196,7 @@ class cms_Setup extends core_ProtoSetup
         // Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('cms_DefaultTheme');
         $html .= core_Classes::add('cms_FancyTheme');
+        $html .= core_Classes::add('cms_InfinityTheme');
 
         return $html;
     }

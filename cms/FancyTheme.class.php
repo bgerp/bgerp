@@ -84,8 +84,17 @@ class cms_FancyTheme extends core_ProtoInner
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
 
         $css = '';
+        $content = $this->getCmsLayout();
+        if ($content !== false) {
+            $tpl->replace($content, 'CMS_LAYOUT');
+        }
 
-        $menu = new ET("<div id='cmsMenu' class='menuRow'><div class='centerContent'>[#CMS_MENU#]  </div></div>");
+        $menuTitle = $this->getMenu();
+        $menu = new ET("<div id='cmsMenu' class='menuRow'><div class='centerContent'>[#CMS_MENU#]</div></div>");
+        if ($menuTitle !== false) {
+            $menu->replace($menuTitle, 'CMS_MENU');
+        }
+
         if($this->innerForm->menuPosition == 'above'){
             $tpl->replace($menu, 'TOP_PAGE');
             $css .= "\n    header {border-bottom: 2px solid {$this->innerForm->baseColor} !important;}";
@@ -237,6 +246,28 @@ class cms_FancyTheme extends core_ProtoInner
         $tpl->push('cms/css/Fancy.css', 'CSS');
         // Добавяме дефолт темата за цветове
         $tpl->push('css/default-theme.css', 'CSS');
+    }
+
+
+    /**
+     * Помощна функция за подготовка на менюто, което ще се покаже
+     *
+     * @return false|core_ET
+     */
+    protected function getMenu()
+    {
+        return false;
+    }
+
+
+    /**
+     * Помощна функция за подготовка на лейаута, който ще се покаже
+     *
+     * @return false|core_ET
+     */
+    protected function getCmsLayout()
+    {
+        return false;
     }
 
 
