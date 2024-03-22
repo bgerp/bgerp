@@ -89,11 +89,7 @@ class cms_FancyTheme extends core_ProtoInner
             $tpl->replace($content, 'CMS_LAYOUT');
         }
 
-        $menuTitle = $this->getMenu();
-        $menu = new ET("<div id='cmsMenu' class='menuRow'><div class='centerContent'>[#CMS_MENU#]</div></div>");
-        if ($menuTitle !== false) {
-            $menu->replace($menuTitle, 'CMS_MENU');
-        }
+        $menu = $this->getMenu();
 
         if($this->innerForm->menuPosition == 'above'){
             $tpl->replace($menu, 'TOP_PAGE');
@@ -256,7 +252,8 @@ class cms_FancyTheme extends core_ProtoInner
      */
     protected function getMenu()
     {
-        return false;
+
+        return new ET("<div id='cmsMenu' class='menuRow'><div class='centerContent'>[#CMS_MENU#]</div></div>");
     }
 
 
