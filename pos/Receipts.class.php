@@ -1245,7 +1245,7 @@ class pos_Receipts extends core_Master
         $this->logWrite('Избор на контрагент в бележка', $id);
 
         if (Request::get('ajax_mode')) {
-            return pos_Terminal::returnAjaxResponse($id, null, true, true, true, true, 'add', true, false, );
+            return pos_Terminal::returnAjaxResponse($id, null, true, true, true, true, 'add', true);
         }
 
         followRetUrl();
