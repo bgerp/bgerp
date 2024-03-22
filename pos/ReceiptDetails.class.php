@@ -579,6 +579,27 @@ class pos_ReceiptDetails extends core_Detail
                 if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
                     $cardInfo = crm_ext_Cards::getInfo($rec->ean);
                     if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
+
+                        // Ако след сканиране на карта в празна бележка, клиента има ТОЧНО една чернова бележка - редирект към нея
+                        if(!pos_ReceiptDetails::count("#receiptId = {$receiptRec->id}")){
+                            if(pos_Receipts::count("#contragentClass = {$cardInfo['contragentClassId']} AND #contragentObjectId = {$cardInfo['contragentId']} AND #state = 'draft'") == 1){
+                                $existingId = pos_Receipts::fetchField("#contragentClass = {$cardInfo['contragentClassId']} AND #contragentObjectId = {$cardInfo['contragentId']} AND #state = 'draft'");
+                                if(pos_Receipts::haveRightFor('terminal', $existingId)){
+                                    $resObj = new stdClass();
+                                    $resObj->func = 'redirect';
+                                    $resObj->arg = array('url' => toUrl(array('pos_Terminal', 'open', 'receiptId' => $existingId)));
+                                    $res[] = $resObj;
+                                    core_Statuses::newStatus("Отворена е последната чернова бележка на клиента|*!");
+
+                                    $hitTime = Request::get('hitTime', 'int');
+                                    $idleTime = Request::get('idleTime', 'int');
+                                    $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+
+                                    return array_merge($res, (array) $statusData);
+                                }
+                            }
+                        }
+
                         $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $rec->receiptId, 'ajax_mode' => 1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
                     } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
                         core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
