@@ -362,7 +362,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $dist = 45;
 
         $row->productId = cat_Products::getHyperlink($dRec->productId, true);
-        for ($i = 0; $x <= $dist; $x++) {
+        for ($i = 0; $i <= $dist; $i++) {
             $row->productId .= '&nbsp';
         }
 
