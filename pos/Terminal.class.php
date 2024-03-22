@@ -529,7 +529,6 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'quantity':
                 $inputUrl = array('pos_ReceiptDetails', 'dispatch', 'receiptId' => $rec->id);
-                $keyupUrl = null;
                 break;
             case 'text':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext');
@@ -902,6 +901,8 @@ class pos_Terminal extends peripheral_Terminal
             }
 
             foreach ($batchesInStore as $batch => $quantity){
+                if(!empty($string) && mb_strpos($batch, $string) === false) continue;
+
                 $class = 'resultBatch posBtns navigable';
                 $cnt++;
                 $dataUrl['string'] = urlencode($batch);
