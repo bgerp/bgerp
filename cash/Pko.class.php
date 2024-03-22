@@ -217,9 +217,7 @@ class cash_Pko extends cash_Document
         if(isset($data->toolbar->buttons['btnConto'])){
 
             // Ако има направено безналично плащане с карта и има периферия за банковия терминал
-            $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
-            $cardPaymentRec = cash_NonCashPaymentDetails::fetch("#paymentId = {$cardPaymentId} AND #documentId = {$rec->id}");
-
+            $cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id);
             if(!is_object($cardPaymentRec)) return;
             $amount = round($cardPaymentRec->amount * $rec->rate, 2);
 
@@ -277,8 +275,7 @@ class cash_Pko extends cash_Document
 
             // Записване на допълнителната информация за банковото плащане
             $param = Request::get('param', 'enum(manual,card)');
-            $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
-            $cardPaymentRec = cash_NonCashPaymentDetails::fetch("#paymentId = {$cardPaymentId} AND #documentId = {$rec->id}");
+            $cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id);
             $cardPaymentRec->param = $param;
             cash_NonCashPaymentDetails::save($cardPaymentRec);
 
@@ -328,5 +325,21 @@ class cash_Pko extends cash_Document
 
         $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') .' ...<br> ' . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
         $tpl->append($modalTpl);
+    }
+
+
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id)){
+            if(!empty($cardPaymentRec->param)){
+                core_Statuses::newStatus('Документът не може да се оттегли, защото плащането с карта е потвърдено|*!', 'error');
+
+                return false;
+            }
+        }
     }
 }
