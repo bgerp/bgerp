@@ -894,14 +894,14 @@ class pos_Terminal extends peripheral_Terminal
             $batchTpl = new core_ET("");
 
             $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior);
+            $cnt = 0;
             if(countR($batchesInStore)){
-                $cnt = 0;
                 $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Добавяне на артикул без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
                 $batchTpl->append($btn);
             }
 
             foreach ($batchesInStore as $batch => $quantity){
-                if(!empty($string) && mb_strpos($batch, $string) === false) continue;
+                if(!empty($string) && mb_strpos(mb_strtolower($batch), mb_strtolower($string)) === false) continue;
 
                 $class = 'resultBatch posBtns navigable';
                 $cnt++;
