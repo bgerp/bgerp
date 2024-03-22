@@ -63,15 +63,18 @@ class cms_SinglePageTheme extends cms_FancyTheme
 
         $img = $this->innerForm->wallpaper;
 
-        $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
+        if ($img) {
+            $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
 
-        $imageURL = $img->getUrl('forced');
+            $imageURL = $img->getUrl('forced');
 
-        $css = "\n  #wallpaper-block {background: url({$imageURL}) top center;} ";
+            $css = "\n  #wallpaper-block {background: url({$imageURL}) top center;} ";
 
-        if ($css) {
-            $tpl->append($css, 'STYLES');
+            if ($css) {
+                $tpl->append($css, 'STYLES');
+            }
         }
+
 
         // добавяме css-a за структурата
         $tpl->push('cms/css/bootstrap.css', 'CSS');
