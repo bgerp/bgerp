@@ -23,6 +23,12 @@ class cms_SinglePageTheme extends cms_FancyTheme
      */
     public $layout = 'cms/tpl/SinglePage.shtml';
 
+    public function addEmbeddedFields(core_FieldSet &$form)
+    {
+        $form->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение');
+        $form->FLD('headTitle', 'varchar(100)', 'caption=Заглавие');
+        $form->FLD('subtitle', 'varchar(100)', 'caption=Подзаглавие');
+    }
 
     /**
      * Подготвя шаблона за статия от cms-а за широк режим
@@ -33,8 +39,39 @@ class cms_SinglePageTheme extends cms_FancyTheme
      */
     public function prepareWrapper($tpl)
     {
-        parent::prepareWrapper($tpl);
+        $content = $this->getCmsLayout();
+        if ($content !== false) {
+            $tpl->replace($content, 'CMS_LAYOUT');
+        }
 
+        $subtitle = $this->innerForm->subtitle;
+        if ($subtitle) {
+            $tpl->replace($subtitle, 'SUBTITLE');
+        }
+
+        $menu = $this->getMenu();
+        $tpl->replace($menu, 'MENU');
+
+        $title = $this->innerForm->title;
+        if ($title) {
+            $tpl->replace($title, 'CORE_APP_NAME');
+        }
+        $headTitle= $this->innerForm->headTitle;
+        if ($headTitle) {
+            $tpl->replace($headTitle, 'TITLE');
+        }
+
+        $img = $this->innerForm->wallpaper;
+
+        $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
+
+        $imageURL = $img->getUrl('forced');
+
+        $css = "\n  #wallpaper-block {background: url({$imageURL}) top center;} ";
+
+        if ($css) {
+            $tpl->append($css, 'STYLES');
+        }
 
         // добавяме css-a за структурата
         $tpl->push('cms/css/bootstrap.css', 'CSS');
@@ -54,16 +91,19 @@ class cms_SinglePageTheme extends cms_FancyTheme
     {
         $menu = new ET();
 
+
+
         $aArr = $this->getArticlesRecs();
         if (empty($aArr)) {
-
             return false;
         }
+
         $menu->append("<nav id='navbar' class='navbar order-last order-lg-0'><ul>");
 
         foreach ($aArr as $aRec) {
-            $menu->append("<li> <a href='#item{$aRec->id}'> {$aRec->title}</a> </li>");
+            $menu->append("<li> <a class='nav-link scrollto {$active}' href='#item{$aRec->id}'> {$aRec->title}</a> </li>");
         }
+
         $menu->append("</ul></nav>");
         return $menu;
     }
@@ -76,7 +116,8 @@ class cms_SinglePageTheme extends cms_FancyTheme
      */
     protected function getCmsLayout()
     {
-        $content = new ET();
+        //$content = new ET("[#CMS_LAYOUT#]");
+        $content = new ET("");
 
         $aArr = $this->getArticlesRecs();
         if (empty($aArr)) {
@@ -84,12 +125,13 @@ class cms_SinglePageTheme extends cms_FancyTheme
             return false;
         }
 
-
         foreach ($aArr as $aRec) {
             $body = cms_Articles::getVerbal($aRec, 'body');
-            $content->append("<section id='item{$aRec->id}'><div class='container'><h3>{$aRec->title}</h3>{$body}</div></section>");
+            $className = ($aRec->id % 2 == 0) ? "section-bg" : "";
+            $content->append("<section id='item{$aRec->id}' class='{$className}'><div class='container'><h2>{$aRec->title}</h2>{$body}</div></section>");
 
         }
+
 
         return $content;
     }
@@ -118,4 +160,7 @@ class cms_SinglePageTheme extends cms_FancyTheme
 
         return $res;
     }
+
+
+
 }

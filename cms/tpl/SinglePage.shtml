@@ -9,23 +9,29 @@
 
 
 <header id="header" class="fixed-top ">
-    <div class="container-fluid">
-
-        <div class="row justify-content-center">
-            <div class="col-xl-9 d-flex align-items-center justify-content-lg-between">
-                <h1 class="logo me-auto me-lg-0">[#CORE_APP_NAME#]</h1>
-                <!-- Uncomment below if you prefer to use an image logo -->
-                <!-- <a href="index.html" class="logo me-auto me-lg-0"><img src="assets/img/logo.png" alt="" class="img-fluid"></a>-->
-
-               [#MENU#]
-                <i class="bi bi-list mobile-nav-toggle"></i>
-
-            </div>
+    <div class='container container-fluid'>
+            <div class="row justify-content-center">
+                <div class="col-xl-12 d-flex align-items-center justify-content-lg-between">
+                    <h1 class="logo me-auto me-lg-0"><a href="#wallpaper-block" class="logo me-auto me-lg-0">[#CORE_APP_NAME#]</a></h1>
+                   [#MENU#]
+                    <a href="#" class="get-started-btn scrollto">Вход</a>
+                    <i class="bi bi-list mobile-nav-toggle"></i>
+                </div>
         </div>
-
     </div>
 </header><!-- End Header -->
 
+<!-- ======= Hero Section ======= -->
+<section id="wallpaper-block" class="d-flex flex-column justify-content-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-8">
+                <h1>[#TITLE#]</h1>
+                <h2>[#SUBTITLE#]</h2>
+            </div>
+        </div>
+    </div>
+</section><!-- End Hero -->
 
 <main id="main">
     [#CMS_LAYOUT#]

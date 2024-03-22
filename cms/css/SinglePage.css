@@ -423,10 +423,12 @@ h6 {
     display: block;
 }
 
+
+
 /*--------------------------------------------------------------
 # Hero Section
 --------------------------------------------------------------*/
-#hero {
+#wallpaper-block {
     width: 100%;
     height: 100vh;
     background: url("../img/hero-bg.jpg") top center;
@@ -434,7 +436,7 @@ h6 {
     position: relative;
 }
 
-#hero:before {
+#wallpaper-block:before {
     content: "";
     background: rgba(0, 0, 0, 0.6);
     position: absolute;
@@ -444,120 +446,44 @@ h6 {
     right: 0;
 }
 
-#hero .container {
+#wallpaper-block .container {
     padding-top: 72px;
     position: relative;
     text-align: center;
 }
 
-#hero h1 {
+#wallpaper-block h1 {
     margin: 0 0 10px 0;
     font-size: 48px;
     font-weight: 700;
     line-height: 56px;
     color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,1);
 }
 
-#hero h2 {
+#wallpaper-block h2 {
     color: #eee;
     margin-bottom: 40px;
     font-size: 24px;
-}
-
-#hero .play-btn {
-    width: 94px;
-    height: 94px;
-    margin: 0 auto;
-    background: radial-gradient(#009961 50%, rgba(0, 153, 97, 0.4) 52%);
-    border-radius: 50%;
-    display: block;
-    overflow: hidden;
-    position: relative;
-}
-
-#hero .play-btn::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translateX(-40%) translateY(-50%);
-    width: 0;
-    height: 0;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-left: 15px solid #fff;
-    z-index: 100;
-    transition: all 400ms cubic-bezier(0.55, 0.055, 0.675, 0.19);
-}
-
-#hero .play-btn::before {
-    content: "";
-    position: absolute;
-    width: 120px;
-    height: 120px;
-    animation-delay: 0s;
-    animation: pulsate-btn 3s;
-    animation-direction: forwards;
-    animation-iteration-count: infinite;
-    animation-timing-function: steps;
-    opacity: 1;
-    border-radius: 50%;
-    border: 5px solid rgba(0, 153, 97, 0.7);
-    top: -15%;
-    left: -15%;
-    background: rgba(198, 16, 0, 0);
-}
-
-#hero .play-btn:hover::after {
-    border-left: 15px solid #009961;
-    transform: scale(20);
-}
-
-#hero .play-btn:hover::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translateX(-40%) translateY(-50%);
-    width: 0;
-    height: 0;
-    border: none;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-left: 15px solid #fff;
-    z-index: 200;
-    animation: none;
-    border-radius: 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,1);
 }
 
 @media (min-width: 1024px) {
-    #hero {
+    #wallpaper-block {
         background-attachment: fixed;
     }
 }
 
 @media (max-width: 768px) {
-    #hero h1 {
+    #wallpaper-block h1 {
         font-size: 28px;
         line-height: 36px;
     }
 
-    #hero h2 {
+    #wallpaper-block h2 {
         font-size: 18px;
         line-height: 24px;
         margin-bottom: 30px;
-    }
-}
-
-@keyframes pulsate-btn {
-    0% {
-        transform: scale(0.6, 0.6);
-        opacity: 1;
-    }
-
-    100% {
-        transform: scale(1, 1);
-        opacity: 0;
     }
 }
 
