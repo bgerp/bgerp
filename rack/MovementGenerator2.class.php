@@ -265,7 +265,7 @@ class rack_MovementGenerator2 extends core_Manager
         // Правим всички комбинации на палети
         $cnt = count($pArr);
         $pCombi = array();
-        while ($cnt-- > 0 && count($pCombi) < 20000) {
+        while ($cnt-- > 0 && count($pCombi) < 363000) {
             $pCombi = self::addCombi($pArr, $pCombi, $sumZ);
         }
  
@@ -668,7 +668,7 @@ class rack_MovementGenerator2 extends core_Manager
             arsort($cnt);
             $best = key($cnt);
             foreach($cnt as $q => $n) {
-                if($q != $best) unset($ctn[$q]);
+                if($q != $best) unset($cnt[$q]);
             }
 
             krsort($cnt);

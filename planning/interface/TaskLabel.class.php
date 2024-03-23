@@ -87,6 +87,10 @@ class planning_interface_TaskLabel extends label_ProtoSequencerImpl
             }
         }
 
+        if(array_key_exists('OTHER', $placeholders)){
+            $placeholders['OTHER']->recently = true;
+        }
+
         return $placeholders;
     }
 

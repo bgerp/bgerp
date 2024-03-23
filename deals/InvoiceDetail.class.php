@@ -79,6 +79,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
         $mvc->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
+        $mvc->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none');
+        $mvc->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
         $mvc->setDbIndex('productId,packagingId');
     }
     
@@ -368,6 +370,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
             
             deals_Helper::addNotesToProductRow($row1->productId, $rec->notes);
+            $row1->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
+
         }
         
         if ($masterRec->type != 'dc_note') {

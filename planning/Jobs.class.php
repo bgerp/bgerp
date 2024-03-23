@@ -273,7 +273,7 @@ class planning_Jobs extends core_Master
         );
 
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent,caption=Продажба');
-        $this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,autohide');
+        $this->FLD('sharedUsers', 'userList(roles=planning|ceo,showClosedUsers=no)', 'caption=Споделяне->Потребители,autohide');
         $this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
         $this->FLD('productViewCacheDate', 'datetime(format=smartTime)', 'caption=Към коя дата е кеширан изгледа на артикула,input=none');
         $this->FLD('salesBomIdOnActivation', 'key(mvc=cat_Boms,select=title)', 'caption=Търговска рецепта при активиране,input=none');

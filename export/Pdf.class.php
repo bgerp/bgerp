@@ -80,7 +80,8 @@ class export_Pdf extends core_Mvc
         if (!$opt->rec) {
             $opt->rec = new stdClass();
         }
-        
+
+        $flush = false;
         if (!$cRec->__mid) {
             $opt->rec->__mid = doclog_Documents::saveAction(
                             array(
@@ -89,9 +90,7 @@ class export_Pdf extends core_Mvc
                                     'threadId' => $cRec->threadId,
                             )
                             );
-            
-            // Флъшваме екшъна за да се запише в модела
-            doclog_Documents::flushActions();
+            $flush = true;
         }
         
         core_App::setTimeLimit(200);
@@ -101,12 +100,18 @@ class export_Pdf extends core_Mvc
         $html = $clsInst->getDocumentBody($cRec->id, 'xhtml', $opt);
         
         Mode::pop('pdf');
-        
+
+
         $fileName = $clsInst->getHandle($cRec->id) . '_Export.pdf';
         
         //Манипулатора на новосъздадения pdf файл
         $fileHnd = doc_PdfCreator::convert($html, $fileName);
-        
+
+        if ($flush) {
+            // Флъшваме екшъна за да се запише в модела
+            doclog_Documents::flushActions();
+        }
+
         $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/pdf.png, title=Сваляне на документа');
         
         $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);

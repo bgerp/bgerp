@@ -276,6 +276,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
+        $mvc->FLD('username', 'varchar', 'caption=Допълнително->Съставил');
         $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
         $mvc->FLD(
             'state',
@@ -1086,8 +1087,15 @@ abstract class deals_DealMaster extends deals_DealBase
             $updatedConditions = $update = true;
         }
 
+        if(empty($rec->username)){
+            $mvc->pushTemplateLg($rec->template);
+            $rec->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy));
+            core_Lg::pop();
+            $update = true;
+        }
+
         if ($update === true) {
-            $mvc->save_($rec, 'deliveryTermTime,deliveryAdress,additionalConditions');
+            $mvc->save_($rec, 'deliveryTermTime,deliveryAdress,username,additionalConditions');
         }
 
         // Форсиране на обновяването на ключовите думи, ако са обновени допълнителните условия
@@ -1303,9 +1311,6 @@ abstract class deals_DealMaster extends deals_DealBase
                     $row->isPaid = "<span class='quiet'>{$row->isPaid}</span>";
                 }
             }
-            
-            $row->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
-            $row->username = core_Lg::transliterate($row->username);
             $row->responsible = core_Lg::transliterate($row->responsible);
             
             if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime) && in_array($rec->state, array('draft', 'pending')) ) {
@@ -1330,7 +1335,9 @@ abstract class deals_DealMaster extends deals_DealBase
                     $row->paymentMethodId = "<b>{$row->paymentType}</b>, {$row->paymentMethodId}";
                 }
             }
-            
+
+            $row->username = deals_Helper::getIssuerRow($rec->username, $rec->createdBy, $rec->activatedBy, $rec->state);
+
             core_Lg::pop();
         }
     }
@@ -2033,17 +2040,17 @@ abstract class deals_DealMaster extends deals_DealBase
             $fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
         }
         
-        // Ако не е подадено да се начислявали ддс, определяме от контрагента
-        if (empty($fields['makeInvoice'])) {
-            $fields['makeInvoice'] = 'yes';
-        }
-        
         // Състояние на плащането, чакащо
         $fields['paymentState'] = 'pending';
         
         // Опиваме се да запишем мастъра на сделката
         $rec = (object)$fields;
-        
+
+        // Ако не е подадено да се начислявали ддс, определяме от контрагента
+        if (empty($fields['makeInvoice'])) {
+            $rec->makeInvoice = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'makeInvoice', 'lastDocUser|lastDoc');
+        }
+
         if($me instanceof sales_Sales){
             if(isset($fields['deliveryTermId'])){
                 if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
@@ -2620,6 +2627,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if (!empty($rec->deliveryLocationId)) {
             $res['deliveryAdress'] = 'deliveryAdress';
         }
+        $res['username'] = 'username';
     }
     
     
@@ -2984,10 +2992,11 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public function getLinkedFiles($rec)
     {
+        $rec = $this->fetchRec($rec);
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
 
         // Добавят се и файловете от допълнителните условия, ако има такова
-        $additionalConditions = $rec->additionalConditions;
+        $additionalConditions = is_array($rec->additionalConditions) ? $rec->additionalConditions : array();
         if(in_array($rec->state, array('pending', 'draft'))) {
             $additionalConditions = $this->getConditionArr($rec);
         }

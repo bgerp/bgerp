@@ -250,6 +250,18 @@ class ztm_RegisterValues extends core_Manager
         // След кое, време ще обновяваме записите
         $lastSyncMin = min($lastSync, $deviceRec->lastSync);
 
+        $iArr = core_Classes::getOptionsByInterface('ztm_interfaces_RegSyncValues');
+        foreach((array) $iArr as $iCls) {
+            $intf = cls::getInterface('ztm_interfaces_RegSyncValues', $iCls);
+            $iRegAr = $intf->getRegValues();
+
+            foreach ($iRegAr as $rName => $rValArr) {
+                $sTime = isset($rValArr['time']) ? $rValArr['time'] : $lastSync;
+                $rId = ztm_Registers::fetchField(array("#name = '[#1#]'", $rName), 'id');
+                ztm_RegisterValues::set($deviceId, $rId, $rValArr['val'], $sTime);
+            }
+        }
+
         // Добавяме регистрите от старото устройсво към новото
         if (isset($grabDeviceRec)) {
             // Извлича нашите регистри обновени от предишното устройство
@@ -291,17 +303,6 @@ class ztm_RegisterValues extends core_Manager
                 $dump = $e->getDump();
                 ztm_Devices::logErr("'{$obj->name}': {$dump[0]}", $deviceId);
                 wp('Грешка при записване на регистър', $e, $obj);
-            }
-        }
-
-        $iArr = core_Classes::getOptionsByInterface('ztm_interfaces_RegSyncValues');
-        foreach((array) $iArr as $iCls) {
-            $intf = cls::getInterface('ztm_interfaces_RegSyncValues', $iCls);
-            $iRegAr = $intf->getRegValues();
-
-            foreach ($iRegAr as $rName => $rVal) {
-                $rId = ztm_Registers::fetchField(array("#name = '[#1#]'", $rName), 'id');
-                ztm_RegisterValues::set($deviceId, $rId, $rVal, $lastSync);
             }
         }
 
@@ -417,6 +418,7 @@ class ztm_RegisterValues extends core_Manager
     {
         $token = Request::get('token');
         $lastSync = Request::get('last_sync');
+        $resLastSync = dt::mysql2timestamp();
         
         // Кое е устройството
         $deviceRec = ztm_Devices::getRecForToken($token);
@@ -450,7 +452,7 @@ class ztm_RegisterValues extends core_Manager
 
         $registers = Request::get('registers');
 
-//        ztm_Devices::logDebug('Registers: ' . $registers, $deviceRec);
+        ztm_Devices::logDebug('Registers from device: ' . $registers, $deviceRec);
         
         ztm_Devices::updateSyncTime($token);
         
@@ -504,11 +506,15 @@ class ztm_RegisterValues extends core_Manager
             $result = $registers;
             reportException($e);
         }
-        
+
         if ((array) $result) {
-//            ztm_Devices::logDebug('Results: ' . serialize($result), $deviceRec);
+            ztm_Devices::logDebug('Result registers: ' . serialize($result), $deviceRec);
         }
-        
+
+        $srvRegName = 'sys.srv.last_sync';
+        $result->{$srvRegName} = $resLastSync;
+
+
         // Връщане на резултатния обект
         core_App::outputJson($result);
     }
@@ -728,11 +734,20 @@ class ztm_RegisterValues extends core_Manager
      */
     public static function on_BeforeImportRec($mvc, $rec)
     {
-        $rec->deviceId = ztm_Devices::fetchField(array("#name = '[#1#]' AND #state='active'", $rec->deviceId));
-        if (!$rec->deviceId) {
-            $rec->deviceId = ztm_Devices::fetchField(array("#name = '[#1#]' AND #state='draft'", $rec->deviceId));
+        $dId = ztm_Devices::fetchField(array("#name = '[#1#]' AND #state = 'active'", $rec->deviceId));
+        if (!$dId) {
+            $dId = ztm_Devices::fetchField(array("#name = '[#1#]' AND #state = 'draft'", $rec->deviceId));
         }
-        $rec->registerId = ztm_Registers::fetchField(array("#name = '[#1#]' AND #state='active'", $rec->registerId));
+
+        if (!$dId) {
+            list(, $dId) = explode('№', $rec->deviceId);
+        }
+
+        if ($dId) {
+            $rec->deviceId = $dId;
+        }
+
+        $rec->registerId = ztm_Registers::fetchField(array("#name = '[#1#]' AND #state = 'active'", $rec->registerId));
         $rec->extValue = $rec->value;
 
         if (!$rec->deviceId || !$rec->registerId) {

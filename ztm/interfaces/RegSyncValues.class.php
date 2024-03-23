@@ -28,6 +28,7 @@ class ztm_interfaces_RegSyncValues
      * Връща регистрите и стойностите им
      *
      * @return array
+     * [името на регистъра] => [val => стойност, time => време на последна промяна]
      */
     public function getRegValues()
     {

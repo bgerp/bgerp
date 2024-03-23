@@ -69,7 +69,7 @@
     <table class="innerTable footer-notes paddingCells" style='width:100%;'>
         <tbody>
         <tr>
-            <td class="topCell first vtop" style='width:50%;'>
+            <td class="topCell first vtop" style='width:60%;'>
                 <table class='shipment-table' style='width:100%;'>
                     <!--ET_BEGIN deliveryTime-->
                     <tr>
@@ -114,7 +114,7 @@
                         <td colspan="2">
                             <span class='half-col'>Total gross weight: [#weight#]</span>
                             <span class='half-col'>Total net weight: [#netWeight#]</span>
-                            <span class='half-col'>Total tare: [#tareWeight#]</span>
+                            <span class='half-col'>Total packing weight: [#tareWeight#]</span>
                         </td>
                     </tr>
                     <!--ET_BEGIN logisticInfo-->
@@ -152,7 +152,7 @@
             <td>
                 <table class='fright signature-table' style='width:1%;'>
                     <tr>
-                        <td style='width:1%;'>Created by:  </td>
+                        <td style='width:1%;' class="nowrap">Created by: </td>
                         <td></td>
                     </tr>
                     <tr>

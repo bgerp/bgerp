@@ -346,7 +346,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function prepareProductDescription(&$data)
     {
         parent::prepareProductDescription($data);
-        
+
+        $showImgInPublic = cat_Setup::get('SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC');
+        if($data->documentType == 'public' && $showImgInPublic != 'yes'){
+            $data->_hidePhoto = true;
+        }
+
         $data->masterId = $data->rec->id;
         $data->masterClassId = cls::get($data->Embedder)->getClassId();
         cat_products_Params::prepareParams($data);
@@ -363,7 +368,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function renderProductDescription($data)
     {
         // Вербализиране на снимката, да е готова за показване
-        $data->rec->photo =  $this->getParams(cls::get($data->Embedder)->getClassId(), $data->rec->id, 'preview');
+        if(!$data->_hidePhoto){
+            $data->rec->photo =  $this->getParams(cls::get($data->Embedder)->getClassId(), $data->rec->id, 'preview');
+        } else {
+            unset($data->rec->photo);
+        }
+
         if ($data->rec->photo) {
             $size = array(280, 150);
             $Fancybox = cls::get('fancybox_Fancybox');

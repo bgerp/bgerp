@@ -179,6 +179,7 @@ class rack_Zones extends core_Master
         $this->setDbUnique('num,storeId');
         $this->setDbIndex('storeId');
         $this->setDbIndex('containerId');
+        $this->setDbIndex('groupId');
     }
 
 
@@ -603,8 +604,8 @@ class rack_Zones extends core_Master
         expect($containerId = Request::get('containerId', 'int'));
         expect($document = doc_Containers::getDocument($containerId));
         $documentRec = $document->fetch();
-        $this->requireRightFor('selectdocument', (object)array('containerId' => $containerId, 'storeId' => $documentRec->{$document->storeFieldName}));
-        $storeId = $documentRec->{$document->storeFieldName};
+        $this->requireRightFor('selectdocument', (object)array('containerId' => $containerId, 'storeId' => $documentRec->{$document->rackStoreFieldName}));
+        $storeId = $documentRec->{$document->rackStoreFieldName};
 
         // Подготовка на формата
         $form = cls::get('core_Form');
@@ -678,6 +679,7 @@ class rack_Zones extends core_Master
                         $redirectUrl = $document->getSingleUrlArray();
                     }
 
+                    store_Stores::selectCurrent($storeId);
                     redirect($redirectUrl, false, $msg);
                 } elseif(isset($zoneRec->id)) {
                     $document->getInstance()->logWrite('Премахване от зона', $document->that);
@@ -754,7 +756,7 @@ class rack_Zones extends core_Master
                 if (!rack_Zones::fetchField("#storeId = {$rec->storeId} AND #state != 'closed'")) {
                     $requiredRoles = 'no_one';
                 } else {
-                    $documentRec = $document->fetch("state,{$document->storeFieldName}");
+                    $documentRec = $document->fetch("state,{$document->rackStoreFieldName}");
                     if (!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending'))) {
                         $requiredRoles = 'no_one';
                     }
@@ -1201,7 +1203,7 @@ class rack_Zones extends core_Master
                     $packQuery->show('quantity,packagingId');
                     $packagings = array();
                     while($packRec = $packQuery->fetch()) {
-                        $packagings[] = $packRec;
+                        $packagings[$packRec->packagingId] = $packRec;
                     }
 
                     // Ако артикула няма опаковка палет намира се к-то на най-големия палет в системата
@@ -1209,7 +1211,7 @@ class rack_Zones extends core_Master
                     if(!array_key_exists($palletId, $packagings)){
                         $maxPalletQuantity = max(array_map(function($o) { return $o->quantity;}, $pallets));
                         if($maxPalletQuantity){
-                            $packagings[] = (object)array('packagingId' => $palletId, 'quantity' => $maxPalletQuantity);
+                            $packagings[$palletId] = (object)array('packagingId' => $palletId, 'quantity' => $maxPalletQuantity);
                         }
                     }
 

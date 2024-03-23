@@ -174,8 +174,8 @@ class batch_type_StringManufacturerExpiryDate extends type_Varchar
             unset($this->suggestions['']);
             foreach ($this->suggestions as $sgt){
                 $sgtOpt = explode($delimiter, $sgt);
-                $stringSgt[] = $sgtOpt[0];
-                $dateSgt[] = $sgtOpt[2];
+                $stringSgt["{$sgtOpt[0]}"] = $sgtOpt[0];
+                $dateSgt["{$sgtOpt[2]}"] = $sgtOpt[2];
             }
         }
         $this->suggestions = countR($stringSgt) ? array('' => '') + $stringSgt : array();
@@ -193,7 +193,9 @@ class batch_type_StringManufacturerExpiryDate extends type_Varchar
             }
         } else {
             $valString = $valDate = null;
-            $valManifacture = key($manifactureOptions);
+            if(!$this->params['autohide']){
+                $valManifacture = key($manifactureOptions);
+            }
         }
 
         $attrString = $attrMan = $attrDate = $attr;

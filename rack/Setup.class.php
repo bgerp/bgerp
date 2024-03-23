@@ -74,6 +74,12 @@ defIfNot('RACK_ENABLE_PRIORITY_RACKS', 'no');
 
 
 /**
+ * Стратегия за предлагане за позиция за палетиране
+ */
+defIfNot('RACK_POSITION_TO_STRATEGY', 'bestPos');
+
+
+/**
  * class rack_Setup
  *
  * Инсталиране/Деинсталиране на пакета за палетния склад
@@ -210,7 +216,8 @@ class rack_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Връзка между МСТ-то и палетния склад', 'rack_plg_Shipments', 'store_Transfers', 'private');
         $html .= $Plugins->installPlugin('Връзка между протокола за влагане в производството и палетния склад', 'rack_plg_Shipments', 'planning_ConsumptionNotes', 'private');
         $html .= $Plugins->installPlugin('Връзка между протокола за отговорно пазене и палетния склад', 'rack_plg_Shipments', 'store_ConsignmentProtocols', 'private');
-        
+        $html .= $Plugins->installPlugin('Връзка между протокола за производство и палетния склад', 'rack_plg_Shipments', 'planning_DirectProductionNote', 'private');
+
         $html .= $Plugins->installPlugin('Връзка между СР-то и входящия палетен склад', 'rack_plg_IncomingShipmentDetails', 'store_ReceiptDetails', 'private');
         $html .= $Plugins->installPlugin('Връзка между МСТ-то и входящия палетен склад', 'rack_plg_IncomingShipmentDetails', 'store_TransfersDetails', 'private');
         $html .= $Plugins->installPlugin('Връзка между Протокола за влагане и и входящия палетен склад', 'rack_plg_IncomingShipmentDetails', 'planning_ReturnNoteDetails', 'private');
@@ -226,7 +233,7 @@ class rack_Setup extends core_ProtoSetup
     public $configDescription = array(
         'RACK_DELETE_OLD_MOVEMENTS' => array('time','caption=Изтриване на стари движения->Период'),
         'RACK_DELETE_ARCHIVED_MOVEMENTS' => array('time','caption=Изтриване на архивирани движения->Период'),
-        'RACK_DIFF_PALLETS_IN_SAME_POS' => array('enum(no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване'),
+        'RACK_DIFF_PALLETS_IN_SAME_POS' => array('enum(no=Не,yes=Да (с предупреждение),yesWithoutWarning=Да (без предупреждение))', 'caption=Различни палети на една позиция->Разрешаване'),
         'RACK_DEFAULT_ZONE_COLORS' => array('color_Type','caption=Козметични настройки на зоните->Цвят'),
         'RACK_CLOSE_COMBINED_MOVEMENTS_AT_ONCE' => array('enum(yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване'),
         'RACK_PICKUP_STRATEGY' => array('enum(ver1,ver2)', 'caption=Стратегия за генериране на движенията->Избор'),
@@ -236,6 +243,7 @@ class rack_Setup extends core_ProtoSetup
         'RACK_TIME_RETURN' => array('int', 'caption=Средни времена по операции->Връщане'),
         'RACK_TIME_COUNT' => array('int', 'caption=Средни времена по операции->Броене'),
         'RACK_ENABLE_PRIORITY_RACKS' => array('enum(yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване'),
+        'RACK_POSITION_TO_STRATEGY' => array('enum(bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Стратегия'),
     );
 
 

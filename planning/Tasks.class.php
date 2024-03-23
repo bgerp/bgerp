@@ -44,7 +44,7 @@ class planning_Tasks extends core_Master
     /**
      * На колко време да се рефрешва лист изгледа
      */
-    public $refreshRowsTime = 3000;
+    public $refreshRowsTime = 15000;
 
 
     /**
@@ -1958,7 +1958,7 @@ class planning_Tasks extends core_Master
         $taskRec = static::fetchRec($taskId);
         $job = doc_Containers::getDocument($taskRec->originId);
         $jobTitle = cat_Products::fetchField($job->fetchField('productId'), 'name');
-        
+
         if($isShort){
             $oprTitle = "Opr{$taskRec->id}/";
             $jobTitle = str::limitLen($jobTitle, 36);
@@ -1969,7 +1969,7 @@ class planning_Tasks extends core_Master
 
         $jobTitle = "Job{$job->that}-{$jobTitle}";
 		$title = "{$oprTitle}{$jobTitle}";
-        
+
         return $title;
     }
 
@@ -2249,7 +2249,7 @@ class planning_Tasks extends core_Master
             $data->listFilter->input('state,isFinalSelect');
             $data->listFilter->setDefault('state', 'activeAndPending');
             $data->listFilter->setDefault('isFinalSelect', 'all');
-            
+
             $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 9999999999999)';
 
             if ($filter = $data->listFilter->rec) {
@@ -3183,7 +3183,7 @@ class planning_Tasks extends core_Master
 
                 // Ако има планиращи действия
                 if(is_array($pData['actions'])){
-                    $actionsWithNorms = planning_AssetResourcesNorms::getNormOptions($rec->assetId, array(), true);
+                    $actionsWithNorms = isset($rec->assetId) ? planning_AssetResourcesNorms::getNormOptions($rec->assetId, array(), true) : array();
 
                     $now = dt::now();
                     foreach ($pData['actions'] as $actionId){

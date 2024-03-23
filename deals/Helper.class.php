@@ -1505,13 +1505,14 @@ abstract class deals_Helper
         if ($isStorable != 'yes') {
             return;
         }
-
         if(in_array($masterState, array('draft', 'pending'))) {
             $liveValue = null;
             if ($type == 'weight') {
                 $liveValue = cat_Products::getTransportWeight($productId, $quantity);
             } elseif($type == 'netWeight') {
-                if($netWeight = cat_Products::convertToUom($productId, 'kg')) {
+                $netWeight = cat_Products::convertToUom($productId, 'kg');
+
+                if(isset($netWeight)) {
                     $liveValue = $netWeight * $quantity;
                 }
             } elseif($type == 'volume') {
@@ -1526,30 +1527,28 @@ abstract class deals_Helper
                     $hint = true;
                 }
             } elseif ($liveValue) {
+
                 $percentChange = abs(round((1 - $value / $liveValue) * 100, 3));
                 if ($percentChange >= 25) {
                     $warning = true;
                 }
             }
         }
-        
+
         // Ако няма тегло не се прави нищо
         if (!isset($value)) return;
         
         $valueType = ($type == 'volume') ? 'cat_type_Volume' : 'cat_type_Weight(decimals=2)';
         $value = round($value, 3);
-        
-        // Ако стойноста е 0 да не се показва
-        if (empty($value)) return;
        
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
-        if ($hint === true) {
+        if(!Mode::isReadOnly() && $hint === true) {
             $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : (($type == 'volume') ? 'Транспортният обем е прогнозен' : (($type == 'netWeight') ? 'Нето теглото е прогнозно' : 'Тарата е прогнозна'));
             $valueRow = "<span style='color:blue'>{$valueRow}</span>";
             $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството", 'notice', false);
         }
-       
+
         // Показване на предупреждение
         if ($warning === true) {
             $liveValueVerbal = core_Type::getByName($valueType)->toVerbal($liveValue);
@@ -2159,8 +2158,49 @@ abstract class deals_Helper
 
         return $stRec->quantity - $quantity;
     }
-    
-    
+
+
+    /**
+     * Връща вербално представяне на съставителя на документа
+     *
+     * @param string $username
+     * @param int $createdBy
+     * @param int $activatedBy
+     * @param string $state
+     * @param int|null $issuerId
+     * @return core_ET|mixed|string
+     */
+    public static function getIssuerRow($username, $createdBy, $activatedBy, $state, &$issuerId = null)
+    {
+        if($username) {
+
+            return core_Type::getByName('varchar')->toVerbal($username);
+        }
+
+        if(isset($issuerId)) {
+            $fixedIssuerName = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($issuerId, 'names'));
+
+            return transliterate($fixedIssuerName);
+        }
+
+        $issuerName = deals_Helper::getIssuer($createdBy, $activatedBy, $issuerId);
+        $issuerName = transliterate($issuerName);
+
+        if(!Mode::isReadOnly() && in_array($state, array('pending', 'draft'))) {
+            if(empty($issuerName)) {
+                $hint = "За съставител ще се запише потребителя, контирал документа!";
+            } else {
+                $hint = "Ще бъде записан след активиране";
+                $issuerName = "<span style='color:blue'>{$issuerName}</span>";
+            }
+
+            $issuerName = ht::createHint($issuerName, $hint);
+        }
+
+        return $issuerName;
+    }
+
+
     /**
      * Кой потребител да се показва, като съставителя на документа
      *
@@ -2182,7 +2222,7 @@ abstract class deals_Helper
         
         $names = null;
         if (isset($userId)) {
-            $names = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($userId, 'names'));
+            $names = core_Users::fetchField($userId, 'names');
         }
         
         return $names;
@@ -2851,34 +2891,33 @@ abstract class deals_Helper
         $res = array('errors' => array());
 
         $weightIsCalced = $netWeightIsCalced = $tareWeightIsCalced = false;
-        if(empty($weight) && !empty($netWeight) && !empty($tareWeight)) {
+        if(!isset($weight) && isset($netWeight) && isset($tareWeight)) {
             $weight = round($netWeight + $tareWeight, 4);
             $weightIsCalced = true;
         }
 
-        if(empty($netWeight) && !empty($weight) && !empty($tareWeight)) {
+        if(!isset($netWeight) && isset($weight) && isset($tareWeight)) {
             $netWeight = round($weight - $tareWeight, 4);
             $netWeightIsCalced = true;
         }
-        if(empty($tareWeight) && !empty($weight) && !empty($netWeight)) {
+        if(!isset($tareWeight) && isset($weight) && isset($netWeight)) {
             $tareWeight = round($weight - $netWeight, 4);
             $tareWeightIsCalced = true;
         }
 
-        if(!empty($weight) && !empty($netWeight) && !empty($tareWeight)){
+        if(isset($weight) && isset($netWeight) && isset($tareWeight)){
             if(round($weight - $netWeight) != round($tareWeight)){
                 $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName},{$tareWeightFieldName}", 'text' => 'Разликата между бруто и нето не отговаря на тарата');
             }
         }
 
-        if(!empty($weight) && !empty($netWeight)){
+        if(isset($weight) && isset($netWeight)){
             if($weight < $netWeight){
                 $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName}", 'text' => 'Брутото е по-малко от нетото');
             }
         }
 
-        if(!empty($tareWeight) && !empty($weight)){
-
+        if(isset($tareWeight) && isset($weight)){
             if($weight < $tareWeight){
                 $res['errors'][] = array('fields' => "{$weightFieldName},{$tareWeightFieldName}", 'text' => 'Тарата е по-малко от брутото');
             }
@@ -2904,9 +2943,11 @@ abstract class deals_Helper
     {
         $Percent = core_Type::getByName('percent');
         $autoDiscountVerbal = $Percent->toVerbal($autoDiscount);
-
         if(!in_array($state, array('draft', 'pending'))){
             $calcedDiscountVerbal = $Percent->toVerbal($calcedDiscount);
+            if(empty($manualDiscount) && !empty($calcedDiscount) && empty($autoDiscount)) {
+                $manualDiscount = $calcedDiscount;
+            }
             $res = $Percent->toVerbal($manualDiscount);
             if($calcedDiscount != $manualDiscount){
                 $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", 'notice', false);

@@ -62,7 +62,7 @@
         <table class="innerTable footer-notes paddingCells"  style="width: 100%">
             <tbody>
                 <tr>
-                    <td class="topCell first vtop">
+                    <td class="topCell first vtop" style="width: 60%">
                        <table class='shipment-table' style='width:100%;'>
                             <!--ET_BEGIN deliveryTime-->
                             <tr>

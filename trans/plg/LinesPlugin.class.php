@@ -118,7 +118,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         }
 
         if (Request::get('editTrans')) {
-            bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $mvc->getHandle($rec->id), 'editTrans' => true), '*');
+            bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'editTrans' => true), '*');
         }
     }
 
@@ -174,7 +174,6 @@ class trans_plg_LinesPlugin extends core_Plugin
         // Ако има избрана линия за избрана папка е избраната на линията
         if(isset($rec->{$mvc->lineFieldName})){
             $lineFolderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'folderId');
-
             $form->setDefault('lineFolderId', $lineFolderId);
             $form->setDefault('lineId', $rec->{$mvc->lineFieldName});
             if(!array_key_exists($lineFolderId, $folderOptions)){
@@ -201,12 +200,11 @@ class trans_plg_LinesPlugin extends core_Plugin
             $form->setOptions('lineFolderId', $folderOptions);
             $form->setOptions('lineId', array('' => '') + $linesArr);
         }
+
         if(!countR($linesArr)){
-            $form->info = tr("Няма транспортни линии на заявка с бъдеща дата в избраната папка");
+            $form->info = tr("|*<div class='formCustomInfo'>|Няма транспортни линии на заявка с бъдеща дата в избраната папка|*!</div>");
         }
-
         $form->setDefault('lineNotes', $rec->lineNotes);
-
 
         // Ако е складов документ показват се и полета за складова информация
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
@@ -215,11 +213,16 @@ class trans_plg_LinesPlugin extends core_Plugin
             $form->FLD('tareWeight', 'cat_type_Weight', 'caption=Логистична информация->Тара');
             $form->FLD('volume', 'cat_type_Volume', 'caption=Логистична информация->Обем');
 
-            $rec->transUnitsInput = trans_Helper::convertToUnitTableArr($rec->transUnitsInput);
+            $weightInput = Request::get('forceWeight', 'varchar') ? Request::get('forceWeight', 'varchar') : $rec->weightInput;
+            $netWeightInput = Request::get('forceNetWeight', 'varchar') ? Request::get('forceNetWeight', 'varchar') : $rec->netWeightInput;
+            $tareWeightInput = Request::get('forceTareWeight', 'varchar') ? Request::get('forceTareWeight', 'varchar') : $rec->tareWeightInput;
+            $forceTransUnits = Request::get('forceTransUnits') ? Request::get('forceTransUnits') : $rec->transUnitsInput;
+
+            $rec->transUnitsInput = trans_Helper::convertToUnitTableArr($forceTransUnits);
             trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
-            $form->setDefault('weight', $rec->weightInput);
-            $form->setDefault('netWeight', $rec->netWeightInput);
-            $form->setDefault('tareWeight', $rec->tareWeightInput);
+            $form->setDefault('weight', $weightInput);
+            $form->setDefault('netWeight', $netWeightInput);
+            $form->setDefault('tareWeight', $tareWeightInput);
             $form->setDefault('volume', $rec->volumeInput);
         }
 
@@ -546,6 +549,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $hintType = 'notice';
                 } else {
                     $units = ($rec->transUnits) ? $rec->transUnits : $transInfo->transUnits;
+                    $rec->transUnitsCalced = ($rec->transUnits) ? $rec->transUnits : $transInfo->transUnits;
                     $hint = tr('Лог. ед. са изчислени сумарно за документа');
                     $hintType = 'noicon';
                 }

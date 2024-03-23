@@ -127,7 +127,38 @@ class core_Manager extends core_Mvc
         parent::init($params);
         $this->declareInterface('core_ManagerIntf');
     }
-    
+
+
+    /**
+     * Помощна функция, която форсира използване на друга БД
+     *
+     * @param string $clsName
+     *
+     * @return void
+     */
+    public function forceProxy($clsName)
+    {
+        $DC = cls::get($clsName);
+
+        $this->fields = $DC->fields;
+        $this->dbTableName = $DC->dbTableName;
+        $this->dbIndexes = $DC->dbIndexes;
+        if (defined('SEARCH_DB_HOST')) {
+            $error = core_App::isReplicationOK();
+            if (!empty($error)) {
+                if (rand(1, 100)%99 == 0) {
+                    $this->logNotice($error);
+                    // todo: да праща signal msg на админа
+                }
+            } else {
+                $this->db->dbName = SEARCH_DB_NAME;
+                $this->db->dbPass = SEARCH_DB_PASS;
+                $this->db->dbUser = SEARCH_DB_USER;
+                $this->db->dbHost = SEARCH_DB_HOST;
+            }
+        }
+    }
+
     
     /**
      * Връща линк към подадения обект

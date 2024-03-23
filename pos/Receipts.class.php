@@ -226,10 +226,12 @@ class pos_Receipts extends core_Master
         
         // Ако форсираме, винаги създаваме нова бележка
         if ($forced) {
-            $id = $this->createNew();
+            $contragentClass = Request::get('contragentClass', 'int');
+            $contragentId = Request::get('contragentObjectId', 'int');
+
+            $id = $this->createNew(null, $contragentClass, $contragentId);
             $this->logWrite('Създаване на нова бележка', $id);
         } else {
-            
             // Коя е последната чернова бележка от ПОС-а
             $cu = core_Users::getCurrent();
             $query = $this->getQuery();
@@ -265,27 +267,47 @@ class pos_Receipts extends core_Master
         
         return new Redirect(array('pos_Terminal', 'open', 'receiptId' => $id));
     }
-    
-    
+
+
     /**
      * Създава нова чернова бележка
+     *
+     * @param int|null $revertId        - ид на бележка, която да се сторнира
+     * @param int|null $contragentClass - клас на контрагент
+     * @param int|null $contragentId    - ид на контрагент
+     * @return int
      */
-    private function createNew($revertId = null)
+    private function createNew($revertId = null, $contragentClass = null, $contragentId = null)
     {
         $rec = new stdClass();
         $posId = pos_Points::getCurrent();
-        
-        $rec->contragentName = 'Анонимен Клиент';
-        $rec->contragentClass = core_Classes::getId('crm_Persons');
-        $rec->contragentObjectId = pos_Points::defaultContragent($posId);
+
         $rec->pointId = $posId;
         $rec->valior = dt::now();
         $this->requireRightFor('add', $rec);
         
         if (!empty($revertId)) {
+
+            // Ако ще е сторнираща бележка - да е към същия котрагент
+            $recToRevert = static::fetch($revertId);
+            $rec->contragentName = $recToRevert->contragentName;
+            $rec->contragentClass = $recToRevert->contragentClass;
+            $rec->contragentObjectId = $recToRevert->contragentObjectId;
             $rec->revertId = $revertId;
+        } else {
+
+            // Ако е нова да е или към подадения, или към анонимния
+            if(isset($contragentClass) && isset($contragentId)){
+                $rec->contragentClass = $contragentClass;
+                $rec->contragentObjectId = $contragentId;
+                $rec->contragentName = cls::get($contragentClass)->getVerbal($contragentId, 'name');;
+            } else {
+                $rec->contragentName = 'Анонимен Клиент';
+                $rec->contragentClass = core_Classes::getId('crm_Persons');
+                $rec->contragentObjectId = pos_Points::defaultContragent($posId);
+            }
         }
-        
+
         return $this->save($rec);
     }
     
@@ -513,8 +535,11 @@ class pos_Receipts extends core_Master
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        if ($rec->state != 'draft') return;
 
+        // Ако не е чернова или е сторнираща - няма да се преизчислява нищо
+        if ($rec->state != 'draft' || !empty($rec->revertId)) return;
+
+        // Преизчисляване на общите отстъпки
         core_Debug::startTimer('CALC_AUTO_DISCOUNT');
         static::recalcAutoDiscount($rec);
         core_Debug::stopTimer('CALC_AUTO_DISCOUNT');
@@ -538,7 +563,7 @@ class pos_Receipts extends core_Master
         $paymentOptions = array();
         $pQuery = cond_Payments::getQuery();
         $pQuery->where("#state = 'active'");
-        $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+        $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
         while($pRec = $pQuery->fetch()){
             $paymentName = cond_Payments::getTitleById($pRec->id, false);
             $paymentOptions[$pRec->id] = $paymentName;
@@ -1117,13 +1142,13 @@ class pos_Receipts extends core_Master
      * @param int|null $locationId
      * @return void
      */
-    private function setContragent(&$rec, $contragentClassId, $contragentId, $locationId = null)
+    public static function setContragent(&$rec, $contragentClassId, $contragentId, $locationId = null)
     {
         $rec->contragentClass = $contragentClassId;
         $rec->contragentObjectId = $contragentId;
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $rec->contragentLocationId = $locationId;
-        $this->save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
+        static::save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
         $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
 
         // Ако има детайли
@@ -1212,11 +1237,11 @@ class pos_Receipts extends core_Master
         // Ако бележката е на клиент и е сканирана нова карта и тя не е на този клиент ще се върне на анонимния за да се преизчислят цените
         if(!$isDefaultContragent && $autoSelect && ($rec->contragentClass != $contragentClassId || $rec->contragentObjectId != $contragentId)){
             $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
-            $this->setContragent($rec, crm_Persons::getClassId(), $defaultContragentId);
+            static::setContragent($rec, crm_Persons::getClassId(), $defaultContragentId);
         }
 
         // Задаване на новия контрагент
-        $this->setContragent($rec, $contragentClassId, $contragentId, $locationId);
+        static::setContragent($rec, $contragentClassId, $contragentId, $locationId);
         $this->logWrite('Избор на контрагент в бележка', $id);
 
         if (Request::get('ajax_mode')) {
@@ -1475,7 +1500,7 @@ class pos_Receipts extends core_Master
             $contragentPriceListId = ($defaultContragentId == $contragentId) ? pos_Points::getSettings($pointId, 'policyId') : price_ListToCustomers::getListForCustomer($contragentClassId, $contragentId, $date);
 
             $title = tr("Политика|*: ") . price_Lists::getTitleById($contragentPriceListId);
-            if($link){
+            if($link && !Mode::isReadOnly()){
                 $singleUrl = $Class->getSingleUrlArray($contragentId);
                 if($singleUrl){
                     $title = ht::createLinkRef($title, $singleUrl, false, array('title' => $Class->getTitleById($contragentId)));

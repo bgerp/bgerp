@@ -311,7 +311,7 @@ class cal_Tasks extends embed_Manager
         $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
 
         // Споделяне
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable,autohide');
+        $this->FLD('sharedUsers', 'userList(showClosedUsers=no)', 'caption=Споделяне->Потребители,changable,autohide');
         
         // Приоритет
         $this->FLD(
@@ -3526,9 +3526,19 @@ class cal_Tasks extends embed_Manager
         
         $form->input(null, true);
         $form->input();
-        
-        setIfNot($form->rec->title, '*Без заглавие*');
-        
+
+        if ($form->isSubmitted()) {
+            if ($form->rec->description) {
+                if (!$form->rec->title) {
+                    $form->rec->title = str::limitLen($form->rec->description, 32, 64);
+                }
+            }
+
+            if (!$form->rec->title) {
+                $form->rec->title = '*Без заглавие*';
+            }
+        }
+
         if ($isReportFromStream || $form->isSubmitted()) {
             if ($isReportFromStream) {
                 $form->rec->description = gzuncompress($form->rec->description);

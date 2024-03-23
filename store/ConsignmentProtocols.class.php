@@ -340,12 +340,11 @@ class store_ConsignmentProtocols extends core_Master
         $Contragent = cls::get($data->rec->contragentClassId);
         if (!$Contragent->haveRightFor('single', $data->rec->contragentId)) return;
 
-        if (!haveRole($Contragent->canReports)) return;
+        if (!haveRole($Contragent->canReports) || Mode::isReadOnly()) return;
         
         $snapshot = $data->rec->snapshot;
         $mvcTable = new core_Mvc;
         $mvcTable->FLD('blQuantity', 'int', 'tdClass=accCell');
-
         $productCaption = ($data->rec->productType == 'ours') ? 'Наш артикул' : 'Чужд артикул';
         $table = cls::get('core_TableView', array('mvc' => $mvcTable));
         $details = $table->get($snapshot->rows, "count=№,productId={$productCaption},blQuantity=Количество");
@@ -393,6 +392,7 @@ class store_ConsignmentProtocols extends core_Master
             $recs[] = (object)array('count' => $count,
                                     'productId' => acc_Items::fetchField($b['ent2Id'], 'objectId'),
                                     'blQuantity' => $b['blQuantity'],);
+            $count++;
         }
 
         return $recs;

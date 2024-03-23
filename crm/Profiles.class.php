@@ -300,11 +300,9 @@ class crm_Profiles extends core_Master
                 }
                 
                 $data->ColabFolders->rowsArr = array();
-                $sharedFolders = colab_Folders::getSharedFolders($data->rec->userId, false, null, false);
-                
-                $params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
+                $sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
+
                 foreach ($sharedFolders as $folderId) {
-                    $params['folderId'] = $folderId;
                     $fRow = doc_Folders::recToVerbal(doc_Folders::fetch($folderId));
                     $data->ColabFolders->rowsArr[] = (object) (array('folderName' => $fRow->title . ' (' . $fRow->type . ')'));
                 }

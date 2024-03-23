@@ -200,3 +200,9 @@ function refreshFloor() {
 	});
 	setTimeout(refreshFloor, 3000);
 }
+
+function calculatePosition(){
+	if($('.wide .floorTabs').hasClass('topPosition')) {
+		$('body').css('flex-direction', 'column');
+	}
+}

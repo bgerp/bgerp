@@ -295,7 +295,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
 
 
-            $pQuery->in('state', array('rejected', 'draft'), true);
+            $pQuery->in('state', array('rejected', 'draft', 'pending'), true);
 
             //Включване на не складируемите артикули
             if($rec->unstackableOn != 'yes'){
@@ -505,18 +505,18 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
             $fld->FLD('name', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Количество');
+            $fld->FLD('consumedQuantity', 'double(decimals=2)', 'smartCenter,caption=Вложено->Количество');
             if (!is_null($rec->seeAmount)) {
-                $fld->FLD('consumedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Стойност');
+                $fld->FLD('consumedAmount', 'double(decimals=2)', 'smartCenter,caption=Вложено->Стойност');
             }
-            $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Количество');
+            $fld->FLD('returnedQuantity', 'double(decimals=2)', 'smartCenter,caption=Върнато->Количество');
             if (!is_null($rec->seeAmount)) {
-                $fld->FLD('returnedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Стойност');
+                $fld->FLD('returnedAmount', 'double(decimals=2)', 'smartCenter,caption=Върнато->Стойност');
             }
 
-            $fld->FLD('totalQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Резултат->Количество');
+            $fld->FLD('totalQuantity', 'double(decimals=2)', 'smartCenter,caption=Резултат->Количество');
             if (!is_null($rec->seeAmount)) {
-                $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Резултат->Стойност');
+                $fld->FLD('totalAmount', 'double(decimals=2)', 'caption=Резултат->Стойност');
             }
 
         }

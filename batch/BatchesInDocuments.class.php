@@ -873,9 +873,11 @@ class batch_BatchesInDocuments extends core_Manager
         $where = "#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #productId = {$productId} AND #operation = '{$operation}'";
         if (!empty($batch)) {
             $where .= " AND #batch = '[#1#]'";
-            return self::fetchField(array($where, $batch));
+
+            return self::fetchField(array($where, $batch), 'id', false);
         } else {
-            return self::fetchField($where);
+            $where .= " AND #batch = '[#1#]'";
+            return self::fetchField($where, 'id', false);
         }
     }
     
@@ -915,7 +917,7 @@ class batch_BatchesInDocuments extends core_Manager
                 if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b1, $operation)) {
                     $obj->id = $id;
                     if($increment){
-                        $obj->quantity = $q + static::fetchField($id, 'quantity');
+                        $obj->quantity = $q + static::fetchField($id, 'quantity', false);
                     }
                 }
                 

@@ -70,10 +70,6 @@ class planning_type_ProductionRate extends type_Varchar
                 $this->error = 'Невалидно число';
 
                 return false;
-            } elseif($valueArr['cL'] <= 0) {
-                $this->error = "Не е над|* - 0";
-
-                return false;
             } elseif(in_array($valueArr['cR'], array('per1Hour', 'per1Min', 'per8Hour'))){
                 $error = null;
                 deals_Helper::checkQuantity($this->params['measureId'], $valueArr['cL'], $error);
@@ -118,6 +114,9 @@ class planning_type_ProductionRate extends type_Varchar
         $options = $this->getRateOptions($value);
         $paredValues = $this->parseValue($value);
         $leftVal = core_Type::getByName('int')->toVerbal($paredValues['left']);
+        if(!Mode::is('text', 'plain')){
+            $leftVal = ht::styleIfNegative($leftVal, $paredValues['left']);
+        }
 
         return "{$leftVal} {$options[$paredValues['right']]}";
     }

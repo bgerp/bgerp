@@ -2712,13 +2712,8 @@ class cat_Products extends embed_Manager
             }
             $data->documentType = $documentType;
             $descriptionTpl = cat_Products::renderDescription($data);
-            
-            // Удебеляваме името само ако има допълнително описание
-            if (strlen($descriptionTpl->getContent())) {
-                $title = "<b class='productName'>{$title}</b>";
-            }
         }
-        
+        $title = "<span class='productName'>{$title}</span>";
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $singleUrl = static::getSingleUrlArray($rec->id);
             $title = ht::createLinkRef($title, $singleUrl);
@@ -4521,12 +4516,14 @@ class cat_Products extends embed_Manager
         
         // Взима се стойност от параметрите на артикула
         if (array_key_exists($toUomId, $kgUoms)) {
-            if ($paramValue = self::getParams($productId, 'weight')) {
+            $paramValue = self::getParams($productId, 'weight');
+            if (isset($paramValue)) {
                 $res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
                 
                 return $res;
-            } elseif ($paramValue = self::getParams($productId, 'weightKg')) {
-                return $paramValue;
+            } else {
+                $paramValue = self::getParams($productId, 'weightKg');
+                if (isset($paramValue)) return $paramValue;
             }
         }
     }

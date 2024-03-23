@@ -117,7 +117,7 @@
                             <hr>
                             <div>Total gross weight:&nbsp;[#weight#]</div>
                             <div>Total net weight:&nbsp;[#netWeight#]</div>
-                            <div>Total tare:&nbsp;[#tareWeight#]</div>
+                            <div>Total packing weight:&nbsp;[#tareWeight#]</div>
                         </td>
                     </tr>
                     <!--ET_BEGIN logisticInfo-->

@@ -1097,7 +1097,7 @@ class doc_Folders extends core_Master
      */
     public static function restrictAccess_(&$query, $userId = null, $viewAccess = true)
     {
-        if ($query->mvc->className != 'doc_Folders') {
+        if (($query->mvc->className != 'doc_Folders') && ($query->mvc->className != 'doc_FoldersProxy')) {
             // Добавя необходимите полета от модела doc_Folders
             if (!$query->fields['folderAccess']) {
                 $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');

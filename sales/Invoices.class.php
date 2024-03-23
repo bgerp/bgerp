@@ -157,7 +157,6 @@ class sales_Invoices extends deals_InvoiceMaster
         'contragentPCode' => 'clientData|lastDocUser|lastDoc',
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',
         'contragentAddress' => 'clientData|lastDocUser|lastDoc',
-        'accountId' => 'lastDocUser|lastDoc',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
     
@@ -290,7 +289,7 @@ class sales_Invoices extends deals_InvoiceMaster
             return;
         }
         
-        $unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template', 'activatedOn', 'activatedBy');
+        $unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template', 'activatedOn', 'activatedBy', 'username', 'issuerId');
         foreach ($unsetFields as $fld) {
             unset($proformaRec->{$fld});
         }
@@ -354,16 +353,19 @@ class sales_Invoices extends deals_InvoiceMaster
             list(, $vies) = $Vats->check($form->rec->contragentVatNo);
             $vies = trim($vies);
             if(!empty($vies)){
-                $form->info = "<b>VIES</b>: {$vies}";
+                $form->info = "<div class='formCustomInfo'><b>VIES</b>: {$vies}</div>";
             }
         }
         
         $form->setField('contragentPlace', 'mandatory');
         $form->setField('contragentAddress', 'mandatory');
-        
+
         if ($data->aggregateInfo) {
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
                 $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
+            } else {
+                $previousAccId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'accountId', 'lastDocUser|lastDoc');
+                $form->setDefault('accountId', $previousAccId);
             }
         }
         
@@ -585,18 +587,27 @@ class sales_Invoices extends deals_InvoiceMaster
         parent::getVerbalInvoice($mvc, $rec, $row, $fields);
         
         if ($fields['-single']) {
-            if ($rec->accountId && $rec->paymentType != 'factoring') {
-                $Varchar = cls::get('type_Varchar');
-                $ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
-                
-                $row->accountId = cls::get('iban_Type')->toVerbal($ownAcc->iban);
-                $row->bank = $Varchar->toVerbal($ownAcc->bank);
-                core_Lg::push($rec->tplLang);
-                $row->bank = transliterate(tr($row->bank));
-                $row->place = transliterate($row->place);
-                core_Lg::pop();
-                
-                $row->bic = $Varchar->toVerbal($ownAcc->bic);
+            if ($rec->accountId) {
+                if($rec->paymentType != 'factoring'){
+                    $Varchar = cls::get('type_Varchar');
+                    $ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+
+                    $row->accountId = cls::get('iban_Type')->toVerbal($ownAcc->iban);
+                    $row->bank = $Varchar->toVerbal($ownAcc->bank);
+                    core_Lg::push($rec->tplLang);
+                    $row->bank = transliterate(tr($row->bank));
+                    $row->place = transliterate($row->place);
+                    core_Lg::pop();
+                    $row->bic = $Varchar->toVerbal($ownAcc->bic);
+
+                    if(!Mode::isReadOnly()){
+                        $accountInfo = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+                        if($accountInfo->currencyId != currency_Currencies::getIdByCode($rec->currencyId)){
+                            $row->accountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->accountId}</span>";
+                            $row->accountId = ht::createHint($row->accountId, 'Банковата сметка е във валута различна от тази на сделката|*!', 'warning');
+                        }
+                    }
+                }
             }
 
             $displayRange = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));
@@ -924,68 +935,6 @@ class sales_Invoices extends deals_InvoiceMaster
         while($dRec = $dQuery->fetch()){
             $res[$dRec->productId] = (object)array('productId' => $dRec->productId, 'batches' => $dRec->batches);
         }
-
-        return $res;
-    }
-
-
-    /**
-     * Как се казва политиката
-     *
-     * @param stdClass $rec - запис
-     * @return bool
-     */
-    public function canHaveTotalDiscount($rec)
-    {
-        $rec = $this->fetchRec($rec);
-        if($rec->type != 'invoice' || $rec->dpOperation == 'accrued') return false;
-
-        $detailCount = sales_InvoiceDetails::count("#invoiceId = {$rec->id}");
-
-        return !empty($detailCount);
-    }
-
-
-    /**
-     * След обновяване на мастъра
-     *
-     * @param mixed $id - ид/запис на мастъра
-     */
-    public static function on_AfterUpdateMaster($mvc, &$res, $id)
-    {
-        // Ако е зададено в мода да не се рекалкулират отстъпките
-        $rec = $mvc->fetchRec($id);
-        if($rec->type != 'invoice') return;
-
-        // Преизчисляване ако има автоматични отстъпки
-        if($mvc->recalcAutoTotalDiscount($rec)){
-            $mvc->updateMaster_($rec);
-        }
-    }
-
-
-    /**
-     * Как се казва политиката
-     *
-     * @param stdClass $rec - запис
-     * @return array
-     *            [rate]       - валутен курс
-     *            [valior]     - вальор
-     *            [currencyId] - код на валута
-     *            [chargeVat]  - режим на начисляване на ДДС
-     *            [amount]     - сума в основна валута без ддс и отстъпка
-     */
-    public function getTotalDiscountSourceData($rec)
-    {
-        $rec = $this->fetchRec($rec);
-
-        $amount = core_Math::roundNumber($rec->dealValue - $rec->discountAmount);
-        $res = (object)array('rate' => $rec->rate,
-                             'valior'     => $rec->valior,
-                             'currencyId' => $rec->currencyId,
-                             'chargeVat'  => 'separate',
-                             'amount'     => $amount,
-        );
 
         return $res;
     }

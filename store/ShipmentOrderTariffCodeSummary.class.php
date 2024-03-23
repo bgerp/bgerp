@@ -82,6 +82,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
         $this->FLD('tareWeight', 'cat_type_Weight', 'caption=Тегло->Тара');
         $this->FLD('transUnits', 'blob(serialize, compress)', 'input');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Друго->Сума');
+        $this->FLD('typeOfPacking', 'varchar', 'caption=Друго->Опаковка(Материал),recently');
         $this->setDbUnique('shipmentId,tariffCode');
     }
 
@@ -118,13 +119,13 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
         $form->setField('displayTariffCode', "placeholder={$dCode},caption=Митнически код|*: <b>{$dCode}</b>->Код");
         $form->setField('displayDescription', "caption=Митнически код|*: <b>{$dCode}</b>->Описание");
         if(is_object($exRec)) {
-            foreach (array('displayTariffCode', 'displayDescription', 'weight', 'netWeight', 'tareWeight', 'transUnits', 'amount') as $fld) {
+            foreach (array('displayTariffCode', 'displayDescription', 'weight', 'netWeight', 'tareWeight', 'transUnits', 'amount', 'typeOfPacking') as $fld) {
                 $form->setDefault($fld, $exRec->{$fld});
             }
         }
 
         // Зареждане на плейсхолдъри от рекуеста
-        $transUnitCaption = "Логистична еденици->ЛЕ";
+        $transUnitCaption = "Логистични единици->ЛЕ";
         if($form->cmd != 'save' && $form->cmd != 'empty'){
             if($weightPlaceholder = Request::get('weight', 'varchar')){
                 Mode::push('verbalWithoutSuffix', true);
@@ -165,11 +166,15 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
             if($transUnits = Request::get('transUnits')){
                 $transUnits = is_array($transUnits) ? $transUnits : trans_Helper::convertTableToNormalArr($transUnits);
                 $transUnits = strip_tags(trans_Helper::displayTransUnits($transUnits));
-                $transUnitCaption = "Логистична еденици->{$transUnits}->ЛЕ";
+                $transUnitCaption = "Логистични единици->{$transUnits}->ЛЕ";
             }
 
             if($displayDescription = Request::get('displayDescription')){
                 $form->setField('displayDescription', "placeholder={$displayDescription}");
+            }
+
+            if($typeOfPacking = Request::get('typeOfPacking')){
+                $form->setField('typeOfPacking', "placeholder={$typeOfPacking}");
             }
         }
 
@@ -193,7 +198,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
 
             if(!$form->gotErrors()){
                 if($form->cmd == 'save'){
-                    $isEmpty = empty($fRec->displayTariffCode) && empty($fRec->displayDescription) && !isset($fRec->weight) && !isset($fRec->netWeight) && !isset($fRec->tareWeight) && !isset($fRec->transUnits) && !isset($fRec->amount);
+                    $isEmpty = empty($fRec->displayTariffCode) && empty($fRec->displayDescription) && !isset($fRec->weight) && !isset($fRec->netWeight) && !isset($fRec->tareWeight) && !isset($fRec->transUnits) && !isset($fRec->amount) && !isset($fRec->typeOfPacking);
                 } else {
                     $isEmpty = true;
                 }
@@ -203,7 +208,7 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
                     if($isEmpty){
                         static::delete($exRec->id);
                         store_ShipmentOrders::logWrite('Промяна на обощения ред за МТК', $shipmentRec->id);
-                        followRetUrl(null, 'Промените са записани успешно');
+                        followRetUrl(null, 'Промените са записани успешно|*!');
                     }
                     $fRec->id = $exRec->id;
                 }
@@ -213,13 +218,13 @@ class store_ShipmentOrderTariffCodeSummary extends core_Manager
                     store_ShipmentOrders::logWrite('Промяна на обощения ред за МТК', $shipmentRec->id);
                 }
 
-                followRetUrl(null, 'Промените са записани успешно');
+                followRetUrl(null, 'Промените са записани успешно|*!');
             }
         }
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         if(is_object($exRec)){
-            $form->toolbar->addSbBtn('Нулиране', 'empty', 'ef_icon = img/16/reject.png,warning=Наистина ли искате да нулирате ръчно въведените данни|*?');
+            $form->toolbar->addSbBtn('Нулиране', 'empty', 'ef_icon = img/16/reject.png,warning=Премахване на всички ръчно въведени данни|*?');
         }
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 

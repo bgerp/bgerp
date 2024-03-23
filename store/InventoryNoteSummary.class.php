@@ -130,8 +130,8 @@ class store_InventoryNoteSummary extends doc_Detail
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,silent,removeAndRefreshForm=groups,tdClass=large-field');
-        $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
-        $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
+        $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,notNull,value=0');
+        $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
         $this->FLD('charge', 'user', 'caption=Начет');
@@ -330,17 +330,16 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!$data->rows) {
-            
-            return;
-        }
-        
+        if (!$data->rows) return;
+
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('btns', 'varchar', 'tdClass=small-field nowrap,smartCenter');
         $data->listTableMvc->setField('charge', 'tdClass=charge-td');
         $masterRec = $data->masterData->rec;
-        
+        $pageVar = core_Pager::getPageVar('store_InventoryNotes', $masterRec->id);
+        $pageVal = Request::get($pageVar, 'varchar');
+
         // Намиране на всички заявки ако има
         $pendingDocuments = self::getPendingDocuments($masterRec->valior, $masterRec->storeId);
         
@@ -417,7 +416,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
                 // Добавяне на бутон за редакция на реда
                 if ($rec->productId && !$isNoBatchRow && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
-                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId));
+                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId, $pageVar => $pageVal));
 
                     // Ако се редактира сумарен ред. Маркира се в урл-то
                     if(isset($rec->quantity) || isset($rec->_batch)){
@@ -456,7 +455,8 @@ class store_InventoryNoteSummary extends doc_Detail
                     }
                 }
             }
-            
+
+            $row->quantity = ht::styleIfNegative($row->quantity, $rec->quantity);
             $row->blQuantity = ht::styleIfNegative($row->blQuantity, $rec->blQuantity);
         }
         

@@ -90,9 +90,9 @@ class drdata_IpToCountry extends core_Manager
             return $ipToCountry[$ip];
         }
 
-        $cRec = drdata_IpToCountry::fetch("#minIp <= INET_ATON('{$ip}') AND #maxIp >= INET_ATON('{$ip}')");
-
-        $ipToCountry[$ip] = $cRec->country2;
+//        $cRec = drdata_IpToCountry::fetch("#minIp <= INET_ATON('{$ip}') AND #maxIp >= INET_ATON('{$ip}')");
+//        $ipToCountry[$ip] = $cRec->country2;
+        $ipToCountry[$ip] = drdata_IpToCountry::fetchField(array("#minIp <= '[#1#]' AND #maxIp >= '[#1#]'", sprintf("%u", ip2long($ip))), 'country2');
 
         core_Cache::set('drdata_IpToCountry', 'ipToCountry', $ipToCountry, 1000000);
 

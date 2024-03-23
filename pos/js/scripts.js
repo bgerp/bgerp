@@ -306,7 +306,7 @@ function posActions() {
 	});
 	
 	// При натискане на бутон за нова фирма
-	$(document.body).on('click', ".newCompanyBtn", function(e){
+	$(document.body).on('click', ".newContragentBtn", function(e){
 		presssNavigable(this);
 	});
 	
@@ -950,7 +950,7 @@ function pressNavigable(element)
 		}
 		return;
 		
-	} else if(element.hasClass("newCompanyBtn") || element.hasClass("locationBtn")){
+	} else if(element.hasClass("newContragentBtn") || element.hasClass("locationBtn")){
 		location.href = url;
 		return;
 	} else if(element.hasClass("deleteRow")){

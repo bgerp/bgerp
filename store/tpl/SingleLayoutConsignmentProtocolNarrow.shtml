@@ -161,14 +161,20 @@
                                 <!--ET_END note-->
                             </table>
                             <hr>
-                            <!--ET_BEGIN responsible-->
-
-                            <div>|Получил|*:[#RESPONSIBLE_SIGN#]  [#responsible#]</div>
-                            <!--ET_END responsible-->
-                            
-                            <!--ET_BEGIN username-->
-                            <div>|Съставил|*:[#USERNAME_SIGN#]  [#username#]</div>
-                            <!--ET_END username-->
+                            <table class='centered special-borders' style='width:100%;'>
+                                <tr>
+                                    <td class='centered border-right' style='width:50%;'>|Получил|* [#RESPONSIBLE_SIGN_PAD#]:</td>
+                                    <td class='centered'>|Съставил|* [#USERNAME_SIGN_PAD#]: </td>
+                                </tr>
+                                <tr>
+                                    <td class='border-right' style='height:40px;'>[#RESPONSIBLE_SIGN#]</td>
+                                    <td>[#USERNAME_SIGN#]</td>
+                                </tr>
+                                <tr>
+                                    <td class='centered border-right'><span class="sign_names nowrap"><!--ET_BEGIN responsible-->( [#responsible#] )<!--ET_END responsible--></span></td>
+                                    <td class='centered'><span class="sign_names nowrap"><!--ET_BEGIN username-->( [#username#] )<!--ET_END username--></span></td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     <tr class='footerDocInfo'>

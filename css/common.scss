@@ -1639,16 +1639,20 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHo
 
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
-.formError, .formNotice, .formWarning, .formCustomInfo {
+.formError, .formNotice, .formWarning, .formCustomInfo, .formMiddleCaption  {
     font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
 }
-.formCustomInfo {
+.formCustomInfo, .formMiddleCaption  {
 	background-color: #fdfdc0;
 	border: solid 1px #ccc;
 	color:#666;
+}
+
+.formMiddleCaption {
+	margin: 0 !important;
 }
 
 .formNotice {
@@ -4000,43 +4004,4 @@ td.leftColImportant {
 	.minus-icon {
 		background-image: url('../img/16/toggle2.png') !important;
 	} 
-}
-
-.floorTabs {
-	display: flex;
-	gap: 20px;
-	justify-content: center;
-	box-sizing: border-box;
-
-	&.topPosition {
-		flex-direction: row ;
-		padding: 20px 50px;
-		position: fixed;
-		top: 0;
-		right: 0;
-		width: 100%;
-	}
-	&.rightPosition {
-		position: fixed;
-		top: 0;
-		right: 0;
-		height: 100%;
-		padding: 0px 20px 50px;
-		flex-direction: column-reverse ;
-
-	}
-	.tab {
-
-		box-sizing: border-box;
-		font-weight: bold;
-		cursor: pointer;
-		a {
-			color: #333 !important;
-			display: block;
-			padding: 5px 20px;
-		}
-		&:hover, &.active {
-			background-color: yellow;
-		}
-	}
 }

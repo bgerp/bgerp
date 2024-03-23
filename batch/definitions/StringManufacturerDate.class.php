@@ -178,7 +178,7 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_Varchar
         if(isset($this->rec->folderId) && isset($this->rec->productId)){
             $exploded = explode('|', $string);
             if(!empty($exploded[1])){
-                if(!batch_ManufacturersPerProducts::fetch("#folderId = {$this->rec->folderId} AND #productId = {$this->rec->productId} AND #string = '{$exploded[1]}'")){
+                if(!batch_ManufacturersPerProducts::fetch(array("#folderId = {$this->rec->folderId} AND #productId = {$this->rec->productId} AND #string = '[#1#]'", $exploded[1]))){
                     $dRec = (object)array('folderId' => $this->rec->folderId, 'productId' => $this->rec->productId, 'string' => $exploded[1]);
                     batch_ManufacturersPerProducts::save($dRec);
                 }

@@ -212,9 +212,10 @@ class store_Stores extends core_Master
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
 
-        $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
+        $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да (с предупреждение),yesWithoutWarning=Да (без предупреждение))', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
         $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
         $this->FLD('prioritizeRackGroups', 'enum(,yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване,maxRadio=2,placeholder=Автоматично');
+        $this->FLD('palletBestPositionStrategy', 'enum(,bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Избор,placeholder=Автоматично');
 
         $this->setDbUnique('name');
     }
@@ -289,6 +290,7 @@ class store_Stores extends core_Master
             $data->form->setField('samePosPallets', 'input=none');
             $data->form->setField('closeCombinedMovementsAtOnce', 'input=none');
             $data->form->setField('prioritizeRackGroups', 'input=none');
+            $data->form->setField('palletBestPositionStrategy', 'input=none');
         }
 
         $preparationShipmentPlaceholder = $mvc->getFieldType('preparationBeforeShipment')->toVerbal(store_Setup::get('PREPARATION_BEFORE_SHIPMENT'));
@@ -358,6 +360,11 @@ class store_Stores extends core_Master
                 if(empty($rec->prioritizeRackGroups)){
                     $row->prioritizeRackGroups = $mvc->getFieldType('prioritizeRackGroups')->toVerbal(rack_Setup::get('ENABLE_PRIORITY_RACKS'));
                     $row->prioritizeRackGroups = ht::createHint($row->prioritizeRackGroups, 'Автоматично за системата', 'notice', false);
+                }
+
+                if(empty($rec->palletBestPositionStrategy)){
+                    $row->palletBestPositionStrategy = $mvc->getFieldType('palletBestPositionStrategy')->toVerbal(rack_Setup::get('POSITION_TO_STRATEGY'));
+                    $row->palletBestPositionStrategy = ht::createHint($row->palletBestPositionStrategy, 'Автоматично за системата', 'notice', false);
                 }
             }
 

@@ -161,7 +161,7 @@ class cash_ExchangeDocument extends core_Master
         $this->FLD('equals', 'double(smartRound)', 'input=none,caption=Общо,summary=amount');
         $this->FLD('rate', 'double(decimals=5)', 'input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
     
     
@@ -288,7 +288,7 @@ class cash_ExchangeDocument extends core_Master
         $row->title = $mvc->getLink($rec->id, 0);
         
         if ($fields['-single']) {
-            $rate = round($rec->debitPrice / $rec->creditPrice, 5);
+            $rate = ($rec->creditPrice) ? round($rec->debitPrice / $rec->creditPrice, 5) : 0;
             $row->rate = $mvc->getFieldType('rate')->toVerbal($rate);
             $row->rateUnit = "<span class='cCode'>{$row->creditCurrency}</span> / <span class='cCode'>{$row->debitCurrency}</span>";
             $row->peroTo = cash_Cases::getHyperLink($rec->peroTo, true);

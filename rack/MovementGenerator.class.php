@@ -275,13 +275,13 @@ class rack_MovementGenerator extends core_Manager
         $pR = $p;
         krsort($pR);
         $cnt = countR($p);
-        while ($cnt-- > 0 && countR($pCombi) < 20000) {
+        while ($cnt-- > 0 && countR($pCombi) < 363000) {
             $pCombi = self::addCombi($pR, $pCombi);
         }
         
         $zCombi = array();
         $cnt = countR($z);
-        while ($cnt-- > 0 && countR($zCombi) < 20000) {
+        while ($cnt-- > 0 && countR($zCombi) < 363000) {
             $zCombi = self::addCombi($z, $zCombi);
         }
 
@@ -443,7 +443,7 @@ class rack_MovementGenerator extends core_Manager
             arsort($cnt);
             $best = key($cnt);
             foreach($cnt as $q => $n) {
-                if($q != $best) unset($ctn[$q]);
+                if($q != $best) unset($cnt[$q]);
             }
 
             krsort($cnt);
