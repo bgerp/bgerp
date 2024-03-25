@@ -102,7 +102,7 @@ class price_plg_TotalDiscount extends core_Plugin
             $totalWithoutDiscount += $amount;
         }
 
-        $calcedPercent =  !empty($totalWithoutDiscount) ? round(($totalDiscount / $totalWithoutDiscount), 6) : 0;
+        $calcedPercent =  !empty($totalWithoutDiscount) ? round(($totalDiscount / $totalWithoutDiscount), 8) : 0;
         if($calcedPercent <= 0) return;
 
         $save = array();
