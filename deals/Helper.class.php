@@ -141,7 +141,7 @@ abstract class deals_Helper
 
             if(!empty($rec->{$map['autoDiscount']})){
                 if(in_array($masterRec->state, array('draft', 'pending'))){
-                    $discountVal = round((1-(1-$discountVal)*(1-$rec->{$map['autoDiscount']})), 6);
+                    $discountVal = round((1-(1-$discountVal)*(1-$rec->{$map['autoDiscount']})), 8);
                 }
             }
 
@@ -2957,7 +2957,7 @@ abstract class deals_Helper
             if(isset($autoDiscount)){
                 $type = ($autoDiscount > 1) ? 'warning' : 'notice';
                 if(isset($calcedDiscount)){
-                    $middleDiscount = round((1 - (1 - $calcedDiscount) * (1 - $autoDiscount)), 6);
+                    $middleDiscount = round((1 - (1 - $calcedDiscount) * (1 - $autoDiscount)), 8);
                     $middleDiscountVerbal = $Percent->toVerbal($middleDiscount);
                     $res = ht::createHint($res, "Осреднена отстъпка|*: {$middleDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", $type, false);
                 } else {

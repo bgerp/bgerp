@@ -158,8 +158,8 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
     {
         //Показването да бъде ли ГРУПИРАНО
          if ($rec->groupBy == 'productId') {
-         $this->groupByField = 'productId';
-         $this->subGroupFieldOrder = 'date';
+        // $this->groupByField = 'productId';
+       //  $this->subGroupFieldOrder = 'date';
           }elseif($rec->groupBy == 'date'){
              $this->groupByField = 'date';
              $this->subGroupFieldOrder = 'quantity';
@@ -261,6 +261,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
                 }
                 if($marker == 0) {
                     $recs[$key] = (object)array(
+                        'total' =>false,
                         'date' => $val->date,
                         'productId' => $val->productId,
                         'quantity' => $val->quantity,
@@ -296,15 +297,28 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 //                }
 //            }
 //        }
-
         if (countR($recs)) {
             arr::sortObjects($recs, 'date', 'asc');
+        }
+        foreach ($recs as $key => $val){
+
+            $recs[$val->productId] = (object)array(
+                'total' => true,
+                'productId' => $val->productId,
+                'totalProdQuantity' => $val->totalProdQuantity,
+                'totalProdAmount' => $val->totalProdAmount,
+                'date' => '',
+                'quantity' =>'',
+                'amount' => '',
+            );
+        }
+
+        if (countR($recs)) {
+            arr::sortObjects($recs, 'totalProdQuantity', 'desc');
             arr::sortObjects($recs, 'totalProdAmount', 'desc');
         }
 
         return $recs;
-
-
     }
 
 
@@ -357,18 +371,20 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
         $row->date = $Date->toVerbal($dRec->date);
 
-        cat_Products::getHyperlink($dRec->productId, true);
-
         $dist = 45;
 
-        $row->productId = cat_Products::getHyperlink($dRec->productId, true);
-        for ($i = 0; $i <= $dist; $i++) {
-            $row->productId .= '&nbsp';
+       // $row->productId = cat_Products::getHyperlink($dRec->productId, true);
+
+        if (($rec->groupBy == 'productId') && ($dRec->total)){
+                $row->productId = '<span style=\"color:grey\">' ."<b>". cat_Products::getHyperlink($dRec->productId, true)."</b>".'</span>';
+                $row->quantity = "<b>".$Double->toVerbal($dRec->totalProdQuantity)."</b>";
+                $row->amount = "<b>".$Double->toVerbal($dRec->totalProdAmount)."</b>";
+            return $row;
         }
 
-        if ($rec->groupBy == 'productId') {
-            $row->productId .= $Double->toVerbal($dRec->totalProdAmount) .'<span class="fright">' . $Double->toVerbal($dRec->totalProdQuantity) . '</span>';
-        }
+       // if ($rec->groupBy == 'productId') {
+          //  $row->productId .= $Double->toVerbal($dRec->totalProdAmount) .'<span class="fright">' . $Double->toVerbal($dRec->totalProdQuantity) . '</span>';
+     //   }
         $row->quantity = $Double->toVerbal($dRec->quantity);
         $row->amount = $Double->toVerbal($dRec->amount);
 
