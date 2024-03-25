@@ -49,15 +49,8 @@ class cms_SinglePageTheme extends core_ProtoInner
             $tpl->replace($content, 'CMS_LAYOUT');
         }
 
-        $subtitle = $this->innerForm->subtitle;
-        if ($subtitle) {
-            $tpl->replace($subtitle, 'SUBTITLE');
-        }
-
         $menu = $this->getMenu();
         $tpl->replace($menu, 'MENU');
-
-
 
         $img = $this->innerForm->wallpaper;
 
@@ -76,6 +69,10 @@ class cms_SinglePageTheme extends core_ProtoInner
             $headTitle= $this->innerForm->headTitle;
             if ($headTitle) {
                 $tpl->replace($headTitle, 'TITLE');
+            }
+            $subtitle = $this->innerForm->subtitle;
+            if ($subtitle) {
+                $tpl->replace($subtitle, 'SUBTITLE');
             }
         }
 
