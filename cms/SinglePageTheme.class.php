@@ -52,14 +52,7 @@ class cms_SinglePageTheme extends cms_FancyTheme
         $menu = $this->getMenu();
         $tpl->replace($menu, 'MENU');
 
-        $title = $this->innerForm->title;
-        if ($title) {
-            $tpl->replace($title, 'CORE_APP_NAME');
-        }
-        $headTitle= $this->innerForm->headTitle;
-        if ($headTitle) {
-            $tpl->replace($headTitle, 'TITLE');
-        }
+
 
         $img = $this->innerForm->wallpaper;
 
@@ -72,6 +65,15 @@ class cms_SinglePageTheme extends cms_FancyTheme
 
             if ($css) {
                 $tpl->append($css, 'STYLES');
+            }
+
+            $title = $this->innerForm->title;
+            if ($title) {
+                $tpl->replace($title, 'CORE_APP_NAME');
+            }
+            $headTitle= $this->innerForm->headTitle;
+            if ($headTitle) {
+                $tpl->replace($headTitle, 'TITLE');
             }
         }
 
@@ -111,6 +113,12 @@ class cms_SinglePageTheme extends cms_FancyTheme
         return $menu;
     }
 
+    protected static function on_AfterPrepareEditForm($mvc, $data)
+    {
+        $form = &$data->form;
+
+        $form->info = tr("|*<div class='formCustomInfo'>Bla bla</div>");
+    }
 
     /**
      * Помощна функция за подготовка на лейаута, който ще се покаже

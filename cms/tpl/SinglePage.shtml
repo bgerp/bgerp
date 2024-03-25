@@ -21,7 +21,7 @@
     </div>
 </header><!-- End Header -->
 
-<!-- ======= Hero Section ======= -->
+<!--ЕТ_BEGIN TITLE-->
 <section id="wallpaper-block" class="d-flex flex-column justify-content-center">
     <div class="container">
         <div class="row justify-content-center">
@@ -31,7 +31,8 @@
             </div>
         </div>
     </div>
-</section><!-- End Hero -->
+</section>
+<!--ЕТ_END TITLE-->
 
 <main id="main">
     [#CMS_LAYOUT#]
