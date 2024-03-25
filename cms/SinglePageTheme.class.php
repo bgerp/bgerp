@@ -45,7 +45,7 @@ class cms_SinglePageTheme extends core_ProtoInner
     public function prepareWrapper($tpl)
     {
         if(!haveRole('user')) {
-            $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => array('Portal', 'show'), 'popup' => 1)) . '","Login","width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0"); if(w) w.focus();';
+            $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => array('Portal', 'show'), 'popup' => 1)) . '","Login","width=484,height=316,resizable=no,scrollbars=no,location=0,status=no,menubar=0"); if(w) w.focus();';
             $loginHtml = "<a href='javascript:void(0)' class='get-started-btn scrollto boldText' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Вход||Log in") . '</a>';
         } else {
             $loginHtml = ht::createLink(". . .", array('Portal', 'Show'), null, array('class' => "get-started-btn scrollto boldText"));
