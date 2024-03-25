@@ -130,8 +130,11 @@ class cms_SinglePageTheme extends core_ProtoInner
         foreach ($aArr as $aRec) {
             $body = cms_Articles::getVerbal($aRec, 'body');
             $className = ($aRec->id % 2 == 0) ? "section-bg" : "";
-            $content->append("<section id='item{$aRec->id}' class='{$className}'><div class='container'><h2>{$aRec->title}</h2>{$body}</div></section>");
-
+            $changeLink = "";
+            if (cms_Articles::haveRightFor('change', $aRec->id)) {
+                $changeLink = cms_Articles::getChangeLink($aRec->id);
+            }
+            $content->append("<section id='item{$aRec->id}' class='{$className}'><div class='container'><h2>{$aRec->title}{$changeLink}</h2>{$body}</div></section>");
         }
 
         return $content;
