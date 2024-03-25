@@ -21,18 +21,19 @@
     </div>
 </header><!-- End Header -->
 
-<!--ЕТ_BEGIN TITLE-->
+<!--ET_BEGIN TITLES-->
+[#TITLES#]
 <section id="wallpaper-block" class="d-flex flex-column justify-content-center">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-xl-8">
-                <h1>[#TITLE#]</h1>
-                <h2>[#SUBTITLE#]</h2>
+                <!--ET_BEGIN TITLE--><h1>[#TITLE#]</h1><!--ET_END TITLE-->
+                <!--ET_BEGIN SUBTITLE--><h2>[#SUBTITLE#]</h2><!--ET_END SUBTITLE-->
             </div>
         </div>
     </div>
 </section>
-<!--ЕТ_END TITLE-->
+<!--ET_END TITLES-->
 
 <main id="main">
     [#CMS_LAYOUT#]
