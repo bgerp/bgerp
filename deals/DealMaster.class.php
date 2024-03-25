@@ -1053,7 +1053,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $dRec->inputDiscount = $dRec->discount;
                 if(isset($dRec->autoDiscount)){
                     if(isset($dRec->discount)){
-                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 6);
+                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 8);
                     } else {
                         $dRec->discount = $dRec->autoDiscount;
                     }
