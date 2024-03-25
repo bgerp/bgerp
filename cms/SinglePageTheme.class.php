@@ -15,7 +15,7 @@
  *
  * @since     v 0.1
  */
-class cms_SinglePageTheme extends cms_FancyTheme
+class cms_SinglePageTheme extends core_ProtoInner
 {
 
     /**
@@ -23,12 +23,17 @@ class cms_SinglePageTheme extends cms_FancyTheme
      */
     public $layout = 'cms/tpl/SinglePage.shtml';
 
+
+    /**
+     * @param core_FieldSet $form
+     */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение');
         $form->FLD('headTitle', 'varchar(100)', 'caption=Заглавие');
         $form->FLD('subtitle', 'varchar(100)', 'caption=Подзаглавие');
     }
+
 
     /**
      * Подготвя шаблона за статия от cms-а за широк режим
@@ -62,10 +67,7 @@ class cms_SinglePageTheme extends cms_FancyTheme
             $imageURL = $img->getUrl('forced');
 
             $css = "\n  #wallpaper-block {background: url({$imageURL}) top center;} ";
-
-            if ($css) {
-                $tpl->append($css, 'STYLES');
-            }
+            $tpl->append($css, 'STYLES');
 
             $title = $this->innerForm->title;
             if ($title) {
@@ -96,8 +98,6 @@ class cms_SinglePageTheme extends cms_FancyTheme
     {
         $menu = new ET();
 
-
-
         $aArr = $this->getArticlesRecs();
         if (empty($aArr)) {
             return false;
@@ -106,19 +106,13 @@ class cms_SinglePageTheme extends cms_FancyTheme
         $menu->append("<nav id='navbar' class='navbar order-last order-lg-0'><ul>");
 
         foreach ($aArr as $aRec) {
-            $menu->append("<li> <a class='nav-link scrollto {$active}' href='#item{$aRec->id}'> {$aRec->title}</a> </li>");
+            $menu->append("<li> <a class='nav-link scrollto' href='#item{$aRec->id}'> {$aRec->title}</a> </li>");
         }
 
         $menu->append("</ul></nav>");
         return $menu;
     }
 
-    protected static function on_AfterPrepareEditForm($mvc, $data)
-    {
-        $form = &$data->form;
-
-        $form->info = tr("|*<div class='formCustomInfo'>Bla bla</div>");
-    }
 
     /**
      * Помощна функция за подготовка на лейаута, който ще се покаже
@@ -142,7 +136,6 @@ class cms_SinglePageTheme extends cms_FancyTheme
             $content->append("<section id='item{$aRec->id}' class='{$className}'><div class='container'><h2>{$aRec->title}</h2>{$body}</div></section>");
 
         }
-
 
         return $content;
     }
@@ -171,7 +164,4 @@ class cms_SinglePageTheme extends cms_FancyTheme
 
         return $res;
     }
-
-
-
 }
