@@ -1252,9 +1252,14 @@ class doc_Folders extends core_Master
         
         $haveRight = static::haveRightFor('single', $rec);
         
-        if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
+        if (!$haveRight && ((strtolower($params['Ctr']) == 'colab_threads') || strtolower($params['Ctr']) == 'doc_threads')) {
             if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Folders::haveRightFor('single', $rec);
+                if ($haveRight) {
+                    if (strtolower($params['Ctr']) == 'doc_threads') {
+                        $params['Ctr'] = 'colab_Threads';
+                    }
+                }
             }
         }
         
@@ -1282,7 +1287,9 @@ class doc_Folders extends core_Master
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
             // Линка
-            $params['Ctr'] = 'doc_Threads';
+            if ((strtolower($params['Ctr']) == 'colab_threads') && !core_Users::haveRole('partner')) {
+                $params['Ctr'] = 'doc_Threads';
+            }
             $link = toUrl($params, $isAbsolute);
             
             // Атрибути на линка
