@@ -12,7 +12,7 @@
     <div class='container container-fluid'>
             <div class="row justify-content-center">
                 <div class="col-xl-12 d-flex align-items-center justify-content-lg-between">
-                    <h1 class="logo me-auto me-lg-0"><a href="#wallpaper-block" class="logo me-auto me-lg-0">[#CORE_APP_NAME#]</a></h1>
+                    <h1 class="logo me-auto me-lg-0"><a href="javascript:window.scrollTo(0,0)" class="logo me-auto me-lg-0">[#CORE_APP_NAME#]</a></h1>
                     [#MENU#]
                     [#LOGIN_BTN#]
                     <i class="bi bi-list mobile-nav-toggle"></i>
@@ -40,3 +40,5 @@
 
 
 </main>
+<div id="preloader"></div>
+<a href="javascript:window.scrollTo(0,0)" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
