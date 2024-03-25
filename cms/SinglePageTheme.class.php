@@ -44,6 +44,10 @@ class cms_SinglePageTheme extends core_ProtoInner
      */
     public function prepareWrapper($tpl)
     {
+        $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => array('Portal', 'show'), 'popup' => 1)) . '","Login","width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0"); if(w) w.focus();';
+        $loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}' style='color: red; font-size: 69px; text-decoration:underline;font-weight:bold'>" . tr('тук||here') . '</a>';
+        $tpl->append($loginHtml);
+
         $content = $this->getCmsLayout();
         if ($content !== false) {
             $tpl->replace($content, 'CMS_LAYOUT');
