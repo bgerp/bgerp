@@ -13,13 +13,13 @@
             <div class="row justify-content-center">
                 <div class="col-xl-12 d-flex align-items-center justify-content-lg-between">
                     <h1 class="logo me-auto me-lg-0"><a href="#wallpaper-block" class="logo me-auto me-lg-0">[#CORE_APP_NAME#]</a></h1>
-                   [#MENU#]
-                    <a href="/Portal/Show" class="get-started-btn scrollto">Вход</a>
+                    [#MENU#]
+                    [#LOGIN_BTN#]
                     <i class="bi bi-list mobile-nav-toggle"></i>
                 </div>
         </div>
     </div>
-</header><!-- End Header -->
+</header>
 
 <!--ET_BEGIN TITLES-->
 [#TITLES#]
