@@ -23,6 +23,12 @@ class bank_interface_POS extends peripheral_DeviceIntf
 
 
     /**
+     * Сол
+     */
+    const SALT = 'bank';
+
+
+    /**
      * Връща JS за изпращане на стойност
      *
      * @param stdClass $pRec
@@ -36,5 +42,21 @@ class bank_interface_POS extends peripheral_DeviceIntf
     {
 
         return $this->class->getJs($pRec, $funcName, $resFuncName, $errorFuncName);
+    }
+
+
+    /**
+     * Хеш за банковото плащане
+     *
+     * @param int $classId
+     * @param int $objectId
+     * @param null|int $cu
+     * @return string
+     */
+    public static function getPaymentHash($classId, $objectId, $cu = null)
+    {
+        $cu = $cu ?? core_Users::getCurrent();
+
+        return md5("{$classId}|{$objectId}|{$cu}|" . static::SALT);
     }
 }

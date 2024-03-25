@@ -495,7 +495,7 @@ select.tabHolder {
 	border-radius: 3px;
 }
 
-.narrow #receiptnew {
+.narrow #receiptnew, .narrow #receiptnewSame {
 	color: #333 !important;
 }
 
@@ -754,7 +754,7 @@ select.tabHolder {
 	&.revertReceiptBtn {
 		color: #8c1919 !important;
 	}
-	&#receiptnew , &#revertReceiptBtn{
+	&#receiptnew , &#revertReceiptBtn, &#receiptnewSame{
 		font-size:1.3em;
 		background: #e6e6e6;
 	}

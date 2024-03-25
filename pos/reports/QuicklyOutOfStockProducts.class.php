@@ -244,7 +244,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
             }
         }
 
-        $totalProdQuantity = array();
+        $totalProdQuantity = $totalProdAmount = array();
         foreach ($prodInbeginArr as $key => $val) {
 
             if(countR($prodInEndArr) == 0){
@@ -266,15 +266,18 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
                         'quantity' => $val->quantity,
                         'amount' => $val->amount,
                         'totalProdQuantity' => '',
+                        'totalProdAmount' => '',
                     );
                 }
             }
         }
         foreach ($recs as $key => $val){
             $totalProdQuantity[$val->productId] += $val->quantity;
+            $totalProdAmount[$val->productId] += $val->amount;
         }
         foreach ($recs as $key => $val){
             $val->totalProdQuantity = $totalProdQuantity[$val->productId];
+            $val->totalProdAmount = $totalProdAmount[$val->productId];
         }
 
 //        $prodsAfterMarktArr = arr::extractValuesFromArray($prodInEndArr, 'productId');
@@ -296,6 +299,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
         if (countR($recs)) {
             arr::sortObjects($recs, 'date', 'asc');
+            arr::sortObjects($recs, 'totalProdAmount', 'desc');
         }
 
         return $recs;
@@ -353,10 +357,17 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
         $row->date = $Date->toVerbal($dRec->date);
 
+        cat_Products::getHyperlink($dRec->productId, true);
+
+        $dist = 45;
+
         $row->productId = cat_Products::getHyperlink($dRec->productId, true);
+        for ($i = 0; $i <= $dist; $i++) {
+            $row->productId .= '&nbsp';
+        }
 
         if ($rec->groupBy == 'productId') {
-            $row->productId .= '<span class="fright">' . $Double->toVerbal($dRec->totalProdQuantity) . '</span>';
+            $row->productId .= $Double->toVerbal($dRec->totalProdAmount) .'<span class="fright">' . $Double->toVerbal($dRec->totalProdQuantity) . '</span>';
         }
         $row->quantity = $Double->toVerbal($dRec->quantity);
         $row->amount = $Double->toVerbal($dRec->amount);
