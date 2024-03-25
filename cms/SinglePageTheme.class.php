@@ -18,6 +18,13 @@
 class cms_SinglePageTheme extends core_ProtoInner
 {
 
+
+    /**
+     * Поддържан интерфейс
+     */
+    public $interfaces = 'cms_ThemeIntf';
+
+
     /**
      * Общ лейаут за темата
      */
