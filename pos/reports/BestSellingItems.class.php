@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Мениджър на отчети за най-добре продаващи се продукти
  *
@@ -21,7 +20,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields;
+    protected $sortableListFields = 'marketabilityQ,marketabilityA';
 
     /**
      * Кои полета от таблицата в справката да се сумират в обобщаващия ред
@@ -101,9 +100,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
 
         $fieldset->FLD('begin', 'hour', 'caption=Времена на засичане->Начало,after=pos,single=none');
         $fieldset->FLD('end', 'hour', 'caption=Времена на засичане->Край,after=mark,single=none');
-
-        //Групиране на резултата
-        $fieldset->FLD('groupBy', 'enum(date=Дата,productId=Артикул)', 'notNull,caption=Групиране по,after=end,single=none');
+        $fieldset->FNC('days', 'int', 'caption=Брой дни със продажби,after=end,single=none');
 
     }
 
@@ -120,8 +117,6 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-
-        $form->setDefault('groupBy', 'productId');
 
 
     }
@@ -155,14 +150,6 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        //Показването да бъде ли ГРУПИРАНО
-        if ($rec->groupBy == 'productId') {
-            //$this->groupByField = 'productId';
-            //$this->subGroupFieldOrder = 'date';
-        }elseif($rec->groupBy == 'date'){
-            $this->groupByField = 'date';
-            $this->subGroupFieldOrder = 'quantity';
-        }
 
         $recs = array();
 
@@ -183,10 +170,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
 
         $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->from, $end));
 
-        $prodInPeriodArr = array();
-
-
-
+        $salesFrequency = $itemSales = $date = $days = array();
         while ($receiptDetailRec = $receiptQuery->fetch()) {
 
             $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
@@ -199,98 +183,52 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
             $sellTime = $sellDT->format('H:i');
             $sellDate = $sellDT->format('Y-m-d');
 
-            $id = $receiptDetailRec->productId . '|' . $sellDate;
-            // $id = $receiptDetailRec->productId;
+            $id = $receiptDetailRec->productId;
 
             //Масив с артикули, които ги има  в бележките издадени в избрания часови период
             if (($sellTime > $rec->begin) && ($sellTime < $rec->end)) {
+                if (!array_key_exists($receiptDetailRec->productId.'|'.$sellDate, $date)) {
+                    $date[$receiptDetailRec->productId.'|'.$sellDate] = $sellDate;
+                    $salesFrequency[$receiptDetailRec->productId]++;
+                }
 
-                if (!array_key_exists($id, $prodInPeriodArr)) {
-                    $prodInPeriodArr[$id] = (object)array(
-
+                if (!array_key_exists($sellDate, $days)) {
+                    $days[$sellDate] = $sellDate;
+                }
+                if (!array_key_exists($id, $itemSales)) {
+                    $itemSales[$id] = (object)array(
                         'date' => $sellDate,
                         'time' => $sellTime,
                         'productId' => $receiptDetailRec->productId,
-                        'code'=> cat_Products::fetch($receiptDetailRec->productId)->code,
+                        'code' => cat_Products::fetch($receiptDetailRec->productId)->code,
                         'quantity' => $receiptDetailRec->quantity,
                         'amount' => $receiptDetailRec->price * $receiptDetailRec->quantity,
                     );
                 } else {
 
-                    $obj = &$prodInPeriodArr[$id];
+                    $obj = &$itemSales[$id];
                     $obj->quantity += $receiptDetailRec->quantity;
                     $obj->amount += $receiptDetailRec->price * $receiptDetailRec->quantity;
 
                 }
             }
         }
-//bp();
-        $totalProdQuantity = $totalProdAmount = array();
-//        foreach ($prodInbeginArr as $key => $val) {
-//
-//            if(countR($prodInEndArr) == 0){
-//                $recs = $prodInbeginArr;
-//                break;
-//            }
-//
-//            $marker = 0;
-//            foreach ($prodInEndArr as $endKey => $endVal) {
-//
-//                if($val->productId == $endVal->productId && $val->date == $endVal->date){
-//                    $marker = 1;
-//                    unset($recs[$key]);
-//                }
-//
-//                if($marker == 0) {
-//                    $recs[$key] = (object)array(
-//                        'date' => $val->date,
-//                        'productId' => $val->productId,
-//                        'quantity' => $val->quantity,
-//                        'amount' => $val->amount,
-//                        'totalProdQuantity' => '',
-//                        'totalProdAmount' => '',
-//                    );
-//                }
-//            }
-//        }
-        foreach ($recs as $key => $val){
-            $totalProdQuantity[$val->productId] += $val->quantity;
-            $totalProdAmount[$val->productId] += round($val->amount,2);
-        }
 
-        foreach ($recs as $key => $val){
-            $val->totalProdQuantity = $totalProdQuantity[$val->productId];
-            $val->totalProdAmount = $totalProdAmount[$val->productId];
+        foreach ($itemSales as $key => $val) {
+
+            $recs[$key] = (object)array(
+                'productId' => $val->productId,
+                'quantity' => $val->quantity,
+                'amount' => $val->amount,
+                'salesFrequency' => $salesFrequency[$val->productId],
+                'marketabilityQ' => $val->quantity/$salesFrequency[$val->productId],
+                'marketabilityA' => $val->amount/$salesFrequency[$val->productId],
+            );
+
         }
 
         if (countR($recs)) {
-            arr::sortObjects($recs, 'date', 'asc');
-            arr::sortObjects($recs, 'totalProdAmount', 'desc');
-        }
-
-        $arr = array();
-        if ($rec->groupBy == 'productId') {
-            $marker = '';
-            foreach ($recs as $key => $val){
-
-                if($marker != $val->productId) {
-                    $arr[] = (object)array(
-                        'date' => '',
-                        'productId' => $val->productId,
-                        'quantity' => '',
-                        'amount' => '',
-                        'totalProdQuantity' => $val->totalProdQuantity,
-                        'totalProdAmount' => $val->totalProdAmount,
-                    );
-
-                    $arr[] = $val;
-                    $marker = $val->productId;
-                }else{
-                    $arr[] = $val;
-                }
-            }
-            unset($recs);
-            $recs = $arr;
+            arr::sortObjects($recs, 'marketabilityA', 'desc');
         }
 
         return $recs;
@@ -312,17 +250,13 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
-            if ($rec->groupBy == 'productId') {
-                $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-                $fld->FLD('date', 'date', 'caption=Дата');
-            }else{
-                $fld->FLD('date', 'date', 'caption=Дата');
-                $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
 
-            }
-            $fld->FLD('amount', 'double(decimals=2)', 'caption=Стойност');
-            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
-
+            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Продажби->Количество');
+            $fld->FLD('amount', 'double(decimals=2)', 'caption=Продажби->Стойност');
+            $fld->FLD('marketabilityQ', 'double(decimals=2)', 'caption=Продаваемост->Количество');
+            $fld->FLD('marketabilityA', 'double(decimals=2)', 'caption=Продаваемост->Стойност');
+            $fld->FLD('salesFrequency', 'int', 'caption=Продаваемост->Честота');
 
         } else {
 
@@ -351,29 +285,15 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->date = $Date->toVerbal($dRec->date);
         $row->productId = cat_Products::getHyperlink($dRec->productId, true);
+        if(haveRole('debug')){
+            $row->productId .= ' ||>>'.$dRec->productId;
+        }
         $row->quantity = $Double->toVerbal($dRec->quantity);
         $row->amount = $Double->toVerbal($dRec->amount);
-
-        if ($rec->groupBy == 'productId') {
-            if(!$dRec->date) {
-                $row->ROW_ATTR['class'] = 'readonly';
-                $row->productId =  "<b>".cat_Products::getHyperlink($dRec->productId, true)."</b>";
-                $row->quantity = "<b>".$Double->toVerbal($dRec->totalProdQuantity)."</b>";
-                $row->amount = "<b>".$Double->toVerbal($dRec->totalProdAmount)."</b>";
-
-            }
-            if($dRec->date){
-                $row->date = $Date->toVerbal($dRec->date);
-                $row->productId = '';
-                $row->quantity = $Double->toVerbal($dRec->quantity);
-                $row->amount = $Double->toVerbal($dRec->amount);
-
-            }
-            return $row;
-        }
-
+        $row->marketabilityA = $Double->toVerbal($dRec->marketabilityA);
+        $row->marketabilityQ = $Double->toVerbal($dRec->marketabilityQ);
+        $row->salesFrequency = $dRec->salesFrequency;
 
         return $row;
     }
@@ -403,9 +323,8 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN begin--><div>|Начало|*: [#begin#]</div><!--ET_END begin-->
-                                        <!--ET_BEGIN mark--><div>|Граница|*: [#mark#]</div><!--ET_END mark-->
                                         <!--ET_BEGIN end--><div>|Край|*: [#end#]</div><!--ET_END end-->
-                                        <!--ET_BEGIN groupBy--><div>|Групирано по|*: [#groupBy#]</div><!--ET_END groupBy-->     
+                                        <!--ET_BEGIN groupBy--><div>|Групиране|*: [#groupBy#]</div><!--ET_END groupBy-->     
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -434,7 +353,6 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
         if (isset($data->rec->groupBy)) {
             $fieldTpl->append($Enum->toVerbal($data->rec->groupBy), 'groupBy');
         }
-
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
