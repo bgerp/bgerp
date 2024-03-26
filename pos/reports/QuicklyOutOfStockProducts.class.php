@@ -245,7 +245,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
                 }
             }
         }
-//bp($rec->mark,$prodInbeginArr, $prodInEndArr);
+
         $totalProdQuantity = $totalProdAmount = array();
         foreach ($prodInbeginArr as $key => $val) {
 
@@ -256,7 +256,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
             $marker = 0;
             foreach ($prodInEndArr as $endKey => $endVal) {
-//bp($endKey,$endVal);
+
                 if($val->productId == $endVal->productId && $val->date == $endVal->date){
                     $marker = 1;
                     unset($recs[$key]);
@@ -276,29 +276,13 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         }
         foreach ($recs as $key => $val){
             $totalProdQuantity[$val->productId] += $val->quantity;
-            $totalProdAmount[$val->productId] += $val->amount;
+            $totalProdAmount[$val->productId] += round($val->amount,2);
         }
+
         foreach ($recs as $key => $val){
             $val->totalProdQuantity = $totalProdQuantity[$val->productId];
             $val->totalProdAmount = $totalProdAmount[$val->productId];
         }
-
-//        $prodsAfterMarktArr = arr::extractValuesFromArray($prodInEndArr, 'productId');
-//
-//        foreach ($prodInbeginArr as $key => $val) {
-//
-//            if (!in_array($key, $prodsAfterMarktArr)) {
-//
-//                if (!array_key_exists($key, $recs)) {
-//                    $recs[$key] = (object)array(
-//                        'date' => $val->date,
-//                        'productId' => $val->productId,
-//                        'quantity' => $val->quantity,
-//                        'amount' => $val->amount,
-//                    );
-//                }
-//            }
-//        }
 
         if (countR($recs)) {
             arr::sortObjects($recs, 'date', 'asc');
