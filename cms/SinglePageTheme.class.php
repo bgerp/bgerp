@@ -15,20 +15,32 @@
  *
  * @since     v 0.1
  */
-class cms_SinglePageTheme extends cms_FancyTheme
+class cms_SinglePageTheme extends core_ProtoInner
 {
+
+
+    /**
+     * Поддържан интерфейс
+     */
+    public $interfaces = 'cms_ThemeIntf';
+
 
     /**
      * Общ лейаут за темата
      */
     public $layout = 'cms/tpl/SinglePage.shtml';
 
+
+    /**
+     * @param core_FieldSet $form
+     */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение');
         $form->FLD('headTitle', 'varchar(100)', 'caption=Заглавие');
         $form->FLD('subtitle', 'varchar(100)', 'caption=Подзаглавие');
     }
+
 
     /**
      * Подготвя шаблона за статия от cms-а за широк режим
@@ -39,27 +51,22 @@ class cms_SinglePageTheme extends cms_FancyTheme
      */
     public function prepareWrapper($tpl)
     {
+        if(!haveRole('user')) {
+            $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => array('Portal', 'show'), 'popup' => 1)) . '","Login","width=484,height=316,resizable=no,scrollbars=no,location=0,status=no,menubar=0"); if(w) w.focus();';
+            $loginHtml = "<a href='javascript:void(0)' class='get-started-btn scrollto boldText' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Вход||Log in") . '</a>';
+        } else {
+            $loginHtml = ht::createLink(". . .", array('Portal', 'Show'), null, array('class' => "get-started-btn scrollto boldText"));
+        }
+
+        $tpl->replace($loginHtml, "LOGIN_BTN");
+
         $content = $this->getCmsLayout();
         if ($content !== false) {
             $tpl->replace($content, 'CMS_LAYOUT');
         }
 
-        $subtitle = $this->innerForm->subtitle;
-        if ($subtitle) {
-            $tpl->replace($subtitle, 'SUBTITLE');
-        }
-
         $menu = $this->getMenu();
         $tpl->replace($menu, 'MENU');
-
-        $title = $this->innerForm->title;
-        if ($title) {
-            $tpl->replace($title, 'CORE_APP_NAME');
-        }
-        $headTitle= $this->innerForm->headTitle;
-        if ($headTitle) {
-            $tpl->replace($headTitle, 'TITLE');
-        }
 
         $img = $this->innerForm->wallpaper;
 
@@ -69,9 +76,19 @@ class cms_SinglePageTheme extends cms_FancyTheme
             $imageURL = $img->getUrl('forced');
 
             $css = "\n  #wallpaper-block {background: url({$imageURL}) top center;} ";
+            $tpl->append($css, 'STYLES');
 
-            if ($css) {
-                $tpl->append($css, 'STYLES');
+            $title = $this->innerForm->title;
+            if ($title) {
+                $tpl->replace($title, 'CORE_APP_NAME');
+            }
+            $headTitle= $this->innerForm->headTitle;
+            if ($headTitle) {
+                $tpl->replace($headTitle, 'TITLE');
+            }
+            $subtitle = $this->innerForm->subtitle;
+            if ($subtitle) {
+                $tpl->replace($subtitle, 'SUBTITLE');
             }
         }
 
@@ -94,8 +111,6 @@ class cms_SinglePageTheme extends cms_FancyTheme
     {
         $menu = new ET();
 
-
-
         $aArr = $this->getArticlesRecs();
         if (empty($aArr)) {
             return false;
@@ -104,7 +119,7 @@ class cms_SinglePageTheme extends cms_FancyTheme
         $menu->append("<nav id='navbar' class='navbar order-last order-lg-0'><ul>");
 
         foreach ($aArr as $aRec) {
-            $menu->append("<li> <a class='nav-link scrollto {$active}' href='#item{$aRec->id}'> {$aRec->title}</a> </li>");
+            $menu->append("<li> <a class='nav-link scrollto' href='#item{$aRec->id}'> {$aRec->title}</a> </li>");
         }
 
         $menu->append("</ul></nav>");
@@ -131,10 +146,12 @@ class cms_SinglePageTheme extends cms_FancyTheme
         foreach ($aArr as $aRec) {
             $body = cms_Articles::getVerbal($aRec, 'body');
             $className = ($aRec->id % 2 == 0) ? "section-bg" : "";
-            $content->append("<section id='item{$aRec->id}' class='{$className}'><div class='container'><h2>{$aRec->title}</h2>{$body}</div></section>");
-
+            $changeLink = "";
+            if (cms_Articles::haveRightFor('change', $aRec->id)) {
+                $changeLink = cms_Articles::getChangeLink($aRec->id);
+            }
+            $content->append("<section id='item{$aRec->id}' class='{$className}'><div class='container'><h2>{$aRec->title}{$changeLink}</h2>{$body}</div></section>");
         }
-
 
         return $content;
     }
@@ -163,7 +180,4 @@ class cms_SinglePageTheme extends cms_FancyTheme
 
         return $res;
     }
-
-
-
 }

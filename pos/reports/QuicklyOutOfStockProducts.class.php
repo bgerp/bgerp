@@ -157,13 +157,13 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         //Показването да бъде ли ГРУПИРАНО
-         if ($rec->groupBy == 'productId') {
-         $this->groupByField = 'productId';
-         $this->subGroupFieldOrder = 'date';
-          }elseif($rec->groupBy == 'date'){
-             $this->groupByField = 'date';
-             $this->subGroupFieldOrder = 'quantity';
-         }
+        if ($rec->groupBy == 'productId') {
+            //$this->groupByField = 'productId';
+            //$this->subGroupFieldOrder = 'date';
+        }elseif($rec->groupBy == 'date'){
+            $this->groupByField = 'date';
+            $this->subGroupFieldOrder = 'quantity';
+        }
 
         $recs = array();
 
@@ -187,7 +187,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $prodInbeginArr = $prodInEndArr = array();
 
         while ($receiptDetailRec = $receiptQuery->fetch()) {
-
+//if(cat_Products::fetch($receiptDetailRec->productId)->code != '16-66')continue;
             $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
 
             //Филтър по POS
@@ -210,6 +210,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
                         'date' => $sellDate,
                         'time' => $sellTime,
                         'productId' => $receiptDetailRec->productId,
+                        'code'=> cat_Products::fetch($receiptDetailRec->productId)->code,
                         'quantity' => $receiptDetailRec->quantity,
                         'amount' => $receiptDetailRec->price * $receiptDetailRec->quantity,
                     );
@@ -231,6 +232,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
                         'date' => $sellDate,
                         'time' => $sellTime,
                         'productId' => $receiptDetailRec->productId,
+                        'code'=> cat_Products::fetch($receiptDetailRec->productId)->code,
                         'quantity' => $receiptDetailRec->quantity,
                         'amount' => $receiptDetailRec->price * $receiptDetailRec->quantity,
                     );
@@ -255,10 +257,11 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
             $marker = 0;
             foreach ($prodInEndArr as $endKey => $endVal) {
 
-                if($val->productId == $endVal->productId){
+                if($val->productId == $endVal->productId && $val->date == $endVal->date){
                     $marker = 1;
                     unset($recs[$key]);
                 }
+
                 if($marker == 0) {
                     $recs[$key] = (object)array(
                         'date' => $val->date,
@@ -273,37 +276,45 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         }
         foreach ($recs as $key => $val){
             $totalProdQuantity[$val->productId] += $val->quantity;
-            $totalProdAmount[$val->productId] += $val->amount;
+            $totalProdAmount[$val->productId] += round($val->amount,2);
         }
+
         foreach ($recs as $key => $val){
             $val->totalProdQuantity = $totalProdQuantity[$val->productId];
             $val->totalProdAmount = $totalProdAmount[$val->productId];
         }
-
-//        $prodsAfterMarktArr = arr::extractValuesFromArray($prodInEndArr, 'productId');
-//
-//        foreach ($prodInbeginArr as $key => $val) {
-//
-//            if (!in_array($key, $prodsAfterMarktArr)) {
-//
-//                if (!array_key_exists($key, $recs)) {
-//                    $recs[$key] = (object)array(
-//                        'date' => $val->date,
-//                        'productId' => $val->productId,
-//                        'quantity' => $val->quantity,
-//                        'amount' => $val->amount,
-//                    );
-//                }
-//            }
-//        }
 
         if (countR($recs)) {
             arr::sortObjects($recs, 'date', 'asc');
             arr::sortObjects($recs, 'totalProdAmount', 'desc');
         }
 
-        return $recs;
+        $arr = array();
+        if ($rec->groupBy == 'productId') {
+            $marker = '';
+            foreach ($recs as $key => $val){
 
+                if($marker != $val->productId) {
+                    $arr[] = (object)array(
+                        'date' => '',
+                        'productId' => $val->productId,
+                        'quantity' => '',
+                        'amount' => '',
+                        'totalProdQuantity' => $val->totalProdQuantity,
+                        'totalProdAmount' => $val->totalProdAmount,
+                    );
+
+                    $arr[] = $val;
+                    $marker = $val->productId;
+                }else{
+                    $arr[] = $val;
+                }
+            }
+            unset($recs);
+            $recs = $arr;
+        }
+
+        return $recs;
 
     }
 
@@ -322,11 +333,17 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
+            if ($rec->groupBy == 'productId') {
+                $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+                $fld->FLD('date', 'date', 'caption=Дата');
+            }else{
+                $fld->FLD('date', 'date', 'caption=Дата');
+                $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
 
-            $fld->FLD('date',  'date', 'caption=Дата');
-            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-            $fld->FLD('amount', 'double(decimals=2)', 'caption=Стойност');
-            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
+            }
+                $fld->FLD('amount', 'double(decimals=2)', 'caption=Стойност');
+                $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
+
 
         } else {
 
@@ -356,21 +373,28 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $row = new stdClass();
 
         $row->date = $Date->toVerbal($dRec->date);
-
-        cat_Products::getHyperlink($dRec->productId, true);
-
-        $dist = 45;
-
         $row->productId = cat_Products::getHyperlink($dRec->productId, true);
-        for ($i = 0; $i <= $dist; $i++) {
-            $row->productId .= '&nbsp';
-        }
-
-        if ($rec->groupBy == 'productId') {
-            $row->productId .= $Double->toVerbal($dRec->totalProdAmount) .'<span class="fright">' . $Double->toVerbal($dRec->totalProdQuantity) . '</span>';
-        }
         $row->quantity = $Double->toVerbal($dRec->quantity);
         $row->amount = $Double->toVerbal($dRec->amount);
+
+        if ($rec->groupBy == 'productId') {
+            if(!$dRec->date) {
+                $row->ROW_ATTR['class'] = 'readonly';
+                $row->productId =  "<b>".cat_Products::getHyperlink($dRec->productId, true)."</b>";
+                $row->quantity = "<b>".$Double->toVerbal($dRec->totalProdQuantity)."</b>";
+                $row->amount = "<b>".$Double->toVerbal($dRec->totalProdAmount)."</b>";
+
+            }
+            if($dRec->date){
+                $row->date = $Date->toVerbal($dRec->date);
+                $row->productId = '';
+                $row->quantity = $Double->toVerbal($dRec->quantity);
+                $row->amount = $Double->toVerbal($dRec->amount);
+
+            }
+            return $row;
+        }
+
 
         return $row;
     }
