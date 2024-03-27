@@ -160,11 +160,24 @@ class cms_SinglePageTheme extends core_ProtoInner
 
         foreach ($aArr as $aRec) {
             $body = cms_Articles::getVerbal($aRec, 'body');
+            $wallpaper = $aRec->wallpaper;
+            $background = $aRec->background;
+            $style = "";
+            $fixedImageClass = "";
+            if($wallpaper) {
+                $img = new thumb_Img(array($wallpaper, 1200, 220, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
+                $imageURL = $img->getUrl('forced');
+                $style="style = 'background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url({$imageURL}) fixed center center;'";
+                $fixedImageClass = "fixed-bg";
+            } else if ($background) {
+                $style="style = 'background: {$background}'";
+            }
+
             $changeLink = "";
             if (cms_Articles::haveRightFor('change', $aRec->id)) {
                 $changeLink = cms_Articles::getChangeLink($aRec->id);
             }
-            $content->append("<section id='item{$aRec->id}'><div class='container'><h2>{$aRec->title}{$changeLink}</h2>{$body}</div></section>");
+            $content->append("<section id='item{$aRec->id}' {$style} class='{$fixedImageClass}'><div class='container'><h2>{$aRec->title}{$changeLink}</h2>{$body}</div></section>");
         }
 
         return $content;
