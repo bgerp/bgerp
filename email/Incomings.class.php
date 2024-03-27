@@ -2840,18 +2840,20 @@ class email_Incomings extends core_Master
      */
     public static function makeFromRule($rec)
     {
-        // Най-висок приоритет, нарастващ с времето
-        $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
-        
-        email_Router::saveRule(
-            (object) array(
-                'type' => email_Router::RuleFrom,
-                'key' => email_Router::getRoutingKey($rec->fromEml, null, email_Router::RuleFrom),
-                'priority' => $priority,
-                'objectType' => 'document',
-                'objectId' => $rec->containerId
-            )
-        );
+        if (static::isCommonToBox($rec)) {
+            // Най-висок приоритет, нарастващ с времето
+            $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
+
+            email_Router::saveRule(
+                (object) array(
+                    'type' => email_Router::RuleFrom,
+                    'key' => email_Router::getRoutingKey($rec->fromEml, null, email_Router::RuleFrom),
+                    'priority' => $priority,
+                    'objectType' => 'document',
+                    'objectId' => $rec->containerId
+                )
+            );
+        }
     }
     
     
