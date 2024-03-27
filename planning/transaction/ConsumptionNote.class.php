@@ -78,7 +78,8 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
                         }
                     }
                 }
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($shipped, $rec->storeId, $rec->state)) {
+
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->storeId, $rec->state)) {
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
             }

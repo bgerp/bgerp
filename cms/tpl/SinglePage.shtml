@@ -1,22 +1,21 @@
 <!--ET_BEGIN cookies-->
 [#cookies#]
 <div class = 'cookies'>
-        [#COOKIE_TEXT#]
-        <span class="agree">Съгласен съм</span>
+    [#COOKIE_TEXT#]
+    <span class="agree">Съгласен съм</span>
 </div>
 <!--ET_END cookies-->
 [#TOP_PAGE#]
 
-
 <header id="header" class="fixed-top ">
     <div class='container container-fluid'>
-            <div class="row justify-content-center">
-                <div class="col-xl-12 d-flex align-items-center justify-content-lg-between">
-                    <h1 class="logo me-auto me-lg-0"><a href="javascript:window.scrollTo(0,0)" class="logo me-auto me-lg-0">[#CORE_APP_NAME#]</a></h1>
-                    [#MENU#]
-                    [#LOGIN_BTN#]
-                    <i class="bi bi-list mobile-nav-toggle"></i>
-                </div>
+        <div class="row justify-content-center">
+            <div class="col-xl-12 d-flex align-items-center justify-content-lg-between">
+                <h1 class="logo me-lg-0"><a href="javascript:window.scrollTo(0,0)" class="logo me-auto me-lg-0">[#CORE_APP_NAME#]</a></h1>
+                [#MENU#]
+                [#LOGIN_BTN#]
+                <i class="bi bi-list mobile-nav-toggle"></i>
+            </div>
         </div>
     </div>
 </header>
@@ -37,8 +36,24 @@
 
 <main id="main">
     [#CMS_LAYOUT#]
-
-
 </main>
+
+<footer id="footer">
+    <div class="container">
+        <h3>[#CORE_APP_NAME#]</h3>
+        <p>Et aut eum quis fuga eos sunt ipsa nihil. Labore corporis magni eligendi fuga maxime saepe commodi placeat.</p>
+        <div class="social-links">
+            <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+            <a href="#" class="instagram"><i class="bx bxl-instagram"></i></a>
+            <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+        </div>
+        <div class="credits">
+            Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+            <br>
+            Powered by <a href="https://bgerp.com/">bgERP</a>
+        </div>
+    </div>
+</footer>
+
 <div id="preloader"></div>
 <a href="javascript:window.scrollTo(0,0)" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>

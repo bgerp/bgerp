@@ -253,7 +253,7 @@ class pos_Setup extends core_ProtoSetup
     /**
      * Класове за зареждане
      */
-    public $defClasses = 'pos_Terminal, pos_reports_CashReceiptsReport,pos_reports_QuicklyOutOfStockProducts';
+    public $defClasses = 'pos_Terminal, pos_reports_CashReceiptsReport,pos_reports_QuicklyOutOfStockProducts,pos_reports_BestSellingItems';
     
     
     /**

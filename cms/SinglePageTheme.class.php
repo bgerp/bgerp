@@ -39,6 +39,7 @@ class cms_SinglePageTheme extends core_ProtoInner
         $form->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение');
         $form->FLD('headTitle', 'varchar(100)', 'caption=Заглавие');
         $form->FLD('subtitle', 'varchar(100)', 'caption=Подзаглавие');
+        $form->FLD('baseColor', 'color_Type(AllowEmpty)', 'caption=Основен цвят');
     }
 
 
@@ -76,13 +77,25 @@ class cms_SinglePageTheme extends core_ProtoInner
             $imageURL = $img->getUrl('forced');
 
             $css = "\n  #wallpaper-block {background: url({$imageURL}) top center;} ";
+
+            $baseColor = $this->innerForm->baseColor;
+            if($baseColor) {
+                $activeColor = phpcolor_Adapter::changeColor($baseColor, 'mix', 1, '#666');
+
+                $css .= "\n  .get-started-btn, .back-to-top, #footer .social-links a, .navbar>ul>li>a:before, #main h2::after  {background: {$baseColor};} ";
+                $css .= "\n  .get-started-btn:hover, .back-to-top:hover, #footer .social-links a:hover {background: #{$activeColor};} ";
+                $css .= "\n  #footer .credits a {color: {$baseColor};} ";
+                $css .= "\n  #footer .credits a:hover, .navbar-mobile li:hover>a {color: #{$activeColor};} ";
+                $css .= "\n  #preloader:before { border: 6px solid {$baseColor};} ";
+            }
+
             $tpl->append($css, 'STYLES');
 
             $title = $this->innerForm->title;
             if ($title) {
                 $tpl->replace($title, 'CORE_APP_NAME');
             }
-            $headTitle= $this->innerForm->headTitle;
+            $headTitle = $this->innerForm->headTitle;
             if ($headTitle) {
                 $tpl->replace($headTitle, 'TITLE');
             }
@@ -96,7 +109,9 @@ class cms_SinglePageTheme extends core_ProtoInner
         // добавяме css-a за структурата
         $tpl->push('cms/css/bootstrap.css', 'CSS');
         $tpl->push('cms/bootstrap-icons/bootstrap-icons.css', 'CSS');
+        $tpl->push('cms/boxicons/css/boxicons.min.css', 'CSS');
         $tpl->push('cms/css/SinglePage.css', 'CSS');
+
 
         $tpl->push('cms/js/main.js', 'JS');
     }
@@ -145,12 +160,11 @@ class cms_SinglePageTheme extends core_ProtoInner
 
         foreach ($aArr as $aRec) {
             $body = cms_Articles::getVerbal($aRec, 'body');
-            $className = ($aRec->id % 2 == 0) ? "section-bg" : "";
             $changeLink = "";
             if (cms_Articles::haveRightFor('change', $aRec->id)) {
                 $changeLink = cms_Articles::getChangeLink($aRec->id);
             }
-            $content->append("<section id='item{$aRec->id}' class='{$className}'><div class='container'><h2>{$aRec->title}{$changeLink}</h2>{$body}</div></section>");
+            $content->append("<section id='item{$aRec->id}'><div class='container'><h2>{$aRec->title}{$changeLink}</h2>{$body}</div></section>");
         }
 
         return $content;
