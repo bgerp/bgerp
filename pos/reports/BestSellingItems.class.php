@@ -187,11 +187,14 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
 
             //Масив с артикули, които ги има  в бележките издадени в избрания часови период
             if (($sellTime > $rec->begin) && ($sellTime < $rec->end)) {
+
+                //Честота на продажбите(брой дни в които е продаван артикул)
                 if (!array_key_exists($receiptDetailRec->productId.'|'.$sellDate, $date)) {
                     $date[$receiptDetailRec->productId.'|'.$sellDate] = $sellDate;
                     $salesFrequency[$receiptDetailRec->productId]++;
                 }
 
+                //Общ брой дни с продажби
                 if (!array_key_exists($sellDate, $days)) {
                     $days[$sellDate] = $sellDate;
                 }
@@ -214,6 +217,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
             }
         }
 
+        $rec->days = countR($days);
         foreach ($itemSales as $key => $val) {
 
             $recs[$key] = (object)array(
@@ -252,11 +256,11 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
         if ($export === false) {
 
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Продажби->Количество');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Продажби->К-во');
             $fld->FLD('amount', 'double(decimals=2)', 'caption=Продажби->Стойност');
-            $fld->FLD('marketabilityQ', 'double(decimals=2)', 'caption=Продаваемост->Количество');
-            $fld->FLD('marketabilityA', 'double(decimals=2)', 'caption=Продаваемост->Стойност');
-            $fld->FLD('salesFrequency', 'int', 'caption=Продаваемост->Честота');
+            $fld->FLD('marketabilityQ', 'double(decimals=2)', 'caption=Продаваемост->Ср. К-во');
+            $fld->FLD('marketabilityA', 'double(decimals=2)', 'caption=Продаваемост->Ср. Стойност');
+            $fld->FLD('salesFrequency', 'varchar', 'caption=Продаваемост->Честота,tdClass=centered');
 
         } else {
 
@@ -286,14 +290,11 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
         $row = new stdClass();
 
         $row->productId = cat_Products::getHyperlink($dRec->productId, true);
-        if(haveRole('debug')){
-            $row->productId .= ' ||>>'.$dRec->productId;
-        }
         $row->quantity = $Double->toVerbal($dRec->quantity);
         $row->amount = $Double->toVerbal($dRec->amount);
         $row->marketabilityA = $Double->toVerbal($dRec->marketabilityA);
         $row->marketabilityQ = $Double->toVerbal($dRec->marketabilityQ);
-        $row->salesFrequency = $dRec->salesFrequency;
+        $row->salesFrequency = $dRec->salesFrequency.'/'.$rec->days;
 
         return $row;
     }
@@ -314,6 +315,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $Hour = cls::get('type_Hour');
+        $Int = cls::get('type_Int');
         $Enum = cls::get('type_Enum', array('options' => array('date' => 'Дата', 'productId' => 'Артикул')));
 
 
@@ -324,7 +326,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN begin--><div>|Начало|*: [#begin#]</div><!--ET_END begin-->
                                         <!--ET_BEGIN end--><div>|Край|*: [#end#]</div><!--ET_END end-->
-                                        <!--ET_BEGIN groupBy--><div>|Групиране|*: [#groupBy#]</div><!--ET_END groupBy-->     
+                                        <!--ET_BEGIN days--><div>|Дни с продажби|*: [#days#]</div><!--ET_END days-->     
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -350,8 +352,8 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
             $fieldTpl->append($Hour->toVerbal($data->rec->end), 'end');
         }
 
-        if (isset($data->rec->groupBy)) {
-            $fieldTpl->append($Enum->toVerbal($data->rec->groupBy), 'groupBy');
+        if (isset($data->rec->days)) {
+            $fieldTpl->append($Int->toVerbal($data->rec->days), 'days');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
