@@ -260,7 +260,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
             $fld->FLD('amount', 'double(decimals=2)', 'caption=Продажби->Стойност');
             $fld->FLD('marketabilityQ', 'double(decimals=2)', 'caption=Продаваемост->Ср. К-во');
             $fld->FLD('marketabilityA', 'double(decimals=2)', 'caption=Продаваемост->Ср. Стойност');
-            $fld->FLD('salesFrequency', 'varchar', 'caption=Продаваемост->Честота,tdClass=centered');
+           // $fld->FLD('salesFrequency', 'varchar', 'caption=Продаваемост->Честота,tdClass=centered');
 
         } else {
 
