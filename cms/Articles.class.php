@@ -46,7 +46,7 @@ class cms_Articles extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'level, menuId,  title, body, footerTitleLink';
+    public $changableFields = 'level, menuId,  title, body, footerTitleLink ,wallpaper,background';
     
     
     /**
@@ -124,6 +124,8 @@ class cms_Articles extends core_Master
         $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes,hideTextAfterLength=10000000)', 'caption=Текст,column=none');
+        $this->FLD('background', 'color_Type(AllowEmpty)', 'caption=Фон на статията->Цвят,autohide');
+        $this->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Фон на статията->Статично изображение,autohide');
         
         $this->FLD('footerTitleLink', 'varchar', 'caption=Показване във футъра->Заглавие,autohide');
         
@@ -273,7 +275,7 @@ class cms_Articles extends core_Master
             
             $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
         }
-        
+
         // Задава текущото меню, съответстващо на страницата
         if ($menuId) {
             cms_Content::setCurrent($menuId);
@@ -325,7 +327,7 @@ class cms_Articles extends core_Master
         Mode::set('BrowserCacheExpires', $conf->CMS_BROWSER_CACHE_EXPIRES);
         
         Mode::set('cmsNav', false);
-        
+
         return $content;
     }
     
