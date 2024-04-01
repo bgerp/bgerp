@@ -285,14 +285,17 @@ class pos_Receipts extends core_Master
         $rec->pointId = $posId;
         $rec->valior = dt::now();
         $this->requireRightFor('add', $rec);
-        
-        if (!empty($revertId)) {
 
-            // Ако ще е сторнираща бележка - да е към същия котрагент
-            $recToRevert = static::fetch($revertId);
-            $rec->contragentName = $recToRevert->contragentName;
-            $rec->contragentClass = $recToRevert->contragentClass;
-            $rec->contragentObjectId = $recToRevert->contragentObjectId;
+        // Ако ще е сторнираща бележка - да е към същия котрагент
+        $setDefaultContragent = true;
+        if (!empty($revertId)) {
+            //if($revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
+                $recToRevert = static::fetch($revertId);
+                $rec->contragentName = $recToRevert->contragentName;
+                $rec->contragentClass = $recToRevert->contragentClass;
+                $rec->contragentObjectId = $recToRevert->contragentObjectId;
+                $setDefaultContragent = false;
+            //}
             $rec->revertId = $revertId;
         } else {
 
@@ -301,11 +304,13 @@ class pos_Receipts extends core_Master
                 $rec->contragentClass = $contragentClass;
                 $rec->contragentObjectId = $contragentId;
                 $rec->contragentName = cls::get($contragentClass)->getVerbal($contragentId, 'name');;
-            } else {
-                $rec->contragentName = 'Анонимен Клиент';
-                $rec->contragentClass = core_Classes::getId('crm_Persons');
-                $rec->contragentObjectId = pos_Points::defaultContragent($posId);
             }
+        }
+
+        if($setDefaultContragent){
+            $rec->contragentName = 'Анонимен Клиент';
+            $rec->contragentClass = core_Classes::getId('crm_Persons');
+            $rec->contragentObjectId = pos_Points::defaultContragent($posId);
         }
 
         return $this->save($rec);
@@ -322,7 +327,6 @@ class pos_Receipts extends core_Master
             $row->returnedTotal = ht::styleIfNegative("-{$row->returnedTotal}", -1 * $rec->returnedTotal);
             $row->returnedCurrency = $row->currency;
         }
-
         $row->contragentId = static::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('link' => true, 'icon' => true));
 
         if ($fields['-list']) {
