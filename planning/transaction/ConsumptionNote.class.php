@@ -100,15 +100,8 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 
             // Проверка за неналичните експедирани артикули
             if (!store_Setup::canDoShippingWhenStockIsNegative()) {
-                $shipped = array();
-                foreach ($entries as $d) {
-                    if ($d['credit'][0] == '321') {
-                        if (!array_key_exists($d['credit'][2][1], $instantProducts)) {
-                            $shipped[] = (object)array('productId' => $d['credit'][2][1], 'quantity' => $d['credit']['quantity']);
-                        }
-                    }
-                }
-
+                $shipped = store_Stores::getShippedProductsByStoresFromTransactionEntries($entries, $instantProducts);
+                
                 if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($shipped, $rec->storeId, $rec->state)) {
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
