@@ -285,7 +285,9 @@ abstract class deals_Helper
             
             $arr['neto'] = $arr['value'] - round($arr['discountValue'], 2); 	// Стойността - отстъпката
             $arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
+            core_Lg::push($lang);
             $arr['discountCaption'] = $values['haveAtleastOneDiscount'] ? tr('Отстъпка') : "<i class='quiet'>" . tr('Разлики от закръгляне') . "</i>";
+            core_Lg::pop();
         }
         
         // Ако има нето, крайната сума е тази на нетото, ако няма е тази на стойността
