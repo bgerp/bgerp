@@ -197,6 +197,7 @@ class pos_Setup extends core_ProtoSetup
         'pos_SellableProductsCache',
         'migrate::resyncSearchStrings2350',
         'migrate::updateInputPercent2403',
+        'migrate::updateWrongReceipts2414',
     );
 
 
@@ -302,4 +303,27 @@ class pos_Setup extends core_ProtoSetup
         $query = "UPDATE {$Receipts->dbTableName} SET {$inputDiscColName} = {$discColName} WHERE {$discColName} IS NOT NULL";
         $Receipts->db->query($query);
     }
+
+
+    /**
+     * Изтриване на грешни бележки
+     */
+    public function updateWrongReceipts2414()
+    {
+        $save = array();
+        $Receipts = cls::get('pos_Receipts');
+        $query = pos_Receipts::getQuery();
+        $query->where("#contragentClass IS NULL AND #contragentObjectId IS NULL");
+        while($rec = $query->fetch()){
+            $rec->contragentName = 'Анонимен Клиент';
+            $rec->contragentClass = core_Classes::getId('crm_Persons');
+            $rec->contragentObjectId = pos_Points::defaultContragent($posId);
+            $save[$rec->id] = $rec;
+        }
+
+        if(countR($save)){
+            $Receipts->saveArray($save);
+        }
+    }
 }
+

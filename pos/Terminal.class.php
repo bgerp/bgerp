@@ -900,10 +900,25 @@ class pos_Terminal extends peripheral_Terminal
                 $batchTpl->append($btn);
             }
 
+            if(!empty($string)){
+                $foundBatches = array_filter($batchesInStore, function($b) use ($string){
+                    if(mb_strpos(mb_strtolower($b), mb_strtolower($string)) !== false){
+                        return true;
+                    }
+                    return false;
+                }, ARRAY_FILTER_USE_KEY);
+
+                $batchesInStore = $foundBatches;
+            }
+            $countBatchesInStore = count($batchesInStore);
+
             foreach ($batchesInStore as $batch => $quantity){
                 if(!empty($string) && mb_strpos(mb_strtolower($batch), mb_strtolower($string)) === false) continue;
 
                 $class = 'resultBatch posBtns navigable';
+                if($countBatchesInStore == 1){
+                    $class .= ' filteredBatch';
+                }
                 $cnt++;
                 $dataUrl['string'] = urlencode($batch);
                 
