@@ -114,7 +114,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
                 if(countR($shipped)){
                     // Ако ще се доведе до отрицателна, количност и не е разрешено да се сетне грешка
                     if(!store_Setup::canDoShippingWhenStockIsNegative()){
-                        if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($rec->details, $rec->storeId, $rec->state)) {
+                        if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($shipped, $rec->storeId, $rec->state)) {
                             acc_journal_RejectRedirect::expect(false, $warning);
                         }
                     }

@@ -80,7 +80,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 foreach ($entries as $d){
                     if($d['credit'][0] == '321') {
                         if(!array_key_exists($d['credit'][2][1], $this->instantProducts)){
-                            $shippedProductsFromStores[] = (object)array('productId' => $d['credit'][2][1], 'quantity' => $d['credit']['quantity']);
+                            $shippedProductsFromStores[$d['credit'][1][1]][] = (object)array('productId' => $d['credit'][2][1], 'quantity' => $d['credit']['quantity']);
                         }
                     }
                 }
