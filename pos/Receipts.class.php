@@ -289,13 +289,13 @@ class pos_Receipts extends core_Master
         // Ако ще е сторнираща бележка - да е към същия котрагент
         $setDefaultContragent = true;
         if (!empty($revertId)) {
-            //if($revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
+            if($revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
                 $recToRevert = static::fetch($revertId);
                 $rec->contragentName = $recToRevert->contragentName;
                 $rec->contragentClass = $recToRevert->contragentClass;
                 $rec->contragentObjectId = $recToRevert->contragentObjectId;
                 $setDefaultContragent = false;
-            //}
+            }
             $rec->revertId = $revertId;
         } else {
 
