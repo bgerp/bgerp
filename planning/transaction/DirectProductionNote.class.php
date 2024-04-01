@@ -75,16 +75,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
             // Ако е забранено да се изписва на минус, прави се проверка
             if(!store_Setup::canDoShippingWhenStockIsNegative()){
-                // Проверка за неналичните експедирани артикули
-                $shippedProductsFromStores = array();
-                foreach ($entries as $d){
-                    if($d['credit'][0] == '321') {
-                        if(!array_key_exists($d['credit'][2][1], $this->instantProducts)){
-                            $shippedProductsFromStores[] = (object)array('productId' => $d['credit'][2][1], 'quantity' => $d['credit']['quantity']);
-                        }
-                    }
-                }
 
+                // Проверка за неналичните експедирани артикули
+                $shippedProductsFromStores = store_Stores::getShippedProductsByStoresFromTransactionEntries($entries, $this->instantProducts, false);
                 foreach ($shippedProductsFromStores as $storeId => $arr){
                     if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($arr, $storeId, $rec->state)) {
                         acc_journal_RejectRedirect::expect(false, $warning);

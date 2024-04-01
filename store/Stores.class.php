@@ -501,5 +501,41 @@ class store_Stores extends core_Master
     }
 
 
+    /**
+     * Извлича масив с експедираните артикули от склада от записи на транзакция
+     *
+     * @param array $entries     - записи на транзакцията
+     * @param array $skipArr     - кои артикули да се скипват
+     * @param bool $oneDimension - дали масива да е едномерен или двумерен
+     * @return array $res
+     */
+    public static function getShippedProductsByStoresFromTransactionEntries($entries, $skipArr, $oneDimension = true)
+    {
+        $res = array();
+        foreach ($entries as $d){
+
+            // Извличат се артикулите, които се изписват от склад в транзакцията
+            if($d['credit'][0] == '321') {
+                $productId = $d['credit'][2][1];
+                $storeId = $d['credit'][1][1];
+                if(!array_key_exists($productId, $skipArr)){
+                    if($oneDimension){
+                        if(!array_key_exists($productId, $res)){
+                            $res[$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
+                        }
+                        $res[$productId]->quantity += $d['credit']['quantity'];
+                    } else {
+                        if(is_null($res[$storeId]) || !array_key_exists($productId, $res[$storeId])){
+                            $res[$storeId][$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
+                        }
+                        $res[$storeId][$productId]->quantity += $d['credit']['quantity'];
+                    }
+                }
+            }
+        }
+
+        return $res;
+    }
+
 
 }
