@@ -145,7 +145,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
         $form->FLD('id', 'int', 'input=hidden,silent,caption=№');
         $form->FLD('lineFolderId', 'int', 'caption=Избор на транспортна линия->От папка,silent,removeAndRefreshForm=lineId');
-        $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Избор на транспортна линия->Транспорт');
+        $form->FLD('lineId', 'key(mvc=trans_Lines,select=title,select2MinItems=0)', 'caption=Избор на транспортна линия->Транспорт,class=w100');
         $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Логистична информация->Забележки,after=volume');
 
         // Показване на полетата за датите

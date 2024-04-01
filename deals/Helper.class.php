@@ -117,6 +117,7 @@ abstract class deals_Helper
         
         // Комбиниране на дефолт стойнсотите с тези подадени от потребителя
         $map = array_merge(self::$map, $map);
+        $haveAtleastOneDiscount = false;
 
         // Дали трябва винаги да не се показва ддс-то към цената
         $hasVat = ($map['alwaysHideVat']) ? false : (($masterRec->{$map['chargeVat']} == 'yes') ? true : false);
@@ -143,6 +144,10 @@ abstract class deals_Helper
                 if(in_array($masterRec->state, array('draft', 'pending'))){
                     $discountVal = round((1-(1-$discountVal)*(1-$rec->{$map['autoDiscount']})), 8);
                 }
+            }
+
+            if($discountVal) {
+                $haveAtleastOneDiscount = true;
             }
 
             $noVatAmountOriginal = $noVatAmount;
@@ -223,6 +228,7 @@ abstract class deals_Helper
         $mvc->_total->amount = round($amountRow, 2);
         $mvc->_total->vat = round($amountVat, 2);
         $mvc->_total->vats = $vats;
+        $mvc->_total->haveAtleastOneDiscount = $haveAtleastOneDiscount;
 
         if (!$map['alwaysHideVat']) {
             $mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
@@ -279,8 +285,8 @@ abstract class deals_Helper
             
             $arr['neto'] = $arr['value'] - round($arr['discountValue'], 2); 	// Стойността - отстъпката
             $arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
+            $arr['discountCaption'] = $values['haveAtleastOneDiscount'] ? tr('Отстъпка') : "<i class='quiet'>" . tr('Разлики от закръгляне') . "</i>";
         }
-        
         
         // Ако има нето, крайната сума е тази на нетото, ако няма е тази на стойността
         $arr['total'] = (isset($arr['neto'])) ? $arr['neto'] : $arr['value'];
