@@ -281,12 +281,9 @@ abstract class batch_definitions_Proto extends core_BaseClass
     public function allocateQuantityToBatches($quantity, $storeId, $mvc, $id, $date = null)
     {
         $batches = array();
-        if (!isset($storeId)) {
-            
-            return $batches;
-        }
+        if (!isset($storeId)) return $batches;
+
         $date = (isset($date)) ? $date : dt::today();
-        
         $quantities = batch_Items::getBatchQuantitiesInStore($this->rec->productId, $storeId, $date);
         $mvc = cls::get($mvc);
         if($mvc instanceof core_Detail){
@@ -296,7 +293,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
             // Приспадане на вече разпределените партиди ако документа е чернова
             $bQuery = batch_BatchesInDocuments::getQuery();
             $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
-            $bQuery->where("#state = 'draft' AND #containerId = {$containerId}");
+            $bQuery->where("#state = 'draft' AND #containerId = {$containerId} AND #productId = {$this->rec->productId} AND #storeId = {$storeId}");
             $bQuery->where("#detailClassId = '{$mvc->getClassId()}' AND #detailRecId != {$id}");
             while($bRec = $bQuery->fetch()){
                 if(array_key_exists($bRec->batch, $quantities)){
