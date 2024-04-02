@@ -611,7 +611,6 @@ class rack_Movements extends rack_MovementAbstract
                     $form->setField('positionTo', 'caption=Преместване на нова позиция->Позиция');
                     $form->setField('note', 'caption=Преместване на нова позиция->Забележка');
                     $form->setField('palletId', "caption=Преместване на нова позиция->Палет");
-                    $middleCaptionFld = 'palletId';
 
                     if (isset($bestPos)) {
                         $form->setDefault('positionTo', $bestPos);
@@ -622,7 +621,11 @@ class rack_Movements extends rack_MovementAbstract
 
         if(isset($rec->productId)){
             if($middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId)){
-                $form->setInfoBeforeField($middleCaptionFld, $middleCaption);
+                $data->form->layout = $data->form->renderLayout();
+                $className = Mode::is('screenMode', 'wide') ? ' floatedElement' : '';
+                $tpl = new ET("<div class='preview-holder {$className} palletInfoBlock'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Налични палети') . "</b></div><div class='scrolling-holder'>[#PALLET_INFO#]</div></div><div class='clearfix21'></div>");
+                $tpl->append($middleCaption, 'PALLET_INFO');
+                $data->form->layout->append($tpl);
             }
         }
     }
