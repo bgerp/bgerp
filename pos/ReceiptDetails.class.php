@@ -573,7 +573,7 @@ class pos_ReceiptDetails extends core_Detail
             $this->getProductInfo($rec);
             core_Debug::stopTimer('ADD_PRODUCT_GET_PRODUCT_INFO');
             core_Debug::log("END ADD_PRODUCT_GET_PRODUCT_INFO " . round(core_Debug::$timers["ADD_PRODUCT_GET_PRODUCT_INFO"]->workingTime, 6));
-            core_Statuses::newStatus("{$rec->ean}/{$rec->productId}");
+
             if($rec->ean && empty($rec->productId)){
                 $operation = Mode::get("currentOperation{$rec->receiptId}");
                 $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $rec->ean, 'receiptId' => $receiptId, 'operation' => $operation, 'refreshPanel' => 'no');

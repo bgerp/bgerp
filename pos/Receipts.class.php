@@ -1223,7 +1223,7 @@ class pos_Receipts extends core_Master
 
         // Ако се прави опит за избор на същия контрагент не се прави нищо
         if($rec->contragentClass == $contragentClassId && $rec->contragentObjectId == $contragentId){
-            $msg = 'Контрагента е вече избран';
+            $msg = 'Бележката е вече ма този клиент';
             if($rec->contragentLocationId != $locationId){
                 $msg = 'Локацията е сменена';
                 $rec->contragentLocationId = $locationId;
@@ -1247,6 +1247,9 @@ class pos_Receipts extends core_Master
         // Задаване на новия контрагент
         static::setContragent($rec, $contragentClassId, $contragentId, $locationId);
         $this->logWrite('Избор на контрагент в бележка', $id);
+
+        Mode::setPermanent("currentOperation{$rec->id}", 'add');
+        Mode::setPermanent("currentSearchString{$rec->id}", null);
 
         if (Request::get('ajax_mode')) {
             return pos_Terminal::returnAjaxResponse($id, null, true, true, true, true, 'add', true);
