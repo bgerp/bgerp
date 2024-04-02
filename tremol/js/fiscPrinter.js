@@ -847,11 +847,9 @@ function fpPeriodReport(startDate, endDate, isDetailed)
 {
     try {
     	if (isDetailed) {
-    		// fp.PrintDetailedFMReportByDate(startDate, endDate);
-    		fp.PrintDetailedFMPaymentsReportByDate(startDate, endDate);
+    		fp.PrintDetailedFMReportByDate(startDate, endDate);
     	} else {
-    		// fp.PrintBriefFMReportByDate(startDate, endDate);
-    		fp.PrintBriefFMPaymentsReportByDate(startDate, endDate);
+    		fp.PrintBriefFMReportByDate(startDate, endDate);
     	}
     } catch(ex) {
         handleException(ex);
