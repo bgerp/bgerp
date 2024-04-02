@@ -1068,7 +1068,7 @@ class pos_Terminal extends peripheral_Terminal
 
             $holderTpl = ht::createElement('div', array('class' => 'grid'), $holderTpl, true);
             $tpl->append($holderTpl);
-            $tpl->append(tr("|*<div class='divider'>|Намерени контрагенти|*</div>"));
+            $tpl->append(tr("|*<div class='divider'>|Търсене на клиенти|*</div>"));
             
             $count = 0;
             $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
