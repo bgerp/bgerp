@@ -623,7 +623,7 @@ class rack_Movements extends rack_MovementAbstract
             if($middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId)){
                 $data->form->layout = $data->form->renderLayout();
                 $className = Mode::is('screenMode', 'wide') ? ' floatedElement' : '';
-                $tpl = new ET("<div class='preview-holder {$className} palletInfoBlock'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Налични палети') . "</b></div><div class='scrolling-holder'>[#PALLET_INFO#]</div></div><div class='clearfix21'></div>");
+                $tpl = new ET("<div class='preview-holder {$className} palletInfoBlock'><div style='margin-top:10px; margin-bottom:-10px; padding:5px;'><b>" . tr('Налични палети') . "</b></div><div class='scrolling-holder' style='margin-top:10px'>[#PALLET_INFO#]</div></div><div class='clearfix21'></div>");
                 $tpl->append($middleCaption, 'PALLET_INFO');
                 $data->form->layout->append($tpl);
             }
