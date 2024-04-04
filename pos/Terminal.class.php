@@ -2286,7 +2286,7 @@ class pos_Terminal extends peripheral_Terminal
             // Ако текущата бележка е на НЕ анонимен клиент, търсят се и другите негови бележки;
             if(!$isAnonymous && $rec->contragentClass == $receiptRec->contragentClass && $rec->contragentObjectId == $receiptRec->contragentObjectId){
                 $url = ($receiptRec->id != $rec->id) ? $openUrl : array();
-                $otherClass = ($receiptRec->id != $rec->id) ? $class : 'disabledBtn';
+                $otherClass = ($receiptRec->id != $rec->id) ? $class : 'disabledBtn current';
                 $otherContragentReceipts[$receiptRec->id] = ht::createLink($btnTitle, $url, $warning, array('id' => "receiptSameClient{$receiptRec->id}", 'class' => "pos-notes posBtns {$otherClass} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
             }
         }

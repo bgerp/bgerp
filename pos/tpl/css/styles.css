@@ -44,6 +44,8 @@
       box-shadow: 0px 0px 3px #0000fa !important; }
   .result-content .receiptRow.disabledBtn {
     cursor: auto !important; }
+    .result-content .disabledBtn.current {
+      background: #53a163 !important; }
 
 .tools-content {
   padding: 20px 15px;
