@@ -644,7 +644,7 @@ class type_Richtext extends type_Blob
             // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
         
-        $html = str_ireplace($from, $to, $html);
+        $html = str_replace($from, $to, $html);
 
         return $html;
     }
