@@ -303,7 +303,8 @@ class pos_Receipts extends core_Master
             if(isset($contragentClass) && isset($contragentId)){
                 $rec->contragentClass = $contragentClass;
                 $rec->contragentObjectId = $contragentId;
-                $rec->contragentName = cls::get($contragentClass)->getVerbal($contragentId, 'name');;
+                $rec->contragentName = cls::get($contragentClass)->getVerbal($contragentId, 'name');
+                $setDefaultContragent = false;
             }
         }
 
