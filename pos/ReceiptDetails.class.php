@@ -179,7 +179,7 @@ class pos_ReceiptDetails extends core_Detail
             $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
 
             if(!empty($param)){
-                $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+                $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if($type == $cardPaymentId){
                     $rec->param = $param;
                 }
@@ -575,10 +575,32 @@ class pos_ReceiptDetails extends core_Detail
             core_Debug::log("END ADD_PRODUCT_GET_PRODUCT_INFO " . round(core_Debug::$timers["ADD_PRODUCT_GET_PRODUCT_INFO"]->workingTime, 6));
 
             if($rec->ean && empty($rec->productId)){
-                $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $rec->ean, 'receiptId' => $receiptId, 'operation' => 'add', 'refreshPanel' => 'no');
+                $operation = Mode::get("currentOperation{$rec->receiptId}");
+                $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $rec->ean, 'receiptId' => $receiptId, 'operation' => $operation, 'refreshPanel' => 'no');
                 if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
                     $cardInfo = crm_ext_Cards::getInfo($rec->ean);
                     if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
+
+                        // Ако след сканиране на карта в празна бележка, клиента има ТОЧНО една чернова бележка - редирект към нея
+                        if(!pos_ReceiptDetails::count("#receiptId = {$receiptRec->id}")){
+                            if(pos_Receipts::count("#contragentClass = {$cardInfo['contragentClassId']} AND #contragentObjectId = {$cardInfo['contragentId']} AND #state = 'draft'") == 1){
+                                $existingId = pos_Receipts::fetchField("#contragentClass = {$cardInfo['contragentClassId']} AND #contragentObjectId = {$cardInfo['contragentId']} AND #state = 'draft'");
+                                if(pos_Receipts::haveRightFor('terminal', $existingId)){
+                                    $resObj = new stdClass();
+                                    $resObj->func = 'redirect';
+                                    $resObj->arg = array('url' => toUrl(array('pos_Terminal', 'open', 'receiptId' => $existingId)));
+                                    $res[] = $resObj;
+                                    core_Statuses::newStatus("Отворена е последната чернова бележка на клиента|*!");
+
+                                    $hitTime = Request::get('hitTime', 'int');
+                                    $idleTime = Request::get('idleTime', 'int');
+                                    $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+
+                                    return array_merge($res, (array) $statusData);
+                                }
+                            }
+                        }
+
                         $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $rec->receiptId, 'ajax_mode' => 1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
                     } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
                         core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
@@ -793,7 +815,7 @@ class pos_ReceiptDetails extends core_Detail
                 $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
                 $row->amount = ht::styleNumber($row->amount, $rec->amount);
 
-                $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+                $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if($action->value == $cardPaymentId){
                     if(!empty($rec->param)){
                         $paramVal = ($rec->param == 'card') ? tr('Потв.') : tr('Ръчно потв.');

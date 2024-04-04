@@ -54,50 +54,30 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
      */
     private static function getEntries($rec, &$total)
     {
-        $entries = $productsArr = $instantProducts = array();
-        
+        $productsArr = $instantProducts = array();
+
         $dQuery = planning_ConsumptionNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         $details = $dQuery->fetchAll();
         $rec->details = $details;
 
         // Ако има артикули с моментно производство - произвеждат се
-        $entriesProduction = sales_transaction_Sale::getProductionEntries($rec, 'planning_ConsumptionNotes', 'storeId', $instantProducts);
-        if (countR($entriesProduction)) {
-            $entries = array_merge($entries, $entriesProduction);
-        }
-        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
-            if(!store_Setup::canDoShippingWhenStockIsNegative()){
-
-                // Проверка за неналичните експедирани артикули
-                $shipped = array();
-                foreach ($entries as $d){
-                    if($d['credit'][0] == '321') {
-                        if(!array_key_exists($d['credit'][2][1], $instantProducts)){
-                            $shipped[] = (object)array('productId' => $d['credit'][2][1], 'quantity' => $d['credit']['quantity']);
-                        }
-                    }
-                }
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($shipped, $rec->storeId, $rec->state)) {
-                    acc_journal_RejectRedirect::expect(false, $warning);
-                }
-            }
-        }
+        $entries = sales_transaction_Sale::getProductionEntries($rec, 'planning_ConsumptionNotes', 'storeId', $instantProducts);
 
         foreach ($details as $dRec) {
-            if(empty($dRec->quantity)) continue;
+            if (empty($dRec->quantity)) continue;
 
             $prodRec = cat_Products::fetch($dRec->productId, 'canStore,fixedAsset');
             $productsArr[$dRec->productId] = $dRec->productId;
             $debitArr = null;
-            
+
             if ($rec->useResourceAccounts == 'yes') {
-                
+
                 // Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
                 $debitArr = array('61101', array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
             }
 
-            if($prodRec->canStore == 'yes'){
+            if ($prodRec->canStore == 'yes') {
                 $creditArr = array(321, array('store_Stores', $rec->storeId), array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
                 $reason = 'Влагане на материал в производството';
             } else {
@@ -115,20 +95,28 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 
             $entries[] = array('debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
         }
-        
+
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
-            
+
+            // Проверка за неналичните експедирани артикули
+            if (!store_Setup::canDoShippingWhenStockIsNegative()) {
+                $shipped = store_Stores::getShippedProductsByStoresFromTransactionEntries($entries, $instantProducts);
+                
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($shipped, $rec->storeId, $rec->state)) {
+                    acc_journal_RejectRedirect::expect(false, $warning);
+                }
+            }
+
             // Проверка на артикулите
             if (countR($productsArr)) {
                 $msg = "трябва да са складируеми и/или вложими";
-                if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canConvert', null, $msg)){
-                    
+                if ($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canConvert', null, $msg)) {
+
                     acc_journal_RejectRedirect::expect(false, $redirectError);
                 }
-                
+
                 $msg = "са генерични и трябва да бъдат заменени";
-                if($redirectError = deals_Helper::getContoRedirectError($productsArr, null, 'generic', $msg)){
-                    
+                if ($redirectError = deals_Helper::getContoRedirectError($productsArr, null, 'generic', $msg)) {
                     acc_journal_RejectRedirect::expect(false, $redirectError);
                 }
             }

@@ -810,8 +810,8 @@ function rp(text, textarea, newLine) {
  * добавяне на необходимите за създаване на таблица в ричедит символи, по зададени колони и редове
  */
 function createRicheditTable(textarea, newLine, tableCol, tableRow) {
-    if (tableRow < 2 || tableRow > 20 || tableCol < 2 || tableCol > 20)  {
-        alert("Допустимия брой редове/колони е 20!");
+    if (tableRow > 20 ||  tableCol > 20)  {
+        alert("Допустимият брой редове/колони е 20!");
         return;
     }
     var version = getIEVersion();

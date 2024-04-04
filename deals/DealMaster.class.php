@@ -2013,8 +2013,6 @@ abstract class deals_DealMaster extends deals_DealBase
         // Записваме данните на контрагента
         $fields['contragentClassId'] = $contragentClass->getClassId();
         $fields['contragentId'] = $contragentId;
-        
-        // Валутата е дефолтната за папката
         $fields['currencyId'] = (isset($fields['currencyId'])) ? $fields['currencyId'] : cond_plg_DefaultValues::getDefaultValue($me, $fields['folderId'], 'currencyId');
 
         // Ако няма курс, това е този за основната валута
@@ -2027,34 +2025,31 @@ abstract class deals_DealMaster extends deals_DealBase
             expect(drdata_Address::parsePlace($fields['deliveryAdress']), 'Адресът трябва да съдържа държава и пощенски код');
         }
 
-        // Ако няма платежен план, това е плащане в брой
-        $paymentSysId = ($me instanceof sales_Sales) ? 'paymentMethodSale' : 'paymentMethodPurchase';
-        $fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $paymentSysId) : $fields['paymentMethodId'];
-        
-        $termSysId = ($me instanceof sales_Sales) ? 'deliveryTermSale' : 'deliveryTermPurchase';
-        $fields['deliveryTermId'] = (empty($fields['deliveryTermId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $termSysId) : $fields['deliveryTermId'];
-        
-        
-        // Ако не е подадено да се начислявали ддс, определяме от контрагента
-        if (empty($fields['chargeVat'])) {
-            $fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
-        }
-        
-        // Ако не е подадено да се начислявали ддс, определяме от контрагента
-        if (empty($fields['makeInvoice'])) {
-            $fields['makeInvoice'] = 'yes';
-        }
-        
         // Състояние на плащането, чакащо
         $fields['paymentState'] = 'pending';
-        
+
         // Опиваме се да запишем мастъра на сделката
         $rec = (object)$fields;
-        
+
+        // Ако не е подадено да се начислявали ддс, определяме от контрагента
+        if (empty($fields['chargeVat'])) {
+            $rec->chargeVat = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'chargeVat', 'defMethod');
+        }
+
+        // Ако не е подадено да се начислявали ддс, определяме от контрагента
+        if (empty($fields['makeInvoice'])) {
+            $rec->makeInvoice = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'makeInvoice', 'lastDocUser|lastDoc');
+        }
+        if(empty($fields['shipmentStoreId'])) {
+            $rec->shipmentStoreId = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'shipmentStoreId', 'defMethod');
+        }
+        $rec->deliveryTermId = (empty($fields['deliveryTermId'])) ? cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'deliveryTermId', 'clientCondition|lastDocUser|lastDoc') : $rec->deliveryTermId;
+        $rec->paymentMethodId = (empty($fields['paymentMethodId'])) ? cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'paymentMethodId', 'clientCondition|lastDocUser|lastDoc') : $rec->paymentMethodId;
+
         if($me instanceof sales_Sales){
             if(isset($fields['deliveryTermId'])){
                 if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
-                    $rec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
+                    $rec->deliveryCalcTransport = $fields['deliveryCalcTransport'] ?? cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
                 }
             }
         }

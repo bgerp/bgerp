@@ -116,12 +116,6 @@ defIfNot('POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID', '');
 
 
 /**
- *  Начин за плащане с карта
- */
-defIfNot('POS_CARD_PAYMENT_METHOD_ID', '');
-
-
-/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -189,7 +183,6 @@ class pos_Setup extends core_ProtoSetup
         'POS_RATINGS_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
         'POS_SHOW_EXACT_QUANTITIES' => array('enum(no=Не,yes=Да)', 'caption=Показване на наличните к-ва в терминала->Избор'),
         'POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценоразпис спрямо който да се показват отстъпките в POS-а->Избор'),
-        'POS_CARD_PAYMENT_METHOD_ID' => array('key(mvc=cond_Payments,select=title)', 'caption=Метод за плащане с карта->Избор'),
     );
     
     
@@ -204,6 +197,7 @@ class pos_Setup extends core_ProtoSetup
         'pos_SellableProductsCache',
         'migrate::resyncSearchStrings2350',
         'migrate::updateInputPercent2403',
+        'migrate::updateWrongReceipts2414',
     );
 
 
@@ -279,24 +273,6 @@ class pos_Setup extends core_ProtoSetup
 
 
     /**
-     * Зареждане на данните
-     */
-    public function loadSetupData($itr = '')
-    {
-        $res = parent::loadSetupData($itr);
-        $config = core_Packs::getConfig('pos');
-
-        if (strlen($config->POS_CARD_PAYMENT_METHOD_ID) === 0) {
-            $cardPaymentId = cond_Payments::fetchField("#code = 7 AND #state = 'active'");
-            core_Packs::setConfig('pos', array('POS_CARD_PAYMENT_METHOD_ID' => $cardPaymentId));
-            $res .= "<li style='color:green'>Задаване на начин за плащане с карта</li>";
-        }
-
-        return $res;
-    }
-
-
-    /**
      * Обновява статистическите данни в POS-а
      */
     public function cron_UpdateStatistic()
@@ -327,4 +303,27 @@ class pos_Setup extends core_ProtoSetup
         $query = "UPDATE {$Receipts->dbTableName} SET {$inputDiscColName} = {$discColName} WHERE {$discColName} IS NOT NULL";
         $Receipts->db->query($query);
     }
+
+
+    /**
+     * Изтриване на грешни бележки
+     */
+    public function updateWrongReceipts2414()
+    {
+        $save = array();
+        $Receipts = cls::get('pos_Receipts');
+        $query = pos_Receipts::getQuery();
+        $query->where("#contragentClass IS NULL AND #contragentObjectId IS NULL");
+        while($rec = $query->fetch()){
+            $rec->contragentName = 'Анонимен Клиент';
+            $rec->contragentClass = core_Classes::getId('crm_Persons');
+            $rec->contragentObjectId = pos_Points::defaultContragent($posId);
+            $save[$rec->id] = $rec;
+        }
+
+        if(countR($save)){
+            $Receipts->saveArray($save);
+        }
+    }
 }
+

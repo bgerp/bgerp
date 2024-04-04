@@ -84,6 +84,7 @@ class newsbar_News extends core_Master
         $this->FLD('eshopGroups', 'keylist(mvc=eshop_Groups,select=name)', 'caption=Филтриране при показване->Продуктови групи');
         $this->FLD('eshopProducts', 'keylist(mvc=eshop_Products,select=name)', 'caption=Филтриране при показване->Продукти');
         
+        $this->FLD('textColor', 'color_Type', 'caption=Оформление->Текст,unit=rgb');
         $this->FLD('color', 'color_Type', 'caption=Оформление->Фон,unit=rgb');
         $this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Оформление->Непрозрачност');
         $this->FLD('border', 'color_Type', 'caption=Оформление->Бордер,unit=rgb');
@@ -416,7 +417,8 @@ class newsbar_News extends core_Master
         
         if ($rec->news) {
             $rt = cls::get('type_Richtext');
-            $text = $rt->toHtml('[color=white]' . $rec->news . '[/color]');
+            $textColor = $rec->textColor ?  $rec->textColor : 'white';
+            $text = $rt->toHtml("[color={$textColor}]{$rec->news}[/color]");
         }
         
         if ($rec->newsHtml) {

@@ -529,7 +529,6 @@ class pos_Terminal extends peripheral_Terminal
                 break;
             case 'quantity':
                 $inputUrl = array('pos_ReceiptDetails', 'dispatch', 'receiptId' => $rec->id);
-                $keyupUrl = null;
                 break;
             case 'text':
                 $inputUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'settext');
@@ -895,14 +894,31 @@ class pos_Terminal extends peripheral_Terminal
             $batchTpl = new core_ET("");
 
             $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior);
+            $cnt = 0;
             if(countR($batchesInStore)){
-                $cnt = 0;
                 $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Добавяне на артикул без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
                 $batchTpl->append($btn);
             }
 
+            if(!empty($string)){
+                $foundBatches = array_filter($batchesInStore, function($b) use ($string){
+                    if(mb_strpos(mb_strtolower($b), mb_strtolower($string)) !== false){
+                        return true;
+                    }
+                    return false;
+                }, ARRAY_FILTER_USE_KEY);
+
+                $batchesInStore = $foundBatches;
+            }
+            $countBatchesInStore = count($batchesInStore);
+
             foreach ($batchesInStore as $batch => $quantity){
+                if(!empty($string) && mb_strpos(mb_strtolower($batch), mb_strtolower($string)) === false) continue;
+
                 $class = 'resultBatch posBtns navigable';
+                if($countBatchesInStore == 1){
+                    $class .= ' filteredBatch';
+                }
                 $cnt++;
                 $dataUrl['string'] = urlencode($batch);
                 
@@ -1052,7 +1068,7 @@ class pos_Terminal extends peripheral_Terminal
 
             $holderTpl = ht::createElement('div', array('class' => 'grid'), $holderTpl, true);
             $tpl->append($holderTpl);
-            $tpl->append(tr("|*<div class='divider'>|Намерени контрагенти|*</div>"));
+            $tpl->append(tr("|*<div class='divider'>|Търсене на клиенти|*</div>"));
             
             $count = 0;
             $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
@@ -1351,7 +1367,7 @@ class pos_Terminal extends peripheral_Terminal
         $payments = pos_Points::fetchSelected($rec->pointId);
 
         if(!isset($rec->revertId)){
-            $cardPaymentId = pos_Setup::get('CARD_PAYMENT_METHOD_ID');
+            $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
             foreach ($payments as $paymentId => $paymentTitle){
                 $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl);
                 $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
@@ -2252,12 +2268,10 @@ class pos_Terminal extends peripheral_Terminal
         $disabledClass = (pos_Receipts::haveRightFor('add')) ? 'navigable' : 'disabledBtn';
         $addUrl = (pos_Receipts::haveRightFor('add')) ? array('pos_Receipts', 'new') : array();
         
-        $rows = array();
+        $rows = $otherContragentReceipts = array();
         $pointId = pos_Points::getCurrent();
-        if($rec->_selectedReceiptFilter == 'draft'){
-            $rows[$pointId]['-1'] = ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'));
-        }
-        
+        $isAnonymous = pos_Receipts::isForDefaultContragent($rec);
+
         while($receiptRec = $query->fetch()){
             $openUrl = (pos_Receipts::haveRightFor('terminal', $receiptRec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $receiptRec->id, 'opened' => true) : array();
             $class = (countR($openUrl)) ? ' navigable' : ' disabledBtn';
@@ -2267,19 +2281,42 @@ class pos_Terminal extends peripheral_Terminal
             if($rec->pointId != $receiptRec->pointId){
                 $warning = 'Бележката е от друг POS|*!';
             }
-
             $rows[$receiptRec->pointId][$receiptRec->id] = ht::createLink($btnTitle, $openUrl, $warning, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
+
+            // Ако текущата бележка е на НЕ анонимен клиент, търсят се и другите негови бележки;
+            if(!$isAnonymous && $rec->contragentClass == $receiptRec->contragentClass && $rec->contragentObjectId == $receiptRec->contragentObjectId){
+                $url = ($receiptRec->id != $rec->id) ? $openUrl : array();
+                $otherClass = ($receiptRec->id != $rec->id) ? $class : 'disabledBtn';
+                $otherContragentReceipts[$receiptRec->id] = ht::createLink($btnTitle, $url, $warning, array('id' => "receiptSameClient{$receiptRec->id}", 'class' => "pos-notes posBtns {$otherClass} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
+            }
+        }
+
+        $contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
+        if($rec->_selectedReceiptFilter == 'draft'){
+            $rows[$pointId] = array('-1' => ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'))) + $rows[$pointId];
+            if(countR($otherContragentReceipts)){
+                $addUrl['contragentClass'] = $rec->contragentClass;
+                $addUrl['contragentObjectId'] = $rec->contragentObjectId;
+                $addUrl['forced'] = true;
+                $otherContragentReceipts = array(ht::createLink("+ {$contragentName}", $addUrl, null, array('id' => "receiptnewSame", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка на същия клиент'))) + $otherContragentReceipts;
+            }
         }
 
         uksort($rows, function($k, $v) use ($rec) {
             return ($k == $rec->pointId) ? -1 : 1;
         });
 
+        if(countR($otherContragentReceipts)){
+            $rows = array('-1' => $otherContragentReceipts) + $rows;
+        }
+
         if(countR($rows)){
             $tpl->prepend("<div class='contentHolderResults'>");
             foreach ($rows as $pId => $btnRows){
                 $pointName = pos_Points::getTitleById($pId);
-                $tpl->append(tr("|*<div class='divider'>|Бележки в|* {$pointName}</div>"));
+                $text = ($pId != -1) ? "|Бележки в|* {$pointName}" : $contragentName;
+
+                $tpl->append(tr("|*<div class='divider'>{$text}</div>"));
                 $tpl->append("<div class='grid'>");
                 foreach ($btnRows as $receiptBtn){
                     $tpl->append($receiptBtn);
@@ -2476,7 +2513,7 @@ class pos_Terminal extends peripheral_Terminal
         $resObj->func = 'toggleAddedProductFlag';
         $resObj->arg = array('flag' => !empty($addedProduct));
         $res[] = $resObj;
-        
+
         Mode::setPermanent("productAdded{$receiptId}", null);
 
         // Добавяне на звук
@@ -2489,7 +2526,7 @@ class pos_Terminal extends peripheral_Terminal
             $resObj->arg = array('soundMp3' => sbf("pos/sounds/{$sound}.wav", ''));
             $res[] = $resObj;
         }
-        
+
         // Показване веднага на чакащите статуси
         $hitTime = Request::get('hitTime', 'int');
         $idleTime = Request::get('idleTime', 'int');
