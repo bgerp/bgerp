@@ -220,7 +220,7 @@ class type_Richtext extends type_Blob
      *
      * @return string
      */
-    public function toHtml($html, $wrapBefore = '<div class=\"richtext\">', $wrapAfter = '</div>')
+    public function toHtml($html, $wrapBefore = '<div class="richtext">', $wrapAfter = '</div>')
     {
         Debug::startTimer('RichtextToHtml');
         
