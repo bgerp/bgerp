@@ -930,14 +930,12 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
 
-            if(isset($rec->id)){
+            if(isset($rec->id) && isset($rec->displayRate)){
                 // Предупреждение ако вальора е сменен, но курса е различен от очаквания
-                if($rec->date != $mvc->fetchField($rec->id, 'date', false)){
-                    $expectedRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
-                    if(round($expectedRate, 5) != round($rec->displayRate, 5)){
-                        $displayDate = dt::mysql2verbal($rec->date, 'd.m.Y');
-                        $form->setWarning('displayRate', "Курсът е различен от очаквания за дата|* {$displayDate} : <b>{$expectedRate}</b>");
-                    }
+                $expectedRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
+                if(round($expectedRate, 5) != round($rec->displayRate, 5)){
+                    $displayDate = dt::mysql2verbal($rec->date, 'd.m.Y');
+                    $form->setWarning('displayRate', "Курсът е различен от очаквания за дата|* {$displayDate} : <b>{$expectedRate}</b>");
                 }
             }
 
