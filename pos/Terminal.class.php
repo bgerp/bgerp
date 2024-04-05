@@ -900,10 +900,25 @@ class pos_Terminal extends peripheral_Terminal
                 $batchTpl->append($btn);
             }
 
+            if(!empty($string)){
+                $foundBatches = array_filter($batchesInStore, function($b) use ($string){
+                    if(mb_strpos(mb_strtolower($b), mb_strtolower($string)) !== false){
+                        return true;
+                    }
+                    return false;
+                }, ARRAY_FILTER_USE_KEY);
+
+                $batchesInStore = $foundBatches;
+            }
+            $countBatchesInStore = count($batchesInStore);
+
             foreach ($batchesInStore as $batch => $quantity){
                 if(!empty($string) && mb_strpos(mb_strtolower($batch), mb_strtolower($string)) === false) continue;
 
                 $class = 'resultBatch posBtns navigable';
+                if($countBatchesInStore == 1){
+                    $class .= ' filteredBatch';
+                }
                 $cnt++;
                 $dataUrl['string'] = urlencode($batch);
                 
@@ -1053,7 +1068,7 @@ class pos_Terminal extends peripheral_Terminal
 
             $holderTpl = ht::createElement('div', array('class' => 'grid'), $holderTpl, true);
             $tpl->append($holderTpl);
-            $tpl->append(tr("|*<div class='divider'>|Намерени контрагенти|*</div>"));
+            $tpl->append(tr("|*<div class='divider'>|Търсене на клиенти|*</div>"));
             
             $count = 0;
             $stringInput = core_Type::getByName('varchar')->fromVerbal($string);
@@ -2269,8 +2284,10 @@ class pos_Terminal extends peripheral_Terminal
             $rows[$receiptRec->pointId][$receiptRec->id] = ht::createLink($btnTitle, $openUrl, $warning, array('id' => "receipt{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
 
             // Ако текущата бележка е на НЕ анонимен клиент, търсят се и другите негови бележки;
-            if(!$isAnonymous && $receiptRec->id != $rec->id && $rec->contragentClass == $receiptRec->contragentClass && $rec->contragentObjectId == $receiptRec->contragentObjectId){
-                $otherContragentReceipts[$receiptRec->id] = ht::createLink($btnTitle, $openUrl, $warning, array('id' => "receiptSameClient{$receiptRec->id}", 'class' => "pos-notes posBtns {$class} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
+            if(!$isAnonymous && $rec->contragentClass == $receiptRec->contragentClass && $rec->contragentObjectId == $receiptRec->contragentObjectId){
+                $url = ($receiptRec->id != $rec->id) ? $openUrl : array();
+                $otherClass = ($receiptRec->id != $rec->id) ? $class : 'disabledBtn current';
+                $otherContragentReceipts[$receiptRec->id] = ht::createLink($btnTitle, $url, $warning, array('id' => "receiptSameClient{$receiptRec->id}", 'class' => "pos-notes posBtns {$otherClass} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
             }
         }
 

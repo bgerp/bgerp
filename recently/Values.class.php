@@ -9,11 +9,11 @@
  * при предишни сесии
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   recently
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -28,7 +28,7 @@ class recently_Values extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Плъгини за зареждане
      */
     public $loadList = 'plg_Created,plg_RowTools2,recently_Wrapper';
     
@@ -41,7 +41,7 @@ class recently_Values extends core_Manager
         $this->FLD('name', 'varchar(64)', 'caption=Име');
         $this->FLD('value', 'varchar', 'caption=Стойност');
         
-        $this->setDbUnique('name,value,createdBy');
+        $this->setDbIndex('name,value,createdBy');
         $this->setDbIndex('name,createdBy');
     }
     

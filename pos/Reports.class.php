@@ -329,7 +329,11 @@ class pos_Reports extends core_Master
         $rQuery->EXT('change', 'pos_Receipts', 'externalName=change,externalKey=receiptId');
         $rQuery->XPR('calcedUser', 'int', "COALESCE(#waitingReceiptBy, #createdReceiptBy)");
         $rQuery->where("#action LIKE '%payment%'");
-        $rQuery->in('receiptId', $receiptIds);
+        if(countR($receiptIds)){
+            $rQuery->in('receiptId', $receiptIds);
+        } else {
+            $rQuery->where("1=2");
+        }
 
         while($rRec = $rQuery->fetch()){
             $action = explode('|', $rRec->action);

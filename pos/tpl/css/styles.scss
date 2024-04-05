@@ -58,10 +58,14 @@
 	
 	.receiptRow.disabledBtn {
 		cursor:auto !important;
-	}	
+	}
+
+	.disabledBtn {
+		&.current {
+			background: #53a163 !important;
+		}
+	}
 }
-
-
 
 .tools-content {
 	padding: 20px 15px;

@@ -285,14 +285,17 @@ class pos_Receipts extends core_Master
         $rec->pointId = $posId;
         $rec->valior = dt::now();
         $this->requireRightFor('add', $rec);
-        
-        if (!empty($revertId)) {
 
-            // Ако ще е сторнираща бележка - да е към същия котрагент
-            $recToRevert = static::fetch($revertId);
-            $rec->contragentName = $recToRevert->contragentName;
-            $rec->contragentClass = $recToRevert->contragentClass;
-            $rec->contragentObjectId = $recToRevert->contragentObjectId;
+        // Ако ще е сторнираща бележка - да е към същия котрагент
+        $setDefaultContragent = true;
+        if (!empty($revertId)) {
+            if($revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
+                $recToRevert = static::fetch($revertId);
+                $rec->contragentName = $recToRevert->contragentName;
+                $rec->contragentClass = $recToRevert->contragentClass;
+                $rec->contragentObjectId = $recToRevert->contragentObjectId;
+                $setDefaultContragent = false;
+            }
             $rec->revertId = $revertId;
         } else {
 
@@ -300,12 +303,15 @@ class pos_Receipts extends core_Master
             if(isset($contragentClass) && isset($contragentId)){
                 $rec->contragentClass = $contragentClass;
                 $rec->contragentObjectId = $contragentId;
-                $rec->contragentName = cls::get($contragentClass)->getVerbal($contragentId, 'name');;
-            } else {
-                $rec->contragentName = 'Анонимен Клиент';
-                $rec->contragentClass = core_Classes::getId('crm_Persons');
-                $rec->contragentObjectId = pos_Points::defaultContragent($posId);
+                $rec->contragentName = cls::get($contragentClass)->getVerbal($contragentId, 'name');
+                $setDefaultContragent = false;
             }
+        }
+
+        if($setDefaultContragent){
+            $rec->contragentName = 'Анонимен Клиент';
+            $rec->contragentClass = core_Classes::getId('crm_Persons');
+            $rec->contragentObjectId = pos_Points::defaultContragent($posId);
         }
 
         return $this->save($rec);
@@ -322,7 +328,6 @@ class pos_Receipts extends core_Master
             $row->returnedTotal = ht::styleIfNegative("-{$row->returnedTotal}", -1 * $rec->returnedTotal);
             $row->returnedCurrency = $row->currency;
         }
-
         $row->contragentId = static::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('link' => true, 'icon' => true));
 
         if ($fields['-list']) {
@@ -1219,7 +1224,7 @@ class pos_Receipts extends core_Master
 
         // Ако се прави опит за избор на същия контрагент не се прави нищо
         if($rec->contragentClass == $contragentClassId && $rec->contragentObjectId == $contragentId){
-            $msg = 'Контрагента е вече избран';
+            $msg = 'Бележката е вече ма този клиент';
             if($rec->contragentLocationId != $locationId){
                 $msg = 'Локацията е сменена';
                 $rec->contragentLocationId = $locationId;
@@ -1243,6 +1248,9 @@ class pos_Receipts extends core_Master
         // Задаване на новия контрагент
         static::setContragent($rec, $contragentClassId, $contragentId, $locationId);
         $this->logWrite('Избор на контрагент в бележка', $id);
+
+        Mode::setPermanent("currentOperation{$rec->id}", 'add');
+        Mode::setPermanent("currentSearchString{$rec->id}", null);
 
         if (Request::get('ajax_mode')) {
             return pos_Terminal::returnAjaxResponse($id, null, true, true, true, true, 'add', true);

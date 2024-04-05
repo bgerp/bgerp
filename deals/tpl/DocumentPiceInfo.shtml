@@ -7,7 +7,7 @@
    </tr>
    <!--ET_BEGIN discountValue-->
    <tr class='nowrap'>
-      <td class='aright'>|Отстъпка|*:</td>
+      <td class='aright'>[#discountCaption#]:</td>
       <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
       <td class='aright'><b class="lighterBold">[#discountValue#]</b></td>
    </tr>

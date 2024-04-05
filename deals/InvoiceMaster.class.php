@@ -2148,4 +2148,24 @@ abstract class deals_InvoiceMaster extends core_Master
             $mvc->updateMaster_($rec);
         }
     }
+
+
+    /**
+     * След подготовка на заявката за извличане на стойността от последна фактура
+     * @see cond_plg_DefaultValues
+     *
+     * @param core_Mvc $mvc
+     * @param core_Query $query
+     * @param int $folderId
+     * @param string $name
+     * @param int|null $fromUser
+     * @return void
+     */
+    protected static function on_AfterGetQueryFromLastDocumentDefault($mvc, &$query, $folderId, $name, $fromUser = null)
+    {
+        // Определени полета да се взимат от последната ф-ра САМО ако е за същия контрагент
+        if(!in_array($name, arr::make('contragentCountryId,contragentVatNo,contragentEori,uicNo,contragentPCode,contragentPlace,contragentAddress'))) return;
+        $Cover = doc_Folders::getCover($folderId);
+        $query->where("#displayContragentId IS NULL OR (#displayContragentClassId = '{$Cover->className}' AND #displayContragentId = {$Cover->that})");
+    }
 }

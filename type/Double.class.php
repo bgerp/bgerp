@@ -151,10 +151,14 @@ class type_Double extends core_Type
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
+        if(preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', $value)){
+            $value = rtrim(sprintf("%.9f", $value), "0");
+        }
+
         if ($this->params[0] + $this->params[1] > 0) {
             $attr['size'] = $this->params[0] + $this->params[1] + 1;
         }
-        
+
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;
@@ -170,13 +174,13 @@ class type_Double extends core_Type
             
             return;
         }
-        
+
         $conf = core_Packs::getConfig('core');
         
         $decPoint = isset($this->params['decPoint']) ? $this->params['decPoint'] : html_entity_decode($conf->EF_NUMBER_DEC_POINT);
         $thousandsSep = Mode::is('forSearch') ? '' : (isset($this->params['thousandsSep']) ?  $this->params['thousandsSep'] : html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP));
         $decimals = isset($this->params['decimals']) ? $this->params['decimals'] : EF_NUMBER_DECIMALS;
-        
+
         // Ограничаване на максиомалния брой знаци след десетичната точка
         if(isset($this->params['maxDecimals'])) {
             $decimals = min($decimals, $this->params['maxDecimals']);
@@ -203,7 +207,7 @@ class type_Double extends core_Type
             wp($value, $this->params);
             $decimals = 0;
         }
-        
+
         // Закръгляме числото преди да го обърнем в нормален вид
         $value = round($value, $decimals);
         

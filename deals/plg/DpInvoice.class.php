@@ -218,12 +218,14 @@ class deals_plg_DpInvoice extends core_Plugin
             }
         }
 
+        $form->_expectedDownpaymentReduction = false;
         if ($flag === true) {
             if (!isset($downpayment)) {
                 $dpOperation = 'none';
                 if (isset($invoicedDp) && ($invoicedDp - $deductedDp) > 0) {
                     $dpAmount = $invoicedDp - $deductedDp;
                     $dpOperation = 'deducted';
+                    $form->_expectedDownpaymentReduction = true;
                 }
             } else {
                 
@@ -385,8 +387,11 @@ class deals_plg_DpInvoice extends core_Plugin
                 if (!$form->gotErrors()) {
                     $rec->dpAmount *= -1;
                 }
+            } else {
+                if($form->_expectedDownpaymentReduction){
+                    $form->setWarning('amountDeducted', 'Очаква се приспадане на аванс, но не е избран такъв');
+                }
             }
-
 
             if (!in_array($rec->vatRate, array('yes', 'separate'))) {
                 $vat = 0;

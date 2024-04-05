@@ -2064,14 +2064,15 @@ class doc_DocumentPlg extends core_Plugin
                     $className = ' floatedElement ';
                 }
                 $data->form->layout = $data->form->renderLayout();
+                if($data->form->cmd != 'refresh'){
+                    $data->form->layout->append(new core_ET("[#ORIGINAL_DOCUMENT#]"));
+                }
                 $tpl = new ET("<div class='preview-holder {$className}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Оригинален документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
                 
                 if ($document->haveRightFor('single')) {
                     $docHtml = $document->getInlineDocumentBody();
-                    
-                    $tpl->append($docHtml, 'DOCUMENT');
-                    
-                    $data->form->layout->append($tpl);
+                    $tpl->append($docHtml);
+                    $data->form->layout->replace($tpl, 'ORIGINAL_DOCUMENT');
                 }
             } elseif ($fType == 'file') {
                 self::showOriginalFile($fRec, $data->form);
