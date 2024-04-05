@@ -4662,4 +4662,23 @@ class cat_Products extends embed_Manager
 
         return $overheadCost;
     }
+
+
+    /**
+     * Колбек функция, която прави непродаваем артикул отново продаваем
+     */
+    public static function callback_makeSellableAgainOnTime($productId)
+    {
+        $productRec = cat_Products::fetch($productId);
+        if($productRec->canSell == 'yes' || !$productRec) return;
+
+        $metas = type_Set::toArray($productRec->meta);
+        $metas['canSell'] = 'canSell';
+
+        $me = cls::get(get_called_class());
+        $metas = $me->getFieldType('meta')->fromVerbal($metas);
+        $pRec = (object)array('id' => $productRec->id, 'meta' => $metas);
+        $me->save($pRec, 'meta,canSell');
+        $me->logWrite('Артикулът отново става продаваем', $productRec->id);
+    }
 }
