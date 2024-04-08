@@ -157,8 +157,11 @@ class type_Double extends core_Type
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
+        // Ако числото е в научна нотация и полето не се рендира във форма с грешка да не се ревербализира
         if(preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', $value)){
-            $value = rtrim(sprintf("%.9f", $value), "0");
+            if(!$this->formWithErrors){
+                $value = rtrim(sprintf("%.9f", $value), "0");
+            }
         }
 
         if ($this->params[0] + $this->params[1] > 0) {
