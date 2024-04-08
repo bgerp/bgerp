@@ -446,6 +446,13 @@ class label_Prints extends core_Master
         
         $form->setDefault('labelsCnt', $estCnt);
         $form->setDefault('copiesCnt', 1);
+
+        // Ако източника има метод за обработка на формата - извиква се
+        if(is_object($intfInst)){
+            if(method_exists($intfInst, 'preparePrintForm')){
+                $intfInst->preparePrintForm($mvc, $form);
+            }
+        }
     }
     
     
@@ -549,9 +556,16 @@ class label_Prints extends core_Master
         $rec = $form->rec;
         
         $refreshForm = array();
-        
+
+        // Ако източника има метод за обработка на инпута на формата - извиква се
+        if(isset($rec->objectId) && isset($rec->classId)){
+            $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+            if(method_exists($intfInst, 'inputPrintForm')){
+                $intfInst->inputPrintForm($mvc, $form);
+            }
+        }
+
         // Попълваме стойностите на плейсхолдерите
-        
         if ($rec->templateId) {
             $oldDataArr = array();
             
