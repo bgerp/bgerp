@@ -1153,7 +1153,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                     $fp->PrintOperatorReport($zeroing, (int) $rec->operNum);
                 }
                 
-                if (($rec->report == 'period') || ($rec->report == 'month') || ($rec->report == 'year') || ($rec->report == 'klen') || ($rec->report == 'csv')) {
+                if (($rec->report == 'period') || ($rec->report == 'month') || ($rec->report == 'monthPayments') || ($rec->report == 'year') || ($rec->report == 'klen') || ($rec->report == 'csv')) {
                     $fromDate = dt::mysql2verbal($rec->fromDate, 'd-m-Y H:i:s');
                     $toDate = dt::mysql2verbal($rec->toDate . ' 23:59:59', 'd-m-Y H:i:s');
                     
@@ -1234,9 +1234,17 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                         }
                     } else {
                         if ($isDetailed) {
-                            $fp->PrintDetailedFMReportByDate($fromDate, $toDate);
+                            if ($rec->report == 'monthPayments') {
+                                $fp->PrintDetailedFMPaymentsReportByDate($fromDate, $toDate);
+                            } else {
+                                $fp->PrintDetailedFMReportByDate($fromDate, $toDate);
+                            }
                         } else {
-                            $fp->PrintBriefFMReportByDate($fromDate, $toDate);
+                            if ($rec->report == 'monthPayments') {
+                                $fp->PrintBriefFMPaymentsReportByDate($fromDate, $toDate);
+                            } else {
+                                $fp->PrintBriefFMReportByDate($fromDate, $toDate);
+                            }
                         }
                     }
                 }
