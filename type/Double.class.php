@@ -92,12 +92,18 @@ class type_Double extends core_Type
 
         // Превръщаме 16-тичните числа в десетични
         //$value = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$value));
-        
+
+        $isInScientificNotation = preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', $value);
+
         // Ако имаме букви или др. непозволени символи - връщаме грешка
-        if (preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $value) != $value) {
-            $this->error = 'Недопустими символи в число/израз';
-            
-            return false;
+        if(!$isInScientificNotation){
+            if (preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $value) != $value) {
+                $this->error = 'Недопустими символи в число/израз';
+
+                return false;
+            }
+        } else {
+            $value = rtrim(sprintf("%.9f", $value), "0");
         }
         
         if (empty($value)) {
@@ -151,10 +157,17 @@ class type_Double extends core_Type
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
+        // Ако числото е в научна нотация и полето не се рендира във форма с грешка да не се ревербализира
+        if(preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', $value)){
+            if(!$this->formWithErrors){
+                $value = rtrim(sprintf("%.9f", $value), "0");
+            }
+        }
+
         if ($this->params[0] + $this->params[1] > 0) {
             $attr['size'] = $this->params[0] + $this->params[1] + 1;
         }
-        
+
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;
@@ -170,13 +183,13 @@ class type_Double extends core_Type
             
             return;
         }
-        
+
         $conf = core_Packs::getConfig('core');
         
         $decPoint = isset($this->params['decPoint']) ? $this->params['decPoint'] : html_entity_decode($conf->EF_NUMBER_DEC_POINT);
         $thousandsSep = Mode::is('forSearch') ? '' : (isset($this->params['thousandsSep']) ?  $this->params['thousandsSep'] : html_entity_decode($conf->EF_NUMBER_THOUSANDS_SEP));
         $decimals = isset($this->params['decimals']) ? $this->params['decimals'] : EF_NUMBER_DECIMALS;
-        
+
         // Ограничаване на максиомалния брой знаци след десетичната точка
         if(isset($this->params['maxDecimals'])) {
             $decimals = min($decimals, $this->params['maxDecimals']);
@@ -203,7 +216,7 @@ class type_Double extends core_Type
             wp($value, $this->params);
             $decimals = 0;
         }
-        
+
         // Закръгляме числото преди да го обърнем в нормален вид
         $value = round($value, $decimals);
         

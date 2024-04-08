@@ -1943,14 +1943,19 @@ class sales_Sales extends deals_DealMaster
                             $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
                             if(is_array($bomInfo['resources'])){
                                 foreach ($bomInfo['resources'] as $r){
-                                    $detailsToCheck[] = (object)array('productId' => $r->productId, 'quantity' => $r->propQuantity);
+                                    if(!array_key_exists($r->productId, $detailsToCheck)){
+                                        $detailsToCheck[$r->productId] = (object)array('productId' => $r->productId, 'quantity' => 0);
+                                    }
+                                    $detailsToCheck[$r->productId]->quantity += $r->propQuantity;
                                     $addProductToCheck = false;
                                 }
                             }
                         }
-
                         if($addProductToCheck){
-                            $detailsToCheck[] = $dRec;
+                            if(!array_key_exists($dRec->productId, $detailsToCheck)){
+                                $detailsToCheck[$dRec->productId] = (object)array('productId' => $dRec->productId, 'quantity' => 0);
+                            }
+                            $detailsToCheck[$dRec->productId]->quantity += $dRec->quantity;
                         }
                     }
 

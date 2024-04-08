@@ -320,7 +320,7 @@ class cat_products_Packagings extends core_Detail
         $uoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId($sysId)->id);
         unset($uoms['']);
         
-        $count = cat_products_Packagings::count("#productId = {$productId} AND #packagingId IN (" . implode(',', array_keys($uoms)) . ')');
+        $count = cat_products_Packagings::count("#productId = {$productId} AND #state != 'closed' AND #packagingId IN (" . implode(',', array_keys($uoms)) . ')');
         
         return $count;
     }
@@ -383,7 +383,7 @@ class cat_products_Packagings extends core_Detail
             $mWeight = cat_UoM::convertValue(1, $packagingId, 'kg');
             $diff = $mWeight / $quantity;
             if (round($diff, 4) != round($kgWeight, 4)) {
-                
+
                 return 'Има разминаване спрямо очакваната стойност';
             }
         }
