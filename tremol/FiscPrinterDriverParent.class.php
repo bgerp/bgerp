@@ -824,7 +824,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         $form = cls::get('core_Form');
         
-        $form->FLD('report', 'enum(day=Дневен,operator=Операторски (дневен),period=Период,month=Месечен,year=Годишен,klen=КЛЕН,csv=CSV,number=По номер)', 'caption=Отчет->Вид, mandatory, removeAndRefreshForm=zeroing,isDetailed,operNum,fromDate,toDate,flagReports,flagReceipts,csvFormat,printIn,saveType,printType');
+        $form->FLD('report', 'enum(day=Дневен,operator=Операторски (дневен),period=Период,month=Месечен,monthPayments=Месечен (плащания),year=Годишен,klen=КЛЕН,csv=CSV,number=По номер)', 'caption=Отчет->Вид, mandatory, removeAndRefreshForm=zeroing,isDetailed,operNum,fromDate,toDate,flagReports,flagReceipts,csvFormat,printIn,saveType,printType');
         
         $form->input('report');
         
@@ -837,14 +837,14 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             $form->FLD('operNum', 'int(min=0, max=20)', 'caption=Отчет->Оператор, mandatory');
             $form->setField('isDetailed', 'input=none');
             $form->setDefault('operNum', 0);
-        } elseif (($form->rec->report == 'period') || ($form->rec->report == 'month') || ($form->rec->report == 'year') || ($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
+        } elseif (($form->rec->report == 'period') || ($form->rec->report == 'month') || ($form->rec->report == 'monthPayments') || ($form->rec->report == 'year') || ($form->rec->report == 'klen') || ($form->rec->report == 'csv')) {
             $form->FLD('fromDate', 'date', 'caption=Дата->От, mandatory');
             $form->FLD('toDate', 'date', 'caption=Дата->До, mandatory');
             
             if ($form->rec->report == 'period') {
                 $form->setDefault('fromDate', date('d-m-Y', strtotime('this week')));
                 $form->setDefault('toDate', dt::now(false));
-            } elseif ($form->rec->report == 'month') {
+            } elseif (($form->rec->report == 'month') || ($form->rec->report == 'monthPayments')) {
                 if (date('d') <= 20) {
                     $form->setDefault('fromDate', date('d-m-Y', strtotime('first day of previous month')));
                     $form->setDefault('toDate', date('d-m-Y', strtotime('last day of previous month')));
@@ -898,8 +898,6 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             }
         } elseif ($form->rec->report == 'number') {
             unset($form->rec->isDetailed);
-            unset($form->rec->zeroing);
-            $form->setField('zeroing', 'input=none');
             $form->setField('isDetailed', 'input=none');
             
             $form->FLD('fromNum', 'int(min=0)', 'caption=Номер->От, mandatory');
@@ -914,6 +912,11 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
                 
                 $submitTitle = 'Запис';
             }
+        }
+
+        if ($form->rec->report && ($form->rec->report != 'operator') && ($form->rec->report != 'day')) {
+            unset($form->rec->zeroing);
+            $form->setField('zeroing', 'input=none');
         }
         
         $form->input();
