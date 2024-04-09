@@ -1048,4 +1048,23 @@ abstract class cat_ProductDriver extends core_BaseClass
             $res = array_diff_key($res, $skipIds);
         }
     }
+
+
+    /**
+     * Ивент след промяна на състоянието на артикула
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param int $id
+     * @param core_Master $masterMvc
+     * @param int $masterId
+     * @param core_Detail $DetailMvc
+     * @param int $detailId
+     * @param string $action
+     * @return void
+     */
+    protected static function on_AfterDocumentInWhichIsUsedHasChangedState(cat_ProductDriver $Driver, embed_Manager $Embedder, $id, $masterMvc, $masterId, $DetailMvc, $detailId, $action)
+    {
+
+    }
 }
