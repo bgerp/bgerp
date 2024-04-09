@@ -1072,11 +1072,12 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             $fnc = "fpOperatorReport({$isZeroing}, {$operator})";
         }
         
-        if (($rec->report == 'period') || ($rec->report == 'month') || ($rec->report == 'year') || ($rec->report == 'klen') || ($rec->report == 'csv')) {
+        if (($rec->report == 'period') || ($rec->report == 'month') || ($rec->report == 'monthPayments') || ($rec->report == 'year') || ($rec->report == 'klen') || ($rec->report == 'csv')) {
             $fromDate = json_encode(dt::mysql2verbal($rec->fromDate, 'd-m-Y H:i:s'));
             $toDate = json_encode(dt::mysql2verbal($rec->toDate . ' 23:59:59', 'd-m-Y H:i:s'));
-            $fnc = "fpPeriodReport({$fromDate}, {$toDate}, {$isDetailed})";
-            
+            $isPayments = ($rec->report == 'monthPayments') ? 'true' : 'false';
+            $fnc = "fpPeriodReport({$fromDate}, {$toDate}, {$isDetailed}, {$isPayments})";
+
             if (($rec->report == 'klen') || ($rec->report == 'csv')) {
                 if ($rec->printType == 'save') {
                     $outType = $rec->saveType;
