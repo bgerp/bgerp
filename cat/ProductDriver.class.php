@@ -288,11 +288,10 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function renderProductDescription($data)
     {
-        $title = tr($this->singleTitle);
-        
-        $tpl = new ET(tr("|*
+        if(!$data->defaultTpl){
+            $tpl = new ET(tr("|*
                     <div class='groupList'>
-                        <div class='richtext' style='margin-top: 5px; font-weight:bold;'>{$title}</div>
+                        <div class='richtext' style='margin-top: 5px; font-weight:bold;'>[#title#]</div>
                         <!--ET_BEGIN info-->
                         <div style='margin-top:5px;'>[#info#]</div>
                         <!--ET_END info-->
@@ -303,12 +302,17 @@ abstract class cat_ProductDriver extends core_BaseClass
 					[#ROW_AFTER#]
 					[#COMPONENTS#]
 				"));
-        
+        } else {
+            $tpl = $data->defaultTpl;
+        }
+        $title = tr($this->singleTitle);
+        $tpl->append($title, 'title');
+
         $form = cls::get('core_Form');
         $this->addFields($form);
         $driverFields = $form->fields;
         $tpl->replace($data->row->info, 'info');
-        
+
         if (is_array($driverFields)) {
             $usedGroups = core_Form::getUsedGroups($form, $driverFields, $data->rec, $data->row, 'single');
             $lastGroup = null;
