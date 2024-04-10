@@ -456,7 +456,7 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
                 expect(($paymentArr['PAYMENT_CHANGE'] == 0) || ($paymentArr['PAYMENT_TYPE'] == 1));
                 expect(($paymentArr['PAYMENT_CHANGE_TYPE'] >= 0) && ($paymentArr['PAYMENT_CHANGE_TYPE'] <= 2));
                 
-                expect($paymentArr['PAYMENT_AMOUNT']);
+//                expect($paymentArr['PAYMENT_AMOUNT']);
                 
                 try {
                     $fp->Payment($paymentArr['PAYMENT_TYPE'], $paymentArr['PAYMENT_CHANGE'], $paymentArr['PAYMENT_AMOUNT'], $paymentArr['PAYMENT_CHANGE_TYPE']);
