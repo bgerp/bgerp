@@ -75,7 +75,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Брой записи на страница
      */
-    public $listItemsPerPage = 15;
+    public $listItemsPerPage = 100;
     
     
     /**
@@ -124,8 +124,8 @@ class bgerp_Notifications extends core_Manager
      * Масив със съобщениеята за известяване на заместниците
      */
     protected $alternateMessages = array();
-    
-    
+
+
     /**
      * Описание на модела
      */
