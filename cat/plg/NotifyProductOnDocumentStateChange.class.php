@@ -83,7 +83,7 @@ class cat_plg_NotifyProductOnDocumentStateChange extends core_Plugin
      * @param string $action
      * @return void
      */
-    private static function notifyProductsForDocumentChangedState($mvc, $id, $action)
+    public static function notifyProductsForDocumentChangedState($mvc, $id, $action)
     {
         if(!isset($mvc->mainDetail)) return;
         $Detail = cls::get($mvc->mainDetail);
