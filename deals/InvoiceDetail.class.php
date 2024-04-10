@@ -729,4 +729,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
     {
         return false;
     }
+
+
+    /**
+     * Изпълнява се преди клониране на детайла
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        $rec->discount = $oldRec->inputDiscount;
+    }
 }

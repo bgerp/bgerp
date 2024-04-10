@@ -207,7 +207,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions,username,issuerId,journalDate';
+    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions,username,issuerId,journalDate,state';
 
 
     /**
