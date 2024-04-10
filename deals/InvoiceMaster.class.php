@@ -77,7 +77,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions,username,issuerId';
+    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions,username,issuerId,state';
     
     
     /**
@@ -2148,8 +2148,10 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterUpdateMaster($mvc, &$res, $id, $save = true)
     {
         // Ако е зададено в мода да не се рекалкулират отстъпките
-        if(!$save) return;
         $rec = $mvc->fetchRec($id);
+        core_Statuses::newStatus($rec->id);
+
+
         if($rec->type != 'invoice') return;
         if(!$mvc->hasPlugin('price_plg_TotalDiscount')) return;
 
