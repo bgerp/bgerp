@@ -2145,7 +2145,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @param mixed $id - ид/запис на мастъра
      */
-    public static function on_AfterUpdateMaster($mvc, &$res, $id, $save)
+    public static function on_AfterUpdateMaster($mvc, &$res, $id, $save = true)
     {
         // Ако е зададено в мода да не се рекалкулират отстъпките
         if(!$save) return;
