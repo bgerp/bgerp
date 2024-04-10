@@ -355,8 +355,19 @@ class pos_Terminal extends peripheral_Terminal
                 $warning = countR($changeMetaUrl) ? $warning : false;
 
                 $btn = ht::createBtn($btnTitle,  $changeMetaUrl, $warning, null, "class=actionBtn {$className},title={$btnTitle} на артикула от продажба");
-                Request::removeProtected('Selected');
                 $modalTpl->append($btn, 'TOOLBAR');
+
+                if($tempCloseTime = pos_Setup::get('TEMPORARILY_CLOSE_PRODUCT_TIME')){
+                    $changeMetaUrl['ret_url'] = array('pos_Terminal', 'setMakeSellableProductOnTime', 'productId' => $productRec->id, 'receiptId' => $receiptId, 'hash' => md5("{$productRec->id}_{$receiptId}_SALT"));
+
+                    if($productRec->canSell == 'yes'){
+                        $tempTimeVerbal = core_Type::getByName('time')->toVerbal($tempCloseTime);
+                        $btnTemp = ht::createBtn("Спиране за|* {$tempTimeVerbal}",  $changeMetaUrl, "Наистина ли желаете да спрете артикула временно от продажба|*?", null, "class=actionBtn offTmpBtn,title=Временно спиране на артикула от продажба");
+                        $modalTpl->append($btnTemp, 'TOOLBAR');
+                    }
+                }
+                Request::removeProtected('Selected');
+
                 
                 break;
             case pos_Receipts::getClassId():
@@ -2286,7 +2297,7 @@ class pos_Terminal extends peripheral_Terminal
             // Ако текущата бележка е на НЕ анонимен клиент, търсят се и другите негови бележки;
             if(!$isAnonymous && $rec->contragentClass == $receiptRec->contragentClass && $rec->contragentObjectId == $receiptRec->contragentObjectId){
                 $url = ($receiptRec->id != $rec->id) ? $openUrl : array();
-                $otherClass = ($receiptRec->id != $rec->id) ? $class : 'disabledBtn';
+                $otherClass = ($receiptRec->id != $rec->id) ? $class : 'disabledBtn current';
                 $otherContragentReceipts[$receiptRec->id] = ht::createLink($btnTitle, $url, $warning, array('id' => "receiptSameClient{$receiptRec->id}", 'class' => "pos-notes posBtns {$otherClass} state-{$receiptRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $receiptRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($receiptRec))));
             }
         }
@@ -2536,5 +2547,23 @@ class pos_Terminal extends peripheral_Terminal
         Mode::setPermanent("lastEditedRow", null);
         
         return $res;
+    }
+
+
+    /**
+     * Задаване на артикула да стане продаваем отново по разписание
+     */
+    public function act_setMakeSellableProductOnTime()
+    {
+        expect($productId = Request::get('productId', 'int'));
+        expect($receiptId = Request::get('receiptId', 'int'));
+        expect($hash = Request::get('hash', 'varchar'));
+        expect($tempCloseTime = pos_Setup::get('TEMPORARILY_CLOSE_PRODUCT_TIME'));
+        expect($hash == md5("{$productId}_{$receiptId}_SALT"));
+
+        core_CallOnTime::setOnce('cat_Products', 'makeSellableAgainOnTime', $productId, dt::addSecs($tempCloseTime, dt::now()));
+        $timeVerbal = core_Type::getByName('time')->toVerbal($tempCloseTime);
+
+        redirect(array('pos_Terminal', 'open', 'receiptId' => $receiptId), false, "Артикулът ще стане отново продаваем след|* {$timeVerbal}");
     }
 }

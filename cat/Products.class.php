@@ -4493,7 +4493,7 @@ class cat_Products extends embed_Manager
         // Ако артикула не е произв. етап и има доп. мярка, която е от същата група като на $toUomId
         if(!static::haveDriver($productId, 'planning_interface_StepProductDriver')){
             $pQuery = cat_products_Packagings::getQuery();
-            $pQuery->where("#productId = {$productId}");
+            $pQuery->where("#productId = {$productId} AND #state != 'closed'");
             $pQuery->in('packagingId', array_keys($sameTypeMeasures));
             $pQuery->orderBy('id', 'ASC');
             $pQuery->show('quantity,packagingId');
@@ -4661,5 +4661,24 @@ class cat_Products extends embed_Manager
         $overheadCost = !isset($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);
 
         return $overheadCost;
+    }
+
+
+    /**
+     * Колбек функция, която прави непродаваем артикул отново продаваем
+     */
+    public static function callback_makeSellableAgainOnTime($productId)
+    {
+        $productRec = cat_Products::fetch($productId);
+        if($productRec->canSell == 'yes' || !$productRec) return;
+
+        $metas = type_Set::toArray($productRec->meta);
+        $metas['canSell'] = 'canSell';
+
+        $me = cls::get(get_called_class());
+        $metas = $me->getFieldType('meta')->fromVerbal($metas);
+        $pRec = (object)array('id' => $productRec->id, 'meta' => $metas);
+        $me->save($pRec, 'meta,canSell');
+        $me->logWrite('Артикулът отново става продаваем', $productRec->id);
     }
 }

@@ -619,13 +619,16 @@ class rack_Movements extends rack_MovementAbstract
             }
         }
 
+        $form->layout = $data->form->renderLayout();
+        if($form->cmd != 'refresh'){
+            $form->layout->append(new core_ET('[#AFTER_INFO#]'));
+        }
         if(isset($rec->productId)){
             if($middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId)){
-                $data->form->layout = $data->form->renderLayout();
                 $className = Mode::is('screenMode', 'wide') ? ' floatedElement' : '';
                 $tpl = new ET("<div class='preview-holder {$className} palletInfoBlock'><div style='margin-top:10px; margin-bottom:-10px; padding:5px;'><b>" . tr('Налични палети') . "</b></div><div class='scrolling-holder' style='margin-top:10px'>[#PALLET_INFO#]</div></div><div class='clearfix21'></div>");
-                $tpl->append($middleCaption, 'PALLET_INFO');
-                $data->form->layout->append($tpl);
+                $tpl->replace($middleCaption, 'PALLET_INFO');
+                $form->layout->replace($tpl, 'AFTER_INFO');
             }
         }
     }
