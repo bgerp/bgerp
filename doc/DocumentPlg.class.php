@@ -2071,8 +2071,8 @@ class doc_DocumentPlg extends core_Plugin
                 
                 if ($document->haveRightFor('single')) {
                     $docHtml = $document->getInlineDocumentBody();
-                    $tpl->append($docHtml);
-                    $data->form->layout->replace($tpl, 'ORIGINAL_DOCUMENT');
+                    $tpl->replace($docHtml, "DOCUMENT");
+                    $data->form->layout->append($tpl, 'ORIGINAL_DOCUMENT');
                 }
             } elseif ($fType == 'file') {
                 self::showOriginalFile($fRec, $data->form);
