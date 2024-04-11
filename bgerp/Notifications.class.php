@@ -2091,4 +2091,23 @@ class bgerp_Notifications extends core_Manager
 
         followRetUrl(null, "|Успешно {$msg} нотификации|*: {$count}!");
     }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'groupmark' && isset($rec)){
+            if($rec->state == 'active'){
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'groupunmark' && isset($rec)){
+            if($rec->state == 'closed'){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
 }
