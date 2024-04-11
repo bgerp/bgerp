@@ -226,7 +226,7 @@ class plg_Select extends core_Plugin
     public function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf') || Mode::is('noDoWithSelected')) {
             
             return;
         }
