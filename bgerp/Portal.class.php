@@ -196,7 +196,8 @@ class bgerp_Portal extends embed_Manager
         requireRole('powerUser');
         
         Mode::set('pageMenuKey', '_none_');
-        
+        Mode::set('noDoWithSelected', true);
+
         $recArr = $this->getRecsForUser();
         
         $cu = core_Users::getCurrent();
