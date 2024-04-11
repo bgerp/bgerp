@@ -166,8 +166,8 @@ class sens2_Indicators extends core_Detail
             if($form->rec->name !== null) {
                 $form->rec->name = str_replace(' ', '_', $form->rec->name);
             }
-            if (strlen($form->rec->name) && !preg_match('/^[\\p{L}0-9_]+$/u', $form->rec->name)) {
-                $form->setError('name', 'Наименованието трябва да съдържа само букви, цифри и символа `_`');
+            if (strlen($form->rec->name) && !preg_match('/^[\\p{L}0-9_\.]+$/u', $form->rec->name)) {
+                $form->setError('name', 'Наименованието трябва да съдържа само букви, цифри, точка и символа `_`');
             }
         }
     }
