@@ -59,10 +59,10 @@ class plg_Select extends core_Plugin
             
             return;
         }
-        
+
         if (!countR($data->rows)) {
+            $data->listFields = arr::make($data->listFields, true);
             unset($data->listFields['_checkboxes']);
-            
             return;
         }
 
