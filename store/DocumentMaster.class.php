@@ -482,8 +482,6 @@ abstract class store_DocumentMaster extends core_Master
                         $shipProduct->batches = $batches;
                         $shipProduct->isEdited = FALSE;
                         $shipProduct->_clonedWithBatches = TRUE;
-                    } else {
-                        $shipProduct->isEdited = true;
                     }
 
                     $Detail::save($shipProduct);
