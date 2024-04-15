@@ -221,6 +221,18 @@ class crm_ext_Cards extends core_Manager
                 $row->number = ht::createHint($row->number, 'Картата е неактивна|*!', 'warning', false);
             }
         }
+
+        // Ако картата е дошла от източник - линк към нея
+        if(!empty($rec->source)){
+            $Source = cls::getInterface('crm_interface_CardSourceIntf', $rec->source);
+            $contragentClassId = crm_Persons::getClassId();
+            $contragentId = $rec->personId;
+            if($rec->type == 'company'){
+                $contragentClassId = crm_Companies::getClassId();
+                $contragentId = $rec->companyId;
+            }
+            $row->number = $Source->getNumberLink($rec->number, $contragentClassId, $contragentId);
+        }
     }
 
 
