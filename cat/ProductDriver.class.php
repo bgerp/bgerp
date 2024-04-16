@@ -574,11 +574,8 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
     {
-        if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('printing')) {
-            
-            return;
-        }
-        
+        if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('printing') || $detailClass == 'pos_ReceiptDetails') return;
+
         $Detail = cls::get($detailClass);
         $Master = cls::get($detailClass)->Master;
         $dRec = $Detail->fetch($detailId, "{$Detail->masterKey},packQuantity");
