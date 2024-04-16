@@ -164,7 +164,28 @@ class rack_MovementGenerator2 extends core_Manager
         
         // Сортираме опаковките
         asort($packaging);
- 
+        $palletId = cat_UoM::fetchBySysId('pallet')->id;
+
+        // Какво е най-често срещаното количество на палет
+        $quantityPerPallet = 0;
+        static::getFullPallets($pallets, $quantityPerPallet);
+
+        // Ако артикула има опаковка палет и нейното к-во е различно от най-често срещаното - да се вземе то
+        $hasPalletPackaging = false;
+        foreach ($packaging as &$packRec){
+            if($packRec->packagingId == $palletId){
+                if($quantityPerPallet && $packRec->quantity != $quantityPerPallet){
+                    $packRec->quantity = $quantityPerPallet;
+                    $hasPalletPackaging = true;
+                }
+            }
+        }
+
+        // Ако артикула няма опаковка палет взимам най-често срещаното к-во в опаковка
+        if($quantityPerPallet && !$hasPalletPackaging){
+            $packaging[] = (object)array('packagingId' => $palletId, 'quantity' => $quantityPerPallet);
+        }
+
         // Генерираме масива с опаковките
         $packArr = array();
         foreach($packaging as $pack) {
@@ -172,7 +193,6 @@ class rack_MovementGenerator2 extends core_Manager
             $packArr["{$k}"] = $pack->packagingId;
         }
         krsort($packArr);
-
         Mode::push('pickupStoreId', $storeId);
 
         // Подготвяме данни свързани с палетите
@@ -603,8 +623,6 @@ class rack_MovementGenerator2 extends core_Manager
         return $res;
     }
 
-    
- 
 
     /**
      * Връща процента на максимално натоварване
@@ -650,8 +668,6 @@ class rack_MovementGenerator2 extends core_Manager
     }
 
 
-    
-    
     /**
      * Връща всички цели палети, ако има такива
      * Ако не се подаде параметъра за количество на цял палет, се опитва да
@@ -661,10 +677,10 @@ class rack_MovementGenerator2 extends core_Manager
     {
         if (!$quantityPerPallet) {
             $cnt = array();
-            foreach ($pallets as $i => $iP) {
-                $cnt[$iP]++;
+            foreach ($pallets as $i => $iRec) {
+                $cnt[$iRec->quantity]++;
             }
-            
+
             arsort($cnt);
             $best = key($cnt);
             foreach($cnt as $q => $n) {
@@ -673,19 +689,18 @@ class rack_MovementGenerator2 extends core_Manager
 
             krsort($cnt);
             $best = key($cnt);
-
-            if ($cnt[$best] > 1) {
+            if ($cnt[$best] >= 1) {
                 $quantityPerPallet = $best;
             }
         }
-        
+
         $res = array();
         
         if ($quantityPerPallet > 0) {
             $res = array();
-            foreach ($pallets as $i => $iP) {
-                if ($iP >= $quantityPerPallet) {
-                    $res[$i] = (float) $iP;  
+            foreach ($pallets as $i => $iRec1) {
+                if ($iRec1->quantity >= $quantityPerPallet) {
+                    $res[$i] = (float) $iRec1->quantity;
                 }
             }
         }
@@ -759,7 +774,4 @@ class rack_MovementGenerator2 extends core_Manager
         
         return $res;
     }
-
-
-
 }
