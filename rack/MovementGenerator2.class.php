@@ -285,7 +285,7 @@ class rack_MovementGenerator2 extends core_Manager
         // Правим всички комбинации на палети
         $cnt = count($pArr);
         $pCombi = array();
-        while ($cnt-- > 0 && count($pCombi) < 363000) {
+        while ($cnt-- > 0 && count($pCombi) < 20000) {
             $pCombi = self::addCombi($pArr, $pCombi, $sumZ);
         }
  
