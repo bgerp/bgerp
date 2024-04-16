@@ -1205,16 +1205,6 @@ class rack_Zones extends core_Master
                     while($packRec = $packQuery->fetch()) {
                         $packagings[$packRec->packagingId] = $packRec;
                     }
-
-                    // Ако артикула няма опаковка палет намира се к-то на най-големия палет в системата
-                    $palletId = cat_UoM::fetchBySinonim('pallet')->id;
-                    if(!array_key_exists($palletId, $packagings)){
-                        $maxPalletQuantity = max(array_map(function($o) { return $o->quantity;}, $pallets));
-                        if($maxPalletQuantity){
-                            $packagings[$palletId] = (object)array('packagingId' => $palletId, 'quantity' => $maxPalletQuantity);
-                        }
-                    }
-
                     if(!countR($packagings)){
                         $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
                         $packagings[] = (object)array('packagingId' => $measureId, 'quantity' => 1);
