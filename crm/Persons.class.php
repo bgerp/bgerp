@@ -816,6 +816,8 @@ class crm_Persons extends core_Master
         if(isset($id)){
             // Коя е старата фирма на лицето
             $rec->_exBuzCompanyId = $mvc->fetchField($rec->id, 'buzCompanyId', false);
+        } else {
+            $rec->_isBeingCreated = true;
         }
     }
 
@@ -826,9 +828,7 @@ class crm_Persons extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updateGroupsCnt = true;
-        
         $mvc->updatedRecs[$id] = $rec;
-        
         $mvc->updateRoutingRules($rec);
         
         if (crm_Profiles::fetch("#personId = {$rec->id}")) {
@@ -842,6 +842,10 @@ class crm_Persons extends core_Master
             if ($listId) {
                 $mvc->updatedListsOnShutdown[$id] = $listId;
             }
+        }
+
+        if($rec->_isBeingCreated){
+            Mode::setPermanent('lastAddedPersonId', $rec->id);
         }
     }
     

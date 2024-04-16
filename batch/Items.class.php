@@ -487,11 +487,15 @@ class batch_Items extends core_Master
                 $query->where("#state = '{$data->form->rec->{"state{$data->masterId}"}}'");
             }
         }
+
         $data->recs = $query->fetchAll();
 
         // Добавяне на наличните к-ва без партида
         $storeQuery = store_Products::getQuery();
         $storeQuery->where("#productId = {$data->masterId} AND #quantity != 0");
+        if(isset($data->storeId)){
+            $storeQuery->where("#storeId = {$data->storeId}");
+        }
         while ($storeRec = $storeQuery->fetch()){
             $onBatches = $count = 0;
             array_walk($data->recs, function($a) use(&$onBatches, &$count, $storeRec) {
@@ -603,7 +607,6 @@ class batch_Items extends core_Master
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
         $fields = arr::make('icon=|*&nbsp;,storeId=Склад,batch=Партида,measureId=Мярка,quantity=Количество', true);
         $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'icon');
-
 
         // Ако е филтрирано по склад, скриваме колонката на склада
         if (isset($data->storeId)) {

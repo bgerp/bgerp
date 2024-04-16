@@ -925,8 +925,10 @@ class pos_Receipts extends core_Master
                 $this->calcRevertedTotal($rec->revertId);
             }
 
+            // Кеширане на отстъпките
             $dRecs = array();
-            $dQuery = pos_ReceiptDetails::getQuery();
+            $Details = cls::get('pos_ReceiptDetails');
+            $dQuery = $Details->getQuery();
             $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
             while($dRec = $dQuery->fetch()){
                 $dRec->inputDiscount = $dRec->discountPercent;
@@ -942,6 +944,13 @@ class pos_Receipts extends core_Master
 
             cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent,inputDiscount');
             $this->logInAct('Приключване на бележка', $rec->id);
+
+            // Нотифициране на драйвера на артикулите, че той е включен в чакаща бележка
+            $Products = cls::get('cat_Products');
+            foreach ($dRecs as $dRec1){
+                $Driver = cat_Products::getDriver($dRec1->productId);
+                $Driver->invoke('AfterDocumentInWhichIsUsedHasChangedState', array($Products, $dRec1->productId, $this, $rec->id, $Details, $dRec1->id, 'waiting'));
+            }
         }
     }
 
