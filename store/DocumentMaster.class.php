@@ -332,7 +332,7 @@ abstract class store_DocumentMaster extends core_Master
         // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
         // използваме го за автоматично попълване на детайлите на документа
         if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
-            
+
             // Ако документа е обратен не слагаме продукти по дефолт
             if ($rec->isReverse == 'yes') {
                 
@@ -483,12 +483,26 @@ abstract class store_DocumentMaster extends core_Master
                         $shipProduct->isEdited = FALSE;
                         $shipProduct->_clonedWithBatches = TRUE;
                     }
+
                     $Detail::save($shipProduct);
 
                     // Копира партидата ако артикулите идат 1 към 1 от договора
                     if (core_Packs::isInstalled('batch') && $copyBatches === true) {
-
                         if (is_array($shipProduct->batches)) {
+
+                            // Ако има генерирана нова партида и има без партида оставено от договора - ще се зададе за остатъка
+                            if(!empty($shipProduct->batch)){
+                                if(!countR($shipProduct->batches)){
+                                    $shipProduct->batches =  array($shipProduct->batch => $shipProduct->quantity);
+                                } else {
+                                    $quantityInBatches = array_sum($shipProduct->batches);
+                                    $diff = round($shipProduct->quantity - $quantityInBatches, 5);
+                                    if($diff){
+                                        $shipProduct->batches += array($shipProduct->batch => $diff);
+                                    }
+                                }
+                            }
+
                             foreach ($shipProduct->batches as $b => $q) {
                                 $bRec = new stdClass();
                                 $bRec->batch = $b;
