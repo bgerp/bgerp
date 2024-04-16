@@ -7,6 +7,7 @@ var searchTimeout;
 var addedProduct;
 
 function posActions() {
+	setOpenedReceiptQueue();
 	calculateWidth();
 	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
@@ -314,6 +315,14 @@ function posActions() {
 	$(document.body).on('click', ".helpBtn", function(e){
 		clearTimeout(timeout);
 		openHelp();
+	});
+
+	$("body").setShortcutKey( CONTROL , BACK_SPACE ,function() {
+		openPrev();
+	});
+
+	$("body").setShortcutKey( CONTROL , Y ,function() {
+		openNext();
 	});
 
 	$("body").setShortcutKey( CONTROL , DELETE ,function() {
@@ -1512,8 +1521,6 @@ function activateTab(element, timeOut)
 }
 
 
-
-
 /*
  * Търси по инпута ако може
  */
@@ -1570,3 +1577,58 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 
 	}, timeoutTime);
 }
+
+
+/**
+ * Записва в сесията че бележката е отваряна
+ */
+function setOpenedReceiptQueue()
+{
+	let openedReceiptArr = JSON.parse(localStorage.getItem("openedReceipts"));
+	if(!openedReceiptArr){
+		openedReceiptArr = [];
+	}
+	let url = $(location).attr('href');
+
+	if(jQuery.inArray(url, openedReceiptArr) === -1){
+		openedReceiptArr.push(url);
+		localStorage.setItem("openedReceipts", JSON.stringify(openedReceiptArr));
+	}
+
+	console.log(openedReceiptArr);
+}
+
+
+/**
+ * Отваря предишната отваряна бележка
+ */
+function openPrev()
+{
+	let openedReceiptArr = JSON.parse(localStorage.getItem("openedReceipts"));
+	let url = $(location).attr('href');
+
+	let key = jQuery.inArray(url, openedReceiptArr);
+	if(key > 0){
+		let prevReceiptUrl = openedReceiptArr[key-1];
+		if(prevReceiptUrl){
+			location.href = prevReceiptUrl;
+		}
+	}
+}
+
+
+/**
+ * Отваря следващата отваряна бележка
+ */
+function openNext()
+{
+	let openedReceiptArr = JSON.parse(localStorage.getItem("openedReceipts"));
+	let url = $(location).attr('href');
+
+	let key = jQuery.inArray(url, openedReceiptArr);
+	let nextReceiptUrl = openedReceiptArr[key+1];
+	if(nextReceiptUrl){
+		location.href = nextReceiptUrl;
+	}
+}
+
