@@ -173,11 +173,9 @@ class rack_MovementGenerator2 extends core_Manager
         // Ако артикула има опаковка палет и нейното к-во е различно от най-често срещаното - да се вземе то
         $hasPalletPackaging = false;
         foreach ($packaging as &$packRec){
-            if($packRec->packagingId == $palletId){
-                if($quantityPerPallet && $packRec->quantity != $quantityPerPallet){
-                    $packRec->quantity = $quantityPerPallet;
-                    $hasPalletPackaging = true;
-                }
+            if($packRec->packagingId == $palletId && $quantityPerPallet){
+                $packRec->quantity = $quantityPerPallet;
+                $hasPalletPackaging = true;
             }
         }
 
