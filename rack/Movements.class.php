@@ -209,7 +209,8 @@ class rack_Movements extends rack_MovementAbstract
      */
     private function getCurrentPackagings($productId, $storeId, $batch)
     {
-        if(!array_key_exists($productId, $this->packCache)){
+        $cacheKey = "{$productId}|{$storeId}|{$batch}";
+        if(!array_key_exists($cacheKey, $this->packCache)){
             $measureId = cat_Products::fetchField($productId, 'measureId');
             $pcsId = cat_UoM::fetchBySysId('pcs')->id;
             $thPcsId = cat_UoM::fetchBySysId('K pcs')->id;
@@ -240,10 +241,10 @@ class rack_Movements extends rack_MovementAbstract
                 }
             }
 
-            $this->packCache[$productId] = $packagings;
+            $this->packCache[$cacheKey] = $packagings;
         }
 
-        return $this->packCache[$productId];
+        return $this->packCache[$cacheKey];
     }
 
 
