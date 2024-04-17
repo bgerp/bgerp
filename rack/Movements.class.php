@@ -207,28 +207,44 @@ class rack_Movements extends rack_MovementAbstract
      * @param int $productId
      * @return array
      */
-    private function getCurrentPackagings($productId)
+    private function getCurrentPackagings($productId, $storeId, $batch)
     {
-        if(!array_key_exists($productId, $this->packCache)){
+        $cacheKey = "{$productId}|{$storeId}|{$batch}";
+        if(!array_key_exists($cacheKey, $this->packCache)){
             $measureId = cat_Products::fetchField($productId, 'measureId');
             $pcsId = cat_UoM::fetchBySysId('pcs')->id;
             $thPcsId = cat_UoM::fetchBySysId('K pcs')->id;
 
             $packagings = array();
             if($measureId == $pcsId || $measureId == $thPcsId){
+
+                // Подменя се к-то в палет спрямо най-честото реално
+                $palletId = cat_UoM::fetchBySysId('pallet')->id;
+                $pallets = rack_Pallets::getAvailablePallets($productId, $storeId, $batch, true, true);
+                $quantityPerPallet = 0;
+                rack_MovementGenerator2::getFullPallets($pallets, $quantityPerPallet);
+                $hasPallet = false;
+
                 $pQuery = cat_products_Packagings::getQuery();
                 $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
                 $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
                 $pQuery->show('quantity,packagingId');
                 while($pRec = $pQuery->fetch()){
+                    if($quantityPerPallet && $pRec->packagingId == $palletId){
+                        $hasPallet = true;
+                        $pRec->quantity = $quantityPerPallet;
+                    }
                     $packagings[] = array('id' => $pRec->id, 'packagingId' => $pRec->packagingId, 'quantity' => $pRec->quantity);
+                }
+                if(!$hasPallet && $quantityPerPallet){
+                    $packagings[] = array('id' => '999999999999999', 'packagingId' => $palletId, 'quantity' => $quantityPerPallet);
                 }
             }
 
-            $this->packCache[$productId] = $packagings;
+            $this->packCache[$cacheKey] = $packagings;
         }
 
-        return $this->packCache[$productId];
+        return $this->packCache[$cacheKey];
     }
 
 
@@ -284,7 +300,7 @@ class rack_Movements extends rack_MovementAbstract
             $rec->_isCreated = true;
         }
 
-        $currentPacks = $mvc->getCurrentPackagings($rec->productId);
+        $currentPacks = $mvc->getCurrentPackagings($rec->productId, $rec->storeId, $rec->batch);
         $rec->packagings = countR($currentPacks) ? $currentPacks : null;
     }
     
