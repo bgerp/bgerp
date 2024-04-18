@@ -207,7 +207,7 @@ class rack_Movements extends rack_MovementAbstract
      * @param int $productId
      * @return array
      */
-    private function getCurrentPackagings($productId, $storeId, $batch)
+    private function getCurrentPackagings($productId)
     {
         if(!array_key_exists($productId, $this->packCache)){
             $measureId = cat_Products::fetchField($productId, 'measureId');
@@ -216,27 +216,12 @@ class rack_Movements extends rack_MovementAbstract
 
             $packagings = array();
             if($measureId == $pcsId || $measureId == $thPcsId){
-
-                // Подменя се к-то в палет спрямо най-честото реално
-                $palletId = cat_UoM::fetchBySysId('pallet')->id;
-                $pallets = rack_Pallets::getAvailablePallets($productId, $storeId, $batch, true, true);
-                $quantityPerPallet = 0;
-                rack_MovementGenerator2::getFullPallets($pallets, $quantityPerPallet);
-                $hasPallet = false;
-
                 $pQuery = cat_products_Packagings::getQuery();
                 $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
                 $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
                 $pQuery->show('quantity,packagingId');
                 while($pRec = $pQuery->fetch()){
-                    if($quantityPerPallet && $pRec->packagingId == $palletId){
-                        $hasPallet = true;
-                        $pRec->quantity = $quantityPerPallet;
-                    }
                     $packagings[] = array('id' => $pRec->id, 'packagingId' => $pRec->packagingId, 'quantity' => $pRec->quantity);
-                }
-                if(!$hasPallet && $quantityPerPallet){
-                    $packagings[] = array('id' => '999999999999999', 'packagingId' => $palletId, 'quantity' => $quantityPerPallet);
                 }
             }
 
@@ -299,7 +284,7 @@ class rack_Movements extends rack_MovementAbstract
             $rec->_isCreated = true;
         }
 
-        $currentPacks = $mvc->getCurrentPackagings($rec->productId, $rec->storeId, $rec->batch);
+        $currentPacks = $mvc->getCurrentPackagings($rec->productId);
         $rec->packagings = countR($currentPacks) ? $currentPacks : null;
     }
     
