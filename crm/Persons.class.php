@@ -1896,8 +1896,11 @@ class crm_Persons extends core_Master
         $conf = core_Packs::getConfig('crm');
         
         $form = &$data->form;
-        
+
         if (empty($form->rec->id)) {
+            $defaultGroupId = Request::get('groupId', 'int');
+            $form->setDefault('groupListInput', keylist::addKey('', $defaultGroupId));
+
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
             $form->setDefault('country', $Countries->fetchField("#commonName = '" .
