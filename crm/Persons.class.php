@@ -3186,6 +3186,13 @@ class crm_Persons extends core_Master
             $query->likeKeylist('groupList', $gId);
         }
 
+        // Ако е посочена фирма на която е представител - филтър по нея (ако тя има поне един представител)
+        if (isset($params['buzCompanyId'])) {
+            if(static::count("#buzCompanyId = {$params['buzCompanyId']}")){
+                $query->where("#buzCompanyId = {$params['buzCompanyId']}");
+            }
+        }
+
         while ($rec = $query->fetch()) {
             $str = trim($rec->{$titleFld});
             
