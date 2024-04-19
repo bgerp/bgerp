@@ -867,9 +867,11 @@ class pos_Terminal extends peripheral_Terminal
                     $row->ENLARGABLE_OBJECT_ID = $data->recs[$id]->productId;
                     $row->ENLARGABLE_MODAL_TITLE = cat_Products::getTitleById($data->recs[$id]->productId);
 
-                    core_RowToolbar::createIfNotExists($row->_rowTools);
-                    cat_Products::addButtonsToDocToolbar($data->recs[$id]->productId, $row->_rowTools, 'pos_ReceiptDetails', $id);
-                    $row->PRODUCT_BTNS = $row->_rowTools->renderHtml(10);
+                    if(!isset($data->revertsReceipt)){
+                        core_RowToolbar::createIfNotExists($row->_rowTools);
+                        cat_Products::addButtonsToDocToolbar($data->recs[$id]->productId, $row->_rowTools, 'pos_ReceiptDetails', $id);
+                        $row->PRODUCT_BTNS = $row->_rowTools->renderHtml(10);
+                    }
                 }
 
                 $at = ${"{$action->type}Tpl"};
