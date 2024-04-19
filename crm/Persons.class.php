@@ -1896,8 +1896,11 @@ class crm_Persons extends core_Master
         $conf = core_Packs::getConfig('crm');
         
         $form = &$data->form;
-        
+
         if (empty($form->rec->id)) {
+            $defaultGroupId = Request::get('groupId', 'int');
+            $form->setDefault('groupListInput', keylist::addKey('', $defaultGroupId));
+
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
             $form->setDefault('country', $Countries->fetchField("#commonName = '" .
@@ -3184,6 +3187,13 @@ class crm_Persons extends core_Master
             expect($gId);
 
             $query->likeKeylist('groupList', $gId);
+        }
+
+        // Ако е посочена фирма на която е представител - филтър по нея (ако тя има поне един представител)
+        if (isset($params['buzCompanyId'])) {
+            if(static::count("#buzCompanyId = {$params['buzCompanyId']}")){
+                $query->where("#buzCompanyId = {$params['buzCompanyId']}");
+            }
         }
 
         while ($rec = $query->fetch()) {

@@ -1589,13 +1589,12 @@ function setOpenedReceiptQueue()
 		openedReceiptArr = [];
 	}
 	let url = $(location).attr('href');
+	url = url.split('&')[0];
 
 	if(jQuery.inArray(url, openedReceiptArr) === -1){
 		openedReceiptArr.push(url);
 		localStorage.setItem("openedReceipts", JSON.stringify(openedReceiptArr));
 	}
-
-	console.log(openedReceiptArr);
 }
 
 

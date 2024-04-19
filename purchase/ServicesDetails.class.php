@@ -134,6 +134,8 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
         if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $rec->id);
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'title', 'public', $data->masterData->rec->tplLang);
                 deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             }

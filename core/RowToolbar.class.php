@@ -21,8 +21,14 @@ class core_RowToolbar extends core_BaseClass
      * Масив с връзките
      */
     public $links = array();
-    
-    
+
+
+    /**
+     * Колко бутона да се показват без контекстно меню
+     */
+    private $showWithoutToolbar = 1;
+
+
     /**
      * Добавя бутон, който прехвърля към хипервръзка
      *
@@ -196,7 +202,7 @@ class core_RowToolbar extends core_BaseClass
 
         $attr = array();
 
-        setIfNot($showWithoutToolbar, 1);
+        setIfNot($showWithoutToolbar, $this->showWithoutToolbar);
         if (countR($this->links) <= $showWithoutToolbar) {
             $layout = new core_ET('<span>[#ROW_TOOLS#]</span>');
             foreach ($this->links as $linkObj) {
@@ -300,5 +306,17 @@ class core_RowToolbar extends core_BaseClass
                 $this->links[$id]->url = $newUrl;
             }
         }
+    }
+
+
+    /**
+     * Задава колко бутона да се показват без тулбар
+     *
+     * @param int $num
+     * @return void
+     */
+    public function setShowWithoutToolbar($num)
+    {
+        $this->showWithoutToolbar = $num;
     }
 }
