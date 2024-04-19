@@ -578,11 +578,15 @@ abstract class cat_ProductDriver extends core_BaseClass
 
         $Detail = cls::get($detailClass);
         $Master = cls::get($detailClass)->Master;
-        $dRec = $Detail->fetch($detailId, "{$Detail->masterKey},packQuantity");
+        $dRec = $Detail->fetch($detailId);
+        $packQuantity = $dRec->packQuantity;
+        if($Detail instanceof deals_InvoiceDetail){
+            $packQuantity = $dRec->quantity;
+        }
+
         $folderId = $Master->fetchField($dRec->{$Detail->masterKey}, 'folderId');
-        
         if(haveRole('partner') && marketing_Inquiries2::haveRightFor('add', (object)array('folderId' => $folderId, 'innerClass' => $this->getClassId()))){
-            $toolbar->addLink('Ново запитване||New inquiry', array('marketing_Inquiries2', 'add', 'folderId' => $folderId, 'innerClass' => $this->getClassId(), 'proto' => $id, 'quantity1' => $dRec->packQuantity,'ret_url' => true), 'ef_icon=img/16/help_contents.png');
+            $toolbar->addLink('Ново запитване||New inquiry', array('marketing_Inquiries2', 'add', 'folderId' => $folderId, 'innerClass' => $this->getClassId(), 'proto' => $id, 'quantity1' => $packQuantity,'ret_url' => true), 'ef_icon=img/16/help_contents.png');
        }
     }
     
