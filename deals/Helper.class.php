@@ -1914,7 +1914,7 @@ abstract class deals_Helper
         }
         
         $makeInvoice = $firstDoc->fetchField('makeInvoice');
-        $res = ($makeInvoice == 'yes') ? true : false;
+        $res = !($makeInvoice == 'no');
         
         return $res;
     }
