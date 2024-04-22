@@ -2039,6 +2039,7 @@ abstract class deals_DealMaster extends deals_DealBase
         // Ако не е подадено да се начислявали ддс, определяме от контрагента
         if (empty($fields['makeInvoice'])) {
             $rec->makeInvoice = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'makeInvoice', 'lastDocUser|lastDoc');
+            setIfNot($rec->makeInvoice, 'yes');
         }
         if(empty($fields['shipmentStoreId'])) {
             $rec->shipmentStoreId = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'shipmentStoreId', 'defMethod');

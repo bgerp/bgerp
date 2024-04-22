@@ -1149,10 +1149,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Подготвяме детайлите на рецептата
         $dQuery = planning_DirectProductNoteDetails::getQuery();
-        $dQuery->where("#noteId = {$id}");
+        $dQuery->where("#noteId = {$id} AND #quantity != 0");
 
         $recsToSave = array();
-
         while ($dRec = $dQuery->fetch()) {
             $index = "{$dRec->productId}|{$dRec->type}";
             if (!array_key_exists($index, $recsToSave)) {

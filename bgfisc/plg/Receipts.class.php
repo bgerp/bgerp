@@ -162,7 +162,7 @@ class bgfisc_plg_Receipts extends core_Plugin
             } elseif (!$mvc->haveRightFor('terminal', $rec)) {
                 $res = 'no_one';
             } elseif (isset($rec->revertId)) {
-                if (abs(round($rec->paid, 2)) != abs(round($rec->total, 2)) || empty(round($rec->total, 2))) {
+                if (abs(round($rec->paid, 2)) < abs(round($rec->total, 2)) || ($rec->total == 0 && !$countProducts)) {
                     $res = 'no_one';
                 }
             } elseif ((($rec->total == 0 && !$countProducts) || round($rec->paid, 2) < round($rec->total, 2))) {

@@ -477,6 +477,7 @@ class sales_Setup extends core_ProtoSetup
         'migrate::migrateDpNotes3823v2',
         'migrate::updateDeltaField2403',
         'migrate::routesRepairSerchKeywords0824',
+        'migrate::updateSales1724',
     );
     
     
@@ -713,5 +714,17 @@ class sales_Setup extends core_ProtoSetup
     public static function routesRepairSerchKeywords0824()
     {
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'sales_Routes', dt::addSecs(180));
+    }
+
+
+    /**
+     * Миграция на полето за фактуриране в продажбите
+     */
+    function updateSales1724()
+    {
+        $Sales = cls::get('sales_Sales');
+        $makeInvoiceName = str::phpToMysqlName('makeInvoice');
+        $query = "UPDATE {$Sales->dbTableName} SET {$makeInvoiceName} = 'yes' WHERE ({$makeInvoiceName} IS NULL)";
+        $Sales->db->query($query);
     }
 }
