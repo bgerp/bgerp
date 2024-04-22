@@ -2287,6 +2287,7 @@ class pos_Terminal extends peripheral_Terminal
         
         $rows = $otherContragentReceipts = array();
         $pointId = pos_Points::getCurrent();
+        $rows[$pointId] = array();
         $isAnonymous = pos_Receipts::isForDefaultContragent($rec);
 
         while($receiptRec = $query->fetch()){

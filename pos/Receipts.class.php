@@ -666,9 +666,8 @@ class pos_Receipts extends core_Master
         // сума е по-голяма или равна на общата или общата сума е <= 0
         if ($action == 'close' && isset($rec->id)) {
             $countProducts = pos_ReceiptDetails::count("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
-
-            if (($rec->total == 0 && !$countProducts) || round($rec->paid, 2) < round($rec->total, 2) || $rec->state != 'draft') {
-                $res = 'no_one';
+            if (($rec->total == 0 && !$countProducts) || abs(round($rec->paid, 2)) < abs(round($rec->total, 2)) || $rec->state != 'draft') {
+               $res = 'no_one';
             }
         }
         
