@@ -307,6 +307,9 @@ class cat_Listings extends core_Master
             // Добавя се всеки запис, групиран според типа
             while ($rec = $query->fetch()) {
                 $reff = (!empty($rec->reff)) ? $rec->reff : $rec->code;
+                if($packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId)) {
+                    if($packRec->state != 'active') continue;
+                }
                 $obj = (object) array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity, 'code' => $rec->code);
                 if (isset($rec->price)) {
                     if ($listRec->vat == 'yes') {

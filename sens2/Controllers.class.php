@@ -536,8 +536,8 @@ class sens2_Controllers extends core_Master
                 }
             }
         }
-        
-        if (!$res[$portName]) {
+
+        if (!isset($res[$portName])) {
             $value = 'Грешка при запис';
         }
         

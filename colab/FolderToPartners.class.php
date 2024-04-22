@@ -602,7 +602,8 @@ class colab_FolderToPartners extends core_Manager
             $form->rec->companyId = $objectId;
             $form->rec->className = $className;
             $form->rec->placeHolder = $placeHolder;
-            $res = $this->sendRegistrationEmail($form->rec);
+
+            $res = static::sendRegistrationEmail($form->rec);
             $msg = ($res) ? 'Успешно изпратен имейл' : 'Проблем при изпращането на имейл';
             
             cls::get($className)->logInAct('Изпращане на имейл за регистрация на нов партньор', $objectId);
@@ -624,7 +625,7 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Изпраща имейл за регистрация на имейла на контрагента
      */
-    private function sendRegistrationEmail($rec)
+    public static function sendRegistrationEmail($rec)
     {
         $sentFrom = email_Inboxes::fetchField($rec->from, 'email');
         $sentFromName = email_Inboxes::getFromName($rec->from);
@@ -653,7 +654,7 @@ class colab_FolderToPartners extends core_Manager
 
         $lifetime = colab_Setup::get('PARTNER_REGISTRATION_LINK_LIFETIME');
         $PML->Encoding = 'quoted-printable';
-        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), $lifetime);
+        $url = core_Forwards::getUrl(get_called_class(), 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), $lifetime);
         $rec->body = str_replace($rec->placeHolder, "[link=${url}]link[/link]", $rec->body);
         
         Mode::push('text', 'plain');

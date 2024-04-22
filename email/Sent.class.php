@@ -158,7 +158,15 @@ class email_Sent
                 $PML->AddAddress($to);
             }
         }
-        
+
+        // Ако е зададено да се попълва BCC
+        if (defined('EMAIL_DEFAULT_BCC_EMAILS')) {
+            $bccArr = type_Emails::toArray(EMAIL_DEFAULT_BCC_EMAILS);
+            foreach ($bccArr as $bcc) {
+                $PML->AddBCC($bcc);
+            }
+        }
+
         if ($emailsCc) {
             $ccArr = type_Emails::toArray($emailsCc);
             foreach ($ccArr as $cc) {

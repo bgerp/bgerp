@@ -718,6 +718,7 @@ class frame2_Reports extends embed_Manager
                 // Записване в опашката че справката е била опреснена
                 if (frame2_ReportVersions::log($rec->id, $rec)) {
                     if($rec->data !== static::DATA_ERROR_STATE){
+                        $Driver->invoke('AfterReportIsRefreshed', array($me, &$rec));
                         if($sendNotificationOnlyAfterDataIsChanged){
                             $me->refreshReports[$rec->id] = $rec;
                         }

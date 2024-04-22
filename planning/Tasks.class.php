@@ -801,6 +801,11 @@ class planning_Tasks extends core_Master
             } else {
                 $row->mandatoryDocuments = tr('Няма');
             }
+
+            $jobNotes = $origin->fetchField('notes');
+            if(!empty($jobNotes)){
+                $row->jobNotes = core_Type::getByName('richtext(hideTextAfterLength=100)')->toVerbal($jobNotes);
+            }
         } else {
             // Ако има предишна операция, ще може да се поставя след нея
             if(Request::get('assetId', 'int')){
