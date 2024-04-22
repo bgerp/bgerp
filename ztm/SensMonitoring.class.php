@@ -44,7 +44,7 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
     public $outputs = array(
         'goalBuildingTemp' => array('caption' => 'Температура на сградата', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
         'floorMode' => array('caption' => 'Мод на отоплението на пода', 'uom' => 'ENUM', 'logPeriod' => 3600, 'readPeriod' => 60),
-        'convMode' => array('caption' => 'Мод на отоплението на тавана', 'uom' => 'ENUM', 'logPeriod' => 3600, 'readPeriod' => 60)
+        'convMode' => array('caption' => 'Мод на отоплението на конвекторите', 'uom' => 'ENUM', 'logPeriod' => 3600, 'readPeriod' => 60)
     );
 
 
