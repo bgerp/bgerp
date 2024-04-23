@@ -38,6 +38,7 @@ class rack_Wrapper extends plg_ProtoWrapper
         $this->TAB('rack_Racks', 'Стелажи', 'ceo,rackSee');
         $this->TAB('rack_Logs', 'Логове', 'ceo,rackSee');
         $this->TAB('rack_MovementGenerator2', 'Дебъг->Генератор (ver2)', 'debug');
+        $this->TAB('rack_MovementGenerator', 'Дебъг->Генератор (ver1)', 'debug');
         $this->TAB('rack_OccupancyOfRacks', 'Дебъг->Заетост', 'debug');
         
         $this->title = 'Палетен склад';
