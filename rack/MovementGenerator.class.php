@@ -528,6 +528,7 @@ class rack_MovementGenerator extends core_Manager
                 $newRec->batch = $palletRec->batch;
                 $newRec->positionTo = ($obj->retPos) ? $obj->retPos : $obj->pallet;
             } else {
+
                 // Липсва палет в движението
                 wp($allocatedArr, $productId, $packagingId, $batch);
             }
