@@ -521,15 +521,18 @@ class rack_MovementGenerator extends core_Manager
                 'quantity' => $obj->quantity,
                 'position' => $obj->pallet,
             );
-            
-            if ($palletRec = rack_Pallets::getByPosition($obj->pallet, $storeId, $productId, $batch)) {
-                $newRec->palletId = $palletRec->id;
-                $newRec->palletToId = $palletRec->id;
-                $newRec->batch = $palletRec->batch;
-                $newRec->positionTo = ($obj->retPos) ? $obj->retPos : $obj->pallet;
-            } else {
-                // Липсва палет в движението
-                wp($allocatedArr, $productId, $packagingId, $batch);
+
+            if($obj->pallet != rack_PositionType::FLOOR){
+                if ($palletRec = rack_Pallets::getByPosition($obj->pallet, $storeId, $productId, $batch)) {
+                    $newRec->palletId = $palletRec->id;
+                    $newRec->palletToId = $palletRec->id;
+                    $newRec->batch = $palletRec->batch;
+                    $newRec->positionTo = ($obj->retPos) ? $obj->retPos : $obj->pallet;
+                } else {
+
+                    // Липсва палет в движението
+                    wp($obj->pallet, $productId, $packagingId, $batch, $allocatedArr);
+                }
             }
 
             $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
