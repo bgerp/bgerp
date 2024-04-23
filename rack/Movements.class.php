@@ -1166,7 +1166,7 @@ class rack_Movements extends rack_MovementAbstract
         $fromPallet = $fromQuantity = $toQuantity = null;
         if (!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR) {
             if($transaction->quantity > 0){
-                $fromPallet = rack_Pallets::getByPosition($transaction->from, $transaction->storeId, $transaction->productId, $transaction->batch);
+                $fromPallet = rack_Pallets::getByPosition($transaction->from, $transaction->storeId, $transaction->productId, $transaction->batch, true);
                 if (empty($fromPallet)) {
                     $res->errors = 'Палетът вече не е активен';
                     $res->errorFields[] = 'palletId';
@@ -1197,7 +1197,7 @@ class rack_Movements extends rack_MovementAbstract
             $storeId = $transaction->storeId;
             $samePosPallets = rack_Pallets::canHaveMultipleOnOnePosition($storeId);
 
-            if ($toPallet = rack_Pallets::getByPosition($transaction->to, $transaction->storeId, $transaction->productId, $transaction->batch)) {
+            if ($toPallet = rack_Pallets::getByPosition($transaction->to, $transaction->storeId, $transaction->productId, $transaction->batch, true)) {
                 $toProductId = $toPallet->productId;
                 $toQuantity = $toPallet->quantity;
 
