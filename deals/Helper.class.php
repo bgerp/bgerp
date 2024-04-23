@@ -2916,7 +2916,7 @@ abstract class deals_Helper
         if(isset($weight) && isset($netWeight) && isset($tareWeight)){
             $calcedTare = $weight - $netWeight;
             $tareDiff = abs(round($calcedTare - $tareWeight, 3));
-            if($tareDiff > 0.3) {
+            if($tareDiff > 0.1) {
                 $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName},{$tareWeightFieldName}", 'text' => 'Разликата между бруто и нето не отговаря на тарата');
             }
         }
