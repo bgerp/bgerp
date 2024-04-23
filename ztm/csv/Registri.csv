@@ -282,6 +282,7 @@
 "echp.hpcg.wp_warm_g.settings","json","","ECHP","system","{""vendor"": ""Grundfos"", ""model"": ""MAGNA1_80_100_F_360_1x230V_PN6"", ""options"": {""uart"": 0, ""mb_id"": 0}}","Heat Pump Control Group / Water Pump / Warm"
 "echp.hpcg.hp.settings","json","","ECHP","system","{""vendor"": ""HstarsGuangzhouRefrigeratingEquipmentGroup"", ""model"": ""40STD-N420WHSB4"", ""options"": {""uart"": 0, ""mb_id"": 0}}","Heat Pump Control Group / Heat Pump"
 "echp.enabled","bool","true|false","Energy Center Heat Pump","system","false","Plugin enabled"
+"vent.fans.max_speed_1","float","","Ventilation","device",0.0,"Upper fan speed [%]"
 "vent.op_setpoint_1","int","0.0/100.0","Ventilation","device",0,"Operators panel set point"
 "vent.hvac_setpoint_1","int","-200.0/200.0","Ventilation","system",0,"HVAC set point"
 "vent.ac_setpoint_1","int","0.0/100.0","Ventilation","system",0,"AC set point"
