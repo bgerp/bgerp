@@ -1900,6 +1900,9 @@ a.tUnsighted {
     margin-top: -20px !important;
     min-width: 800px; }
 
+.palletInfoBlock {
+  display: inline-block; }
+
 #packWrapper form.floatedElement {
   margin-right: 20px; }
 
