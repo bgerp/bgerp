@@ -2342,7 +2342,7 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->prepend("<div class='contentHolderResults'>");
             foreach ($rows as $pId => $btnRows){
                 $pointName = pos_Points::getTitleById($pId);
-                $text = ($pId != -1) ? ($pId == -2 ? 'СТОРНО НА' : "|Бележки в|* {$pointName}") : $contragentName;
+                $text = ($pId != -1) ? ($pId == -2 ? 'СТОРНО' : "|Бележки в|* {$pointName}") : $contragentName;
 
                 $tpl->append(tr("|*<div class='divider'>{$text}</div>"));
                 $tpl->append("<div class='grid'>");
