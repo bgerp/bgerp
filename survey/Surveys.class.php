@@ -86,7 +86,7 @@ class survey_Surveys extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Ank';
+    public $abbr = 'Srv';
     
     
     /**
@@ -323,9 +323,9 @@ class survey_Surveys extends core_Master
     public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
-        $title = $this->recToverbal($rec, 'title')->title;
+
         $row = new stdClass();
-        $row->title = $this->singleTitle . ' "' . $title . '"';
+        $row->title = static::getRecTitle($rec);
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
