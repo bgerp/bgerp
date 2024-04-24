@@ -9,7 +9,7 @@
  * @package   survey
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -346,7 +346,7 @@ class survey_Alternatives extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        if ($action == 'write' && isset($rec->surveyId)) {
+        if (in_array($action, array('write', 'clonerec')) && isset($rec->surveyId)) {
             
             /* Не можем да добавяме/редактираме нови въпроси
              * в следните случаи: Анкетата е затворена,
@@ -362,6 +362,7 @@ class survey_Alternatives extends core_Detail
         }
         
         if ($action == 'vote' && isset($rec->id)) {
+
             $altRec = survey_Alternatives::fetch($rec->id);
             $surveyRec = survey_Surveys::fetch($altRec->surveyId);
             if ($surveyRec->state != 'active' || survey_Surveys::isClosed($altRec->surveyId)) {
@@ -369,6 +370,31 @@ class survey_Alternatives extends core_Detail
             } else {
                 $res = 'every_one';
             }
+        }
+
+        if($action == 'clonerec' && isset($rec)){
+            //bp();
+        }
+    }
+
+
+    /**
+     * След клониране на детайлите
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $newRec
+     * @param stdClass $oldRec
+     * @return void
+     */
+    protected static function on_AfterSaveClonedDetail($mvc, $newRec, $oldRec)
+    {
+        // Копиране и на опциите на въпросите
+        $oQuery = survey_Options::getQuery();
+        $oQuery->where("#alternativeId = {$oldRec->id}");
+        while($oRec = $oQuery->fetch()) {
+            unset($oRec->id);
+            $oRec->alternativeId = $newRec->id;
+            survey_Options::save($oRec);
         }
     }
 }
