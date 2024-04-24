@@ -3,7 +3,7 @@
     <!--ET_BEGIN prototypeId-->
     <div><span class="shortDesc">|Базирано на|*</span>: [#prototypeId#]</div>
     <!--ET_END prototypeId-->
-    <div class="small" style="color: #666;"><hr> |Краен срок за гласуване|*: [#enddate#]<hr></div>
+    <div ><hr> <span style="color: #666;" class="shortDesc">|Краен срок за гласуване|*:</span> [#enddate#]<hr></div>
 
     <!--ET_BEGIN description-->
     <div class='shortDesc'>[#description#]</div>

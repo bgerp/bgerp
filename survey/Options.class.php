@@ -134,6 +134,7 @@ class survey_Options extends core_Manager
         $tpl = new ET("<li><input  id='o{$rec->id}' name='quest{$rec->alternativeId}' type='radio' [#data#] [#checked#]><label for='o{$rec->id}'>[#answer#]</label> <span class='opTools'>[#tools#]</span></li>");
         
         // Кой е послед посочения отговор от потребителя
+        $params = null;
         $lastVote = survey_Votes::lastUserVote($rec->alternativeId);
         $altRec = survey_Alternatives::fetch($rec->alternativeId);
         if ((survey_Alternatives::haveRightFor('vote', $altRec))) {
@@ -142,7 +143,8 @@ class survey_Options extends core_Manager
                 $params .= " data-m='{$mid}'";
             }
         }
-        
+
+        $row->text = str::mbUcfirst($row->text);
         $tpl->replace($row->text, 'answer');
         $tpl->replace($params, 'data');
         $tpl->replace($row->tools, 'tools');
