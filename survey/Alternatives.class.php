@@ -300,7 +300,7 @@ class survey_Alternatives extends core_Detail
         foreach ($data->summary as $rec) {
             $questionTpl = clone($blockTpl);
             $subRow = $questionTpl->getBlock('subRow');
-            $label = $type->toVerbal($rec->label);
+            $label = $type->toVerbal(str::mbUcfirst($rec->label));
             $questionTpl->replace($label, 'QUESTION');
             $questionTpl->replace($rec->points, 'points');
             
