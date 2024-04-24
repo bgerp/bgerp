@@ -205,7 +205,7 @@ class rack_ZoneDetails extends core_Detail
                 unset($data->rows[$id]);
             }
 
-            if(isset($rec->_quantityAll) && round($rec->_quantityAll / $rec->quantityInPack) < $rec->documentQuantity){
+            if($rec->_quantityAll && round($rec->_quantityAll / $rec->quantityInPack) < $rec->documentQuantity){
                 $quantityAllVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->_quantityAll / $rec->quantityInPack);
                 $row->status = ht::createHint($row->status, "Подготвено недостатъчно количество на движения|*: {$quantityAllVerbal}", 'warning', false);
                 $row->status->prepend("<span class='notEnoughQuantityForZone'>");
