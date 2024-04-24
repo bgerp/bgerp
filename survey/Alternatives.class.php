@@ -371,10 +371,6 @@ class survey_Alternatives extends core_Detail
                 $res = 'every_one';
             }
         }
-
-        if($action == 'clonerec' && isset($rec)){
-            //bp();
-        }
     }
 
 
