@@ -282,7 +282,9 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
                     $customStyle = ' padding-right: 100px !important; ';
                     if(!Mode::is('selectRows2Delete')) {
+                        core_Lg::pop();
                         $modifyBtn = ht::createBtn('Промяна', $modifyUrl, false, false, 'class=fright,ef_icon=img/16/edit.png,title=Промяна на обобщения ред на митническия код,style=position:absolute; right: 8px; top:8px;');
+                        $detail->Master->pushTemplateLg($masterRec->template);
                     }
                 }
             }
