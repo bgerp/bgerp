@@ -185,7 +185,6 @@
 .notEnoughQuantityForZone {
     border-radius: 3px;
     border: solid 1px #bbbbbb;
-    background-color: #feffcc;
     padding: 2px 6px;
     display: inline-block;
 }
