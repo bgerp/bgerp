@@ -8,4 +8,5 @@
     <!--ET_BEGIN description-->
     <div class='shortDesc'>[#description#]</div>
     <!--ET_END description-->
+[#ListToolbar#]
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
