@@ -92,10 +92,6 @@ class cms_SinglePageTheme extends core_ProtoInner
 
             $tpl->append($css, 'STYLES');
 
-            $img = sbf('img/logo.png',"");
-            $image = "<img src='{$img}' alt='logo'/>";
-            $tpl->replace($image, 'IMAGE');
-
             $title = $this->innerForm->title;
             if ($title) {
                 $tpl->replace($title, 'CORE_APP_NAME');
