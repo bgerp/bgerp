@@ -62,6 +62,7 @@ class cms_SinglePageTheme extends core_ProtoInner
         $tpl->replace($loginHtml, "LOGIN_BTN");
 
         $content = $this->getCmsLayout();
+
         if ($content !== false) {
             $tpl->replace($content, 'CMS_LAYOUT');
         }
@@ -90,6 +91,10 @@ class cms_SinglePageTheme extends core_ProtoInner
             }
 
             $tpl->append($css, 'STYLES');
+
+            $img = sbf('img/logo.png',"");
+            $image = "<img src='{$img}' alt='logo'/>";
+            $tpl->replace($image, 'IMAGE');
 
             $title = $this->innerForm->title;
             if ($title) {
@@ -177,7 +182,9 @@ class cms_SinglePageTheme extends core_ProtoInner
             if (cms_Articles::haveRightFor('change', $aRec->id)) {
                 $changeLink = cms_Articles::getChangeLink($aRec->id);
             }
-            $content->append("<section id='item{$aRec->id}' {$style} class='{$fixedImageClass}'><div class='container'><h2>{$aRec->title}{$changeLink}</h2>{$body}</div></section>");
+            $content->append("<section id='item{$aRec->id}' {$style} class='{$fixedImageClass}'><div class='container'><h2>{$aRec->title}{$changeLink}</h2>");
+            $content->append($body);
+            $content->append("</div></section>");
         }
 
         return $content;
