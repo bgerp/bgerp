@@ -431,7 +431,12 @@ class rack_ZoneDetails extends core_Detail
         $rec->_quantityAll = 0;
 
         foreach ($data->recs as $mRec) {
-            $rec->_quantityAll += $mRec->quantity;
+            $zArr = type_Table::toArray($mRec->zones);
+            foreach ($zArr as $zA){
+                if($zA->zone == $masterRec->id){
+                    $rec->_quantityAll += $zA->quantity;
+                }
+            }
             if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
             
             $fields = $Movements->selectFields();
