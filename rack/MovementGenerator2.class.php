@@ -252,19 +252,20 @@ class rack_MovementGenerator2 extends core_Manager
 
             if(count($fullPallets)) {
                 arsort($fullPallets);
+
                 $fullPallets = array_keys($fullPallets);
- 
                 foreach($zones as $zId => $zQ) {
                     if($n = (floor($zQ/$qInPallet))) {
-                  
-                        do {
+
+                        while(count($fullPallets) && $n > 0){
                             // Вземаме най-горния елемент, генерираме движение и го махаме от наличните палети
                             $p = array_shift($fullPallets);
+
                             $res[] = (object) array(
                                 'pallet' => $pallets[$p]->position,
                                 'quantity' => $qInPallet,
                                 'zones'  => array($zId => $qInPallet)
-                                );
+                            );
                             $pArr[$p] -= $qInPallet;
                             if($pArr[$p] == 0) {
                                 unset($pArr[$p]);
@@ -274,21 +275,22 @@ class rack_MovementGenerator2 extends core_Manager
                                 unset($zones[$zId]);
                             }
                             $n--;
-                        } while(count($fullPallets) && $n > 0);
+                        }
                     }
                 }
             }
-        }  
+        }
 
         $sumZ = array_sum($zones);
 
         // Правим всички комбинации на палети
         $cnt = count($pArr);
+
         $pCombi = array();
         while ($cnt-- > 0 && count($pCombi) < 20000) {
             $pCombi = self::addCombi($pArr, $pCombi, $sumZ);
         }
- 
+
         // филтрираме масива с комбинациите
         $ages = array();
        
@@ -343,7 +345,7 @@ class rack_MovementGenerator2 extends core_Manager
                 }
             }
         }
- // bp($d);
+
         // Генерираме движенията за всяка група и изисляваме времето, което ще отнеме
         if(is_array($bestMove)){
             foreach($bestMove as $m) {
