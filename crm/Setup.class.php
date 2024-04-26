@@ -171,7 +171,11 @@ class crm_Setup extends core_ProtoSetup
      */
     public $roles = 'crm';
     
-    
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'crm_GroupEmbed';
+
     /**
      * Връзки от менюто, сочещи към модула
      */

@@ -1,0 +1,14 @@
+<div class='contragent-external-list'>
+ 
+	<!--ET_BEGIN CONTRAGENT-->
+	<div class='contragent-details'>
+		<!--ET_BEGIN CONTRAGENT_NAME-->
+		<div>[#name#]</div>
+		<!--ET_END CONTRAGENT_NAME-->
+		<!--ET_BEGIN CONTRAGENT_WEBSITE-->
+		<div>[#website#]</div>
+		<!--ET_END CONTRAGENT_WEBSITE-->
+	<div>
+	<!--ET_END CONTRAGENT-->
+
+</div>
