@@ -148,6 +148,7 @@ class purchase_Setup extends core_ProtoSetup
         'migrate::recontoDeals2520v2',
         'migrate::fixDcNotesModifiedDate3823v2',
         'migrate::migrateDpNotes3823v2',
+        'migrate::updatePurchases1724',
     );
     
     
@@ -269,5 +270,17 @@ class purchase_Setup extends core_ProtoSetup
         if(core_Packs::isMigrationDone('purchase', 'migrateDpNotes3823v2')){
             cls::get('deals_Setup')->fixDcNotesModifiedOn('purchase_Invoices');
         }
+    }
+
+
+    /**
+     * Миграция на полето за фактуриране в продажбите
+     */
+    function updatePurchases1724()
+    {
+        $Purchase = cls::get('purchase_Purchases');
+        $makeInvoiceName = str::phpToMysqlName('makeInvoice');
+        $query = "UPDATE {$Purchase->dbTableName} SET {$makeInvoiceName} = 'yes' WHERE ({$makeInvoiceName} IS NULL)";
+        $Purchase->db->query($query);
     }
 }

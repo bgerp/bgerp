@@ -1145,6 +1145,8 @@ td.revertCaption {
   box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1); }
   .actionBtn.offBtn {
     background-color: #cc6666 !important; }
+  .actionBtn.offTmpBtn {
+    background-color: #355575 !important; }
   .actionBtn.onBtn {
     background-color: #53a163 !important; }
 

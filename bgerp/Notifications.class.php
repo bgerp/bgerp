@@ -26,7 +26,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Необходими мениджъри
      */
-    public $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Sorting, plg_Search, bgerp_RefreshRowsPlg';
+    public $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Select, plg_Sorting, plg_Search, bgerp_RefreshRowsPlg';
     
     
     /**
@@ -51,18 +51,31 @@ class bgerp_Notifications extends core_Manager
      * Заглавие
      */
     public $singleTitle = 'Известие';
-    
-    
+
+
+    /**
+     *
+     * @see plg_Select
+     */
+    public $doWithSelected = 'groupmark=Маркиране,groupunmark=Отмаркиране';
+
+
     /**
      * Права за писане
      */
     public $canWrite = 'admin';
-    
-    
+
+
+    /**
+     * Кой може да маркирва/отмаркирва групово
+     */
+    public $cangroupmark = 'admin';
+
+
     /**
      * Брой записи на страница
      */
-    public $listItemsPerPage = 15;
+    public $listItemsPerPage = 100;
     
     
     /**
@@ -111,8 +124,8 @@ class bgerp_Notifications extends core_Manager
      * Масив със съобщениеята за известяване на заместниците
      */
     protected $alternateMessages = array();
-    
-    
+
+
     /**
      * Описание на модела
      */
@@ -2038,6 +2051,63 @@ class bgerp_Notifications extends core_Manager
         
         if (isset($rec->customUrl)) {
             $rec->customUrlId = self::prepareUrlId($rec->customUrl);
+        }
+    }
+
+
+    /**
+     * Извиква се преди изпълняването на екшън
+     */
+    protected static function on_BeforeAction($mvc, &$res, $action)
+    {
+        if(!in_array($action, array('groupmark', 'groupunmark'))) return;
+        $mvc->requireRightFor('groupmark');
+        $selected = Request::get('Selected');
+        $selArr = arr::make($selected);
+        if(!countR($selArr)) followRetUrl(array(), 'Няма избрани нотификации');
+
+        $nQuery = static::getQuery();
+        $nQuery->in('id', $selArr);
+        $msg = null;
+
+        // Маркиране/отмаркирване на избраните нотификации
+        $count = 0;
+        while ($nRec = $nQuery->fetch()){
+            if($nRec->state == 'closed' && $action == 'groupunmark') continue;
+            if($nRec->state == 'active' && $action == 'groupmark') continue;
+
+            if($action == 'groupunmark'){
+                $msg = 'отмаркирахте';
+                $nRec->state = 'closed';
+            } else {
+                $msg = 'маркирахте';
+                $nRec->state = 'active';
+            }
+
+            $nRec->lastTime = dt::now();
+            self::save($nRec, 'state, lastTime');
+            $count++;
+        }
+
+        followRetUrl(null, "|Успешно {$msg} нотификации|*: {$count}!");
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'groupmark' && isset($rec)){
+            if($rec->state == 'active'){
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'groupunmark' && isset($rec)){
+            if($rec->state == 'closed'){
+                $requiredRoles = 'no_one';
+            }
         }
     }
 }

@@ -488,6 +488,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $lang = isset($modeLg) ? $modeLg : doc_TplManager::fetchField($masterRec->template, 'lang');
 
         core_Lg::push($lang);
+        core_RowToolbar::createIfNotExists($row->_rowTools);
+        cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $rec->id);
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang, 1, false);
         core_Lg::pop();
 
@@ -728,5 +730,14 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public function calcFieldsOnActivation_(&$dRec, $masterRec, $params)
     {
         return false;
+    }
+
+
+    /**
+     * Изпълнява се преди клониране на детайла
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        $rec->discount = $oldRec->inputDiscount;
     }
 }

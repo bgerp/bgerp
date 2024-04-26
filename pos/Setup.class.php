@@ -116,6 +116,12 @@ defIfNot('POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID', '');
 
 
 /**
+ *  Временно за колко време да може да се спират артикулите от ПОС-а
+ */
+defIfNot('POS_TEMPORARILY_CLOSE_PRODUCT_TIME', '');
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -183,6 +189,7 @@ class pos_Setup extends core_ProtoSetup
         'POS_RATINGS_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
         'POS_SHOW_EXACT_QUANTITIES' => array('enum(no=Не,yes=Да)', 'caption=Показване на наличните к-ва в терминала->Избор'),
         'POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценоразпис спрямо който да се показват отстъпките в POS-а->Избор'),
+        'POS_TEMPORARILY_CLOSE_PRODUCT_TIME' => array('time', 'caption=Временно спиране на артикулите от продажба->За време от'),
     );
     
     
@@ -198,6 +205,7 @@ class pos_Setup extends core_ProtoSetup
         'migrate::resyncSearchStrings2350',
         'migrate::updateInputPercent2403',
         'migrate::updateWrongReceipts2414',
+        'migrate::updatePointChargeVat1724',
     );
 
 
@@ -324,6 +332,20 @@ class pos_Setup extends core_ProtoSetup
         if(countR($save)){
             $Receipts->saveArray($save);
         }
+    }
+
+
+    /**
+     * Миграция на ДДС режима на ПОС-бележките
+     */
+    public function updatePointChargeVat1724()
+    {
+        if(crm_Companies::isOwnCompanyVatRegistered()) return;
+
+        $Points = cls::get('pos_Points');
+        $chargeVatColName = str::phpToMysqlName('chargeVat');
+        $query = "UPDATE {$Points->dbTableName} SET {$chargeVatColName} = 'no' WHERE ({$chargeVatColName} = 'yes'";
+        $Points->db->query($query);
     }
 }
 

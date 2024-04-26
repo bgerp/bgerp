@@ -452,7 +452,16 @@ abstract class rack_MovementAbstract extends core_Manager
 
         // Кои опаковки са с по-малко количество от нужното
         $packs = array_filter($packagingArr, function($a) use ($quantity) {return $a['quantity'] <= $quantity;});
-        if(!countR($packs)) return null;
+
+        if(!countR($packs)) {
+            // Ако няма нито една опаковка с достатъчно к-во - ще се показва винаги в основната да не се получават дробни числа
+            $baseMeasureId = cat_Products::fetchField($productId, 'measureId');
+            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+            $quantityVerbal = ht::styleIfNegative($quantityVerbal, $quantity);
+            $displayString = tr(cat_UoM::getSmartName($baseMeasureId, $quantity));
+
+            return "{$quantityVerbal} {$displayString}";
+        }
 
         // Подобрено сортиране
         uasort($packs, function (&$a, &$b)  {

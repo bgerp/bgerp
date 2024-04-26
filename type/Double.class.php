@@ -92,12 +92,18 @@ class type_Double extends core_Type
 
         // Превръщаме 16-тичните числа в десетични
         //$value = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$value));
-        
+
+        $isInScientificNotation = preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', $value);
+
         // Ако имаме букви или др. непозволени символи - връщаме грешка
-        if (preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $value) != $value) {
-            $this->error = 'Недопустими символи в число/израз';
-            
-            return false;
+        if(!$isInScientificNotation){
+            if (preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $value) != $value) {
+                $this->error = 'Недопустими символи в число/израз';
+
+                return false;
+            }
+        } else {
+            $value = rtrim(sprintf("%.9f", $value), "0");
         }
         
         if (empty($value)) {
@@ -151,8 +157,11 @@ class type_Double extends core_Type
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
+        // Ако числото е в научна нотация и полето не се рендира във форма с грешка да не се ревербализира
         if(preg_match('/^\$?[+-]?\d+(\.\d+)?[Ee][+-]?\d+$/i', $value)){
-            $value = rtrim(sprintf("%.9f", $value), "0");
+            if(!$this->formWithErrors){
+                $value = rtrim(sprintf("%.9f", $value), "0");
+            }
         }
 
         if ($this->params[0] + $this->params[1] > 0) {

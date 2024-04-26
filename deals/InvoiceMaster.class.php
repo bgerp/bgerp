@@ -77,7 +77,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions,username,issuerId';
+    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions,username,issuerId,state';
     
     
     /**
@@ -929,7 +929,16 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setWarning('displayRate', $msg);
                 }
             }
-            
+
+            if(isset($rec->id) && isset($rec->displayRate)){
+                // Предупреждение ако вальора е сменен, но курса е различен от очаквания
+                $expectedRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
+                if(round($expectedRate, 5) != round($rec->displayRate, 5)){
+                    $displayDate = dt::mysql2verbal($rec->date, 'd.m.Y');
+                    $form->setWarning('displayRate', "Курсът е различен от очаквания за дата|* {$displayDate} : <b>{$expectedRate}</b>");
+                }
+            }
+
             $Vats = cls::get('drdata_Vats');
             $rec->contragentVatNo = $Vats->canonize($rec->contragentVatNo);
             
@@ -2136,7 +2145,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @param mixed $id - ид/запис на мастъра
      */
-    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    public static function on_AfterUpdateMaster($mvc, &$res, $id, $save = true)
     {
         // Ако е зададено в мода да не се рекалкулират отстъпките
         $rec = $mvc->fetchRec($id);

@@ -275,13 +275,13 @@ class rack_MovementGenerator extends core_Manager
         $pR = $p;
         krsort($pR);
         $cnt = countR($p);
-        while ($cnt-- > 0 && countR($pCombi) < 363000) {
+        while ($cnt-- > 0 && countR($pCombi) < 20000) {
             $pCombi = self::addCombi($pR, $pCombi);
         }
         
         $zCombi = array();
         $cnt = countR($z);
-        while ($cnt-- > 0 && countR($zCombi) < 363000) {
+        while ($cnt-- > 0 && countR($zCombi) < 20000) {
             $zCombi = self::addCombi($z, $zCombi);
         }
 
@@ -521,15 +521,18 @@ class rack_MovementGenerator extends core_Manager
                 'quantity' => $obj->quantity,
                 'position' => $obj->pallet,
             );
-            
-            if ($palletRec = rack_Pallets::getByPosition($obj->pallet, $storeId, $productId, $batch)) {
-                $newRec->palletId = $palletRec->id;
-                $newRec->palletToId = $palletRec->id;
-                $newRec->batch = $palletRec->batch;
-                $newRec->positionTo = ($obj->retPos) ? $obj->retPos : $obj->pallet;
-            } else {
-                // Липсва палет в движението
-                wp($allocatedArr, $productId, $packagingId, $batch);
+
+            if($obj->pallet != rack_PositionType::FLOOR){
+                if ($palletRec = rack_Pallets::getByPosition($obj->pallet, $storeId, $productId, $batch)) {
+                    $newRec->palletId = $palletRec->id;
+                    $newRec->palletToId = $palletRec->id;
+                    $newRec->batch = $palletRec->batch;
+                    $newRec->positionTo = ($obj->retPos) ? $obj->retPos : $obj->pallet;
+                } else {
+
+                    // Липсва палет в движението
+                    wp($obj->pallet, $productId, $packagingId, $batch, $allocatedArr);
+                }
             }
 
             $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');

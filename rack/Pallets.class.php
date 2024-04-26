@@ -1048,13 +1048,14 @@ class rack_Pallets extends core_Manager
      * @param string $position
      * @param int    $storeId
      * @param int    $batch
+     * @param bool $anyPalletIfEmpty
      * @return null|stdClass
      */
-    public static function getByPosition($position, $storeId, $productId = null, $batch = null)
+    public static function getByPosition($position, $storeId, $productId = null, $batch = null, $anyPalletIfEmpty = false)
     {
         if (empty($position) || $position == rack_PositionType::FLOOR) return;
-
         $rec = null;
+
         if(isset($productId)) {
             $where = "#productId = {$productId} AND #position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}";
             if(!is_null($batch)){
@@ -1064,10 +1065,12 @@ class rack_Pallets extends core_Manager
             }
         }
 
-        if(!$rec) {
-            $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+        if($anyPalletIfEmpty){
+            if(!$rec){
+                $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+            }
         }
-        
+
         return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'batch' => $rec->batch, 'quantity' => $rec->quantity, 'state' => $rec->state) : null;
     }
     

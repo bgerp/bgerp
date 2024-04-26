@@ -168,7 +168,7 @@ abstract class cash_Document extends deals_PaymentDocument
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'termDate,valior';
+    public $fieldsNotToClone = 'termDate,valior,issuer';
     
     
     /**

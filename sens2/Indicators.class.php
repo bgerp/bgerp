@@ -102,7 +102,7 @@ class sens2_Indicators extends core_Detail
     {
         $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name, allowEmpty)', 'caption=Контролер, mandatory, silent,refreshForm');
         $this->FLD('port', 'varchar(64)', 'caption=Порт, mandatory');
-        $this->FLD('name', 'varchar(64,nullIfEmpty)', 'caption=Наименование,column=none,value=aaa');
+        $this->FLD('name', 'varchar(64,nullIfEmpty)', 'caption=Наименование,column=none');
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4, smartRound)', 'caption=Стойност,smartCenter,input=none');
         $this->FLD('lastValue', 'datetime', 'caption=Към момент,oldFieldName=time,input=none');
         $this->FLD('lastUpdate', 'datetime', 'caption=Обновяване,column=none,input=none');
@@ -166,8 +166,8 @@ class sens2_Indicators extends core_Detail
             if($form->rec->name !== null) {
                 $form->rec->name = str_replace(' ', '_', $form->rec->name);
             }
-            if (strlen($form->rec->name) && !preg_match('/^[\\p{L}0-9_]+$/u', $form->rec->name)) {
-                $form->setError('name', 'Наименованието трябва да съдържа само букви, цифри и символа `_`');
+            if (strlen($form->rec->name) && !preg_match('/^[\\p{L}0-9_\.]+$/u', $form->rec->name)) {
+                $form->setError('name', 'Наименованието трябва да съдържа само букви, цифри, точка и символа `_`');
             }
         }
     }

@@ -288,11 +288,10 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function renderProductDescription($data)
     {
-        $title = tr($this->singleTitle);
-        
-        $tpl = new ET(tr("|*
+        if(!$data->defaultTpl){
+            $tpl = new ET(tr("|*
                     <div class='groupList'>
-                        <div class='richtext' style='margin-top: 5px; font-weight:bold;'>{$title}</div>
+                        <div class='richtext' style='margin-top: 5px; font-weight:bold;'>[#title#]</div>
                         <!--ET_BEGIN info-->
                         <div style='margin-top:5px;'>[#info#]</div>
                         <!--ET_END info-->
@@ -303,12 +302,17 @@ abstract class cat_ProductDriver extends core_BaseClass
 					[#ROW_AFTER#]
 					[#COMPONENTS#]
 				"));
-        
+        } else {
+            $tpl = $data->defaultTpl;
+        }
+        $title = tr($this->singleTitle);
+        $tpl->append($title, 'title');
+
         $form = cls::get('core_Form');
         $this->addFields($form);
         $driverFields = $form->fields;
         $tpl->replace($data->row->info, 'info');
-        
+
         if (is_array($driverFields)) {
             $usedGroups = core_Form::getUsedGroups($form, $driverFields, $data->rec, $data->row, 'single');
             $lastGroup = null;
@@ -570,18 +574,19 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function addButtonsToDocToolbar($id, core_RowToolbar &$toolbar, $detailClass, $detailId)
     {
-        if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('printing')) {
-            
-            return;
-        }
-        
+        if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('printing') || $detailClass == 'pos_ReceiptDetails') return;
+
         $Detail = cls::get($detailClass);
         $Master = cls::get($detailClass)->Master;
-        $dRec = $Detail->fetch($detailId, "{$Detail->masterKey},packQuantity");
+        $dRec = $Detail->fetch($detailId);
+        $packQuantity = $dRec->packQuantity;
+        if($Detail instanceof deals_InvoiceDetail){
+            $packQuantity = $dRec->quantity;
+        }
+
         $folderId = $Master->fetchField($dRec->{$Detail->masterKey}, 'folderId');
-        
         if(haveRole('partner') && marketing_Inquiries2::haveRightFor('add', (object)array('folderId' => $folderId, 'innerClass' => $this->getClassId()))){
-            $toolbar->addLink('Ново запитване||New inquiry', array('marketing_Inquiries2', 'add', 'folderId' => $folderId, 'innerClass' => $this->getClassId(), 'proto' => $id, 'quantity1' => $dRec->packQuantity,'ret_url' => true), 'ef_icon=img/16/help_contents.png');
+            $toolbar->addLink('Ново запитване||New inquiry', array('marketing_Inquiries2', 'add', 'folderId' => $folderId, 'innerClass' => $this->getClassId(), 'proto' => $id, 'quantity1' => $packQuantity,'ret_url' => true), 'ef_icon=img/16/help_contents.png');
        }
     }
     
@@ -1047,5 +1052,24 @@ abstract class cat_ProductDriver extends core_BaseClass
             $skipIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
             $res = array_diff_key($res, $skipIds);
         }
+    }
+
+
+    /**
+     * Ивент след промяна на състоянието на артикула
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param int $id
+     * @param core_Master $masterMvc
+     * @param int $masterId
+     * @param core_Detail $DetailMvc
+     * @param int $detailId
+     * @param string $action
+     * @return void
+     */
+    protected static function on_AfterDocumentInWhichIsUsedHasChangedState(cat_ProductDriver $Driver, embed_Manager $Embedder, $id, $masterMvc, $masterId, $DetailMvc, $detailId, $action)
+    {
+
     }
 }
