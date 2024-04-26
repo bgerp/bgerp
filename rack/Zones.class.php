@@ -1219,7 +1219,7 @@ class rack_Zones extends core_Master
             }
 
             // Ако има генерирани движения се записват
-            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId, $currentZoneId);
+            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $batch, $storeId, $workerId, $currentZoneId);
 
             // Движенията се създават от името на системата
             $isOriginalSystemUser = core_Users::isSystemUser();
