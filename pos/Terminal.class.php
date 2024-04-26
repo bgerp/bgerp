@@ -2147,10 +2147,13 @@ class pos_Terminal extends peripheral_Terminal
                 if(!empty($priceRes->discount)){
                     $priceRes->price *= (1 - $priceRes->discount);
                 }
-                
-                $vat = cat_Products::getVat($id);
+
                 $price = $priceRes->price * $perPack;
-                $price *= 1 + $vat;
+                if($settings->chargeVat == 'yes'){
+                    $vat = cat_Products::getVat($id);
+                    $price *= 1 + $vat;
+                }
+
                 $obj->price = $price;
                 $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
             }
@@ -2342,7 +2345,7 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->prepend("<div class='contentHolderResults'>");
             foreach ($rows as $pId => $btnRows){
                 $pointName = pos_Points::getTitleById($pId);
-                $text = ($pId != -1) ? ($pId == -2 ? 'СТОРНО НА' : "|Бележки в|* {$pointName}") : $contragentName;
+                $text = ($pId != -1) ? ($pId == -2 ? 'СТОРНО' : "|Бележки в|* {$pointName}") : $contragentName;
 
                 $tpl->append(tr("|*<div class='divider'>{$text}</div>"));
                 $tpl->append("<div class='grid'>");

@@ -11,7 +11,7 @@
             <li>
                 <span class='summary-answer'>[#text#]</span> - 
                 <span class='summary-percent'>[#percent#]</span> %  
-                <span class='summary-votes'>( [#votes#] |гласа|* )</span>
+                <span class='summary-votes'>( [#votes#] )</span>
             </li>
             <!--ET_END subRow-->
         </ul>

@@ -178,7 +178,8 @@ class bgfisc_plg_Receipts extends core_Plugin
     private static function getReceiptItems($rec)
     {
         $res = array();
-        
+        $settings = pos_Points::getSettings($rec->pointId);
+
         $vatClasses = array('A' => 0, 'B' => 1, 'V' => 2, 'G' => 3);
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#receiptId = '{$rec->id}'");
@@ -186,7 +187,12 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         while ($dRec = $query->fetch()) {
             $name = cat_Products::getVerbal($dRec->productId, 'name');
-            $price = $dRec->price * (1 + $dRec->param);
+            if($settings->chargeVat == 'yes'){
+                $price = $dRec->price * (1 + $dRec->param);
+            } else {
+                $price = $dRec->price;
+            }
+
             $dRec->quantity = abs($dRec->quantity);
             $amount = $price * $dRec->quantity;
 
@@ -205,9 +211,13 @@ class bgfisc_plg_Receipts extends core_Plugin
             if (!empty($discountPercent)) {
                 $arr['DISC_ADD_V'] = -1 * round($discountPercent * $amount, 2);
             }
-            
-            $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
-            $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
+
+            if($settings->chargeVat == 'yes'){
+                $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
+                $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
+            } else {
+                $arr['VAT_CLASS'] = $vatClasses['A'];
+            }
 
             $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
             $price = round($amount / $dRec->quantity, $fiscFuRound);
