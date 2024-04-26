@@ -30,6 +30,10 @@
 								<td class='dt'>|Политика|*:</td>
 								<td>[#policyId#]</td>
 							</tr>
+							<tr>
+								<td class='dt'>|Режим на ДДС|*:</td>
+								<td>[#chargeVat#]</td>
+							</tr>
 							<!--ET_BEGIN discountPolicyId-->
 							<tr>
 								<td class='dt'>|Политика за отстъпки|*:</td>

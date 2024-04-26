@@ -270,9 +270,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
                 $amount = round($dRec->amount + ($dRec->amount * $vatPercent), 2);
                 $amountWithVatNotRound += ($dRec->amount * $vatPercent);
                 setIfNot($vatSysId, 'B');
-            } elseif($originRec->chargeVat == 'no'){
-                setIfNot($vatSysId, 'B');
-            } else {
+            } else{
                 setIfNot($vatSysId, 'A');
             }
             $vatClass = $Driver->getVatGroupCode(acc_VatGroups::getIdBySysId($vatSysId), $registerRec);

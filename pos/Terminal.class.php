@@ -2147,10 +2147,13 @@ class pos_Terminal extends peripheral_Terminal
                 if(!empty($priceRes->discount)){
                     $priceRes->price *= (1 - $priceRes->discount);
                 }
-                
-                $vat = cat_Products::getVat($id);
+
                 $price = $priceRes->price * $perPack;
-                $price *= 1 + $vat;
+                if($settings->chargeVat == 'yes'){
+                    $vat = cat_Products::getVat($id);
+                    $price *= 1 + $vat;
+                }
+
                 $obj->price = $price;
                 $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
             }
