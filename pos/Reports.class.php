@@ -235,7 +235,11 @@ class pos_Reports extends core_Master
             if (!self::canMakeReport($rec->pointId, $rec->operators, $errorMsg)) {
                 $form->setError('pointId', $errorMsg);
             }
-            
+
+            if($rec->valior < dt::today()){
+                $form->setError('valior', 'Вальорът не може да е в миналото');
+            }
+
             // Ако няма грешки, форсираме отчета да се създаде в папката на точката
             if (!$form->gotErrors()) {
                 $rec->folderId = pos_Points::forceCoverAndFolder($rec->pointId);
