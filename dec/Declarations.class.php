@@ -279,6 +279,7 @@ class dec_Declarations extends core_Master
         $managers = $mvc->getManagers();
         if (countR($managers) > 0) {
             $data->form->setSuggestions('declaratorName', $managers);
+            $data->form->setDefault('declaratorName', key($managers));
         }
 
         // ако не е указана дата взимаме днешната
