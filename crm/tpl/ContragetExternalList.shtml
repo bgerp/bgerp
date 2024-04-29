@@ -9,7 +9,7 @@
 			<!--ET_BEGIN place--><p>[#place#] <!--ET_END place--></p>
 			<p>[#address#]</p>
 			<!--ET_BEGIN website-->
-			<p>[#website#]</p>
+			<p class="website">[#website#]</p>
 			<!--ET_END website-->
 		</div>
 	</div>
