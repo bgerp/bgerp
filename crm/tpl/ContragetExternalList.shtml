@@ -8,7 +8,7 @@
 			<h5>[#name#]</h5>
 			<p><!--ET_BEGIN place-->[#place#], <!--ET_END place-->[#address#]</p>
 			<!--ET_BEGIN website-->
-			<p>[#website#]</p>
+			<p class="website">[#website#]</p>
 			<!--ET_END website-->
 		</div>
 	</div>
