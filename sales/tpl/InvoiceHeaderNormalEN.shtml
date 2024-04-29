@@ -118,22 +118,20 @@
                                     </td>
                                     <td id='invoice-info' style='width:40%;'>
                                         [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
-                                        <table class='centered special-borders' style='width:100%;'>
+                                        <hr>
+                                        <table class='centered no-border' style="width:100%;">
                                             <tr>
-                                            	<td colspan=2><hr></td>
+                                                <td class='centered' style='border-right:1px solid #999 !important;width:50%;'>Received: [#RESPONSIBLE_SIGN_PAD#]</td>
+                                                <td class='centered'>Created by: [#USERNAME_SIGN_PAD#]</td>
                                             </tr>
                                             <tr>
-                                                <td class='centered border-right' style='width:50%;'>Received by:</td>
-                                                <td class='centered'>Prepared by:</td>
+                                                <td style='height:40px;border-right:1px solid #999 !important;'>[#RESPONSIBLE_SIGN#]</td>
+                                                <td>[#USERNAME_SIGN#]</td>
                                             </tr>
                                             <tr>
-                                                <td style='height:40px;' class='border-right'>&nbsp;</td>
-                                                <td></td>
+                                                <td class='centered' style='border-right:1px solid #999 !important;'> <span class="sign_names">[#responsible#]</span></td>
+                                                <td class='nowrap centered'><span class="sign_names">[#username#]</span><!--ET_BEGIN userCode--><div class='small'>( PIC: [#userCode#] )</div><!--ET_END userCode--></td>
                                             </tr>
-                                            <tr>
-                                                <td class='centered border-right' > <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                <td class='centered'><span class="sign_names nowrap"><span>[#username#]</span> <br><span class='small'>( PIC: [#userCode#] )</span></span></td>
-                                             </tr>
                                         </table>
                                     </td>
                                 </tr>

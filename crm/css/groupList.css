@@ -25,7 +25,15 @@
     width: 100px;
     margin-right: 20px;
 }
-
+.narrow .info {
+    max-width: 220px;
+}
+.narrow .company-holder .website {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.85em !important;
+}
 .logo img {
     max-width: 100px !important;
 }

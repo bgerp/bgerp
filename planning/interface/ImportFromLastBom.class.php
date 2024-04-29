@@ -57,7 +57,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
         if($firstDoc->isInstanceOf('planning_Jobs')) {
 
             // Ако е към задание ще се импортират материалите от заданието
-            $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $masterRec->storeId);
+            $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity);
             foreach ($details as &$d1){
                 $uomRec = cat_UoM::fetch($d1->packagingId, 'roundSignificant,round');
                 $d1->quantity = core_Math::roundNumber($d1->quantity, $uomRec->round, $uomRec->roundSignificant);
