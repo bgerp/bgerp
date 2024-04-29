@@ -160,6 +160,7 @@ class pos_Reports extends core_Master
         $form->setField('valior', "placeholder=" . dt::mysql2verbal(dt::today(), 'd.m.Y'));
         $settings = pos_Points::getSettings($form->rec->pointId);
         $form->setDefault('chargeVat', $settings->chargeVat);
+        $form->setReadOnly('chargeVat');
 
         if(haveRole('pos,sales')){
             $form->setDefault('dealerId', core_Users::getCurrent());

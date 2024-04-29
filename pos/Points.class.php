@@ -317,7 +317,9 @@ class pos_Points extends core_Master
 
         if(!crm_Companies::isOwnCompanyVatRegistered()){
             $form->setDefault('chargeVat', 'no');
-            $form->setReadOnly('chargeVat');
+            if($form->rec->chargeVat != 'yes'){
+                $form->setReadOnly('chargeVat');
+            }
         }
 
         if(empty($form->rec->prototypeId)){
