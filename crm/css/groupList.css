@@ -4,9 +4,10 @@
     gap: 20px;
     margin: 40px 0;
 }
+
 .company-box {
     display: flex;
-    padding: 30px 30px 25px;
+    padding: 20px 20px 10px;
     transition: all ease-in-out 0.3s;
     background: #f1f1f1;
     box-shadow: 0px 5px 90px 0px rgba(110, 123, 131, 0.1);
@@ -14,25 +15,36 @@
     border-bottom: 5px solid #f1f1f1;
     color: #333;
 }
+.narrow .company-box {
+    padding: 15px 15px 10px;
+}
 .company-holder h5 {
-    margin: 0 0 10px;
+    margin: 0 0 5px;
     font-size: 1.25rem;
 }
 .company-box p {
     margin: 0 ;
+    font-size: 1.1rem;
+    line-height: 1.5rem;
 }
 .logo {
-    width: 100px;
-    margin-right: 20px;
+    width: 23%;
+    max-width: 100px;
+    min-width: 100px;
 }
-.narrow .info {
-    max-width: 220px;
+.narrow .logo {
+    width: 25%;
 }
 .narrow .company-holder .website {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 0.85em !important;
+}
+.company-holder .website {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .logo img {
     max-width: 100px !important;
@@ -41,6 +53,13 @@
 .info {
     display: flex;
     flex-direction: column;
+    width: 75%;
+    box-sizing: border-box;
+    padding-left: 15px;
+}
+
+.narrow .info {
+    width: 70%;
 }
 
 .company-box:hover {
