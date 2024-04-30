@@ -237,7 +237,7 @@ class pos_Reports extends core_Master
                 $form->setError('pointId', $errorMsg);
             }
 
-            if($rec->valior < dt::today()){
+            if(!empty($rec->valior) && $rec->valior < dt::today()){
                 $form->setError('valior', 'Вальорът не може да е в миналото');
             }
 
