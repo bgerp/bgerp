@@ -55,12 +55,11 @@
     flex-direction: column;
     width: 75%;
     box-sizing: border-box;
-    padding-left: 10px;
+    padding-left: 15px;
 }
 
 .narrow .info {
     width: 70%;
-    padding-left: 15px;
 }
 
 .company-box:hover {
