@@ -337,7 +337,7 @@ h6 {
 #wallpaper-block {
     width: 100%;
     height: 100vh;
-    background-size: cover;
+    background-size: cover !important;
     position: relative;
 }
 
@@ -1315,7 +1315,7 @@ section {
     font-size: 18px;
     display: inline-block;
     background: #009961;
-    color: #fff;
+    color: #fff !important;
     line-height: 1;
     padding: 8px 0;
     margin-right: 4px;
