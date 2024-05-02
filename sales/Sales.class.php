@@ -449,9 +449,10 @@ class sales_Sales extends deals_DealMaster
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+
         $myCompany = crm_Companies::fetchOwnCompany();
         $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
+        $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$options));
 
         // Ако няма ръчно избрана БС гледа се последно избраната в папката
         $defaultBankAccountId = $rec->bankAccountId;
@@ -490,7 +491,7 @@ class sales_Sales extends deals_DealMaster
                 }
             }
         }
-        
+
         $form->setOptions('bankAccountId', $options);
         $form->setDefault('bankAccountId', $defaultBankAccountId);
         $defaultOptions = $options;

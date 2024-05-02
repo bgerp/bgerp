@@ -595,7 +595,7 @@ abstract class store_DocumentMaster extends core_Master
             core_Lg::push($rec->tplLang);
 
             $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + $headerInfo);
 
             $addressData = array();

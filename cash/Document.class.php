@@ -521,7 +521,7 @@ abstract class cash_Document extends deals_PaymentDocument
             $row->amountVerbal = str::mbUcfirst($amountVerbal);
             
             // Вземаме данните за нашата фирма
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
             }
