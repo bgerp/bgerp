@@ -53,6 +53,8 @@ class cms_SinglePageTheme extends core_ProtoInner
     public function prepareWrapper($tpl)
     {
         if(!haveRole('user')) {
+            $login = cls::get('core_Users')->act_Login();
+
             $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => array('Portal', 'show'), 'popup' => 1)) . '","Login","width=484,height=316,resizable=no,scrollbars=no,location=0,status=no,menubar=0"); if(w) w.focus();';
             $loginHtml = "<a href='javascript:void(0)' class='get-started-btn scrollto boldText' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Вход||Log in") . '</a>';
         } else {
@@ -113,8 +115,11 @@ class cms_SinglePageTheme extends core_ProtoInner
         $tpl->push('cms/boxicons/css/boxicons.min.css', 'CSS');
         $tpl->push('cms/css/SinglePage.css', 'CSS');
 
-
         $tpl->push('cms/js/main.js', 'JS');
+
+        $tpl->append('<div class="modalLogin">');
+        $tpl->append($login);
+        $tpl->append('</div>');
     }
 
 
