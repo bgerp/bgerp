@@ -161,8 +161,15 @@ abstract class store_DocumentMaster extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
-        $form->setDefault('storeId', store_Stores::getCurrent('id', false));
+
+        $defaultStoreId = store_Stores::getCurrent('id', false);
+        if(core_Packs::isInstalled('holding')){
+            if(!holding_Companies::isAllowedValueInThread($rec->threadId, $defaultStoreId, 'stores')){
+                $defaultStoreId = null;
+            }
+        }
+
+        $form->setDefault('storeId', $defaultStoreId);
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         if (!trans_Lines::count("#state = 'active'")) {
@@ -595,7 +602,7 @@ abstract class store_DocumentMaster extends core_Master
             core_Lg::push($rec->tplLang);
 
             $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + $headerInfo);
 
             $addressData = array();

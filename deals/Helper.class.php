@@ -1045,6 +1045,7 @@ abstract class deals_Helper
      * Помощна ф-я връщаща подходящо представяне на клиентсктие данни и тези на моята фирма
      * в бизнес документите
      *
+     * @param int $containerId       - ид на контейнер на документа
      * @param mixed $contragentClass - клас на контрагента
      * @param int   $contragentId    - ид на контрагента
      * @param int   $contragentName  - името на контрагента, ако е предварително известно
@@ -1058,12 +1059,23 @@ abstract class deals_Helper
      *               ['contragentAddress'] - Адреса на контрагента
      *               ['vatNo']             - ДДС номера на контрагента
      */
-    public static function getDocumentHeaderInfo($contragentClass, $contragentId, $contragentName = null)
+    public static function getDocumentHeaderInfo($containerId, $contragentClass, $contragentId, $contragentName = null)
     {
-        $res = array();
-       
+        // Ако е инсталиран пакета за многофирменост - моята фирма е тази посочена в първия документ на нишката
+        $ownCompanyId = null;
+        if(core_Packs::isInstalled('holding')) {
+            $Document = doc_Containers::getDocument($containerId);
+            $firstDoc = doc_Threads::getFirstDocument($Document->fetchField('threadId'));
+            if($firstDoc->isInstanceOf('deals_DealMaster')) {
+                if(isset($firstDoc->ownCompanyFieldName)) {
+                    $ownCompanyId = $firstDoc->fetchField($firstDoc->ownCompanyFieldName);
+                }
+            }
+        }
+
         // Данните на 'Моята фирма'
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
+        $res = array();
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
 
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');

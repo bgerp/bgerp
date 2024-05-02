@@ -1373,7 +1373,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             // Вербална обработка на данните на моята фирма и името на контрагента
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'MyCompanyEori', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
             }
