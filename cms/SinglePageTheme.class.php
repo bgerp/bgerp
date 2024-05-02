@@ -54,9 +54,7 @@ class cms_SinglePageTheme extends core_ProtoInner
     {
         if(!haveRole('user')) {
             $login = cls::get('core_Users')->act_Login();
-
-            $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => array('Portal', 'show'), 'popup' => 1)) . '","Login","width=484,height=316,resizable=no,scrollbars=no,location=0,status=no,menubar=0"); if(w) w.focus();';
-            $loginHtml = "<a href='javascript:void(0)' class='get-started-btn scrollto boldText' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Вход||Log in") . '</a>';
+            $loginHtml = "<button type='button'  class='get-started-btn scrollto boldText'  data-bs-toggle='modal' data-bs-target='#loginModal'>" . tr("Вход||Log in") . '</a>';
         } else {
             $loginHtml = ht::createLink(". . .", array('Portal', 'Show'), null, array('class' => "get-started-btn scrollto boldText"));
         }
@@ -85,11 +83,14 @@ class cms_SinglePageTheme extends core_ProtoInner
             if($baseColor) {
                 $activeColor = phpcolor_Adapter::changeColor($baseColor, 'mix', 1, '#666');
 
-                $css .= "\n  .get-started-btn, .back-to-top, #footer .social-links a, .navbar>ul>li>a:before, #main h2::after  {background: {$baseColor};} ";
+                $css .= "\n  .get-started-btn, .back-to-top, #footer .social-links a, .navbar>ul>li>a:before, #main h2::after, #login-form .button  {background: {$baseColor};} ";
                 $css .= "\n  .get-started-btn:hover, .back-to-top:hover, #footer .social-links a:hover {background: #{$activeColor};} ";
-                $css .= "\n  #footer .credits a {color: {$baseColor};} ";
-                $css .= "\n  #footer .credits a:hover, .navbar-mobile li:hover>a {color: #{$activeColor};} ";
+                $css .= "\n  #footer .credits a, a {color: {$baseColor};} ";
+                $css .= "\n  #footer .credits a:hover, .navbar-mobile li:hover>a, a:hover {color: #{$activeColor};} ";
                 $css .= "\n  #preloader:before { border: 6px solid {$baseColor};} ";
+                $css .= "\n  #loginModal .formFields input:active, #loginModal .formFields input:focus { border-color: {$baseColor} !important;} ";
+
+
             }
 
             $tpl->append($css, 'STYLES');
@@ -116,9 +117,17 @@ class cms_SinglePageTheme extends core_ProtoInner
         $tpl->push('cms/css/SinglePage.css', 'CSS');
 
         $tpl->push('cms/js/main.js', 'JS');
+        $tpl->push('cms/js/bootstrap.min.js', 'JS');
 
-        $tpl->append('<div class="modalLogin">');
+        $tpl->append('<div class="modal " id="loginModal" area-hidden="true">');
+        $tpl->append('<div class="modal-dialog  modal-dialog-centered">');
+        $tpl->append('<div class="modal-content">');
+        $tpl->append('<div class="modal-header"><h3>Вход в ' . $title . '</h3></div>');
+        $tpl->append('<div class="modal-body">');
         $tpl->append($login);
+        $tpl->append('</div>');
+        $tpl->append('</div>');
+        $tpl->append('</div>');
         $tpl->append('</div>');
     }
 
