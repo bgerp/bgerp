@@ -63,7 +63,7 @@
     <!--ET_END uicNo-->
 <p><r32 ->
     <!--ET_BEGIN vatReason-->
-<p>Основание за ДДС: [#vatReason#]
+<p>Основание за неначисляване на ДДС: [#vatReason#]
     <!--ET_END vatReason-->
 <p>Място на сделката: [#place#]
 <p>Дата на данъчното събитие:
