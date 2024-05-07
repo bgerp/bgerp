@@ -360,21 +360,25 @@ class sales_Invoices extends deals_InvoiceMaster
         $form->setField('contragentPlace', 'mandatory');
         $form->setField('contragentAddress', 'mandatory');
 
+        $defaultAccountId = null;
         if ($data->aggregateInfo) {
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
-                $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
+                $defaultAccountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
             } else {
-                $previousAccId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'accountId', 'lastDocUser|lastDoc');
-                $form->setDefault('accountId', $previousAccId);
+                $defaultAccountId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'accountId', 'lastDocUser|lastDoc');
             }
         }
-        
         if (empty($data->flag)) {
-            if ($ownAcc = bank_OwnAccounts::getCurrent('id', false)) {
-                $form->setDefault('accountId', $ownAcc);
+            $defaultAccountId = bank_OwnAccounts::getCurrent('id', false);
+        }
+
+        if(core_Packs::isInstalled('holding')){
+            if(!holding_Companies::isAllowedValueInThread($rec->threadId, $defaultAccountId, 'ownAccounts')){
+                $defaultAccountId = null;
             }
         }
 
+        $form->setDefault('accountId', $defaultAccountId);
         $tLang = doc_TplManager::fetchField($rec->template, 'lang');
         core_Lg::push($tLang);
 
