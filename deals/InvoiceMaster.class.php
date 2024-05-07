@@ -2132,9 +2132,12 @@ abstract class deals_InvoiceMaster extends core_Master
     public function canHaveTotalDiscount($rec)
     {
         $rec = $this->fetchRec($rec);
-        if($rec->type != 'invoice' || $rec->dpOperation == 'accrued') return false;
+        if($rec->type){
+            if($rec->type != 'invoice' || $rec->dpOperation == 'accrued') return false;
+        }
 
-        $detailCount = cls::get($this->mainDetail)->count("#invoiceId = {$rec->id}");
+        $Detail = cls::get($this->mainDetail);
+        $detailCount = $Detail->count("#{$Detail->masterKey} = {$rec->id}");
 
         return !empty($detailCount);
     }
@@ -2149,7 +2152,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         // Ако е зададено в мода да не се рекалкулират отстъпките
         $rec = $mvc->fetchRec($id);
-        if($rec->type != 'invoice') return;
+        if(isset($rec->type) && $rec->type != 'invoice') return;
         if(!$mvc->hasPlugin('price_plg_TotalDiscount')) return;
 
         // Преизчисляване ако има автоматични отстъпки
