@@ -368,8 +368,11 @@ class sales_Invoices extends deals_InvoiceMaster
                 $defaultAccountId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'accountId', 'lastDocUser|lastDoc');
             }
         }
+
         if (empty($data->flag)) {
-            $defaultAccountId = bank_OwnAccounts::getCurrent('id', false);
+            if($accountIdInSession = bank_OwnAccounts::getCurrent('id', false)){
+                $defaultAccountId = $accountIdInSession;
+            }
         }
 
         if(core_Packs::isInstalled('holding')){
