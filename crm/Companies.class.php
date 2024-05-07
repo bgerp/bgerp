@@ -1625,12 +1625,21 @@ class crm_Companies extends core_Master
     
     /**
      * Фирмата, от чието лице работи bgerp (crm_Setup::BGERP_OWN_COMPANY_ID)
+     * @param int|null $ownCompanyId - ид на моята фирма
      *
      * @return stdClass @see doc_ContragentDataIntf::getContragentData()
      */
-    public static function fetchOwnCompany()
+    public static function fetchOwnCompany($ownCompanyId = null)
     {
-        return static::getContragentData(crm_Setup::BGERP_OWN_COMPANY_ID);
+        if(core_Packs::isInstalled('holding')) {
+            $id = $ownCompanyId ?? holding_Companies::getCurrent('id', false);
+        }
+
+        if(empty($id)) {
+            $id = crm_Setup::BGERP_OWN_COMPANY_ID;
+        }
+
+        return static::getContragentData($id);
     }
     
     

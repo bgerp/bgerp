@@ -32,7 +32,7 @@ class survey_Surveys extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, survey_Wrapper, plg_Printing,plg_Clone,
-     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg, doc_plg_SelectFolder';
+     	  doc_DocumentPlg, bgerp_plg_Blank, doc_ActivatePlg, cms_ObjectPlg, doc_plg_SelectFolder,doc_plg_Prototype';
     
     
     /**
@@ -86,15 +86,23 @@ class survey_Surveys extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Ank';
+    public $abbr = 'Srv';
     
     
     /**
      * Кой може да пише?
      */
     public $canWrite = 'survey, ceo';
-    
-    
+
+
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     *
+     * @see plg_Clone
+     */
+    public $cloneDetails = 'survey_Alternatives';
+
+
     /**
      * Файл за единичен изглед
      */
@@ -134,7 +142,7 @@ class survey_Surveys extends core_Master
         $this->FLD('description', 'text(rows=2)', 'caption=Описание, mandatory');
         $this->FLD('enddate', 'date(format=d.m.Y)', 'caption=Краен срок,mandatory');
         $this->FLD('summary', 'enum(internal=Вътрешно,personal=Персонално,public=Публично)', 'caption=Обобщение,mandatory');
-        $this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена,template=Шаблон)', 'caption=Състояние,input=none');
         $this->FLD('userBy', 'enum(browser=Браузър,ip=IP)', 'caption=Разграничаване на потребителите->Признак');
     }
     
@@ -177,6 +185,14 @@ class survey_Surveys extends core_Master
             if (static::isClosed($rec->id)) {
                 $row->closed = tr('Анкетата е затворена');
             }
+
+            if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+                unset($row->prototypeId);
+            } else {
+                if(isset($rec->prototypeId)){
+                    $row->prototypeId = survey_Surveys::getHyperlink($rec->prototypeId, true);
+                }
+            }
         }
         
         if ($fields['-list']) {
@@ -201,10 +217,10 @@ class survey_Surveys extends core_Master
      */
     public static function isClosed($id)
     {
-        expect($rec = static::fetch($id), 'Няма такъв запис');
-        ($rec->enddate <= dt::now()) ? $res = true : $res = false;
-        
-        return $res;
+        $rec = static::fetchRec($id);
+        if($rec->state == 'template') return false;
+
+        return $rec->enddate <= dt::now();
     }
     
     
@@ -307,9 +323,9 @@ class survey_Surveys extends core_Master
     public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
-        $title = $this->recToverbal($rec, 'title')->title;
+
         $row = new stdClass();
-        $row->title = $this->singleTitle . ' "' . $title . '"';
+        $row->title = static::getRecTitle($rec);
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -369,5 +385,21 @@ class survey_Surveys extends core_Master
         if ($res !== false) {
             $res = md5($res . '|' . Request::get('summary'));
         }
+    }
+
+
+    /**
+     * Прави заглавие на МО от данните в записа
+     */
+    public static function getRecTitle($rec, $escaped = true)
+    {
+        $self = cls::get(get_called_class());
+
+        $title = "{$self->getHandle($rec->id)}/{$rec->title}";
+        if(static::isClosed($rec)){
+            $title .= " (" . tr('Изтекла'). ")";
+        }
+
+        return $title;
     }
 }

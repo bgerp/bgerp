@@ -306,3 +306,5 @@
 "oc_hall.enabled","bool","true|false","Office Conference Hall","system","false","Office conference hall module enable flag."
 "glob.floor.mode","int","0|1|2","No plugin, just global","system",0,"Global floor thermal mode."
 "glob.conv.mode","int","0|1|2","No plugin, just global","system",0,"Global convector thermal mode."
+"glob.illumination.east","float","","No plugin, just global","system",0.0,"Global east ilumination."
+"glob.illumination.west","float","","No plugin, just global","system",0.0,"Global west ilumination."

@@ -367,11 +367,11 @@ class pos_Terminal extends peripheral_Terminal
                     }
                 }
                 Request::removeProtected('Selected');
-
-                
                 break;
             case pos_Receipts::getClassId():
+                Mode::push('text', 'xhtml');
                 $modalTpl =  $this->getReceipt($enlargeObjectId);
+                Mode::pop('text');
                 $modalTpl->prepend('<div class="modalReceipt">');
                 $modalTpl->append('</div>');
                 break;
@@ -2147,10 +2147,13 @@ class pos_Terminal extends peripheral_Terminal
                 if(!empty($priceRes->discount)){
                     $priceRes->price *= (1 - $priceRes->discount);
                 }
-                
-                $vat = cat_Products::getVat($id);
+
                 $price = $priceRes->price * $perPack;
-                $price *= 1 + $vat;
+                if($settings->chargeVat == 'yes'){
+                    $vat = cat_Products::getVat($id);
+                    $price *= 1 + $vat;
+                }
+
                 $obj->price = $price;
                 $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
             }
@@ -2328,11 +2331,21 @@ class pos_Terminal extends peripheral_Terminal
             $rows = array('-1' => $otherContragentReceipts) + $rows;
         }
 
+        if(isset($rec->revertId) && $rec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT){
+            $revertRec = pos_Receipts::fetch($rec->revertId);
+            $btnTitle = self::getReceiptTitle($revertRec);
+            $openUrl = (pos_Receipts::haveRightFor('terminal', $revertRec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $revertRec->id, 'opened' => true) : array();
+            $class = (countR($openUrl)) ? ' navigable' : ' disabledBtn';
+
+            $revertBtn = ht::createLink($btnTitle, $openUrl, null, array('id' => "receiptRevertClient{$revertRec->id}", 'class' => "pos-notes posBtns {$class} state-{$revertRec->state} enlargable", 'title' => 'Отваряне на бележката', 'data-enlarge-object-id' => $revertRec->id, 'data-enlarge-class-id' => pos_Receipts::getClassId(), 'data-modal-title' => strip_tags(pos_Receipts::getRecTitle($revertRec))));
+            $rows = array('-2' => array($revertRec->id => $revertBtn)) + $rows;
+        }
+
         if(countR($rows)){
             $tpl->prepend("<div class='contentHolderResults'>");
             foreach ($rows as $pId => $btnRows){
                 $pointName = pos_Points::getTitleById($pId);
-                $text = ($pId != -1) ? "|Бележки в|* {$pointName}" : $contragentName;
+                $text = ($pId != -1) ? ($pId == -2 ? 'СТОРНО' : "|Бележки в|* {$pointName}") : $contragentName;
 
                 $tpl->append(tr("|*<div class='divider'>{$text}</div>"));
                 $tpl->append("<div class='grid'>");

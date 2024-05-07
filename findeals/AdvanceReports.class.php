@@ -363,7 +363,7 @@ class findeals_AdvanceReports extends core_Master
     {
         $rec = $data->rec;
         
-        $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+        $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId);
         $data->row = (object) ((array) $data->row + (array) $headerInfo);
     }
     

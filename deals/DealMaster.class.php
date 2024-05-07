@@ -1295,7 +1295,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 
             // Подготовка на имената на моята фирма и контрагента
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + (array) $headerInfo);
             
             if (isset($actions['ship'])) {

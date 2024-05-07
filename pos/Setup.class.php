@@ -205,6 +205,7 @@ class pos_Setup extends core_ProtoSetup
         'migrate::resyncSearchStrings2350',
         'migrate::updateInputPercent2403',
         'migrate::updateWrongReceipts2414',
+        'migrate::updatePointChargeVat1724',
     );
 
 
@@ -331,6 +332,20 @@ class pos_Setup extends core_ProtoSetup
         if(countR($save)){
             $Receipts->saveArray($save);
         }
+    }
+
+
+    /**
+     * Миграция на ДДС режима на ПОС-бележките
+     */
+    public function updatePointChargeVat1724()
+    {
+        if(crm_Companies::isOwnCompanyVatRegistered()) return;
+
+        $Points = cls::get('pos_Points');
+        $chargeVatColName = str::phpToMysqlName('chargeVat');
+        $query = "UPDATE {$Points->dbTableName} SET {$chargeVatColName} = 'no' WHERE ({$chargeVatColName} = 'yes'";
+        $Points->db->query($query);
     }
 }
 

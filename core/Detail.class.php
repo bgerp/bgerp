@@ -613,6 +613,7 @@ class core_Detail extends core_Manager
         // Визуализиране на редовете за изтриване
         $data = (object)array('masterMvc' => $this->Master, 'masterData' => (object)array('rec' => $this->Master->fetch($masterId)), 'recs' => array(), 'rows' => array(), 'masterId' => $masterId, 'query' => $query);
 
+        Mode::push('selectRows2Delete', true);
         $this->prepareListFields($data);
         $this->prepareListRecs($data);
         $this->prepareListRows($data);
@@ -628,6 +629,8 @@ class core_Detail extends core_Manager
         $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
         $data->listTableMvc->FLD('btn', 'varchar', 'tdClass=centered vtop');
         $docTableTpl = $this->renderListTable($data);
+        Mode::pop('selectRows2Delete');
+
         $form->info->append($docTableTpl);
         $form->input();
 

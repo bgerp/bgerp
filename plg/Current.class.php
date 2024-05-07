@@ -40,7 +40,10 @@ class plg_Current extends core_Plugin
             
             $rec = null;
             $query = $mvc->getQuery();
-            $query->where("#state != 'rejected' || #state != 'closed' || #state IS NULL");
+            if($mvc->getField('state', false)){
+                $query->where("#state != 'rejected' || #state != 'closed' || #state IS NULL");
+            }
+
             $query->limit(2);
             
             // Генериране на събитие, преди изпълнението на заявката
