@@ -371,7 +371,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             deals_Helper::addNotesToProductRow($row1->productId, $rec->notes);
 
-            if ($masterRec->type != 'dc_note') {
+            if ($masterRec->type != 'dc_note' || !isset($masterRec->type)) {
                 $row1->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
             }
         }
