@@ -71,7 +71,7 @@
         <tr>
             <td style='line-height: 140%;'>
                 <!--ET_BEGIN vatReason-->
-                <div><span class='quiet'>Основание за ДДС:</span> [#vatReason#]</div>
+                <div><span class='quiet'>Основание за неначисляване на ДДС:</span> [#vatReason#]</div>
                 <!--ET_END vatReason-->
                 <!--ET_BEGIN vatDate-->
                 <div><span class='quiet'>Данъчно събитие:</span> [#vatDate#]</div>
