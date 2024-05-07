@@ -90,6 +90,7 @@
                         <!--ET_BEGIN sales_InvoiceDetails-->
                         <div class='details'>
                             [#sales_ProformaDetails#]
+                            [#price_DiscountsPerDocuments#]
                         </div>
                         <!--ET_END sales_InvoiceDetails-->
                         <div class="lines"></div>

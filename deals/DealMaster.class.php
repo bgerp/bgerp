@@ -982,6 +982,11 @@ abstract class deals_DealMaster extends deals_DealBase
             if ($rec->deliveryLocationId) {
                 $result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId, false);
             }
+
+            if(core_Packs::isInstalled('holding')){
+                $ownCompanyId = $rec->{$self->ownCompanyFieldName} ?? crm_Setup::BGERP_OWN_COMPANY_ID;
+                $result->features['Моя фирма'] = crm_Companies::getTitleById($ownCompanyId, false);
+            }
         }
         
         return $result;

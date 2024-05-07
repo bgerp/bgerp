@@ -88,7 +88,7 @@ class social_Followers extends core_Master
         
         // За всеки един запис от базата
         foreach ($socialNetworks as $socialNetwork) {
-            
+
             // Вземаме качената икона
             if ($socialNetwork->icon) {
                 $imgInst = new thumb_Img(array($socialNetwork->icon, 24, 24, 'fileman', 'isAbsolute' => true, 'mode' => 'small-no-change', 'verbalName' => $socialNetwork->title));
@@ -102,7 +102,7 @@ class social_Followers extends core_Master
                 
                 // Намираме името на функцията
                 $name = social_Sharings::getServiceNameByUrl($socUrl);
-                
+
                 
                 if (log_Browsers::isRetina()) {
                     $size = 48;
@@ -119,10 +119,16 @@ class social_Followers extends core_Master
             
             // Генерираме URL-то на бутона
             $url = array('social_Followers', 'Redirect', $socialNetwork->id);
-            
-            // Създаваме линка на бутона
-            $link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, null, array('class' => 'soc-following noSelect', 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
-            
+
+            $theme = Mode::get("theme");
+            if($theme && $theme == 'singlepage') {
+                // Създаваме линка на бутона
+                $link = ht::createLink("<i class='bx bxl-{$name}'></i>" . $socialNetwork->sharedCnt, $url, null, array('class' =>  $name , 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
+            } else {
+                // Създаваме линка на бутона
+                $link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, null, array('class' => 'soc-following noSelect ' . $name , 'target' => '_blank', 'rel' => 'nofollow', 'title' => '|*' . $socialNetwork->title));
+            }
+
             // Добавямего към шаблона
             $tpl->append($link);
         }

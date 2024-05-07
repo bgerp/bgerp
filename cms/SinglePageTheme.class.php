@@ -36,9 +36,12 @@ class cms_SinglePageTheme extends core_ProtoInner
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-        $form->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение');
-        $form->FLD('headTitle', 'varchar(100)', 'caption=Заглавие');
-        $form->FLD('subtitle', 'varchar(100)', 'caption=Подзаглавие');
+        $form->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Хедър->Изображение');
+        $form->FLD('domainTitle', 'varchar(100)', 'caption=Хедър->Заглавие на домейна');
+        $form->FLD('headTitle', 'varchar(100)', 'caption=Хедър->Заглавие');
+        $form->FLD('subtitle', 'varchar(100)', 'caption=Хедър->Подзаглавие');
+        $form->FLD('footerTitle', 'varchar(100)', 'caption=Футър->Заглавие');
+        $form->FLD('footerSubtitle', 'varchar(100)', 'caption=Футър->Подзаглавие');
         $form->FLD('baseColor', 'color_Type(AllowEmpty)', 'caption=Основен цвят');
     }
 
@@ -52,9 +55,10 @@ class cms_SinglePageTheme extends core_ProtoInner
      */
     public function prepareWrapper($tpl)
     {
+        Mode::set('theme', 'singlepage');
         if(!haveRole('user')) {
-            $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => array('Portal', 'show'), 'popup' => 1)) . '","Login","width=484,height=316,resizable=no,scrollbars=no,location=0,status=no,menubar=0"); if(w) w.focus();';
-            $loginHtml = "<a href='javascript:void(0)' class='get-started-btn scrollto boldText' oncontextmenu='{$js}' onclick='{$js}'>" . tr("Вход||Log in") . '</a>';
+            $login = cls::get('core_Users')->act_Login();
+            $loginHtml = "<button type='button'  class='get-started-btn scrollto boldText'  data-bs-toggle='modal' data-bs-target='#loginModal'>" . tr("Вход||Log in") . '</button>';
         } else {
             $loginHtml = ht::createLink(". . .", array('Portal', 'Show'), null, array('class' => "get-started-btn scrollto boldText"));
         }
@@ -71,41 +75,53 @@ class cms_SinglePageTheme extends core_ProtoInner
         $tpl->replace($menu, 'MENU');
 
         $img = $this->innerForm->wallpaper;
+        $css = "";
+
+        $headTitle = $this->innerForm->headTitle;
+        if ($headTitle) {
+            $tpl->replace($headTitle, 'HEADTITLE');
+        }
+
+        $subtitle = $this->innerForm->subtitle;
+        if ($subtitle) {
+            $tpl->replace($subtitle, 'SUBTITLE');
+        }
 
         if ($img) {
             $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
-
             $imageURL = $img->getUrl('forced');
-
-            $css = "\n  #wallpaper-block {background: url({$imageURL}) top center;} ";
-
-            $baseColor = $this->innerForm->baseColor;
-            if($baseColor) {
-                $activeColor = phpcolor_Adapter::changeColor($baseColor, 'mix', 1, '#666');
-
-                $css .= "\n  .get-started-btn, .back-to-top, #footer .social-links a, .navbar>ul>li>a:before, #main h2::after  {background: {$baseColor};} ";
-                $css .= "\n  .get-started-btn:hover, .back-to-top:hover, #footer .social-links a:hover {background: #{$activeColor};} ";
-                $css .= "\n  #footer .credits a {color: {$baseColor};} ";
-                $css .= "\n  #footer .credits a:hover, .navbar-mobile li:hover>a {color: #{$activeColor};} ";
-                $css .= "\n  #preloader:before { border: 6px solid {$baseColor};} ";
-            }
-
-            $tpl->append($css, 'STYLES');
-
-            $title = $this->innerForm->title;
-            if ($title) {
-                $tpl->replace($title, 'CORE_APP_NAME');
-            }
-            $headTitle = $this->innerForm->headTitle;
-            if ($headTitle) {
-                $tpl->replace($headTitle, 'TITLE');
-            }
-            $subtitle = $this->innerForm->subtitle;
-            if ($subtitle) {
-                $tpl->replace($subtitle, 'SUBTITLE');
-            }
+            $css .= "\n  #wallpaper-block {background: url({$imageURL}) center;} ";
+        } else if (!$headTitle || $subtitle){
+            $tpl->removeBlock("WALLPAPER_BLOCK");
         }
 
+        $domainTitle = $this->innerForm->domainTitle ? $this->innerForm->domainTitle :  $this->innerForm->title;
+        if ($domainTitle) {
+            $tpl->replace($domainTitle, 'CORE_APP_NAME');
+        }
+
+        $footerTitle = $this->innerForm->footerTitle;
+        if ($footerTitle) {
+            $tpl->replace($footerTitle, 'FOOTER_TITLE');
+        }
+        $footerSubtitle = $this->innerForm->footerSubtitle;
+        if ($footerSubtitle) {
+            $tpl->replace($footerSubtitle, 'FOOTER_SUBTITLE');
+        }
+
+        $baseColor = $this->innerForm->baseColor;
+        if($baseColor) {
+            $activeColor = phpcolor_Adapter::changeColor($baseColor, 'mix', 1, '#666');
+
+            $css .= "\n  .get-started-btn, .back-to-top, #footer .social-links a, .navbar>ul>li>a:before, #main h2::after, #login-form .button  {background: {$baseColor};} ";
+            $css .= "\n  .get-started-btn:hover, .back-to-top:hover, #footer .social-links a:hover {background: #{$activeColor};} ";
+            $css .= "\n  a, #footer .credits a, .navbar-mobile a:hover, .navbar-mobile .active, .navbar-mobile li:hover>a {color: {$baseColor};} ";
+            $css .= "\n  a:hover, #footer .credits a:hover, .navbar-mobile li:hover>a {color: #{$activeColor};} ";
+            $css .= "\n  #preloader:before { border: 6px solid {$baseColor};} ";
+            $css .= "\n  #loginModal .formFields input:active, #loginModal .formFields input:focus, .company-box:hover { border-color: {$baseColor} !important;} ";
+        }
+
+        $tpl->append($css, 'STYLES');
 
         // добавяме css-a за структурата
         $tpl->push('cms/css/bootstrap.css', 'CSS');
@@ -113,8 +129,19 @@ class cms_SinglePageTheme extends core_ProtoInner
         $tpl->push('cms/boxicons/css/boxicons.min.css', 'CSS');
         $tpl->push('cms/css/SinglePage.css', 'CSS');
 
-
         $tpl->push('cms/js/main.js', 'JS');
+        $tpl->push('cms/js/bootstrap.min.js', 'JS');
+
+        $tpl->append('<div class="modal " id="loginModal" area-hidden="true">');
+        $tpl->append('<div class="modal-dialog  modal-dialog-centered">');
+        $tpl->append('<div class="modal-content">');
+        $tpl->append('<div class="modal-header"><h3>Вход в ' . $domainTitle . '</h3></div>');
+        $tpl->append('<div class="modal-body">');
+        $tpl->append($login);
+        $tpl->append('</div>');
+        $tpl->append('</div>');
+        $tpl->append('</div>');
+        $tpl->append('</div>');
     }
 
 
