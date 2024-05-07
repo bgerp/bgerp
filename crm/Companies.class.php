@@ -1631,13 +1631,8 @@ class crm_Companies extends core_Master
      */
     public static function fetchOwnCompany($ownCompanyId = null)
     {
-        if(core_Packs::isInstalled('holding')) {
-            $id = $ownCompanyId ?? holding_Companies::getCurrent('id', false);
-        }
-
-        if(empty($id)) {
-            $id = crm_Setup::BGERP_OWN_COMPANY_ID;
-        }
+        $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
+        $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
 
         return static::getContragentData($id);
     }
