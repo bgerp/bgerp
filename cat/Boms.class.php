@@ -1906,9 +1906,10 @@ class cat_Boms extends core_Master
      * Връща складируемите материали по-рецепта, ако е подаден склад се
      * отсяват само ненулевите количества
      *
-     * @param int   $bomId
-     * @param float $quantity
-     * @param int   $storeId
+     * @param int      $bomId        - ид на рецепта
+     * @param double   $quantity     - к-во в рецептата
+     * @param int|null $storeId      - ид на склад (или null) за всички
+     * @param bool     $onlyStorable - дали да са само складируемите
      *
      * @return array $res
      *               ['productId']      - ид на артикул
@@ -1916,23 +1917,19 @@ class cat_Boms extends core_Master
      *               ['quantity']       - к-во
      *               ['quantityInPack'] - к-во в опаковка
      */
-    public static function getBomMaterials($bomId, $quantity, $storeId = null)
+    public static function getBomMaterials($bomId, $quantity, $storeId = null, $onlyStorable = true)
     {
         $res = array();
         $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
-        if (!countR($bomInfo['resources'])) {
-            
-            return $res;
-        }
+        if (!countR($bomInfo['resources'])) return $res;
 
         foreach ($bomInfo['resources'] as $pRec) {
             $productRec = cat_Products::fetch($pRec->productId, 'canStore,generic');
-            if ($productRec->canStore != 'yes' || $pRec->type != 'input') {
-                continue;
-            }
-            
+            if($pRec->type != 'input') continue;
+            if($onlyStorable && $productRec->canStore != 'yes') continue;
+
             // Ако има склад се отсяват артикулите, които имат нулева наличност
-            if (isset($storeId)) {
+            if (isset($storeId) && $productRec->canStore == 'yes') {
 
                 // Ако артикула или някой от заместителите му са налични в склада остава
                 $productArr = array_keys(planning_GenericMapper::getEquivalentProducts($pRec->productId, $pRec->genericProductId, true));
@@ -1940,10 +1937,12 @@ class cat_Boms extends core_Master
                     $productArr = array($pRec->productId);
                 }
 
+                // Ако разполагаемото е очакваното - няма да се върне
                 $quantity = 0;
                 array_walk($productArr, function($pId) use (&$quantity, $storeId) {$quantity += store_Products::getQuantities($pId, $storeId)->free;});
+                $found = round($quantity / $pRec->quantityInPack, 6);
 
-                if (empty($quantity)) continue;
+                if ($found < $pRec->propQuantity) continue;
             }
 
             $r = (object) array('productId' => $pRec->productId,

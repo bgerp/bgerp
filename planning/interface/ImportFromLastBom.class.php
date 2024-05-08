@@ -63,11 +63,12 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             $storeId = ($form->rec->onlyInStock == 'yes') ? $masterRec->storeId : null;
 
             // Ако е към задание ще се импортират материалите от заданието
-            $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $storeId);
+            $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $storeId, false);
             foreach ($details as &$d1){
                 $uomRec = cat_UoM::fetch($d1->packagingId, 'roundSignificant,round');
                 $d1->quantity = core_Math::roundNumber($d1->quantity, $uomRec->round, $uomRec->roundSignificant);
             }
+
         } else {
             $details = array();
             $dQuery = planning_ProductionTaskProducts::getQuery();
@@ -100,6 +101,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             }
 
             $form->FLD($key, 'double(Min=0)', "input,caption={$dRec->caption}->К-во,unit={$shortUom}");
+
             $form->setDefault($key, $dRec->quantity);
             $rec->detailsDef[$key] = $dRec;
         }

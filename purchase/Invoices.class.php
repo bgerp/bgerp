@@ -1160,12 +1160,17 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function getDefaultPlace($rec)
     {
-        $place = null;
-        $cData = doc_Folders::getContragentData($rec->folderId);
-        $place = !empty($cData->place) ? $cData->place : $cData->address;
+        // Взимат се данните на избрания контрагент или на дефолтния
+        if(isset($rec->displayContragentClassId) && isset($rec->displayContragentId)){
+           $cData = cls::get($rec->displayContragentClassId)->getContragentData($rec->displayContragentId);
+        } else {
+           $cData = doc_Folders::getContragentData($rec->folderId);
+        }
+        $place = !empty($cData->place) ? $cData->place : (!empty($cData->address) ? $cData->address : null);
         
         if(!empty($place)){
-            $myCompany = crm_Companies::fetchOwnCompany();
+            $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : null;
+            $myCompany = crm_Companies::fetchOwnCompany($ownCompanyId);
             if ($cData->countryId != $myCompany->countryId) {
                 $cCountry = drdata_Countries::fetchField($cData->countryId, 'commonName');
                 $place .= ", {$cCountry}";
