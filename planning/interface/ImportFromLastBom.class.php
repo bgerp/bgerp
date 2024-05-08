@@ -50,7 +50,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             $defaultQuantity = $firstDoc->fetchField('plannedQuantity');
         }
 
-        $form->FLD("forQuantity", 'int', "input,caption=За количество,silent");
+        $form->FLD("forQuantity", 'double', "input,caption=За количество,silent");
         $form->FLD("onlyInStock", 'enum(yes=Само наличните в склада Артикули,no=Всички Артикули от Рецептата)', "input,caption=Избор,silent,removeAndRefreshForm");
         $form->setDefault('forQuantity', $defaultQuantity);
         $form->input('forQuantity,onlyInStock', 'silent');
