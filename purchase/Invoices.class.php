@@ -265,7 +265,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $form->setOptions('accountId', bank_Accounts::getContragentIbans($coverId, $coverClass, true));
         
         if (!in_array($form->rec->vatRate, array('yes', 'separate'))) {
-            if(!crm_Companies::isOwnCompanyVatRegistered()){
+            if(!$mvc->isOwnCompanyVatRegistered($rec)){
                 $form->setField('vatReason', 'mandatory');
             }
         }

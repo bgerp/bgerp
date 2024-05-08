@@ -1258,7 +1258,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
             if(!in_array($rec->vatRate, array('yes', 'separate'))){
                 if(empty($rec->vatReason)){
-                    $vatReason = $mvc->getNoVatReason($rec->contragentCountryId, $rec->contragentVatNo);
+                    $vatReason = $mvc->getNoVatReason($rec);
                     if(!empty($vatReason)){
                         $row->vatReason = $vatReason;
 
@@ -1901,26 +1901,24 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Какво да е основанието за неначисляване на ДДС
      *
-     * @param int $contragentCountryId - ид на държава на контрагента
-     * @param string $contragentVatId  - ДДС номер на контрагента (ако има)
-     * @param $ownCompanyId            - ид на "Моята фирма"
+     * @param stdClass $rec  - запис на фактурата
      * @return string|null
      */
-    public function getNoVatReason($contragentCountryId, $contragentVatId, $ownCompanyId = null)
+    protected function getNoVatReason($rec)
     {
-        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) {
+        if(!$this->isOwnCompanyVatRegistered($rec)) {
 
             return acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
         }
 
         $bgCountryId = drdata_Countries::getIdByName('Bulgaria');
-        if($contragentCountryId != $bgCountryId){
-            $reason = drdata_Countries::isEu($contragentCountryId) ? 'VAT_REASON_IN_EU' : 'VAT_REASON_OUTSIDE_EU';
+        if($rec->contragentCountryId != $bgCountryId){
+            $reason = drdata_Countries::isEu($rec->contragentCountryId) ? 'VAT_REASON_IN_EU' : 'VAT_REASON_OUTSIDE_EU';
 
             return acc_Setup::get($reason);
         }
 
-        if(empty($contragentVatId)){
+        if(empty($rec->contragentVatNo)){
 
             return acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
         }
@@ -1962,7 +1960,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
         if(!in_array($rec->vatRate, array('yes', 'separate'))) {
             if (empty($rec->vatReason)) {
-                $vatReason = $mvc->getNoVatReason($rec->contragentCountryId, $rec->contragentVatNo);
+                $vatReason = $mvc->getNoVatReason($rec);
                 if(!empty($vatReason)){
                     $rec->vatReason = $vatReason;
                     $saveFields[] = 'vatReason';

@@ -2085,18 +2085,19 @@ abstract class deals_Helper
     /**
      * Дефолтния режим на ДДС за папката
      *
-     * @param int $folderId
-     * @param string|null $chargeVatConditionSysId
-     * @param int|null $ownCompanyId
+     * @param core_Mvc $mvc - документ
+     * @param stdClasss $rec - запис
+     * @param string|null $chargeVatConditionSysId - сис ид на търговско условие
+     *
      * @return string
      */
-    public static function getDefaultChargeVat($folderId, $chargeVatConditionSysId = null, $ownCompanyId = null)
+    public static function getDefaultChargeVat($mvc, $rec, $chargeVatConditionSysId = null)
     {
-        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return 'no';
+        if(!$mvc->isOwnCompanyVatRegistered($rec)) return 'no';
 
         // Ако не може да се намери се търси от папката
-        $coverId = doc_Folders::fetchCoverId($folderId);
-        $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+        $coverId = doc_Folders::fetchCoverId($rec->folderId);
+        $Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
 
         if(isset($chargeVatConditionSysId)){
             $clientValue = cond_Parameters::getParameter($Class, $coverId, $chargeVatConditionSysId);
