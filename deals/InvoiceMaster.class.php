@@ -145,7 +145,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
 
         $mvc->FLD('displayContragentClassId', 'enum(crm_Companies=Фирма,crm_Persons=Лице,newCompany=Нова фирма)', 'input,silent,removeAndRefreshForm=displayContragentId|selectInvoiceText,caption=Друг контрагент->Източник');
-        $mvc->FLD('displayContragentId', 'int', 'input=none,silent,removeAndRefreshForm=contragentName|contragentCountryId|contragentVatNo|contragentEori|uicNo|contragentPCode|additionalInfo|contragentPlace|contragentAddress,caption=Друг контрагент->Избор');
+        $mvc->FLD('displayContragentId', 'int', 'input=none,silent,removeAndRefreshForm=contragentName|contragentCountryId|contragentVatNo|contragentEori|uicNo|contragentPCode|additionalInfo|contragentPlace|contragentAddress|place,caption=Друг контрагент->Избор');
 
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,silent');
         $mvc->FLD('contragentId', 'int', 'input=hidden,silent');
@@ -1083,7 +1083,13 @@ abstract class deals_InvoiceMaster extends core_Master
             $countryId = $locationRec->countryId;
         }
 
-        $contragentCountryId = doc_Folders::getContragentData($rec->folderId)->countryId;
+        if(isset($rec->displayContragentClassId) && isset($rec->displayContragentId)){
+            $cData = cls::get($rec->displayContragentClassId)->getContragentData($rec->displayContragentId);
+        } else {
+            $cData = doc_Folders::getContragentData($rec->folderId);
+        }
+
+        $contragentCountryId = $cData->countryId;
         if(!empty($place)){
             if ($contragentCountryId != $countryId) {
                 $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
@@ -1093,7 +1099,8 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // 3. От адреса на "Моята фирма"
         if(empty($place)){
-            $myCompany = crm_Companies::fetchOwnCompany();
+            $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : null;
+            $myCompany = crm_Companies::fetchOwnCompany($ownCompanyId);
             $place = $myCompany->place;
             if ($contragentCountryId != $myCompany->countryId) {
                 $cCountry = drdata_Countries::fetchField($myCompany->countryId, 'commonNameBg');
