@@ -216,7 +216,7 @@ abstract class deals_QuotationMaster extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
-        if(!crm_Companies::isOwnCompanyVatRegistered()) {
+        if(!$mvc->isOwnCompanyVatRegistered($rec)) {
             $form->setReadOnly('chargeVat');
         }
 
@@ -258,7 +258,7 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
             // Избрания ДДС режим съответства ли на дефолтния
-            $defVat = deals_Helper::getDefaultChargeVat($rec->folderId, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
+            $defVat = deals_Helper::getDefaultChargeVat($mvc, $rec, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
             if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
                 $form->setWarning('chargeVat', $vatWarning);
             }
@@ -296,7 +296,7 @@ abstract class deals_QuotationMaster extends core_Master
     public function getDefaultChargeVat($rec)
     {
         // Ako "Моята фирма" е без ДДС номер - без начисляване
-        if(!crm_Companies::isOwnCompanyVatRegistered()) return 'no';
+        if(!$this->isOwnCompanyVatRegistered($rec)) return 'no';
 
         // После се търси по приоритет
         foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
@@ -304,7 +304,7 @@ abstract class deals_QuotationMaster extends core_Master
             if(!empty($chargeVat)) return $chargeVat;
         }
 
-        return deals_Helper::getDefaultChargeVat($rec->folderId);
+        return deals_Helper::getDefaultChargeVat($this, $rec);
     }
 
 

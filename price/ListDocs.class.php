@@ -153,7 +153,7 @@ class price_ListDocs extends core_Master
      */
     public function getDefaultVat($rec)
     {
-        return deals_Helper::getDefaultChargeVat($rec->folderId);
+        return deals_Helper::getDefaultChargeVat($this, $rec);
     }
     
     
