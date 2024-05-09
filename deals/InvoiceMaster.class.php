@@ -763,6 +763,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
+        $form->setDefault('place', $mvc->getDefaultPlace($rec));
         // Ако има избрано поле за източник на контрагента
         if (isset($rec->displayContragentClassId)) {
             if (in_array($rec->displayContragentClassId, array('crm_Companies', 'crm_Persons'))) {
