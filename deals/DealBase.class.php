@@ -259,7 +259,7 @@ abstract class deals_DealBase extends core_Master
      *
      * @return array $options - опции
      */
-    public function getDealsToCloseWith($rec)
+    public function getDealsToCloseWith_($rec)
     {
         // Избираме всички други активни сделки от същия тип и валута, като началния документ в същата папка
         $docs = array();
