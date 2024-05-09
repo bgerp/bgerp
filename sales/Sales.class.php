@@ -241,7 +241,6 @@ class sales_Sales extends deals_DealMaster
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
         'template' => 'lastDocUser|lastDoc|defMethod',
-        'shipmentStoreId' => 'defMethod',
         'oneTimeDelivery' => 'clientCondition'
     );
     
@@ -517,7 +516,16 @@ class sales_Sales extends deals_DealMaster
             if(isset($rec->paymentMethodId)){
                 $paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
                 if($paymentType == 'cash'){
-                    $caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc');
+
+                    // Ако има дефолтна каса
+                    if($caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc')){
+                        if(core_Packs::isInstalled('holding')){
+                            if(!holding_Companies::isValueAllowed($caseId, $rec->{$mvc->ownCompanyFieldName}, 'cashes')){
+                               $caseId = null;
+                           }
+                        }
+                    }
+
                     $form->setDefault('caseId', $caseId);
                 }
             }
@@ -528,6 +536,7 @@ class sales_Sales extends deals_DealMaster
                 
                 // И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
                 if (isset($rec->deliveryTermId)) {
+                    $deliveryCalcCost = null;
                     if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                         $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                         $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
