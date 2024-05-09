@@ -305,6 +305,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec = $form->rec;
         $form->setFieldTypeParams('deliveryTime', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
         $form->setDefault('chargeVat', $mvc->getDefaultChargeVat($rec));
+        $form->setDefault('shipmentStoreId', $mvc->getDefaultShipmentStoreId($rec));
 
         if(!$mvc->isOwnCompanyVatRegistered($rec)) {
             $form->setReadOnly('chargeVat');
