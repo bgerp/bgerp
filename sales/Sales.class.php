@@ -517,7 +517,16 @@ class sales_Sales extends deals_DealMaster
             if(isset($rec->paymentMethodId)){
                 $paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
                 if($paymentType == 'cash'){
-                    $caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc');
+
+                    // Ако има дефолтна каса
+                    if($caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc')){
+                        if(core_Packs::isInstalled('holding')){
+                            if(!holding_Companies::isValueAllowed($caseId, $rec->{$mvc->ownCompanyFieldName}, 'cashes')){
+                               $caseId = null;
+                           }
+                        }
+                    }
+
                     $form->setDefault('caseId', $caseId);
                 }
             }
