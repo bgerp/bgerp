@@ -176,7 +176,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'place' => 'lastDocUser|lastDoc|defMethod',
+        'place' => 'defMethod',
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
@@ -1161,14 +1161,19 @@ class purchase_Invoices extends deals_InvoiceMaster
     public static function getDefaultPlace($rec)
     {
         // Взимат се данните на избрания контрагент или на дефолтния
+        $cData = null;
         if(isset($rec->displayContragentClassId) && isset($rec->displayContragentId)){
            $cData = cls::get($rec->displayContragentClassId)->getContragentData($rec->displayContragentId);
+           $place = !empty($cData->place) ? $cData->place : (!empty($cData->address) ? $cData->address : null);
         } else {
-           $cData = doc_Folders::getContragentData($rec->folderId);
+            $place = cond_plg_DefaultValues::getDefValueByStrategy(cls::get(get_called_class()), $rec, 'place', 'lastDocUser|lastDoc');
+            if(empty($place)){
+                $cData = doc_Folders::getContragentData($rec->folderId);
+                $place = !empty($cData->place) ? $cData->place : (!empty($cData->address) ? $cData->address : null);
+            }
         }
-        $place = !empty($cData->place) ? $cData->place : (!empty($cData->address) ? $cData->address : null);
-        
-        if(!empty($place)){
+
+        if(!empty($place) && is_object($cData)){
             $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : null;
             $myCompany = crm_Companies::fetchOwnCompany($ownCompanyId);
             if ($cData->countryId != $myCompany->countryId) {
