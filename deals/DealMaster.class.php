@@ -3022,7 +3022,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param $rec
      * @return mixed
      */
-    public function getDefaultShipmentStoreId($rec)
+    public function getDefaultShipmentStoreId_($rec)
     {
         // Ако има склад от търговско условие - него
         $storeIdFromCondition = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'shipmentStoreId', 'clientCondition');
