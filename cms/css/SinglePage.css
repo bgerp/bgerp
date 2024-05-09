@@ -343,7 +343,7 @@ h6 {
 
 #wallpaper-block:before {
     content: "";
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.3);
     position: absolute;
     bottom: 0;
     top: 0;
@@ -392,13 +392,19 @@ h6 {
     }
 }
 
-
 section {
     padding: 50px 0;
     overflow: hidden;
 }
 
-
+#main {
+    padding-top: 70px;
+    min-height: 920px;
+}
+ #wallpaper-block + #main {
+    min-height: auto;
+     padding-top: 0px;
+}
 #main h2 {
     font-size: 32px;
     font-weight: bold;

@@ -304,6 +304,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = $form->rec;
         $form->setFieldTypeParams('deliveryTime', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
+        $form->setDefault('chargeVat', $mvc->getDefaultChargeVat($rec));
 
         if(!$mvc->isOwnCompanyVatRegistered($rec)) {
             $form->setReadOnly('chargeVat');
@@ -3022,7 +3023,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param $rec
      * @return mixed
      */
-    public function getDefaultShipmentStoreId($rec)
+    public function getDefaultShipmentStoreId_($rec)
     {
         // Ако има склад от търговско условие - него
         $storeIdFromCondition = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'shipmentStoreId', 'clientCondition');
