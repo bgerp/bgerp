@@ -337,7 +337,7 @@ class crm_Persons extends core_Master
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
-        $this->FNC('saveInSessionAfterCreation', 'int', 'silent,input');
+        $this->FNC('saveInSessionAfterCreation', 'int', 'silent,input=hidden');
 
         // Индекси
         $this->setDbIndex('name');
