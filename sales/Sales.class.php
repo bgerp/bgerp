@@ -537,6 +537,7 @@ class sales_Sales extends deals_DealMaster
                 
                 // И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
                 if (isset($rec->deliveryTermId)) {
+                    $deliveryCalcCost = null;
                     if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                         $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                         $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
