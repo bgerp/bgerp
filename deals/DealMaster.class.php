@@ -304,6 +304,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = $form->rec;
         $form->setFieldTypeParams('deliveryTime', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
+        $form->setDefault('chargeVat', $mvc->getDefaultChargeVat($rec));
 
         if(!$mvc->isOwnCompanyVatRegistered($rec)) {
             $form->setReadOnly('chargeVat');

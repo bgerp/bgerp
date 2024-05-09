@@ -240,7 +240,6 @@ class sales_Sales extends deals_DealMaster
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'defMethod',
         'oneTimeDelivery' => 'clientCondition'
