@@ -1281,7 +1281,14 @@ abstract class deals_DealMaster extends deals_DealBase
             if (!empty($rec->deliveryAdress)) {
                 $deliveryAdress = $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
             } else {
-                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc);
+                $ownCompanyId = null;
+                if(core_Packs::isInstalled('holding')){
+                    if(isset($mvc->ownCompanyFieldName)){
+                        $ownCompanyId = $rec->{$mvc->ownCompanyFieldName};
+                    }
+                }
+
+                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc, $ownCompanyId);
             }
            
             if (isset($rec->deliveryTermId) && !Mode::isReadOnly()) {

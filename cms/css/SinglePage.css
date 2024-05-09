@@ -1357,7 +1357,20 @@ section {
     border: none;
     box-shadow: none !important;
 }
+#loginModal .formError {
+    position: relative;
+    padding: .75rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
 
+#loginModal .formError ul {
+    margin-bottom: 0;
+}
 #loginModal  .formInfo {
     display: none;
 }
@@ -1372,7 +1385,8 @@ section {
 #loginModal table {
     width: 100%;
 }
-#loginModal .formFields input {
+
+#loginModal .formFields input, #loginModal .formFields select {
     display: block;
     width: 100% !important;
     padding: 0.375rem 0.75rem !important;

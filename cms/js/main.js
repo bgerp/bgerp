@@ -35,6 +35,12 @@
     }
 
     /**
+     * Отваряне на модал, ако има грешка
+     */
+    if($(".modal .formError").length) {
+        $(".modal .formError").closest('.modal').show();
+    }
+    /**
      * Easy on scroll event listener
      */
     const onscroll = (el, listener) => {
