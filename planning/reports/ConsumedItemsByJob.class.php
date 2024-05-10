@@ -298,7 +298,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->in('state', array('rejected', 'draft', 'pending'), true);
 
             //Включване на не складируемите артикули
-            if($rec->unstackableOn != 'yes'){
+            if ($rec->unstackableOn != 'yes') {
                 $pQuery->where("#canStore != 'no'");
             }
 
@@ -405,7 +405,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                     }
 
-                    $id = $pRec->productId . '|' . $secondPartKey ;
+                    $id = $pRec->productId . '|' . $secondPartKey;
                 } else {
                     $id = $pRec->productId;
                 }
@@ -464,7 +464,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             arr::sortObjects($recs, $orderBy, $orderType, $order);
         }
 
-        if ($rec->groupBy == 'jobId'){
+        if ($rec->groupBy == 'jobId') {
             arr::sortObjects($recs, 'jobId', 'ASC');
         }
 
@@ -751,19 +751,29 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     {
         if ($priceType == 'accPrice') {
             $docTypeId = core_Classes::getId($master);
-            $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството');
+
+            $q = acc_Operations::getQuery();
+
+            $reasonNameArr = array('Влагане на материал в производството', 'Влагане на услуга в производството',
+                'Влагане на нескладируема услуга или консуматив в производството,Бездетайлно влагане на материал в производството');
+            foreach ($q->fetchAll() as $qRec) {
+                if (!in_array($qRec->title, $reasonNameArr)) continue;
+                $resonIdArr[] = $qRec->id;
+            }
+
+            //  $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството' OR 'Влагане на услуга в производството');
 
             if (!$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id) return;
             //$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id;
 
             $jdQuery = acc_JournalDetails::getQuery();
 
-            $jdQuery->where("#journalId = ${masterJurnalId} AND #reasonCode = ${resonId}");
-
+            $jdQuery->where("#journalId = ${masterJurnalId}");
+            $jdQuery->in('reasonCode', $resonIdArr);
 
             while ($jdRec = $jdQuery->fetch()) {
+                unset($prodJournalId);
                 $prodJournalId = acc_Items::fetch($jdRec->creditItem2)->objectId;
-
                 if ($pRec->productId == $prodJournalId) {
 
                     return $jdRec->creditPrice;
