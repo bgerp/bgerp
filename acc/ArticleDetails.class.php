@@ -507,4 +507,30 @@ class acc_ArticleDetails extends doc_Detail
             $row->reason = "<span style='color:#444;font-size:0.9em;margin-left:5px'>{$row->reason}<span>";
         }
     }
+
+
+    /**
+     * Изпълнява се преди клониране на детайла
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        // Да не се клонират определени полета
+        $accs = array('debit' => acc_Accounts::getAccountInfo($oldRec->debitAccId), 'credit' => acc_Accounts::getAccountInfo($oldRec->creditAccId),);
+        $quantityOnly = ($accs['debit']->rec->type == 'passive' && $accs['debit']->rec->strategy) || ($accs['credit']->rec->type == 'active' && $accs['credit']->rec->strategy);
+
+        foreach ($accs as $type => $acc){
+            if (!$acc->isDimensional) {
+                unset($rec->{"{$type}Quantity"});
+                unset($rec->{"{$type}Price"});
+            }
+
+            if ($quantityOnly) {
+                unset($rec->{"{$type}Price"});
+            }
+        }
+
+        if($quantityOnly){
+            unset($rec->amount);
+        }
+    }
 }
