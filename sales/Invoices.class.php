@@ -267,7 +267,8 @@ class sales_Invoices extends deals_InvoiceMaster
             'narrowContent' => 'sales/tpl/InvoiceHeaderShortNarrowEN.shtml', 'lang' => 'en');
         $tplArr[] = array('name' => 'Фактура с цени в евро', 'content' => 'sales/tpl/InvoiceHeaderEuro.shtml', 'lang' => 'bg');
         $tplArr[] = array('name' => 'Счетоводна фактура', 'content' => 'sales/tpl/InvoiceAccView.shtml', 'lang' => 'bg');
-        
+        $tplArr[] = array('name' => 'Customs invoice', 'content' => 'sales/tpl/CustomsInvoiceEn.shtml', 'lang' => 'en');
+
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
         

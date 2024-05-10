@@ -1,0 +1,150 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<div class='scrolling-holder'>
+    <table style='width:100%;' id='inv-holder'>
+        <tbody>
+        <tr>
+            <td>
+                <table class="innerTable footer-notes paddingCells" style='width:100%;'>
+                    <tbody>
+                    <tr>
+                        <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Buyer</b></td>
+                        <td class="cell centered" rowspan="3" style='width:30%;'>
+                            <div class='document-title'>[#type#]</div>
+                            <div class='invInfo'>Number</div>
+                            <div class="bigData">[#number#]</div>
+                            <div class='invInfo'>Date</div>
+                            <div class="bigData">[#date#]</div>
+                            <div class='invInfo'>Place</div>
+                            <div class="bigData">[#place#]</div>
+                            <!--ET_BEGIN reff-->
+                            <div class="invInfo">Your reff: <span class="bigData">[#reff#]</span></div>
+                            <!--ET_END reff-->
+                            <div class='invInfo bigData'>
+                                <div class='original'>[#INV_STATUS#]</div>
+                                <!--ET_BEGIN originInv-->
+                                <div id='origin-title'>to Invoice <b>[#originInv#]</b> from [#originInvDate#]</div>
+                                <!--ET_END originInv-->
+                            </div>
+                            <!--ET_BEGIN state-->
+                            <div class="state [#STATE_CLASS#]" style='margin:5px 0;'>[#state#]</div>
+                            <!--ET_END state-->
+                        </td>
+                        <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>Seller</b> </td>
+                    </tr>
+                    <tr>
+                        <td class="cell">
+                            <b>[#contragentName#]</b>
+                            <div class='address-block'>
+                                [#contragentCountryId#]<br>
+                                [#contragentPCode#] [#contragentPlace#]<br>
+                                <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                            </div>
+                        </td>
+                        <td class="cell">
+                            <b>[#MyCompany#]</b>
+                            <div class='address-block'>
+                                [#MyAddress#]
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="cell">
+                            [#/deals/tpl/InvoiceContragentVatHeaderInfo.shtml#]
+                        </td>
+                        <td class="cell">
+                            [#/deals/tpl/InvoiceMyCompanyVatHeaderInfo.shtml#]
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="lines"></div>
+                <!--ET_BEGIN sales_InvoiceDetails-->
+                <div class='details'>
+                    [#sales_InvoiceDetails#]
+                    [#price_DiscountsPerDocuments#]
+                </div>
+                <!--ET_END sales_InvoiceDetails-->
+                <div class="lines"></div>
+                <table class="innerTable footer-notes paddingCells border-table">
+                    <tbody>
+                    <tr>
+                        <td style='line-height: 140%;'>
+                            <!--ET_BEGIN vatReason-->
+                            <div><span class='quiet'>Основание за неначисляване на ДДС:</span> [#vatReason#]</div>
+                            <!--ET_END vatReason-->
+                            <!--ET_BEGIN vatDate-->
+                            <span class='quiet'>Данъчно събитие:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <!--ET_END vatDate-->
+                            <!--ET_BEGIN rate-->
+                            <div><span class='quiet'>Курс:</span>  [#rate#]</div>
+                            <!--ET_END rate-->
+                            <hr class='printVisible'>
+                            <div class='custom-bg-block'><b>Payment</b></div>
+
+                            <!--ET_BEGIN paymentType-->
+                            <div class="boldText">[#paymentType#]</div>
+                            <!--ET_END paymentType-->
+
+                            <!--ET_BEGIN dueDate-->
+                            <div><span class='quiet'>Payment no later than:</span> [#dueDate#]</div>
+                            <!--ET_END dueDate-->
+                            <!--ET_BEGIN accountId-->
+                            <div class="[#BANK_BLOCK_CLASS#]">
+                                <span class='quiet'>Bank Account:</span> [#accountId#]
+                                <!--ET_BEGIN bankInfo-->
+                                [#bankInfo#]
+                                <div class="smallData">
+                                    <!--ET_BEGIN bank-->[#bank#]<!--ET_END bank--><!--ET_BEGIN bic-->, BIC: [#bic#]<!--ET_END bic-->
+                                </div>
+                                <!--ET_END bankInfo-->
+                            </div>
+                            <!--ET_END accountId-->
+                            <!--ET_BEGIN deliveryInfo-->
+                            [#deliveryInfo#]
+                            <hr class='printVisible'>
+                            <div class='custom-bg-block'><b>Delivery</b></div>
+                            <!--ET_BEGIN deliveryId-->
+                            [#deliveryId#]
+                            <!--ET_END deliveryId-->
+                            <!--ET_BEGIN deliveryPlaceId-->
+                            [#deliveryPlaceId#]
+                            <!--ET_END deliveryPlaceId-->
+                            <!--ET_END deliveryInfo-->
+                            <!--ET_BEGIN additionalInfo-->
+                            <hr class='printVisible'>
+                            <div class='custom-bg-block'><b>Notes</b></div>
+                            <div>[#additionalInfo#]</div>
+                            <!--ET_END additionalInfo-->
+                        </td>
+                        <td id='invoice-info' style='width:40%;'>
+                            [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
+                            <hr>
+                            <table class='centered no-border' style="width:100%;">
+                                <tr>
+                                    <td class='centered' style='border-right:1px solid #999 !important;width:50%;'>Received: [#RESPONSIBLE_SIGN_PAD#]</td>
+                                    <td class='centered'>Created by: [#USERNAME_SIGN_PAD#]</td>
+                                </tr>
+                                <tr>
+                                    <td style='height:40px;border-right:1px solid #999 !important;'>[#RESPONSIBLE_SIGN#]</td>
+                                    <td>[#USERNAME_SIGN#]</td>
+                                </tr>
+                                <tr>
+                                    <td class='centered' style='border-right:1px solid #999 !important;'> <span class="sign_names">[#responsible#]</span></td>
+                                    <td class='nowrap centered'><span class="sign_names">[#username#]</span><!--ET_BEGIN userCode--><div class='small'>( PIC: [#userCode#] )</div><!--ET_END userCode--></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr class='footerDocInfo'>
+                        <td colspan="2">
+                            [#/doc/tpl/Copyright.shtml#]
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
