@@ -101,19 +101,20 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from,removeAndRefreshForm,single=none,silent,mandatory');
 
         //Групиране на резултатите
-        $fieldset->FLD('groupBy', 'enum(no=Без групиране,jobId=Задание,jobArt=Артикул в заданието, valior=Дата,mounth=Месец,year=Година)', 'caption=Групиране по,after=to,single=none,refreshForm,silent');
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране,jobId=Задание,jobArt=Артикул в заданието, valior=Дата,mounth=Месец,year=Година)', 'caption=Групиране->Групиране по,after=to,single=none,refreshForm,silent');
 
 
         //По кои цени да се смятат себестойностите
-        $fieldset->FLD('pricesType', 'enum(selfPrice=Политика "Себестойност",catalog=Политика "Каталог", accPrice=Счетоводна )', 'caption=Себестойности->Стойност по,after=groupBy,single=none,silent');
+        $fieldset->FLD('seeAmount', 'set(yes = )', 'caption=Себестойности->Покажи стойности,after=groupBy,single=none');
+        $fieldset->FLD('pricesType', 'enum(selfPrice=Политика "Себестойност",catalog=Политика "Каталог", accPrice=Счетоводна )', 'caption=Себестойности->Стойност по,after=seeAmount,single=none,silent');
 
 
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(valior=Дата,name=Артикул, code=Код,consumedQuantity=Вложено количество,returnedQuantity=Върнато количество,totalQuantity=Резултат количество,totalAmount=Резултат стойност)', 'caption=Подреждане->Показател,after=pricesType,single=none,silent');
         $fieldset->FLD('orderType', 'enum(asc=Нарастващо,desc=Намаляващо)', 'caption=Подреждане->Подреждане,after=orderBy,single=none,silent');
 
-        $fieldset->FLD('seeAmount', 'set(yes = )', 'caption=Покажи стойности,after=orderType,single=none');
-        $fieldset->FLD('unstackableOn', 'set(yes = )', 'caption=Включи нескладируемите,after=orderType,single=none');
+
+        $fieldset->FLD('unstackableOn', 'set(yes = )', 'caption=Подреждане->Включи нескладируемите,after=orderType,single=none');
 
 
     }
