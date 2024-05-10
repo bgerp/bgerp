@@ -1894,11 +1894,16 @@ a.tUnsighted {
 .dark-gray {
   color: #444444; }
 
-#packWrapper > .floatedElement {
+#packWrapper > .floatedElement,
+#packWrapper > .tab-control .tab-page .floatedElement {
   float: left; }
-  #packWrapper > .floatedElement.preview-holder {
+  #packWrapper > .floatedElement.preview-holder:not(.palletInfoBlock),
+  #packWrapper > .tab-control .tab-page .floatedElement.preview-holder:not(.palletInfoBlock) {
     margin-top: -20px !important;
     min-width: 800px; }
+  #packWrapper > .floatedElement.palletInfoBlock,
+  #packWrapper > .tab-control .tab-page .floatedElement.palletInfoBlock {
+    margin-top: -10px !important; }
 
 .palletInfoBlock {
   display: inline-block; }
