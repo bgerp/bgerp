@@ -1081,6 +1081,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fld->FLD('dueDateStatus', 'varchar', 'caption=Състояние,smartCenter');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
+            $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума-> лв.,smartCenter');
             $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
             $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания,smartCenter');
             if ($rec->unpaid == 'unpaid') {
@@ -1621,6 +1622,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $invoiceNo = str_pad($dRec->invoiceNo, 10, '0', STR_PAD_LEFT);
 
         $res->invoiceNo = $invoiceNo;
+
+        $invoiceValue = $rec->unpaid == 'all' ? $dRec->invoiceValue : $dRec->invoiceValue;
+        $res->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue * $dRec->rate);
     }
 
     /**
