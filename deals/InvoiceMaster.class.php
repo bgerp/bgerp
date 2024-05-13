@@ -1615,12 +1615,10 @@ abstract class deals_InvoiceMaster extends core_Master
             $count++;
         }
 
-        if (!countR($cacheIds)) {
-            if (isset($docRec->dpAmount)) {
-                $vRate = isset($docRec->dpVatGroupId) ? acc_VatGroups::fetchField($docRec->dpVatGroupId, 'vat') : 0.2;
-                $v = ($docRec->vatRate == 'yes' || $docRec->vatRate == 'separate') ? $vRate : 0;
-                $vats["{$v}"] = $v;
-            }
+        if (!empty($docRec->dpAmount)) {
+            $vRate = isset($docRec->dpVatGroupId) ? acc_VatGroups::fetchField($docRec->dpVatGroupId, 'vat') : 0.2;
+            $v = ($docRec->vatRate == 'yes' || $docRec->vatRate == 'separate') ? $vRate : 0;
+            $vats["{$v}"] = $v;
         }
 
         $res = (object) array('vats' => $vats, 'recWithIds' => $cacheIds);
