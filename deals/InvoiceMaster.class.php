@@ -2187,6 +2187,12 @@ abstract class deals_InvoiceMaster extends core_Master
                 return 'При неначисляване на ДДС на контрагент от "България" с ДДС № трябва да е посочено основание|*!';
             }
         } else {
+
+            if(isset($rec->changeAmount) && $rec->type == 'dc_note' && empty($rec->vatAmount)){
+
+                return 'При известие с нулева ставка, трябва да е посочено основание за неначисляване на ДДС|*!';
+            }
+
             // Ако има аванс и той е с нулева ставка
             if(!empty($rec->dpAmount) && isset($rec->dpVatGroupId)){
                 $vatGroupPercent = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
