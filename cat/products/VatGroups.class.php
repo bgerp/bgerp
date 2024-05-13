@@ -264,29 +264,30 @@ class cat_products_VatGroups extends core_Detail
     
     
     /**
-     * Намира артикулите с посочена ДДС ставка към подадената дата
+     * Връща от подадените артикули тези с посочената ДДС ставка към датата
      *
-     * @param double     $percent - търсен процент
-     * @param datetime|NULL $date - към коя дата
-     * @return array $products    - намерените артикули
+     * @param double     $percent    - търсен процент
+     * @param datetime|NULL $date    - към коя дата
+     * @param array|NULL $productIds - сред кои артикули да се търси, null за всички
+     * @return array $products       - намерените артикули
      */
-    public static function getByVatPercent($percent, $date = null)
+    public static function getByVatPercent($percent, $date = null, $productIds = null)
     {
         $products = array();
         $date = (!empty($date)) ? dt::verbal2mysql($date, false) : dt::today();
         $gQuery = acc_VatGroups::getQuery();
         $gQuery->where(array("#vat = '[#1#]'", $percent));
         $groups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
-        if (!countR($groups)) {
-            
-            return $products;
-        }
+        if (!countR($groups)) return $products;
         
         $query = self::getQuery();
         $query->where("#validFrom <= '{$date}'");
         $query->orderBy('#validFrom', 'DESC');
         $query->show('vatGroup,productId');
-        
+        if(isset($productIds)){
+            $query->in('productId', $productIds);
+        }
+
         while ($rec = $query->fetch()) {
             if (!array_key_exists($rec->productId, $products)) {
                 $products[$rec->productId] = $rec;
@@ -297,10 +298,9 @@ class cat_products_VatGroups extends core_Detail
             if (in_array($obj->vatGroup, $groups)) return true;
         });
 
+        // Ако дефолтното ддс за периода е колкото търсеното, се извличат и
+        // всички които нямат записи в модела за конкретна ддс група
         $products = arr::extractValuesFromArray($products, 'productId');
-        
-        // Ако дефолтното ддс за периода е колкото търсеното, се извличат и всички които нямат записи в модела
-        // за конкретна ддс група
         $vatRate = acc_Periods::fetchByDate($date)->vatRate;
         if ($vatRate === $percent) {
             $pQuery = cat_Products::getQuery();
