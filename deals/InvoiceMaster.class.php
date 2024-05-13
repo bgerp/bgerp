@@ -1000,7 +1000,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $origin = doc_Containers::getDocument($rec->originId);
                 $originRec = $origin->fetch('dpAmount,dpOperation,dealValue,date,dpVatGroupId');
 
-                if (!empty($rec->changeAmountVat)) {
+                if (isset($rec->changeAmountVat)) {
                     $vat = $rec->changeAmountVat;
                 } else {
                     if (($originRec->dpOperation == 'accrued' || $originRec->dpOperation == 'deducted') && isset($originRec->dpVatGroupId)){
@@ -1605,7 +1605,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $price = $dRec->packPrice;
             }
             $price = round($price, 5);
-            $docRec->vatRate = 'no';
+
             $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price, 'count' => $count, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);
             $v = 0;
             if ($docRec->vatRate != 'no' && $docRec->vatRate != 'exempt') {
@@ -1615,12 +1615,10 @@ abstract class deals_InvoiceMaster extends core_Master
             $count++;
         }
 
-        if (!countR($cacheIds)) {
-            if (isset($docRec->dpAmount)) {
-                $vRate = isset($docRec->dpVatGroupId) ? acc_VatGroups::fetchField($docRec->dpVatGroupId, 'vat') : 0.2;
-                $v = ($docRec->vatRate == 'yes' || $docRec->vatRate == 'separate') ? $vRate : 0;
-                $vats["{$v}"] = $v;
-            }
+        if (!empty($docRec->dpAmount)) {
+            $vRate = isset($docRec->dpVatGroupId) ? acc_VatGroups::fetchField($docRec->dpVatGroupId, 'vat') : 0.2;
+            $v = ($docRec->vatRate == 'yes' || $docRec->vatRate == 'separate') ? $vRate : 0;
+            $vats["{$v}"] = $v;
         }
 
         $res = (object) array('vats' => $vats, 'recWithIds' => $cacheIds);
