@@ -1280,7 +1280,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     } else {
                         $bgId = drdata_Countries::getIdByName('Bulgaria');
                         if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
-                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България" с ДДС№ трябва да е посочено основание|*!', 'error');
+                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България" с ДДС № трябва да е посочено основание|*!', 'error');
                         }
                     }
                 }
@@ -2047,26 +2047,6 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
-     * Изпълнява се преди контиране на документа
-     */
-    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-
-        if(!in_array($rec->vatRate, array('yes', 'separate'))){
-            if(empty($rec->vatReason)){
-                $bgId = drdata_Countries::getIdByName('Bulgaria');
-                if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
-
-                    core_Statuses::newStatus('При неначисляване на ДДС на контрагент от "България" с ДДС № трябва да е посочено основание', 'error');
-                    return false;
-                }
-            }
-        }
-    }
-
-
-    /**
      * Кои полета да се ъпдейтнат във визитката след промяна
      */
     public function getContragentCoverFieldsToUpdate($rec)
@@ -2185,5 +2165,50 @@ abstract class deals_InvoiceMaster extends core_Master
         if(!in_array($name, arr::make('contragentCountryId,contragentVatNo,contragentEori,uicNo,contragentPCode,contragentPlace,contragentAddress'))) return;
         $Cover = doc_Folders::getCover($folderId);
         $query->where("#displayContragentId IS NULL OR (#displayContragentClassId = '{$Cover->className}' AND #displayContragentId = {$Cover->that})");
+    }
+
+
+    /**
+     * Да се изисква ли основание за неначисляване на ДДС, ако няма
+     *
+     * @param stdClass $rec
+     * @param array $productArr
+     * @return false|string
+     */
+    public function doRequireVatReasonWhenTryingToPost($rec, $productArr)
+    {
+        // Ако има зададено основание - няма да се прави нищо
+        $rec = $this->fetchRec($rec);
+        if(!empty($rec->vatReason)) return false;
+
+        // Ако е без или освободено от ДДС
+        if(!in_array($rec->vatRate, array('yes', 'separate'))){
+            $bgId = drdata_Countries::getIdByName('Bulgaria');
+            if($rec->contragentCountryId == $bgId){
+
+                return 'При неначисляване на ДДС на контрагент от "България" с ДДС № трябва да е посочено основание|*!';
+            }
+        } else {
+            // Ако има аванс и той е с нулева ставка
+            if(!empty($rec->dpAmount) && isset($rec->dpVatGroupId)){
+                $vatGroupPercent = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
+                if(empty($vatGroupPercent)){
+
+                    return 'При аванс с нулева ставка, трябва да е посочено основание за неначисляване на ДДС|*!';
+                }
+            }
+
+            // Ако има артикули и поне един от тях е с нулева ставка
+            if(countR($productArr)){
+                $productsWithZeroVat = cat_products_VatGroups::getByVatPercent(0, $rec->date, $productArr);
+                if(countR($productsWithZeroVat)){
+
+                    return 'При участие на артикули с нулева ставка, трябва да е посочено основание за неначисляване на ДДС|*!';
+                }
+            }
+        }
+
+        // Няма да се изисква, ако се стигне до тук
+        return false;
     }
 }
