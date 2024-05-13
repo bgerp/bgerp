@@ -2181,6 +2181,9 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // Ако е без или освободено от ДДС
         if(!in_array($rec->vatRate, array('yes', 'separate'))){
+            $calcedVatReason = $this->getNoVatReason($rec);
+            if(!empty($calcedVatReason)) return false;
+
             $bgId = drdata_Countries::getIdByName('Bulgaria');
             if($rec->contragentCountryId == $bgId){
 
