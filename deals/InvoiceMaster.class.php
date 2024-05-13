@@ -1000,7 +1000,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $origin = doc_Containers::getDocument($rec->originId);
                 $originRec = $origin->fetch('dpAmount,dpOperation,dealValue,date,dpVatGroupId');
 
-                if (!empty($rec->changeAmountVat)) {
+                if (isset($rec->changeAmountVat)) {
                     $vat = $rec->changeAmountVat;
                 } else {
                     if (($originRec->dpOperation == 'accrued' || $originRec->dpOperation == 'deducted') && isset($originRec->dpVatGroupId)){
