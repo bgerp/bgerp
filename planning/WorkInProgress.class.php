@@ -190,9 +190,10 @@ class planning_WorkInProgress extends core_Manager
         $data->query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $data->query->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
         $data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
+        $data->query->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
 
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-        $data->listFilter->setDefault('filters', 'active');
+        $data->listFilter->setDefault('filters', 'activeProducts');
         $data->listFilter->showFields = 'search,productId,filters,groupId';
         $data->listFilter->input();
 
@@ -213,7 +214,7 @@ class planning_WorkInProgress extends core_Manager
             }
 
             $filtersArr = bgerp_type_CustomFilter::toArray($data->listFilter->rec->filters);
-            cat_Products::applyAdditionalListFilters($filtersArr, $data->query);
+            cat_Products::applyAdditionalListFilters($filtersArr, $data->query, 'productId', 'pState');
 
             if(isset($filtersArr['lastAdded'])){
                 $data->query->orderBy('#productCreatedOn=DESC');
@@ -227,5 +228,19 @@ class planning_WorkInProgress extends core_Manager
             }
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         }
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $productState = cat_Products::fetchField($rec->productId, 'state');
+        $row->ROW_ATTR['class'] = "state-{$productState}";
     }
 }

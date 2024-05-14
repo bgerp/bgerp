@@ -46,7 +46,8 @@ class doc_plg_Sequencer2 extends core_Plugin
     {
         $form = $data->form;
         $options = cond_Ranges::getAvailableRanges($mvc);
-        
+        $mvc->invoke('afterGetAvailableRanges', array(&$options, $data));
+
         if(countR($options)){
             $form->setField($mvc->rangeNumFld, 'input');
             $form->setOptions($mvc->rangeNumFld, $options);

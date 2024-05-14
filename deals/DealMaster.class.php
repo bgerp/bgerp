@@ -304,8 +304,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = $form->rec;
         $form->setFieldTypeParams('deliveryTime', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
+        $form->setDefault('chargeVat', $mvc->getDefaultChargeVat($rec));
+        $form->setDefault('shipmentStoreId', $mvc->getDefaultShipmentStoreId($rec));
 
-        if(!crm_Companies::isOwnCompanyVatRegistered()) {
+        if(!$mvc->isOwnCompanyVatRegistered($rec)) {
+            $form->rec->chargeVat = 'no';
             $form->setReadOnly('chargeVat');
         }
         
@@ -352,7 +355,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public function getDefaultChargeVat($rec)
     {
         // Ako "Моята фирма" е без ДДС номер - без начисляване
-        if(!crm_Companies::isOwnCompanyVatRegistered()) return 'no';
+        if(!$this->isOwnCompanyVatRegistered($rec)) return 'no';
 
         // После се търси по приоритет
         foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
@@ -360,7 +363,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if(!empty($chargeVat)) return $chargeVat;
         }
 
-        return deals_Helper::getDefaultChargeVat($rec->folderId);
+        return deals_Helper::getDefaultChargeVat($this, $rec);
     }
     
     
@@ -467,7 +470,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         // Избрания ДДС режим съответства ли на дефолтния
-        $defVat = deals_Helper::getDefaultChargeVat($rec->folderId, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
+        $defVat = deals_Helper::getDefaultChargeVat($mvc, $rec, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
             $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
             if(!$isCurrencyReadOnly){
@@ -982,6 +985,11 @@ abstract class deals_DealMaster extends deals_DealBase
             if ($rec->deliveryLocationId) {
                 $result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId, false);
             }
+
+            if(core_Packs::isInstalled('holding')){
+                $ownCompanyId = $rec->{$self->ownCompanyFieldName} ?? crm_Setup::BGERP_OWN_COMPANY_ID;
+                $result->features['Моя фирма'] = crm_Companies::getTitleById($ownCompanyId, false);
+            }
         }
         
         return $result;
@@ -1276,7 +1284,14 @@ abstract class deals_DealMaster extends deals_DealBase
             if (!empty($rec->deliveryAdress)) {
                 $deliveryAdress = $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
             } else {
-                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc);
+                $ownCompanyId = null;
+                if(core_Packs::isInstalled('holding')){
+                    if(isset($mvc->ownCompanyFieldName)){
+                        $ownCompanyId = $rec->{$mvc->ownCompanyFieldName};
+                    }
+                }
+
+                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc, $ownCompanyId);
             }
            
             if (isset($rec->deliveryTermId) && !Mode::isReadOnly()) {
@@ -3010,7 +3025,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param $rec
      * @return mixed
      */
-    public function getDefaultShipmentStoreId($rec)
+    public function getDefaultShipmentStoreId_($rec)
     {
         // Ако има склад от търговско условие - него
         $storeIdFromCondition = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'shipmentStoreId', 'clientCondition');

@@ -20,19 +20,18 @@
     </div>
 </header>
 
-<!--ET_BEGIN TITLES-->
-[#TITLES#]
+<!--ET_BEGIN WALLPAPER_BLOCK-->
 <section id="wallpaper-block" class="d-flex flex-column justify-content-center">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-xl-8">
-                <!--ET_BEGIN TITLE--><h1>[#TITLE#]</h1><!--ET_END TITLE-->
+                <h1>[#HEADTITLE#]</h1>
                 <!--ET_BEGIN SUBTITLE--><h2>[#SUBTITLE#]</h2><!--ET_END SUBTITLE-->
             </div>
         </div>
     </div>
 </section>
-<!--ET_END TITLES-->
+<!--ET_END WALLPAPER_BLOCK-->
 
 <main id="main">
     [#CMS_LAYOUT#]
@@ -40,12 +39,10 @@
 
 <footer id="footer">
     <div class="container">
-        <h3>[#CORE_APP_NAME#]</h3>
-        <p>[#FOOTER_INFO#]</p>
+        <h3>[#FOOTER_TITLE#]</h3>
+        <p>[#FOOTER_SUBTITLE#]</p>
         <div class="social-links">
-            <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
-            <a href="#" class="instagram"><i class="bx bxl-instagram"></i></a>
-            <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+            [#social_Followers::getButtons#]
         </div>
         <div class="credits">
             Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>

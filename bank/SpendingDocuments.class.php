@@ -106,6 +106,7 @@ class bank_SpendingDocuments extends bank_Document
         
         expect($origin = $mvc->getOrigin($form->rec), $form->rec);
         $accountOptions = $mvc->getOwnAccountOptions($form->rec->ownAccount);
+        $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$accountOptions));
         $form->setOptions('ownAccount', $accountOptions);
 
         $options = array();

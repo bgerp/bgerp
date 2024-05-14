@@ -414,6 +414,9 @@ class rack_Movements extends rack_MovementAbstract
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
+        if (Mode::is('screenMode', 'wide')) {
+            $data->form->class .= ' floatedElement ';
+        }
         $rec = &$form->rec;
 
         // Форсиране на склада от урл-то ако може

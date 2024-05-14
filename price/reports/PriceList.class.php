@@ -131,7 +131,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $Cover = doc_Folders::getCover($form->rec->folderId);
         if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $defaultListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
-            $form->setDefault('vat', deals_Helper::getDefaultChargeVat($form->rec->folderId));
+            $form->setDefault('vat', deals_Helper::getDefaultChargeVat($Embedder, $form->rec));
             $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
             
             $listOptions = price_Lists::getAccessibleOptions($Cover->className, $Cover->that);

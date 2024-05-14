@@ -659,6 +659,13 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $caseId = null;
 
+        // Измежду кои каси може да се избира, ако е инсталирана многофирмеността ще е от разрешените каси
+        // в посочената моя фирма
+        $allowedCases = null;
+        if(core_Packs::isInstalled('holding')){
+            $allowedCases = holding_Companies::getSelectedOptions('cashes', $rec->{$this->ownCompanyFieldName});
+        }
+
         // Ако има транс. линия с дефолтна каса
         $priorityCases = array();
         if(!empty($rec->{$this->lineFieldName})){
@@ -678,6 +685,8 @@ abstract class cash_Document extends deals_PaymentDocument
             $clone = clone $rec;
             $clone->peroCase = $defaultCaseId;
             if(deals_Helper::canSelectObjectInDocument('conto', $clone, 'cash_Cases', 'peroCase')){
+                if(is_array($allowedCases) && !array_key_exists($defaultCaseId, $allowedCases)) continue;
+
                 $caseId = $defaultCaseId;
                 break;
             }
@@ -685,20 +694,32 @@ abstract class cash_Document extends deals_PaymentDocument
 
         // Ако не може да контира с касата от тл или сесията
         if(!isset($caseId)){
-            $userId = isset($userId) ? $userId : core_Users::getCurrent();
+            $userId = $userId ?? core_Users::getCurrent();
 
             // Ако няма търси се първата каса в която може да контира, след това първата, която може да избира
             foreach (array(true, false) as $exp){
                 $query = cash_Cases::getQuery();
                 $query->show('id');
+                if(is_array($allowedCases)){
+                    if(countR($allowedCases)){
+                        $query->in('id', array_keys($allowedCases));
+                    } else {
+                        $query->where("1=2");
+                    }
+                }
 
                 // Ако не е намерена контираща каса, но има избрана каса в сесията - това е тя
                 if($exp === false && isset($sessionCaseId)){
-                    $caseId = $sessionCaseId;
-                    break;
+                    if(!is_array($allowedCases) || array_key_exists($sessionCaseId, $allowedCases)){
+                        $caseId = $sessionCaseId;
+                        break;
+                    }
                 }
 
-                bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
+                if(!haveRole('ceo', $userId)){
+                    bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
+                }
+
                 if($firstRec = $query->fetch()){
                     $caseId = $firstRec->id;
                     break;

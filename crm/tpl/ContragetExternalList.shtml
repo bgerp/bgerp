@@ -6,7 +6,7 @@
 		</div>
 		<div class='info'>
 			<h5>[#name#]</h5>
-			<!--ET_BEGIN place--><p>[#place#] <!--ET_END place--></p>
+			<!--ET_BEGIN place--><p>[#place#]</p> <!--ET_END place-->
 			<p>[#address#]</p>
 			<!--ET_BEGIN website-->
 			<p class="website">[#website#]</p>

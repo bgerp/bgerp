@@ -2213,12 +2213,15 @@ white-space: nowrap;
 .dark-gray {
 color: #444;
 }
-#packWrapper > .floatedElement {
-float: left;
-&.preview-holder {
-    margin-top: -20px !important;
-    min-width: 800px;
-}
+#packWrapper > .floatedElement,  #packWrapper > .tab-control .tab-page .floatedElement{
+	float: left;
+	&.preview-holder:not(.palletInfoBlock) {
+		margin-top: -20px !important;
+		min-width: 800px;
+	}
+	&.palletInfoBlock {
+		margin-top: -10px !important;
+	}
 }
 
 .palletInfoBlock {

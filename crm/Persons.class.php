@@ -337,7 +337,8 @@ class crm_Persons extends core_Master
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
-        
+        $this->FNC('saveInSessionAfterCreation', 'int', 'silent,input=hidden');
+
         // Индекси
         $this->setDbIndex('name');
         $this->setDbIndex('country');
@@ -844,7 +845,8 @@ class crm_Persons extends core_Master
             }
         }
 
-        if($rec->_isBeingCreated){
+
+        if($rec->saveInSessionAfterCreation){
             Mode::setPermanent('lastAddedPersonId', $rec->id);
         }
     }
