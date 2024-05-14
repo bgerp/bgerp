@@ -338,4 +338,19 @@ class plg_Current extends core_Plugin
             }
         }
     }
+
+
+    /**
+     * Маха от сесията избраната опция
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     */
+    public static function on_AfterUnsetCurrent($mvc, &$res)
+    {
+        if (!$res) {
+            $modeKey = self::getModeKey($mvc->className);
+            Mode::setPermanent($modeKey, null);
+        }
+    }
 }
