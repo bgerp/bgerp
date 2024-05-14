@@ -808,6 +808,17 @@ abstract class deals_InvoiceMaster extends core_Master
                         $form->rec->{$fld} = $arr[$fld];
                     }
                 }
+            } else {
+                // Ако е сменен контрагента за показване, но преди е имало такъв да се заредят дефолтните стойности
+                if(isset($rec->id)){
+                    $exRec = $mvc->fetch($rec->id, '*', false);
+                    if(!empty($exRec->displayContragentId)){
+                        foreach (arr::make('contragentCountryId,contragentVatNo,contragentEori,uicNo,contragentPCode,contragentPlace,contragentAddress', true) as $fld){
+                            $cloneRec = (object)array('folderId' => $rec->folderId);
+                            $form->rec->{$fld} = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $cloneRec, $fld, 'clientData|lastDocUser|lastDoc');
+                        }
+                    }
+                }
             }
         }
 
