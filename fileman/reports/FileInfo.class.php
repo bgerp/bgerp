@@ -12,6 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class fileman_reports_FileInfo extends frame_BaseDriver
 {
@@ -24,7 +25,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'powerUser';
+    public $canSelectSource = 'no_one';
     
     
     /**

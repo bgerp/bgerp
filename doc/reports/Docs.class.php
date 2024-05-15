@@ -17,6 +17,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class doc_reports_Docs extends frame_BaseDriver
 {
@@ -53,7 +54,7 @@ class doc_reports_Docs extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'powerUser';
+    public $canSelectSource = 'no_one';
     
     
     /**
