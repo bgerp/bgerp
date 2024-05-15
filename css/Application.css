@@ -294,6 +294,8 @@ div.folder-cover {
     background: #cef1d7 url('../img/cover-bg-green.png'); }
   div.folder-cover.state-active {
     background: #fffdea url('../img/cover-bg-yellow.png'); }
+  div.folder-cover.ownCompany .block_title {
+    background: #a0f1b3; }
   div.folder-cover .detail-info {
     background: none; }
     div.folder-cover .detail-info.portal {
