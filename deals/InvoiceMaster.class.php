@@ -808,6 +808,17 @@ abstract class deals_InvoiceMaster extends core_Master
                         $form->rec->{$fld} = $arr[$fld];
                     }
                 }
+            } else {
+                // Ако е сменен контрагента за показване, но преди е имало такъв да се заредят дефолтните стойности
+                if(isset($rec->id)){
+                    $exRec = $mvc->fetch($rec->id, '*', false);
+                    if(!empty($exRec->displayContragentId)){
+                        foreach (arr::make('contragentCountryId,contragentVatNo,contragentEori,uicNo,contragentPCode,contragentPlace,contragentAddress', true) as $fld){
+                            $cloneRec = (object)array('folderId' => $rec->folderId);
+                            $form->rec->{$fld} = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $cloneRec, $fld, 'clientData|lastDocUser|lastDoc');
+                        }
+                    }
+                }
             }
         }
 
@@ -2181,12 +2192,21 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // Ако е без или освободено от ДДС
         if(!in_array($rec->vatRate, array('yes', 'separate'))){
+            $calcedVatReason = $this->getNoVatReason($rec);
+            if(!empty($calcedVatReason)) return false;
+
             $bgId = drdata_Countries::getIdByName('Bulgaria');
             if($rec->contragentCountryId == $bgId){
 
                 return 'При неначисляване на ДДС на контрагент от "България" с ДДС № трябва да е посочено основание|*!';
             }
         } else {
+
+            if(isset($rec->changeAmount) && $rec->type == 'dc_note' && empty($rec->vatAmount)){
+
+                return 'При известие с нулева ставка, трябва да е посочено основание за неначисляване на ДДС|*!';
+            }
+
             // Ако има аванс и той е с нулева ставка
             if(!empty($rec->dpAmount) && isset($rec->dpVatGroupId)){
                 $vatGroupPercent = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');

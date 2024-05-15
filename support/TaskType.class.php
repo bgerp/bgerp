@@ -276,6 +276,20 @@ class support_TaskType extends core_Mvc
 
 
     /**
+     * След изпращане на формата
+     */
+    protected static function on_AfterInputEditForm($Driver, embed_Manager $Embedder, &$form)
+    {
+        $rec = &$form->rec;
+        if($form->isSubmitted()){
+            if(empty($rec->assetResourceId) && $rec->_assetsAllowed){
+                $form->setWarning('assetResourceId', 'За по-бърза обработка на сигнала, моля изберете "Ресурс"!');
+            }
+        }
+    }
+
+
+    /**
      *
      *
      * @param support_TaskType $Driver
@@ -384,8 +398,10 @@ class support_TaskType extends core_Mvc
             $form->setOptions('assetResourceId', $assetResArr);
 
             $form->setField('assetResourceId', 'input=input');
+            $rec->_assetsAllowed = true;
         } else {
             $form->setField('assetResourceId', 'input=none');
+            $rec->_assetsAllowed = false;
         }
 
         if (($srcId = $rec->SrcId) && ($srcClass = $rec->SrcClass)) {
