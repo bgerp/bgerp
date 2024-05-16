@@ -13,6 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class sens2_reports_DataLog extends frame_BaseDriver
 {
@@ -25,7 +26,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo, sens, admin';
+    public $canSelectSource = 'no_one';
     
     
     /**

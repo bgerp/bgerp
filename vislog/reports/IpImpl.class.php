@@ -13,6 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class vislog_reports_IpImpl extends frame_BaseDriver
 {
@@ -49,7 +50,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo, admin, cms';
+    public $canSelectSource = 'no_one';
     
     
     /**
