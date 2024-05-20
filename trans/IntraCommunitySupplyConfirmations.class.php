@@ -279,7 +279,14 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $ourCompany = crm_Companies::fetchOurCompany();
+        $Document = doc_Containers::getDocument($rec->originId);
+        $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_ID', true);
+        if(core_Packs::isInstalled('holding')){
+            if(isset($Document->ownCompanyFieldName)){
+                $ownCompanyId = $Document->fetchField($Document->ownCompanyFieldName);
+            }
+        }
+        $ourCompany = crm_Companies::fetchOurCompany('*', $ownCompanyId);
 
         // Данните на моята фирма
         $row->ourCompanyName = $ourCompany->name;
