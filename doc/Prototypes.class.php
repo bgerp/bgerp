@@ -148,15 +148,19 @@ class doc_Prototypes extends core_Manager
         // Кога може да се добавя и редактира
         if (($action == 'add' || $action == 'edit') && isset($rec->originId)) {
             if ($requiredRoles != 'no_one') {
-                $doc = doc_Containers::getDocument($rec->originId);
-                $state = $doc->fetchField('state');
-                
-                // Трябва потребителя да има достъп до документа
-                if (!$doc->haveRightFor('single')) {
-                    $requiredRoles = 'no_one';
-                
-                // И документа да не е оттеглен
-                } elseif ($state == 'rejected' || $state == 'closed') {
+                try{
+                    $doc = doc_Containers::getDocument($rec->originId);
+                    $state = $doc->fetchField('state');
+
+                    // Трябва потребителя да има достъп до документа
+                    if (!$doc->haveRightFor('single')) {
+                        $requiredRoles = 'no_one';
+
+                        // И документа да не е оттеглен
+                    } elseif ($state == 'rejected' || $state == 'closed') {
+                        $requiredRoles = 'no_one';
+                    }
+                } catch(core_exception_Expect $e){
                     $requiredRoles = 'no_one';
                 }
             }
@@ -242,15 +246,19 @@ class doc_Prototypes extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-list'])) {
-            $origin = doc_Containers::getDocument($rec->originId);
-            if(cls::existsMethod($origin->getInstance(), 'getPrototypeTitle')){
-                $row->titleCalc = $origin->getPrototypeTitle();
-            } else {
-                $row->titleCalc = ht::createHint($origin->getTitleById(), 'Документа вече не може да бъде шаблонен', 'error', false);
-            }
+            try{
+                $origin = doc_Containers::getDocument($rec->originId);
+                if(cls::existsMethod($origin->getInstance(), 'getPrototypeTitle')){
+                    $row->titleCalc = $origin->getPrototypeTitle();
+                } else {
+                    $row->titleCalc = ht::createHint($origin->getTitleById(), 'Документа вече не може да бъде шаблонен', 'error', false);
+                }
 
-            $row->docId = $origin->getLink(0);
-            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+                $row->docId = $origin->getLink(0);
+                $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            } catch(core_exception_Expect $e){
+                $row->docId = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+            }
         }
     }
     
