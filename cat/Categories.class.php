@@ -191,7 +191,7 @@ class cat_Categories extends core_Master
         $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory, translate=user|tr|transliterate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
-        $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като шаблони->Използване');
+        $this->FLD('useAsProto', 'enum(no=Не,yes=Да [за избиране],yesNoSelect=Да [без избиране])', 'caption=Дали всички артикули в папката да са шаблонни->Използване');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
         $this->FLD('prefix', 'varchar(32)', 'caption=Настройки - препоръчителни за артикулите в категорията->Представка код');
         $this->FLD('minCodePad', 'int(Min=0)', 'caption=Настройки - препоръчителни за артикулите в категорията->Мин. дължина на кода');
@@ -256,7 +256,7 @@ class cat_Categories extends core_Master
         }
         
         if ($fields['-single']) {
-            if ($rec->useAsProto == 'yes') {
+            if ($rec->useAsProto != 'no') {
                 $row->protoFolder = tr('Всички артикули в папката са шаблони');
             }
         }
@@ -426,7 +426,7 @@ class cat_Categories extends core_Master
         
         // В кои категории може да има прототипни артикули
         $query = self::getQuery();
-        $query->where("#useAsProto = 'yes'");
+        $query->where("#useAsProto != 'no'");
         $query->show('folderId');
         while ($cRec = $query->fetch()) {
             $folders[$cRec->folderId] = $cRec->folderId;
@@ -536,7 +536,7 @@ class cat_Categories extends core_Master
     {
         $rec = $this->fetchRec($id);
         
-        if ($rec->useAsProto == 'yes') {
+        if ($rec->useAsProto != 'no') {
             
             return 'template';
         }

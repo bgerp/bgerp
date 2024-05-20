@@ -1042,6 +1042,7 @@ abstract class cat_ProductDriver extends core_BaseClass
     public static function on_AfterGetPrototypes(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
     {
         $ignoreFolderIds = $Driver->getFoldersToIgnoreTemplates();
+
         if(countR($ignoreFolderIds)){
 
             // Премахване на шаблоните от избраната категория за създаване на шаблонни артикули с рецепта
