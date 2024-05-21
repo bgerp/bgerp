@@ -4682,4 +4682,18 @@ class cat_Products extends embed_Manager
         $me->save($pRec, 'meta,canSell');
         $me->logWrite('Артикулът отново става продаваем', $productRec->id);
     }
+
+
+    /**
+     * С какво заглавие да се създава прототипа
+     *
+     * @param stdClass $rec
+     * @return void
+     */
+    public function getPrototypeTitle($rec)
+    {
+        $rec = static::fetchRec($rec);
+
+        return self::getDisplayName($rec);
+    }
 }

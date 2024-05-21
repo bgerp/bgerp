@@ -309,6 +309,11 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         
         // Информация за изпращача
         $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_ID', true);
+        if(core_Packs::isInstalled('holding')){
+            if(isset($sRec->{$origin->ownCompanyFieldName})){
+                $ownCompanyId = $sRec->{$origin->ownCompanyFieldName};
+            }
+        }
         $contragentData = cls::get($sRec->contragentClassId)->getContragentData($sRec->contragentId);
         $hideOurEori = false;
         if(empty($contragentData->eori) && drdata_Countries::isEu($contragentData->countryId)){

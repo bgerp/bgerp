@@ -317,7 +317,7 @@ class plg_Current extends core_Plugin
 
             // Ако записа е текущия обект, маркираме го като избран
             if($mvc->haveRightFor('deselectcurrent', $rec)){
-                $row->currentPlg = ht::createBtn('Отказ||Cancel', array($mvc, 'deselectcurrent', $rec->id, 'ret_url' => true), null, null, 'ef_icon = img/16/accept.png, title=Отказ на текущ');
+                $row->currentPlg = ht::createBtn('Отказ||Cancel', array($mvc, 'deselectcurrent', $rec->id, 'ret_url' => true), null, null, 'ef_icon = img/16/gray-close.png, title=Отказ на текущ');
             } else {
                 $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'width' => '16', 'height' => '16'));
             }

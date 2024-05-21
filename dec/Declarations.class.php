@@ -305,9 +305,18 @@ class dec_Declarations extends core_Master
         if (!$rec->documentTitle) {
             $row->documentTitle = doc_TplManager::getTitleByid($rec->template);
         }
-  
+
+        // и е по  документ фактура намираме кой е той
+        $doc = doc_Containers::getDocument($rec->originId);
+        $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_ID', true);
+        if(core_Packs::isInstalled('holding')){
+            if(isset($doc->ownCompanyFieldName)){
+                $ownCompanyId = $doc->fetchField($doc->ownCompanyFieldName);
+            }
+        }
+
         // Зареждаме данните за собствената фирма
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
 
         // Адреса на фирмата
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
@@ -399,8 +408,6 @@ class dec_Declarations extends core_Master
 
         // ако декларацията е към документ
         if ($rec->originId) {
-            // и е по  документ фактура намираме кой е той
-            $doc = doc_Containers::getDocument($rec->originId);
             $class = $doc->className;
             $dId = $doc->that;
             $recOrigin = $class::fetch($dId);
