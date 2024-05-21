@@ -124,7 +124,9 @@ class bank_PaymentOrders extends bank_DocumentBlank
             $form->setDefault('amount', $docRec->amount);
             $form->setDefault('reason', $docRec->reason);
             $form->setDefault('valior', $docRec->valior);
-            $myCompany = crm_Companies::fetchOwnCompany();
+
+            $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($form->rec) : null;
+            $myCompany = crm_Companies::fetchOwnCompany($ownCompanyId);
             $contragentIbans = bank_Accounts::getContragentIbans($docRec->contragentId, $docRec->contragentClassId);
             
             if ($doc->className == 'bank_IncomeDocuments') {
