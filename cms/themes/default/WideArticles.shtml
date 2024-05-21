@@ -7,5 +7,7 @@
         [#social_Sharings::getButtons#]
         <!--ET_END SOCIAL-->
         [#BOTTOM_CONTENT#]
+        [#BEFORE_FOOTER_INFO#]
+        <div class='bulletin-link'></div>
     </div>
 </div>
