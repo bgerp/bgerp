@@ -1391,8 +1391,10 @@ section {
 #loginModal table {
     width: 100%;
 }
-
-#loginModal .formFields input, #loginModal .formFields select {
+.select2-container {
+    z-index: 21001;
+}
+#loginModal .formFields input, #loginModal .formFields select, #loginModal .select2-container--default {
     display: block;
     width: 100% !important;
     padding: 0.375rem 0.75rem !important;
@@ -1403,8 +1405,22 @@ section {
     border-radius: 5px;
     -webkit-appearance: none;
     -moz-appearance: none;
-    box-shadow: none;
+    box-shadow: none !important;
     transition: border-color .5s ease-in-out,box-shadow .5s ease-in-out;
+}
+
+.select2-dropdown {
+    border: 1px solid rgb(222, 226, 230) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow, .select2-container .select2-selection--single .select2-selection__rendered {
+    height: 32px !important;
+    line-height: 32px !important;
+}
+
+#loginModal .select2-container--default .select2-selection--single {
+    border: none !important;
+    box-shadow: none !important;
 }
 #loginModal #login-form .button {
     padding: 8px 25px 9px 25px !important;

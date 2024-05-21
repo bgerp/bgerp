@@ -113,7 +113,7 @@ class cms_SinglePageTheme extends core_ProtoInner
             $activeColor = phpcolor_Adapter::changeColor($baseColor, 'mix', 1, '#666');
 
             $css .= "\n  .get-started-btn, .back-to-top, #footer .social-links a, .navbar>ul>li>a:before, #main h2::after, #login-form .button  {background: {$baseColor};} ";
-            $css .= "\n  .get-started-btn:hover, .back-to-top:hover, #footer .social-links a:hover {background: #{$activeColor};} ";
+            $css .= "\n  .get-started-btn:hover, .back-to-top:hover, #footer .social-links a:hover, #login-form .button:hover {background: #{$activeColor};} ";
             $css .= "\n  a, #footer .credits a, .navbar-mobile a:hover, .navbar-mobile .active, .navbar-mobile li:hover>a {color: {$baseColor};} ";
             $css .= "\n  a:hover, #footer .credits a:hover, .navbar-mobile li:hover>a {color: #{$activeColor};} ";
             $css .= "\n  #preloader:before { border: 6px solid {$baseColor};} ";
