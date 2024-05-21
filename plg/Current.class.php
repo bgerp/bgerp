@@ -360,9 +360,11 @@ class plg_Current extends core_Plugin
         }
 
         if($action == 'deselectcurrent' && isset($rec)){
-            $res = $mvc->getRequiredRoles('select', $rec, $userId);
-            if($rec->id != $mvc->getCurrent('id', false)){
-                $res = 'no_one';
+            if($res != 'no_one'){
+                $res = $mvc->getRequiredRoles('select', $rec, $userId);
+                if($rec->id != $mvc->getCurrent('id', false)){
+                    $res = 'no_one';
+                }
             }
         }
     }

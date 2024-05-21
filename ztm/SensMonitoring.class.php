@@ -152,6 +152,7 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
      */
     public function writeOutputs($outputs, $config, &$persistentState)
     {
+        $resArr = array();
         foreach ($outputs as $oKey => $oVal) {
             $rKey = null;
             if ($oKey == 'goalBuildingTemp') {
@@ -174,8 +175,12 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
             $regId = ztm_Registers::fetchField(array("#name = '[#1#]'", $rKey));
             if ($regId) {
                 ztm_RegisterValues::forceSync($regId, $oVal);
+
+                $resArr[$rKey] = $oVal;
             }
         }
+
+        return $resArr;
     }
 
 

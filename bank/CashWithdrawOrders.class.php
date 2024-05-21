@@ -157,8 +157,9 @@ class bank_CashWithdrawOrders extends bank_DocumentBlank
         if ($fields['-single']) {
             $spellNumber = cls::get('core_SpellNumber');
             $row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', false);
-            
-            $myCompany = crm_Companies::fetchOwnCompany();
+
+            $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : null;
+            $myCompany = crm_Companies::fetchOwnCompany($ownCompanyId);
             $row->ordererName = $myCompany->company;
         }
     }
