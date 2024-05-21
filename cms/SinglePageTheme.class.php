@@ -63,11 +63,10 @@ class cms_SinglePageTheme extends core_ProtoInner
             $loginHtml = ht::createLink(". . .", array('Portal', 'Show'), null, array('class' => "get-started-btn scrollto boldText"));
         }
 
-        $tpl->replace($loginHtml, "LOGIN_BTN");
-
         $content = $this->getCmsLayout();
 
         if ($content !== false) {
+            $tpl->replace($loginHtml, "LOGIN_BTN");
             $tpl->replace($content, 'CMS_LAYOUT');
         }
 
