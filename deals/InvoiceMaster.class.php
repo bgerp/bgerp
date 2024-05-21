@@ -1285,12 +1285,11 @@ abstract class deals_InvoiceMaster extends core_Master
                             if(!Mode::isReadOnly()){
                                 $row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
                             }
-
                             $row->vatReason = ht::createHint($row->vatReason, 'Основанието е определено автоматично. Ще бъде записано при активиране|*!', 'notice', false);
                         }
                     } else {
                         $bgId = drdata_Countries::getIdByName('Bulgaria');
-                        if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
+                        if($rec->contragentCountryId == $bgId){
                             $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България" с ДДС № трябва да е посочено основание|*!', 'error');
                         }
                     }
@@ -1935,12 +1934,7 @@ abstract class deals_InvoiceMaster extends core_Master
             return acc_Setup::get($reason);
         }
 
-        if(empty($rec->contragentVatNo)){
-
-            return acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
-        }
-
-        return null;
+        return acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
     }
 
 
