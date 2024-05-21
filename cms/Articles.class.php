@@ -228,7 +228,7 @@ class cms_Articles extends core_Master
         Mode::set('wrapper', 'cms_page_External');
         
         $conf = core_Packs::getConfig('cms');
-        
+
         if (Mode::is('screenMode', 'narrow')) {
             Mode::set('cmsLayout', 'cms/themes/default/ArticlesNarrow.shtml');
         } else {
@@ -286,8 +286,11 @@ class cms_Articles extends core_Master
         }
         
         $navData = $this->prepareNavigation($rec, $menuId, $content, $lArr);
-        
-        
+
+        if ($navData->showCnt <= 1) {
+            Mode::set('cmsLayout', 'cms/themes/default/WideArticles.shtml');
+        }
+
         // Подготвяме SEO елементите
         cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body, 'seoTitle' => $rec->title));
         
@@ -348,7 +351,8 @@ class cms_Articles extends core_Master
         
         $navData = new stdClass();
         $navData->cnt = 0;
-        
+        $navData->showCnt = 0;
+
         if (($q = Request::get('q')) && $menuId > 0 && !$rec) {
             $rec = new stdClass();
             $navData->q = $q;
@@ -381,6 +385,8 @@ class cms_Articles extends core_Master
                     continue;
                 }
             }
+
+            $navData->showCnt++;
             
             $title = self::getVerbal($rec1, 'title');
             
