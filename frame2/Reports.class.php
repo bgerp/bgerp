@@ -235,6 +235,12 @@ class frame2_Reports extends embed_Manager
 
 
     /**
+     * Икона на единичния обект
+     */
+    public $singleIcon = 'img/16/report.png';
+
+
+    /**
      * Описание на модела
      */
     public function description()

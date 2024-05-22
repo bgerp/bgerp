@@ -97,7 +97,7 @@ class frame_Reports extends core_Embedder
     /**
      * Икона по подразбиране за единичния обект
      */
-    public $singleIcon = 'img/16/report.png';
+    public $singleIcon = 'img/16/add.png';
     
     
     /**

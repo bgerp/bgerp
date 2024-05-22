@@ -17,6 +17,7 @@
  */
 class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * Кой може да избира драйвъра
      */

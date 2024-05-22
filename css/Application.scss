@@ -339,6 +339,9 @@ div.folder-cover {
 	&.state-active {
 		background: #FFFDEA url('../img/cover-bg-yellow.png');
 	}
+	&.ownCompany .block_title {
+		background: #a0f1b3;
+	}
 	.detail-info {
 		background: none;
         &.portal {

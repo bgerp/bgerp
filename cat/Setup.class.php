@@ -220,6 +220,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_PackParams',
         'cat_ParamFormulaVersions',
         'migrate::fixNewLinesInFormulas2706',
+        'migrate::updateCategories2124',
     );
     
     
@@ -452,5 +453,17 @@ class cat_Setup extends core_ProtoSetup
         if(countR($toSave)){
             $Params->saveArray($toSave, 'id,paramValue');
         }
+    }
+
+
+    /**
+     * Миграция на категориите
+     */
+    function updateCategories2124()
+    {
+        $Categories = cls::get('cat_Categories');
+        $useAsProtoName = str::phpToMysqlName('useAsProto');
+        $query = "UPDATE {$Categories->dbTableName} SET {$useAsProtoName} = 'no' WHERE ({$useAsProtoName} IS NULL OR {$useAsProtoName} = '')";
+        $Categories->db->query($query);
     }
 }

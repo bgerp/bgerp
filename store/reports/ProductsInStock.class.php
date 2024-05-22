@@ -163,6 +163,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $sQuery->show('id, name,state');
 
+        $suggestions = array();
         while ($sRec = $sQuery->fetch()) {
             if (!is_null($sRec->name)) {
                 $suggestions[$sRec->id] = $sRec->name;
@@ -172,6 +173,12 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         asort($suggestions);
 
         $form->setSuggestions('storeId', $suggestions);
+
+        $suggestions1 = array();
+
+        $suggestions1 = cat_Products::getProducts(null, null, null, 'canStore', null, null, false, null);
+
+        $form->setSuggestions('products', $suggestions1);
     }
 
 
@@ -236,6 +243,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => $acc, 'item1' => $item1, 'item2' => $item2, 'cacheBalance' => false, 'keepUnique' => true));
             $bRecs = $Balance->getBalance($acc);
+            // bp(acc_Lists::fetch(2),$acc,$workingPdogresAccRec,$bRecs);
 
             foreach ($bRecs as $item) {
 

@@ -36,7 +36,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
 
     /**
      * Добавя полетата на драйвера към Fieldset
-     *
+     *.
      * @param core_Fieldset $fieldset
      */
     public function addFields(core_Fieldset &$fieldset)

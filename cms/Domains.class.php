@@ -81,8 +81,14 @@ class cms_Domains extends core_Embedder
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, cms, admin';
-    
-    
+
+
+    /**
+     * Кой може да деселектира
+     */
+    public $canDeselectcurrent = 'no_one';
+
+
     /**
      * Кой може да избира текущ домейн
      */

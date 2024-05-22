@@ -28,7 +28,7 @@ class plg_Current extends core_Plugin
     {
         if (!$res) {
             $modeKey = self::getModeKey($mvc->className);
-            
+
             // Опитваме се да вземем от сесията текущия обект
             $res = Mode::get($modeKey)->{$part};
             
@@ -45,12 +45,12 @@ class plg_Current extends core_Plugin
             }
 
             $query->limit(2);
-            
+
             // Генериране на събитие, преди изпълнението на заявката
             $mvc->invoke('BeforeSelectByForce', array(&$query));
             
             // Ако има точно един обект, който потребителя може да избере се избира автоматично
-            if ($query->count() == 1) {
+            if ($query->count() == 1 && !Mode::get("{$modeKey}_unset")) {
                 $rec = $query->fetch();
             }
             
@@ -118,7 +118,22 @@ class plg_Current extends core_Plugin
             
             return false;
         }
-        
+
+        if ($action == 'deselectcurrent') {
+            $id = Request::get('id', 'int');
+            expect($rec = $mvc->fetch($id));
+            expect($mvc->haveRightFor('deselectcurrent', $rec));
+            $mvc->unsetCurrent($rec);
+
+            if (!Request::get('ret_url')) {
+                $res = new Redirect(array($mvc), 'Избраният обект е махнат като текущ');
+            } else {
+                $res = new Redirect(getRetUrl(), 'Избраният обект е махнат като текущ');
+            }
+
+            return false;
+        }
+
         if ($action == 'selectcurrent') {
             $mvc->requireRightFor('select');
             $form = cls::get('core_Form');
@@ -248,7 +263,8 @@ class plg_Current extends core_Plugin
         $key = self::getPermanentKey($mvc);
         
         core_Permanent::set($key, $rec->id, 10000);
-        
+        Mode::get("{$modeKey}_unset", null);
+
         $res = $rec->id;
     }
     
@@ -298,12 +314,17 @@ class plg_Current extends core_Plugin
         $currentId = $mvc->getCurrent('id', false);
         
         if ($rec->id == $currentId) {
-            
+
             // Ако записа е текущия обект, маркираме го като избран
-            $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'width' => '16', 'height' => '16'));
+            if($mvc->haveRightFor('deselectcurrent', $rec)){
+                $row->currentPlg = ht::createBtn('Отказ||Cancel', array($mvc, 'deselectcurrent', $rec->id, 'ret_url' => true), null, null, 'ef_icon = img/16/gray-close.png, title=Отказ на текущ');
+            } else {
+                $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'width' => '16', 'height' => '16'));
+            }
+
             $row->ROW_ATTR['class'] .= ' state-waiting';
         } elseif ($mvc->haveRightFor('select', $rec)) {
-           
+
             // Ако записа не е текущия обект, но може да бъде избран добавяме бутон за избор
             $row->currentPlg = ht::createBtn('Избор||Select', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => true), null, null, 'ef_icon = img/16/hand-point.png, title=Избор за текущ');
 
@@ -336,6 +357,31 @@ class plg_Current extends core_Plugin
                 // Никой не може да се логва в оттеглен обект
                 $res = 'no_one';
             }
+        }
+
+        if($action == 'deselectcurrent' && isset($rec)){
+            if($res != 'no_one'){
+                $res = $mvc->getRequiredRoles('select', $rec, $userId);
+                if($rec->id != $mvc->getCurrent('id', false)){
+                    $res = 'no_one';
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Маха от сесията избраната опция
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     */
+    public static function on_AfterUnsetCurrent($mvc, &$res)
+    {
+        if (!$res) {
+            $modeKey = self::getModeKey($mvc->className);
+            Mode::setPermanent($modeKey, null);
+            Mode::setPermanent("{$modeKey}_unset", true);
         }
     }
 }

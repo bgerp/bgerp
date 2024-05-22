@@ -16,6 +16,7 @@
  */
 class cat_reports_BomsRep extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * Заглавие
      */
