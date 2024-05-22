@@ -576,6 +576,16 @@ section {
     border: none !important;
     box-shadow: none !important;
 }
+
 #loginModal #login-form .button {
     padding: 8px 25px 9px 25px !important;
+}
+
+#loginModal .vertical {
+    margin-top: -5px !important;
+}
+
+.narrow #login-form {
+    max-width: none !important;
+
 }
