@@ -1591,8 +1591,6 @@ class pos_Terminal extends peripheral_Terminal
         
         $dQuery = pos_ReceiptDetails::getQuery();
         $dQuery->where("#action = 'sale|code' AND #productId = {$selectedRec->productId} AND #quantity > 0");
-        $dQuery->orderBy('id', 'desc');
-
         if(isset($selectedRec->value)){
             $dQuery->where("#value = {$selectedRec->value}"); 
             $value = $selectedRec->value;
@@ -1604,6 +1602,7 @@ class pos_Terminal extends peripheral_Terminal
         $cnt = 0;
         $packName = cat_UoM::getVerbal($value, 'name');
         $dQuery->groupBy('price');
+        $dQuery->orderBy('price', 'ASC');
         $dQuery->limit(5);
         $dQuery->show('price,param');
         $allPrices = $dQuery->fetchAll();
