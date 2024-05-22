@@ -125,7 +125,7 @@ class cms_Articles extends core_Master
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes,hideTextAfterLength=10000000)', 'caption=Текст,column=none');
         $this->FLD('background', 'color_Type(AllowEmpty)', 'caption=Фон на статията->Цвят,autohide');
-        $this->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Фон на статията->Статично изображение,autohide');
+        $this->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Фон на статията->Статично изображение,autohide,hint=Минимална ширина 1400px');
         
         $this->FLD('footerTitleLink', 'varchar', 'caption=Показване във футъра->Заглавие,autohide');
         
