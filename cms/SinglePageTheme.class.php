@@ -229,8 +229,10 @@ class cms_SinglePageTheme extends core_ProtoInner
         $cQuery->where("#state = 'active'");
         $cQuery->orderBy('level');
         $cQuery->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
+        $cQuery->EXT('menuState', 'cms_Content', 'externalName=state,externalKey=menuId');
         $cDomainId = cms_Domains::getPublicDomain()->id;
         $cQuery->where(array("#domainId = '[#1#]'", $cDomainId));
+        $cQuery->where(array("#menuState = 'active'"));
 
         $res = $cQuery->fetchAll();
 
