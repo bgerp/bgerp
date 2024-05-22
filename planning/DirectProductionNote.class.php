@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -175,6 +175,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Плейдхолдър където да се показват партидите
      */
     public $batchPlaceholderField = 'batch';
+
+
+    /**
+     * Склад в който да се нагласят движенията по зона
+     * @see rack_plg_Shipments
+     */
+    public $rackStoreFieldName = 'inputStoreId';
 
 
     /**
@@ -1142,10 +1149,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Подготвяме детайлите на рецептата
         $dQuery = planning_DirectProductNoteDetails::getQuery();
-        $dQuery->where("#noteId = {$id}");
+        $dQuery->where("#noteId = {$id} AND #quantity != 0");
 
         $recsToSave = array();
-
         while ($dRec = $dQuery->fetch()) {
             $index = "{$dRec->productId}|{$dRec->type}";
             if (!array_key_exists($index, $recsToSave)) {

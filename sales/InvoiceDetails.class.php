@@ -32,7 +32,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_AlignDecimals2, doc_plg_HidePrices, deals_plg_DpInvoice,Policy=price_ListToCustomers, 
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, sales_Wrapper, plg_RowNumbering, sales_plg_TariffCodeInDetail, plg_SaveAndNew, plg_AlignDecimals2, doc_plg_HidePrices, deals_plg_DpInvoice,Policy=price_ListToCustomers, 
                         LastPricePolicy=sales_SalesLastPricePolicy, plg_PrevAndNext,cat_plg_ShowCodes, import2_Plugin';
 
 
@@ -107,8 +107,6 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         parent::setInvoiceDetailFields($this);
         $this->FLD('batches', 'text(rows=1)', 'caption=Допълнително->Партиди, input=none, before=notes');
         $this->FLD('exportParamValue', 'varchar', 'caption=Счетоводен параметър, input=none');
-        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none');
-        $this->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
     }
     
     
@@ -246,20 +244,5 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         }
 
         return false;
-    }
-
-
-    /**
-     * Преди рендиране на таблицата
-     */
-    public static function on_BeforeRenderListTable($mvc, &$res, $data)
-    {
-        if (!countR($data->rows)) return;
-        $masterRec = $data->masterData->rec;
-
-        foreach ($data->rows as $id => $row){
-            $rec = $data->recs[$id];
-            $row->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
-        }
     }
 }

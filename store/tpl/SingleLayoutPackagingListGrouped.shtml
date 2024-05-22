@@ -175,11 +175,11 @@
                 <td>
                     <table class='centered' style="width:100%">
                         <tr>
-                            <td class='centered' style='border-right:1px solid #999;width:50%;'>Received: [#RESPONSIBLE_SIGN_PAD#]</td>
+                            <td class='centered' style='border-right:1px solid #999;width:50%;'>Received:</td>
                             <td class='centered'>Created by: [#USERNAME_SIGN_PAD#]</td>
                         </tr>
                         <tr>
-                            <td style='height:40px;border-right:1px solid #999'>[#RESPONSIBLE_SIGN#]</td>
+                            <td style='height:40px;border-right:1px solid #999'></td>
                             <td>[#USERNAME_SIGN#]</td>
                         </tr>
                         <tr>

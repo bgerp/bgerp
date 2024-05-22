@@ -14,7 +14,7 @@
         <tr>
             <td class="imageCell">[#img2#]</td>
             <td class="shortcuts"><span>Ctrl + S </span></td>
-            <td class="textShortcut"> - |Подробна информация зa избрания артикул|*</td>
+            <td class="textShortcut"> - |Информация зa избрания артикул|*</td>
         </tr>
         <tr>
             <td class="imageCell">[#img3#]</td>
@@ -38,7 +38,7 @@
         <tr>
             <td class="imageCell">[#img7#]</td>
             <td class="shortcuts"><span>F2 </span></td>
-            <td class="textShortcut"> - |Подробна информация за избрания елемент|*</td>
+            <td class="textShortcut"> - |Информация за избрания елемент|*</td>
         <tr>
             <td class="imageCell">[#img8#]</td>
             <td class="shortcuts"><span>Ctrl + P </span></td>
@@ -104,12 +104,20 @@
             <td class="textShortcut"> - |Скролира до края на страницата|*</td>
         </tr>
         <tr>
+            <td class="shortcuts"><span>Ctrl + BACKSPACE</span></td>
+            <td class="textShortcut"> - |Отваря предишната отворена бележка|*</td>
+        </tr>
+        <tr>
+            <td class="shortcuts"><span>Ctrl + Y </span></td>
+            <td class="textShortcut"> - |Отваря следващата отваряна бележка|*</td>
+        </tr>
+        <tr>
             <td class="shortcuts"><span>Page Up </span></td>
-            <td class="textShortcut"> - |Мести текущия ред от бележката нагоре|*</td>
+            <td class="textShortcut"> - |Мести текущия ред нагоре|*</td>
         </tr>
         <tr>
             <td class="shortcuts"><span>Page Down </span></td>
-            <td class="textShortcut"> - |Мести текущия ред от бележката надолу|*</td>
+            <td class="textShortcut"> - |Мести текущия ред надолу|*</td>
         </tr>
         <tr>
             <td colspan="2" class='title'>|Съкратени формати за редактиране на текущ ред|*: </td>

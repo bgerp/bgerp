@@ -161,11 +161,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $res = 'no_one';
             } elseif (!$mvc->haveRightFor('terminal', $rec)) {
                 $res = 'no_one';
-            } elseif (isset($rec->revertId)) {
-                if (abs(round($rec->paid, 2)) != abs(round($rec->total, 2)) || empty(round($rec->total, 2))) {
-                    $res = 'no_one';
-                }
-            } elseif ((($rec->total == 0 && !$countProducts) || round($rec->paid, 2) < round($rec->total, 2))) {
+            } elseif (abs(round($rec->paid, 2)) < abs(round($rec->total, 2)) || ($rec->total == 0 && !$countProducts)) {
                 $res = 'no_one';
             }
         }
@@ -182,7 +178,8 @@ class bgfisc_plg_Receipts extends core_Plugin
     private static function getReceiptItems($rec)
     {
         $res = array();
-        
+        $settings = pos_Points::getSettings($rec->pointId);
+
         $vatClasses = array('A' => 0, 'B' => 1, 'V' => 2, 'G' => 3);
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#receiptId = '{$rec->id}'");
@@ -190,7 +187,12 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         while ($dRec = $query->fetch()) {
             $name = cat_Products::getVerbal($dRec->productId, 'name');
-            $price = $dRec->price * (1 + $dRec->param);
+            if($settings->chargeVat == 'yes'){
+                $price = $dRec->price * (1 + $dRec->param);
+            } else {
+                $price = $dRec->price;
+            }
+
             $dRec->quantity = abs($dRec->quantity);
             $amount = $price * $dRec->quantity;
 
@@ -209,9 +211,13 @@ class bgfisc_plg_Receipts extends core_Plugin
             if (!empty($discountPercent)) {
                 $arr['DISC_ADD_V'] = -1 * round($discountPercent * $amount, 2);
             }
-            
-            $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
-            $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
+
+            if($settings->chargeVat == 'yes'){
+                $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
+                $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
+            } else {
+                $arr['VAT_CLASS'] = $vatClasses['A'];
+            }
 
             $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
             $price = round($amount / $dRec->quantity, $fiscFuRound);
@@ -234,27 +240,30 @@ class bgfisc_plg_Receipts extends core_Plugin
      */
     private static function getReceiptPayments($rec, $Driver, $driverRec)
     {
-        $res = array();
+        $res = $errors = array();
         
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#receiptId = '{$rec->id}'");
         $query->where("#action LIKE '%payment%'");
         $query->show('action,amount');
-        $errors = array();
         
         while ($dRec = $query->fetch()) {
             list(, $paymentType) = explode('|', $dRec->action);
-            if ($paymentType != -1) {
+            $code = 0;
+            if ($paymentType != -1){
                 $paymentCode = $Driver->getPaymentCode($driverRec, $paymentType);
                 if(isset($paymentCode)){
-                    if (!array_key_exists($paymentType, $res)) {
-                        $res[$paymentCode] = array('PAYMENT_TYPE' => $paymentCode, 'PAYMENT_AMOUNT' => 0);
-                    }
-                    $res[$paymentCode]['PAYMENT_AMOUNT'] += abs($dRec->amount);
+                    $code = $paymentCode;
                 } else {
                     $errors[] = cond_Payments::getTitleById($paymentType);
+                    continue;
                 }
             }
+
+            if (!array_key_exists($code, $res)) {
+                $res[$code] = array('PAYMENT_TYPE' => $code, 'PAYMENT_AMOUNT' => 0);
+            }
+            $res[$code]['PAYMENT_AMOUNT'] += abs($dRec->amount);
         }
         
         if (count($errors)) {
@@ -390,6 +399,17 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $cu = core_Users::getCurrent();
                 $fiscalArr['BEGIN_TEXT'] = 'Касиер: ' . core_Users::getVerbal($cu, 'names');
                 $fiscalArr['IS_PRINT_VAT'] = bgfisc_Setup::get('PRINT_VAT_GROUPS') == 'yes';
+
+                $discountVal = 0;
+                foreach ($products as $pArr){
+                    $discountVal += abs($pArr['DISC_ADD_V']);
+                }
+                if($discountVal){
+                    $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
+                    $discountVal = round($discountVal, $fiscFuRound);
+                    $discountVal = number_format($discountVal, $fiscFuRound, '.', '');
+                    $fiscalArr['END_TEXT'] = "Обща отстъпка: {$discountVal}лв";
+                }
 
                 if (cls::haveInterface('peripheral_FiscPrinterWeb', $Driver)) {
                     $interface = core_Cls::getInterface('peripheral_FiscPrinterWeb', $lRec->driverClass);

@@ -218,12 +218,14 @@ class deals_plg_DpInvoice extends core_Plugin
             }
         }
 
+        $form->_expectedDownpaymentReduction = false;
         if ($flag === true) {
             if (!isset($downpayment)) {
                 $dpOperation = 'none';
                 if (isset($invoicedDp) && ($invoicedDp - $deductedDp) > 0) {
                     $dpAmount = $invoicedDp - $deductedDp;
                     $dpOperation = 'deducted';
+                    $form->_expectedDownpaymentReduction = true;
                 }
             } else {
                 
@@ -344,12 +346,6 @@ class deals_plg_DpInvoice extends core_Plugin
                 return;
             }
 
-            if(!empty($rec->dpVatGroupId) && (empty($rec->amountAccrued) && empty($rec->amountDeducted))){
-                $form->setError('dpVatGroupId,amountAccrued,amountDeducted', 'Не може да е попълнена ДДС група на аванса, без да е въведен аванс');
-
-                return;
-            }
-
             $rec->dpAmount = ($rec->amountAccrued) ? $rec->amountAccrued : $rec->amountDeducted;
             $rec->dpOperation = 'none';
             $warningUnit = ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') ? 'без ДДС' : 'с ДДС';
@@ -391,8 +387,11 @@ class deals_plg_DpInvoice extends core_Plugin
                 if (!$form->gotErrors()) {
                     $rec->dpAmount *= -1;
                 }
+            } else {
+                if($form->_expectedDownpaymentReduction){
+                    $form->setWarning('amountDeducted', 'Очаква се приспадане на аванс, но не е избран такъв');
+                }
             }
-
 
             if (!in_array($rec->vatRate, array('yes', 'separate'))) {
                 $vat = 0;
@@ -429,7 +428,7 @@ class deals_plg_DpInvoice extends core_Plugin
             }
 
             // Обновяваме данните на мастър-записа при редакция
-            if (isset($rec->id)) {
+            if (isset($rec->id) && !$form->_cloneForm) {
                 $mvc->updateMaster($rec, false);
             }
         }
@@ -689,6 +688,17 @@ class deals_plg_DpInvoice extends core_Plugin
         } else {
             $total->vats["{$vat}"]->amount += $dpVat;
             $total->vats["{$vat}"]->sum += $masterRec->dpAmount / $masterRec->rate;
+        }
+    }
+
+
+    /**
+     * Преди запис в модела
+     */
+    public static function on_BeforeSave($mvc, $id, $rec)
+    {
+        if(empty($rec->dpAmount) && !empty($rec->dpVatGroupId)){
+            unset($rec->dpVatGroupId);
         }
     }
 }

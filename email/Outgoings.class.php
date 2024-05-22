@@ -1942,6 +1942,24 @@ class email_Outgoings extends core_Master
 
         $data->form->rec->emailCc = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->emailCc)));
         $data->form->rec->email = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->email)));
+
+        if (!$data->form->rec->id) {
+            if ((defined('EMAIL_DEFAULT_CC_EMAILS')) && EMAIL_DEFAULT_CC_EMAILS) {
+                $eArr = type_Emails::toArray($data->form->rec->emailCc);
+                $eArr = arr::make($eArr, true);
+                $dArr = type_Emails::toArray(EMAIL_DEFAULT_CC_EMAILS);
+                $dArr = arr::make($dArr, true);
+                $data->form->rec->emailCc = type_Emails::fromArray(array_merge($eArr, $dArr));
+            }
+
+            if ((defined('EMAIL_DEFAULT_TO_EMAILS')) && EMAIL_DEFAULT_TO_EMAILS) {
+                $eArr = type_Emails::toArray($data->form->rec->email);
+                $eArr = arr::make($eArr, true);
+                $dArr = type_Emails::toArray(EMAIL_DEFAULT_TO_EMAILS);
+                $dArr = arr::make($dArr, true);
+                $data->form->rec->email = type_Emails::fromArray(array_merge($eArr, $dArr));
+            }
+        }
     }
 
 

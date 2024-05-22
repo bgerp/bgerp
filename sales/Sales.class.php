@@ -48,7 +48,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
+    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, cat_plg_NotifyProductOnDocumentStateChange, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation,price_plg_TotalDiscount, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg,cat_plg_UsingProductVat, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
@@ -240,9 +240,7 @@ class sales_Sales extends deals_DealMaster
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
-        'shipmentStoreId' => 'defMethod',
         'oneTimeDelivery' => 'clientCondition'
     );
     
@@ -449,10 +447,11 @@ class sales_Sales extends deals_DealMaster
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+
         $myCompany = crm_Companies::fetchOwnCompany();
         $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
-        
+        $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$options));
+
         // Ако няма ръчно избрана БС гледа се последно избраната в папката
         $defaultBankAccountId = $rec->bankAccountId;
         if(empty($rec->bankAccountId)) {
@@ -490,7 +489,7 @@ class sales_Sales extends deals_DealMaster
                 }
             }
         }
-        
+
         $form->setOptions('bankAccountId', $options);
         $form->setDefault('bankAccountId', $defaultBankAccountId);
         $defaultOptions = $options;
@@ -516,7 +515,16 @@ class sales_Sales extends deals_DealMaster
             if(isset($rec->paymentMethodId)){
                 $paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
                 if($paymentType == 'cash'){
-                    $caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc');
+
+                    // Ако има дефолтна каса
+                    if($caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc')){
+                        if(core_Packs::isInstalled('holding')){
+                            if(!holding_Companies::isValueAllowed($caseId, $rec->{$mvc->ownCompanyFieldName}, 'cashes')){
+                               $caseId = null;
+                           }
+                        }
+                    }
+
                     $form->setDefault('caseId', $caseId);
                 }
             }
@@ -527,6 +535,7 @@ class sales_Sales extends deals_DealMaster
                 
                 // И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
                 if (isset($rec->deliveryTermId)) {
+                    $deliveryCalcCost = null;
                     if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                         $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                         $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
@@ -1942,14 +1951,19 @@ class sales_Sales extends deals_DealMaster
                             $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
                             if(is_array($bomInfo['resources'])){
                                 foreach ($bomInfo['resources'] as $r){
-                                    $detailsToCheck[] = (object)array('productId' => $r->productId, 'quantity' => $r->propQuantity);
+                                    if(!array_key_exists($r->productId, $detailsToCheck)){
+                                        $detailsToCheck[$r->productId] = (object)array('productId' => $r->productId, 'quantity' => 0);
+                                    }
+                                    $detailsToCheck[$r->productId]->quantity += $r->propQuantity;
                                     $addProductToCheck = false;
                                 }
                             }
                         }
-
                         if($addProductToCheck){
-                            $detailsToCheck[] = $dRec;
+                            if(!array_key_exists($dRec->productId, $detailsToCheck)){
+                                $detailsToCheck[$dRec->productId] = (object)array('productId' => $dRec->productId, 'quantity' => 0);
+                            }
+                            $detailsToCheck[$dRec->productId]->quantity += $dRec->quantity;
                         }
                     }
 

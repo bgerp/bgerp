@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -55,8 +55,8 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, plg_Printing,doc_plg_HidePrices, doc_plg_TplManager, cat_plg_UsingProductVat, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords,change_Plugin, plg_Search';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, cat_plg_NotifyProductOnDocumentStateChange, doc_DocumentPlg, acc_plg_DocumentSummary,
+					doc_EmailCreatePlg, price_plg_TotalDiscount, plg_Printing,doc_plg_HidePrices, doc_plg_TplManager, cat_plg_UsingProductVat, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords,change_Plugin, plg_Search';
 
 
     /**

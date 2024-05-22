@@ -31,7 +31,7 @@ class rack_OldMovements extends rack_MovementAbstract
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_State, plg_Sorting,plg_SelectPeriod,plg_Search,plg_AlignDecimals2,plg_Modified';
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_State, plg_Sorting,plg_SelectPeriod,plg_Select,plg_Search,plg_AlignDecimals2,plg_Modified';
 
 
     /**
@@ -50,12 +50,18 @@ class rack_OldMovements extends rack_MovementAbstract
      * Кой може да приключи движение
      */
     public $canDone = 'no_one';
+        
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'ceo,rackMaster';
 
 
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,documents,,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
+    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,documents,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
 
 
     /**

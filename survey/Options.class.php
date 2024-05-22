@@ -43,7 +43,7 @@ class survey_Options extends core_Manager
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата.
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
@@ -77,12 +77,21 @@ class survey_Options extends core_Manager
     {
         $this->FLD('alternativeId', 'key(mvc=survey_Alternatives, select=label)', 'caption=Въпрос, input=hidden, silent');
         $this->FLD('text', 'varchar(165)', 'caption=Съдържание,mandatory');
-        $this->FLD('value', 'double(decimals=2)', 'caption=Точки');
+        $this->FLD('value', 'double(decimals=2)', 'caption=Точки,notNull,value=1');
         
         $this->setDbIndex('alternativeId');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+        $form->setField('value', "placeholder=1");
+    }
+
     /**
      * Пренасочва URL за връщане след запис към сингъл изгледа
      */
@@ -125,6 +134,7 @@ class survey_Options extends core_Manager
         $tpl = new ET("<li><input  id='o{$rec->id}' name='quest{$rec->alternativeId}' type='radio' [#data#] [#checked#]><label for='o{$rec->id}'>[#answer#]</label> <span class='opTools'>[#tools#]</span></li>");
         
         // Кой е послед посочения отговор от потребителя
+        $params = null;
         $lastVote = survey_Votes::lastUserVote($rec->alternativeId);
         $altRec = survey_Alternatives::fetch($rec->alternativeId);
         if ((survey_Alternatives::haveRightFor('vote', $altRec))) {
@@ -133,7 +143,8 @@ class survey_Options extends core_Manager
                 $params .= " data-m='{$mid}'";
             }
         }
-        
+
+        $row->text = str::mbUcfirst($row->text);
         $tpl->replace($row->text, 'answer');
         $tpl->replace($params, 'data');
         $tpl->replace($row->tools, 'tools');

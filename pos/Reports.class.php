@@ -158,6 +158,9 @@ class pos_Reports extends core_Master
         $form = &$data->form;
         $form->setReadOnly('pointId');
         $form->setField('valior', "placeholder=" . dt::mysql2verbal(dt::today(), 'd.m.Y'));
+        $settings = pos_Points::getSettings($form->rec->pointId);
+        $form->setDefault('chargeVat', $settings->chargeVat);
+        $form->setReadOnly('chargeVat');
 
         if(haveRole('pos,sales')){
             $form->setDefault('dealerId', core_Users::getCurrent());
@@ -233,7 +236,11 @@ class pos_Reports extends core_Master
             if (!self::canMakeReport($rec->pointId, $rec->operators, $errorMsg)) {
                 $form->setError('pointId', $errorMsg);
             }
-            
+
+            if(!empty($rec->valior) && $rec->valior < dt::today()){
+                $form->setError('valior', 'Вальорът не може да е в миналото');
+            }
+
             // Ако няма грешки, форсираме отчета да се създаде в папката на точката
             if (!$form->gotErrors()) {
                 $rec->folderId = pos_Points::forceCoverAndFolder($rec->pointId);
@@ -329,7 +336,11 @@ class pos_Reports extends core_Master
         $rQuery->EXT('change', 'pos_Receipts', 'externalName=change,externalKey=receiptId');
         $rQuery->XPR('calcedUser', 'int', "COALESCE(#waitingReceiptBy, #createdReceiptBy)");
         $rQuery->where("#action LIKE '%payment%'");
-        $rQuery->in('receiptId', $receiptIds);
+        if(countR($receiptIds)){
+            $rQuery->in('receiptId', $receiptIds);
+        } else {
+            $rQuery->where("1=2");
+        }
 
         while($rRec = $rQuery->fetch()){
             $action = explode('|', $rRec->action);

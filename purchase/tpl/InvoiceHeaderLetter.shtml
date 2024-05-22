@@ -36,6 +36,7 @@
                         <!--ET_BEGIN sales_InvoiceDetails-->
                         <div class='details'>
                             [#purchase_InvoiceDetails#]
+                            [#price_DiscountsPerDocuments#]
                         </div>
                         <!--ET_END sales_InvoiceDetails-->
                         <div class="lines"></div>
@@ -44,7 +45,7 @@
                                 <tr>
                                     <td style='line-height: 140%;'>
                                         <!--ET_BEGIN vatReason-->
-                                        <div><span class='quiet'>|Основание за ДДС|*:</span> [#vatReason#]</div>
+                                        <div><span class='quiet'>|Основание за неначисляване на ДДС|*:</span> [#vatReason#]</div>
                                         <!--ET_END vatReason-->
                                         <!--ET_BEGIN vatDate-->  
                                         <span class='quiet'>|Данъчно събитие|*:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

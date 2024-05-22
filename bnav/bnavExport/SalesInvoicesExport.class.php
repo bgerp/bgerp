@@ -325,7 +325,13 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
                     $group = 'n.a.';
                 } else {
-                    expect(countR(array_intersect($gArr, $flGroups)) < 2, "Има регистрирани повече от една група на първо ниво след  ОСНОВНАТА за артикул $pRec->name");
+                    if (countR(array_intersect($gArr, $flGroups)) > 2) {
+                        cat_Products::logErr("Има регистрирани повече от една група на първо ниво след  ОСНОВНАТА за артикул $pRec->name");
+                        $url = toUrl(array('cat_Products', 'single', $pRec->id));
+                        $link = ht::createLink($pRec->name, $url);
+                        followRetUrl($url, "Артикул $link, участва в повече от една група", 'error');
+                    }
+
                     $group = implode(',', array_intersect($gArr, $flGroups));
                 }
 

@@ -315,10 +315,13 @@ class cond_DeliveryTerms extends core_Master
      * @param int      $locationId        - ид на локация
      * @param int      $deliveryData      - други параметри
      * @param core_Mvc $document          - за кой документ се отнася
+     * @param int|null $ownCompanyId      - за коя моя фирма
+     *
+     *
      *
      * @return string - условието за доставка допълнено с адреса, ако може да се определи
      */
-    public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $deliveryData, $document)
+    public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $deliveryData, $document, $ownCompanyId = null)
     {
         $adress = null;
         $isSale = ($document instanceof sales_Sales || $document instanceof sales_Quotations);
@@ -340,8 +343,8 @@ class cond_DeliveryTerms extends core_Master
             }
             
             if (empty($adress)) {
-                $ownCompany = crm_Companies::fetchOurCompany();
-                $adress = cls::get('crm_Companies')->getFullAdress($ownCompany->id, true, null, false)->getContent();
+                $ownCompanyId = $ownCompanyId ?? crm_Setup::BGERP_OWN_COMPANY_ID;
+                $adress = cls::get('crm_Companies')->getFullAdress($ownCompanyId, true, null, false)->getContent();
             }
         } elseif (($rec->address == 'receiver' && $isSale === true) || ($rec->address == 'supplier' && $isSale === false)) {
             if (!empty($locationId)) {
@@ -352,7 +355,7 @@ class cond_DeliveryTerms extends core_Master
         }
         
         $adress = trim(strip_tags($adress));
-        
+
         return $adress;
     }
     

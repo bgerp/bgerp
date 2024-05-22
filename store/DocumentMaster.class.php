@@ -161,8 +161,15 @@ abstract class store_DocumentMaster extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
-        $form->setDefault('storeId', store_Stores::getCurrent('id', false));
+
+        $defaultStoreId = store_Stores::getCurrent('id', false);
+        if(core_Packs::isInstalled('holding')){
+            if(!holding_Companies::isAllowedValueInThread($rec->threadId, $defaultStoreId, 'stores')){
+                $defaultStoreId = null;
+            }
+        }
+
+        $form->setDefault('storeId', $defaultStoreId);
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         if (!trans_Lines::count("#state = 'active'")) {
@@ -332,7 +339,7 @@ abstract class store_DocumentMaster extends core_Master
         // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
         // използваме го за автоматично попълване на детайлите на документа
         if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
-            
+
             // Ако документа е обратен не слагаме продукти по дефолт
             if ($rec->isReverse == 'yes') {
                 
@@ -483,12 +490,26 @@ abstract class store_DocumentMaster extends core_Master
                         $shipProduct->isEdited = FALSE;
                         $shipProduct->_clonedWithBatches = TRUE;
                     }
+
                     $Detail::save($shipProduct);
 
                     // Копира партидата ако артикулите идат 1 към 1 от договора
                     if (core_Packs::isInstalled('batch') && $copyBatches === true) {
-
                         if (is_array($shipProduct->batches)) {
+
+                            // Ако има генерирана нова партида и има без партида оставено от договора - ще се зададе за остатъка
+                            if(!empty($shipProduct->batch)){
+                                if(!countR($shipProduct->batches)){
+                                    $shipProduct->batches =  array($shipProduct->batch => $shipProduct->quantity);
+                                } else {
+                                    $quantityInBatches = array_sum($shipProduct->batches);
+                                    $diff = round($shipProduct->quantity - $quantityInBatches, 5);
+                                    if($diff){
+                                        $shipProduct->batches += array($shipProduct->batch => $diff);
+                                    }
+                                }
+                            }
+
                             foreach ($shipProduct->batches as $b => $q) {
                                 $bRec = new stdClass();
                                 $bRec->batch = $b;
@@ -581,7 +602,7 @@ abstract class store_DocumentMaster extends core_Master
             core_Lg::push($rec->tplLang);
 
             $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + $headerInfo);
 
             $addressData = array();

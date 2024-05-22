@@ -169,6 +169,8 @@ class bgerp_Portal extends embed_Manager
      */
     public function act_Show()
     {
+        Mode::set('noDoWithSelected', true);
+
         if (Request::get('ajax_mode')) {
             requireRole('powerUser');
             
@@ -196,7 +198,7 @@ class bgerp_Portal extends embed_Manager
         requireRole('powerUser');
         
         Mode::set('pageMenuKey', '_none_');
-        
+
         $recArr = $this->getRecsForUser();
         
         $cu = core_Users::getCurrent();

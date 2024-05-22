@@ -1029,6 +1029,7 @@ class cat_Products extends embed_Manager
         }
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->query->orderBy('id', 'ASC');
     }
 
 
@@ -2716,13 +2717,8 @@ class cat_Products extends embed_Manager
             }
             $data->documentType = $documentType;
             $descriptionTpl = cat_Products::renderDescription($data);
-            
-            // Удебеляваме името само ако има допълнително описание
-            if (strlen($descriptionTpl->getContent())) {
-                $title = "<b class='productName'>{$title}</b>";
-            }
         }
-        
+        $title = "<span class='productName'>{$title}</span>";
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $singleUrl = static::getSingleUrlArray($rec->id);
             $title = ht::createLinkRef($title, $singleUrl);
@@ -4502,7 +4498,7 @@ class cat_Products extends embed_Manager
         // Ако артикула не е произв. етап и има доп. мярка, която е от същата група като на $toUomId
         if(!static::haveDriver($productId, 'planning_interface_StepProductDriver')){
             $pQuery = cat_products_Packagings::getQuery();
-            $pQuery->where("#productId = {$productId}");
+            $pQuery->where("#productId = {$productId} AND #state != 'closed'");
             $pQuery->in('packagingId', array_keys($sameTypeMeasures));
             $pQuery->orderBy('id', 'ASC');
             $pQuery->show('quantity,packagingId');
@@ -4525,12 +4521,14 @@ class cat_Products extends embed_Manager
         
         // Взима се стойност от параметрите на артикула
         if (array_key_exists($toUomId, $kgUoms)) {
-            if ($paramValue = self::getParams($productId, 'weight')) {
+            $paramValue = self::getParams($productId, 'weight');
+            if (isset($paramValue)) {
                 $res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
                 
                 return $res;
-            } elseif ($paramValue = self::getParams($productId, 'weightKg')) {
-                return $paramValue;
+            } else {
+                $paramValue = self::getParams($productId, 'weightKg');
+                if (isset($paramValue)) return $paramValue;
             }
         }
     }
@@ -4668,5 +4666,24 @@ class cat_Products extends embed_Manager
         $overheadCost = !isset($overheadCost) ? null : array('overheadCost' => $overheadCost, 'hint' => $hint);
 
         return $overheadCost;
+    }
+
+
+    /**
+     * Колбек функция, която прави непродаваем артикул отново продаваем
+     */
+    public static function callback_makeSellableAgainOnTime($productId)
+    {
+        $productRec = cat_Products::fetch($productId);
+        if($productRec->canSell == 'yes' || !$productRec) return;
+
+        $metas = type_Set::toArray($productRec->meta);
+        $metas['canSell'] = 'canSell';
+
+        $me = cls::get(get_called_class());
+        $metas = $me->getFieldType('meta')->fromVerbal($metas);
+        $pRec = (object)array('id' => $productRec->id, 'meta' => $metas);
+        $me->save($pRec, 'meta,canSell');
+        $me->logWrite('Артикулът отново става продаваем', $productRec->id);
     }
 }

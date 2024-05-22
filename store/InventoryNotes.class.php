@@ -467,7 +467,7 @@ class store_InventoryNotes extends core_Master
         $rec = &$data->rec;
         $row = &$data->row;
         
-        $headerInfo = deals_Helper::getDocumentHeaderInfo(null, null);
+        $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, null, null);
         $row = (object) ((array) $row + (array) $headerInfo);
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         

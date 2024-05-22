@@ -204,6 +204,13 @@ class rack_ZoneDetails extends core_Detail
             if((empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements)) || (isset($requestedProductId) && $rec->productId != $requestedProductId)){
                 unset($data->rows[$id]);
             }
+
+            if($rec->_quantityAll && round($rec->_quantityAll / $rec->quantityInPack, 2) < round($rec->documentQuantity / $rec->quantityInPack, 2)){
+                $quantityAllVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->_quantityAll / $rec->quantityInPack);
+                $row->status = ht::createHint($row->status, "Недостатъчно количество в склада! Генерираното движение е само за наличното|*: {$quantityAllVerbal}", 'warning', false);
+                $row->status->prepend("<span class='notEnoughQuantityForZone'>");
+                $row->status->append("</span>");
+            }
         }
 
         arr::sortObjects($data->rows, '_code', 'asc', 'str');
@@ -421,8 +428,15 @@ class rack_ZoneDetails extends core_Detail
         }
         
         $requestedProductId = Request::get('productId', 'int');
+        $rec->_quantityAll = 0;
 
         foreach ($data->recs as $mRec) {
+            $zArr = type_Table::toArray($mRec->zones);
+            foreach ($zArr as $zA){
+                if($zA->zone == $masterRec->id){
+                    $rec->_quantityAll += $zA->quantity;
+                }
+            }
             if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
             
             $fields = $Movements->selectFields();

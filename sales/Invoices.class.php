@@ -49,7 +49,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, cond_plg_DefaultValues, doc_DocumentPlg, bgerp_plg_Export,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, cond_plg_DefaultValues, cat_plg_NotifyProductOnDocumentStateChange, doc_DocumentPlg, bgerp_plg_Export,
 					doc_EmailCreatePlg, price_plg_TotalDiscount, recently_Plugin,deals_plg_DpInvoice,doc_plg_Sequencer2,cat_plg_UsingProductVat,
                     doc_plg_HidePrices, doc_plg_TplManager, drdata_plg_Canonize, bgerp_plg_Blank, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search,plg_LastUsedKeys';
     
@@ -148,7 +148,6 @@ class sales_Invoices extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'place' => 'defMethod',
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
@@ -268,7 +267,8 @@ class sales_Invoices extends deals_InvoiceMaster
             'narrowContent' => 'sales/tpl/InvoiceHeaderShortNarrowEN.shtml', 'lang' => 'en');
         $tplArr[] = array('name' => 'Фактура с цени в евро', 'content' => 'sales/tpl/InvoiceHeaderEuro.shtml', 'lang' => 'bg');
         $tplArr[] = array('name' => 'Счетоводна фактура', 'content' => 'sales/tpl/InvoiceAccView.shtml', 'lang' => 'bg');
-        
+        $tplArr[] = array('name' => 'Customs invoice', 'content' => 'sales/tpl/CustomsInvoiceEn.shtml', 'lang' => 'en');
+
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
         
@@ -289,7 +289,7 @@ class sales_Invoices extends deals_InvoiceMaster
             return;
         }
         
-        $unsetFields = array('id', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template', 'activatedOn', 'activatedBy');
+        $unsetFields = array('id', 'date', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template', 'activatedOn', 'activatedBy', 'username', 'issuerId');
         foreach ($unsetFields as $fld) {
             unset($proformaRec->{$fld});
         }
@@ -353,28 +353,35 @@ class sales_Invoices extends deals_InvoiceMaster
             list(, $vies) = $Vats->check($form->rec->contragentVatNo);
             $vies = trim($vies);
             if(!empty($vies)){
-                $form->info = "<b>VIES</b>: {$vies}";
+                $form->info = "<div class='formCustomInfo'><b>VIES</b>: {$vies}</div>";
             }
         }
         
         $form->setField('contragentPlace', 'mandatory');
         $form->setField('contragentAddress', 'mandatory');
 
+        $defaultAccountId = null;
         if ($data->aggregateInfo) {
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
-                $form->setDefault('accountId', bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id'));
+                $defaultAccountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
             } else {
-                $previousAccId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'accountId', 'lastDocUser|lastDoc');
-                $form->setDefault('accountId', $previousAccId);
-            }
-        }
-        
-        if (empty($data->flag)) {
-            if ($ownAcc = bank_OwnAccounts::getCurrent('id', false)) {
-                $form->setDefault('accountId', $ownAcc);
+                $defaultAccountId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'accountId', 'lastDocUser|lastDoc');
             }
         }
 
+        if (empty($data->flag)) {
+            if($accountIdInSession = bank_OwnAccounts::getCurrent('id', false)){
+                $defaultAccountId = $accountIdInSession;
+            }
+        }
+
+        if(core_Packs::isInstalled('holding')){
+            if(!holding_Companies::isAllowedValueInThread($rec->threadId, $defaultAccountId, 'ownAccounts')){
+                $defaultAccountId = null;
+            }
+        }
+
+        $form->setDefault('accountId', $defaultAccountId);
         $tLang = doc_TplManager::fetchField($rec->template, 'lang');
         core_Lg::push($tLang);
 
@@ -935,68 +942,6 @@ class sales_Invoices extends deals_InvoiceMaster
         while($dRec = $dQuery->fetch()){
             $res[$dRec->productId] = (object)array('productId' => $dRec->productId, 'batches' => $dRec->batches);
         }
-
-        return $res;
-    }
-
-
-    /**
-     * Как се казва политиката
-     *
-     * @param stdClass $rec - запис
-     * @return bool
-     */
-    public function canHaveTotalDiscount($rec)
-    {
-        $rec = $this->fetchRec($rec);
-        if($rec->type != 'invoice' || $rec->dpOperation == 'accrued') return false;
-
-        $detailCount = sales_InvoiceDetails::count("#invoiceId = {$rec->id}");
-
-        return !empty($detailCount);
-    }
-
-
-    /**
-     * След обновяване на мастъра
-     *
-     * @param mixed $id - ид/запис на мастъра
-     */
-    public static function on_AfterUpdateMaster($mvc, &$res, $id)
-    {
-        // Ако е зададено в мода да не се рекалкулират отстъпките
-        $rec = $mvc->fetchRec($id);
-        if($rec->type != 'invoice') return;
-
-        // Преизчисляване ако има автоматични отстъпки
-        if($mvc->recalcAutoTotalDiscount($rec)){
-            $mvc->updateMaster_($rec);
-        }
-    }
-
-
-    /**
-     * Как се казва политиката
-     *
-     * @param stdClass $rec - запис
-     * @return array
-     *            [rate]       - валутен курс
-     *            [valior]     - вальор
-     *            [currencyId] - код на валута
-     *            [chargeVat]  - режим на начисляване на ДДС
-     *            [amount]     - сума в основна валута без ддс и отстъпка
-     */
-    public function getTotalDiscountSourceData($rec)
-    {
-        $rec = $this->fetchRec($rec);
-
-        $amount = core_Math::roundNumber($rec->dealValue - $rec->discountAmount);
-        $res = (object)array('rate' => $rec->rate,
-                             'valior'     => $rec->valior,
-                             'currencyId' => $rec->currencyId,
-                             'chargeVat'  => 'separate',
-                             'amount'     => $amount,
-        );
 
         return $res;
     }

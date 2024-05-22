@@ -235,9 +235,10 @@ class cond_plg_DefaultValues extends core_Plugin
             $query->where("#createdBy = '{$cu}'");
         }
 
+        // Извикване на събитие, за да може мениджъра да модифицира заявката
+        $mvc->invoke('afterGetQueryFromLastDocumentDefault', array(&$query, $folderId, $name, $fromUser));
         $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('folderId'))));
         $query->useIndex($indexName);
-
         $query->orderBy('createdOn', 'DESC');
         $query->show($name);
         $query->limit(1);

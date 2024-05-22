@@ -164,7 +164,28 @@ class rack_MovementGenerator2 extends core_Manager
         
         // Сортираме опаковките
         asort($packaging);
- 
+        $palletId = cat_UoM::fetchBySysId('pallet')->id;
+
+        // Какво е най-често срещаното количество на палет
+        $quantityPerPallet = 0;
+        static::getFullPallets($pallets, $quantityPerPallet);
+
+        // Ако артикула има опаковка палет и нейното к-во е различно от най-често срещаното - да се вземе то
+        $hasPalletPackaging = false;
+        foreach ($packaging as &$packRec){
+            if($packRec->packagingId == $palletId){
+                if($quantityPerPallet && $packRec->quantity != $quantityPerPallet){
+                    $packRec->quantity = $quantityPerPallet;
+                    $hasPalletPackaging = true;
+                }
+            }
+        }
+
+        // Ако артикула няма опаковка палет взимам най-често срещаното к-во в опаковка
+        if($quantityPerPallet && !$hasPalletPackaging){
+            $packaging[] = (object)array('packagingId' => $palletId, 'quantity' => $quantityPerPallet);
+        }
+
         // Генерираме масива с опаковките
         $packArr = array();
         foreach($packaging as $pack) {
@@ -172,7 +193,6 @@ class rack_MovementGenerator2 extends core_Manager
             $packArr["{$k}"] = $pack->packagingId;
         }
         krsort($packArr);
-
         Mode::push('pickupStoreId', $storeId);
 
         // Подготвяме данни свързани с палетите
@@ -232,19 +252,20 @@ class rack_MovementGenerator2 extends core_Manager
 
             if(count($fullPallets)) {
                 arsort($fullPallets);
+
                 $fullPallets = array_keys($fullPallets);
- 
                 foreach($zones as $zId => $zQ) {
                     if($n = (floor($zQ/$qInPallet))) {
-                  
-                        do {
+
+                        while(count($fullPallets) && $n > 0){
                             // Вземаме най-горния елемент, генерираме движение и го махаме от наличните палети
                             $p = array_shift($fullPallets);
+
                             $res[] = (object) array(
                                 'pallet' => $pallets[$p]->position,
                                 'quantity' => $qInPallet,
                                 'zones'  => array($zId => $qInPallet)
-                                );
+                            );
                             $pArr[$p] -= $qInPallet;
                             if($pArr[$p] == 0) {
                                 unset($pArr[$p]);
@@ -254,21 +275,22 @@ class rack_MovementGenerator2 extends core_Manager
                                 unset($zones[$zId]);
                             }
                             $n--;
-                        } while(count($fullPallets) && $n > 0);
+                        }
                     }
                 }
             }
-        }  
+        }
 
         $sumZ = array_sum($zones);
 
         // Правим всички комбинации на палети
         $cnt = count($pArr);
+
         $pCombi = array();
         while ($cnt-- > 0 && count($pCombi) < 20000) {
             $pCombi = self::addCombi($pArr, $pCombi, $sumZ);
         }
- 
+
         // филтрираме масива с комбинациите
         $ages = array();
        
@@ -323,7 +345,7 @@ class rack_MovementGenerator2 extends core_Manager
                 }
             }
         }
- // bp($d);
+
         // Генерираме движенията за всяка група и изисляваме времето, което ще отнеме
         if(is_array($bestMove)){
             foreach($bestMove as $m) {
@@ -603,8 +625,6 @@ class rack_MovementGenerator2 extends core_Manager
         return $res;
     }
 
-    
- 
 
     /**
      * Връща процента на максимално натоварване
@@ -650,8 +670,6 @@ class rack_MovementGenerator2 extends core_Manager
     }
 
 
-    
-    
     /**
      * Връща всички цели палети, ако има такива
      * Ако не се подаде параметъра за количество на цял палет, се опитва да
@@ -661,105 +679,34 @@ class rack_MovementGenerator2 extends core_Manager
     {
         if (!$quantityPerPallet) {
             $cnt = array();
-            foreach ($pallets as $i => $iP) {
-                $cnt[$iP]++;
+            foreach ($pallets as $i => $iRec) {
+                $cnt[$iRec->quantity]++;
             }
-            
+
             arsort($cnt);
             $best = key($cnt);
             foreach($cnt as $q => $n) {
-                if($q != $best) unset($ctn[$q]);
+                if($q != $best) unset($cnt[$q]);
             }
 
             krsort($cnt);
             $best = key($cnt);
-
-            if ($cnt[$best] > 1) {
+            if ($cnt[$best] >= 1) {
                 $quantityPerPallet = $best;
             }
         }
-        
+
         $res = array();
         
         if ($quantityPerPallet > 0) {
             $res = array();
-            foreach ($pallets as $i => $iP) {
-                if ($iP >= $quantityPerPallet) {
-                    $res[$i] = (float) $iP;  
+            foreach ($pallets as $i => $iRec1) {
+                if ($iRec1->quantity >= $quantityPerPallet) {
+                    $res[$i] = (float) $iRec1->quantity;
                 }
             }
         }
         
         return $res;
     }
-
-
-    /**
-     * Връща масив с генерирани движения, на базата на функцията rack_MovementGenerator::mainP2Q
-     * 
-     * @param array    $allocatedArr Масив с резултата от фунцията mainP2Q
-     * @param int      $productId ID на продукта
-     * @param int      $packagingId ID на опаковката
-     * @param string   $batch Партида
-     * @param int      $storeId ИД na склада
-     * @param int|null $workerId - ид на потребител
-     *
-     * @return array
-     */
-    public static function getMovements($allocatedArr, $productId, $packagingId, $batch, $storeId, $workerId = null)
-    {
-        $res = array();
-        if (!is_array($allocatedArr)) {
-            
-            return $res;
-        }
-
-        $packRec = cat_products_Packagings::getPack($productId, $packagingId);
-        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-        
-        foreach ($allocatedArr as $obj) {
-            $newRec = (object) array('productId' => $productId,
-                'packagingId' => $packagingId,
-                'storeId' => $storeId,
-                'quantityInPack' => $quantityInPack,
-                'state' => isset($workerId) ? 'waiting' : 'pending',
-                'brState' => isset($workerId) ? 'pending' : 'null',
-                'batch' => $batch,
-                'workerId' => $workerId,
-                'quantity' => $obj->quantity,
-                'position' => $obj->pallet,
-            );
-            
-            if ($palletRec = rack_Pallets::getByPosition($obj->pallet, $storeId, $productId, $batch)) {
-                $newRec->palletId = $palletRec->id;
-                $newRec->palletToId = $palletRec->id;
-                $newRec->batch = $palletRec->batch;
-                $newRec->positionTo = ($obj->retPos) ? $obj->retPos : $obj->pallet;
-            } else {
-                // Липсва палет в движението
-                wp($allocatedArr, $productId, $packagingId, $batch);
-            }
-            
-            if(!countR($obj->zones)){
-                wp($allocatedArr, $productId, $packagingId, $batch);
-                continue;
-            }
-            
-            $zoneArr = array('zone' => array(), 'quantity' => array());
-            foreach ($obj->zones as $zoneId => $zoneQuantity) {
-                $zoneArr['zone'][] = $zoneId;
-                $zoneArr['quantity'][] = $zoneQuantity / $quantityInPack ;
-            }
-            
-            $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
-            $newRec->zones = $TableType->fromVerbal($zoneArr);
-            
-            $res[] = $newRec;
-        }
-        
-        return $res;
-    }
-
-
-
 }

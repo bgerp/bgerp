@@ -101,19 +101,20 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from,removeAndRefreshForm,single=none,silent,mandatory');
 
         //Групиране на резултатите
-        $fieldset->FLD('groupBy', 'enum(no=Без групиране,jobId=Задание,jobArt=Артикул в заданието, valior=Дата,mounth=Месец,year=Година)', 'caption=Групиране по,after=to,single=none,refreshForm,silent');
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране,jobId=Задание,jobArt=Артикул в заданието, valior=Дата,mounth=Месец,year=Година)', 'caption=Групиране->Групиране по,after=to,single=none,refreshForm,silent');
 
 
         //По кои цени да се смятат себестойностите
-        $fieldset->FLD('pricesType', 'enum(selfPrice=Политика "Себестойност",catalog=Политика "Каталог", accPrice=Счетоводна )', 'caption=Себестойности->Стойност по,after=groupBy,single=none,silent');
+        $fieldset->FLD('seeAmount', 'set(yes = )', 'caption=Себестойности->Покажи стойности,after=groupBy,single=none');
+        $fieldset->FLD('pricesType', 'enum(selfPrice=Политика "Себестойност",catalog=Политика "Каталог", accPrice=Счетоводна )', 'caption=Себестойности->Стойност по,after=seeAmount,single=none,silent');
 
 
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(valior=Дата,name=Артикул, code=Код,consumedQuantity=Вложено количество,returnedQuantity=Върнато количество,totalQuantity=Резултат количество,totalAmount=Резултат стойност)', 'caption=Подреждане->Показател,after=pricesType,single=none,silent');
         $fieldset->FLD('orderType', 'enum(asc=Нарастващо,desc=Намаляващо)', 'caption=Подреждане->Подреждане,after=orderBy,single=none,silent');
 
-        $fieldset->FLD('seeAmount', 'set(yes = )', 'caption=Покажи стойности,after=orderType,single=none');
-        $fieldset->FLD('unstackableOn', 'set(yes = )', 'caption=Включи нескладируемите,after=orderType,single=none');
+
+        $fieldset->FLD('unstackableOn', 'set(yes = )', 'caption=Подреждане->Включи нескладируемите,after=orderType,single=none');
 
 
     }
@@ -295,10 +296,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
 
 
-            $pQuery->in('state', array('rejected', 'draft'), true);
+            $pQuery->in('state', array('rejected', 'draft', 'pending'), true);
 
             //Включване на не складируемите артикули
-            if($rec->unstackableOn != 'yes'){
+            if ($rec->unstackableOn != 'yes') {
                 $pQuery->where("#canStore != 'no'");
             }
 
@@ -405,7 +406,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                     }
 
-                    $id = $pRec->productId . '|' . $secondPartKey ;
+                    $id = $pRec->productId . '|' . $secondPartKey;
                 } else {
                     $id = $pRec->productId;
                 }
@@ -464,7 +465,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             arr::sortObjects($recs, $orderBy, $orderType, $order);
         }
 
-        if ($rec->groupBy == 'jobId'){
+        if ($rec->groupBy == 'jobId') {
             arr::sortObjects($recs, 'jobId', 'ASC');
         }
 
@@ -505,18 +506,18 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
             $fld->FLD('name', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Количество');
+            $fld->FLD('consumedQuantity', 'double(decimals=2)', 'smartCenter,caption=Вложено->Количество');
             if (!is_null($rec->seeAmount)) {
-                $fld->FLD('consumedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Стойност');
+                $fld->FLD('consumedAmount', 'double(decimals=2)', 'smartCenter,caption=Вложено->Стойност');
             }
-            $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Количество');
+            $fld->FLD('returnedQuantity', 'double(decimals=2)', 'smartCenter,caption=Върнато->Количество');
             if (!is_null($rec->seeAmount)) {
-                $fld->FLD('returnedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Стойност');
+                $fld->FLD('returnedAmount', 'double(decimals=2)', 'smartCenter,caption=Върнато->Стойност');
             }
 
-            $fld->FLD('totalQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Резултат->Количество');
+            $fld->FLD('totalQuantity', 'double(decimals=2)', 'smartCenter,caption=Резултат->Количество');
             if (!is_null($rec->seeAmount)) {
-                $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Резултат->Стойност');
+                $fld->FLD('totalAmount', 'double(decimals=2)', 'caption=Резултат->Стойност');
             }
 
         }
@@ -751,19 +752,29 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     {
         if ($priceType == 'accPrice') {
             $docTypeId = core_Classes::getId($master);
-            $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството');
+
+            $q = acc_Operations::getQuery();
+
+            $reasonNameArr = array('Влагане на материал в производството', 'Влагане на услуга в производството',
+                'Влагане на нескладируема услуга или консуматив в производството,Бездетайлно влагане на материал в производството');
+            foreach ($q->fetchAll() as $qRec) {
+                if (!in_array($qRec->title, $reasonNameArr)) continue;
+                $resonIdArr[] = $qRec->id;
+            }
+
+            //  $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството' OR 'Влагане на услуга в производството');
 
             if (!$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id) return;
             //$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id;
 
             $jdQuery = acc_JournalDetails::getQuery();
 
-            $jdQuery->where("#journalId = ${masterJurnalId} AND #reasonCode = ${resonId}");
-
+            $jdQuery->where("#journalId = ${masterJurnalId}");
+            $jdQuery->in('reasonCode', $resonIdArr);
 
             while ($jdRec = $jdQuery->fetch()) {
+                unset($prodJournalId);
                 $prodJournalId = acc_Items::fetch($jdRec->creditItem2)->objectId;
-
                 if ($pRec->productId == $prodJournalId) {
 
                     return $jdRec->creditPrice;

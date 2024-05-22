@@ -326,7 +326,7 @@ class crm_Persons extends core_Master
         $this->FLD('tel', 'drdata_PhoneType(type=tel,unrecognized=warning)', 'caption=Лични комуникации->Телефони,class=contactData,silent,export=Csv');
         $this->FLD('mobile', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Мобилен,class=contactData,silent,export=Csv');
         $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Лични комуникации->Факс,class=contactData,silent,export=Csv');
-        $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
+        $this->FLD('website', 'urls', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles, passage)', 'caption=Информация->Бележки,height=150px,class=contactData,export=Csv');
@@ -337,7 +337,8 @@ class crm_Persons extends core_Master
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
-        
+        $this->FNC('saveInSessionAfterCreation', 'int', 'silent,input=hidden');
+
         // Индекси
         $this->setDbIndex('name');
         $this->setDbIndex('country');
@@ -816,6 +817,8 @@ class crm_Persons extends core_Master
         if(isset($id)){
             // Коя е старата фирма на лицето
             $rec->_exBuzCompanyId = $mvc->fetchField($rec->id, 'buzCompanyId', false);
+        } else {
+            $rec->_isBeingCreated = true;
         }
     }
 
@@ -826,9 +829,7 @@ class crm_Persons extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updateGroupsCnt = true;
-        
         $mvc->updatedRecs[$id] = $rec;
-        
         $mvc->updateRoutingRules($rec);
         
         if (crm_Profiles::fetch("#personId = {$rec->id}")) {
@@ -842,6 +843,11 @@ class crm_Persons extends core_Master
             if ($listId) {
                 $mvc->updatedListsOnShutdown[$id] = $listId;
             }
+        }
+
+
+        if($rec->saveInSessionAfterCreation){
+            Mode::setPermanent('lastAddedPersonId', $rec->id);
         }
     }
     
@@ -1892,8 +1898,11 @@ class crm_Persons extends core_Master
         $conf = core_Packs::getConfig('crm');
         
         $form = &$data->form;
-        
+
         if (empty($form->rec->id)) {
+            $defaultGroupId = Request::get('groupId', 'int');
+            $form->setDefault('groupListInput', keylist::addKey('', $defaultGroupId));
+
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
             $form->setDefault('country', $Countries->fetchField("#commonName = '" .
@@ -3180,6 +3189,13 @@ class crm_Persons extends core_Master
             expect($gId);
 
             $query->likeKeylist('groupList', $gId);
+        }
+
+        // Ако е посочена фирма на която е представител - филтър по нея (ако тя има поне един представител)
+        if (isset($params['buzCompanyId'])) {
+            if(static::count("#buzCompanyId = {$params['buzCompanyId']}")){
+                $query->where("#buzCompanyId = {$params['buzCompanyId']}");
+            }
         }
 
         while ($rec = $query->fetch()) {

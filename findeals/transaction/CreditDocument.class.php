@@ -81,9 +81,9 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
         }
 
         $dealRec = $doc->fetch();
+        $findeal2findeal = $doc->isInstanceOf('findeals_Deals') && $origin->isinstanceOf('findeals_Deals');
 
         $originCurrencyId = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
-
         if($rec->currencyId == $originCurrencyId && $rec->currencyId == $baseCurrencyId) {
             // Кредитираме разчетната сметка на избраната финансова сделка
             $debitArr = array($rec->debitAccount,
@@ -104,17 +104,29 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
                             'credit' => $creditArr,);
         } else {
             $amountCredit = $amount;
-
             $originRate = $doc->fetchField('currencyRate');
             $amountDebit = $rec->amountDeal * $originRate;
 
+            $creditQuantity = $rec->amountDeal;
+            if($findeal2findeal){
+                $amountCredit = $rec->amount * $origin->fetchField('currencyRate');
+                $creditQuantity = $amountCredit;
+            }
+
             $entries[] = array('amount' => $sign * round($amountCredit, 2),
-                'credit' => array(481, array('currency_Currencies', $dealCodeId), 'quantity' => $sign * round($rec->amountDeal, 2)),
+                'credit' => array(481, array('currency_Currencies', $dealCodeId),
+                                            'quantity' => $sign * round($creditQuantity, 2)),
                 'debit' => array($rec->debitAccount,
                     array($rec->contragentClassId, $rec->contragentId),
                     array($origin->className, $origin->that),
                     array('currency_Currencies', $originCurrencyId),
                     'quantity' => $sign * round($rec->amount, 2)));
+
+            $creditQuantity1 = $rec->amountDeal;
+            if($findeal2findeal){
+                $creditQuantity1 = $creditQuantity1 * $doc->fetchField('currencyRate');
+                $amountDebit = $creditQuantity1;
+            }
 
             $entries[] = array('amount' => $sign * round($amountDebit, 2),
                 'credit' => array($rec->creditAccount,
@@ -122,7 +134,7 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
                     array($doc->getClassId(), $doc->that),
                     array('currency_Currencies', $dealCodeId),
                     'quantity' => $sign * round($rec->amountDeal, 2)),
-                'debit' => array(481, array('currency_Currencies', $dealCodeId), 'quantity' => $sign * round($rec->amountDeal, 2)));
+                'debit' => array(481, array('currency_Currencies', $dealCodeId), 'quantity' => $sign * round($creditQuantity1, 2)));
         }
 
         return $entries;

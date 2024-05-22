@@ -40,7 +40,9 @@ class sens2_script_ActionNotify
         $form->FLD('priority', 'enum(normal=Нормален, warning=Неотложен, alert=Спешен)', 'caption=Известяване->Приоритет,mandatory');
         $form->FLD('users', 'userList', 'caption=Известяване->Потребители,mandatory');
         $form->FLD('cond', 'text(rows=2)', 'caption=Условие за да се изпрати->Израз,mandatory,width=100%');
-        
+        $form->FLD('repeat', 'int', 'caption=Последователни сработвания за да се изпрати->Цикли,placeholder=1');
+        $form->FLD('minNotifyTime', 'time', 'caption=Минимално време между две изпращания->Време');
+
         $suggestions = sens2_script_Helper::getSuggestions($form->rec->scriptId);
         $form->setSuggestions('cond', $suggestions);
         
@@ -92,6 +94,18 @@ class sens2_script_ActionNotify
             if (!$cond) {
                 
                 return 'closed';
+            }
+        }
+
+        if($rec->repeat > 1) { 
+            $repeat = (int) core_Cache::get('Sens2RPT', $rec->action) + 1;
+           
+            if($repeat < $rec->repeat) {
+                core_Cache::set('Sens2RPT', $rec->action, $repeat, 100);
+
+                return 'active';
+            } else {
+                core_Cache::remove('Sens2RPT', $rec->action);
             }
         }
         

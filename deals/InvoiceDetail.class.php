@@ -79,6 +79,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
         $mvc->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
+        $mvc->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none');
+        $mvc->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
         $mvc->setDbIndex('productId,packagingId');
     }
     
@@ -368,6 +370,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
             
             deals_Helper::addNotesToProductRow($row1->productId, $rec->notes);
+
+            if ($masterRec->type != 'dc_note' || !isset($masterRec->type)) {
+                $row1->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
+            }
         }
         
         if ($masterRec->type != 'dc_note') {
@@ -482,6 +488,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $lang = isset($modeLg) ? $modeLg : doc_TplManager::fetchField($masterRec->template, 'lang');
 
         core_Lg::push($lang);
+        core_RowToolbar::createIfNotExists($row->_rowTools);
+        cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $rec->id);
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang, 1, false);
         core_Lg::pop();
 
@@ -722,5 +730,14 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public function calcFieldsOnActivation_(&$dRec, $masterRec, $params)
     {
         return false;
+    }
+
+
+    /**
+     * Изпълнява се преди клониране на детайла
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        $rec->discount = $oldRec->inputDiscount;
     }
 }

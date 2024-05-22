@@ -9,7 +9,7 @@
  * @package   survey
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -160,14 +160,12 @@ class survey_Alternatives extends core_Detail
     protected function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($fields['-list']) {
+            $row->label = str::mbUcfirst($row->label);
             if (!Mode::is('printing') && $mvc->haveRightFor('edit', $rec)) {
                 $addUrl = array('survey_Options', 'add', 'alternativeId' => $rec->id, 'ret_url' => true);
                 $row->addOption = ht::createLink('', $addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addParams', 'title' => 'Добавяне на опция'));
             }
-            
-            $imgLink = sbf('survey/img/question.png', '');
-            $row->icon = ht::createElement('img', array('src' => $imgLink, 'style' => 'vertical-align:middle', 'width' => 16));
-            
+
             if ($rec->image) {
                 $Fancybox = cls::get('fancybox_Fancybox');
                 $row->image = $Fancybox->getImage($rec->image, array(400, 140), array(700, 500), null, array('class' => 'question-image'));
@@ -185,12 +183,16 @@ class survey_Alternatives extends core_Detail
     {
         $tpl = getTplFromFile('survey/tpl/SingleAlternative.shtml');
         $tplAlt = $tpl->getBlock('ROW');
+        $count = 1;
+
         if ($data->rows) {
             foreach ($data->rows as $row) {
+                $row->count = $count;
                 $rowTpl = clone($tplAlt);
                 $rowTpl->placeObject($row);
                 $rowTpl->removeBlocks();
                 $rowTpl->append2master();
+                $count++;
             }
         }
         
@@ -241,9 +243,8 @@ class survey_Alternatives extends core_Detail
      */
     public function prepareResults($rec)
     {
-        $int = cls::get('type_Int');
-        $double = cls::get('type_Double');
-        $double->params['decimals'] = 2;
+        $Int = cls::get('type_Int');
+        $Double = core_Type::getByName('double(decimals=2)');
         
         // Всички гласове, които е получил въпроса
         $totalVotes = survey_Votes::countVotes($rec->id);
@@ -254,24 +255,30 @@ class survey_Alternatives extends core_Detail
         $query->where("#alternativeId = {$rec->id}");
         while ($option = $query->fetch()) {
             $op = new stdClass();
-            $op->text = $option->text;
+            $op->text = str::mbUcfirst($option->text);
             if ($totalVotes != 0) {
-                $op->votes = $int->toVerbal(survey_Votes::countVotes($rec->id, $option->id));
-                $op->percent = $double->toVerbal(round($op->votes / $totalVotes * 100, 2));
+                $op->_votes = survey_Votes::countVotes($rec->id, $option->id);
+                $op->votes = $Int->toVerbal($op->_votes);
+                $op->percent = $Double->toVerbal(round($op->votes / $totalVotes * 100, 2));
             } else {
+                $op->_votes = 0;
                 $op->votes = 0;
                 $op->percent = 0;
+            }
+
+            $op->votes .= " " . str::getPlural($op->_votes, tr('глас'), true);
+            if($op->_votes == 0){
+                $op->votes = "<span class='quiet'>{$op->votes}</span>";
             }
             $answers[] = $op;
         }
 
         $res = new stdClass();
-        
         $res->label = $rec->label;
         $res->points = survey_Votes::countPoints($rec->id);
-        $res->points = $double->toVerbal($res->points);
+        $res->points = $Double->toVerbal($res->points);
         
-        arr::sortObjects($answers, 'votes');
+        arr::sortObjects($answers, '_votes');
         $answers = array_reverse($answers, true);
         $res->answers = $answers;
         
@@ -293,7 +300,7 @@ class survey_Alternatives extends core_Detail
         foreach ($data->summary as $rec) {
             $questionTpl = clone($blockTpl);
             $subRow = $questionTpl->getBlock('subRow');
-            $label = $type->toVerbal($rec->label);
+            $label = $type->toVerbal(str::mbUcfirst($rec->label));
             $questionTpl->replace($label, 'QUESTION');
             $questionTpl->replace($rec->points, 'points');
             
@@ -346,7 +353,7 @@ class survey_Alternatives extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        if ($action == 'write' && isset($rec->surveyId)) {
+        if (in_array($action, array('write', 'clonerec')) && isset($rec->surveyId)) {
             
             /* Не можем да добавяме/редактираме нови въпроси
              * в следните случаи: Анкетата е затворена,
@@ -362,6 +369,7 @@ class survey_Alternatives extends core_Detail
         }
         
         if ($action == 'vote' && isset($rec->id)) {
+
             $altRec = survey_Alternatives::fetch($rec->id);
             $surveyRec = survey_Surveys::fetch($altRec->surveyId);
             if ($surveyRec->state != 'active' || survey_Surveys::isClosed($altRec->surveyId)) {
@@ -369,6 +377,27 @@ class survey_Alternatives extends core_Detail
             } else {
                 $res = 'every_one';
             }
+        }
+    }
+
+
+    /**
+     * След клониране на детайлите
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $newRec
+     * @param stdClass $oldRec
+     * @return void
+     */
+    protected static function on_AfterSaveClonedDetail($mvc, $newRec, $oldRec)
+    {
+        // Копиране и на опциите на въпросите
+        $oQuery = survey_Options::getQuery();
+        $oQuery->where("#alternativeId = {$oldRec->id}");
+        while($oRec = $oQuery->fetch()) {
+            unset($oRec->id);
+            $oRec->alternativeId = $newRec->id;
+            survey_Options::save($oRec);
         }
     }
 }

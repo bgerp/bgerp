@@ -222,13 +222,14 @@ class floor_Plans extends core_Master {
         }
         
         if($tabs) {
-            $tpl = new ET("{$tabs}<div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div>");
+            $tpl = new ET("{$tabs}<div class='holder' data-id=\"{$planId}\" id=\"floor\"><div  class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div></div>");
         } else {
-            $tpl = new ET("<div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div>");
+            $tpl = new ET("<div class='holder' data-id=\"{$planId}\" id=\"floor\"> <div  class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div></div>");
         }
         
         jqueryui_Ui::enable($tpl);
-        jquery_Jquery::run($tpl, $design ? 'editFloorplan();' : 'setTimeout(refreshFloor, 3000);');
+        $refreshTime = Mode::is('screenMode', 'narrow') ? 60000 : 3000;
+        jquery_Jquery::run($tpl, $design ? 'editFloorplan();' : 'calculatePosition();setTimeout(refreshFloor, ' . $refreshTime . ');');
         $tpl->push('floor/css/floorplan.css', 'CSS');
         $tpl->push('floor/js/floorplan.js', 'JS');
 

@@ -998,7 +998,9 @@ class doc_Containers extends core_Manager
                     
                     // Премахваме всички потребители, които ще се нотифицират за отворена нишка
                     // и са абонирани в нишката и ще получат нотификация от там
-                    $usersArrForNotify = array_diff($usersArrForNotify, $notifyForOpenInFolder);
+                    if (email_Setup::get('NOTIFY_PERSONAL_EMAIL_IN_OPEN') != 'yes') {
+                        $usersArrForNotify = array_diff($usersArrForNotify, $notifyForOpenInFolder);
+                    }
                     $usersArrForNotify = array_diff($usersArrForNotify, $subscribedArr);
                     $usersArrForNotify = array_diff($usersArrForNotify, $sharedArr);
                     

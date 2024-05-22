@@ -2864,7 +2864,7 @@ class doc_Threads extends core_Manager
         
         doc_Folders::restrictAccess($query, $userId, $viewAccess);
         
-        if ($query->mvc->className != 'doc_Threads') {
+        if (($query->mvc->className != 'doc_Threads') && ($query->mvc->className != 'doc_ThreadsProxy')) {
             // Добавя необходимите полета от модела doc_Threads
             $query->EXT('threadShared', 'doc_Threads', 'externalName=shared,externalKey=threadId');
         } else {
@@ -2966,10 +2966,16 @@ class doc_Threads extends core_Manager
         $rec = static::fetch($params['threadId']);
         
         $haveRight = static::haveRightFor('single', $rec);
-        
-        if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
+
+        if (!$haveRight && ((strtolower($params['Ctr']) == 'doc_containers') || (strtolower($params['Ctr']) == 'colab_threads'))) {
             if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Threads::haveRightFor('single', $rec);
+                if ($haveRight) {
+                    if (strtolower($params['Ctr']) == 'doc_containers') {
+                        $params['Ctr'] = 'colab_Threads';
+                        $params['Act'] = 'Single';
+                    }
+                }
             }
         }
         
@@ -2990,6 +2996,7 @@ class doc_Threads extends core_Manager
         
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
+            $sbfIcon = sbf($docProxy->getIcon());
             $res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
         } elseif (Mode::is('text', 'plain')) {
             
@@ -3001,7 +3008,12 @@ class doc_Threads extends core_Manager
             $attr = array();
             $attr['ef_icon'] = $docProxy->getIcon();
             $attr['target'] = '_blank';
-            
+
+            if ((strtolower($params['Ctr']) == 'colab_threads') && !core_Users::haveRole('partner')) {
+                $params['Ctr'] = 'doc_Containers';
+                $params['Act'] = 'List';
+            }
+
             // Създаваме линк
             $res = ht::createLink($title, $params, null, $attr);
         }

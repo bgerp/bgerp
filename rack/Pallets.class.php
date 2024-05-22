@@ -113,6 +113,12 @@ class rack_Pallets extends core_Manager
 
 
     /**
+     * Работен кеш
+     */
+    private static $lastPositionCache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -358,8 +364,13 @@ class rack_Pallets extends core_Manager
 
     /**
      * Връща най-добрата позиция за разполагане на дадения продукт
+     *
+     * @param int $productId            - ид на артикул
+     * @param int $storeId              - в кой склад
+     * @param null|string $lastPosition - последна позиция, на която е отишъл артикула
+     * @return string
      */
-    public static function getBestPos($productId, $storeId = null)
+    public static function getBestPos($productId, $storeId = null, $lastPosition = null)
     {
         if (!$storeId) {
             $storeId = store_Stores::getCurrent();
@@ -429,7 +440,7 @@ class rack_Pallets extends core_Manager
                     
                     // Ако имаме резервирана позиция за този продукт
                     if($reserved[$pos] == $pRec->productId) {
-                        $score += 6;
+                        $score += 13;
                     }
                     
                     // Ако нямаме достатъчно на ниска позиция
@@ -450,7 +461,7 @@ class rack_Pallets extends core_Manager
                     }
                     
                     if($used[$posDw]->productId == $pRec->productId) {
-                        $score += 3.5;
+                        $score += 9;
                     }
                     
                     // Ако левия или десния са от този продукт или близки на него
@@ -461,7 +472,12 @@ class rack_Pallets extends core_Manager
                     if($weight = $nearProds[$used[$posLf]->productId]) {
                         $score += 1.2 * $weight;
                     }
-                    
+
+                    // Ако последно е сложено отдолу, текущото е с по-висок приоритет
+                    if($posDw == $lastPosition){
+                        $score += 5;
+                    }
+
                     // Отделяме най-добрият резултат
                     if ($score > $bestScore) {
                         $bestPos = $pos;
@@ -600,20 +616,15 @@ class rack_Pallets extends core_Manager
     /**
      * Може ли в склада да има повече от един палет на една позиция
      *
-     * @param $storeId
-     * @return bool
+     * @param $storeId - ид на склад
+     * @return string  - no [забранено], yes [да с предупреждение], yesWithoutWarning [да без предупреждение]
      */
     public static function canHaveMultipleOnOnePosition($storeId)
     {
         $sRec = store_Stores::fetch($storeId);
-        if($sRec) {
-            $samePosPallets = $sRec->samePosPallets;
-        }
-        if(!isset($samePosPallets)) {
-            $samePosPallets = rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
-        }
+        if(isset($sRec) && !empty($sRec->samePosPallets)) return $sRec->samePosPallets;
 
-        return $samePosPallets == 'yes';
+        return rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
     }
 
 
@@ -647,7 +658,7 @@ class rack_Pallets extends core_Manager
 
         if(!$rec) {
             $samePosPallets = static::canHaveMultipleOnOnePosition($storeId);
-            if(!$samePosPallets) {
+            if($samePosPallets == 'no') {
                 $rQuery2 = static::getQuery();
                 $rQuery2->where(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
                 if(core_Packs::isInstalled('batch')){
@@ -1037,13 +1048,14 @@ class rack_Pallets extends core_Manager
      * @param string $position
      * @param int    $storeId
      * @param int    $batch
+     * @param bool $anyPalletIfEmpty
      * @return null|stdClass
      */
-    public static function getByPosition($position, $storeId, $productId = null, $batch = null)
+    public static function getByPosition($position, $storeId, $productId = null, $batch = null, $anyPalletIfEmpty = false)
     {
         if (empty($position) || $position == rack_PositionType::FLOOR) return;
-
         $rec = null;
+
         if(isset($productId)) {
             $where = "#productId = {$productId} AND #position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}";
             if(!is_null($batch)){
@@ -1053,10 +1065,12 @@ class rack_Pallets extends core_Manager
             }
         }
 
-        if(!$rec) {
-            $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+        if($anyPalletIfEmpty){
+            if(!$rec){
+                $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+            }
         }
-        
+
         return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'batch' => $rec->batch, 'quantity' => $rec->quantity, 'state' => $rec->state) : null;
     }
     
@@ -1177,22 +1191,19 @@ class rack_Pallets extends core_Manager
      */
     public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null, $containerId = null)
     {
-        if (store_Stores::getCurrent('id', false) != $storeId || core_Mode::isReadOnly()) return false;
+        if(!store_Stores::haveRightFor('select', $storeId) || core_Mode::isReadOnly()) return false;
+        if (!rack_Movements::haveRightFor('add', (object) array('productId' => $productId))) return false;
 
-        if (rack_Movements::haveRightFor('add', (object) array('productId' => $productId))){
-            $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'maxPackQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'ret_url' => true);
-            if(!empty($batch)){
-                $addPalletUrl['batch'] = $batch;
-            }
-            
-            if($containerId){
-                $addPalletUrl['containerId'] = $containerId;
-            }
-            
-            return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,class=smallIcon,title=Палетиране на артикул');
+        $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'maxPackQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'forceStoreId' => $storeId, 'ret_url' => true);
+        if(!empty($batch)){
+            $addPalletUrl['batch'] = $batch;
         }
-        
-        return false;
+
+        if($containerId){
+            $addPalletUrl['containerId'] = $containerId;
+        }
+
+        return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,class=smallIcon,title=Палетиране на артикул');
     }
 
 
@@ -1324,12 +1335,15 @@ class rack_Pallets extends core_Manager
      */
     public static function getLastPalletPosition($productId, $storeId, $direction = 'down')
     {
+        $key = "{$productId}|{$storeId}|{$direction}";
+        if(array_key_exists($key, static::$lastPositionCache)) return static::$lastPositionCache[$key];
+
         $floor = rack_PositionType::FLOOR;
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state IN ('active', 'closed')");
         if($direction == 'down'){
             $field = 'position';
-            $mQuery->where("#positionTo IS NULL OR #positionTo = '{$floor}' AND #position IS NOT NULL");
+            $mQuery->where("(#positionTo IS NULL OR #positionTo = '{$floor}') AND #position IS NOT NULL");
         } else {
             $field = 'positionTo';
             $mQuery->where("#position = '{$floor}' AND #positionTo IS NOT NULL");
@@ -1337,7 +1351,8 @@ class rack_Pallets extends core_Manager
 
         $mQuery->orderBy('createdOn', 'DESC');
         $mQuery->show($field);
+        static::$lastPositionCache[$key] = $mQuery->fetch()->{$field};
 
-        return $mQuery->fetch()->{$field};
+        return static::$lastPositionCache[$key];
     }
 }

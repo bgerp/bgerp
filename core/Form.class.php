@@ -64,8 +64,14 @@ class core_Form extends core_FieldSet
      * Атрибути на елемента <FORM ... >
      */
     public $formAttr = array();
-    
-    
+
+
+    /**
+     * Информация за рендиране преди показване на полето
+     */
+    public $beforeFieldInfo = array();
+
+
     /**
      * Редове с дефиниции [Селектор на стила] => [Дефиниция на стила]
      */
@@ -914,7 +920,7 @@ class core_Form extends core_FieldSet
                 } else {
                     $input = $type->renderInput($name, $value, $attr);
                 }
-                
+
                 $fieldsLayout->replace($input, $name);
             }
             
@@ -929,7 +935,7 @@ class core_Form extends core_FieldSet
                 }
             }
         }
-        
+
         return $fieldsLayout;
     }
     
@@ -1094,10 +1100,16 @@ class core_Form extends core_FieldSet
                     } else {
                        $tdHtml = "<td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td>"; 
                     }
-                    
                     $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}>{$tdHtml}</tr>");
                 }
-                
+
+                // Ако ще се показва нещо преди рендирането на полето - да се покаже
+                if(isset($this->beforeFieldInfo[$name])){
+                    $prependTpl = new core_ET("<tr><td colspan='2'>[#BEFORE_INFO#]</td></tr>");
+                    $prependTpl->replace($this->beforeFieldInfo[$name], 'BEFORE_INFO');
+                    $fld->prepend($prependTpl->getContent());
+                }
+
                 // Добавяме rowCaption
                 if (!empty($rowCaption)) {
                     $mandatoryClass = ($field->mandatory) ? 'mandatoryMiddleCaption' : '';
@@ -1656,5 +1668,18 @@ class core_Form extends core_FieldSet
         $formId = $form->formAttr['id'];
 
         jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');", true);
+    }
+
+
+    /**
+     * Какво да се рендира преди рендирането на полето във формата
+     *
+     * @param string $field        - кое поле
+     * @param core_ET|string $info - стринг или шаблон, който да се рендира
+     * @return void
+     */
+    public function setInfoBeforeField($field, $info)
+    {
+        $this->beforeFieldInfo[$field] = new core_ET($info);
     }
 }

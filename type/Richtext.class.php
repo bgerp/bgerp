@@ -220,7 +220,7 @@ class type_Richtext extends type_Blob
      *
      * @return string
      */
-    public function toHtml($html)
+    public function toHtml($html, $wrapBefore = '<div class="richtext">', $wrapAfter = '</div>')
     {
         Debug::startTimer('RichtextToHtml');
         
@@ -393,7 +393,7 @@ class type_Richtext extends type_Blob
         }
         
         if (!Mode::is('text', 'plain')) {
-            $html = new ET("<div class=\"richtext\">{$html}</div>");
+            $html = new ET("{$wrapBefore}{$html}{$wrapAfter}");
         } else {
             $html = new ET($html);
         }
@@ -644,7 +644,7 @@ class type_Richtext extends type_Blob
             // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
         
-        $html = str_replace($from, $to, $html);
+        $html = str_ireplace($from, $to, $html);
 
         return $html;
     }

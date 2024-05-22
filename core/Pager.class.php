@@ -258,9 +258,9 @@ class core_Pager extends core_BaseClass
         $rQuery = clone $query;
         $query->limit($limit);
         $query->startFrom($this->rangeStart);
-        
-        if($query->addId) {
-            $ids[] =$query->addId;  
+
+        if($query->addId && $query->start == 0) {
+            $ids[] = $query->addId;
         }
         while ($rec = $query->fetch()) {
             $ids[] = $rec->id;

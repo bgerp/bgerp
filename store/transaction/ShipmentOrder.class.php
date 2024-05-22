@@ -102,21 +102,12 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
 
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             if($rec->isReverse == 'no'){
-                $shipped = array();
-                foreach ($entries as $d){
-                    if($d['credit'][0] == '321') {
-                        if(!array_key_exists($d['credit'][2][1], $this->instantProducts)){
-                            $shipped[] = (object)array('productId' => $d['credit'][2][1], 'quantity' => $d['credit']['quantity']);
-                        }
-                    }
-                }
 
-                if(countR($shipped)){
-                    // Ако ще се доведе до отрицателна, количност и не е разрешено да се сетне грешка
-                    if(!store_Setup::canDoShippingWhenStockIsNegative()){
-                        if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($shipped, $rec->storeId, $rec->state)) {
-                            acc_journal_RejectRedirect::expect(false, $warning);
-                        }
+                // Ако ще се доведе до отрицателна, количност и не е разрешено да се сетне грешка
+                if(!store_Setup::canDoShippingWhenStockIsNegative()){
+                    $shipped = store_Stores::getShippedProductsByStoresFromTransactionEntries($entries, $this->instantProducts);
+                    if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($shipped, $rec->storeId, $rec->state)) {
+                        acc_journal_RejectRedirect::expect(false, $warning);
                     }
                 }
             }
@@ -124,10 +115,9 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
-        $transaction = (object) array(
-            'reason' => 'Експедиционно нареждане №' . $rec->id,
-            'valior' => $rec->valior,
-            'entries' => $entries,
+        $transaction = (object) array('reason' => 'Експедиционно нареждане №' . $rec->id,
+                                      'valior' => $rec->valior,
+                                      'entries' => $entries,
         );
         
         return $transaction;
@@ -140,7 +130,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
     private function getEntries($rec, $origin, $reverse = false)
     {
         // Записите от тип 1 (вземане от клиент)
-        $entries = $instantProducts = array();
+        $entries = array();
         
         if(!$reverse){
 

@@ -102,15 +102,16 @@ class sens2_Indicators extends core_Detail
     {
         $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name, allowEmpty)', 'caption=Контролер, mandatory, silent,refreshForm');
         $this->FLD('port', 'varchar(64)', 'caption=Порт, mandatory');
-        $this->FLD('name', 'varchar(64)', 'caption=Наименование,column=none');
+        $this->FLD('name', 'varchar(64,nullIfEmpty)', 'caption=Наименование,column=none');
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4, smartRound)', 'caption=Стойност,smartCenter,input=none');
         $this->FLD('lastValue', 'datetime', 'caption=Към момент,oldFieldName=time,input=none');
         $this->FLD('lastUpdate', 'datetime', 'caption=Обновяване,column=none,input=none');
         $this->FLD('error', 'varchar(128)', 'caption=Грешки,input=none');
         $this->FLD('state', 'enum(active=Активен, rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
         $this->FLD('uom', 'varchar(16)', 'caption=Мярка,column=none');
-        
+        $this->FLD('format', "table(columns=cond|value|statusText|statusType,captions=Условие|Стойност|Име|Състояние,widths=4em|6em|10em|6em,cond_opt=EQ|GT|LT|GTE|LTE,statusType_opt=|on|off|ok|warning|danger)", 'caption=Форматиране,single=none,column=none');
         $this->FNC('title', 'varchar(64)', 'caption=Заглавие,column=none');
+
         $this->FNC('isOutput', 'enum(yes,no)', 'caption=Изход ли е?,column=none');
         
         $this->setDbUnique('controllerId,port,uom');
@@ -162,9 +163,11 @@ class sens2_Indicators extends core_Detail
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            $form->rec->name = str_replace(' ', '_', $form->rec->name);
-            if (strlen($form->rec->name) && !preg_match('/^[\\p{L}0-9_]+$/u', $form->rec->name)) {
-                $form->setError('name', 'Наименованието трябва да съдържа само букви, цифри и символа `_`');
+            if($form->rec->name !== null) {
+                $form->rec->name = str_replace(' ', '_', $form->rec->name);
+            }
+            if (strlen($form->rec->name) && !preg_match('/^[\\p{L}0-9_\.]+$/u', $form->rec->name)) {
+                $form->setError('name', 'Наименованието трябва да съдържа само букви, цифри, точка и символа `_`');
             }
         }
     }
@@ -368,6 +371,9 @@ class sens2_Indicators extends core_Detail
             foreach ($data->rows as $id => &$row) {
                 if (strlen($data->recs[$id]->value)) {
                     $row->value .= "<span class='measure'>" . self::getVerbal($data->recs[$id], 'uom') . '</span>';
+                    if(isset($row->statusText)) {
+                        $row->value = $row->statusText . ' ' . $row->value;
+                    }
                 }
             }
         }
@@ -434,7 +440,45 @@ class sens2_Indicators extends core_Detail
             $icon = 'hand-point.png';
         }
         
+        $rec->format = type_Table::toArray($rec->format);
         
+        foreach($rec->format as $r) {
+            if(!isset($r->cond) || !isset($r->value)) continue;
+            switch($r->cond) {
+                case 'EQ': $cond = $rec->value == $r->value;
+                    break;
+                case 'GT': $cond = $rec->value > $r->value; 
+                    break;
+                case 'LT': $cond = $rec->value < $r->value;
+                    break;
+                case 'GTE' : $cond = $rec->value >= $r->value;
+                    break;
+                case 'LTE' : $cond = $rec->value <= $r->value;
+                    break;
+                default:
+                    error("Unknown condition {$r->cond}");
+            }
+    
+            switch($r->statusType) {
+                case 'ok': $color = 'green';
+                    break;
+                case 'on': $color = 'blue';
+                    break;
+                case 'off': $color = 'grey';
+                    break;
+                case 'warning' : $color = 'orange';
+                    break;
+                case 'danger' : $color = 'red';
+                    break;
+                default:
+                    $color = '#333';
+            }
+            if($cond) {
+                 $row->statusText = "<small style='color:{$color}'>" . type_Varchar::escape($r->statusText) . '</small>';
+                 break;
+            }
+        }
+
         $row->title = ht::createLink($row->title, $url, null, "ef_icon=img/16/{$icon}");
     }
 }

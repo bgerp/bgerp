@@ -44,7 +44,7 @@ abstract class rack_MovementAbstract extends core_Manager
     {
         $mvc->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,column=none');
         $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|zones|palletId,mandatory,remember');
-        $mvc->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack,silent');
+        $mvc->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Мярка,input=hidden,mandatory,smartCenter,remember,removeAndRefreshForm=quantity|quantityInPack,silent');
         $mvc->FNC('packQuantity', 'double(min=0)', 'caption=Количество,smartCenter,silent');
         $mvc->FNC('movementType', 'varchar', 'silent,input=hidden');
 
@@ -452,7 +452,16 @@ abstract class rack_MovementAbstract extends core_Manager
 
         // Кои опаковки са с по-малко количество от нужното
         $packs = array_filter($packagingArr, function($a) use ($quantity) {return $a['quantity'] <= $quantity;});
-        if(!countR($packs)) return null;
+
+        if(!countR($packs)) {
+            // Ако няма нито една опаковка с достатъчно к-во - ще се показва винаги в основната да не се получават дробни числа
+            $baseMeasureId = cat_Products::fetchField($productId, 'measureId');
+            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+            $quantityVerbal = ht::styleIfNegative($quantityVerbal, $quantity);
+            $displayString = tr(cat_UoM::getSmartName($baseMeasureId, $quantity));
+
+            return "{$quantityVerbal} {$displayString}";
+        }
 
         // Подобрено сортиране
         uasort($packs, function (&$a, &$b)  {

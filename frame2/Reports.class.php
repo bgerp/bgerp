@@ -243,7 +243,7 @@ class frame2_Reports extends embed_Manager
         $this->FLD('updateDays', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Обновяване и известяване->Дни,autohide');
         $this->FLD('updateTime', 'set(08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00)', 'caption=Обновяване и известяване->Час,autohide');
         $this->FLD('notificationText', 'varchar', 'caption=Обновяване и известяване->Текст,autohide');
-        $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Обновяване и известяване->Потребители,autohide');
+        $this->FLD('sharedUsers', 'userList(roles=powerUser,showClosedUsers=no)', 'caption=Обновяване и известяване->Потребители,autohide');
         $this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
         $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
         $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
@@ -718,6 +718,7 @@ class frame2_Reports extends embed_Manager
                 // Записване в опашката че справката е била опреснена
                 if (frame2_ReportVersions::log($rec->id, $rec)) {
                     if($rec->data !== static::DATA_ERROR_STATE){
+                        $Driver->invoke('AfterReportIsRefreshed', array($me, &$rec));
                         if($sendNotificationOnlyAfterDataIsChanged){
                             $me->refreshReports[$rec->id] = $rec;
                         }

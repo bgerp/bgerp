@@ -948,6 +948,11 @@ class acc_ValueCorrections extends core_Master
             $rec = $this->fetchRec($id, '*', false);
         }
 
+        $chargeVat = doc_Threads::getFirstDocument($rec->threadId)->fetchField('chargeVat');
+        if ($chargeVat == 'yes' || $chargeVat == 'separate') {
+            $averageRate = $this->getAverageVatRate($rec->productsData, $rec->amount, $rec->valior, $rec->allocateBy);
+            $rec->amount = $rec->amount * (1 + $averageRate);
+        }
         $amount = round($rec->amount / $rec->rate, 2);
 
         return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId));

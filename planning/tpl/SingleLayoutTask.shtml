@@ -30,5 +30,10 @@
            </td>
        </tr>
     </table>
+    <!--ET_BEGIN jobNotes-->
+    <div colspan="2" style="margin-top:5px">
+        [#jobNotes#]
+    </div>
+    <!--ET_END jobNotes-->
 </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

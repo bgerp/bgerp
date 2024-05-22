@@ -1097,7 +1097,7 @@ class doc_Folders extends core_Master
      */
     public static function restrictAccess_(&$query, $userId = null, $viewAccess = true)
     {
-        if ($query->mvc->className != 'doc_Folders') {
+        if (($query->mvc->className != 'doc_Folders') && ($query->mvc->className != 'doc_FoldersProxy')) {
             // Добавя необходимите полета от модела doc_Folders
             if (!$query->fields['folderAccess']) {
                 $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');
@@ -1252,9 +1252,14 @@ class doc_Folders extends core_Master
         
         $haveRight = static::haveRightFor('single', $rec);
         
-        if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
+        if (!$haveRight && ((strtolower($params['Ctr']) == 'colab_threads') || strtolower($params['Ctr']) == 'doc_threads')) {
             if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Folders::haveRightFor('single', $rec);
+                if ($haveRight) {
+                    if (strtolower($params['Ctr']) == 'doc_threads') {
+                        $params['Ctr'] = 'colab_Threads';
+                    }
+                }
             }
         }
         
@@ -1282,7 +1287,9 @@ class doc_Folders extends core_Master
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
             // Линка
-            $params['Ctr'] = 'doc_Threads';
+            if ((strtolower($params['Ctr']) == 'colab_threads') && !core_Users::haveRole('partner')) {
+                $params['Ctr'] = 'doc_Threads';
+            }
             $link = toUrl($params, $isAbsolute);
             
             // Атрибути на линка

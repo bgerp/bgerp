@@ -304,8 +304,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = $form->rec;
         $form->setFieldTypeParams('deliveryTime', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
+        $form->setDefault('chargeVat', $mvc->getDefaultChargeVat($rec));
+        $form->setDefault('shipmentStoreId', $mvc->getDefaultShipmentStoreId($rec));
 
-        if(!crm_Companies::isOwnCompanyVatRegistered()) {
+        if(!$mvc->isOwnCompanyVatRegistered($rec)) {
+            $form->rec->chargeVat = 'no';
             $form->setReadOnly('chargeVat');
         }
         
@@ -352,7 +355,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public function getDefaultChargeVat($rec)
     {
         // Ako "Моята фирма" е без ДДС номер - без начисляване
-        if(!crm_Companies::isOwnCompanyVatRegistered()) return 'no';
+        if(!$this->isOwnCompanyVatRegistered($rec)) return 'no';
 
         // После се търси по приоритет
         foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
@@ -360,7 +363,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if(!empty($chargeVat)) return $chargeVat;
         }
 
-        return deals_Helper::getDefaultChargeVat($rec->folderId);
+        return deals_Helper::getDefaultChargeVat($this, $rec);
     }
     
     
@@ -467,7 +470,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         // Избрания ДДС режим съответства ли на дефолтния
-        $defVat = deals_Helper::getDefaultChargeVat($rec->folderId, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
+        $defVat = deals_Helper::getDefaultChargeVat($mvc, $rec, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
             $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
             if(!$isCurrencyReadOnly){
@@ -982,6 +985,11 @@ abstract class deals_DealMaster extends deals_DealBase
             if ($rec->deliveryLocationId) {
                 $result->features['Локация'] = crm_Locations::getTitleById($rec->deliveryLocationId, false);
             }
+
+            if(core_Packs::isInstalled('holding')){
+                $ownCompanyId = $rec->{$self->ownCompanyFieldName} ?? crm_Setup::BGERP_OWN_COMPANY_ID;
+                $result->features['Моя фирма'] = crm_Companies::getTitleById($ownCompanyId, false);
+            }
         }
         
         return $result;
@@ -1053,7 +1061,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $dRec->inputDiscount = $dRec->discount;
                 if(isset($dRec->autoDiscount)){
                     if(isset($dRec->discount)){
-                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 6);
+                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 8);
                     } else {
                         $dRec->discount = $dRec->autoDiscount;
                     }
@@ -1276,7 +1284,14 @@ abstract class deals_DealMaster extends deals_DealBase
             if (!empty($rec->deliveryAdress)) {
                 $deliveryAdress = $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
             } else {
-                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc);
+                $ownCompanyId = null;
+                if(core_Packs::isInstalled('holding')){
+                    if(isset($mvc->ownCompanyFieldName)){
+                        $ownCompanyId = $rec->{$mvc->ownCompanyFieldName};
+                    }
+                }
+
+                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc, $ownCompanyId);
             }
            
             if (isset($rec->deliveryTermId) && !Mode::isReadOnly()) {
@@ -1295,7 +1310,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 
             // Подготовка на имената на моята фирма и контрагента
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + (array) $headerInfo);
             
             if (isset($actions['ship'])) {
@@ -2013,8 +2028,6 @@ abstract class deals_DealMaster extends deals_DealBase
         // Записваме данните на контрагента
         $fields['contragentClassId'] = $contragentClass->getClassId();
         $fields['contragentId'] = $contragentId;
-        
-        // Валутата е дефолтната за папката
         $fields['currencyId'] = (isset($fields['currencyId'])) ? $fields['currencyId'] : cond_plg_DefaultValues::getDefaultValue($me, $fields['folderId'], 'currencyId');
 
         // Ако няма курс, това е този за основната валута
@@ -2027,34 +2040,32 @@ abstract class deals_DealMaster extends deals_DealBase
             expect(drdata_Address::parsePlace($fields['deliveryAdress']), 'Адресът трябва да съдържа държава и пощенски код');
         }
 
-        // Ако няма платежен план, това е плащане в брой
-        $paymentSysId = ($me instanceof sales_Sales) ? 'paymentMethodSale' : 'paymentMethodPurchase';
-        $fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $paymentSysId) : $fields['paymentMethodId'];
-        
-        $termSysId = ($me instanceof sales_Sales) ? 'deliveryTermSale' : 'deliveryTermPurchase';
-        $fields['deliveryTermId'] = (empty($fields['deliveryTermId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $termSysId) : $fields['deliveryTermId'];
-        
-        
-        // Ако не е подадено да се начислявали ддс, определяме от контрагента
-        if (empty($fields['chargeVat'])) {
-            $fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
-        }
-        
-        // Ако не е подадено да се начислявали ддс, определяме от контрагента
-        if (empty($fields['makeInvoice'])) {
-            $fields['makeInvoice'] = 'yes';
-        }
-        
         // Състояние на плащането, чакащо
         $fields['paymentState'] = 'pending';
-        
+
         // Опиваме се да запишем мастъра на сделката
         $rec = (object)$fields;
-        
+
+        // Ако не е подадено да се начислявали ддс, определяме от контрагента
+        if (empty($fields['chargeVat'])) {
+            $rec->chargeVat = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'chargeVat', 'defMethod');
+        }
+
+        // Ако не е подадено да се начислявали ддс, определяме от контрагента
+        if (empty($fields['makeInvoice'])) {
+            $rec->makeInvoice = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'makeInvoice', 'lastDocUser|lastDoc');
+            setIfNot($rec->makeInvoice, 'yes');
+        }
+        if(empty($fields['shipmentStoreId'])) {
+            $rec->shipmentStoreId = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'shipmentStoreId', 'defMethod');
+        }
+        $rec->deliveryTermId = (empty($fields['deliveryTermId'])) ? cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'deliveryTermId', 'clientCondition|lastDocUser|lastDoc') : $rec->deliveryTermId;
+        $rec->paymentMethodId = (empty($fields['paymentMethodId'])) ? cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'paymentMethodId', 'clientCondition|lastDocUser|lastDoc') : $rec->paymentMethodId;
+
         if($me instanceof sales_Sales){
             if(isset($fields['deliveryTermId'])){
                 if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
-                    $rec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
+                    $rec->deliveryCalcTransport = $fields['deliveryCalcTransport'] ?? cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
                 }
             }
         }
@@ -3014,7 +3025,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param $rec
      * @return mixed
      */
-    public function getDefaultShipmentStoreId($rec)
+    public function getDefaultShipmentStoreId_($rec)
     {
         // Ако има склад от търговско условие - него
         $storeIdFromCondition = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'shipmentStoreId', 'clientCondition');

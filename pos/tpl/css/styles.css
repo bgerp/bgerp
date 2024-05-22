@@ -44,6 +44,8 @@
       box-shadow: 0px 0px 3px #0000fa !important; }
   .result-content .receiptRow.disabledBtn {
     cursor: auto !important; }
+    .result-content .disabledBtn.current {
+      background: #53a163 !important; }
 
 .tools-content {
   padding: 20px 15px;
@@ -414,7 +416,8 @@ select.tabHolder {
   border: 1px solid #999999;
   border-radius: 3px; }
 
-.narrow #receiptnew {
+.narrow #receiptnew,
+.narrow #receiptnewSame {
   color: #333333 !important; }
 
   .tabHolder li.selectable {
@@ -636,7 +639,8 @@ select.tabHolder {
   .posBtns.revertReceiptBtn {
     color: #8c1919 !important; }
   .posBtns#receiptnew,
-  .posBtns#revertReceiptBtn {
+  .posBtns#revertReceiptBtn,
+  .posBtns#receiptnewSame {
     font-size: 1.3em;
     background: #e6e6e6; }
   .posBtns .nowrap {
@@ -1141,6 +1145,8 @@ td.revertCaption {
   box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1); }
   .actionBtn.offBtn {
     background-color: #cc6666 !important; }
+  .actionBtn.offTmpBtn {
+    background-color: #355575 !important; }
   .actionBtn.onBtn {
     background-color: #53a163 !important; }
 

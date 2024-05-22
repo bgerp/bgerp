@@ -90,6 +90,7 @@
                         <!--ET_BEGIN sales_InvoiceDetails-->
                         <div class='details'>
                             [#sales_ProformaDetails#]
+                            [#price_DiscountsPerDocuments#]
                         </div>
                         <!--ET_END sales_InvoiceDetails-->
                         <div class="lines"></div>
@@ -98,7 +99,7 @@
                                 <tr>
                                     <td style='line-height: 140%;'>
                                         <!--ET_BEGIN vatReason-->
-                                        <div><span class='quiet'>Основание за ДДС:</span> [#vatReason#]</div>
+                                        <div><span class='quiet'>Основание за неначисляване на ДДС:</span> [#vatReason#]</div>
                                         <hr class='printVisible'>
                                         <!--ET_END vatReason-->
                                         <!--ET_BEGIN paymentBlock-->

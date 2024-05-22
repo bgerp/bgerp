@@ -228,6 +228,13 @@ class email_Incomings extends core_Master
 
 
     /**
+     * Помощен масив за записване на свалените писма
+     * @var array 
+     */
+    protected $processedDuplicate = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -637,7 +644,7 @@ class email_Incomings extends core_Master
     /**
      * Подготвя, записва и рутира зададеното писмо
      */
-    public function process($mime, $accId, $uid, $prerouteRecArr = array(), $spamDataArr = array())
+    public function process($mime, $accId, $uid, $prerouteRecArr = array(), $spamDataArr = array(), $forceTo = null)
     {
         $mime->saveFiles();
         
@@ -656,10 +663,10 @@ class email_Incomings extends core_Master
         $rec->fromIp = $mime->getSenderIp();
         
         // Извличаме информация за получателя (към кого е насочено писмото)
-        $rec->toEml = $mime->getToEmail();
+        $rec->toEml = isset($forceTo) ? $forceTo : $mime->getToEmail();
         
         // Намира вътрешната пощенска кутия, към която е насочено писмото
-        $rec->toBox = email_Inboxes::getToBox($mime, $accId);
+        $rec->toBox = isset($forceTo) ? $forceTo : email_Inboxes::getToBox($mime, $accId);
         
         // Пробваме да определим езика на който е написана текстовата част
         $rec->lg = $mime->getLg();
@@ -715,7 +722,61 @@ class email_Incomings extends core_Master
 
         // Записваме (и автоматично рутираме) писмото
         $saved = $this->save($rec);
-        
+
+        // Ако са зададени хедъри, по които да сваля имейла
+        if (defined('EMAIL_DUPLICATE_INCOMING_HEADERS')) {
+            $isFirstDoc = true;
+            if ($rec->threadId) {
+                $fCid = doc_Threads::getFirstContainerId($rec->threadId);
+                if ($fCid && $rec->containerId && ($fCid != $rec->containerId)) {
+                    $isFirstDoc = false;
+                }
+            }
+
+            // Ако не е начало на нишка, да не се дублира
+            if ($isFirstDoc) {
+                $hHash = md5($headersStr);
+                if (isset($forceTo)) {
+                    $this->processedDuplicate[$hHash][strtolower($forceTo)] = strtolower($forceTo);
+                } else {
+                    $this->processedDuplicate[$hHash][strtolower($rec->toBox)] = strtolower($rec->toBox);
+                    $this->processedDuplicate[$hHash][strtolower($rec->toEml)] = strtolower($rec->toEml);
+                }
+
+                foreach (explode(',', EMAIL_DUPLICATE_INCOMING_HEADERS) as $header) {
+                    $header = trim($header);
+                    $hEmailStr = email_Mime::getHeadersFromArr($rec->headers, $header);
+                    if (!is_array($hEmailStr)) {
+                        $hEmailStr = array($hEmailStr);
+                    }
+                    foreach ($hEmailStr as $eStr) {
+                        $eArr = type_Emails::toArray($eStr);
+                        foreach ($eArr as $email) {
+                            $email = strtolower($email);
+
+                            // Ако е свалян същият имейл до същия получател в същия хит - прескачаме
+                            if ($this->processedDuplicate[$hHash][$email]) {
+
+                                continue;
+                            }
+
+                            // Ако кутията не съществува в нашата система, не се дублира
+                            if (!email_Inboxes::fetch(array("LOWER(#email) = '[#1#]'", $email))) {
+
+                                continue;
+                            }
+
+                            $this->processedDuplicate[$hHash][$email] = $email;
+                            $this->logInfo('Повторно сваляне с друг имейл: ' . $email, $rec->id);
+                            $this->logInAct('Дублиране до другите получатели', $rec->id);
+                            $sId = $this->process($mime, $accId, $uid, $prerouteRecArr, $spamDataArr, $email);
+                            $this->logInAct('Дублиране до другите получатели', $sId);
+                        }
+                    }
+                }
+            }
+        }
+
         return $saved;
     }
     
@@ -2840,18 +2901,20 @@ class email_Incomings extends core_Master
      */
     public static function makeFromRule($rec)
     {
-        // Най-висок приоритет, нарастващ с времето
-        $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
-        
-        email_Router::saveRule(
-            (object) array(
-                'type' => email_Router::RuleFrom,
-                'key' => email_Router::getRoutingKey($rec->fromEml, null, email_Router::RuleFrom),
-                'priority' => $priority,
-                'objectType' => 'document',
-                'objectId' => $rec->containerId
-            )
-        );
+        if (static::isCommonToBox($rec)) {
+            // Най-висок приоритет, нарастващ с времето
+            $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
+
+            email_Router::saveRule(
+                (object) array(
+                    'type' => email_Router::RuleFrom,
+                    'key' => email_Router::getRoutingKey($rec->fromEml, null, email_Router::RuleFrom),
+                    'priority' => $priority,
+                    'objectType' => 'document',
+                    'objectId' => $rec->containerId
+                )
+            );
+        }
     }
     
     

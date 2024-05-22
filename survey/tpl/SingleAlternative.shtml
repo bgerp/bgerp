@@ -1,7 +1,7 @@
 <!--ET_BEGIN ROW-->
 <div class='question-head'>
     <h2>
-        [#icon#] [#label#]
+        [#count#]. [#label#]
         <span class='tools'>[#tools#]</span>
         [#addOption#]
     </h2>

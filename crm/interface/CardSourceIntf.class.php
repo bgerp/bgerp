@@ -36,4 +36,18 @@ class crm_interface_CardSourceIntf
     {
         return $this->class->getCards();
     }
+
+
+    /**
+     * Линк до който да води номера на картата
+     *
+     * @param string $number
+     * @param int $contragentClassId
+     * @param int $contragentId
+     * @return string|core_ET
+     */
+    public function getNumberLink($number, $contragentClassId, $contragentId)
+    {
+        return $this->class->getNumberLink($number, $contragentClassId, $contragentId);
+    }
 }

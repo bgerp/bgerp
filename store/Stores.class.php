@@ -212,7 +212,7 @@ class store_Stores extends core_Master
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
 
-        $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
+        $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да (с предупреждение),yesWithoutWarning=Да (без предупреждение))', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
         $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
         $this->FLD('prioritizeRackGroups', 'enum(,yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване,maxRadio=2,placeholder=Автоматично');
         $this->FLD('palletBestPositionStrategy', 'enum(,bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Избор,placeholder=Автоматично');
@@ -500,6 +500,42 @@ class store_Stores extends core_Master
         return $storeData;
     }
 
+
+    /**
+     * Извлича масив с експедираните артикули от склада от записи на транзакция
+     *
+     * @param array $entries     - записи на транзакцията
+     * @param array $skipArr     - кои артикули да се скипват
+     * @param bool $oneDimension - дали масива да е едномерен или двумерен
+     * @return array $res
+     */
+    public static function getShippedProductsByStoresFromTransactionEntries($entries, $skipArr, $oneDimension = true)
+    {
+        $res = array();
+        foreach ($entries as $d){
+
+            // Извличат се артикулите, които се изписват от склад в транзакцията
+            if($d['credit'][0] == '321') {
+                $productId = $d['credit'][2][1];
+                $storeId = $d['credit'][1][1];
+                if(!array_key_exists($productId, $skipArr)){
+                    if($oneDimension){
+                        if(!array_key_exists($productId, $res)){
+                            $res[$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
+                        }
+                        $res[$productId]->quantity += $d['credit']['quantity'];
+                    } else {
+                        if(is_null($res[$storeId]) || !array_key_exists($productId, $res[$storeId])){
+                            $res[$storeId][$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
+                        }
+                        $res[$storeId][$productId]->quantity += $d['credit']['quantity'];
+                    }
+                }
+            }
+        }
+
+        return $res;
+    }
 
 
 }

@@ -117,6 +117,7 @@ abstract class deals_Helper
         
         // Комбиниране на дефолт стойнсотите с тези подадени от потребителя
         $map = array_merge(self::$map, $map);
+        $haveAtleastOneDiscount = false;
 
         // Дали трябва винаги да не се показва ддс-то към цената
         $hasVat = ($map['alwaysHideVat']) ? false : (($masterRec->{$map['chargeVat']} == 'yes') ? true : false);
@@ -141,8 +142,12 @@ abstract class deals_Helper
 
             if(!empty($rec->{$map['autoDiscount']})){
                 if(in_array($masterRec->state, array('draft', 'pending'))){
-                    $discountVal = round((1-(1-$discountVal)*(1-$rec->{$map['autoDiscount']})), 6);
+                    $discountVal = round((1-(1-$discountVal)*(1-$rec->{$map['autoDiscount']})), 8);
                 }
+            }
+
+            if($discountVal) {
+                $haveAtleastOneDiscount = true;
             }
 
             $noVatAmountOriginal = $noVatAmount;
@@ -223,6 +228,7 @@ abstract class deals_Helper
         $mvc->_total->amount = round($amountRow, 2);
         $mvc->_total->vat = round($amountVat, 2);
         $mvc->_total->vats = $vats;
+        $mvc->_total->haveAtleastOneDiscount = $haveAtleastOneDiscount;
 
         if (!$map['alwaysHideVat']) {
             $mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
@@ -279,8 +285,10 @@ abstract class deals_Helper
             
             $arr['neto'] = $arr['value'] - round($arr['discountValue'], 2); 	// Стойността - отстъпката
             $arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
+            core_Lg::push($lang);
+            $arr['discountCaption'] = $values['haveAtleastOneDiscount'] ? tr('Отстъпка') : "<i class='quiet'>" . tr('Разлики от закръгляне') . "</i>";
+            core_Lg::pop();
         }
-        
         
         // Ако има нето, крайната сума е тази на нетото, ако няма е тази на стойността
         $arr['total'] = (isset($arr['neto'])) ? $arr['neto'] : $arr['value'];
@@ -1037,6 +1045,7 @@ abstract class deals_Helper
      * Помощна ф-я връщаща подходящо представяне на клиентсктие данни и тези на моята фирма
      * в бизнес документите
      *
+     * @param int $containerId       - ид на контейнер на документа
      * @param mixed $contragentClass - клас на контрагента
      * @param int   $contragentId    - ид на контрагента
      * @param int   $contragentName  - името на контрагента, ако е предварително известно
@@ -1050,12 +1059,23 @@ abstract class deals_Helper
      *               ['contragentAddress'] - Адреса на контрагента
      *               ['vatNo']             - ДДС номера на контрагента
      */
-    public static function getDocumentHeaderInfo($contragentClass, $contragentId, $contragentName = null)
+    public static function getDocumentHeaderInfo($containerId, $contragentClass, $contragentId, $contragentName = null)
     {
-        $res = array();
-       
+        // Ако е инсталиран пакета за многофирменост - моята фирма е тази посочена в първия документ на нишката
+        $ownCompanyId = null;
+        if(core_Packs::isInstalled('holding')) {
+            $Document = doc_Containers::getDocument($containerId);
+            $firstDoc = doc_Threads::getFirstDocument($Document->fetchField('threadId'));
+            if($firstDoc->isInstanceOf('deals_DealMaster')) {
+                if(isset($firstDoc->ownCompanyFieldName)) {
+                    $ownCompanyId = $firstDoc->fetchField($firstDoc->ownCompanyFieldName);
+                }
+            }
+        }
+
         // Данните на 'Моята фирма'
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
+        $res = array();
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
 
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
@@ -1505,13 +1525,14 @@ abstract class deals_Helper
         if ($isStorable != 'yes') {
             return;
         }
-
         if(in_array($masterState, array('draft', 'pending'))) {
             $liveValue = null;
             if ($type == 'weight') {
                 $liveValue = cat_Products::getTransportWeight($productId, $quantity);
             } elseif($type == 'netWeight') {
-                if($netWeight = cat_Products::convertToUom($productId, 'kg')) {
+                $netWeight = cat_Products::convertToUom($productId, 'kg');
+
+                if(isset($netWeight)) {
                     $liveValue = $netWeight * $quantity;
                 }
             } elseif($type == 'volume') {
@@ -1526,21 +1547,19 @@ abstract class deals_Helper
                     $hint = true;
                 }
             } elseif ($liveValue) {
+
                 $percentChange = abs(round((1 - $value / $liveValue) * 100, 3));
                 if ($percentChange >= 25) {
                     $warning = true;
                 }
             }
         }
-        
+
         // Ако няма тегло не се прави нищо
         if (!isset($value)) return;
         
         $valueType = ($type == 'volume') ? 'cat_type_Volume' : 'cat_type_Weight(decimals=2)';
         $value = round($value, 3);
-        
-        // Ако стойноста е 0 да не се показва
-        if (empty($value)) return;
        
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
@@ -1907,7 +1926,7 @@ abstract class deals_Helper
         }
         
         $makeInvoice = $firstDoc->fetchField('makeInvoice');
-        $res = ($makeInvoice == 'yes') ? true : false;
+        $res = !($makeInvoice == 'no');
         
         return $res;
     }
@@ -2066,18 +2085,19 @@ abstract class deals_Helper
     /**
      * Дефолтния режим на ДДС за папката
      *
-     * @param int $folderId
-     * @param string|null $chargeVatConditionSysId
-     * @param int|null $ownCompanyId
+     * @param core_Mvc $mvc - документ
+     * @param stdClasss $rec - запис
+     * @param string|null $chargeVatConditionSysId - сис ид на търговско условие
+     *
      * @return string
      */
-    public static function getDefaultChargeVat($folderId, $chargeVatConditionSysId = null, $ownCompanyId = null)
+    public static function getDefaultChargeVat($mvc, $rec, $chargeVatConditionSysId = null)
     {
-        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return 'no';
+        if(!$mvc->isOwnCompanyVatRegistered($rec)) return 'no';
 
         // Ако не може да се намери се търси от папката
-        $coverId = doc_Folders::fetchCoverId($folderId);
-        $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+        $coverId = doc_Folders::fetchCoverId($rec->folderId);
+        $Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
 
         if(isset($chargeVatConditionSysId)){
             $clientValue = cond_Parameters::getParameter($Class, $coverId, $chargeVatConditionSysId);
@@ -2892,34 +2912,35 @@ abstract class deals_Helper
         $res = array('errors' => array());
 
         $weightIsCalced = $netWeightIsCalced = $tareWeightIsCalced = false;
-        if(empty($weight) && !empty($netWeight) && !empty($tareWeight)) {
+        if(!isset($weight) && isset($netWeight) && isset($tareWeight)) {
             $weight = round($netWeight + $tareWeight, 4);
             $weightIsCalced = true;
         }
 
-        if(empty($netWeight) && !empty($weight) && !empty($tareWeight)) {
+        if(!isset($netWeight) && isset($weight) && isset($tareWeight)) {
             $netWeight = round($weight - $tareWeight, 4);
             $netWeightIsCalced = true;
         }
-        if(empty($tareWeight) && !empty($weight) && !empty($netWeight)) {
+        if(!isset($tareWeight) && isset($weight) && isset($netWeight)) {
             $tareWeight = round($weight - $netWeight, 4);
             $tareWeightIsCalced = true;
         }
 
-        if(!empty($weight) && !empty($netWeight) && !empty($tareWeight)){
-            if(round($weight - $netWeight) != round($tareWeight)){
+        if(isset($weight) && isset($netWeight) && isset($tareWeight)){
+            $calcedTare = $weight - $netWeight;
+            $tareDiff = abs(round($calcedTare - $tareWeight, 3));
+            if($tareDiff > 0.1) {
                 $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName},{$tareWeightFieldName}", 'text' => 'Разликата между бруто и нето не отговаря на тарата');
             }
         }
 
-        if(!empty($weight) && !empty($netWeight)){
+        if(isset($weight) && isset($netWeight)){
             if($weight < $netWeight){
                 $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName}", 'text' => 'Брутото е по-малко от нетото');
             }
         }
 
-        if(!empty($tareWeight) && !empty($weight)){
-
+        if(isset($tareWeight) && isset($weight)){
             if($weight < $tareWeight){
                 $res['errors'][] = array('fields' => "{$weightFieldName},{$tareWeightFieldName}", 'text' => 'Тарата е по-малко от брутото');
             }
@@ -2959,7 +2980,7 @@ abstract class deals_Helper
             if(isset($autoDiscount)){
                 $type = ($autoDiscount > 1) ? 'warning' : 'notice';
                 if(isset($calcedDiscount)){
-                    $middleDiscount = round((1 - (1 - $calcedDiscount) * (1 - $autoDiscount)), 6);
+                    $middleDiscount = round((1 - (1 - $calcedDiscount) * (1 - $autoDiscount)), 8);
                     $middleDiscountVerbal = $Percent->toVerbal($middleDiscount);
                     $res = ht::createHint($res, "Осреднена отстъпка|*: {$middleDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", $type, false);
                 } else {

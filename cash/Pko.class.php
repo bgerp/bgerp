@@ -9,7 +9,7 @@
  * @package   cash
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -144,7 +144,7 @@ class cash_Pko extends cash_Document
         $payments = type_Table::toArray($rec->payments);
         
         // Обновяване на безналичните плащания ако има
-        $update = $delete = $notDelete = array();
+        $update = $notDelete = array();
         foreach ($payments as $obj) {
             $amount = core_Type::getByName('double')->fromVerbal($obj->amount);
             $update[$obj->paymentId] = (object) array('documentId' => $rec->id, 'paymentId' => $obj->paymentId, 'amount' => $amount);
@@ -153,7 +153,7 @@ class cash_Pko extends cash_Document
             
             if(is_array($rec->exPayments)){
                 $foundRec = array_filter($rec->exPayments, function ($a) use ($paymentId) { return $paymentId == $a->paymentId;});
-                if(is_object($foundRec)){
+                if(isset($foundRec->id)){
                     $update[$obj->paymentId]->id = $foundRec->id;
                 }
             }
@@ -202,6 +202,143 @@ class cash_Pko extends cash_Document
         if($action == 'changeline' && isset($rec)){
             if($rec->isReverse == 'yes'){
                 $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * Преди рендиране на тулбара
+     */
+    public static function on_BeforeRenderSingleToolbar($mvc, &$res, &$data)
+    {
+        $rec = $data->rec;
+
+        if(isset($data->toolbar->buttons['btnConto'])){
+
+            // Ако има направено безналично плащане с карта и има периферия за банковия терминал
+            $cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id);
+            if(!is_object($cardPaymentRec)) return;
+            $amount = round($cardPaymentRec->amount * $rec->rate, 2);
+
+            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+            if(!is_object($deviceRec)) return;
+
+            $data->toolbar->removeBtn('btnConto');
+            $warning = $mvc->getContoWarning($rec, $rec->isContable);
+            $errorUrl = toUrl($mvc->getSingleUrlArray($rec), 'local');
+            $data->_enableCardPayment = true;
+
+            // Подмяна на бутона за контиране с такъв за обръщане към банковия терминал
+            $hash = bank_interface_POS::getPaymentHash($mvc->getClassId(), $rec->id);
+            $successUrl = toUrl(array($mvc, 'successfullcardpayment', $rec->id, 'hash' => $hash), 'local');
+            $btnAttr = array('id' => "btnConto{$rec->containerId}", 'warning' => $warning, 'data-amount' => $amount, 'data-errorUrl' => $errorUrl, 'class' => 'cardPaymentBtn', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Контиране на документа');
+            $btnAttr['data-successUrl'] = $successUrl;
+            $btnAttr['data-returnUrl'] = core_Packs::isInstalled('bgfisc') ? toUrl(array($mvc, 'contocash', $rec->id), 'local') : toUrl($mvc->getContoUrl($rec->id));
+            $btnAttr['data-onerror'] = tr('Неуспешно плащане с банковия терминал|*!');
+            $btnAttr['data-oncancel'] = tr('Отказвано плащане с банков терминал|*!');
+
+            $data->toolbar->addFnBtn('Контиране', '', $btnAttr);
+        }
+    }
+
+
+    /**
+     * Успешно потвърждаване с банковия терминал
+     */
+    public function act_successfullcardpayment()
+    {
+        $isAjax = Request::get('ajax_mode');
+        $success = true;
+        $hash = Request::get('hash', 'varchar');
+
+        if(!$hash) {
+            $success = false;
+            if(!$isAjax) expect(false);
+        }
+
+        expect($id = Request::get('id', 'int'));
+        expect($rec = static::fetch($id));
+        $hashIsOk = ($hash == bank_interface_POS::getPaymentHash($this->getClassId(), $id));
+        if(!$hashIsOk) {
+            $success = false;
+            if(!$isAjax) expect(false);
+        }
+
+        if(!$this->haveRightFor('conto', $rec)){
+            $success = false;
+            if(!$isAjax) expect(false);
+        }
+
+        $res = array();
+        if($success){
+
+            // Записване на допълнителната информация за банковото плащане
+            $param = Request::get('param', 'enum(manual,card)');
+            $cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id);
+            $cardPaymentRec->param = $param;
+            cash_NonCashPaymentDetails::save($cardPaymentRec);
+
+            if($param == 'card'){
+                $this->logWrite('Авт. потвърдено картово плащане', $id);
+            } else {
+                $this->logWrite('Ръчно потвърдено картово плащане', $id);
+            }
+            core_Statuses::newStatus('Успешно плащане с карта');
+
+            $resObj = new stdClass();
+            $resObj->func = 'successfullCardPayment';
+            $resObj->arg = array('url' => Request::get('redirectUrl'), 'redirect' => !core_Packs::isInstalled('bgfisc'));
+            $res[] = $resObj;
+        }
+
+        // Показване веднага на чакащите статуси
+        $hitTime = Request::get('hitTime', 'int');
+        $idleTime = Request::get('idleTime', 'int');
+        $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+        $res = array_merge($res, (array) $statusData);
+
+        return $res;
+    }
+
+
+    /**
+     * Вкарваме css файл за единичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        if (Mode::isReadOnly()) return;
+        if(!$data->_enableCardPayment) return;
+
+        // Ако ще се плаща директно с банковия терминал
+        $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+        if(!is_object($deviceRec)) return;
+
+        $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
+        $tpl->append($intf->getJS($deviceRec), 'SCRIPTS');
+
+        $tpl->push('cash/js/scripts.js', 'JS');
+        jquery_Jquery::run($tpl, 'cashActions();');
+
+        $manualConfirmBtn = ht::createFnBtn('Ръчно потвърждение', '', '', array('class' => 'modalBtn confirmPayment disabledBtn'));
+        $manualCancelBtn = ht::createFnBtn('Назад', '', '', array('class' => 'closePaymentModal modalBtn disabledBtn'));
+
+        $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') .' ...<br> ' . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
+        $tpl->append($modalTpl);
+    }
+
+
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id)){
+            if(!empty($cardPaymentRec->param)){
+                core_Statuses::newStatus('Документът не може да се оттегли, защото плащането с карта е потвърдено|*!', 'error');
+
+                return false;
             }
         }
     }

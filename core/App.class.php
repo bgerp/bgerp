@@ -936,18 +936,14 @@ class core_App
         }
         
         if ($type === null) {
-            if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('BGERP_CURRENT_DOMAIN')) {
+            if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')
+                || Mode::is('printing') || Mode::is('exporting') || Mode::is('BGERP_CURRENT_DOMAIN')) {
                 $type = 'absolute';
             } else {
                 $type = 'relative';
             }
         }
 
-        if ($type == 'absolute' && Mode::is('exporting')) {
-            $type = 'absolute-force';
-        }
-        
-        // TRUE == 'absolute', FALSE == 'relative'
         if ($type === true) {
             $type = 'absolute';
         } elseif ($type === false) {
@@ -1100,7 +1096,7 @@ class core_App
         }
         
         $pre = rtrim($pre, '/');
-        
+
         switch ($type) {
             case 'local':
                 $url = ltrim($pre . $urlQuery, '/');
@@ -1217,7 +1213,7 @@ class core_App
         if (EF_APP_NAME_FIXED !== true && $addAppName) {
             $boot .= '/' . (Request::get('App') ? Request::get('App') : EF_APP_NAME);
         }
-        
+
         return $boot;
     }
     
