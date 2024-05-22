@@ -18,6 +18,7 @@
  */
 class planning_reports_MaterialsImpl extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * Кой може да избира драйвъра
      */

@@ -17,6 +17,7 @@
  */
 class deals_reports_ArrearsImpl extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * Кой може да избира драйвъра
      */

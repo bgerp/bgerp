@@ -18,6 +18,7 @@
  */
 class acc_reports_ManufacturedProducts extends acc_reports_CorespondingImpl
 {
+    public $deprecated = true;
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */

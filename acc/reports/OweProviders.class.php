@@ -18,6 +18,7 @@
  */
 class acc_reports_OweProviders extends acc_reports_BalanceImpl
 {
+    public $deprecated = true;
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */

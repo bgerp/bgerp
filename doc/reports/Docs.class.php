@@ -21,12 +21,13 @@
  */
 class doc_reports_Docs extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'doc_DocsReport';
-    
-    
+
+
     /**
      * Заглавие
      */
