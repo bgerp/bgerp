@@ -1592,6 +1592,7 @@ class pos_Terminal extends peripheral_Terminal
         $dQuery = pos_ReceiptDetails::getQuery();
         $dQuery->where("#action = 'sale|code' AND #productId = {$selectedRec->productId} AND #quantity > 0");
         $dQuery->orderBy('id', 'desc');
+        $dQuery->limit(5);
         if(isset($selectedRec->value)){
             $dQuery->where("#value = {$selectedRec->value}"); 
             $value = $selectedRec->value;
@@ -1599,7 +1600,7 @@ class pos_Terminal extends peripheral_Terminal
             $dQuery->where("#value IS NULL");
             $value = cat_Products::fetchField($selectedRec->productId, 'measureId');
         }
-        
+
         $cnt = 0;
         $packName = cat_UoM::getVerbal($value, 'name');
         $dQuery->show('price,param');
