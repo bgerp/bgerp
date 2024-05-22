@@ -174,12 +174,6 @@ class cat_Categories extends core_Master
         
         $suggestions = cat_UoM::getUomOptions();
         $form->setSuggestions('measures', $suggestions);
-        
-        if (isset($form->rec->folderId)) {
-            if (cat_Products::fetchField("#folderId = {$form->rec->folderId}")) {
-                $form->setReadOnly('useAsProto');
-            }
-        }
     }
     
     
@@ -245,19 +239,19 @@ class cat_Categories extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+
+
         if ($fields['-list']) {
+            if ($rec->useAsProto == 'no') {
+                $row->useAsProto = "<span class='quiet'>{$row->useAsProto}</span>";
+            }
+
             $row->name .= " {$row->folder}";
             $count = cat_Products::count("#folderId = '{$rec->folderId}'");
             $row->count = cls::get('type_Int')->toVerbal($count);
             $row->count = "<span style='float:right'>{$row->count}</span>";
             if (empty($rec->useAsProto)) {
                 $row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal('no');
-            }
-        }
-        
-        if ($fields['-single']) {
-            if ($rec->useAsProto != 'no') {
-                $row->protoFolder = tr('Всички артикули в папката са шаблони');
             }
         }
     }
@@ -416,27 +410,6 @@ class cat_Categories extends core_Master
     
     
     /**
-     * Връща папките, в които може да има прототипи
-     *
-     * @return array $folders
-     */
-    public static function getProtoFolders()
-    {
-        $folders = array();
-        
-        // В кои категории може да има прототипни артикули
-        $query = self::getQuery();
-        $query->where("#useAsProto != 'no'");
-        $query->show('folderId');
-        while ($cRec = $query->fetch()) {
-            $folders[$cRec->folderId] = $cRec->folderId;
-        }
-        
-        return $folders;
-    }
-    
-    
-    /**
      * Връща възможните за избор прототипни артикули с дадения драйвер и свойства
      *
      * @param int|NULL    $driverId - Ид на продуктов драйвер
@@ -535,7 +508,7 @@ class cat_Categories extends core_Master
     public function getProductType($id)
     {
         $rec = $this->fetchRec($id);
-        
+
         if ($rec->useAsProto != 'no') {
             
             return 'template';

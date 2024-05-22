@@ -440,7 +440,7 @@ class cat_Products extends embed_Manager
         // Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
         if (isset($rec->folderId)) {
             $cover = doc_Folders::getCover($rec->folderId);
-            $isTemplate = ($cover->getProductType() == 'template');
+            $isTemplate = isset($rec->id) ? ($rec->state == 'template') :  $cover->getProductType() == 'template';
 
             $defMetas = array();
             if (isset($rec->proto)) {
@@ -706,11 +706,8 @@ class cat_Products extends embed_Manager
         // Според папката се определя дали артикула е публичен/частен или е шаблон
         if (isset($rec->folderId)) {
             $Cover = doc_Folders::getCover($rec->folderId);
-            $type = $Cover->getProductType($id);
-            
-            if (!isset($rec->id)) {
-                $rec->isPublic = ($type != 'private') ? 'yes' : 'no';
-            }
+            $type = isset($rec->id) ? (($rec->state == 'template') ? 'template' : (($rec->isPublic == 'yes') ? 'public' : 'private')) : $Cover->getProductType();
+            $rec->isPublic = ($type != 'private') ? 'yes' : 'no';
             
             if ($rec->state != 'rejected' && $rec->state != 'closed') {
                 $rec->state = ($type == 'template') ? 'template' : 'draft';
@@ -1525,11 +1522,8 @@ class cat_Products extends embed_Manager
         }
         
         if (isset($rec->folderId)) {
-            $Cover = doc_Folders::getCover($rec->folderId);
-            $type = $Cover->getProductType($rec->id);
-            $isPublic = isset($rec->isPublic) ? $rec->isPublic : $mvc->fetchField($rec->id, 'isPublic');
-            
-            if ($type == 'public' && $isPublic == 'no') {
+            $isPublic = $rec->isPublic ?? $mvc->fetchField($rec->id, 'isPublic');
+            if ($isPublic == 'no') {
                 $rec->isPublic = 'yes';
                 $mvc->save_($rec, 'isPublic');
             }

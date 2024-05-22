@@ -526,9 +526,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'acc_ReportDetails, acc_reports_BalanceImpl, acc_BalanceHistory, acc_reports_HistoryImpl,
-    					acc_reports_CorespondingImpl,
-    					acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
+    public $defClasses = 'acc_ReportDetails, acc_BalanceHistory,
                         acc_reports_MovementArtRep, acc_reports_TotalRep, acc_reports_UnpaidInvoices,
                         acc_reports_UnactiveContableDocs, acc_reports_NegativeQuantities,acc_reports_InvoicesByContragent, acc_drivers_TotalRepPortal,
                         acc_reports_SoldProductsByPrimeCost, acc_reports_GeneralDiscountsByGroups';

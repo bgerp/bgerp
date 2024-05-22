@@ -18,6 +18,7 @@
  */
 class planning_reports_PlanningImpl extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */

@@ -1290,7 +1290,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     } else {
                         $bgId = drdata_Countries::getIdByName('Bulgaria');
                         if($rec->contragentCountryId == $bgId){
-                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България" с ДДС № трябва да е посочено основание|*!', 'error');
+                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България", трябва да е посочено основание|*!', 'error');
                         }
                     }
                 }
@@ -1934,7 +1934,7 @@ abstract class deals_InvoiceMaster extends core_Master
             return acc_Setup::get($reason);
         }
 
-        return acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
+        return null;
     }
 
 
@@ -2192,7 +2192,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $bgId = drdata_Countries::getIdByName('Bulgaria');
             if($rec->contragentCountryId == $bgId){
 
-                return 'При неначисляване на ДДС на контрагент от "България" с ДДС № трябва да е посочено основание|*!';
+                return 'При неначисляване на ДДС на контрагент от "България", трябва да е посочено основание|*!';
             }
         } else {
 

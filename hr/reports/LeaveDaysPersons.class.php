@@ -18,6 +18,7 @@
  */
 class hr_reports_LeaveDaysPersons extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * Кой може да избира драйвъра
      */
