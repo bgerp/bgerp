@@ -1521,14 +1521,6 @@ class cat_Products extends embed_Manager
             doc_DocumentCache::cacheInvalidation($rec->originId);
         }
         
-        if (isset($rec->folderId)) {
-            $isPublic = $rec->isPublic ?? $mvc->fetchField($rec->id, 'isPublic');
-            if ($isPublic == 'no') {
-                $rec->isPublic = 'yes';
-                $mvc->save_($rec, 'isPublic');
-            }
-        }
-        
         // Ако артикула е редактиран, преизчислява се транспорта
         if ($rec->_isEditedFromForm === true) {
             sales_TransportValues::recalcTransportByProductId($rec->id);
