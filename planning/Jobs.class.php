@@ -2346,7 +2346,7 @@ class planning_Jobs extends core_Master
     {
         // Показване на обобщението на отпадъка в статистиката
         $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId);
-        if(countR($wasteArr)){
+        if(countR($wasteArr) && !Mode::is('printBlank')){
             $tpl->replace(' ', 'captionWastes');
             foreach ($wasteArr as $wasteRow){
                 $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
