@@ -339,11 +339,12 @@ h6 {
     height: 100vh;
     background-size: cover !important;
     position: relative;
+    background-attachment: fixed !important;
 }
 
 #wallpaper-block:before {
     content: "";
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.1);
     position: absolute;
     bottom: 0;
     top: 0;
@@ -359,9 +360,9 @@ h6 {
 
 #wallpaper-block h1 {
     margin: 0 0 10px 0;
-    font-size: 48px;
+    font-size: 60px;
     font-weight: 700;
-    line-height: 56px;
+    line-height: 200%;
     color: #fff;
     text-shadow: 1px 1px 2px rgba(0,0,0,1);
 }
@@ -457,14 +458,14 @@ section {
 }
 
 #footer p {
-    font-size: 15;
+    font-size: 15px;
     font-style: italic;
     padding: 0;
-    margin: 0 0 40px 0;
+    margin: 0 0 20px 0;
 }
 
 #footer .social-links {
-    margin: 0 0 40px 0;
+    margin: 0 0 20px 0;
 }
 
 #footer .social-links a {
@@ -480,6 +481,10 @@ section {
     width: 36px;
     height: 36px;
     transition: 0.3s;
+}
+#footer .links {
+    color: #fff;
+    margin: 20px 0;
 }
 
 #footer .social-links a:hover {

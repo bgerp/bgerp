@@ -733,4 +733,41 @@ class planning_ProductionTaskProducts extends core_Detail
             }
         }
     }
+
+
+    /**
+     * Извлича информация за отпадъка отчетен в нишката
+     *
+     * @param int $threadId
+     * @return array $res
+     */
+    public static function getTotalWasteArr($threadId)
+    {
+        $res = array();
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if($firstDoc->isInstanceOf('planning_Jobs')){
+            $tasks = planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped');
+        } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
+            $tasks = $firstDoc->that;
+        } else {
+            return $res;
+        }
+
+        $query = static::getQuery();
+        $query->in('taskId', $tasks);
+        $query->where("#type = 'waste' AND #totalQuantity != 0");
+        while($rec = $query->fetch()){
+            $key = "{$rec->productId}|{$rec->packagingId}";
+            if(!array_key_exists($key, $res)){
+                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'productId' => cat_Products::getShortHyperlink($rec->productId));
+            }
+            $res[$key]->quantity += $rec->totalQuantity;
+        }
+
+        foreach ($res as $r){
+            $r->quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($r->quantity) . " " . cat_UoM::getSmartName($r->packagingId, $r->quantity);
+        }
+
+        return $res;
+    }
 }

@@ -27,7 +27,7 @@
               <td class = 'nowrap'>[#totalQuantity#]</td>
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
               <td class = 'nowrap'>[#producedQuantity#]</td>
-              <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
+              <td rowspan = '3' class='vtop' style='font-size:0.8em;text-align:left'>
                   <div style='font-size: 1em;width:99%' class="state-[#jobState#] document-handler">
                       <div><span style='font-weight:normal'>|Задание|*</span>: [#originId#]</div>
                       <!--ET_BEGIN batch-->
@@ -52,6 +52,22 @@
                   <!--ET_END followBatchesForFinalProduct-->
     			</td>
            </tr>
+           <!--ET_BEGIN WASTE_BLOCK-->
+           <tr>
+               <td colspan='4'>
+                   [#WASTE_BLOCK#]
+                   <table class="wasteBlockInThread">
+                       [#WASTE_BLOCK_TABLE_ROW#]
+                       <!--ET_BEGIN WASTE_BLOCK_ROW-->
+                       [#WASTE_BLOCK_ROW#]
+                       <tr>
+                           <td class="leftCol">[#wasteProductId#]</td><td class="leftCol">[#wasteQuantity#]</td>
+                       </tr>
+                       <!--ET_END WASTE_BLOCK_ROW-->
+                   </table>
+               </td>
+           </tr>
+           <!--ET_END WASTE_BLOCK-->
            <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
        </table>
     </div>

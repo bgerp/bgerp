@@ -89,7 +89,7 @@ class cms_SinglePageTheme extends core_ProtoInner
         if ($img) {
             $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
             $imageURL = $img->getUrl('forced');
-            $css .= "\n  #wallpaper-block {background: url({$imageURL}) center;} ";
+            $css .= "\n  #wallpaper-block {background: url({$imageURL}) top center;} ";
         } else if (!$headTitle || $subtitle){
             $tpl->removeBlock("WALLPAPER_BLOCK");
         }
@@ -194,7 +194,7 @@ class cms_SinglePageTheme extends core_ProtoInner
             if($wallpaper) {
                 $img = new thumb_Img(array($wallpaper, 1200, 220, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
-                $style="style = 'background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url({$imageURL}) fixed center center;'";
+                $style="style = 'background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), url({$imageURL}) fixed center center; background-size:cover'";
                 $fixedImageClass = "fixed-bg";
             } else if ($background) {
                 $style="style = 'background: {$background}'";
