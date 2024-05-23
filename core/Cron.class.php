@@ -42,7 +42,7 @@ class core_Cron extends core_Manager
     /**
      * Списък с плъгини, които се прикачат при конструиране на мениджъра
      */
-    public $loadList = 'plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_RefreshRows,plg_State2,plg_Search';
+    public $loadList = 'plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_Sorting,plg_RefreshRows,plg_State2,plg_Search';
     
     
     /**
