@@ -7294,6 +7294,15 @@ only screen and (max-width: 320px) {
 .listTitleButtons {
   margin-bottom: 15px; }
 
+    .wasteBlockInThread tr td {
+      font-weight: normal !important;
+      font-size: 0.65em !important;
+      border: none !important;
+      border-bottom: 1px dotted #aaaaaa !important;
+      padding: 2px !important; }
+    .wasteBlockInThread tr:last-child td {
+      border: none !important; }
+
 /*
  * стилове за цвета на палитрa при лист изгледа
  */
