@@ -748,7 +748,7 @@ class planning_ProductionTaskProducts extends core_Detail
         if($firstDoc->isInstanceOf('planning_Jobs')){
             $tasks = array_keys(planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped'));
         } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
-            $tasks = $firstDoc->that;
+            $tasks = array($firstDoc->that);
         }
 
         if(!countR($tasks)) return $res;
