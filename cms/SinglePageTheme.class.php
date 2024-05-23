@@ -89,7 +89,7 @@ class cms_SinglePageTheme extends core_ProtoInner
         if ($img) {
             $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
             $imageURL = $img->getUrl('forced');
-            $css .= "\n  #wallpaper-block {background: url({$imageURL}) center;} ";
+            $css .= "\n  #wallpaper-block {background: url({$imageURL}) top center;} ";
         } else if (!$headTitle || $subtitle){
             $tpl->removeBlock("WALLPAPER_BLOCK");
         }
