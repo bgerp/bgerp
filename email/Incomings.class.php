@@ -687,8 +687,9 @@ class email_Incomings extends core_Master
         $rec->emlFile = $mime->getEmlFile();
         
         // Задаваме текстовата част
-        $rec->textPart = $mime->textPart;
-        
+//        $rec->textPart = $mime->textPart;
+        $rec->textPart = $mime->getTextPart();
+
         // Запазване на допълнителни MIME-хедъри за нуждите на рутирането
         $rec->inReplyTo = $mime->getHeader('In-Reply-To');
         
