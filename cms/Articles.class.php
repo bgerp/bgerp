@@ -101,6 +101,12 @@ class cms_Articles extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,cms';
+
+
+    /**
+     * Кой може да го вижда?
+     */
+    public $canShow = 'ceo,admin,cms';
     
     
     /**
