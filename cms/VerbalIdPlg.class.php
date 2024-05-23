@@ -112,6 +112,10 @@ class cms_VerbalIdPlg extends core_Plugin
             $recVid = str::canonize($recVid);
         }
 
+        if (!strlen($recVid)) {
+            $recVid = $mvc->className . '_' . $mvc->fieldName;
+        }
+
         expect(strlen($recVid), $recVid);
         
         $cond = "#{$this->fieldName} LIKE '[#1#]'";
