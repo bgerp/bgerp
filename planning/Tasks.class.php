@@ -413,8 +413,19 @@ class planning_Tasks extends core_Master
             $paramTpl = cat_products_Params::renderParams($data->paramData);
             $tpl->append($paramTpl, 'PARAMS');
         }
-
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
+
+        // Показване на обобщението на отпадъка в статистиката
+        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId);
+        if(countR($wasteArr)){
+            foreach ($wasteArr as $wasteRow){
+                $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
+                $cloneTpl->replace($wasteRow->productId, 'wasteProductId');
+                $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
+                $cloneTpl->removeBlocksAndPlaces();
+                $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
+            }
+        }
     }
 
 
