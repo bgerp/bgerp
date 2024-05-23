@@ -2507,8 +2507,10 @@ class cat_Products extends embed_Manager
             if ($meta['canSell']) {
                 if(doc_plg_HidePrices::canSeePriceFields($mvc, $rec)){
                     if ($rec->price = price_ListRules::getPrice(cat_Setup::get('DEFAULT_PRICELIST'), $rec->id, null, dt::now())) {
-                        $vat = self::getVat($rec->id);
-                        $rec->price *= (1 + $vat);
+                        if(crm_Companies::isOwnCompanyVatRegistered()){
+                            $vat = self::getVat($rec->id);
+                            $rec->price *= (1 + $vat);
+                        }
                         $row->price = $mvc->getVerbal($rec, 'price');
                     }
                 }
