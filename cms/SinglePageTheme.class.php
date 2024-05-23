@@ -161,6 +161,10 @@ class cms_SinglePageTheme extends core_ProtoInner
         $menu->append("<nav id='navbar' class='navbar order-last order-lg-0'><ul>");
 
         foreach ($aArr as $aRec) {
+            if (!trim($aRec->title)) {
+
+                continue;
+            }
             $menu->append("<li> <a class='nav-link scrollto' href='#item{$aRec->id}'> {$aRec->title}</a> </li>");
         }
 
