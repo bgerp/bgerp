@@ -743,15 +743,15 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     public static function getTotalWasteArr($threadId)
     {
-        $res = array();
+        $res = $tasks = array();
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         if($firstDoc->isInstanceOf('planning_Jobs')){
-            $tasks = planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped');
+            $tasks = array_keys(planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped'));
         } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
             $tasks = $firstDoc->that;
-        } else {
-            return $res;
         }
+
+        if(!countR($tasks)) return $res;
 
         $query = static::getQuery();
         $query->in('taskId', $tasks);

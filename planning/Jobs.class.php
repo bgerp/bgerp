@@ -2337,4 +2337,24 @@ class planning_Jobs extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Вкарваме css файл за единичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        // Показване на обобщението на отпадъка в статистиката
+        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId);
+        if(countR($wasteArr)){
+            $tpl->replace(' ', 'captionWastes');
+            foreach ($wasteArr as $wasteRow){
+                $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
+                $cloneTpl->replace($wasteRow->productId, 'wasteProductId');
+                $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
+                $cloneTpl->removeBlocksAndPlaces();
+                $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
+            }
+        }
+    }
 }
