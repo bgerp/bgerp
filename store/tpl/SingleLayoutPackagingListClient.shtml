@@ -133,7 +133,7 @@
                        <!--ET_END deliveryOn-->
                         <!--ET_BEGIN lineId-->
                         <tr>
-                            <td class='nowrap quiet aright'>Transport: </td>
+                            <td class='nowrap quiet aright' style="width: 1%">Transport: </td>
                             <td>[#lineId#]</td>
                         </tr>
                         <!--ET_END lineId-->
