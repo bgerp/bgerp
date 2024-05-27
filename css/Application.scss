@@ -8298,9 +8298,14 @@ body.narrow {
 			padding: 2px !important;
 		}
 		&:last-child td {
-			border: none !important
+			border-bottom: none !important
 		}
 	}
+}
+
+tr.wasteWeightPercent td {
+	font-weight: bold !important;
+	border-top: 1px solid #aaa !important;
 }
 /*стилове за цвета на палитрa при лист изгледа */
 .color-short img{
