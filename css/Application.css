@@ -7301,7 +7301,11 @@ only screen and (max-width: 320px) {
       border-bottom: 1px dotted #aaaaaa !important;
       padding: 2px !important; }
     .wasteBlockInThread tr:last-child td {
-      border: none !important; }
+      border-bottom: none !important; }
+
+tr.wasteWeightPercent td {
+  font-weight: bold !important;
+  border-top: 1px solid #aaaaaa !important; }
 
 /*
  * стилове за цвета на палитрa при лист изгледа

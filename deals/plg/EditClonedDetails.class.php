@@ -55,11 +55,12 @@ class deals_plg_EditClonedDetails extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        setIfNot($mvc->autoAddDetailsToChange, false);
-        if ($data->action != 'clone' && !$mvc->autoAddDetailsToChange) return;
-
         $form = &$data->form;
         $rec = $form->rec;
+
+        setIfNot($mvc->autoAddDetailsToChange, false);
+        if ($data->action != 'clone' && !$mvc->autoAddDetailsToChange) return;
+        if ($data->action != 'clone' && $mvc->autoAddDetailsToChange && isset($rec->id)) return;
 
         $MainDetail = cls::get($mvc->mainDetail);
         $detailsToCloneArr = $mvc->getDetailsToCloneAndChange($rec);

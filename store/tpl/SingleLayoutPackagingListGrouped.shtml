@@ -112,7 +112,7 @@
                        <!--ET_BEGIN deliveryAddressBlock-->
                         [#deliveryAddressBlock#]
                         <tr>
-                            <td class='quiet nowrap aright'>Delivery address:</td>
+                            <td class='quiet nowrap aright' style="width: 1%">Delivery address:</td>
                             <td>
                                  [#deliveryTo#] [#deliveryLocationAddress#]
                             </td>
@@ -122,19 +122,19 @@
                         <!--ET_END locationData-->
                         <!--ET_BEGIN lineId-->
                         <tr>
-                            <td class='nowrap quiet aright'>Transport: </td>
+                            <td class='nowrap quiet aright' style="width: 1%">Transport: </td>
                             <td>[#lineId#]</td>
                         </tr>
                         <!--ET_END lineId-->
                        <!--ET_BEGIN lineForwarderId-->
                        <tr>
-                           <td class='nowrap quiet aright'>Forwarder: </td>
+                           <td class='nowrap quiet aright' style="width: 1%">Forwarder: </td>
                            <td>[#lineForwarderId#]</td>
                        </tr>
                        <!--ET_END lineForwarderId-->
                        <!--ET_BEGIN lineVehicleId-->
                        <tr>
-                           <td class='nowrap quiet aright'>Motor vehicle: </td>
+                           <td class='nowrap quiet aright' style="width: 1%">Motor vehicle: </td>
                            <td>[#lineVehicleId#]</td>
                        </tr>
                        <!--ET_END lineVehicleId-->

@@ -756,6 +756,37 @@ class store_Transfers extends core_Master
             doc_Containers::save($cRec, 'threadId, modifiedOn, modifiedBy');
             doc_Threads::updateThread($oldThreadId);
         }
+
+        if(isset($rec->id)){
+            $rec->_exToStoreId = $mvc->fetchField($rec->id, 'toStore', false);
+        }
+    }
+
+
+    /**
+     * След всеки запис в журнала
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id
+     * @param stdClass $rec
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(core_Packs::isInstalled('batch')){
+
+            // Ако е сменен дестинационния склад - да се обнови записа в черновата журнал на партидите
+            if(isset($rec->_exToStoreId) && $rec->toStore != $rec->_exToStoreId){
+                if(in_array($rec->state, array('draft', 'pending'))){
+                    $Batches = cls::get('batch_BatchesInDocuments');
+                    $bQuery = $Batches->getQuery();
+                    $bQuery->where("#containerId = {$rec->containerId} AND #operation = 'in'");
+                    while($bRec = $bQuery->fetch()){
+                        $bRec->storeId = $rec->toStore;
+                        $Batches->save_($bRec, 'storeId');
+                    }
+                }
+            }
+        }
     }
 
 
