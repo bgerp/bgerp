@@ -53,7 +53,7 @@ class sales_tpl_InvoiceAccView extends doc_TplScript
                 if(isset($displayValue) && $displayValue != ''){
                     $displayValue = "<span style='color:blue'>{$displayValue}</span>";
                     if($data->masterData->rec->state == 'draft'){
-                        $displayValue = ht::createHint($displayValue, 'Текущата стойност ще се запише към момента на активиране');
+                        $displayValue = ht::createHint($displayValue, 'Текущата стойност ще се запише към момента на активиране|*!');
                     }
                 }
             }
