@@ -115,7 +115,7 @@ class sales_tpl_CustomsInvoiceEn extends doc_TplScript
                 $code = "<span class='quiet small'>{$this->tariffCodeCaption}</span> {$displayTariffCode}";
                 $tariffDescription = cond_TariffCodes::getDescriptionByCode($tariffRec->tariffNumber, $masterRec->tplLang);
                 if($tariffRec->isLive){
-                    $code = ht::createHint("<span style='color:blue'>{$code}</span>", 'Текущата стойност ще се запише към момента на активиране');
+                    $code = ht::createHint("<span style='color:blue'>{$code}</span>", 'Текущата стойност ще се запише към момента на активиране|*!');
                 }
                 $tariffDescriptionVerbal = core_Type::getByName('varchar')->toVerbal($tariffDescription);
             } else {

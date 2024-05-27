@@ -1469,36 +1469,41 @@ class fileman_webdrv_Generic extends core_Manager
      *
      * @param string $htmlUrl - Линк към HTML файла
      * @param string $fPath   - Път към HTML файла
+     * @param array $pArr
      *
      * @return core_ET|false - Текста, за създаване на таб
      */
-    public static function getHtmlTabTpl($htmlUrl = null, $fPath = null)
+    public static function getHtmlTabTpl($htmlUrl = null, $fPath = null, $pArr = array())
     {
         // Ако няма URL, връщаме FALSE
         if (!$htmlUrl && !$fPath) {
             
             return false;
         }
-        
+
         setIfNot($htmlUrl, $fPath);
         setIfNot($fPath, $htmlUrl);
+
+        setIfNot($pArr['webdrvTabBody'], 'webdrvTabBody');
+        setIfNot($pArr['webdrvFieldset'], 'webdrvFieldset');
+        setIfNot($pArr['webdrvIframe'], 'webdrvIframe');
 
         // Ако JS не е включен
         if (Mode::is('javascript', 'no')) {
             
             // HTML частта, ако не е включен JS
-            $htmlPart = "<div class='webdrvTabBody'>
-            				<div class='webdrvFieldset'>
-                				<iframe src='{$htmlUrl}' SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
+            $htmlPart = "<div class='{$pArr['webdrvTabBody']}'>
+            				<div class='{$pArr['webdrvFieldset']}'>
+                				<iframe src='{$htmlUrl}' SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='{$pArr['webdrvIframe']}'></iframe>
                 			</div>
             			</div>";
         } else {
             
             // HTML частта, ако е включен JS
             $htmlTpl = new ET("
-            					<div class='webdrvTabBody'>
-                    				<div class='webdrvFieldset'>
-                    					<iframe id=[#SANITIZEID#] SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
+            					<div class='{$pArr['webdrvTabBody']}'>
+                    				<div class='{$pArr['webdrvFieldset']}'>
+                    					<iframe id=[#SANITIZEID#] SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='{$pArr['webdrvIframe']}'></iframe>
                     					[#SANITIZEJS#]
                 					</div>
                 				</div>

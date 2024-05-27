@@ -36,7 +36,7 @@ class cms_SinglePageTheme extends core_ProtoInner
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-        $form->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Хедър->Изображение,hint=Примерни размери 1920×1280px');
+        $form->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Хедър->Изображение,hint=Примерни размери 1920×780px');
         $form->FLD('domainTitle', 'varchar(100)', 'caption=Хедър->Заглавие на домейна');
         $form->FLD('headTitle', 'varchar(100)', 'caption=Хедър->Заглавие');
         $form->FLD('subtitle', 'varchar(100)', 'caption=Хедър->Подзаглавие');
@@ -89,7 +89,7 @@ class cms_SinglePageTheme extends core_ProtoInner
         if ($img) {
             $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
             $imageURL = $img->getUrl('forced');
-            $css .= "\n  #wallpaper-block {background: url({$imageURL}) top center;} ";
+            $css .= "\n  #wallpaper-block {background-image: url({$imageURL}) !important;} ";
         } else if (!$headTitle || $subtitle){
             $tpl->removeBlock("WALLPAPER_BLOCK");
         }
@@ -161,6 +161,10 @@ class cms_SinglePageTheme extends core_ProtoInner
         $menu->append("<nav id='navbar' class='navbar order-last order-lg-0'><ul>");
 
         foreach ($aArr as $aRec) {
+            if (!trim($aRec->title)) {
+
+                continue;
+            }
             $menu->append("<li> <a class='nav-link scrollto' href='#item{$aRec->id}'> {$aRec->title}</a> </li>");
         }
 
@@ -194,17 +198,22 @@ class cms_SinglePageTheme extends core_ProtoInner
             if($wallpaper) {
                 $img = new thumb_Img(array($wallpaper, 1200, 220, 'fileman', 'isAbsolute' => false, 'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
-                $style="style = 'background: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)), url({$imageURL}) fixed center center; background-size:cover'";
+                $style="style = 'background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.4)), url({$imageURL}) fixed center center; background-size:cover'";
                 $fixedImageClass = "fixed-bg";
             } else if ($background) {
                 $style="style = 'background: {$background}'";
             }
 
             $changeLink = "";
-            if (cms_Articles::haveRightFor('change', $aRec->id)) {
+            if (cms_Articles::haveRightFor('changerec', $aRec->id)) {
                 $changeLink = cms_Articles::getChangeLink($aRec->id);
             }
-            $content->append("<section id='item{$aRec->id}' {$style} class='{$fixedImageClass}'><div class='container'><h2>{$aRec->title}{$changeLink}</h2>");
+            $h = "<h2>{$aRec->title}{$changeLink}</h2>";
+            if (!trim($aRec->title)) {
+                $h = "";
+            }
+
+            $content->append("<section id='item{$aRec->id}' {$style} class='{$fixedImageClass}'><div class='container'>{$h}");
             $content->append($body);
             $content->append("</div></section>");
         }

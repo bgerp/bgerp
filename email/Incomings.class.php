@@ -687,8 +687,9 @@ class email_Incomings extends core_Master
         $rec->emlFile = $mime->getEmlFile();
         
         // Задаваме текстовата част
-        $rec->textPart = $mime->textPart;
-        
+//        $rec->textPart = $mime->textPart;
+        $rec->textPart = $mime->getTextPart();
+
         // Запазване на допълнителни MIME-хедъри за нуждите на рутирането
         $rec->inReplyTo = $mime->getHeader('In-Reply-To');
         
@@ -1199,6 +1200,26 @@ class email_Incomings extends core_Master
         
         if (Mode::is('text', 'xhtml')) {
             unset($row->ip);
+        }
+
+        if (email_Setup::get('SHOW_HTML_IN_SINGLE') == 'yes') {
+            if (!(Mode::is('text', 'xhtml') && !Mode::is('printing')) && !Mode::is('text', 'plain')) {
+                if ($rec->htmlFile) {
+                    $fRec = fileman::fetch($rec->htmlFile);
+                    if ($fRec) {
+                        try {
+                            $htmlPartArr = fileman_webdrv_Html::getHtmlPart($fRec);
+                            $htmlPart = fileman_webdrv_Html::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path'],
+                                array('webdrvTabBody' => 'webdrvTabBodySingle',
+                                    'webdrvFieldset' => 'webdrvFieldsetSingle',
+                                    'webdrvIframe' => 'webdrvIframeSingle webdrvIframe'));
+                            $row->textPart = $htmlPart;
+                        } catch (core_exception_Expect $exp) {
+                            reportException($exp);
+                        }
+                    }
+                }
+            }
         }
     }
     

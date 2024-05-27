@@ -738,34 +738,57 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Извлича информация за отпадъка отчетен в нишката
      *
-     * @param int $threadId
-     * @return array $res
+     * @param int $threadId               - ид на нишка
+     * @param int|null $producedNetWeight - общо тегло, спрямо което да се смята процента
+     * @return array $res                 - масив с резултат за отпадъка
      */
-    public static function getTotalWasteArr($threadId)
+    public static function getTotalWasteArr($threadId, $producedNetWeight = 0)
     {
-        $res = array();
+        $res = $tasks = array();
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         if($firstDoc->isInstanceOf('planning_Jobs')){
-            $tasks = planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped');
+            $tasks = array_keys(planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped'));
         } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
-            $tasks = $firstDoc->that;
-        } else {
-            return $res;
+            $tasks = array($firstDoc->that);
         }
 
+        if(!countR($tasks)) return $res;
+
+        // За всеки от отчетените отпадъци
         $query = static::getQuery();
         $query->in('taskId', $tasks);
         $query->where("#type = 'waste' AND #totalQuantity != 0");
         while($rec = $query->fetch()){
             $key = "{$rec->productId}|{$rec->packagingId}";
             if(!array_key_exists($key, $res)){
-                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'productId' => cat_Products::getShortHyperlink($rec->productId));
+                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'quantityInPack' => $rec->quantityInPack, 'productId' => $rec->productId, 'productLink' => cat_Products::getShortHyperlink($rec->productId));
             }
             $res[$key]->quantity += $rec->totalQuantity;
         }
 
-        foreach ($res as $r){
-            $r->quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($r->quantity) . " " . cat_UoM::getSmartName($r->packagingId, $r->quantity);
+        // Ако има отчетени отпадъци - се проверява дали всички имат нето тегло и се смята общ процент
+        // на отпадъка спрямо подаденото тегло
+        $totalKg = 0;
+        if(countR($res)){
+            foreach ($res as $r){
+                $r->quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($r->quantity) . " " . cat_UoM::getSmartName($r->packagingId, $r->quantity);
+                if(isset($totalKg)){
+                    if($singleNetWeight = cat_Products::convertToUom($r->productId, 'kg')){
+                        $totalKg += $singleNetWeight * $r->quantity * $r->quantityInPack;
+                    } else {
+                        $totalKg = null;
+                    }
+                }
+            }
+        } else {
+            $totalKg = null;
+        }
+
+        if(isset($totalKg)){
+            $percentWeight = ($producedNetWeight) ? round($totalKg / $producedNetWeight, 2) : 1;
+            $percentVerbal = core_Type::getByName('percent')->toVerbal($percentWeight);
+            $percentVerbal = ($percentWeight >= 0.2) ? "<b class='red'>{$percentVerbal}</b>" : ($percentWeight >= 0.1 ? "<b style='color:darkorange'>{$percentVerbal}</b>" : $percentVerbal);
+            $res[] = (object)array('class' => 'wasteWeightPercent', 'productLink' => tr('Общ отпадък'), 'quantityVerbal' => $percentVerbal);
         }
 
         return $res;

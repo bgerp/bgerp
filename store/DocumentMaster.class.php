@@ -910,9 +910,10 @@ abstract class store_DocumentMaster extends core_Master
     public function getLogisticData($rec)
     {
         $rec = $this->fetchRec($rec);
-        $ownCompany = crm_Companies::fetchOurCompany();
+        $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : crm_Setup::BGERP_OWN_COMPANY_ID;
+        $ownCompany = crm_Companies::fetch($ownCompanyId);
         $ownCountryId = $ownCompany->country;
-        
+
         if ($locationId = store_Stores::fetchField($rec->storeId, 'locationId')) {
             $storeLocation = crm_Locations::fetch($locationId);
             $ownCountryId = $storeLocation->countryId;
