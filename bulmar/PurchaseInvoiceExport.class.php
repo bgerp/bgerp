@@ -67,7 +67,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
     {
         if(core_Packs::isInstalled('holding')){
             $ownCompanyOptions = holding_Companies::getOwnCompanyOptions();
-            $form->FLD('ownCompanyId', 'varchar', 'caption=Моя фирма');
+            $form->FLD('ownCompanyId', 'varchar', 'caption=Наша фирма');
             $form->setOptions("ownCompanyId", array('' => '') + $ownCompanyOptions);
             $form->setField("ownCompanyId", "placeholder=" . crm_Companies::getTitleById(crm_Setup::BGERP_OWN_COMPANY_ID));
         }
@@ -107,7 +107,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         $query->between('date', $filter->from, $filter->to);
         $query->orderBy('#number', 'ASC');
 
-        // Ако е инсталирана многофирменоста - филтър по Моя фирма
+        // Ако е инсталирана многофирменоста - филтър по Наша фирма
         if(core_Packs::isInstalled('holding')){
             if(!empty($filter->ownCompanyId)){
                 $query->where("#{$this->Invoices->ownCompanyFieldName} = $filter->ownCompanyId");

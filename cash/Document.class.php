@@ -659,8 +659,7 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $caseId = null;
 
-        // Измежду кои каси може да се избира, ако е инсталирана многофирмеността ще е от разрешените каси
-        // в посочената моя фирма
+        // Измежду кои каси може да се избира, ако е инсталирана многофирмеността ще е от разрешените каси в посочената Наша фирма
         $allowedCases = null;
         if(core_Packs::isInstalled('holding')){
             $allowedCases = holding_Companies::getSelectedOptions('cashes', $rec->{$this->ownCompanyFieldName});

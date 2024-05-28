@@ -988,7 +988,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
             if(core_Packs::isInstalled('holding')){
                 $ownCompanyId = $rec->{$self->ownCompanyFieldName} ?? crm_Setup::BGERP_OWN_COMPANY_ID;
-                $result->features['Моя фирма'] = crm_Companies::getTitleById($ownCompanyId, false);
+                $result->features['Наша фирма'] = crm_Companies::getTitleById($ownCompanyId, false);
             }
         }
         
