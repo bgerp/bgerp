@@ -820,7 +820,7 @@ class cat_BomDetails extends doc_Detail
             if($rec->type == 'stage'){
                 if(cat_BomDetails::count("#parentId = {$rec->id} AND #bomId = {$rec->bomId}")){
                     $bomRec = cat_Boms::fetch($rec->bomId);
-                    if(in_array($bomRec->state, array('active', 'closed'))){
+                    if(in_array($bomRec->state, array('active', 'closed')) && !$fields['-components']){
                         $extraBtnTpl2 = new core_ET("<!--ET_BEGIN BTN-->[#BTN#]<!--ET_END BTN-->");
                         $extraBtnTpl2->replace(' <span  class=" newIconStyle bomExpandStageDetails' . $rec->id . '" title="Показване/Скриване на детайли"> </span>', 'BTN');
                         $row->position .= $extraBtnTpl2->getContent();
