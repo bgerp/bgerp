@@ -238,15 +238,15 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $data->listFilter->FNC('countryGroups', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Държави,input');
 
-        $type = '';
         if ($mvc->getField('type', false)) {
-            $data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
-            $type = ',invType';
+            $typeEnumOptions = "enum(all=Всички,invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,accrued=Фактура с начислен аванс,deducted=Фактура с приспаднат аванс)";
+        } else {
+            $typeEnumOptions = "enum(all=Всички,accrued=Проформа фактура с начислен аванс,deducted=Проформа фактура с приспаднат аванс)";
         }
-        
+        $data->listFilter->FNC('invType', $typeEnumOptions, 'caption=Вид,input,silent');
         $data->listFields['paymentType'] = 'Плащане';
         $data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Начин на плащане,input');
-        $data->listFilter->showFields .= ",payType{$type},countryGroups";
+        $data->listFilter->showFields .= ",payType,invType,countryGroups";
         $data->listFilter->input(null, 'silent');
         
         if ($rec = $data->listFilter->rec) {
@@ -254,6 +254,11 @@ abstract class deals_InvoiceMaster extends core_Master
                 if ($rec->invType != 'all') {
                     if ($rec->invType == 'invoice') {
                         $data->query->where("#type = '{$rec->invType}'");
+                    } elseif(in_array($rec->invType, array('accrued', 'deducted'))){
+                        $data->query->where("#dpOperation = '{$rec->invType}'");
+                        if ($mvc->getField('type', false)) {
+                            $data->query->where("#type = 'invoice'");
+                        }
                     } else {
                         $sign = ($rec->invType == 'credit_note') ? '<=' : '>';
                         $data->query->where("(#type = 'dc_note' AND #dealValue {$sign} 0) || #type = '{$rec->invType}'");
