@@ -311,7 +311,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 $form->setField('storeId', 'input=none');
-                $form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
+                $form->setField('inputStoreId', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->ОТ склад'));
             } else {
                 $form->setField('storeId', 'mandatory');
                 $form->setField('packagingId', 'input');
