@@ -2337,4 +2337,28 @@ class planning_Jobs extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Вкарваме css файл за единичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        // Показване на обобщението на отпадъка в статистиката
+        $tasksInJob = planning_Tasks::getTasksByJob($data->rec->id, 'active,wakeup,closed,stopped', false, false, 'yes');
+        $totalFinalNetWeight = countR($tasksInJob) ? arr::sumValuesArray($tasksInJob, 'totalNetWeight') : 0;
+
+        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId, $totalFinalNetWeight);
+        if(countR($wasteArr) && !Mode::is('printBlank')){
+            $tpl->replace(' ', 'captionWastes');
+            foreach ($wasteArr as $wasteRow){
+                $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
+                $cloneTpl->replace($wasteRow->productLink, 'wasteProducedProductId');
+                $cloneTpl->replace($wasteRow->class, 'wasteClass');
+                $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
+                $cloneTpl->removeBlocksAndPlaces();
+                $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
+            }
+        }
+    }
 }

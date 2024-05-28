@@ -8288,7 +8288,25 @@ body.narrow {
 .listTitleButtons{
 	margin-bottom: 15px;
 }
+.wasteBlockInThread {
+	tr {
+		td {
+			font-weight: normal !important;
+			font-size: 0.65em !important;
+			border: none !important;
+			border-bottom: 1px dotted #aaa !important;
+			padding: 2px !important;
+		}
+		&:last-child td {
+			border-bottom: none !important
+		}
+	}
+}
 
+tr.wasteWeightPercent td {
+	font-weight: bold !important;
+	border-top: 1px solid #aaa !important;
+}
 /*стилове за цвета на палитрa при лист изгледа */
 .color-short img{
 	border: 1px solid #000;

@@ -100,13 +100,13 @@
                   <!--ET_END lineId-->
                   <!--ET_BEGIN lineForwarderId-->
                   <tr>
-                     <td class='nowrap quiet aright'>|Спедитор|*: </td>
+                     <td class='nowrap quiet aright'  style="width: 1%">|Спедитор|*: </td>
                      <td>[#lineForwarderId#]</td>
                   </tr>
                   <!--ET_END lineForwarderId-->
                   <!--ET_BEGIN lineVehicleId-->
                   <tr>
-                     <td class='nowrap quiet aright'>|МПС|*: </td>
+                     <td class='nowrap quiet aright'  style="width: 1%">|МПС|*: </td>
                      <td>[#lineVehicleId#]</td>
                   </tr>
                   <!--ET_END lineVehicleId-->

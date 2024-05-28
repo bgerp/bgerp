@@ -41,12 +41,19 @@
     <div class="container">
         <h3>[#FOOTER_TITLE#]</h3>
         <p>[#FOOTER_SUBTITLE#]</p>
+        <!--ET_BEGIN FOOTER_CENTER_WIDE-->
+        <div class="links">[#FOOTER_CENTER_WIDE#]</div>
+        <!--ET_END FOOTER_CENTER_WIDE-->
+
+        <!--ET_BEGIN FOOTER_CENTER_NARROW-->
+        <div class="links">[#FOOTER_CENTER_NARROW#]</div>
+        <!--ET_END FOOTER_CENTER_NARROW-->
+
         <div class="social-links">
             [#social_Followers::getButtons#]
         </div>
+
         <div class="credits">
-            Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
-            <br>
             Powered by <a href="https://bgerp.com/">bgERP</a>
         </div>
     </div>

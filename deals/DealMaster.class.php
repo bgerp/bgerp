@@ -2487,7 +2487,8 @@ abstract class deals_DealMaster extends deals_DealBase
     public function getLogisticData($rec)
     {
         $rec = $this->fetchRec($rec);
-        $ownCompany = crm_Companies::fetchOurCompany();
+        $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : crm_Setup::BGERP_OWN_COMPANY_ID;
+        $ownCompany = crm_Companies::fetch($ownCompanyId);
         $ownCountryId = $ownCompany->country;
 
         $res = array();

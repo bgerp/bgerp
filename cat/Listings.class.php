@@ -186,8 +186,13 @@ class cat_Listings extends core_Master
                 $form->setReadOnly('vat');
             }
         }
-        
+
         $Cover = doc_Folders::getCover($rec->folderId);
+        if(!crm_Companies::isOwnCompanyVatRegistered()) {
+            $form->setDefault('vat', 'no');
+            $form->setReadOnly('vat', 'no');
+        }
+
         if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
             $form->setDefault('vat', ($Cover->shouldChargeVat()) ? 'yes' : 'no');
