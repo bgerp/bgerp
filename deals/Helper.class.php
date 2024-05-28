@@ -2122,10 +2122,11 @@ abstract class deals_Helper
      */
     public static function getVatWarning($defaultVat, $selectedVatType)
     {
-        if ($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))) {
-            return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
-        } elseif ($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))) {
-            return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
+        $Type = core_Type::getByName('enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)');
+        $showWarning = (in_array($defaultVat, array('yes', 'separate')) && in_array($selectedVatType, array('exempt', 'no'))) || in_array($defaultVat, array('no', 'exempt')) && in_array($selectedVatType, array('yes', 'separate'));
+        if ($showWarning) {
+
+            return "Избран е режим за|* <b>|{$Type->toVerbal($selectedVatType)}|*</b>, |при очакван|* <b>|{$Type->toVerbal($defaultVat)}|*</b>!";
         }
     }
     
