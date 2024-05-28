@@ -1477,12 +1477,14 @@ class crm_Companies extends core_Master
      * Връща информацията, която има за нашата фирма
      *
      * @param string $fields
-     *
+     * @param int|null $ownCompanyId
      * @return null|stdClass $rec
      */
-    public static function fetchOurCompany($fields = '*')
+    public static function fetchOurCompany($fields = '*', $ownCompanyId = null)
     {
-        $rec = self::fetch(crm_Setup::BGERP_OWN_COMPANY_ID, $fields);
+        $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
+        $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
+        $rec = self::fetch($id);
         
         if ($rec) {
             $rec->classId = core_Classes::getId('crm_Companies');

@@ -110,8 +110,10 @@ class core_Embedder extends core_Master
         }
         
         if (empty($this->Drivers[$rec->id])) {
-            if (cls::load($rec->{$this->innerClassField}, true)) {
-                $Driver = cls::get($rec->{$this->innerClassField});
+            // Извлича се името на класа от ид-то за да се подсигури че ще работи ако класа е деактивиран
+            $className = core_Classes::fetchField($rec->{$this->innerClassField}, 'name');
+            if (cls::load($className, true)) {
+                $Driver = cls::get($className);
                 $Driver->EmbedderRec = new core_ObjectReference($this, $rec->id);
                 $this->Drivers[$rec->id] = $Driver;
             } else {

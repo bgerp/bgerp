@@ -1,7 +1,7 @@
 <div class='singleView'>
     [#SingleToolbar#]
     <div>
-        <div class="folder-cover [#STATE_CLASS#]">
+        <div class="folder-cover [#STATE_CLASS#] [#OWN_COMPANY_CLASS#]">
             <div class="inner-folder">
                 <div class="block_title [#STATE_CLASS#] special-title">
                     [#SingleIcon#] [#title#] [#titleNumber#]

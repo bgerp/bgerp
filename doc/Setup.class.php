@@ -353,7 +353,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols,doc_reports_ActivatedDocumentsByTime, doc_ExpandComments, doc_drivers_FolderPortal, doc_drivers_LatestDocPortal';
+    public $defClasses = 'doc_reports_SearchInFolder,doc_reports_DocsByRols,doc_reports_ActivatedDocumentsByTime, doc_ExpandComments, doc_drivers_FolderPortal, doc_drivers_LatestDocPortal';
 
 
     /**

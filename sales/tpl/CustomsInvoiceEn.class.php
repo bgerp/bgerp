@@ -18,6 +18,12 @@
 class sales_tpl_CustomsInvoiceEn extends doc_TplScript
 {
     /**
+     * Към шаблоните на кой документ да може да се избира
+     */
+    public $addToClassTemplate = 'sales_Invoices';
+
+
+    /**
      * Константа за празен тарифен номер
      */
     const EMPTY_TARIFF_NUMBER = '_';

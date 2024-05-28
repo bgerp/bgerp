@@ -66,7 +66,6 @@ class frame2_Setup extends core_ProtoSetup
     public $managers = array(
         'frame2_Reports',
         'frame2_ReportVersions',
-        'frame2_AllReports',
     );
     
     

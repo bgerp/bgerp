@@ -39,7 +39,7 @@
 				<legend class="groupTitle">|Настройки|*</legend>
 				
 				<!--ET_BEGIN protoFolder-->
-				<div class="groupList">[#protoFolder#]</div>
+				<div class="groupList"><span class='quiet'>|Дали артикулите да са шаблонни|*</span>: [#useAsProto#]</div>
 			    <!--ET_END protoFolder-->
 			
 				<!--ET_BEGIN prefix-->
