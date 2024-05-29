@@ -41,7 +41,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,deals_plg_ImportDealDetailProduct,plg_PrevAndNext,store_plg_TransportDataDetail';
+                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument,deals_plg_ImportDealDetailProduct,plg_PrevAndNext,store_plg_TransportDataDetail';
     
     
     /**
@@ -208,5 +208,19 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
         }
 
         return static::$cacheConsignmentInThread["{$threadId}{$detailed}"];
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'createproduct' && isset($rec)){
+            $productType = store_ConsignmentProtocols::fetchField($rec->protocolId, 'productType');
+            if($productType != 'our'){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

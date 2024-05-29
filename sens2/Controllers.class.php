@@ -647,6 +647,26 @@ class sens2_Controllers extends core_Master
     {
         $data->query->orderBy('#createdOn', 'DESC');
     }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'driver';
+        $data->listFilter->input(null, 'silent');
+
+        if (isset($data->listFilter->rec->driver)) {
+            $data->query->where(array("#driver = '[#1#]'", $data->listFilter->rec->driver));
+        }
+
+        $data->listFilter->fields['driver']->refreshForm = 'refreshForm';
+
+        $data->query->orderBy('id', "DESC");
+    }
     
     
     /**
