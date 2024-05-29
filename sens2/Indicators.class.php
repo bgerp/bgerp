@@ -26,8 +26,14 @@ class sens2_Indicators extends core_Detail
      * Масив с всички задаедени изходи
      */
     public static $outputs;
-    
-    
+
+
+    /**
+     * @var int - Брой записи на страница
+     */
+    public $listItemsPerPage = 20;
+
+
     /**
      * Необходими мениджъри
      */
@@ -359,6 +365,53 @@ class sens2_Indicators extends core_Detail
         $data->query->EXT('ctrState', 'sens2_Controllers', 'externalName=state,externalKey=controllerId');
         $data->query->where("#ctrState = 'active'");
         $data->query->orderBy('#controllerId,#port', 'DESC');
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholder=Тип на контролера,removeAndRefreshForm=controllerId');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'driver, controllerId';
+        $data->listFilter->input(null, 'silent');
+
+        if (isset($data->listFilter->rec->controllerId)) {
+            $data->query->where(array("#controllerId = '[#1#]'", $data->listFilter->rec->controllerId));
+        }
+
+        if (isset($data->listFilter->rec->driver)) {
+            $cQuery = sens2_Controllers::getQuery();
+            $cQuery->where(array("#driver = '[#1#]'", $data->listFilter->rec->driver));
+            $cQuery->groupBy('id');
+            $cQuery->show('id');
+            $allControllers = $cQuery->fetchAll();
+            $controllerOptArr = array();
+            if ($allControllers) {
+                $optKeys = array_keys($allControllers);
+                $optKeys = arr::make($optKeys, true);
+                $data->query->in('controllerId', $optKeys);
+                $controllerOptArr = $data->listFilter->getField('controllerId')->type->prepareOptions();
+                foreach ($controllerOptArr as $id => $name) {
+                    if (!isset($optKeys[$id])) {
+                        unset($controllerOptArr[$id]);
+                    }
+                }
+
+            } else {
+                $data->query->where("1=2");
+            }
+            $data->listFilter->getField('controllerId')->type->options = $controllerOptArr;
+        }
+
+        $data->listFilter->fields['controllerId']->refreshForm = 'controllerId';
+        $data->listFilter->fields['driver']->refreshForm = 'driver';
+
+        $data->query->orderBy('lastValue', "DESC");
+        $data->query->orderBy('id', "DESC");
     }
     
     
