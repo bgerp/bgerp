@@ -376,7 +376,7 @@ class sens2_Indicators extends core_Detail
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholder=Тип на контролера,removeAndRefreshForm=controllerId');
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'driver, controllerId';
+        $data->listFilter->showFields = 'driver, controllerId, port';
         $data->listFilter->input(null, 'silent');
 
         if (isset($data->listFilter->rec->controllerId)) {
@@ -400,11 +400,14 @@ class sens2_Indicators extends core_Detail
                         unset($controllerOptArr[$id]);
                     }
                 }
-
             } else {
                 $data->query->where("1=2");
             }
             $data->listFilter->getField('controllerId')->type->options = $controllerOptArr;
+        }
+
+        if (strlen($data->listFilter->rec->port)) {
+            $data->query->where(array("LOWER(#port) = '[#1#]'", mb_strtolower($data->listFilter->rec->port)));
         }
 
         $data->listFilter->fields['controllerId']->refreshForm = 'controllerId';
