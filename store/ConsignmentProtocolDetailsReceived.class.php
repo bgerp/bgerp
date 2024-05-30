@@ -100,8 +100,16 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * @param out|in|stay - тип движение (излиза, влиза, стои)
      */
     public $batchMovementDocument = 'in';
-    
-    
+
+
+    /**
+     * Кой може да създава артикул директно към документа?
+     *
+     * @var string|array
+     */
+    public $canCreateproduct = 'ceo, store';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -218,7 +226,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     {
         if($action == 'createproduct' && isset($rec)){
             $productType = store_ConsignmentProtocols::fetchField($rec->protocolId, 'productType');
-            if($productType != 'our'){
+            if($productType != 'other'){
                 $requiredRoles = 'no_one';
             }
         }
