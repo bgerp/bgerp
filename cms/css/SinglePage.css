@@ -196,6 +196,8 @@ h6 {
     display: flex;
     list-style: none;
     align-items: center;
+    max-width: 960px;
+    flex-wrap: wrap;
 }
 
 .navbar li {
