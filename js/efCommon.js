@@ -4981,6 +4981,28 @@ Experta.prototype.getIdleTime = function() {
 
 
 /**
+ * Помощна функция, за вземане на маркиран текст от iframe
+ * @param iframe
+ * @returns {*|string}
+ */
+Experta.prototype.getIframeSelection = function(iframe) {
+
+    var win= iframe.contentWindow || iframe.contentDocument.defaultView;
+    var doc= iframe.contentDocument || win.document || iframe.contentWindow.document;
+
+    if (win.getSelection) {
+        return win.getSelection().toString();
+    } else if (doc.selection && doc.selection.createRange) {
+        return doc.selection.createRange().text;
+    } else if (doc.selection) {
+        return doc.selection.createRange().text;
+    } else {
+        this.log('Error in rendering');
+    }
+}
+
+
+/**
  * Записва избрания текст
  */
 Experta.prototype.saveSelText = function() {
@@ -4995,6 +5017,21 @@ Experta.prototype.saveSelText = function() {
     } else {
 
         return;
+    }
+    if (!selText) {
+        iframes = document.querySelectorAll('iframe');
+        if (iframes) {
+
+            var BreakException = {};
+            try {
+                iframes.forEach(function(el) {
+                    selText = getEO().getIframeSelection(el);
+                    if (selText) throw BreakException;
+                });
+            } catch (e) {
+                if (e !== BreakException) throw e;
+            }
+        }
     }
 
     // Ако първия записан текст е еднакъв с избрания
