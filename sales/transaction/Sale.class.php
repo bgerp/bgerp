@@ -524,6 +524,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      */
     public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId', &$instantProducts = array(), $productFieldName = 'productId')
     {
+        core_Debug::startTimer('FAST_PRODUCTION_ENTRIES');
         $entries = $bomDataCombined = array();
         if(!is_array($rec->details)) return $entries;
 
@@ -539,6 +540,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             $bomDataCombined[$instantBomRec->id]->quantity += $quantity;
         }
 
+        core_Debug::startTimer('FAST_PRODUCTION_BOM_DATA');
         foreach ($bomDataCombined as $bomData){
 
             // И тя има ресурси, произвежда се по нея
@@ -560,6 +562,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 }
             }
         }
+        core_Debug::stopTimer('FAST_PRODUCTION_BOM_DATA');
+        core_Debug::log("GET FAST_PRODUCTION_BOM_DATA " . round(core_Debug::$timers["FAST_PRODUCTION_BOM_DATA"]->workingTime, 6));
 
         // Проверка дали материалите са вложими и генерични
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
@@ -577,6 +581,9 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
+
+        core_Debug::stopTimer('FAST_PRODUCTION_ENTRIES');
+        core_Debug::log("GET FAST_PRODUCTION_ENTRIES " . round(core_Debug::$timers["FAST_PRODUCTION_ENTRIES"]->workingTime, 6));
 
         return $entries;
     }

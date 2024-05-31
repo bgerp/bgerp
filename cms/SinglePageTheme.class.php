@@ -36,7 +36,7 @@ class cms_SinglePageTheme extends core_ProtoInner
      */
     public function addEmbeddedFields(core_FieldSet &$form)
     {
-        $form->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Хедър->Изображение,hint=Примерни размери 1920×780px');
+        $form->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Хедър->Изображение,hint=Примерни размери 1920×650px');
         $form->FLD('domainTitle', 'varchar(100)', 'caption=Хедър->Заглавие на домейна');
         $form->FLD('headTitle', 'varchar(100)', 'caption=Хедър->Заглавие');
         $form->FLD('subtitle', 'varchar(100)', 'caption=Хедър->Подзаглавие');
