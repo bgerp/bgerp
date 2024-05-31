@@ -431,13 +431,6 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
                 acc_BalanceDetails::groupRecs($data->recs, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
             }
         }
-        
-        // Ако е посочено поле за сортиране, сортираме по него
-        if ($this->innerForm->orderField) {
-            arr::sortObjects($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
-        } else {
-            acc_BalanceDetails::sortRecsByNum($data->recs, $data->listFields);
-        }
     }
     
     

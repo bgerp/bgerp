@@ -1193,6 +1193,7 @@ class rack_Pallets extends core_Manager
     {
         if(!store_Stores::haveRightFor('select', $storeId) || core_Mode::isReadOnly()) return false;
         if (!rack_Movements::haveRightFor('add', (object) array('productId' => $productId))) return false;
+        if(!rack_Racks::count("#storeId={$storeId}")) return false;
 
         $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'maxPackQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'forceStoreId' => $storeId, 'ret_url' => true);
         if(!empty($batch)){
