@@ -5021,16 +5021,9 @@ Experta.prototype.saveSelText = function() {
     if (!selText) {
         iframes = document.querySelectorAll('iframe');
         if (iframes) {
-
-            var BreakException = {};
-            try {
-                iframes.forEach(function(el) {
-                    selText = getEO().getIframeSelection(el);
-                    if (selText) throw BreakException;
-                });
-            } catch (e) {
-                if (e !== BreakException) throw e;
-            }
+            iframes.forEach(function(el) {
+                selText = getEO().getIframeSelection(el);
+            });
         }
     }
 
