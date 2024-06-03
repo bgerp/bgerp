@@ -2,7 +2,7 @@
 
 
 /**
- * Толеранс за допустимо разминаване в салдото->Сума
+ * Сделката да не се показва като просрочена при салдо (неплатено)->под % от доставеното
  */
 defIfNot('DEALS_BALANCE_TOLERANCE', '0.01');
 
@@ -113,7 +113,7 @@ class deals_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
+        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Сделката да не се показва като просрочена при салдо (неплатено)->Под,unit= от доставеното'),
         'DEALS_ISSUER_USER' => array('user(roles=ceo|salesMaster,allowEmpty)', 'caption=Съставител на бизнес документи->Конкретен потребител'),
         'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Или'),
         'DEALS_OVERDUE_PENDING_DAYS_1' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Първо след,unit=дни'),
