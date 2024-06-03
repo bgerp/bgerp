@@ -804,7 +804,7 @@ class sales_Sales extends deals_DealMaster
         $result->set('defaultBankOperation', 'customer2bank');
         
         // Ако се очаква авансово плащане и платения аванс е под 80% от аванса,
-        // очакваме още да се плаща по аванаса
+        // очакваме още да се плаща по аванса
         if ($agreedDp) {
             if (empty($actualDp) || $actualDp < $agreedDp * 0.8) {
                 $result->set('defaultCaseOperation', 'customer2caseAdvance');
