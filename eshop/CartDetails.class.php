@@ -721,7 +721,7 @@ class eshop_CartDetails extends core_Detail
      * 
      * @return string $str
      */
-    public static function getUniqueParamsAsText($eshopProductId, $productId, $asRichText = false)
+    public static function getUniqueParamsAsText($eshopProductId, $productId, $asRichText = false, $inline = true)
     {
         $displayParams = eshop_Products::getSettingField($eshopProductId, null, 'showParams');
         $commonParams = eshop_Products::getCommonParams($eshopProductId);
@@ -745,11 +745,16 @@ class eshop_CartDetails extends core_Detail
                 $fileName = strip_tags($value);
                 $value = "[file={$handler}]{$fileName}[/file]";
             }
-            
-            $arr[] = tr(cat_Params::getVerbal($paramRec, 'name')) . ': ' . $value;
+
+            $caption = tr(cat_Params::getVerbal($paramRec, 'name'));
+            if(!$asRichText){
+                $caption = "<span class='quiet'>{$caption}</span>";
+            }
+            $arr[] = "{$caption}: " . $value;
         }
-        
-        $str = (countR($arr)) ? implode(', ', $arr) : '';
+
+        $separator = $inline ? ', ' : '<br>';
+        $str = (countR($arr)) ? implode($separator, $arr) : '';
         
         return $str;
     }
