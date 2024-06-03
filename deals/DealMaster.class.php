@@ -135,11 +135,15 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Добавне на 0 за да елиминираме -0 ако се получи при изчислението
         $notInvoicedAmount += 0;
-        $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
 
         // Кои са фактурите в сделката
         $threads = deals_Helper::getCombinedThreads($rec->threadId);
         $invoices = deals_Helper::getInvoicesInThread($threads);
+        $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
+
+        // Ако имаме доставено или платено
+        $amountBl = round($rec->amountBl, 4);
+        $tolerance = $rec->amountDelivered * $tolerancePercent;
 
         // Ако имаме фактури към сделката
         if (countR($invoices)) {
@@ -176,6 +180,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 return 'overdue';
             }
         } else {
+
+
             // Ако няма фактури, гледаме имали платежен план
             $aggregateDealInfo = !isset($aggregator) ? $this->getAggregateDealInfo($rec->id) : $aggregator;
             $methodId = $aggregateDealInfo->get('paymentMethodId');
@@ -184,19 +190,17 @@ abstract class deals_DealMaster extends deals_DealBase
                 $date = null;
                 setIfNot($date, $aggregateDealInfo->get('invoicedValior'), $aggregateDealInfo->get('shippedValior'), $aggregateDealInfo->get('agreedValior'));
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
-                
+
                 // Проверяваме дали сделката е просрочена по платежния си план
-                if (cond_PaymentMethods::isOverdue($plan, $diff)) {
-                    
-                    return 'overdue';
+                $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
+                if (abs($diff) > abs($tolerance)) {
+                    if (cond_PaymentMethods::isOverdue($plan, $diff)) {
+
+                        return 'overdue';
+                    }
                 }
             }
         }
-
-        // Ако имаме доставено или платено
-        $amountBl = round($rec->amountBl, 4);
-        $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
-        $tolerance = $rec->amountDelivered * $tolerancePercent;
         
         // Ако салдото е в рамките на толеранса приемаме че е 0
         if (abs($amountBl) <= abs($tolerance)) {
@@ -1893,7 +1897,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $query = $Class->getQuery();
         $query->where("#state = 'active'");
         $query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
-        
+
         while ($rec = $query->fetch()) {
             try {
                 $rec->paymentState = $Class->getPaymentState($rec->id);
