@@ -351,7 +351,7 @@ class eshop_ProductDetails extends core_Detail
             }
 
             $newRec = (object) array('recId' => $rec->id, 'eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime, 'action' => $rec->action);
-            $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId, false, false);
+            $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
             
             $packagings = keylist::toArray($rec->packagings);
             $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, 'null', 'showPacks');
