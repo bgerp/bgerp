@@ -2122,7 +2122,7 @@ abstract class deals_Helper
      */
     public static function getVatWarning($defaultVat, $selectedVatType)
     {
-        $Type = core_Type::getByName('enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)');
+        $Type = core_Type::getByName('enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)');
         $showWarning = (in_array($defaultVat, array('yes', 'separate')) && in_array($selectedVatType, array('exempt', 'no'))) || in_array($defaultVat, array('no', 'exempt')) && in_array($selectedVatType, array('yes', 'separate'));
         if ($showWarning) {
 
