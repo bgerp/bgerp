@@ -587,4 +587,12 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 
         return $entries;
     }
+
+
+    public function updateInputDiscounts2324()
+    {
+        /*
+         * UPDATE sales_sales_details as t1, sales_sales as t2 SET t1.`input_discount` = t1.discount  where t1.sale_id = t2.id and t1.discount is not null and t1.auto_discount is null and t1.input_discount is null and (t2.state = 'active' or t2.state = 'closed');
+         */
+    }
 }
