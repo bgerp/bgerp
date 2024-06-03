@@ -478,6 +478,7 @@ class sales_Setup extends core_ProtoSetup
         'migrate::updateDeltaField2403',
         'migrate::routesRepairSerchKeywords0824',
         'migrate::updateSales1724',
+        'migrate::updateCategories2324',
     );
     
     
@@ -726,5 +727,21 @@ class sales_Setup extends core_ProtoSetup
         $makeInvoiceName = str::phpToMysqlName('makeInvoice');
         $query = "UPDATE {$Sales->dbTableName} SET {$makeInvoiceName} = 'yes' WHERE ({$makeInvoiceName} IS NULL)";
         $Sales->db->query($query);
+    }
+
+
+    /**
+     * Миграция на категориите
+     */
+    function updateCategories2324()
+    {
+        $Details = cls::get('sales_SalesDetails');
+        $Sales = cls::get('sales_Sales');
+        $discountFieldName = str::phpToMysqlName('discount');
+        $inputFieldName = str::phpToMysqlName('inputDiscount');
+        $autoFieldName = str::phpToMysqlName('autoDiscount');
+        $query = "UPDATE {$Details->dbTableName} as t1, {$Sales->dbTableName} as t2 SET t1.{$inputFieldName} = t1.{$discountFieldName} WHERE t1.sale_id = t2.id AND t1.{$discountFieldName} IS NOT NULL AND t1.{$autoFieldName} IS NULL AND t1.{$inputFieldName} IS NULL AND (t2.state = 'active' or t2.state = 'closed')";
+
+        $Details->db->query($query);
     }
 }

@@ -1037,7 +1037,7 @@ class sales_Sales extends deals_DealMaster
     public function cron_CheckSalesPayments()
     {
         core_App::setTimeLimit(300);
-        $overdueDelay =sales_Setup::get('OVERDUE_CHECK_DELAY');
+        $overdueDelay = sales_Setup::get('OVERDUE_CHECK_DELAY');
         $this->checkPayments($overdueDelay);
 
         // Изпращане на нотификации, за нефактурирани продажби
