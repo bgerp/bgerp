@@ -57,8 +57,13 @@ class cms_SinglePageTheme extends core_ProtoInner
     {
         Mode::set('theme', 'singlepage');
         if(!haveRole('user')) {
-            $login = cls::get('core_Users')->act_Login();
-            $loginHtml = "<button type='button'  class='get-started-btn scrollto boldText'  data-bs-toggle='modal' data-bs-target='#loginModal'>" . tr("Вход||Log in") . '</button>';
+            if ((Request::get('Act') != 'add') && (Request::get('Act') != 'save') && (Request::get('Act') != 'login')) {
+                $login = cls::get('core_Users')->act_Login();
+                $loginHtml = "<button type='button'  class='get-started-btn scrollto boldText'  data-bs-toggle='modal' data-bs-target='#loginModal'>" . tr("Вход||Log in") . '</button>';
+                $tpl->replace('', 'PAGE_CONTENT');
+            } else {
+                $loginHtml = '&nbsp;';
+            }
         } else {
             $loginHtml = ht::createLink(". . .", array('Portal', 'Show'), null, array('class' => "get-started-btn scrollto boldText"));
         }

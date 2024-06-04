@@ -34,6 +34,7 @@
 <!--ET_END WALLPAPER_BLOCK-->
 
 <main id="main">
+    <!--ET_BEGIN PAGE_CONTENT--><div class="container">[#PAGE_CONTENT#]</div><!--ET_BEGIN PAGE_CONTENT-->
     [#CMS_LAYOUT#]
 </main>
 
