@@ -115,11 +115,11 @@ abstract class deals_PaymentDocument extends core_Master
      * Дали да се показва предупреждение при избраната операция
      *
      * @param string $operationSysId
-     * @param bgerp_DealAggregatorIntf $dealInfo
+     * @param bgerp_iface_DealAggregator $dealInfo
      * @param stdClass $rec
      * @return false|string
      */
-    protected function getOperationWarning($operationSysId,bgerp_DealAggregatorIntf $dealInfo, $rec)
+    protected function getOperationWarning($operationSysId, bgerp_iface_DealAggregator $dealInfo, $rec)
     {
         // ако в сделката е обявен % авансово плащане
         // и ако създаваното в момента документ е с избрана опция Плащане от Клиент/Доставчик
