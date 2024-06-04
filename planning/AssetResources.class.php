@@ -237,7 +237,9 @@ class planning_AssetResources extends core_Master
         if (empty($rec->id)) {
             $defaultFolderId = Request::get('defaultFolderId', 'int');
             $defaultFolderId = !empty($defaultFolderId) ? $defaultFolderId : planning_Centers::getUndefinedFolderId();
-            $form->setDefault('assetFolders', keylist::addKey('', $defaultFolderId));
+            $Cover = doc_Folders::getCover($defaultFolderId);
+            $field = $Cover->isInstanceOf('support_Systems') ? 'systemFolderId' : 'assetFolders';
+            $form->setDefault($field, keylist::addKey('', $defaultFolderId));
         } else {
             $form->rec->assetFolders = type_Keylist::fromArray($defOptArr['assetFolders']['folders']);
             $form->rec->assetUsers = $defOptArr['assetFolders']['users'];
