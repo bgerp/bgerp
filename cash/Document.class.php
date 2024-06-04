@@ -358,7 +358,7 @@ abstract class cash_Document extends deals_PaymentDocument
             $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, null);
 
             $warning = $mvc->getOperationWarning($rec->operationSysId, $dealInfo, $rec);
-            if(!$warning){
+            if($warning){
                 $form->setWarning('operationSysId', $warning);
                 return;
             }
