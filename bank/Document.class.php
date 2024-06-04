@@ -357,7 +357,6 @@ abstract class bank_Document extends deals_PaymentDocument
             $warning = $mvc->getOperationWarning($rec->operationSysId, $dealInfo, $rec);
             if($warning){
                 $form->setWarning('operationSysId', $warning);
-                return;
             }
 
             if (!cond_PaymentMethods::hasDownpayment($dealInfo->paymentMethodId)) {
