@@ -5024,7 +5024,7 @@ Experta.prototype.saveSelText = function() {
             iframes.forEach(function(el) {
                 try {
                     selText = getEO().getIframeSelection(el);
-                } catch (err) { }
+                } catch (err) { } 
             });
         }
     }
