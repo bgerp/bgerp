@@ -28,19 +28,19 @@ defIfNot('RACK_DEFAULT_ZONE_COLORS', '#eeeeee');
 /**
  * Коя стратегия за движенията да се използва
  */
-defIfNot('RACK_PICKUP_STRATEGY', 'ver1');
+defIfNot('RACK_PICKUP_STRATEGY', 'ver2');
 
 
 /**
  * Средни времена по операции->Вземане на палет
  */
-defIfNot('RACK_TIME_GET', 20);
+defIfNot('RACK_TIME_GET', 50);
 
 
 /**
  * Средни времена по операции->Вземане на палет от ред А
  */
-defIfNot('RACK_TIME_GET_A', 19);
+defIfNot('RACK_TIME_GET_A', 10);
 
 
 /**
@@ -52,7 +52,7 @@ defIfNot('RACK_TIME_ZONE', 5);
 /**
  * Средни времена по операции->Връщане
  */
-defIfNot('RACK_TIME_RETURN', 10);
+defIfNot('RACK_TIME_RETURN', 20);
 
 
 /**
