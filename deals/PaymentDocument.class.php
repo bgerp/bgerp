@@ -109,4 +109,33 @@ abstract class deals_PaymentDocument extends core_Master
             }
         }
     }
+
+
+    /**
+     * Дали да се показва предупреждение при избраната операция
+     *
+     * @param string $operationSysId
+     * @param bgerp_DealAggregatorIntf $dealInfo
+     * @param stdClass $rec
+     * @return false|string
+     */
+    protected function getOperationWarning($operationSysId,bgerp_DealAggregatorIntf $dealInfo, $rec)
+    {
+        // ако в сделката е обявен % авансово плащане
+        // и ако създаваното в момента документ е с избрана опция Плащане от Клиент/Доставчик
+        // и ако сумата на платения до момента аванс + сумата в създавания документ е < очаквания аванс +20%
+        // извеждаме Уорнинг:
+        if(in_array($operationSysId, array('customer2case', 'customer2bank', 'bank2supplier', 'case2supplier'))) {
+            $currentDp = $dealInfo->get('downpayment');
+            $agreedDp = $dealInfo->get('agreedDownpayment');
+            if (!empty($agreedDp)) {
+                $checkAmount = $currentDp + ($rec->amountDeal * $rec->rate);
+
+                $name = in_array($operationSysId, array('bank2supplier', 'case2supplier')) ? 'Плащане към доставчик' : 'Плащане от клиент';
+                if ($checkAmount < $agreedDp * 1.2) return "Въведената сума предполага възможно доплащане по аванс, а е избрана опцията за окончателно \"{$name}\"|*!";
+            }
+        }
+
+        return false;
+    }
 }

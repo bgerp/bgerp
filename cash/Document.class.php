@@ -243,7 +243,8 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $folderId = $data->form->rec->folderId;
         $form = &$data->form;
-        
+        $rec = &$form->rec;
+
         $contragentId = doc_Folders::fetchCoverId($folderId);
         $contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
         $form->setDefault('contragentId', $contragentId);
@@ -252,7 +253,7 @@ abstract class cash_Document extends deals_PaymentDocument
         expect($origin = $mvc->getOrigin($form->rec));
         $dealInfo = $origin->getAggregateDealInfo();
         $pOperations = $dealInfo->get('allowedPaymentOperations');
-        
+
         $options = $mvc->getOperations($pOperations);
         expect(countR($options));
         
@@ -355,7 +356,13 @@ abstract class cash_Document extends deals_PaymentDocument
             
             $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
             $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, null);
-            
+
+            $warning = $mvc->getOperationWarning($rec->operationSysId, $dealInfo, $rec);
+            if(!$warning){
+                $form->setWarning('operationSysId', $warning);
+                return;
+            }
+
             if ($rec->currencyId == $rec->dealCurrencyId) {
                 $rec->amount = $rec->amountDeal;
             }
