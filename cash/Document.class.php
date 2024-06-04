@@ -357,18 +357,16 @@ abstract class cash_Document extends deals_PaymentDocument
             $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
             $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, null);
 
-            $warning = $mvc->getOperationWarning($rec->operationSysId, $dealInfo, $rec);
-            if($warning){
-                $form->setWarning('operationSysId', $warning);
-                return;
-            }
-
             if ($rec->currencyId == $rec->dealCurrencyId) {
                 $rec->amount = $rec->amountDeal;
             }
-            
+
+            $warning = $mvc->getOperationWarning($rec->operationSysId, $dealInfo, $rec);
+            if($warning){
+                $form->setWarning('operationSysId', $warning);
+            }
+
             $dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
-            
             if ($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyCode, $dealCurrencyCode)) {
                 $form->setError('amountDeal', $msg);
             }
