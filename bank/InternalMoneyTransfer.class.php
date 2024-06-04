@@ -152,7 +152,7 @@ class bank_InternalMoneyTransfer extends core_Master
         $this->FLD('operationSysId', 'enum(bank2bank=Вътрешен банков трансфер,bank2case=Захранване на каса)', 'caption=Операция,mandatory,silent');
         $this->FLD('amount', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Сума,mandatory,summary=amount');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
-        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
         $this->FLD('reason', 'richtext(rows=3)', 'caption=Основание,input,mandatory');
         $this->FLD('creditAccId', 'acc_type_Account()', 'caption=Кредит,input=none');
         $this->FLD('creditBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'caption=От->Банк. сметка');
