@@ -31,14 +31,15 @@ class gdocs_Plugin extends core_Plugin
                 $ext = fileman_Files::getExt($rec->name);
                 
                 if (in_array($ext, arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar,pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) {
-                    $url = '//docs.google.com/viewer?url=' . fileman_Download::getDownloadUrl($rec->fileHnd, 1);
+                    $url = 'https://docs.google.com/viewer?url=' . fileman_Download::getDownloadUrl($rec->fileHnd, 1);
                     
                     // Добавяме бутона
                     $data->toolbar->addBtn(
-                        'gDocs',
+                        'Отвори',
                         $url,
-                        "id='btn-gdocs', checkPrivateHost, ef_icon=gdocs/img/google.png",
-                        array('target' => '_blank', 'order' => '30', 'row' => 2)
+                        "id='btn-gdocs', checkPrivateHost, ef_icon=gdocs/img/drive.png",
+                        'title=Разглеждане с GOOGLE DOCS',
+                        array('target' => '_blank', 'order' => '30', 'row' => 1)
                     );
                 }
             } catch (core_Exception_Expect $expect) {

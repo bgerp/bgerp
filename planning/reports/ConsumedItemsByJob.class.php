@@ -326,7 +326,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 //
                 if ($master == 'planning_DirectProductionNote' && !$pRec->storeId) {
 
-                    continue;
+                   // continue;   // Премахнато за да се показват услугите от бързо производство
                 }
 
                 $consumedQuantity = $returnedQuantity = $pRec->quantity;
@@ -770,6 +770,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $jdQuery = acc_JournalDetails::getQuery();
 
             $jdQuery->where("#journalId = ${masterJurnalId}");
+
             $jdQuery->in('reasonCode', $resonIdArr);
 
             while ($jdRec = $jdQuery->fetch()) {

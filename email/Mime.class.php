@@ -20,7 +20,19 @@ class email_Mime extends core_BaseClass
      * Текстоватана имейл-а
      */
     public $textPart;
-    
+
+
+    /**
+     * id на частта с първи HTML
+     */
+    protected $firstHtmlIndex;
+
+
+    /**
+     * id на частта с първи текст
+     */
+    protected $firstTextIndex;
+
     
     /**
      * Текстовата част на имйела, без да се взема в предвид HTML частта
@@ -464,6 +476,7 @@ class email_Mime extends core_BaseClass
      */
     public function getHtml()
     {
+        $html = null;
         if ($this->firstHtmlIndex) {
             $p = $this->parts[$this->firstHtmlIndex];
             
@@ -471,6 +484,51 @@ class email_Mime extends core_BaseClass
         }
         
         return $html;
+    }
+
+
+    /**
+     * Връща съдържанието на текстовата часта, ако такава има
+     */
+    public function getText()
+    {
+        $text = null;
+        if ($this->firstTextIndex) {
+            $p = $this->parts[$this->firstTextIndex];
+
+            $text = i18n_Charset::convertToUtf8($p->data, $p->charset, true);
+        }
+
+        return $text;
+    }
+
+    /**
+     * Връща текстовата част
+     * Приоритетно в първата `html` част
+     * Ако няма в първата текстова част
+     * Ако няма - от textPart, която е най-добрата текстова част
+     * Ако няма - justTextPart
+     *
+     * @return null|string
+     */
+    public function getTextPart()
+    {
+        $text = $this->getHtml();
+        if (!$text) {
+            $text = $this->getText();
+        } else {
+            $text = html2text_Converter::toRichText($text);
+        }
+
+        if (!$text) {
+            $text = $this->textPart;
+        }
+
+        if (!$text) {
+            $text = $this->justTextPart;
+        }
+
+        return $text;
     }
     
     
@@ -1050,12 +1108,16 @@ class email_Mime extends core_BaseClass
                     }
                     
                     $this->bestTextRate = $textRate;
-                    $this->charset = i18n_Charset::getCanonical($p->charset);
-                    $this->detectedCharset = i18n_Charset::detect($data, $p->charset, $p->subType == 'HTML');
+//                    $this->charset = i18n_Charset::getCanonical($p->charset);
+//                    $this->detectedCharset = i18n_Charset::detect($data, $p->charset, $p->subType == 'HTML');
                 }
                 
                 if ($p->subType == 'HTML' && (!$this->firstHtmlIndex) && ($textRate > 1 || (stripos($data, '<img ') === false))) {
                     $this->firstHtmlIndex = $index;
+                }
+
+                if (($p->subType == 'PLAIN') && (!$this->firstTextIndex) && ($textRate > 1)) {
+                    $this->firstTextIndex = $index;
                 }
             } else {
                 

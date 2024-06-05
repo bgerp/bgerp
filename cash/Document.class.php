@@ -243,7 +243,8 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $folderId = $data->form->rec->folderId;
         $form = &$data->form;
-        
+        $rec = &$form->rec;
+
         $contragentId = doc_Folders::fetchCoverId($folderId);
         $contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
         $form->setDefault('contragentId', $contragentId);
@@ -252,7 +253,7 @@ abstract class cash_Document extends deals_PaymentDocument
         expect($origin = $mvc->getOrigin($form->rec));
         $dealInfo = $origin->getAggregateDealInfo();
         $pOperations = $dealInfo->get('allowedPaymentOperations');
-        
+
         $options = $mvc->getOperations($pOperations);
         expect(countR($options));
         
@@ -355,13 +356,17 @@ abstract class cash_Document extends deals_PaymentDocument
             
             $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
             $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, null);
-            
+
             if ($rec->currencyId == $rec->dealCurrencyId) {
                 $rec->amount = $rec->amountDeal;
             }
-            
+
+            $warning = $mvc->getOperationWarning($rec->operationSysId, $dealInfo, $rec);
+            if($warning){
+                $form->setWarning('operationSysId', $warning);
+            }
+
             $dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
-            
             if ($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyCode, $dealCurrencyCode)) {
                 $form->setError('amountDeal', $msg);
             }
@@ -659,8 +664,7 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $caseId = null;
 
-        // Измежду кои каси може да се избира, ако е инсталирана многофирмеността ще е от разрешените каси
-        // в посочената моя фирма
+        // Измежду кои каси може да се избира, ако е инсталирана многофирмеността ще е от разрешените каси в посочената Наша фирма
         $allowedCases = null;
         if(core_Packs::isInstalled('holding')){
             $allowedCases = holding_Companies::getSelectedOptions('cashes', $rec->{$this->ownCompanyFieldName});

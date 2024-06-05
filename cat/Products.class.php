@@ -158,8 +158,8 @@ class cat_Products extends embed_Manager
      * Кой може да пише?
      */
     public $canWrite = 'cat,ceo,sales,purchase,catEdit';
-    
-    
+
+
     /**
      * Кой може да добавя?
      */
@@ -2471,14 +2471,17 @@ class cat_Products extends embed_Manager
             if (isset($rec->proto)) {
                 $row->proto = core_Users::isContractor() ? $mvc->getTitleById($rec->proto) : $mvc->getHyperlink($rec->proto);
             }
-            
-            if ($mvc->haveRightFor('edit', $rec)) {
-                if (!Mode::isReadOnly()) {
+
+            if (!Mode::isReadOnly()) {
+                if ($mvc->haveRightFor('edit', $rec)) {
                     $row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на групите на артикула');
+                }
+
+                if ($mvc->haveRightFor('changemeta', $rec)) {
                     $row->editMetaBtn = ht::createLink('', array($mvc, 'changemeta', 'Selected' => $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на мета-свойствата на артикула');
                 }
             }
-            
+
             $groupLinks = cat_Groups::getLinks($rec->groupsInput);
             $row->groupsInput = (countR($groupLinks)) ? implode(' ', $groupLinks) : (haveRole('partner') ? null : '<i>' . tr('Няма') . '</i>');
 
@@ -2852,6 +2855,10 @@ class cat_Products extends embed_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
+        if($action == 'changemeta'){
+            $res = $mvc->getRequiredRoles('edit', $rec, $userId);
+        }
+
         if ($action == 'add') {
             if (isset($rec)) {
                 if (isset($rec->originId)) {

@@ -354,6 +354,11 @@ abstract class bank_Document extends deals_PaymentDocument
             $origin = $mvc->getOrigin($form->rec);
             $dealInfo = $origin->getAggregateDealInfo();
 
+            $warning = $mvc->getOperationWarning($rec->operationSysId, $dealInfo, $rec);
+            if($warning){
+                $form->setWarning('operationSysId', $warning);
+            }
+
             if (!cond_PaymentMethods::hasDownpayment($dealInfo->paymentMethodId)) {
                 if (stripos($rec->operationSysId, 'advance')) {
                     $form->setWarning('operationSysId', 'По сделката не се очаква авансово плащане');

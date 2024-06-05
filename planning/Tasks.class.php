@@ -413,8 +413,20 @@ class planning_Tasks extends core_Master
             $paramTpl = cat_products_Params::renderParams($data->paramData);
             $tpl->append($paramTpl, 'PARAMS');
         }
-
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
+
+        // Показване на обобщението на отпадъка в статистиката
+        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId, $data->rec->totalNetWeight);
+        if(countR($wasteArr)){
+            foreach ($wasteArr as $wasteRow){
+                $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
+                $cloneTpl->replace($wasteRow->productLink, 'wasteProducedProductId');
+                $cloneTpl->replace($wasteRow->class, 'wasteClass');
+                $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
+                $cloneTpl->removeBlocksAndPlaces();
+                $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
+            }
+        }
     }
 
 
@@ -2298,9 +2310,10 @@ class planning_Tasks extends core_Master
      * @param mixed $states - В кои състояния
      * @param boolean $verbal - вербални или записи
      * @param boolean $skipTasksWithClosedParams - да се пропуснат ли операциите с деактивирани параметри
+     * @param null|bool $isFinal                 - дали да са само финалните или не
      * @return array $res      - масив с намерените задачи
      */
-    public static function getTasksByJob($jobId, $states, $verbal = true, $skipTasksWithClosedParams = false)
+    public static function getTasksByJob($jobId, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null)
     {
         $res = array();
         $oldContainerId = planning_Jobs::fetchField($jobId, 'containerId');
@@ -2309,6 +2322,10 @@ class planning_Tasks extends core_Master
         $states = arr::make($states, true);
         $query->in("state", $states);
         $query->orderBy("saoOrder", 'ASC');
+        if(isset($isFinal)){
+            $isFinalVal = $isFinal ? 'yes' : 'no';
+            $query->where("#isFinal = '{$isFinalVal}'");
+        }
 
         $taskClassId = planning_Tasks::getClassId();
         while ($rec = $query->fetch()) {

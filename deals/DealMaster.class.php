@@ -135,11 +135,15 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Добавне на 0 за да елиминираме -0 ако се получи при изчислението
         $notInvoicedAmount += 0;
-        $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
 
         // Кои са фактурите в сделката
         $threads = deals_Helper::getCombinedThreads($rec->threadId);
         $invoices = deals_Helper::getInvoicesInThread($threads);
+        $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
+
+        // Ако имаме доставено или платено
+        $amountBl = round($rec->amountBl, 4);
+        $tolerance = $rec->amountDelivered * $tolerancePercent;
 
         // Ако имаме фактури към сделката
         if (countR($invoices)) {
@@ -176,6 +180,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 return 'overdue';
             }
         } else {
+
+
             // Ако няма фактури, гледаме имали платежен план
             $aggregateDealInfo = !isset($aggregator) ? $this->getAggregateDealInfo($rec->id) : $aggregator;
             $methodId = $aggregateDealInfo->get('paymentMethodId');
@@ -184,19 +190,17 @@ abstract class deals_DealMaster extends deals_DealBase
                 $date = null;
                 setIfNot($date, $aggregateDealInfo->get('invoicedValior'), $aggregateDealInfo->get('shippedValior'), $aggregateDealInfo->get('agreedValior'));
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
-                
+
                 // Проверяваме дали сделката е просрочена по платежния си план
-                if (cond_PaymentMethods::isOverdue($plan, $diff)) {
-                    
-                    return 'overdue';
+                $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
+                if (abs($diff) > abs($tolerance)) {
+                    if (cond_PaymentMethods::isOverdue($plan, $diff)) {
+
+                        return 'overdue';
+                    }
                 }
             }
         }
-
-        // Ако имаме доставено или платено
-        $amountBl = round($rec->amountBl, 4);
-        $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
-        $tolerance = $rec->amountDelivered * $tolerancePercent;
         
         // Ако салдото е в рамките на толеранса приемаме че е 0
         if (abs($amountBl) <= abs($tolerance)) {
@@ -273,7 +277,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('dealerId', "user(rolesForAll={$dealerRolesForAll},allowEmpty,roles={$dealerRolesList})", 'caption=Наш персонал->Търговец,notChangeableByContractor');
         
         // Допълнително
-        $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
+        $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
         $mvc->FLD('username', 'varchar', 'caption=Допълнително->Съставил');
@@ -988,7 +992,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
             if(core_Packs::isInstalled('holding')){
                 $ownCompanyId = $rec->{$self->ownCompanyFieldName} ?? crm_Setup::BGERP_OWN_COMPANY_ID;
-                $result->features['Моя фирма'] = crm_Companies::getTitleById($ownCompanyId, false);
+                $result->features['Наша фирма'] = crm_Companies::getTitleById($ownCompanyId, false);
             }
         }
         
@@ -1256,11 +1260,11 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Взависимост начислява ли се ддс-то се показва подходящия текст
             switch ($rec->chargeVat) {
-                case 'yes':
-                    $fld = 'withVat';
-                    break;
                 case 'separate':
                     $fld = 'sepVat';
+                    break;
+                case 'yes':
+                    $fld = 'withVat';
                     break;
                 case 'exempt':
                     $fld = 'exemptVat';
@@ -1893,7 +1897,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $query = $Class->getQuery();
         $query->where("#state = 'active'");
         $query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
-        
+
         while ($rec = $query->fetch()) {
             try {
                 $rec->paymentState = $Class->getPaymentState($rec->id);
@@ -1941,7 +1945,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		o $fields['currencyId']            - код на валута (ако няма е основната за периода)
      * 		o $fields['currencyRate']          - курс към валутата (ако няма е този към основната валута)
      * 		o $fields['paymentMethodId']       - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 		o $fields['chargeVat']             - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
+     * 		o $fields['chargeVat']             - да се начислява ли ДДС - separate=Отделен ред за ДДС, yes=Да, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
      * 		o $fields['shipmentStoreId']       - ид на склад (@see store_Stores)
      * 		o $fields['deliveryTermId']        - ид на метод на доставка (@see cond_DeliveryTerms)
      *  	o $fields['deliveryCalcTransport'] - дали да се начислява скрит транспорт, ако условието е такова (само за продажба)
@@ -2487,7 +2491,8 @@ abstract class deals_DealMaster extends deals_DealBase
     public function getLogisticData($rec)
     {
         $rec = $this->fetchRec($rec);
-        $ownCompany = crm_Companies::fetchOurCompany();
+        $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : crm_Setup::BGERP_OWN_COMPANY_ID;
+        $ownCompany = crm_Companies::fetch($ownCompanyId);
         $ownCountryId = $ownCompany->country;
 
         $res = array();

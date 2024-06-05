@@ -417,7 +417,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
 				 	<span>{$row->amountRest}</span>
 				</div>";
                 
-                $dueDate = sales_Invoices::fetchField($rec->invId, dueDate);
+                $dueDate = sales_Invoices::fetchField($rec->invId, 'dueDate');
                 
                 if ($dueDate == null || $dueDate < dt::now()) {
                     $row->amount =
@@ -527,7 +527,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
         
         $tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
         
-        if (countR($data->summary)) {
+        if (is_array($data->summary) && countR($data->summary)) {
             $data->summary->colspan = countR($data->listFields) - 3;
             $afterRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountInv#]</b></td><td style='text-align:right'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountToPaid#]</b></td><!--ET_BEGIN amountArrears--><td style='text-align:right;color:red'><span class='cCode'>[#currencyId#]</span>&nbsp;<b>[#amountArrears#]</b><!--ET_END amountArrears--></td></tr>");
             
