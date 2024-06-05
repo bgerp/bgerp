@@ -42,7 +42,7 @@ defIfNot('BGERP_SOUND_ON_NOTIFICATION', 'scanner');
 /**
  * Колко време да се съхраняват нотификациите
  */
-defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 31556952);
+defIfNot('BGERP_NOTIFICATION_KEEP_DAYS', 15778476);
 
 
 /**
@@ -71,6 +71,18 @@ defIfNot('BGERP_NOTIFY_NORMAL', 86400);
 defIfNot('BGERP_BLOCK_ALERT', 'never');
 defIfNot('BGERP_BLOCK_WARNING', 'night');
 defIfNot('BGERP_BLOCK_NORMAL', 'nonworking|night');
+
+
+/**
+ * Вида известия, които ще получават заместниците
+ */
+defIfNot('BGERP_ALTERNATE_PEOPLE_NOTIFICATIONS', 'all');
+
+
+/**
+ * Колко стари записи да се пазят в таблицата за последно видяни документи от потребител
+ */
+defIfNot('BGERP_LAST_SEEN_DOC_BY_USER_CACHE_LIFETIME', 12 * dt::SECONDS_IN_MONTH);
 
 
 /**
@@ -169,6 +181,10 @@ class bgerp_Setup extends core_ProtoSetup
         'BGERP_BLOCK_WARNING' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Спешни, customizeBy=powerUser'),
         
         'BGERP_BLOCK_NORMAL' => array('enum(working|nonworking|night=Постоянно,nonworking|night=Неработно време,night=През нощта,never=Никога)', 'caption=Блокиране на сигнализация за нови известия->Нормални, customizeBy=powerUser'),
+
+        'BGERP_ALTERNATE_PEOPLE_NOTIFICATIONS' => array('enum(all=Всички,share=Само споделените,open=Само "Отворени теми",shareOpen=Споделени и "Отворени теми",noOpen=Без "Отворени теми",stop=Спиране)', 'caption=Известията|*&#44; |които да получават заместниците->Избор, customizeBy=powerUser'),
+
+        'BGERP_LAST_SEEN_DOC_BY_USER_CACHE_LIFETIME' => array('time', 'caption=До колко време назад да се пазят записите в последно видяните документи от потребител->По стари от'),
     );
     
     
@@ -196,6 +212,14 @@ class bgerp_Setup extends core_ProtoSetup
             'period' => 1440,
             'offset' => 50,
             'timeLimit' => 600
+        ),
+        array(
+            'systemId' => 'DeleteLastSeenByUserCache',
+            'description' => 'Изтриване на кеша на последно видяните документи от потребител',
+            'controller' => 'bgerp_LastSeenDocumentByUser',
+            'action' => 'DeleteOldRecs',
+            'period' => 1440,
+            'offset' => 100,
         ),
     );
 
@@ -233,6 +257,7 @@ class bgerp_Setup extends core_ProtoSetup
             'bgerp_LastTouch',
             'bgerp_F',
             'bgerp_Filters',
+            'bgerp_LastSeenDocumentByUser',
         );
         
         $instances = array();
@@ -264,8 +289,8 @@ class bgerp_Setup extends core_ProtoSetup
         }
 
         // Добавяме допълнителните пакети, само при първоначален Setup
-        if (($isFirstSetup) || !$Packs->isInstalled('avatar')) {
-            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,tnef,tinymce';
+        if (($isFirstSetup) || (!$Packs->isInstalled('avatar') && !$Packs->isInstalled('imagics') && !$Packs->isInstalled('toast'))) {
+            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,tnef,tinymce,barcode';
         } else {
 
             try {
@@ -449,9 +474,10 @@ class bgerp_Setup extends core_ProtoSetup
         // Принудително обновяване на ролите
         $html .= core_Roles::rebuildRoles();
         $html .= core_Users::rebuildRoles();
-        
+
         $html .= core_Classes::add('bgerp_plg_CsvExport');
-        
+        $html .= core_Classes::add('bgerp_plg_XlsExport');
+
         $html .= parent::install();
         
         core_SystemLock::remove();
@@ -591,7 +617,7 @@ class bgerp_Setup extends core_ProtoSetup
 
         $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500, 'color' => 'lightblue'),
             'bgerp_drivers_Calendar' => array('column' => 'center', 'order' => 700, 'fTasksPerPage' => 5, 'fTasksDays' => 2629746, 'color' => 'yellow'),
-            'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 400, 'color' => 'pink'),
+            'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 400, 'color' => 'pink', 'showCal' => 'yes'),
             'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500, 'color' => 'darkgray'),
         );
 
@@ -649,7 +675,7 @@ class bgerp_Setup extends core_ProtoSetup
 
             $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500, 'color' => 'lightblue'),
                 'bgerp_drivers_Calendar' => array('column' => 'center', 'order' => 700, 'fTasksPerPage' => 5, 'fTasksDays' => 2629746, 'color' => 'yellow'),
-                'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 400, 'color' => 'pink'),
+                'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 400, 'color' => 'pink', 'showCal' => 'yes'),
                 'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500, 'color' => 'darkgray'),
             );
 

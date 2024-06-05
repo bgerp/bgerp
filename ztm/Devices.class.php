@@ -106,7 +106,7 @@ class ztm_Devices extends core_Master
      *
      * @var string
      */
-    public $interfaces = 'acs_ZoneIntf';
+//    public $interfaces = 'acs_ZoneIntf';
     
     
     /**
@@ -116,7 +116,7 @@ class ztm_Devices extends core_Master
     {
         $this->FLD('ident', 'varchar(64)', 'caption=Идентификатор');
         $this->FLD('model', 'varchar(32)', 'caption=Модел');
-        $this->FLD('name', 'varchar(32)', 'caption=Име, mandatory');
+        $this->FLD('name', 'varchar(32, ci)', 'caption=Име, mandatory');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация->Обект, mandatory');
         $this->FLD('zone', 'varchar(12)', 'caption=Локация->Зона');
 
@@ -133,7 +133,7 @@ class ztm_Devices extends core_Master
         $this->FNC('showToken', 'varchar', 'caption=Сесия');
 
         $this->setDbUnique('token');
-        $this->setDbUnique('name, state');
+        $this->setDbIndex('name, state');
     }
 
 
@@ -146,6 +146,27 @@ class ztm_Devices extends core_Master
     function on_CalcShowToken($mvc, $rec)
     {
         $rec->showToken = $rec->token;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string   $requiredRoles
+     * @param string   $action
+     * @param stdClass $rec
+     * @param int      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($requiredRoles != 'no_one') {
+            if (($action == 'changestate') && $rec->state != 'active') {
+                if ($mvc->fetch(array("#name = '[#1#]' AND #state = 'active'", $rec->name))) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
 
 
@@ -166,30 +187,31 @@ class ztm_Devices extends core_Master
      * Връща записа за този токен
      *
      * @param string $token
-     * @param bool   $onlyActive
+     * @param null|string  $state
      *
      * @return false|stdClass
      */
-    public static function getRecForToken($token, $onlyActive = true)
+    public static function getRecForToken($token, $state = 'active')
     {
         $token = trim($token);
 
-        $rec = self::fetch(array("#token = '[#1#]'", $token));
-        
-        if ($rec->state == 'draft') {
+        $query = self::getQuery();
+        $query->where(array("#token = '[#1#]'", $token));
+        if ($state) {
+            $query->where(array("#state = '[#1#]'", $state));
+        }
+        $query->orderBy('lastSync', 'DESC');
+        $query->orderBy('modifiedOn', 'DESC');
+        $query->orderBy('id', 'DESC');
+        $query->limit(1);
+
+        $rec = $query->fetch();
+
+        if ($rec && $rec->state == 'draft') {
             self::logWarning('Неактивирано устройство', $rec->id);
         }
         
-        if ($onlyActive) {
-            if ($rec->state == 'active') {
-                
-                return $rec;
-            }
-            
-            return false;
-        }
-        
-        return $rec->state == 'rejected' ? false : $rec;
+        return $rec;
     }
     
     
@@ -200,7 +222,7 @@ class ztm_Devices extends core_Master
      */
     public static function updateSyncTime($token)
     {
-        $rec = self::getRecForToken($token);
+        $rec = self::getRecForToken($token, null);
         
         expect($rec);
         
@@ -409,6 +431,8 @@ class ztm_Devices extends core_Master
             if (!empty($saveArr)) {
                 $mvc->save($rec, implode(', ', $saveArr));
             }
+
+            ztm_SensMonitoring::addSens($rec->name);
         }
     }
     
@@ -558,23 +582,6 @@ class ztm_Devices extends core_Master
                     $rec->__update = true;
                 }
             }
-        }
-    }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Първичния ключ на направения запис
-     * @param stdClass     $rec     Всички полета, които току-що са били записани
-     * @param string|array $fields  Имена на полетата, които sa записани
-     * @param string       $mode    Режим на записа: replace, ignore
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-        if (!is_null($rec->__update)) {
-            acs_Zones::update($rec->__oldName, $rec->__newName, $mvc->getClassId(), $rec->locationId, $rec->state, $rec->__update);
         }
     }
 }

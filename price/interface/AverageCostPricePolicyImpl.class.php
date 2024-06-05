@@ -38,12 +38,13 @@ class price_interface_AverageCostPricePolicyImpl extends price_interface_BaseCos
         
         return $res;
     }
-    
-    
+
+
     /**
      * Изчислява себестойностите на засегнатите артикули
      *
-     * @param array $affectedTargetedProducts
+     * @param array $affectedTargetedProducts - засегнати артикули
+     * @param array $params - параметри
      *
      * @return array
      *         ['classId']       - клас ид на политиката
@@ -54,7 +55,7 @@ class price_interface_AverageCostPricePolicyImpl extends price_interface_BaseCos
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */
-    public function getCosts($affectedTargetedProducts)
+    public function getCosts($affectedTargetedProducts, $params = array())
     {
         $res = array();
         

@@ -127,6 +127,14 @@ class acc_plg_Contable extends core_Plugin
             $msgType = ($success) ? 'notice' : 'error';
             $mvc->logWrite('Ръчно реконтиране', $rec->id);
             if($success){
+                if(core_Packs::isInstalled('batch')){
+                    batch_Movements::removeMovement($mvc, $rec->id);
+                    Mode::push('recontoMovement', true);
+                    batch_Movements::saveMovement($rec->containerId);
+                    Mode::pop('recontoMovement');
+                    $mvc->savedMovements[$rec->containerId] = true;
+                }
+
                 $mvc->invoke('AfterDebugReconto', array($rec, $rec));
             }
 
@@ -573,7 +581,13 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        
+
+        // Ако документа се контира при обединяване със сделка да не се try/catch
+        if(Mode::is('isBeingClosedWithDeal')){
+            self::conto($mvc, $rec);
+            return;
+        }
+
         try {
             self::conto($mvc, $rec);
         } catch (acc_journal_RejectRedirect $e) {
@@ -581,7 +595,7 @@ class acc_plg_Contable extends core_Plugin
                 $rec->contoActions = null;
                 $mvc->save_($rec, 'contoActions');
             }
-            
+
             $url = $mvc->getSingleUrlArray($rec->id);
             redirect($url, false, '|' . $e->getMessage(), 'error');
         }

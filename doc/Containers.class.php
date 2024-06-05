@@ -420,7 +420,7 @@ class doc_Containers extends core_Manager
             $query = self::getQuery();
             $query->where(array("#threadId = '[#1#]'", $threadId));
             
-            $query->orderBy('#createdOn, #id', 'DESC');
+            $query->orderBy('#id', 'DESC');
             
             $query->limit(1);
             
@@ -466,7 +466,7 @@ class doc_Containers extends core_Manager
             bgerp_Recently::add('folder', $data->threadRec->folderId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         }
 
-        $data->query->orderBy('#createdOn, #id');
+        $data->query->orderBy('#id');
         
         $threadId = Request::get('threadId', 'int');
         
@@ -505,7 +505,9 @@ class doc_Containers extends core_Manager
         try {
             // Заглавие на треда
             $document = $mvc->getDocument($data->threadRec->firstContainerId);
+            Mode::push('documentPortalShortName', true);
             $docRow = $document->getDocumentRow();
+            Mode::pop('documentPortalShortName');
             $docTitle = str::limitLenAndHyphen($docRow->title, 70);
             $title->replace($docTitle, 'threadTitle');
             
@@ -615,9 +617,10 @@ class doc_Containers extends core_Manager
                 $retUrl = array($document->className, 'single', $document->that);
                 $retUrl = $retUrl + self::extractDocParamsFromUrl();
                 Mode::push('ret_url', $retUrl);
-                
+
                 if ($row->document) {
                     Debug::log("+++ Get from Cache {$rec->id}");
+                    bgerp_LastSeenDocumentByUser::queueToLog($rec->id);
                 } else {
                     Mode::push('saveObjectsToCid', $rec->id);
                     $data = $document->prepareDocument();
@@ -995,7 +998,9 @@ class doc_Containers extends core_Manager
                     
                     // Премахваме всички потребители, които ще се нотифицират за отворена нишка
                     // и са абонирани в нишката и ще получат нотификация от там
-                    $usersArrForNotify = array_diff($usersArrForNotify, $notifyForOpenInFolder);
+                    if (email_Setup::get('NOTIFY_PERSONAL_EMAIL_IN_OPEN') != 'yes') {
+                        $usersArrForNotify = array_diff($usersArrForNotify, $notifyForOpenInFolder);
+                    }
                     $usersArrForNotify = array_diff($usersArrForNotify, $subscribedArr);
                     $usersArrForNotify = array_diff($usersArrForNotify, $sharedArr);
                     
@@ -1268,7 +1273,9 @@ class doc_Containers extends core_Manager
         if (!$threadTitleArr[$rec->threadId]) {
             
             // Определяме заглавието и добавяме в масива
+            Mode::push('getNotificationRecTitle', true);
             $threadTitleArr[$rec->threadId] = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, false), doc_Threads::maxLenTitle);
+            Mode::pop('getNotificationRecTitle');
         }
         
         // Обхождаме масива с всички потребители, които ще имат съответната нотификация
@@ -2188,7 +2195,7 @@ class doc_Containers extends core_Manager
                         
                         $resArr['updateVisibleForPartners']++;
                     } else {
-                        self::update($rec->id);
+                        self::update($rec->id, true, true);
                         $resArr['updateContainers']++;
                         self::logNotice('Обновяване на контейнера', $rec->id);
                     }
@@ -2293,7 +2300,7 @@ class doc_Containers extends core_Manager
                                 if ($isDel) {
                                     $resArr['del_cnt']++;
                                 } else {
-                                    self::update($rec->id);
+                                    self::update($rec->id, true, true);
                                     $resArr['updateContainers']++;
                                 }
                             }
@@ -2334,7 +2341,7 @@ class doc_Containers extends core_Manager
                     if (self::save($rec, 'state')) {
                         $resArr['state']++;
                         self::logNotice("Променено състояние на документа от {$oldState} на {$rec->state}", $rec->id);
-                        self::update($rec->id);
+                        self::update($rec->id, true, true);
                     }
                 } catch (core_exception_Expect $e) {
                     continue;
@@ -3015,7 +3022,8 @@ class doc_Containers extends core_Manager
         $authorTemasArr = array();
         
         while ($rec = $query->fetch()) {
-            
+            if($rec->createdBy < 1 || core_Users::isContractor($rec->createdBy)) continue;
+
             // Масив с екипите на съответния потребител
             $authorTemasArr[$rec->createdBy] = type_Users::getUserFromTeams($rec->createdBy);
             

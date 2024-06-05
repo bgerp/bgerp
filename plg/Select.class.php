@@ -35,7 +35,7 @@ class plg_Select extends core_Plugin
     public function on_AfterPrepareListFields($mvc, &$res, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf') || Mode::is('noDoWithSelected')) {
             
             return;
         }
@@ -55,14 +55,14 @@ class plg_Select extends core_Plugin
     public function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf') || Mode::is('noDoWithSelected')) {
             
             return;
         }
-        
+
         if (!countR($data->rows)) {
+            $data->listFields = arr::make($data->listFields, true);
             unset($data->listFields['_checkboxes']);
-            
             return;
         }
 
@@ -84,7 +84,7 @@ class plg_Select extends core_Plugin
      */
     public function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf') || Mode::is('noDoWithSelected')) {
             
             return;
         }
@@ -226,7 +226,7 @@ class plg_Select extends core_Plugin
     public function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf') || Mode::is('noDoWithSelected')) {
             
             return;
         }
@@ -263,7 +263,7 @@ class plg_Select extends core_Plugin
      */
     public function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf') || Mode::is('noDoWithSelected')) {
             
             return;
         }
@@ -279,7 +279,7 @@ class plg_Select extends core_Plugin
      */
     public function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf') || Mode::is('noDoWithSelected')) {
             
             return;
         }

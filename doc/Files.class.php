@@ -550,6 +550,29 @@ class doc_Files extends core_Manager
             $data->query->orWhere("#show = 'isSearch'");
         }
 
+        $until = null;
+        if ($filter->range) {
+            if ($filter->range == $folderPrefix . 'allFolders') {
+                $minLen = 3;
+                if (mb_strlen($filter->search) <= $minLen) {
+                    $msg = 'Когато се търси по "Всички папки" трябва да се попълни и "Ключови думи" с поне ' . ++$minLen . ' буквен стринг';
+                    if (haveRole('manager')) {
+                        $data->listFilter->setWarning('search, range', $msg);
+                    } else {
+                        $data->listFilter->setError('search, range', $msg);
+                    }
+
+                    if (!$data->listFilter->isSubmitted()) {
+                        $data->query->where('1 = 0');
+
+                        return ;
+                    }
+
+                    $until = dt::addMonths(-3);
+                }
+            }
+        }
+
         if ($filter->range) {
             // Ако се филтрира по папките на текущия потребител или файловете му
             if (stripos($filter->range, $sPrefix) === 0) {
@@ -576,6 +599,10 @@ class doc_Files extends core_Manager
                     // Подреждаме по последно модифициране на контейнера
                     $data->query->EXT('cModifiedOn', 'doc_Containers', 'externalKey=containerId, externalName=modifiedOn');
                     $data->query->orderBy('cModifiedOn', 'DESC');
+
+                    if (isset($until)) {
+                        $data->query->where(array("#cModifiedOn >= '[#1#]'", $until));
+                    }
                 } else {
                     // Търсене по мои файлове
                     $usersArr = array(core_Users::getCurrent());
@@ -611,6 +638,8 @@ class doc_Files extends core_Manager
 
             plg_Search::applySearch($filter->search, $data->query, 'searchKeywords');
         }
+
+        $data->query->orderBy('id', 'DESC');
     }
 
 

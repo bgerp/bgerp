@@ -452,10 +452,11 @@ class batch_Items extends core_Master
         
         // Подготвяме формата за филтър по склад
         $form = cls::get('core_Form');
-        
         $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $form->FLD("state{$data->masterId}", 'enum(active=Активни,closed=Затворени,inStock=Налични,notInStock=Без наличност,all=Всички)', 'caption=Състояние,silent');
         $form->setDefault("state{$data->masterId}", 'active');
+
+        $form->input(null, 'silent');
         $form->view = 'horizontal';
         $form->setAction(getCurrentUrl());
         $form->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon=img/16/funnel.png');
@@ -463,7 +464,7 @@ class batch_Items extends core_Master
         // Инпутваме формата
         $form->input();
         $data->form = $form;
-        
+
         // Намираме наличните партиди на артикула
         $query = $this->getQuery();
         $query->where("#productId = {$data->masterId}");
@@ -485,17 +486,54 @@ class batch_Items extends core_Master
                 $query->where("#state = '{$data->form->rec->{"state{$data->masterId}"}}'");
             }
         }
-        
+
         $data->recs = $query->fetchAll();
-        
+
+        // Добавяне на наличните к-ва без партида
+        $storeQuery = store_Products::getQuery();
+        $storeQuery->where("#productId = {$data->masterId} AND #quantity != 0");
+        if(isset($data->storeId)){
+            $storeQuery->where("#storeId = {$data->storeId}");
+        }
+        while ($storeRec = $storeQuery->fetch()){
+            $onBatches = $count = 0;
+            array_walk($data->recs, function($a) use(&$onBatches, &$count, $storeRec) {
+                if(!empty($a->batch) && $a->storeId == $storeRec->storeId) {$onBatches += $a->quantity; $count++;}
+            });
+
+            if($count > 1){
+                $data->recs["-{$storeRec->storeId}batches"] = (object)array('storeId' => $storeRec->storeId,
+                                                                     'productId' => $data->masterId,
+                                                                     'quantity' => $onBatches,
+                                                                     'state' => 'active',
+                                                                     'batch' => -1);
+            }
+
+            $withoutBatch = round($storeRec->quantity - $onBatches, 4);
+            if(!empty($withoutBatch)){
+                $data->recs["-{$storeRec->storeId}nobatch"] = (object)array('storeId' => $storeRec->storeId,
+                                                                            'productId' => $data->masterId,
+                                                                            'quantity' => $withoutBatch,
+                                                                            'state' => 'active',
+                                                                            'batch' => -2);
+            }
+        }
+
+        arr::sortObjects($data->recs, 'storeId', 'ASC');
+
         // Подготвяме страницирането
-        $pager = cls::get('core_Pager', array('itemsPerPage' => 10));
+        $url = getCurrentUrl();
+        $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"};
+        $url["state{$data->masterId}"] = $form->rec->{"state{$data->masterId}"};
+        $url["#"] = "batchBlock{$data->masterId}";
+
+        $pager = cls::get('core_Pager', array('itemsPerPage' => 20, 'url' => toUrl($url)));
         $pager->setPageVar($data->masterMvc->className, $data->masterId);
         $pager->itemsCount = countR($data->recs);
         $data->pager = $pager;
-        
+
         // Обръщаме записите във вербален вид
-        foreach ($data->recs as $rec) {
+        foreach ($data->recs as $index => $rec) {
             
             // Пропускане на записите, които не трябва да са на тази страница
             if (!$pager->isOnPage()) {
@@ -504,16 +542,23 @@ class batch_Items extends core_Master
             
             // Вербално представяне на записа
             $row = $this->recToVerbal($rec);
-            $row->batch = "<span style='float:left'>{$row->batch}</span>";
+            if($rec->batch == -1){
+                $row->batch = "<i style='float:left;color:green'>" . tr('Общо по партиди') . "</i>";
+            } elseif($rec->batch == -2){
+                $row->batch = "<i style='float:left;color:green'>" . tr('Без партида') . "</i>";
+            } else {
+
+                // Линк към историята защитена
+                $row->batch = "<span style='float:left'>{$row->batch}</span>";
+                Request::setProtected('batch,productId,storeId');
+                $histUrl = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $rec->productId, 'storeId' => $rec->storeId);
+                $row->icon = ht::createLink('', $histUrl, null, $attr);
+                Request::removeProtected('batch,productId,storeId');
+            }
+
             $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
-            
-            // Линк към историята защитена
-            Request::setProtected('batch,productId,storeId');
-            $histUrl = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $rec->productId, 'storeId' => $rec->storeId);
-            $row->icon = ht::createLink('', $histUrl, null, $attr);
-            Request::removeProtected('batch,productId,storeId');
              
-            $data->rows[$rec->id] = $row;
+            $data->rows[$index] = $row;
         }
     }
     
@@ -528,14 +573,12 @@ class batch_Items extends core_Master
     public function renderBatches($data)
     {
         // Ако не рендираме таба, не правим нищо
-        if ($data->hide === true) {
-            
-            return;
-        }
+        if ($data->hide === true) return;
         
         // Кой е шаблона?
         $title = new core_ET('( [#def#] [#btn#])');
         $tpl = getTplFromFile('batch/tpl/ProductItemDetail.shtml');
+        $tpl->replace($data->masterId, 'PRODUCT_ID');
         if (!empty($data->definitionRec)) {
             $title->replace(batch_Templates::getHyperlink($data->definitionRec->templateId), 'def');
             if (isset($data->deleteBatchUrl)) {
@@ -556,15 +599,14 @@ class batch_Items extends core_Master
         $fieldSet = cls::get('core_FieldSet');
         $fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol');
         $fieldSet->FLD('storeId', 'varchar', 'tdClass=leftCol');
+        $fieldSet->FLD('icon', 'varchar', 'tdClass=small-field');
         $fieldSet->FLD('quantity', 'double');
         
         // Подготвяме таблицата за рендиране
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
-        $fields = arr::make('batch=Партида,storeId=Склад,measureId=Мярка,quantity=Количество', true);
-        if (countR($data->rows)) {
-            $fields = array('icon' => ' ') + $fields;
-        }
-        
+        $fields = arr::make('icon=|*&nbsp;,storeId=Склад,batch=Партида,measureId=Мярка,quantity=Количество', true);
+        $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'icon');
+
         // Ако е филтрирано по склад, скриваме колонката на склада
         if (isset($data->storeId)) {
             unset($fields['storeId']);
@@ -582,8 +624,78 @@ class batch_Items extends core_Master
         // Връщаме шаблона
         return $tpl;
     }
-    
-    
+
+
+    /**
+     * Помощна ф-я за изчличане на наличностите към дадена дата по артикули
+     *
+     * @param int|null      $productId - ид на артикул
+     * @param int|null      $storeId   - ид на склад
+     * @param datetime|NULL $date      - към дата, ако е празно текущата
+     * @param int|NULL      $limit     - лимит на резултатите
+     * @param array         $except    - кой документ да се игнорира
+     * @param string|null   $batch     - конкретна партида
+     * @return array $res - масив с партидите и к-та
+     *               ['productId']['batch'] => ['quantity']
+     */
+    public static function getProductsWithMovement($storeId = null, $productId = null, $date = null, $limit = null, $except = array(), $batch = null)
+    {
+        // Намират се всички движения в посочения интервал за дадения артикул в подадения склад
+        $query = batch_Movements::getQuery();
+        $query->EXT('state', 'batch_Items', 'externalName=state,externalKey=itemId');
+        $query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
+        $query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
+        $query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
+        $query->where("#state != 'closed'");
+        $query->show('batch,quantity,operation,date,docType,docId,productId');
+        if(isset($productId)){
+            $query->where("#productId = {$productId}");
+        }
+        if(isset($batch)){
+            $query->where(array("#batch = '[#1#]'", $batch));
+        }
+
+        if(isset($storeId)){
+            $query->where("#storeId = {$storeId}");
+        }
+        $query->where("#date <= '{$date}'");
+
+        $docType = $docId = null;
+        if (countR($except) == 2) {
+            $docType = cls::get($except[0])->getClassId();
+            $docId = $except[1];
+        }
+        $query->orderBy('id', 'ASC');
+
+        // Ако е указан лимит
+        if (isset($limit)) {
+            $query->limit($limit);
+        }
+
+        // Сумиране на к-то към датата
+        $res = array();
+        while ($rec = $query->fetch()) {
+            if (countR($except) == 2) {
+                if ($rec->docType == $docType && $rec->docId == $docId) {
+                    continue;
+                }
+            }
+            if (!array_key_exists($rec->productId, $res)){
+                $res[$rec->productId] = array();
+            }
+            if (!array_key_exists($rec->batch, $res[$rec->productId])) {
+                $res[$rec->productId][$rec->batch] = 0;
+            }
+
+            $sign = ($rec->operation == 'in') ? 1 : -1;
+            $res[$rec->productId][$rec->batch] += $sign * $rec->quantity;
+        }
+
+        return $res;
+    }
+
+
+
     /**
      * Изчислява количествата на партидите на артикул към дадена дата и склад
      *
@@ -593,59 +705,22 @@ class batch_Items extends core_Master
      * @param int|NULL      $limit     - лимит на резултатите
      * @param array         $except    - кой документ да се игнорира
      * @param boolean       $onlyActiveBatches - дали да са само текущо активните партиди
+     * @param string|null   $batch     - ид на склад
+     *
      *
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false)
+    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false, $batch = null)
     {
         $res = array();
         $date = (isset($date)) ? $date : dt::today();
         $def = batch_Defs::getBatchDef($productId);
         if (!$def) return $res;
         
-        // Намират се всички движения в посочения интервал за дадения артикул в подадения склад
-        $query = batch_Movements::getQuery();
-        $query->EXT('state', 'batch_Items', 'externalName=state,externalKey=itemId');
-        $query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
-        $query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
-        $query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
-        $query->where("#state != 'closed'");
-        $query->show('batch,quantity,operation,date,docType,docId');
-        $query->where("#productId = {$productId}");
-        if(isset($storeId)){
-            $query->where("#storeId = {$storeId}");
-        }
-        $query->where("#date <= '{$date}'");
+        $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except, $batch);
+        $res = is_array($found[$productId]) ? $found[$productId] : array();
 
-        if (countR($except) == 2) {
-            $docType = cls::get($except[0])->getClassId();
-            $docId = $except[1];
-        }
-        
-        $query->orderBy('id', 'ASC');
-        
-        // Ако е указан лимит
-        if (isset($limit)) {
-            $query->limit($limit);
-        }
-        
-        // Сумиране на к-то към датата
-        while ($rec = $query->fetch()) {
-            if (countR($except) == 2) {
-                if ($rec->docType == $docType && $rec->docId == $docId) {
-                    continue;
-                }
-            }
-            
-            if (!array_key_exists($rec->batch, $res)) {
-                $res[$rec->batch] = 0;
-            }
-            
-            $sign = ($rec->operation == 'in') ? 1 : -1;
-            $res[$rec->batch] += $sign * $rec->quantity;
-        }
-        
         // Добавяне и на партидите от активни документи в черновата на журнала
         $bQuery = batch_BatchesInDocuments::getQuery();
         $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
@@ -653,13 +728,14 @@ class batch_Items extends core_Master
         if(isset($storeId)){
             $bQuery->where("#storeId = {$storeId}");
         }
+        if(isset($batch)){
+            $bQuery->where(array("#batch = '[#1#]'", $batch));
+        }
         $bQuery->where("#state = 'active'");
         $bQuery->groupBy('batch');
-        $bQuery->notIn('batch', array_keys($res));
         $bQuery->where("#date <= '{$date}'");
         $bQuery->show('batch');
 
-       // bp($bQuery);
         while ($bRec = $bQuery->fetch()) {
             if (!array_key_exists($bRec->batch, $res) && $onlyActiveBatches === false) {
                 $res[$bRec->batch] = 0;

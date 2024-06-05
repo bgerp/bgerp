@@ -150,7 +150,7 @@ class crm_Persons extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '1511,1512,1513,1514,1521,1522,1523,1524,153,159,323,401,402,403,404,405,406,409,411,412,413,414,415,419,422';
+    public $balanceRefAccounts = '1511,1512,1513,1514,1521,1522,1523,1524,153,159,323,3231,3232,401,402,403,404,405,406,409,411,412,413,414,415,419,422';
     
     
     /**
@@ -326,7 +326,7 @@ class crm_Persons extends core_Master
         $this->FLD('tel', 'drdata_PhoneType(type=tel,unrecognized=warning)', 'caption=Лични комуникации->Телефони,class=contactData,silent,export=Csv');
         $this->FLD('mobile', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Мобилен,class=contactData,silent,export=Csv');
         $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Лични комуникации->Факс,class=contactData,silent,export=Csv');
-        $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
+        $this->FLD('website', 'urls', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles, passage)', 'caption=Информация->Бележки,height=150px,class=contactData,export=Csv');
@@ -337,7 +337,8 @@ class crm_Persons extends core_Master
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
-        
+        $this->FNC('saveInSessionAfterCreation', 'int', 'silent,input=hidden');
+
         // Индекси
         $this->setDbIndex('name');
         $this->setDbIndex('country');
@@ -652,11 +653,14 @@ class crm_Persons extends core_Master
                         $emlArr = type_Emails::toArray($rec->buzEmail);
                         $imgUrl = avatar_Gravatar::getUrl($emlArr[0], 120);
                     } elseif (!Mode::is('screenMode', 'narrow')) {
-                        $imgUrl = sbf('img/noimage120.gif');
+                        $imgUrl = avatar_Gravatar::getDefaultImage(true);
                     }
                     
                     if ($imgUrl) {
-                        $row->image = '<img class="hgsImage" src=' . $imgUrl . " alt='no image'>";
+                        $imgUrl = trim($imgUrl, '"');
+                        $imgUrl = trim($imgUrl, "'");
+
+                        $row->image = '<img class="hgsImage" src="' . $imgUrl . "\" alt='no image'>";
                     }
                 }
             }
@@ -802,22 +806,48 @@ class crm_Persons extends core_Master
         
         return $title;
     }
-    
-    
+
+
+    /**
+     * Изпълнява се преди записа
+     * Ако липсва - записваме id-то на връзката към титлата
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(isset($id)){
+            // Коя е старата фирма на лицето
+            $rec->_exBuzCompanyId = $mvc->fetchField($rec->id, 'buzCompanyId', false);
+        } else {
+            $rec->_isBeingCreated = true;
+        }
+    }
+
+
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updateGroupsCnt = true;
-        
         $mvc->updatedRecs[$id] = $rec;
-        
         $mvc->updateRoutingRules($rec);
         
         if (crm_Profiles::fetch("#personId = {$rec->id}")) {
             $Profiles = cls::get('crm_Profiles');
             $Profiles->invoke('AfterMasterSave', array($rec, $mvc));
+        }
+
+        // Ако има променена служебна фирма и тя има търговско условие за доставка, то ще се прехвърли към клиента
+        if(isset($rec->buzCompanyId) && $rec->_exBuzCompanyId != $rec->buzCompanyId){
+            $listId = cond_Parameters::getParameter(crm_Companies::getClassId(), $rec->buzCompanyId, 'employeesList');
+            if ($listId) {
+                $mvc->updatedListsOnShutdown[$id] = $listId;
+            }
+        }
+
+
+        if($rec->saveInSessionAfterCreation){
+            Mode::setPermanent('lastAddedPersonId', $rec->id);
         }
     }
     
@@ -885,9 +915,28 @@ class crm_Persons extends core_Master
                 static::updateBirthdaysToCalendar($id);
             }
         }
+
+        $mvc->flushUpdatePriceLists();
     }
-    
-    
+
+
+    /**
+     * Флъшване на заопашените за добавяне ЦП на лицето
+     * @return void
+     */
+    public function flushUpdatePriceLists()
+    {
+        // Записване на заопашените ЦП за добавяне
+        if (countR($this->updatedListsOnShutdown)) {
+            foreach ($this->updatedListsOnShutdown as $id => $listId) {
+                price_ListToCustomers::add($listId, $this, $id);
+                core_Statuses::newStatus("На лицето е добавена ценовата политика за клиенти на фирмата|*: " . price_Lists::getTitleById($listId));
+                unset($this->updatedListsOnShutdown[$id]);
+            }
+        }
+    }
+
+
     /**
      * Обновяване на рожденните дни по разписание
      * (Еженощно)
@@ -1849,8 +1898,11 @@ class crm_Persons extends core_Master
         $conf = core_Packs::getConfig('crm');
         
         $form = &$data->form;
-        
+
         if (empty($form->rec->id)) {
+            $defaultGroupId = Request::get('groupId', 'int');
+            $form->setDefault('groupListInput', keylist::addKey('', $defaultGroupId));
+
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
             $form->setDefault('country', $Countries->fetchField("#commonName = '" .
@@ -1919,7 +1971,7 @@ class crm_Persons extends core_Master
         // Ако разширението е в допустимите, имамем права за добваня и имаме права за single' а на файла
         if (in_array($ext, $vCardExtArr) && (static::haveRightFor('add') && (fileman_Files::haveRightFor('single', $fRec)))) {
             
-            // Създаваме масива за съзване на визитка
+            // Създаваме масива за създаване на визитка
             $arr = array();
             $arr['vcard']['url'] = array('crm_Persons', 'extractVcard', 'fh' => $fRec->fileHnd, 'ret_url' => true);
             $arr['vcard']['title'] = 'Лице';
@@ -2987,24 +3039,33 @@ class crm_Persons extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
-     * Лицата от група 'Служители'
+     * Връща лицата от група служители
      *
-     * @param bool       $withAccess - да се филтрира ли по права за редакция или не
-     * @param bool|false $hrCode     - null за всички, bool за дали да са с кодове като човешки ресурси или не
+     * @param bool $withAccess - да се филтрира ли по права за редакция или не
+     * @param null|bool $hrCode - null за всички, bool за дали да са с кодове като човешки ресурси или не
+     * @param bool $onlyNames - само имена
+     * @param null|string $state - състояние
      *
-     * @return array $options        - опции
+     * @param $withAccess
+     * @param $hrCodes
+     * @param $onlyNames
+     * @param $state
+     * @return array
      */
-    public static function getEmployeesOptions($withAccess = false, $hrCodes = null)
+    public static function getEmployeesOptions($withAccess = false, $hrCodes = null, $onlyNames = false, $state = null)
     {
         $options = array();
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         
         $query = self::getQuery();
         $query->like('groupList', "|{$emplGroupId}|");
-        
+        if(isset($state)){
+            $query->where("#state = '{$state}'");
+        }
+
         // Ако е указано, само тези които нямат кодове в производствените ресурси
         if (!is_null($hrCodes)) {
             $hrQuery = planning_Hr::getQuery();
@@ -3016,20 +3077,25 @@ class crm_Persons extends core_Master
                 $query->notIn('id', $hrIds);
             }
         }
-        
+
         while ($rec = $query->fetch()) {
             if ($withAccess === true && !crm_Persons::haveRightFor('edit', $rec->id)) {
                 continue;
             }
             
             // Показва се името с ид-то след него заради служителите с еднакви имена
-            $options[$rec->id] = self::getVerbal($rec, 'name') . " ({$rec->id})";
+            if($onlyNames){
+                $names = self::getVerbal($rec, 'name');
+                $options[$names] = self::getVerbal($rec, 'name') . " ({$rec->id})";
+            } else {
+                $options[$rec->id] = self::getVerbal($rec, 'name') . " ({$rec->id})";
+            }
         }
         
         if (countR($options)) {
             $options = array('e' => (object) array('group' => true, 'title' => tr('Служители'))) + $options;
         }
-        
+
         return $options;
     }
     
@@ -3123,6 +3189,13 @@ class crm_Persons extends core_Master
             expect($gId);
 
             $query->likeKeylist('groupList', $gId);
+        }
+
+        // Ако е посочена фирма на която е представител - филтър по нея (ако тя има поне един представител)
+        if (isset($params['buzCompanyId'])) {
+            if(static::count("#buzCompanyId = {$params['buzCompanyId']}")){
+                $query->where("#buzCompanyId = {$params['buzCompanyId']}");
+            }
         }
 
         while ($rec = $query->fetch()) {
@@ -3247,5 +3320,43 @@ class crm_Persons extends core_Master
         if (countR($saveFields)) {
             self::save($rec, $saveFields);
         }
+    }
+
+
+    /**
+     * Изображение на аватара на лицето
+     *  - ако има във визитката него
+     *  - ако няма, но е потребител - аватара(граватара) му
+     *  - ако не е потребител - граватара от имейлите му
+     *
+     * @param int $personId
+     * @param double $width
+     * @param double $height
+     * @return core_ET
+     */
+    public static function getPersonAvatarImg($personId, $width = 120, $height = 120)
+    {
+        $personRec = static::fetch($personId);
+
+        // Снимката от визитката е с приоритет
+        if ($personRec->photo) {
+            $thumb = new thumb_Img(array($personRec->photo, $width, $height, 'fileman', 'isAbsolute' => true));
+            return $thumb->createImg();
+        }
+
+        // Ако лицето е потребител - неговия аватар
+        $contragentUserId = crm_Profiles::getUserByPerson($personRec->id);
+        if ($contragentUserId) return avatar_Plugin::getImg($contragentUserId, null, $width, $height);
+
+        // Ако има граватар към някой от имейлите му
+        foreach (array('email', 'buzEmail') as $emailFld) {
+            if (!empty($personRec->{$emailFld})) {
+                $emlArr = type_Emails::toArray($personRec->{$emailFld});
+                $imgUrl = avatar_Gravatar::getUrl($emlArr[0], $width);
+                if (!empty($imgUrl)) return ht::createElement('img', array('src' => $imgUrl, 'width' => $width, 'height' => $height));
+            }
+        }
+
+        return null;
     }
 }

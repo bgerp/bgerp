@@ -42,7 +42,7 @@ class core_Cron extends core_Manager
     /**
      * Списък с плъгини, които се прикачат при конструиране на мениджъра
      */
-    public $loadList = 'plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_RefreshRows,plg_State2,plg_Search';
+    public $loadList = 'plg_Created,plg_Modified,plg_SystemWrapper,plg_RowTools,plg_Sorting,plg_RefreshRows,plg_State2,plg_Search';
     
     
     /**
@@ -134,7 +134,7 @@ class core_Cron extends core_Manager
         
         $this->setDbUnique('systemId,offset,delay');
         
-        $this->dbEngine = 'InnoDB';
+        // $this->dbEngine = 'InnoDB';
     }
     
     
@@ -400,24 +400,37 @@ class core_Cron extends core_Manager
             Debug::$isLogging = false;
         }
         
-        
         // Вземаме информация за процеса
         $rec = $this->fetch($id);
         
         if (!$rec) {
             $this->logThenStop('Липсва запис', $id, 'err');
         }
-        
-        
-        // Дали процесът не е заключен?
-        if ($rec->state == 'locked' && !$forced) {
-            $this->logThenStop('Процесът е заключен', $id, 'warning');
+
+        if ($rec->delay > 0) {
+            core_App::setTimeLimit(30 + $rec->delay);
         }
-        
+
         // Дали този процес не е стартиран след началото на текущата минута
         $nowMinute = date('Y-m-d H:i:00', time());
         if ($nowMinute <= $rec->lastStart && !$forced) {
             $this->logThenStop('Процесът е стартиран повторно по крон в една и съща минута', $id, 'notice');
+        }
+
+        $delayed = false;
+        // Дали процесът не е заключен?
+        if ($rec->state == 'locked' && !$forced) {
+            // Ако е отложен, изчакваме
+            if ($rec->delay > 0) {
+                sleep($rec->delay);
+                Debug::log("Sleep (locked) {$rec->delay} sec. in " . __CLASS__);
+                $rec = $this->fetch($id, '*', false);
+                $delayed = true;
+            }
+
+            if ($rec->state == 'locked') {
+                $this->logThenStop('Процесът е заключен', $id, 'warning');
+            }
         }
         
         // Заключваме процеса и му записваме текущото време за време на последното стартиране
@@ -427,10 +440,9 @@ class core_Cron extends core_Manager
         $rec->lastMaxUsedMemory = null;
         $this->save($rec, 'state,lastStart,lastDone,lastMaxUsedMemory');
         $this->currentRec = clone($rec);
-        
+
         // Изчакваме преди началото на процеса, ако е зададено
-        if ($rec->delay > 0 && !$forced) {
-            core_App::setTimeLimit(30 + $rec->delay);
+        if ($rec->delay > 0 && !$forced && !$delayed) {
             sleep($rec->delay);
             Debug::log("Sleep {$rec->delay} sec. in " . __CLASS__);
         }

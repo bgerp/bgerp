@@ -140,6 +140,8 @@ class email_Sent
      */
     protected static function doSend($message, $emailsTo, $emailsCc = null, &$error = null)
     {
+        core_Debug::startTimer('EMAIL_DO_SEND');
+
         expect($emailsTo);
         expect($message->emailFrom);
         expect($message->subject);
@@ -156,7 +158,15 @@ class email_Sent
                 $PML->AddAddress($to);
             }
         }
-        
+
+        // Ако е зададено да се попълва BCC
+        if (defined('EMAIL_DEFAULT_BCC_EMAILS')) {
+            $bccArr = type_Emails::toArray(EMAIL_DEFAULT_BCC_EMAILS);
+            foreach ($bccArr as $bcc) {
+                $PML->AddBCC($bcc);
+            }
+        }
+
         if ($emailsCc) {
             $ccArr = type_Emails::toArray($emailsCc);
             foreach ($ccArr as $cc) {
@@ -225,8 +235,10 @@ class email_Sent
         if (!empty($message->replyTo)) {
             $PML->AddReplyTo($message->replyTo);
         }
-        
+
+        core_Debug::startTimer('PML_SEND');
         $isSended = $PML->Send();
+        core_Debug::stopTimer('PML_SEND');
         
         if (!$isSended) {
             $error = trim($PML->ErrorInfo);
@@ -244,7 +256,9 @@ class email_Sent
                 log_System::add('phpmailer_Instance', 'PML error: ' . $error, null, $errType);
             }
         }
-        
+
+        core_Debug::stopTimer('EMAIL_DO_SEND');
+
         return $isSended;
     }
     

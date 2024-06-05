@@ -77,7 +77,22 @@
                     <td>[#lastReorderedTasks#]</td>
                 </tr>
                 <!--ET_END lastReorderedTasks-->
-
+                <!--ET_BEGIN systemFolderId-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Поддръжка|*: |Система|*:
+                    </td>
+                    <td>[#systemFolderId#]</td>
+                </tr>
+                <!--ET_END systemFolderId-->
+                <!--ET_BEGIN systemUsers-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Поддръжка|*: |Отговорници|*:
+                    </td>
+                    <td>[#systemUsers#]</td>
+                </tr>
+                <!--ET_END systemUsers-->
                 <!--ET_BEGIN description-->
                 <tr>
                     <td colspan = "2">[#description#]</td>
@@ -108,15 +123,6 @@
             [#tracking#]
         </fieldset>
         <!--ET_END tracking-->
-
-        <div class="scrolling-holder">
-            <fieldset class="detail-info" style="margin-top: 20px;">
-                <legend class="groupTitle">|Действия и Норми|*</legend>
-                <div class="scrolling-holder">
-                    [#planning_AssetResourcesNorms#]
-                </div>
-            </fieldset>
-        </div>
         [#DETAILS#]
     </div>
 </div>

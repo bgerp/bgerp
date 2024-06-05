@@ -182,8 +182,14 @@ class frame2_Reports extends embed_Manager
      * Кеш на обновените справки
      */
     protected $setNewUpdateTimes = array();
-    
-    
+
+
+    /**
+     * Кеш на следващите времена за обновяване
+     */
+    protected static $nextRefreshTimesCache = array();
+
+
     /**
      * Дефолтен текст за нотификация
      */
@@ -229,6 +235,12 @@ class frame2_Reports extends embed_Manager
 
 
     /**
+     * Икона на единичния обект
+     */
+    public $singleIcon = 'img/16/report.png';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -237,7 +249,7 @@ class frame2_Reports extends embed_Manager
         $this->FLD('updateDays', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Обновяване и известяване->Дни,autohide');
         $this->FLD('updateTime', 'set(08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00)', 'caption=Обновяване и известяване->Час,autohide');
         $this->FLD('notificationText', 'varchar', 'caption=Обновяване и известяване->Текст,autohide');
-        $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Обновяване и известяване->Потребители,autohide');
+        $this->FLD('sharedUsers', 'userList(roles=powerUser,showClosedUsers=no)', 'caption=Обновяване и известяване->Потребители,autohide');
         $this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
         $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
         $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
@@ -254,6 +266,8 @@ class frame2_Reports extends embed_Manager
     public static function on_AfterDescription(core_Master &$mvc)
     {
         $mvc->setField('priority', 'caption=Обновяване и известяване->Приоритет,after=sharedUsers');
+
+        Mode::set('periodDefaultNewestDate', dt::today());
     }
     
     
@@ -588,7 +602,7 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         $rec = $data->rec;
-        
+
         // Рендиране на данните
         if ($Driver = $mvc->getDriver($rec)) {
             
@@ -609,7 +623,17 @@ class frame2_Reports extends embed_Manager
                 if(isset($lang)){
                     core_Lg::pop();
                 }
-                
+
+                if ($rec->state == 'closed') {
+                    if(!Mode::is('printing')){
+                        $nextUpdates = self::getNextRefreshDates($rec);
+                        if (countR($nextUpdates)) {
+                            $noticeMsg = (Mode::is('text', 'xhtml') || core_Users::isContractor()) ? tr('Данните не са актуални') : tr('Справката няма да се актуализира докато е затворена');
+                            $tpl->append("<div class='richtext-message richtext-warning'>{$noticeMsg}</div>", 'DRIVER_FIELDS');
+                        }
+                    }
+                }
+
                 if (Mode::is('saveJS')) {
                     $tpl->replace($tplData, 'DRIVER_DATA');
                 } else{
@@ -622,11 +646,6 @@ class frame2_Reports extends embed_Manager
             }
         } else {
              $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
-        }
-        
-        // Връщане на оригиналния рек ако е пушнат
-        if (isset($data->originalRec)) {
-            $rec = $data->originalRec;
         }
     }
     
@@ -661,6 +680,10 @@ class frame2_Reports extends embed_Manager
      */
     public static function refresh(&$rec)
     {
+        self::logDebug('Стартирано обновление на отчет', $rec->id);
+        $refreshReportTimer = 'REFRESH_REPORT_' . $rec->id;
+        core_Debug::startTimer($refreshReportTimer);
+
         $rec = self::fetchRec($rec);
         $me = cls::get(get_called_class());
 
@@ -669,6 +692,7 @@ class frame2_Reports extends embed_Manager
 
             // Ако се обновява ръчно или се обновява по-крон и не е спряно ръчното обновяване
             if(!$rec->_refreshByCron || $Driver->tryToAutoRefresh($rec)){
+                $sendNotificationOnlyAfterDataIsChanged = $Driver->sendNotificationOnlyAfterDataIsChanged;
 
                 try {
                     // Опресняват се данните му
@@ -690,10 +714,20 @@ class frame2_Reports extends embed_Manager
                 $rec->lastRefreshed = dt::now();
                 $me->save_($rec, 'data,lastRefreshed');
 
+                // Ако е оказано ще се проверява за изпращане на нотификация след всяко обновяване, дори и да няма промяна
+                if(!$sendNotificationOnlyAfterDataIsChanged){
+                    if($rec->data !== static::DATA_ERROR_STATE){
+                        $me->refreshReports[$rec->id] = $rec;
+                    }
+                }
+
                 // Записване в опашката че справката е била опреснена
                 if (frame2_ReportVersions::log($rec->id, $rec)) {
                     if($rec->data !== static::DATA_ERROR_STATE){
-                        $me->refreshReports[$rec->id] = $rec;
+                        $Driver->invoke('AfterReportIsRefreshed', array($me, &$rec));
+                        if($sendNotificationOnlyAfterDataIsChanged){
+                            $me->refreshReports[$rec->id] = $rec;
+                        }
                     }
 
                     if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
@@ -734,6 +768,16 @@ class frame2_Reports extends embed_Manager
                 }
             }
         }
+        core_Debug::stopTimer($refreshReportTimer);
+        $timer = round(core_Debug::$timers[$refreshReportTimer]->workingTime, 2);
+        self::logDebug("Приключи обновление на отчет за {$timer}s", $rec->id);
+
+        if ($timer > 30) {
+            self::logNotice("Много бавно обновяване на отчет за {$timer}s", $rec->id);
+//            wp('Бавно обновяване на отчет', $timer, $rec);
+        } elseif ($timer > 10) {
+            self::logNotice("Бавно обновяване на отчет за {$timer}s", $rec->id);
+        }
     }
 
 
@@ -746,7 +790,7 @@ class frame2_Reports extends embed_Manager
         if (is_array($mvc->refreshReports)) {
             foreach ($mvc->refreshReports as $rec) {
                 if ($Driver = $mvc->getDriver($rec)) {
-                    
+
                     // Проверява се трябва ли да бъде изпратена нова нотификация до споделените
                     if ($Driver->canSendNotificationOnRefresh($rec)) {
                         
@@ -916,25 +960,34 @@ class frame2_Reports extends embed_Manager
         
         $resArr['title'] = array('name' => tr('Заглавие'), 'val' => $titleObj);
         $updateHeaderName = tr('Актуализиране');
-        
+        $lastRefreshedHeaderName = tr('Актуален към');
+
         if ($rec->state == 'closed') {
             $nextUpdates = self::getNextRefreshDates($rec);
             if (countR($nextUpdates)) {
                 $updateHeaderName = ht::createHint($updateHeaderName, 'Справката няма да се актуализира докато е затворена', 'warning', true, 'height=12px;width=12px');
+                if(!Mode::is('printing')){
+                    $lastRefreshedHeaderName = "<span class='closedFrameUpdateTimeTitle'>{$lastRefreshedHeaderName}</span>";
+                    $row->lastRefreshed = "<span class='closedFrameUpdateTime'>{$row->lastRefreshed}</span>";
+                }
             }
         }
         
         if (!empty($rec->updateDays) || !empty($rec->updateTime) || !empty($row->nextUpdate)) {
-            $resArr['update'] = array('name' => $updateHeaderName, 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
+            if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+                $resArr['update'] = array('name' => $updateHeaderName, 'val' => tr("|*<!--ET_BEGIN updateDays--><div><span style='font-weight:normal'>|Дни|*</span>: [#updateDays#]<br><!--ET_END updateDays-->
         																		 <!--ET_BEGIN updateTime--><span style='font-weight:normal'>|Часове|*</span>: [#updateTime#]<!--ET_END updateTime--><!--ET_BEGIN nextUpdate--><div><span style='font-weight:normal'>|Следващо|*</span> [#nextUpdate#]</div><!--ET_END nextUpdate-->"));
+            }
         }
         
         if (isset($rec->lastRefreshed)) {
-            $resArr['lastRefreshed'] = array('name' => tr('Актуален към'), 'val' => $row->lastRefreshed);
+            $resArr['lastRefreshed'] = array('name' => $lastRefreshedHeaderName, 'val' => $row->lastRefreshed);
         }
         
         if (isset($rec->sharedUsers)) {
-            $resArr['notify'] = array('name' => tr('Известия'), 'row' => 2, 'val' => tr('|*[#sharedUsers#]'));
+            if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+                $resArr['notify'] = array('name' => tr('Известия'), 'row' => 2, 'val' => tr('|*[#sharedUsers#]'));
+            }
         }
     }
     
@@ -1097,11 +1150,10 @@ class frame2_Reports extends embed_Manager
     private static function getNextRefreshDates($rec)
     {
         // Ако няма зададени времена, няма да има дати за обновяване
-        if (empty($rec->updateDays) && empty($rec->updateTime)) {
-            
-            return array();
-        }
-        
+        if (empty($rec->updateDays) && empty($rec->updateTime)) return array();
+
+        if(isset(static::$nextRefreshTimesCache[$rec->id])) return static::$nextRefreshTimesCache[$rec->id];
+
         $fromDate = $rec->lastRefreshed;
         $dayKeys = array(1 => 'monday', 2 => 'tuesday', 3 => 'wednesday', 4 => 'thursday', 5 => 'friday', 6 => 'saturday', 7 => 'sunday');
         $date = new DateTime($fromDate);
@@ -1193,9 +1245,11 @@ class frame2_Reports extends embed_Manager
         
         // Сортират се
         sort($res);
-        
+
         // Връщат се най близките 3 дати
-        return array($res[0], $res[1], $res[2]);
+        static::$nextRefreshTimesCache[$rec->id] = array($res[0], $res[1], $res[2]);
+
+        return static::$nextRefreshTimesCache[$rec->id];
     }
     
     

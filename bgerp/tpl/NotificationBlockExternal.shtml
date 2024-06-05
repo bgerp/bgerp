@@ -1,0 +1,10 @@
+<div class='clearfix21 portal no-border'>
+        [#ListFilter#]
+    <div>
+        <!--ET_BEGIN PortalTable-->
+        [#PortalTable#]
+        <!--ET_END PortalTable-->
+    </div>
+
+    [#PortalPagerBottom#]
+</div>

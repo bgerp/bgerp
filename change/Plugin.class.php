@@ -126,15 +126,13 @@ class change_Plugin extends core_Plugin
         
         // Полетата, които ще се показва
         $fieldsArrShow = $allowedFieldsArr;
-        
+
         // Всички полета, които ще се показват да се инпутват
         foreach ($fieldsArrShow as $f) {
             expect(is_object($form->fields[$f]), "Липсващо поле '{$f}'", $form->fields);
-            if($form->fields[$f]->notChangeableIfHidden && in_array($form->fields[$f]->input, array('hidden', 'none'))) continue;
-
             $form->fields[$f]->input = 'input';
         }
-        
+
         // Добавяме подверсията
         $allowedFieldsArr['subVersion'] = 'subVersion';
         
@@ -159,7 +157,7 @@ class change_Plugin extends core_Plugin
                 $form->setError($fields, 'Вече съществува запис със същите данни');
             }
         }
-        
+
         // Генерираме събитие в AfterInputEditForm, след въвеждането на формата
         $form->rec->__isBeingChanged = true;
         $mvc->invoke('AfterInputEditForm', array($form));
@@ -172,10 +170,10 @@ class change_Plugin extends core_Plugin
         
         // id на класа
         $classId = core_Classes::getId($mvc);
-        
+
         // Масива с първата и последната версия
         $versionArr = change_Log::getFirstAndLastVersion($classId, $rec->id);
-        
+
         // Ако формата е изпратена без грешки
         if ($form->isSubmitted()) {
             if (is_null($rec->version) && is_null($rec->subVersion)) {
@@ -249,7 +247,7 @@ class change_Plugin extends core_Plugin
             // Редиректваме
             redirect($retUrl);
         }
-        
+
         // Ако няма грешки
         if (!$form->gotErrors()) {
             
@@ -300,7 +298,7 @@ class change_Plugin extends core_Plugin
                 }
             }
         }
-        
+
         // Задаваме да се показват само полетата, които ни интересуват
         $form->showFields = $fieldsArrShow;
         
@@ -537,8 +535,8 @@ class change_Plugin extends core_Plugin
         foreach ($form->fields as $field => $filedClass) {
             
             // Ако могат да се променят
-            if ($filedClass->changable || in_array($field, $changableFieldsArr)) {
-                
+            if (($filedClass->changable && $filedClass->changable != 'no') || in_array($field, $changableFieldsArr)) {
+
                 // Добавяме в масива
                 $allowedFieldsArr[$field] = $field;
             }
@@ -546,8 +544,12 @@ class change_Plugin extends core_Plugin
             if ($filedClass->changable == 'ifInput' && $filedClass->input == 'none') {
                 unset($allowedFieldsArr[$field]);
             }
+
+            if ($filedClass->notChangeableIfHidden && in_array($filedClass->input, array('hidden', 'none'))) {
+                unset($allowedFieldsArr[$field]);
+            }
         }
-        
+
         return $allowedFieldsArr;
     }
     

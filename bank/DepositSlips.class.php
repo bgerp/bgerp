@@ -134,8 +134,9 @@ class bank_DepositSlips extends bank_DocumentBlank
             $form->setDefault('amount', $originRec->amount);
             $form->setDefault('reason', $originRec->reason);
             $form->setDefault('valior', $originRec->valior);
-            
-            $myCompany = crm_Companies::fetchOwnCompany();
+
+            $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($form->rec) : null;
+            $myCompany = crm_Companies::fetchOwnCompany($ownCompanyId);
             $form->setDefault('beneficiaryName', $myCompany->company);
             $ownAccount = bank_OwnAccounts::getOwnAccountInfo($originRec->ownAccount);
             $form->setDefault('beneficiaryIban', $ownAccount->iban);

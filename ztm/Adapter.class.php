@@ -39,6 +39,8 @@ class ztm_Adapter extends core_Mvc
         $now = dt::now(false);
         if (core_Packs::isInstalled('darksky') && darksky_Setup::get('API_KEY') && darksky_Setup::get('LOCATION')) {
             $data = darksky_Forecasts::getForecast($now);
+        } elseif (core_Packs::isInstalled('visualcrossing') && visualcrossing_Setup::get('API_KEY') && visualcrossing_Setup::get('LOCATION')) {
+            $data = visualcrossing_Forecasts::getForecast($now);
         } else {
             $data = '';
         }

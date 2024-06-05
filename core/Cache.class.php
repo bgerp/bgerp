@@ -342,7 +342,7 @@ class core_Cache extends core_Manager
                     $obj[$id] = cls::get($cls);
                     $hash .= $obj[$id]->getDbTableUpdateTime();
                 } else {
-                    $hash .= call_user_method($cls);
+                    $hash .= call_user_func($cls);
                 }
             }
             

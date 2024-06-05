@@ -26,6 +26,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
     {
         setIfNot($mvc->detailSellPriceFld, 'price');
         setIfNot($mvc->detailDiscountPriceFld, 'discount');
+        setIfNot($mvc->detailAutoDiscountFld, 'autoDiscount');
         setIfNot($mvc->detailQuantityFld, 'quantity');
         setIfNot($mvc->detailProductFld, 'productId');
         setIfNot($mvc->detailPackagingFld, 'packagingId');
@@ -138,15 +139,50 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         }
 
         // да записвам вальора а да подавам активирането
+        $autoDiscountAmount = null;
         $valior = $mvc->getValiorValue($rec);
         while ($dRec = $query->fetch()) {
+            $sellCostWithOriginalDiscount = $dRec->{$mvc->detailSellPriceFld};
+            $autoDiscountAmount = null;
+            $applyDiscount = true;
+
             if ($mvc instanceof sales_Sales) {
 
                 // Ако документа е продажба, изчислява се каква му е себестойноста
                 $primeCost = sales_PrimeCostByDocument::getPrimeCostInSale($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $rec, $deltaListId, $dRec->notes);
             } else {
+
+                // Ако  е документ базиран на продажба - намират се сумите от нея
+                $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                if($firstDoc->isInstanceOf('sales_Sales')){
+                    $containerId = $firstDoc->fetchField('containerId');
+                    $query1 = sales_PrimeCostByDocument::getQuery();
+                    $query1->where("#productId = {$dRec->{$mvc->detailProductFld}} AND #containerId = {$containerId}");
+                    $cloneQuery = clone $query1;
+                    $query1->where("#quantity = {$dRec->{$mvc->detailQuantityFld}}");
+
+                    // Ако има точно за това количество - тях
+                    if($fRec1 = $query1->fetch()){
+                        $autoDiscountAmount = $fRec1->autoDiscountAmount;
+                        $sellCostWithOriginalDiscount = $fRec1->sellCostWithOriginalDiscount;
+                        $applyDiscount = false;
+                    } else {
+
+                        // Ако няма средно притеглено
+                        $cloneQuery->XPR('sumDellWithOriginalDiscount', 'double', 'SUM(#quantity * COALESCE(#sellCostWithOriginalDiscount, 0))');
+                        $cloneQuery->XPR('sumAutoDiscountAmount', 'double', 'SUM(#quantity * COALESCE(#autoDiscountAmount, 0))');
+                        $cloneQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+                        if($cRec = $cloneQuery->fetch()){
+                            if(!empty($cRec->totalQuantity)){
+                                $autoDiscountAmount = round($cRec->sumAutoDiscountAmount / $cRec->totalQuantity, 4);
+                                $sellCostWithOriginalDiscount = round($cRec->sumDellWithOriginalDiscount / $cRec->totalQuantity, 4);
+                                $applyDiscount = false;
+                            }
+                        }
+                    }
+                }
+
                 $primeCost = null;
-                
                 if($calcLiveSoDelta != 'yes'){
                     
                     // Ако документа е към продажба, то се взима себестойноста от продажбата
@@ -175,10 +211,24 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                     }
                 }
             }
-            
+
             $sellCost = $dRec->{$mvc->detailSellPriceFld};
-            if (isset($dRec->{$mvc->detailDiscountPriceFld})) {
-                $sellCost = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
+            $discountCalced = $dRec->{$mvc->detailDiscountPriceFld};
+            if (isset($dRec->{$mvc->detailDiscountPriceFld}) && $applyDiscount) {
+                $sellCostWithOriginalDiscount = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});
+            }
+
+            if(isset($dRec->{$mvc->detailAutoDiscountFld})){
+                $autoDiscountAmount = $sellCostWithOriginalDiscount * $dRec->{$mvc->detailAutoDiscountFld};
+                if(isset($dRec->{$mvc->detailDiscountPriceFld})){
+                    $discountCalced = round((1 - (1 - $dRec->{$mvc->detailDiscountPriceFld}) * (1 - $dRec->{$mvc->detailAutoDiscountFld})), 4);
+                } else {
+                    $discountCalced = $dRec->{$mvc->detailAutoDiscountFld};
+                }
+            }
+
+            if (isset($discountCalced)) {
+                $sellCost = $sellCost * (1 - $discountCalced);
             }
             
             // Ако има параметър за корекция на делти: задава се
@@ -196,7 +246,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             if ($onlySelfValue === true) {
                 $sellCost = null;
             }
-            
+
             // Изчисляване на цената по политика
             $r = (object) array('valior' => dt::verbal2mysql($valior),
                 'detailClassId' => $detailClassId,
@@ -204,6 +254,8 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 'quantity' => $dRec->{$mvc->detailQuantityFld},
                 'productId' => $dRec->{$mvc->detailProductFld},
                 'sellCost' => $sellCost,
+                'autoDiscountAmount' => $autoDiscountAmount,
+                'sellCostWithOriginalDiscount' => $sellCostWithOriginalDiscount,
                 'state'    => 'active',
                 'isPublic' => cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'isPublic'),
                 'contragentId' => $Cover->that,
@@ -236,7 +288,6 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             
             $r->dealerId = $persons['dealerId'];
             $r->initiatorId = $persons['initiatorId'];
-            
             $res[] = $r;
         }
     }

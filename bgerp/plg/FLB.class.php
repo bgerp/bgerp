@@ -195,16 +195,32 @@ class bgerp_plg_FLB extends core_Plugin
     public static function on_AfterMakeArray4Select($mvc, &$res, $fields = null, &$where = '', $index = 'id')
     {
         $cu = core_Users::getCurrent();
-        if (haveRole('ceo', $cu)) {
-            
-            return;
-        }
-        
+
         // Ако потребителя не може да избира обекта от списъка се маха
         if (is_array($res)) {
+            $selectOnlyIds = Mode::get("{$mvc->className}_selectIds");
+            $selectNotOnlyIds = Mode::get("{$mvc->className}_notSelectIds");
+
             foreach ($res as $id => $title) {
-                if (!self::canUse($mvc, $id, $cu, 'select')) {
-                    unset($res[$id]);
+                if (!haveRole('ceo', $cu)) {
+                    if (!self::canUse($mvc, $id, $cu, 'select')) {
+                        unset($res[$id]);
+                    }
+                }
+
+                // Ако има зададени в сесията ид-та да се вземат те
+                if(isset($selectOnlyIds)){
+                    $selectOnlyIds = keylist::toArray($selectOnlyIds);
+                    if(!in_array($id, $selectOnlyIds)){
+                        unset($res[$id]);
+                    }
+                }
+
+                if(isset($selectNotOnlyIds)){
+                    $selectNotOnlyIds = keylist::toArray($selectNotOnlyIds);
+                    if(in_array($id, $selectNotOnlyIds)){
+                        unset($res[$id]);
+                    }
                 }
             }
         }
@@ -312,5 +328,27 @@ class bgerp_plg_FLB extends core_Plugin
                 self::addUserFilterToQuery($mvc, $query);
             }
         }
+    }
+
+
+    /**
+     * От масив от обекти връща само избираемите от потребителя
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $options
+     * @return array $selectable
+     */
+    public static function getSelectableFromArr($mvc, $options, $userId = null)
+    {
+        $mvc = cls::get($mvc);
+        $options = keylist::isKeylist($options) ? keylist::toArray($options) : arr::make($options, true);
+        $selectable = array();
+        foreach ($options as $objectId){
+            if(self::canUse($mvc, $objectId, $userId, 'select')){
+                $selectable[$objectId] = $objectId;
+            }
+        }
+
+        return $selectable;
     }
 }

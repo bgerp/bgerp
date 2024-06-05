@@ -163,15 +163,15 @@ class uiext_ObjectLabels extends core_Manager
         } else {
             $this->save($rec);
         }
-        
+
         if (Request::get('ajax_mode')) {
             
             // Заместваме клетката по AJAX за да визуализираме промяната
             $resObj = new stdClass();
             $resObj->func = 'html';
             
-            $k = "{$masterClassId}|{$objectId}|{$classId}|{$hash}";
-            $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($masterClassId, $objectId, $classId, $hash), 'replace' => true);
+            $k = "{$masterClassId}_{$objectId}_{$classId}_{$hash}";
+            $resObj->arg = array('id' => "charge{$k}", 'html' => uiext_Labels::renderLabel($masterClassId, $objectId, $classId, $hash, true), 'replace' => true);
             $res = array_merge(array($resObj));
             
             return $res;

@@ -17,6 +17,9 @@
  */
 class cms_page_External extends core_page_Active
 {
+    /**
+     * Имплементирани интерфейси
+     */
     public $interfaces = 'cms_page_WrapperIntf';
     
     
@@ -30,22 +33,22 @@ class cms_page_External extends core_page_Active
         // Параметри от конфигурацията
         $conf = core_Packs::getConfig('core');
         $this->prepend(cms_Domains::getSeoTitle(), 'PAGE_TITLE');
-        
+
         // Ако е логнат потребител
-        if (!core_Users::haveRole('partner')) {
-            
-            // Абонираме за промяна на броя на нотификациите
+        if (!core_Users::isContractor()) {
             bgerp_Notifications::subscribeCounter($this);
-            
-            // Броя на отворените нотификации
-            $openNotifications = bgerp_Notifications::getOpenCnt();
-            
-            // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
-            if ($openNotifications > 0) {
-                
-                // Добавяме броя в заглавието
-                $this->append("({$openNotifications}) ", 'PAGE_TITLE');
-            }
+        } elseif(core_Packs::isInstalled('colab')){
+            bgerp_Notifications::subscribeCounter($this);
+        }
+
+        // Броя на отворените нотификации
+        $openNotifications = bgerp_Notifications::getOpenCnt();
+
+        // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
+        if ($openNotifications > 0) {
+
+            // Добавяме броя в заглавието
+            $this->append("({$openNotifications}) ", 'PAGE_TITLE');
         }
 
         // Евентуално се кешират страници за не user
@@ -117,12 +120,28 @@ class cms_page_External extends core_page_Active
     private function placeExternalUserData()
     {
         $currentTab = Mode::get('currentExternalTab');
-        $selectedClass = ($currentTab == 'cms_Profiles') ? 'class=selected-external-tab' : '';
-        
+        $Ctr = Request::get('Ctr');
+
+        $selectedProfileClass = in_array($Ctr, array('cms_Profiles', 'colab_Folders', 'colab_Threads', 'colab_Search', 'school_GroupSchedules')) ? 'class=selected-external-tab' : '';
+        $selectedBarcodeSearchClass = ($Ctr == 'barcode_Search') ? 'class=selected-external-tab' : '';
+
         $nick = core_Users::getNick(core_Users::getCurrent());
-        $user = ht::createLink($nick, array('cms_Profiles', 'single'), false, "ef_icon=img/16/user-black.png,title=Към профила,{$selectedClass}");
+
+        $notificationCount = bgerp_Notifications::getOpenCnt();
+        if($notificationCount){
+            $attr = arr::make("title=Преглед на непрочетените известия");
+            if($currentTab == 'colab_Notifications'){
+                $attr['class'] = 'selected-external-tab';
+            }
+            $user = ht::createLink($notificationCount, array('colab_Notifications', 'Show'), false, $attr);
+            $this->replace($user, 'USER_NOTIFICATIONS');
+        }
+
+        $user = ht::createLink($nick, array('cms_Profiles', 'single'), false, "ef_icon=img/16/user-black.png,title=Към профила,{$selectedProfileClass}");
         $logout = ht::createLink(tr('Изход'), array('core_Users', 'logout'), false, 'ef_icon=img/16/logout.png,title=Изход от системата');
-        
+
+        $barcodeLink = ht::createLink('Баркод', array('barcode_Search', 'list'), false, "ef_icon=img/16/barcode-icon.png,title=Търсене по баркод,{$selectedBarcodeSearchClass}");
+        $this->replace($barcodeLink, 'BARCODE_LINK');
         $this->replace($user, 'USERLINK');
         $this->replace($logout, 'LOGOUT');
         $this->replace("class='cmsTopContractor'", 'TOP_CLASS');

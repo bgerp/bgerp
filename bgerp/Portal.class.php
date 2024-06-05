@@ -169,6 +169,8 @@ class bgerp_Portal extends embed_Manager
      */
     public function act_Show()
     {
+        Mode::set('noDoWithSelected', true);
+
         if (Request::get('ajax_mode')) {
             requireRole('powerUser');
             
@@ -196,7 +198,7 @@ class bgerp_Portal extends embed_Manager
         requireRole('powerUser');
         
         Mode::set('pageMenuKey', '_none_');
-        
+
         $recArr = $this->getRecsForUser();
         
         $cu = core_Users::getCurrent();
@@ -356,13 +358,13 @@ class bgerp_Portal extends embed_Manager
     public function getPortalBlockForAJAX()
     {
         Mode::set('pageMenuKey', '_none_');
-        
-        $recArr = $this->getRecsForUser();
-        
-        $resArr = array();
-        
         $cu = core_Users::getCurrent();
-        
+        $isPartner = core_Users::isContractor($cu);
+
+        $blockDrivers = $isPartner ? 'bgerp_drivers_Notifications' : null;
+        $recArr = $this->getRecsForUser(null, true, 'team', $blockDrivers);
+
+        $resArr = array();
         foreach ($recArr as $r) {
             $aMode = Request::get('ajax_mode');
             
@@ -373,9 +375,14 @@ class bgerp_Portal extends embed_Manager
             Request::push(array('ajax_mode' => false));
             
             $rData = new stdClass();
-            
+
+            if($isPartner){
+                Mode::push('renderNotificationsInExternalWrapper', true);
+            }
             $res = $this->getResForBlock($r, $rData, $cu);
-            
+            if($isPartner){
+                Mode::pop('renderNotificationsInExternalWrapper');
+            }
             Request::push(array('ajax_mode' => $aMode));
             
             if (!$this->saveAJAXCache($res, $rData, $r)) {
@@ -407,6 +414,7 @@ class bgerp_Portal extends embed_Manager
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'html';
+
             $resObj->arg = array('id' => $divId, 'html' => $res->getContent(), 'replace' => true, 'css' => $cssArr, 'js' => $jsArr);
             $resArr[] = $resObj;
             
@@ -464,7 +472,7 @@ class bgerp_Portal extends embed_Manager
      *
      * @return null|core_ET
      */
-    protected function getResForBlock($rec, &$data, $cu = null)
+    public function getResForBlock($rec, &$data, $cu = null)
     {
         if (!cls::load($rec->{$this->driverClassField}, true)) {
             
@@ -531,7 +539,7 @@ class bgerp_Portal extends embed_Manager
      *
      * @return string
      */
-    protected function getPortalId($id)
+    public function getPortalId($id)
     {
         return "blockPortal_{$id}";
     }
@@ -618,17 +626,26 @@ class bgerp_Portal extends embed_Manager
      * @param null|int $userId
      * @param boolean  $removeHidden
      * @param string   $roleType
+     * @param mixed   $blockDrivers
      *
      * @return array
      */
-    protected function getRecsForUser($userId = null, $removeHidden = true, $roleType = 'team')
+    public function getRecsForUser($userId = null, $removeHidden = true, $roleType = 'team', $blockDrivers = null)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
         
         $query = $this->getQuery();
-        
+
+        // Ако има посочени драйвери, добавя се ограничение и по тях
+        if(isset($blockDrivers)){
+            $driverIds = array();
+            $blockDriversArr = arr::make($blockDrivers);
+            array_walk($blockDriversArr, function($a) use(&$driverIds){$driverIds[] = cls::get($a)->getClassId();});
+            $query->in('driverClass', $driverIds);
+        }
+
         if ($roleType) {
             $rolesList = core_Users::getUserRolesByType($userId, $roleType);
         } else {

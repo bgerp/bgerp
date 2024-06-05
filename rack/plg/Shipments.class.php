@@ -10,7 +10,7 @@
  * @package   rack
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -26,6 +26,7 @@ class rack_plg_Shipments extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         setIfNot($mvc->storeFieldName, 'storeId');
+        setIfNot($mvc->rackStoreFieldName, $mvc->storeFieldName);
         setIfNot($mvc->detailToPlaceInZones, $mvc->mainDetail);
     }
     
@@ -44,7 +45,8 @@ class rack_plg_Shipments extends core_Plugin
             }
 
             if ($cid && rack_Zones::fetch("#containerId = {$cid}")){
-                $form->setReadOnly($mvc->storeFieldName);
+                $form->setReadOnly($mvc->rackStoreFieldName);
+                $form->setField($mvc->rackStoreFieldName, array('hint' => 'Складът не може да се променя, докато документа е нагласен в зоната|*!'));
             }
         }
     }
@@ -76,13 +78,13 @@ class rack_plg_Shipments extends core_Plugin
     {
         $rec = $data->rec;
 
-        $zoneOptions = rack_Zones::getZones($rec->{$mvc->storeFieldName}, true);
+        $zoneOptions = rack_Zones::getZones($rec->{$mvc->rackStoreFieldName}, true);
         $attr = arr::make('ef_icon=img/16/hand-point.png,title=Избор на зона за нагласяне', true);
 
-        if (rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $rec->containerId, 'storeId' => $rec->{$mvc->storeFieldName}))) {
+        if (rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $rec->containerId, 'storeId' => $rec->{$mvc->rackStoreFieldName}))) {
             $url = array('rack_Zones', 'selectdocument', 'containerId' => $rec->containerId, 'ret_url' => true);
             if (empty($zoneOptions)) {
-                $zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId} and #storeId = {$rec->{$mvc->storeFieldName}}");
+                $zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId} and #storeId = {$rec->{$mvc->rackStoreFieldName}}");
                 if(!isset($zoneId)){
                     $attr['error'] = "Няма свободни зони в избрания склад|*!";
                 } else {
@@ -112,13 +114,12 @@ class rack_plg_Shipments extends core_Plugin
             if(isset($mvc->detailToPlaceInZones)){
                 $Detail = cls::get($mvc->detailToPlaceInZones);
 
-
                 $dQuery = $Detail->getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFld}");
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
+                $Detail->invoke('AfterGetZoneSummaryQuery', array($rec, &$dQuery));
 
                 while($dRec = $dQuery->fetch()){
-
                     $key = "{$dRec->{$Detail->productFld}}|{$dRec->packagingId}";
                     $rest = $dRec->{$Detail->quantityFld};
                     $Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});

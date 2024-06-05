@@ -1,0 +1,17 @@
+<div class='company-holder'>
+	<!--ET_BEGIN CONTRAGENT-->
+	<div class='company-box'>
+		<div class='logo'>
+			[#logo#]
+		</div>
+		<div class='info'>
+			<h5>[#name#]</h5>
+			<!--ET_BEGIN place--><p>[#place#]</p> <!--ET_END place-->
+			<p>[#address#]</p>
+			<!--ET_BEGIN website-->
+			<p class="website">[#website#]</p>
+			<!--ET_END website-->
+		</div>
+	</div>
+	<!--ET_END CONTRAGENT-->
+</div>

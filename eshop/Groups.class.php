@@ -131,10 +131,11 @@ class eshop_Groups extends core_Master
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Група->Параметри (Изглед),optionsFunc=cat_Params::getPublic');
         $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Група->Параметри (Списък),optionsFunc=cat_Params::getPublic');
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Група->Опаковки/Мерки');
-        $this->FLD('order', 'double', 'caption=Подредба,hint=Важи само за менютата, където групата е споделена');
-        $this->FLD('perPage', 'int(Min=0)', 'caption=Страниране,unit=артикули на страница');
-        $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
-        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Голяма');
+        $this->FLD('order', 'double', 'caption=Група->Подредба,hint=Важи само за менютата, където групата е споделена');
+        $this->FLD('perPage', 'int(Min=0)', 'caption=Група->Страниране,unit=артикули на страница');
+        $this->FLD('showProductsWithoutPrices', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Показване на артикулите за купуване без цени->Избор,notNull,value=auto');
+        $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', "caption=Картинка->Малка,hint=задължително пейзаж с поне 600px ширина");
+        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', "caption=Картинка->Голяма,hint=препоръчително пейзаж с поне 1200px широчина");
         $this->FLD('productCnt', 'int', 'input=none,single=none');
         
         $this->setDbIndex('menuId');
@@ -673,7 +674,7 @@ class eshop_Groups extends core_Master
         } else {
             $groupId = $data->groupId;
         }
-        //bp($groupId);
+
         if ($groupId && $groupId > 0) {
             $fRec = self::fetch($groupId);
             

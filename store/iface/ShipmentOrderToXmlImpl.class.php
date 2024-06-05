@@ -93,20 +93,21 @@ class store_iface_ShipmentOrderToXmlImpl
             }
 
             $pRec->batches = array();
-            $Def = batch_Defs::getBatchDef($dRec->productId);
-            if (is_object($Def)) {
-                $batches = "";
-                $bQuery = batch_BatchesInDocuments::getQuery();
-                $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}} AND #operation = 'out'");
+            if(core_Packs::isInstalled('batch')){
+                $Def = batch_Defs::getBatchDef($dRec->productId);
+                if (is_object($Def)) {
+                    $bQuery = batch_BatchesInDocuments::getQuery();
+                    $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}} AND #operation = 'out'");
 
-                while($bRec = $bQuery->fetch()){
-                    $batches = batch_Defs::getBatchArray($dRec->productId, $bRec->batch);
-                    $quantity = (countR($batches) == 1) ? $bRec->quantity : $bRec->quantity / countR($batches);
-                    foreach ($batches as $b) {
-                        Mode::push('text', 'plain');
-                        $bVerbal = strip_tags($Def->toVerbal($b));
-                        Mode::pop('text');
-                        $pRec->batches[] = (object)array('name' => $bVerbal, 'quantity' => $quantity);
+                    while($bRec = $bQuery->fetch()){
+                        $batches = batch_Defs::getBatchArray($dRec->productId, $bRec->batch);
+                        $quantity = (countR($batches) == 1) ? $bRec->quantity : $bRec->quantity / countR($batches);
+                        foreach ($batches as $b) {
+                            Mode::push('text', 'plain');
+                            $bVerbal = strip_tags($Def->toVerbal($b));
+                            Mode::pop('text');
+                            $pRec->batches[] = (object)array('name' => $bVerbal, 'quantity' => $quantity);
+                        }
                     }
                 }
             }

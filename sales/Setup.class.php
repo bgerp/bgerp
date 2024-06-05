@@ -258,6 +258,18 @@ defIfNot('SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE', 'yes');
 
 
 /**
+ * Показване на кода на артикула в продажбите в отделна колонка
+ */
+defIfNot('SALES_SHOW_CODE_IN_SEPARATE_COLUMN', 'no');
+
+
+/**
+ * Да се рекалкулират ли цените при клониране на договор за продажба
+ */
+defIfNot('SALES_RECALC_PRICES_ON_CLONE', 'yes');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -420,7 +432,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_MIN_PRICE_POLICY' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за минимални цени->Избор'),
 
         'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане ("0" за изключване)->Време'),
-        'SALES_DEFAULT_LOCATION_FOR_INVOICE' => array('key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Настройки на дефолта за фактура и проформа->Локация,customizeBy=ceo|sales|invoicer,optionsFunc=crm_Locations::getOwnLocations'),
+        'SALES_DEFAULT_LOCATION_FOR_INVOICE' => array('key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Настройки на дефолта за фактура и проформа->Локация,customizeBy=ceo|sales|invoicerSale,optionsFunc=crm_Locations::getOwnLocations'),
         'SALES_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към продажба->Избор'),
         'SALES_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен търговец в продажбите->Избор'),
         'SALES_SHOW_PRICE_IN_PRODUCT_SELECTION' => array('enum(no=Изключено,measureId=Основна мярка,basePack=Избраната за основна мярка/опаковка)', 'caption=Показване на продажната цена при избор на артикул в документи->Избор'),
@@ -434,6 +446,8 @@ class sales_Setup extends core_ProtoSetup
         'SALES_DELTA_NEW_PRODUCT_TO' => array('int(Min=0)', 'caption=Непродавани артикули от колко време да се считат за нов артикул->До,unit=месец(а) назад'),
         'SALES_EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS' => array('enum(no=Без фактуриране,yes=Фактуриране)', 'caption=Аванси от чуждестранни клиенти->Избор'),
         'SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE' => array('enum(no=Да не се избира,yes=Автоматичен избор)', 'caption=Автоматичен избор на наша сметка в продажбите ако е само една достъпна->Избор'),
+        'SALES_SHOW_CODE_IN_SEPARATE_COLUMN' => array('enum(no=Не,yes=Да)', 'caption=Показване на кода на артикула в продажбите в отделна колонка->Избор'),
+        'SALES_RECALC_PRICES_ON_CLONE' => array('enum(no=Не,yes=Да)', 'caption=Преизчисление на цените в продажбата при клониране->Избор'),
     );
     
     
@@ -459,6 +473,12 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
         'migrate::recontoDeals2520',
+        'migrate::fixDcNotesModifiedDate3823v2',
+        'migrate::migrateDpNotes3823v2',
+        'migrate::updateDeltaField2403',
+        'migrate::routesRepairSerchKeywords0824',
+        'migrate::updateSales1724',
+        'migrate::updateCategories2324',
     );
     
     
@@ -484,8 +504,8 @@ class sales_Setup extends core_ProtoSetup
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,
                        sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_reports_SalesByCreators,sales_interface_FreeRegularDelivery,
-                       sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_InvoiceAccView,sales_reports_PassiveCustomers,
-                       sales_reports_OffersSentWithoutReply';
+                       sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_CustomsInvoiceEn,sales_tpl_InvoiceAccView,sales_reports_PassiveCustomers,
+                       sales_reports_OffersSentWithoutReply,sales_tpl_InvoiceWithTotalQuantity,sales_reports_MostFrequentlySoldQuantities';
     
     
     /**
@@ -536,7 +556,7 @@ class sales_Setup extends core_ProtoSetup
     public $roles = array(
         array(
             'sales',
-            'invoicer,seePrice,dec,seePriceSale'
+            'invoicerSale,seePrice,dec,seePriceSale'
         ),
         array(
             'salesMaster',
@@ -652,5 +672,77 @@ class sales_Setup extends core_ProtoSetup
     {
         if(core_Packs::isMigrationDone('sales', 'recalcCurrencySales1115')) return;
         cls::get('sales_Sales')->recalcDocumentsWithDealCurrencyRate();
+    }
+
+
+    /**
+     * Миграция на КИ/ДИ
+     */
+    public function migrateDpNotes3823v2()
+    {
+        cls::get('deals_Setup')->migrateDcNotes('sales_Invoices', 'sales_InvoiceDetails');
+    }
+
+
+    /**
+     * Миграция на модифицираните изходящи фактури
+     */
+    public function fixDcNotesModifiedDate3823v2()
+    {
+        if(core_Packs::isMigrationDone('sales', 'migrateDpNotes3823v2')){
+            cls::get('deals_Setup')->fixDcNotesModifiedOn('sales_Invoices');
+        }
+    }
+
+
+    /**
+     * Миграция на новото поле на делтите
+     */
+    public function updateDeltaField2403()
+    {
+        $Deltas = cls::get('sales_PrimeCostByDocument');
+        $Deltas->setupMvc();
+
+        $colName = str::phpToMysqlName('sellCostWithOriginalDiscount');
+        $saleColName = str::phpToMysqlName('sellCost');
+        $query = "UPDATE {$Deltas->dbTableName} SET {$colName} = {$saleColName} WHERE ({$colName} IS NULL AND {$saleColName} IS NOT NULL)";
+        $Deltas->db->query($query);
+    }
+
+
+    /**
+     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
+     */
+    public static function routesRepairSerchKeywords0824()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'sales_Routes', dt::addSecs(180));
+    }
+
+
+    /**
+     * Миграция на полето за фактуриране в продажбите
+     */
+    function updateSales1724()
+    {
+        $Sales = cls::get('sales_Sales');
+        $makeInvoiceName = str::phpToMysqlName('makeInvoice');
+        $query = "UPDATE {$Sales->dbTableName} SET {$makeInvoiceName} = 'yes' WHERE ({$makeInvoiceName} IS NULL)";
+        $Sales->db->query($query);
+    }
+
+
+    /**
+     * Миграция на категориите
+     */
+    function updateCategories2324()
+    {
+        $Details = cls::get('sales_SalesDetails');
+        $Sales = cls::get('sales_Sales');
+        $discountFieldName = str::phpToMysqlName('discount');
+        $inputFieldName = str::phpToMysqlName('inputDiscount');
+        $autoFieldName = str::phpToMysqlName('autoDiscount');
+        $query = "UPDATE {$Details->dbTableName} as t1, {$Sales->dbTableName} as t2 SET t1.{$inputFieldName} = t1.{$discountFieldName} WHERE t1.sale_id = t2.id AND t1.{$discountFieldName} IS NOT NULL AND t1.{$autoFieldName} IS NULL AND t1.{$inputFieldName} IS NULL AND (t2.state = 'active' or t2.state = 'closed')";
+
+        $Details->db->query($query);
     }
 }

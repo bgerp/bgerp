@@ -77,7 +77,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions';
+    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions,username,issuerId,state';
     
     
     /**
@@ -99,7 +99,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'date,number=Фактура №,contragentName=Контрагент,contragentVatNo=ДДС №,uicNo=ЕИК,dealValue=Сума общо,dealValueWithoutDiscount=Без ДДС,vatAmount=ДДС,currencyId=Валута,accountId=Банкова сметка,state';
+    public $exportableCsvFields = 'date,number=Фактура №,contragentName=Контрагент,contragentVatNo=ДДС №,uicNo=ЕИК,dealValue=Сума общо,dealValueWithoutDiscount=Без ДДС,vatAmount=ДДС,currencyId=Валута,accountId=Банкова сметка,paymentType,state';
 
 
     /**
@@ -125,14 +125,6 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
-     * Кой може да променя активирани записи
-     *
-     * @see change_Plugin
-     */
-    public $canChangerec = 'accMaster, ceo, invoicer';
-
-
-    /**
      * Кои полета да могат да се променят след активация
      */
     public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template,detailOrderBy,deliveryId';
@@ -153,7 +145,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
 
         $mvc->FLD('displayContragentClassId', 'enum(crm_Companies=Фирма,crm_Persons=Лице,newCompany=Нова фирма)', 'input,silent,removeAndRefreshForm=displayContragentId|selectInvoiceText,caption=Друг контрагент->Източник');
-        $mvc->FLD('displayContragentId', 'int', 'input=none,silent,removeAndRefreshForm=contragentName|contragentCountryId|contragentVatNo|contragentEori|uicNo|contragentPCode|additionalInfo|contragentPlace|contragentAddress,caption=Друг контрагент->Избор');
+        $mvc->FLD('displayContragentId', 'int', 'input=none,silent,removeAndRefreshForm=contragentName|contragentCountryId|contragentVatNo|contragentEori|uicNo|contragentPCode|additionalInfo|contragentPlace|contragentAddress|place,caption=Друг контрагент->Избор');
 
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,silent');
         $mvc->FLD('contragentId', 'int', 'input=hidden,silent');
@@ -180,8 +172,10 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
         $mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
-        $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
+        $mvc->FLD('vatRate', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
         $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6, passage)', 'caption=Допълнително->Бележки');
+        $mvc->FLD('issuerId', 'user(roles=ceo|salesMaster,allowEmpty)', 'caption=Допълнително->Съставил,removeAndRefreshForm=username');
+        $mvc->FLD('username', 'varchar', 'caption=Допълнително->Съставил име', 'input=none');
         $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden,summary=amount');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
         $mvc->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
@@ -190,8 +184,22 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,mandatory');
         $mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
-
         $mvc->setDbIndex('dueDate');
+    }
+
+
+    /**
+     * Извиква се след описанието на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+        // Ако е указано да се кешират допълни данни
+        setIfNot($mvc->cacheAdditionalConditions, false);
+        if($mvc->cacheAdditionalConditions){
+            $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
+        }
     }
 
 
@@ -230,15 +238,15 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $data->listFilter->FNC('countryGroups', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Държави,input');
 
-        $type = '';
         if ($mvc->getField('type', false)) {
-            $data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
-            $type = ',invType';
+            $typeEnumOptions = "enum(all=Всички,invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,accrued=Фактура с начислен аванс,deducted=Фактура с приспаднат аванс)";
+        } else {
+            $typeEnumOptions = "enum(all=Всички,accrued=Проформа фактура с начислен аванс,deducted=Проформа фактура с приспаднат аванс)";
         }
-        
+        $data->listFilter->FNC('invType', $typeEnumOptions, 'caption=Вид,input,silent');
         $data->listFields['paymentType'] = 'Плащане';
         $data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Начин на плащане,input');
-        $data->listFilter->showFields .= ",payType{$type},countryGroups";
+        $data->listFilter->showFields .= ",payType,invType,countryGroups";
         $data->listFilter->input(null, 'silent');
         
         if ($rec = $data->listFilter->rec) {
@@ -246,6 +254,11 @@ abstract class deals_InvoiceMaster extends core_Master
                 if ($rec->invType != 'all') {
                     if ($rec->invType == 'invoice') {
                         $data->query->where("#type = '{$rec->invType}'");
+                    } elseif(in_array($rec->invType, array('accrued', 'deducted'))){
+                        $data->query->where("#dpOperation = '{$rec->invType}'");
+                        if ($mvc->getField('type', false)) {
+                            $data->query->where("#type = 'invoice'");
+                        }
                     } else {
                         $sign = ($rec->invType == 'credit_note') ? '<=' : '>';
                         $data->query->where("(#type = 'dc_note' AND #dealValue {$sign} 0) || #type = '{$rec->invType}'");
@@ -314,16 +327,16 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $Detail->calculateAmount($recs, $rec);
         $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
-        
+
         $rec->dealValue = $this->_total->amount * $rate;
         $rec->vatAmount = $this->_total->vat * $rate;
         $rec->discountAmount = $this->_total->discount * $rate;
-        
+
         if ($save === true) {
             return $this->save($rec);
         }
     }
-    
+
     
     /**
      * След подготовката на заглавието на формата
@@ -384,6 +397,12 @@ abstract class deals_InvoiceMaster extends core_Master
                 $data->toolbar->addBtn('Известие||D/C note', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'dc_note', 'ret_url' => true), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно или кредитно известие към документа,rows=2');
             }
         }
+
+        if ($rec->type == 'dc_note' && $rec->state == 'active'){
+            if(acc_ValueCorrections::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+                $data->toolbar->addBtn('Корекция на стойност', array('acc_ValueCorrections', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/page_white_text.png,title=Корекция на стойност към сделката');
+            }
+        }
     }
     
     
@@ -422,7 +441,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
         
-        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate');
+        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible', 'numlimit', 'username', 'issuerId');
         if ($this instanceof purchase_Invoices) {
             $unsetArr[] = 'journalDate';
         }
@@ -550,18 +569,19 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
         if ($rec->type == 'dc_note' && isset($rec->changeAmount)) {
-            return $res = true;
+            $res = true;
+            return ;
         }
         
         // Ако няма ид, не може да се активира документа
         if (empty($rec->id) && !isset($rec->dpAmount)) {
-            return $res = false;
+            $res = false;
+            return;
         }
         
         // Ако има Авансово плащане може да се активира
         if (isset($rec->dpAmount)) {
             $res = !((round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)));
-            
             return;
         }
     }
@@ -640,6 +660,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $det->_importBatches = $rec->importBatches;
                     $det->{$Detail->masterKey} = $rec->id;
                     unset($det->batches);
+                    unset($det->autoDiscount);
                     $Detail->save($det);
                 }
             }
@@ -747,6 +768,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
+        $form->setDefault('place', $mvc->getDefaultPlace($rec));
         // Ако има избрано поле за източник на контрагента
         if (isset($rec->displayContragentClassId)) {
             if (in_array($rec->displayContragentClassId, array('crm_Companies', 'crm_Persons'))) {
@@ -789,6 +811,17 @@ abstract class deals_InvoiceMaster extends core_Master
                 if (countR($arr)) {
                     foreach (array('contragentName', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
                         $form->rec->{$fld} = $arr[$fld];
+                    }
+                }
+            } else {
+                // Ако е сменен контрагента за показване, но преди е имало такъв да се заредят дефолтните стойности
+                if(isset($rec->id)){
+                    $exRec = $mvc->fetch($rec->id, '*', false);
+                    if(!empty($exRec->displayContragentId)){
+                        foreach (arr::make('contragentCountryId,contragentVatNo,contragentEori,uicNo,contragentPCode,contragentPlace,contragentAddress', true) as $fld){
+                            $cloneRec = (object)array('folderId' => $rec->folderId);
+                            $form->rec->{$fld} = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $cloneRec, $fld, 'clientData|lastDocUser|lastDoc');
+                        }
                     }
                 }
             }
@@ -913,7 +946,16 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setWarning('displayRate', $msg);
                 }
             }
-            
+
+            if(isset($rec->id) && isset($rec->displayRate)){
+                // Предупреждение ако вальора е сменен, но курса е различен от очаквания
+                $expectedRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
+                if(round($expectedRate, 5) != round($rec->displayRate, 5)){
+                    $displayDate = dt::mysql2verbal($rec->date, 'd.m.Y');
+                    $form->setWarning('displayRate', "Курсът е различен от очаквания за дата|* {$displayDate} : <b>{$expectedRate}</b>");
+                }
+            }
+
             $Vats = cls::get('drdata_Vats');
             $rec->contragentVatNo = $Vats->canonize($rec->contragentVatNo);
             
@@ -974,7 +1016,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $origin = doc_Containers::getDocument($rec->originId);
                 $originRec = $origin->fetch('dpAmount,dpOperation,dealValue,date,dpVatGroupId');
 
-                if (!empty($rec->changeAmountVat)) {
+                if (isset($rec->changeAmountVat)) {
                     $vat = $rec->changeAmountVat;
                 } else {
                     if (($originRec->dpOperation == 'accrued' || $originRec->dpOperation == 'deducted') && isset($originRec->dpVatGroupId)){
@@ -1058,7 +1100,13 @@ abstract class deals_InvoiceMaster extends core_Master
             $countryId = $locationRec->countryId;
         }
 
-        $contragentCountryId = doc_Folders::getContragentData($rec->folderId)->countryId;
+        if(isset($rec->displayContragentClassId) && isset($rec->displayContragentId)){
+            $cData = cls::get($rec->displayContragentClassId)->getContragentData($rec->displayContragentId);
+        } else {
+            $cData = doc_Folders::getContragentData($rec->folderId);
+        }
+
+        $contragentCountryId = $cData->countryId;
         if(!empty($place)){
             if ($contragentCountryId != $countryId) {
                 $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
@@ -1068,7 +1116,8 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // 3. От адреса на "Моята фирма"
         if(empty($place)){
-            $myCompany = crm_Companies::fetchOwnCompany();
+            $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : null;
+            $myCompany = crm_Companies::fetchOwnCompany($ownCompanyId);
             $place = $myCompany->place;
             if ($contragentCountryId != $myCompany->countryId) {
                 $cCountry = drdata_Countries::fetchField($myCompany->countryId, 'commonNameBg');
@@ -1206,7 +1255,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         if (isset($fields['-list'])) {
-            $row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), null, 'ef_icon=img/16/invoice.png') : $mvc->getLink($rec->id, 0);
+            $row->number = ($rec->number) ? ht::createLink($row->number, $mvc->getSingleUrlArray($rec->id), null, "ef_icon={$mvc->getIcon()}") : $mvc->getLink($rec->id, 0);
             $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
             $noVat = $rec->dealValue - $rec->discountAmount;
 
@@ -1233,20 +1282,20 @@ abstract class deals_InvoiceMaster extends core_Master
 
             if(!in_array($rec->vatRate, array('yes', 'separate'))){
                 if(empty($rec->vatReason)){
-                    $vatReason = $mvc->getNoVatReason($rec->contragentCountryId, $rec->contragentVatNo);
+                    $vatReason = $mvc->getNoVatReason($rec);
                     if(!empty($vatReason)){
                         $row->vatReason = $vatReason;
 
                         if($rec->state == 'draft'){
-                            if(!Mode::isReadOnly()){$row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
+                            if(!Mode::isReadOnly()){
+                                $row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
                             }
-
                             $row->vatReason = ht::createHint($row->vatReason, 'Основанието е определено автоматично. Ще бъде записано при активиране|*!', 'notice', false);
                         }
                     } else {
                         $bgId = drdata_Countries::getIdByName('Bulgaria');
-                        if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
-                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България" с ДДС№ трябва да е посочено основание|*!', 'error');
+                        if($rec->contragentCountryId == $bgId){
+                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България", трябва да е посочено основание|*!', 'error');
                         }
                     }
                 }
@@ -1263,14 +1312,12 @@ abstract class deals_InvoiceMaster extends core_Master
             } else {
                 $row->contragentUicCaption = tr('ЕИК||TAX ID');
             }
-            
-            $issuerId = null;
-            $row->username = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId);
-            $row->username = core_Lg::transliterate($row->username);
-            
-            // От потребителя се прави уникален код
+
+            // Кой е съставителя и какъв е неговия ПИК
+            $issuerId = $rec->issuerId;
+            $row->username = deals_Helper::getIssuerRow($rec->username, $rec->createdBy, $rec->activatedBy, $rec->state, $issuerId);
             if (!empty($issuerId)) {
-                $row->userCode = abs(crc32("{$row->username}|{$issuerId}"));
+                $row->userCode = abs(crc32("{$issuerId}"));
                 $row->userCode = substr($row->userCode, 0, 6);
             }
             
@@ -1349,7 +1396,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             // Вербална обработка на данните на моята фирма и името на контрагента
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'MyCompanyEori', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
             }
@@ -1379,8 +1426,45 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
                 $row->paymentType = ht::createHint($row->paymentType, "Автоматично '{$rec->autoPaymentType}'", 'img/16/bug.png');
             }
-            
+
+            if($rec->type == 'dc_note' && $rec->state != 'rejected'){
+                if(!Mode::isReadOnly()){
+                    $documents = deals_InvoicesToDocuments::getDocumentsToInvoices($rec->containerId, 'acc_ValueCorrections,store_Receipts,store_ShipmentOrders,sales_Services,purchase_Services');
+                    if(!countR($documents)){
+                        $string = "Към Дебитно/Кредитно известие ЗАДЪЛЖИТЕЛНО трябва да се създаде и втори документ: Корекция на стойности (при промяна само на стойността) или ЕН/СР/ПП (при промяна на количества)!
+                           В полето \"Към фактура\" на създадения втори документ изберете настоящото Известие, за да премахнете това съобщение!";
+                        $row->additionalInfo .= "<div class='invoiceNoteWarning'>" . tr($string) . "</div>";
+                    }
+                }
+            }
+
             core_Lg::pop();
+
+            // Показване на допълнителните условия от банковата сметка
+            if($mvc->cacheAdditionalConditions){
+                $conditions = $rec->additionalConditions;
+                if (empty($conditions)) {
+                    if (in_array($rec->state, array('pending', 'draft'))) {
+                        if(!empty($rec->accountId)){
+                            $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                            $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $rec->tplLang);
+                            if (!empty($condition)) {
+                                if (!Mode::isReadOnly()) {
+                                    $condition = "<span style='color:blue'>{$condition}</span>";
+                                }
+                                $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
+                                $conditions = array($condition);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (is_array($conditions)) {
+                foreach ($conditions as $cond) {
+                    $row->additionalInfo .= "\n" . $cond;
+                }
+            }
         }
     }
     
@@ -1425,7 +1509,8 @@ abstract class deals_InvoiceMaster extends core_Master
         $dueDate = null;
         setIfNot($dueDate, $rec->dueDate, $rec->date);
         $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
-        $totalInDealRate = ($total / $rec->displayRate) * $rec->rate;
+        $displayRate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+        $totalInDealRate = ($total / $displayRate) * $rec->rate;
         $aggregator->sum('invoicedAmount', $totalInDealRate);
         $aggregator->setIfNot('invoicedValior', $rec->date);
 
@@ -1517,47 +1602,41 @@ abstract class deals_InvoiceMaster extends core_Master
     public function getInvoiceDetailedInfo($containerId, $applyDiscount = false)
     {
         expect($document = doc_Containers::getDocument($containerId));
-        expect($document->isInstanceOf($this));
+        expect($document->isInstanceOf($this), $document->className, $this->className);
 
-        $cache = $vats = $cacheIds = array();
+        $vats = $cacheIds = array();
         $Detail = $this->mainDetail;
         $query = $Detail::getQuery();
-        $vatRate = $document->fetchField('vatRate');
-        $docRec = $document->fetch('dpAmount,dpVatGroupId');
+        $docRec = $document->fetch('dpAmount,dpVatGroupId,vatRate,rate');
 
         $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
         $query->orderBy('id', 'ASC');
 
+        $count = 1;
         while ($dRec = $query->fetch()) {
             if($applyDiscount){
                 $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
             } else {
                 $price = $dRec->packPrice;
             }
-
             $price = round($price, 5);
-            $key1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
-            $key2 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
 
-            $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price);
-            $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price);
-            $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price);
-            if ($vatRate != 'no' && $vatRate != 'exempt') {
+            $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price, 'count' => $count, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);
+            $v = 0;
+            if ($docRec->vatRate != 'no' && $docRec->vatRate != 'exempt') {
                 $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
             }
-
-            $vats[$v] = $v;
+            $vats["{$v}"] = $v;
+            $count++;
         }
 
-        if (!countR($cache)) {
-            if (isset($docRec->dpAmount)) {
-                $vRate = isset($docRec->dpVatGroupId) ? acc_VatGroups::fetchField($docRec->dpVatGroupId, 'vat') : 0.2;
-                $v = ($vatRate == 'yes' || $vatRate == 'separate') ? $vRate : 0;
-                $vats["{$v}"] = $v;
-            }
+        if (!empty($docRec->dpAmount)) {
+            $vRate = isset($docRec->dpVatGroupId) ? acc_VatGroups::fetchField($docRec->dpVatGroupId, 'vat') : 0.2;
+            $v = ($docRec->vatRate == 'yes' || $docRec->vatRate == 'separate') ? $vRate : 0;
+            $vats["{$v}"] = $v;
         }
 
-        $res = (object) array('recs' => $cache, 'vats' => $vats, 'recWithIds' => $cacheIds);
+        $res = (object) array('vats' => $vats, 'recWithIds' => $cacheIds);
 
         return $res;
     }
@@ -1792,14 +1871,14 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $fields = $mvc->selectFields();
         $fields['-list'] = true;
+
         foreach ($recs as &$rec) {
+            $rate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
             $rec->number = $mvc->getVerbal($rec, 'number');
             $rec->dealValue = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
-            $rec->dealValue = (!empty($rec->rate)) ? $rec->dealValue / $rec->rate : $rec->dealValue;
-            $rec->valueNoVat = $rec->dealValue - $rec->discountAmount;
-            $rec->valueNoVat = (!empty($rec->rate)) ? $rec->valueNoVat / $rec->rate : $rec->valueNoVat;
-            $rec->vatAmount = (!empty($rec->rate)) ? $rec->vatAmount / $rec->rate : $rec->vatAmount;
-            $rec->dealValueWithoutDiscount = (!empty($rec->rate)) ? ($rec->dealValue - $rec->discountAmount) / $rec->rate : ($rec->dealValue - $rec->discountAmount);
+            $rec->dealValue = !empty($rate) ? $rec->dealValue / $rate : $rec->dealValue;
+            $rec->vatAmount = !empty($rate) ? $rec->vatAmount / $rate : $rec->vatAmount;
+            $rec->dealValueWithoutDiscount = $rec->dealValue - $rec->vatAmount;
         }
     }
     
@@ -1843,28 +1922,21 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Какво да е основанието за неначисляване на ДДС
      *
-     * @param int $contragentCountryId - ид на държава на контрагента
-     * @param string $contragentVatId  - ДДС номер на контрагента (ако има)
-     * @param $ownCompanyId            - ид на "Моята фирма"
+     * @param stdClass $rec  - запис на фактурата
      * @return string|null
      */
-    public function getNoVatReason($contragentCountryId, $contragentVatId, $ownCompanyId = null)
+    protected function getNoVatReason($rec)
     {
-        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) {
+        if(!$this->isOwnCompanyVatRegistered($rec)) {
 
             return acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
         }
 
         $bgCountryId = drdata_Countries::getIdByName('Bulgaria');
-        if($contragentCountryId != $bgCountryId){
-            $reason = drdata_Countries::isEu($contragentCountryId) ? 'VAT_REASON_IN_EU' : 'VAT_REASON_OUTSIDE_EU';
+        if($rec->contragentCountryId != $bgCountryId){
+            $reason = drdata_Countries::isEu($rec->contragentCountryId) ? 'VAT_REASON_IN_EU' : 'VAT_REASON_OUTSIDE_EU';
 
             return acc_Setup::get($reason);
-        }
-
-        if(empty($contragentVatId)){
-
-            return acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
         }
 
         return null;
@@ -1878,55 +1950,105 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = $mvc->fetchRec($rec);
 
-        if(!in_array($rec->vatRate, array('yes', 'separate'))) {
-            if (empty($rec->vatReason)) {
-                $vatReason = $mvc->getNoVatReason($rec->contragentCountryId, $rec->contragentVatNo);
-                if(!empty($vatReason)){
-                    $rec->vatReason = $vatReason;
-                    $mvc->save_($rec, 'vatReason');
+        $saveFields = array();
+        if($mvc->cacheAdditionalConditions){
+            if (empty($rec->additionalConditions)) {
+                if(!empty($rec->accountId)) {
+                    $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                    $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
+                    $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $lang);
+                    $rec->additionalConditions = array($condition);
+                    $saveFields[] = 'additionalConditions';
                 }
             }
+        }
+
+        // Кеширане на ид-то на съставителя
+        if(empty($rec->issuerId)){
+            $issuerId = null;
+            $mvc->pushTemplateLg($rec->template);
+            $rec->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId));
+            core_Lg::pop();
+            $rec->issuerId = $issuerId;
+            $saveFields[] = 'username';
+            $saveFields[] = 'issuerId';
+        }
+
+        if(!in_array($rec->vatRate, array('yes', 'separate'))) {
+            if (empty($rec->vatReason)) {
+                $vatReason = $mvc->getNoVatReason($rec);
+                if(!empty($vatReason)){
+                    $rec->vatReason = $vatReason;
+                    $saveFields[] = 'vatReason';
+                }
+            }
+        }
+
+        if(countR($saveFields)){
+            $mvc->save_($rec, $saveFields);
         }
 
         // Ако има посочен параметър за информация към фактурата от артикула
         $Detail = cls::get($mvc->mainDetail);
-        if(isset($Detail->productInvoiceInfoParamName)) {
-            $saveRecs = array();
-            $dQuery = $Detail->getQuery();
-            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-            $dQuery->show('productId,notes');
-            while($dRec = $dQuery->fetch()){
+        $saveRecs = array();
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+        $dQuery->show('productId,notes,discount,autoDiscount');
+        while($dRec = $dQuery->fetch()){
+            $save = false;
+
+            // Ако има посочен параметър за информация за фактура - ще се записва в забележките
+            if(isset($Detail->productInvoiceInfoParamName)){
                 $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
                 if(!empty($invoiceInfo)){
                     if (strpos($dRec->notes, "{$invoiceInfo}") === false) {
                         $dRec->notes = $invoiceInfo . ((!empty($dRec->notes) ? "\n" : '') . $dRec->notes);
-                        $saveRecs[] = $dRec;
+                        $save = true;
                     }
                 }
             }
 
-            if(countR($saveRecs)){
-                $Detail->saveArray($saveRecs, 'id,notes');
+            // Ако има ръчна отстъпка или авт. остъпка - ще се записва осреднената и ще се запомни ръчната
+            if(!empty($dRec->discount) || !empty($dRec->autoDiscount)){
+                $dRec->inputDiscount = $dRec->discount;
+                if(isset($dRec->autoDiscount)){
+                    if(isset($dRec->discount)){
+                        $dRec->discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 6);
+                    } else {
+                        $dRec->discount = $dRec->autoDiscount;
+                    }
+                }
+                $save = true;
+            }
+
+            if($save){
+                $saveRecs[] = $dRec;
             }
         }
-    }
 
+        if(countR($saveRecs)){
+            $Detail->saveArray($saveRecs, 'id,notes,discount,inputDiscount');
+        }
 
-    /**
-     * Изпълнява се преди контиране на документа
-     */
-    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
+        // Има ли полета, чиито стойности да се преизчислят при активиране
+        $cacheFields = $Detail->getFieldsToCalcOnActivation($rec);
 
-        if(!in_array($rec->vatRate, array('yes', 'separate'))){
-            if(empty($rec->vatReason)){
-                $bgId = drdata_Countries::getIdByName('Bulgaria');
-                if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
+        if(countR($cacheFields)){
+            $saveDetails = array();
+            $updateFields = implode(',', $cacheFields);
 
-                    core_Statuses::newStatus('При неначисляване на ДДС на контрагент от "България" с ДДС № трябва да е посочено основание', 'error');
-                    return false;
+            // Извличат се детайлите
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                $params = cat_Products::getParams($dRec->productId);
+                if($Detail->calcFieldsOnActivation($dRec, $rec, $params)){
+                    $saveDetails[] = $dRec;
                 }
+            }
+
+            if(countR($saveDetails)){
+                $Detail->saveArray($saveDetails, "id,{$updateFields}");
             }
         }
     }
@@ -1954,5 +2076,156 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        $fieldset->setFieldType('dealValueWithoutDiscount', 'double');
+    }
+
+
+    /**
+     * Как се казва политиката
+     *
+     * @param stdClass $rec - запис
+     * @return array
+     *            [rate]       - валутен курс
+     *            [valior]     - вальор
+     *            [currencyId] - код на валута
+     *            [chargeVat]  - режим на начисляване на ДДС
+     *            [amount]     - сума в основна валута без ддс и отстъпка
+     */
+    public function getTotalDiscountSourceData($rec)
+    {
+        $rec = $this->fetchRec($rec);
+
+        $amount = core_Math::roundNumber($rec->dealValue - $rec->discountAmount);
+        $res = (object)array('rate' => $rec->rate,
+            'valior'     => $rec->valior,
+            'currencyId' => $rec->currencyId,
+            'chargeVat'  => 'separate',
+            'amount'     => $amount,
+        );
+
+        return $res;
+    }
+
+
+    /**
+     * Как се казва политиката
+     *
+     * @param stdClass $rec - запис
+     * @return bool
+     */
+    public function canHaveTotalDiscount($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        if($rec->type){
+            if($rec->type != 'invoice' || $rec->dpOperation == 'accrued') return false;
+        }
+
+        $Detail = cls::get($this->mainDetail);
+        $detailCount = $Detail->count("#{$Detail->masterKey} = {$rec->id}");
+
+        return !empty($detailCount);
+    }
+
+
+    /**
+     * След обновяване на мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id, $save = true)
+    {
+        // Ако е зададено в мода да не се рекалкулират отстъпките
+        $rec = $mvc->fetchRec($id);
+        if(isset($rec->type) && $rec->type != 'invoice') return;
+        if(!$mvc->hasPlugin('price_plg_TotalDiscount')) return;
+
+        // Преизчисляване ако има автоматични отстъпки
+        if($mvc->recalcAutoTotalDiscount($rec)){
+            $mvc->updateMaster_($rec);
+        }
+    }
+
+
+    /**
+     * След подготовка на заявката за извличане на стойността от последна фактура
+     * @see cond_plg_DefaultValues
+     *
+     * @param core_Mvc $mvc
+     * @param core_Query $query
+     * @param int $folderId
+     * @param string $name
+     * @param int|null $fromUser
+     * @return void
+     */
+    protected static function on_AfterGetQueryFromLastDocumentDefault($mvc, &$query, $folderId, $name, $fromUser = null)
+    {
+        // Определени полета да се взимат от последната ф-ра САМО ако е за същия контрагент
+        if(!in_array($name, arr::make('contragentCountryId,contragentVatNo,contragentEori,uicNo,contragentPCode,contragentPlace,contragentAddress'))) return;
+        $Cover = doc_Folders::getCover($folderId);
+        $query->where("#displayContragentId IS NULL OR (#displayContragentClassId = '{$Cover->className}' AND #displayContragentId = {$Cover->that})");
+    }
+
+
+    /**
+     * Да се изисква ли основание за неначисляване на ДДС, ако няма
+     *
+     * @param stdClass $rec
+     * @param array $productArr
+     * @return false|string
+     */
+    public function doRequireVatReasonWhenTryingToPost($rec, $productArr)
+    {
+        // Ако има зададено основание - няма да се прави нищо
+        $rec = $this->fetchRec($rec);
+        if(!empty($rec->vatReason)) return false;
+
+        // Ако е без или освободено от ДДС
+        if(!in_array($rec->vatRate, array('yes', 'separate'))){
+            $calcedVatReason = $this->getNoVatReason($rec);
+            if(!empty($calcedVatReason)) return false;
+
+            $bgId = drdata_Countries::getIdByName('Bulgaria');
+            if($rec->contragentCountryId == $bgId){
+
+                return 'При неначисляване на ДДС на контрагент от "България", трябва да е посочено основание|*!';
+            }
+        } else {
+
+            if(isset($rec->changeAmount) && $rec->type == 'dc_note' && empty($rec->vatAmount)){
+
+                return 'При известие с нулева ставка, трябва да е посочено основание за неначисляване на ДДС|*!';
+            }
+
+            // Ако има аванс и той е с нулева ставка
+            if(!empty($rec->dpAmount) && isset($rec->dpVatGroupId)){
+                $vatGroupPercent = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
+                if(empty($vatGroupPercent)){
+
+                    return 'При аванс с нулева ставка, трябва да е посочено основание за неначисляване на ДДС|*!';
+                }
+            }
+
+            // Ако има артикули и поне един от тях е с нулева ставка
+            if(countR($productArr)){
+                $productsWithZeroVat = cat_products_VatGroups::getByVatPercent(0, $rec->date, $productArr);
+                if(countR($productsWithZeroVat)){
+
+                    return 'При участие на артикули с нулева ставка, трябва да е посочено основание за неначисляване на ДДС|*!';
+                }
+            }
+        }
+
+        // Няма да се изисква, ако се стигне до тук
+        return false;
     }
 }

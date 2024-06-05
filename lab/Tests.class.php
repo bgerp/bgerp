@@ -422,9 +422,8 @@ class lab_Tests extends core_Master
         
         $cRec = $form->input();
         
-        
         // Ако формата е submit-ната
-        if ($form->isSubmitted(``)) {
+        if ($form->isSubmitted()) {
             // Left test
             $cRec->leftTestId = $leftTestId;
             $rightTestName = $this->fetchField($cRec->rightTestId, 'title');

@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -35,7 +35,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, doc_SharablePlg, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
 
 
@@ -178,6 +178,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
+     * Склад в който да се нагласят движенията по зона
+     * @see rack_plg_Shipments
+     */
+    public $rackStoreFieldName = 'inputStoreId';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -291,7 +298,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $form->setDefault('packagingId', $defaultPack);
             if ($productRec->canStore == 'no') {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
 
                 // Ако артикула е нескладируем и не е вложим и не е ДА, показваме полето за избор на разходно перо
                 if ($productRec->canConvert == 'no' && $productRec->fixedAsset == 'no') {
@@ -305,7 +311,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 $form->setField('storeId', 'input=none');
-                $form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
+                $form->setField('inputStoreId', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->ОТ склад'));
             } else {
                 $form->setField('storeId', 'mandatory');
                 $form->setField('packagingId', 'input');
@@ -419,6 +425,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
         }
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
+
+        // Попълване на склада за влагане
+        $jobRec = static::getJobRec($rec);
+        $threadId = $rec->threadId ?? doc_Containers::fetchField($rec->originId, 'threadId');
+        if(!planning_ConsumptionNotes::existActivatedInThread($threadId)){
+            $selectableStore = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $jobRec->inputStores);
+            if(countR($selectableStore) == 1){
+                $form->setDefault('inputStoreId', key($selectableStore));
+            }
+        }
+
         if(isset($rec->inputStoreId)){
             $form->setDefault('inputServicesFrom', 'all');
         } else {
@@ -440,6 +457,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = &$form->rec;
 
         if ($form->isSubmitted()) {
+
+            if($form->getField('inputStoreId')->input != 'none'){
+                if(empty($rec->inputStoreId)){
+                    if(!planning_ConsumptionNotes::existActivatedInThread($rec->threadId)){
+                        $form->setWarning('inputStoreId', 'В Заданието(и операциите към него) няма контиран Протокол за влагане, а е избрано влагане на материалите от "Незавършено производство"! Ако няма предварително (общо) влагане - изберете склад за изписване на материалите!');
+                    }
+                }
+            }
 
             // Проверка на к-то
             $warning = null;
@@ -714,7 +739,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $requiredRoles = $mvc->getRequiredRoles('conto', $rec, $userId);
             if ($requiredRoles != 'no_one') {
                 if (isset($rec)) {
-                    if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id}", 'id')) {
+
+                    // Ако няма материали и отпадъци или всички материали са чужди от ПОП - ще може да се контира бездетайлно
+                    $hasNotOutsourced = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes' AND #quantity != 0");
+                    $hasPoped = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop' AND #quantity != 0");
+                    $hasInputed = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #quantity != 0");
+                    $hasAllocated = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'allocated' AND #quantity != 0");
+
+                    if ($hasNotOutsourced || $hasAllocated || (!$hasInputed && $hasPoped)) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -765,7 +797,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             if(countR($details2)){
                 foreach ($details2 as $d2){
                     $d2->_realData = true;
-
                     if(array_key_exists("{$d2->productId}|{$d2->type}", $detailsFromBom)){
                         $d2->quantityFromBom = $detailsFromBom["{$d2->productId}|{$d2->type}"]->quantityFromBom;
                         $d2->quantity = $d2->quantityFromBom;
@@ -852,8 +883,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $quantityProduced = $originRec->quantityProduced;
         $quantityToProduce = $rec->quantity + $quantityProduced;
 
+
         // Извличаме информацията за ресурсите в рецептата за двете количества
-        $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, dt::now());
+        $bomInfo1 = array();
+        if($quantityProduced){
+            $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, dt::now());
+        }
         $bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, dt::now());
 
         // За всеки ресурс
@@ -875,6 +910,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $uomRec = cat_UoM::fetch($dRec->packagingId, 'roundSignificant,round');
             $dRec->quantity = core_Math::roundNumber($roundQuantity, $uomRec->round, $uomRec->roundSignificant);
+            $dRec->quantity *= $dRec->quantityInPack;
             $dRec->quantityFromBom = $dRec->quantity;
 
             $pRec = cat_Products::fetch($resource->productId, 'measureId,canStore');
@@ -902,8 +938,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $details = $mvc->getDefaultDetails($rec);
         if(countR($details)) {
+            $consignmentProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($rec->threadId, false);
+
             foreach ($details as $dRec) {
                 $dRec->noteId = $rec->id;
+                $dRec->isOutsourced = array_key_exists($dRec->productId, $consignmentProducts) ? 'yes' : 'no';
 
                 // Склада за влагане се добавя само към складируемите артикули, които не са отпадъци
                 if (empty($dRec->storeId) && isset($rec->inputStoreId) && $dRec->_realData !== true) {
@@ -1002,6 +1041,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         if(haveRole('debug') && $rec->state != 'rejected'){
             $data->toolbar->addBtn('Зареди очакваното', array($mvc, 'fillNote', $rec->id, 'ret_url' => true), null, 'ef_icon = img/16/bug.png,title=Зареди очакваните количества,row=2');
         }
+
+        if (planning_ReturnNotes::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
+            $data->toolbar->addBtn('Връщане (отпадък)', array('planning_ReturnNotes', 'add', 'originId' => $rec->containerId, 'storeId' => $rec->storeId, 'ret_url' => true), null, 'ef_icon = img/16/produce_out.png,title=Връщане на отпадъци от протокола за производство');
+        }
     }
 
 
@@ -1051,6 +1094,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
         $form->setField('debitPrice', "unit=|*{$baseCurrencyCode} |без ДДС|*");
+
         $form->input();
 
         if (!haveRole('seePrice,ceo')) {
@@ -1058,7 +1102,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->method = 'GET';
                 $form->cmd = 'save';
             } else {
-                followRetUrl(null, 'Документът не може да бъде контиран, защото няма себестойност', 'error');
+                followRetUrl(null, '|Документът не може да бъде контиран, защото няма себестойност', 'error');
+            }
+        } else {
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('planning_Tasks')){
+                if(isset($form->rec->debitPrice)) {
+                    $form->info = "<div class='formCustomInfo'>Себестойността на произвежданите по операции заготовки не може да бъде различна от '0'</div>";
+                    $form->setReadOnly('debitPrice');
+                }
             }
         }
 
@@ -1099,10 +1151,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Подготвяме детайлите на рецептата
         $dQuery = planning_DirectProductNoteDetails::getQuery();
-        $dQuery->where("#noteId = {$id}");
+        $dQuery->where("#noteId = {$id} AND #quantity != 0");
 
         $recsToSave = array();
-
         while ($dRec = $dQuery->fetch()) {
             $index = "{$dRec->productId}|{$dRec->type}";
             if (!array_key_exists($index, $recsToSave)) {
@@ -1143,7 +1194,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = static::fetchRec($rec);
 
         if (isset($rec->id)) {
-            $input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input'", 'id');
+            $input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes'", 'id');
             $pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'", 'id');
             if ($pop && !$input) {
 
@@ -1529,7 +1580,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         planning_DirectProductNoteDetails::delete("#noteId = {$rec->id}");
         static::on_AfterCreate($this, $rec);
 
-        followRetUrl(null, 'Записите са заредени от начало');
+        followRetUrl(null, '|Записите са заредени от начало');
     }
 
 

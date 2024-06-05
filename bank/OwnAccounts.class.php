@@ -441,6 +441,7 @@ class bank_OwnAccounts extends core_Master
         if (!$form->gotErrors()) {
             if (isset($rec->iban)) {
                 $accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
+
                 if (!$accountRec) {
                     $form->setDefault('bank', bglocal_Banks::getBankName($rec->iban));
                     $form->setDefault('bic', bglocal_Banks::getBankBic($rec->iban));
@@ -456,6 +457,7 @@ class bank_OwnAccounts extends core_Master
         
         if ($form->isSubmitted()) {
             $form->rec->_isSubmitted = true;
+
             if (empty($rec->bankAccountId)) {
                 $accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
                 
@@ -471,9 +473,15 @@ class bank_OwnAccounts extends core_Master
                 if (!empty($accountRec)) {
                     if ($accountRec->contragentId != $ourCompany->id || $accountRec->contragentCls != $ourCompany->classId) {
                         $form->setError('iban', 'Подаденият IBAN принадлежи на сметка на друга фирма');
-                        
                         return;
                     }
+                }
+            } else {
+
+                // Ако е редактиран IBAN проверява се дали новия не е вече добавен
+                if(bank_Accounts::fetch(array("#iban = '[#1#]' AND #id != {$rec->bankAccountId}", $rec->iban))){
+                    $form->setError('iban', 'Вече има наша сметка с този|* IBAN');
+                    return;
                 }
             }
             

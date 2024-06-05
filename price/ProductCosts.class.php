@@ -128,7 +128,7 @@ class price_ProductCosts extends core_Manager
         
         self::saveCalcedCosts($datetime);
         
-        return followRetUrl(null, 'Преизчислени са данните за последния час');
+        return followRetUrl(null, '|Преизчислени са данните за последния час');
     }
     
     

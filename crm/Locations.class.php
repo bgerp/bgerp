@@ -103,15 +103,21 @@ class crm_Locations extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'title, countryId, place, address, email, tel';
+    public $searchFields = 'title, countryId, place, address, email, tel, comment, specifics, features';
     
     
     /**
      * Записи за обновяване
      */
     protected $updatedRecs = array();
-    
-    
+
+
+    /**
+     * Локации за обновяване
+     */
+    protected $updateRouteKeywords = array();
+
+
     /**
      * Кой може да създава продажба за локацията
      */
@@ -427,6 +433,15 @@ class crm_Locations extends core_Master
         if (isset($rec->contragentCls, $rec->contragentId)) {
             cls::get($rec->contragentCls)->logWrite($rec->_logMsg, $rec->contragentId);
         }
+
+        // Записване на кои маршрути ще бъдат обновени ключовите думи
+        $rQuery = sales_Routes::getQuery();
+        $rQuery->where("#locationId = {$rec->id}");
+        $rQuery->show('id');
+        $routeIds = arr::extractValuesFromArray($rQuery->fetchAll(), 'id');
+        if(countR($routeIds)){
+            $mvc->updateRouteKeywords = $routeIds;
+        }
     }
     
     
@@ -494,7 +509,7 @@ class crm_Locations extends core_Master
             return new Redirect(array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $id));
         }
         
-        followRetUrl(null, 'Нямате достъп  до папката');
+        followRetUrl(null, '|Нямате достъп  до папката');
     }
     
     
@@ -710,8 +725,7 @@ class crm_Locations extends core_Master
         $string = trim($string, ',  ');
 
         if($showFeatures && !empty($rec->features)){
-            $features = core_Type::getByName('keylist(mvc=trans_Features,select=name)')->toVerbal($rec->features);
-            $string .= "; {$features}";
+            $string .= "; " . trans_Features::getVerbalFeatures($rec->features, $transliterate);
         }
 
         if(!empty($rec->specifics)){
@@ -800,6 +814,12 @@ class crm_Locations extends core_Master
         if (!empty($mvc->updatedRecs)) {
             foreach ((array) $mvc->updatedRecs as $id => $rec) {
                 $mvc->updateRoutingRules($rec);
+            }
+        }
+
+        if (!empty($mvc->updateRouteKeywords)) {
+            foreach ($mvc->updateRouteKeywords as $routeId) {
+                plg_Search::forceUpdateKeywords('sales_Routes', $routeId);
             }
         }
     }

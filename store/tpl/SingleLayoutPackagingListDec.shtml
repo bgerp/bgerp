@@ -37,7 +37,7 @@
                     </table>
                     <!--ET_END MISC_BLOCK-->
                 </td>
-                <td class="cell custom-header-bg" style='width:35%;'><b>Supplier</b></td>
+                <td class="cell custom-header-bg" style='width:35%;'><b>|Supplier|*</b></td>
             </tr>
             <tr>
                 <td class="cell">
@@ -80,7 +80,7 @@
     <table class="innerTable footer-notes paddingCells" style='width:100%'>
         <tbody>
             <tr>
-                <td class="topCell first vtop" style='width:50%'>
+                <td class="topCell first vtop" style='width:60%'>
                     <!--ET_BEGIN delivery_table-->
                     [#delivery_table#]
                      <table class='shipment-table' style='width: 100%'>
@@ -112,7 +112,7 @@
                         <!--ET_BEGIN deliveryAddressBlock-->
                         [#deliveryAddressBlock#]
                         <tr>
-                            <td class='quiet nowrap aright'>Delivery address:</td>
+                            <td class='quiet nowrap aright' style="width: 1%">Delivery address:</td>
                             <td>
                                  [#deliveryTo#] [#deliveryLocationAddress#]
                             </td>
@@ -120,20 +120,20 @@
                         <!--ET_END deliveryAddressBlock-->
                         <!--ET_BEGIN lineId-->
                         <tr>
-                            <td class='nowrap quiet aright'>Transport: </td>
+                            <td class='nowrap quiet aright' style="width: 1%">Transport: </td>
                             <td>[#lineId#]</td>
                         </tr>
                         <!--ET_END lineId-->
 
                          <!--ET_BEGIN lineForwarderId-->
                          <tr>
-                             <td class='nowrap quiet aright'>Forwarder: </td>
+                             <td class='nowrap quiet aright' style="width: 1%">Forwarder: </td>
                              <td>[#lineForwarderId#]</td>
                          </tr>
                          <!--ET_END lineForwarderId-->
                          <!--ET_BEGIN lineVehicleId-->
                          <tr>
-                             <td class='nowrap quiet aright'>Motor vehicle: </td>
+                             <td class='nowrap quiet aright' style="width: 1%">Motor vehicle: </td>
                              <td>[#lineVehicleId#]</td>
                          </tr>
                          <!--ET_END lineVehicleId-->
@@ -153,9 +153,9 @@
                          <!--ET_END deliveryTable-->
                          <tr>
                              <td colspan="2" >
-                                 <div>
-                                     <span class='half-col'>Total weight:&nbsp;[#weight#]</span>
-                                 </div>
+                                 <span class='half-col'>Total gross weight: [#weight#]</span>
+                                 <span class='half-col'>Total net weight: [#netWeight#]</span>
+                                 <span class='half-col'>Total packing weight: [#tareWeight#]</span>
                              </td>
                          </tr>
                          <!--ET_BEGIN logisticInfo-->
@@ -164,25 +164,27 @@
                          </tr>
                          <!--ET_END logisticInfo-->
                        </table>
+
+                        <hr>
+                        <!--ET_BEGIN InvoicesToDocuments-->
 					   <table>
-						<hr>
 							[#InvoicesToDocuments#]
 					   </table>
-
+                        <!--ET_END InvoicesToDocuments-->
                 </td>
                 <td>
-                    <table class='center' style='width:100%;'>
+                    <table class='centered' style="width:100%">
                         <tr>
                             <td class='centered' style='border-right:1px solid #999;width:50%;'>Received:</td>
-                            <td class='centered'>Created by:</td>
+                            <td class='centered'>Created by: [#USERNAME_SIGN_PAD#]</td>
                         </tr>
                         <tr>
-                            <td style='height:40px;border-right:1px solid #999'>&nbsp;</td>
-                            <td></td>
+                            <td style='height:40px;border-right:1px solid #999'></td>
+                            <td>[#USERNAME_SIGN#]</td>
                         </tr>
                         <tr>
-                            <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                            <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
+                            <td class='centered' style='border-right:1px solid #999'> <span class="sign_names">[#responsible#]</span></td>
+                            <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
                         </tr>
                     </table>
                 </td>

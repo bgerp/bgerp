@@ -210,7 +210,7 @@ class core_App
                 
                 if ((countR($vUrl) - $id) % 2 || floor($prm) > 0) {
                     if (!isset($q['id']) && !$name) {
-                        $q['id'] = decodeUrl($prm);
+                        $q['id'] = urldecode($prm);
                     } else {
                         if ($name) {
                             $q[$name] = $prm;
@@ -431,6 +431,19 @@ class core_App
      */
     public static function checkHitStatus()
     {
+        if (!defined('DEBUG_CHECK_HIT_STATUS') || (DEBUG_CHECK_HIT_STATUS !== true)) {
+
+            return ;
+        }
+
+        // Предпазване от много репортвания в един хит
+        static $isReported = false;
+        if ($isReported) {
+
+            return ;
+        }
+        $isReported = true;
+
         $memUsagePercentLimit = 80;
         $executionTimePercentLimit = 70;
         $dbTimePercentLimit = 50;
@@ -445,7 +458,9 @@ class core_App
 
             // Ако сме доближили до ограничението на паметта
             if ($peakMemUsagePercent > $memUsagePercentLimit) {
-                wp();
+                wp('Доближено е до пиковото ограничение на паметта', $peakMemUsagePercent, $memUsagePercentLimit);
+
+                return ;
             }
         }
         
@@ -455,7 +470,9 @@ class core_App
             
             // Ако сме доближили до ограничението на паметта
             if ($memUsagePercent > $memUsagePercentLimit) {
-                wp();
+                wp('Доближено е до ограничението на паметта', $memUsagePercent, $memUsagePercentLimit);
+
+                return ;
             }
         }
         
@@ -468,7 +485,9 @@ class core_App
                 
                 // Ако сме доближили до ограничението за времето
                 if ($maxExecutionTimePercent > $executionTimePercentLimit) {
-                    wp();
+                    wp('Доближено е до ограничението за времето', $maxExecutionTimePercent, $executionTimePercentLimit);
+
+                    return ;
                 }
 
                 $qTime = core_Debug::getWorkingTime('DB::query()');
@@ -478,6 +497,8 @@ class core_App
                     if ($dbTimePercent >= $dbTimePercentLimit) {
                         if ($executionTime > 7) {
                             wp('Голям брой заявки, които минават бавно', (int) $dbTimePercent, $dbTimePercentLimit, $qTime, $executionTime);
+
+                            return ;
                         }
                     }
                 }
@@ -786,7 +807,7 @@ class core_App
             for ($i = $begin; $i < $cnt; $i += 2) {
                 $key = $arr[$i];
                 $value = $arr[$i + 1];
-                $value = decodeUrl($value);
+                $value = urldecode($value);
                 $key = explode(',', $key);
                 
                 if (countR($key) == 1) {
@@ -915,14 +936,14 @@ class core_App
         }
         
         if ($type === null) {
-            if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('BGERP_CURRENT_DOMAIN')) {
+            if (Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')
+                || Mode::is('printing') || Mode::is('exporting') || Mode::is('BGERP_CURRENT_DOMAIN')) {
                 $type = 'absolute';
             } else {
                 $type = 'relative';
             }
         }
-        
-        // TRUE == 'absolute', FALSE == 'relative'
+
         if ($type === true) {
             $type = 'absolute';
         } elseif ($type === false) {
@@ -1075,7 +1096,7 @@ class core_App
         }
         
         $pre = rtrim($pre, '/');
-        
+
         switch ($type) {
             case 'local':
                 $url = ltrim($pre . $urlQuery, '/');
@@ -1164,6 +1185,8 @@ class core_App
             } else {
                 if ($domain = Mode::get('BGERP_CURRENT_DOMAIN')) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
+                } elseif (defined('FORCE_BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
+                    $boot = $protocol . '://' . $auth . FORCE_BGERP_ABSOLUTE_HTTP_HOST . $dirName;
                 } elseif (core_Url::isValidTld($domain = $_SERVER['HTTP_HOST'])) {
                     $boot = $protocol . '://' . $auth . $domain . $dirName;
                 } elseif (defined('BGERP_ABSOLUTE_HTTP_HOST') && !$forceHttpHost) {
@@ -1190,7 +1213,7 @@ class core_App
         if (EF_APP_NAME_FIXED !== true && $addAppName) {
             $boot .= '/' . (Request::get('App') ? Request::get('App') : EF_APP_NAME);
         }
-        
+
         return $boot;
     }
     
@@ -1221,7 +1244,7 @@ class core_App
         }
 
         if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
-            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : (defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null)) + $repos;
+            $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : null) + $repos;
             $havePrivate = true;
         }
 

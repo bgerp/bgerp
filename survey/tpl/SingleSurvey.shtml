@@ -1,30 +1,12 @@
-[#SingleToolbar#]
-<div class='document survey-doc'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<h1 class='survey-title'>[#title#] <!--ET_BEGIN closed--><span id ='survey-closed'>- [#closed#]</span> <!--ET_END closed--></h1>
+    <!--ET_BEGIN prototypeId-->
+    <div><span class="shortDesc">|Базирано на|*</span>: [#prototypeId#]</div>
+    <!--ET_END prototypeId-->
+    <div ><hr> <span style="color: #666;" class="shortDesc">|Краен срок за гласуване|*:</span> [#enddate#]<hr></div>
 
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#HEADER_STATE#])</div>
-    </div>
-    <!--ET_END header-->
-
-    <h1 class='survey-title'>[#title#] <!--ET_BEGIN closed--><span id ='survey-closed'>- [#closed#]</span> <!--ET_END closed--></h1>
-
+    <!--ET_BEGIN description-->
     <div class='shortDesc'>[#description#]</div>
-    
-    [#PAGER#]
-    
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-    
-    [#PAGER#]
-    
-    [#ListToolbar#]
-
-    <div class="small" style="color: #666;"><hr> |Краен срок за гласуване|*: [#enddate#]</div>
-</div>
+    <!--ET_END description-->
+[#ListToolbar#]
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

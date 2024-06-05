@@ -79,8 +79,10 @@ class uiext_Labels extends core_Manager
         $this->FLD('docClassId', 'class(select=title,allowEmpty)', 'caption=Клас, mandatory,remember');
         $this->FLD('title', 'varchar', 'caption=Заглавие, mandatory');
         $this->FLD('color', 'color_Type()', 'caption=Фон, mandatory,tdClass=rightCol');
-        
+        $this->FLD('systemId', 'varchar', 'caption=Систем ид', 'input=none');
+
         $this->setDbUnique('docClassId,title');
+        $this->setDbUnique('systemId');
     }
     
     
@@ -236,7 +238,7 @@ class uiext_Labels extends core_Manager
      *
      * @return string - инпута за избор на тагове
      */
-    public static function renderLabel($masterClass, $masterId, $classId, $hash)
+    public static function renderLabel($masterClass, $masterId, $classId, $hash, $onlyInput = false)
     {
         $masterClass = cls::get($masterClass);
         $labels = self::getLabelOptions($classId);
@@ -269,11 +271,49 @@ class uiext_Labels extends core_Manager
             }
         }
         
-        if(!empty($input)){
-            $k = "{$masterClass->getClassId()}|{$masterId}|{$classId}|{$hash}";
+        if(!empty($input) && !$onlyInput){
+            $k = "{$masterClass->getClassId()}_{$masterId}_{$classId}_{$hash}";
             $input = "<span id='charge{$k}'>{$input}</span>";
         }
         
         return $input;
+    }
+
+
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    public function loadSetupData()
+    {
+        // Подготвяме пътя до файла с данните
+        $file = 'uiext/data/Labels.csv';
+
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => 'csv_docClassId',
+            1 => 'title',
+            2 => 'color',
+            3 => 'systemId',
+        );
+
+        // Импортираме данните от CSV файла.
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
+
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res = $cntObj->html;
+
+        return $res;
+    }
+
+
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        if (isset($rec->csv_docClassId)){
+            $rec->docClassId = cls::get($rec->csv_docClassId)->getClassId();
+        }
     }
 }

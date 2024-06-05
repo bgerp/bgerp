@@ -272,6 +272,7 @@ en,Ведомост,Payroll
 en,Великден,Easter
 en,Вербално ID,Verbal ID
 en,Версии,Versions
+en,Версия,Version
 en,Вече съществув_3488,There is already a record with the same data
 en,Вземи файла от _4ad6,Take the file from this URL
 en,Вземи,Take
@@ -280,7 +281,7 @@ en,Вид,Type
 en,Видимост,Visibility
 en,Видове дейности,Types of activities
 en,Видове палети,Types of pallets
-en,Видян документ,Read document
+en,Видян документ,Seen document
 en,Видян на,Seen at
 en,Виждане,Seeing
 en,Виждания,Views
@@ -525,6 +526,8 @@ en,Добавяне на оп_42af5,Add packaging for
 en,Добавяне на файл(ове),Add file(s)
 en,Добавяне на файлове/документи,Add files/documents
 en,Добавяне на,Add new
+en,Добавяне на линия,Add line
+en,Добавяне на линк,Add link
 en,Договор,Contract
 en,договор,contract
 en,Договори за по_be298,Purchase contracts
@@ -1447,6 +1450,7 @@ en,Подпапка,Subfolder
 en,Подпис за изхо_85f04,Signature for outgoing emails
 en,Подпис,Signature
 en,Подразделение,Subdivision
+en,Подравняване на текста,Text align
 en,Подредба на те_1a2fe,Themes ordering
 en,Подредба,Order
 en,Подреждане,Ordering
@@ -2463,8 +2467,8 @@ en,юни,June
 en,януари,January
 bg,Reset,Нулиране
 bg,Export CSV,Експорт CSV
-en,по проформа,from pro forma
-en,по фактура,from invoice
+en,по проформа,based on pro forma
+en,по фактура,based on invoice
 en,Словом,Say words
 en,Папка към,Folder for
 en,Създаване на папка за документи към,Create folder for documents for
@@ -2500,7 +2504,7 @@ en,с включено ДДС, with applied VAT
 en,До 1 месец след фактуриране, Until 1 month after invoicing
 en,50% авансово и 50% до 30 дни след фактуриране, 50% downpayment and 50% until 30 days after invoicing
 en,50% авансово и 50% до 10 дни след фактуриране, 50% downpayment and 50% until 10 days after invoicing
-en,По проформа,From pro forma
+en,По проформа,Based on pro forma
 en,Срок за д-ка,Delivery time
 en,Срок за доставка,Delivery time
 en,Чакащо плащане,Expected payment
@@ -2831,6 +2835,7 @@ en,Връзка между ЕН-то и палетния склад,Link between
 en,Модел,Model
 en,Въведете IP адреса на устройството,Please input IP address of device
 en,До два месеца след фактуриране,Until 2 months after invoicing
+en,До 2 месеца след фактуриране,Until 2 months after invoicing
 en,Направете поръчка,Place order
 en,"Печелите безплатна доставка, защото поръчката ви надвишава","You win free shipping, because your order is above"
 en,"Безплатна доставка, съгласно ""Общите условия""","Free shipping under the ""Terms of Service"""
@@ -3017,4 +3022,44 @@ en,Нов ред,New line
 en,Ограждане,Enclosure
 en,Цена без ДДС,Price without VAT
 en,Напишете поне две имена разделени с интервал,Write at least two names separated by a space
-en,Продадени с фактура,Sold with invoice,
+en,Продадени с фактура,Sold with invoice
+en,До 45 дни след фактуриране,Until 45 days after invoicing
+en,"Имате създадени, но неактивирани документи", "There are created documents, which haven't been activated"
+en,Днес,Today
+en,Вчера,Yesterday
+en,Утре,Tomorrow
+en,Вдругиден,The day after
+en,Завчера,The day before
+en,Тази седмица,This week
+en,Миналата седмица,Last week
+en,Следващата седмица,Next week
+en,Този месец,This month
+en,Миналият месец,Last month
+en,Следващият месец,Next month
+en,Тази година,This year
+en,Миналата година,Last year
+en,Следващата година,Next year
+en,Последните,Last
+en,Следващите,Next
+en,Друг период,Custom period
+en,Постави преди,Place before
+en,Постави след,Place after
+en,Алергени,Allergens
+en,Актуален към,Up to date
+en,Вземи списък от,List of
+en,Закрит,Closed
+en,Данните не са актуални,The data is not up to date
+en,Отст.,Discount
+en,Неутрална доставка,Neutral delivery
+en,Камион с падащ борд,Tail lift truck
+en,Хладилен камион,Refrigerator truck
+en,Малък камион (под 3.5 т),Small truck (under 3.5 t)
+en,Транспалетна количка,Pallet truck
+en,Авизо преди доставка,Notification before delivery
+en,Място на доставка,Delivery place
+en,Без тарифен код,No HS code
+en,Пор.,Req.
+en,"Към фактура/известие","To Invoice/Note No."
+en,"Разлики от закръгляне","Rounding differences"
+en,Устройства,Devices
+en,УНП,USN

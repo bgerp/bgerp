@@ -30,9 +30,10 @@ class support_TaskType extends core_Mvc
     {
         $fieldset->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, silent, after=title');
         $fieldset->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
-        
-        $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none, silent');
-        $fieldset->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input=none, silent');
+
+        $fieldset->FLD('issueTemplateId', 'key(mvc=planning_AssetGroupIssueTemplates,select=string,allowEmpty)', 'caption=Готов сигнал,input=none,before=description,changable');
+        $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, input=none, silent');
+        $fieldset->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, input=none, silent');
         $fieldset->FLD('url', 'varchar(500)', 'caption=Данни за обратна връзка->URL, input=none');
         $fieldset->FLD('ip', 'ip', 'caption=Ип,input=none');
         $fieldset->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
@@ -91,15 +92,33 @@ class support_TaskType extends core_Mvc
         $form->setField('systemId', 'input=hidden');
         $form->setField('typeId', 'input');
         $form->setField('assetResourceId', 'input=none');
-        if (!haveRole('user')) {
-            $form->setField('name', 'input');
-            $form->setField('email', 'input');
-        }
-        
+
         $form->setField('url', 'input=hidden, silent');
-        
+
         $systemId = Request::get('systemId', 'int');
-        
+        if (!$systemId) {
+            $systemId = $form->rec->systemId;
+        }
+
+        expect($systemId);
+
+        $sRec = support_Systems::fetch($systemId);
+        if (!haveRole('user')) {
+            expect($sRec->addFromEveryOne == 'yes', $sRec);
+        }
+
+        if (!haveRole('user')) {
+            if ($sRec->addContragentValues != 'no') {
+                $form->setField('name', 'input');
+                $form->setField('email', 'input');
+
+                if ($sRec->addContragentValues == 'mandatory') {
+                    $form->setField('name', 'mandatory');
+                    $form->setField('email', 'mandatory');
+                }
+            }
+        }
+
         $allowedTypesArr = support_Systems::getAllowedFieldsArr($systemId);
         
         $atOpt = array();
@@ -127,6 +146,19 @@ class support_TaskType extends core_Mvc
         $sRec = support_Systems::fetch($systemId);
         if ($sRec->defaultType) {
             $form->setDefault('typeId', $sRec->defaultType);
+            if (!isset($atOpt[$sRec->defaultType])) {
+                $form->setDefault('typeId', key($atOpt));
+            }
+        }
+
+        if (!haveRole('user')) {
+            if (countr((array)$atOpt) == 1) {
+                $form->setField('typeId', 'input=hidden');
+            }
+        }
+
+        if ($sRec->defaultTitle) {
+            $form->title = $sRec->defaultTitle;
         }
     }
     
@@ -244,6 +276,20 @@ class support_TaskType extends core_Mvc
 
 
     /**
+     * След изпращане на формата
+     */
+    protected static function on_AfterInputEditForm($Driver, embed_Manager $Embedder, &$form)
+    {
+        $rec = &$form->rec;
+        if($form->isSubmitted()){
+            if(empty($rec->assetResourceId) && $rec->_assetsAllowed){
+                $form->setWarning('assetResourceId', 'За по-бърза обработка на сигнала, моля изберете "Ресурс"!');
+            }
+        }
+    }
+
+
+    /**
      *
      *
      * @param support_TaskType $Driver
@@ -253,15 +299,18 @@ class support_TaskType extends core_Mvc
      */
     public static function on_AfterPrepareEditForm($Driver, $mvc, &$res, $data)
     {
-        $data->form->setField('assetResourceId', 'after=typeId');
+        $form = &$data->form;
+        $rec = &$form->rec;
+        $form->setField('assetResourceId', 'after=typeId,removeAndRefreshForm=issueTemplateId');
+        $form->input(null, 'silent');
 
-        $data->form->setField('title', array('mandatory' => false));
-        $rec = $data->form->rec;
-        
+        $form->setField('title', array('mandatory' => false));
+
+        $form->setField('parentId', 'changable=no');
         $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
         
-        if (!$systemId && $data->form->rec->folderId) {
-            $coverClassRec = doc_Folders::fetch($data->form->rec->folderId);
+        if (!$systemId && $rec->folderId) {
+            $coverClassRec = doc_Folders::fetch($rec->folderId);
             
             if ($coverClassRec->coverClass && (cls::get($coverClassRec->coverClass) instanceof support_Systems)) {
                 $systemId = $coverClassRec->coverId;
@@ -292,8 +341,8 @@ class support_TaskType extends core_Mvc
                 
                 $allowedTypesArr = support_Systems::getAllowedFieldsArr($allSystemsArr);
                 
-                if ($data->form->rec->typeId) {
-                    $allowedTypesArr[$data->form->rec->typeId] = $data->form->rec->typeId;
+                if ($rec->typeId) {
+                    $allowedTypesArr[$rec->typeId] = $rec->typeId;
                 }
                 
                 foreach ($allowedTypesArr as $allowedType) {
@@ -305,15 +354,15 @@ class support_TaskType extends core_Mvc
                 $typesArr = array_unique($typesArr);
                 asort($typesArr);
             }
-            
-            $data->form->setOptions('typeId', $typesArr);
-            
+
+            $form->setOptions('typeId', $typesArr);
+
             // Типа по подразбиране
-            if (!$data->form->rec->id) {
+            if (!$rec->id) {
                 $sysRec = support_Systems::fetch($systemId);
                 $defTypeId = $sysRec->defaultType;
                 if ($defTypeId && $typesArr[$defTypeId]) {
-                    $data->form->setDefault('typeId', $defTypeId);
+                    $form->setDefault('typeId', $defTypeId);
                 }
             }
         }
@@ -338,33 +387,42 @@ class support_TaskType extends core_Mvc
             $aUsersQuery->in('id', array_keys($assetResArr));
             $aUsersQuery->likeKeylist('assetUsers', core_Users::getCurrent());
             $aUsersQuery->show('id');
-            while ($rec = $aUsersQuery->fetch()) {
-                if (!$assetResArr[$rec->id]) continue;
+            while ($aRec = $aUsersQuery->fetch()) {
+                if (!$assetResArr[$aRec->id]) continue;
                 $opt = new stdClass();
-                $opt->title = $assetResArr[$rec->id];
+                $opt->title = $assetResArr[$aRec->id];
                 $opt->attr = array('class' => 'boldText');
-                $assetResArr[$rec->id] = $opt;
+                $assetResArr[$aRec->id] = $opt;
             }
 
-            $data->form->setOptions('assetResourceId', $assetResArr);
+            $form->setOptions('assetResourceId', $assetResArr);
 
-            $data->form->setField('assetResourceId', 'input=input');
+            $form->setField('assetResourceId', 'input=input');
+            $rec->_assetsAllowed = true;
         } else {
-            $data->form->setField('assetResourceId', 'input=none');
+            $form->setField('assetResourceId', 'input=none');
+            $rec->_assetsAllowed = false;
         }
 
-        if (($srcId = $data->form->rec->SrcId) && ($srcClass = $data->form->rec->SrcClass)) {
+        if (($srcId = $rec->SrcId) && ($srcClass = $rec->SrcClass)) {
             if (cls::haveInterface('support_IssueCreateIntf', $srcClass)) {
                 $srcInst = cls::getInterface('support_IssueCreateIntf', $srcClass);
-                
                 $defaults = (array) $srcInst->getDefaultIssueRec($srcId);
-                $data->form->setDefaults($defaults);
+                $form->setDefaults($defaults);
             }
         }
-        
-        $data->form->setField('timeStart', 'autohide');
-        $data->form->setField('timeDuration', 'autohide');
-        $data->form->setField('timeEnd', 'autohide');
+
+        $form->setField('timeStart', 'autohide');
+        $form->setField('timeDuration', 'autohide');
+        $form->setField('timeEnd', 'autohide');
+
+        if(isset($rec->assetResourceId)){
+            $issueOptions = planning_AssetGroupIssueTemplates::getAvailableIssues($rec->assetResourceId, $rec->issueTemplateId);
+            if(countR($issueOptions)){
+                $form->setField('issueTemplateId', 'input');
+                $form->setOptions('issueTemplateId', $issueOptions);
+            }
+        }
     }
 
     
@@ -438,6 +496,13 @@ class support_TaskType extends core_Mvc
         if ($rec->SrcId && $rec->SrcClass && cls::haveInterface('support_IssueCreateIntf', $rec->SrcClass)) {
             $srcInst = cls::getInterface('support_IssueCreateIntf', $rec->SrcClass);
             $srcInst->afterCreateIssue($rec->SrcId, $rec);
+        }
+
+        // Промяна кога е последно използван готовия сигнал
+        if(isset($rec->issueTemplateId)){
+            $iRec = planning_AssetGroupIssueTemplates::fetch($rec->issueTemplateId);
+            $iRec->lastUsedOn = dt::now();
+            planning_AssetGroupIssueTemplates::save($iRec, 'lastUsedOn');
         }
     }
     
@@ -581,6 +646,14 @@ class support_TaskType extends core_Mvc
                 'ret_url' => true
             ), 'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");');
         }
+
+        $data->toolbar->setBtnAttr("btnSubTask_{$data->rec->containerId}", 'row', 2);
+        $data->toolbar->setBtnAttr("btnClose_{$data->rec->containerId}", 'row', 2);
+        $data->toolbar->setBtnAttr("btnComment_{$data->rec->id}", 'row', 2);
+
+        if(planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
+            $data->toolbar->addBtn('Влагане', array('planning_ConsumptionNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/produce_in.png,title=Създаване на протокол за влагане към сигнала');
+        }
     }
     
     
@@ -604,6 +677,84 @@ class support_TaskType extends core_Mvc
                 unset($form->rec->folderId);
                 $form->setDefault('folderId', key($optArr));
             }
+        }
+    }
+
+
+    /**
+     * Подготовка на сигналите към дадено оборудване
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    public static function prepareAssetSupport($data)
+    {
+        $data->TabCaption = tr('Сигнал');
+
+        // Подготовка на данните
+        $data->listFields = arr::make("hnd=Сигнал,title=Заглавие,progress=Прогрес,folderId=Папка", true);
+        $Tasks = cls::get('cal_Tasks');
+        $data->recs = $data->rows = array();
+        $me = cls::get(get_called_class());
+        $query = $Tasks->getQuery();
+        $query->where("#driverClass = {$me->getClassId()} AND #state != 'rejected'");
+        $query->where("#assetResourceId = {$data->masterId}");
+        $query->orderBy('createdOn=DESC,id=DESC');
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
+        $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
+        $data->Pager->setLimit($query);
+
+        // Вербализиране
+        $fields = $Tasks->selectFields();
+        $fields['-list'] = true;
+        while($rec = $query->fetch()){
+            $data->recs[$rec->id] = $rec;
+            $row = cal_Tasks::recToVerbal($rec, $fields);
+            $row->hnd = $Tasks->getLink($rec->id, 0);
+            $row->title = $Tasks->getVerbal($rec, 'title');
+            $data->rows[$rec->id] = $row;
+        }
+    }
+
+
+    /**
+     * Рендиране на сигналите към дадено оборудване
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public static function renderAssetSupport($data)
+    {
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+
+        $Tasks = cls::get('cal_Tasks');
+        $table = cls::get('core_TableView', array('mvc' => clone $Tasks));
+        $Tasks->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $tableTpl = $table->get($data->rows, $data->listFields);
+        if (isset($data->Pager)) {
+            $tpl->append($data->Pager->getHtml(), 'content');
+        }
+
+        $tpl->append($tableTpl, 'content');
+        $tpl->append(tr("Сигнали към оборудването"), 'title');
+
+        return $tpl;
+    }
+
+
+    /**
+     * След вербализирането на данните
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param stdClass          $row
+     * @param stdClass          $rec
+     * @param array             $fields
+     */
+    protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
+    {
+        if(!empty($rec->issueTemplateId)){
+            $row->description = "{$row->issueTemplateId}</br>{$row->description}" ;
         }
     }
 }

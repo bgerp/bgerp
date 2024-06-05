@@ -105,6 +105,26 @@ class sens2_script_DefinedVars extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+        $form = $data->form;
+
+        $query = $mvc->getQuery();
+        $vars = $skip = array();
+        while($rec = $query->fetch("#scope = 'global'")) {
+            $vars[$rec->name] = true;
+            if($rec->scriptId == $data->masterRec->id) {
+                $skip[$rec->name] = true;
+            }
+        }
+        $suggestions = array('' => '');
+        foreach($vars as $name => $true) {
+            if(!$kip[$name]) {
+                $suggestions[$name] = $name;
+            }
+        }
+        
+        if(count($suggestions) > 1) {
+            $form->setSuggestions('name', $suggestions);
+        }
     }
     
     
@@ -113,6 +133,11 @@ class sens2_script_DefinedVars extends core_Detail
      */
     public function on_AfterInputEditForm($mvc, $form)
     {
+        $rec = $form->rec;
+
+        if($rec->scope == 'local' && $mvc->fetch(array("#name = '[#1#]' AND #scope = 'global'", $rec->name))) {
+            $form->setWarning('name', 'Има и глобална променлива със същото име');
+        }
     }
     
     

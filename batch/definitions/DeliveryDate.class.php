@@ -41,7 +41,8 @@ class batch_definitions_DeliveryDate extends batch_definitions_Date
         expect($dRec = $Class->fetchRec($id));
         
         if ($Class instanceof purchase_Purchases || $Class instanceof store_Receipts) {
-            setIfNot($date, $dRec->{$Class->valiorFld}, dt::today());
+            $valiorFld = isset($Class->valiorFld) ? $dRec->{$Class->valiorFld} : null;
+            setIfNot($date, $valiorFld, dt::today());
             $date = dt::mysql2verbal($date, $this->rec->format);
             
             return $date;

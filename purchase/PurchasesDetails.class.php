@@ -10,7 +10,7 @@
  * @package   purchase
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -90,9 +90,15 @@ class purchase_PurchasesDetails extends deals_DealDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
-    
-    
+    public $listFields = 'productId, packagingId, packQuantity=К-во, packPrice, discount=Отст., amount';
+
+
+    /**
+     * Полета за скриване/показване от шаблоните
+     */
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=К-во,packPrice=Цена,discount=Отст.,amount=Сума';
+
+
     /**
      * Активен таб
      */
@@ -140,12 +146,23 @@ class purchase_PurchasesDetails extends deals_DealDetail
 
 
     /**
+     * Дали се позволява да се въвежда цена за к-то
+     */
+    public $allowInputPriceForQuantity = true;
+
+
+    /**
+     * Дали при импорт да се обединяват редовете с еднакви стойности
+     */
+    public $combineSameRecsWhenImport = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('requestId', 'key(mvc=purchase_Purchases)', 'column=none,notNull,silent,hidden,mandatory');
-        
         $this->setDbIndex('requestId');
 
         parent::getDealDetailFields($this);
@@ -157,6 +174,12 @@ class purchase_PurchasesDetails extends deals_DealDetail
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
+        $rec = $form->rec;
+        $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+        if (isset($rec->productId)) {
+            $form->info = purchase_PurchasesData::getLastPurchaseFormInfo($rec->productId, $masterRec->valior, $masterRec->chargeVat, $masterRec->currencyRate, $masterRec->currencyId);
+        }
+
         parent::inputDocForm($mvc, $form);
     }
     
@@ -181,5 +204,41 @@ class purchase_PurchasesDetails extends deals_DealDetail
                 $requiredRoles = 'no_one';
             }
         }
+    }
+
+
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    protected static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        $data->showCodeColumn = purchase_Setup::get('SHOW_CODE_IN_SEPARATE_COLUMN') == 'yes';
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $rows = &$data->rows;
+
+        if (!countR($data->recs)) return;
+        $masterRec = $data->masterData->rec;
+
+        foreach ($rows as $id => $row) {
+            $rec = $data->recs[$id];
+
+            $row->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди клониране на детайла
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        $rec->discount = $oldRec->inputDiscount;
     }
 }

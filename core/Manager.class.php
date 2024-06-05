@@ -127,7 +127,38 @@ class core_Manager extends core_Mvc
         parent::init($params);
         $this->declareInterface('core_ManagerIntf');
     }
-    
+
+
+    /**
+     * Помощна функция, която форсира използване на друга БД
+     *
+     * @param string $clsName
+     *
+     * @return void
+     */
+    public function forceProxy($clsName)
+    {
+        $DC = cls::get($clsName);
+
+        $this->fields = $DC->fields;
+        $this->dbTableName = $DC->dbTableName;
+        $this->dbIndexes = $DC->dbIndexes;
+        if (defined('SEARCH_DB_HOST')) {
+            $error = core_App::isReplicationOK();
+            if (!empty($error)) {
+                if (rand(1, 100)%99 == 0) {
+                    $this->logNotice($error);
+                    // todo: да праща signal msg на админа
+                }
+            } else {
+                $this->db->dbName = SEARCH_DB_NAME;
+                $this->db->dbPass = SEARCH_DB_PASS;
+                $this->db->dbUser = SEARCH_DB_USER;
+                $this->db->dbHost = SEARCH_DB_HOST;
+            }
+        }
+    }
+
     
     /**
      * Връща линк към подадения обект
@@ -885,7 +916,7 @@ class core_Manager extends core_Mvc
     {
         setIfNot($data->listTableMvc, $this);
         setIfNot($data->listTableHideHeaders, $this->listTableHideHeaders);
-        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders));
+        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders, 'tableId' => $data->listTableId));
         
         if ($data->action == 'list') {
             $table->tableClass = 'listTable listAction';
@@ -899,6 +930,9 @@ class core_Manager extends core_Mvc
             $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->hideListFieldsIfEmpty);
         }
         
+        // Инвоукване на ивент, който да се изпълнява след като са минали всички ивенти `beforeRenderListTable`
+        $this->invoke('rightBeforeRenderListTable', array(&$data, &$data));
+
         // Рендираме таблицата
         $tpl = $table->get($data->rows, $data->listFields);
         

@@ -666,9 +666,14 @@ class html2text_Converter
             case 'ftp':
             case 'ftps':
                 if (stripos($display, trim($path)) === false) {
-                    $this->_link_count++;
-                    $this->_link_list .= '[' . $this->_link_count . "] ${link} {$alert}\n";
-                    $additional = " [link={$link}][" . $this->_link_count . "][/link]{$alert}";
+                    if (html2text_Setup::get('BUILD_LINK_COUNTER')) {
+                        $this->_link_count++;
+                        $this->_link_list .= '[' . $this->_link_count . "] ${link} {$alert}\n";
+                        $additional = " [link={$link}][" . $this->_link_count . "][/link]{$alert}";
+                    } else {
+                        $additional = " [link={$link}]" . $display . "[/link]{$alert}";
+                        $display = '';
+                    }
                 } else {
                     $additional = '';
                 }

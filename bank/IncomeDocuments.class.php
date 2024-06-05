@@ -84,7 +84,7 @@ class bank_IncomeDocuments extends bank_Document
     /**
      * Права за плъгин-а bgerp_plg_Export
      */
-    public $canExport = 'ceo, invoicer';
+    public $canExport = 'ceo, invoicerSale, invoicerPurchase, invoicerFindeal';
 
 
     /**
@@ -112,6 +112,7 @@ class bank_IncomeDocuments extends bank_Document
         expect($origin = $mvc->getOrigin($form->rec), $form->rec);
 
         $accountOptions = $mvc->getOwnAccountOptions($form->rec->ownAccount);
+        $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$accountOptions));
         $form->setOptions('ownAccount', $accountOptions);
         $options = array();
         $mvc->setDefaultsFromOrigin($origin, $form, $options);

@@ -49,26 +49,30 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         
         // Вземаме съдържанието на таба за HTML
         $htmlPart = static::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path']);
-        
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+
         // Подготвяме табовете
-        
         if (trim($htmlPart)) {
             // Таб за информация
             $tabsArr['html'] = (object)
             array(
                 'title' => 'HTML',
-                'html' => $htmlPart,
+                'html' => $prevLink . $nextLink . $htmlPart,
                 'order' => 3,
             );
         }
-        
+
         $tPart = strip_tags($textPart);
         if (trim($tPart)) {
             // Таб за текстовата част
             $tabsArr['text'] = (object)
             array(
                 'title' => 'Текст',
-                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Текст') . "</div><div class='webdrvFieldset'>{$textPart}</div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$textPart}</div></div>",
                 'order' => 4,
             );
         }

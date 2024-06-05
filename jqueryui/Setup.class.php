@@ -50,7 +50,7 @@ class jqueryui_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'JQUERYUI_VERSION' => array('enum(1.8.2, 1.11.3, 1.12.1)', 'caption=Версия на JQueryUI->Версия'),
+        'JQUERYUI_VERSION' => array('enum(1.8.2, 1.11.3, 1.12.1, 1.13.3)', 'caption=Версия на JQueryUI->Версия'),
         'JQUERYUI_CDN_URL' => array('url', 'caption=Зареждане от CDN->Url'),
         'JQUERYUI_CDN_INTEGRITY' => array('varchar(64)', 'caption=Зареждане от CDN->Integrity'),
     );

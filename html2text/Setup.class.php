@@ -2,6 +2,12 @@
 
 
 /**
+ * Брояч на линковете
+ */
+defIfNot('HTML2TEXT_BUILD_LINK_COUNTER', true);
+
+
+/**
  * Клас 'html2text_Setup'
  *
  * Исталиране/деинсталиране на Apachetika

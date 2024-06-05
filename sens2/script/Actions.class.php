@@ -36,7 +36,7 @@ class sens2_script_Actions extends core_Detail
     /**
      * Права за писане
      */
-    public $canWrite = 'ceo,sens,admin';
+    public $canWrite = 'sensMaster';
     
     
     /**
@@ -48,7 +48,7 @@ class sens2_script_Actions extends core_Detail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'debug';
+    public $canDelete = 'sensMaster';
     
     
     /**
@@ -90,8 +90,8 @@ class sens2_script_Actions extends core_Detail
         $this->FLD('scriptId', 'key(mvc=sens2_Scripts,title=name)', 'caption=Блок,column=none,silent,oldFieldName=logicId');
         $this->FLD('action', 'class(interface=sens2_script_ActionIntf, select=title, allowEmpty)', 'caption=Действие,mandatory,silent,refreshForm');
         $this->FLD('state', 'enum(active,closed,stopped)', 'caption=Състояние,input=none');
-        
         $this->FLD('data', 'blob(serialize)', 'caption=Данни,input=none');
+        $this->FLD('comment', 'varchar(128)', 'caption=Допълнително->Коментар,after=minNotifyTime,cond');
     }
     
     
@@ -150,7 +150,9 @@ class sens2_script_Actions extends core_Detail
         }
     }
     
-    
+    /**
+     * Посреждане
+     */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#order', 'ASC');
@@ -163,8 +165,19 @@ class sens2_script_Actions extends core_Detail
             $action = cls::get($rec->action);
             
             $rec->data->scriptId = $rec->scriptId;
+
+            if(isset($rec->data->cond) && $rec->data->cond == '[go]') {
+                $rec->data->cond = '';
+                $go =  '<span style="padding-left:10px;">' . ht::createBtn('Run', array('sens2_Scripts', 'Run', $rec->scriptId, 'startId' => $rec->order), 'Наистина ли искате да стартирате действието?') . '</span>';
+            } else {
+                $go = '';
+            }
             
-            $row->action = "<div style='font-family: Courier New,monospace !important; font-size:0.8em;'>" . $action->toVerbal($rec->data) . '</div>';
+            $row->action = "<div style='font-family: Courier New,monospace !important; font-size:0.8em;'>" . $action->toVerbal($rec->data) . $go . '</div>';
+            
+            if(isset($rec->comment) && strlen($rec->comment)) {
+                $row->action .= "<div style='padding-top:4px;font-size:0.9em;color:#696'>" . $mvc->getVerbal($rec, 'comment') . "</div>";
+            }
         }
 
         if(Request::get('order') == $rec->order) {
@@ -180,6 +193,11 @@ class sens2_script_Actions extends core_Detail
     {
         $query = self::getQuery();
         $query->orderBy('#order', 'ASC');
+        if($startId = Request::get('startId', 'int')) {
+            $query->where("#order = {$startId}");
+        } else {
+            $startId = 0;
+        }
         while ($rec = $query->fetch("#scriptId = {$scriptId}")) {
             
             if (!cls::load($rec->action, TRUE)) {
@@ -192,6 +210,13 @@ class sens2_script_Actions extends core_Detail
             $action = cls::get($rec->action);
             $rec->data->scriptId = $rec->scriptId;
             $exState = $rec->state;
+            // Ако изпълняваме точно този ред
+            if($startId == $rec->order && isset($rec->data->cond)) {
+                $rec->data->cond = '1 == 1';
+            }
+            if(isset($rec->data->cond) && $rec->data->cond == '[go]') {
+                $rec->data->cond = '1 != 1';
+            }
             $rec->state = $action->run($rec->data);
             if ($rec->state != $exState) {
                 self::save($rec, 'state');

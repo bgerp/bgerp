@@ -26,7 +26,7 @@ class floor_Objects extends core_Detail {
    /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_SaveAndNew, plg_Sorting';
     
     
     /**
@@ -88,7 +88,7 @@ class floor_Objects extends core_Detail {
      */
     public function description()
     {
-        $this->FLD('planId', 'key(mvc=floor_Plans,select=name)', 'caption=План');
+        $this->FLD('planId', 'key(mvc=floor_Plans,select=name)', 'caption=План,column=none');
         $this->FLD('name', 'varchar(50)', 'caption=Наименование, mandatory,remember=info');
 
         $this->FLD('x', 'float(m=0,decimals=2)', 'caption=Позиция->X,unit=m');
@@ -105,9 +105,12 @@ class floor_Objects extends core_Detail {
         $this->FLD('backgroundColor', 'color_Type', 'caption=Фон->Цвят');
         $this->FLD('opacity', 'percent(min=0.0,max=1.0)', 'caption=Фон->Непрозрачност');
 
-        $this->FLD('text', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
+        $this->FLD('text', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,column=none');
+        
+        $this->FLD('sysName', 'varchar(50)', 'caption=Декориране->Сист. име,column=none');
+        $this->FLD('decorator', 'class(interface=floor_ObjectDecoratorIntf,select=title,allowEmpty)', 'caption=Декориране->Декоратор,column=none');
 
-        $this->setDbUnique('name');
+        $this->setDbUnique('planId, name');
     }
 
 
@@ -142,6 +145,18 @@ class floor_Objects extends core_Detail {
                 }
             }
          }
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('name');
     }
 
 

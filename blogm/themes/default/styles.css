@@ -149,3 +149,9 @@
 .blogm-browse-article {
   margin-bottom: 20px; }
 
+.blogArticleCategoryLink a {
+  color: #333333 !important; }
+  .blogArticleCategoryLink a:hover {
+    text-decoration: underline;
+    color: #333333 !important; }
+

@@ -50,17 +50,25 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             $defaultQuantity = $firstDoc->fetchField('plannedQuantity');
         }
 
-        $form->FLD("forQuantity", 'int', "input,caption=За количество,silent");
+        $form->FLD("forQuantity", 'double', "input,caption=За количество,silent");
+        $form->FLD("onlyInStock", 'enum(yes=Само наличните в склада Артикули,no=Всички Артикули от Рецептата)', "input,caption=Избор,silent,removeAndRefreshForm");
         $form->setDefault('forQuantity', $defaultQuantity);
-        $form->input('forQuantity', 'silent');
+        $form->input('forQuantity,onlyInStock', 'silent');
+
+        $defaultInStock = core_Permanent::get('onlyInStockBomImport');
+        $defaultInStock = $defaultInStock ?? 'yes';
+        $form->setDefault('onlyInStock', $defaultInStock);
 
         if($firstDoc->isInstanceOf('planning_Jobs')) {
+            $storeId = ($form->rec->onlyInStock == 'yes') ? $masterRec->storeId : null;
 
             // Ако е към задание ще се импортират материалите от заданието
-            $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $masterRec->storeId);
-            foreach ($details as $d1){
-                $d1->quantity /= $d1->quantityInPack;
+            $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $storeId, false);
+            foreach ($details as &$d1){
+                $uomRec = cat_UoM::fetch($d1->packagingId, 'roundSignificant,round');
+                $d1->quantity = core_Math::roundNumber($d1->quantity, $uomRec->round, $uomRec->roundSignificant);
             }
+
         } else {
             $details = array();
             $dQuery = planning_ProductionTaskProducts::getQuery();
@@ -93,6 +101,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             }
 
             $form->FLD($key, 'double(Min=0)', "input,caption={$dRec->caption}->К-во,unit={$shortUom}");
+
             $form->setDefault($key, $dRec->quantity);
             $rec->detailsDef[$key] = $dRec;
         }
@@ -158,8 +167,12 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
      */
     public function checkImportForm($mvc, core_FieldSet $form)
     {
+        $rec = &$form->rec;
         if ($form->isSubmitted()) {
-            $form->rec->importRecs = $this->getImportRecs($mvc, $form->rec);
+            $rec->importRecs = $this->getImportRecs($mvc, $rec);
+            if(!countR($rec->importRecs)){
+                $form->setError('onlyInStock', 'Няма налични артикули за импортиране');
+            }
         }
     }
     
@@ -189,7 +202,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
                 $bomId = cat_Products::getLastActiveBom($productId, 'production,sales');
                 if(empty($bomId)) return false;
 
-                $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
+                $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'));
                 if (!countR($details)) return false;
 
             } elseif($firstDoc->isInstanceOf('planning_Tasks')){
@@ -206,5 +219,20 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
         }
         
         return true;
+    }
+
+
+    /**
+     * Импортиране на детайла (@see import2_DriverIntf)
+     *
+     * @param object $rec
+     * @return void
+     */
+    public function doImport(core_Manager $mvc, $rec)
+    {
+        $res = parent::doImport($mvc, $rec);
+        core_Permanent::set('onlyInStockBomImport', $rec->onlyInStock, core_Permanent::FOREVER_VALUE);
+
+        return $res;
     }
 }

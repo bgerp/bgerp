@@ -117,14 +117,6 @@ abstract class bank_Document extends deals_PaymentDocument
 
 
     /**
-     * Дали към документа може да се отнася повече от една ф-ра
-     *
-     * @see deals_InvoicesToDocuments
-     */
-    public $canSelectOnlyOneInvoice = false;
-
-
-    /**
      * До потребители с кои роли може да се споделя документа
      *
      * @var string
@@ -221,7 +213,7 @@ abstract class bank_Document extends deals_PaymentDocument
     {
         // Може ли документа да се добави към нишката
         expect(doc_Threads::fetch($threadId), 'Невалиден тред');
-        expect(static::canAddToThread($threadId), 'Документа не може да бъде добавен в нишката');
+        expect(static::canAddToThread($threadId), 'Документът не може да бъде добавен в нишката');
         expect(isset($fields['operation']), 'Няма systemId на операция');
 
         $firstDoc = doc_Threads::getFirstDocument($threadId);
@@ -361,6 +353,11 @@ abstract class bank_Document extends deals_PaymentDocument
 
             $origin = $mvc->getOrigin($form->rec);
             $dealInfo = $origin->getAggregateDealInfo();
+
+            $warning = $mvc->getOperationWarning($rec->operationSysId, $dealInfo, $rec);
+            if($warning){
+                $form->setWarning('operationSysId', $warning);
+            }
 
             if (!cond_PaymentMethods::hasDownpayment($dealInfo->paymentMethodId)) {
                 if (stripos($rec->operationSysId, 'advance')) {
@@ -560,7 +557,7 @@ abstract class bank_Document extends deals_PaymentDocument
             }
 
             // Вземаме данните за нашата фирма
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
             }
@@ -600,8 +597,11 @@ abstract class bank_Document extends deals_PaymentDocument
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
         $form->setDefault('rate', $dealInfo->get('rate'));
-
         $exOptions = $form->getField('ownAccount')->options;
+        $allowedBankAccounts = null;
+        if(core_Packs::isInstalled('holding')){
+            $allowedBankAccounts = holding_Companies::getSelectedOptions('ownAccounts', $form->rec->{$this->ownCompanyFieldName});
+        }
 
         if (isset($form->rec->fromContainerId)) {
             $FromContainer = doc_Containers::getDocument($form->rec->fromContainerId);
@@ -612,7 +612,9 @@ abstract class bank_Document extends deals_PaymentDocument
                         $form->setDefault('contragentIban', $iban);
                     } else {
                         if (array_key_exists($bankId, $exOptions)) {
-                            $form->setDefault('ownAccount', $bankId);
+                            if(!isset($allowedBankAccounts) || array_key_exists($bankId, $allowedBankAccounts)){
+                                $form->setDefault('ownAccount', $bankId);
+                            }
                         }
                     }
                 }
@@ -623,11 +625,16 @@ abstract class bank_Document extends deals_PaymentDocument
             if ($dealInfo->get('bankAccountId')) {
                 $bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$dealInfo->get('bankAccountId')}", 'id');
                 if (array_key_exists($bankId, $exOptions)) {
-                    $form->setDefault('ownAccount', $bankId);
+                    if(!isset($allowedBankAccounts) || array_key_exists($bankId, $allowedBankAccounts)){
+                        $form->setDefault('ownAccount', $bankId);
+                    }
                 }
             }
 
-            $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', false));
+            $bankAccountInSession = bank_OwnAccounts::getCurrent('id', false);
+            if(!isset($allowedBankAccounts) || array_key_exists($bankAccountInSession, $allowedBankAccounts)){
+                $form->setDefault('ownAccount', $bankAccountInSession);
+            }
         }
 
         if (isset($form->rec->ownAccount)) {
@@ -678,18 +685,6 @@ abstract class bank_Document extends deals_PaymentDocument
             if (($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
             $requiredRoles = 'no_one';
         }
-    }
-
-
-    /**
-     * След взимане на полетата за експорт в csv
-     *
-     * @see bgerp_plg_CsvExport
-     */
-    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
-    {
-        $fieldset->FNC('title', 'varchar', 'caption=Документ,after=valior');
-        $fieldset->FNC('invoices', 'varchar', 'caption=Фактури,after=rate');
     }
 
 

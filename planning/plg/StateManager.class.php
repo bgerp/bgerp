@@ -80,6 +80,8 @@ class planning_plg_StateManager extends core_Plugin
         }
 
         $mvc->setDbIndex('timeClosed');
+
+        setIfNot($mvc->statesCanClose, array('active', 'wakeup', 'stopped'));
     }
     
     
@@ -114,7 +116,7 @@ class planning_plg_StateManager extends core_Plugin
         if ($mvc->haveRightFor('close', $rec)) {
             $warning = $mvc->getChangeStateWarning($rec, 'closed');
             $attr = array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на документа', 'warning' => $warning, 'order' => 30);
-            $attr['id'] = 'btnClose';
+            $attr['id'] = cls::haveInterface('doc_DocumentIntf', $mvc) ? "btnClose_{$rec->containerId}" : 'btnClose';
             
             if (isset($mvc->demandReasonChangeState, $mvc->demandReasonChangeState['close'])) {
                 unset($attr['warning']);
@@ -125,7 +127,10 @@ class planning_plg_StateManager extends core_Plugin
                 $attr['error'] = $closeError;
                 unset($attr['warning']);
             }
-            
+            if (isset($data->rec->__closeButtonRow)) {
+                $attr['row'] = $data->rec->__closeButtonRow;
+            }
+
             $data->toolbar->addBtn('Приключване', array($mvc, 'changeState', $rec->id, 'type' => 'close', 'ret_url' => true), $attr);
         }
         
@@ -203,11 +208,7 @@ class planning_plg_StateManager extends core_Plugin
                 case 'close':
                     
                     // Само активните, събудените и спрените могат да бъдат приключени
-                    if (!in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
-                        $requiredRoles = 'no_one';
-                    }
-
-                    if ($rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'closed') {
+                    if (!in_array($rec->state, $mvc->statesCanClose)) {
                         $requiredRoles = 'no_one';
                     }
                     break;
@@ -433,9 +434,10 @@ class planning_plg_StateManager extends core_Plugin
             }
             
             $caption = str::mbUcfirst($caption);
-            
+            Mode::push('getNotificationRecTitle', true);
             $name = $mvc->getRecTitle($rec);
-            
+            Mode::pop('getNotificationRecTitle');
+
             $removeOldNotify = false;
             if ($mvc->removeOldNotifyStatesArr) {
                 $mvc->removeOldNotifyStatesArr = arr::make($mvc->removeOldNotifyStatesArr, true);

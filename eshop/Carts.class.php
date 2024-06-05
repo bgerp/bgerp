@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -32,12 +32,12 @@ class eshop_Carts extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'orderDate,activatedOn,createdOn';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, drdata_plg_Canonize, plg_Rejected, plg_Modified,acc_plg_DocumentSummary,plg_Sorting,plg_Printing';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, drdata_plg_Canonize, plg_Rejected, plg_Modified,acc_plg_DocumentSummary,plg_Sorting,plg_Printing,plg_Search';
     
     
     /**
@@ -174,6 +174,12 @@ class eshop_Carts extends core_Master
 
 
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'domainId,userId,personNames,email,tel,country,locationId,deliveryCountry,deliveryPCode,deliveryPlace,deliveryAddress,instruction,saleFolderId,invoiceNames,invoiceVatNo,invoiceUicNo,invoiceCountry,invoicePCode,invoicePlace,invoiceAddress';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -209,7 +215,7 @@ class eshop_Carts extends core_Master
         
         $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
         $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактуриране->Наименование,invoiceData,hint=Име и фамилия||Name and surname,input=none,mandatory');
-        
+
         $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактуриране->ДДС №||VAT ID,input=hidden,invoiceData');
         $this->FLD('invoiceUicNo', 'varchar(26)', 'caption=Данни за фактуриране->ЕИК №,input=hidden,invoiceData');
         
@@ -244,7 +250,7 @@ class eshop_Carts extends core_Master
         $data->listFilter->setDefault('type', 'all');
         $data->listFilter->setDefault('domain', cms_Domains::getCurrent('id', false));
         
-        $data->listFilter->showFields .= ',domain,type';
+        $data->listFilter->showFields .= ',domain,type,search';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         
@@ -334,8 +340,6 @@ class eshop_Carts extends core_Master
                 $quantityByNow = $dQuery->fetch()->sum;
                 $checkQuantity += $quantityByNow / $quantityInPack;
             }
-
-
         }
        
         $actions = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'action');
@@ -364,7 +368,8 @@ class eshop_Carts extends core_Master
                 $this->requireRightFor('addtocart', $cartId);
                 eshop_CartDetails::addToCart($cartId, $eshopProductId, $productId, $packagingId, $packQuantity, $quantityInPack);
                 $this->updateMaster($cartId);
-                
+                plg_Search::forceUpdateKeywords($this, $cartId);
+
                 $exRec = eshop_CartDetails::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
                 
                 $packagingName = cat_UoM::getShortName($packagingId);
@@ -389,8 +394,6 @@ class eshop_Carts extends core_Master
                 
                 $msg = $addText->getContent();
                 $success = true;
-                
-                vislog_History::add("Добавяне на артикул «{$productName}» в количка");
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 $msg = '|Артикулът не е добавен|*!';
@@ -565,8 +568,8 @@ class eshop_Carts extends core_Master
             }
             
             // Дигане на флаг ако има артикули очакващи доставка
-            if($rec->haveProductsWithExpectedDelivery != 'yes' && isset($settings->storeId) && $dRec->canStore == 'yes'){
-                $quantityInStore = store_Products::getQuantities($dRec->productId, $settings->storeId)->free;
+            if($rec->haveProductsWithExpectedDelivery != 'yes' && countR($settings->inStockStores) && $dRec->canStore == 'yes'){
+                $quantityInStore = store_Products::getQuantities($dRec->productId, $settings->inStockStores)->free;
                 if($quantityInStore < $dRec->quantity){
                     $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
                     if(!empty($eshopProductRec->deliveryTime)){
@@ -931,8 +934,16 @@ class eshop_Carts extends core_Master
             core_Users::forceSystemUser();
         }
         $cu = core_Users::getCurrent('id', false);
-        
+
+        $notes = tr("Поръчка") . " #{$rec->id}" . "\n";
+        $notes .= tr('Тел|*: ') . "{$rec->tel}" . "\n";
+        $notes .= tr('Имейл|*: ') . "{$rec->email}";
+        if(!empty($rec->instruction)){
+            $notes .= "\n" . tr('Инструкции|*: ') . "{$rec->instruction}";
+        }
+
         // Дефолтни данни на продажбата
+        setIfNot($defaultStoreId, $settings->defaultStoreId, $settings->storeId);
         $fields = array('valior' => dt::today(),
             'template' => $templateId,
             'deliveryTermId' => $rec->termId,
@@ -941,12 +952,13 @@ class eshop_Carts extends core_Master
             'makeInvoice' => ($rec->makeInvoice == 'none') ? 'no' : 'yes',
             'chargeVat' => static::calcChargeVat($rec),
             'currencyId' => $settings->currencyId,
-            'shipmentStoreId' => $settings->storeId,
+            'shipmentStoreId' => $defaultStoreId,
+            'caseId' => $settings->defaultCaseId,
             'deliveryLocationId' => $rec->locationId,
             'deliveryData' => $rec->deliveryData,
             'onlineSale' => true,
             'deliveryCalcTransport' => 'no',
-            'note' => tr("Поръчка") . " #{$rec->id}",
+            'note' => $notes,
         );
 
         // Коя е ценовата политика
@@ -1025,7 +1037,7 @@ class eshop_Carts extends core_Master
             $saleRec = self::makeSalePending($saleId);
             eshop_Carts::logDebug("Продажбата #Sal{$saleId} към онлайн поръчка, става на заявка", $rec->id);
         }
-        
+        cls::get('sales_Sales')->updateMaster($saleRec);
         self::activate($rec, $saleRec->id);
         
         doc_Threads::doUpdateThread($saleRec->threadId);
@@ -1054,7 +1066,11 @@ class eshop_Carts extends core_Master
         $threadRec->state = 'opened';
         doc_Threads::save($threadRec, 'state');
         doc_Threads::updateThread($threadRec->id);
-        
+
+        if(defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')){
+            static::autoCreateSaleCsvIfNeeded($saleRec);
+        }
+
         return $saleRec;
     }
     
@@ -1101,8 +1117,8 @@ class eshop_Carts extends core_Master
             eshop_Carts::logDebug('Активиране на количката', $rec->id);
         }
     }
-    
-    
+
+
     /**
      * Изпраща имейл
      *
@@ -1161,8 +1177,10 @@ class eshop_Carts extends core_Master
                 $body->replace($rec->instruction, 'INSTRUCTIONS');
             }
         }
-        
-        $amount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
+
+        $rec->total = $saleRec->amountDeal;
+        $amount = currency_CurrencyRates::convertAmount($saleRec->amountDeal, null, null, $settings->currencyId);
+
         $amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         $amount = str_replace('&nbsp;', ' ', $amount);
         $body->replace("{$amount} {$settings->currencyId}", 'AMOUNT');
@@ -3077,6 +3095,82 @@ class eshop_Carts extends core_Master
             foreach ($invoiceFields as $name) {
                 $form->setField($name, 'input=none');
             }
+        }
+    }
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
+        }
+
+        if (isset($rec->id)) {
+            $detailsKeywords = '';
+            $dQuery =  eshop_CartDetails::getQuery();
+            $dQuery->where("#cartId = {$rec->id}");
+            while ($dRec = $dQuery->fetch()) {
+
+                // Ключовите думи на артикулите се добавят към тези на мастъра
+                $pRec = cat_Products::fetch($dRec->productId);
+                $productSearchKeywords = cls::get('cat_Products')->getSearchKeywords($pRec);
+                $detailsKeywords .= ' ' . $productSearchKeywords;
+                $detailsKeywords .= ' ' . plg_Search::normalizeText(eshop_CartDetails::getVerbal($dRec, 'eshopProductId'));
+            }
+
+            // Ако има нови ключови думи, добавят се
+            if (!empty($detailsKeywords)) {
+                $res = ' ' . $res . ' ' . $detailsKeywords;
+            }
+        }
+    }
+
+
+    /**
+     * Помощна ф-я експортираща създадена онлайн продажба в посочена директория като csv
+     *
+     * @param int|stdClass $saleRec - ид или запис
+     * @return void
+     */
+    public static function autoCreateSaleCsvIfNeeded($saleRec)
+    {
+        // Ако няма посочена директория - не се прави нищо
+        if (!defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')) return;
+
+        try{
+            // Ще се експортират всички полета от мастъра и детайла
+            $Sales = cls::get('sales_Sales');
+            $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => $Sales));
+            $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
+            $fields[] = 'ExternalLink';
+            $fields = implode(',', $fields);
+
+            $saleRec = sales_Sales::fetchRec($saleRec);
+            $Sales->updateMaster_($saleRec);
+
+            // Подготовка на експорта
+            $filter = (object)array('fields' => $fields, 'showColumnNames' => 'yes', 'delimiter' => ',', 'enclosure' => '"', 'decimalSign' => '.', 'encoding' => 'utf-8');
+            $filter->_recs[$saleRec->id] = $saleRec;
+            Mode::push('csvAlwaysAddEnclosure', true);
+            $content = $Driver->export($filter);
+            Mode::pop('csvAlwaysAddEnclosure');
+
+            $name = "emagSal{$saleRec->id}";
+            $fileName = ESHOP_AUTO_EXPORT_SALE_CSV_PATH . "/{$name}.csv";
+            $res = @file_put_contents($fileName, $content);
+            if($res){
+                eshop_Carts::logDebug("Експортирано csv: `{$fileName}`");
+                fileman::absorbStr($content, 'exportCsv', "{$name}.csv");
+            } else {
+                eshop_Carts::logErr("Грешка при записване: `{$fileName}`");
+            }
+        } catch (core_exception_Expect $e){
+            reportException($e);
+            eshop_Carts::logErr("Грешка при записване на CSV");
         }
     }
 }

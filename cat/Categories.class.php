@@ -174,12 +174,6 @@ class cat_Categories extends core_Master
         
         $suggestions = cat_UoM::getUomOptions();
         $form->setSuggestions('measures', $suggestions);
-        
-        if (isset($form->rec->folderId)) {
-            if (cat_Products::fetchField("#folderId = {$form->rec->folderId}")) {
-                $form->setReadOnly('useAsProto');
-            }
-        }
     }
     
     
@@ -191,7 +185,7 @@ class cat_Categories extends core_Master
         $this->FLD('name', 'varchar(64,ci)', 'caption=Наименование, mandatory, translate=user|tr|transliterate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
-        $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като шаблони->Използване');
+        $this->FLD('useAsProto', 'enum(no=Не,yes=Да [за избиране],yesNoSelect=Да [без избиране])', 'caption=Дали всички артикули в папката да са шаблонни->Използване,notNull,value=no');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
         $this->FLD('prefix', 'varchar(32)', 'caption=Настройки - препоръчителни за артикулите в категорията->Представка код');
         $this->FLD('minCodePad', 'int(Min=0)', 'caption=Настройки - препоръчителни за артикулите в категорията->Мин. дължина на кода');
@@ -245,19 +239,19 @@ class cat_Categories extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+
+
         if ($fields['-list']) {
+            if ($rec->useAsProto == 'no') {
+                $row->useAsProto = "<span class='quiet'>{$row->useAsProto}</span>";
+            }
+
             $row->name .= " {$row->folder}";
             $count = cat_Products::count("#folderId = '{$rec->folderId}'");
             $row->count = cls::get('type_Int')->toVerbal($count);
             $row->count = "<span style='float:right'>{$row->count}</span>";
             if (empty($rec->useAsProto)) {
                 $row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal('no');
-            }
-        }
-        
-        if ($fields['-single']) {
-            if ($rec->useAsProto == 'yes') {
-                $row->protoFolder = tr('Всички артикули в папката са шаблони');
             }
         }
     }
@@ -416,27 +410,6 @@ class cat_Categories extends core_Master
     
     
     /**
-     * Връща папките, в които може да има прототипи
-     *
-     * @return array $folders
-     */
-    public static function getProtoFolders()
-    {
-        $folders = array();
-        
-        // В кои категории може да има прототипни артикули
-        $query = self::getQuery();
-        $query->where("#useAsProto = 'yes'");
-        $query->show('folderId');
-        while ($cRec = $query->fetch()) {
-            $folders[$cRec->folderId] = $cRec->folderId;
-        }
-        
-        return $folders;
-    }
-    
-    
-    /**
      * Връща възможните за избор прототипни артикули с дадения драйвер и свойства
      *
      * @param int|NULL    $driverId - Ид на продуктов драйвер
@@ -483,8 +456,9 @@ class cat_Categories extends core_Master
      * @param core_mvc   $mvc
      * @param core_Form  $threadFilter
      * @param core_Query $threadQuery
+     * @param array $listFilterAddedFields
      */
-    protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery)
+    protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery, &$listFilterAddedFields)
     {
         // Добавяме поле за избор на групи
         $threadFilter->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група');
@@ -534,8 +508,8 @@ class cat_Categories extends core_Master
     public function getProductType($id)
     {
         $rec = $this->fetchRec($id);
-        
-        if ($rec->useAsProto == 'yes') {
+
+        if ($rec->useAsProto != 'no') {
             
             return 'template';
         }
@@ -618,6 +592,15 @@ class cat_Categories extends core_Master
 
             if(!isset($metasArr['canManifacture']) && planning_Jobs::fetchField("#productId = {$productId} AND #state IN ('active', 'wakeup', 'stopped')")){
                 $error = "Артикулът се използва в активни/спрени/приключени задания. Трябва да остане производим|*!";
+            }
+
+            if(!isset($metasArr['canStore'])){
+                $packQuery = cat_products_Packagings::getQuery();
+                $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                $packQuery->where("#productId = {$productId} AND #type = 'packaging' AND #state = 'active'");
+                if($packQuery->count()){
+                    $error = "Артикулът има добавени продуктови опаковки. Не може да стане услуга, докато не се деактивират опаковките му|*!";
+                }
             }
         }
 

@@ -179,6 +179,7 @@ class rack_Zones extends core_Master
         $this->setDbUnique('num,storeId');
         $this->setDbIndex('storeId');
         $this->setDbIndex('containerId');
+        $this->setDbIndex('groupId');
     }
 
 
@@ -603,8 +604,8 @@ class rack_Zones extends core_Master
         expect($containerId = Request::get('containerId', 'int'));
         expect($document = doc_Containers::getDocument($containerId));
         $documentRec = $document->fetch();
-        $this->requireRightFor('selectdocument', (object)array('containerId' => $containerId, 'storeId' => $documentRec->{$document->storeFieldName}));
-        $storeId = $documentRec->{$document->storeFieldName};
+        $this->requireRightFor('selectdocument', (object)array('containerId' => $containerId, 'storeId' => $documentRec->{$document->rackStoreFieldName}));
+        $storeId = $documentRec->{$document->rackStoreFieldName};
 
         // Подготовка на формата
         $form = cls::get('core_Form');
@@ -678,6 +679,7 @@ class rack_Zones extends core_Master
                         $redirectUrl = $document->getSingleUrlArray();
                     }
 
+                    store_Stores::selectCurrent($storeId);
                     redirect($redirectUrl, false, $msg);
                 } elseif(isset($zoneRec->id)) {
                     $document->getInstance()->logWrite('Премахване от зона', $document->that);
@@ -754,7 +756,7 @@ class rack_Zones extends core_Master
                 if (!rack_Zones::fetchField("#storeId = {$rec->storeId} AND #state != 'closed'")) {
                     $requiredRoles = 'no_one';
                 } else {
-                    $documentRec = $document->fetch("state,{$document->storeFieldName}");
+                    $documentRec = $document->fetch("state,{$document->rackStoreFieldName}");
                     if (!$document->haveRightFor('single') || !in_array($documentRec->state, array('draft', 'pending'))) {
                         $requiredRoles = 'no_one';
                     }
@@ -1005,7 +1007,7 @@ class rack_Zones extends core_Master
         // Регенериране на всички движения
         static::pickupAll($storeId);
 
-        followRetUrl(null, 'Движенията са генерирани успешно|*!');
+        followRetUrl(null, '|Движенията са генерирани успешно|*!');
     }
 
 
@@ -1201,18 +1203,8 @@ class rack_Zones extends core_Master
                     $packQuery->show('quantity,packagingId');
                     $packagings = array();
                     while($packRec = $packQuery->fetch()) {
-                        $packagings[] = $packRec;
+                        $packagings[$packRec->packagingId] = $packRec;
                     }
-
-                    // Ако артикула няма опаковка палет намира се к-то на най-големия палет в системата
-                    $palletId = cat_UoM::fetchBySinonim('pallet')->id;
-                    if(!array_key_exists($palletId, $packagings)){
-                        $maxPalletQuantity = max(array_map(function($o) { return $o->quantity;}, $pallets));
-                        if($maxPalletQuantity){
-                            $packagings[] = (object)array('packagingId' => $palletId, 'quantity' => $maxPalletQuantity);
-                        }
-                    }
-
                     if(!countR($packagings)){
                         $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
                         $packagings[] = (object)array('packagingId' => $measureId, 'quantity' => 1);
@@ -1227,7 +1219,7 @@ class rack_Zones extends core_Master
             }
 
             // Ако има генерирани движения се записват
-            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId, $currentZoneId);
+            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $batch, $storeId, $workerId, $currentZoneId);
 
             // Движенията се създават от името на системата
             $isOriginalSystemUser = core_Users::isSystemUser();
@@ -1259,7 +1251,7 @@ class rack_Zones extends core_Master
         rack_Zones::clearZone($containerId);
         $Document->getInstance()->logWrite("Ръчно премахване на контиран документ от зона", $Document->that);
 
-        followRetUrl(null, 'Документа е премахнат успешно от зоната|*');
+        followRetUrl(null, '|Документа е премахнат успешно от зоната|*');
     }
 
 
@@ -1278,14 +1270,14 @@ class rack_Zones extends core_Master
         $document = doc_Containers::getDocument($rec->containerId);
 
         if(rack_Movements::fetch("LOCATE('|{$rec->id}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
-            followRetUrl(null, "По документа има Запазени или Започнати движения! Документът може да бъде премахнат след отказването им|*!", 'error');
+            followRetUrl(null, "|По документа има Запазени или Започнати движения! Документът може да бъде премахнат след отказването им|*!", 'error');
         }
 
         // Зоната се нотифицира, че документът е премахнат от нея
         static::updateZone($rec->id, $rec->containerId, true);
         $document->getInstance()->logWrite('Премахване от зона', $document->that);
 
-        followRetUrl(null, 'Документът е премахнат от зоната');
+        followRetUrl(null, '|Документът е премахнат от зоната');
     }
 
 

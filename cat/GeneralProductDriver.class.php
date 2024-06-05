@@ -82,7 +82,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                     $defaultParams = array();
                 }
             }
-            
+
             foreach ($defaultParams as $id => $value) {
                 
                 // Всеки дефолтен параметър го добавяме към формата
@@ -107,7 +107,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                     $suffix = cat_Params::getVerbal($paramRec, 'suffix');
                     $form->setField("paramcat{$id}", "unit={$suffix}");
                 }
-                
+
+                if($data->action == 'clone'){
+                    $value = cat_Params::getReplacementValueOnClone($id, $Embedder, $rec->id, $value);
+                }
+
                 // Ако има дефолтна стойност, задаваме и нея
                 if (isset($value)) {
                     $form->setDefault("paramcat{$id}", $value);
@@ -342,7 +346,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function prepareProductDescription(&$data)
     {
         parent::prepareProductDescription($data);
-        
+
+        $showImgInPublic = cat_Setup::get('SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC');
+        if($data->documentType == 'public' && $showImgInPublic != 'yes'){
+            $data->_hidePhoto = true;
+        }
+
         $data->masterId = $data->rec->id;
         $data->masterClassId = cls::get($data->Embedder)->getClassId();
         cat_products_Params::prepareParams($data);
@@ -359,11 +368,23 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function renderProductDescription($data)
     {
         // Вербализиране на снимката, да е готова за показване
-        $data->rec->photo =  $this->getParams(cls::get($data->Embedder)->getClassId(), $data->rec->id, 'preview');
+        if(!$data->_hidePhoto){
+            $data->rec->photo =  $this->getParams(cls::get($data->Embedder)->getClassId(), $data->rec->id, 'preview');
+        } else {
+            unset($data->rec->photo);
+        }
+
         if ($data->rec->photo) {
             $size = array(280, 150);
             $Fancybox = cls::get('fancybox_Fancybox');
             $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(1200, 1200));
+        } else {
+
+            // Ако няма изображение, но в сесията се иска да се показва картинка за без изображение - показва се дефолтна
+            if(Mode::is('noIconImg')){
+                $thumb = new thumb_Img(getFullPath('img/noimage120.gif'), 280, 150, 'path');
+                $data->row->image = $thumb->createImg(array('class' => 'noIconImg', 'title' => 'Артикулът все още няма изображение'))->getContent();
+            }
         }
         
         // @TODO ревербализиране на описанието
@@ -514,7 +535,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             if(is_array($params)){
                 foreach ($params as $paramId => $value){
                     $paramName = cat_Params::getTitleById($paramId, false);
-                    $res .= ' ' . plg_Search::normalizeText($paramName) . ' ' . plg_Search::normalizeText($value);
+                    $res .= ' ' . plg_Search::normalizeText($paramName) . ' ' . plg_Search::normalizeText(strip_tags($value));
                 }
             }
         }
@@ -539,5 +560,49 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         }
 
         return $fhArr;
+    }
+
+
+    /**
+     * Връща цената за посочения продукт към посочения клиент на посочената дата
+     *
+     * @param mixed                                                                              $productId - ид на артикул
+     * @param int                                                                                $quantity  - к-во
+     * @param float                                                                              $minDelta  - минималната отстъпка
+     * @param float                                                                              $maxDelta  - максималната надценка
+     * @param datetime                                                                           $datetime  - дата
+     * @param float                                                                              $rate      - валутен курс
+     * @param string $chargeVat - начин на начисляване на ддс
+     *
+     * @return stdClass|float|NULL $price  - обект с цена и отстъпка, или само цена, или NULL ако няма
+     */
+    public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
+    {
+        // Ако има рецепта връщаме по нея
+        $priceFound = null;
+        if ($bomRec = $this->getBomForPrice($productId)) {
+
+            // Рецептата ще се преизчисли за текущия артикул, В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
+            $bomRec->productId = $productId;
+            $price = cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
+            if(!empty($price)){
+                $priceFound = $price;
+            }
+        }
+
+        if(empty($priceFound)){
+            $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId, null, $datetime);
+            if(isset($price)){
+                $priceFound = $price;
+            }
+        }
+
+        if(isset($priceFound)){
+            $res = (object)array('price' => $priceFound, 'discount' => null);
+
+            return $res;
+        }
+
+        return null;
     }
 }

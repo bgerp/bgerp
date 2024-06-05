@@ -285,7 +285,7 @@ class label_Media extends core_Manager
         $cnt = 0;
         
         // Създаваме таблицата
-        $t = "<table class='label-table labelBreak' style='border-collapse: separate; margin-top: {$data->pageLayout->up}; margin-left: {$data->pageLayout->left};'>";
+        $t = "<div  class='label-table labelBreak' style='border-collapse: separate; margin-top: {$data->pageLayout->up}; margin-left: {$data->pageLayout->left};'><table>";
         
         // Броя на редовете
         for ($i = 0; $i < $lines; $i++) {
@@ -315,7 +315,7 @@ class label_Media extends core_Manager
         }
         
         // Добавяме край на таблица
-        $t .= '</table>';
+        $t .= '</table></div>';
         
         return new ET($t);
     }
@@ -335,7 +335,9 @@ class label_Media extends core_Manager
         // Активните записи да не може да се редактират или изтриват
         if ($rec && ($action == 'edit' || $action == 'delete')) {
             if (($rec->state == 'active') || ($rec->state == 'rejected') || ($rec->state == 'restore')) {
-                $requiredRoles = 'no_one';
+                if (!haveRole('debug', $userId) || ($rec->state != 'active') || ($action != 'edit')) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }

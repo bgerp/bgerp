@@ -11,7 +11,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,9 +25,12 @@ class price_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('price_Lists', 'Политики->Всички политики', 'price,sales,ceo');
+        $this->TAB('price_ListVariations', 'Политики->Вариации', 'price,sales,ceo');
         $this->TAB('price_ListToCustomers', 'Политики->Клиентски политики', 'price,ceo');
         $this->TAB('price_Updates', 'Обновяване', 'priceMaster,ceo');
         $this->TAB('price_Cache', 'Дебъг->Кеш', 'debug');
         $this->TAB('price_ProductCosts', 'Дебъг->Изчислени', 'debug');
+        $this->TAB('price_ListBasicDiscounts', 'Дебъг->Отстъпки по ЦП', 'debug');
+        $this->TAB('price_DiscountsPerDocuments', 'Дебъг->Отстъпки по документи', 'debug');
     }
 }

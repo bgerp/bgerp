@@ -5,7 +5,7 @@
  * Експортиране на фактури по продажби в Ажур
  *
  * @category  bgerp
- * @package   bnav
+ * @package   ajur
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
  * @copyright 2006 - 2022 Experta OOD
@@ -151,6 +151,8 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
         while ($sRec = $sQuery->fetch()) {
 
+
+
             //Масив с фактури от продажбите
             $id = $sRec->id;
 
@@ -222,6 +224,12 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
             }
 
+            //Колона 50 да има ли запис в дневника за ДДС
+            $saveInVat = 1;
+
+            // Дали е авансова фактура
+            $isDpInvoice = ($rec->dpOperation == 'accrued') ? 1 : 0;
+
 //bp($sRec);
             $dealType = self::getDealType($sRec);
 
@@ -232,63 +240,63 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
             if (!array_key_exists($id, $invoices)) {
                 $invoices[$id] = (object)array(
 
-                    1 => $number,                 // Фалтура No
-                    2 => $stateType,              // Тип - права или обратна
-                    3 => $sRec->date,             // Дата на фактурата
-                    4 => $sRec->vatDate,          // Дата на данъчно събитие
-                    5 => $sRec->currencyId,       // Вид валута
-                    6 => $sRec->rate,             // Валутен курс към датата на дан. събитие
-                    7 => $invoiceType,            // Вид фактура
-                    8 => $exportInv,              // Фактура за експорт
-                    9 => $contragentCode,         // Шифър на контрагент
-                    10 => $contragentName,        // Наименование
-                    11 => $contragentAddress,     // Адрес на контрагента
-                    12 => $contragentVatNo,       // ИН по ДДС на контрагента
-                    13 => $bulstatNo,             // БУЛСТАТ на контрагента
-                    14 => '',                     // Вид доставка
-                    15 => $sRec->vatReason,       // Основание за неначисляване на ДДС
-                    16 => '',                     // ИН по ДДС в друга държава
-                    17 => '',                     // Ставка по ДДС в друга държава
+                    1 => $number,                 // * Фалтура No
+                    2 => $stateType,              // * Тип - права или обратна
+                    3 => $sRec->date,             // * Дата на фактурата
+                    4 => $sRec->vatDate,          // * Дата на данъчно събитие
+                    5 => $sRec->currencyId,       // * Вид валута
+                    6 => $sRec->rate,             // * Валутен курс към датата на дан. събитие
+                    7 => $invoiceType,            // * Вид фактура
+                    8 => $exportInv,              // * Фактура за експорт
+                    9 => $contragentCode,         // * Шифър на контрагент
+                    10 => $contragentName,        // ** Наименование
+                    11 => $contragentAddress,     // ** Адрес на контрагента
+                    12 => $contragentVatNo,       // * ИН по ДДС на контрагента
+                    13 => $bulstatNo,             // * БУЛСТАТ на контрагента
+                    14 => '',                     // * Вид доставка
+                    15 => $sRec->vatReason,       // * Основание за неначисляване на ДДС
+                    16 => '',                     // * ИН по ДДС в друга държава
+                    17 => '',                     // * Ставка по ДДС в друга държава
                     18 => '',                     // МОЛ на контрагента
                     19 => '',                     // Шифър на дистрибутор
-                    20 => '',                     // Наименование на дистрибутора
-                    21 => '',                     // Адрес на дистрибутора
-                    22 => '',                     // Ин по ДДС на дистрибутора
-                    23 => '',                     // БУЛСТАТ на дистрибутора
+                    20 => '',                     // * Наименование на дистрибутора
+                    21 => '',                     // * Адрес на дистрибутора
+                    22 => '',                     // * Ин по ДДС на дистрибутора
+                    23 => '',                     // * БУЛСТАТ на дистрибутора
                     24 => $sRec->place,           // Място на издаване
-                    25 => $originDocNumber,       // Към фактура No(при издаване на ДИ и КИ)
-                    26 => $originDocDate,         // От дата фактура (при издаване на ДИ и КИ)
-                    27 => $sRec->dcReason,        // Причина за издаване на ДИ или КИ
-                    28 => $paymentType,           // Начин на плащане
+                    25 => $originDocNumber,       // * Към фактура No(при издаване на ДИ и КИ)
+                    26 => $originDocDate,         // * От дата фактура (при издаване на ДИ и КИ)
+                    27 => $sRec->dcReason,        // * Причина за издаване на ДИ или КИ
+                    28 => $paymentType,           // * Начин на плащане
                     29 => $dueDate,               // Дата на падеж
                     30 => $sRec->vatDate,         // Дата на получаване на стоката
-                    31 => 0,                      // Дата на регистрация
-                    32 => 0,                      // Фактура към търговска верига
-                    33 => '',                     // Код на доставчика към търговска верига
-                    34 => '',                     // Поръчка номер от търговска верига
-                    35 => '',                     // Входящ стоков номер за търговската верига
+                    31 => 0,                      // * Дата на регистрация
+                    32 => 0,                      // * Фактура към търговска верига
+                    33 => '',                     // * Код на доставчика към търговска верига
+                    34 => '',                     // * Поръчка номер от търговска верига
+                    35 => '',                     // * Входящ стоков номер за търговската верига
                     36 => $sRec->createdBy,       // Съставил
-                    37 => $sRec->dealValue,       // Общо сума без ДДС във валутата на фактурата
-                    38 => $sRec->dealValueWithoutDiscount,    // Общо Дан. Основа във валутата на фактурата
-                    39 => $sRec->vatAmount,       // Общо ДДС във валутата на фактурата
-                    40 => $totalValue,      // Общо сума за плащане във валутата на фактурата
-                    41 => $sRec->exciseTax,       // Общо акциз във валутата на фактурата
-                    42 => $sRec->productTax,      // Общо екотакса във валутата на фактурата
-                    43 => $sRec->dealValue * $sRec->rate,      // Общо сума без ДДС в лева
-                    44 => $sRec->dealValueWithoutDiscount * $sRec->rate,     // Общо Дан. Основа в лева
-                    45 => $sRec->vatAmount * $sRec->rate,      // Общо ДДС е лева
-                    46 => $totalValue * $sRec->rate,     // Общо сума за плащане в лева
-                    47 => $sRec->exciseTax * $sRec->rate,      // Общо акциз в лева
-                    48 => $sRec->productTax * $sRec->rate,     // Общо екотакса в лева
-                    49 => 1,                       // Връзка със склад
-                    50 => 1,     //ВЪПРОС          // Дали трябва да има запис в дневника по ДДС
+                    37 => $sRec->dealValue,       // * Общо сума без ДДС във валутата на фактурата
+                    38 => $sRec->dealValueWithoutDiscount,    // * Общо Дан. Основа във валутата на фактурата
+                    39 => $sRec->vatAmount,       // * Общо ДДС във валутата на фактурата
+                    40 => $totalValue,      // * Общо сума за плащане във валутата на фактурата
+                    41 => $sRec->exciseTax,       // * Общо акциз във валутата на фактурата
+                    42 => $sRec->productTax,      // * Общо екотакса във валутата на фактурата
+                    43 => $sRec->dealValue * $sRec->rate,      // * Общо сума без ДДС в лева
+                    44 => $sRec->dealValueWithoutDiscount * $sRec->rate,     // * Общо Дан. Основа в лева
+                    45 => $sRec->vatAmount * $sRec->rate,      // * Общо ДДС е лева
+                    46 => $totalValue * $sRec->rate,     // * Общо сума за плащане в лева
+                    47 => $sRec->exciseTax * $sRec->rate,      // * Общо акциз в лева
+                    48 => $sRec->productTax * $sRec->rate,     // * Общо екотакса в лева
+                    49 => 1,                       // * Връзка със склад
+                    50 => $saveInVat,              // * Дали трябва да има запис в дневника по ДДС
                     51 => 0,                       // Звено по ДДС
                     52 => $vatAlocation->taxBase20Vat,         // ДО на сделки с ДДС 20% бкл. дист. на територията на страната
-                    53 => $vatAlocation->tax20,         // Начислен ДДС за доставки по колона 52( 20%)
+                    53 => $vatAlocation->vatTax20,         // Начислен ДДС за доставки по колона 52( 20%)
                     54 => $vatAlocation->taxBase9Vat,          // ДО на сделки с ДДС 9% бкл. дист. на територията на страната
-                    55 => $vatAlocation->tax9,          // Начислен ДДС за доставки по колона 54( 9%)
+                    55 => $vatAlocation->vatTax9,          // Начислен ДДС за доставки по колона 54( 9%)
                     56 => $vatAlocation->taxBase0Vat,          // ДО на сделки с ДДС 0% бкл. дист. на територията на страната
-                    57 => $vatAlocation->tax0,          // Начислен ДДС за доставки по колона 56( 0%)
+                    57 => $vatAlocation->vatTax0,          // Начислен ДДС за доставки по колона 56( 0%)
                     58 => '',                           // ДО на доставки по чл.140, 146 и чл.173, ал.1 и 4 от ЗДДС
                     59 => '',                           // ДО на доставка на услуги по чл.21, ал 3 и чл.24-24 от ЗДДС с място на изпълнение друга държава
                     60 => '',                           // ДО на доставка на услуги по чл.69, ал 2 от ЗДДС (вкл. ДО за дост. от дист. продажби в друга държава)
@@ -298,7 +306,8 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
                     64 => '',                           // ВОД на стоки, участващи във VIES декларацията
                     65 => '',                           // ДО на доставки като посредник в тристранна операция, участващи във VIES декларацията
                     66 => '',                           // Услуги в рамките на ЕС, участващи във VIES декларацията
-                    67 => '',  // ТОДО             // Вид на стоката / услугата
+                    67 => '',  // ТОДО                  // * Вид на стоката / услугата
+                    68 => $isDpInvoice,                 // * Дали фактурата е за аванс
 
 
                 );
@@ -433,6 +442,84 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
 
+
+        $fld->FLD('number', 'varchar', 'caption=Документ №,tdClass=centered');//1
+        $fld->FLD('type', 'varchar', 'caption=Тип на документа');//2
+        $fld->FLD('date', 'date', 'caption=Дата');//3
+        $fld->FLD('vatDate', 'date', 'caption=Дата дан.събитие');//4
+        $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');//5
+        $fld->FLD('rate', 'double', 'caption=Курс на валутата');//6
+        $fld->FLD('invoiceType', 'varchar', 'caption=Тип на документа');//7
+        $fld->FLD('exportInv', 'varchar', 'caption=Фактура Експорт');//8
+        $fld->FLD('contragentCode', 'varchar', 'caption=Шифър на контрагента');//9
+        $fld->FLD('contragentName', 'varchar', 'caption=Име на контрагента');//10
+        $fld->FLD('contragentAddress', 'varchar', 'caption=Адрес на контрагента');//11
+        $fld->FLD('contragentVatNo', 'varchar', 'caption=ИН по ДДС на контрагента');//12
+        $fld->FLD('bulstatNo', 'varchar', 'caption=ЕИК на контрагента');//13
+        $fld->FLD('deliveryType', 'varchar', 'caption=Вид доставка');//14
+        $fld->FLD('vatNotReason', 'varchar', 'caption=Осн. за ненач. ДДС');//15
+        $fld->FLD('vatNoOutCountry', 'varchar', 'caption=ИН по ДДС в друга държава');//16
+        $fld->FLD('vatRateOutCountry', 'varchar', 'caption=Ставка по ДДС в друга държава');//17
+        $fld->FLD('contragentMOL', 'varchar', 'caption=МОЛ на контрагента');//18
+        $fld->FLD('distributorCode', 'varchar', 'caption=Шифър на дистрибутор');//19
+        $fld->FLD('distributorName', 'varchar', 'caption=Име на дистрибутор');//20
+        $fld->FLD('distributorAddress', 'varchar', 'caption=Адрес на дистрибутор');//21
+        $fld->FLD('distributorVatNo', 'varchar', 'caption=ДДС № на дистрибутор');//22
+        $fld->FLD('distributorBulstatNo', 'varchar', 'caption=ЕИК на дистрибутор');//23
+        $fld->FLD('place', 'varchar', 'caption=Място на издаване');//24
+        $fld->FLD('originDocNumber', 'varchar', 'caption=Към фактура No');//25
+        $fld->FLD('originDocDate', 'date', 'caption=От дата фактура');//26
+        $fld->FLD('dcReason', 'varchar', 'caption=Причина за ДИ, КИ');//27
+        $fld->FLD('paymentType', 'int', 'caption=Начин на плащане');//28
+        $fld->FLD('dueDate', 'date', 'caption=Дата на падеж');//29
+        $fld->FLD('dateOfReceipt', 'date', 'caption=Дата получаване стока');//30
+        $fld->FLD('dateOfRegistration', 'date', 'caption=Дата на регистрация');//31
+        $fld->FLD('retailInv', 'int', 'caption=Фактура към ТВ');//32
+        $fld->FLD('retailSupplierCode', 'varchar', 'caption=Код на доставчика ТВ');//33
+        $fld->FLD('retailOrderNo', 'varchar', 'caption=Поръчка номер ТВ');//34
+        $fld->FLD('retailInStockNo', 'varchar', 'caption=Входящ стоков номер ТВ');//35
+        $fld->FLD('createdBy', 'varchar', 'caption=Съставил');//36
+        $fld->FLD('dealValueCurrecy', 'double', 'caption=Общо сума без ДДС Валута');//37
+        $fld->FLD('dealValueWithoutDiscountCurrecy', 'double', 'caption=Общо Дан. Основа Валута');//38
+        $fld->FLD('vatAmountCurrecy', 'double', 'caption=Общо ДДС Валута ');//39
+        $fld->FLD('totalValueCurrecy', 'double', 'caption=Общо сума за плащане Валута ');//40
+        $fld->FLD('exciseTaxCurrecy', 'double', 'caption=Общо акциз Валута');//41
+        $fld->FLD('productTaxCurrecy', 'double', 'caption=Общо екотакса Валута');//42
+        $fld->FLD('dealValue', 'double', 'caption=Общо сума без ДДС в лева ');//43
+        $fld->FLD('dealValueWithoutDiscount', 'double', 'caption=Общо Дан. Основа в лева ');//44
+        $fld->FLD('vatAmount', 'double', 'caption=Общо ДДС в лева ');//45
+        $fld->FLD('totalValue', 'double', 'caption=Общо сума за плащане в лева ');//46
+        $fld->FLD('exciseTax', 'double', 'caption=Общо акциз в лева ');//47
+        $fld->FLD('productTax', 'double', 'caption=Общо екотакса в лева ');//48
+        $fld->FLD('storeConnection', 'int', 'caption=Връзка със склад ');//49
+        $fld->FLD('saveInVat', 'int', 'caption=Дали трябва да има запис в дневника по ДДС ');//50
+        $fld->FLD('zvenoVat', 'int', 'caption=Звено по ДДС ');//51
+        $fld->FLD('taxBase20Vat', 'double', 'caption=ДО на сделки с ДДС 20% ');//52
+        $fld->FLD('vatTax20', 'double', 'caption=Начислен ДДС за доставки 20% ');//53
+        $fld->FLD('taxBase9Vat', 'double', 'caption=ДО на сделки с ДДС 9% ');//54
+        $fld->FLD('vatTax9', 'double', 'caption=Начислен ДДС за доставки 9% ');//55
+        $fld->FLD('taxBase0Vat', 'double', 'caption=ДО на сделки с ДДС 0% ');//56
+        $fld->FLD('vatTax0', 'double', 'caption=Начислен ДДС за доставки 0%');//57
+        $fld->FLD('coll58', 'varchar', 'caption=ДО чл.140, 146 и чл.173, ал.1 и 4 ЗДДС');//58
+        $fld->FLD('coll59', 'varchar', 'caption=ДО чл.21, ал 3 и чл.24-24 от ЗДДС');//59
+        $fld->FLD('coll60', 'varchar', 'caption=ДО чл.69, ал 2 от ЗДДС ');//60
+        $fld->FLD('coll61', 'varchar', 'caption=ДО на осв. доставки и осв. ВОП, без чл50 т2');//61
+        $fld->FLD('coll62', 'varchar', 'caption=Доставки по чл. 50 т.2');//62
+        $fld->FLD('coll63', 'varchar', 'caption=ДО посредник в тристранни операции');//63
+        $fld->FLD('coll64', 'varchar', 'caption=ВОД на стоки, участващи във VIES декларацията');//64
+        $fld->FLD('coll65', 'varchar', 'caption=ДО на стоки, участващи във VIES декларацията');//65
+        $fld->FLD('coll66', 'varchar', 'caption=Услуги в ЕС, участващи във VIES декларацията');//66
+        $fld->FLD('coll67', 'varchar', 'caption=Вид на стоката / услугата');//*67
+        $fld->FLD('isDpInvoice', 'int', 'caption=Дали фактурата е за аванс');//*68
+
+
+
+
+
+
+
+
+
         $fld->FLD('type', 'varchar', 'caption=Тип на документа');
         $fld->FLD('dealType', 'varchar', 'caption=Тип на сделката');
         $fld->FLD('number', 'varchar', 'caption=Номер на документа,tdClass=centered');
@@ -489,7 +576,7 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
             $row->type = $dRec->invoice->type;
             $row->dealType = $dRec->invoice->dealType;
-            $row->number = $dRec->invoice->number;
+            $row->number = $dRec->number;
             $row->date = $Date->toVerbal($dRec->invoice->date);
             $row->state = $dRec->invoice->state;
             $row->contragentName = $dRec->invoice->contragentName;
@@ -751,9 +838,9 @@ class ajur_SalesInvoicesExport extends frame2_driver_TableData
 
 
             }
-            $vatAllocation = (object)array('taxBase20Vat' => $taxBase20Vat, 'tax20' => $tax20,
-                'taxBase9Vat' => $taxBase9Vat, 'tax9' => $tax9,
-                'taxBase0Vat' => $taxBase0Vat, 'tax0' => $tax0
+            $vatAllocation = (object)array('taxBase20Vat' => $taxBase20Vat, 'vatTax20' => $tax20,
+                'taxBase9Vat' => $taxBase9Vat, 'vatTax9' => $tax9,
+                'taxBase0Vat' => $taxBase0Vat, 'vatTax0' => $tax0
             );
 
         return $vatAllocation;

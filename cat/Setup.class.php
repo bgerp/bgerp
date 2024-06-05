@@ -145,6 +145,12 @@ defIfNot('CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC', '');
 
 
 /**
+ * Показване на изображението на универсалния артикул във външни документи
+ */
+defIfNot('CAT_SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC', 'yes');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -212,10 +218,9 @@ class cat_Setup extends core_ProtoSetup
         'cat_Listings',
         'cat_ListingDetails',
         'cat_PackParams',
-        'migrate::updateLabelType',
-        'migrate::checkParams1110',
-        'migrate::updateBomDetails1622',
-        'migrate::updateBomDates1622',
+        'cat_ParamFormulaVersions',
+        'migrate::fixNewLinesInFormulas2706',
+        'migrate::updateCategories2124',
     );
     
     
@@ -244,7 +249,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'cat_GeneralProductDriver,cat_ImportedProductDriver,cat_interface_BomDetailImport';
+    public $defClasses = 'cat_GeneralProductDriver,cat_ImportedProductDriver,cat_interface_BomDetailImport,cat_interface_AllergensParamAggregateImpl,cat_interface_EnergyValueAggregateImpl';
     
     
     /**
@@ -275,7 +280,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_DEFAULT_PRODUCT_OVERHEAD_COST' => array('percent(min=0)', array('caption' => 'Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Режийни разходи'), 'unit= по подразбиране общо за системата'),
         'CAT_GROUPS_WITH_OVERHEAD_COSTS' => array('keylist(mvc=cat_Groups,select=name)', array('caption' => 'Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Задаване в групи')),
         'CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC' => array('keylist(mvc=cat_UoM,select=name)', array('caption' => 'Кои опаковки да се пропускат, при избор на опаковка за транспортен обем->Избор')),
-
+        'CAT_SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC' => array('enum(yes=Да,no=Не)', array('caption' => 'Показване на изображението на универсалния артикул във външните документи->Избор')),
     );
     
     
@@ -425,106 +430,40 @@ class cat_Setup extends core_ProtoSetup
 
 
     /**
-     * Мигриране на етикетирането
+     * Миграция на паразитните нови редове във формулите
      */
-    function updateLabelType()
+    function fixNewLinesInFormulas2706()
     {
-        $Boms = cls::get('cat_BomDetails');
-        $Boms->setupMvc();
+        $Params = cls::get('cat_products_Params');
+        $classId = cond_type_Formula::getClassId();
+        $query = $Params->getQuery();
+        $query->EXT('driverClass', 'cat_Params', 'externalName=driverClass,externalKey=paramId');
+        $query->where("#driverClass={$classId}");
+        $query->show('paramId,paramValue');
 
-        $labelTypeColName = str::phpToMysqlName('labelType');
-        $query = "UPDATE {$Boms->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
-        $Boms->db->query($query);
-    }
-
-
-    /**
-     * Миграция на несъответстващи параметри
-     */
-    public function checkParams1110()
-    {
-        bgerp_Notifications::delete("#msg LIKE '%Възможен проблем с параметрите на артикул%'");
-
-        $prQuery = cat_Products::getQuery();
-        $prQuery->XPR('maxId', 'double', 'MAX(#id)');
-        $maxId = $prQuery->fetch()->maxId;
-        $deleted = array();
-        if(isset($maxId)){
-
-            // Изтриват се тези продуктови параметри, чиито ид-та са по-големи от най-голямото ид в артикула
-            $productClassId = cat_Products::getClassId();
-            $pQuery = cat_products_Params::getQuery();
-            $pQuery->where("#classId = {$productClassId} AND #productId > {$maxId}");
-            $pQuery->show('id');
-            $idsToDelete = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
-
-            if(countR($idsToDelete)){
-                $deleted = $idsToDelete;
-                $idsToDeleteString = implode(',', $idsToDelete);
-                cat_products_Params::delete("#id IN ({$idsToDeleteString})");
+        $toSave = array();
+        while($rec = $query->fetch()){
+            $paramValueParsed = preg_replace('/(\n\r)+|(\r\n)+/', "$1$2", $rec->paramValue);
+            if($paramValueParsed != $rec->paramValue){
+                $rec->paramValue = $paramValueParsed;
+                $toSave[] = $rec;
             }
         }
 
-        $classCrc = log_Classes::getClassCrc('cat_Products');
-        $lQuery = log_Data::getQuery();
-        $lQuery->where("#classCrc = {$classCrc}");
-
-        // Проверка има ли артикули със запис в лога за добавени/редактирани параметри преди създаването на артикула
-        $actCrc1 = log_Actions::getActionCrc('Добавяне на параметър');
-        $actCrc2 = log_Actions::getActionCrc('Редактиране на параметър');
-        $lQuery->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=objectId');
-        $lQuery->EXT('productCreatedBy', 'cat_Products', 'externalName=createdBy,externalKey=objectId');
-        $lQuery->where(array("#actionCrc IN ('[#1#]', '[#2#]')", $actCrc1, $actCrc2));
-        $lQuery->XPR('timeDate', 'datetime', "DATE_ADD(DATE_FORMAT(FROM_UNIXTIME(#time), '%Y-%m-%d %H:%i:%s'), INTERVAL 60 SECOND)");
-        $lQuery->where("#timeDate < #productCreatedOn");
-        $productsToCheck = array();
-        $foundRecs = $lQuery->fetchAll();
-        $count = countR($foundRecs);
-        core_App::setTimeLimit($count * 0.4, false,300);
-
-        // Ако има ще се сетнат предупреждения
-        foreach($foundRecs as $lRec){
-            $productsToCheck[] = $lRec;
-            log_System::add('cat_Products', 'Възможен проблем с параметрите на артикула', $lRec->objectId, 'err');
-
-            $url = array('cat_Products', 'single', $lRec->objectId);
-            bgerp_Notifications::add("Възможен проблем с параметрите на артикул|*: #Art{$lRec->objectId}", $url, $lRec->productCreatedBy, 'normal');
-        }
-
-        if(countR($deleted) || countR($productsToCheck)){
-            wp("МИГРАЦИЯ ПАРАМЕТРИ", $deleted, $productsToCheck);
+        if(countR($toSave)){
+            $Params->saveArray($toSave, 'id,paramValue');
         }
     }
 
 
     /**
-     * Миграция на етапите в производството
+     * Миграция на категориите
      */
-    public function updateBomDetails1622()
+    function updateCategories2124()
     {
-        $Boms = cls::get('cat_BomDetails');
-        $Boms->setupMvc();
-
-        $inputPreviousStepsColName = str::phpToMysqlName('inputPreviousSteps');
-        $typeTypeColName = str::phpToMysqlName('type');
-        $query = "UPDATE {$Boms->dbTableName} SET {$inputPreviousStepsColName} = 'auto' WHERE {$typeTypeColName} = 'stage' AND {$inputPreviousStepsColName} IS NULL";
-        $Boms->db->query($query);
-    }
-
-
-    /**
-     * Миграция на датата за последна промяна на детайла
-     */
-    public function updateBomDates1622()
-    {
-        $Boms = cls::get('cat_Boms');
-        $Boms->setupMvc();
-
-        $modifiedOnColName = str::phpToMysqlName('modifiedOn');
-        $modifiedByColName = str::phpToMysqlName('modifiedBy');
-        $lastUpdatedDetailOnColName = str::phpToMysqlName('lastUpdatedDetailOn');
-        $lastUpdatedDetailByColName = str::phpToMysqlName('lastUpdatedDetailBy');
-        $query = "UPDATE {$Boms->dbTableName} SET {$lastUpdatedDetailOnColName} = {$modifiedOnColName}, {$lastUpdatedDetailByColName} = {$modifiedByColName} WHERE {$lastUpdatedDetailByColName} IS NULL";
-        $Boms->db->query($query);
+        $Categories = cls::get('cat_Categories');
+        $useAsProtoName = str::phpToMysqlName('useAsProto');
+        $query = "UPDATE {$Categories->dbTableName} SET {$useAsProtoName} = 'no' WHERE ({$useAsProtoName} IS NULL OR {$useAsProtoName} = '')";
+        $Categories->db->query($query);
     }
 }

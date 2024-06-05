@@ -220,7 +220,7 @@ class type_Richtext extends type_Blob
      *
      * @return string
      */
-    public function toHtml($html)
+    public function toHtml($html, $wrapBefore = '<div class="richtext">', $wrapAfter = '</div>')
     {
         Debug::startTimer('RichtextToHtml');
         
@@ -393,7 +393,7 @@ class type_Richtext extends type_Blob
         }
         
         if (!Mode::is('text', 'plain')) {
-            $html = new ET("<div class=\"richtext\">{$html}</div>");
+            $html = new ET("{$wrapBefore}{$html}{$wrapAfter}");
         } else {
             $html = new ET($html);
         }
@@ -644,7 +644,7 @@ class type_Richtext extends type_Blob
             // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
         
-        $html = str_replace($from, $to, $html);
+        $html = str_ireplace($from, $to, $html);
 
         return $html;
     }
@@ -943,7 +943,7 @@ class type_Richtext extends type_Blob
         }
         
         // Добавяме кода в блок
-        $code1 = "<span class='oneLineCode no-spell-check'>{$code}</span>";
+        $code1 = "<span onmouseup='selectInnerText(this);' class='oneLineCode no-spell-check'>{$code}</span>";
         
         // Доабавяме в масива
         $this->_htmlBoard[$place] = $code1;
@@ -993,8 +993,10 @@ class type_Richtext extends type_Blob
                 $url = "http://{$url}";
             }
         }
-        
-        if (core_Url::isLocal($url, $rest)) {
+
+        $dArr = cms_Domains::getDomainOptions(true);
+
+        if (core_Url::isLocal($url, $rest, $dArr)) {
             $link = $this->internalLink($url, $title, $place, $rest);
             list($url1, $url2) = explode('#', $url, 2);
             if ($url2) {
@@ -1081,7 +1083,8 @@ class type_Richtext extends type_Blob
         
         if ($title[0] != ' ' && !Mode::is('text', 'xhtml')) {
             $bgPlace = $this->getPlace();
-            $thumb = new thumb_Img(array("https://plus.google.com/_/favicon?domain={$domain}", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly()));
+            $sDomain = $urlArr['scheme'] . '://' . $domain;
+            $thumb = new thumb_Img(array("https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url={$sDomain}&size=16", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly(), 'default' => 'img/16/link.png'));
             $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
             
@@ -1225,8 +1228,14 @@ class type_Richtext extends type_Blob
             
             return $url;
         }
-        
-        if (core_Url::isLocal($url, $rest)) {
+
+        $dArr = cms_Domains::getDomainOptions(true);
+        if (defined('BGERP_ABSOLUTE_HTTP_HOST')) {
+            $dArr[-1] = BGERP_ABSOLUTE_HTTP_HOST;
+        }
+        $dArr = array_diff($dArr, array('localhost'));
+
+        if (core_Url::isLocal($url, $rest, $dArr)) {
             $result = $this->internalUrl($url, str::limitLen(decodeUrl($url), 120), $rest);
         } else {
             $result = $this->externalUrl($url, str::limitLen(decodeUrl($url), 120));

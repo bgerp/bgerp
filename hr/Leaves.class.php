@@ -215,20 +215,12 @@ class hr_Leaves extends core_Master
         $this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
-        $this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
-        
+        $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)', 'caption=По време на отсъствието->Заместници, oldFieldName=alternatePerson');
+
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
-    
-    
-    /**
-     * Извиква се преди вкарване на запис в таблицата на модела
-     */
-    public static function on_BeforeSave($mvc, &$id, $rec)
-    {
-    }
-    
+
     
     /**
      * Изпълнява се преди опаковане на съдаржанието от мениджъра
@@ -297,22 +289,21 @@ class hr_Leaves extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
         $nowYear = dt::mysql2Verbal(dt::now(), 'Y');
         for ($i = 0; $i <= 1; $i++) {
             $years[$nowYear - $i] = $nowYear - $i;
         }
         $form->setSuggestions('useDaysFromYear', $years);
         
-        //$form->setDefault('useDaysFromYear', $years[$nowYear]);
-        
         // Намират се всички служители
-        $employees = crm_Persons::getEmployeesOptions();
+        $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
         unset($employees[$rec->personId]);
+        $form->setSuggestions('alternatePersons', $employees);
         
         if (countR($employees)) {
             $form->setOptions('personId', $employees);
-            $form->setOptions('alternatePerson', $employees);
+            $form->setSuggestions('alternatePersons', $employees);
         } else {
             redirect(array('crm_Persons', 'list'), false, '|Липсва избор за служители|*');
         }
@@ -378,7 +369,7 @@ class hr_Leaves extends core_Master
             
             // ако не са изчислени дните за отпуска или са по-малко от 1, даваме грешка
             if (!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
-                $form->setError('leaveDays', 'Броят  неприсъствени дни е 0');
+                $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
             }
             
             // правим заявка към базата
@@ -502,10 +493,15 @@ class hr_Leaves extends core_Master
         //
         $rec = $mvc->fetchRec($rec);
         $subscribedArr = keylist::toArray($rec->sharedUsers);
-        
-        if (isset($rec->alternatePerson)) {
-            $alternatePersonId = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-            $subscribedArr[$alternatePersonId] = $alternatePersonId;
+        $subscribedArr[$rec->createdBy] = $rec->createdBy;
+
+        if (isset($rec->alternatePersons)) {
+            foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
+                $alternatePersonId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
+                if ($alternatePersonId) {
+                    $subscribedArr[$alternatePersonId] = $alternatePersonId;
+                }
+            }
         }
         
         if (countR($subscribedArr)) {
@@ -556,9 +552,16 @@ class hr_Leaves extends core_Master
         
         $curDate = $rec->leaveFrom;
 
+        $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+        if (!$personProfile || !$personProfile->userId) {
+
+            return ;
+        }
+
         while ($curDate < dt::addDays(1, $rec->leaveTo) ){
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
+
                 $calRec = new stdClass();
                 
                 // Ключ на събитието
@@ -577,9 +580,9 @@ class hr_Leaves extends core_Master
                 
                 // Заглавие за записа в календара
                 $calRec->title = "Отпуск: {$personName}";
-                
-                $personProfile = crm_Profiles::fetch("#personId = '{$rec->personId}'");
+
                 $personId = array($personProfile->userId => 0);
+
                 $user = keylist::fromArray($personId);
                 
                 // В чии календари да влезе?
@@ -734,6 +737,52 @@ class hr_Leaves extends core_Master
         
         $myCompany = crm_Companies::fetchOurCompany();
         $row->myCompany = $myCompany->name;
+
+        $row->alternatePersons = static::purifyeAlternatePersons($rec->alternatePersons);
+    }
+
+
+    /**
+     * Помощна функция за показване на заместващите лица
+     *
+     * @param null|string $alternatePersons
+     * @param boolean $showNick
+     *
+     * @return string
+     */
+    public static function purifyeAlternatePersons($alternatePersons, $showNick = false)
+    {
+        $res = '';
+        if (isset($alternatePersons)) {
+            $aPersonsArr = array();
+            foreach (type_Keylist::toArray($alternatePersons) as $aPerson) {
+                if ($showNick) {
+                    $uId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
+                    if ($uId) {
+                        $aPersonsArr[] = crm_Profiles::createLink($uId);
+
+                        continue;
+                    }
+                }
+                // Ако имаме права да видим визитката
+                if (crm_Persons::haveRightFor('single', $aPerson) && ($name = crm_Persons::fetchField(array("#id = '[#1#]'", $aPerson), 'name'))) {
+                    $aPersonsArr[] = ht::createLink($name, array('crm_Persons', 'single', 'id' => $aPerson), null, 'ef_icon = img/16/vcard.png');
+                } else {
+                    $pRow = crm_Persons::recToVerbal($aPerson, 'name');
+                    if ($pRow) {
+                        $aPersonsArr[] = $pRow->name;
+                    } else {
+                        $aPersonsArr[] = $aPerson;
+                    }
+                }
+            }
+
+            if (!empty($aPersonsArr)) {
+                $res = implode(', ', $aPersonsArr);
+            }
+        }
+
+        return $res;
     }
     
     
@@ -856,17 +905,20 @@ class hr_Leaves extends core_Master
         $link = array('hr_Leaves', 'single', $rec->id);
         
         //Променяме статуса на затворено
-        $recUpd = new stdClass();
-        $recUpd->id = $rec->id;
-        $recUpd->state = 'closed';
-        
-        hr_Leaves::save($recUpd);
+        $rec->brState = $rec->state;
+        $rec->state = 'closed';
+        hr_Leaves::save($rec);
         
         $subscribedArr = keylist::toArray($rec->sharedUsers);
+        $subscribedArr[$rec->createdBy] = $rec->createdBy;
         
-        if (isset($rec->alternatePerson)) {
-            $alternatePersonId = crm_Profiles::fetchField("#personId = '{$rec->alternatePerson}'", 'userId');
-            $subscribedArr[$alternatePersonId] = $alternatePersonId;
+        if (isset($rec->alternatePersons)) {
+            foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
+                $alternatePersonId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
+                if ($alternatePersonId) {
+                    $subscribedArr[$alternatePersonId] = $alternatePersonId;
+                }
+            }
         }
         
         if (countR($subscribedArr)) {
@@ -881,7 +933,7 @@ class hr_Leaves extends core_Master
                 }
             }
         }
-        
+
         // Редиректваме
         return new Redirect($link, '|Успешно отказахте молба за отпуска');
     }

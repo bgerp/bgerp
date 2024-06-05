@@ -151,7 +151,7 @@ class rack_Products extends store_Products
         // Преизчисляване на количеството по палети
         rack_Pallets::recalc($rec->productId, $rec->storeId);
         
-        return followRetUrl(null, 'Количеството по палети е преизчислено успешно|*!');
+        return followRetUrl(null, '|Количеството по палети е преизчислено успешно|*!');
     }
     
     
@@ -169,7 +169,7 @@ class rack_Products extends store_Products
         $rec->quantityOnZones = rack_ZoneDetails::calcProductQuantityOnZones($rec->productId, $rec->storeId);
         $this->save($rec, 'id,quantityOnZones');
         
-        return followRetUrl(null, 'Количеството по зони е преизчислено успешно|*!');
+        return followRetUrl(null, '|Количеството по зони е преизчислено успешно|*!');
     }
     
     
@@ -324,5 +324,189 @@ class rack_Products extends store_Products
         $floorQuantity = round($floorQuantity, $round);
 
         return $floorQuantity;
+    }
+
+    /**
+     * Подготовка на палетите
+     *
+     * @param stdClass $data
+     */
+    public function preparePallets_($data)
+    {
+        $canStore = $data->masterData->rec->canStore;
+        if($canStore != 'yes'){
+            $data->hide = true;
+            return;
+        }
+
+        $rackQuery = rack_Racks::getQuery();
+        $storesWithRacks = arr::extractValuesFromArray($rackQuery->fetchAll(), 'storeId');
+        $count = countR($storesWithRacks);
+        if(empty($count)){
+            $data->hide = true;
+            return;
+        }
+
+        $data->TabCaption = 'Позиции';
+        $data->Tab = 'top';
+        $data->recs = $data->rows = array();
+
+        // Ако е отворен друг таб няма да се подготвят данните
+        $tabParam = $data->masterData->tabTopParam;
+        $prepareTab = Request::get($tabParam);
+        if($prepareTab != 'pallets') {
+            $data->hide = true;
+            return;
+        }
+
+        // Ако складовете са повече от един да се показва филтър
+        if($count > 1){
+            $storeOptions = array();
+            foreach ($storesWithRacks as $storeId){
+                $storeOptions[$storeId] = store_Stores::getTitleById($storeId, false);
+            }
+
+            // Подготвяме формата за филтър по склад
+            $form = cls::get('core_Form');
+            $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
+            $form->setOptions("storeId{$data->masterId}", array('' => '') + $storeOptions);
+            $form->view = 'horizontal';
+            $form->setAction(getCurrentUrl());
+            $form->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon=img/16/funnel.png');
+
+            // Инпутваме формата
+            $form->input();
+            $data->form = $form;
+        }
+
+        $storeQuery = store_Stores::getQuery();
+        $storeQuery->where("#state = 'active'");
+        $storeQuery->show('id');
+        if(isset($form->rec->{"storeId{$data->masterId}"})){
+            $storeQuery->where("#id = {$form->rec->{"storeId{$data->masterId}"}}");
+        } else {
+            if(countR($storesWithRacks)){
+                $storeQuery->in('id', $storesWithRacks);
+            } else {
+                $storeQuery->where("1=2");
+            }
+        }
+
+        $stores = arr::extractValuesFromArray($storeQuery->fetchAll(), 'id');
+        $measureId = tr(cat_UoM::getShortName($data->masterData->rec->measureId));
+
+        // Подготовка на позициите на складовете
+        foreach ($stores as $storeId){
+            $pRec = rack_Products::fetch("#storeId = {$storeId} AND #productId = {$data->masterId}");
+            if(empty($pRec->quantity)) continue;
+
+            $rQuery = rack_Pallets::getQuery();
+            $rQuery->where("#storeId = {$storeId} AND #productId = {$data->masterId} AND #state = 'active'");
+            while($rRec = $rQuery->fetch()){
+                $data->recs[] = (object)array('storeId' => $rRec->storeId,
+                                              'batch' => $rRec->batch,
+                                              'position' => $rRec->position,
+                                              'quantity' => $rRec->quantity,);
+            }
+
+
+            $data->recs[] = (object)array('storeId' => $storeId,
+                                          'batch' => null,
+                                          'position' => rack_PositionType::FLOOR,
+                                          'quantity' => $pRec->quantityNotOnPallets,);
+            $data->recs[] = (object)array('storeId' => $storeId,
+                                          'batch' => null,
+                                          'position' => null,
+                                          'quantity' => $pRec->quantityOnZones,);
+        }
+
+        // Подготвяме страницирането
+        $pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $pager->setPageVar($data->masterMvc->className, $data->masterId);
+        $pager->itemsCount = countR($data->recs);
+        $data->pager = $pager;
+
+        $batchDef = batch_Defs::getBatchDef($data->masterId);
+
+        // Всяка позиция се вербализира
+        foreach ($data->recs as $id => $rec){
+            if (!$data->pager->isOnPage()) continue;
+
+            $row = (object)array('storeId' => store_Stores::getHyperlink($rec->storeId, true), 'measureId' => $measureId);
+            $rec->quantity = empty($rec->quantity) ? 0 : $rec->quantity;
+            $row->quantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantity);
+            $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
+            if(is_null($rec->position)){
+                $row->position = "<i>" . tr('В зони') . "</i>";
+            } elseif($rec->position == rack_PositionType::FLOOR){
+                $row->position = "<i>" . tr('На пода') . "</i>";
+            } else {
+                $row->position = core_Type::getByName('varchar')->toVerbal($rec->position);
+                if(rack_Pallets::haveRightFor('forceopen', (object)array('storeId' => $rec->storeId))){
+                    $row->position = ht::createLink($row->position, array('rack_Pallets', 'forceopen', 'storeId' => $rec->storeId, 'productId' => $data->masterId, 'position' => $rec->position));
+                }
+            }
+
+            if(isset($batchDef)){
+                if(!empty($rec->batch)){
+                    $row->batch = $batchDef->toVerbal($rec->batch);
+                    if (batch_Movements::haveRightFor('list')) {
+                        $link = array('batch_Movements', 'list', 'batch' => $rec->batch);
+                        if (isset($fields['-list'])) {
+                            $link += array('productId' => $rec->productId, 'storeId' => $rec->storeId);
+                        }
+                        $row->batch = ht::createLink($row->batch, $link);
+                    }
+                }
+            }
+
+            $row->ROW_ATTR['class'] = 'state-active';
+            $data->rows[$id] = $row;
+        }
+
+        $data->listFields = arr::make('storeId=Склад,position=Позиция,batch=Партида,measureId=Мярка,quantity=Количество', true);
+    }
+
+
+    /**
+     * Редниране на палетите
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderPallets_($data)
+    {
+        if($data->hide) return new core_ET("");
+
+        $tpl = getTplFromFile('rack/tpl/PalletDetail.shtml');
+        if(isset($data->form)){
+            $tpl->append($data->form->renderHtml(), 'FILTER');
+        }
+
+        // Подготвяме таблицата за рендиране
+        $fieldSet = new core_FieldSet();
+        $fieldSet->FLD('position', 'varchar', 'smartCenter');
+        $fieldSet->FLD('storeId', 'varchar', 'tdClass=leftCol');
+        $fieldSet->FLD('measureId', 'varchar', 'smartCenter');
+        $fieldSet->FLD('batch', 'varchar', 'smartCenter');
+        $fieldSet->FLD('quantity', 'double');
+        $table = cls::get('core_TableView', array('mvc' => $fieldSet));
+
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'batch');
+
+        // Ако е филтрирано по склад, скриваме колонката на склада
+        if (isset($data->storeId)) {
+            unset($data->listFields['storeId']);
+        }
+
+        // Рендиране на таблицата с резултатите
+        $dTpl = $table->get($data->rows, $data->listFields);
+        $tpl->append($dTpl, 'content');
+
+        if (isset($data->pager)) {
+            $tpl->append($data->pager->getHtml(), 'content');
+        }
+
+        return $tpl;
     }
 }

@@ -33,7 +33,7 @@
             </td>
         </tr>
         <tr>
-            <td class="cell custom-header-bg"><b>Supplier</b></td>
+            <td class="cell custom-header-bg"><b>|Supplier|*</b></td>
         </tr>
         <tr>
             <td>
@@ -113,12 +113,12 @@
                     </tr>
                     <!--ET_END lineVehicleId-->
                     <tr>
-                        <td class='quiet nowrap aright' style='width:1%;'>Total weight:</td>
-                        <td>[#weight#]</td>
-                    </tr>
-                    <tr>
-                        <td class='quiet nowrap aright' style='width:1%;'>Total volume:</td>
-                        <td>[#volume#]</td>
+                        <td colspan="2">
+                            <hr>
+                            <div>Total gross weight:&nbsp;[#weight#]</div>
+                            <div>Total net weight:&nbsp;[#netWeight#]</div>
+                            <div>Total packing weight:&nbsp;[#tareWeight#]</div>
+                        </td>
                     </tr>
                     <!--ET_BEGIN logisticInfo-->
                     <tr>
@@ -128,6 +128,15 @@
                         <td colspan="2" >[#logisticInfo#]</td>
                     </tr>
                     <!--ET_END logisticInfo-->
+                    <!--ET_BEGIN InvoicesToDocuments-->
+                    <tr> <td colspan="2">
+                        <hr>
+                        <table>
+                            [#InvoicesToDocuments#]
+                        </table>
+                    </td> </tr>
+
+                    <!--ET_END InvoicesToDocuments-->
                 </table>
                 <!--ET_BEGIN note-->
                 <hr>

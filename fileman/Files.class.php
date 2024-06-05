@@ -1615,14 +1615,21 @@ class fileman_Files extends core_Master
     public static function generateUrl_($fh, $isAbsolute)
     {
         $rec = static::fetchByFh($fh);
-        
+
+        $url = null;
+
         if (static::haveRightFor('single', $rec) && !Mode::is('forceDownload')) {
             
             //Генерираме връзката
             $url = toUrl(array('fileman_Files', 'single', $fh), $isAbsolute);
         } else {
-            //Генерираме връзката за сваляне
-            $url = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => true), $isAbsolute);
+            if ($fh) {
+                $fRec = self::fetchByFh($fh);
+                if ($fRec && !fileman_Files::isDanger($fRec, 0.00001)) {
+                    //Генерираме връзката за сваляне
+                    $url = toUrl(array('fileman_Download', 'Download', 'fh' => $fh, 'forceDownload' => true), $isAbsolute);
+                }
+            }
         }
         
         return $url;
@@ -2181,6 +2188,13 @@ class fileman_Files extends core_Master
                 $roles = 'no_one';
             }
         }
+
+        if ($action == 'single' && $rec) {
+            if ($mvc->isDanger($rec, 0.00001) && !haveRole('debug')) {
+
+                $roles = 'no_one';
+            }
+        }
     }
 
 
@@ -2225,51 +2239,16 @@ class fileman_Files extends core_Master
         if (!$isAbsolute && fileman_Files::isDanger($rec)) {
             $dangerFileClass .= ' dangerFile';
         }
-        
+
         $fileNavArr = Mode::get('fileNavArr');
-        
-        $prevUrl = $fileNavArr[$rec->fileHnd]['prev'];
-        $nextUrl = $fileNavArr[$rec->fileHnd]['next'];
-        
-        // Показваме селект с всички файлове
-        if (!$dangerFileClass && $fileNavArr[$rec->fileHnd]['allFilesArr'] && countR($fileNavArr[$rec->fileHnd]['allFilesArr']) > 1) {
-            $form = cls::get('core_Form');
-            $form->fnc('selectFile', 'enum()', 'input=input');
-            
-            $form->addAttr('selectFile', array('onchange' => 'document.location = this.options[this.selectedIndex].value;'));
-            
-            $form->view = 'horizontal';
-            
-            $form->layout = "<form [#FORM_ATTR#] >[#FORM_FIELDS#][#FORM_TOOLBAR#][#FORM_HIDDEN#]</form>\n";
-            
-            foreach ($fileNavArr[$rec->fileHnd]['allFilesArr'] as $fUrl => $fName) {
-                if ($fileNavArr[$rec->fileHnd]['current'] == $fUrl) {
-                    $fName = type_Varchar::escape($data->rec->name);
-                }
-                $eArr[$fUrl] = str::limitLen($fName, 32);
-            }
-            
-            $form->setOptions('selectFile', $eArr);
-            $form->setDefault('selectFile', $fileNavArr[$rec->fileHnd]['current']);
-            
-            $row->fileName = $form->renderHtml();
-        } else {
-            // Вербалното име на файла
-            $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">';
-            if ($dangerFileClass) {
-                $row->fileName .= tr('Файл с вирус|*: ');
-            }
-            $row->fileName .= $mvc->getVerbal($rec, 'name') . '</span>';
+
+        // Вербалното име на файла
+        $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">';
+        if ($dangerFileClass) {
+            $row->fileName .= tr('Файл с вирус|*: ');
         }
-        
-        if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
-            $row->fileName .= ht::createLink('', $prevUrl, false, 'ef_icon=img/16/prev.png,style=margin-left:10px;');
-        }
-        
-        if ($nextUrl = $fileNavArr[$rec->fileHnd]['next']) {
-            $row->fileName .= ht::createLink('', $nextUrl, false, 'ef_icon=img/16/next.png,style=margin-left:6px;');
-        }
-        
+        $row->fileName .= $mvc->getVerbal($rec, 'name') . '</span>';
+
         // Показваме и източника на файла
         if ($fileNavArr[$rec->fileHnd]['src']) {
             if ($fileNavArr[$rec->fileHnd]['srcDirName']) {
@@ -2435,9 +2414,8 @@ class fileman_Files extends core_Master
             if (is_array($arrCreate)) {
                 // Обхождаме масива
                 foreach ($arrCreate as $id => $arr) {
-
                     // Ако има полета, създаваме бутона
-                    if (count($arr) && $className::haveRightFor('add')) {
+                    if (count($arr)) {
                         $data->toolbar->addBtn($arr['title'], $arr['url'], 'row=2,id=' . $id . ',ef_icon=' . $arr['icon'], $arr['btnParams']);
                     }
                 }
@@ -2775,43 +2753,56 @@ class fileman_Files extends core_Master
             
             return ;
         }
-        
-        // Брой записи
-        $fileCnt = $data->listSummary->query->count();
-        
+
+        if (!haveRole('admin') && !haveRole('ceo')) {
+
+            return ;
+        }
+
+        $fileLen = $sqlSize = 0;
+
+        $Files = cls::get('fileman_FileSize');
+        $Int = cls::get('type_Int');
+
+        $fData = fileman_Data::getQuery();
+
+        $fData->show('id, fileLen, sumLen');
+        $fileCnt = $fData->count();
+
         // Размер на всички файлове
-        $data->listSummary->query->XPR('sumLen', 'int', 'SUM(#fileLen)');
-        $rec = $data->listSummary->query->fetch();
+        $fData->XPR('sumLen', 'int', 'SUM(#fileLen)');
+        $rec = $fData->fetch();
         $fileLen = $rec->sumLen;
-        
+
         if (!isset($data->listSummary->statVerb)) {
             $data->listSummary->statVerb = array();
         }
-        
-        $Files = cls::get('fileman_FileSize');
-        $Int = cls::get('type_Int');
-        
+
         // Размер на всички файлове
         if ($fileLen) {
             $data->listSummary->statVerb['fileSize'] = $Files->toVerbal($fileLen);
         }
-        
+
         // Броя на файловете
         if ($fileCnt) {
             $data->listSummary->statVerb['fileCnt'] = $Int->toVerbal($fileCnt);
         }
-        
+
         // Статистика за БД
-        if (haveRole('ceo, admin, debug')) {
-            $db = cls::get('core_Db');
-            
-            $sqlInfo = $db->getDBInfo();
-            
-            if ($sqlInfo) {
-                $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['SIZE']);
-                $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['ROWS']);
-                $data->listSummary->statVerb['tablesCnt'] = $Int->toVerbal($sqlInfo['TABLES']);
-            }
+        $db = cls::get('core_Db');
+
+        $sqlInfo = $db->getDBInfo();
+
+        if ($sqlInfo) {
+            $sqlSize = $sqlInfo['SIZE'];
+            $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['SIZE']);
+            $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['ROWS']);
+            $data->listSummary->statVerb['tablesCnt'] = $Int->toVerbal($sqlInfo['TABLES']);
+        }
+
+        if ($fileLen && $sqlSize) {
+            $sumLen = $fileLen + $sqlSize;
+            $data->listSummary->statVerb['sumSize'] = $Files->toVerbal($sumLen);
         }
     }
     

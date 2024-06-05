@@ -54,8 +54,15 @@ abstract class cash_Document extends deals_PaymentDocument
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, cash';
-    
-    
+
+
+    /**
+     * Дали към документа може да се отнася повече от една ф-ра
+     * @see deals_InvoicesToDocuments
+     */
+    public $canSelectOnlyOneInvoice = true;
+
+
     /**
      * Кой има право да променя?
      */
@@ -161,7 +168,7 @@ abstract class cash_Document extends deals_PaymentDocument
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'termDate,valior';
+    public $fieldsNotToClone = 'termDate,valior,issuer';
     
     
     /**
@@ -192,6 +199,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min77=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
+        $mvc->FLD('issuer', 'varchar', 'caption=Допълнително->Съставил');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
     }
@@ -235,7 +243,8 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $folderId = $data->form->rec->folderId;
         $form = &$data->form;
-        
+        $rec = &$form->rec;
+
         $contragentId = doc_Folders::fetchCoverId($folderId);
         $contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
         $form->setDefault('contragentId', $contragentId);
@@ -244,7 +253,7 @@ abstract class cash_Document extends deals_PaymentDocument
         expect($origin = $mvc->getOrigin($form->rec));
         $dealInfo = $origin->getAggregateDealInfo();
         $pOperations = $dealInfo->get('allowedPaymentOperations');
-        
+
         $options = $mvc->getOperations($pOperations);
         expect(countR($options));
         
@@ -347,13 +356,17 @@ abstract class cash_Document extends deals_PaymentDocument
             
             $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
             $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, null);
-            
+
             if ($rec->currencyId == $rec->dealCurrencyId) {
                 $rec->amount = $rec->amountDeal;
             }
-            
+
+            $warning = $mvc->getOperationWarning($rec->operationSysId, $dealInfo, $rec);
+            if($warning){
+                $form->setWarning('operationSysId', $warning);
+            }
+
             $dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
-            
             if ($msg = currency_CurrencyRates::checkAmounts($rec->amount, $rec->amountDeal, $rec->valior, $currencyCode, $dealCurrencyCode)) {
                 $form->setError('amountDeal', $msg);
             }
@@ -513,14 +526,14 @@ abstract class cash_Document extends deals_PaymentDocument
             $row->amountVerbal = str::mbUcfirst($amountVerbal);
             
             // Вземаме данните за нашата фирма
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
             }
             
             // Кой е съставителя на документа
-            $row->issuer = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
-            
+            $row->issuer = deals_Helper::getIssuerRow($rec->issuer, $rec->createdBy, $rec->activatedBy, $rec->state);
+
             if (isset($rec->peroCase)) {
                 $row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
             } else {
@@ -651,6 +664,12 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $caseId = null;
 
+        // Измежду кои каси може да се избира, ако е инсталирана многофирмеността ще е от разрешените каси в посочената Наша фирма
+        $allowedCases = null;
+        if(core_Packs::isInstalled('holding')){
+            $allowedCases = holding_Companies::getSelectedOptions('cashes', $rec->{$this->ownCompanyFieldName});
+        }
+
         // Ако има транс. линия с дефолтна каса
         $priorityCases = array();
         if(!empty($rec->{$this->lineFieldName})){
@@ -670,6 +689,8 @@ abstract class cash_Document extends deals_PaymentDocument
             $clone = clone $rec;
             $clone->peroCase = $defaultCaseId;
             if(deals_Helper::canSelectObjectInDocument('conto', $clone, 'cash_Cases', 'peroCase')){
+                if(is_array($allowedCases) && !array_key_exists($defaultCaseId, $allowedCases)) continue;
+
                 $caseId = $defaultCaseId;
                 break;
             }
@@ -677,20 +698,32 @@ abstract class cash_Document extends deals_PaymentDocument
 
         // Ако не може да контира с касата от тл или сесията
         if(!isset($caseId)){
-            $userId = isset($userId) ? $userId : core_Users::getCurrent();
+            $userId = $userId ?? core_Users::getCurrent();
 
             // Ако няма търси се първата каса в която може да контира, след това първата, която може да избира
             foreach (array(true, false) as $exp){
                 $query = cash_Cases::getQuery();
                 $query->show('id');
+                if(is_array($allowedCases)){
+                    if(countR($allowedCases)){
+                        $query->in('id', array_keys($allowedCases));
+                    } else {
+                        $query->where("1=2");
+                    }
+                }
 
                 // Ако не е намерена контираща каса, но има избрана каса в сесията - това е тя
                 if($exp === false && isset($sessionCaseId)){
-                    $caseId = $sessionCaseId;
-                    break;
+                    if(!is_array($allowedCases) || array_key_exists($sessionCaseId, $allowedCases)){
+                        $caseId = $sessionCaseId;
+                        break;
+                    }
                 }
 
-                bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
+                if(!haveRole('ceo', $userId)){
+                    bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
+                }
+
                 if($firstRec = $query->fetch()){
                     $caseId = $firstRec->id;
                     break;
@@ -716,5 +749,20 @@ abstract class cash_Document extends deals_PaymentDocument
         }
         
         return "|Наистина ли желаете документът да бъде контиран|*?";
+    }
+
+
+    /**
+     * След контиране на документа
+     *
+     * @param accda_Da $mvc
+     * @param stdClass $rec
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        if(empty($rec->issuer)){
+            $rec->issuer = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
+            $mvc->save_($rec, 'issuer');
+        }
     }
 }

@@ -172,6 +172,24 @@ defIfNot('DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON', 3 * 12 * core_DateTime::SE
 
 
 /**
+ * Показване на последно посетените документи за избор на Шаблони->Брой
+ */
+defIfNot('DOC_SHOW_LAST_VISITED_AS_PROTOTYPES', 10);
+
+
+/**
+ * Отваряне на папката след оттегляне на документ
+ */
+defIfNot('DOC_OPEN_FOLDER_AFTER_REJECT', 'yes');
+
+
+/**
+ * Потребителя, който ще се използва за първи администратор в системата
+ */
+defIfNot('DOC_DEFAULT_INCHARGE', '');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -242,6 +260,8 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_PENDING_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за създадени документи->Заявки, customizeBy=powerUser'),
 
+        'DOC_DEFAULT_INCHARGE' => array('user(roles=sales|ceo, allowEmpty)', 'caption=Отговорник по подразбиране на папките->Потребител'),
+
         'DOC_SHOW_DOCUMENTS_BEGIN' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_LAST_ON' => array('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи в нишка->По-нови от, customizeBy=user'),
@@ -254,6 +274,8 @@ class doc_Setup extends core_ProtoSetup
         'DOC_MOVE_LAST_DOCUMENT' => array('enum(yes=Да,no=Не)', 'caption=Възможност за преместване на последния документ в нишката->Избор'),
         'DOC_SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE' => array('enum(no=Не,yes=Да)', 'caption=Разбиване на цитиран текст на параграфи->Избор, customizeBy=user'),
         'DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON' => array('time(unit=years, suggestions=Без ограничение|6 месеца|1 год.|2 год.|3 год.|5 год.)', 'caption=До колко време назад да се показват филтрираните документи при избор на период "Всички" в списъка->Време,customizeBy=officer'),
+        'DOC_SHOW_LAST_VISITED_AS_PROTOTYPES' => array('int(Min=0)', 'caption=Показване на последно посетените документи за избор на Шаблони->Брой, customizeBy=powerUser'),
+        'DOC_OPEN_FOLDER_AFTER_REJECT' => array('enum(yes=Да,no=Не)', 'canView=no_one, caption=Пренасочване към папката|*&#44; | след оттегляне на първия документ в нишката->Избор, customizeBy=debug'),
     );
 
     // Инсталиране на мениджърите
@@ -331,7 +353,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols,doc_reports_ActivatedDocumentsByTime, doc_ExpandComments, doc_drivers_FolderPortal, doc_drivers_LatestDocPortal';
+    public $defClasses = 'doc_reports_SearchInFolder,doc_reports_DocsByRols,doc_reports_ActivatedDocumentsByTime, doc_ExpandComments, doc_drivers_FolderPortal, doc_drivers_LatestDocPortal';
 
 
     /**

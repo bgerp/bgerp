@@ -93,8 +93,8 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('debitItem1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 1');
         $this->FLD('debitItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 2');
         $this->FLD('debitItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 3');
-        $this->FLD('debitQuantity', 'double(minDecimals=0)', 'caption=Дебит->К-во');
-        $this->FLD('debitPrice', 'double(decimals=5)', 'caption=Дебит->Цена');
+        $this->FLD('debitQuantity', 'double(smartRound)', 'caption=Дебит->К-во');
+        $this->FLD('debitPrice', 'double(smartRound)', 'caption=Дебит->Цена');
         
         // Кредитна аналитична сметка
         $this->FLD(
@@ -105,8 +105,8 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('creditItem1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 1');
         $this->FLD('creditItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 2');
         $this->FLD('creditItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 3');
-        $this->FLD('creditQuantity', 'double(minDecimals=0)', 'caption=Кредит->К-во');
-        $this->FLD('creditPrice', 'double(decimals=5)', 'caption=Кредит->Цена');
+        $this->FLD('creditQuantity', 'double(smartRound)', 'caption=Кредит->К-во');
+        $this->FLD('creditPrice', 'double(smartRound)', 'caption=Кредит->Цена');
         
         // Обща сума на транзакцията
         $this->FLD('reasonCode', 'key(mvc=acc_Operations,select=title)', 'input=none,caption=Операция');
@@ -399,9 +399,7 @@ class acc_JournalDetails extends core_Detail
                 // И то е различно от сумата на реда замества се
                 // Така се подсигуряваме че К-то и сумата на основната валута винаги ще са еднакви
                 if (trim($replaceAmount) != trim($rec->amount)) {
-                    $msg = "Replace amount '{$rec->amount}' with '{$replaceAmount}'";
                     $rec->amount = $replaceAmount;
-                    acc_Journal::logDebug($msg, $rec->journalId);
                 }
             }
         }

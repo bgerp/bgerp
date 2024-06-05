@@ -9,7 +9,7 @@
                                 <tbody>
                                     <tr>
                                        <td class="cell centered" rowspan='4' style='width:30%;'>
-                                            <div class="document-title">|протокол за влагане в производство|*</div>
+                                            <div class="document-title">[#protocolTitle#]</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>
@@ -64,25 +64,30 @@
                                                 </tr>
                                                 <!--ET_END useResourceAccounts-->
                                             </table>
+                                            <!--ET_BEGIN description-->
+                                            <hr>
+                                            |Описание на извършените дейности|*:<br>
+                                            [#description#]
+                                            <!--ET_END description-->
                                             <!--ET_BEGIN note-->
                                             <hr>
-                                            |Бележки|*:<br>
+                                            |Забележки|*:<br>
                                             [#note#]
                                             <!--ET_END note-->
                                         </td>
                                         <td>
                                             <table class='centered special-borders' style='width:100%;'>
                                                 <tr>
-                                                    <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
-                                                    <td class='centered'>|Съставил|*:</td>
+                                                    <td class='centered border-right' style='width:50%;'>[#receiverCaption#]: [#RECEIVER_SIGN_PAD#]</td>
+                                                    <td class='centered'>[#senderCaption#]: [#SENDER_SIGN_PAD#]</td>
                                                 </tr>
                                                 <tr>
-                                                    <td class='border-right' style='height:40px;'></td>
-                                                    <td></td>
+                                                    <td class='border-right' style='height:40px;'>[#RECEIVER_SIGN#]</td>
+                                                    <td>[#SENDER_SIGN#]</td>
                                                 </tr>
                                                 <tr>
-                                                    <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                    <td class='centered'><span class="sign_names nowrap">[#username#]</span></td>
+                                                    <td class='centered border-right'><span class="sign_names nowrap"><!--ET_BEGIN receiver-->( [#receiver#] )<!--ET_END receiver--></span></td>
+                                                    <td class='centered'><span class="sign_names nowrap"><!--ET_BEGIN sender-->( [#sender#] )<!--ET_END sender--></span></td>
                                                 </tr>
                                             </table>
                                         </td>

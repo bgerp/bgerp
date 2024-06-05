@@ -2,6 +2,12 @@
 
 
 /**
+ *  Начин за плащане с карта
+ */
+defIfNot('COND_CARD_PAYMENT_METHOD_ID', '');
+
+
+/**
  * class cond_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -12,7 +18,7 @@
  * @package   cond
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -63,7 +69,9 @@ class cond_Setup extends core_ProtoSetup
         'cond_Countries',
         'cond_TaxAndFees',
         'cond_Colors',
-        'cond_Ranges'
+        'cond_Ranges',
+        'cond_Allergens',
+        'cond_TariffCodes',
     );
     
     
@@ -78,9 +86,17 @@ class cond_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store,cond_type_PriceList,cond_type_PurchaseListings,cond_type_SaleListings,cond_type_Url,cond_type_YesOrNo,cond_type_Color, cond_type_Egn, cond_type_Email, cond_type_Keylist, cond_type_Files, cond_type_Html, cond_type_Product, cond_type_Formula, cond_type_Key';
-    
-    
+    public $defClasses = 'cond_type_Double,cond_type_Text,cond_type_Varchar,cond_type_Time,cond_type_Date,cond_type_Component,cond_type_Enum,cond_type_Set,cond_type_Percent,cond_type_Int,cond_type_Delivery,cond_type_PaymentMethod,cond_type_Image,cond_type_File,cond_type_Store,cond_type_PriceList,cond_type_PurchaseListings,cond_type_SaleListings,cond_type_Url,cond_type_YesOrNo,cond_type_Color, cond_type_Egn, cond_type_Email, cond_type_Keylist, cond_type_Files, cond_type_Html, cond_type_Product, cond_type_Formula, cond_type_Key,cond_type_DocTemplate,cond_iface_AllergensTemplateRendered';
+
+
+    /**
+     * Описание на конфигурационните константи за този модул
+     */
+    public $configDescription = array(
+        'COND_CARD_PAYMENT_METHOD_ID' => array('key(mvc=cond_Payments,select=title)', 'caption=Метод за плащане с карта->Избор'),
+    );
+
+
     /**
      * Инсталиране на пакета
      *
@@ -99,7 +115,24 @@ class cond_Setup extends core_ProtoSetup
         // Кофа за файлове от тип параметър
         $Bucket = cls::get('fileman_Buckets');
         $Bucket->createBucket('paramFiles', 'Прикачени файлови параметри', null, '1GB', 'user', 'user');
-        
+
         return $html;
+    }
+
+
+    /**
+     * Зареждане на данните
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        $config = core_Packs::getConfig('cond');
+        if (strlen($config->COND_CARD_PAYMENT_METHOD_ID) === 0) {
+            $cardPaymentId = cond_Payments::fetchField("#code = 7 AND #state = 'active'");
+            core_Packs::setConfig('cond', array('COND_CARD_PAYMENT_METHOD_ID' => $cardPaymentId));
+            $res .= "<li style='color:green'>Задаване на начин за плащане с карта</li>";
+        }
+
+        return $res;
     }
 }

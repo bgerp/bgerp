@@ -294,6 +294,8 @@ div.folder-cover {
     background: #cef1d7 url('../img/cover-bg-green.png'); }
   div.folder-cover.state-active {
     background: #fffdea url('../img/cover-bg-yellow.png'); }
+  div.folder-cover.ownCompany .block_title {
+    background: #a0f1b3; }
   div.folder-cover .detail-info {
     background: none; }
     div.folder-cover .detail-info.portal {
@@ -390,6 +392,9 @@ div.folder-cover {
     margin-left: 20px; }
     div.folder-cover .portal table.listTable .innerTable td {
       border: none !important; }
+
+.costObjectCoverTotalRow th {
+  padding: 5px 3px; }
 
 .document .detail-info .store_Products  .listTable {
   max-width: 100% !important;
@@ -522,6 +527,11 @@ tr.row-removed {
   .user-profile .user-title {
     position: relative;
     padding: 70px 20px 10px 132px;
+    height: 104px;
+    display: flex;
+    align-items: end;
+    justify-content: left;
+    box-sizing: border-box;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
     background: #eaeaea;
         /*
@@ -558,8 +568,6 @@ tr.row-removed {
     color: white;
     font-weight: bold;
     border-radius: 5px 5px 0 0; }
-    .user-profile .user-title.statusClass {
-      padding: 54px 20px 6px 132px; }
       .user-profile .user-title.statusClass .timeSpan {
         color: white !important; }
     .user-profile .user-title .linkWithIcon {
@@ -650,6 +658,9 @@ tr.row-removed {
   margin-top: 5px;
   display: block; }
 
+.user-title .personStatus .profile {
+  color: white !important; }
+
 /*
  * край на потребителски профил
  */
@@ -672,6 +683,11 @@ div.productImage {
 
 .productPreviewHolder {
   float: right; }
+
+  .taskSpecInfo .productPreviewHolder img,
+  .taskSpecInfo .productImage img {
+    max-height: 75px !important;
+    max-width: 90px !important; }
 
 .narrow .productPreviewHolder {
   clear: both;
@@ -817,12 +833,15 @@ div.productImage {
 
   .products-table a.fancybox img,
   .jobTable a.fancybox img,
-  .general-product-description a.fancybox img,
   .sales_SalesDetails .productImage a.fancybox img {
     max-width: 320px;
     max-height: 320px;
     width: auto;
     height: auto; }
+
+.general-product-description a.fancybox img {
+  max-width: 320px;
+  max-height: 320px; }
 
 .component-title {
   padding: 5px 0;
@@ -1224,6 +1243,18 @@ div.acc-detail {
   border-radius: 5px;
   background-color: white;
   position: relative; }
+  .portal.no-border {
+    border: none;
+    padding: 0;
+    margin: 0;
+    position: relative; }
+    .portal.no-border .portal-filter {
+      position: absolute;
+      right: 0;
+      top: 5px;
+      float: none; }
+    .portal.no-border .SearchBtnPortal {
+      border: none !important; }
   .portal .state-closed {
     background-color: rgba(0, 0, 0, 0); }
   .portal.planning,
@@ -1264,8 +1295,6 @@ div.acc-detail {
   .portal table.listTable {
     width: 100% !important;
     border: none;
-    font-size: 0.95em;
-    line-height: 1.1em !important;
     margin-bottom: 0; }
     .portal table.listTable td {
       border: none !important;
@@ -1281,6 +1310,10 @@ div.acc-detail {
     .portal table.listTable .portal-date {
       width: 1%; }
 
+.wide .portal table.listTable {
+  font-size: 0.95em;
+  line-height: 1.1em !important; }
+
   .planning_ProductionTaskDetails table.listTable>tbody>tr>td {
     border-top: 1px none !important; }
   .planning_ProductionTaskDetails table.listTable>tbody>tr:first-child>td {
@@ -1293,9 +1326,6 @@ div.acc-detail {
     border-left: none; }
   .portal.planning table.listTable th:last-child {
     border-right: none; }
-
-.narrow .portal .listRows {
-  font-size: 0.9em; }
 
 .narrow .portal .legend .addTask {
   top: 2px; }
@@ -1369,6 +1399,10 @@ a.tUnsighted {
 /*
  * край на стилове при тредове
  */
+.narrow .folder-cover .typeTable {
+  min-width: 200px !important;
+  max-width: 300px; }
+
 .typeTable {
   border: none !important; }
   .typeTable .formTypeTable {
@@ -1526,9 +1560,49 @@ a.tUnsighted {
     letter-spacing: 3px;
     color: #999999; }
 
+.modalBtn {
+  height: 70px;
+  width: 450px;
+  vertical-align: middle;
+  cursor: pointer;
+  box-sizing: border-box;
+  padding: 10px 20px;
+  font-size: 1.5em !important;
+  text-align: center;
+  border-radius: 10px;
+  color: white !important;
+  font-weight: bold;
+  border: 1px solid #666666;
+  border-radius: 3px;
+  box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+  background-color: #cccccc; }
+  .modalBtn.disabledBtn {
+    color: #999999 !important; }
+
+.confirmPayment {
+  background-color: #4c9d2c !important; }
+  .confirmPayment.disabledBtn {
+    background-color: #3f682f !important; }
+
+.closePaymentModal {
+  background-color: #c51818 !important; }
+  .closePaymentModal.disabledBtn {
+    background-color: #7c2525 !important; }
+
 .header .documentTags {
   position: relative;
   top: -4px; }
+
+.threadSubTitle .documentTags .tags {
+  font-size: 0.9em;
+  position: relative;
+  top: 0px; }
+
+.threadSubTitle.onlyTags {
+  display: inline; }
+  .threadSubTitle.onlyTags .documentTags {
+    top: -2px; }
 
 .portalHeaderTitle {
   margin-right: 5px; }
@@ -1552,16 +1626,6 @@ a.tUnsighted {
 .doc_Threads .listTable .documentTags .tags {
   font-size: 0.9em !important;
   top: 0 !important; }
-
-  .doc_drivers_LatestDocPortal .portalLatestThreads.withoutSubtitle {
-    float: left; }
-  .doc_drivers_LatestDocPortal .threadSubTitle.withoutSubtitle .tagsHolder {
-    position: relative;
-    top: 2px;
-    margin-bottom: 4px; }
-  .doc_drivers_LatestDocPortal .portalLatestThreads,
-  .doc_drivers_LatestDocPortal .portalLatestFoldes {
-    clear: both; }
 
 .narrow .portalAuthorTitle {
   position: relative;
@@ -1588,8 +1652,22 @@ a.tUnsighted {
   .portal .threadSubTitle .tags.tagType-personal {
     border-radius: 5px; }
 
+.threadTitlesHolder {
+  position: relative;
+  padding-right: 25px; }
+
 .tagsHolder {
-  float: right; }
+  position: absolute;
+  right: 0;
+  top: 50%;
+  margin-top: -8px;
+  display: none; }
+
+.doc_drivers_LatestDocPortal .tagsHolder {
+  display: block; }
+
+.narrow .tagsHolder {
+  margin-top: -10px; }
 
   .doc_drivers_FolderPortal .threadSubTitle {
     display: block !important;
@@ -1818,11 +1896,19 @@ a.tUnsighted {
 .dark-gray {
   color: #444444; }
 
-#packWrapper > .floatedElement {
+#packWrapper > .floatedElement,
+#packWrapper > .tab-control .tab-page .floatedElement {
   float: left; }
-  #packWrapper > .floatedElement.preview-holder {
+  #packWrapper > .floatedElement.preview-holder:not(.palletInfoBlock),
+  #packWrapper > .tab-control .tab-page .floatedElement.preview-holder:not(.palletInfoBlock) {
     margin-top: -20px !important;
     min-width: 800px; }
+  #packWrapper > .floatedElement.palletInfoBlock,
+  #packWrapper > .tab-control .tab-page .floatedElement.palletInfoBlock {
+    margin-top: -10px !important; }
+
+.palletInfoBlock {
+  display: inline-block; }
 
 #packWrapper form.floatedElement {
   margin-right: 20px; }
@@ -1858,7 +1944,9 @@ a.tUnsighted {
     margin-left: 20px; }
 
 .productName {
-  white-space: normal !important; }
+  white-space: normal !important;
+  font-weight: bold;
+  color: #444444; }
 
 .narrow .halfTable {
   margin-top: 10px; }
@@ -1980,6 +2068,15 @@ a.tUnsighted {
   float: left;
   display: inline-block; }
 
+.priority-high {
+  color: #882200 !important; }
+
+.priority-critical {
+  color: #cc0033 !important; }
+
+.priority-low {
+  color: #4488cc !important; }
+
 .docBgIcon {
   position: relative; }
 
@@ -2033,6 +2130,9 @@ a.tUnsighted {
   transform: rotate(16deg);
   padding: 1px 2px 0px 2px !important;
   border-radius: 3px; }
+  .stamp.consignmentProtocol {
+    color: #444444;
+    border: 1px dotted #333333; }
 
 .approved {
   padding: 10px 10px 5px !important; }
@@ -2051,6 +2151,9 @@ a.tUnsighted {
 
 .centered {
   text-align: center; }
+
+.vtop.centered .defaultDeleteRowCheckbox {
+  margin-top: 0 !important; }
 
 .lighterBold {
   color: #666666; }
@@ -2117,6 +2220,10 @@ td.rowtools-column {
 .listTable td .frontTooltip img {
   width: 14px !important;
   height: 14px !important; }
+
+.groupList .endTooltip img {
+  width: 12px !important;
+  height: 12px !important; }
 
 .sale-summary td .endTooltip img,
 .sale-summary td .frontTooltip img {
@@ -2205,6 +2312,10 @@ pre.document {
     white-space: nowrap; }
   .antetka .linkWithIcon {
     margin-bottom: 0; }
+  .antetka .document-handler {
+    padding: 0 2px 0 0; }
+    .antetka .document-handler .linkWithIcon {
+      height: auto !important; }
 
 .antetkaCell {
   max-width: 400px; }
@@ -2291,14 +2402,31 @@ pre.document {
   border: 1px solid #bbbbbb;
   vertical-align: top !important; }
 
+.narrow .footer-notes ol li {
+  word-break: break-word; }
+
 .document .paddingCells > tbody > tr > td {
   padding: 5px; }
+
+.innerDocument {
+  padding: 6px 10px 10px; }
 
 .doc_drivers_FolderPortal .threadSubTitle {
   display: inline; }
 
 #invoice-info {
   border-left: 1px solid #bbbbbb; }
+
+#inv-holder > tbody >  tr > td {
+  padding: 0 !important; }
+
+.invoiceNoteWarning {
+  color: #c51818;
+  border: 1px dashed #910404;
+  text-align: justify;
+  padding: 5px;
+  border-radius: 5px;
+  background: #f3e0e0; }
 
 .document .lines {
   border-left: 1px solid #bbbbbb;
@@ -2350,6 +2478,10 @@ pre.document {
   display: inline-block;
   width: 49%;
   float: left; }
+
+.shipment-table .half-col {
+  float: none;
+  white-space: nowrap; }
 
 .narrow .document .half_block {
   width: 100% !important;
@@ -2507,6 +2639,28 @@ pre.document {
 .document table.listTable > tbody > tr > td {
   padding: 5px 3px 2px !important; }
 
+  .inlineRichtextCond .richtext,
+  .inlineRichtextCond .endTooltip {
+    display: inline !important;
+    vertical-align: middle; }
+
+.blueText {
+  color: blue !important; }
+  .blueText .richtext {
+    color: blue !important; }
+
+.closedFrameUpdateTimeTitle {
+  font-weight: bold;
+  color: red !important; }
+
+.closedFrameUpdateTime {
+  font-weight: bold;
+  color: red !important;
+  border: 1px dotted red;
+  padding: 2px; }
+  .closedFrameUpdateTime span {
+    color: red !important; }
+
 /*
  * край на стилове за документи
  */
@@ -2572,10 +2726,7 @@ div.attachments {
     height: auto; }
   .embedded-holder .embedded {
     position: relative;
-    padding-bottom: 56.25%;
-    padding-top: 30px;
-    height: 0;
-    overflow: hidden; }
+    padding-bottom: 56.25%; }
     .embedded-holder .embedded embed,
     .embedded-holder .embedded object,
     .embedded-holder .embedded iframe,
@@ -2676,9 +2827,11 @@ table.mc-calendar {
   table.mc-calendar td.mc-holiday {
     color: red; }
 
+.wide .portal-cal-day {
+  font-size: 0.95em; }
+
 .portal-cal-day {
   color: #5f1f3e;
-  font-size: 0.95em;
   padding-top: 3px;
   padding-left: 3px;
   border-top: 1px solid #cccccc; }
@@ -3295,7 +3448,7 @@ span.sharing-history-title {
 
 .foorterAdd {
   color: #cccccc;
-  font-size: 0.7em !important; }
+  font-size: 0.65em !important; }
 
 .wide .foorterAdd {
   position: absolute;
@@ -3319,14 +3472,63 @@ span.sharing-history-title {
   max-width: 80em;
   display: block;
   margin: 0 auto; }
-  #all #searchform {
-    margin-bottom: 20px; }
 
 #all .filemanSingle {
   padding: 20px; }
 
 .centerContent .filemanSingle {
   padding: 20px 0; }
+
+  #fileDetail .webdrvFieldset {
+    position: relative; }
+  #fileDetail:hover .prevLink,
+  #fileDetail:hover .nextLink {
+    opacity: 0.6; }
+  #fileDetail div.alphabet div.tab-page {
+    padding-top: 0 !important; }
+  #fileDetail .row-holder {
+    position: relative;
+    top: 12px;
+    padding-left: 10px; }
+
+.linkWithIcon.nextLink,
+.linkWithIcon.prevLink {
+  padding-left: 0 !important;
+  position: absolute;
+  height: 48px;
+  width: 48px;
+  top: 50%;
+  margin-top: -24px;
+  background-size: 48px;
+  opacity: 0;
+  -webkit-transition: opacity 1s ease-in-out;
+  -moz-transition: opacity 1s ease-in-out;
+  transition: opacity 1s ease-in-out;
+  z-index: 100; }
+
+.narrow .nextLink {
+  right: 5px; }
+
+.narrow .prevLink {
+  left: 5px; }
+
+.narrow .nextLink,
+.narrow .prevLink {
+  background-size: 36px;
+  background-position: center;
+  margin-top: -18px;
+  opacity: 0.6;
+  width: 38px;
+  height: 38px; }
+
+.narrow #fileDetail .row-holder {
+  top: 17px; }
+
+.prevLink {
+  left: 20px; }
+
+.nextLink {
+  right: 20px; }
 
   .filemanSingle .webdrvTabBody,
   .filemanSingle .webdrvFieldset {
@@ -3625,8 +3827,13 @@ span.sharing-history-title {
   top: -2px; }
   .option-not-in-stock.waitingDelivery {
     background-color: rgba(41, 86, 222, 0.8) !important; }
+  .option-not-in-stock.inStockInRemoteStore {
+    background-color: #72478c !important; }
   .option-not-in-stock.saleSoon {
     background-color: rgba(241, 223, 11, 0.9) !important;
+    color: black !important; }
+  .option-not-in-stock.saleDebug {
+    background-color: #a8f3b4 !important;
     color: black !important; }
 
 .eshop-product-list-param {
@@ -3807,13 +4014,16 @@ table .eshop-btn {
   .productBtn:hover {
     background-color: #eeeeee !important; }
 
+.narrow .productBtn {
+  margin-right: 5px !important; }
+
 .narrow .eshop-btn.addToCard,
 .narrow .productBtn.addToCard {
   background-image: url("../img/32/cart_go.png") !important;
   background-size: 16px;
   background-position: 3px center;
   background-repeat: no-repeat;
-  margin-bottom: 5px !important;
+  margin: 0 0px 5px 5px !important;
   padding: 4px 8px 5px 25px !important;
   top: -1px !important;
   position: relative;
@@ -3939,6 +4149,36 @@ table .eshop-btn {
     top: 0 !important;
     box-shadow: 0 -2px 3px -3px rgba(0, 0, 0, 0.3); }
 
+.narrow .foldertabs>.tab-row>.row-holder .tab>.tab-title {
+  padding: 0.5em 0.8em 0.5em 0.7em; }
+
+.narrow .foldertabs {
+  padding-top: 10px; }
+  .narrow .foldertabs >.tab-row {
+    margin-left: 10px; }
+  .narrow .foldertabs .row-holder {
+    padding-right: 20px; }
+
+.logoutBlock {
+  padding: 0 3px; }
+
+#notificationCountStatus {
+  margin-right: 5px; }
+  #notificationCountStatus.noNtf {
+    display: none; }
+  #notificationCountStatus a.selected-external-tab {
+    border-top: none !important; }
+  #notificationCountStatus a {
+    padding: 2px;
+    color: white !important;
+    background-color: rgba(250, 56, 55, 0.75);
+    border: 1px solid #f92f2e !important;
+    box-shadow: 0 1px 2px 0 #ff9999;
+    border-radius: 3px;
+    font-size: 0.75em;
+    position: relative;
+    top: -3px; }
+
 .contractorExtHolder {
   padding: 10px; }
   .contractorExtHolder .deal-history-tab .tab {
@@ -3948,12 +4188,27 @@ table .eshop-btn {
     .contractorExtHolder .textWithIcons span:not(.highlight) img {
       top: -2px;
       position: relative; }
+  .contractorExtHolder .noNtf {
+    display: none; }
+  .contractorExtHolder .haveNtf {
+    background-color: rgba(250, 56, 55, 0.75);
+    border: 1px solid #f92f2e !important;
+    box-shadow: 0 1px 2px 0 #ff9999;
+    color: white !important;
+    text-shadow: none;
+    border-radius: 3px;
+    font-size: 0.8em;
+    padding-right: 1px;
+    padding-left: 1px; }
+  .contractorExtHolder .select2-container .select2-selection--single .select2-selection__rendered,
+  .contractorExtHolder .select2-container .select2-selection--single {
+    height: 32px;
+    line-height: 30px; }
   .contractorExtHolder a.button,
   .contractorExtHolder input[type="button"],
   .contractorExtHolder input[type="submit"],
   .contractorExtHolder button {
     background-position: 4px center !important;
-    padding: 0.34em 5px 0.34em 23px !important;
     background-repeat: no-repeat !important;
     background-color: #dddddd;
     border: 1px solid #bbbbbb !important;
@@ -3969,7 +4224,9 @@ table .eshop-btn {
     border-right: 1px solid #dfdfdf;
     -webkit-box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
     box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
-    text-shadow: 0 1px 0px #f1f1f1; }
+    text-shadow: 0 1px 0px #f1f1f1;
+    height: 31px;
+    box-sizing: border-box; }
     .contractorExtHolder a.button:hover,
     .contractorExtHolder input[type="button"]:hover,
     .contractorExtHolder input[type="submit"]:hover,
@@ -4017,9 +4274,13 @@ table .eshop-btn {
     text-shadow: none; }
   .contractorExtHolder .toolbar-btn {
     max-width: 16px !important; }
+  .contractorExtHolder .formGroup a {
+    color: #98a2ab; }
+    .contractorExtHolder .formGroup a:hover {
+      color: #637e98 !important; }
 
 .narrow .contractorExtHolder {
-  padding-top: 40px; }
+  padding: 10px 0px; }
   .narrow .contractorExtHolder input[type="button"],
   .narrow .contractorExtHolder input[type="submit"],
   .narrow .contractorExtHolder button,
@@ -4068,9 +4329,19 @@ table .eshop-btn {
 #cmsNavigation a.linkWithIcon {
   display: inline-block;
   height: 21px;
-  float: left;
   margin-left: 5px;
   background-position: center !important; }
+
+#cmsNavigation .navWithIcon.lastOrderedLink a.linkWithIcon {
+  height: auto !important;
+  background-position: 5px 5px !important; }
+
+.narrow #cmsNavigation a.linkWithIcon {
+  float: right; }
+
+#cmsNavigation form {
+  display: inline-block;
+  float: left; }
 
 #cmsNavigation .level1 {
   font-size: 16px;
@@ -4519,8 +4790,7 @@ table .eshop-btn {
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) inset; }
+  border-radius: 5px; }
   .wide .webdrvFieldset > div {
     overflow: auto; }
   .wide .webdrvFieldset > .dtree {
@@ -4572,11 +4842,14 @@ table .eshop-btn {
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2) inset; }
+  border-radius: 5px; }
 
 .filesContainer .top-table {
   margin-bottom: 15px; }
+
+  .filesContainer div.tab-control.alphabet div.tab-row .tab.selected {
+    background: white !important;
+    padding-bottom: 6px !important; }
 
 .webdrv-preview {
   margin-top: 5px; }
@@ -4814,6 +5087,9 @@ table .eshop-btn {
 /*
  * стилове за автор в документ
  */
+.hiddenBtn {
+  display: none !important; }
+
 /*
  * стилове за custom таблица
  */
@@ -4848,7 +5124,7 @@ table .eshop-btn {
     padding: 5px 6px 4px 5px;
     max-width: 160px; }
   .rowtoolsGroup a,
-  .rowtoolsGroup span {
+  .rowtoolsGroup span:not(.highlight) {
     text-align: left;
     display: block;
     font-size: 0.95em;
@@ -4856,7 +5132,7 @@ table .eshop-btn {
     padding-left: 22px !important;
     color: #333333 !important; }
     .rowtoolsGroup a:hover,
-    .rowtoolsGroup span:hover {
+    .rowtoolsGroup span:not(.highlight):hover {
       color: black !important;
       background-color: #e1e1e1;
       cursor: pointer; }
@@ -4892,6 +5168,10 @@ div.no-cover {
       padding: 0;
       margin: 0;
       list-style-type: none; }
+  div.no-cover .detail-info ul {
+    padding-left: 20px; }
+    div.no-cover .detail-info ul li {
+      list-style-type: disc; }
   div.no-cover div.locImage {
     padding-bottom: 0; }
   div.no-cover .gray-title {
@@ -4958,6 +5238,16 @@ div.location.public {
 .narrow .imgPreview img {
   float: none;
   text-align: center; }
+
+.flexBox {
+  display: flex;
+  align-content: baseline;
+  align-items: baseline;
+  margin-bottom: 5px; }
+  .flexBox div {
+    display: flex;
+    align-content: baseline;
+    align-items: baseline; }
 
   .barcodeSearch .noPadding {
     padding: 0px !important; }
@@ -5147,6 +5437,10 @@ div.location.public {
   min-width: 20px;
   float: left; }
 
+.portal .linkWithIcon,
+.portal .ajaxContext {
+  overflow-wrap: anywhere; }
+
 .portal-filter .hFormField {
   width: 7.5em;
   border: solid 1px #cccccc;
@@ -5165,6 +5459,12 @@ div.location.public {
   height: auto;
   position: relative;
   top: -1px; }
+
+.narrow .details .portal {
+  display: table-cell; }
+
+.narrow .top-tab-content .detail-info.portal {
+  display: block; }
 
 .portal-filter .hFormField input {
   height: 1.4em;
@@ -5502,6 +5802,8 @@ div.location.public {
   color: white;
   line-height: 24px;
   text-indent: 5px; }
+  .pricelist-group-label:hover td {
+    background-color: #636363 !important; }
 
 .pricelist-report-pack-table {
   width: 100%; }
@@ -5524,13 +5826,14 @@ div.location.public {
 .eshop-group-button {
   float: left;
   width: 46%;
-  margin: 10px 2%;
+  margin: 5px 2%;
   text-align: center; }
   .eshop-group-button .eshop-group-button-title {
     background: none !important;
     font-size: 1em;
     margin-top: 2px;
-    font-weight: normal; }
+    font-weight: normal;
+    height: 50px; }
     .eshop-group-button .eshop-group-button-title a {
       color: #004488; }
   .eshop-group-button .eshop-group-button-img a {
@@ -5557,8 +5860,18 @@ div.location.public {
     border-color: #fb9292 !important;
     color: #a00505 !important; }
 
+.sel_page {
+  clear: both; }
+
 .favouritesBtn.linkWithIcon:hover {
   cursor: pointer; }
+
+#all .hasLogoutBlock .cms-row,
+.hasLogoutBlock .centerContent {
+  padding-top: 30px; }
+
+.hasLogoutBlock .centerContent .cms-row {
+  padding-top: 10px; }
 
 .narrow .externalPage #maincontent.hasLogoutBlock {
   padding-top: 29px !important; }
@@ -5574,6 +5887,9 @@ div.location.public {
 .narrow .eshop-group-button {
   margin-bottom: 10px;
   height: auto; }
+
+.narrow .eshop-group-button-title {
+  margin-bottom: 0 !important; }
 
 .eshop-group-button:hover  .eshop-group-button-title a {
   color: #cc6600; }
@@ -5615,6 +5931,12 @@ div.location.public {
   -webkit-border-radius: 3px;
   -ms-border-radius: 3px;
   border-radius: 3px; }
+
+.eshop-product-image {
+  max-height: 120px;
+  height: auto;
+  width: auto;
+  max-width: 120px; }
 
 .narrow .inqRow {
   margin-top: 10px; }
@@ -5953,7 +6275,6 @@ only screen and (max-width: 600px) {
 @media handheld,
 only screen and (max-width: 1024px) {
   .document {
-    max-width: 40em;
     min-width: 30em; }
 
   .wide .app-name {
@@ -6295,8 +6616,7 @@ only screen and (max-width: 480px) {
 
   .narrow .eshop-group-button {
     width: 46%;
-    margin-right: 2%;
-    margin-left: 2%;
+    margin: 0 2%;
     font-size: 0.9em; }
 
     :not(.modern-theme) .narrow .main-container .chzn-container,
@@ -6595,6 +6915,9 @@ only screen and (max-width: 320px) {
 
 .labelBreak:last-child {
   margin-bottom: 0mm; }
+
+.qrcode {
+  height: 87px; }
 
 /*
  * стилове за принтиране
@@ -6971,6 +7294,19 @@ only screen and (max-width: 320px) {
 .listTitleButtons {
   margin-bottom: 15px; }
 
+    .wasteBlockInThread tr td {
+      font-weight: normal !important;
+      font-size: 0.65em !important;
+      border: none !important;
+      border-bottom: 1px dotted #aaaaaa !important;
+      padding: 2px !important; }
+    .wasteBlockInThread tr:last-child td {
+      border-bottom: none !important; }
+
+tr.wasteWeightPercent td {
+  font-weight: bold !important;
+  border-top: 1px solid #aaaaaa !important; }
+
 /*
  * стилове за цвета на палитрa при лист изгледа
  */
@@ -7245,7 +7581,7 @@ only screen and (max-width: 320px) {
   .treeView .leafName {
     min-width: 250px; }
   .treeView .toggleBtn {
-    margin-right: 6px;
+    margin-right: 3px;
     cursor: pointer;
     margin-left: -19px; }
   .treeView .treeLevel0 .toggleBtn {
@@ -7346,7 +7682,9 @@ only screen and (max-width: 320px) {
 .cd-l3 {
   color: red;
   animation: blink 1s linear infinite;
-  -webkit-animation: blink 1s linear infinite; }
+  -webkit-animation: blink 1s linear infinite;
+  outline: red 2px solid;
+  outline-offset: 2px; }
 
 @keyframes blink {
     from {
@@ -7418,12 +7756,26 @@ only screen and (max-width: 320px) {
 .selectTaskOptions tr.createAllTasksForJob {
   font-style: italic; }
 
+.paramVal {
+  font-weight: bold; }
+
+.price_reports_PriceList .paramVal {
+  font-weight: normal; }
+
+.wide .operationTable .paramVal {
+  word-break: break-word; }
+
+.narrow .operationTable .paramVal {
+  white-space: nowrap; }
+
 .confidential-field {
   font-size: 0.7em;
   font-weight: normal;
   color: #555555;
   border: 1px solid #cdcdcd;
-  padding: 3px; }
+  padding: 2px 3px;
+  position: relative;
+  top: -2px; }
 
 table.bomProductionStepTable td {
   border: 0px !important; }
@@ -7487,4 +7839,18 @@ table.bomProductionStepTable td {
   background-color: red;
   color: white;
   padding: 1px 3px; }
+
+#fileDetail .row-holder {
+  padding-right: 5px; }
+
+.ef-drag-scroll {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap; }
+  .ef-drag-scroll .tab {
+    display: inline-block; }
+
+.eshopHiddenRow {
+  opacity: 0.3; }
 

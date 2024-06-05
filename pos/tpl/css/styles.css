@@ -5,6 +5,9 @@
   #receipt-table .rejected-receipt {
     background-color: rgba(204, 102, 102, 0.8); }
 
+.sale-summary table td {
+  font-weight: normal; }
+
 #single-receipt-holder {
   float: left;
   font-family: 'Source Sans Pro', sans-serif;
@@ -41,6 +44,8 @@
       box-shadow: 0px 0px 3px #0000fa !important; }
   .result-content .receiptRow.disabledBtn {
     cursor: auto !important; }
+    .result-content .disabledBtn.current {
+      background: #53a163 !important; }
 
 .tools-content {
   padding: 20px 15px;
@@ -305,6 +310,22 @@
     transition: all linear;
     transition-duration: 1s; }
 
+.no-border {
+  font-size: 0.9em; }
+  .no-border tr td.border-bottom {
+    border-bottom: 1px dashed #aaaaaa !important; }
+  .no-border tr:last-child td.border-bottom {
+    border: none !important; }
+  .no-border td {
+    padding: 2px !important; }
+  .no-border .title-info {
+    font-weight: bold !important;
+    background: #dddddd; }
+  .no-border .aleft {
+    text-align: left !important; }
+  .no-border .aright {
+    text-align: right !important; }
+
 .updatedDiv {
   color: red !important; }
   .updatedDiv span {
@@ -395,7 +416,8 @@ select.tabHolder {
   border: 1px solid #999999;
   border-radius: 3px; }
 
-.narrow #receiptnew {
+.narrow #receiptnew,
+.narrow #receiptnewSame {
   color: #333333 !important; }
 
   .tabHolder li.selectable {
@@ -438,11 +460,95 @@ select.tabHolder {
   .contentHolder .content {
     display: none; }
 
+.companyName .contragentImg {
+  width: 16px;
+  height: 16px;
+  margin: 0 5px 0 0;
+  position: relative; }
+  .companyName .contragentImg img {
+    position: absolute;
+    top: -25%;
+    right: 0px;
+    border-radius: 3px; }
+
+.narrow .companyName .contragentImg img {
+  top: -4px; }
+
 .grid {
   display: grid;
   align-items: center;
   text-align: center;
   margin-bottom: 10px; }
+
+.grid.picture .element {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3px !important;
+  max-height: 90px;
+  box-sizing: border-box;
+  overflow: hidden; }
+  .grid.picture .element.selected {
+    padding: 0 !important; }
+  .grid.picture .element img {
+    display: block;
+    max-width: 100px;
+    height: auto; }
+
+.grid.pictureAndText .element {
+  display: flex;
+  padding: 3px !important;
+  height: 164px;
+  box-sizing: border-box;
+  overflow: hidden;
+  flex-direction: column;
+  align-content: center;
+  background: white !important;
+  position: relative; }
+  .grid.pictureAndText .element.notSellable {
+    background-color: #aaaaaa !important; }
+  .grid.pictureAndText .element.selected {
+    padding: 1px !important; }
+    .grid.pictureAndText .element.selected .pos-price {
+      padding-bottom: 0px !important; }
+  .grid.pictureAndText .element .photo {
+    display: flex;
+    width: 100%;
+    height: 140px;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; }
+  .grid.pictureAndText .element .short-title {
+    height: 20px;
+    text-align: center;
+    padding: 2px 0;
+    overflow: hidden;
+    font-size: 0.95em;
+    box-sizing: border-box;
+    margin-bottom: 2px; }
+    .grid.pictureAndText .element.noPhoto .short-title {
+      height: 100%;
+      font-size: 1.25em;
+      max-height: 133px;
+      overflow: hidden; }
+    .grid.pictureAndText .element.noPhoto .photo {
+      display: none; }
+  .grid.pictureAndText .element .pos-price {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    text-align: center;
+    padding: 3px 0 2px;
+    width: 100%;
+    text-shadow: 1px 1px 2px black;
+    font-weight: bold; }
+
+.grid.short {
+  font-size: 15px; }
+  .grid.short .pos-title {
+    overflow-wrap: break-word; }
 
 .posResultContragent {
   justify-content: center;
@@ -533,7 +639,8 @@ select.tabHolder {
   .posBtns.revertReceiptBtn {
     color: #8c1919 !important; }
   .posBtns#receiptnew,
-  .posBtns#revertReceiptBtn {
+  .posBtns#revertReceiptBtn,
+  .posBtns#receiptnewSame {
     font-size: 1.3em;
     background: #e6e6e6; }
   .posBtns .nowrap {
@@ -567,6 +674,10 @@ select.tabHolder {
   .pos-notes.revertReceipt {
     color: #a00000 !important; }
 
+.notActiveHint {
+  color: #999999;
+  opacity: 0.4; }
+
 .resultPack {
   background: #feff6b;
   color: #333333 !important; }
@@ -575,7 +686,7 @@ select.tabHolder {
   background: #499bc0; }
 
 .contragentLinkBtns,
-.newCompanyBtn {
+.newContragentBtn {
   background: #a162ca; }
 
 .subBatch {
@@ -705,8 +816,7 @@ select.tabHolder {
   border: 1px solid #999999;
   height: 118px;
   background: #f1f1f1;
-  user-select: none;
-  opacity: 0.7; }
+  user-select: none; }
   .element:focus,
   .element.selected {
     box-shadow: 0px 0px 10px #fca40b !important;
@@ -723,7 +833,7 @@ select.tabHolder {
   .element .pos-add-res-btn {
     color: #333333;
     height: 73px; }
-  .element .pos-price-field {
+  .element .pos-price-field:not(.fleft) {
     float: right; }
   .element.notSellable {
     background-color: #aaaaaa;
@@ -886,6 +996,57 @@ select.tabHolder {
   .modalReceipt .pos-del-btn {
     display: none; }
 
+.fadedElement {
+  opacity: 0.2 !important; }
+
+.flexBtns {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 250px; }
+
+@media handheld,
+only screen and (max-width: 1280px) {
+  .flexBtns {
+    padding: 0 100px; } }
+
+.modalBtn {
+  height: 70px;
+  width: 450px;
+  vertical-align: middle;
+  cursor: pointer;
+  box-sizing: border-box;
+  padding: 10px 20px;
+  color: white;
+  font-size: 1.5em !important;
+  text-align: center;
+  border-radius: 10px;
+  color: white !important;
+  font-weight: bold;
+  border: 1px solid #666666;
+  border-radius: 3px;
+  box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+  background-color: #cccccc; }
+  .modalBtn.disabledBtn {
+    color: #999999 !important; }
+
+.confirmPayment {
+  background-color: #4c9d2c !important; }
+  .confirmPayment.disabledBtn {
+    background-color: #3f682f !important; }
+
+.closePaymentModal {
+  background-color: #c51818 !important; }
+  .closePaymentModal.disabledBtn {
+    background-color: #7c2525 !important; }
+
+#card-payment-manual:not(.disabledBtn) {
+  color: white !important;
+  background-color: red !important; }
+
+#card-payment:not(.disabledBtn) {
+  background-color: #7bcae9 !important; }
+
 .imagePreview {
   box-shadow: 0 0 5px #333333;
   padding: 5px;
@@ -899,18 +1060,27 @@ select.tabHolder {
 .printBtn {
   background-position: center; }
 
+.anotherPos {
+  background-color: #f87a7a !important; }
+
 table.total {
   width: 100%; }
 
 table.total th {
   font-weight: normal;
   text-align: right;
-  padding: 2px 15px; }
+  padding: 0px 15px; }
 
 table.total td {
   text-align: right;
   font-weight: bold;
-  padding: 2px 15px; }
+  padding: 0px 15px; }
+
+.largeCell {
+  min-width: 350px !important; }
+
+hr {
+  margin: 5px 0 1px; }
 
 td.totalLabel {
   font-size: 1.9em;
@@ -975,6 +1145,8 @@ td.revertCaption {
   box-shadow: rgba(233, 233, 233, 0.5) 1px 1px 0 0 inset, 2px 2px 3px rgba(0, 0, 0, 0.1); }
   .actionBtn.offBtn {
     background-color: #cc6666 !important; }
+  .actionBtn.offTmpBtn {
+    background-color: #355575 !important; }
   .actionBtn.onBtn {
     background-color: #53a163 !important; }
 

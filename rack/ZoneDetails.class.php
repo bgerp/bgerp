@@ -162,7 +162,7 @@ class rack_ZoneDetails extends core_Detail
                     $row->batch = ht::createLinkRef($row->batch, array('rack_ProductsByBatches', 'list', 'search' => $rec->batch));
                 }
             } else {
-                $row->batch = "<span class='quiet'>" . tr('без партида') . "</span>";
+                $row->batch = "<span class='quiet'>" . tr('Без партида') . "</span>";
             }
 
             if($mvc->haveRightFor('modifybatch', $rec)){
@@ -203,6 +203,13 @@ class rack_ZoneDetails extends core_Detail
             // Ако няма движения и к-та са 0, реда се маркира
             if((empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements)) || (isset($requestedProductId) && $rec->productId != $requestedProductId)){
                 unset($data->rows[$id]);
+            }
+
+            if($rec->_quantityAll && round($rec->_quantityAll / $rec->quantityInPack, 2) < round($rec->documentQuantity / $rec->quantityInPack, 2)){
+                $quantityAllVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->_quantityAll / $rec->quantityInPack);
+                $row->status = ht::createHint($row->status, "Недостатъчно количество в склада! Генерираното движение е само за наличното|*: {$quantityAllVerbal}", 'warning', false);
+                $row->status->prepend("<span class='notEnoughQuantityForZone'>");
+                $row->status->append("</span>");
             }
         }
 
@@ -421,8 +428,15 @@ class rack_ZoneDetails extends core_Detail
         }
         
         $requestedProductId = Request::get('productId', 'int');
+        $rec->_quantityAll = 0;
 
         foreach ($data->recs as $mRec) {
+            $zArr = type_Table::toArray($mRec->zones);
+            foreach ($zArr as $zA){
+                if($zA->zone == $masterRec->id){
+                    $rec->_quantityAll += $zA->quantity;
+                }
+            }
             if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
             
             $fields = $Movements->selectFields();
@@ -695,7 +709,7 @@ class rack_ZoneDetails extends core_Detail
         $newRec = static::makeReturnQuantityMovement($rec->zoneId, $rec->productId, $rec->batch, $rec->packagingId, $overQuantity);
         rack_Movements::save($newRec);
 
-        followRetUrl(null, 'Създадено е обратно движение за връщане на останалото количество в зоната');
+        followRetUrl(null, '|Създадено е обратно движение за връщане на останалото количество в зоната');
     }
 
 

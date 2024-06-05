@@ -165,12 +165,15 @@ class cat_type_Uom extends type_Varchar
      */
     public function toVerbal_($value)
     {
-        if (!isset($value) || !is_numeric($value)) {
-            
-            return;
-        }
+        if (!isset($value) || !is_numeric($value))return;
         $value = abs($value);
-        
-        return cat_UoM::smartConvert($value, $this->params['unit']);
+
+        $res = cat_UoM::smartConvert($value, $this->params['unit']);
+        if(Mode::is('verbalWithoutSuffix')){
+            // Маха се мерната еденица, ако се иска това
+            $res = preg_replace('/[a-zа-я]/ui', '', $res);
+        }
+
+        return $res;
     }
 }

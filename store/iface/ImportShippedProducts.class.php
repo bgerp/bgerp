@@ -260,17 +260,6 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
             expect($mvc->Master->fetch($iRec->{$mvc->masterKey}), 'Няма такъв запис на мастъра');
             expect($mvc->haveRightFor('add', (object) array($mvc->masterKey => $iRec->{$mvc->masterKey})), 'Към този мастър не може да се добавя артикул');
 
-            $exRec = deals_Helper::fetchExistingDetail($mvc, $iRec->{$mvc->masterKey}, $iRec->id, $iRec->productId, $iRec->packagingId, $iRec->price, $iRec->discount, null, null, $iRec->batch, $iRec->expenseItemId, $iRec->notes);
-            if ($exRec) {
-                if($mvc instanceof sales_InvoiceDetails){
-                    $exRec->quantity += $iRec->quantity;
-                    $mvc->save_($exRec, 'quantity');
-                    continue;
-                }
-                core_Statuses::newStatus('Записът не е импортиран, защото има дублиране', 'warning');
-                continue;
-            }
-
             $mvc->save($iRec);
         }
 

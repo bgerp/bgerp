@@ -17,11 +17,14 @@
  */
 class cms_ThemeIntf extends core_InnerObjectIntf
 {
+
+
     /**
-     * Връща шаблона за статия от cms-а за широк режим
+     * Подготвя шаблона за статия от cms-а за широк режим
      */
-    public function wrapContent($content)
+    public function prepareWrapper($content)
     {
-        return $this->class->wrapContent($content);
+
+        return $this->class->prepareWrapper($content);
     }
 }

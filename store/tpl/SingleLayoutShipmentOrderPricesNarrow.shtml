@@ -138,7 +138,15 @@
                      <td>[#lineVehicleId#]</td>
                   </tr>
                   <!--ET_END lineVehicleId-->
-                  [#InvoicesToDocuments#]
+                  <!--ET_BEGIN InvoicesToDocuments-->
+                  <tr> <td colspan="2">
+                     <hr>
+                     <table>
+                        [#InvoicesToDocuments#]
+                     </table>
+                  </td> </tr>
+
+                  <!--ET_END InvoicesToDocuments-->
                   <!--ET_BEGIN note-->
                   <tr>
                      <td colspan="2" >
@@ -153,7 +161,12 @@
                      </td>
                   </tr>
                   <tr>
-                     <td colspan="2">|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</td>
+                     <td colspan="2">
+                        <div>|Общо бруто тегло|*:&nbsp;[#weight#]</div>
+                        <div>|Общо нето тегло|*:&nbsp;[#netWeight#]</div>
+                        <div>|Общо тара|*:&nbsp;[#tareWeight#]</div>
+                        <div>|Общ обем|*:&nbsp;[#volume#]</div>
+                     </td>
                   </tr>
                   <!--ET_BEGIN logisticInfo-->
                   <tr>

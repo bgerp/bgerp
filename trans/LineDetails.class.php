@@ -369,24 +369,27 @@ class trans_LineDetails extends doc_Detail
             }
         }
 
-
         if(!empty($transportInfo['features'])){
             $featuresString = '';
             foreach ($transportInfo['features'] as $transFeatureId){
-                $featuresString .= "<span class='lineFeature'>" . trans_Features::getVerbal($transFeatureId, 'name') . "</span>";
+                $featuresString .= "<span class='lineFeature'>" . transliterate(tr(trans_Features::getVerbal($transFeatureId, 'name'))) . "</span>";
             }
             $row->containerId .= " {$featuresString}";
         }
 
         if($Document->isInstanceOf('store_ShipmentOrders')){
             $invoicesInShipment = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+            $documentArr = array();
             if(countR($invoicesInShipment)){
-                $invoiceArr = array();
                 foreach ($invoicesInShipment as $iRec){
-                    $invoiceArr[] = doc_Containers::getDocument($iRec->containerId)->getLink(0)->getContent();
+                    $documentArr[] = doc_Containers::getDocument($iRec->containerId)->getLink(0)->getContent();
                 }
-                $row->containerId .= " <small>" . implode(',', $invoiceArr) . "</small>";
             }
+            if($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
+                $documentArr[] = trans_Cmrs::getLink($cmrId, 0);
+            }
+
+            $row->containerId .= " <small>" . implode(',', $documentArr) . "</small>";
         }
 
         // Ако има платежни документи към складовия

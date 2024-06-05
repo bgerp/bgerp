@@ -99,11 +99,15 @@ class price_Setup extends core_ProtoSetup
     public $managers = array(
         'price_Lists',
         'price_ListToCustomers',
+        'price_ListVariations',
         'price_ListRules',
         'price_ListDocs',
         'price_ProductCosts',
         'price_Updates',
         'price_Cache',
+        'price_ListBasicDiscounts',
+        'price_DiscountsPerDocuments',
+        'migrate::deleteOldDiscounts2403',
     );
 
 
@@ -111,6 +115,7 @@ class price_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array(array('priceDealer'),
+        array('noPrice'),
         array('price', 'priceDealer'),
         array('priceMaster', 'price'),
     );
@@ -140,7 +145,7 @@ class price_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_ListRulesImport,price_interface_AverageCostStorePricePolicyImpl,price_interface_LastQuotationFromSupplier';
+    public $defClasses = 'price_reports_PriceList,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_ListRulesImport,price_interface_AverageCostStorePricePolicyImpl,price_interface_LastQuotationFromSupplier,price_interface_LastActiveBomCostWithExpenses';
 
 
     /**
@@ -170,5 +175,16 @@ class price_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
 
         return $html;
+    }
+
+
+    /**
+     * Изтриване на старите твърди отстъпки
+     */
+    public function deleteOldDiscounts2403()
+    {
+        $Discounts = cls::get('price_ListBasicDiscounts');
+        $Discounts->setupMvc();
+        $Discounts->delete("#groupId IS NULL");
     }
 }

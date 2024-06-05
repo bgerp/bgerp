@@ -26,6 +26,12 @@ defIfNot('ESHOP_NOT_IN_STOCK_TEXT', 'Няма наличност');
 
 
 /**
+ * Текст в магазина ако артикулът е наличен във външен склад
+ */
+defIfNot('ESHOP_REMOTE_IN_STOCK_TEXT', 'Наличен при партньор');
+
+
+/**
  * Дефолтен шаблон за онлайн продажби на български
  */
 defIfNot('ESHOP_SALE_DEFAULT_TPL_BG', '');
@@ -140,6 +146,12 @@ defIfNot('ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES', 'yes');
 
 
 /**
+ * Показване на основната илюстрация в онлайн магазина
+ */
+defIfNot('ESHOP_PRODUCT_IMG_LOGIC', 'rotation');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -198,6 +210,7 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_Carts',
         'eshop_CartDetails',
         'eshop_Favourites',
+        'migrate::updateProductDetailState3923'
     );
     
     
@@ -223,6 +236,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_SHOW_NAVIGATION' => array('enum(yes=С навигация,no=Без навигация)', 'caption=Показване на навигация на групите->Избор'),
         'ESHOP_CART_EXTERNAL_NAME' => array('varchar', 'caption=Стрингове във външната част->Кошница'),
         'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
+        'ESHOP_REMOTE_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Във външен склад'),
         'ESHOP_SALE_DEFAULT_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
         'ESHOP_SALE_DEFAULT_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
         'ESHOP_CART_ACCESS_SALT' => array('varchar', 'caption=Даване на достъп за присвояване на количка->Сол'),
@@ -234,14 +248,14 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_MANDATORY_EGN' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ЕГН'),
         'ESHOP_MANDATORY_UIC_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ЕИК'),
         'ESHOP_MANDATORY_VAT_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ДДС №'),
-
         'ESHOP_DEFAULT_POLICY_ID' => array('key(mvc=price_Lists,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Политика'),
         'ESHOP_DEFAULT_DELIVERY_TERMS' => array('keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Дефолти в настройките а онлайн магазина->Условия на доставка'),
         'ESHOP_DEFAULT_PAYMENTS' => array('keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Методи на плащане'),
         'ESHOP_ANONYM_FAVOURITE_DELETE_INTERVAL' => array('time', 'caption=Изтриване на любимите артикули на нерегистрирани потребители->Време'),
         'ESHOP_REMOVE_PRODUCTS_WITH_ENDED_SALES_DELAY' => array('time', 'caption=Премахване на артикули от Е-маг след изтичане на онлайн продажбата->Премахване след'),
         'ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES' => array('enum(yes=Да,no=Не)', 'caption=Показване на колоната за опаковката в Е-маг ако са само услуги->Избор'),
-        );
+        'ESHOP_PRODUCT_IMG_LOGIC' => array('enum(rotation=Ротация на илюстрациите,first=Първата илюстрация)', 'caption=Как се определя основната илюстрация на артикула при показване в Е-маг->Избор'),
+    );
     
     
     /**
@@ -283,6 +297,15 @@ class eshop_Setup extends core_ProtoSetup
             'offset' => 60,
             'timeLimit' => 100
         ),
+
+        array(
+            'systemId' => 'Update Eshop Sellable Products',
+            'description' => 'Преизчисляване на е-артикулите дали има детайли с цени',
+            'controller' => 'eshop_Products',
+            'action' => 'UpdateEshopSellableProducts',
+            'period' => 1,
+            'timeLimit' => 100
+        ),
     );
     
     
@@ -295,7 +318,7 @@ class eshop_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('eshopImages', 'Илюстрации в емаг', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('eshopImages', 'Илюстрации в емаг', 'jpg,jpeg,png,bmp,gif,image/*,heic', '10MB', 'user', 'every_one');
         
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Разширяване на външната част за онлайн магазина', 'eshop_plg_External', 'cms_page_External', 'private');
@@ -350,5 +373,41 @@ class eshop_Setup extends core_ProtoSetup
         eshop_Products::saveNearProducts();
         
         return tr('Преизчисляване на свързаните е-артикули');
+    }
+
+
+    /**
+     * Миграция на полето за операции с детайлите на е-артикула
+     */
+    public function updateProductDetailState3923()
+    {
+        $Products = cls::get('eshop_Products');
+        $Products->setupMvc();
+
+        $res = $save = array();
+        $Details = cls::get('eshop_ProductDetails');
+        $dQuery = $Details->getQuery();
+        $dQuery->where("#state = 'active'");
+        while($dRec = $dQuery->fetch()){
+            $res[$dRec->eshopProductId][$dRec->action] = $dRec->action;
+        }
+
+        foreach ($res as $eshopProductId => $actions){
+            if($actions['both'] || ($actions['inquiry'] && ($actions['price'] || $actions['buy']))){
+                $detailAction = 'mixed';
+            } elseif($actions['inquiry'] && !$actions['buy'] && !$actions['price']){
+                $detailAction = 'onlyRequests';
+            } elseif(!$actions['inquiry'] && ($actions['buy'] || $actions['price'])){
+                $detailAction = 'onlySell';
+            } else {
+                $detailAction = 'none';
+            }
+            $rec = (object)array('id' => $eshopProductId, 'detailActions' => $detailAction);
+            $save[] = $rec;
+        }
+
+        if(countR($save)){
+            $Products->saveArray($save, 'id,detailActions');
+        }
     }
 }

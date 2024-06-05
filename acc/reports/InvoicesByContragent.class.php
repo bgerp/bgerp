@@ -55,8 +55,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FLD('typeOfInvoice', 'enum(out=Изходящи,in=Входящи)', 'caption=Фактури,after=crmGroup,maxRadio=2,mandatory,single=none');
         $fieldset->FLD('unpaid', 'enum(all=Всички,unpaid=Неплатени)', 'caption=Плащане,after=typeOfInvoice,removeAndRefreshForm,single=none,mandatory,silent');
 
-        $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото');
-        $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate, placeholder=текуща');
+        $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото,silent');
+        $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate, placeholder=текуща,silent');
 
         $fieldset->FLD('paymentType', 'enum( ,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Начин на плащане, placeholder=Всички,after=checkDate,input=none,single=none');
 
@@ -87,6 +87,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $form->setDefault('seeProformаs', null);
 
+        $form->setDefault('unpaid', 'all');
+
+        $form->input('unpaid', 'silent');
+
         if ($rec->unpaid == 'unpaid') {
             unset($rec->fromDate);
             $form->setField('fromDate', 'input=none');
@@ -95,17 +99,18 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $form->setField('paymentType', 'input');
         }
 
+
         if ($rec->unpaid == 'all') {
             $form->setDefault('fromDate', null);
             unset($rec->paymentType);
-            $checkDate = dt::today();
-            $form->setDefault('checkDate', "{$checkDate}");
+            $checkDate = dt::today(false);
+            $form->setDefault('checkDate', $checkDate);
         }
 
 
         $form->setDefault('typeOfInvoice', 'out');
 
-        $form->setDefault('unpaid', 'all');
+
 
         $salesQuery = sales_Sales::getQuery();
 
@@ -160,6 +165,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
+
             if (isset($form->rec->fromDate, $form->rec->checkDate) && ($form->rec->fromDate > $form->rec->checkDate)) {
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
@@ -1061,7 +1067,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
                     $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
                 }
-                $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума-> лв.,smartCenter');
+                $fld->FLD('invoiceValueBaseCurr', 'double(decimals=2)', 'caption=Стойност-> Сума-> лв.,smartCenter');
                 $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума->лв.,smartCenter');
                 $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания->дата,smartCenter');
                 $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено->лв.,smartCenter');
@@ -1075,6 +1081,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $fld->FLD('dueDateStatus', 'varchar', 'caption=Състояние,smartCenter');
             $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
             $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
+            $fld->FLD('invoiceValueBaseCurr', 'double(decimals=2)', 'caption=Стойност-> Сума-> лв.,smartCenter');
             $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->сума');
             $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания,smartCenter');
             if ($rec->unpaid == 'unpaid') {
@@ -1615,6 +1622,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $invoiceNo = str_pad($dRec->invoiceNo, 10, '0', STR_PAD_LEFT);
 
         $res->invoiceNo = $invoiceNo;
+
+        $invoiceValue = $rec->unpaid == 'all' ? $dRec->invoiceValue : $dRec->invoiceValue;
+        $res->invoiceValueBaseCurr = $invoiceValue * $dRec->rate;
     }
 
     /**

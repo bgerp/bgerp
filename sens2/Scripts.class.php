@@ -37,7 +37,7 @@ class sens2_Scripts extends core_Master
     /**
      * Права за писане
      */
-    public $canWrite = 'ceo,sens,admin';
+    public $canWrite = 'sensMaster';
     
     
     /**
@@ -49,7 +49,7 @@ class sens2_Scripts extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'debug';
+    public $canDelete = 'sensMaster';
     
     
     /**
@@ -188,7 +188,16 @@ class sens2_Scripts extends core_Master
         
         return $context;
     }
-    
+
+
+    /**
+     * Подредба по номера
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#order', 'ASC');
+    }
+
     
     /**
      * Изчислкяване на числов израз. Могат да участват индикаторите и променливите от даден скрипт

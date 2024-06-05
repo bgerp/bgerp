@@ -275,6 +275,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
         
         if ($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)) {
+
+            // Филтър по "Наша фирма", ако е инсталиран пакета за многофирменост
+            $mvc->invoke('afterGetDocumentSummaryListFields', array(&$data));
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam}, showClosedGroups)", 'caption=Потребители,silent,autoFilter,remember');
             $data->listFilter->FNC('folder', 'key2(mvc=doc_Folders,allowEmpty)', 'caption=Папка,silent,after=users');
             $data->listFilter->showFields .= ',folder';

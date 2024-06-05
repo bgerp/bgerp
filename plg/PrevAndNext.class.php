@@ -69,6 +69,7 @@ class plg_PrevAndNext extends core_Plugin
             $id = Request::get('id', 'int');
             
             if ($sel = Request::get('Selected')) {
+
                 $data = new stdClass();
                 
                 // Превръщаме в масив, списъка с избраниуте id-та
@@ -98,7 +99,7 @@ class plg_PrevAndNext extends core_Plugin
             }
             
             $mvc->requireRightFor('single', $data->rec);
-            
+
             $data->buttons = new stdClass();
             $data->buttons->prevId = self::getNeighbour($mvc, $data->rec, -1);
             $data->buttons->nextId = self::getNeighbour($mvc, $data->rec, +1);
@@ -190,7 +191,9 @@ class plg_PrevAndNext extends core_Plugin
                 $query = $DetailMvc->getQuery();
                 $query->orderBy('id');
                 while ($dRec = $query->fetch("#{$DetailMvc->masterKey} = ${masterId}")) {
-                    $selArr[] = $dRec->id;
+                    if($DetailMvc->haveRightFor('edit', $dRec)) {
+                        $selArr[] = $dRec->id;
+                    }
                 }
             }
             $res = $selArr;
@@ -240,8 +243,8 @@ class plg_PrevAndNext extends core_Plugin
             if($data->action == 'manage'){
                 $mvc->requireRightFor('edit', $data->form->rec);
             }
-        } elseif (!($data->form->cmd == 'save_n_next' || $data->form->cmd == 'save_n_prev' || Request::get('PrevAndNext'))) {
-            
+        } elseif (!($data->form->cmd == 'save_n_next' || $data->form->cmd == 'refresh' || $data->form->cmd == 'save_n_prev' || Request::get('PrevAndNext'))) {
+
             // Изтриваме в сесията, ако има избрано множество записи
             Mode::setPermanent($selKey, null);
         }
@@ -266,7 +269,7 @@ class plg_PrevAndNext extends core_Plugin
     public static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         $selKey = static::getModeKey($mvc);
-        
+
         if ($selArr = Mode::get($selKey)) {
             if (countR($selArr) > 1) {
                 if (isset($data->buttons->nextId)) {

@@ -366,7 +366,7 @@ class acc_Features extends core_Manager
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('sync')) {
-            $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => true), null, 'warning=Наистина ли искате да ресинхронизирате свойствата,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
+            $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => true), null, 'warning=Наистина ли искате да синхронизирате свойствата,ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране на свойствата на перата');
         }
     }
     
@@ -455,6 +455,6 @@ class acc_Features extends core_Manager
         $this->logWrite('Синхронизиране на счетоводните свойства');
         
         // Редирект към списъка на свойствата
-        return new Redirect(array($this, 'list'), 'Всички свойства са синхронизирани успешно');
+        return new Redirect(array($this, 'list'), '|Всички свойства са синхронизирани успешно');
     }
 }

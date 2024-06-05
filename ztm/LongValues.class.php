@@ -63,7 +63,7 @@ class ztm_LongValues extends core_Manager
      */
     public function description()
     {
-        $this->FLD('hash', 'varchar', 'mandatory,caption=Хеш');
+        $this->FLD('hash', 'varchar(32)', 'mandatory,caption=Хеш');
         $this->FLD('value', 'blob', 'mandatory,caption=Стойност');
         
         $this->setDbUnique('hash');
@@ -82,5 +82,33 @@ class ztm_LongValues extends core_Manager
         $value = ztm_LongValues::fetchField(array("#hash = '[#1#]'", $var), 'value');
 
         return isset($value) ? $value : $var;
+    }
+
+
+    /**
+     * Изтриване на старите неизползвани регистри
+     *
+     * @return string
+     */
+    public function cron_DeleteUnusedRegisterValues()
+    {
+        // Всички регистри, които имат стойности
+        $query = $this->getQuery();
+        $query->EXT('vHash', 'ztm_RegisterValues', 'externalName=value');
+        $query->where("#vHash = #hash");
+        $query->show('id');
+        $existKeysArr = array_keys($query->fetchAll());
+
+        // Изтриваме останалите
+        $query = $this->getQuery();
+        $query->notIn('id', $existKeysArr);
+        $query->show('id');
+        $dCnt = 0;
+        while ($rec = $query->fetch()) {
+            $this->delete($rec->id);
+            $dCnt++;
+        }
+
+        return "Изтрити са $dCnt неизползвани стойности на регистрите";
     }
 }

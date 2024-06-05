@@ -129,9 +129,9 @@ class store_InventoryNoteSummary extends doc_Detail
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,mandatory,silent,removeAndRefreshForm=groups,tdClass=large-field');
-        $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,input=none,notNull,value=0');
-        $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,input=none,size=100');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,silent,removeAndRefreshForm=groups,tdClass=large-field');
+        $this->FLD('blQuantity', 'double', 'caption=Количество->Очаквано,notNull,value=0');
+        $this->FLD('quantity', 'double(smartRound)', 'caption=Количество->Установено,size=100');
         $this->FNC('delta', 'double', 'caption=Количество->Разлика');
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
         $this->FLD('charge', 'user', 'caption=Начет');
@@ -330,17 +330,16 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!$data->rows) {
-            
-            return;
-        }
-        
+        if (!$data->rows) return;
+
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('btns', 'varchar', 'tdClass=small-field nowrap,smartCenter');
         $data->listTableMvc->setField('charge', 'tdClass=charge-td');
         $masterRec = $data->masterData->rec;
-        
+        $pageVar = core_Pager::getPageVar('store_InventoryNotes', $masterRec->id);
+        $pageVal = Request::get($pageVar, 'varchar');
+
         // Намиране на всички заявки ако има
         $pendingDocuments = self::getPendingDocuments($masterRec->valior, $masterRec->storeId);
         
@@ -365,6 +364,11 @@ class store_InventoryNoteSummary extends doc_Detail
 
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
+            if($data->masterData->rec->state == 'active'){
+                if(empty($rec->quantity)){
+                    $row->ROW_ATTR['class'] = ' state-closed';
+                }
+            }
 
             if($rec->quantityHasAddedValues == 'yes'){
                 if($rec->isBatch){
@@ -412,7 +416,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
                 // Добавяне на бутон за редакция на реда
                 if ($rec->productId && !$isNoBatchRow && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
-                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId));
+                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId, $pageVar => $pageVal));
 
                     // Ако се редактира сумарен ред. Маркира се в урл-то
                     if(isset($rec->quantity) || isset($rec->_batch)){
@@ -451,7 +455,8 @@ class store_InventoryNoteSummary extends doc_Detail
                     }
                 }
             }
-            
+
+            $row->quantity = ht::styleIfNegative($row->quantity, $rec->quantity);
             $row->blQuantity = ht::styleIfNegative($row->blQuantity, $rec->blQuantity);
         }
         
@@ -469,13 +474,25 @@ class store_InventoryNoteSummary extends doc_Detail
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,title=Филтриране на данните');
         $data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
         $data->listFilter->setDefault('threadId', $data->masterData->rec->threadId);
-        $data->listFilter->showFields = 'search';
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->input();
-        
+        $data->listFilter->showFields = 'search';
+
         // При активен протокол не се показват непроменяните редове
-        if($data->masterData->rec->state == 'active'){
-            $data->query->where('#quantity IS NOT NULL');
+        if($data->masterData->rec->state == 'active') {
+            $tab = Request::get($data->masterData->tabTopParam, 'varchar');
+
+            if ($tab == '' || $tab == get_called_class()) {
+                $data->listFilter->showFields .= ',filterBy';
+                $data->listFilter->FLD('filterBy', 'enum(diff=С промяна,all=Всички)');
+                $data->listFilter->setDefault('filterBy', 'diff');
+            }
+        }
+
+        $data->listFilter->input();
+        if($filter = $data->listFilter->rec){
+            if($filter->filterBy == 'diff'){
+                $data->query->where('#quantity IS NOT NULL');
+            }
         }
     }
     
@@ -684,16 +701,14 @@ class store_InventoryNoteSummary extends doc_Detail
      * @param string $nameFld
      * @param string $groupFld
      * @param boolean $expand
+     * @param string $orderByField
+     *
      * @return void
      */
-    public static function filterRecs($selectedGroups, &$recs, $codeFld = 'orderCode', $nameFld = 'orderName', $groupFld = 'groups', $expand = false)
+    public static function filterRecs($selectedGroups, &$recs, $codeFld = 'orderCode', $nameFld = 'orderName', $groupFld = 'groups', $expand = false, $orderByField = 'auto')
     {
         // Ако няма записи не правим нищо
-        if (!is_array($recs)) {
-            
-            return;
-        }
-        
+        if (!is_array($recs)) return;
         $ordered = array();
         
         // Вербализираме и подреждаме групите
@@ -741,9 +756,9 @@ class store_InventoryNoteSummary extends doc_Detail
         }
         
         // Правилна подредба
-        uasort($ordered, function ($a, $b) use ($codeFld, $nameFld) {
+        uasort($ordered, function ($a, $b) use ($codeFld, $nameFld, $orderByField) {
              if ($a->groupName == $b->groupName) {
-                  $orderProductBy = cat_Groups::fetchField($a->_groupId, 'orderProductBy');
+                  $orderProductBy = ($orderByField == 'auto') ? cat_Groups::fetchField($a->_groupId, 'orderProductBy') : $orderByField;
                   $field = ($orderProductBy === 'code') ? $codeFld : $nameFld;
                   $result = strcasecmp($a->{$field}, $b->{$field});
              } else {
@@ -785,7 +800,8 @@ class store_InventoryNoteSummary extends doc_Detail
     {
         // Филтрираме записите
         $expand = $data->masterData->rec->expandGroups == 'yes';
-        self::filterRecs($data->masterData->rec->groups, $data->recs, 'orderCode', 'orderName', 'groups', $expand);
+        $orderByField = $data->masterData->rec->orderProductBy;
+        self::filterRecs($data->masterData->rec->groups, $data->recs, 'orderCode', 'orderName', 'groups', $expand, $orderByField);
 
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
@@ -840,7 +856,7 @@ class store_InventoryNoteSummary extends doc_Detail
             $data->recs = $cached->recs;
             $data->rows = $cached->rows;
         }
-        
+
         Mode::setPermanent("InventoryNoteLastSavedRow{$data->masterId}", null);
         
         // Връщаме $data

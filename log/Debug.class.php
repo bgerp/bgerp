@@ -50,7 +50,7 @@ class log_Debug extends core_Manager
     /**
      * Кой може да репортва грешките
      */
-    public $canReport = 'user';
+    public $canReport = 'every_one';
     
     
     /**
@@ -81,11 +81,19 @@ class log_Debug extends core_Manager
      *
      * @return core_ET
      */
-    public static function getReportLink($debugFile, $btnName = 'Сигнал', $icon = 'img/16/debug_bug.png', $class = null)
+    public static function getReportLink($debugFile = '', $btnName = 'Сигнал', $icon = 'img/16/debug_bug.png', $class = null, $showDetail = false)
     {
-        $btnName = $btnName;
-        
-        $urlArr = array('log_Debug', 'report', 'debugFile' => $debugFile, 'ret_url' => true);
+        if (help_Setup::get('AUTO_FILL_USER_NAME_AND_EMAIL') == 'no') {
+            $email = $name = '';
+        } else {
+            $email = email_Inboxes::getUserEmail();
+            if (!$email) {
+                $email = core_Users::getCurrent('email');
+            }
+            $name = core_Users::getCurrent('names');
+        }
+
+        $urlArr = array('log_Debug', 'report', 'debugFile' => $debugFile, 'name' => $name, 'email' => $email, 'ret_url' => true);
         
         $url = toUrl($urlArr);
         
@@ -96,20 +104,44 @@ class log_Debug extends core_Manager
         } else {
             $args = 'width=450,height=600,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         }
-        
-        $attr = array('onClick' => "openWindow('{$url}', 'bgerp_tracer_report', '{$args}'); return false;", 'title' => 'Изпращане на сигнал към разработчиците на bgERP', 'translate' => 'no');
+
+        if ($showDetail) {
+            $cUrl = toUrl(getCurrentUrl(), true);
+            if ($cUrl && (mb_strlen($cUrl) > 495)) {
+                $cUrl = mb_substr($cUrl, 0, 495);
+            }
+            $cUrl = urlencode($cUrl);
+            $dTitle = 'dTitle = encodeURIComponent(document.title);';
+            $dTitle .= 'if (dTitle && (dTitle.length > 495)) {dTitle = dTitle.substring(0, 495);dTitle += \'...\';}';
+            $sysDomain = urlencode($_SERVER['HTTP_HOST']) . '/';
+        } else {
+            $cUrl = $sysDomain = '';
+            $dTitle = null;
+        }
+
+        $attr = array('onClick' => "{$dTitle} openWindow('{$url}&title={$sysDomain}' + dTitle + '&url={$cUrl}', 'bgerp_tracer_report', '{$args}'); return false;", 'title' => 'Изпращане на сигнал към разработчиците на bgERP', 'translate' => 'no');
         
         if ($icon) {
             $attr['ef_icon'] = $icon;
         }
-        
+
         if ($class) {
+            $class .= ' debugReportLink hiddenToolbar';
             $attr['class'] = $class;
         }
         
         $attr['target'] = '_blank';
         
         $link = ht::createLink($btnName, $urlArr, false, $attr);
+
+        // Показваме бутона след като потребителя е прекарал 5 мин от първото отваряне на страницата
+        jquery_Jquery::run($link, 'if (showDebugReportLink = localStorage.getItem("showDebugReportLink")) {
+                                                    if ((Date.now() - showDebugReportLink) > (1000 * 60 * 5)) {
+                                                        $(".hiddenToolbar").removeClass("hiddenToolbar");
+                                                    }
+                                                } else {
+                                                    localStorage.setItem("showDebugReportLink", Date.now());
+                                                }', true);
         
         return $link;
     }
@@ -159,7 +191,7 @@ class log_Debug extends core_Manager
         
         $data->listFilter->FNC('user', 'varchar', 'caption=Потребител, input, silent,class=debugField');
         $data->listFilter->FNC('execTime', 'enum(,fast=< 1 сек.,slow=< 5 сек.,verySlow=< 20 сек., overTime=> 20 сек.)', 'caption=Изпълнение, input, silent,class=debugField');
-        $data->listFilter->FNC('execSize', 'enum(,small=< 100K, big=< 300K, veryBig=> 300K)', 'caption=Размер, input, silent,class=debugField');
+        $data->listFilter->FNC('execSize', 'enum(,small=< 100K, big=< 300K, veryBig=> 300K, veryBig5=> 500K)', 'caption=Размер, input, silent,class=debugField');
         $data->listFilter->FNC('execTimeFrom', 'varchar', 'caption=Време->От, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
         $data->listFilter->FNC('execTimeTo', 'varchar', 'caption=Време->До, input, silent, suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,class=debugField');
         $data->listFilter->FNC('status', 'enum(,2xx=Успешен, 8xx=Успешен по AJAX, 000=Неприключен, 150=Наблюдение, 404=Липсваща страница, 500|505|510|0=Икзлючение, 501|520=Грешка, 503=Прекъсване, 550=Грешка в БД)', 'caption=Статус, input, silent,class=debugField');
@@ -432,12 +464,13 @@ class log_Debug extends core_Manager
         
         $form = cls::get('core_Form');
         
-        $form->FNC('title', 'varchar(128)', 'caption=Заглавие, mandatory, input');
+        $form->FNC('title', 'varchar(128)', 'caption=Заглавие, mandatory, input, silent');
         $form->FNC('description', 'text(rows=10)', 'caption=Описание, mandatory, input');
-        $form->FNC('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input');
-        $form->FNC('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input');
+        $form->FNC('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input, silent');
+        $form->FNC('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input, silent');
         $form->FNC('debugFile', 'varchar(64)', 'caption=Данни за обратна връзка->Файл, silent, input=hidden');
-        
+        $form->FNC('url', 'varchar(1024)', 'caption=Данни за обратна връзка->Файл, silent, input=url');
+
         $img = ht::createElement('img', array('src' => sbf('img/16/headset.png', '')));
         $form->title = '|*' . $img . '   |Сигнал към разработчиците на bgERP';
         
@@ -490,7 +523,8 @@ class log_Debug extends core_Manager
             $dataArr['Lg'] = core_Lg::getCurrent();
             $dataArr['streamReport'] = true;
             $dataArr['title'] = $form->rec->title;
-            
+            $dataArr['url'] = $form->rec->url;
+
             // use key 'http' even if you send the request to https://...
             $options = array(
                 'http' => array(
@@ -1006,6 +1040,8 @@ class log_Debug extends core_Manager
                 $execSizeTo = 300000;
             } elseif ($searchArr['execSize'] == 'veryBig') {
                 $execSizeFrom = 300000;
+            } elseif ($searchArr['execSize'] == 'veryBig5') {
+                $execSizeFrom = 500000;
             }
         }
         
@@ -1282,14 +1318,19 @@ class log_Debug extends core_Manager
         }
         
         if ($action == 'report' && $requiredRoles != 'no_one') {
-            if (!defined('DEBUG_FATAL_ERRORS_PATH')) {
-                $requiredRoles = 'no_one';
-            }
-            
             if ($requiredRoles != 'no_one') {
                 $supportUrl = help_Setup::get('BGERP_SUPPORT_URL', true);
                 if (!$supportUrl || strpos($supportUrl, '//') === false) {
                     $requiredRoles = 'no_one';
+                }
+            }
+
+            // За да праща репорт от това устройство и/или това IP трябва да има поне едно логване
+            if ($requiredRoles != 'no_one') {
+                if (!haveRole('user', $userId)) {
+                    if (!core_LoginLog::isLoggedBefore(core_Users::getRealIpAddr(), true)) {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }

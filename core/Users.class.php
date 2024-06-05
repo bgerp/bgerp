@@ -340,7 +340,8 @@ class core_Users extends core_Manager
             $query = static::getQuery();
             $query->where("#state != 'rejected'");
             $query->where("#state != 'draft'");
-            
+            $query->where("#state != 'closed'");
+
             // Ако са зададени роли
             if ($roles) {
                 $query->likeKeylist('roles', $roles);
@@ -2430,9 +2431,14 @@ class core_Users extends core_Manager
      */
     public static function isActiveUserId($id)
     {
-        $user = static::fetch(array("#id = '[#1#]' AND #state = 'active'", $id));
+        $rec = static::fetch(array("#id = '[#1#]'", $id));
 
-        return (bool) $user;
+        if (!$rec) {
+
+            return false;
+        }
+
+        return (bool) ($rec->state == 'active');
     }
     
     
@@ -2800,12 +2806,14 @@ class core_Users extends core_Manager
      * 
      * @param mixed $roles
      * @param null|string $keylist
+     * @param string|array $states
      * @return array $arr
      */
-    public static function getUsersByRoles($roles, $keylist = null)
+    public static function getUsersByRoles($roles, $keylist = null, $states = 'active')
     {
+        $states = arr::make($states, true);
         $query = static::getQuery();
-        $query->where("#state = 'active'");
+        $query->in("state", $states);
         $query->orderBy('#names', 'ASC');
         $query->show('id,nick');
 

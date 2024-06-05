@@ -43,6 +43,7 @@
 </table>
 <div class="scrolling-holder">
 [#sales_SalesDetails#]
+[#price_DiscountsPerDocuments#]
 </div>
 <div class="lines"></div>
 <table class="innerTable footer-notes paddingCells" style="width: 100%;">
@@ -62,7 +63,7 @@
                 <li>|Цените са с отделно ДДС|*.[#sepVat#]</li>
                 <!--ET_END sepVat-->
                 <!--ET_BEGIN noVat-->
-                <li>|Цените са без ДДС|*.[#noVat#]</li>
+                <li>|Без начисляване на ДДС|*.[#noVat#]</li>
                 <!--ET_END noVat-->
 
                 <li>Нормативна база – Конвенция CMR, TIR (ADR-само за опасни товари), ЗЗД, ТЗ</li>

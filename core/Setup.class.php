@@ -220,7 +220,7 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '23.26-Aleko');
+define('CORE_CODE_VERSION', '24.23-Malyovitsa');
 
 
 /**
@@ -263,6 +263,12 @@ defIfNot('CORE_BACKUP_CREATE_FULL_OFFSET', (60 * 3 + 50) * 60);
  * 
  */
 defIfNot('CORE_BGERP_UNIQ_ID', '');
+
+
+/**
+ * Начини за регистриране на потребители
+ */
+defIfNot('CORE_REGISTER_USER', 'none');
 
 
 /**
@@ -394,6 +400,8 @@ class core_Setup extends core_ProtoSetup
         'CORE_BACKUP_CREATE_FULL_PERIOD' => array('time', 'caption=Настройки за бекъп->Пълен бекъп през'),
         
         'CORE_BACKUP_CREATE_FULL_OFFSET' => array('time', 'caption=Настройки за бекъп->Изместване'),
+
+        'CORE_REGISTER_USER' => array('enum(none=Забранено, email=Имейл, sms=SMS, emailSMS = Имейл и SMS, noValidation=Без верифициране)', 'caption=Регистриране на потребители->Избор'),
     );
     
     
@@ -420,8 +428,9 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
+        'core_UserReg',
         'migrate::clearCallOnTimeBadData2212',
-        'migrate::repairSearchKeywords31920',
+        'migrate::repairSearchKeywords2351',
         'migrate::setBGERPUNIQId3020'
     );
     
@@ -467,7 +476,7 @@ class core_Setup extends core_ProtoSetup
         // Спираме SQL лога, ако има такъв
         core_Db::$sqlLogEnebled = false;
         
-        $html .= parent::install();
+        $html = parent::install();
         
         if (CORE_OVERWRITE_HTAACCESS) {
             $filesToCopy = array(
@@ -616,9 +625,8 @@ class core_Setup extends core_ProtoSetup
         $rec->isRandOffset = true;
         $rec->delay = 0;
         $rec->timeLimit = 120;
-        $res .= core_Cron::addOnce($rec);
-        
-        return $res;
+
+        return core_Cron::addOnce($rec);
     }
     
     
@@ -646,7 +654,8 @@ class core_Setup extends core_ProtoSetup
      */
     public function getCommonCss()
     {
-        return $res;
+
+        return null;
     }
     
     
@@ -718,7 +727,7 @@ class core_Setup extends core_ProtoSetup
     /**
      * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
      */
-    public static function repairSearchKeywords31920()
+    public static function repairSearchKeywords2351()
     {
         // Вземаме инстанция на core_Interfaces
         $Interfaces = cls::get('core_Interfaces');

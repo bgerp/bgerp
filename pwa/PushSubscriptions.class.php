@@ -27,13 +27,13 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Заглавие на мениджъра
      */
-    public $title = 'PWA Push абонаменти';
+    public $title = 'Абонаменти за известяване';
 
 
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, crm_Wrapper';
 
 
     /**
@@ -81,7 +81,13 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Дефолтни стойности на приоритетите
      */
-    protected $defaultValues = array('criticalWorking' => '5 мин', 'urgentWorking' => '20 мин', 'docWorking' => '1 час', 'allWorking' => '1 час');
+    protected $defaultValues = array('criticalWorking' => '5 мин', 'criticalNonWorking' => '5 мин', 'criticalNight' => '5 мин',
+                                     'urgentWorking' => '20 мин', 'urgentNonWorking' => '20 мин',
+                                     'docWorking' => '20 мин',
+                                     'shareWorking' => '20 мин',
+                                     'allWorking' => '1 час',
+                                     'groupNotify' => 'yes',
+                                     'forceNotify' => 'no');
 
 
     /**
@@ -97,8 +103,8 @@ class pwa_PushSubscriptions extends core_Manager
     {
         $this->FLD('userId', 'user', 'caption=Потребител, input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър, input=none');
-        $this->FLD('publicKey', 'varchar', 'caption=Ключ, input=none'); //88
-        $this->FLD('authToken', 'varchar', 'caption=Токен, input=none'); //24
+        $this->FLD('publicKey', 'varchar(128)', 'caption=Ключ, input=none'); //88
+        $this->FLD('authToken', 'varchar(128)', 'caption=Токен, input=none'); //24
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн, input=none');
         $this->FLD('contentEncoding', 'varchar', 'caption=Енкодинг, input=none');
         $this->FLD('endpoint', 'Url', 'caption=Точка, input=none');
@@ -116,12 +122,20 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('docNonWorking', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->Неработно време');
         $this->FLD('docNight', $this->enumOptVal, 'caption=Известяване за имейли|*&#44; |запитвания и сигнали->През нощта');
 
+        $this->FLD('shareWorking', $this->enumOptVal, 'caption=Известяване за споделяне->Работно време');
+        $this->FLD('shareNonWorking', $this->enumOptVal, 'caption=Известяване за споделяне->Неработно време');
+        $this->FLD('shareNight', $this->enumOptVal, 'caption=Известяване за споделяне->През нощта');
+
         $this->FLD('allWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Работно време');
         $this->FLD('allNonWorking', $this->enumOptVal, 'caption=Известяване за всякакви новости->Неработно време');
         $this->FLD('allNight', $this->enumOptVal, 'caption=Известяване за всякакви новости->През нощта');
 
-        $this->setDbUnique('publicKey, authToken');
+        $this->FLD('groupNotify', 'enum(no=Не,yes=Да)', 'caption=Групиране на известията->Избор');
+        $this->FLD('forceNotify', 'enum(no=Не, yes=Да (Само при промяна на съобщението), yesAll=Да (Винаги при обновяване))', 'caption=Неотворените известия да продължат да се обновяват при промяна->Избор');
+
         $this->setDbUnique('brid');
+
+        $this->currentTab = 'Профили';
     }
 
 
@@ -139,14 +153,30 @@ class pwa_PushSubscriptions extends core_Manager
      * @param null|integer $domainId - id на домейн
      * @param bool $sound - звук
      * @param null|bool $vibration - вибрация
+     * @param array $otherParamsArr - масив с други параметри
+     * ['ttl'] - време на живот на известието
+     * ['badge'] - иконка подобна на favicon.ico, която се показва в приложението
      *
      * @return array
      */
-    public static function sendAlert($userId, $title, $text, $url = null, $tag = null, $icon = null, $image = null, $brid = null, $domainId = null, $sound = true, $vibration = null)
+    public static function sendAlert($userId, $title, $text, $url = null, $tag = null, $icon = null, $image = null, $brid = null, $domainId = null, $sound = true, $vibration = null, $otherParamsArr = array())
     {
+        setIfNot($otherParamsArr['ttl'], 3600);
+
         if ($icon !== false) {
-            $icon = '/favicon.png';
+            if (core_Webroot::isExists('favicon.png')) {
+                $icon = '/favicon.png';
+            } else if (core_Webroot::isExists('favicon.ico')) {
+                $icon = '/favicon.ico';
+            }
         }
+
+        if ($otherParamsArr['badge'] !== false) {
+            if (core_Webroot::isExists('badge.png')) {
+                $otherParamsArr['badge'] = '/badge.png';
+            }
+        }
+
         $resArr = array();
 
         if (!core_Composer::isInUse()) {
@@ -233,6 +263,10 @@ class pwa_PushSubscriptions extends core_Manager
             $data->sound = $sound;
             $data->vibration = $vibration;
             $data->tag = $tag;
+            if ($otherParamsArr['badge']) {
+                $data->badge = $otherParamsArr['badge'];
+            }
+
             if (isset($url)) {
                 if (is_array($url)) {
                     setIfNot($url['fpn'], true); // From PUSH Notification
@@ -240,7 +274,7 @@ class pwa_PushSubscriptions extends core_Manager
                 $data->url = toUrl($url);
             }
 
-            $statusObj = $webPush->sendOneNotification($subscription, json_encode($data));
+            $statusObj = $webPush->sendOneNotification($subscription, json_encode($data), array('TTL' => $otherParamsArr['ttl']));
             $reason = $statusObj->getReason();
 
             $statusData = (object) array('isSuccess' => $statusObj->isSuccess(), 'brid' => $rec->brid, 'userId' => $rec->userId, 'reason' => $reason);
@@ -330,7 +364,7 @@ class pwa_PushSubscriptions extends core_Manager
                 $msg = 'Добавен е Push абонамент за получване на известия в "' . core_Setup::get('EF_APP_TITLE', true) . '"';
 
                 $isSendArr = $this->sendAlert($rec->userId, tr($msgTitle),tr($msg),
-                            array('pwa_PushSubscriptions', 'edit', $rec->id, 'ret_url' => true), null, null, null, $rec->brid);
+                            array('pwa_PushSubscriptions', 'edit', $rec->id, 'ret_url' => array('Portal', 'Show')), null, null, null, $rec->brid);
 
                 foreach ($isSendArr as $iVal) {
                     if (!$iVal->isSuccess) {
@@ -342,7 +376,16 @@ class pwa_PushSubscriptions extends core_Manager
 
                 $statusObj = new stdClass();
                 $statusObj->func = 'redirect';
-                $statusObj->arg = array('url' => toUrl(array($this, 'edit', $rec->id, 'ret_url' => true)));
+                $redirectUrl = Request::get('redirectUrl');
+                if (!$redirectUrl || $redirectUrl == 'none') {
+                    $redirectUrl = array($this, 'edit', $rec->id, 'ret_url' => true);
+                } else {
+                    $redirectUrl = parseLocalUrl($redirectUrl);
+                }
+
+                $redirectUrl = toUrl($redirectUrl);
+
+                $statusObj->arg = array('url' => $redirectUrl);
 
                 return array($statusObj);
             }
@@ -433,8 +476,29 @@ class pwa_PushSubscriptions extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('modifiedOn', 'DESC');
         $data->query->orderBy('id', 'DESC');
+
+        $data->listFilter->FNC('users', "users(rolesForAll=admin,rolesForTeams=admin, showClosedGroups)", 'caption=Потребители, autoFilter');
+
+        // Да се показва полето за търсене
+        $data->listFilter->showFields = 'users';
+
+        $data->listFilter->view = 'horizontal';
+
+        //Добавяме бутон "Филтрирай"
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        $data->listFilter->setDefault('users', core_Users::getCurrent());
+
+        $data->listFilter->input();
+
+        if ($data->listFilter->rec->users) {
+            $uArr = type_Keylist::toArray($data->listFilter->rec->users);
+            if (!$uArr[-1]) {
+                $data->query->in('userId', $uArr);
+            }
+        }
     }
 
 
@@ -476,9 +540,9 @@ class pwa_PushSubscriptions extends core_Manager
         $nQuery->where(array("#activatedOn > '[#1#]'", dt::addSecs(-48 * 3600)));
         $nQuery->in('userId', array_keys($uArr));
 
-        $nQuery->XPR('priorityOrder', 'int', "(CASE #priority WHEN 'alert' THEN 1 WHEN 'warning' THEN 2 WHEN 'normal' THEN 3 ELSE 5 END)");
-        $nQuery->orderBy('#priorityOrder=ASC');
-        $nQuery->orderBy('activatedOn', 'DESC');
+//        $nQuery->XPR('priorityOrder', 'int', "(CASE #priority WHEN 'alert' THEN 1 WHEN 'warning' THEN 2 WHEN 'normal' THEN 3 ELSE 5 END)");
+//        $nQuery->orderBy('#priorityOrder=ASC');
+        $nQuery->orderBy('modifiedOn', 'DESC');
         $nQuery->orderBy('id', 'DESC');
 
         while ($nRec = $nQuery->fetch()) {
@@ -500,6 +564,8 @@ class pwa_PushSubscriptions extends core_Manager
 
         $now = dt::now();
 
+        $allNotifyArr = array();
+
         foreach ($ntfsMsg as $userId => $nArr) {
             // Определяме времето в момента
             list($d, $t) = explode(' ', $now);
@@ -517,17 +583,48 @@ class pwa_PushSubscriptions extends core_Manager
             $daysFieldArr['critical'] = 'critical' . $dayTime;
             $daysFieldArr['urgent'] = 'urgent' . $dayTime;
             $daysFieldArr['doc'] = 'doc' . $dayTime;
+            $daysFieldArr['share'] = 'share' . $dayTime;
             $daysFieldArr['all'] = 'all' . $dayTime;
 
+            $mDate = null;
             foreach ($nArr as $priority => $nArr2) {
                 foreach ($nArr2 as $msgObj) {
+                    $pMsgHash = md5($msgObj->msg . '|' . $msgObj->url . '|' . $msgObj->priority . '|' . $msgObj->customUrl);
                     foreach ((array)$uArr[$userId] as $brid => $uRec) {
+                        $isGroup = ($uRec->groupNotify != 'no') ? true : false;
+                        $isForceNotify = (($uRec->forceNotify == 'yes') || ($uRec->forceNotify == 'yesAll')) ? true : false;
+
+                        $mField = $isForceNotify ? 'modifiedOn' : 'activatedOn';
+
+                        setIfNot($mDate, $msgObj->{$mField});
+
+                        if (strtotime($msgObj->{$mField}) > strtotime($mDate)) {
+                            $mDate = $msgObj->{$mField};
+                        }
+
                         // Проверяваме дали преди това има изпратено известие
                         $showUrlHash = md5($msgObj->url . '|' . $userId . '|' . $brid);
-                        if (core_Permanent::get('pwa_' . $showUrlHash)) {
+                        if ($prevMsgHash = core_Permanent::get('pwa_' . $showUrlHash)) {
+                            // Ако има промяна в съобщението и настройката за принудително изпращане на известия е включена, подновяваме известието
+                            $continue = true;
+                            if ($isForceNotify) {
+                                if ($uRec->forceNotify == 'yesAll') {
+                                    $pMsgHash = md5($pMsgHash . '|' . $msgObj->lastTime . '|' . $msgObj->modifiedOn);
+                                }
+
+                                if ($prevMsgHash != $pMsgHash) {
+                                    $continue = false;
+                                }
+                            }
+
+                            if ($continue) {
 //                            self::logDebug("Прескочено изпращане на PUSH известие поради дублиране на URL - '{$msgObj->url}'", $uRec->id, 7);
 
-                            continue;
+                                if (!$isGroup) {
+
+                                    continue;
+                                }
+                            }
                         }
 
                         $mustSend = false;
@@ -548,6 +645,11 @@ class pwa_PushSubscriptions extends core_Manager
                                     }
                                 }
                                 if (!$correctDoc) {
+
+                                    continue;
+                                }
+                            } elseif ($fType == 'share') {
+                                if (strpos($msgLower, '|сподели|') === false) {
 
                                     continue;
                                 }
@@ -628,24 +730,56 @@ class pwa_PushSubscriptions extends core_Manager
 
                         $urlArr = array($this, 'openUrl', 'url' => toUrl($url, 'local'), 'hash' => $showUrlHash);
 
-                        // Изпращаме известието и записваме в лога съответното действие
-                        $isSendArr = $this->sendAlert($userId, $msgTitle, $msg, $urlArr, null, null, null, $brid);
+                        $tag = 'ntf' . $msgObj->id;
 
-                        $lifetime = 24 * 60;
-                        foreach ($isSendArr as $iVal) {
-                            $resStatusMsg = 'Неуспешно';
-                            $lifetime = 2 * 60; // 2 часа за повторно изпращане, ако има грешка
-                            if ($iVal->isSuccess) {
-                                $resStatusMsg = 'Успешно';
-                                $lifetime = 24 * 60; // 24 часа за повторно изпращане, ако няма грешка
-                            }
-
-//                            self::logDebug("{$resStatusMsg} изпращане на известие - '{$msgTitle}': '{$msg}'", $uRec->id, 7);
+                        if ($isGroup) {
+                            $tag = 'ntfGroup';
+                            $pMsgHash = $mDate;
                         }
 
-                        core_Permanent::set('pwa_' . $showUrlHash, 1, $lifetime);
+                        $bt = $tag . '|' . $brid;
+
+                        if ($allNotifyArr[$userId][$bt]['msg']) {
+                            $msg = $allNotifyArr[$userId][$bt]['msg'] . "\n" . $msg;
+                            $urlArr = array('Portal', 'Show', '#' => 'notificationsPortal');
+                        }
+
+                        $allNotifyArr[$userId][$bt] = array('msgTitle' => $msgTitle, 'msg' => $msg, 'urlArr' => $urlArr,
+                            'brid' => $brid, 'tag' => $tag, 'showUrlHash' => $showUrlHash, 'pMsgHash' => $pMsgHash,
+                            'uRec' => $uRec, 'isGroup' => $isGroup);
                     }
                 }
+            }
+        }
+
+        foreach ($allNotifyArr as $userId => $tArr) {
+            foreach ($tArr as $uNotifyArr) {
+                if ($uNotifyArr['isGroup']) {
+                    $prevMsgHash = core_Permanent::get('pwa_' . $uNotifyArr['showUrlHash']);
+
+                    if ($prevMsgHash && (strtotime($prevMsgHash) >= strtotime($uNotifyArr['pMsgHash']))) {
+
+                        continue;
+                    }
+                }
+
+                // Изпращаме известието и записваме в лога съответното действие
+                $isSendArr = $this->sendAlert($userId, $uNotifyArr['msgTitle'], $uNotifyArr['msg'], $uNotifyArr['urlArr'],
+                    $uNotifyArr['tag'], null, null, $uNotifyArr['brid']);
+
+                $lifetime = 24 * 60;
+                foreach ($isSendArr as $iVal) {
+                    $resStatusMsg = 'Неуспешно';
+                    $lifetime = 2 * 60; // 2 часа за повторно изпращане, ако има грешка
+                    if ($iVal->isSuccess) {
+                        $resStatusMsg = 'Успешно';
+                        $lifetime = 24 * 60; // 24 часа за повторно изпращане, ако няма грешка
+                    }
+
+//                    self::logDebug("{$resStatusMsg} изпращане на известие - '{$msgTitle}': '{$msg}'", $uRec->id, 7);
+                }
+
+                core_Permanent::set('pwa_' . $uNotifyArr['showUrlHash'], $uNotifyArr['pMsgHash'], $lifetime);
             }
         }
     }

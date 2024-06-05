@@ -155,7 +155,12 @@ class drdata_PhoneType extends type_Varchar
         }
         
         if (Mode::is('text', 'plain') || Mode::is('text', 'pdf') || Mode::is('text', 'xhtml')) {
-            
+
+            if (Mode::is('forSearch')) {
+                $telNumber = plg_Search::normalizeText($telNumber);
+                $telNumber = preg_replace('/\s+/', '', $telNumber);
+            }
+
             return $telNumber;
         }
         

@@ -198,7 +198,7 @@ class tcost_FeeZones extends core_Master
                 }
             }
 
-            if($volume * 33 < $weight) {
+            if($volume * 22 < $weight) {
                 $multiplier *= 1000;
             }
 
@@ -235,10 +235,12 @@ class tcost_FeeZones extends core_Master
         
         // Определяне на зоната на транспорт за зададеното условие на доставка
         $singleWeight = $volumicWeight;
-        
+
         // Ако няма, цената няма да може да се изчисли
         if (empty($singleWeight)) {
             return array('fee' => cond_TransportCalc::EMPTY_WEIGHT_ERROR);
+        } elseif($singleWeight < 0 || !is_numeric($singleWeight)) {
+            return array('fee' => cond_TransportCalc::WEIGHT_FEE_OTHER_ERROR);
         }
         
         // Опит за калкулиране на цена по посочените данни

@@ -23,7 +23,7 @@ defIfNot('OPENAI_VERSION', '0.1.6');
  * Настройка на API
  * model
  */
-defIfNot('OPENAI_API_MODEL_VERSION', 'GPT 3.5 TURBO');
+defIfNot('OPENAI_API_MODEL_VERSION', 'openai_TextDavinci003');
 
 
 /**
@@ -93,13 +93,19 @@ class openai_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'OPENAI_TOKEN' => array('password(show)', 'caption=Ключ,class=w100'),
-        'OPENAI_API_MODEL_VERSION' => array('enum(GPT 3.5 TURBO, TEXT DAVINCI 003)', 'caption=API настройка->Модел'),
+        'OPENAI_API_MODEL_VERSION' => array('class(interface=openai_GPTIntf,select=title)', 'caption=API настройка->Модел'),
         'OPENAI_API_TEMPERATURE' => array('double', 'caption=API настройка->temperature'),
         'OPENAI_API_MAX_TOKENS' => array('int', 'caption=API настройка->max_tokens'),
         'OPENAI_API_TOP_P' => array('int', 'caption=API настройка->top_p'),
         'OPENAI_API_FREQUENCY_PENALTY' => array('int', 'caption=API настройка->frequency_penalty'),
         'OPENAI_API_PRESENCE_PENALTY' => array('int', 'caption=API настройка->presence_penalty'),
     );
+
+
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'openai_TextDavinci003, openai_GPT35Turbo, openai_GPT4, openai_GPT4Turbo';
 
 
     /**
@@ -123,8 +129,9 @@ class openai_Setup extends core_ProtoSetup
         'openai_Cache',
         'openai_Prompt',
         'migrate::promptTruncate2313',
-        'migrate::promptAddIgnoreWords2314',
+        'migrate::promptAddIgnoreWords2401',
         'migrate::promptAddIgnoreWordsFromEmail2314',
+        'migrate::fixDefaultPromptClass2350',
     );
 
 
@@ -143,12 +150,14 @@ class openai_Setup extends core_ProtoSetup
     /**
      * Миграция за попълване на данните за игнориране от данните на компанията в резултата при парсиране на имейла
      */
-    public static function promptAddIgnoreWords2314()
+    public static function promptAddIgnoreWords2401()
     {
         $query = openai_Prompt::getQuery();
         while ($rec = $query->fetch()) {
-                $rec->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*'));
+            if (!$rec->ignoreWords) {
+                $rec->ignoreWords = implode("\n", array('-', 'none', 'N/A', 'Unknown', 'Not Specified', '*not provided*', 'not mentioned', '*не е посочен*', '*липсва информация*', 'няма информация'));
                 openai_Prompt::save($rec, 'ignoreWords');
+            }
         }
     }
 
@@ -176,8 +185,10 @@ class openai_Setup extends core_ProtoSetup
                 $aArr[$oRec->{$fld}] = $oRec->{$fld};
             }
 
-            $rec->emailIgnoreWords = implode("\n", $aArr);
-            openai_Prompt::save($rec, 'emailIgnoreWords');
+            if (!$rec->emailIgnoreWords) {
+                $rec->emailIgnoreWords = implode("\n", $aArr);
+                openai_Prompt::save($rec, 'emailIgnoreWords');
+            }
         }
     }
 
@@ -193,5 +204,27 @@ class openai_Setup extends core_ProtoSetup
         $html .= core_Plugins::installPlugin('Email parse contragent data', 'openai_plugins_IncomingsContragentData', 'email_Incomings', 'private');
 
         return $html;
+    }
+
+
+    /**
+     * Оправя старите настройки за модела
+     */
+    public static function fixDefaultPromptClass2350()
+    {
+        $conf = core_Packs::getConfig('openai');
+
+        if ($conf->_data['OPENAI_API_MODEL_VERSION']) {
+            $dArr = array();
+            if ($conf->_data['OPENAI_API_MODEL_VERSION'] == 'GPT 3.5 TURBO') {
+                $dArr['OPENAI_API_MODEL_VERSION'] = core_Classes::getId('openai_GPT35Turbo');
+            } elseif ($conf->_data['OPENAI_API_MODEL_VERSION'] == 'TEXT DAVINCI 003') {
+                $dArr['OPENAI_API_MODEL_VERSION'] = core_Classes::getId('openai_TextDavinci003');
+            }
+
+            if (!empty($dArr)) {
+                core_Packs::setConfig('openai', $dArr);
+            }
+        }
     }
 }

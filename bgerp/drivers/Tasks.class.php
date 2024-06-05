@@ -42,6 +42,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
     {
         $fieldset->FLD('perPage', 'int(min=1, max=50)', 'caption=Редове, mandatory');
         $fieldset->FLD('from', 'enum(,toMe=За мен,fromMe=От мен)', 'caption=Задачи от/към');
+        $fieldset->FLD('showCal', 'enum(no=Не, yes=Да)', 'caption=Показване на задачите от календара->Избор');
         $fieldset->FLD('taskPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Задачи');
     }
     
@@ -103,11 +104,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $resData->data->query->orWhere("#state = 'wakeup'");
         $resData->data->query->orWhere("#state = 'waiting'");
         $resData->data->query->orWhere("#state = 'pending'");
-        
-        
-        // Вадим 3 работни дни
-        $now = dt::now();
-        
+
         $before = $after = dt::now(false);
         $before = cal_Calendar::nextWorkingDay($before, null, -1 * cal_Tasks::$taskShowPeriod);
         $after = cal_Calendar::nextWorkingDay($after, null, cal_Tasks::$taskShowPeriod);
@@ -117,15 +114,17 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $resData->data->query->orWhere(array("(#state = 'closed' OR #state = 'stopped') AND #timeClosed <= '[#1#]' AND #timeClosed >= '[#2#]'", $after, $before));
         
         $todayB = dt::now(false) . ' 00:00:00';
-        
-        $resData->data->query->where('#timeStart IS NULL');
-        $resData->data->query->orWhere(array("#timeStart < '[#1#]'", $todayB));
-        $resData->data->query->where('#timeEnd IS NULL');
-        $resData->data->query->orWhere(array("#timeEnd < '[#1#]'", $todayB));
-        $resData->data->query->orWhere('#timeEnd IS NOT NULL AND #timeStart IS NULL AND #timeDuration IS NULL');
-        $resData->data->query->where('#timeDuration IS NULL');
-        $resData->data->query->orWhere(array("#expectationTimeEnd < '[#1#]'", $todayB));
-        
+
+        if ($dRec->showCal != 'yes') {
+            $resData->data->query->where('#timeStart IS NULL');
+            $resData->data->query->orWhere(array("#timeStart < '[#1#]'", $todayB));
+            $resData->data->query->where('#timeEnd IS NULL');
+            $resData->data->query->orWhere(array("#timeEnd < '[#1#]'", $todayB));
+            $resData->data->query->orWhere('#timeEnd IS NOT NULL AND #timeStart IS NULL AND #timeDuration IS NULL');
+            $resData->data->query->where('#timeDuration IS NULL');
+            $resData->data->query->orWhere(array("#expectationTimeEnd < '[#1#]'", $todayB));
+        }
+
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
         $resData->cacheType = $this->getCacheTypeName($userId);
         
@@ -135,15 +134,18 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         if (!$resData->tpl) {
             $resData->data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 WHEN 'stopped' THEN 4 ELSE 5 END)");
-            $resData->data->query->XPR('orderTimeEnd', 'datetime', "if(((#state = 'active' || #state = 'wakeup' || #state = 'waiting' || #state = 'pending') && #timeEnd >= '{$todayB}'),-#timeEnd,NULL)");
 
-            $resData->data->query->orderBy('orderTimeEnd', 'DESC');
+            if ($dRec->showCal != 'yes') {
+                $resData->data->query->XPR('orderTimeEnd', 'datetime', "if(((#state = 'active' || #state = 'wakeup' || #state = 'waiting' || #state = 'pending') && #timeEnd >= '{$todayB}'),-#timeEnd,NULL)");
+                $resData->data->query->orderBy('orderTimeEnd', 'DESC');
+            }
+
             $resData->data->query->orderBy('orderByState', 'ASC');
             $resData->data->query->orderBy('modifiedOn', 'DESC');
             $resData->data->query->orderBy('createdOn', 'DESC');
 
             $Tasks->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 15;
-            
+
             // Подготвяме навигацията по страници
             $Tasks->prepareListPager($resData->data);
             
@@ -162,15 +164,13 @@ class bgerp_drivers_Tasks extends core_BaseClass
                 foreach ($resData->data->recs as $id => &$rec) {
                     $row = &$resData->data->rows[$id];
                     
-                    $title = str::limitLen(type_Varchar::escape($rec->title), cal_Tasks::maxLenTitle, 20, ' ... ', true);
+                    $title = str::limitLen(cal_Tasks::getRecTitle($rec, false), cal_Tasks::maxLenTitle, 20, ' ... ', true);
                     
                     $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id));
                     
                     if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $userId, false)) {
                         $linkArr['class'] = 'tUnsighted';
                     }
-                    
-                    $title = cal_Tasks::prepareTitle($title, $rec);
                     
                     if (doc_Threads::fetchField($rec->threadId, 'state') == 'opened') {
                         $linkArr['class'] .= ' state-opened';
@@ -223,10 +223,12 @@ class bgerp_drivers_Tasks extends core_BaseClass
                 $formTpl->removePlaces();
                 $data->tpl->append($formTpl, 'ListFilter');
             }
-            
+
+            Mode::push('hideToolbar', true);
             $data->tpl->append(cal_Tasks::renderListTable($data->data), 'PortalTable');
             $data->tpl->append(cal_Tasks::renderListPager($data->data), 'PortalPagerBottom');
-            
+            Mode::pop('hideToolbar');
+
             $switchTitle = '';
             
             // Задачи
@@ -290,6 +292,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
         $data->form->setDefault('perPage', 20);
+        $data->form->setDefault('showCal', 'yes');
     }
     
     
@@ -345,8 +348,9 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $isFromMe = $this->isFromMe($dRec->from);
         
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
+        $cArr[] = $dRec->showCal;
         $cArr[] = $isFromMe;
-        
+
         $pageVar = $this->getPageVar($dRec->originIdCalc);
         $pageVarVal = Request::get($pageVar);
         $pageVarVal = isset($pageVarVal) ? $pageVarVal : 1;
@@ -362,14 +366,17 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         $cloneQuery->orderBy('modifiedOn', 'DESC');
         $cloneQuery->limit(1);
+        $cloneQuery->where(array("#modifiedOn > '[#1#]'", dt::addDays(-1)));
         $cloneQuery->show('modifiedOn, id, containerId');
         $cRec = $cloneQuery->fetch();
-        $cArr[] = $cRec->modifiedOn;
-        $cArr[] = $cRec->id;
-        if ($cRec->containerId) {
-            $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
+        if ($cRec) {
+            $cArr[] = $cRec->modifiedOn;
+            $cArr[] = $cRec->id;
+            if ($cRec->containerId) {
+                $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
+            }
         }
-        
+
         return md5(implode('|', $cArr));
     }
     

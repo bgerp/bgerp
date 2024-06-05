@@ -164,6 +164,30 @@ defIfNot('PLANNING_INPUT_PREVIOUS_BOM_STEP', 'yes');
 
 
 /**
+ * Настройки на полета за получил/предал в ПВ и ПВР
+ */
+defIfNot('PLANNING_SHOW_SENDER_AND_RECEIVER_SETTINGS', 'no');
+
+
+/**
+ * Дефолтен хоризонт на показването резервните части
+ */
+defIfNot('PLANNING_SPARE_PARTS_HORIZON_IN_LIST', 3);
+
+
+/**
+ * Дефолтен хоризонт на показването резервните части
+ */
+defIfNot('PLANNING_SPARE_PARTS_HORIZON_IN_LIST', 3);
+
+
+/**
+ * Състояние на ПО след автоматично създаване от Рецепта
+ */
+defIfNot('PLANNING_AUTO_CREATE_TASK_STATE', 'pending');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -223,7 +247,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на Задание без нови контиращи документи->Повече от'),
         'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на Задание без нови контиращи документи->И Заскладено над,callOnChange=planning_Setup::setJobAutoClose'),
         'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Вложено)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Източник'),
-        'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(secsPer10=Секунди за 10 (мярка),secsPer100=Секунди за 100 (мярка),secsPer1000=Секунди за 1000 (мярка),minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),minPer1000=Минути за 1000 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
+        'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(secsPer10=Секунди за 10 (мярка),secsPer100=Секунди за 100 (мярка),secsPer1000=Секунди за 1000 (мярка),minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),minPer1000=Минути за 1000 (мярка),hoursPer1=Часове за (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
         'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
         'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
@@ -239,6 +263,9 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_PREVIOUS_TASK_BLOCKS' => array('int(min=0)', 'caption=За колко от предходните Операции да се визуализира готовността->Брой'),
         'PLANNING_SORT_TASKS_IN_JOB_STRATEGY' => array('class(interface=planning_OrderTasksInJobStrategyIntf,select=title)', 'caption=Подреждане на операциите в заданието->Стратегия'),
         'PLANNING_INPUT_PREVIOUS_BOM_STEP' => array('enum(yes=Влагат се,no=Не се влагат)', 'caption=Операция от Етап в рецепта - Влагане на предходния и вложените Етапи->Планиране'),
+        'PLANNING_SHOW_SENDER_AND_RECEIVER_SETTINGS' => array('enum(no=Скриване,yes=Показване,yesDefault=Показване с дефолт)', 'caption=Полета за получил/предал в Протоколите за влагане/връщане->Избор'),
+        'PLANNING_SPARE_PARTS_HORIZON_IN_LIST' => array('int(Min=0)', 'caption=Планирани наличности на резервните части->Месеци напред'),
+        'PLANNING_AUTO_CREATE_TASK_STATE' => array('enum(pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние'),
     );
 
 
@@ -284,6 +311,9 @@ class planning_Setup extends core_ProtoSetup
         'planning_GenericMapper',
         'planning_StepConditions',
         'planning_GenericProductPerDocuments',
+        'planning_WorkInProgress',
+        'planning_AssetGroupIssueTemplates',
+        'planning_AssetSparePartsDetail',
         'migrate::updateLabelType',
         'migrate::deletePoints',
         'migrate::changeCentreFieldToKeylistInWorkflows',
@@ -294,6 +324,8 @@ class planning_Setup extends core_ProtoSetup
         'migrate::cleanClosedTasks2250',
         'migrate::updateTasks1520',
         'migrate::updateMigratedTasks1620',
+        'migrate::taskDetailsRepairSerchKeywords2341',
+        'migrate::tasksRepairSerchKeywords2346v5',
     );
 
 
@@ -325,11 +357,10 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
-                          planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
+    public $defClasses = 'planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
                           planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,
-                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep';
+                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep,planning_interface_ImportFromConsignmentProtocol';
 
 
     /**
@@ -345,6 +376,10 @@ class planning_Setup extends core_ProtoSetup
 
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
+
+        // Закачане на плъгина за прехвърляне на собственотст на системни папки към core_Users
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Синхронизиране на незавършеното производство', 'planning_plg_BalanceSync', 'acc_Balances', 'private');
 
         $config = core_Packs::getConfig('planning');
         if (strlen($config->PLANNING_SORT_TASKS_IN_JOB_STRATEGY) === 0) {
@@ -659,5 +694,23 @@ class planning_Setup extends core_ProtoSetup
                 planning_ProductionTaskDetails::save($dRec);
             }
         }
+    }
+
+
+    /**
+     * Форсира регенерирането на ключовите думи за planning_ProductionTaskDetails
+     */
+    public static function taskDetailsRepairSerchKeywords2341()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ProductionTaskDetails', dt::addSecs(120));
+    }
+
+
+    /**
+     * Форсира регенерирането на ключовите думи за planning_Tasks
+     */
+    public static function tasksRepairSerchKeywords2346v5()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_Tasks', dt::addSecs(120));
     }
 }

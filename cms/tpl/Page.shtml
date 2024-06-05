@@ -29,7 +29,7 @@
             </div>
             <!--ET_BEGIN USERLINK-->
             <div class="logoutBlock">
-                [#USERLINK#] <span id='cart-external-status'>[#USERCART#]</span> [#LOGOUT#]
+                <!--ET_BEGIN USER_NOTIFICATIONS--><span id='notificationCountStatus'>[#USER_NOTIFICATIONS#]</span><!--ET_END USER_NOTIFICATIONS-->[#BARCODE_LINK#] [#USERLINK#] <span id='cart-external-status'>[#USERCART#]</span> [#LOGOUT#]
             </div>
             <!--ET_END USERLINK-->
             [#CMS_LAYOUT#]
@@ -43,6 +43,7 @@
             <div class="socialBtns">
                 [#cms_Feeds::generateFeedLink#]
                 [#social_Followers::getButtons#]
+                [#SIGNAL#]
             </div>
             [#cms_Content::getFooter#]
             <!--ET_BEGIN FOOTER_CENTER_WIDE-->

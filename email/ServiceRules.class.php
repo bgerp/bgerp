@@ -104,8 +104,14 @@ class email_ServiceRules extends embed_Manager
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'createdOn, createdBy, state, systemId';
-    
-    
+
+
+    /**
+     * Полета, които да се извлекат преди изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'email, systemId, emailTo, subject, body';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -117,7 +123,8 @@ class email_ServiceRules extends embed_Manager
         $this->FLD('subject', 'varchar', 'caption=Условие->Относно, silent', array('attr' => array('style' => 'width: 350px;')));
         $this->FLD('body', 'varchar', 'caption=Условие->Текст, silent', array('attr' => array('style' => 'width: 350px;')));
         $this->FLD('note', 'text', 'caption=Забележка', array('attr' => array('style' => 'width: 100%;', 'rows' => 4)));
-        
+        $this->FNC('docId', 'int', 'input=hidden, silent');
+
         $this->setDbUnique('systemId');
     }
     
@@ -237,6 +244,11 @@ class email_ServiceRules extends embed_Manager
         }
         
         $str = trim($rec->email) . '|' . trim($rec->subject) . '|' . trim($rec->body) . '|' . trim($rec->emailTo);
+
+        if ($rec->_systemId) {
+            $str .= '|' . $rec->_systemId;
+        }
+
         $systemId = md5($str);
         
         return $systemId;
@@ -396,7 +408,7 @@ class email_ServiceRules extends embed_Manager
 
         $pattern = str_ireplace('\\*', '.{0,10000}', $pattern);
 
-        $pattern = '/^\s*' . $pattern . '\s*$/iu';
+        $pattern = '/\s*' . $pattern . '\s*/iu';
 
         $filtersArr[$str] = $pattern;
 

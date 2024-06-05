@@ -98,11 +98,11 @@ class planning_AssetResourcesNorms extends core_Manager
      * Подготовка на детайла
      *
      * @param stdClass $data
-     *
      * @return void
      */
     public function prepareDetail_(&$data)
     {
+        $data->TabCaption = tr('Норми');
         $data->recs = $data->rows = array();
         $masterClassId = $data->masterMvc->getClassId();
         $query = self::getQuery();
@@ -158,20 +158,22 @@ class planning_AssetResourcesNorms extends core_Manager
      * Рендиране на детайла
      *
      * @param stdClass $data
-     *
-     * @return core_ET $tpl
+     * @return core_ET $resTpl
      */
     public function renderDetail_($data)
     {
-        $tpl = new core_ET('');
         $tpl = $this->renderList($data);
         
         if (isset($data->addUrl)) {
-            $addBtn = ht::createBtn('Нова норма', $data->addUrl, false, false, 'ef_icon=img/16/star_2.png,title=Добавяне на нова норма');
+            $addBtn = ht::createBtn('Нова норма', $data->addUrl, false, false, 'style=margin-top:10px,ef_icon=img/16/star_2.png,title=Добавяне на нова норма');
             $tpl->replace($addBtn, 'ListToolbar');
         }
-        
-        return $tpl;
+
+        $resTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $resTpl->append($tpl, 'content');
+        $resTpl->append(tr("Норми и действия"), 'title');
+
+        return $resTpl;
     }
     
     
@@ -363,8 +365,7 @@ class planning_AssetResourcesNorms extends core_Manager
         // Всички нормиз ададени към конкретни оборудвания
         $assetClassId = planning_AssetResources::getClassId();
         $query = static::getQuery();
-        $query->where("#classId = {$assetClassId} AND #objectId IN (" . implode(',', $assetIds). ")");
-        $query->show('productId');
+        $query->where("#classId = {$assetClassId} AND #objectId IN (" . implode(',', $assetIds). ") AND #state = 'active'");
 
         if(countR($assetIds)){
 
@@ -374,8 +375,9 @@ class planning_AssetResourcesNorms extends core_Manager
             $gQuery->in('id', $assetIds);
             $gQuery->show('groupId');
             $groupIds = arr::extractValuesFromArray($gQuery->fetchAll(), 'groupId');
-            $query->orWhere("#classId = {$groupClassId} AND #objectId IN (" . implode(',', $groupIds). ")");
+            $query->orWhere("#classId = {$groupClassId} AND #objectId IN (" . implode(',', $groupIds). ") AND #state = 'active'");
         }
+
         $productIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
         if(isset($exIds)){
             $productIds += keylist::toArray($exIds);
@@ -386,6 +388,5 @@ class planning_AssetResourcesNorms extends core_Manager
         }
 
         return $options;
-
     }
 }

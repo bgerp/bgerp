@@ -51,7 +51,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="cell custom-header-bg"><b>Supplier</b></td>
+                <td class="cell custom-header-bg"><b>|Supplier|*</b></td>
             </tr>
             <tr>
                 <td class="cell">
@@ -85,7 +85,7 @@
     <table class="innerTable footer-notes paddingCells" style='width:100%'>
         <tbody>
             <tr>
-                <td class="topCell first vtop" style='width:50%'>
+                <td class="topCell first vtop">
                      <table class='shipment-table' style='width: 100%'>
                          <!--ET_BEGIN readyOn-->
                          <tr>
@@ -139,7 +139,15 @@
                              <td>[#lineVehicleId#]</td>
                          </tr>
                          <!--ET_END lineVehicleId-->
-                         [#InvoicesToDocuments#]
+                         <!--ET_BEGIN InvoicesToDocuments-->
+                         <tr> <td colspan="2">
+                             <hr>
+                             <table>
+                                 [#InvoicesToDocuments#]
+                             </table>
+                         </td> </tr>
+
+                         <!--ET_END InvoicesToDocuments-->
                          <!--ET_BEGIN note-->
                          <tr>
                              <td colspan="2" >
@@ -154,7 +162,9 @@
                              </td>
                          </tr>
                          <tr>
-                             <td colspan="2">Total weight:&nbsp;[#weight#]</td>
+                             <div>Total gross weight: [#weight#]</div>
+                             <div>Total net weight: [#netWeight#]</div>
+                             <div>Total packing weight: [#tareWeight#]</div>
                          </tr>
                          <!--ET_BEGIN logisticInfo-->
                          <tr>
@@ -162,13 +172,27 @@
                          </tr>
                          <!--ET_END logisticInfo-->
                     </table>
-                    <hr>
-                    <!--ET_BEGIN responsible-->
-                    <div>Received by: [#responsible#]</div>
-                    <!--ET_END responsible-->
-                    <!--ET_BEGIN username-->
-                    <div>Created by:  [#username#]</div>
-                    <!--ET_END username-->
+                    <table class='centered' style="width:100%">
+                        <tr>
+                            <td class='centered'>Received:</td>
+                        </tr>
+                        <tr>
+                            <td style='height:40px;border-right:1px solid #999'></td>
+                        </tr>
+                        <tr>
+                            <td class='centered' style='border-right:1px solid #999'> <span class="sign_names">[#responsible#]</span></td>
+
+                        </tr>
+                        <tr>
+                            <td class='centered' style="border-top: 1px solid #ccc; padding-top: 10px !important;">Created by: [#USERNAME_SIGN_PAD#]</td>
+                        </tr>
+                        <tr>
+                            <td>[#USERNAME_SIGN#]</td>
+                        </tr>
+                        <tr>
+                            <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
         </tbody>

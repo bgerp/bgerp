@@ -152,7 +152,8 @@ class crm_Profiles extends core_Master
         $this->FLD('stateInfo', 'varchar', 'caption=Статус->Информация,input=none');
         $this->FLD('stateDateFrom', 'datetime(format=smartTime, defaultTime=00:00:00)', 'caption=Статус->От,input=none');
         $this->FLD('stateDateTo', 'datetime(format=smartTime, defaultTime=23:59:59)', 'caption=Статус->До,input=none');
-        
+        $this->FLD('stateAlternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees)', 'caption=Статус->Заместници,input=none');
+
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
     }
@@ -299,11 +300,9 @@ class crm_Profiles extends core_Master
                 }
                 
                 $data->ColabFolders->rowsArr = array();
-                $sharedFolders = colab_Folders::getSharedFolders($data->rec->userId, false, null, false);
-                
-                $params = array('Ctr' => 'doc_Folders', 'Act' => 'list');
+                $sharedFolders = colab_Folders::getSharedFolders($data->rec->userId);
+
                 foreach ($sharedFolders as $folderId) {
-                    $params['folderId'] = $folderId;
                     $fRow = doc_Folders::recToVerbal(doc_Folders::fetch($folderId));
                     $data->ColabFolders->rowsArr[] = (object) (array('folderName' => $fRow->title . ' (' . $fRow->type . ')'));
                 }
@@ -513,9 +512,9 @@ class crm_Profiles extends core_Master
         
         // Заместваме в шаблона
         $tpl->prepend($uTpl, 'userInfo');
-        
+
         if (isset($data->rec->stateInfo, $data->rec->stateDateFrom, $data->rec->stateDateTo)) {
-            $status = self::getVerbalStatus($data->rec->stateInfo, $data->rec->stateDateFrom, $data->rec->stateDateTo);
+            $status = self::getVerbalStatus($data->rec->stateInfo, $data->rec->stateDateFrom, $data->rec->stateDateTo, $data->rec->stateAlternatePersons);
             $tpl->append($status, 'userStatus');
             $tpl->append('statusClass', 'userClass');
         }
@@ -618,7 +617,7 @@ class crm_Profiles extends core_Master
      *
      * @return string;
      */
-    public static function getVerbalStatus($type, $from, $to)
+    public static function getVerbalStatus($type, $from, $to, $alternatePersons)
     {
         $Date = cls::get('type_Date');
         
@@ -638,7 +637,18 @@ class crm_Profiles extends core_Master
         } else {
             $status .= tr('от') . ' ' . dt::mysql2verbal($from, 'smartDate') . ' ' . tr('до') . ' ' . dt::mysql2verbal($to, 'smartDate');
         }
-        
+
+        if (isset($alternatePersons)) {
+            $aPersonsArr = type_Keylist::toArray($alternatePersons);
+            if (!empty($aPersonsArr)) {
+                $msg = tr('Заместник');
+                if (countR($aPersonsArr) > 1) {
+                    $msg = tr('Заместници');
+                }
+                $status .= " <br>{$msg}: " . hr_Leaves::purifyeAlternatePersons($alternatePersons, true);
+            }
+        }
+
         return $status;
     }
     
@@ -1212,7 +1222,7 @@ class crm_Profiles extends core_Master
                 if ($userRec->state != 'active') {
                     $attr['class'] .= ' state-' . $userRec->state;
                 }
-                
+
                 $attr['title'] = '|*' . $userRec->names;
                 
                 $link = ht::createLink($title, $url, $warning, $attr);
@@ -1347,7 +1357,7 @@ class crm_Profiles extends core_Master
                     $row->personId = ht::createLink($row->personId, $personLink, null, array('ef_icon' => 'img/16/vcard.png'));
                     
                     if (isset($rec->stateDateFrom, $rec->stateDateTo)) {
-                        $status = self::getVerbalStatus($rec->stateInfo, $rec->stateDateFrom, $rec->stateDateTo);
+                        $status = self::getVerbalStatus($rec->stateInfo, $rec->stateDateFrom, $rec->stateDateTo, $rec->stateAlternatePersons);
                         $link = static::createLink($rec->userId, null, false, array('ef_icon' => $mvc->singleIcon));
                         $row->userId = ht::createHint($link, '|*' . $status, 'notice');
                     } else {

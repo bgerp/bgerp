@@ -17,7 +17,7 @@
         </tr>
         <tr>
             <td class="cell custom-header-bg">
-                <b>Recipient</b>
+                <b>|Recipient|*</b>
                 <!--ET_BEGIN isPaid-->
                 <div class='stamp fright'>[#isPaid#]</div>
                 <!--ET_END isPaid-->
@@ -30,7 +30,7 @@
         </tr>
         <tr>
             <td class="cell custom-header-bg">
-                <b>Supplier</b>
+                <b>|Supplier|*</b>
                 <!--ET_BEGIN isDelivered-->
                 <div class='stamp fright'>[#isDelivered#]</div>
                 <!--ET_END isDelivered-->
@@ -47,6 +47,7 @@
 <div class="lines"></div>
 <div class="details scrolling-holder">
     [#sales_SalesDetails#]
+    [#price_DiscountsPerDocuments#]
 </div>
 <table class="innerTable footer-notes paddingCells" style='width:100%;'>
     <tbody>

@@ -38,8 +38,26 @@ abstract class deals_ManifactureMaster extends core_Master
      * Дата на очакване
      */
     public $termDateFld = 'deadline';
-    
-    
+
+
+    /**
+     * Кой може да променя активирани записи
+     */
+    public $canChangerec = 'ceo,consumption,store';
+
+
+    /**
+     * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
+     */
+    public $changableFields = 'note,sender,receiver';
+
+
+    /**
+     * Скриване на полето за споделени потребители
+     */
+    public $hideSharedUsersFld = true;
+
+
     /**
      * Кои са задължителните полета за модела
      */
@@ -48,9 +66,8 @@ abstract class deals_ManifactureMaster extends core_Master
         $mvc->FLD('valior', 'date', 'caption=Вальор');
         $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $mvc->FLD('deadline', 'datetime', 'caption=Срок до');
-        $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
+        $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Забележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
-        
         $mvc->setDbIndex('valior');
     }
     
@@ -97,13 +114,14 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $form = &$data->form;
         $folderCover = doc_Folders::getCover($data->form->rec->folderId);
         if ($folderCover->haveInterface('store_AccRegIntf')) {
-            $data->form->setDefault('storeId', $folderCover->that);
+            $form->setDefault('storeId', $folderCover->that);
         }
     }
-    
-    
+
+
     /**
      * @see doc_DocumentIntf::getDocumentRow()
      */
@@ -218,9 +236,8 @@ abstract class deals_ManifactureMaster extends core_Master
     protected function canAddToOriginId($containerId, $userId = null)
     {
         $origin = doc_Containers::getDocument($containerId);
-        if (!$origin->isInstanceOf('planning_Tasks') && !$origin->isInstanceOf('planning_ConsumptionNotes')) {
-            return false;
-        }elseif($origin->isInstanceOf('planning_Tasks')){
+
+        if($origin->isInstanceOf('planning_Tasks')){
             $state = $origin->fetchField('state');
             if (in_array($state, array('rejected', 'draft', 'waiting', 'stopped'))) {
                 return false;
@@ -229,6 +246,17 @@ abstract class deals_ManifactureMaster extends core_Master
                     return false;
                 }
             }
+        } elseif(($this instanceof planning_ConsumptionNotes) && $origin->isInstanceOf('cal_Tasks')){
+            $supportTaskClassType = support_TaskType::getClassId();
+            $originRec = $origin->fetch('driverClass,state');
+            if($originRec->driverClass != $supportTaskClassType) return false;
+            if (in_array($originRec->state, array('rejected', 'draft', 'waiting', 'stopped'))) return false;
+        } elseif(($this instanceof planning_ReturnNotes) && $origin->isInstanceOf('planning_DirectProductionNote')){
+            $originRec = $origin->fetch('state');
+            if(!planning_DirectProductNoteDetails::count("#noteId = {$originRec->id} AND #type = 'pop' AND #quantity != 0")) return false;
+            if($originRec->state != 'active') return false;
+        } elseif(!$origin->isInstanceOf('planning_ConsumptionNotes')){
+            return false;
         }
 
         return true;
@@ -244,9 +272,79 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        if(isset($data->form->rec->originId)){
-            $data->form->toolbar->removeBtn('btnNewThread');
-        }
         $data->form->toolbar->setBtnOrder('btnPending', 10);
+    }
+
+
+    /**
+     * Дали документа може да бъде възстановен/оттеглен/контиран, ако в транзакцията му има
+     * поне едно затворено перо връща FALSE
+     */
+    protected static function on_AfterCanRejectOrRestore($mvc, &$res, $id, $action, $ignoreArr = array())
+    {
+        $rec = $mvc->fetchRec($id);
+        $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+        if(is_object($firstDocument)){
+            if($action == 'conto'){
+                if($firstDocument->isInstanceOf('planning_Tasks')){
+                    $state = $firstDocument->fetchField('state');
+                    if($state == 'closed'){
+                        $roles = $mvc->getRequiredRoles('conto', $rec);
+                        if(!planning_Tasks::isProductionAfterClosureAllowed($firstDocument->that, core_Users::getCurrent(), $roles, $roles)){
+                            $msg = "Документът не може да бъде контиран, защото операцията е приключена|*!";
+                            core_Statuses::newStatus($msg, 'error');
+                            $res = false;
+                        }
+                    }
+                }
+            } elseif($firstDocument->isInstanceOf('planning_Jobs') || $firstDocument->isInstanceOf('planning_Tasks')){
+                $state = $firstDocument->fetchField('state');
+                if($state == 'closed'){
+                    $msg = "Документът не може да бъде оттеглен/възстановен, докато първият документ в нишката е затворен|*!";
+                    core_Statuses::newStatus($msg, 'error');
+                    $res = false;
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Задаване на служителите на фирмата за избор
+     *
+     * @param core_Form $form
+     * @return void
+     */
+    protected function setEmployeesOptions(&$form)
+    {
+        // Възможност за избор на служителите в полетата за получил/предал
+        $options = crm_Persons::getEmployeesOptions(false, null, true);
+        if(countR($options)){
+            $options = array('' => '') + $options;
+            $form->setSuggestions('sender', $options);
+            $form->setSuggestions('receiver', $options);
+        }
+    }
+
+
+    /**
+     * Към кое задание е свързана нишката
+     *
+     * @param int $threadId
+     * @return stdClass|null $jobRec
+     */
+    public static function getJobFromThread($threadId)
+    {
+        $jobRec = null;
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if($firstDoc){
+            if ($firstDoc->isInstanceOf('planning_Tasks')) {
+                $jobRec = doc_Containers::getDocument($firstDoc->fetchField('originId'))->fetch();
+            } elseif($firstDoc->isInstanceOf('planning_Jobs')) {
+                $jobRec = $firstDoc->fetch();
+            }
+        }
+
+        return $jobRec;
     }
 }

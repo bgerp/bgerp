@@ -7,6 +7,7 @@ var searchTimeout;
 var addedProduct;
 
 function posActions() {
+	setOpenedReceiptQueue();
 	calculateWidth();
 	activeInput = false;
 	$(document.body).on('input', "input[name=ean]", function(e){
@@ -33,6 +34,22 @@ function posActions() {
 	calculateWidth();
 	$(window).resize( function() {
 		calculateWidth();
+	});
+
+	$(document.body).on('click', ".closePaymentModal", function(e){
+		$(".fullScreenCardPayment").css("display", "none");
+		var element = $("#card-payment");
+		var msg = element.attr("data-oncancel");
+		render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+	});
+
+	$(document.body).on('click', ".confirmPayment", function(e){
+		var element = $("#card-payment");
+		var url = element.attr("data-url");
+
+		var type = element.attr("data-type");
+		doPayment(url, type, 'manual');
+		$(".fullScreenCardPayment").css("display", "none");
 	});
 
 	// Използване на числата за въвеждане в пулта
@@ -100,8 +117,12 @@ function posActions() {
 		if($(this).hasClass('reload')) return;
 		if($(this).hasClass('deleteRow')) return;
 		if($(this).hasClass('printReceiptBtn')) return;
-		
-		if(Date.now() - oldTime > 400) {	
+
+		var timeOffset = Date.now() - oldTime;
+
+		// при double click да изпраща веднъж
+		// или при touch устройства
+		if(timeOffset > 400 || isTouchDevice()) {
 			pressNavigable(this);
 			e.preventDefault();
 		}
@@ -286,7 +307,7 @@ function posActions() {
 	});
 	
 	// При натискане на бутон за нова фирма
-	$(document.body).on('click', ".newCompanyBtn", function(e){
+	$(document.body).on('click', ".newContragentBtn", function(e){
 		presssNavigable(this);
 	});
 	
@@ -294,6 +315,14 @@ function posActions() {
 	$(document.body).on('click', ".helpBtn", function(e){
 		clearTimeout(timeout);
 		openHelp();
+	});
+
+	$("body").setShortcutKey( CONTROL , BACK_SPACE ,function() {
+		openPrev();
+	});
+
+	$("body").setShortcutKey( CONTROL , Y ,function() {
+		openNext();
 	});
 
 	$("body").setShortcutKey( CONTROL , DELETE ,function() {
@@ -561,6 +590,7 @@ function openPayment() {
 function calculateWidth(){
 	var winWidth = parseInt($(window).outerWidth());
 	var winHeight = parseInt($(window).outerHeight());
+
 	if (winWidth >= 1200) {
 		//задаване на ширина на двете колони
 		$('#result-holder').css('width', winWidth - $('#single-receipt-holder').width());
@@ -594,16 +624,8 @@ function calculateWidth(){
 		$('#result-holder, #single-receipt-holder').css('top',headerHeight);
 
 		$('.tools-content').css('height',460);
-
-		if(!isTouchDevice()) {
-			$('#keyboard-num').css('display','block');
-			$('.buttons').removeClass('oneRow');
-		} else {
-			$('#tools-holder').css('height', 330);
-			$('#keyboard-num').css('display','none');
-			$('.buttons').addClass('oneRow');
-		}
-
+		$('#keyboard-num').css('display','block');
+		$('.buttons').removeClass('oneRow');
 	} else {
 		$('#keyboard-num').css('display','none');
 
@@ -626,14 +648,20 @@ function calculateWidth(){
 }
 
 // Направа на плащане
-function doPayment(url, type){
+function doPayment(url, type, value){
+
 	if(!url || !type) return;
+
 	var amount = $("input[name=ean]").val();
 	if(!amount){
 		amount = $("input[name=ean]").attr('data-defaultpayment');
 	}
 	
 	var data = {amount:amount, type:type};
+	if(value){
+		data.param = value;
+	}
+
 	processUrl(url, data);
 }
 
@@ -877,11 +905,44 @@ function pressNavigable(element)
 		params = {string:string,recId:getSelectedRowId()};
 	} else if(element.hasClass('payment')){
 		var type = element.attr("data-type");
-		type = (!type) ? '-1' : type;
-		doPayment(url, type);
-		return;
-		
-	} else if(element.hasClass('contragentLinkBtns') || element.hasClass('posResultContragent')){
+		var warning = element.attr("data-warning");
+		if(warning){
+			if (!confirm(warning)) return false;
+		}
+
+		var sendAmount = element.attr("data-sendamount");
+		if(sendAmount == 'yes'){
+
+			var maxamount = parseFloat(element.attr("data-maxamount")).toFixed(2);
+			var amount = $("input[name=ean]").val();
+			if(!amount){
+				amount = $("input[name=ean]").attr('data-defaultpayment');
+			}
+
+			if(!$.isNumeric(amount) || amount == 0){
+				var msg = element.attr("data-notnumericmsg");
+				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+				return;
+			}
+
+			amount = parseFloat(amount).toFixed(2);
+			if(amount > maxamount){
+				var msg = element.attr("data-amountoverallowed");
+				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
+				return;
+			}
+
+			console.log('SEND:' + amount);
+			$(".fullScreenCardPayment").css("display", "block");
+			$('.select-input-pos').prop("disabled", true);
+			getAmount(amount);
+			return;
+		} else {
+			type = (!type) ? '-1' : type;
+			doPayment(url, type, null);
+			return;
+		}
+	} else if(element.hasClass('contragentRedirectBtn')){
 		
 		clearTimeout(timeout);
 		if(element.hasClass("openInNewTab")){
@@ -898,7 +959,7 @@ function pressNavigable(element)
 		}
 		return;
 		
-	} else if(element.hasClass("newCompanyBtn") || element.hasClass("locationBtn")){
+	} else if(element.hasClass("newContragentBtn") || element.hasClass("locationBtn")){
 		location.href = url;
 		return;
 	} else if(element.hasClass("deleteRow")){
@@ -932,10 +993,56 @@ function pressNavigable(element)
 }
 
 
+function showPaymentErrorStatus()
+{
+	var error = $("#card-payment").attr("data-onerror");
+	render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+}
+
+/**
+ * Връща резултат при успешно свързване с банковия терминал
+ *
+ * @param res
+ */
+function getAmountRes(res)
+{
+	var element = $("#card-payment");
+	var url = element.attr("data-url");
+	console.log("ANSWER FROM: " + url);
+	$('.select-input-pos').prop("disabled", false);
+
+	if(res == 'OK'){
+		var type = element.attr("data-type");
+		console.log("RES IS OK");
+		doPayment(url, type, 'card');
+	} else {
+		showPaymentErrorStatus();
+		console.log("RES ERROR/" + res + "/");
+	}
+
+	$(".fullScreenCardPayment").css("display", "none");
+}
+
+
+/**
+ * Връща резултат при грешка със свързването с банковия терминал
+ *
+ * @param res
+ */
+function getAmountError(err)
+{
+	$(".fullScreenCardPayment").css("display", "none");
+	$('.select-input-pos').prop("disabled", false);
+
+	showPaymentErrorStatus();
+	console.log("ERR:" + err);
+}
+
+
 /**
  * Извикване на урл-то след потвърждение на предупреждението
  */
-function confirmAndRefirect(warning, url)
+function confirmAndRedirect(warning, url)
 {
 	if (!confirm(warning)){
 		
@@ -1139,8 +1246,8 @@ function isInViewport(el){
 
 
 function scrollToHighlight(){
-	if ($(".highlighted").length && !isInViewport($(".highlighted")[0])) {
-		$(".highlighted")[0].scrollIntoView({block: "end", inline: "end"});
+	if ($(".highlighted").length) {
+		$(".highlighted")[0].scrollIntoView(false);
 	}
 }
 
@@ -1240,6 +1347,9 @@ function disableOrEnableEnlargeBtn()
  * Добавя артикул от натиснатия елемент в резултати
  */
 function addProduct(el) {
+
+	$(el).addClass('fadedElement');
+	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
 	clearTimeout(timeout);
 
 	var elemRow = $(el).closest('.receiptRow');
@@ -1379,6 +1489,26 @@ function render_toggleAddedProductFlag(data)
 }
 
 
+/**
+ * Автоматично разпечатване на КБ
+ */
+function render_autoFiscPrintIfPossible()
+{
+	$( ".printFiscBtn" ).trigger( "click" );
+}
+
+/**
+ * Възстановява опаситито на бутоните
+ */
+function render_restoreOpacity()
+{
+	var restoreOpacityId = sessionStorage.getItem('changedOpacityElementId');
+	$("#" + restoreOpacityId).removeClass('fadedElement');
+
+	sessionStorage.removeItem("changedOpacityElementId");
+}
+
+
 /*
  * Активира таба
  */
@@ -1447,3 +1577,57 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 
 	}, timeoutTime);
 }
+
+
+/**
+ * Записва в сесията че бележката е отваряна
+ */
+function setOpenedReceiptQueue()
+{
+	let openedReceiptArr = JSON.parse(localStorage.getItem("openedReceipts"));
+	if(!openedReceiptArr){
+		openedReceiptArr = [];
+	}
+	let url = $(location).attr('href');
+	url = url.split('&')[0];
+
+	if(jQuery.inArray(url, openedReceiptArr) === -1){
+		openedReceiptArr.push(url);
+		localStorage.setItem("openedReceipts", JSON.stringify(openedReceiptArr));
+	}
+}
+
+
+/**
+ * Отваря предишната отваряна бележка
+ */
+function openPrev()
+{
+	let openedReceiptArr = JSON.parse(localStorage.getItem("openedReceipts"));
+	let url = $(location).attr('href');
+
+	let key = jQuery.inArray(url, openedReceiptArr);
+	if(key > 0){
+		let prevReceiptUrl = openedReceiptArr[key-1];
+		if(prevReceiptUrl){
+			location.href = prevReceiptUrl;
+		}
+	}
+}
+
+
+/**
+ * Отваря следващата отваряна бележка
+ */
+function openNext()
+{
+	let openedReceiptArr = JSON.parse(localStorage.getItem("openedReceipts"));
+	let url = $(location).attr('href');
+
+	let key = jQuery.inArray(url, openedReceiptArr);
+	let nextReceiptUrl = openedReceiptArr[key+1];
+	if(nextReceiptUrl){
+		location.href = nextReceiptUrl;
+	}
+}
+

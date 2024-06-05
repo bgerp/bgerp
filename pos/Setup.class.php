@@ -98,12 +98,6 @@ defIfNot('POS_TERMINAL_SEARCH_SECONDS', 2000);
 
 
 /**
- *  Време на изпълнение на периодичния процес за обновяване на продаваемите артикули
- */
-defIfNot('POS_CRON_CACHE_SELLABLE_PERIOD', 3600);
-
-
-/**
  * Сумиране на рейтингите
  */
 defIfNot('POS_RATINGS_DATA_FOR_THE_LAST',  6 * core_DateTime::SECONDS_IN_MONTH);
@@ -113,6 +107,18 @@ defIfNot('POS_RATINGS_DATA_FOR_THE_LAST',  6 * core_DateTime::SECONDS_IN_MONTH);
  *  Да се показват ли точните наличности в склада при филтрирането на резултати
  */
 defIfNot('POS_SHOW_EXACT_QUANTITIES', 'no');
+
+
+/**
+ *  Към кой ценоразпис да се показват отстъпките в ПОС-а
+ */
+defIfNot('POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID', '');
+
+
+/**
+ *  Временно за колко време да може да се спират артикулите от ПОС-а
+ */
+defIfNot('POS_TEMPORARILY_CLOSE_PRODUCT_TIME', '');
 
 
 /**
@@ -180,9 +186,10 @@ class pos_Setup extends core_ProtoSetup
         'POS_TERMINAL_ADD_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Добавяне'),
         'POS_TERMINAL_EDIT_SOUND' => array('enum(click=Клик (1),mouseclick=Клик (2),tap=Клик (3),terminal=Скенер (1),terminal2=Скенер (2))', 'caption=Звуци в терминала->Редактиране'),
         'POS_TERMINAL_DELETE_SOUND' => array('enum(crash=Изтриване (1),delete1=Изтриване (2),filedelete=Изтриване (3))', 'caption=Звуци в терминала->Изтриване'),
-        'POS_CRON_CACHE_SELLABLE_PERIOD' => array('time', 'caption=Време за изпълнение на периодичните процеси->Кеш на продаваемите артикули'),
         'POS_RATINGS_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
         'POS_SHOW_EXACT_QUANTITIES' => array('enum(no=Не,yes=Да)', 'caption=Показване на наличните к-ва в терминала->Избор'),
+        'POS_SHOW_DISCOUNT_COMPARED_TO_LIST_ID' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценоразпис спрямо който да се показват отстъпките в POS-а->Избор'),
+        'POS_TEMPORARILY_CLOSE_PRODUCT_TIME' => array('time', 'caption=Временно спиране на артикулите от продажба->За време от'),
     );
     
     
@@ -195,9 +202,13 @@ class pos_Setup extends core_ProtoSetup
         'pos_ReceiptDetails',
         'pos_Reports',
         'pos_SellableProductsCache',
+        'migrate::resyncSearchStrings2350',
+        'migrate::updateInputPercent2403',
+        'migrate::updateWrongReceipts2414',
+        'migrate::updatePointChargeVat1724',
     );
-    
-    
+
+
     /**
      * Роли за достъп до модула
      */
@@ -237,13 +248,21 @@ class pos_Setup extends core_ProtoSetup
             'offset' => 1320,
             'timeLimit' => 100,
         ),
+        array(
+            'systemId' => 'Update POS sellableProducts',
+            'description' => 'Обновява на кеша на продаваемите артикули в ПОС-а',
+            'controller' => 'pos_SellableProductsCache',
+            'action' => 'CacheSellablePosProducts',
+            'period' => 1,
+            'timeLimit' => 60
+        ),
     );
     
     
     /**
      * Класове за зареждане
      */
-    public $defClasses = 'pos_Terminal';
+    public $defClasses = 'pos_Terminal, pos_reports_CashReceiptsReport,pos_reports_QuicklyOutOfStockProducts,pos_reports_BestSellingItems';
     
     
     /**
@@ -256,22 +275,11 @@ class pos_Setup extends core_ProtoSetup
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
-        
-        // Залагаме в cron
-        $rec = new stdClass();
-        $rec->systemId = 'Update POS sellableProducts';
-        $rec->description = 'Обновява на кеша на продаваемите артикули в ПОС-а';
-        $rec->controller = 'pos_SellableProductsCache';
-        $rec->action = 'CacheSellablePosProducts';
-        $rec->period = static::get('CRON_CACHE_SELLABLE_PERIOD') / 60;
-        $rec->timeLimit = 200;
-        
-        $html .= core_Cron::addOnce($rec);
-        
+
         return $html;
     }
-    
-    
+
+
     /**
      * Обновява статистическите данни в POS-а
      */
@@ -279,4 +287,65 @@ class pos_Setup extends core_ProtoSetup
     {
         pos_ReceiptDetails::getMostUsedTexts(24, true);
     }
+
+
+    /**
+     * Ресинхронизира ключовите думи
+     */
+    public function resyncSearchStrings2350()
+    {
+        cls::get('pos_SellableProductsCache')->sync(true);
+    }
+
+
+    /**
+     * Миграция на новото поле на делтите
+     */
+    public function updateInputPercent2403()
+    {
+        $Receipts = cls::get('pos_ReceiptDetails');
+        $Receipts->setupMvc();
+
+        $inputDiscColName = str::phpToMysqlName('inputDiscount');
+        $discColName = str::phpToMysqlName('discountPercent');
+        $query = "UPDATE {$Receipts->dbTableName} SET {$inputDiscColName} = {$discColName} WHERE {$discColName} IS NOT NULL";
+        $Receipts->db->query($query);
+    }
+
+
+    /**
+     * Изтриване на грешни бележки
+     */
+    public function updateWrongReceipts2414()
+    {
+        $save = array();
+        $Receipts = cls::get('pos_Receipts');
+        $query = pos_Receipts::getQuery();
+        $query->where("#contragentClass IS NULL AND #contragentObjectId IS NULL");
+        while($rec = $query->fetch()){
+            $rec->contragentName = 'Анонимен Клиент';
+            $rec->contragentClass = core_Classes::getId('crm_Persons');
+            $rec->contragentObjectId = pos_Points::defaultContragent($posId);
+            $save[$rec->id] = $rec;
+        }
+
+        if(countR($save)){
+            $Receipts->saveArray($save);
+        }
+    }
+
+
+    /**
+     * Миграция на ДДС режима на ПОС-бележките
+     */
+    public function updatePointChargeVat1724()
+    {
+        if(crm_Companies::isOwnCompanyVatRegistered()) return;
+
+        $Points = cls::get('pos_Points');
+        $chargeVatColName = str::phpToMysqlName('chargeVat');
+        $query = "UPDATE {$Points->dbTableName} SET {$chargeVatColName} = 'no' WHERE ({$chargeVatColName} = 'yes'";
+        $Points->db->query($query);
+    }
 }
+

@@ -43,12 +43,17 @@ class fileman_webdrv_Debug extends fileman_webdrv_Json
         
         // URL за показване на преглед на файловете
         $previewUrl = toUrl(array(get_called_class(), 'preview', $fRec->fileHnd));
-        
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+
         // Таб за преглед
         $tabsArr['preview'] = (object)
         array(
             'title' => 'Преглед',
-            'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Преглед') . "</div> <div class='webdrvFieldset'><iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+            'html' => "<div class='webdrvTabBody'> <div class='webdrvFieldset'>{$prevLink} {$nextLink}<iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
             'order' => 2,
         );
         

@@ -179,7 +179,7 @@ class doc_Threads extends core_Manager
         $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=За партньори->видимист, input=none');
         
         // Брой документи
-        $this->FLD('partnerDocCnt', 'int', 'caption=За партньори->Брой документи, oldFieldName=pubDocCnt');
+        $this->FLD('partnerDocCnt', 'int', 'caption=За партньори->Брой документи, oldFieldName=pubDocCnt,smartCenter');
         
         // Дали нишката е видима за партньори
         $this->FLD('partnerDocLast', 'datetime(format=smartTime)', 'caption=За партньори->Последен, input=none');
@@ -832,7 +832,7 @@ class doc_Threads extends core_Manager
         doc_Folders::requireRightFor('single', $folderRec);
         
         $mvc::applyFilter($data->listFilter->rec, $data->query, $data->rejQuery);
-        $data->rejQuery = clone($data->query);
+
         
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
@@ -845,9 +845,11 @@ class doc_Threads extends core_Manager
         }
         
         // Позволяваме на корицата да модифицира филтъра
+        $data->listFilterAddedFields = array();
         $Cover = doc_Folders::getCover($folderId);
-        $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query));
-        
+        $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query, &$data->listFilterAddedFields));
+        $data->rejQuery = clone $data->query;
+
         $data->query->useCacheForPager = true;
         
         // Ако има търсене, рефрешването да е след по-дълго време
@@ -1055,7 +1057,10 @@ class doc_Threads extends core_Manager
         
         try {
             $docProxy = doc_Containers::getDocument($rec->firstContainerId);
+            Mode::push('onlyTitleInGetRecTitle', true);
+            $dRec = $docProxy->fetch();
             $docRow = $docProxy->getDocumentRow();
+            Mode::pop('onlyTitleInGetRecTitle');
             $attr = array();
             $attr = ht::addBackgroundIcon($attr, $docProxy->getIcon());
             
@@ -1076,6 +1081,10 @@ class doc_Threads extends core_Manager
             
             if ($mvc->addThreadStateClassToLink) {
                 $attr['class'] .= " state-{$rec->state}";
+            }
+
+            if ($dRec->priority) {
+                $attr['class'] .= 'priority-' . $dRec->priority;
             }
             
             $row->onlyTitle = $row->title = ht::createLink(
@@ -1235,9 +1244,9 @@ class doc_Threads extends core_Manager
         $exp->DEF('#vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,width=100%');
         
         // Отговорник
-        $exp->DEF('#inCharge', 'user(role=powerUser, rolesForAll=executive)', 'caption=Права->Отговорник,formOrder=10000,smartCenter');
+        $exp->DEF('#inCharge', 'user(role=powerUser, rolesForAll=executive, showClosedUsers=no)', 'caption=Права->Отговорник,formOrder=10000,smartCenter');
         $exp->DEF('#access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull');
-        $exp->DEF('#shared', 'userList', 'caption=Права->Споделяне,formOrder=10002');
+        $exp->DEF('#shared', 'userList(showClosedUsers=no)', 'caption=Права->Споделяне,formOrder=10002');
         $exp->rule('#shared', "''", '#inCharge > 0');
         
         $exp->ASSUME('#inCharge', 'getCurrentUser()', "#dest == 'newCompany' || #dest == 'newPerson'");
@@ -2185,12 +2194,12 @@ class doc_Threads extends core_Manager
         $returnUrl = array($firstDocument->getInstance(), 'single', $firstDocument->that);
         if (!self::haveRightForAllDocs('start', $id, $errorHandlers)) {
             $errorHandlers = implode(', ', $errorHandlers);
-            followRetUrl($returnUrl, "Нямате права да реконтирате|*: {$errorHandlers}", 'error');
+            followRetUrl($returnUrl, "|Нямате права да реконтирате|*: {$errorHandlers}", 'error');
         }
         
         self::startDocuments($rec->id);
 
-        return new redirect($returnUrl, 'Бизнес документите в нишката са успешно пуснати');
+        return new redirect($returnUrl, '|Бизнес документите в нишката са успешно пуснати');
     }
     
     
@@ -2352,9 +2361,10 @@ class doc_Threads extends core_Manager
     public static function addBinBtnToToolbar(&$data)
     {
         $data->rejQuery->where("#folderId = {$data->folderId}");
-        
-        // Ако не се търси текст или документ, правим опит за по-бързо намиране на документите
-        if (!$data->listFilter->rec->search && !$data->listFilter->rec->documentClassId) {
+        $filterArr = (array)$data->listFilter->rec;
+
+        // Ако не се търси текст или документ или някое поле добавено от корицата, прави се опит за по-бързо намиране на документите
+        if (!$data->listFilter->rec->search && !$data->listFilter->rec->documentClassId && !array_intersect_key($filterArr, $data->listFilterAddedFields)) {
             $fStatistic = doc_Folders::getStatistic($data->folderId);
             
             $visType = '_all';
@@ -2367,11 +2377,12 @@ class doc_Threads extends core_Manager
             foreach ((array) $fStatistic[$visType]['rejected'] as $cnt) {
                 $rejCnt += $cnt;
             }
+
             $data->rejectedCnt = $rejCnt;
         } else {
             $data->rejectedCnt = $data->rejQuery->count();
         }
-        
+
         if ($data->rejectedCnt) {
             $curUrl = getCurrentUrl();
             $curUrl['Rejected'] = 1;
@@ -2853,7 +2864,7 @@ class doc_Threads extends core_Manager
         
         doc_Folders::restrictAccess($query, $userId, $viewAccess);
         
-        if ($query->mvc->className != 'doc_Threads') {
+        if (($query->mvc->className != 'doc_Threads') && ($query->mvc->className != 'doc_ThreadsProxy')) {
             // Добавя необходимите полета от модела doc_Threads
             $query->EXT('threadShared', 'doc_Threads', 'externalName=shared,externalKey=threadId');
         } else {
@@ -2915,16 +2926,20 @@ class doc_Threads extends core_Manager
             // Вземаме id' то на записа
             $cid = doc_Containers::fetchField("#threadId = '{$rec->id}'");
         }
-        
-        $document = doc_Containers::getDocument($cid);
-        $docRow = $document->getDocumentRow();
-        
-        if ($verbal) {
-            $title = $docRow->title;
-        } else {
-            $title = $docRow->recTitle;
+
+        try {
+            $document = doc_Containers::getDocument($cid);
+            $docRow = $document->getDocumentRow();
+
+            if ($verbal) {
+                $title = $docRow->title;
+            } else {
+                $title = $docRow->recTitle;
+            }
+        } catch (core_exception_Expect $e) {
+            $title = '';
         }
-        
+
         return $title;
     }
     
@@ -2951,10 +2966,16 @@ class doc_Threads extends core_Manager
         $rec = static::fetch($params['threadId']);
         
         $haveRight = static::haveRightFor('single', $rec);
-        
-        if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
+
+        if (!$haveRight && ((strtolower($params['Ctr']) == 'doc_containers') || (strtolower($params['Ctr']) == 'colab_threads'))) {
             if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Threads::haveRightFor('single', $rec);
+                if ($haveRight) {
+                    if (strtolower($params['Ctr']) == 'doc_containers') {
+                        $params['Ctr'] = 'colab_Threads';
+                        $params['Act'] = 'Single';
+                    }
+                }
             }
         }
         
@@ -2975,6 +2996,7 @@ class doc_Threads extends core_Manager
         
         // Ако мода е xhtml
         if (Mode::is('text', 'xhtml')) {
+            $sbfIcon = sbf($docProxy->getIcon());
             $res = new ET("<span class='linkWithIcon' style='background-image:url({$sbfIcon});'> [#1#] </span>", $title);
         } elseif (Mode::is('text', 'plain')) {
             
@@ -2986,7 +3008,12 @@ class doc_Threads extends core_Manager
             $attr = array();
             $attr['ef_icon'] = $docProxy->getIcon();
             $attr['target'] = '_blank';
-            
+
+            if ((strtolower($params['Ctr']) == 'colab_threads') && !core_Users::haveRole('partner')) {
+                $params['Ctr'] = 'doc_Containers';
+                $params['Act'] = 'List';
+            }
+
             // Създаваме линк
             $res = ht::createLink($title, $params, null, $attr);
         }

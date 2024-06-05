@@ -57,7 +57,7 @@ class store_Transfers extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'fromStore, toStore, folderId, id';
+    public $searchFields = 'fromStore, toStore, folderId, note';
 
 
     /**
@@ -227,7 +227,20 @@ class store_Transfers extends core_Master
     /**
      * Кои полета да могат да се експортират в CSV формат
      */
-    public $exportableCsvFields = 'id,valior,fromStore,toStore,note';
+    public $exportableCsvFields = 'id,valior,fromStore,toStore,note,state';
+
+
+    /**
+     * Възможност за експортиране на детайлите в csv експорта от лист изгледа
+     */
+    public $allowDetailCsvExportFromList = true;
+
+
+    /**
+     * Да се показват ли винаги полетата за промяна на артикули при създаване
+     * @var bool
+     */
+    public $autoAddDetailsToChange = true;
 
 
     /**
@@ -236,7 +249,7 @@ class store_Transfers extends core_Master
     public function description()
     {
         $this->FLD('valior', 'date', 'caption=Дата');
-        $this->FLD('fromStore', 'key(mvc=store_Stores,select=name)', 'caption=От склад,mandatory');
+        $this->FLD('fromStore', 'key(mvc=store_Stores,select=name)', 'caption=От склад,mandatory,silent');
         $this->FLD('toStore', 'key(mvc=store_Stores,select=name)', 'caption=До склад,mandatory');
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
@@ -255,7 +268,7 @@ class store_Transfers extends core_Master
         $this->FLD(
             'state',
             'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
-            'caption=Статус, input=none'
+            'caption=Състояние, input=none'
         );
 
         $this->setDbIndex('lineId');
@@ -267,10 +280,6 @@ class store_Transfers extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles == 'no_one') {
-            return;
-        }
-
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'toStore')) {
             $requiredRoles = 'no_one';
         }
@@ -279,6 +288,21 @@ class store_Transfers extends core_Master
             $Detail = cls::get($mvc->mainDetail);
             if (!$Detail->fetchField("#{$Detail->masterKey} = {$rec->id}")) {
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        // Ако ще се създава към документ да трябва да се създава само към ПОП за получени чужди артикули
+        if ($action == 'add' && isset($rec->originId)) {
+            $Document = doc_Containers::getDocument($rec->originId);
+            if(!$Document->isInstanceOf('store_ConsignmentProtocols')){
+                $requiredRoles = 'no_one';
+            } else {
+                $docRec = $Document->fetch('state,productType');
+                if($docRec->productType != 'other' || $docRec->state != 'active'){
+                    $requiredRoles = 'no_one';
+                } elseif(!store_ConsignmentProtocolDetailsReceived::count("#protocolId = {$Document->that}")){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -352,8 +376,11 @@ class store_Transfers extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $data->form->setDefault('fromStore', store_Stores::getCurrent('id', false));
-        $folderCoverId = doc_Folders::fetchCoverId($data->form->rec->folderId);
-        $data->form->setDefault('toStore', $folderCoverId);
+        $Cover = doc_Folders::getCover($data->form->rec->folderId);
+        if($Cover->isInstanceOf('store_Stores')){
+            $data->form->setDefault('toStore', $Cover->that);
+        }
+
         $data->form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
 
         if (!trans_Lines::count("#state = 'active'")) {
@@ -707,6 +734,98 @@ class store_Transfers extends core_Master
         return $comment;
     }
 
+    /**
+     * Преди запис на документ
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass     $rec
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        // Ако заданието е към сделка и е избран департамент, да се рутира към него
+        if (empty($rec->id) && isset($rec->originId)) {
+
+            // Ако МСТ е към ориджин ще се създава винаги в нова нишка
+            $oldThreadId = $rec->threadId;
+            $rec->folderId = store_Stores::forceCoverAndFolder($rec->toStore);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+
+            // Обновяване на информацията за контейнера и старата нишка, че документ се е преместил оттам
+            $cRec = doc_Containers::fetch($rec->containerId);
+            $cRec->threadId = $rec->threadId;
+            doc_Containers::save($cRec, 'threadId, modifiedOn, modifiedBy');
+            doc_Threads::updateThread($oldThreadId);
+        }
+
+        if(isset($rec->id)){
+            $rec->_exToStoreId = $mvc->fetchField($rec->id, 'toStore', false);
+        }
+    }
+
+
+    /**
+     * След всеки запис в журнала
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id
+     * @param stdClass $rec
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(core_Packs::isInstalled('batch')){
+
+            // Ако е сменен дестинационния склад - да се обнови записа в черновата журнал на партидите
+            if(isset($rec->_exToStoreId) && $rec->toStore != $rec->_exToStoreId){
+                if(in_array($rec->state, array('draft', 'pending'))){
+                    $Batches = cls::get('batch_BatchesInDocuments');
+                    $bQuery = $Batches->getQuery();
+                    $bQuery->where("#containerId = {$rec->containerId} AND #operation = 'in'");
+                    while($bRec = $bQuery->fetch()){
+                        $bRec->storeId = $rec->toStore;
+                        $Batches->save_($bRec, 'storeId');
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Кои детайли да се клонират с промяна
+     *
+     * @param stdClass $rec
+     * @return array $res
+     *          ['recs'] - записи за промяна
+     *          ['detailMvc] - модел от който са
+     */
+    public function getDetailsToCloneAndChange_($rec)
+    {
+        if (isset($rec->originId) && empty($rec->id)) {
+            $origin = doc_Containers::getDocument($rec->originId);
+            if ($origin->isInstanceOf('store_ConsignmentProtocols')) {
+                $Detail = cls::get('store_ConsignmentProtocolDetailsReceived');
+                $id = $origin->that;
+
+                $recs = array();
+                $dQuery = $Detail->getQuery();
+                $dQuery->where("#{$Detail->masterKey} = {$id}");
+                while($dRec = $dQuery->fetch()){
+                    $dRec->newProductId = $dRec->productId;
+
+                    $inStoreQuantity = store_Products::getQuantities($dRec->productId, $rec->storeId)->quantity;
+                    $quantity = min($inStoreQuantity, $dRec->quantity);
+                    $dRec->quantity = $quantity;
+                    $dRec->packQuantity = $dRec->quantity / $dRec->quantityInPack;
+                    $recs[$dRec->id] = $dRec;
+                }
+
+                $res = array('recs' => $recs, 'detailMvc' => $Detail);
+
+                return $res;
+            }
+        }
+    }
+
 
     /**
      * Връща планираните наличности
@@ -894,9 +1013,20 @@ class store_Transfers extends core_Master
      */
     public static function canAddToThread($threadId)
     {
+        if(Request::get('originId', 'int')) return true;
+
         $folderId = doc_Threads::fetchField($threadId, 'folderId');
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
 
         return cls::haveInterface('store_iface_TransferFolderCoverIntf', $folderClass);
+    }
+
+
+    /**
+     * Може ли документа да се добавя като свързан документ към оридижина си
+     */
+    public static function canAddDocumentToOriginAsLink_($rec)
+    {
+        return true;
     }
 }

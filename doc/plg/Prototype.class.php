@@ -28,6 +28,8 @@ class doc_plg_Prototype extends core_Plugin
         'containerId',
         'createdBy',
         'createdOn',
+        'activatedBy',
+        'activatedOn',
         'originId',
         'modifiedBy',
         'modifiedOn',
@@ -93,6 +95,9 @@ class doc_plg_Prototype extends core_Plugin
 
         // Ако има прототипи
         $prototypes = $mvc->getPrototypes($form->rec);
+        $prototypes = is_array($prototypes) ? $prototypes : array();
+        $prototypes = $mvc->expandedAvailablePrototypes($prototypes, $form->rec);
+
         if (!empty($prototypes)) {
             $form->setField($mvc->protoFieldName, 'input');
             $form->setOptions($mvc->protoFieldName, array('' => '') + $prototypes);
@@ -208,8 +213,9 @@ class doc_plg_Prototype extends core_Plugin
             
             // След създаване на документ с избран прототип, клонират се детайлите му
             $Details = $mvc->getDetailsToClone($rec);
-
+            Mode::push('cloneDetailsFromPrototype', true);
             plg_Clone::cloneDetails($Details, $rec->{$mvc->protoFieldName}, $rec->id);
+            Mode::pop('cloneDetailsFromPrototype');
         }
         
         // Ако документа може да се добави като шаблон след създаването
@@ -264,6 +270,50 @@ class doc_plg_Prototype extends core_Plugin
     {
         if(empty($res)){
             $res = $mvc->getTitleById($id);
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране за разширяване на опциите за избор на документи като шаблон
+     */
+    public static function on_AfterExpandedAvailablePrototypes($mvc, &$res, $prototypes, $rec)
+    {
+        if(!$res){
+            // Ако е казано, че не трябва да се показват последно видяните - да не се добавят
+            if(!$mvc->showInPrototypesLastVisited) {
+                $res = $prototypes;
+                return;
+            }
+
+            $driverId = null;
+            if ($mvc instanceof embed_Manager) {
+                if (isset($rec->{$mvc->driverClassField})) {
+                    $driverId = $rec->{$mvc->driverClassField};
+                }
+            }
+
+            $lastVisitedLimit = doc_Setup::get('SHOW_LAST_VISITED_AS_PROTOTYPES');
+            if(empty($lastVisitedLimit)) return;
+
+
+            $lastSeenByUser = bgerp_LastSeenDocumentByUser::getLastSeenByUser($mvc, $driverId, null, $lastVisitedLimit);
+            if(isset($rec->{$mvc->protoFieldName})){
+                if(!array_key_exists($rec->{$mvc->protoFieldName}, $lastSeenByUser)){
+                    $lastSeenByUser[$rec->{$mvc->protoFieldName}] = $mvc->getTitleById($rec->{$mvc->protoFieldName}, false);
+                }
+            }
+            $prototypes = is_array($prototypes) ? $prototypes : array();
+            $lastSeenByUser = array_diff_key($lastSeenByUser, $prototypes);
+
+            if(countR($lastSeenByUser)){
+                $options = array();
+                if(countR($prototypes)){
+                    $options = array('t' => (object) array('group' => true, 'title' => tr('Шаблонни документи'))) + $prototypes;
+                }
+                $options += array('l' => (object) array('group' => true, 'title' => tr('Последно видяни'))) + $lastSeenByUser;
+                $res = $options;
+            }
         }
     }
 }

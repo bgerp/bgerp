@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Рутиране към папка
+ * @title     Правила при получаване на имейли » Пренасочване към друга папка
  */
 class email_drivers_RouteByFolder extends core_BaseClass
 {

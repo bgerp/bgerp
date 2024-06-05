@@ -117,6 +117,7 @@ abstract class deals_Helper
         
         // Комбиниране на дефолт стойнсотите с тези подадени от потребителя
         $map = array_merge(self::$map, $map);
+        $haveAtleastOneDiscount = false;
 
         // Дали трябва винаги да не се показва ддс-то към цената
         $hasVat = ($map['alwaysHideVat']) ? false : (($masterRec->{$map['chargeVat']} == 'yes') ? true : false);
@@ -136,16 +137,28 @@ abstract class deals_Helper
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
             $price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
-            
             $noVatAmount = round($price->noVat * $rec->{$map['quantityFld']}, $vatDecimals);
-            $discountVal = isset($rec->{$map['discount']}) ? $rec->{$map['discount']} : $rec->{$map['autoDiscount']};
-            
+            $discountVal = $rec->{$map['discount']};
+
+            if(!empty($rec->{$map['autoDiscount']})){
+                if(in_array($masterRec->state, array('draft', 'pending'))){
+                    $discountVal = round((1-(1-$discountVal)*(1-$rec->{$map['autoDiscount']})), 8);
+                }
+            }
+
+            if($discountVal) {
+                $haveAtleastOneDiscount = true;
+            }
+
+            $noVatAmountOriginal = $noVatAmount;
+            if($testRound == 'yes') {
+                $noVatAmount = round($noVatAmount, 2);
+            }
             if ($discountVal) {
-                $withoutVatAndDisc = $noVatAmount * (1 - $discountVal);
+                $withoutVatAndDisc = $noVatAmountOriginal * (1 - $discountVal);
             } else {
                 $withoutVatAndDisc = $noVatAmount;
             }
-            
             
             $vatRow = round($withoutVatAndDisc * $vat, $vatDecimals);
             
@@ -159,7 +172,11 @@ abstract class deals_Helper
                     $discount += $rec->{$map['amountFld']} * $discountVal;
                 }
             }
-            
+
+            if($testRound == 'yes') {
+                $discount = round($discount, 2);
+            }
+
             // Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
             if ($masterRec->type === 'dc_note') {
                 if ($rec->changedQuantity === true || $rec->changedPrice === true) {
@@ -196,19 +213,14 @@ abstract class deals_Helper
                     }
                 }
             }
-            
+
             if (!($masterRec->type === 'dc_note' && ($rec->changedQuantity !== true && $rec->changedPrice !== true))) {
                 if (!array_key_exists($vat, $vats)) {
                     $vats[$vat] = (object) array('amount' => 0, 'sum' => 0);
                 }
                 
                 $vats[$vat]->amount += $vatRow;
-
-                if($testRound == 'yes') {
-                    $vats[$vat]->sum += round($withoutVatAndDisc, 2);
-                } else {
-                    $vats[$vat]->sum += $withoutVatAndDisc;
-                }
+                $vats[$vat]->sum += $withoutVatAndDisc;
             }
         }
         
@@ -216,7 +228,8 @@ abstract class deals_Helper
         $mvc->_total->amount = round($amountRow, 2);
         $mvc->_total->vat = round($amountVat, 2);
         $mvc->_total->vats = $vats;
-        
+        $mvc->_total->haveAtleastOneDiscount = $haveAtleastOneDiscount;
+
         if (!$map['alwaysHideVat']) {
             $mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
         } else {
@@ -224,12 +237,11 @@ abstract class deals_Helper
         }
 
         // "Просто" изчисляване на ДДС-то в документа, ако има само една ставка
-        if (countR($vats) == 1 && ($masterRec->type == 'invoice' || $masterRec->type == 'dc_note')) {
-
+        if (countR($vats) == 1 && ($mvc instanceof deals_InvoiceMaster)) {
             $vat = key($vats);
             $vats[$vat]->sum = round($vats[$vat]->sum, 2);
             $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
-            //$mvc->_total->amount = $vats[$vat]->sum;
+
             $mvc->_total->vat = $vats[$vat]->amount;
             $mvc->_total->vats = $vats;
         }
@@ -273,8 +285,10 @@ abstract class deals_Helper
             
             $arr['neto'] = $arr['value'] - round($arr['discountValue'], 2); 	// Стойността - отстъпката
             $arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
+            core_Lg::push($lang);
+            $arr['discountCaption'] = $values['haveAtleastOneDiscount'] ? tr('Отстъпка') : "<i class='quiet'>" . tr('Разлики от закръгляне') . "</i>";
+            core_Lg::pop();
         }
-        
         
         // Ако има нето, крайната сума е тази на нетото, ако няма е тази на стойността
         $arr['total'] = (isset($arr['neto'])) ? $arr['neto'] : $arr['value'];
@@ -482,14 +496,13 @@ abstract class deals_Helper
         }
         
         $info = tr($text);
-        $obj = (object) array('formInfo' => $info);
+        $obj = (object) array('formInfo' => "<div class='formCustomInfo'>{$info}</div>");
         $quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
         
         // Показваме предупреждение ако наличното в склада е по-голямо от експедираното
         if ($packQuantity > ($quantity / $quantityInPack)) {
             $obj->warning = "Въведеното количество е по-голямо от разполагаемо|* <b>{$verbalQuantity}</b> |в склада|*";
         }
-
 
         return $obj;
     }
@@ -581,17 +594,20 @@ abstract class deals_Helper
     public static function getUsedDocs(core_Mvc $mvc, $id, $productFld = 'productId')
     {
         $res = array();
-        
+
+        if(!isset($mvc->mainDetail)) return $res;
+
         $Detail = cls::get($mvc->mainDetail);
         $dQuery = $Detail->getQuery();
-        $dQuery->EXT('state', $mvc->className, "externalKey={$Detail->masterKey}");
         $dQuery->where("#{$Detail->masterKey} = '{$id}'");
-        $dQuery->groupBy($productFld);
-        while ($dRec = $dQuery->fetch()) {
-            $cid = cat_Products::fetchField($dRec->{$productFld}, 'containerId');
-            $res[$cid] = $cid;
+        $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), $productFld);
+        if(countR($productIds)){
+            $pQuery = cat_Products::getQuery();
+            $pQuery->in('id', $productIds);
+            $pQuery->show('containerId');
+            $res = arr::extractValuesFromArray($pQuery->fetchAll(), 'containerId');
         }
-        
+
         return $res;
     }
     
@@ -1029,6 +1045,7 @@ abstract class deals_Helper
      * Помощна ф-я връщаща подходящо представяне на клиентсктие данни и тези на моята фирма
      * в бизнес документите
      *
+     * @param int $containerId       - ид на контейнер на документа
      * @param mixed $contragentClass - клас на контрагента
      * @param int   $contragentId    - ид на контрагента
      * @param int   $contragentName  - името на контрагента, ако е предварително известно
@@ -1042,12 +1059,23 @@ abstract class deals_Helper
      *               ['contragentAddress'] - Адреса на контрагента
      *               ['vatNo']             - ДДС номера на контрагента
      */
-    public static function getDocumentHeaderInfo($contragentClass, $contragentId, $contragentName = null)
+    public static function getDocumentHeaderInfo($containerId, $contragentClass, $contragentId, $contragentName = null)
     {
-        $res = array();
-       
+        // Ако е инсталиран пакета за многофирменост - моята фирма е тази посочена в първия документ на нишката
+        $ownCompanyId = null;
+        if(core_Packs::isInstalled('holding')) {
+            $Document = doc_Containers::getDocument($containerId);
+            $firstDoc = doc_Threads::getFirstDocument($Document->fetchField('threadId'));
+            if($firstDoc->isInstanceOf('deals_DealMaster')) {
+                if(isset($firstDoc->ownCompanyFieldName)) {
+                    $ownCompanyId = $firstDoc->fetchField($firstDoc->ownCompanyFieldName);
+                }
+            }
+        }
+
         // Данните на 'Моята фирма'
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
+        $res = array();
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
 
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
@@ -1487,9 +1515,9 @@ abstract class deals_Helper
     /**
      * Помощна ф-я за намиране на транспортното тегло/обем
      */
-    private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = null, $masterState)
+    private static function getMeasureRow($productId, $packagingId, $quantity, $type, &$value = null, $masterState)
     {
-        expect(in_array($type, array('volume', 'weight')));
+        expect(in_array($type, array('volume', 'weight', 'netWeight', 'tareWeight')));
         $hint = $warning = false;
         
         // Ако артикула не е складируем не му се изчислява транспортно тегло
@@ -1497,55 +1525,56 @@ abstract class deals_Helper
         if ($isStorable != 'yes') {
             return;
         }
+        if(in_array($masterState, array('draft', 'pending'))) {
+            $liveValue = null;
+            if ($type == 'weight') {
+                $liveValue = cat_Products::getTransportWeight($productId, $quantity);
+            } elseif($type == 'netWeight') {
+                $netWeight = cat_Products::convertToUom($productId, 'kg');
 
-        if(in_array($masterState, array('draft', 'pending')))
-        if ($type == 'weight') {
-            $liveValue = cat_Products::getTransportWeight($productId, $quantity);
-        } else {
-            $liveValue = cat_Products::getTransportVolume($productId, $quantity);
-        }
-        
-        // Ако няма тегло взима се 'live'
-        if (!isset($value)) {
-            $value = $liveValue;
-            
-            if (isset($value)) {
-                $hint = true;
+                if(isset($netWeight)) {
+                    $liveValue = $netWeight * $quantity;
+                }
+            } elseif($type == 'volume') {
+                $liveValue = cat_Products::getTransportVolume($productId, $quantity);
             }
-        } elseif ($liveValue) {
-            $percentChange = abs(round((1 - $value / $liveValue) * 100, 3));
-            if ($percentChange >= 25) {
-                $warning = true;
+
+            // Ако няма тегло взима се 'live'
+            if (!isset($value)) {
+                $value = $liveValue;
+
+                if (isset($value)) {
+                    $hint = true;
+                }
+            } elseif ($liveValue) {
+
+                $percentChange = abs(round((1 - $value / $liveValue) * 100, 3));
+                if ($percentChange >= 25) {
+                    $warning = true;
+                }
             }
         }
-        
+
         // Ако няма тегло не се прави нищо
-        if (!isset($value)) {
-            return;
-        }
+        if (!isset($value)) return;
         
-        $valueType = ($type == 'weight') ? 'cat_type_Weight(decimals=2)' : 'cat_type_Volume';
+        $valueType = ($type == 'volume') ? 'cat_type_Volume' : 'cat_type_Weight(decimals=2)';
         $value = round($value, 3);
-        
-        // Ако стойноста е 0 да не се показва
-        if (empty($value)) {
-            return;
-        }
        
         // Вербализиране на теглото
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
-        if ($hint === true) {
-            $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : 'Транспортният обем е прогнозен';
+        if(!Mode::isReadOnly() && $hint === true) {
+            $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : (($type == 'volume') ? 'Транспортният обем е прогнозен' : (($type == 'netWeight') ? 'Нето теглото е прогнозно' : 'Тарата е прогнозна'));
             $valueRow = "<span style='color:blue'>{$valueRow}</span>";
             $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството", 'notice', false);
         }
-       
+
         // Показване на предупреждение
         if ($warning === true) {
             $liveValueVerbal = core_Type::getByName($valueType)->toVerbal($liveValue);
             $valueRow = ht::createHint($valueRow, "Има разлика от над 25% с очакваното|* {$liveValueVerbal}", 'warning', false);
         }
-        
+
         return $valueRow;
     }
     
@@ -1561,10 +1590,13 @@ abstract class deals_Helper
      *
      * @return core_ET|NULL - шаблона за показване
      */
-    public static function getVolumeRow($productId, $packagingId, $quantity, $masterState, $volume = null)
+    public static function getVolumeRow($productId, $packagingId, $quantity, $masterState, &$volume = null)
     {
-        return self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume, $masterState);
+        $res = self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume, $masterState);
+
+        return $res;
     }
+
 
 
     /**
@@ -1611,12 +1643,33 @@ abstract class deals_Helper
      *
      * @return core_ET|NULL - шаблона за показване
      */
-    public static function getWeightRow($productId, $packagingId, $quantity, $masterState, $weight = null)
+    public static function getWeightRow($productId, $packagingId, $quantity, $masterState, &$weight = null)
     {
-        return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight, $masterState);
+        $res = self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight, $masterState);
+
+        return $res;
     }
-    
-    
+
+
+    /**
+     * Връща нето теглото на реда
+     *
+     * @param int        $productId   - артикул
+     * @param int        $packagingId - ид на опаковка
+     * @param int        $quantity    - общо количество
+     * @param string     $masterState - общо количество
+     * @param float|NULL $netWeight   - тегло на артикула (ако няма се взима 'live')
+     *
+     * @return core_ET|NULL - шаблона за показване
+     */
+    public static function getNetWeightRow($productId, $packagingId, $quantity, $masterState, &$netWeight = null)
+    {
+        $res = self::getMeasureRow($productId, $packagingId, $quantity, 'netWeight', $netWeight, $masterState);
+
+        return $res;
+    }
+
+
     /**
      * Връща масив с фактурите в треда (тредовете)
      *
@@ -1873,7 +1926,7 @@ abstract class deals_Helper
         }
         
         $makeInvoice = $firstDoc->fetchField('makeInvoice');
-        $res = ($makeInvoice == 'yes') ? true : false;
+        $res = !($makeInvoice == 'no');
         
         return $res;
     }
@@ -2032,22 +2085,30 @@ abstract class deals_Helper
     /**
      * Дефолтния режим на ДДС за папката
      *
-     * @param int $folderId
-     * @param int|null $ownCompanyId
+     * @param core_Mvc $mvc - документ
+     * @param stdClasss $rec - запис
+     * @param string|null $chargeVatConditionSysId - сис ид на търговско условие
+     *
      * @return string
      */
-    public static function getDefaultChargeVat($folderId, $ownCompanyId = null)
+    public static function getDefaultChargeVat($mvc, $rec, $chargeVatConditionSysId = null)
     {
-        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return 'no';
+        if(!$mvc->isOwnCompanyVatRegistered($rec)) return 'no';
 
         // Ако не може да се намери се търси от папката
-        $coverId = doc_Folders::fetchCoverId($folderId);
-        $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+        $coverId = doc_Folders::fetchCoverId($rec->folderId);
+        $Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
+
+        if(isset($chargeVatConditionSysId)){
+            $clientValue = cond_Parameters::getParameter($Class, $coverId, $chargeVatConditionSysId);
+            if(!empty($clientValue)) return $clientValue;
+        }
+
         if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
-            return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+            return ($Class->shouldChargeVat($coverId)) ? 'separate' : 'no';
         }
         
-        return 'yes';
+        return 'separate';
     }
     
     
@@ -2061,12 +2122,11 @@ abstract class deals_Helper
      */
     public static function getVatWarning($defaultVat, $selectedVatType)
     {
-        if(!haveRole('debug')){
-            if ($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))) {
-                return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
-            } elseif ($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))) {
-                return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
-            }
+        $Type = core_Type::getByName('enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)');
+        $showWarning = (in_array($defaultVat, array('yes', 'separate')) && in_array($selectedVatType, array('exempt', 'no'))) || in_array($defaultVat, array('no', 'exempt')) && in_array($selectedVatType, array('yes', 'separate'));
+        if ($showWarning) {
+
+            return "Избран е режим за|* <b>|{$Type->toVerbal($selectedVatType)}|*</b>, |при очакван|* <b>|{$Type->toVerbal($defaultVat)}|*</b>!";
         }
     }
     
@@ -2091,7 +2151,7 @@ abstract class deals_Helper
             $canStore = cat_Products::fetchField($obj->{$productFld}, 'canStore');
             if ($canStore != 'yes') continue;
 
-            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
+            $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, $obj->{$quantityFld});
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
             }
@@ -2120,8 +2180,49 @@ abstract class deals_Helper
 
         return $stRec->quantity - $quantity;
     }
-    
-    
+
+
+    /**
+     * Връща вербално представяне на съставителя на документа
+     *
+     * @param string $username
+     * @param int $createdBy
+     * @param int $activatedBy
+     * @param string $state
+     * @param int|null $issuerId
+     * @return core_ET|mixed|string
+     */
+    public static function getIssuerRow($username, $createdBy, $activatedBy, $state, &$issuerId = null)
+    {
+        if($username) {
+
+            return core_Type::getByName('varchar')->toVerbal($username);
+        }
+
+        if(isset($issuerId)) {
+            $fixedIssuerName = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($issuerId, 'names'));
+
+            return transliterate($fixedIssuerName);
+        }
+
+        $issuerName = deals_Helper::getIssuer($createdBy, $activatedBy, $issuerId);
+        $issuerName = transliterate($issuerName);
+
+        if(!Mode::isReadOnly() && in_array($state, array('pending', 'draft'))) {
+            if(empty($issuerName)) {
+                $hint = "За съставител ще се запише потребителя, контирал документа!";
+            } else {
+                $hint = "Ще бъде записан след активиране";
+                $issuerName = "<span style='color:blue'>{$issuerName}</span>";
+            }
+
+            $issuerName = ht::createHint($issuerName, $hint);
+        }
+
+        return $issuerName;
+    }
+
+
     /**
      * Кой потребител да се показва, като съставителя на документа
      *
@@ -2143,7 +2244,7 @@ abstract class deals_Helper
         
         $names = null;
         if (isset($userId)) {
-            $names = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($userId, 'names'));
+            $names = core_Users::fetchField($userId, 'names');
         }
         
         return $names;
@@ -2282,9 +2383,6 @@ abstract class deals_Helper
      */
     public static function getContoRedirectError($productArr, $haveMetas, $haveNotMetas = null, $metaError = null)
     {
-        // При ръчно реконтиране се подтискат всякакви грешки
-        if(Mode::is('recontoTransaction')) return;
-
         $productCheck = deals_Helper::checkProductForErrors($productArr, $haveMetas, $haveNotMetas);
         if ($productCheck['notActive']) {
             return 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |са затворени|*!';
@@ -2352,7 +2450,7 @@ abstract class deals_Helper
 
                 // От записаната цена се маха тази на скрития транспорт, за да се сравни правилно с очакваната
                 $msgSuffix = '';
-                if(is_object($transportFeeRec)){
+                if(is_object($transportFeeRec) && $transportFeeRec->fee > 0){
                     $var->price += $transportFeeRec->fee / $quantity;
                     $var->price = round($foundPrice->price, 6);
                     $msgSuffix .= ", |вкл. транспорт|*";
@@ -2695,5 +2793,203 @@ abstract class deals_Helper
         }
 
         return $maxDeliveryTime;
+    }
+
+
+    /**
+     * Помощна ф-я за експорт на csv от лист изгледа на документите
+     *
+     * @param core_Mvc $mvc
+     * @param core_FieldSet $fieldset
+     * @return void
+     */
+    public static function getExportCsvProductFieldset($mvc, &$fieldset)
+    {
+        $fieldset->FLD('code', 'varchar', 'caption=Код,detailField');
+        $fieldset->FLD($mvc->productFld, 'varchar', 'caption=Артикул,detailField');
+        if(core_Packs::isInstalled('batch')){
+            $fieldset->FLD('batch', 'varchar', 'caption=Партида,detailField');
+        }
+        $fieldset->FLD('packagingId', 'varchar', 'caption=Мярка,detailField');
+        $fieldset->FLD('packQuantity', 'varchar', 'caption=Количество,detailField');
+        if(!($mvc instanceof store_TransfersDetails)){
+            $fieldset->FLD('packPrice', 'varchar', 'caption=Цена,detailField');
+            $fieldset->FLD('discount', 'varchar', 'caption=Отстъпка,detailField');
+            $fieldset->FLD('vatPercent', 'percent', 'caption=ДДС %,detailField');
+            $fieldset->FLD('chargeVat', 'varchar', 'caption=ДДС режим,detailField');
+        }
+    }
+
+
+    /**
+     * Помощна ф-я разпъваща редовете с артикули от документа към данните за експорт в csv
+     *
+     * @param core_Master $mvc
+     * @param stdClass $masterRec
+     * @param array $expandedRecs
+     * @return void
+     */
+    public static function addCsvExportProductRecs4Master($mvc, $masterRec, &$expandedRecs)
+    {
+        // Извличат се данните за артикулите от детайла му
+        $Master = cls::get($mvc->Master);
+        $csvFields = new core_FieldSet();
+        $recs = cls::get('cat_Products')->getRecsForExportInDetails($Master, $masterRec, $csvFields, core_Users::getCurrent());
+        $detailFields = array_combine(array_keys($csvFields->fields), array_keys($csvFields->fields));
+
+        // Ако има артикули в детайла то дублират се мастър данните във всеки ред за всеки артикул
+        if(countR($recs)){
+            foreach ($recs as $dRec){
+                $clone = clone $masterRec;
+                foreach ($detailFields as $key){
+                    $clone->{$key} = $dRec->{$key};
+                }
+                if(isset($clone->packagingId)){
+                    $clone->packagingId = cat_UoM::fetchField($clone->packagingId, 'name');
+                }
+
+                $expandedRecs[] = $clone;
+            }
+        } else {
+            $expandedRecs[] = clone $masterRec;
+        }
+    }
+
+
+    /**
+     * Помощна ф-я за парсиране на цена дали е въведена за подаденото к-во
+     *
+     * @param $priceInput
+     * @param $quantity
+     * @param $error
+     * @return float|int|void|null
+     */
+    public static function isPrice4Quantity(&$priceInput, $quantity, &$error)
+    {
+        $price4Quantity = null;
+        if(!empty($priceInput)){
+
+            // Ако цената започва с "=" значи ще е цена за к-то
+            $isPrice4Quantity = false;
+            $packPrice = $priceInput;
+
+            if(strpos($priceInput, '/') === strlen($priceInput) - 1){
+                $isPrice4Quantity = true;
+                $packPrice = rtrim($packPrice, '/');
+            }
+
+            // Проверка дали цената е валидна
+            $Double = core_Type::getByName('double');
+            $packPrice = $Double->fromVerbal($packPrice);
+            if(!empty($Double->error)){
+                $error = $Double->error;
+                return;
+            }
+
+            // Ако е цената ще е за к-то
+            $priceInput = $packPrice;
+            if($isPrice4Quantity && !empty($quantity)){
+                $price4Quantity = $packPrice / $quantity;
+            }
+        }
+
+        return $price4Quantity;
+    }
+
+
+    /**
+     * Проверка на транспортните данни в записа
+     *
+     * @param $weight
+     * @param $netWeight
+     * @param $tareWeight
+     * @param $weightFieldName
+     * @param $netWeightFieldName
+     * @param $tareWeightFieldName
+     * @return array|array[]
+     */
+    public static function checkTransData(&$weight, &$netWeight, &$tareWeight, $weightFieldName, $netWeightFieldName, $tareWeightFieldName)
+    {
+        $res = array('errors' => array());
+
+        $weightIsCalced = $netWeightIsCalced = $tareWeightIsCalced = false;
+        if(!isset($weight) && isset($netWeight) && isset($tareWeight)) {
+            $weight = round($netWeight + $tareWeight, 4);
+            $weightIsCalced = true;
+        }
+
+        if(!isset($netWeight) && isset($weight) && isset($tareWeight)) {
+            $netWeight = round($weight - $tareWeight, 4);
+            $netWeightIsCalced = true;
+        }
+        if(!isset($tareWeight) && isset($weight) && isset($netWeight)) {
+            $tareWeight = round($weight - $netWeight, 4);
+            $tareWeightIsCalced = true;
+        }
+
+        if(isset($weight) && isset($netWeight) && isset($tareWeight)){
+            $calcedTare = $weight - $netWeight;
+            $tareDiff = abs(round($calcedTare - $tareWeight, 3));
+            if($tareDiff > 0.1) {
+                $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName},{$tareWeightFieldName}", 'text' => 'Разликата между бруто и нето не отговаря на тарата');
+            }
+        }
+
+        if(isset($weight) && isset($netWeight)){
+            if($weight < $netWeight){
+                $res['errors'][] = array('fields' => "{$weightFieldName},{$netWeightFieldName}", 'text' => 'Брутото е по-малко от нетото');
+            }
+        }
+
+        if(isset($tareWeight) && isset($weight)){
+            if($weight < $tareWeight){
+                $res['errors'][] = array('fields' => "{$weightFieldName},{$tareWeightFieldName}", 'text' => 'Тарата е по-малко от брутото');
+            }
+        }
+
+        if(countR($res['errors'])) {
+            if($weightIsCalced) {
+                $weight = null;
+            }
+            if($netWeightIsCalced) {
+                $netWeight = null;
+            }
+            if($tareWeightIsCalced) {
+                $tareWeight = null;
+            }
+        }
+
+        return $res;
+    }
+
+
+    public static function getDiscountRow($calcedDiscount, $manualDiscount, $autoDiscount, $state)
+    {
+        $Percent = core_Type::getByName('percent');
+        $autoDiscountVerbal = $Percent->toVerbal($autoDiscount);
+        if(!in_array($state, array('draft', 'pending'))){
+            $calcedDiscountVerbal = $Percent->toVerbal($calcedDiscount);
+            if(empty($manualDiscount) && !empty($calcedDiscount) && empty($autoDiscount)) {
+                $manualDiscount = $calcedDiscount;
+            }
+            $res = $Percent->toVerbal($manualDiscount);
+            if($calcedDiscount != $manualDiscount){
+                $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", 'notice', false);
+            }
+        } else {
+            $res = $Percent->toVerbal($calcedDiscount);
+            if(isset($autoDiscount)){
+                $type = ($autoDiscount > 1) ? 'warning' : 'notice';
+                if(isset($calcedDiscount)){
+                    $middleDiscount = round((1 - (1 - $calcedDiscount) * (1 - $autoDiscount)), 8);
+                    $middleDiscountVerbal = $Percent->toVerbal($middleDiscount);
+                    $res = ht::createHint($res, "Осреднена отстъпка|*: {$middleDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", $type, false);
+                } else {
+                    $res = ht::createHint($res, "Авт. отстъпка|*: {$autoDiscountVerbal}", $type, false);
+                }
+            }
+        }
+
+        return $res;
     }
 }

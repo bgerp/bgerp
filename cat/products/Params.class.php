@@ -54,12 +54,6 @@ class cat_products_Params extends doc_Detail
     
     
     /**
-     * Активния таб в случай, че wrapper-а е таб контрол.
-     */
-    public $tabName = 'cat_Products';
-    
-    
-    /**
      * Кой може да добавя
      */
     public $canAdd = 'powerUser';
@@ -115,7 +109,7 @@ class cat_products_Params extends doc_Detail
     public function description()
     {
         $this->FLD('classId', 'class', 'input=hidden,silent');
-        $this->FLD('productId', 'int', 'input=hidden,silent,tdClass=leftCol');
+        $this->FLD('productId', 'int', 'input=hidden,silent,tdClass=leftCol wrapText');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'text', 'input=none,caption=Стойност,mandatory');
         
@@ -213,7 +207,7 @@ class cat_products_Params extends doc_Detail
             
                 $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
                 $form->setDefault('paramValue', $defaultValue);
-                if($pRec->valueType == 'readonly'){
+                if($pRec->valueType == 'readonly' && isset($rec->id)){
                     if(isset($defaultValue)){
                         $form->info = tr("|*<div class='richtext-message richtext-warning'>Параметърът е дефиниран като „Само за четене“|*!<br>|Промяната наложителна ли е|*?<br>Съвет|*: |Опитайте първо да презапишете с автоматично заредената дефолтна стойност|*!</div>");
                     }
@@ -256,9 +250,13 @@ class cat_products_Params extends doc_Detail
                     } elseif ($weightPackagingsCount || cat_UoM::isWeightMeasure($measureId)) {
                         $mSysId = ($pSysId == 'weight') ? 'g' : 'kg';
                         $packagingId = cat_UoM::fetchBySysId($mSysId)->id;
-                        $v = 1 / $rec->paramValue;
-                        if ($error = cat_products_Packagings::checkWeightQuantity($rec->productId, $packagingId, $v)) {
-                            $form->setError('paramValue', $error);
+                        if(empty($rec->paramValue)){
+                            $form->setError('paramValue', 'Теглото не може да е|* 0');
+                        } else {
+                            $v = 1 / $rec->paramValue;
+                            if ($error = cat_products_Packagings::checkWeightQuantity($rec->productId, $packagingId, $v)) {
+                                $form->setError('paramValue', $error);
+                            }
                         }
                     }
                 }
@@ -520,18 +518,21 @@ class cat_products_Params extends doc_Detail
         
         return self::renderDetail($data);
     }
-    
-    
+
+
     /**
-     * Добавяне на свойтвата към обекта
+     * Връща параметрите, които са счетоводни свойства
+     *
+     * @param mixed $classId
+     * @param int $objectId
+     * @return array $features
      */
     public static function getFeatures($classId, $objectId)
     {
         $features = array();
         $query = self::getQuery();
         $classId = cls::get($classId)->getClassId();
-        
-        $query->where("#productId = '{$objectId}'");
+        $query->where("#classId = {$classId} AND #productId = '{$objectId}'");
         $query->EXT('isFeature', 'cat_Params', 'externalName=isFeature,externalKey=paramId');
         $query->where("#isFeature = 'yes'");
         
@@ -573,8 +574,10 @@ class cat_products_Params extends doc_Detail
         
         $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
         $logMsg = ($rec->_isCreated) ? 'Добавяне на параметър' : 'Редактиране на параметър';
+
         $Class->logWrite($logMsg, $rec->productId);
         $Class->logDebug("{$logMsg}: {$paramName}", $rec->productId);
+        $Class->touchRec($rec->productId);
     }
     
     
@@ -687,6 +690,7 @@ class cat_products_Params extends doc_Detail
             $pQuery->where("#classId = {$class->getClassId()} AND #productId = {$objectId}");
             while($pRec = $pQuery->fetch()){
                 $params[$pRec->paramId] = $pRec->paramId;
+                $pRec->paramValue = cat_Params::getReplacementValueOnClone($pRec->paramId, $classId, $objectId, $pRec->paramValue);
                 $paramValues[$pRec->paramId] = $pRec->paramValue;
             }
         } else {
@@ -785,30 +789,30 @@ class cat_products_Params extends doc_Detail
 
 
     /**
-     * Записване на параметрите от подадения обект
+     * Синхронизиране на параметрите на артикула
      *
-     * @param $class
-     * @param $rec
-     * @param $paramField
+     * @param mixed $class
+     * @param int $id
+     * @param array $params
      * @return void
      */
-    public static function saveParams($class, $rec, $paramField = '_params')
+    public static function syncParams($class, $id, $params)
     {
         $Class = cls::get($class);
 
         // Извличане на старите записи
         $newRecs = array();
         $exQuery = static::getQuery();
-        $exQuery->where("#classId = {$Class->getClassId()} AND #productId = {$rec->id}");
+        $exQuery->where("#classId = {$Class->getClassId()} AND #productId = {$id}");
         $exRecs = $exQuery->fetchAll();
 
         // Кои записи ще се добавят/обновяват
-        foreach ($rec->{$paramField} as $k => $o) {
-            if (!isset($rec->{$k})) continue;
-            $paramDriver = cat_Params::getDriver($o->paramId);
-            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image || $paramDriver instanceof cond_type_Files) && empty($rec->{$k})) continue;
+        foreach ($params as $paramId => $val) {
+            if (!isset($val)) continue;
 
-            $nRec = (object)array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $Class->getClassId(), 'productId' => $rec->id);
+            $paramDriver = cat_Params::getDriver($paramId);
+            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image || $paramDriver instanceof cond_type_Files) && empty($val)) continue;
+            $nRec = (object)array('paramId' => $paramId, 'paramValue' => $val, 'classId' => $Class->getClassId(), 'productId' => $id);
             $newRecs[] = $nRec;
         }
 
@@ -826,6 +830,25 @@ class cat_products_Params extends doc_Detail
             $delete = implode(',', $synced['delete']);
             static::delete("#id IN ({$delete})");
         }
+    }
+
+
+    /**
+     * Записване на параметрите от подадения обект
+     *
+     * @param $class
+     * @param $rec
+     * @param $paramField
+     * @return void
+     */
+    public static function saveParams($class, $rec, $paramField = '_params')
+    {
+        $params = array();
+        foreach ($rec->{$paramField} as $k => $o) {
+            $params[$o->paramId] = $rec->{$k};
+        }
+
+        static::syncParams($class, $rec->id, $params);
     }
 
 
@@ -862,9 +885,6 @@ class cat_products_Params extends doc_Detail
     {
         $data->query->orderBy('id', 'DESC');
     }
-
-
-
 }
 
 

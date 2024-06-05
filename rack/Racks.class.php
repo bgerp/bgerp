@@ -129,10 +129,11 @@ class rack_Racks extends core_Master
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,silent,input=hidden');
-        $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,tdClass=leftCol');
+        $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,tdClass=leftCol wrapText');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('firstRowTo', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Първи ред до,notNull,value=A');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
+        $this->FLD('direction', 'enum(leftToRight=От ляво на дясно,rightToLeft=От дясно на ляво)', 'caption=Подредба,mandatory,notNull,value=leftToRight');
         $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
         $this->FLD('groups', 'text', 'caption=Приоритетно използване в зони->Групи,input=none');
         $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
@@ -163,7 +164,7 @@ class rack_Racks extends core_Master
             }
         }
         
-        return new Redirect(array($this), "Позицията|* {$pos} |не може да бъде открита", 'error');
+        return new Redirect(array($this), "|Позицията|* {$pos} |не може да бъде открита", 'error');
     }
     
     
@@ -430,27 +431,33 @@ class rack_Racks extends core_Master
         $row = $rec->rows;
         $hlPos = Request::get('pos');
         $hlFullPos = "{$rec->num}-{$hlPos}";
-        
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
-        
         $hlProdId = $used[$hlFullPos];
+
+        // Откъде започва номерацията
+        if($rec->direction == 'leftToRight'){
+            $from = 1;
+            $to = $rec->columns;
+        } else {
+            $from = $rec->columns;
+            $to = 1;
+        }
 
         while ($row >= 'A') {
             $trStyle = ($row <= $rec->firstRowTo) ? 'border:1px solid #2cc3229e;' : '';
             $res .= "<tr style='{$trStyle}'>";
             
-            for ($i = 1; $i <= $rec->columns; $i++) {
+             foreach (range($from, $to) as $i){
                 $attr = array();
                 
                 $attr['style'] = 'color:#ccc;';
                 
                 $pos = "{$row}-{$i}";
                 $posFull = "{$rec->num}-{$row}-{$i}";
-                
+
                 $hint = '';
-                
                 $title = null;
                 
                 $url = toUrl(array('rack_RackDetails', 'add', 'rackId' => $rec->id, 'row' => $row, 'col' => $i));
@@ -460,43 +467,51 @@ class rack_Racks extends core_Master
                 $bgColorAll = '';
                 $tdBackground = '';
                 // Ако е заето с нещо
-                if (!isset($title) && ($pRec = $used[$posFull])) {
-                    $prodTitle = cat_Products::getTitleById($pRec->productId);
-                    $color = self::getColor($prodTitle, 0, 110);
-                    $bgColor = self::getColor($prodTitle, 130, 240);
-                    if(isset($pRec->all)) {
-                        foreach($pRec->all as $pid => $info) {
-                            $prodTitle .= "\n" . ($p = cat_Products::getTitleById($pid));
-                            $bgColorAll .= ',#' . self::getColor($p, 130, 240);
+                if (!isset($title) && ($pArr = $used[$posFull])) {
+                    $prodTitle = '';
+
+                    foreach ($pArr as $productId => $batches){
+                        $BatchDef = batch_Defs::getBatchDef($productId);
+                        $pName = cat_Products::getTitleById($productId);
+                        $bgColorAll .= ',#' . self::getColor($pName, 130, 240);
+
+                        if($BatchDef && is_array($batches)){
+                            foreach ($batches as $batch){
+                                $bName = !empty($batch) ? $batch : tr('без партида');
+                                $prodTitle .= "\n" . "{$pName} / {$bName}";
+                            }
+                        } else {
+                            $prodTitle .= "\n" . "{$pName}";
                         }
                     }
-                    if(!empty($pRec->batch)){
-                        $prodTitle .= " / {$pRec->batch}";
-                    }
-                    
-                    $attrA = array();
 
+                    $attrA = array();
                     if (($pos == $hlPos) || (isset($pId) && $hlProdId == $pId)) {
                         $attrA['class'] = 'cd-l3';
                     }
 
                     $attrA['title'] = $prodTitle;
-                   //$attrA['style'] = "color:#{$color};background-color:#{$bgColor};";
-                    if(isset($pRec->all)) {
+
+                    $color = self::getColor($prodTitle, 0, 110);
+                    $bgColor = self::getColor($prodTitle, 130, 240);
+
+                    if(countR($pArr) > 1) {
                         $attrA['style'] = "color:#{$color};";
-                        $tdBackground = "background: linear-gradient(to right,#{$bgColor}{$bgColorAll});";
+                        $tdBackground = "background: linear-gradient(to right{$bgColorAll});";
                     } else {
                         $attrA['style'] = "color:#{$color};";
                         $tdBackground = "background-color:#{$bgColor};";
                     }
-                    $attrA['style'] .= $blink;
 
                     $title = ht::createLink($pos, array('rack_Pallets', 'list', 'search' => "{$rec->num}-{$pos}"), null, $attrA);
                 }
                 
                 // Ако е неизползваемо
                 if (!isset($title) && $unusable[$posFull]) {
-                    $title = '&nbsp;';
+                    $title = 'X';
+                    $attr['style'] = 'text-align:center;color:#7c7c7c;';
+                    $tdBackground = "background-color:#d3d3d35c;";
+                    $hint = tr('Мястото е неизползваемо|*!');
                 }
                 
                 // Ако е резервирано за нещо
@@ -515,7 +530,7 @@ class rack_Racks extends core_Master
                 if (!isset($title) && $movedTo[$posFull]) {
                     $title = $pos;
                     $attr['style'] = 'color:#6c6;';
-                    $hint = tr('Очаква се палет');
+                    $hint = tr('Очаква се палет') . " {$prodTitle}";
                 }
                 
                 // Ако ще се премества палет
@@ -548,7 +563,6 @@ class rack_Racks extends core_Master
                 if ($hint) {
                     $attr['title'] = "{$hint}";
                 }
-                
                 $res .= ht::createElement('td', $attr, $title);
             }
             

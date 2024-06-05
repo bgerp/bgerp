@@ -80,8 +80,8 @@ class eshop_CartDetails extends core_Detail
      * Кой може да изтрива?
      */
     public $canDelete = 'eshop,ceo';
-    
-    
+
+
     /**
      * Описание на модела
      */
@@ -294,18 +294,23 @@ class eshop_CartDetails extends core_Detail
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
         $settings = cms_Domains::getSettings();
-        if (isset($settings->storeId) && $canStore == 'yes') {
-            $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
-            $quantityInStore = store_Products::getQuantities($productId, $settings->storeId)->free;
-            
-            if(isset($deliveryTime) && $quantityInStore <= 0) return null;
-            $maxQuantity = $quantityInStore;
+        if($canStore == 'yes'){
+            if (countR($settings->inStockStores)) {
+                $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
+                $quantityInStore = store_Products::getQuantities($productId, $settings->inStockStores)->free;
+                $maxQuantity = $quantityInStore;
+            }
+            if(!empty($settings->remoteStores)) {
+                $maxQuantity += sync_StoreStocks::getQuantityInRemoteStores($productId, $settings->remoteStores);
+            }
+
+            if(isset($deliveryTime) && $maxQuantity <= 0) return null;
         }
 
         if(!empty($maxQuantity)){
 
             // Проверка колко общо има от избрания артикул в количката без значение от опаковката
-            $cartId = isset($cartId) ? $cartId : eshop_Carts::force(null, null, false);
+            $cartId = $cartId ?? eshop_Carts::force(null, null, false);
             if($cartId){
                 $dQuery = eshop_CartDetails::getQuery();
                 $dQuery->where("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId}");
@@ -330,6 +335,7 @@ class eshop_CartDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $maxQuantity = null;
         if (isset($fields['-list'])) {
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
             $row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, true);
@@ -401,8 +407,7 @@ class eshop_CartDetails extends core_Detail
         }
         
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
-        if (isset($settings->storeId) && $productRec->canStore == 'yes') {
-            $quantity = store_Products::getQuantities($rec->productId, $settings->storeId)->free;
+        if (countR($settings->inStockStores) && $productRec->canStore == 'yes') {
             $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
             
             if (is_null($maxQuantity) && $maxQuantity <= 0) {
@@ -443,8 +448,10 @@ class eshop_CartDetails extends core_Detail
         $deleteCart = false;
         
         if (isset($id)) {
+            $Carts = cls::get('eshop_Carts');
             $this->delete($id);
-            cls::get('eshop_Carts')->updateMaster($cartId);
+            $Carts->updateMaster($cartId);
+            plg_Search::forceUpdateKeywords($Carts, $cartId);
             vislog_History::add("Изтриване на артикул от количка");
             $msg = '|Артикулът е премахнат|*!';
             $dCount = $this->count("#cartId = {$cartId}");
@@ -641,23 +648,24 @@ class eshop_CartDetails extends core_Detail
         // Коя е ценовата политика
         $oldListId = $settings->listId;
         $listId = cms_Helper::getCurrentEshopPriceList($settings);
+        $now = dt::now();
 
         // Ако има взема се цената от нея
         if (isset($listId)) {
-            $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId);
+            $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId, $now);
             
             // Ако стария лист е различен от новия
             if($oldListId != $listId){
                 
                 // И старата цена е по-евтина, то се взима тя
-                $priceOld = price_ListRules::getPrice($oldListId, $rec->productId, $rec->packagingId);
+                $priceOld = price_ListRules::getPrice($oldListId, $rec->productId, $rec->packagingId, $now);
                 if(!empty($priceOld) && trim(round($priceOld, 5)) < trim(round($price, 5))){
                     $price = $priceOld;
                     $listId = $oldListId;
                 }
             }
             
-            $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+            $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack, $now);
             if (!empty($priceObject->discount)) {
                 $discount = $priceObject->discount;
             }
@@ -713,7 +721,7 @@ class eshop_CartDetails extends core_Detail
      * 
      * @return string $str
      */
-    public static function getUniqueParamsAsText($eshopProductId, $productId, $asRichText = false)
+    public static function getUniqueParamsAsText($eshopProductId, $productId, $asRichText = false, $inline = true)
     {
         $displayParams = eshop_Products::getSettingField($eshopProductId, null, 'showParams');
         $commonParams = eshop_Products::getCommonParams($eshopProductId);
@@ -737,11 +745,16 @@ class eshop_CartDetails extends core_Detail
                 $fileName = strip_tags($value);
                 $value = "[file={$handler}]{$fileName}[/file]";
             }
-            
-            $arr[] = tr(cat_Params::getVerbal($paramRec, 'name')) . ': ' . $value;
+
+            $caption = tr(cat_Params::getVerbal($paramRec, 'name'));
+            if(!$asRichText){
+                $caption = "<span class='quiet'>{$caption}</span>";
+            }
+            $arr[] = "{$caption}: " . $value;
         }
-        
-        $str = (countR($arr)) ? implode(', ', $arr) : '';
+
+        $separator = $inline ? ', ' : '<br>';
+        $str = (countR($arr)) ? implode($separator, $arr) : '';
         
         return $str;
     }

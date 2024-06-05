@@ -3,7 +3,7 @@
         <tbody>
             <tr>
                 <td class='custom-header-bg' style='width:38%;'>
-                    <b>Recipient</b>
+                    <b>|Recipient|*</b>
                     <!--ET_BEGIN isPaid-->
                     <div class='stamp fright'>[#isPaid#]</div>
                     <!--ET_END isPaid-->
@@ -22,7 +22,7 @@
                     <!--ET_END state-->
                 </td>
                 <td class='custom-header-bg' style='width:38%;'>
-                    <b>Supplier</b>
+                    <b>|Supplier|*</b>
                     <!--ET_BEGIN isDelivered-->
                     <div class='stamp fright'>[#isDelivered#]</div>
                     <!--ET_END isDelivered-->
@@ -43,6 +43,7 @@
 <div class="scrolling-holder">
     <div class="details">
         [#sales_SalesDetails#]
+        [#price_DiscountsPerDocuments#]
     </div>
 </div>
 <div class="lines"></div>
@@ -126,7 +127,7 @@
                 <td>
                     <table class='signature-table' style='width:1%;'>
                         <tr>
-                            <td class="nowrap" style='width:1%;'>For the Recipient:  </td>
+                            <td class="nowrap" style='width:1%;'>|For the Recipient|*:</td>
                             <td></td>
                         </tr>
                         <tr>
@@ -138,7 +139,7 @@
                 <td>
                     <table style='width:1%'  class='fright signature-table'>
                         <tr>
-                            <td class='nowrap' style='width:1%;'>For the supplier:  </td>
+                            <td class='nowrap' style='width:1%;'>|For the supplier|*:</td>
                             <td></td>
                         </tr>
                         <tr>

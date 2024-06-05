@@ -41,7 +41,7 @@ class batch_definitions_Document extends batch_definitions_Proto
         expect($dRec = $Class->fetchRec($id));
         
         $handle = mb_strtoupper($Class->getHandle($dRec->id));
-        $date = $dRec->{$Class->valiorFld};
+        $date = isset($Class->valiorFld) ? $dRec->{$Class->valiorFld} : null;
         $date = (!empty($date)) ? $date : dt::today();
         $date = str_replace('-', '', $date);
         
@@ -62,6 +62,12 @@ class batch_definitions_Document extends batch_definitions_Proto
      */
     public function isValid($value, $quantity, &$msg)
     {
+        // Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
+        if (batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))) {
+
+            return true;
+        }
+
         if (!preg_match("/^[0-9]{8}[\-]{1}[A-Z]{1,3}[0-9]+/", $value)) {
             $date = str_replace('-', '', dt::today());
             $msg = "Формата трябва да е във вида на|* {$date}-SAL1";

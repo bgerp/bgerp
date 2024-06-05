@@ -105,6 +105,12 @@ defIfNot('EMAIL_THREAD_HANDLE_TYPE', 'type1');
 
 
 /**
+ * Нотификация за личен имейл и при отворена нишка
+ */
+defIfNot('EMAIL_NOTIFY_PERSONAL_EMAIL_IN_OPEN', 'no');
+
+
+/**
  * Какъв какви типове манипулатори за събджект на имейл се
  * с минали периоди
  * t0 - <123456> (номер на нишка)
@@ -200,6 +206,12 @@ defIfNot('EMAIL_STOP_SEND_TO', 'no-reply@*,noreply@*');
 
 
 /**
+ * Списък с разрешени имейли за изпращане
+ */
+defIfNot('EMAIL_ALLOW_SEND_TO', '');
+
+
+/**
  * Добавяне на наши файлове
  */
 defIfNot('EMAIL_OUR_IMGS', '');
@@ -275,6 +287,12 @@ defIfNot('EMAIL_IMPORT_FROM_DIRECTORY', '');
  * Домейни на получателите във входящите имейли, които ще се записват като изходящи
  */
 defIfNot('EMAIL_IMPORT_FROM_DIRECTORY_DOMAIN_TO_OUTGOINGS', '');
+
+
+/**
+ * Показване на HTML в единичен изглед
+ */
+defIfNot('EMAIL_SHOW_HTML_IN_SINGLE', 'no');
 
 
 /**
@@ -453,6 +471,8 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_IMPORT_FROM_DIRECTORY' => array('varchar', 'canView=debug, caption=Директория от която да се импортират имейли->Път'),
 
         'EMAIL_IMPORT_FROM_DIRECTORY_DOMAIN_TO_OUTGOINGS' => array('text(rows=4)', 'canView=debug, caption=Домейни на получателите във входящите имейли|*&comma;| които ще се записват като изходящи->Домейни'),
+
+        'EMAIL_SHOW_HTML_IN_SINGLE' => array('enum(no=Не,yes=Да)', 'caption=Показване на HTML изгледа в сингъла на входящите имейли->Избор, customizeBy=user'),
     );
     
     
@@ -487,7 +507,8 @@ class email_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'email_reports_Spam, email_drivers_RouteByFirstEmail, email_drivers_RouteByFolder, email_drivers_CheckEmails';
+    public $defClasses = 'email_reports_Spam, email_drivers_RouteByFirstEmail, email_drivers_RouteByFolder, email_drivers_CheckEmails, 
+                            email_drivers_RouteOutgoingEmails, email_drivers_BlockBlastEmails';
     
     
     /**

@@ -148,7 +148,8 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->requireDetailForPending, true);
         setIfNot($mvc->mustUpdateUsed, false);
         setIfNot($mvc->canMovelast, 'powerUser');
-        
+        setIfNot($mvc->pendingUpdateModifiedArr, array());
+
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
@@ -269,7 +270,9 @@ class doc_DocumentPlg extends core_Plugin
         $result = null;
         
         if ($rec = $mvc->fetch($id)) {
+            Mode::push('documentGetItemRec', true);
             $row = $mvc->getDocumentRow($rec->id);
+            Mode::pop('documentGetItemRec');
             $num = '#' . $mvc->getHandle($rec->id);
             
             $result = (object) array(
@@ -383,15 +386,13 @@ class doc_DocumentPlg extends core_Plugin
     public function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         $retUrl = array($mvc, 'single', $data->rec->id);
-        
+
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected')) {
+            $rejArr = array($mvc, 'reject', $data->rec->id);
+
             $data->toolbar->addBtn(
                 'Оттегляне',
-                array(
-                    $mvc,
-                    'reject',
-                    $data->rec->id
-                ),
+                $rejArr,
                 "id=btnDelete{$data->rec->containerId},class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=" . tr('Оттегляне на документа'),
                 'ef_icon = img/16/reject.png'
             );
@@ -566,7 +567,7 @@ class doc_DocumentPlg extends core_Plugin
                     if (isset($data->pager->pageVar)) {
                         unset($curUrl[$data->pager->pageVar]);
                     }
-                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, 'id=binBtn,class=btn-bin fright,order=50,row=2', "ef_icon = img/16/bin_closed.png,style=color:#{$color};");
+                    $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", $curUrl, 'id=binBtn,class=btn-bin fright,order=50', "ef_icon = img/16/bin_closed.png,style=color:#{$color};");
                 }
             }
         }
@@ -665,6 +666,10 @@ class doc_DocumentPlg extends core_Plugin
             
             if (!$row->singleTitle) {
                 $row->singleTitle = tr($invoker->singleTitle);
+            }
+
+            if ($rec->priority) {
+                $row->DOCUMENT_PRIORITY_CLASS = 'priority-' . $rec->priority;
             }
             
             // Ако документа е скрит и е оттеглен, показваме от кого
@@ -796,10 +801,12 @@ class doc_DocumentPlg extends core_Plugin
                 $rec->createdOn = dt::verbal2Mysql();
             }
         }
-        
+
         // Задаваме стойностите на полетата за последно модифициране
-        $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
-        $rec->modifiedOn = dt::verbal2Mysql();
+        if (!$rec->_notModified) {
+            $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
+            $rec->modifiedOn = dt::verbal2Mysql();
+        }
         
         if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
             if ($rec->id) {
@@ -1028,6 +1035,33 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+
+        if (countR($mvc->pendingUpdateModifiedArr)) {
+            foreach ($mvc->pendingUpdateModifiedArr as $pArr) {
+                $pId = $pArr['id'];
+                $m = $pArr['mvc'];
+                $pRec = $m->fetchRec($pId);
+                $pRec->modifiedBy = $pArr['modifiedBy'];
+                $pRec->modifiedOn = $pArr['modifiedOn'];
+                $m->save_($pRec, 'modifiedOn, modifiedBy', 'LOW_PRIORITY');
+
+                if ($pRec->containerId) {
+                    $cRec = new stdClass();
+                    $cRec->id = $pRec->containerId;
+                    $cRec->modifiedOn = $pRec->modifiedOn;
+                    $cRec->modifiedBy = $pRec->modifiedBy;
+
+                    $containersInst = cls::get('doc_Containers');
+                    $containersInst->save_($cRec, 'modifiedOn, modifiedBy', 'LOW_PRIORITY');
+                }
+
+                if ($pRec->threadId) {
+                    doc_Threads::updateThread($pRec->threadId);
+                }
+            }
+
+            $mvc->pendingUpdateModifiedArr = array();
+        }
     }
     
     
@@ -1160,6 +1194,22 @@ class doc_DocumentPlg extends core_Plugin
             expect($id = Request::get('id', 'int'));
             
             expect($rec = $mvc->fetch($id), $id);
+
+            // След оттегляне, да редиректва към папката, ако е настроено и има такава възможност
+            if (Request::get('afterReject') && ($rec->state == 'rejected')) {
+                if (doc_Setup::get('OPEN_FOLDER_AFTER_REJECT') == 'yes') {
+                    // При оттегляне да редиректва към сингъла на папката, ако има права за там
+                    if ($rec->folderId && doc_Folders::haveRightFor('single', $rec->folderId)) {
+                        if ($rec->threadId) {
+                            if (doc_Threads::getFirstContainerId($rec->threadId) == $rec->containerId) {
+                                $res = new Redirect(array('doc_Folders', 'single', $rec->folderId));
+
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
             
             // Изтриваме нотификацията, ако има такава, свързани с този документ
             $url = array($mvc, 'single', 'id' => $id);
@@ -1635,11 +1685,11 @@ class doc_DocumentPlg extends core_Plugin
      * @param int          $recId
      * @param int          $docId
      */
-    public static function on_AfeterCheckDocExist($mvc, &$res, $recId, $docId)
+    public static function on_AfterCheckDocExist($mvc, &$res, $recId, $docId)
     {
-        $rec = $mvc->fetch($rec->id);
+        $rec = $mvc->fetchRec($recId);
         
-        if ($rec->containerId = $docId) {
+        if ($rec->containerId == $docId) {
             $res = true;
         }
     }
@@ -2014,14 +2064,15 @@ class doc_DocumentPlg extends core_Plugin
                     $className = ' floatedElement ';
                 }
                 $data->form->layout = $data->form->renderLayout();
+                if($data->form->cmd != 'refresh'){
+                    $data->form->layout->append(new core_ET("[#ORIGINAL_DOCUMENT#]"));
+                }
                 $tpl = new ET("<div class='preview-holder {$className}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Оригинален документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
                 
                 if ($document->haveRightFor('single')) {
                     $docHtml = $document->getInlineDocumentBody();
-                    
-                    $tpl->append($docHtml, 'DOCUMENT');
-                    
-                    $data->form->layout->append($tpl);
+                    $tpl->replace($docHtml, "DOCUMENT");
+                    $data->form->layout->append($tpl, 'ORIGINAL_DOCUMENT');
                 }
             } elseif ($fType == 'file') {
                 self::showOriginalFile($fRec, $data->form);
@@ -3114,7 +3165,8 @@ class doc_DocumentPlg extends core_Plugin
                 $clone = clone($originalTpl);
                 
                 // Контейнер в който ще вкараме документа + шаблона с параметрите му
-                $container = new ET("<div class='print-break'>[#clone#]</div>");
+                $clsName = ($i != $copiesNum) ? 'print-break' : 'print-break-last';
+                $container = new ET("<div class='{$clsName}'>[#clone#]</div>");
                 $container->replace($clone, 'clone');
                 
                 // За всяко копие предизвикваме ивент в документа, ако той иска да добави нещо към шаблона на копието
@@ -3125,6 +3177,8 @@ class doc_DocumentPlg extends core_Plugin
                 $tpl->removeBlocks();
             }
         }
+
+        bgerp_LastSeenDocumentByUser::queueToLog($data->rec->containerId);
     }
     
     
@@ -3603,6 +3657,14 @@ class doc_DocumentPlg extends core_Plugin
             
             if (strpos($searchKeywords, $handleNormalized) === false) {
                 $searchKeywords .= ' ' . $handleNormalized;
+            }
+        }
+
+        $lKeywords = doc_Linked::getKeywordsForLinked($rec->containerId);
+        if (strlen(trim($lKeywords))) {
+            $lKeywords = plg_Search::normalizeText($lKeywords);
+            if (strpos($searchKeywords, $lKeywords) === false) {
+                $searchKeywords .= ' ' . $lKeywords;
             }
         }
     }
@@ -4201,7 +4263,14 @@ class doc_DocumentPlg extends core_Plugin
         $lang = core_Lg::getCurrent();
         
         $cacheStr = $userId . '|' . $containerId . '|' . $modifiedOn . '|' . $pages . '|' . $screenMode . '|' . $tabTop  . '|' . $tabTop2 . '|' . $tab . '|' . $lang . '|' . $rejected;
-        
+
+        // Ако има странициране в детайлите и ги добавяме към ключа
+        foreach ((array)Request::$vars['_GET'] as $key => $val) {
+            if (strpos($key, 'P_') === 0) {
+                $cacheStr .= '|' . $val;
+            }
+        }
+
         // Добавка за да работи сортирането на детайли
         $dHnd = $mvc->getHandle($id);
         if (Request::get('docId') == $dHnd) {
@@ -4253,13 +4322,13 @@ class doc_DocumentPlg extends core_Plugin
     {
         if (!$res) {
             $rec = $mvc->fetchRec($id);
-            if (is_object($rec)) {
-                $rec->modifiedOn = dt::now();
-                $mvc->save_($rec, 'modifiedOn', 'LOW_PRIORITY');
+            if ($rec) {
+                $dKey = $mvc->className . '|' . $rec->id;
+                $mvc->pendingUpdateModifiedArr[$dKey] = array('id' => $rec->id, 'mvc' => $mvc, 'modifiedOn' => dt::now(), 'modifiedBy' => core_Users::getCurrent());
             }
         }
     }
-    
+
     
     /**
      * Обновява modified стойностите
@@ -4271,28 +4340,11 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterTouchRec($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        
         if ($rec) {
-            $cu = Users::getCurrent();
-            
             // Задаваме стойностите на полетата за последно модифициране
-            $rec->modifiedBy = $cu ? $cu : 0;
-            $rec->modifiedOn = dt::verbal2Mysql();
-            
-            $mvc->save_($rec, 'modifiedOn, modifiedBy');
-            
-            if ($rec->containerId) {
-                $cRec = new stdClass();
-                $cRec->id = $rec->containerId;
-                $cRec->modifiedOn = $rec->modifiedOn;
-                $cRec->modifiedBy = $rec->modifiedBy;
-                
-                $containersInst = cls::get('doc_Containers');
-                $containersInst->save_($cRec, 'modifiedOn, modifiedBy');
-            }
-            
-            if ($rec->threadId) {
-                doc_Threads::updateThread($rec->threadId);
+            if (!$rec->_notModified) {
+                $dKey = $mvc->className . '|' . $rec->id;
+                $mvc->pendingUpdateModifiedArr[$dKey] = array('id' => $rec->id, 'mvc' => $mvc, 'modifiedOn' => dt::now(), 'modifiedBy' => core_Users::getCurrent());
             }
         }
     }
@@ -4906,5 +4958,21 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterGetLinkedDocCommentToOrigin($mvc, &$res, $rec)
     {
 
+    }
+
+
+    /**
+     * След извличане дали моята фирма в документа е регистрирана по ДДС
+     *
+     * @param $mvc
+     * @param $res
+     * @param $rec
+     * @return void
+     */
+    public static function on_AfterIsOwnCompanyVatRegistered($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $res = crm_Companies::isOwnCompanyVatRegistered();
+        }
     }
 }

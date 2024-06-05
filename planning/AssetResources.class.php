@@ -117,7 +117,7 @@ class planning_AssetResources extends core_Master
     /**
      * Детайли
      */
-    public $details = 'planning_AssetResourceFolders,planning_AssetResourcesNorms,Tasks=planning_Tasks';
+    public $details = 'assetSupport=support_TaskType,Tasks=planning_Tasks,planning_AssetResourcesNorms,planning_AssetResourceFolders,planning_AssetSparePartsDetail';
     
     
     /**
@@ -237,7 +237,9 @@ class planning_AssetResources extends core_Master
         if (empty($rec->id)) {
             $defaultFolderId = Request::get('defaultFolderId', 'int');
             $defaultFolderId = !empty($defaultFolderId) ? $defaultFolderId : planning_Centers::getUndefinedFolderId();
-            $form->setDefault('assetFolders', keylist::addKey('', $defaultFolderId));
+            $Cover = doc_Folders::getCover($defaultFolderId);
+            $field = $Cover->isInstanceOf('support_Systems') ? 'systemFolderId' : 'assetFolders';
+            $form->setDefault($field, keylist::addKey('', $defaultFolderId));
         } else {
             $form->rec->assetFolders = type_Keylist::fromArray($defOptArr['assetFolders']['folders']);
             $form->rec->assetUsers = $defOptArr['assetFolders']['users'];
@@ -490,6 +492,8 @@ class planning_AssetResources extends core_Master
      */
     public function prepareDetail_($data)
     {
+        $data->TabCaption = tr('Оборудване');
+
         // Подготовка на записите
         $query = self::getQuery();
         $query->where("#groupId = {$data->masterId}");
@@ -513,8 +517,7 @@ class planning_AssetResources extends core_Master
      * Рендиране на детайла
      *
      * @param stdClass $data
-     *
-     * @return core_ET $tpl
+     * @return core_ET $resTpl
      */
     public function renderDetail_($data)
     {
@@ -522,7 +525,10 @@ class planning_AssetResources extends core_Master
         
         // Рендиране на таблицата с оборудването
         $data->listFields = arr::make('code=Код,name=Оборудване,simultaneity=Едновременност,createdOn=Създадено->На,createdBy=Създадено->От,state=Състояние');
-        $table = cls::get('core_TableView', array('mvc' => $this));
+        $listTableMvc = clone $this;
+        $listTableMvc->setField('name', 'tdClass=leftCol');
+
+        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $tpl->append($table->get($data->rows, $data->listFields));
         
@@ -531,8 +537,12 @@ class planning_AssetResources extends core_Master
             $btn = ht::createBtn('Ново оборудване', $data->addUrl, false, false, "ef_icon={$this->singleIcon},title=Добавяне на ново оборудване към вида");
             $tpl->replace($btn, 'addAssetBtn');
         }
-        
-        return $tpl;
+
+        $resTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $resTpl->append($tpl, 'content');
+        $resTpl->append(tr("Обордуване"), 'title');
+
+        return $resTpl;
     }
     
     
@@ -1123,7 +1133,7 @@ class planning_AssetResources extends core_Master
             bp($updateRecs);
         }
 
-        followRetUrl(null, 'Времената са преизчислени|*!');
+        followRetUrl(null, '|Времената са преизчислени|*!');
     }
 
 

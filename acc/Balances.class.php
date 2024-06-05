@@ -20,122 +20,122 @@ class acc_Balances extends core_Master
      * Константа за начало на счетоводното време
      */
     const TIME_BEGIN = '1970-01-01 02:00:00';
-    
-    
+
+
     /**
      * Заглавие
      */
     public $title = 'Оборотни ведомости';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing, bgerp_plg_Blank';
-    
-    
+
+
     /**
      * Детайла, на модела
      */
     public $details = 'acc_BalanceDetails';
-    
-    
+
+
     /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Оборотна ведомост';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,acc';
-    
-    
+
+
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,acc';
-    
-    
+
+
     /**
      * Кой има право да чете?
      */
     public $canRead = 'ceo,acc';
-    
-    
+
+
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'no_one';
-    
-    
+
+
     /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'no_one';
-    
-    
+
+
     /**
      * Кой може ръчно да рекалкулира баланс?
      */
     public $canForcecalc = 'debug';
-    
-    
+
+
     /**
      * Кой може да добавя?
      */
     public $canAdd = 'no_one';
-    
-    
+
+
     /**
      * @var acc_Accounts
      */
     public $Accounts;
-    
-    
+
+
     /**
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'acc/tpl/SingleLayoutBalance.shtml';
-    
-    
+
+
     /**
      * Поле за единичен изглед
      */
     public $rowToolsSingleField = 'periodId';
-    
-    
+
+
     /**
      * Кои полета да се показват в листовия изглед
      */
     public $listFields = 'id, periodId, fromDate, toDate, lastAlternation, lastCalculate';
-    
-    
+
+
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/table_sum.png';
-    
-    
+
+
     /**
      * Текущата сметка
      */
     public $accountRec;
-    
-    
+
+
     /**
      * Максимално допустимо време в секунди за изчисляване на баланс на период
      */
     const MAX_PERIOD_CALC_TIME = 600;
-    
-    
+
+
     /**
      * Ключ за заключване по време на записването
      */
     const saveLockKey = 'Save_Balance_In_Progress';
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -150,8 +150,8 @@ class acc_Balances extends core_Master
         $this->FLD('lastCalculate', 'datetime(format=smartTime, defaultTime)', 'input=none,caption=Последно->Изчисляване');
         $this->FLD('lastCalculateChange', 'enum(yes,no)', 'input=none,caption=Последно->Нови ст-ти');
     }
-    
-    
+
+
     /**
      * Предефиниране на единичния изглед
      */
@@ -160,11 +160,11 @@ class acc_Balances extends core_Master
         if ($accountId = Request::get('accId', 'int')) {
             $this->accountRec = $this->Accounts->fetch($accountId);
         }
-        
+
         return parent::act_Single();
     }
-    
-    
+
+
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
@@ -175,18 +175,18 @@ class acc_Balances extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-        
-        if($action == 'forcecalc' && isset($rec)){
-            if(isset($rec->periodId)){
+
+        if ($action == 'forcecalc' && isset($rec)) {
+            if (isset($rec->periodId)) {
                 $periodState = acc_Periods::fetchField($rec->periodId, 'state');
-                if(in_array($periodState, array('closed', 'draft'))){
+                if (in_array($periodState, array('closed', 'draft'))) {
                     $requiredRoles = 'no_one';
                 }
             }
         }
     }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -198,7 +198,7 @@ class acc_Balances extends core_Master
     {
         if (empty($rec->periodId)) {
             $row->periodId = dt::mysql2verbal($rec->fromDate, 'd', null, false) . '-' . dt::mysql2verbal($rec->toDate, 'd F Y', null, false);
-            
+
             if ($fields['-list']) {
                 if ($mvc->haveRightFor('single', $rec)) {
                     $row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), null, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
@@ -208,26 +208,26 @@ class acc_Balances extends core_Master
             $periodState = acc_Periods::fetchField($rec->periodId, 'state');
             $row->ROW_ATTR['class'] = "state-{$periodState}";
         }
-        
+
         // Добавяме връзка към последния алтерниращ документ
         if ($rec->lastAlternationDocClass && $rec->lastAlternationDocId) {
             $row->lastAlternation .= ht::createLink('↗', array($rec->lastAlternationDocClass, 'single', $rec->lastAlternationDocId));
         }
-        
+
         if ($rec->lastCalculateChange == 'no') {
             $row->lastCalculate .= ' ' . "<span title='При последното изчисляване не е настъпила промяна'>✓</span>";
         }
-        
+
         if ($rec->lastAlternation > $rec->lastCalculate) {
             $row->lastAlternation = ht::createHint($row->lastAlternation, 'Има промяна след последното изчисление на баланса', 'warning');
         }
-        
-        if($mvc->haveRightFor('forcecalc', $rec)){
+
+        if ($mvc->haveRightFor('forcecalc', $rec)) {
             $row->lastCalculate .= ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
         }
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
@@ -238,7 +238,7 @@ class acc_Balances extends core_Master
         } else {
             $data->row->accountId = 'Обобщена';
         }
-        
+
         // Ако показваме по сметка
         if (Request::get('accId', 'int')) {
             $periods = self::getSelectOptions('DESC', false, true);
@@ -247,12 +247,12 @@ class acc_Balances extends core_Master
         } else {
             $periodRow = $data->row->periodId;
         }
-        
+
         // Показваме за кой период е баланса, ако разглеждаме сметка периода е комбобокс и може да се сменя
         $data->title = new ET("<span class='quiet'> " . tr('Оборотна ведомост') . '</span> ' . $periodRow);
     }
-    
-    
+
+
     /**
      * След подготовка на тулбара за единичен изглед
      */
@@ -262,8 +262,8 @@ class acc_Balances extends core_Master
             $data->toolbar->addBtn('Назад', array($mvc, 'single', $data->rec->id), 'ef_icon=img/16/back16.png, title = Върни се обратно');
         }
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на формата за филтриране
      */
@@ -271,8 +271,8 @@ class acc_Balances extends core_Master
     {
         $data->query->orderBy('#toDate', 'DESC');
     }
-    
-    
+
+
     /**
      * Връща последния баланс, на който крайната дата е преди друга дата и е валиден
      */
@@ -284,41 +284,41 @@ class acc_Balances extends core_Master
 
         while ($rec = $query->fetch("#toDate < '{$date}'")) {
             if (self::isValid($rec)) {
-                
+
                 return $rec;
             }
         }
     }
-    
-    
+
+
     /**
      * Маркира балансите, които се засягат от документ с посочения вальор
      *
-     * @param string $date       Вальорът на алтерниращият документ
-     * @param int    $docClassId Класът на алтерниращият документ
-     * @param int    $docId      id на алтерниращият документ
+     * @param string $date Вальорът на алтерниращият документ
+     * @param int $docClassId Класът на алтерниращият документ
+     * @param int $docId id на алтерниращият документ
      */
     public static function alternate($date, $docClassId, $docId)
     {
         static $dateArr = array();
         if ($dateArr[$date]) {
-            
+
             return;
         }
         $dateArr[$date] = true;
-        
+
         $now = dt::now();
-        
+
         // Ако датата е 
         $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
-        if($alternateWindow) {
+        if ($alternateWindow) {
             $windowStart = dt::addSecs(-$alternateWindow);
-            if($windowStart > $date) return;
+            if ($windowStart > $date) return;
         }
 
         $query = self::getQuery();
         $query->where("#toDate >= '{$date}'");
-        
+
         // Инвалидираме баланса, ако датата е по-малка от края на периода
         while ($rec = $query->fetch()) {
             $rec->lastAlternation = $now;
@@ -327,8 +327,8 @@ class acc_Balances extends core_Master
             self::save($rec, 'lastAlternation,lastAlternationDocClass,lastAlternationDocId');
         }
     }
-    
-    
+
+
     /**
      * Екшън форсиращ рекалкулирането на определен баланс
      */
@@ -338,27 +338,27 @@ class acc_Balances extends core_Master
         $lockKey = 'RecalcBalances';
         if (!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
             $this->logNotice('Изчисляването на баланса е заключено от друг процес');
-            
-            followRetUrl(null, "Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
+
+            followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
         }
-        
+
         $this->requireRightFor('forcecalc');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('forcecalc', $rec);
-        
+
         self::forceCalc($rec, true);
         self::logWrite('Ръчно преизчисляване на баланса', $rec->id);
         core_Locks::release($lockKey);
-        
-        followRetUrl(null, "Балансът е успешно рекалкулиран|*!");
+
+        followRetUrl(null, "|Балансът е успешно рекалкулиран|*!");
     }
-    
-    
+
+
     /**
      * Ако е необходимо записва и изчислява баланса за посочения период
      *
-     * @param stdClass $rec  - Запис на баланс, с попълнени $fromDate, $toDate и $periodId
+     * @param stdClass $rec - Запис на баланс, с попълнени $fromDate, $toDate и $periodId
      * @param boolean $force - винаги да преизчислява, или само ако е невалиден
      *
      * @return boolean       - Дали е правено преизчисляване
@@ -367,29 +367,29 @@ class acc_Balances extends core_Master
     {
         // Очакваме начална и крайна дата
         expect(strlen($rec->fromDate) == 10 && strlen($rec->toDate) == 10, $rec);
-        
+
         // Ако записа на баланса не за записан, записваме го, за да имаме id
         $exRec = self::fetch("#fromDate = '{$rec->fromDate}' AND #toDate = '{$rec->toDate}'");
-        
+
         if (!$exRec) {
             self::save($rec);
         } else {
             $rec = $exRec;
         }
-        
+
         // Ако не е валиден го преизчисляваме, като всяка от
         // десетте минути след преизчисляването - пак го преизчисляваме
-        if($force !== true){
+        if ($force !== true) {
             $isValid = self::isValid($rec, $rec->lastCalculateChange != 'no' ? 10 : 1);
         } else {
             $isValid = false;
         }
-        
+
         if (!$isValid) {
-            
+
             // Днешна дата
             $today = dt::today();
-            
+
             // Ако изчисляваме текущия период, опитваме да преизчислим баланс за предишен работен ден
             if ($rec->toDate == dt::getLastDayOfMonth()) {
                 if ($prevWorkingDay = self::getPrevWorkingDay($today)) {
@@ -400,7 +400,7 @@ class acc_Balances extends core_Master
                     self::forceCalc($prevRec);
                     $fromDate = $prevRec->fromDate;
                     $toDate = $prevRec->toDate;
-                    
+
                     // Намираме и изтриваме всички баланси, които нямат период и не се отнасят за предишния ден
                     $query = self::getQuery();
                     while ($delRec = $query->fetch("(#fromDate != '{$fromDate}' OR #toDate != '{$toDate}') AND #periodId IS NULL")) {
@@ -409,22 +409,22 @@ class acc_Balances extends core_Master
                     }
                 }
             }
-            
+
             self::calc($rec);
-            
+
             // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
             static $rc1;
-            
+
             if (!$rc1 && $rec->lastCalculateChange != 'no') {
                 self::calc($rec);
                 $rc1 = true;
             }
-            
+
             return true;
         }
     }
-    
-    
+
+
     /**
      * Изчисляване на баланс
      */
@@ -432,15 +432,15 @@ class acc_Balances extends core_Master
     {
         // Вземаме инстанция на детайлите на баланса
         $bD = cls::get('acc_BalanceDetails');
-        
+
         // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
         $lastRec = self::getBalanceBefore($rec->toDate);
-        
+
         if ($lastRec) {
-            
+
             // Ако има зададен период не е междинен баланса, иначе е
             $isMiddleBalance = (!empty($lastRec->periodId)) ? false : true;
-            
+
             // Зареждаме баланса
             $bD->loadBalance($lastRec->id, $isMiddleBalance);
             $firstDay = dt::addDays(1, $lastRec->toDate);
@@ -448,89 +448,93 @@ class acc_Balances extends core_Master
         } else {
             $firstDay = self::TIME_BEGIN;
         }
-        
+
         // Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
         $isMiddleBalance = ($rec->periodId) ? false : true;
         $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
-        
+
         // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
         if ($bD->saveBalance($rec->id)) {
             $rec->lastCalculateChange = 'yes';
         } else {
             $rec->lastCalculateChange = 'no';
         }
-        
+
         // Отбелязваме, кога за последно е калкулиран този баланс
         $rec->lastCalculate = dt::now();
         self::save($rec, 'lastCalculate,lastCalculateChange');
     }
-    
-    
+
+
     /**
      * Рекалкулира баланса
      */
     public function recalc()
     {
         $lockKey = 'RecalcBalances';
-        
+
         // Ако изчисляването е заключено не го изпълняваме
         if (!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
             $this->logNotice('Изчисляването на баланса е заключено от друг процес');
-            
+
             return;
         }
-        
+
         $data = new stdClass();
-        if($oldLastBalance = acc_Balances::getLastBalance()){
+        $data->recalcedBalances = array();
+        if ($oldLastBalance = acc_Balances::getLastBalance()) {
             $data->oldLastBalance = clone $oldLastBalance;
         }
-        
+
         // Обикаляме всички активни и чакъщи периоди от по-старите, към по-новите
         // Ако периода се нуждае от прекалкулиране - правим го
         // Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
         // до предходния работен ден и селд това до днес
-        
+
         $pQuery = acc_Periods::getQuery();
         $pQuery->orderBy('#end', 'ASC');
         $pQuery->where("#state != 'closed'");
         $pQuery->where("#state != 'draft'");
-        
+
         $rc = true;
-        
+
         // Ако е указана граница за изчисляването се използва
         $windowStart = null;
         $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
-        if($alternateWindow) {
+        if ($alternateWindow) {
             $windowStart = dt::addSecs(-$alternateWindow, null, false);
             $pQuery->where("#end >= '{$windowStart}'");
         }
-        
+
         while ($pRec = $pQuery->fetch()) {
             $rec = new stdClass();
             $rec->fromDate = $pRec->start;
             $rec->toDate = $pRec->end;
             $rec->periodId = $pRec->id;
-            
+
             // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
             $j = 0;
             do {
                 core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME);
-                self::forceCalc($rec);
+                $r = self::forceCalc($rec);
+                if($r){
+                    $data->recalcedBalances[$rec->toDate] = $rec;
+                }
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
             $rc = false;
         }
-        
+
         // Освобождаваме заключването на процеса
         core_Locks::release($lockKey);
         core_Debug::stopTimer('recalcBalance');
-        
+
         // Пораждаме събитие, че баланса е бил преизчислен
         $data->lastBalance = acc_Balances::getLastBalance();
-        
+
         $this->invoke('AfterRecalcBalances', array($data));
     }
-    
-    
+
+
     /**
      * Презичислява балансите за периодите, в които има промяна ежеминутно
      */
@@ -609,6 +613,12 @@ class acc_Balances extends core_Master
     public static function on_AfterRecalcBalances(acc_Balances $mvc, &$data)
     {
         acc_Journal::clearDrafts();
+        if(is_array($data->recalcedBalances)){
+            $minDate = countR($data->recalcedBalances) ? min(array_keys($data->recalcedBalances)) : key($data->recalcedBalances);
+            acc_ProductPricePerPeriods::logDebug("BALANCES '{$minDate}'");
+        } else {
+            acc_ProductPricePerPeriods::logDebug("BALANCES NONE");
+        }
     }
     
     
@@ -1051,7 +1061,7 @@ class acc_Balances extends core_Master
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-        if (haveRole('ceo,admin,debug')) {
+        if (haveRole('debug')) {
             $url = self::getRecalcCronUrl();
             $data->toolbar->addBtn('Преизчисляване', $url, 'title=Преизчисляване на баланса,ef_icon=img/16/arrow_refresh.png,target=cronjob');
         }

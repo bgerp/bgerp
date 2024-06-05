@@ -239,7 +239,7 @@ abstract class deals_DealBase extends core_Master
         $rec = &$data->rec;
         
         if ($mvc->haveRightFor('closeWith', $rec)) {
-            $attr = arr::make("id=btnCloseWith,ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки");
+            $attr = arr::make("id=btnCloseWith{$rec->containerId},ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки");
             if($rec->state == 'active'){
                 $attr['row'] = 2;
             }
@@ -259,7 +259,7 @@ abstract class deals_DealBase extends core_Master
      *
      * @return array $options - опции
      */
-    public function getDealsToCloseWith($rec)
+    public function getDealsToCloseWith_($rec)
     {
         // Избираме всички други активни сделки от същия тип и валута, като началния документ в същата папка
         $docs = array();
@@ -301,7 +301,7 @@ abstract class deals_DealBase extends core_Master
         
         // Записите от журнала засягащи това перо
         $entries = acc_Journal::getEntries(array($mvc, $rec->id));
-        
+
         // Към тях добавяме и самия документ
         $entries[] = (object) array('docType' => $mvc->getClassId(), 'docId' => $rec->id);
         
@@ -383,8 +383,14 @@ abstract class deals_DealBase extends core_Master
             $warning[$rec->currencyRate] = $rec->currencyRate;
             $deals1 = keylist::toArray($form->rec->closeWith);
 
+            $dealCountries = array();
             foreach ($deals1 as $d1) {
                 $dealRec = $this->fetch($d1, 'threadId,currencyRate');
+                $logisticData = $this->getLogisticData($d1);
+                if(isset($logisticData['toCountry'])){
+                    $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+                    $dealCountries[$toCountryId][] = $d1;
+                }
                 if (acc_plg_Contable::haveDocumentInThreadWithStates($dealRec->threadId, 'pending,draft')) {
                     $err[] = $this->getLink($d1, 0);
                 }
@@ -395,6 +401,31 @@ abstract class deals_DealBase extends core_Master
             if (countR($err)) {
                 $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
                 $form->setError('closeWith', $msg);
+            }
+
+            $countryWarningMsg = array();
+            $logisticData = $this->getLogisticData($rec->id);
+            if(countR($dealCountries)){
+                $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+                if(isset($toCountryId)){
+                    $dealList = array();
+                    $diffCountries = array_diff_key($dealCountries, array($toCountryId => $toCountryId));
+
+                    if(countR($diffCountries)){
+                        foreach ($diffCountries as $dArr){
+                            foreach ($dArr as $d1){
+                                $dealList[] = "#" . $this->getHandle($d1);
+                            }
+                        }
+                        $countryWarningMsg = "Държавата на доставка в обединяващия договор е различна от държавата на доставка в|*: " . implode(', ', $dealList);
+                    }
+                } else {
+                    $countryWarningMsg = "Обединяват се договори с избрана държава на доставка в договор без посочена такава|*!";
+                }
+            }
+
+            if(!empty($countryWarningMsg)){
+                $form->setWarning('closeWith', $countryWarningMsg);
             }
 
             if (countR($warning) != 1) {
@@ -472,25 +503,85 @@ abstract class deals_DealBase extends core_Master
                 }
 
                 // Обединения договор ще е активен
+                $allocatedExpenses = array();
                 $dealRec = $this->fetch($rec->id, '*', false);
                 $dealRec->contoActions = 'activate';
                 $dealRec->state = 'active';
                 $dealRec->closedDocuments = keylist::merge($dealRec->closedDocuments, $formRec->closeWith);
                 $this->save($dealRec);
 
+                // Проверка дали някоя от сделките, които ще се обединяват е РО
+                $haveDealExpenseItem = false;
+                $listId = acc_Lists::fetchBySystemId('costObjects')->id;
+                foreach ($deals as $dealId1) {
+                    if (acc_Items::isItemInList($this, $dealId1, 'costObjects')) {
+                        $haveDealExpenseItem = true;
+                        break;
+                    }
+                }
+
+                // Ако поне една от сделките е РО, то и обединяващата сделка ще е ПО
+                $combinedDealItemId = null;
+                if($haveDealExpenseItem){
+                    if (!acc_Items::isItemInList($this, $rec->id, 'costObjects')) {
+                        acc_Items::force($this->getClassId(), $rec->id, $listId);
+                    }
+                    $combinedDealItemId = acc_Items::fetchItem($this, $rec->id)->id;
+                }
+
                 core_App::setTimeLimit(2000);
                 $CloseDoc = cls::get($this->closeDealDoc);
                 foreach ($deals as $dealId) {
 
+                    // Ако има разпределени разходи към сделката, запомнят се и се изтриват
+                    $tmpCache = array();
+                    if(acc_Items::isItemInList($this, $dealId, 'costObjects')){
+                        $dItemId = acc_Items::fetchItem($this, $dealId)->id;
+                        $cQuery = acc_CostAllocations::getQuery();
+                        $cQuery->where("#expenseItemId = {$dItemId}");
+                        while($cRec = $cQuery->fetch()){
+                            $exAccId = $cRec->id;
+                            acc_CostAllocations::delete($cRec->id);
+                            unset($cRec->id, $cRec->createdOn, $cRec->createdBy);
+                            $tmpCache[$exAccId] = clone $cRec;
+                            $cRec->_oldExpenceItemId = $cRec->expenseItemId;
+                            $cRec->expenseItemId = $combinedDealItemId;
+                            $allocatedExpenses[$exAccId] = $cRec;
+                        }
+                    }
+
                     // Създаване на приключващ документ-чернова
                     $dRec = $this->fetch($dealId);
                     $clId = $CloseDoc->create($this->className, $dRec, $id);
+
+                    try {
+                        Mode::push('isBeingClosedWithDeal', true);
+                        $CloseDoc->conto($clId);
+                        Mode::pop('isBeingClosedWithDeal');
+                    } catch (acc_journal_RejectRedirect $e) {
+                        // Ако е имало грешка и има изтрити разходи възстановяват се
+                        foreach ($tmpCache as $exAccCostId => $deletedCostRec){
+                            acc_CostAllocations::save($deletedCostRec);
+                            unset($allocatedExpenses[$exAccCostId]);
+                        }
+                        $errorArr[] = "Не може да се контира|*: #{$CloseDoc->getHandle($clId)}";
+                    }
+
                     $this->logWrite('Приключено с друга сделка', $dealId);
-                    $CloseDoc->conto($clId);
                 }
 
-                $this->invoke('AfterActivation', array($rec));
-                
+                $this->invoke('AfterActivation', array($dealRec));
+
+                // Разпределените разходи към приключените сделки се насочват към новата сделка
+                foreach ($allocatedExpenses as $newExpense){
+                    acc_CostAllocations::save($newExpense);
+                }
+
+                // Форсиране на съмърито, ако сделката е форсирана като РО
+                if($haveDealExpenseItem && $combinedDealItemId){
+                    doc_ExpensesSummary::updateSummary($rec->containerId, $combinedDealItemId, true);
+                }
+
                 // Записваме, че потребителя е разглеждал този списък
                 $this->logWrite('Приключване на сделка с друга сделка', $id);
                 if(countR($errorArr)){
@@ -708,7 +799,7 @@ abstract class deals_DealBase extends core_Master
         $fh = fileman::absorbStr($csv, 'exportCsv', "{$this->abbr}{$rec->id}_OrderedAndShipped.csv");
         
         // Редирект към експортиртния файл
-        redirect(array('fileman_Files', 'single', $fh), 'Справката е експортирана успешно');
+        redirect(array('fileman_Files', 'single', $fh), '|Справката е експортирана успешно');
     }
     
     
@@ -933,7 +1024,7 @@ abstract class deals_DealBase extends core_Master
                 $this->recalcDocumentsWithNewRate($rec, $fRec->newRate);
             } catch(acc_journal_Exception $e){
                 $url = $this->getSingleUrlArray($rec->id);
-                redirect($url, false, 'Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
+                redirect($url, false, '|Курса не може да бъде преизчислен|! ' . $e->getMessage(), 'error');
             }
 
             // Нотифициране на обекта за да се преизчисли статистиката за всеки случай
@@ -947,7 +1038,7 @@ abstract class deals_DealBase extends core_Master
                 acc_Items::notifyObject($itemRec);
             }
 
-            followRetUrl(null, 'Документите са преизчислени успешно|*!');
+            followRetUrl(null, '|Документите са преизчислени успешно|*!');
         }
 
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс,order=9');

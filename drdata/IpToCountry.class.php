@@ -39,6 +39,9 @@ class drdata_IpToCountry extends core_Manager
         $this->FLD('country2', 'varchar(2)', 'mandatory,caption=Код на държава');
         
         $this->load('drdata_Countries,drdata_Wrapper');
+        $this->setDbIndex('minIp');
+        $this->setDbIndex('maxIp');
+        $this->setDbIndex('minIp, maxIp');
         
         $this->dbEngine = 'MYISAM';
     }
@@ -57,13 +60,27 @@ class drdata_IpToCountry extends core_Manager
         $fields = array(
             0 => 'minIp',
             1 => 'maxIp',
-            4 => 'country2'
+            2 => 'country2'
         );
         
         // Импортираме данните
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
         
         $res .= $cntObj->html;
+    }
+
+
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, $rec)
+    {
+        if ($rec->minIp) {
+            $rec->minIp = sprintf("%u", ip2long($rec->minIp));
+        }
+        if ($rec->maxIp) {
+            $rec->maxIp = sprintf("%u", ip2long($rec->maxIp));
+        }
     }
     
     
@@ -73,12 +90,26 @@ class drdata_IpToCountry extends core_Manager
      */
     public static function get($ip = null)
     {
+        $ipToCountry = core_Cache::get('drdata_IpToCountry', 'ipToCountry');
+        if ($ipToCountry === false) {
+            $ipToCountry = array();
+        }
+
         if (!$ip) {
             $ip = type_Ip::getRealIp();
         }
-        
-        $cRec = drdata_IpToCountry::fetch("#minIp <= INET_ATON('{$ip}') AND #maxIp >= INET_ATON('{$ip}')");
-        
-        return $cRec->country2;
+
+        if (isset($ipToCountry[$ip])) {
+
+            return $ipToCountry[$ip];
+        }
+
+//        $cRec = drdata_IpToCountry::fetch("#minIp <= INET_ATON('{$ip}') AND #maxIp >= INET_ATON('{$ip}')");
+//        $ipToCountry[$ip] = $cRec->country2;
+        $ipToCountry[$ip] = drdata_IpToCountry::fetchField(array("#minIp <= '[#1#]' AND #maxIp >= '[#1#]'", sprintf("%u", ip2long($ip))), 'country2');
+
+        core_Cache::set('drdata_IpToCountry', 'ipToCountry', $ipToCountry, 1000000);
+
+        return $ipToCountry[$ip];
     }
 }

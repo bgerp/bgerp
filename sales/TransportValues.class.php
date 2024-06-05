@@ -448,6 +448,8 @@ class sales_TransportValues extends core_Manager
                 $hint .= '|липсваща зона|*';
             } elseif ($amountFee == cond_TransportCalc::EMPTY_WEIGHT_ERROR) {
                 $hint .= '|няма транспортно тегло|*';
+            } elseif ($amountFee == cond_TransportCalc::WEIGHT_FEE_OTHER_ERROR) {
+                $hint .= '|изчисленото транспортно тегло е отрицателно или невалидно|*';
             } else {
                 $hint .= "({$amountFee})";
             }

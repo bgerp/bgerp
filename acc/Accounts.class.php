@@ -103,7 +103,7 @@ class acc_Accounts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'num,title,type,lists=Номенклатури,systemId,state,tools=Пулт';
+    public $listFields = 'id=ID,num,title,type,lists=Номенклатури,systemId,state,tools=Пулт';
     
     
     /**
@@ -214,6 +214,10 @@ class acc_Accounts extends core_Manager
         
         // Сортиране на записите по num
         $data->query->orderBy('num');
+
+        if(!haveRole('debug')){
+            unset($data->listFields['id']);
+        }
     }
     
     

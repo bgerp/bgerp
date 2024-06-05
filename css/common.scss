@@ -459,12 +459,12 @@ input, textarea, select,input:focus, textarea:focus, select:focus, input:hover, 
 }
 
 #simpleSearch {
-	width:15em;
-	max-width:100%;
+	width:100%;
 	border:solid 1px #ccc;
 	display:block;
 	position:relative;
 	height:1.5em;
+	margin-bottom: 20px;
 	border-radius: 5px;
 	box-shadow: 1px 1px 0 rgba(60,60,60,0.1);
 }
@@ -478,6 +478,7 @@ input, textarea, select,input:focus, textarea:focus, select:focus, input:hover, 
 
 .narrow #cmsNavigation #simpleSearch {
 	height:1.5em;
+	min-width: 300px;
 	margin-top: 15px !important;
 }
 
@@ -504,7 +505,7 @@ input, textarea, select,input:focus, textarea:focus, select:focus, input:hover, 
 	margin-right:0px;
 	padding:0;
 	height:1.8em;
-	right:0px;
+	right:0;
 	position:absolute;
 	border:none;
 	background-color:transparent;
@@ -552,7 +553,7 @@ table {
 }
 
  
-/*височини на някои от елементите, за да няма разминавания при някои устройства*/
+/*височини на някои от елементите, за да няма разминавания при някои устройства */
  input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"] {
 	height: 1.5em;
 }
@@ -1089,9 +1090,24 @@ a.more-btn {
 .narrow .more-btn {
 	float: none;
 }
-
 .more-btn.show-btn {
 	background-image: url(../img/16/toggle2.png) !important;
+}
+.newIconStyle {
+	height: 14px;
+	width: 14px;
+	display: inline-block;
+	background-image: url(../img/16/small-minus.png);
+	&:hover {
+		cursor: pointer;
+	}
+}
+.expand .newIconStyle, .newIconStyle.openAllRows {
+	background-image: url(../img/16/small-plus.png) !important;
+}
+
+.collapse .newIconStyle {
+	background-image: url(../img/16/small-minus.png);
 }
 
 .shortSelect {
@@ -1523,6 +1539,10 @@ table.listTable {
 	}
 }
 
+.formSection .listTable td {
+	vertical-align: top;
+}
+
 .listAction table.listTable, table.listTable.listAction  {
 	> tbody > tr > td {
 		max-width: 400px ;
@@ -1619,11 +1639,20 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHo
 
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
-.formError, .formNotice, .formWarning {
+.formError, .formNotice, .formWarning, .formCustomInfo, .formMiddleCaption  {
     font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
+}
+.formCustomInfo, .formMiddleCaption  {
+	background-color: #fdfdc0;
+	border: solid 1px #ccc;
+	color:#666;
+}
+
+.formMiddleCaption {
+	margin: 0 !important;
 }
 
 .formNotice {
@@ -1735,6 +1764,11 @@ span.inputLackOfChoiceMandatory {
     background-color:yellow;
     border:solid 1px red;
     border-radius:2px;
+}
+
+.wide .hFormField .inputLackOfChoiceMandatory {
+	position: relative;
+	top: 4px;
 }
 
 .formInfo, .formWarning {
@@ -3279,9 +3313,6 @@ div.richtextHide {
 }
 
 /*richtext elements*/
-.narrow .richtext {
-	font-size: 0.9em;
-}
 
 .richtext h1, .richtext h2, .richtext h3, .richtext h4, .richtext h5, .richtext h6{
 	margin-top: 0;

@@ -52,11 +52,11 @@
 
 <p>|По време на отсъствието|*:</p>
 <ul class='custom-ul'>
-    <li>|Ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
-    <li>|Ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
-    <!--ET_BEGIN alternatePerson-->
-    <li>|Ще ме замества|*: <b>[#alternatePerson#]</b></li>
-    <!--ET_END alternatePerson-->
+    <li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
+    <li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
+    <!--ET_BEGIN alternatePersons-->
+    <li>|ще ме замества|*: <b>[#alternatePersons#]</b></li>
+    <!--ET_END alternatePersons-->
 </ul>
 <!--ET_BEGIN note-->
 <div class="richtext-holder indent" style="margin-bottom: 10px;">|Бележки|*: [#note#] </div>

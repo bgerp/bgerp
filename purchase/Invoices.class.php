@@ -9,7 +9,7 @@
  * @package   purchase
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -44,8 +44,8 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,plg_Clone, doc_DocumentPlg,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, acc_plg_DocumentSummary, drdata_plg_Canonize,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export';
+					doc_EmailCreatePlg, price_plg_TotalDiscount, bgerp_plg_Blank, plg_Printing,deals_plg_DpInvoice, 
+                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_UsingProductVat, drdata_plg_Canonize,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export, doc_SharablePlg';
     
     
     /**
@@ -75,7 +75,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,invoicer';
+    public $canEdit = 'ceo,invoicerPurchase, invoicerFindeal';
     
     
     /**
@@ -93,25 +93,25 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,invoicer';
+    public $canAdd = 'ceo, invoicerPurchase, invoicerFindeal';
     
     
     /**
      * Кой има право да създава от файл?
      */
-    public $canCreatefromfile = 'ceo,invoicer';
+    public $canCreatefromfile = 'ceo,invoicerPurchase, invoicerFindeal';
     
     
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,invoicer';
+    public $canConto = 'ceo, invoicerPurchase, invoicerFindeal';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number, folderId, contragentName';
+    public $searchFields = 'number, folderId, contragentName, dcReason, reason, additionalInfo';
     
     
     /**
@@ -169,14 +169,13 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да експортва?
      */
-    public $canExport = 'ceo,invoicer';
-    
-    
+    public $canExport = 'ceo,invoicerPurchase, invoicerFindeal';
+
+
     /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'place' => 'lastDocUser|lastDoc|defMethod',
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
@@ -200,6 +199,14 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Стратегии за добавяне на артикули след създаване от източника
      */
     protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички артикули от сделката", 'shippedNotInvoiced' => 'Заскладените (Нефактурирани) артикули по сделката', 'none' => 'Без');
+
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason,additionalConditions,username,issuerId,journalDate,state';
 
 
     /**
@@ -236,7 +243,11 @@ class purchase_Invoices extends deals_InvoiceMaster
             $additionalInfo = tr('|Към авансов отчет|*: #') . $origin->getHandle() . PHP_EOL;
             $form->setDefault('additionalInfo', $additionalInfo);
         }
-        
+
+        if(!haveRole('acc,ceo')){
+            $form->setField('journalDate', 'input=none');
+        }
+
         parent::prepareInvoiceForm($mvc, $data);
         if(empty($rec->id)){
             $form->setDefault('importProducts', 'shippedNotInvoiced');
@@ -253,7 +264,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $form->setOptions('accountId', bank_Accounts::getContragentIbans($coverId, $coverClass, true));
         
         if (!in_array($form->rec->vatRate, array('yes', 'separate'))) {
-            if(!crm_Companies::isOwnCompanyVatRegistered()){
+            if(!$mvc->isOwnCompanyVatRegistered($rec)){
                 $form->setField('vatReason', 'mandatory');
             }
         }
@@ -461,6 +472,20 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $res = 'no_one';
             }
         }
+
+        if(in_array($action, array('add', 'conto', 'edit', 'reject')) && isset($rec)){
+            if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){
+                if($firstDoc->isInstanceOf('purchase_Purchases')){
+                    if(!haveRole('invoicerPurchase,ceo')){
+                        $res = 'no_one';
+                    }
+                } else {
+                    if(!haveRole('invoicerFindeal,ceo')){
+                        $res = 'no_one';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -521,6 +546,16 @@ class purchase_Invoices extends deals_InvoiceMaster
                     $data->toolbar->addBtn('ВОП', array('purchase_Vops', 'print', $vopId, 'Printing' => 'yes'), 'ef_icon=img/16/print_go.png,title=Разпечатване на нов протокол за вътреобщностно придобиване,target=_blank');
                 }
             }
+
+            if($rec->type == 'dc_note'){
+                if(!isset($rec->changeAmount)){
+                    if($rec->dealValue <= 0) {
+                        $data->toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/EN.png,title=Създаване на експедиционно нареждане към дебитно известие");
+                    } elseif(store_Receipts::haveRightFor('add', array('threadId' => $rec->threadId))){
+                        $data->toolbar->addBtn('Засклаждане', array('store_Receipts', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/store-receipt.png,title=Създаване на складова разписка към кредитното известие");
+                    }
+                }
+            }
         }
     }
     
@@ -541,7 +576,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
         if (self::haveRightFor('createfromfile') && self::canKeepDoc($fRec->name, $fRec->fileLen)) {
             
-            // Създаваме масива за съзване на визитка
+            // Създаваме масива за създаване на визитка
             $arr = array();
             
             $me = cls::get(get_called_class());
@@ -1124,12 +1159,22 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function getDefaultPlace($rec)
     {
-        $place = null;
-        $cData = doc_Folders::getContragentData($rec->folderId);
-        $place = !empty($cData->place) ? $cData->place : $cData->address;
-        
-        if(!empty($place)){
-            $myCompany = crm_Companies::fetchOwnCompany();
+        // Взимат се данните на избрания контрагент или на дефолтния
+        $cData = null;
+        if(isset($rec->displayContragentClassId) && isset($rec->displayContragentId)){
+           $cData = cls::get($rec->displayContragentClassId)->getContragentData($rec->displayContragentId);
+           $place = !empty($cData->place) ? $cData->place : (!empty($cData->address) ? $cData->address : null);
+        } else {
+            $place = cond_plg_DefaultValues::getDefValueByStrategy(cls::get(get_called_class()), $rec, 'place', 'lastDocUser|lastDoc');
+            if(empty($place)){
+                $cData = doc_Folders::getContragentData($rec->folderId);
+                $place = !empty($cData->place) ? $cData->place : (!empty($cData->address) ? $cData->address : null);
+            }
+        }
+
+        if(!empty($place) && is_object($cData)){
+            $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : null;
+            $myCompany = crm_Companies::fetchOwnCompany($ownCompanyId);
             if ($cData->countryId != $myCompany->countryId) {
                 $cCountry = drdata_Countries::fetchField($cData->countryId, 'commonName');
                 $place .= ", {$cCountry}";

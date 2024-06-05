@@ -79,7 +79,7 @@ class csv_Lib
                 $pRowCnt = $cRowCnt;
             } else {
                 if ($cRowCnt != $pRowCnt) {
-                    wp($data, $cRowCnt, $pRowCnt, $fields);
+                    wp('Разминаване в броя на колоните в CSV файла',$data, $cRowCnt, $pRowCnt, $fields);
                 }
             }
             
@@ -326,8 +326,8 @@ class csv_Lib
         setIfNot($datetimeFormat, csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
         setIfNot($thousandsSep, '');
         setIfNot($enclosure, $params['enclosure'], '"');
-        setIfNot($decimals, 2);
-        
+        setIfNot($decimals, csv_Setup::get('DECIMALS'));
+
         // Вземаме колоните, ако са зададени
         if ($params['columns'] != 'none') {
             foreach ($listFields as $fld => $caption) {
@@ -482,8 +482,8 @@ class csv_Lib
     {
         $enclosure = preg_quote($enclosure, '/');
         $delimiter = preg_quote($delimiter, '/');
-        
-        if (preg_match("/\r|\n|{$delimiter}|{$enclosure}/", $val)) {
+
+        if (preg_match("/\r|\n|{$delimiter}|{$enclosure}/", $val) || Mode::is('csvAlwaysAddEnclosure')) {
             $val = $enclosure . str_replace($enclosure, $enclosure . $enclosure, $val) . $enclosure;
         }
         

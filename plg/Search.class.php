@@ -785,7 +785,7 @@ class plg_Search extends core_Plugin
         
         if (!$cnt) {
             if (!is_null($kVal)) {
-                core_Permanent::set($pKey, $kVal, 200);
+                core_Permanent::set($pKey, $kVal, 5);
             } else {
                 core_Permanent::remove($pKey);
             }
@@ -802,7 +802,9 @@ class plg_Search extends core_Plugin
         $query->limit(10000);
         
         $lastId = $kVal;
-        
+
+        $Containers = cls::get('doc_Containers');
+
         try {
             while ($rec = $query->fetch()) {
                 
@@ -819,16 +821,25 @@ class plg_Search extends core_Plugin
                 
                 try {
                     $generatedKeywords = $clsInst->getSearchKeywords($rec);
-                    if ($generatedKeywords == $rec->searchKeywords) {
-                        
-                        continue;
+                    if ($generatedKeywords != $rec->searchKeywords) {
+
+                        $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+
+                        $rec->searchKeywords = $generatedKeywords;
+
+                        $clsInst->save_($rec, 'searchKeywords');
                     }
-                    
-                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
-                    
-                    $rec->searchKeywords = $generatedKeywords;
-                    
-                    $clsInst->save_($rec, 'searchKeywords');
+
+                    // Обновяваме и ключовите думи в контейнерите, дори и да няма промяна в модела
+                    if ($rec->containerId) {
+                        $cRec = $Containers->fetch($rec->containerId);
+                        if ($cRec) {
+                            if ($generatedKeywords != $cRec->searchKeywords) {
+                                $cRec->searchKeywords = $generatedKeywords;
+                                $Containers->save_($cRec, 'searchKeywords');
+                            }
+                        }
+                    }
                 } catch (Exception $e) {
                     reportException($e);
                 } catch (Throwable  $e) {
@@ -910,8 +921,11 @@ class plg_Search extends core_Plugin
         $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
         $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
 
-        $mvc->save_($rec, 'searchKeywords');
-        if($rec->containerId){
+        if ($mvc->hasPlugin('plg_Search')){
+            $mvc->save_($rec, 'searchKeywords');
+        }
+
+        if ($rec->containerId){
             doc_Containers::update_($rec->containerId);
         }
     }

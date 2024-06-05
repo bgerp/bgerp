@@ -448,12 +448,12 @@ textarea:hover {
   outline: none; }
 
 #simpleSearch {
-  width: 15em;
-  max-width: 100%;
+  width: 100%;
   border: solid 1px #cccccc;
   display: block;
   position: relative;
   height: 1.5em;
+  margin-bottom: 20px;
   border-radius: 5px;
   box-shadow: 1px 1px 0 rgba(60, 60, 60, 0.1); }
 
@@ -465,6 +465,7 @@ textarea:hover {
 
 .narrow #cmsNavigation #simpleSearch {
   height: 1.5em;
+  min-width: 300px;
   margin-top: 15px !important; }
 
 .narrow #searchform {
@@ -492,7 +493,7 @@ textarea:hover {
   margin-right: 0px;
   padding: 0;
   height: 1.8em;
-  right: 0px;
+  right: 0;
   position: absolute;
   border: none;
   background-color: rgba(0, 0, 0, 0);
@@ -1055,6 +1056,21 @@ a.more-btn {
 .more-btn.show-btn {
   background-image: url(../img/16/toggle2.png) !important; }
 
+.newIconStyle {
+  height: 14px;
+  width: 14px;
+  display: inline-block;
+  background-image: url(../img/16/small-minus.png); }
+  .newIconStyle:hover {
+    cursor: pointer; }
+
+.expand .newIconStyle,
+.newIconStyle.openAllRows {
+  background-image: url(../img/16/small-plus.png) !important; }
+
+.collapse .newIconStyle {
+  background-image: url(../img/16/small-minus.png); }
+
 .shortSelect {
   border: none;
   outline: none;
@@ -1443,6 +1459,9 @@ table.listTable {
   table.listTable .rowNumColumn {
     width: 1%; }
 
+.formSection .listTable td {
+  vertical-align: top; }
+
   .listAction table.listTable > tbody > tr > td,
   table.listTable.listAction > tbody > tr > td {
     max-width: 400px; }
@@ -1534,7 +1553,9 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
  */
 .formError,
 .formNotice,
-.formWarning {
+.formWarning,
+.formCustomInfo,
+.formMiddleCaption {
   font-size: 0.9em;
   padding: 10px;
   margin-bottom: 10px;
@@ -1542,6 +1563,15 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
   border-radius: 5px; }
+
+.formCustomInfo,
+.formMiddleCaption {
+  background-color: #fdfdc0;
+  border: solid 1px #cccccc;
+  color: #666666; }
+
+.formMiddleCaption {
+  margin: 0 !important; }
 
 .formNotice {
   background-color: #ffff66;
@@ -1631,6 +1661,10 @@ span.inputLackOfChoiceMandatory {
   background-color: yellow;
   border: solid 1px red;
   border-radius: 2px; }
+
+.wide .hFormField .inputLackOfChoiceMandatory {
+  position: relative;
+  top: 4px; }
 
 .formInfo,
 .formWarning {
@@ -2989,9 +3023,6 @@ div.richtextHide {
 /*
  * richtext elements
  */
-.narrow .richtext {
-  font-size: 0.9em; }
-
 .richtext h1,
 .richtext h2,
 .richtext h3,

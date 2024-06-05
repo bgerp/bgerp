@@ -693,7 +693,7 @@ class bgerp_L extends core_Manager
             
             $optArr = $this->getDocOptions($cId, $mId);
             
-            Mode::push('saveObjectsToCid', $cid);
+            Mode::push('saveObjectsToCid', $cId);
             
             // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на
             // документа за показване
@@ -775,9 +775,10 @@ class bgerp_L extends core_Manager
      */
     public static function getDocLink($cid, $mid)
     {
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf');
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')
+            || Mode::is('printing') || Mode::is('exporting');
         $url = toUrl(array('L', 'S', $cid, 'm' => $mid), $isAbsolute, true, array('m'));
-        
+
         // Добавяме файла към списъка
         if ($sCid = Mode::get('saveObjectsToCid')) {
             doc_UsedInDocs::addObject(array($cid => $cid), $sCid, 'docs');

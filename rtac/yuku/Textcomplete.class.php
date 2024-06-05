@@ -54,7 +54,7 @@ class rtac_yuku_Textcomplete extends core_Manager
                     match: /\B@((\w|\.|[А-Яа-я])*)$/i,
                     index: 1,
                     search: function (term, callback) {
-                        getEfae().process({url: rtacObj.shareUsersURL.{$rtId}}, {term:term, roles:rtacObj.shareUserRoles.{$rtId}, rtid: '{$rtId}'}, false);
+                        getEfae().process({url: rtacObj.shareUsersURL.{$rtId}}, {term:term, roles:rtacObj.shareUserRoles.{$rtId}, users:rtacObj.shareUsersIds.{$rtId}, rtid: '{$rtId}'}, false);
                         callback(rtacObj.sharedUsers.{$rtId});
                     },
                     replace: function (userObj) {

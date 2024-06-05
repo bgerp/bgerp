@@ -1,0 +1,13 @@
+<div class='scrolling-holder'>
+    <fieldset class='top-tab-content'>
+        <legend class='groupTitle'>|Позиции|*</legend>
+        <div class='detail-info portal [#TAB_STATE#]'>
+            <div class='groupList clearfix21'>
+                [#FILTER#]
+                <!--ET_BEGIN content-->
+                [#content#]
+                <!--ET_END content-->
+            </div>
+        </div>
+    </fieldset>
+</div>

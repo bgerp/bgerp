@@ -141,11 +141,13 @@ class hr_Indicators extends core_Manager
             
             $this->logWrite("Преизчисляване на индикаторите");
             $sources = !empty($rec->sources) ? keylist::toArray($rec->sources) : null;
+            core_App::setTimeLimit(900);
+
             Mode::push('manualRecalc', true);
             self::recalc($rec->timeline, $sources);
             Mode::pop('manualRecalc');
 
-            followRetUrl(null, 'Индикаторите са преизчислени');
+            followRetUrl(null, '|Индикаторите са преизчислени');
         }
         
         // Добавяне на бутони
@@ -253,7 +255,7 @@ class hr_Indicators extends core_Manager
             if (is_array($data) && countR($data)) {
                 
                 // Даваме време
-                core_App::setTimeLimit(countR($data) + 10);
+                core_App::setTimeLimit(countR($data) + 15);
                 
                 // По id-то на служителя, намираме от договора му
                 // в кой отдел и на каква позиция работи

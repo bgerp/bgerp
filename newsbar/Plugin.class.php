@@ -285,7 +285,7 @@ class newsbar_Plugin extends core_Plugin
                 $html->replace('</marquee>', 'marquee2');
             }
             
-            $resArr[$hash] = $html->getContent();
+            $resArr[$hash] = $html ;
         }
         
         return $resArr[$hash];

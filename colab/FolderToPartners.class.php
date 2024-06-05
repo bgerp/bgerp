@@ -602,7 +602,8 @@ class colab_FolderToPartners extends core_Manager
             $form->rec->companyId = $objectId;
             $form->rec->className = $className;
             $form->rec->placeHolder = $placeHolder;
-            $res = $this->sendRegistrationEmail($form->rec);
+
+            $res = static::sendRegistrationEmail($form->rec);
             $msg = ($res) ? 'Успешно изпратен имейл' : 'Проблем при изпращането на имейл';
             
             cls::get($className)->logInAct('Изпращане на имейл за регистрация на нов партньор', $objectId);
@@ -624,7 +625,7 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Изпраща имейл за регистрация на имейла на контрагента
      */
-    private function sendRegistrationEmail($rec)
+    public static function sendRegistrationEmail($rec)
     {
         $sentFrom = email_Inboxes::fetchField($rec->from, 'email');
         $sentFromName = email_Inboxes::getFromName($rec->from);
@@ -653,7 +654,7 @@ class colab_FolderToPartners extends core_Manager
 
         $lifetime = colab_Setup::get('PARTNER_REGISTRATION_LINK_LIFETIME');
         $PML->Encoding = 'quoted-printable';
-        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), $lifetime);
+        $url = core_Forwards::getUrl(get_called_class(), 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), $lifetime);
         $rec->body = str_replace($rec->placeHolder, "[link=${url}]link[/link]", $rec->body);
         
         Mode::push('text', 'plain');
@@ -692,9 +693,7 @@ class colab_FolderToPartners extends core_Manager
         // Логване на евентуални грешки при изпращането
         if (!$isSended) {
             $error = trim($PML->ErrorInfo);
-            if (isset($error)) {
-                log_System::add('phpmailer_Instance', 'PML error: ' . $error, null, 'err');
-            }
+            log_System::add('phpmailer_Instance', 'PML error: ' . $error, null, 'err');
         }
         
         return $isSended;
@@ -732,8 +731,6 @@ class colab_FolderToPartners extends core_Manager
         if (!$fromEmail) {
             requireRole('powerUser');
             expect(doc_Folders::haveRightToObject($contragentRec));
-        } else {
-            vislog_History::add("Форма за регистрация на партньор в «{$contragentName}»");
         }
 
         $form = $Users->getForm();
@@ -883,12 +880,13 @@ class colab_FolderToPartners extends core_Manager
             if ($Class instanceof crm_Companies) {
                 $personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
                 $personRec = crm_Persons::fetch($personId);
-                
+
                 // Свързваме лицето към фирмата
                 $personRec->buzCompanyId = $objectId;
                 $personRec->country = $form->rec->country;
-                $personRec->inCharge = $contragentRec->inCharge;
-                
+                $inChargeState = core_Users::fetchField($contragentRec->inCharge, 'state');
+                $personRec->inCharge = in_array($inChargeState, array('active', 'blocked')) ? $contragentRec->inCharge : doc_FolderPlg::getDefaultInCharge();
+
                 // Имейлът да е бизнес имейла му
                 $buzEmailsArr = type_Emails::toArray($personRec->buzEmail);
                 $buzEmailsArr[] = $personRec->email;
@@ -907,10 +905,8 @@ class colab_FolderToPartners extends core_Manager
             // Подсигуряваме се че винаги папката ще е споделена
             colab_FolderToPartners::force($folderId, $uId);
             $Class->logWrite("Споделяне на папка към партньор след покана за регистрация", $objectId);
-
             $Class->logInAct('Регистрация на нов партньор', $objectId);
-            vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$contragentName}»");
-            
+
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
 
@@ -1075,5 +1071,22 @@ class colab_FolderToPartners extends core_Manager
             $Cover = doc_Folders::getCover($rec->folderId);
             $Cover->getInstance()->logWrite('Споделяне към партньор', $Cover->that);
         }
+    }
+
+
+    /**
+     * Връща ид-та на споделените партньори към папката
+     *
+     * @param int $folderId
+     * @return array $contractorIds
+     */
+    public static function getContractorsInFolder($folderId)
+    {
+        $cQuery = colab_FolderToPartners::getQuery();
+        $cQuery->EXT('contractorState', 'core_Users', 'externalName=state,externalKey=contractorId');
+        $cQuery->where("#folderId = '{$folderId}' AND #contractorState = 'active'");
+        $contractorIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'contractorId');
+
+        return $contractorIds;
     }
 }

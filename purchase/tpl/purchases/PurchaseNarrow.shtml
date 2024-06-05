@@ -47,6 +47,7 @@
 <div class="lines"></div>
 <div class="details scrolling-holder">
     [#purchase_PurchasesDetails#]
+    [#price_DiscountsPerDocuments#]
 </div>
 <div class='lines'></div>
 <table class="innerTable footer-notes paddingCells" style='width:100%;'>
@@ -93,7 +94,7 @@
                         <li>|Освободено от ДДС|*[#exemptVat#]</li>
                         <!--ET_END exemptVat-->
                         <!--ET_BEGIN noVat-->
-                        <li>|Цените са без ДДС|*[#noVat#]</li>
+                        <li>|Без начисляване на ДДС|*[#noVat#]</li>
                         <!--ET_END noVat-->
                         <!--ET_BEGIN notes-->
                         [#notes#]

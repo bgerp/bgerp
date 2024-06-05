@@ -148,6 +148,7 @@ class colab_Threads extends core_Manager
         // Ако има папка записва се като активна
         colab_Folders::setLastActiveContragentFolder($data->folderId);
 
+        $data->threadRec->partnerDocLast = (empty($data->threadRec->partnerDocLast)) ? '0000-00-00' : $data->threadRec->partnerDocLast;
         bgerp_Recently::add('document', $data->threadRec->firstContainerId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
         $otherDocChanges = doc_Threads::fetch(array("#id != '[#1#]' AND #folderId = '[#2#]' AND #state != 'rejected' AND #partnerDocLast > '[#3#]'",
             $data->threadRec->id, $data->threadRec->folderId, $data->threadRec->partnerDocLast));
@@ -194,7 +195,12 @@ class colab_Threads extends core_Manager
         
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
-        
+
+        if (!Request::get('ajax_mode')) {
+            // Записваме, че потребителя е разглеждал този списък
+            $this->Containers->logInAct('Листване', null, 'read');
+        }
+
         return $tpl;
     }
     
@@ -372,6 +378,9 @@ class colab_Threads extends core_Manager
         $data->listFilter->rec->LastFieldName = 'partnerDocLast';
         
         doc_Threads::applyFilter($data->listFilter->rec, $data->query);
+        $data->listFilterAddedFields = array();
+        $Cover = doc_Folders::getCover($data->listFilter->rec->folderId);
+        $Cover->invoke('AfterPrepareThreadFilter', array(&$data->listFilter, &$data->query, &$data->listFilterAddedFields));
         $data->rejQuery = clone($data->query);
         
         if(core_Users::isContractor() && !haveRole('powerPartner')){
@@ -435,7 +444,7 @@ class colab_Threads extends core_Manager
             }
             
             if(isset($userId) && !haveRole('powerPartner', $userId)){
-                if(!empty($rec->createdBy) && $rec->createdBy != $userId){
+                if(!empty($rec->createdBy) && ($rec->createdBy != $userId && !keylist::isIn($userId, $rec->shared))){
                     $requiredRoles = 'no_one';
                 } elseif(empty($rec->createdBy)) {
                     $email = core_Users::fetchField($userId, 'email');
@@ -478,9 +487,6 @@ class colab_Threads extends core_Manager
         
         $cu = core_Users::getCurrent();
         $sharedFolders = colab_Folders::getSharedFolders();
-        $sharedUsers = colab_Folders::getSharedUsers($folderId);
-        $sharedUsers[$cu] = $cu;
-        $sharedUsers = implode(',', $sharedUsers);
         
         $params['where'][] = "#folderId = {$folderId}";
         $res = $this->Threads->getQuery($params);
@@ -488,7 +494,7 @@ class colab_Threads extends core_Manager
         $res->in('folderId', $sharedFolders);
         
         if(!haveRole('powerPartner', $cu)){
-            $res->where("#createdBy = '{$cu}' || #createdBy = '0'");
+            $res->where("#createdBy = '{$cu}' || #createdBy = '0' || LOCATE('|{$cu}|', #shared)");
             
             // От записите създадени от анонимен потребител ще се проверява имейла му дали съвпада с този на текущия
             $availableRecs = array();
@@ -535,6 +541,9 @@ class colab_Threads extends core_Manager
     protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         $mvc->prepareTitle($data);
+
+        $url = array('colab_Threads', 'list', 'folderId' => Request::get('folderId', 'int'));
+        bgerp_Notifications::clear($url);
     }
     
     

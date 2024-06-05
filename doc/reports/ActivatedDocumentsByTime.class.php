@@ -138,9 +138,14 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         $documentsForChech = keylist::toArray($rec->documents);
         
         $query = doc_Containers::getQuery();
-        
+
+        //Филтриране на периода
+        $query->where(array(
+            "#modifiedOn >= '[#1#]' ",
+            $rec->from));
+
         $query->in('docClass', $documentsForChech);
-        
+
         $query->in('state', array('active','closed'));
         
         while ($document = $query->fetch()) {

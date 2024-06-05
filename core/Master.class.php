@@ -215,7 +215,26 @@ class core_Master extends core_Manager
                 $this->{$var}->$method($detailData);
             }
         }
-        
+
+        // Премахваме помощните полета, за да не се преизчисляват полетата на мастера по погрешка
+        if (is_object($data->rec)) {
+            $dRec = clone $data->rec;
+        } else {
+            $dRec = array();
+        }
+
+        $newDRec = new stdClass();
+        foreach ((array) $dRec as $dRecKey => $dRecVal) {
+            if (strpos($dRecKey, '__') === 0) {
+                if (!(property_exists($oldRec, $dRecKey))) {
+
+                    continue;
+                }
+            }
+
+            $newDRec->{$dRecKey} = $dRecVal;
+        }
+
         /*
          * Сравняваме стойността на $data->rec с предварително запомнената му стойност преди
          * изпълнението на `prepare` методите. Ако двете стойности се окажат различни, изчисляваме
@@ -231,7 +250,9 @@ class core_Master extends core_Manager
          * би трябвало да е така, но промяната му би била прекалено рискова. По тази причина
          * правим компромиса да изчислим $data->row втори път, ако се налага.
          */
-        if (serialize($data->rec) != serialize($oldRec)) {
+        if (serialize($newDRec) != serialize($oldRec)) {
+            wp('Преизчисляване на полетата на мастера', $data->rec, $oldRec, serialize($newDRec), serialize($oldRec));
+
             // $data->rec се е променил в някой `prepare` метод - преизчисляваме $data->row.
             // подсигуряваме, че всички полета на $data->row които не са генерирани в
             // recToVerbal() a другаде, ще бъдат запазени.
@@ -958,5 +979,16 @@ class core_Master extends core_Manager
         $masterTitle = "<b style='color:#ffffcc;'>{$masterTitle}</b>";
         
         return $masterTitle;
+    }
+
+
+    /**
+     * Премахване на подадения документ от опашката за обновяване на шътдаун
+     *
+     * @param int $id
+     */
+    public function removeFromUpdateQueueOnShutdown($id)
+    {
+        unset($this->updateQueue[$id]);
     }
 }

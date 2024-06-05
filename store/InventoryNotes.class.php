@@ -204,6 +204,7 @@ class store_InventoryNotes extends core_Master
         $this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNull,value=no,maxRadio=2');
         $this->FLD('cache', 'blob', 'input=none');
         $this->FLD('expandByBatches', 'enum(no=Само ако има въведени,yes=Винаги)', 'caption=Разпъване по партиди при показване->Избор');
+        $this->FLD('orderProductBy', 'enum(auto=Автоматично,name=Име,code=Код)', 'caption=Сортиране на артикулите в групите->Избор,notNull,value=auto');
 
         // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
         if (haveRole('accMaster,ceo')) {
@@ -466,7 +467,7 @@ class store_InventoryNotes extends core_Master
         $rec = &$data->rec;
         $row = &$data->row;
         
-        $headerInfo = deals_Helper::getDocumentHeaderInfo(null, null);
+        $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, null, null);
         $row = (object) ((array) $row + (array) $headerInfo);
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         
@@ -586,8 +587,6 @@ class store_InventoryNotes extends core_Master
         $storeItemId = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
         $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => false, 'item1' => $storeItemId, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
-        
-        
         $productPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
         
         // Подготвяме записите в нормален вид
@@ -613,10 +612,36 @@ class store_InventoryNotes extends core_Master
                     $aRec->groups = $groups;
                 }
                 
-                $res[] = $aRec;
+                $res[$productId] = $aRec;
             }
         }
-        
+
+        // Ако ще се показват по партиди
+        if($rec->expandByBatches == 'yes'){
+
+            // Тези от баланса, които има наличности по партиди и не се срещат от баланса ще се добавят с 0-во очаквано
+            $withMovements = batch_Items::getProductsWithMovement($rec->storeId, null, $to);
+            $withMovementsButNotInBalance = array_diff_key($withMovements, $res);
+            foreach($withMovementsButNotInBalance as $pId => $q){
+                if(empty($q)) continue;
+
+                $aRec = (object) array('noteId' => $rec->id,
+                    'productId' => $pId,
+                    'groups' => null,
+                    'modifiedOn' => $now,
+                    'createdBy' => core_Users::SYSTEM_USER,
+                    'blQuantity' => 0);
+                $aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
+
+                $groups = cat_Products::fetchField($pId, 'groups');
+                if (!empty($groups)) {
+                    $aRec->groups = $groups;
+                }
+
+                $res[$pId] = $aRec;
+            }
+        }
+
         // Връщаме намерените артикули
         return $res;
     }
@@ -654,7 +679,7 @@ class store_InventoryNotes extends core_Master
                 $productArr[$a->productId] = $a->productId;
             }
         });
-        
+
         // От артикулите от баланса, се махат тези, които нямат избраната група и нямат к-ва.
         // Целта е ако потребителя е въвел артикул, който не е в избраните групи с к-во, неговото очаквано
         // к-во да дойде от баланса
@@ -665,7 +690,7 @@ class store_InventoryNotes extends core_Master
                 }
             }
         }
-        
+
         // Синхронизираме двата масива
         $syncedArr = arr::syncArrays($balanceArr, $currentArr, 'noteId,productId', 'blQuantity,groups,modifiedOn');
         $Summary = cls::get('store_InventoryNoteSummary');
@@ -819,7 +844,7 @@ class store_InventoryNotes extends core_Master
         $form = cls::get('core_Form');
         $form->title = 'Настройки за принтиране на бланка от|* <b>' . static::getHyperlink($id, true) . '</b>';
         
-        if (haveRole('ceo,storeMaster')) {
+        if (haveRole('ceo,storeMaster,inventory')) {
             $directRedirect = false;
             $form->FLD('showBlQuantities', 'enum(no=Скриване,yes=Показване)', 'caption=Очаквани количества,mandatory');
             $form->setDefault('showBlQuantities', 'no');
@@ -1062,7 +1087,7 @@ class store_InventoryNotes extends core_Master
 
         $this->logInAct('Нулиране на невъведените артикули', $id);
         
-        followRetUrl('Всички артикули с невъведени количества са нулирани');
+        followRetUrl('|Всички артикули с невъведени количества са нулирани');
     }
     
     

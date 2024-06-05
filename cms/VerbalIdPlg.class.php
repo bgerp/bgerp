@@ -71,15 +71,26 @@ class cms_VerbalIdPlg extends core_Plugin
         // Да не се кодират id-тата, когато се използва verbalId
         $mvc->protectId = false;
     }
-    
-    
+
+
+    /**
+     * Връща дефолтното вербално ид
+     */
+    public static function on_AfterGetDefaultVerbalId($mvc, &$res, $rec)
+    {
+        if(!$res){
+            $res = $mvc->getRecTitle($rec);
+        }
+    }
+
+
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     public function on_BeforeSave(&$mvc, &$id, &$rec, &$fields = null)
     {
         $fieldName = $this->fieldName;
-        
+
         if ($fields) {
             $fArr = arr::make($fields, true);
             
@@ -95,12 +106,16 @@ class cms_VerbalIdPlg extends core_Plugin
         setIfNot($this->mvc, $mvc);
         
         $recVid = trim(preg_replace('/[^\p{L}0-9]+/iu', '-', " {$recVid} "), '-');
-        
+
         if (!$recVid) {
-            $recVid = $mvc->getRecTitle($rec);
+            $recVid = $mvc->getDefaultVerbalId($rec);
             $recVid = str::canonize($recVid);
         }
-        
+
+        if (!strlen($recVid)) {
+            $recVid = $mvc->className . '_' . $mvc->fieldName;
+        }
+
         expect(strlen($recVid), $recVid);
         
         $cond = "#{$this->fieldName} LIKE '[#1#]'";

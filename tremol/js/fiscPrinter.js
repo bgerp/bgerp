@@ -843,13 +843,21 @@ function fpOperatorReport(isZeroing, number)
 /**
  * Отпечатва отчет за съответния период - с и без нулиране
  */
-function fpPeriodReport(startDate, endDate, isDetailed)
+function fpPeriodReport(startDate, endDate, isDetailed, isPayments)
 {
     try {
     	if (isDetailed) {
-    		fp.PrintDetailedFMReportByDate(startDate, endDate);
+			if (isPayments) {
+				fp.PrintDetailedFMPaymentsReportByDate(startDate, endDate);
+			} else {
+				fp.PrintDetailedFMReportByDate(startDate, endDate);
+			}
     	} else {
-    		fp.PrintBriefFMReportByDate(startDate, endDate);
+			if (isPayments) {
+				fp.PrintBriefFMPaymentsReportByDate(startDate, endDate);
+			} else {
+				fp.PrintBriefFMReportByDate(startDate, endDate);
+			}
     	}
     } catch(ex) {
         handleException(ex);

@@ -99,10 +99,11 @@ class fileman_Download extends core_Manager
      * @param string $src      - Манипулатор на файл, път до файл или URL
      * @param int    $lifeTime - Колко време да се пази линка (в часове)
      * @param string $type     -  - Типа на сорса - handler, url, path
+     * @param boolean $isAbsolute
      *
      * @return bool|string - Линк към файла
      */
-    public static function getDownloadUrl($src, $lifeTime = 1, $type = 'handler')
+    public static function getDownloadUrl($src, $lifeTime = 1, $type = 'handler', $isAbsolute = true)
     {
         // Очакваме типа да е един от дадените
         expect(in_array($type, array('url', 'path', 'handler')));
@@ -185,7 +186,7 @@ class fileman_Download extends core_Manager
             }
             
             // Вземаме URL
-            $link = static::getSbfDownloadUrl($dRec, true);
+            $link = static::getSbfDownloadUrl($dRec, $isAbsolute);
             
             // Записваме
             static::save($dRec);
@@ -223,7 +224,7 @@ class fileman_Download extends core_Manager
         static::save($rec);
         
         // Връщаме линка за сваляне
-        return static::getSbfDownloadUrl($rec, true);
+        return static::getSbfDownloadUrl($rec, $isAbsolute);
     }
 
 

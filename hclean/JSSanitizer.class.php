@@ -27,7 +27,10 @@ class hclean_JSSanitizer extends core_Manager
     {
         // Подготвяме HTML'а
         $jsHtml = static::prepareHtml($link);
-        
+
+        $jsHtml = str_replace('width: 100%; display: flex;', 'width: 100% ; display: block;', $jsHtml);
+        $jsHtml = str_replace('display: flex;', 'display: table-cell;  ', $jsHtml);
+
         // Вземаме скрипта, който санитаризира HTML' а
         $sanitizer = new ET(static::JSSanitizer());
         
@@ -73,9 +76,10 @@ class hclean_JSSanitizer extends core_Manager
         $content = i18n_Charset::convertToUtf8($content, '', true);
         
         $content = html_entity_decode($content);
-        
-        $content = preg_replace("/(<![\[\-][^>]*>)/i", '', $content);
-        
+
+        // Премахваме всичко коментари
+        $content = preg_replace("/<!--.*?-->/si", '', $content);
+
         // Преобразуваме HTML' а в текст, който може да се използва в променливи на JS
         $jsHtml = static::htmlToJsText($content);
         

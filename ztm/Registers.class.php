@@ -99,7 +99,7 @@ class ztm_Registers extends core_Master
      */
     public function loadSetupData()
     {
-        if (BGERP_GIT_BRANCH == 'dev') {
+        if (ztm_Setup::get('FORCE_REGISTRY_SYNC')) {
             $csv = @file_get_contents('https://raw.githubusercontent.com/bgerp/ztm/master/registers.csv');
 
             if (trim($csv)) {
@@ -162,7 +162,12 @@ class ztm_Registers extends core_Master
                 break;
         }
 
-        return core_Type::getByName($ourType);
+        $oType = core_Type::getByName($ourType);
+        if ($type == 'json') {
+            $oType->params['hideLevel'] = 0;
+        }
+
+        return $oType;
     }
     
     
@@ -237,7 +242,7 @@ class ztm_Registers extends core_Master
         }
         
         // Не бива до тук да стигат нескаларни стойностти
-        if (!is_scalar($extValue)) {
+        if (isset($extValue) && !is_scalar($extValue)) {
             wp($extValue, $registerId, $type);
             $extValue = serialize($extValue);
             

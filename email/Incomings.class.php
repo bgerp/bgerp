@@ -228,6 +228,13 @@ class email_Incomings extends core_Master
 
 
     /**
+     * Помощен масив за записване на свалените писма
+     * @var array 
+     */
+    protected $processedDuplicate = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -551,7 +558,7 @@ class email_Incomings extends core_Master
             
             // Ако писмото не е с лошо форматиране
             if ($status != 'misformatted') {
-                $this->doProcessEmail($mime, $accId, $uid);
+                $status = $this->doProcessEmail($mime, $accId, $uid);
             }
         } catch (core_exception_Expect $exp) {
             // Обща грешка
@@ -637,7 +644,7 @@ class email_Incomings extends core_Master
     /**
      * Подготвя, записва и рутира зададеното писмо
      */
-    public function process($mime, $accId, $uid, $prerouteRecArr = array(), $spamDataArr = array())
+    public function process($mime, $accId, $uid, $prerouteRecArr = array(), $spamDataArr = array(), $forceTo = null)
     {
         $mime->saveFiles();
         
@@ -656,10 +663,10 @@ class email_Incomings extends core_Master
         $rec->fromIp = $mime->getSenderIp();
         
         // Извличаме информация за получателя (към кого е насочено писмото)
-        $rec->toEml = $mime->getToEmail();
+        $rec->toEml = isset($forceTo) ? $forceTo : $mime->getToEmail();
         
         // Намира вътрешната пощенска кутия, към която е насочено писмото
-        $rec->toBox = email_Inboxes::getToBox($mime, $accId);
+        $rec->toBox = isset($forceTo) ? $forceTo : email_Inboxes::getToBox($mime, $accId);
         
         // Пробваме да определим езика на който е написана текстовата част
         $rec->lg = $mime->getLg();
@@ -680,8 +687,9 @@ class email_Incomings extends core_Master
         $rec->emlFile = $mime->getEmlFile();
         
         // Задаваме текстовата част
-        $rec->textPart = $mime->textPart;
-        
+//        $rec->textPart = $mime->textPart;
+        $rec->textPart = $mime->getTextPart();
+
         // Запазване на допълнителни MIME-хедъри за нуждите на рутирането
         $rec->inReplyTo = $mime->getHeader('In-Reply-To');
         
@@ -715,7 +723,61 @@ class email_Incomings extends core_Master
 
         // Записваме (и автоматично рутираме) писмото
         $saved = $this->save($rec);
-        
+
+        // Ако са зададени хедъри, по които да сваля имейла
+        if (defined('EMAIL_DUPLICATE_INCOMING_HEADERS')) {
+            $isFirstDoc = true;
+            if ($rec->threadId) {
+                $fCid = doc_Threads::getFirstContainerId($rec->threadId);
+                if ($fCid && $rec->containerId && ($fCid != $rec->containerId)) {
+                    $isFirstDoc = false;
+                }
+            }
+
+            // Ако не е начало на нишка, да не се дублира
+            if ($isFirstDoc) {
+                $hHash = md5($headersStr);
+                if (isset($forceTo)) {
+                    $this->processedDuplicate[$hHash][strtolower($forceTo)] = strtolower($forceTo);
+                } else {
+                    $this->processedDuplicate[$hHash][strtolower($rec->toBox)] = strtolower($rec->toBox);
+                    $this->processedDuplicate[$hHash][strtolower($rec->toEml)] = strtolower($rec->toEml);
+                }
+
+                foreach (explode(',', EMAIL_DUPLICATE_INCOMING_HEADERS) as $header) {
+                    $header = trim($header);
+                    $hEmailStr = email_Mime::getHeadersFromArr($rec->headers, $header);
+                    if (!is_array($hEmailStr)) {
+                        $hEmailStr = array($hEmailStr);
+                    }
+                    foreach ($hEmailStr as $eStr) {
+                        $eArr = type_Emails::toArray($eStr);
+                        foreach ($eArr as $email) {
+                            $email = strtolower($email);
+
+                            // Ако е свалян същият имейл до същия получател в същия хит - прескачаме
+                            if ($this->processedDuplicate[$hHash][$email]) {
+
+                                continue;
+                            }
+
+                            // Ако кутията не съществува в нашата система, не се дублира
+                            if (!email_Inboxes::fetch(array("LOWER(#email) = '[#1#]'", $email))) {
+
+                                continue;
+                            }
+
+                            $this->processedDuplicate[$hHash][$email] = $email;
+                            $this->logInfo('Повторно сваляне с друг имейл: ' . $email, $rec->id);
+                            $this->logInAct('Дублиране до другите получатели', $rec->id);
+                            $sId = $this->process($mime, $accId, $uid, $prerouteRecArr, $spamDataArr, $email);
+                            $this->logInAct('Дублиране до другите получатели', $sId);
+                        }
+                    }
+                }
+            }
+        }
+
         return $saved;
     }
     
@@ -947,15 +1009,24 @@ class email_Incomings extends core_Master
                 if (countR($vals)) {
                     $ourImgArr = core_Permanent::get('ourImgEmailArr');
                     $row->files = '';
-                    
+
+                    $nFilesArr = array();
+
                     foreach ($vals as $keyD) {
                         $fRec = fileman::fetch($keyD);
-                        
+
                         if ($ourImgArr[$fRec->dataId]) {
                             continue;
                         }
-                        
-                        $row->files .= fileman_Files::getLink($fRec->fileHnd);
+                        $keyD = $fRec->fileLen . '|' . $keyD;
+                        $nFilesArr[$keyD] = fileman_Files::getLink($fRec->fileHnd);
+                    }
+
+                    if (countR($nFilesArr)) {
+                        krsort($nFilesArr);
+                        foreach ($nFilesArr as $fVerb) {
+                            $row->files .= $fVerb;
+                        }
                     }
                 } else {
                     $row->files = '';
@@ -1129,6 +1200,26 @@ class email_Incomings extends core_Master
         
         if (Mode::is('text', 'xhtml')) {
             unset($row->ip);
+        }
+
+        if (email_Setup::get('SHOW_HTML_IN_SINGLE') == 'yes') {
+            if (!(Mode::is('text', 'xhtml') && !Mode::is('printing')) && !Mode::is('text', 'plain')) {
+                if ($rec->htmlFile) {
+                    $fRec = fileman::fetch($rec->htmlFile);
+                    if ($fRec) {
+                        try {
+                            $htmlPartArr = fileman_webdrv_Html::getHtmlPart($fRec);
+                            $htmlPart = fileman_webdrv_Html::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path'],
+                                array('webdrvTabBody' => 'webdrvTabBodySingle',
+                                    'webdrvFieldset' => 'webdrvFieldsetSingle',
+                                    'webdrvIframe' => 'webdrvIframeSingle webdrvIframe'));
+                            $row->textPart = $htmlPart;
+                        } catch (core_exception_Expect $exp) {
+                            reportException($exp);
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -1803,7 +1894,7 @@ class email_Incomings extends core_Master
 
                         $status = 'outgoing';
 
-                        email_Fingerprints::setStatus($headersMime, '', $accId, $uId);
+//                        email_Fingerprints::setStatus($headersMime, $status, $accId, $uId);
                     } else {
                         $sId = null;
 
@@ -2831,18 +2922,20 @@ class email_Incomings extends core_Master
      */
     public static function makeFromRule($rec)
     {
-        // Най-висок приоритет, нарастващ с времето
-        $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
-        
-        email_Router::saveRule(
-            (object) array(
-                'type' => email_Router::RuleFrom,
-                'key' => email_Router::getRoutingKey($rec->fromEml, null, email_Router::RuleFrom),
-                'priority' => $priority,
-                'objectType' => 'document',
-                'objectId' => $rec->containerId
-            )
-        );
+        if (static::isCommonToBox($rec)) {
+            // Най-висок приоритет, нарастващ с времето
+            $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
+
+            email_Router::saveRule(
+                (object) array(
+                    'type' => email_Router::RuleFrom,
+                    'key' => email_Router::getRoutingKey($rec->fromEml, null, email_Router::RuleFrom),
+                    'priority' => $priority,
+                    'objectType' => 'document',
+                    'objectId' => $rec->containerId
+                )
+            );
+        }
     }
     
     
@@ -3225,17 +3318,110 @@ class email_Incomings extends core_Master
 
         if (email_ServiceRules::haveRightFor('add')) {
 
-            $url = array('email_ServiceRules', 'add', 'email' => $data->rec->fromEml, 'subject' => $data->rec->subject, 'ret_url' => true);
+            $url = array('email_ServiceRules', 'add', 'docId' => $data->rec->containerId, 'email' => $data->rec->fromEml, 'subject' => $data->rec->subject, 'ret_url' => true);
 
             $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=2, order=19');
         }
 
-        if (email_AddressesInfo::haveRightFor('add')) {
-            $url = array('email_AddressesInfo', 'addEmail', 'docId' => $data->rec->id, 'ret_url' => true);
-            $data->toolbar->addBtn('Отписване', $url, 'ef_icon=img/16/email_open_image.png, title=Възможност за отписване на имйела от циркулярният списък, row=2, order=19.9');
+        if (email_AddressesInfo::haveRightFor('powerUser')) {
+            if ($uLink = $mvc->getUnsubscribeLink($data->rec)) {
+                $uLink = urldecode($uLink);
+
+                // Автоматично оттегля документа, ако е само един в нишката и има права за папката
+                $onClickArr = array();
+                if ($data->rec->state != 'rejected' && $data->rec->folderId && $data->rec->threadId && $data->rec->containerId) {
+                    if (doc_Folders::haveRightFor('single', $data->rec->folderId)) {
+                        if ($data->rec->threadId && doc_Threads::fetch($data->rec->threadId)->allDocCnt <= 1) {
+                            $onClickArr['onclick'] = "document.getElementById('btnDelete{$data->rec->containerId}').click();";
+                        }
+                    }
+                }
+
+                $data->toolbar->addBtn('Отписване', $uLink, 'target=_blank, ef_icon=img/16/email_open_image.png, title=Отписване от получаване на циркулярни имейли, order=29.9', $onClickArr);
+            }
         }
     }
-    
+
+
+    /**
+     * Връща линк за отписване
+     *
+     * @param stdClass $rec
+     *
+     * @return string|null
+     */
+    protected function getUnsubscribeLink($rec)
+    {
+        $rec = $this->fetchRec($rec);
+
+        $res = null;
+
+        if (!$rec) {
+
+            return $res;
+        }
+
+        $cacheType = 'doc_UnsubscribeLink';
+        $cacheHandle = $rec->id;
+
+        $res = core_Cache::get($cacheType, $cacheHandle);
+
+        if ($res !== false) {
+
+            return $res;
+        }
+
+        if ($rec->headers['list-unsubscribe']) {
+            $uData = $rec->headers['list-unsubscribe'][0];
+            if (preg_match(type_Richtext::URL_PATTERN, $uData, $matches)) {
+
+                $res = $matches[0];
+            }
+        }
+
+        if (!$res) {
+            $content = '';
+            if ($rec->htmlFile) {
+                $htmlFRec = fileman::fetch($rec->htmlFile);
+                $content = fileman_Files::getContent($htmlFRec->fileHnd);
+            }
+
+            if (!$content && $rec->emlFile) {
+                // Инстанция на класа
+                $mime = cls::get('email_Mime');
+
+                $fRec = fileman::fetch($rec->emlFile);
+
+                // Вземаме съдържанието на eml файла
+                $source = fileman::getContent($fRec->fileHnd);
+
+                $mime->parseAll($source);
+
+                $content = $mime->getJustTextPart();
+            }
+
+            if ($content) {
+                $content = str::utf2ascii($content);
+                $content = preg_replace('/\s+/ui', ' ', $content);
+
+                // Стрингове за отписване
+                $unsStr = 'Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
+                $unsStr = str::utf2ascii($unsStr);
+                $unsStr = preg_replace('/\s+/ui', ' ', $unsStr);
+
+                if (preg_match("/<a[^>]*>([^>]*({$unsStr})+[^>]*)<\/a>/iu", $content, $matches)) {
+                    if (preg_match(type_Richtext::URL_PATTERN, $matches[0], $lMatches)) {
+                        $res = $lMatches[0];
+                    }
+                }
+            }
+        }
+
+        core_Cache::set($cacheType, $cacheHandle, $res, 1000);
+
+        return $res;
+    }
+
     
     /**
      * Връща EML файл при генериране на възможности разширения за прикачване

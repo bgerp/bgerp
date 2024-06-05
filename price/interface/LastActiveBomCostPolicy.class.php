@@ -2,18 +2,18 @@
 
 
 /**
- * Имплементация на изчисляване на мениджърски себестойности "Последна рецепта"
+ * Имплементация на изчисляване на мениджърски себестойности "Последна рецепта (без режийни)"
  *
  * @category  bgerp
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  * @see price_CostPolicyIntf
- * @title Мениджърска себестойност "Последна рецепта"
+ * @title Мениджърска себестойност "Последна рецепта (без режийни)"
  *
  */
 class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPolicy
@@ -23,8 +23,14 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
      * Интерфейси които имплементира
      */
     public $interfaces = 'price_CostPolicyIntf';
-    
-    
+
+
+    /**
+     * Калкулиран кеш
+     */
+    private static $calcCache = array();
+
+
     /**
      * Как се казва политиката
      *
@@ -34,16 +40,17 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
      */
     public function getName($verbal = false)
     {
-        $res = ($verbal) ? tr('Последна рецепта') : 'lastBomPolicy';
+        $res = ($verbal) ? tr('Последна рецепта (без режийни)') : 'lastBomPolicy';
         
         return $res;
     }
-    
-    
+
+
     /**
      * Изчислява себестойностите на засегнатите артикули
      *
-     * @param array $affectedTargetedProducts
+     * @param array $affectedTargetedProducts - засегнати артикули
+     * @param array $params - параметри
      *
      * @return array
      *         ['classId']       - клас ид на политиката
@@ -54,19 +61,15 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
      *         ['sourceClassId'] - ид на класа на източника
      *         ['sourceId']      - ид на източника
      */
-    public function getCosts($affectedTargetedProducts)
+    public function getCosts($affectedTargetedProducts, $params = array())
     {
         $res = array();
         
-        if(!countR($affectedTargetedProducts)){
-            
-            return $res;
-        }
+        if(!countR($affectedTargetedProducts)) return $res;
         
-        $cache = array();
         $now = dt::now();
         $classId = cat_Boms::getClassId();
-        
+
         // За всеки артикул
         foreach ($affectedTargetedProducts as $productId) {
             
@@ -76,17 +79,33 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
                 // Ако има, намираме и цената
                 $t = ($bomRec->quantityForPrice) ? $bomRec->quantityForPrice : $bomRec->quantity;
 
-                if (!isset($cache[$bomRec->id])) {
+                if (!isset(self::$calcCache[$bomRec->id])) {
                     try{
-                        $cache[$bomRec->id] = cat_Boms::getBomPrice($bomRec, $t, 0, 0, $now, price_ListRules::PRICE_LIST_COST);
+                        self::$calcCache[$bomRec->id] = cat_Boms::getBomPrice($bomRec, $t, 0, 0, $now, price_ListRules::PRICE_LIST_COST);
                     } catch(core_exception_Expect $e){
                         reportException($e);
                         continue;
                     }
                 }
                 
-                $primeCost = $cache[$bomRec->id];
+                $primeCost = self::$calcCache[$bomRec->id];
                 if ($primeCost) {
+
+                    // Добавяне и на режийните разходи ако се искат
+                    if(isset($params['addExpenses'])){
+                        $expenses = $bomRec->expenses;
+                        if(!isset($expenses)){
+                            if($defaultOverheadCostArr = cat_Products::getDefaultOverheadCost($productId)){
+                                $expenses = $defaultOverheadCostArr['overheadCost'];
+                            }
+                        }
+
+                        if(isset($expenses)){
+                            $primeCost *= 1 + $expenses;
+                            $primeCost = core_Math::roundNumber($primeCost);
+                        }
+                    }
+
                     $res[$productId] = (object) array('sourceClassId' => $classId,
                                                       'sourceId'      => $bomRec->id,
                                                       'productId'     => $productId,
@@ -97,8 +116,8 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
                 }
             }
         }
-        
-        // Връщаме намрените цени
+
+        // Връщане на намрените цени
         return $res;
     }
     
@@ -119,82 +138,95 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
      */
     public function cron_updateCachedBoms()
     {
-        $updateProductIds = $updateCategoryFolderIds = array();
-        
-        // Кои категории и артикули имат правила за обновяване по последна рецепта
-        $classId = $this->getClassId();
-        $uQuery = price_Updates::getQuery();
-        $uQuery->where("#sourceClass1 = {$classId} OR #sourceClass2 = {$classId} OR #sourceClass3 = {$classId}");
-        
-        while($uRec = $uQuery->fetch()){
-            if($uRec->type == 'product'){
-                $updateProductIds[$uRec->objectId] = $uRec->objectId;
-            } else {
-                $folderId = cat_Categories::fetchField($uRec->objectId, 'folderId');
-                $updateCategoryFolderIds[$folderId] = $folderId;
-            }
-        }
-        
-        if(!countR($updateProductIds) && !countR($updateCategoryFolderIds)){
-            
-            return;
-        }
-        
-        // И имат активна рецепта
-        $bQuery = cat_Boms::getQuery();
-        $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-        $bQuery->EXT('pFolderId', 'cat_Products', 'externalName=folderId,externalKey=productId');
-        $bQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes'");
-        
-        if(countR($updateProductIds)){
-            $bQuery->in('productId', $updateProductIds);
-        }
-        
-        if(countR($updateCategoryFolderIds)){
-            $bQuery->in('pFolderId', $updateCategoryFolderIds, false, true);
-        }
-        
-        $bQuery->show('productId');
-        
-        $affectedProducts = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
-        $count = countR($affectedProducts);
-        if(!$count){
-            
-            return;
-        }
-        
-        // Изчисляване на цените по последни рецепти
-        core_App::setTimeLimit($count * 0.8, false,600);
-        $Interface = cls::getInterface('price_CostPolicyIntf', $this);
-        $calced = $Interface->calcCosts($affectedProducts);
-        
         $now = dt::now();
-        array_walk($calced, function (&$a) use ($now) {
-            $a->updatedOn = $now;
-        });
-        
-        // Синхронизиране на новите записи със старите записи на засегнатите пера
-        $ProductCache = cls::get('price_ProductCosts');
-        
-        // Синхронизират се само с вече наличните цени по последни рецепти
-        $exQuery = $ProductCache->getQuery();
-        $exQuery->in('productId', $affectedProducts);
-        $exQuery->where("#classId = {$classId}");
-        $exRecs = $exQuery->fetchAll();
-        $res = arr::syncArrays($calced, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
-        if (countR($res['insert'])) {
-            $ProductCache->saveArray($res['insert']);
-        }
-        
-        if (countR($res['update'])) {
-            $ProductCache->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
-        }
-        
-        // Изтриване на несрещнатите себестойностти
-        if (countR($res['delete'])) {
-            foreach ($res['delete'] as $id) {
-                $ProductCache->delete($id);
+        foreach (array('price_interface_LastActiveBomCostPolicy', 'price_interface_LastActiveBomCostWithExpenses') as $className){
+            $Class = cls::get($className);
+            if(!cls::load($Class, true)) continue;
+
+            $classId = $Class->getClassId();
+            $updateProductIds = $updateCategoryFolderIds = $updateGroupIds = array();
+
+            // Кои категории/артикули/артикули групи имат правила за обновяване по Последна рецепта (без режийни) / или Последна рецепта (+разходи)
+            $uQuery = price_Updates::getQuery();
+            $uQuery->where("#sourceClass1 = {$classId} OR #sourceClass2 = {$classId} OR #sourceClass3 = {$classId}");
+
+            while($uRec = $uQuery->fetch()){
+                if($uRec->type == 'product'){
+                    $updateProductIds[$uRec->objectId] = $uRec->objectId;
+                } elseif($uRec->type == 'group'){
+                    $updateGroupIds[$uRec->objectId] = $uRec->objectId;
+                } else {
+                    $folderId = cat_Categories::fetchField($uRec->objectId, 'folderId');
+                    $updateCategoryFolderIds[$folderId] = $folderId;
+                }
+            }
+
+            // Ако няма нито едно правило за обновяване - нищо не се прави
+            if(!countR($updateProductIds) && !countR($updateCategoryFolderIds) && !countR($updateGroupIds)) continue;
+
+            // И имат активна рецепта
+            $bQuery = cat_Boms::getQuery();
+            $bQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+            $bQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+            $bQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+            $bQuery->EXT('pFolderId', 'cat_Products', 'externalName=folderId,externalKey=productId');
+            $bQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes'");
+            $bQuery->show('productId');
+
+            // Рецептите към артикулите с конкретни правила
+            if(countR($updateProductIds)){
+                $bQuery->in('productId', $updateProductIds);
+            }
+
+            // Рецептите, чиито артикули са в категория с правило
+            if(countR($updateCategoryFolderIds)){
+                $bQuery->in('pFolderId', $updateCategoryFolderIds, false, true);
+            }
+
+            // Рецептите, чиито артикулни групи са в категория с правило
+            if(countR($updateGroupIds)){
+                $bQuery->likeKeylist('groups', $updateGroupIds, true);
+            }
+
+            $affectedProducts = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
+            $count = countR($affectedProducts);
+            if(!$count) continue;
+
+            // Изчисляване на цените по последни рецепти
+            core_App::setTimeLimit($count * 0.8,false, 600);
+
+            // Извличане на засегнатите артикули
+            $Interface = cls::getInterface('price_CostPolicyIntf', $Class);
+            $calced = $Interface->calcCosts($affectedProducts);
+
+            // Промяна на датата на последно изчисление
+            array_walk($calced, function (&$a) use ($now) {
+                $a->updatedOn = $now;
+            });
+
+            // Синхронизиране на новите записи със старите записи на засегнатите пера
+            $ProductCache = cls::get('price_ProductCosts');
+
+            // Синхронизират се само с вече наличните цени по последни рецепти
+            $exQuery = $ProductCache->getQuery();
+            $exQuery->in('productId', $affectedProducts);
+            $exQuery->where("#classId = {$Class->getClassId()}");
+            $exRecs = $exQuery->fetchAll();
+            $res = arr::syncArrays($calced, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
+
+            if (countR($res['insert'])) {
+                $ProductCache->saveArray($res['insert']);
+            }
+
+            if (countR($res['update'])) {
+                $ProductCache->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
+            }
+
+            // Изтриване на несрещнатите себестойностти
+            if (countR($res['delete'])) {
+                foreach ($res['delete'] as $id) {
+                    $ProductCache->delete($id);
+                }
             }
         }
     }

@@ -130,7 +130,7 @@ class doc_Folders extends core_Master
      */
     public $highPriority = true;
     
-    
+
     /**
      * Описание на модела (таблицата)
      */
@@ -304,7 +304,7 @@ class doc_Folders extends core_Master
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,autoFilter');
-        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent,autoFilter');
+        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно", inCharge=Без споделените)', 'caption=Подредба,input,silent,autoFilter');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -321,9 +321,7 @@ class doc_Folders extends core_Master
         
         if (!$data->listFilter->rec->search) {
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
-            $uArr = type_Keylist::toArray($data->listFilter->rec->users);
-
-            if ($uArr[$cu] && (countR($uArr) == 1)) {
+            if ($data->listFilter->rec->order != 'inCharge') {
                 $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
             }
             $data->title = 'Папките на |*<span class="green">' .
@@ -334,6 +332,7 @@ class doc_Folders extends core_Master
         }
         
         switch ($data->listFilter->rec->order) {
+            case 'inCharge':
             case 'last':
                 $data->query->orderBy('#last', 'DESC');
                 
@@ -681,9 +680,8 @@ class doc_Folders extends core_Master
                         $url = array('doc_Threads', 'list', 'folderId' => $id);
                         
                         $priority = 'normal';
-                        
                         $notifyArr = $mvc->getUsersArrForNotify($rec);
-                        
+
                         // Ако всички потребители, които ще се нотифицират са оттеглени, вземаме всички администратори в системата
                         $isRejected = core_Users::checkUsersIsRejected($notifyArr);
                         if ($isRejected) {
@@ -727,8 +725,17 @@ class doc_Folders extends core_Master
                         
                         // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
                         foreach ((array) $notifyArr as $nUserId) {
+                            $isPartner = core_Packs::isInstalled('colab') && core_Users::isContractor($nUserId);
                             if (!doc_Folders::haveRightFor('single', $id, $nUserId)) {
-                                continue;
+                                if($isPartner){
+                                    if(!colab_Threads::haveRightFor('list', (object)array('folderId' => $id), $nUserId)){
+                                        continue;
+                                    } else {
+                                        $url = array('colab_Threads', 'list', 'folderId' => $id);
+                                    }
+                                } else {
+                                    continue;
+                                }
                             }
                             
                             bgerp_Notifications::add($msg, $url, $nUserId, $priority);
@@ -736,6 +743,9 @@ class doc_Folders extends core_Master
                     } elseif ($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
                         // Изчистване на нотификации за отворени теми в тази папка
                         $url = array('doc_Threads', 'list', 'folderId' => $rec->id);
+                        bgerp_Notifications::clear($url, '*');
+
+                        $url = array('colab_Threads', 'list', 'folderId' => $rec->id);
                         bgerp_Notifications::clear($url, '*');
                     }
                 }
@@ -812,10 +822,11 @@ class doc_Folders extends core_Master
      * Връща масив с потребители, които ще се нотифицират за действия в папката
      *
      * @param stdClass $rec
+     * @param bool $notifyPartners
      *
      * @return array
      */
-    public static function getUsersArrForNotify($rec)
+    public static function getUsersArrForNotify($rec, $notifyPartners = false)
     {
         static $resArr = array();
         
@@ -869,7 +880,7 @@ class doc_Folders extends core_Master
             } elseif ($folOpening['folOpenings'] == 'yes') {
                 
                 // Може да е абониран, но да няма права
-                if (doc_Folders::haveRightFor('single', $rec->folderId, $userId)) {
+                if (doc_Folders::haveRightFor('single', $rec->id, $userId)) {
                     $notifyArr[$userId] = $userId;
                 }
             }
@@ -884,11 +895,23 @@ class doc_Folders extends core_Master
         
         $rNotifyArr = array();
         foreach ($notifyArr as $kUId => $uId) {
-            if (doc_Folders::haveRightFor('single', $rec->folderId, $uId)) {
+            if (doc_Folders::haveRightFor('single', $rec->id, $uId)) {
                 $rNotifyArr[$kUId] = $uId;
             }
         }
-        
+
+        // Ако папката е споделена и достъпна към партньори, да се добавят и споделените партньори към нея
+        if($notifyPartners) {
+            if(core_Packs::isInstalled('colab')){
+                $partnersArr = colab_Folders::getSharedUsers($rec->id);
+                foreach ($partnersArr as $partnerId){
+                    if (colab_Threads::haveRightFor('list', (object) array('folderId' => $rec->id), $partnerId)) {
+                        $rNotifyArr[$partnerId] = $partnerId;
+                    }
+                }
+            }
+        }
+
         $resArr[$rec->id] = $rNotifyArr;
         
         return $resArr[$rec->id];
@@ -1074,7 +1097,7 @@ class doc_Folders extends core_Master
      */
     public static function restrictAccess_(&$query, $userId = null, $viewAccess = true)
     {
-        if ($query->mvc->className != 'doc_Folders') {
+        if (($query->mvc->className != 'doc_Folders') && ($query->mvc->className != 'doc_FoldersProxy')) {
             // Добавя необходимите полета от модела doc_Folders
             if (!$query->fields['folderAccess']) {
                 $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');
@@ -1229,9 +1252,14 @@ class doc_Folders extends core_Master
         
         $haveRight = static::haveRightFor('single', $rec);
         
-        if (!$haveRight && strtolower($params['Ctr']) == 'colab_threads') {
+        if (!$haveRight && ((strtolower($params['Ctr']) == 'colab_threads') || strtolower($params['Ctr']) == 'doc_threads')) {
             if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
                 $haveRight = colab_Folders::haveRightFor('single', $rec);
+                if ($haveRight) {
+                    if (strtolower($params['Ctr']) == 'doc_threads') {
+                        $params['Ctr'] = 'colab_Threads';
+                    }
+                }
             }
         }
         
@@ -1259,7 +1287,9 @@ class doc_Folders extends core_Master
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
             // Линка
-            $params['Ctr'] = 'doc_Threads';
+            if ((strtolower($params['Ctr']) == 'colab_threads') && !core_Users::haveRole('partner')) {
+                $params['Ctr'] = 'doc_Threads';
+            }
             $link = toUrl($params, $isAbsolute);
             
             // Атрибути на линка
@@ -2171,12 +2201,22 @@ class doc_Folders extends core_Master
         if (isset($params['containingDocumentIds'])) {
             $documentIds = arr::make($params['containingDocumentIds'], true);
             if(countR($documentIds)){
-                $cQuery = doc_Containers::getQuery();
-                $cQuery->in('docClass', $documentIds);
-                $cQuery->show('folderId');
-                $cQuery->groupBy('folderId');
-                $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
-                if(countR($documentIds)) {
+
+                // Извличане с кеширане на папките, в които има създадени посочените документи
+                $cacheKey = "containing|" . implode('|', $documentIds);
+                $folderIds = core_Cache::get('doc_Folders', $cacheKey);
+                if (!is_array($folderIds)) {
+                    $cQuery = doc_Containers::getQuery();
+                    $cQuery->in('docClass', $documentIds);
+                    $cQuery->show('folderId');
+                    $cQuery->groupBy('folderId');
+                    $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
+                    if(countR($folderIds)) {
+                        core_Cache::set('doc_Folders', $cacheKey, $folderIds, 10);
+                    }
+                }
+
+                if(countR($folderIds)) {
                     $query->in('id', $folderIds);
                 } else {
                     $query->where("1=2");
@@ -2283,16 +2323,22 @@ class doc_Folders extends core_Master
      *
      * @param mixed  $folderArr - списък с папки
      * @param string $inline    - на един ред разделени с `,` или да се върнат като масив
+     * @param boolean $showTypeInName - да се показва ли типа на папката до името ѝ
      *
      * @return array|string - линковете към папките
      */
-    public static function getVerbalLinks($folderArr, $inline = false)
+    public static function getVerbalLinks($folderArr, $inline = false, $showTypeInName = false)
     {
         $res = array();
         $folderArr = (is_array($folderArr)) ? $folderArr : keylist::toArray($folderArr);
         
         foreach ($folderArr  as $folderId) {
-            $res[$folderId] = doc_Folders::recToVerbal(doc_Folders::fetch($folderId))->title;
+            $folderRow = doc_Folders::recToVerbal(doc_Folders::fetch($folderId));
+            if($showTypeInName){
+                $res[$folderId] = "{$folderRow->title} ({$folderRow->type})";
+            } else {
+                $res[$folderId] = $folderRow->title;
+            }
         }
         
         $res = ($inline === true) ? implode(', ', $res) : $res;

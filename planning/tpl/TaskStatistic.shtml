@@ -27,7 +27,7 @@
               <td class = 'nowrap'>[#totalQuantity#]</td>
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
               <td class = 'nowrap'>[#producedQuantity#]</td>
-              <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
+              <td rowspan = '3' class='vtop' style='font-size:0.8em;text-align:left'>
                   <div style='font-size: 1em;width:99%' class="state-[#jobState#] document-handler">
                       <div><span style='font-weight:normal'>|Задание|*</span>: [#originId#]</div>
                       <!--ET_BEGIN batch-->
@@ -35,6 +35,9 @@
                       <!--ET_END batch-->
                   </div>
                   <div class='clearfix21'></div>
+                  <!--ET_BEGIN mandatoryDocuments-->
+                  <div><span style='font-weight:normal'>|Задължително|*</span>: [#mandatoryDocuments#]</div>
+                  <!--ET_END mandatoryDocuments-->
                   <!--ET_BEGIN storeId-->
                   <span style='font-weight:normal'>|В склад|*</span>: [#storeId#]<br>
                   <!--ET_END storeId-->
@@ -50,6 +53,22 @@
     			</td>
            </tr>
            <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
+           <!--ET_BEGIN WASTE_BLOCK-->
+           <tr>
+               <td colspan='4'>
+                   [#WASTE_BLOCK#]
+                   <table class="wasteBlockInThread">
+                       [#WASTE_BLOCK_TABLE_ROW#]
+                       <!--ET_BEGIN WASTE_BLOCK_ROW-->
+                       [#WASTE_BLOCK_ROW#]
+                       <tr class="[#wasteClass#]">
+                           <td class="leftCol">[#wasteProducedProductId#]</td><td class="rightCol">[#wasteQuantity#]</td>
+                       </tr>
+                       <!--ET_END WASTE_BLOCK_ROW-->
+                   </table>
+               </td>
+           </tr>
+           <!--ET_END WASTE_BLOCK-->
        </table>
     </div>
 </div>

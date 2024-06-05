@@ -40,6 +40,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('perPage', 'int(min=1, max=50)', 'caption=Редове, mandatory');
+        $fieldset->FLD('showClosed', 'enum(no=Не, yes=Да)', 'caption=Показване на затворените известия в мобилен режим->Избор');
     }
     
     
@@ -76,9 +77,8 @@ class bgerp_drivers_Notifications extends core_BaseClass
         
         $resData->cacheKey = $this->getCacheKey($dRec, $userId);
         $resData->cacheType = $this->getCacheTypeName($userId);
-        
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
-        
+
         if (!$resData->tpl) {
             
             $modifiedBefore = dt::subtractSecs($this->showOpenTopTime);
@@ -92,7 +92,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
             $data->query = $Notifications->getQuery();
             
             $data->query->show('msg,state,userId,priority,cnt,url,customUrl,modifiedOn,modifiedBy,searchKeywords');
-            
+
             // Подготвяме полетата за показване
             $data->listFields = 'modifiedOn=Време,msg=Съобщение';
             
@@ -102,18 +102,18 @@ class bgerp_drivers_Notifications extends core_BaseClass
             $data->query->orderBy('modifiedOnTop', 'DESC');
             
             $data->query->orderBy('modifiedOn=DESC');
-            
-            if (Mode::is('screenMode', 'narrow') && !Request::get($Notifications->searchInputField)) {
+
+            if (Mode::is('screenMode', 'narrow') && !Request::get($Notifications->searchInputField) && ($dRec->showClosed != 'yes')) {
                 $data->query->where("#state = 'active'");
                 
                 // Нотификациите, модифицирани в скоро време да се показват
                 $data->query->orWhere("#modifiedOn >= '{$modifiedBefore}'");
                 $data->query->orWhere("#lastTime >= '{$modifiedBefore}'");
             }
-            
+
             // Подготвяме филтрирането
             $Notifications->prepareListFilter($data);
-            
+
             $data->listFilter->showFields = $Notifications->searchInputField;
             bgerp_Portal::prepareSearchForm($Notifications, $data->listFilter);
             
@@ -180,21 +180,11 @@ class bgerp_drivers_Notifications extends core_BaseClass
     protected function renderPortal($data)
     {
         $Notifications = cls::get('bgerp_Notifications');
-        
-        $tpl = new ET("
-            <div class='clearfix21 portal'>
-            <div class='legend'><div style='float:left'>[#PortalTitle#]</div>
-            [#ListFilter#]<div class='clearfix21'></div></div>
-                        
-            <div>
-                <!--ET_BEGIN PortalTable-->
-                    [#PortalTable#]
-                <!--ET_END PortalTable-->
-            </div>
-            
-            [#PortalPagerBottom#]
-            </div>
-        ");
+        if(Mode::is('renderNotificationsInExternalWrapper')) {
+            $tpl = getTplFromFile('bgerp/tpl/NotificationBlockExternal.shtml');
+        } else {
+            $tpl = getTplFromFile('bgerp/tpl/NotificationBlockInternal.shtml');
+        }
         
         // Попълваме титлата
         if (!Mode::is('screenMode', 'narrow')) {
@@ -276,7 +266,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
-        
+
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
         
         $pageVar = $this->getPageVar($dRec->originIdCalc);

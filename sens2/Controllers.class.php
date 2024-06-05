@@ -390,7 +390,7 @@ class sens2_Controllers extends core_Master
         $ports = $drv->getInputPorts($rec->config);
         
         foreach ($ports as $name => $def) {
-            if ($def->readPeriod > 0) {
+            if (($def->readPeriod > 0) || ($def->logPeriod > 0)) {
                 $force[$name] = $name;
             }
         }
@@ -536,8 +536,8 @@ class sens2_Controllers extends core_Master
                 }
             }
         }
-        
-        if (!$res[$portName]) {
+
+        if (!isset($res[$portName])) {
             $value = 'Грешка при запис';
         }
         
@@ -646,6 +646,26 @@ class sens2_Controllers extends core_Master
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'driver';
+        $data->listFilter->input(null, 'silent');
+
+        if (isset($data->listFilter->rec->driver)) {
+            $data->query->where(array("#driver = '[#1#]'", $data->listFilter->rec->driver));
+        }
+
+        $data->listFilter->fields['driver']->refreshForm = 'refreshForm';
+
+        $data->query->orderBy('id', "DESC");
     }
     
     

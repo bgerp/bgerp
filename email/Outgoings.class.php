@@ -49,7 +49,7 @@ class email_Outgoings extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, email_SendOnTimeIntf';
     
     
     /**
@@ -359,8 +359,29 @@ class email_Outgoings extends core_Master
         
         return false;
     }
-    
-    
+
+
+    /**
+     * Отложено израпщане на имейл
+     *
+     * @param $data
+     * @param $id
+     *
+     * @return
+     * @see email_SendOnTimeIntf
+     */
+    public function sendOnTime($data, $id)
+    {
+        $dRec = $data['rec'];
+        $oRec = $this->fetch($id);
+        if ($oRec) {
+            $dRec = clone $oRec;
+        }
+
+        $this->send($dRec, $data['options'], $data['lg']);
+    }
+
+
     /**
      * Изпраща имейла
      *
@@ -371,74 +392,74 @@ class email_Outgoings extends core_Master
     public static function send($rec, $options, $lg)
     {
         if (self::checkAndAddForLateSending($rec, $options, $lg)) {
-            
+
             return ;
         }
 
         //Вземаме всички избрани файлове
         $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
-        
+
         //Ако имамем прикачени файлове
         if (countR($rec->attachmentsFh)) {
-            
+
             //Вземаме id'тата на файловете вместо манупулатора име
             $attachments = fileman::fhKeylistToIds($rec->attachmentsFh);
-            
+
             //Записваме прикачените файлове
             $rec->attachments = keylist::fromArray($attachments);
         }
-        
+
         // Генерираме списък с документи, избрани за прикачане
         $docsArr = static::getAttachedDocuments($options);
-        
+
         // Имейлите от адресат
         $rEmails = $rec->email;
-        
+
         // Имейлите от получател
         $oEmails = $options->emailsTo;
-        
+
         $groupEmailsArr = array();
         $groupEmailsArr['cc'][0] = $options->emailsCc;
-        
+
         // Ако не сме променили имейлите
         if (trim($rEmails) == trim($oEmails)) {
-            
+
             // Всики имейли са в една група
             $groupEmailsArr['to'][0] = $oEmails;
         } else {
-            
+
             // Масив с имейлите от адресата
             $rEmailsArr = type_Emails::toArray($rEmails);
-            
+
             // Масив с имейлите от получателя
             $oEmailsArr = type_Emails::toArray($oEmails);
-            
+
             // Събираме в група всички имейли, които се ги има и в двата масива
             $intersectArr = array_intersect($oEmailsArr, $rEmailsArr);
-            
+
             // Вземаме имейлите, които ги няма в адресата, но ги има в получатели
             $diffArr = array_diff($oEmailsArr, $rEmailsArr);
-            
+
             // Добавяме имейлите, които са в адресат и в получател
             // Те ще се изпращат заедно с CC
             if ($intersectArr) {
                 $groupEmailsArr['to'][0] = type_Emails::fromArray($intersectArr);
             }
-            
+
             // Обхождаме всички имейли, които ги няма в адресат, но ги има в получател
             foreach ($diffArr as $diff) {
-                
+
                 // Добавяме ги в масива, те ще се изпращат самостоятелно
                 $groupEmailsArr['to'][] = $diff;
             }
         }
-        
+
         // CSS' а за имейли
         $emailCss = getFileContent('css/email.css');
-        
+
         // списъци с изпратени и проблеми получатели
         $success = $failure = array();
-        
+
         // Ако е отговор на имейл опитваме се да извлечем In-Reply-To
         if ($rec->originId) {
             $originDoc = doc_Containers::getDocument($rec->originId);
@@ -451,30 +472,30 @@ class email_Outgoings extends core_Master
                 }
             }
         }
-        
+
         // Обхождаме масива с всички групи имейли
         foreach ($groupEmailsArr['to'] as $key => $emailTo) {
-            
+
             // Вземаме имейлите от cc
             $emailsCc = $groupEmailsArr['cc'][$key];
-            
+
             // Конфигурацията на пакета
             $conf = core_Packs::getConfig('email');
-            
+
             // Проверяваме дали същия имейл е изпращан преди
             $isSendedBefore = doclog_Documents::isSended($rec->containerId, $conf->EMAIL_RESENDING_TIME, $emailTo, $emailsCc);
-            
+
             // Ако е изпращан преди
             if ($isSendedBefore) {
-                
+
                 // В събджекта добавяме текста
                 $rec->_resending = 'Повторно изпращане';
             } else {
-                
+
                 // Ако не е изпращане преди
                 $rec->_resending = null;
             }
-            
+
             // Данни за съответния екшън
             $action = array(
                 'containerId' => $rec->containerId,
@@ -484,43 +505,43 @@ class email_Outgoings extends core_Master
                     'to' => $emailTo,
                 )
             );
-            
+
             // Ако има CC
             if ($emailsCc) {
-                
+
                 // Добавяме към екшъна
                 $action['data']->cc = $emailsCc;
             }
-            
+
             // Добавяме изпращача
             $action['data']->sendedBy = core_Users::getCurrent();
-            
+
             if ($action['data']->sendedBy == -1) {
                 if (Mode::is('isSystemCanSingle')) {
                     $action['data']->isSystemCanSingle = true;
                 }
             }
-            
+
             // Генериране на прикачените документи
             $rec->documentsFh = array();
-            
+
             try {
                 $convertStatus = true;
-                
+
                 foreach ($docsArr as $attachDoc) {
                     // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
                     // файл със съдържанието на документа в желания формат
                     $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-                    
+
                     $rec->documentsFh += $fhArr;
                 }
-                
+
                 // .. ако имаме прикачени документи ...
                 if (countR($rec->documentsFh)) {
-                    
+
                     //Вземаме id'тата на файловете вместо манипулаторите
                     $documents = fileman::fhKeylistToIds($rec->documentsFh);
-                    
+
                     //Записваме прикачените файлове
                     $rec->documents = keylist::fromArray($documents);
                 }
@@ -529,17 +550,17 @@ class email_Outgoings extends core_Master
                 reportException($e);
                 $convertStatus = false;
             }
-            
+
             if ($convertStatus) {
                 // Пушваме екшъна
                 doclog_Documents::pushAction($action);
-                
+
                 // Подготовка на текста на писмото (HTML & plain text)
                 $rec->__mid = null;
                 $rec->html = static::getEmailHtml($rec, $lg, $emailCss);
                 $rec->text = static::getEmailText($rec, $lg);
                 $rec->text = core_ET::unEscape($rec->text);
-                
+
                 try {
                     // ... и накрая - изпращане.
                     $status = email_Sent::sendOne(
@@ -558,26 +579,26 @@ class email_Outgoings extends core_Master
                     reportException($e);
                     $status = false;
                 }
-                
+
                 // Записваме историята
                 doclog_Documents::flushActions();
-                
+
                 // Ако възникне грешка при изпращане
                 if (!$status) {
-                    
+
                     // Записваме имейла, като върнат
                     doclog_Documents::returned($rec->__mid);
 
                     email_AddressesInfo::addEmail($emailTo, true, 'error');
                 }
             }
-            
+
             // Стринга с имейлите, до които е изпратено
             $allEmailsToStr = ($emailsCc) ? "{$emailTo}, ${emailsCc}" : $emailTo;
-            
+
             // Ако е изпратен успешно
             if ($status) {
-                
+
                 // Добавяме кутията от която се изпраща, като имейл по подразбиране за папката
                 if ($rec->folderId) {
                     $currUserId = core_Users::getCurrent();
@@ -588,10 +609,10 @@ class email_Outgoings extends core_Master
                         core_Settings::setValues($key, $valArr, core_Users::getCurrent(), true);
                     }
                 }
-                
+
                 // Правим запис в лога
                 self::logWrite('Изпращане', $rec->id);
-                
+
                 // Добавяме в масива
                 $success[] = $allEmailsToStr;
             } else {
@@ -599,49 +620,49 @@ class email_Outgoings extends core_Master
                 foreach (email_Sent::$logErrToWarningArr as $v) {
                     if (stripos($error, $v)) {
                         $errType = 'warning';
-                        
+
                         break;
                     }
                 }
-                
+
                 $errStr = 'Грешка при изпращане: ' . $error;
                 if ($errType == 'warning') {
                     static::logWarning($errStr, $rec->id);
                 } else {
                     static::logErr($errStr, $rec->id);
                 }
-                
+
                 $failure[] = $allEmailsToStr;
             }
         }
-        
+
         // Ако има успешно изпращане
         if ($success) {
             $successEmailsStr = implode(', ', $success);
             $msg = '|Успешно изпратено до|*: ' . $successEmailsStr;
             $statusType = 'notice';
-            
+
             // Добавяме статус
             status_Messages::newStatus($msg, $statusType);
-            
+
             // Инстанция на изходящи имейли
             $inst = cls::get('email_Outgoings');
-            
+
             // Нулираме флага, защото имейла вече е изпратен
             // Проверява се в on_AfterSave
             $inst->flagSendIt = false;
-            
+
             $nRec = new stdClass();
             $nRec->id = $rec->id;
-            
+
             $saveArray = array();
             $saveArray['id'] = 'id';
             $saveArray['modifiedOn'] = 'modifiedOn';
             $saveArray['modifiedBy'] = 'modifiedBy';
-            
+
             // Ако имейла е активен или чернова и не е въведено време за изчакване
             if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft' || $rec->state == 'pending')) {
-                
+
                 // Сменяме състоянието на затворено
                 $nRec->state = 'closed';
                 $saveArray['state'] = 'state';
@@ -649,7 +670,7 @@ class email_Outgoings extends core_Master
 
             // Ако ще се изчаква
             if ($options->waiting) {
-                
+
                 // Добавяме времето на изчкаваме и състоянието
                 $nRec->waiting = $options->waiting;
                 $nRec->state = 'waiting';
@@ -670,9 +691,9 @@ class email_Outgoings extends core_Master
         // Добавя FROM правила за всички имейли, за които няма никакви правила
         if ($successEmailsStr) {
             $successArr = type_Emails::toArray($successEmailsStr);
-            
+
             $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
-            
+
             foreach ($successArr as $successEmail) {
                 $recObj = (object) array(
                     'type' => email_Router::RuleFrom,
@@ -681,16 +702,16 @@ class email_Outgoings extends core_Master
                     'objectType' => 'document',
                     'objectId' => $rec->containerId
                 );
-                
+
                 // Създаване на `From` правило
                 email_Router::saveRule($recObj, false);
             }
         }
-        
+
         // Ако има провалено изпращане
         if ($failure) {
             $msg = '|Грешка при изпращане до|*: ' . implode(', ', $failure);
-            
+
             if ($error) {
                 foreach (self::$errShowNotifyStr as $v) {
                     if (stripos($error, $v)) {
@@ -699,15 +720,15 @@ class email_Outgoings extends core_Master
                     }
                 }
             }
-            
+
             $statusType = 'error';
-            
+
             // Добавяме статус
             status_Messages::newStatus($msg, $statusType);
         }
     }
-    
-    
+
+
     /**
      * @param object $rec
      */
@@ -1175,16 +1196,11 @@ class email_Outgoings extends core_Master
     protected static function checkForSending($form, $fieldsArr = array('email'))
     {
         $stopSendTo = email_Setup::get('STOP_SEND_TO');
-        
-        if ($stopSendTo === false) {
-            
-            return;
-        }
-        
+        $allowSendTo = email_Setup::get('ALLOW_SEND_TO');
+
         $stopSendToArr = type_Set::toArray($stopSendTo);
-        
-        $corpAcc = email_Accounts::getCorporateDomainsArr();
-        
+        $allowSendToArr = type_Set::toArray($allowSendTo);
+
         // Подготвяме регулярния израз
         foreach ($stopSendToArr as &$stopStr) {
             $r = '__' . rand() . '__';
@@ -1192,9 +1208,17 @@ class email_Outgoings extends core_Master
             $stopStr = preg_quote($stopStr, '/');
             $stopStr = str_replace($r, '.*', $stopStr);
         }
-        
+
+        // Подготвяме регулярния израз
+        foreach ($allowSendToArr as &$allowStr) {
+            $r = '__' . rand() . '__';
+            $allowStr = str_replace('*', $r, $allowStr);
+            $allowStr = preg_quote($allowStr, '/');
+            $allowStr = str_replace($r, '.*', $allowStr);
+        }
+
         $corporateDomains = email_Accounts::getCorporateDomainsArr();
-        
+
         $rec = $form->rec;
         foreach ($fieldsArr as $fieldName) {
             $fValStr = $rec->{$fieldName};
@@ -1220,8 +1244,23 @@ class email_Outgoings extends core_Master
                 
                 // Проверяваме и дали това не е опит за изпращане към вътрешен потребител
                 list($nick, $domain) = explode('@', $fVal);
-                
-                if ($corporateDomains[$domain]) {
+
+                if ($corporateDomains && $corporateDomains[$domain]) {
+                    $allow = false;
+                    foreach ($allowSendToArr as $allowReg) {
+                        $allowReg = "/{$allowReg}/i";
+
+                        if (preg_match($allowReg, $fVal)) {
+                            $allow = true;
+                            break;
+                        }
+                    }
+
+                    if ($allow) {
+
+                        continue;
+                    }
+
                     $haveErr = true;
                     
                     $errMsg .= '<br>|';
@@ -1903,6 +1942,24 @@ class email_Outgoings extends core_Master
 
         $data->form->rec->emailCc = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->emailCc)));
         $data->form->rec->email = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->email)));
+
+        if (!$data->form->rec->id) {
+            if ((defined('EMAIL_DEFAULT_CC_EMAILS')) && EMAIL_DEFAULT_CC_EMAILS) {
+                $eArr = type_Emails::toArray($data->form->rec->emailCc);
+                $eArr = arr::make($eArr, true);
+                $dArr = type_Emails::toArray(EMAIL_DEFAULT_CC_EMAILS);
+                $dArr = arr::make($dArr, true);
+                $data->form->rec->emailCc = type_Emails::fromArray(array_merge($eArr, $dArr));
+            }
+
+            if ((defined('EMAIL_DEFAULT_TO_EMAILS')) && EMAIL_DEFAULT_TO_EMAILS) {
+                $eArr = type_Emails::toArray($data->form->rec->email);
+                $eArr = arr::make($eArr, true);
+                $dArr = type_Emails::toArray(EMAIL_DEFAULT_TO_EMAILS);
+                $dArr = arr::make($dArr, true);
+                $data->form->rec->email = type_Emails::fromArray(array_merge($eArr, $dArr));
+            }
+        }
     }
 
 
@@ -2119,6 +2176,10 @@ class email_Outgoings extends core_Master
                     $emailsArr = type_Emails::toArray($contrData->groupEmails);
                     if (!$fromEml || !in_array($fromEml, $emailsArr)) {
                         $use = false;
+                    }
+                } else {
+                    if ($contrData && $contrData->groupEmails) {
+                        $contragentData->groupEmails = $contragentData->groupEmails ? $contrData->groupEmails . ', ' . $contragentData->groupEmails : $contrData->groupEmails;
                     }
                 }
 
@@ -3167,10 +3228,20 @@ class email_Outgoings extends core_Master
     {
         // Ако ще се затваря
         if ($action == 'close' && $rec) {
-            
+            if (!$mvc->haveRightFor('single', $rec, $userId)) {
+                $requiredRoles = 'no_one';
+            }
+
             // Ако не чакащо или събудено състояние, да не може да се затваря
             if (($rec->state != 'waiting') && ($rec->state != 'wakeup') && ($rec->state != 'pending')) {
-                $requiredRoles = 'no_one';
+                if ($rec->state == 'active') {
+                    // Ако е създаден преди месец, да не може да се затваря
+                    if (dt::addMonths(1, $rec->createdOn) > dt::now()) {
+                        $requiredRoles = 'no_one';
+                    }
+                } else {
+                    $requiredRoles = 'no_one';
+                }
             } elseif (!haveRole('admin, ceo')) {
                 
                 // Ако няма роля admin или ceo

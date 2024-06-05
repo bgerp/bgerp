@@ -23,7 +23,8 @@ class type_Check extends type_Enum
     public function init($params = array())
     {
         $yesCaption = isset($params['params']['label']) ? $params['params']['label'] : 'Да';
-        $this->options = array('no' => 'Не е направен избор', 'yes' => $yesCaption);
+        $noCaption = isset($params['params']['noLabel']) ? $params['params']['noLabel'] : 'Не е направен избор';
+        $this->options = array('no' => $noCaption, 'yes' => $yesCaption);
         if (!empty($params['params']['errorIfNotChecked'])) {
             $this->params['errorIfNotChecked'] = $params['params']['errorIfNotChecked'];
         }

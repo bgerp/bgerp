@@ -67,7 +67,13 @@ class deals_QuotationDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantityInPack, packQuantity, packPrice, discount, tolerance, term, weight,optional, amount, discAmount,quantity';
+    public $listFields = 'productId, packagingId, quantityInPack, packQuantity=К-во, packPrice, discount=Отст., tolerance, term, weight,optional, amount, discAmount,quantity';
+
+
+    /**
+     * Кой може да маркира за изтриване всички редове
+     */
+    public $addDeleteSelectRows = false;
 
 
     /**
@@ -212,14 +218,7 @@ class deals_QuotationDetails extends doc_Detail
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
-
-            // Ако артикула не е складируем, скриваме полето за мярка
-            if (!isset($productInfo->meta['canStore'])) {
-                $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
-            } else {
-                $form->setField('packagingId', 'input');
-            }
+            $form->setField('packagingId', 'input');
         }
 
         if ($form->isSubmitted()) {
@@ -276,21 +275,7 @@ class deals_QuotationDetails extends doc_Detail
                 }
             }
 
-            if (strtolower(Request::get('Act')) != 'createproduct') {
-                if ($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId}")) {
-                    if ($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id) {
-                        $form->setError('productId', 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален!');
-                        return;
-                    }
-                }
-            }
-
             if (!$form->gotErrors()) {
-                $idToCheck = ($form->cmd == 'save_new_row') ? null : $rec->id;
-
-                if($rec->_createProductForm != true && deals_Helper::fetchExistingDetail($mvc, $rec->quotationId, $idToCheck, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
-                    $form->setError('productId,packagingId,packPrice,discount,notes,packQuantity', 'Има въведен ред със същите данни');
-                }
 
                 if (isset($masterRec->deliveryPlaceId)) {
                     if ($locationId = crm_Locations::fetchField("#title = '{$masterRec->deliveryPlaceId}' AND #contragentCls = {$masterRec->contragentClassId} AND #contragentId = {$masterRec->contragentId}", 'id')) {
@@ -402,7 +387,12 @@ class deals_QuotationDetails extends doc_Detail
 
         // Заределяме рековете и роуовете на опционални и неопционални
         $optionalRows = $notOptionalRows = $optionalRecs = $notOptionalRecs = array();
-        foreach ($data->recs as $ind => $r) {
+        if($data->masterData->rec->detailOrderBy == 'auto'){
+            ksort($data->rows);
+        }
+
+        foreach ($data->rows as $ind => $ro) {
+            $r = $data->recs[$ind];
             if ($r->optional == 'no') {
                 $notOptionalRecs[$ind] = $r;
                 $notOptionalRows[$ind] = $data->rows[$ind];
@@ -523,10 +513,10 @@ class deals_QuotationDetails extends doc_Detail
         $query->limit(1);
 
         $cloneQuery = clone $query;
-        $query->where("#productId = {$productId} AND #quantity = {$quantity}");
+        $query->where("#productId = {$productId} AND #quantity = '{$quantity}'");
         $query->orderBy('date=DESC,quotationId=DESC,quantity=ASC');
 
-        $cloneQuery->where("#productId = {$productId} AND #quantity < {$quantity}");
+        $cloneQuery->where("#productId = {$productId} AND #quantity < '{$quantity}'");
         $cloneQuery->orderBy('date,quotationId,quantity', 'DESC');
 
         $rec1 = $query->fetch();
@@ -703,7 +693,6 @@ class deals_QuotationDetails extends doc_Detail
     protected static function on_AfterPrepareListRecs($mvc, $data)
     {
         $recs = &$data->recs;
-        ksort($recs);
 
         $masterRec = $data->masterData->rec;
         $notOptional = $optional = array();
@@ -765,7 +754,7 @@ class deals_QuotationDetails extends doc_Detail
             }
         }
 
-        if (!haveRole('seePrice,ceo')) {
+        if (!doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $data->masterData->rec)) {
             $data->noTotal = true;
         }
 

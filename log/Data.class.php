@@ -120,11 +120,11 @@ class log_Data extends core_Manager
         $this->setDbIndex('brId');
         $this->setDbIndex('userId');
         $this->setDbIndex('time');
-        $this->setDbIndex('type');
+        //$this->setDbIndex('type');
         $this->setDbIndex('actionCrc');
         $this->setDbIndex('objectId,classCrc');
         
-        $this->dbEngine = 'InnoDB';
+        // $this->dbEngine = 'InnoDB';
     }
     
     
@@ -329,6 +329,7 @@ class log_Data extends core_Manager
         $query = self::getQuery();
         $query->where("#classCrc = {$classCrc}");
         $query->where("#objectId = {$objectId}");
+        $query->useIndex('object_id_class_crc');
         
         if (isset($type)) {
             $query->where(array("#type = '[#1#]'", $type));
@@ -930,7 +931,7 @@ class log_Data extends core_Manager
 
         // Сингъла посещаван ли е
         $oRecs1 = log_Data::getObjectRecs($Class->className, $objectRec->id, 'read', null, 1, 'DESC');
-        $lastDate2 = $oRecs[key($oRecs1)]->time;
+        $lastDate2 = $oRecs1[key($oRecs1)]->time;
 
         // По-голямата дата от двете
         $maxDate = max($lastDate1, $lastDate2);

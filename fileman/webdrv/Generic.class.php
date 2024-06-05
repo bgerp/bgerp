@@ -44,7 +44,25 @@ class fileman_webdrv_Generic extends core_Manager
      */
     protected $canView = 'every_one';
     
-    
+    public static function getArrows($fRec){
+        $fileNavArr = Mode::get('fileNavArr');
+
+        $prevUrl = $fileNavArr[$fRec->fileHnd]['prev'];
+        $nextUrl = $fileNavArr[$fRec->fileHnd]['next'];
+
+        $resArr = array();
+
+        if ($prevUrl) {
+            $resArr['prevLink'] = ht::createLink('', $prevUrl, false, 'ef_icon=img/prev.png,class=prevLink');
+        }
+
+        if ($nextUrl) {
+            $resArr['nextLink'] = ht::createLink('', $nextUrl, false, 'ef_icon=img/next.png,class=nextLink');
+        }
+
+        return $resArr;
+    }
+
     /**
      * Връща всички табове, които ги има за съответния файл
      *
@@ -56,16 +74,21 @@ class fileman_webdrv_Generic extends core_Manager
     {
         // Масив с всички табове
         $tabsArr = array();
-        
+
         // URL за показване на информация за файла
         $infoUrl = toUrl(array('fileman_webdrv_Generic', 'Info', $fRec->fileHnd));
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
         
         // Таб за информация
         $tabsArr['info'] = (object)
             array(
                 'title' => 'Информация',
-                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Мета информация') . "</div><div class='webdrvFieldset'>
-					<iframe src='{$infoUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink}
+					<iframe src='{$infoUrl}'  ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                 'order' => 1,
             );
         
@@ -269,9 +292,11 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Background' а на preview' то
             $bgImg = sbf('fileman/img/Preview_background.jpg');
-            
+
+            $style = Mode::is('screenMode', 'wide') ? "display: table-cell; vertical-align: middle;" : "";
+
             // Създаваме шаблон за preview на изображението
-            $preview = new ET("<div id='imgBg' style='background-image:url(" . $bgImg . "); padding: 8px 0 0px; height: 598px; display: table;width: 100%;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
+            $preview = new ET("<div id='imgBg' style='background-image:url(" . $bgImg . "); padding: 8px 0 0px; height: 598px; display: table;width: 100%;'><div  style='margin: 0 auto;" . $style . "'>[#THUMB_IMAGE#]</div></div>");
             
             $multiplier = fileman_Setup::get('WEBDRV_PREVIEW_MULTIPLIER');
             
@@ -1444,36 +1469,41 @@ class fileman_webdrv_Generic extends core_Manager
      *
      * @param string $htmlUrl - Линк към HTML файла
      * @param string $fPath   - Път към HTML файла
+     * @param array $pArr
      *
      * @return core_ET|false - Текста, за създаване на таб
      */
-    public static function getHtmlTabTpl($htmlUrl = null, $fPath = null)
+    public static function getHtmlTabTpl($htmlUrl = null, $fPath = null, $pArr = array())
     {
         // Ако няма URL, връщаме FALSE
         if (!$htmlUrl && !$fPath) {
             
             return false;
         }
-        
+
         setIfNot($htmlUrl, $fPath);
         setIfNot($fPath, $htmlUrl);
-        
+
+        setIfNot($pArr['webdrvTabBody'], 'webdrvTabBody');
+        setIfNot($pArr['webdrvFieldset'], 'webdrvFieldset');
+        setIfNot($pArr['webdrvIframe'], 'webdrvIframe');
+
         // Ако JS не е включен
         if (Mode::is('javascript', 'no')) {
             
             // HTML частта, ако не е включен JS
-            $htmlPart = "<div class='webdrvTabBody'>
-            				<div class='legend'>" . tr('HTML изглед') . "</div><div class='webdrvFieldset'>
-                				<iframe src='{$htmlUrl}' SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
+            $htmlPart = "<div class='{$pArr['webdrvTabBody']}'>
+            				<div class='{$pArr['webdrvFieldset']}'>
+                				<iframe src='{$htmlUrl}' SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='{$pArr['webdrvIframe']}'></iframe>
                 			</div>
             			</div>";
         } else {
             
             // HTML частта, ако е включен JS
             $htmlTpl = new ET("
-            					<div class='webdrvTabBody'>
-                    				<div class='legend'>" . tr('HTML изглед') . "</div><div class='webdrvFieldset'>
-                    					<iframe id=[#SANITIZEID#] SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'></iframe>
+            					<div class='{$pArr['webdrvTabBody']}'>
+                    				<div class='{$pArr['webdrvFieldset']}'>
+                    					<iframe id=[#SANITIZEID#] SECURITY='restricted' frameBorder='0' ALLOWTRANSPARENCY='true' class='{$pArr['webdrvIframe']}'></iframe>
                     					[#SANITIZEJS#]
                 					</div>
                 				</div>

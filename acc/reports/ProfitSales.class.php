@@ -14,6 +14,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deptecated
  */
 class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
 {

@@ -343,25 +343,31 @@ class currency_CurrencyRates extends core_Detail
         if (!isset($date)) {
             $date = dt::verbal2mysql();
         }
-        
+
+        /*
+         * днес през целия ден ние, банките и целия бизнес, няма как да знае какъв курс ще обяви БНБ след 16:00 часа днес,
+         * като централен курс ЗА ДНЕС използваме / се използва курсът, обявен от БНБ като курс ЗА ВЧЕРА - т.е.
+         * обявеният след 16:00 часа ВЧЕРА курс ЗА ВЧЕРА.
+         * За това като се търси курса към Дата, винаги ще се взима записа за Датата - 1
+         */
+        $previousDate = dt::addDays(-1, $date, false);
         expect($fromId, "{$from}: Няма такава валута");
         expect($toId, "{$to}: Няма такава валута");
-        
-        if ($fromId == $toId) {
-            // Ако подадените валути са еднакви, то обменния им курс е 1
-            return 1;
-        }
-        
-        if (!is_null($rate = static::getDirectRate($date, $fromId, $toId))) {
-            
+
+        // Ако подадените валути са еднакви, то обменния им курс е 1
+        if ($fromId == $toId) return 1;
+
+        // Ако има директен курс - връща се той
+        if (!is_null($rate = static::getDirectRate($previousDate, $fromId, $toId))) {
+
             return round($rate, 5);
         }
-        
+
+        // Ако няма директен курс, минава се през референтния от БНБ
         $crossCurrencyId = currency_Currencies::getIdByCode(static::$crossCurrencyCode);
-        
         if ($crossCurrencyId != $fromId && $crossCurrencyId != $toId) {
-            if (!is_null($rate = static::getCrossRate($date, $fromId, $toId, $crossCurrencyId))) {
-                
+            if (!is_null($rate = static::getCrossRate($previousDate, $fromId, $toId, $crossCurrencyId))) {
+
                 return round($rate, 5);
             }
         }

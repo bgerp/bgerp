@@ -69,7 +69,7 @@
    <table class="innerTable footer-notes paddingCells" style='width:100%;'>
       <tbody>
          <tr>
-            <td class="topCell first vtop" style='width:50%;'>
+            <td class="topCell first vtop" style='width:60%;'>
                <table class='shipment-table' style='width:100%;'>
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
@@ -86,7 +86,7 @@
                   <!--ET_BEGIN deliveryAddressBlock-->
                   [#deliveryAddressBlock#]
                   <tr>
-                     <td class='quiet nowrap aright'>|От адрес|*:</td>
+                     <td class='quiet nowrap aright' style="width:1%">|От адрес|*:</td>
                      <td>
                         [#deliveryTo#] [#deliveryLocationAddress#]
                      </td>
@@ -100,21 +100,22 @@
                   <!--ET_END lineId-->
                   <!--ET_BEGIN lineForwarderId-->
                   <tr>
-                     <td class='nowrap quiet aright'>|Спедитор|*: </td>
+                     <td class='nowrap quiet aright'  style="width: 1%">|Спедитор|*: </td>
                      <td>[#lineForwarderId#]</td>
                   </tr>
                   <!--ET_END lineForwarderId-->
                   <!--ET_BEGIN lineVehicleId-->
                   <tr>
-                     <td class='nowrap quiet aright'>|МПС|*: </td>
+                     <td class='nowrap quiet aright'  style="width: 1%">|МПС|*: </td>
                      <td>[#lineVehicleId#]</td>
                   </tr>
                   <!--ET_END lineVehicleId-->
                   <tr>
                      <td colspan="2">
-                        <div>
-                           |Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
-                        </div>
+                        <span class='half-col'>|Общо бруто тегло|*:&nbsp;[#weight#]</span>
+                        <span class='half-col'>|Общо нето тегло|*:&nbsp;[#netWeight#]</span>
+                        <span class='half-col'>|Общо тара|*:&nbsp;[#tareWeight#]</span>
+                        <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
                      </td>
                   </tr>
                   <!--ET_BEGIN logisticInfo-->
@@ -127,6 +128,7 @@
                <hr>
                [#note#]
                <!--ET_END note-->
+               <!--ET_BEGIN InvoicesToDocuments--><hr><table>[#InvoicesToDocuments#]</table><!--ET_END InvoicesToDocuments-->
             </td>
             <td class="topCell aright vtop">
                [#/deals/tpl/DocumentPiceInfo.shtml#]

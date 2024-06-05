@@ -43,12 +43,17 @@ class fileman_webdrv_Kml extends fileman_webdrv_Xml
         
         // Вземаме съдържанието
         $view = static::renderView($fRec);
-        
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+
         // Таб за съдържанието
         $tabsArr['preview'] = (object)
             array(
                 'title' => 'Изглед',
-                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='legend'>" . tr('Преглед') . "</div><div class='webdrvFieldset'>{$view}</div></div>",
+                'html' => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'>{$prevLink}{$nextLink}{$view}</div></div>",
                 'order' => 6,
                 'tpl' => $view,
             );

@@ -75,8 +75,14 @@ class crm_Groups extends core_Master
      * Права
      */
     public $canWrite = 'powerUser';
-    
-    
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'powerUser';
+
+
     /**
      * Кой има право да чете?
      */
@@ -168,6 +174,22 @@ class crm_Groups extends core_Master
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
 
         $this->setDbUnique('sysId');
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $rec = $form->rec;
+
+        if (isset($rec->sysId)) {
+            foreach (array('name', 'allow', 'makeDescendantsFeatures', 'parentId') as $fld) {
+                $form->setReadOnly($fld);
+            }
+        }
     }
 
 

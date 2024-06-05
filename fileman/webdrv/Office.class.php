@@ -43,12 +43,17 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         
         // URL за показване на преглед на файловете
         $previewUrl = toUrl(array('fileman_webdrv_Office', 'preview', $fRec->fileHnd));
-        
+
+        // Подготвяме стрелките
+        $resArray = self::getArrows($fRec);
+        $prevLink = $resArray['prevLink'];
+        $nextLink = $resArray['nextLink'];
+
         // Таб за преглед
         $tabsArr['preview'] = (object)
             array(
                 'title' => 'Преглед',
-                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Преглед') . "</div><div class='webdrvFieldset'> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink}<iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                 'order' => 2,
             );
         
@@ -60,7 +65,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             $tabsArr['text'] = (object)
             array(
                 'title' => 'Текст',
-                'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('Текст') . "</div> <div class='webdrvFieldset'><iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink}<iframe src='{$textPart}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                 'order' => 4,
             );
         }
@@ -75,7 +80,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
                 $tabsArr['html'] = (object)
                 array(
                     'title' => 'HTML',
-                    'html' => "<div class='webdrvTabBody'><div class='legend'>" . tr('HTML') . "</div> <div class='webdrvFieldset'><iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                    'html' => "<div class='webdrvTabBody'> <div class='webdrvFieldset'>{$prevLink}{$nextLink}<iframe src='{$htmlUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                     'order' => 3,
                 );
                 
@@ -96,7 +101,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
                 $tabsArr['html'] = (object)
                 array(
                     'title' => 'HTML',
-                    'html' => $htmlPart,
+                    'html' => $prevLink . $nextLink . $htmlPart,
                     'order' => 3,
                 );
             }

@@ -57,8 +57,13 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $fieldset->FLD(
             'countryGroup',
             'key(mvc=drdata_CountryGroups,select=name)',
-            'caption=Група държави,single=none,mandatory,after=contragent'
+            'caption=Филтри->Група държави,single=none,mandatory,after=contragent'
         );
+
+        //Праг за минимална просрочена сума за показване
+        $fieldset->FLD('minOverdueLevev', 'double', 'caption=Филтри->Без просрочените под,unit=лв,after=countryGroup,placeholder=0.00,silent,single=none');
+
+
         $fieldset->FLD('listForEmail', 'blob', 'caption=Списък за имейл,single=none,after=countryGroup,input=hidden');
         $fieldset->FLD('excludedFromEmail', 'text', 'caption=Изключени за имейл фирми,single=none,after=listForEmail,input=hidden');
         $fieldset->FLD('unsentEmails', 'blob', 'caption=Неизпратени имейли,single=none,after=listForEmail,input=hidden');
@@ -134,6 +139,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        core_App::setTimeLimit(100);
+
         if (!$rec->checkDate) {
             $checkDate = dt::now();
         } else {
@@ -149,6 +156,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $salQuery = sales_Sales::getQuery();
 
+        $salQuery->in('state', array('rejected', 'draft'), true);
+
         $salQuery->where("#closedOn IS NULL OR #closedOn > '$checkDate'");
 
         //нишки на активни договори
@@ -157,12 +166,25 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $salesTotalOverDue = $salesTotalPayout = 0;
         $invoiceCurrentSummArr = array();
 
+
+
+
         if (is_array($threadsActivSalesArr)) {
+
+            // Синхронизира таймлимита с броя записи //
+            $maxTimeLimit = countR($threadsActivSalesArr) * 5;
+            $maxTimeLimit = max(array($maxTimeLimit, 300));
+            core_App::setTimeLimit($maxTimeLimit);
+
+
             foreach ($threadsActivSalesArr as $thread) {
 
                 //Договора за продажба
                 $FirstDoc = doc_Threads::getFirstDocument($thread);
-                $fDocRec = $FirstDoc->fetch();                       // Rec-a на договора
+                if($FirstDoc && isset($FirstDoc) && is_object($FirstDoc)){
+                    $fDocRec = $FirstDoc->fetch();                       // Rec-a на договора
+                }else continue;
+
 
                 // масив от фактури в тази нишка към избраната дата
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
@@ -217,7 +239,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         list($limit1) = $limits->limit1;
                         list($limit2) = $limits->limit2;
 
-                        if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > 0 &&
+                        if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > $rec->minOverdueLevev &&
                             $iRec->dueDate < $checkDate) {
                             $overdueDays = dt::daysBetween($checkDate, $iRec->dueDate);
 
@@ -619,7 +641,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $toolbar = cls::get('core_Toolbar');
 
-        if (haveRole('blast')) {
+        if (blast_Emails::haveRightFor('add')) {
 
             //Изключените контрагенти от имейла
             if (isset($data->rec->excludedFromEmail)) {

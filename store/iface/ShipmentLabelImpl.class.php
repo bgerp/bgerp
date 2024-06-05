@@ -8,21 +8,15 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  * @see label_SequenceIntf
  *
  */
-class store_iface_ShipmentLabelImpl
+class store_iface_ShipmentLabelImpl extends label_ProtoSequencerImpl
 {
-    /**
-     * Инстанция на класа
-     */
-    public $class;
-
-
     /**
      * Връща наименованието на етикета
      *
@@ -87,7 +81,11 @@ class store_iface_ShipmentLabelImpl
                 }
             }
         }
-        
+
+        if(array_key_exists('OTHER', $placeholders)){
+            $placeholders['OTHER']->recently = true;
+        }
+
         return $placeholders;
     }
 
@@ -286,47 +284,5 @@ class store_iface_ShipmentLabelImpl
         $resArr[$key] = $arr;
         
         return $resArr[$key];
-    }
-    
-    
-    /**
-     * Връща дефолтен шаблон за печат на бърз етикет
-     *
-     * @param int  $id
-     * @param stdClass|null  $driverRec
-     *
-     * @return int
-     */
-    public function getDefaultFastLabel($id, $driverRec = null)
-    {
-        return null;
-    }
-    
-    
-    /**
-     * Връща попълнен дефолтен шаблон с дефолтни данни.
-     * Трябва `getDefaultFastLabel` да върне резултат за да се покажат данните
-     *
-     * @param int  $id
-     * @param int $templateId
-     *
-     * @return core_ET|null
-     */
-    public function getDefaultLabelWithData($id, $templateId)
-    {
-        return null;
-    }
-
-
-    /**
-     * Кой е дефолтния шаблон за печат към обекта
-     *
-     * @param $id
-     * @param string $series
-     * @return int|null
-     */
-    public function getDefaultLabelTemplateId($id, $series = 'label')
-    {
-        return null;
     }
 }

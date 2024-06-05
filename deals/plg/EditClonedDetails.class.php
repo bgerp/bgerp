@@ -55,13 +55,16 @@ class deals_plg_EditClonedDetails extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->action != 'clone') return;
-
         $form = &$data->form;
         $rec = $form->rec;
 
+        setIfNot($mvc->autoAddDetailsToChange, false);
+        if ($data->action != 'clone' && !$mvc->autoAddDetailsToChange) return;
+        if ($data->action != 'clone' && $mvc->autoAddDetailsToChange && isset($rec->id)) return;
+
         $MainDetail = cls::get($mvc->mainDetail);
         $detailsToCloneArr = $mvc->getDetailsToCloneAndChange($rec);
+
         $detailsToClone = $detailsToCloneArr['recs'];
         $Detail = $detailsToCloneArr['detailMvc'];
 
@@ -99,6 +102,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
             if($Detail->className != $MainDetail->className && empty($dRec->{$Detail->quantityFld})) continue;
             $caption = cat_Products::getTitleById($dRec->{$Detail->productFld});
             $caption .= ' / ' . cat_UoM::getShortName($dRec->packagingId);
+            $caption = str_replace('=', ' ', $caption);
             $caption = str_replace(',', ' ', $caption);
             $caption = "{$num}. {$caption}";
             
@@ -226,7 +230,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $detailClassId = $Detail->getClassId();
         
         $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
-        
+
         if (countR($rec->details)) {
 
             foreach ($rec->details as $det) {

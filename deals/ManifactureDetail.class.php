@@ -56,7 +56,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
      */
     public function setDetailFields($mvc)
     {
-        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Продукт,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity|isOutsourced');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,mandatory,input=hidden,silent');
         $mvc->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -140,17 +140,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
 
                 $form->setOptions('packagingId', $packs);
                 $form->setDefault('packagingId', key($packs));
+                $form->setField('packagingId', 'input');
             } else {
                 $form->rec->packagingId = $measureId;
-            }
-            
-            // Ако артикула не е складируем, скриваме полето за мярка
-            $productInfo = cat_Products::getProductInfo($rec->productId);
-            if (!isset($productInfo->meta['canStore'])) {
-                $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
-            } elseif($form->_replaceProduct !== true) {
-                $form->setField('packagingId', 'input');
             }
         }
         
@@ -212,9 +204,11 @@ abstract class deals_ManifactureDetail extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $singleUrl = cat_Products::getSingleUrlArray($rec->productId);
         $row->productId = cat_Products::getVerbal($rec->productId, 'name');
-        $row->productId = ht::createLinkRef($row->productId, $singleUrl);
+        if(!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))){
+            $singleUrl = cat_Products::getSingleUrlArray($rec->productId);
+            $row->productId = ht::createLinkRef($row->productId, $singleUrl);
+        }
         deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
         
         // Показваме подробната информация за опаковката при нужда

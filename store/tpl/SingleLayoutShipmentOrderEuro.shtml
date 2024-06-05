@@ -62,7 +62,7 @@
         <table class="innerTable footer-notes paddingCells"  style="width: 100%">
             <tbody>
                 <tr>
-                    <td class="topCell first vtop">
+                    <td class="topCell first vtop" style="width: 60%">
                        <table class='shipment-table' style='width:100%;'>
                             <!--ET_BEGIN deliveryTime-->
                             <tr>
@@ -85,7 +85,7 @@
                            <!--ET_END deliveryOn-->
                             <!--ET_BEGIN storeId-->
                             <tr>
-                                <td class='quiet nowrap aright'>|От склад|*:</td>
+                                <td class='quiet nowrap aright'  style="width: 1%">|От склад|*:</td>
                                 <td>[#storeId#]</td>
                             </tr>
                             <!--ET_END storeId-->
@@ -139,9 +139,10 @@
                            <!--ET_END deliveryTable-->
                            <tr>
                                <td colspan="2" >
-                                   <div>
-                                       <span class='half-col'>|Общо тегло|*:&nbsp;[#weight#]</span> <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
-                                   </div>
+                                   <span class='half-col'>|Общо бруто тегло|*:&nbsp;[#weight#]</span>
+                                   <span class='half-col'>|Общо нето тегло|*:&nbsp;[#netWeight#]</span>
+                                   <span class='half-col'>|Общо тара|*:&nbsp;[#tareWeight#]</span>
+                                   <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
                                </td>
                            </tr>
                            <!--ET_BEGIN logisticInfo-->

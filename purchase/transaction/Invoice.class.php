@@ -106,8 +106,8 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 'credit' => array('4530', array($origin->className, $origin->that)),
             );
         }
-        
-        if (Mode::get('saveTransaction')) {
+
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             $productArr = array();
             $Detail = cls::get('purchase_InvoiceDetails');
             $dQuery = $Detail->getQuery();
@@ -124,7 +124,12 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 }
                 $productArr[$dRec->productId] = $dRec->productId;
             }
-            
+
+            $vatReasonMsg = $this->class->doRequireVatReasonWhenTryingToPost($rec, $productArr);
+            if($vatReasonMsg){
+                acc_journal_RejectRedirect::expect(false, $vatReasonMsg);
+            }
+
             // Проверка дали артикулите отговарят на нужните свойства
             if (acc_Journal::throwErrorsIfFoundWhenTryingToPost() && countR($productArr)) {
                 if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canBuy', 'generic', 'трябва да са купуваеми и да не са генерични')){

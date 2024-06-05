@@ -41,7 +41,10 @@
                 <td>[#order#]</td>
             </tr>
             <!--ET_END order-->
-            
+            <tr>
+                <td class="title-style nowrap">|Създаване|*</td>
+                <td>|от|* [#createdBy#] |на|* [#createdOn#]</td>
+            </tr>
             <!--ET_BEGIN groupParams-->
             [#groupParams#]
             <tr>
@@ -67,7 +70,12 @@
                 <td>[#select#]</td>
             </tr>
             <!--ET_END select-->
-
+            <!--ET_BEGIN selectLabel-->
+            <tr>
+                <td class="title-style">|Поле на класа (при печат на етикети)|*</td>
+                <td>[#selectLabel#]</td>
+            </tr>
+            <!--ET_END selectLabel-->
             <!--ET_BEGIN translate-->
             <tr>
                 <td class="title-style">|Превод|*</td>
@@ -209,9 +217,7 @@
                 <td>[#editInLabel#]</td>
             </tr>
             <!--ET_END editInLabel-->
-            
         </table>
-        
-    	<div style='margin-top: 20px;'><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
     </div>
+    [#DETAILS#]
 </div>

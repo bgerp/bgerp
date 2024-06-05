@@ -186,8 +186,13 @@ class cat_Listings extends core_Master
                 $form->setReadOnly('vat');
             }
         }
-        
+
         $Cover = doc_Folders::getCover($rec->folderId);
+        if(!crm_Companies::isOwnCompanyVatRegistered()) {
+            $form->setDefault('vat', 'no');
+            $form->setReadOnly('vat', 'no');
+        }
+
         if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
             $form->setDefault('vat', ($Cover->shouldChargeVat()) ? 'yes' : 'no');
@@ -307,6 +312,9 @@ class cat_Listings extends core_Master
             // Добавя се всеки запис, групиран според типа
             while ($rec = $query->fetch()) {
                 $reff = (!empty($rec->reff)) ? $rec->reff : $rec->code;
+                if($packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId)) {
+                    if($packRec->state != 'active') continue;
+                }
                 $obj = (object) array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity, 'code' => $rec->code);
                 if (isset($rec->price)) {
                     if ($listRec->vat == 'yes') {

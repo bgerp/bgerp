@@ -9,7 +9,7 @@
  * @package   purchase
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -33,8 +33,8 @@ class purchase_Purchases extends deals_DealMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, purchase_Wrapper,purchase_plg_ExtractPurchasesData, acc_plg_Registry, plg_Sorting, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
-				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, change_Plugin, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
+				        cond_plg_DefaultValues, recently_Plugin,price_plg_TotalDiscount, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
+				        doc_EmailCreatePlg, bgerp_plg_Blank,cat_plg_UsingProductVat, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, change_Plugin, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
     
     
     /**
@@ -182,7 +182,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery,detailOrderBy';
+    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery,detailOrderBy,reff';
 
 
     /**
@@ -196,9 +196,7 @@ class purchase_Purchases extends deals_DealMaster
         'dealerId' => 'defMethod',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
-        'shipmentStoreId' => 'defMethod',
         'oneTimeDelivery' => 'clientCondition'
     );
     
@@ -561,7 +559,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->set('defaultBankOperation', 'bank2supplier');
         
         // Ако се очаква авансово плащане и платения аванс е под 80% от аванса,
-        // очакваме още да се плаща по аванаса
+        // очакваме още да се плаща по аванса
         if ($agreedDp) {
             if (empty($actualDp) || $actualDp < $agreedDp * 0.8) {
                 $result->set('defaultCaseOperation', 'case2supplierAdvance');
@@ -580,7 +578,7 @@ class purchase_Purchases extends deals_DealMaster
         $showReffInThread = purchase_Setup::get('SHOW_REFF_IN_PURCHASE_THREAD');
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
-            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
+            foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId', 'autoDiscount', 'inputDiscount') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
 
@@ -653,7 +651,7 @@ class purchase_Purchases extends deals_DealMaster
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if ($rec->state != 'active' && purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")) {
+            if ($rec->state != 'active' && (purchase_PurchasesDetails::fetch("#requestId = {$rec->id}")  || price_DiscountsPerDocuments::haveDiscount($mvc, $rec->id))) {
                 $res = 'no_one';
             } elseif (!haveRole('purchase,ceo', $userId)) {
                 $res = 'no_one';
@@ -718,10 +716,9 @@ class purchase_Purchases extends deals_DealMaster
         $conf = core_Packs::getConfig('purchase');
         $olderThan = $conf->PURCHASE_CLOSE_OLDER_THAN;
         $limit = $conf->PURCHASE_CLOSE_OLDER_NUM;
-        $daysAfterAcc = $conf->PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE;
         $ClosedDeals = cls::get('purchase_ClosedDeals');
         
-        $this->closeOldDeals($olderThan, $daysAfterAcc, $ClosedDeals, $limit);
+        $this->closeOldDeals($olderThan, $ClosedDeals, $limit);
     }
     
     
@@ -736,7 +733,9 @@ class purchase_Purchases extends deals_DealMaster
         $tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowEN.shtml');
         $tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract', 'narrowContent' => 'purchase/tpl/purchases/ServiceNarrowEN.shtml');
         $tplArr[] = array('name' => 'Заявка за транспорт', 'content' => 'purchase/tpl/purchases/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/TransportNarrow.shtml');
-        
+        $tplArr[] = array('name' => 'Договор за покупка без цени', 'content' => 'purchase/tpl/purchases/PurchaseNoPrice.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowNoPrice.shtml', 'toggleFields' => array('masterFld' => null, 'purchase_PurchasesDetails' => 'productId, packagingId, packQuantity'));
+        $tplArr[] = array('name' => 'Purchase contract without prices', 'content' => 'purchase/tpl/purchases/PurchaseENNoPrice.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrowENNoPrice.shtml', 'toggleFields' => array('masterFld' => null, 'purchase_PurchasesDetails' => 'productId, packagingId, packQuantity'));
+
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
@@ -873,16 +872,23 @@ class purchase_Purchases extends deals_DealMaster
     protected static function on_AfterInputSelectActionForm($mvc, &$form, $rec)
     {
         if ($form->isSubmitted()) {
-            $action = type_Set::toArray($form->rec->action);
-            if (isset($action['ship'])) {
-                $dQuery = purchase_PurchasesDetails::getQuery();
-                $dQuery->where("#requestId = {$rec->id}");
-                $dQuery->show('productId');
-                
-                $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($dQuery->fetchAll(), 'productId'), 'canBuy');
-                if($productCheck['metasError']){
-                    $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
-                    $form->setError('action', $warning1);
+            if($rec->amountDeal < 0){
+                $form->setError('action', 'Общата сума на продажбата не може да е отрицателна|*!');
+            } else {
+                $action = type_Set::toArray($form->rec->action);
+                if (isset($action['ship'])) {
+                    $dQuery = purchase_PurchasesDetails::getQuery();
+                    $dQuery->where("#requestId = {$rec->id}");
+                    $dQuery->show('productId');
+
+                    $productCheck = deals_Helper::checkProductForErrors(arr::extractValuesFromArray($dQuery->fetchAll(), 'productId'), 'canBuy');
+                    if($productCheck['metasError']){
+                        $warning1 = "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!";
+                        $form->setError('action', $warning1);
+                    } elseif ($productCheck['notActive']) {
+                        $error1 = 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |трябва да са активни|*!';
+                        $form->setError('action', $error1);
+                    }
                 }
             }
         }
@@ -930,5 +936,42 @@ class purchase_Purchases extends deals_DealMaster
 
         $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $rec->folderId, 'dealerId', true);
         if (core_Users::haveRole('purchase', $dealerId)) return $dealerId;
+    }
+
+
+    /**
+     * Метод връщащ темплейта на документа, ако го няма връща ид-то на първия възможен
+     * темплейт за този тип документи
+     */
+    protected static function on_AfterGetTemplate(core_Mvc $mvc, &$res, $id)
+    {
+        if(Mode::is('text', 'xhtml')){
+            $rec = $mvc->fetchRec($id);
+            if($rec->state == 'pending'){
+
+                // Ако има зададен шаблон за изпращане на заявка на доставчик да се подмени шаблона
+                $templateLang = doc_TplManager::fetchField($res, 'lang');
+                $xhtmlTplParamSysId = $templateLang == 'bg' ? 'requestSupplierTplBg' : 'requestSupplierTplEn';
+                $defaultRequestTplId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $xhtmlTplParamSysId);
+                if(!empty($defaultRequestTplId)){
+                    $res = $defaultRequestTplId;
+                }
+            }
+        }
+    }
+
+
+    /**
+     * След обновяване на мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        // Ако има твърда отстъпка за целия документ, изчислява се тя
+        $rec = $mvc->fetchRec($id);
+        if($mvc->recalcAutoTotalDiscount($rec)){
+            $mvc->updateMaster_($rec);
+        }
     }
 }

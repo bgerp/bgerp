@@ -31,6 +31,16 @@
 								<td>[#policyId#]</td>
 							</tr>
 							<tr>
+								<td class='dt'>|Режим на ДДС|*:</td>
+								<td>[#chargeVat#]</td>
+							</tr>
+							<!--ET_BEGIN discountPolicyId-->
+							<tr>
+								<td class='dt'>|Политика за отстъпки|*:</td>
+								<td>[#discountPolicyId#]</td>
+							</tr>
+							<!--ET_END discountPolicyId-->
+							<tr>
 								<td class='dt'>|Контрагент|*:</td>
 								<td>[#contragent#]</td>
 							</tr>
@@ -79,6 +89,14 @@
 								<td>[#productGroups#]</td>
 							</tr>
 							<!--ET_END productGroups-->
+							<tr>
+								<td class='dt'>|Шаблон за артикулите|*:</td>
+								<td>[#productBtnTpl#]</td>
+							</tr>
+							<tr>
+								<td class='dt'>|Код на артикулите в бутоните|*:</td>
+								<td>[#showProductCode#]</td>
+							</tr>
 							<tr>
 								<td class='dt'>|Брой намерени артикули|*:</td>
 								<td>[#maxSearchProducts#]</td>

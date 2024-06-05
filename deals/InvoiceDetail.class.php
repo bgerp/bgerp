@@ -47,7 +47,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, quantity=К-во, packPrice, discount=Отст., amount';
     
     
     /**
@@ -79,6 +79,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
         $mvc->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
+        $mvc->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none');
+        $mvc->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
         $mvc->setDbIndex('productId,packagingId');
     }
     
@@ -172,27 +174,68 @@ abstract class deals_InvoiceDetail extends doc_Detail
         // Извличане на дийл интерфейса от договора-начало на нишка
         $this->delete("#{$this->masterKey} = {$id}");
         $firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
+
+        // Изтриване на ръчните общи отстъпки
+        if(cls::haveInterface('price_TotalDiscountDocumentIntf', $this->Master)){
+            price_DiscountsPerDocuments::delete("#documentClassId={$this->Master->getClassId()} AND #documentId = {$invoiceRec->id}");
+        }
+
         $dealInfo = $firstDoc->getAggregateDealInfo();
         $importBatches = batch_Setup::get('SHOW_IN_INVOICES');
+        $chargeVat = $dealInfo->get('vatType');
 
         // За всеки артикул от договора, копира се 1:1
+        $autoDiscountPercent = null;
+        $iAmount = 0;
         if (is_array($dealInfo->dealProducts)) {
             foreach ($dealInfo->dealProducts as $det) {
+                if(!empty($det->discount) && empty($rec->autoDiscount) && empty($rec->inputDiscount)){
+                    $det->inputDiscount = $det->discount;
+                }
+
+                $autoDiscountPercent = $det->autoDiscount;
+                $det->discount = $det->inputDiscount;
+                $det->autoDiscount = null;
                 $det->{$this->masterKey} = $id;
                 $det->amount = $det->price * $det->quantity;
                 $det->quantity /= $det->quantityInPack;
                 if(is_array($det->batches) && countR($det->batches)){
                     $det->_batches = array_keys($det->batches);
                 }
-
                 unset($det->batches);
                 $det->_importBatches = $importBatches;
                 $this->save($det);
+
+                if($chargeVat == 'yes'){
+                    $iAmount += isset($det->discount) ? ($det->amount * (1 - $det->discount)) : $det->amount;
+                }
             }
         }
-        
+
+        // Зареждане и на общите отстъпки от договора, ако има
+        if(cls::haveInterface('price_TotalDiscountDocumentIntf', $this->Master)){
+
+            // Гледа се сумата на общите отстъпки и се прехвърлят в един общ ред
+            $discQuery = price_DiscountsPerDocuments::getQuery();
+            $discQuery->where("#documentClassId = {$firstDoc->getClassId()} AND #documentId = {$firstDoc->that}");
+            $discQuery->orderBy('id', 'ASC');
+            $totalDiscountRecs = $discQuery->fetchAll();
+            $totalDiscountSum = arr::sumValuesArray($totalDiscountRecs, 'amount');
+
+            $expectedDiscount = $iAmount * $autoDiscountPercent;
+            foreach ($totalDiscountRecs as $tRec){
+                $tRec->documentClassId = $this->Master->getClassId();
+                $tRec->documentId = $invoiceRec->id;
+                unset($tRec->id);
+                if($chargeVat == 'yes'){
+                    $tRec->amount = $expectedDiscount * ($tRec->amount / $totalDiscountSum);
+                }
+                price_DiscountsPerDocuments::save($tRec);
+            }
+        }
+
         // Редирект обратно към фактурата
-        return followRetUrl(null, 'Артикулите от сделката са копирани успешно');
+        return followRetUrl(null, '|Артикулите от сделката са копирани успешно');
     }
     
     
@@ -239,7 +282,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
         arr::sortObjects($recs, 'id', 'ASC');
 
         if (countR($recs)) {
-
             $hasDiscount = false;
             array_walk($recs, function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
             $applyDiscount = !($hasDiscount);
@@ -249,14 +291,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
             // За всеки запис ако е променен от оригиналния показваме промяната
             foreach ($recs as &$dRec) {
-                $price = round($dRec->packPrice, 5);
-                $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
-                $priceKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
-
-                if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
-
-                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($quantityKey, $cached->recs)){
-                    $quantityArr = is_array($cached->recWithIds[$dRec->clonedFromDetailId]) ? $cached->recWithIds[$dRec->clonedFromDetailId] : $cached->recs[$quantityKey];
+                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
+                    $quantityArr = $cached->recWithIds[$dRec->clonedFromDetailId];
                     $originPrice = deals_Helper::getDisplayPrice($quantityArr['price'], 0, 1, 'no', 5);
                     $diffPrice = $dRec->packPrice - $originPrice;
 
@@ -272,9 +308,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     }
                 }
 
-                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($priceKey, $cached->recs)){
-                    $priceArr = is_array($cached->recWithIds[$dRec->clonedFromDetailId]) ? $cached->recWithIds[$dRec->clonedFromDetailId] : $cached->recs[$priceKey];
-
+                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
+                    $priceArr = $cached->recWithIds[$dRec->clonedFromDetailId];
                     $diffQuantity = $dRec->quantity - $priceArr['quantity'];
                     if (round($diffQuantity, 5) != 0) {
                         $dRec->quantity = $diffQuantity;
@@ -338,6 +373,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
             
             deals_Helper::addNotesToProductRow($row1->productId, $rec->notes);
+
+            if ($masterRec->type != 'dc_note' || !isset($masterRec->type)) {
+                $row1->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
+            }
         }
         
         if ($masterRec->type != 'dc_note') {
@@ -452,6 +491,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $lang = isset($modeLg) ? $modeLg : doc_TplManager::fetchField($masterRec->template, 'lang');
 
         core_Lg::push($lang);
+        core_RowToolbar::createIfNotExists($row->_rowTools);
+        cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $rec->id);
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang, 1, false);
         core_Lg::pop();
 
@@ -490,9 +531,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         }
                     }
                 } else {
-                    if (!haveRole('invoicer, ceo', $userId)) {
-                        $res = 'no_one';
-                    }
                     
                     // При начисляване на авансово плащане не може да се добавят други продукти
                     if ($masterRec->dpOperation == 'accrued') {
@@ -541,14 +579,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
-            
-            // Ако артикула не е складируем, скриваме полето за мярка
-            if (!isset($productInfo->meta['canStore'])) {
-                $measureShort = cat_UoM::getShortName($form->rec->packagingId);
-                $form->setField('quantity', "unit={$measureShort}");
-            } else {
-                $form->setField('packagingId', 'input');
-            }
+            $form->setField('packagingId', 'input');
             
             if (isset($mvc->LastPricePolicy)) {
                 $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);
@@ -562,11 +593,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
-            $productInfo = cat_Products::getProductInfo($rec->productId);
             if (!isset($rec->quantity) && $masterRec->type != 'dc_note') {
-                $form->setDefault('quantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
+                $defaultQuantity = $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
+                $form->setDefault('quantity', $defaultQuantity);
                 if (empty($rec->quantity)) {
                     $form->setError('quantity', 'Не е въведено количество');
+                    return;
                 }
             }
             
@@ -644,18 +676,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             // Проверка на цената
             $msg = null;
-            if (!deals_Helper::isPriceAllowed($rec->price, $rec->quantity, $autoPrice, $msg)) {
+            $quantityInBaseMeasureId = $rec->quantity * $rec->quantityInPack;
+            if (!deals_Helper::isPriceAllowed($rec->price, $quantityInBaseMeasureId, $autoPrice, $msg)) {
                 $form->setError('packPrice,quantity', $msg);
             }
             
             $rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
-            
-            // Ако има такъв запис, сетваме грешка
-            $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, null, null, null, null, $rec->notes);
-            if ($exRec) {
-                $form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
-                unset($rec->packPrice, $rec->price, $rec->quantityInPack);
-            }
+
 
             if(!$form->gotErrors()){
                 // Записваме основната мярка на продукта
@@ -670,24 +697,50 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
 
                 if ($masterRec->type === 'dc_note') {
+
+                    // Проверка дали са променени и цената и количеството
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
-
-                    if(isset($rec->clonedFromDetailId)){
-                        $changedPriceAndQuantity = false;
-                        if(round($rec->quantity, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['quantity'], 5) && round($rec->packPrice, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['price'], 5)){
-                            $changedPriceAndQuantity = true;
-                        }
-                    } else {
-                        $quantityKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|Q{$rec->quantity}";
-                        $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$rec->packPrice}";
-                        $changedPriceAndQuantity = !array_key_exists($quantityKey, $cache->recs) && !array_key_exists($priceKey, $cache->recs);
-                    }
-
-                    if($changedPriceAndQuantity) {
+                    $originRec = $cache->recWithIds[$rec->clonedFromDetailId];
+                    $diffPrice = round($rec->packPrice - $originRec['price'], 5);
+                    if(round($rec->quantity, 5) != round($originRec['quantity'], 5) && abs($diffPrice) > 0.0001){
                         $form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
                     }
                 }
             }
         }
+    }
+
+
+    /**
+     * Кои полета да се преизичслят при активиране
+     *
+     * @param stdClass $invoiceRec;
+     */
+    public function getFieldsToCalcOnActivation_($invoiceRec)
+    {
+        return array();
+    }
+
+
+    /**
+     * Дали да се обнови записа при активиране
+     *
+     * @param stdClass $dRec      - ид на запис
+     * @param stdClass $masterRec - ид на мастъра на записа
+     * @param array $params       - продуктовите параметри
+     * @return bool               - ще се обновява ли реда или не
+     */
+    public function calcFieldsOnActivation_(&$dRec, $masterRec, $params)
+    {
+        return false;
+    }
+
+
+    /**
+     * Изпълнява се преди клониране на детайла
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        $rec->discount = $oldRec->inputDiscount;
     }
 }

@@ -62,13 +62,20 @@ class email_AddressesInfo extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'email_Wrapper, plg_RowTools2, plg_Sorting, bgerp_plg_Import';
+    public $loadList = 'email_Wrapper, plg_RowTools2, plg_Sorting, bgerp_plg_Import, plg_Search';
 
 
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'blast_BlockedEmails';
+
+
+    /**
+     * @var string
+     * @see plg_Search
+     */
+    public $searchFields = 'email, redirection';
 
 
     /**
@@ -88,8 +95,8 @@ class email_AddressesInfo extends core_Manager
      */
     protected function description()
     {
-        $this->FLD('email', 'email(showOriginal)', 'caption=Имейл, mandatory, silent');
-        $this->FLD('redirection', 'email', 'caption=Пренасочване');
+        $this->FLD('email', 'email(showOriginal,ci)', 'caption=Имейл, mandatory, silent');
+        $this->FLD('redirection', 'email', 'caption=Пренасочване при изпращане->Имейл');
         $this->FLD('state', 'enum(,ok=OK, blocked=Блокирано, error=Грешка)', 'caption=Състояние');
         $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Последно->Проверка, input=none');
         $this->FLD('lastSent', 'datetime(format=smartTime)', 'caption=Последно->Изпращане, input=none');
@@ -97,6 +104,55 @@ class email_AddressesInfo extends core_Manager
 
         $this->setDbUnique('email');
         $this->setDbIndex('redirection');
+    }
+
+
+    /**
+     * Връща записа за имейл адреса
+     *
+     * @param string $email
+     *
+     * @return object|null
+     */
+    public static function getRecFor($email)
+    {
+        $email = trim($email);
+        $email = mb_strtolower($email);
+
+        $rEmail = self::fetch(array("#email = '[#1#]'", $email));
+
+        return $rEmail;
+    }
+
+
+    /**
+     * Обновява данните за имейл адреса
+     *
+     * @param string $email
+     * @param array $fArr
+     *
+     * @return object
+     */
+    public static function updateRecFor($email, $fArr = array())
+    {
+        $rEmail = self::getRecFor($email);
+
+        if (!$rEmail) {
+            $rEmail = new stdClass();
+            $rEmail->email = $email;
+        }
+
+        $saveFieldsArr = array();
+        foreach ($fArr as $fName => $fValue) {
+            $rEmail->{$fName} = $fValue;
+            $saveFieldsArr[$fName] = $fName;
+        }
+
+        $saveFieldsArr = $rEmail->id ? $saveFieldsArr : null;
+
+        self::save($rEmail, $saveFieldsArr);
+
+        return $rEmail;
     }
 
 
@@ -118,7 +174,7 @@ class email_AddressesInfo extends core_Manager
             return self::$mapArr[$email];
         }
 
-        $rEmail = self::fetchField(array("LOWER(#email) = '[#1#]'", $email), 'redirection');
+        $rEmail = self::fetchField(array("#email = '[#1#]'", $email), 'redirection');
         if (trim($rEmail)) {
             $oEmail = $rEmail;
         }
@@ -181,7 +237,7 @@ class email_AddressesInfo extends core_Manager
         expect(strlen($email), $email);
 
         $email = mb_strtolower($email);
-        $oRecId = self::fetchField(array("LOWER(#email) = '[#1#]'", $email));
+        $oRecId = self::fetchField(array("#email = '[#1#]'", $email));
 
         if (isset($oRecId)) {
 
@@ -510,9 +566,12 @@ class email_AddressesInfo extends core_Manager
         $domain = mb_strtolower($domain);
         
         if (!isset($validatedDomainsArr[$domain])) {
-            $DrData = cls::get('drdata_Emails');
-            
             $validatedDomainsArr[$domain] = drdata_Emails::mxAndARecordsValidate($domain);
+            if ($validatedDomainsArr[$domain] === false) {
+                if (checkdnsrr($domain, 'MX') || checkdnsrr($domain, 'A')) {
+                    $validatedDomainsArr[$domain] = true;
+                }
+            }
         }
         
         if ($validatedDomainsArr[$domain] === false) {
@@ -580,11 +639,12 @@ class email_AddressesInfo extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('lastSent', 'DESC');
-        
+        $data->query->orderBy('id', 'DESC');
+
         $data->listFilter->FNC('emailStr', 'varchar', 'caption=Имейл');
         
         // Да се показва полето за търсене
-        $data->listFilter->showFields = 'state, emailStr';
+        $data->listFilter->showFields = 'state, search';
         
         $data->listFilter->view = 'horizontal';
         
@@ -599,10 +659,6 @@ class email_AddressesInfo extends core_Manager
         
         if ($data->listFilter->rec->state) {
             $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->state));
-        }
-        
-        if ($data->listFilter->rec->emailStr) {
-            $data->query->like('email', $data->listFilter->rec->emailStr);
         }
     }
     

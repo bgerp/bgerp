@@ -34,7 +34,7 @@ class cat_plg_Grouping extends core_Plugin
     public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
         if ($action == 'changemeta') {
-            $mvc->requireRightFor('edit');
+            $mvc->requireRightFor('changemeta');
             
             // Създаване на формата
             $form = cls::get('core_Form');
@@ -62,7 +62,7 @@ class cat_plg_Grouping extends core_Plugin
             foreach ($selArr as $i => $ind) {
                 $obj = (object) array('id' => $ind);
                 
-                if (!is_numeric($ind) || !$mvc->haveRightFor('edit', $obj)) {
+                if (!is_numeric($ind) || !$mvc->haveRightFor('changemeta', $obj)) {
                     unset($selArr[$i]);
                 }
                 
@@ -87,7 +87,7 @@ class cat_plg_Grouping extends core_Plugin
                 if (!$retUrl) {
                     $retUrl = array($mvc, 'list');
                 }
-                $res = new Redirect($retUrl, 'В избраните няма опции, които може да се променят');
+                $res = new Redirect($retUrl, '|В избраните няма опции, които може да се променят');
 
                 return false;
             }

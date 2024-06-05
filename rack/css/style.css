@@ -181,3 +181,11 @@
     background-color: orange;
     border:#eee;
 }
+
+.notEnoughQuantityForZone {
+    border-radius: 3px;
+    border: solid 1px #bbbbbb;
+    padding: 2px 6px;
+    display: inline-block;
+}
+

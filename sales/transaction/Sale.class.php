@@ -218,8 +218,14 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
             
             $amount = $detailRec->amount;
-            $discount = isset($detailRec->discount) ? $detailRec->discount : $detailRec->autoDiscount;
-            $amount = ($discount) ?  $amount * (1 - $discount) : $amount;
+            $discountVal = $detailRec->discount;
+            if(!empty($detailRec->autoDiscount)){
+                if(in_array($rec->state, array('draft', 'pending'))){
+                    $discountVal = round((1- (1 - $discountVal)*(1 - $detailRec->autoDiscount)), 4);
+                }
+            }
+
+            $amount = ($discountVal) ?  $amount * (1 - $discountVal) : $amount;
             $amount = round($amount, 2);
             
             $entries[] = array(
@@ -288,7 +294,12 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         expect($rec->caseId, 'Генериране на платежна част при липсваща каса!');
         $amountBase = $quantityAmount = 0;
         foreach ($rec->details as $detailRec) {
-            $discount = isset($detailRec->discount) ? $detailRec->discount : $detailRec->autoDiscount;
+            $discount = $detailRec->discount;
+            if(!empty($detailRec->autoDiscount)){
+                if(in_array($rec->state, array('draft', 'pending'))){
+                    $discount = round((1- (1 - $discount)*(1 - $detailRec->autoDiscount)), 4);
+                }
+            }
             $amount = ($discount) ?  $detailRec->amount * (1 - $discount) : $detailRec->amount;
             $amount = round($amount, 2);
             $amountBase += $amount;
@@ -508,38 +519,72 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      * Връща записите за моментното производство на артикулите, ако има такива
      *
      * @param stdClass $rec
+     * @throws acc_journal_RejectRedirect
      * @return array $entries
      */
-    public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId', &$instantProducts = array())
+    public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId', &$instantProducts = array(), $productFieldName = 'productId')
     {
-        $entries = array();
-        if(is_array($rec->details)){
-            foreach ($rec->details as $dRec){
-                
-                // Ако имат моментна рецепта
-                $instantBomRec = cat_Products::getLastActiveBom($dRec->productId, 'instant');
-                if(!is_object($instantBomRec)) continue;
-                
-                // И тя има ресурси, произвежда се по нея
-                $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
-                if(is_array($bomInfo['resources'])){
-                    foreach ($bomInfo['resources'] as &$resRec){
-                        $resRec->quantity = $resRec->propQuantity;
-                        $resRec->storeId = $rec->{$storeField};
-                        $resRec->fromAccId = '61102';
-                    }
-                   
-                    // Извличане на записите за производството
-                    $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($dRec->productId, $dRec->quantity, $rec->{$storeField}, null, $class, $rec->id, null, $rec->valior, $bomInfo['expenses'], $bomInfo['resources']);
-                    
-                    if(countR($prodArr)){
-                        $instantProducts[$dRec->productId] = $dRec->productId;
-                        $entries = array_merge($entries, $prodArr);
-                    }
+        core_Debug::startTimer('FAST_PRODUCTION_ENTRIES');
+        $entries = $bomDataCombined = array();
+        if(!is_array($rec->details)) return $entries;
+
+        foreach ($rec->details as $dRec1){
+            // Ако имат моментна рецепта
+            $instantBomRec = cat_Products::getLastActiveBom($dRec1->{$productFieldName}, 'instant');
+            if(!is_object($instantBomRec)) continue;
+            $quantity = $dRec1->quantity * $dRec1->quantityInPack;
+            if(!array_key_exists($instantBomRec->id, $bomDataCombined)){
+                $bomDataCombined[$instantBomRec->id] = (object)array('rec' => $instantBomRec, 'storeId' => $rec->{$storeField}, 'quantity' => 0, 'productId' => $dRec1->{$productFieldName});
+                $instantProducts[$dRec1->{$productFieldName}] = $dRec1->{$productFieldName};
+            }
+            $bomDataCombined[$instantBomRec->id]->quantity += $quantity;
+        }
+
+        core_Debug::startTimer('FAST_PRODUCTION_BOM_DATA');
+        foreach ($bomDataCombined as $bomData){
+
+            // И тя има ресурси, произвежда се по нея
+            $bomInfo = cat_Boms::getResourceInfo($bomData->rec, $bomData->quantity, $rec->valior);
+            if(is_array($bomInfo['resources'])){
+                foreach ($bomInfo['resources'] as &$resRec){
+                    $resRec->quantity = $resRec->propQuantity;
+                    $resRec->storeId = $bomData->storeId;
+                    $resRec->fromAccId = '61102';
+                }
+
+                // Извличане на записите за производството
+                $isComplete = ($bomData->rec->isComplete == 'auto') ? cat_Setup::get('DEFAULT_BOM_IS_COMPLETE') : $bomData->rec->isComplete;
+                $equalizePrimeCost = ($isComplete == 'no') ? true : null;
+                $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($bomData->productId, $bomData->quantity, $bomData->storeId, null, $class, $rec->id, null, $rec->valior, $bomInfo['expenses'], $bomInfo['resources'], null, $equalizePrimeCost);
+
+                if(countR($prodArr)){
+                    $entries = array_merge($entries, $prodArr);
                 }
             }
         }
-        
+        core_Debug::stopTimer('FAST_PRODUCTION_BOM_DATA');
+        core_Debug::log("GET FAST_PRODUCTION_BOM_DATA " . round(core_Debug::$timers["FAST_PRODUCTION_BOM_DATA"]->workingTime, 6));
+
+        // Проверка дали материалите са вложими и генерични
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            $shipped = array();
+            foreach ($entries as $d) {
+                if (in_array($d['credit'][0], array('60201', '321'))) {
+                    $shipped[$d['credit'][2][1]] = $d['credit'][2][1];
+                }
+            }
+
+            if($redirectError = deals_Helper::getContoRedirectError($shipped, 'canConvert', 'generic', 'трябва да са вложими и да не са генерични')){
+                if($class == 'pos_Reports'){
+                    doc_Threads::doUpdateThread($rec->threadId);
+                }
+                acc_journal_RejectRedirect::expect(false, $redirectError);
+            }
+        }
+
+        core_Debug::stopTimer('FAST_PRODUCTION_ENTRIES');
+        core_Debug::log("GET FAST_PRODUCTION_ENTRIES " . round(core_Debug::$timers["FAST_PRODUCTION_ENTRIES"]->workingTime, 6));
+
         return $entries;
     }
 }

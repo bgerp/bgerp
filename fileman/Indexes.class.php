@@ -130,6 +130,13 @@ class fileman_Indexes extends core_Manager
      */
     public static function prepare_(&$data, $fh)
     {
+        if (!haveRole('debug') && $data->rec) {
+            if (fileman_Files::isDanger($data->rec, 0.00001)) {
+
+                return ;
+            }
+        }
+
         // Записи за текущия файл
         $data->fRec = fileman_Files::fetchByFh($fh);
         
@@ -609,7 +616,12 @@ class fileman_Indexes extends core_Manager
      */
     public static function createErrorLog($dataId, $type)
     {
-        fileman_Data::logWarning("Възникна грешка при обработката на файла към '{$type}'", $dataId);
+        if ($dataId) {
+            fileman_Data::logWarning("Възникна грешка при обработката на файла 'dataId={$dataId}' към '{$type}'", $dataId);
+        } else {
+            wp("Възникна грешка при обработката на файла към '{$type}'");
+            fileman_Data::logNotice("Възникна грешка при обработката на файла към '{$type}'");
+        }
     }
     
     
@@ -729,6 +741,12 @@ class fileman_Indexes extends core_Manager
         $fArr = array();
         $fNameStr = '';
         while ($fRec = $fQuery->fetch()) {
+            // Да не се обработват опасните файлове
+            if (fileman::isDanger($fRec, 0.00001)) {
+
+                return true;
+            }
+
             $fArr[$fRec->fileHnd] = $fRec;
             $fNameStr .= $fRec->name . ' ';
         }

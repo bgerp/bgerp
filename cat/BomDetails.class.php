@@ -139,12 +139,18 @@ class cat_BomDetails extends doc_Detail
 
 
     /**
+     * Шаблон за реда в листовия изглед
+     */
+    public $tableRowTpl = "[#ADD_ROWS#][#ROW#]";
+
+
+    /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|subTitle|description|inputStores|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
+        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,tdClass=materialCol,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|subTitle|description|inputStores|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
         $this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Подетап на,remember,removeAndRefreshForm=propQuantity,silent');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -163,7 +169,7 @@ class cat_BomDetails extends doc_Detail
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate|labelType');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано,autoPrint=Генериране и печат)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
         $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производството->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide,input=none');
         $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък в производството->Начален,autohide,input=none');
@@ -191,6 +197,13 @@ class cat_BomDetails extends doc_Detail
         if(cat_BomDetails::count("#bomId = {$data->masterId} AND #type = 'stage'")){
             $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=' plus-icon more-btn' id='bomResourceColName{$data->masterData->rec->id}'> </a>";
         }
+
+        if(cat_BomDetails::count("#bomId = {$data->masterId} AND #parentId IS NOT NULL")) {
+            if(!in_array($data->masterData->rec->state, array('draft', 'rejected'))){
+                $data->listFields['position'] .= "|* <span  class='newIconStyle openAllRows toggleAllRows' title='Показване/Скриване на всички подетапи'> </span>";
+            }
+        }
+
         $data->listFields['propQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Формула|*";
         $data->listFields['rowQuantity'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Количество|*";
         $data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
@@ -779,7 +792,16 @@ class cat_BomDetails extends doc_Detail
         } else {
             $row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
         }
-        
+
+        // Генерираме кода според позицията на артикула и етапите
+        $codePath = $mvc->getProductPath($rec, true);
+        $position = implode('.', $codePath);
+        $position = cls::get('type_Varchar')->toVerbal($position);
+        $row->position = $position;
+        $row->ROW_ATTR['class'] .= ' collapse';
+        $row->ROW_ATTR['data-position'] = "bom{$rec->bomId}-" . $position;
+        $row->ROW_ATTR['data-depth'] = countR($codePath) - 1;
+
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
             $extraBtnTpl = new core_ET("<!--ET_BEGIN BTN--><span style='float:right'>[#BTN#]</span><!--ET_END BTN-->");
             
@@ -794,15 +816,20 @@ class cat_BomDetails extends doc_Detail
                 $link = ht::createLink(tr('|*[- |рецепта|*]'), array($mvc, 'shrink', $rec->id, 'ret_url' => true), false, 'title=Свиване на етап');
                 $extraBtnTpl->append($link, 'BTN');
             }
-            
+
+            if($rec->type == 'stage'){
+                if(cat_BomDetails::count("#parentId = {$rec->id} AND #bomId = {$rec->bomId}")){
+                    $bomRec = cat_Boms::fetch($rec->bomId);
+                    if(in_array($bomRec->state, array('active', 'closed')) && !$fields['-components']){
+                        $extraBtnTpl2 = new core_ET("<!--ET_BEGIN BTN-->[#BTN#]<!--ET_END BTN-->");
+                        $extraBtnTpl2->replace(' <span  class=" newIconStyle bomExpandStageDetails' . $rec->id . '" title="Показване/Скриване на детайли"> </span>', 'BTN');
+                        $row->position .= $extraBtnTpl2->getContent();
+                    }
+                }
+            }
+
             $row->resourceId .= $extraBtnTpl;
         }
-
-        // Генерираме кода според позицията на артикула и етапите
-        $codePath = $mvc->getProductPath($rec, true);
-        $position = implode('.', $codePath);
-        $position = cls::get('type_Varchar')->toVerbal($position);
-        $row->position = $position;
 
         $descriptionArr = array();
         if ($rec->type == 'stage') {
@@ -910,8 +937,9 @@ class cat_BomDetails extends doc_Detail
                 $rec->propQuantity = "({$rec->propQuantity}) / ${coefficient}";
             }
         }
-        
+
         $rec->rowQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $rec->params);
+
         $row->propQuantity = static::highlightExpr($propQuantity, $rec->params, $coefficient);
 
         if(!is_numeric($propQuantity)){
@@ -929,7 +957,7 @@ class cat_BomDetails extends doc_Detail
             $row->primeCost = "<span class='red'>???</span>";
             $row->primeCost = ht::createHint($row->primeCost, 'Не може да бъде изчислена себестойността', 'warning', false);
         } else {
-            $row->rowQuantity = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->rowQuantity);
+            $row->rowQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->rowQuantity);
         }
         
         if (!isset($rec->primeCost) && $rec->type != 'stage') {
@@ -968,7 +996,7 @@ class cat_BomDetails extends doc_Detail
         if (isset($notAllowed[$rec->resourceId])) {
             $productVerbal = cat_Products::getTitleById($masterRec->productId);
             
-            return followRetUrl(null, "Артикулът не може да бъде , защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>", 'error');
+            return followRetUrl(null, "|Артикулът не може да бъде , защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>", 'error');
         }
         
         $bomRec = null;
@@ -1246,7 +1274,9 @@ class cat_BomDetails extends doc_Detail
         $bomId = static::fetchField($detailId, 'bomId');
         $orderedDetails = self::getOrderedBomDetails($bomId);
         foreach ($orderedDetails as $rec){
-            $res[] = $rec->id;
+            if($DetailMvc->haveRightFor('edit', $rec)){
+                $res[] = $rec->id;
+            }
         }
     }
 
@@ -1260,10 +1290,7 @@ class cat_BomDetails extends doc_Detail
         if (is_array($data->rows)) {
 
             // Колко е най-голямото закръгляне на използваните мерки
-            $usedMeasures = arr::extractValuesFromArray($data->recs, 'packagingId');
-            $maxDecimals = cat_UoM::getMaxRound($usedMeasures);
-            $Double = core_Type::getByName("double(decimals={$maxDecimals})");
-
+            $Double = core_Type::getByName("double(smartRound)");
             foreach ($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
                 if ($rec->parentId) {
@@ -1346,7 +1373,7 @@ class cat_BomDetails extends doc_Detail
     public function cloneDetails($fromBomId, $toBomId)
     {
         $fromBomRec = cat_Boms::fetchRec($fromBomId);
-        if($fromBomRec->state == 'template'){
+        if($fromBomRec->state == 'template' || Mode::is('cloneDetailsFromPrototype')){
             $this->cloneDetailsFromBomId($fromBomId, $toBomId);
         } else {
             cat_BomDetails::addProductComponents($fromBomRec->productId, $toBomId, null);

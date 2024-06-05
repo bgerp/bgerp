@@ -232,7 +232,7 @@ class label_plg_Print extends core_Plugin
         foreach ($series as $series => $caption){
             $res[$series] = array('url' => null, 'attr' => '', 'caption' => $caption);
             if ($mvc->haveRightFor('printlabel', $rec)) {
-                $templates = $mvc->getLabelTemplates($rec, $series, false);
+                $templates = $mvc->getLabelTemplates($rec, $series);
                 if(countR($templates)){
                     if (label_Prints::haveRightFor('add', (object) array('classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'series' => $series))) {
                         core_Request::setProtected(array('classId,objectId,series'));
@@ -381,16 +381,54 @@ class label_plg_Print extends core_Plugin
 
 
     /**
+     * Метод по подразбиране за автоматичния печат на бързи етикети
+     *
+     * @param core_Mvc $mvc
+     * @param array $res    - стойност по подразбиране, ако не е върнато от модела
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetModeAutoLabelPrint($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $res = 'no';
+        }
+    }
+
+
+    /**
      * След рендиране на обвивката
      */
     public function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        if ($invoker->_isSaveAndNew && ($prevSavedId = Mode::get("{$invoker->className}_PREV_SAVED_ID"))) {
-            if (label_Setup::get('AUTO_PRINT_AFTER_SAVE_AND_NEW') == 'yes') {
+        $prevSavedId = Mode::get("{$invoker->className}_PREV_SAVED_ID");
+        if($invoker->_isSaveAndNew && isset($prevSavedId)){
+            $autoLabelMode = $invoker->getModeAutoLabelPrint($prevSavedId);
+            if(in_array($autoLabelMode, array('afterSaveAndNew', 'both'))){
                 if ($invoker->haveRightFor('printperipherallabel', $prevSavedId)) {
                     $lUrl = toUrl(array($invoker, 'printperipherallabel', $prevSavedId, 'refreshUrl' => toUrl(getCurrentUrl())), 'local');
                     $lUrl = urlencode($lUrl);
+                    jquery_Jquery::run($tpl, "getEfae().process({url: '{$lUrl}'});", TRUE);
+                }
+            }
+        }
+    }
 
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    public static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+        // Ако се рендира таблицата на детайла веднага след добавянето на запис
+        $prevSavedId = Mode::get("{$mvc->className}_PREV_SAVED_ID");
+        if(isset($prevSavedId) && !$mvc->_isSaveAndNew){
+
+            // Ако е оказано да се печата след Запис или след Запис и Запис и нов да се разпечата автоматично етикет
+            $autoLabelMode = $mvc->getModeAutoLabelPrint($prevSavedId);
+            if(in_array($autoLabelMode, array('afterSave', 'both'))){
+                if ($mvc->haveRightFor('printperipherallabel', $prevSavedId)) {
+                    $lUrl = toUrl(array($mvc, 'printperipherallabel', $prevSavedId, 'refreshUrl' => toUrl(getCurrentUrl())), 'local');
+                    $lUrl = urlencode($lUrl);
                     jquery_Jquery::run($tpl, "getEfae().process({url: '{$lUrl}'});", TRUE);
                 }
             }

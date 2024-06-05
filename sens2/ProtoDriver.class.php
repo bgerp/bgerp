@@ -130,7 +130,7 @@ class sens2_ProtoDriver extends core_BaseClass
     
     
     /**
-     * Връща списъка с възможните слотове от посочени типове
+     * Връща списъка с възможните слотове от посочените типове
      */
     public function getSlotOpt($type = array(), $onlyAviable = false)
     {
@@ -216,15 +216,16 @@ class sens2_ProtoDriver extends core_BaseClass
         }
         
         $map = array('uom' => 'uom', 'scale' => 'scale', 'update' => 'readPeriod', 'log' => 'logPeriod');
-        
-        if (is_array($this->inputs) && ($config = $this->driverRec->config)) {
+        $config = $this->driverRec->config;
+
+        if (is_array($this->inputs)) {
             foreach ($this->inputs as $name => $descArr) {
                 $p = (object) $descArr;
                 $p->name = $name;
                 $p->readable = true;
                 foreach ($map as $confPart => $portPart) {
                     $confField = $name . '_' . $confPart;
-                    if (strlen($config->{$confField})) {
+                    if ($config && strlen($config->{$confField})) {
                         $p->{$portPart} = $config->{$confField};
                     }
                 }
@@ -232,14 +233,14 @@ class sens2_ProtoDriver extends core_BaseClass
             }
         }
         
-        if (is_array($this->outputs) && ($config = $this->driverRec->config)) {
+        if (is_array($this->outputs)) {
             foreach ($this->outputs as $name => $descArr) {
                 $p = (object) $descArr;
                 $p->name = $name;
                 $p->writable = true;
                 foreach ($map as $confPart => $portPart) {
                     $confField = $name . '_' . $confPart;
-                    if (strlen($config->{$confField})) {
+                    if ($config && strlen($config->{$confField})) {
                         $p->{$portPart} = $config->{$confField};
                     }
                 }

@@ -40,7 +40,7 @@ class sens2_DomainMon extends sens2_ProtoDriver
     {
         $form->FLD('domain', 'varchar', 'caption=Домейн->Основен,mandatory');
         $form->FLD('altDomain', 'varchar', 'caption=Домейн->Алтернативен');
-    
+        $form->FLD('title', 'varchar', 'caption=Домейн->Title,hint=Очакван стринг в тага title');
     }
     
     
@@ -71,7 +71,7 @@ class sens2_DomainMon extends sens2_ProtoDriver
         }
         
         if ($inputs['loadTime']) {
-            $res['loadTime'] = $this->getLoadTime($config->domain, $config->altDomain);
+            $res['loadTime'] = $this->getLoadTime($config->domain, $config->altDomain, $config->title);
         }
         
         return $res;
@@ -125,23 +125,34 @@ class sens2_DomainMon extends sens2_ProtoDriver
     /**
      * Проверка за валидност на сертификата
      */
-    public function getLoadTime($domain, $altDomain = null)
+    public function getLoadTime($domain, $altDomain = null, $title = '')
     {
         $timeStart = microtime(true);
         
+        $c = 1;
         $txt = @file_get_contents('http://' . $domain);
         if($txt === false) {
             
             return -1;
         }
-        $c = 1;
+
+        if(strlen($title) && !self::haveInTitle($txt, $title)) {
+             
+             return -2;
+        }
+        
         if(strlen($altDomain)) {
-            $txt2 = @file_get_contents('http://' . $altDomain);
+            $txt2 = @file_get_contents('http://' . $altDomain);  
             if(!strlen($txt2)) {
                 
                 return -1;
             }
             $c = 2;
+
+            if(strlen($title) && !self::haveInTitle($txt2, $title)) {
+             
+                return -2;
+            }
         }
         
         return (microtime (true) - $timeStart)/$c;
@@ -159,5 +170,18 @@ class sens2_DomainMon extends sens2_ProtoDriver
      */
     public function writeOutputs($outputs, $config, &$persistentState)
     {
+    }
+
+
+    /**
+     * Проверява дали в тага <title> се съдържа указания текст
+     */
+    public static function haveInTitle($text, $title)
+    {
+        $tag = str::crop($text, '<title>', '</title>');
+
+        if(stripos($tag, $title) !== false) return true;
+
+        return false;
     }
 }

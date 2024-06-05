@@ -79,15 +79,14 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Предадено на Клиент/Доставчик, packagingId, packQuantity, weight=Тегло,volume=Обем,packPrice, amount,transUnitId=ЛЕ';
+    public $listFields = 'productId=Предадено на Клиент/Доставчик, packagingId, packQuantity=К-во, weight=Тегло,volume=Обем,packPrice, amount,transUnitId=ЛЕ';
     
     
     /**
      * Полета свързани с цени
      */
     public $priceFields = 'price, amount, discount, packPrice';
-    
-    
+
     /**
      * Описание на модела (таблицата)
      */
@@ -95,6 +94,8 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     {
         $this->FLD('protocolId', 'key(mvc=store_ConsignmentProtocols)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setFields($this);
+        $this->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
+        $this->FLD('clonedFromDetailClass', "int", 'caption=От кое поле е клонирано,input=none');
         $this->setDbUnique('protocolId,productId,packagingId');
     }
 
@@ -143,6 +144,20 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
             deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state, $data->masterData->rec->valior);
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'createproduct' && isset($rec)){
+            $productType = store_ConsignmentProtocols::fetchField($rec->protocolId, 'productType');
+            if($productType == 'other'){
+                $requiredRoles = 'no_one';
+            }
         }
     }
 }

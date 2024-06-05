@@ -29,6 +29,8 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         setIfNot($mvc->storeFieldName, 'storeId');
         setIfNot($mvc->batchMovementDocument, 'out');
         setIfNot($mvc->cantCreateNewBatch, false);
+        setIfNot($mvc->canSplitbatches, 'no_one');
+
         $mvc->declareInterface('batch_MovementSourceIntf');
     }
     
@@ -63,8 +65,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         if (isset($rec->{$mvc->productFieldName})) {
             $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
             if ($BatchClass) {
+                $folderId = ($mvc instanceof core_Detail) ? $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'folderId') : $rec->folderId;
                 $form->setField('batch', 'input');
-                $form->setFieldType('batch', $BatchClass->getBatchClassType());
+                $form->setFieldType('batch', $BatchClass->getBatchClassType($mvc, $rec));
 
                 // Ако има само позволени опции само тях
                 $allowedOptions = $mvc->getAllowedInBatches($rec);
@@ -328,6 +331,14 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 core_Request::setProtected('detailClassId,detailRecId,storeId');
                 $url = array('batch_BatchesInDocuments', 'modify', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId, 'ret_url' => true);
                 $row->_rowTools->addLink('Партиди', $url, array('ef_icon' => 'img/16/wooden-box.png', 'title' => 'Избор на партиди'));
+                core_Request::removeProtected('detailClassId,detailRecId,storeId');
+            }
+
+            if (batch_BatchesInDocuments::haveRightFor('splitbatches', (object) array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId))) {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                core_Request::setProtected('detailClassId,detailRecId,storeId');
+                $url = array('batch_BatchesInDocuments', 'splitbatches', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $storeId, 'ret_url' => true);
+                $row->_rowTools->addLink('Партиди|*->|Ред|*', $url, array('ef_icon' => 'img/16/wooden-box.png', 'title' => 'Избор на партиди'));
                 core_Request::removeProtected('detailClassId,detailRecId,storeId');
             }
         }

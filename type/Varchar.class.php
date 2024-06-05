@@ -80,19 +80,20 @@ class type_Varchar extends core_Type
             $value = trim($value);
         }
         
-        // За някои случаи вместо празен стринг е по-добре да получаваме NULL
-        if ($this->params['nullIfEmpty'] || $this->nullIfEmpty) {
-            if (!$value) {
-                $value = null;
-            }
-        }
-        
         if ($this->params['utf8mb4'] == 'utf8') {
             $value = i18n_Charset::utf8mb4ToUtf8($value);
         }
         
         $value = parent::fromVerbal_($value);
         
+        // За някои случаи вместо празен стринг е по-добре да получаваме NULL
+        if ($this->params['nullIfEmpty'] || $this->nullIfEmpty) {
+           
+            if (!strlen($value)) {
+                $value = null; 
+            }
+        }
+
         return $value;
     }
     

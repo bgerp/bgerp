@@ -11,7 +11,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -33,10 +33,15 @@ class cat_Wrapper extends plg_ProtoWrapper
         $this->TAB(array('cat_UoM', 'type' => 'packaging'), 'Мерки->Опаковки', 'packEdit,ceo,sales,purchase');
         $this->TAB('cat_PackParams', 'Мерки->Размери', 'packEdit,ceo,sales,purchase');
 
-        $this->TAB('cat_Params', 'Параметри', 'cat,ceo,sales,purchase');
+        $this->TAB('cat_Params', 'Параметри->Списък', 'cat,ceo,sales,purchase');
+        $this->TAB('cat_ParamFormulaVersions', 'Параметри->Версии на формулите', 'cat,ceo,sales,purchase');
+
         $this->TAB('cat_ProductTplCache', 'Дебъг->Кеш', 'ceo, debug, cat');
         $this->TAB('cat_Serials', 'Дебъг->Генерирани номера', 'debug');
         $this->TAB('cat_products_Params', 'Дебъг->Продуктови параметри', 'debug');
+        $this->TAB('cat_products_VatGroups', 'Дебъг->ДДС групи', 'debug');
+
+
 
         $this->title = 'Продукти';
     }

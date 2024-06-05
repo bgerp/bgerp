@@ -42,7 +42,7 @@ class context_Plugin extends core_Plugin
      */
     public function on_BeforeGetToolbarLayout($mvc, &$layout, $rowId)
     {
-        if (countR($mvc->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
+        if (countR($mvc->buttons) > 6 && !Mode::is('screenMode', 'narrow') ||
         countR($mvc->buttons) > 3 && Mode::is('screenMode', 'narrow')) {
             $hiddenBtns = 0;
             foreach ($mvc->buttons as $button) {

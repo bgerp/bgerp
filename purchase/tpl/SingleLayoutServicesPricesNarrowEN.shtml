@@ -31,7 +31,7 @@
                         </td>
                     </tr>
                     <tr>
-	                    <td class="cell custom-header-bg"><b>Supplier</b></td>
+	                    <td class="cell custom-header-bg"><b>|Supplier|*</b></td>
 	                </tr>
 	                <tr>
 	                    <td>
@@ -57,6 +57,11 @@
             <tbody>
                 <tr>
                     <td class="topCell first vtop">
+                        <!--ET_BEGIN InvoicesToDocuments-->
+                        <table>
+                            [#InvoicesToDocuments#]
+                        </table>
+                        <!--ET_END InvoicesToDocuments-->
 	                     <!--ET_BEGIN deliveryInfo-->
 	                    [#deliveryInfo#]
                         <table class='shipment-table'>

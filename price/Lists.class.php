@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -56,7 +56,7 @@ class price_Lists extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'price_ListRules';
+    public $details = 'price_ListRules,price_ListVariations,price_ListBasicDiscounts';
     
     
     /**
@@ -159,8 +159,7 @@ class price_Lists extends core_Master
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен,input=none');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС');
-        $this->FLD('discountClass', 'class(interface=price_SaleAutoDiscountIntf,select=title,allowEmpty)', 'caption=Клас за автоматични отстъпки->Избор');
-        
+
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,where=#state !\\= \\\'rejected\\\',allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
@@ -169,10 +168,11 @@ class price_Lists extends core_Master
         $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне за избрания вид (с/без ДДС) цени (стойности 2 и 1 за цена Х.хх)->Десетични знаци', "unit= (|желан брой цифри след десетичната запетая|*)");
         $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне за избрания вид (с/без ДДС) цени (стойности 2 и 1 за цена Х.хх)->Значещи цифри', "unit= (|но минимален брой цифри различни от|* 0)");
         $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка / Отстъпка по подразбиране->Процент', "unit= |(със знак минус за Отстъпка)");
-        
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
-        
+
+        $this->FLD('discountClassPeriod', 'enum(default=За продажба,daily=За ден,monthly=За текущ месец)', 'caption=Автоматични отстъпки->Сума за отстъпки,autohide,notNull,value=default');
+        $this->FLD('haveBasicDiscounts', 'enum(no=Няма,yes=Има)', 'caption=Автоматични отстъпки->Има ли,notNull,value=no,input=none');
         $this->setDbUnique('title');
         $this->setDbIndex('cId,cClass');
     }
@@ -210,6 +210,15 @@ class price_Lists extends core_Master
                 $rec->cId = $Cover->that;
             } else {
                 $rec->public = 'yes';
+            }
+        }
+
+        if(isset($rec->id)){
+            $exRec = $mvc->fetch($rec->id, '*', false);
+            $checkExFields = md5("{$exRec->parent}|{$exRec->currency}|{$exRec->vat}|{$exRec->discountCompared}|{$exRec->discountComparedShowAbove}|{$exRec->defaultSurcharge}|{$exRec->defaultSurcharge}|{$exRec->minSurcharge}|{$exRec->maxSurcharge}");
+            $checkCurrentFields = md5("{$rec->parent}|{$rec->currency}|{$rec->vat}|{$rec->discountCompared}|{$rec->discountComparedShowAbove}|{$rec->defaultSurcharge}|{$rec->defaultSurcharge}|{$rec->minSurcharge}|{$rec->maxSurcharge}");
+            if($checkExFields != $checkCurrentFields){
+                $rec->_invalidateCache = true;
             }
         }
     }
@@ -343,6 +352,12 @@ class price_Lists extends core_Master
         $form = $data->form;
         $rec = $form->rec;
 
+        $form->FNC('variationOf', 'key(mvc=price_Lists,select=title,allowEmpty)', 'silent,input=hidden');
+        $form->input('variationOf', 'silent');
+        if(isset($rec->variationOf)){
+            $form->info = "<div class='richtext-info-no-image'>" . tr('Вариация на|*: ') . price_Lists::getHyperlink($rec->variationOf, true) . "</div>";
+        }
+
         $folderId = $rec->folderId;
         if (isset($rec->cClass, $rec->cId)) {
             $Cover = new core_ObjectReference($rec->cClass, $rec->cId);
@@ -368,7 +383,7 @@ class price_Lists extends core_Master
             foreach ($parentOptions as $k => $v){
                 $parents = $mvc->getParents($k);
                 if(array_key_exists($rec->id, $parents)){
-                    unset($parentOptions[$rec->id]);
+                    unset($parentOptions[$k]);
                 }
             }
 
@@ -405,7 +420,11 @@ class price_Lists extends core_Master
     {
         $rec = $this->fetchRec($id);
         $parents = array($rec->id => $rec->id);
+        if(isset($rec->parent)){
+            $parents[$rec->parent] = $rec->parent;
+        }
         $parent = $rec->parent;
+
         while ($parent && ($lRec = $this->fetch($parent, 'parent'))) {
             if(!empty($lRec->parent)){
                 $parents[$lRec->parent] = $lRec->parent;
@@ -568,6 +587,21 @@ class price_Lists extends core_Master
             if(empty($rec->discountComparedShowAbove)){
                 $row->discountComparedShowAbove = ht::createHint($mvc->getFieldType('discountComparedShowAbove')->toVerbal(0.01), 'Стойност по подразбиране');
             }
+
+            $variationOfArr = array();
+            $varQuery = price_ListVariations::getQuery();
+            $varQuery->where("#variationId = {$rec->id}");
+            while($vRec = $varQuery->fetch()){
+                $vRow = price_ListVariations::recToVerbal($vRec);
+                $hint = strip_tags("{$vRow->validFrom} - {$vRow->validUntil} ({$vRow->repeatInterval})");
+                $variationOfArr[] = ht::createHint($vRow->listId, $hint, 'notice', false)->getContent();
+            }
+            $row->variationsOf = implode(',', $variationOfArr);
+
+            $activeVariationId = price_ListVariations::getActiveVariationId($rec->id);
+            if(isset($activeVariationId)){
+                $row->activeVariationId = price_Lists::getHyperlink($activeVariationId, true);
+            }
         }
     }
     
@@ -577,9 +611,21 @@ class price_Lists extends core_Master
      */
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-        //Ако създаваме копие, редиректваме до създаденото копие
+        // Ако създаваме копие, редиректваме до създаденото копие
         if (is_object($data->form) && $data->form->isSubmitted()) {
-            $data->retUrl = array($mvc, 'single', $data->form->rec->id);
+            $rec = $data->form->rec;
+
+            $redirectToSingle = true;
+            if(isset($rec->variationOf)){
+                if(price_ListVariations::haveRightFor('add', (object)array('listId' => $rec->variationOf, 'variationId' => $rec->id))){
+                    $data->retUrl = array('price_ListVariations', 'add', "listId" => $rec->variationOf, 'variationId' => $rec->id);
+                    $redirectToSingle = false;
+                }
+            }
+
+            if($redirectToSingle){
+                $data->retUrl = array($mvc, 'single', $rec->id);
+            }
         }
     }
     
@@ -621,7 +667,13 @@ class price_Lists extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-        
+
+        if ($action == 'edit' && isset($rec->threadId)) {
+            if(!doc_Threads::haveRightFor('single', $rec->threadId)){
+                $requiredRoles = 'no_one';
+            }
+        }
+
         if($action == 'changepublic' && isset($rec)){
             if($rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
@@ -688,6 +740,10 @@ class price_Lists extends core_Master
     {
         if (isset($rec->cClass, $rec->cId)) {
             price_ListToCustomers::updateStates($rec->cClass, $rec->cId);
+        }
+
+        if($rec->_invalidateCache){
+            price_Cache::callback_InvalidatePriceList($rec->id);
         }
     }
     
@@ -783,5 +839,113 @@ class price_Lists extends core_Master
         $currentState = ($rec->public == 'yes') ? 'публична' : 'частна';
         
         followRetUrl(null, "Политиката е променена на {$currentState}");
+    }
+
+
+    /**
+     * Има ли промяна в ценовите правила
+     *
+     * @param datetime|null $datetime
+     * @return bool
+     */
+    public static function areListUpdated($datetime = null)
+    {
+        $datetime = $datetime ?? dt::now();
+
+        $keys = array_values(price_ListVariations::getActiveVariations(null, $datetime));
+
+        $primeCostListId = price_ListRules::PRICE_LIST_COST;
+        $ruleQuery = price_ListRules::getQuery();
+        $ruleQuery->XPR('maxCreatedOn', 'datetime', 'MAX(#createdOn)');
+        $ruleQuery->where("#listId != {$primeCostListId}");
+        $ruleQuery->show('maxCreatedOn');
+        $keys[] = $ruleQuery->fetch()->maxCreatedOn;
+
+        $ruleQuery1 = price_ListRules::getQuery();
+        $ruleQuery1->XPR('maxValidFrom', 'datetime', 'MAX(#validFrom)');
+        $ruleQuery1->where("#listId != {$primeCostListId}");
+        $ruleQuery1->where("#validFrom < '{$datetime}'");
+        $keys[] = $ruleQuery1->fetch()->maxValidFrom;
+
+        $ruleQuery2 = price_ListRules::getQuery();
+        $ruleQuery2->XPR('maxValidUntil', 'datetime', 'MAX(#validUntil)');
+        $ruleQuery2->where("#listId != {$primeCostListId}");
+        $ruleQuery2->where("#validUntil IS NULL OR #validUntil < '{$datetime}'");
+        $keys[] = $ruleQuery2->fetch()->maxValidUntil;
+
+        $query = price_Lists::getQuery();
+        $query->XPR('maxModifiedOn', 'datetime', 'MAX(#modifiedOn)');
+        $query->where("#id != {$primeCostListId}");
+        $query->show('maxModifiedOn');
+        $keys[] = $query->fetch()->maxModifiedOn;
+
+        $hash = md5(implode('|', $keys));
+        $pricelistHash = core_Permanent::get("priceListHash");
+
+        if($hash != $pricelistHash){
+            core_Permanent::set('priceListHash', $hash, 60);
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     *
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+        $rec = $this->fetchRec($id);
+        $discountCount = price_ListBasicDiscounts::count("#listId = {$rec->id}");
+        $rec->haveBasicDiscounts = $discountCount ? 'yes' : 'no';
+        $this->save($rec, 'haveBasicDiscounts');
+    }
+
+
+    /**
+     * Кой е първия лист с автоматични отстъпки
+     *
+     * @param mixed $Master
+     * @param stdClass $masterRec
+     * @return null|stdClass
+     */
+    public static function getListWithBasicDiscounts($Master, $masterRec)
+    {
+        $Master = cls::get($Master);
+        $clone = clone $masterRec;
+        if($Master instanceof sales_Sales){
+            $listId = $clone->priceListId ?? price_ListToCustomers::getListForCustomer($clone->contragentClassId, $clone->contragentId, $clone->valior);
+        } else {
+            $listId = pos_Receipts::isForDefaultContragent($clone) ? pos_Points::getSettings($clone->pointId)->policyId : price_ListToCustomers::getListForCustomer($clone->contragentClass, $clone->contragentObjectId);
+        }
+
+        // Обикаля се тази политика+бащите ѝ дали има поне една с общи отстъпки
+        $listIds = array($listId => $listId);
+        $count = 1;
+        $parent = $listId;
+        $where = "CASE #id";
+        while ($parent && ($pRec = price_Lists::fetch("#id = {$parent}", "id,parent"))) {
+            $listIds[$pRec->id] = $pRec->id;
+            $parent = $pRec->parent;
+            $where .= " WHEN {$pRec->id} THEN {$count}";
+            $count++;
+        }
+        $where .= " ELSE {$count} END";
+
+        $lQuery = price_Lists::getQuery();
+        $lQuery->XPR('order', 'int', "({$where})");
+        $lQuery->where("#haveBasicDiscounts = 'yes'");
+        $lQuery->orderBy('order', 'ASC');
+        $lQuery->in('id', $listIds);
+
+        $foundRec = $lQuery->fetch();
+
+        return is_object($foundRec) ? $foundRec : null;
     }
 }

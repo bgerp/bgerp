@@ -47,7 +47,7 @@
 	            </tr>
 	        </tbody>
 	    </table>
-    </div>
+	</div>
 	<div class="lines"></div>
 <!--ET_BEGIN TOTAL-->
 <div class='line-detail'>
@@ -60,7 +60,7 @@
 				<tr>
 					<th>|Инкасирано|*, [#baseCurrencyCode#]</th>
 					<th>|Изплатено|*, [#baseCurrencyCode#]</th>
-					<th>|Общо тегло|*</th>
+					<th>|Общо бруто тегло|*</th>
 					<th>|Общ обем|*</th>
 					<th>|Общо ЛЕ|*</th>
 					<th>|Информация|*</th>
@@ -91,7 +91,6 @@
 					</td>
 				</tr>
 			</table>
-		</table>
 	</div>
 </div>
 <!--ET_END TOTAL-->

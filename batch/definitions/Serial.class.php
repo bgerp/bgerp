@@ -32,22 +32,29 @@ class batch_definitions_Serial extends batch_definitions_Proto
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('numbers', 'int', 'caption=Цифри,mandatory,unit=брой');
+        $fieldset->FLD('numbers', 'int(Min=0)', 'caption=Цифри,unit=брой');
         $fieldset->FLD('prefix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Представка');
         $fieldset->FLD('suffix', 'varchar(10,regexp=/^\p{L}*$/iu)', 'caption=Наставка');
         $fieldset->FLD('prefixHistory', 'blob', 'input=none');
         $fieldset->FLD('suffixHistory', 'blob', 'input=none');
+        $fieldset->FLD('length', 'int(Min=0)', 'caption=Дължина,unit=Символа');
     }
-    
-    
+
+
     /**
      * Проверява дали стойността е невалидна
      *
+     * @param mixed $class
+     * @param int $objectId
      * @return core_Type - инстанция на тип
      */
-    public function getBatchClassType()
+    public function getBatchClassType($class = null, $objectId = null)
     {
-        $Type = core_Type::getByName('text(rows=3)');
+        if(isset($this->rec->numbers)){
+            $Type = core_Type::getByName('text(rows=3)');
+        } else {
+            $Type = core_Type::getByName('varchar');
+        }
         
         return $Type;
     }
@@ -66,13 +73,19 @@ class batch_definitions_Serial extends batch_definitions_Proto
     {
         $serials = $this->normalize($value);
         $serials = $this->makeArray($serials);
+
         $count = countR($serials);
         
         if ($count != $quantity) {
-            $mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
-            $msg = ($quantity != 1) ? "|Въведени са|* <b>{$count}</b> |{$mMsg}, вместо очакваните|* <b>{$quantity}</b>" : 'Трябва да е въведен само един сериен номер';
-            
-            return false;
+
+            // Проверка дали въведените серийни номера отговарят на количеството
+            // освен ако к-то не е 0, но е позволено да е 0
+            if(!(empty($quantity) && $this->params['allowZero'])){
+                $mMsg = ($count != 1) ? 'серийни номера' : 'сериен номер';
+                $msg = ($quantity != 1) ? "|Въведени са|* <b>{$count}</b> |{$mMsg}, вместо очакваните|* <b>{$quantity}</b>" : 'Трябва да е въведен само един сериен номер';
+
+                return false;
+            }
         }
         
         // Ако артикула вече има партида за този артикул с тази стойност, се приема че е валидна
@@ -80,32 +93,68 @@ class batch_definitions_Serial extends batch_definitions_Proto
             
             return true;
         }
-        
-        $pattern = '';
-        
+
         $errMsg = '|Всички номера трябва да отговарят на формата|*: ';
         if (!empty($this->rec->prefix)) {
-            $prefix = preg_quote($this->rec->prefix, '/');
-            $pattern .= "{$prefix}{1}";
             $errMsg .= "|да започват с|* <b>{$this->rec->prefix}</b>, ";
         }
-        $pattern .= "[0-9]{{$this->rec->numbers}}";
-        $errMsg .= "|да имат точно|* <b>{$this->rec->numbers}</b> |цифри|*";
-        
+
+        if(isset($this->rec->numbers)){
+            $errMsg .= "|да имат точно|* <b>{$this->rec->numbers}</b> |цифри|*";
+        }
+
         if (!empty($this->rec->suffix)) {
-            $suffix = preg_quote($this->rec->suffix, '/');
-            $pattern .= "{$suffix}{1}";
             $errMsg .= " |и да завършват на|* <b>{$this->rec->suffix}</b>";
         }
-        
+
+        if (!empty($this->rec->length)) {
+            $errMsg .= " |и общата дължина на символите да е точно|* <b>{$this->rec->length}</b>";
+        }
+
         foreach ($serials as $serial) {
             if ($serial === false) {
                 $msg = 'Не могат да се генерират серийни номера от зададеният диапазон';
                 
                 return false;
             }
-            
-            if (!preg_match("/^{$pattern}\z/", $serial)) {
+
+            $error = false;
+            $middleString = $serial;
+
+            // Проверка започва ли с префикса
+            if (!empty($this->rec->prefix)) {
+                $middleString = mb_substr($middleString, mb_strlen($this->rec->prefix));
+                if(strpos($serial, $this->rec->prefix) != 0){
+                    $error = true;
+                }
+            }
+
+            // Проверка завършва ли на суфикса
+            if (!empty($this->rec->suffix)) {
+                $strlen = mb_strlen($serial);
+                $suffixLen = mb_strlen($this->rec->suffix);
+                $expectedEndPos = $strlen - $suffixLen;
+
+                $middleString = mb_substr($middleString, 0, mb_strlen($middleString) - $suffixLen);
+                if(strpos($serial, $this->rec->suffix) != $expectedEndPos){
+                    $error = true;
+                }
+            }
+
+            // Проверка дължината на символите ако има
+            if (!empty($this->rec->numbers)) {
+                if (!preg_match('/^[0-9]{' . $this->rec->numbers . '}$/', $middleString)) {
+                    $error = true;
+                }
+            }
+
+            if (!empty($this->rec->length)) {
+                if(mb_strlen($value) != $this->rec->length){
+                    $error = true;
+                }
+            }
+
+            if ($error) {
                 $msg = $errMsg;
                 
                 return false;
@@ -176,17 +225,21 @@ class batch_definitions_Serial extends batch_definitions_Proto
         
         $value = explode('|', $value);
         foreach ($value as &$v) {
-            $vArr = explode(':', $v);
-            if (countR($vArr) == 2) {
-                $rangeArr = $this->getByRange($vArr[0], $vArr[1]);
-                
-                if (is_array($rangeArr)) {
-                    $res = $res + $rangeArr;
+            if($this->rec->numbers){
+                $vArr = explode(':', $v);
+                if (countR($vArr) == 2) {
+                    $rangeArr = $this->getByRange($vArr[0], $vArr[1]);
+
+                    if (is_array($rangeArr)) {
+                        $res = $res + $rangeArr;
+                    } else {
+                        $res[$v] = false;
+                    }
                 } else {
-                    $res[$v] = false;
+                    $res[$vArr[0]] = $vArr[0];
                 }
             } else {
-                $res[$vArr[0]] = $vArr[0];
+                $res[$v] = $v;
             }
         }
         
@@ -223,6 +276,14 @@ class batch_definitions_Serial extends batch_definitions_Proto
             $rec->suffixHistory = array();
         }
         $rec->suffixHistory[$rec->suffix] = $rec->suffix;
+
+        if($form->isSubmitted()){
+            if($rec->length && (!empty($rec->prefix) || !empty($rec->suffix))){
+                if(mb_strlen("{$rec->prefix}{$rec->suffix}") > $rec->length){
+                    $form->setError('length,prefix,suffix', "Представката + надставката е повече от дължината");
+                }
+            }
+        }
     }
     
     

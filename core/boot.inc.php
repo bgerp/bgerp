@@ -125,8 +125,12 @@ try {
     if ($isDefinedFatalErrPath && !$stopDebug) {
         $pathName = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/000' . date('_H_i_s_') . rand(1000, 9999) . '.debug';
         
-        if (!defined('DEBUG_FATAL_ERRORS_FILE') && @file_put_contents($pathName, $data)) {
-            define('DEBUG_FATAL_ERRORS_FILE', $pathName);
+        if (!defined('DEBUG_FATAL_ERRORS_FILE')) {
+            if (@file_put_contents($pathName, $data)) {
+                define('DEBUG_FATAL_ERRORS_FILE', $pathName);
+            } else {
+                core_Os::createDirectories(DEBUG_FATAL_ERRORS_PATH);
+            }
         }
     }
     

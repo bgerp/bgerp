@@ -66,7 +66,13 @@ class docarch_Movements extends core_Master
      * @var string|array
      */
     public $canDelete = 'no_one';
-    
+
+
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'type, documentId, documentDate, fromVolumeId, toVolumeId, position';
+
     
     /**
      * Описание на модела (таблицата)
@@ -87,7 +93,7 @@ class docarch_Movements extends core_Master
         $this->FLD('toVolumeId', 'key(mvc=docarch_Volumes)', 'caption=Входящ том');
         
         //Позиция в тома
-        $this->FLD('position', 'varchar()', 'caption=Позиция,input=none');
+        $this->FLD('position', 'varchar', 'caption=Позиция,input=none');
         
         
         //Потребител получил документа или контейнера

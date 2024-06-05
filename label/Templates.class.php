@@ -297,7 +297,7 @@ class label_Templates extends core_Master
 
         $templateArrCss[$hash] = $template;
 
-        if ($rec->css) {
+        if (trim($rec->css)) {
             // Вкарваме CSS-а, като инлайн
             $templateArrCss[$hash] = self::templateWithInlineCSS($template, $rec->css);
         }
@@ -382,14 +382,16 @@ class label_Templates extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Вземаме шаблона с вкарания css
-        $row->template = static::templateWithInlineCSS($row->template, $rec->css);
+        if (trim($rec->css)) {
+            // Вземаме шаблона с вкарания css
+            $row->template = static::templateWithInlineCSS($row->template, $rec->css);
+        }
         if(isset($rec->clonedFromId)){
             $row->clonedFromId = static::getHyperlink($rec->clonedFromId, true);
         }
 
         if(isset($rec->classId)){
-            if(cls::haveInterface('label_SequenceIntf', $rec->classId)){
+            if(cls::load($rec->classId, true) && cls::haveInterface('label_SequenceIntf', $rec->classId)){
                 $series = cls::get($rec->classId)->getLabelSeries();
                 $row->series = $series[$rec->series];
             } else {
@@ -575,6 +577,22 @@ class label_Templates extends core_Master
         
         // Заместване на плейсхолдърите със стойностите
         foreach ((array) $placeArr as $key => $val) {
+            if (!isset($val) || strlen($val) === 0) {
+
+                $et = new ET();
+                $et->setContent($string);
+                for($i=0; $i<100; $i++) {
+                    $et->removeBlock($key);
+                    $pArr = self::getPlaceholders($et);
+                    $uKey = mb_strtoupper($key);
+                    if (!$pArr[$uKey]) {
+                        break;
+                    }
+                }
+
+                $string = $et->getContent(null, "CONTENT", false, false);
+            }
+
             $key = mb_strtoupper($key);
             $key = self::toPlaceholder($key);
             $nArr[$key] = $val;

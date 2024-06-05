@@ -111,7 +111,7 @@ class pos_Points extends core_Master
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,setDiscounts,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,payments,chargeVat,setDiscounts,productBtnTpl,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups,showProductCode,discountPolicyId';
       
     
     /**
@@ -123,6 +123,7 @@ class pos_Points extends core_Master
                                      'maxSearchProductRelations' => 'TERMINAL_MAX_SEARCH_PRODUCT_RELATIONS',
                                      'maxSearchProductInLastSales' => 'TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE',
                                      'searchDelayTerminal' => 'TERMINAL_SEARCH_SECONDS',
+                                     'discountPolicyId' => 'SHOW_DISCOUNT_COMPARED_TO_LIST_ID',
                                      'maxSearchReceipts' => 'TERMINAL_MAX_SEARCH_RECEIPTS');
     
     
@@ -134,11 +135,14 @@ class pos_Points extends core_Master
         $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory');
         $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Настройки->Политика, mandatory');
+        $this->FLD('discountPolicyId', 'key(mvc=price_Lists, select=title, allowEmpty)', 'caption=Настройки->Политика за отстъпки');
+        $this->FLD('chargeVat', 'enum(yes=С начисляване,no=Без начисляване)', 'caption=Настройки->Режим на ДДС,notNull,value=yes');
         $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Всички');
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=default,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
         $this->FLD('productGroups', 'table(columns=groupId,captions=Група,validate=pos_Points::validateGroups,groupId_class=leftCell)', 'caption=Настройки->Групи');
-
+        $this->FLD('productBtnTpl', 'enum(wide=Широк,short=Кратък,picture=Снимка,pictureAndText=Снимка и текст)', 'caption=Настройки->Артикули (Шаблон), notNull, value=wide');
+        $this->FLD('showProductCode', 'enum(yes=Показване,no=Скриване)', 'caption=Настройки->Артикули (Код), notNull, value=yes');
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts,discount_class=leftCell)', 'caption=Ръчно задаване->Използвани отстъпки');
@@ -310,9 +314,20 @@ class pos_Points extends core_Master
     {
         $form = &$data->form;
         $form->setDefault('policyId', cat_Setup::get('DEFAULT_PRICELIST'));
+
+        if(!crm_Companies::isOwnCompanyVatRegistered()){
+            $form->setDefault('chargeVat', 'no');
+            if($form->rec->chargeVat != 'yes'){
+                $form->setReadOnly('chargeVat');
+            }
+        } else {
+            if($form->rec->chargeVat == 'yes'){
+                $form->setReadOnly('chargeVat');
+            }
+        }
+
+        // Задаване на плейсхолдъри
         if(empty($form->rec->prototypeId)){
-            
-            // Задаване на плейсхолдъри
             foreach (static::$fieldMap as $field => $const){
                 $defaultValue = pos_Setup::get($const);
                 $form->setField($field, "placeholder={$defaultValue}");
@@ -353,7 +368,7 @@ class pos_Points extends core_Master
         $rec = $data->rec;
         
         if ($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')) {
-            $urlArr = array('pos_Receipts', 'new', "pointId" => $rec->id);
+            $urlArr = array('pos_Receipts', 'new', "pointId" => $rec->id, 'force' => true);
             $data->toolbar->addBtn('Отвори', $urlArr, null, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
         }
         
@@ -408,6 +423,10 @@ class pos_Points extends core_Master
             }
             
             $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
+            if(!empty($rec->discountPolicyId)){
+                $row->discountPolicyId = price_Lists::getHyperlink($rec->discountPolicyId, true);
+            }
+
             if ($defaultContragent = self::defaultContragent($rec->id)) {
                 $row->contragent = crm_Persons::getHyperlink($defaultContragent, true);
             }
@@ -489,6 +508,9 @@ class pos_Points extends core_Master
             if(empty($res)){
                 if(array_key_exists($field, static::$fieldMap)){
                     $res = pos_Setup::get(static::$fieldMap[$field]);
+                    if($field == 'discountPolicyId'){
+                        $res = empty($res) ? null : $res;
+                    }
                 }
             }
         } else {
@@ -497,6 +519,9 @@ class pos_Points extends core_Master
                     $res->{$field} = pos_Setup::get($const);
                     $inherited->{$field} = $field;
                 }
+            }
+            if($field == 'discountPolicyId'){
+                $res->{$field} = empty($res->{$field}) ? null : $res->{$field};
             }
         }
     }

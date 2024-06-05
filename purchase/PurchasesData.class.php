@@ -61,7 +61,7 @@ class purchase_PurchasesData extends core_Manager
      /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId,valior=Вальор,productId,quantity,price,amount,expenses,state,folderId';
+    public $listFields = 'containerId,valior=Вальор,productId,quantity,price,discount=Отст.,amount,expenses,state,folderId';
   
     
     /**
@@ -86,7 +86,7 @@ class purchase_PurchasesData extends core_Manager
         $this->FLD('packagingId', 'int', 'caption=Пакетиране,mandatory');
         
         $this->FLD('price', 'double', 'caption=Цена,mandatory');
-        $this->FLD('discount', 'double', 'caption=Цени->Отстъпка,mandatory');
+        $this->FLD('discount', 'percent', 'caption=Цени->Отстъпка,mandatory');
         $this->FLD('amount', 'double', 'caption=Стойност,mandatory');
         $this->FLD('expenses', 'double', 'caption=Разходи,mandatory');
         
@@ -177,5 +177,39 @@ class purchase_PurchasesData extends core_Manager
                 }
             }
         }
+    }
+
+
+    /**
+     * Връща информация за последната покупка на посочения артикул
+     *
+     * @param int $productId
+     * @param datetime $valior
+     * @param string $chargeVat
+     * @param double $currencyRate
+     * @param mixed $currencyId
+     * @return string|null
+     */
+    public static function getLastPurchaseFormInfo($productId, $valior, $chargeVat, $currencyRate, $currencyId)
+    {
+        $inventoryClassId = store_InventoryNotes::getClassId();
+        $pQuery = purchase_PurchasesData::getQuery();
+        $pQuery->where("#productId = {$productId} AND #state IN ('active', 'closed') AND #docClassId != {$inventoryClassId}");
+        $pQuery->orderBy('#valior,#id', 'DESC');
+
+        if($lastPurchaseRec = $pQuery->fetch()){
+            $lastPurchaseDocument = doc_Containers::getDocument($lastPurchaseRec->containerId);
+            $price = isset($lastPurchaseRec->discount) ? $lastPurchaseRec->price * (1 - $lastPurchaseRec->discount) : $lastPurchaseRec->price;
+            $vat = cat_Products::getVat($productId, $valior);
+            $lastPriceDisplayed = deals_Helper::getDisplayPrice($price, $vat, $currencyRate, $chargeVat);
+
+            $unit = ($chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
+            $lastPriceVerbal = core_Type::getByName('double(smartRound)')->toVerbal($lastPriceDisplayed);
+            $lastPriceVerbal = currency_Currencies::decorate($lastPriceVerbal, $currencyId);
+
+            return "<div class='formCustomInfo'>" . tr("|Последна покупка|*: <b>{$lastPriceVerbal}</b>, |{$unit}|*") . " [{$lastPurchaseDocument->getLink(0)}]</div>";
+        }
+
+        return null;
     }
 }

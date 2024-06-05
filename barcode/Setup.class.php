@@ -29,10 +29,10 @@ class barcode_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Инструмент за генериране на баркодове';
-    
-    
+
+
     /**
-     * Пакет без инсталация
+     * @var string
      */
-    public $noInstall = true;
+    public $defClasses = 'barcode_Links';
 }

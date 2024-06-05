@@ -13,9 +13,11 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class acc_reports_BalanceImpl extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -25,7 +27,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo, acc';
+    public $canSelectSource = 'no_one';
     
     
     /**
@@ -428,13 +430,6 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             } else {
                 acc_BalanceDetails::groupRecs($data->recs, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
             }
-        }
-        
-        // Ако е посочено поле за сортиране, сортираме по него
-        if ($this->innerForm->orderField) {
-            arr::sortObjects($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
-        } else {
-            acc_BalanceDetails::sortRecsByNum($data->recs, $data->listFields);
         }
     }
     

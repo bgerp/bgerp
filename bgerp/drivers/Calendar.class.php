@@ -140,18 +140,18 @@ class bgerp_drivers_Calendar extends core_BaseClass
                         }
                         $resData->cData[$i]->type = $rec->type;
                     } elseif ($rec->type == 'working-travel') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/working-travel.png') .'>&nbsp;';
+                        $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/working-travel.png') .'>&nbsp;';
                     } elseif ($rec->type == 'leaves') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/leaves.png') .'>&nbsp;';
+                        $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/leaves.png') .'>&nbsp;';
                     } elseif ($rec->type == 'sick') {
-                        $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/sick.png') .'>&nbsp;';
+                        $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/sick.png') .'>&nbsp;';
                     } elseif ($rec->type == 'workday') {
                         // Нищо не се прави
                     } elseif ($rec->type == 'task' || $rec->type == 'reminder') {
                         if ($rec->state == 'active' || $rec->state == 'waiting') {
-                            $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .'>&nbsp;';
+                            $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/star_2.png') .'>&nbsp;';
                         } else {
-                            $resData->cData[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .'>&nbsp;';
+                            $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/star_grey.png') .'>&nbsp;';
                         }
                     }
                 }
@@ -213,9 +213,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
             
             $header = "<table class='mc-header' style='width:100%'>
                     <tr>
-                    <td class='aleft'><a href='{$data->monthOptions->prevtLink}'>{$data->monthOptions->prevMonth}</a></td>
+                    <td class='aleft'><a href='{$data->monthOptions->prevtLink}'>&lt;&lt;</a></td>
                     <td class='centered'><span class='metro-dropdown-portal'>{$select}</span>
-                    <td class='aright'><a href='{$data->monthOptions->nextLink}'>{$data->monthOptions->nextMonth}</a></td>
+                    <td class='aright'><a href='{$data->monthOptions->nextLink}'>&gt;&gt;</a></td>
                     </tr>
                     </table>";
             
@@ -493,8 +493,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         if ($fTasks->recs) {
             $fTpl = new ET('[#table#][#pager#]');
+            Mode::push('hideToolbar', true);
             $fTpl->replace($Tasks->renderListTable($fTasks), 'table');
             $fTpl->replace($Tasks->renderListPager($fTasks), 'pager');
+            Mode::pop('hideToolbar');
             $resArr['future'] = $fTpl;
         }
 
@@ -874,17 +876,18 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $cQuery = cal_Tasks::getQuery();
         $cQuery->where(array("#createdBy = '[#1#]'", $userId));
+        $cQuery->where(array("#modifiedOn > '[#1#]'", dt::addDays(-1)));
         $cQuery->orderBy('modifiedOn', 'DESC');
         $cQuery->limit(1);
         $cQuery->show('modifiedOn, id, containerId');
         $cRec = $cQuery->fetch();
         if ($cRec) {
             $cArr[] = $cRec->modifiedOn;
+            if ($cRec->containerId) {
+                $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
+            }
         }
-        if ($cRec->containerId) {
-            $cArr[] = bgerp_Recently::getLastDocumentSee($cRec->containerId, $userId, false);
-        }
-        
+
         $agendaStateQuery = cal_Calendar::getQuery();
         $agendaStateQuery->where("#users IS NULL OR #users = ''");
         $agendaStateQuery->orLikeKeylist('users', $userId);

@@ -87,8 +87,8 @@ class doc_Notes extends core_Master
     
     
     public $canSingle = 'powerUser';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
@@ -135,7 +135,7 @@ class doc_Notes extends core_Master
     /**
      * Кой може да променя активирани записи
      */
-    public $canChangerec = 'powerUser';
+    public $canChangerec = 'user';
     
     
     /**
@@ -180,7 +180,7 @@ class doc_Notes extends core_Master
     {
         $this->FLD('subject', 'varchar(autocomplete=off)', 'caption=Относно,mandatory,width=100%');
         $this->FLD('body', 'richtext(rows=10,bucket=Notes,passage)', 'caption=Бележка,mandatory');
-        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори,input=none,before=sharedUsers,changable');
+        $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Споделяне->С партньори,input=none,before=sharedUsers,changable,maxRadio=3');
     }
     
     

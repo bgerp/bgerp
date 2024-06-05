@@ -121,16 +121,60 @@ class rtac_Plugin extends core_Plugin
             if (! ($shareUsersRoles = $mvc->params['shareUsersRoles'])) {
                 $shareUsersRoles = $conf->RTAC_DEFAUL_SHARE_USER_ROLES;
             }
+
+            $userIdsStr = '';
             $shareUsersRoles = str_replace('|', ',', $shareUsersRoles);
-            
+            $threadId = null;
+            $folderId = Request::get('folderId');
+            if (!$folderId && ($originId = Request::get('originId'))) {
+                $oRec = doc_Containers::fetch($originId);
+                $folderId = $oRec->folderId;
+                $threadId = $oRec->threadId;
+            }
+
+            if (!$folderId && $threadId = Request::get('threadId')) {
+                $tRec = doc_Threads::fetch($threadId);
+                $folderId = $tRec->folderId;
+                $threadId = $tRec->id;
+            }
+
+            if (!$folderId && ($rId = Request::get('id')) && ($ctr = Request::get('Ctr'))) {
+                if (cls::load($ctr, true)) {
+                    $ctr = cls::get($ctr);
+                    if ($ctr instanceof core_Manager) {
+                        $cRec = $ctr->fetch($rId);
+                        if ($cRec && $cRec->folderId) {
+                            $folderId = $cRec->folderId;
+                            $threadId = $cRec->threadId;
+                        }
+                    }
+                }
+            }
+
+            if ($folderId && core_Packs::isInstalled('colab')) {
+                $contractorIds = colab_FolderToPartners::getContractorsInFolder($folderId);
+                if (!empty($contractorIds)) {
+                    foreach ($contractorIds as $cId) {
+                        if ($threadId && !colab_Threads::haveRightFor('single', doc_Threads::fetch($threadId), $cId)) {
+                            unset($contractorIds[$cId]);
+                        }
+                    }
+                    if (!empty($contractorIds)) {
+                        $userIdsStr = implode(',', $contractorIds);
+                    }
+                }
+            }
+
             // Обекти за данните
             $tpl->appendOnce('rtacObj.shareUsersURL = {};', 'SCRIPTS');
             $tpl->appendOnce('rtacObj.shareUserRoles = {};', 'SCRIPTS');
             $tpl->appendOnce('rtacObj.sharedUsers = {};', 'SCRIPTS');
+            $tpl->appendOnce('rtacObj.shareUsersIds = {};', 'SCRIPTS');
+            $tpl->appendOnce("rtacObj.shareUsersIds.{$id} = '{$userIdsStr}';", 'SCRIPTS');
 
             // Добавяме потребителите, до които ще се споделя
             $tpl->appendOnce("rtacObj.shareUserRoles.{$id} = '{$shareUsersRoles}';", 'SCRIPTS');
-            
+
             // Фунцкията, която ще приеме управелението след извикване на екшъна, в която ще се добавят потребителите
             $tpl->appendOnce("\n function render_sharedUsers(data){rtacObj.sharedUsers[data.id] = data.users;}", 'SCRIPTS');
             
@@ -156,40 +200,66 @@ class rtac_Plugin extends core_Plugin
     {
         // Ако заявката е по ajax
         if (Request::get('ajax_mode')) {
-            
-            // id на ричтекста
-            $id = Request::get('rtid');
-            
-            // Началото на ника на потребителя
-            $term = Request::get('term');
-            
-            // Роли на потребителите
-            $roles = Request::get('roles');
-            $roles = str_replace('|', ',', $roles);
-            
-            $conf = core_Packs::getConfig('rtac');
-            
-            // Лимит на показване
-            $limit = $conf->RTAC_MAX_SHOW_COUNT;
-            
-            // Масив с потребителите
-            $usersArr = core_Users::getUsersArr($roles, $term, $limit);
-            $i = 0;
-            $usersArrRes = array();
-            
-            // Добавяме потребителите в нов масив
-            foreach ((array) $usersArr as $key => $users) {
-                $usersArrRes[$i]['nick'] = $key;
-                $usersArrRes[$i]['names'] = $users;
-                $i++;
+            if (haveRole('powerUser')) {
+
+                // id на ричтекста
+                $id = Request::get('rtid');
+
+                // Началото на ника на потребителя
+                $term = Request::get('term');
+
+                // Роли на потребителите
+                $roles = Request::get('roles');
+                $roles = str_replace('|', ',', $roles);
+
+                $conf = core_Packs::getConfig('rtac');
+
+                // Лимит на показване
+                $limit = $conf->RTAC_MAX_SHOW_COUNT;
+
+                // Масив с потребителите
+                $usersArr = core_Users::getUsersArr($roles, $term, $limit);
+                $i = 0;
+                $usersArrRes = array();
+
+                if ($users = Request::get('users')) {
+                    $users = explode(',', $users);
+                    foreach ((array) $users as $uId) {
+                        $uRec = core_Users::fetch($uId);
+                        $usersArr[$uRec->nick] = core_Users::prepareUserNames($uRec->names);
+                    }
+                }
+
+                // Добавяме потребителите в нов масив
+                foreach ((array) $usersArr as $key => $users) {
+                    if ($term) {
+                        if (mb_stripos($key, $term) !== 0) {
+                            if (mb_stripos($users, $term) !== 0) {
+                                if (mb_stripos($users, ' ' . $term) === false) {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                    $usersArrRes[$i]['nick'] = $key;
+                    $usersArrRes[$i]['names'] = $users;
+                    $i++;
+                }
+
+                if ($limit) {
+                    $usersArrRes = array_slice($usersArrRes, 0, $limit);
+                }
+
+                // Добавяме резултата
+                $resObj = new stdClass();
+                $resObj->func = 'sharedUsers';
+                $resObj->arg = array('id' => $id, 'users' => $usersArrRes);
+
+                return array($resObj);
+            } else {
+
+                return array();
             }
-            
-            // Добавяме резултата
-            $resObj = new stdClass();
-            $resObj->func = 'sharedUsers';
-            $resObj->arg = array('id' => $id, 'users' => $usersArrRes);
-            
-            return array($resObj);
         }
     }
 }

@@ -40,7 +40,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     protected function setFields($mvc)
     {
-        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,silent,caption=Продукт,notNull,mandatory,removeAndRefreshForm=packPrice|packagingId,tdClass=productCell leftCol wrap');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,silent,caption=Артикул,notNull,mandatory,removeAndRefreshForm=packPrice|packagingId,tdClass=productCell leftCol wrap');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory,tdClass=small-field nowrap,smartCenter,input=hidden');
         $mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $mvc->FLD('packQuantity', 'double(Min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
@@ -73,17 +73,34 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
-        $rec = &$data->form->rec;
+        $form = &$data->form;
+        $rec = &$form->rec;
         $masterRec = $data->masterRec;
         
         if(isset($rec->id)){
-            $data->form->setReadOnly('productId');
+            $form->setReadOnly('productId');
         }
-        
-        $rec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
-        $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
-        
-        $data->form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
+
+        $productType = $rec->productType ?? $masterRec->productType;
+        $form->_needPrice = true;
+        if($productType == 'ours' && (($mvc instanceof store_ConsignmentProtocolDetailsReceived) || $rec->type == 'in')){
+            $form->_needPrice = false;
+        } elseif($productType == 'other' && (($mvc instanceof store_ConsignmentProtocolDetailsSend) || $rec->type == 'out')){
+            $form->_needPrice = false;
+        }
+
+        if(!$form->_needPrice){
+            $form->setField('packPrice', "input=none");
+        } else {
+            $rec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
+            $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
+            $form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
+        }
+
+        if(isset($rec->clonedFromDetailClass) && isset($rec->clonedFromDetailId)){
+            $clonedRec = cls::get($rec->clonedFromDetailClass)->fetch($rec->clonedFromDetailId);
+            $form->setFieldTypeParams('packQuantity', "max={$clonedRec->packQuantity}");
+        }
     }
     
     
@@ -96,7 +113,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
         $rec = &$form->rec;
-        
+
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $currencyRate = $rec->currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
         
@@ -125,10 +142,9 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                 
                 // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
                 $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-                
                 $autoPrice = false;
-                
-                if (!isset($rec->packPrice)) {
+
+                if (!isset($rec->packPrice) && $form->_needPrice) {
                     $autoPrice = true;
                     $Policy = cls::get('price_ListToCustomers');
                     
@@ -148,7 +164,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                 }
             }
             
-            if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct')) {
+            if (!isset($rec->packPrice) && (Request::get('Act') != 'CreateProduct') && $form->_needPrice) {
                 $productType = ($rec->productType) ? $rec->productType : $masterRec->productType;
                 $errorMsg = "Артикулът няма цена в избраната ценова политика. Въведете цена";
                 if($productType == 'other'){
@@ -156,7 +172,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
                 }
                 $form->setError('packPrice', "{$errorMsg}|*!");
             }
-            
+
             // Проверка на цената
             $quantity = $rec->packQuantity * $rec->quantityInPack;
             $msg = null;
@@ -230,10 +246,25 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'createproduct') && isset($rec)) {
+        // Не могат да се добавят детайли, ако мастъра не е чернова
+        if (in_array($action, array('edit', 'delete', 'add', 'createproduct')) && isset($rec)) {
             if (!($mvc instanceof store_DocumentPackagingDetail)) {
                 if ($mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state') != 'draft') {
                     $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        // Ако ориджина на мастъра е ПОП да не може да се добавят нови артикули
+        if (in_array($action, array('delete', 'add', 'createproduct', 'import')) && isset($rec)) {
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, 'folderId,originId,contragentClassId,contragentId');
+            if(isset($masterRec->originId)){
+                $Origin = doc_Containers::getDocument($masterRec->originId);
+                if($Origin->isInstanceOf('store_ConsignmentProtocols')){
+                    $originRec = $Origin->fetch('contragentClassId,contragentId');
+                    if(!($originRec->contragentClassId == $masterRec->contragentClassId && $originRec->contragentId == $masterRec->contragentId)){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
@@ -325,8 +356,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      */
     public function getExpectedProductMetaProperties($type, $direction)
     {
-        if($type == 'other') return 'canStore';
-
-        return ($direction == 'send') ? 'canSell,canStore' : 'canBuy,canStore';
+        return 'canStore';
     }
 }

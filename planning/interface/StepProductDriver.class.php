@@ -150,12 +150,14 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          string      ['wasteStart']           - начално количество отпадък
      *          string      ['wastePercent']         - процент отпадък
      *          string      ['calcWeightMode']       - изчисляване на тегло или не
+     *          string      ['mandatoryDocuments']   - задължителни документи
+     * mandatoryDocuments
      */
     public function getProductionData($productId)
     {
         $rec = planning_Steps::getRec('cat_Products', $productId);
         $measureId = cat_Products::fetchField($productId, 'measureId');
-        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent);
+        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent, 'mandatoryDocuments' => $rec->mandatoryDocuments);
         if(!empty($rec->norm)){
             $res['norm'] = $rec->norm;
             $res['normPackagingId'] = $measureId;
@@ -235,7 +237,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         if ($data->rec->photo) {
             $size = array(280, 150);
             $Fancybox = cls::get('fancybox_Fancybox');
-            $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
+            $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(1200, 1200));
         }
 
         $tpl->placeObject($data->row);

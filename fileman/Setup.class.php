@@ -251,13 +251,9 @@ class fileman_Setup extends core_ProtoSetup
         'fileman_Log',
         
         'fileman_import_Base64',
+
+        'migrate::fixLastUse2338',
     );
-    
-    
-    /**
-     * Дефинирани класове, които имат интерфейси
-     */
-    public $defClasses = 'fileman_reports_FileInfo';
     
     
     /**
@@ -407,8 +403,8 @@ class fileman_Setup extends core_ProtoSetup
             return false;
         }
     }
-    
-    
+
+
     /**
      * Връща масив с версията и подверсията
      *
@@ -420,30 +416,44 @@ class fileman_Setup extends core_ProtoSetup
     {
         // Вземаме конфига
         $confWebkit = core_Packs::getConfig('fileman');
-        
+
         // Опитваме се да вземем версията на ghostscript
         @exec(escapeshellarg($confWebkit->FILEMAN_GHOSTSCRIPT_PATH) . ' --version', $resArr, $erroCode);
-        
+
         $trimRes = trim($resArr[0]);
-        
+
         if (!$trimRes) {
-            
+
             return ;
         }
-        
+
         // Вземаме версията и подверсията
         list($version, $subVersion) = explode('.', $trimRes);
-        
+
         // Ако не може да се открие версията/подверсията
         if (!isset($version) || !isset($subVersion)) {
-            
+
             return ;
         }
-        
+
         $versionArr = array();
         $versionArr['version'] = $version;
         $versionArr['subVersion'] = $subVersion;
-        
+
         return $versionArr;
+    }
+
+
+    /**
+     * Миграция за поправка на времето на последно използване на файловете
+     */
+    public static function fixLastUse2338()
+    {
+        $query = fileman_Data::getQuery();
+        $query->where(array("#lastUse > '[#1#]'", dt::now()));
+        $query->show('id');
+        while ($rec = $query->fetch()) {
+            fileman_Data::updateLastUse($rec->id);
+        }
     }
 }

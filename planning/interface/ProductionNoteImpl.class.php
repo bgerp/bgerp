@@ -8,34 +8,15 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  * @see label_SequenceIntf
  *
  */
-class planning_interface_ProductionNoteImpl
+class planning_interface_ProductionNoteImpl extends label_ProtoSequencerImpl
 {
-    /**
-     * Инстанция на класа
-     */
-    public $class;
-    
-    /**
-     * Връща дефолтен шаблон за печат на бърз етикет
-     *
-     * @param int  $id
-     * @param stdClass|null  $driverRec
-     *
-     * @return int
-     */
-    public function getDefaultFastLabel($id, $driverRec = null)
-    {
-        return null;
-    }
-
-
     /**
      * Връща наименованието на етикета
      *
@@ -69,6 +50,7 @@ class planning_interface_ProductionNoteImpl
     public function getLabelPlaceholders($objId = null, $series = 'label')
     {
         $placeholders = array();
+        $placeholders['ID'] = (object) array('type' => 'text');
         $placeholders['JOB'] = (object) array('type' => 'text');
         $placeholders['CODE'] = (object) array('type' => 'text');
         $placeholders['NAME'] = (object) array('type' => 'text');
@@ -89,6 +71,11 @@ class planning_interface_ProductionNoteImpl
         $placeholders['EXPIRY_DATE'] = (object) array('type' => 'text');
         $placeholders['QR_CODE'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['QR_CODE_90'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['SALE_CONTRAGENT_NAME'] = (object) array('type' => 'text');
+        $placeholders['SALE_HANDLER'] = (object) array('type' => 'text');
+        $placeholders['SALE_ID'] = (object) array('type' => 'text');
+        $placeholders['SALE_VALIOR'] = (object) array('type' => 'text');
+        $placeholders['SALE_REFF'] = (object) array('type' => 'text');
 
         if (isset($objId)) {
             
@@ -201,9 +188,9 @@ class planning_interface_ProductionNoteImpl
         
         // Продуктови параметри
         $measureId = cat_UoM::getShortName($measureId);
-        Mode::push('dontVerbalizeText', true);
+        Mode::push('printLabel', true);
         $params = cat_Products::getParams($rec->productId, null, true);
-        Mode::pop();
+        Mode::pop('printLabel');
         $params = cat_Params::getParamNameArr($params, true);
         
         $additionalFields = array();
@@ -243,8 +230,25 @@ class planning_interface_ProductionNoteImpl
         $date = dt::mysql2verbal($rec->valior, 'd.m.Y');
         $singleUrl = toUrl(array($this->class, 'single', $rec->id), 'absolute');
         $arr = array();
+
+
+        $saleRec = isset($jobRec->saleId) ? sales_Sales::fetch($jobRec->saleId) : null;
+
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'QR_CODE' => $singleUrl, 'QR_CODE_90' => $singleUrl);
+            $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'QR_CODE' => $singleUrl, 'QR_CODE_90' => $singleUrl, 'ID' => planning_DirectProductionNote::getHandle($rec->id));
+            if(is_object($saleRec)){
+                $res["SALE_CONTRAGENT_NAME"] = cls::get($saleRec->contragentClassId)->getVerbal($saleRec->contragentId, 'name');
+                $res["SALE_HANDLER"] = sales_Sales::getHandle($saleRec->id);
+                $res["SALE_ID"] = $saleRec->id;
+                $res["SALE_VALIOR"] = dt::mysql2verbal($saleRec->valior, 'd.m.Y');
+                if(!empty($saleRec->reff)){
+                    $res["SALE_REFF"] = core_Type::getByName('varchar')->toVerbal($saleRec->reff);
+                }
+                if(!empty($saleRec->deliveryLocationId)){
+                    $res["LOCATION_ID"] = crm_Locations::getTitleById($saleRec->deliveryLocationId);
+                }
+            }
+
             if(isset($batch)){
                 $res['BATCH'] = $batch;
             }
@@ -272,7 +276,7 @@ class planning_interface_ProductionNoteImpl
             
             $arr[] = $res;
         }
-        
+
         $resArr[$key] = $arr;
 
         return $resArr[$key];
@@ -296,18 +300,5 @@ class planning_interface_ProductionNoteImpl
         }
 
         return $res;
-    }
-
-
-    /**
-     * Кой е дефолтния шаблон за печат към обекта
-     *
-     * @param $id
-     * @param string $series
-     * @return int|null
-     */
-    public function getDefaultLabelTemplateId($id, $series = 'label')
-    {
-        return null;
     }
 }

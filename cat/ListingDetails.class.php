@@ -230,10 +230,18 @@ class cat_ListingDetails extends doc_Detail
         if (isset($fields['-list'])) {
             $row->productId = cat_Products::getShortHyperlink($rec->productId);
             $row->reff = "<b>{$row->reff}</b>";
-            
+            $deactivatedPack = false;
+
+            // Ако избраната опаковка е деактивирана или артикула е оттеглен/спрян
             $state = cat_Products::fetchField($rec->productId, 'state');
+            if($packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId)) {
+                if($packRec->state == 'closed'){
+                    $state = 'closed';
+                    $deactivatedPack = true;
+                }
+            }
             $row->ROW_ATTR['class'] = "state-{$state}";
-            
+
             $listRec = cat_Listings::fetch($rec->listId, 'folderId,type,currencyId,vat');
             $Cover = doc_Folders::getCover($listRec->folderId);
             
@@ -279,6 +287,9 @@ class cat_ListingDetails extends doc_Detail
             
             $exPack = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, ($exPack->quantity) ? $exPack->quantity : 1);
+            if($deactivatedPack){
+                $row->packagingId = ht::createHint($row->packagingId, 'Опаковката/мярката е деактивирана в момента', 'warning', false);
+            }
         }
     }
     
@@ -433,7 +444,7 @@ class cat_ListingDetails extends doc_Detail
                 }
                 
                 // Редирект
-                followRetUrl(null, "Импортирани са|* '{$count}' |артикула|*");
+                followRetUrl(null, "|Импортирани са|* '{$count}' |артикула|*");
             }
         }
         

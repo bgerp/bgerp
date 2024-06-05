@@ -212,9 +212,10 @@ class store_Stores extends core_Master
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
 
-        $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
+        $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да (с предупреждение),yesWithoutWarning=Да (без предупреждение))', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
         $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
         $this->FLD('prioritizeRackGroups', 'enum(,yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване,maxRadio=2,placeholder=Автоматично');
+        $this->FLD('palletBestPositionStrategy', 'enum(,bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Избор,placeholder=Автоматично');
 
         $this->setDbUnique('name');
     }
@@ -289,6 +290,7 @@ class store_Stores extends core_Master
             $data->form->setField('samePosPallets', 'input=none');
             $data->form->setField('closeCombinedMovementsAtOnce', 'input=none');
             $data->form->setField('prioritizeRackGroups', 'input=none');
+            $data->form->setField('palletBestPositionStrategy', 'input=none');
         }
 
         $preparationShipmentPlaceholder = $mvc->getFieldType('preparationBeforeShipment')->toVerbal(store_Setup::get('PREPARATION_BEFORE_SHIPMENT'));
@@ -358,6 +360,11 @@ class store_Stores extends core_Master
                 if(empty($rec->prioritizeRackGroups)){
                     $row->prioritizeRackGroups = $mvc->getFieldType('prioritizeRackGroups')->toVerbal(rack_Setup::get('ENABLE_PRIORITY_RACKS'));
                     $row->prioritizeRackGroups = ht::createHint($row->prioritizeRackGroups, 'Автоматично за системата', 'notice', false);
+                }
+
+                if(empty($rec->palletBestPositionStrategy)){
+                    $row->palletBestPositionStrategy = $mvc->getFieldType('palletBestPositionStrategy')->toVerbal(rack_Setup::get('POSITION_TO_STRATEGY'));
+                    $row->palletBestPositionStrategy = ht::createHint($row->palletBestPositionStrategy, 'Автоматично за системата', 'notice', false);
                 }
             }
 
@@ -466,4 +473,69 @@ class store_Stores extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Връщане на наличните складове, при поискване
+     * от оторизирана отдалечена система
+     *
+     * @param int|stdClass $authId - ид на аутентикация
+     * @param array|null $arg      - параметри
+     * @return array $storeData    - масив с достъпните складове
+     *              ['id']   - ид на склада
+     *              ['name'] - име на склада
+     * @throws core_exception_Expect
+     */
+    function remote_getStoresData($authId, $arg = null)
+    {
+        expect(remote_Authorizations::fetch($authId));
+
+        $storeData = array();
+        $query = static::getQuery();
+        $query->where("#state = 'active'");
+        while($rec = $query->fetch()){
+            $storeData[] = array('id' => $rec->id, 'name' => $rec->name);
+        }
+
+        return $storeData;
+    }
+
+
+    /**
+     * Извлича масив с експедираните артикули от склада от записи на транзакция
+     *
+     * @param array $entries     - записи на транзакцията
+     * @param array $skipArr     - кои артикули да се скипват
+     * @param bool $oneDimension - дали масива да е едномерен или двумерен
+     * @return array $res
+     */
+    public static function getShippedProductsByStoresFromTransactionEntries($entries, $skipArr, $oneDimension = true)
+    {
+        $res = array();
+        foreach ($entries as $d){
+
+            // Извличат се артикулите, които се изписват от склад в транзакцията
+            if($d['credit'][0] == '321') {
+                $productId = $d['credit'][2][1];
+                $storeId = $d['credit'][1][1];
+                if(!array_key_exists($productId, $skipArr)){
+                    if($oneDimension){
+                        if(!array_key_exists($productId, $res)){
+                            $res[$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
+                        }
+                        $res[$productId]->quantity += $d['credit']['quantity'];
+                    } else {
+                        if(is_null($res[$storeId]) || !array_key_exists($productId, $res[$storeId])){
+                            $res[$storeId][$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
+                        }
+                        $res[$storeId][$productId]->quantity += $d['credit']['quantity'];
+                    }
+                }
+            }
+        }
+
+        return $res;
+    }
+
+
 }

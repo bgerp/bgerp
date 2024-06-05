@@ -105,7 +105,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     /**
      * Кои редове да са компресирани
      */
-    const NUMBER_GOODS_ROWS = 4;
+    const NUMBER_GOODS_ROWS = 6;
     
     
     /**
@@ -122,8 +122,14 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'cmrNumber,loadingDate';
-    
-    
+
+
+    /**
+     * Кой може да вижда прайвит сингъла?
+     */
+    public $canViewpsingle = 'storeAll';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -270,11 +276,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         // Зареждане на дефолти от ориджина
         if (isset($rec->originId) && !isset($rec->id)) {
             $mvc->setDefaultsFromShipmentOrder($rec->originId, $form);
-            
-            if ($senderInstructions = trans_Setup::get('CMR_SENDER_INSTRUCTIONS')) {
-                $form->setDefault('senderInstructions', $senderInstructions);
-            }
-            
+
             $threadId = doc_Containers::fetchField($rec->originId, 'threadId');
             $invoicesInThread = deals_Helper::getInvoicesInThread($threadId);
             if (countR($invoicesInThread) == 1) {
@@ -299,14 +301,15 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     {
         expect($origin = doc_Containers::getDocument($originId));
         $sRec = $origin->fetch();
+
         $form->setDefault('cmrNumber', $sRec->id);
         $lData = $origin->getLogisticData();
-        
+
         // Всичките дефолтни данни трябва да са на английски
         core_Lg::push('en');
         
         // Информация за изпращача
-        $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_ID', true);
+        $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($form->rec) : crm_Setup::BGERP_OWN_COMPANY_ID;
         $contragentData = cls::get($sRec->contragentClassId)->getContragentData($sRec->contragentId);
         $hideOurEori = false;
         if(empty($contragentData->eori) && drdata_Countries::isEu($contragentData->countryId)){
@@ -320,7 +323,17 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         // Място на товарене / Разтоварване
         $loadingPlace = $lData['fromPCode'] . ' ' .  transliterate($lData['fromPlace']) . ', ' . $lData['fromCountry'];
         $deliveryPlace = $lData['toPCode'] . ' ' .  transliterate($lData['toPlace']) . ', ' . $lData['toCountry'];
-        
+
+        $senderInstructionDefault = '';
+        if ($senderInstructions = trans_Setup::get('CMR_SENDER_INSTRUCTIONS')) {
+            $senderInstructionDefault .= $senderInstructions;
+        }
+        if(!empty($lData['toAddressFeatures'])){
+            $transFeatures = trans_Features::getVerbalFeatures($lData['toAddressFeatures']);
+            $senderInstructionDefault .= (!empty($senderInstructionDefault) ? "\n" : "") . $transFeatures;
+        }
+        $form->setDefault('senderInstructions', $senderInstructionDefault);
+
         // Има ли общо тегло в ЕН-то
         if (!empty($lData['totalWeight'])) {
             Mode::push('text', 'plain');
@@ -518,8 +531,8 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
-        $cmrNumber = $self->fetchField($id, 'cmrNumber');
-        $hnd = $self->abbr . $cmrNumber;
+        $rec = $self->fetchRec($id);
+        $hnd = $self->abbr . $rec->cmrNumber;
         
         return $hnd;
     }

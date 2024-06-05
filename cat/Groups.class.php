@@ -137,6 +137,12 @@ class cat_Groups extends core_Master
 
 
     /**
+     * Детайла, на модела
+     */
+    protected $changedParentId = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -154,8 +160,8 @@ class cat_Groups extends core_Master
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими,generic=Генерични)', 'caption=Свойства->Списък,columns=2,input=none');
-
+        						canManifacture=Производими,generic=Генерични)', 'caption=Настройки->Свойства,columns=2,input=none');
+        $this->FLD('notes', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
         $this->setDbUnique('sysId');
         $this->setDbIndex('parentId');
     }
@@ -237,7 +243,6 @@ class cat_Groups extends core_Master
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->view = 'horizontal';
-        //$data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         // Показваме само това поле. Иначе и другите полета
@@ -270,16 +275,21 @@ class cat_Groups extends core_Master
             }
         }
 
-        if ($fields['-single'] && !isset($rec->defaultOverheadCostsPercent)) {
-
-            // Ако е намерена наследена стойност
-            if ($overheadCostArr = $mvc->getDefaultOverheadCostFromParent($rec)) {
-                if (!empty($overheadCostArr['overheadCost'])) {
-                    $row->defaultOverheadCostsPercent = $mvc->getFieldType('defaultOverheadCostsPercent')->toVerbal($overheadCostArr['overheadCost']);
-                    $row->defaultOverheadCostsPercent = "<span style='color:blue'>{$row->defaultOverheadCostsPercent}</span>";
-                    $hint = "Наследено от|*: " . $mvc->getVerbal($overheadCostArr['groupId'], 'name');
-                    $row->defaultOverheadCostsPercent = ht::createHint($row->defaultOverheadCostsPercent, $hint, 'notice', false);
+        if ($fields['-single']) {
+            if(!isset($rec->defaultOverheadCostsPercent)){
+                // Ако е намерена наследена стойност
+                if ($overheadCostArr = $mvc->getDefaultOverheadCostFromParent($rec)) {
+                    if (!empty($overheadCostArr['overheadCost'])) {
+                        $row->defaultOverheadCostsPercent = $mvc->getFieldType('defaultOverheadCostsPercent')->toVerbal($overheadCostArr['overheadCost']);
+                        $row->defaultOverheadCostsPercent = "<span style='color:blue'>{$row->defaultOverheadCostsPercent}</span>";
+                        $hint = "Наследено от|*: " . $mvc->getVerbal($overheadCostArr['groupId'], 'name');
+                        $row->defaultOverheadCostsPercent = ht::createHint($row->defaultOverheadCostsPercent, $hint, 'notice', false);
+                    }
                 }
+            }
+
+            if(isset($rec->parentId)){
+                $row->parentId = cat_Groups::getHyperlink($rec->parentId, true);
             }
         }
     }
@@ -767,8 +777,34 @@ class cat_Groups extends core_Master
             $queryGr = cat_Groups::getQuery();
             $queryGr->delete("#productCnt = 0 AND #parentId = $grRecOld->id");
         }
-
-
     }
 
+
+    /**
+     * Преди запис на перо
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+        if(isset($rec->id)){
+
+            // Ако е сменен бащата ще се дига флаг за преизчисляване на групите на артикулите
+            $oldParentId = $mvc->fetchField($rec->id, 'parentId', false);
+            if($rec->parentId != $oldParentId){
+                $mvc->changedParentId[$rec->id] = $rec->id;
+            }
+        }
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // Ако има нови записи в групите, ще се преизчисляват тези на всички артикули
+        if(countR($mvc->changedParentId)){
+            $callOn = dt::addSecs(30);
+            core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpandInput', 'cat_Products', $callOn);
+        }
+    }
 }

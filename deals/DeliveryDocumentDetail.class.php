@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2023 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -39,6 +39,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage)', 'caption=Допълнително->Забележки');
 
         $mvc->setDbIndex('productId,packagingId');
+        setIfNot($mvc->allowInputPriceForQuantity, false);
     }
 
     
@@ -56,7 +57,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
-        
+        // Ако ще се позволява въвеждането на цена за к-то - полето за цена става varchar
+        if($mvc->allowInputPriceForQuantity){
+            $data->form->setFieldType('packPrice', 'varchar(nullIfEmpty)');
+            $data->form->setField('packPrice', 'class=w25');
+        }
+
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
         }
@@ -86,23 +92,11 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
-            
-            $LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
-            if (isset($mvc->{$LastPolicy})) {
-                $policyInfoLast = $mvc->{$LastPolicy}->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
-                if ($policyInfoLast->price != 0) {
-                    $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
-                }
-            }
-            
-            if (!isset($productInfo->meta['canStore'])) {
-                $measureShort = cat_UoM::getShortName($rec->packagingId);
-                $form->setField('packQuantity', "unit={$measureShort}");
-            } else {
-                $form->setField('packagingId', 'input');
-                
-                // Показване на допълнителна мярка
-                if (isset($rec->packagingId)) {
+            $form->setField('packagingId', 'input');
+
+            // Показване на допълнителна мярка
+            if (isset($rec->packagingId)) {
+                if($mvc->getField('baseQuantity', false)){
                     $pType = cat_UoM::fetchField($rec->packagingId, 'type');
                     $derivitiveMeasures = cat_UoM::getSameTypeMeasures($productInfo->productRec->measureId);
                     if ($pType == 'uom' && !array_key_exists($rec->packagingId, $derivitiveMeasures)){
@@ -112,6 +106,14 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                     } else {
                         $form->setField('baseQuantity', 'input=none');
                     }
+                }
+            }
+
+            $LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
+            if (isset($mvc->{$LastPolicy})) {
+                $policyInfoLast = $mvc->{$LastPolicy}->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+                if ($policyInfoLast->price != 0) {
+                    $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
             }
         }
@@ -142,10 +144,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             }
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-            
+
             if (!isset($rec->packPrice)) {
                 $autoPrice = true;
-                
+
                 // Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
                 $origin = $mvc->Master->getOrigin($masterRec);
                 if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
@@ -192,9 +194,17 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 }
             } else {
                 $autoPrice = false;
-                
+                $error = $price4Quantity = null;
+                if($mvc->allowInputPriceForQuantity){
+                    $price4Quantity = deals_Helper::isPrice4Quantity($rec->packPrice, $rec->quantity, $error);
+                    if(!empty($error)){
+                        $form->setError('packPrice', $error);
+                        return;
+                    }
+                }
+
                 // Изчисляване цената за единица продукт в осн. мярка
-                $rec->price = $rec->packPrice / $rec->quantityInPack;
+                $rec->price = $price4Quantity ?? ($rec->packPrice / $rec->quantityInPack);
                 
                 if (!$form->gotErrors() || ($form->gotErrors() && Request::get('Ignore'))) {
                     $rec->packPrice = deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
@@ -208,14 +218,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             }
             
             $rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-            
-            // Ако има такъв запис, сетваме грешка
-            $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, null, null, $rec->batch, $rec->expenseItemId, $rec->notes);
-            if ($exRec) {
-                $form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
-                unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
-            }
-            
+
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if ($rec->id) {
                 $oldRec = $mvc->fetch($rec->id);
@@ -351,7 +354,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     public function import($masterId, $row)
     {
         $Master = $this->Master;
-        
+
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
         $meta = cat_Products::fetch($pRec->productId, $this->metaProducts);
@@ -368,10 +371,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         
         
         if ($meta != 'yes') {
-            
+
             return;
         }
-        
+
         $price = null;
         
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
@@ -385,7 +388,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
             
         }
-        
+
         return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);
     }
 }

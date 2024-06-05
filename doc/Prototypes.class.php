@@ -100,9 +100,9 @@ class doc_Prototypes extends core_Manager
         $this->FLD('classId', 'class(interface=doc_PrototypeSourceIntf)', 'caption=Документ,mandatory,input=hidden,silent');
         $this->FLD('docId', 'int', 'caption=Документ,mandatory,input=hidden,silent,tdClass=leftColImportant');
         $this->FLD('driverClassId', 'class', 'caption=Документ,input=hidden');
-        $this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Споделяне->Папка');
-        $this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Споделяне->Роли');
-        $this->FLD('sharedWithUsers', 'userList', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedFolders', 'key2(mvc=doc_Folders, name=title, allowEmpty)', 'caption=Шаблонът е достъпен за всички или само в/за избраните->Папка');
+        $this->FLD('sharedWithRoles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Шаблонът е достъпен за всички или само в/за избраните->Роли');
+        $this->FLD('sharedWithUsers', 'userList', 'caption=Шаблонът е достъпен за всички или само в/за избраните->Потребители');
         $this->FLD('fields', 'blob(serialize, compress)', 'input=none');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,column=none,input=none,notNull,value=active');
         
@@ -148,15 +148,19 @@ class doc_Prototypes extends core_Manager
         // Кога може да се добавя и редактира
         if (($action == 'add' || $action == 'edit') && isset($rec->originId)) {
             if ($requiredRoles != 'no_one') {
-                $doc = doc_Containers::getDocument($rec->originId);
-                $state = $doc->fetchField('state');
-                
-                // Трябва потребителя да има достъп до документа
-                if (!$doc->haveRightFor('single')) {
-                    $requiredRoles = 'no_one';
-                
-                // И документа да не е оттеглен
-                } elseif ($state == 'rejected' || $state == 'closed') {
+                try{
+                    $doc = doc_Containers::getDocument($rec->originId);
+                    $state = $doc->fetchField('state');
+
+                    // Трябва потребителя да има достъп до документа
+                    if (!$doc->haveRightFor('single')) {
+                        $requiredRoles = 'no_one';
+
+                        // И документа да не е оттеглен
+                    } elseif ($state == 'rejected' || $state == 'closed') {
+                        $requiredRoles = 'no_one';
+                    }
+                } catch(core_exception_Expect $e){
                     $requiredRoles = 'no_one';
                 }
             }
@@ -218,7 +222,7 @@ class doc_Prototypes extends core_Manager
             if (isset($rec->sharedFolders)) {
                 $origin = doc_Containers::getDocument($rec->originId);
                 if (!$origin->getInstance()->canAddToFolder($rec->sharedFolders)) {
-                    $form->setError('sharedFolders', 'Документа не може да бъде създаден в избраната папка');
+                    $form->setError('sharedFolders', 'Документът не може да бъде създаден в избраната папка');
                 }
             }
         }
@@ -242,15 +246,19 @@ class doc_Prototypes extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-list'])) {
-            $origin = doc_Containers::getDocument($rec->originId);
-            if(cls::existsMethod($origin->getInstance(), 'getPrototypeTitle')){
-                $row->titleCalc = $origin->getPrototypeTitle();
-            } else {
-                $row->titleCalc = ht::createHint($origin->getTitleById(), 'Документа вече не може да бъде шаблонен', 'error', false);
-            }
+            try{
+                $origin = doc_Containers::getDocument($rec->originId);
+                if(cls::existsMethod($origin->getInstance(), 'getPrototypeTitle')){
+                    $row->titleCalc = $origin->getPrototypeTitle();
+                } else {
+                    $row->titleCalc = ht::createHint($origin->getTitleById(), 'Документа вече не може да бъде шаблонен', 'error', false);
+                }
 
-            $row->docId = $origin->getLink(0);
-            $row->ROW_ATTR['class'] = "state-{$rec->state}";
+                $row->docId = $origin->getLink(0);
+                $row->ROW_ATTR['class'] = "state-{$rec->state}";
+            } catch(core_exception_Expect $e){
+                $row->docId = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+            }
         }
     }
     

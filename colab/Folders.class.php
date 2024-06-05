@@ -185,8 +185,7 @@ class colab_Folders extends core_Manager
         
         if ($action == 'list') {
             $sharedFolders = self::getSharedFolders($userId);
-            
-            if (countR($sharedFolders) <= 1) {
+            if (countR($sharedFolders) < 1) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -207,11 +206,10 @@ class colab_Folders extends core_Manager
      * @param int|NULL $cu                       - потребител
      * @param bool     $showTitle                - дали папките да са заглавия
      * @param string   $interface                - интерфейс
-     * @param bool     $skipPrivateFolderIfEmpty - да се пропусне ли частната папка ако е празна
      *
      * @return array $sharedFolders           - масив със споделените папки
      */
-    public static function getSharedFolders($cu = null, $showTitle = false, $interface = null, $skipPrivateFolderIfEmpty = true)
+    public static function getSharedFolders($cu = null, $showTitle = false, $interface = null)
     {
         $sharedFolders = array();
         $cu = isset($cu) ? $cu : core_Users::getCurrent();
@@ -231,26 +229,10 @@ class colab_Folders extends core_Manager
         $sharedQuery->show('folderId,title,coverClass');
         $sharedQuery->groupBy('folderId');
         
-        // Трябва ли да се пропусне личната папка
-        if ($skipPrivateFolderIfEmpty === true) {
-            $personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
-            
-            // Коя е личната папка на партньора
-            if ($personId && ($privateFolderId = crm_Persons::fetchField($personId, 'folderId'))) {
-                
-                // Ако в нея няма видими документи за него, пропуска се
-                $count = doc_Threads::count("#folderId = {$privateFolderId} AND #visibleForPartners = 'yes'");
-                if (!$count) {
-                    $sharedQuery->where("#folderId != {$privateFolderId}");
-                }
-            }
-        }
-        
         // Подготовка на споделените папки
         while ($fRec = $sharedQuery->fetch()) {
-            if (isset($interface) && !cls::haveInterface($interface, $fRec->coverClass)) {
-                continue;
-            }
+            if (isset($interface) && !cls::haveInterface($interface, $fRec->coverClass)) continue;
+
             $value = ($showTitle === true) ? $fRec->title : $fRec->folderId;
             $sharedFolders[$fRec->folderId] = $value;
         }

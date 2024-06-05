@@ -863,7 +863,7 @@ class acc_Journal extends core_Master
             // Трябва баланса да е преизчислен за да продължим
             if (core_Locks::isLocked(acc_Balances::saveLockKey)) {
                 
-                return followRetUrl(null, tr('Балансът се преизчислява в момента. Моля, изчакайте!'));
+                return followRetUrl(null, tr('|Балансът се преизчислява в момента. Моля, изчакайте!'));
             }
             
             if ($rec->from > $rec->to) {
@@ -881,7 +881,7 @@ class acc_Journal extends core_Master
                     $accounts[$id] = acc_Accounts::fetchField($accId, 'systemId');
                 }
                 $res = $this->recontoAll($accounts, $rec->from, $rec->to, $types);
-                $this->logWrite('Реконтиране на документи', $rec->id);
+                $this->logDebug("Реконтирани са {$res} документа");
 
                 Mode::setPermanent('recontoJournalLastDateFrom', $rec->from);
                 Mode::setPermanent('recontoJournalLastDateTo', $rec->to);
@@ -1059,7 +1059,7 @@ class acc_Journal extends core_Master
      */
     public static function throwErrorsIfFoundWhenTryingToPost()
     {
-        return (Mode::is('saveTransaction') && !Mode::is('recontoTransaction'));
+        return (Mode::is('saveTransaction') && !Mode::is('recontoTransaction') && !Mode::is('closedDealCall'));
     }
 
 
@@ -1094,7 +1094,7 @@ class acc_Journal extends core_Master
     {
         requireRole('debug');
         $documents = static::getPostedDocumentsWithoutJournal();
-        if(!countR($documents)) followRetUrl(null, "Няма контирани документи без журнал|*!");
+        if(!countR($documents)) followRetUrl(null, "|Няма контирани документи без журнал|*!");
 
         $tpl = new core_ET("");
         foreach ($documents as $class => $res){

@@ -254,7 +254,7 @@ class cal_Holidays extends core_Master
 										PH=Филипини,
 										FI=Финландия,
 										FR=Франция,                
-										NL=Холандия,
+										NL=Нидерландия,
 										HN=Хондурас,
 										HK=Хонконг,
 										HR=Хърватия,

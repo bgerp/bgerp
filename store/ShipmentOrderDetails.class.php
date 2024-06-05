@@ -62,6 +62,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
 
     /**
+     * Кой има право да разбива партидите?
+     */
+    public $canSplitbatches = 'ceo,store,sales,purchase';
+
+
+    /**
      * Да се показва ли вашия номер
      */
     public $showReffCode = true;
@@ -109,7 +115,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info=@Колети, productId, packagingId, packQuantity, packPrice, discount, amount, weight=Тегло, volume=Обем, transUnitId = ЛЕ';
+    public $listFields = 'info=@Колети, productId, packagingId, packQuantity=К-во, packPrice, discount=Отст., amount, weight=Тегло, netWeight=Нето,tareWeight=Тара, volume=Обем, transUnitId = ЛЕ';
     
     
     /**
@@ -127,7 +133,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета за скриване/показване от шаблоните
      */
-    public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума,weight=Обем,volume=Тегло,info=Инфо';
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=К-во,packPrice=Цена,discount=Отст.,amount=Сума,weight=Обем,netWeight=Нето,tareWeight=Тара,volume=Тегло,info=Инфо';
     
     
     /**
@@ -141,7 +147,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'requestedQuantity,weight,volume,transUnitId,transUnitQuantity';
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume,netWeight,tareWeight,transUnitId,transUnitQuantity,tariffCode';
     
     
     /**
@@ -159,7 +165,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         parent::setDocumentFields($this);
         $this->FLD('baseQuantity', 'double(minDecimals=2)', 'after=showMode,caption=Допълнително->Изписване,input=hidden');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=short,value=short,after=notes');
-        
+        $this->FLD('tariffCode', 'varchar', 'caption=Логистична информация->Митнически код,input=none');
         $this->setFieldTypeParams('packQuantity', 'min=0');
     }
     
@@ -173,6 +179,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
         $form = &$data->form;
+        $rec = $form->rec;
         $masterRec = $data->masterRec;
         $property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
 
@@ -182,6 +189,11 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             $productTypeParams['priceData'] = $priceData;
         }
         $form->setFieldTypeParams('productId', $productTypeParams);
+
+        if (isset($rec->productId)) {
+            $tariffCode = cat_Products::getParams($rec->productId, 'customsTariffNumber');
+            $form->setField('tariffCode', "input,placeholder={$tariffCode}");
+        }
     }
     
     
@@ -243,13 +255,17 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             
             if (core_Users::haveRole('ceo,seePriceSale') && isset($row->packPrice) && $masterRec->isReverse == 'no') {
                 $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
-                $foundPrimeCost = null;
-                if (sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $foundPrimeCost)) {
+
+                $comparedWithPrimeCostObj = sales_PrimeCostByDocument::comparePriceWithPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $mvc, $rec->id);
+                if($comparedWithPrimeCostObj->bellowPrimeCost){
                     $warning = 'Цената е под себестойността';
-                    if(isset($foundPrimeCost)){
-                        $foundPrimeCost /= $masterRec->currencyRate;
-                        $primeCostVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
+                    if(isset($comparedWithPrimeCostObj->primeCost)){
+                        $comparedWithPrimeCostObj->primeCost /= $masterRec->currencyRate;
+                        $primeCostVerbal = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($comparedWithPrimeCostObj->primeCost * $rec->quantityInPack);
                         $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
+                        if($comparedWithPrimeCostObj->isCache){
+                            $warning .= " (|Кеш|*)";
+                        }
                     }
                     if(!Mode::isReadOnly()){
                         $row->packPrice = "<span class='priceBellowPrimeCost'>{$row->packPrice}</span>";
@@ -288,7 +304,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         if (countR($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
-                
+
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                cat_Products::addButtonsToDocToolbar($rec->productId, $row->_rowTools, $mvc->className, $rec->id);
                 $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, $rec->showMode, 'public', $data->masterData->rec->tplLang, 1, false);
                 deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             }

@@ -64,8 +64,14 @@ class core_Form extends core_FieldSet
      * Атрибути на елемента <FORM ... >
      */
     public $formAttr = array();
-    
-    
+
+
+    /**
+     * Информация за рендиране преди показване на полето
+     */
+    public $beforeFieldInfo = array();
+
+
     /**
      * Редове с дефиниции [Селектор на стила] => [Дефиниция на стила]
      */
@@ -755,7 +761,8 @@ class core_Form extends core_FieldSet
             }
             
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
-            
+            $haveErrors = $this->gotErrors();
+
             // Създаваме input - елементите
             foreach ($fields as $name => $field) {
                 expect($field->kind, $name, 'Липсващо поле');
@@ -811,7 +818,10 @@ class core_Form extends core_FieldSet
                 }
                 
                 $type = clone($field->type);
-                
+                if($haveErrors){
+                    $type->formWithErrors = true;
+                }
+
                 if ($this->gotErrors($name)) {
                     if ($this->errors[$name]->ignorable) {
                         $attr['class'] .= ' inputWarning';
@@ -882,6 +892,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Рендиране на select или input полето
+
                 if ((countR($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
@@ -896,7 +907,6 @@ class core_Form extends core_FieldSet
                             $title = tr($title);
                         }
                     }
-                    
                     $input = ht::createSmartSelect(
                         $options,
                         $name,
@@ -910,7 +920,7 @@ class core_Form extends core_FieldSet
                 } else {
                     $input = $type->renderInput($name, $value, $attr);
                 }
-                
+
                 $fieldsLayout->replace($input, $name);
             }
             
@@ -925,7 +935,7 @@ class core_Form extends core_FieldSet
                 }
             }
         }
-        
+
         return $fieldsLayout;
     }
     
@@ -1090,17 +1100,23 @@ class core_Form extends core_FieldSet
                     } else {
                        $tdHtml = "<td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td>"; 
                     }
-                    
                     $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}>{$tdHtml}</tr>");
                 }
-                
+
+                // Ако ще се показва нещо преди рендирането на полето - да се покаже
+                if(isset($this->beforeFieldInfo[$name])){
+                    $prependTpl = new core_ET("<tr><td colspan='2'>[#BEFORE_INFO#]</td></tr>");
+                    $prependTpl->replace($this->beforeFieldInfo[$name], 'BEFORE_INFO');
+                    $fld->prepend($prependTpl->getContent());
+                }
+
                 // Добавяме rowCaption
                 if (!empty($rowCaption)) {
                     $mandatoryClass = ($field->mandatory) ? 'mandatoryMiddleCaption' : '';
                     if (Mode::is('screenMode', 'narrow')) {
-                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='formMiddleCaption {$mandatoryClass}'>{$rowCaption}</td></tr>"));
+                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='{$mandatoryClass}'><div class='formMiddleCaption'>{$rowCaption}</div></td></tr>"));
                     } else {
-                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='formMiddleCaption {$mandatoryClass}'>{$rowCaption}</td></tr>"));
+                        $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='{$mandatoryClass}'><div class='formMiddleCaption'>{$rowCaption}</div></td></tr>"));
                     }
                 }
                 
@@ -1281,6 +1297,8 @@ class core_Form extends core_FieldSet
      */
     public function renderHtml_($fields = null, $vars = null)
     {
+        setIfNot($this->formAttr['id'], str::getRand());
+
         $this->smartSet('showFields', arr::make($fields, true));
         $this->smartSet('renderVars', arr::make($vars, true));
         
@@ -1305,7 +1323,9 @@ class core_Form extends core_FieldSet
         if ($this->cmd == 'refresh' && Request::get('ajax_mode')) {
             $this->ajaxOutput($tpl);
         }
-        
+
+        core_Form::preventDoubleSubmission($tpl, $this);
+
         return $tpl;
     }
     
@@ -1547,7 +1567,7 @@ class core_Form extends core_FieldSet
                 } else {
                     $value = $this->rec->{$name};
                 }
-                $value = empty($value) ? '' : $value;
+                $value = !isset($value) ? '' : $value;
             }
             
             unset($field->type->params['allowEmpty']);
@@ -1641,9 +1661,25 @@ class core_Form extends core_FieldSet
      *
      * @return void
      */
-    public static function preventDoubleSubmission(core_ET &$tpl, core_Form $form)
+    public static function preventDoubleSubmission(core_ET &$tpl, $form)
     {
+        setIfNot($form->formAttr['id'], str::getRand());
+
         $formId = $form->formAttr['id'];
-        jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');");
+
+        jquery_Jquery::run($tpl, "preventDoubleSubmission('{$formId}');", true);
+    }
+
+
+    /**
+     * Какво да се рендира преди рендирането на полето във формата
+     *
+     * @param string $field        - кое поле
+     * @param core_ET|string $info - стринг или шаблон, който да се рендира
+     * @return void
+     */
+    public function setInfoBeforeField($field, $info)
+    {
+        $this->beforeFieldInfo[$field] = new core_ET($info);
     }
 }

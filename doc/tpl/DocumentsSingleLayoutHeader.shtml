@@ -19,7 +19,7 @@
 	    [#header#]
 		<div class='header [#STATE_CLASS#] no-print'>
 			<div class='docBgIcon' style='[#iconStyle#]'>
-		        <div class='document-title-group'>[#singleTitle#] <b>[#ident#]</b><!--ET_BEGIN HEADER_STATE--> ([#HEADER_STATE#])<!--ET_END HEADER_STATE--><!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->
+		        <div class='document-title-group [#DOCUMENT_PRIORITY_CLASS#]'>[#singleTitle#] <b onmouseup='selectInnerText(this);'>[#ident#]</b><!--ET_BEGIN HEADER_STATE--> ([#HEADER_STATE#])<!--ET_END HEADER_STATE--><!--ET_BEGIN currentVersionInHeader--> v[#currentVersionInHeader#]<!--ET_END currentVersionInHeader-->
 				</div>
 				<!--ET_BEGIN DocumentSettingsLeft-->
 					<div class='document-settings-left'>

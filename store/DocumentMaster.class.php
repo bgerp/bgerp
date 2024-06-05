@@ -25,7 +25,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId, id';
+    public $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId, note, addressInfo';
     
     
     /**
@@ -81,7 +81,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,lineId,additionalConditions,reverseContainerId';
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,lineId,additionalConditions,reverseContainerId,username';
     
     
     /**
@@ -105,7 +105,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Вал.,smartCenter');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
         $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory,silent,removeAndRefreshForm=deliveryTime');
-        $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=ДДС,input=hidden');
+        $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=ДДС,input=hidden');
         
         $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Общо,input=none,summary=amount,smartCenter'); // Сумата на доставената стока
         $mvc->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=ДДС,input=none,summary=amount,smartCenter');
@@ -124,7 +124,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)', 'input=none,notNull,value=411');
 
-        $mvc->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->Избор,silent,removeAndRefreshForm=company|person|tel|country|pCode|place|address|features|addressInfo,placeholder=От предишна доставка,autohide');
+        $mvc->FLD('prevShipment', 'int', 'caption=Адрес за доставка->Избор,silent,removeAndRefreshForm=company|person|tel|country|pCode|place|address|features|addressInfo,placeholder=От предишна доставка,autohide');
         $mvc->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма,autohide');
         $mvc->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, class=contactData,autohide');
         $mvc->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., class=contactData,autohide');
@@ -161,8 +161,15 @@ abstract class store_DocumentMaster extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
-        $form->setDefault('storeId', store_Stores::getCurrent('id', false));
+
+        $defaultStoreId = store_Stores::getCurrent('id', false);
+        if(core_Packs::isInstalled('holding')){
+            if(!holding_Companies::isAllowedValueInThread($rec->threadId, $defaultStoreId, 'stores')){
+                $defaultStoreId = null;
+            }
+        }
+
+        $form->setDefault('storeId', $defaultStoreId);
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         if (!trans_Lines::count("#state = 'active'")) {
@@ -194,8 +201,8 @@ abstract class store_DocumentMaster extends core_Master
             $sQuery->limit(100);
 
             while ($sRec = $sQuery->fetch()) {
-                if (!$mvc->haveRightFor('asClient', $sRec)) continue;
-                if (!$mvc->haveRightFor('single', $sRec)) continue;
+                if (!store_ShipmentOrders::haveRightFor('asClient', $sRec)) continue;
+                if (!store_ShipmentOrders::haveRightFor('single', $sRec)) continue;
 
                 $name = '#' . $mvc->getHandle($sRec->id);
                 if ($sRec->company) {
@@ -296,11 +303,43 @@ abstract class store_DocumentMaster extends core_Master
             
             return;
         }
-        
+
+        // Ако е към ориджин на КИ/ДИ да се налеят променените к-ва от него
+        if(isset($rec->fromContainerId) && empty($rec->importProducts)){
+            store_ReceiptDetails::delete("#receiptId = {$rec->id}");
+            $fromDocument = doc_Containers::getDocument($rec->fromContainerId);
+            if($fromDocument->isInstanceOf('deals_InvoiceMaster')){
+                $invRec = $fromDocument->fetch();
+                if($invRec->type == 'dc_note'){
+                    $invDetail = cls::get($fromDocument->mainDetail);
+                    $dQuery = $invDetail->getQuery();
+                    $dQuery->where("#invoiceId = {$invRec->id}");
+                    $details = $dQuery->fetchAll();
+                    $invDetail::modifyDcDetails($details, $invRec, $invDetail);
+                    $withChangedQuantityDetails = array_filter($details, function($a) {return $a->changedQuantity === true;});
+
+                    $Detail = cls::get($mvc->mainDetail);
+                    foreach ($withChangedQuantityDetails as $invDetailRec){
+                        $shipProduct = new stdClass();
+                        $shipProduct->{$Detail->masterKey} = $rec->id;
+                        $shipProduct->productId = $invDetailRec->productId;
+                        $shipProduct->packagingId = $invDetailRec->packagingId;
+                        $shipProduct->quantity = abs($invDetailRec->quantity);
+                        $shipProduct->price = $invDetailRec->price;
+                        $shipProduct->discount = $invDetailRec->discount;
+                        $shipProduct->quantityInPack = $invDetailRec->quantityInPack;
+                        $Detail->save($shipProduct);
+                    }
+
+                    return;
+                }
+            }
+        }
+
         // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
         // използваме го за автоматично попълване на детайлите на документа
         if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
-            
+
             // Ако документа е обратен не слагаме продукти по дефолт
             if ($rec->isReverse == 'yes') {
                 
@@ -318,6 +357,39 @@ abstract class store_DocumentMaster extends core_Master
                 $shippedProducts = $aggregatedDealInfo->get('shippedProducts');
                 $copyBatches = true;
                 if (countR($shippedProducts)) {
+
+                    // Извличане на експедираните партиди от документи в нишката
+                    if(in_array($rec->importProducts, array('notshipped', 'notshippedstorable'))){
+                        $byNowShippedBatches = array();
+                        if(core_Packs::isInstalled('batch')){
+                            $mWhere = "";
+                            $cQuery = doc_Containers::getQuery();
+                            $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
+                            $cQuery->show('docClass,docId');
+                            while($cRec = $cQuery->fetch()){
+                                $mWhere .= (!empty($mWhere) ? " OR " : '') . "(#docType = {$cRec->docClass} AND #docId = {$cRec->docId})";
+                            }
+                            $bQuery = batch_Movements::getQuery();
+                            $bQuery->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
+                            $bQuery->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
+                            $bQuery->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
+                            $bQuery->where("#storeId ={$rec->storeId}");
+                            $bQuery->where($mWhere);
+                            $bQuery->show('productId,quantity,batch');
+                            while($bRec = $bQuery->fetch()){
+                                $byNowShippedBatches[$bRec->productId][$bRec->batch] += $bRec->quantity;
+                            }
+                        }
+
+                        foreach ($shippedProducts as $k1 => &$shipped){
+                            // Ако има експедирани партиди досега и се искат неекспедираните приспадат се
+                            if(isset($byNowShippedBatches[$shipped->productId])){
+                                $shipped->batches = $byNowShippedBatches[$shipped->productId];
+                            }
+                        }
+                    }
+
+
                     $normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
                 } else {
                     $agreedProducts = $aggregatedDealInfo->get('dealProducts');
@@ -399,12 +471,10 @@ abstract class store_DocumentMaster extends core_Master
                     
                     $price = (isset($product->price)) ? $product->price : $normalizedProducts[$index]->price;
                     $discount = ($product->discount) ? $product->discount : $normalizedProducts[$index]->discount;
-                    
+
                     // Пропускат се експедираните продукти
-                    if ($toShip <= 0) {
-                        continue;
-                    }
-                    
+                    if ($toShip <= 0) continue;
+
                     $shipProduct = new stdClass();
                     $shipProduct->{$mvc->{$Detail}->masterKey} = $rec->id;
                     $shipProduct->productId = $product->productId;
@@ -420,12 +490,26 @@ abstract class store_DocumentMaster extends core_Master
                         $shipProduct->isEdited = FALSE;
                         $shipProduct->_clonedWithBatches = TRUE;
                     }
+
                     $Detail::save($shipProduct);
 
                     // Копира партидата ако артикулите идат 1 към 1 от договора
                     if (core_Packs::isInstalled('batch') && $copyBatches === true) {
-
                         if (is_array($shipProduct->batches)) {
+
+                            // Ако има генерирана нова партида и има без партида оставено от договора - ще се зададе за остатъка
+                            if(!empty($shipProduct->batch)){
+                                if(!countR($shipProduct->batches)){
+                                    $shipProduct->batches =  array($shipProduct->batch => $shipProduct->quantity);
+                                } else {
+                                    $quantityInBatches = array_sum($shipProduct->batches);
+                                    $diff = round($shipProduct->quantity - $quantityInBatches, 5);
+                                    if($diff){
+                                        $shipProduct->batches += array($shipProduct->batch => $diff);
+                                    }
+                                }
+                            }
+
                             foreach ($shipProduct->batches as $b => $q) {
                                 $bRec = new stdClass();
                                 $bRec->batch = $b;
@@ -518,36 +602,10 @@ abstract class store_DocumentMaster extends core_Master
             core_Lg::push($rec->tplLang);
 
             $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
-            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
-            $row = (object) ((array) $row + (array) $headerInfo);
+            $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId);
+            $row = (object) ((array) $row + $headerInfo);
 
-            $row->deliveryTo = '';
-            if ($row->country) {
-                $row->deliveryTo .= $row->country;
-            }
-
-            if ($row->pCode) {
-                $row->deliveryTo .= (($row->deliveryTo) ? ', ' : '') . $row->pCode;
-            }
-
-            if ($row->pCode) {
-                $row->deliveryTo .= ' ' . core_Lg::transliterate($row->place);
-            }
-
-            foreach (array('address', 'company', 'person', 'tel', 'features', 'addressInfo') as $fld) {
-                if (!empty($rec->{$fld})) {
-                    if ($fld == 'address') {
-                        $row->{$fld} = core_Lg::transliterate($row->{$fld});
-                    } elseif ($fld == 'tel') {
-                        if (callcenter_Talks::haveRightFor('list')) {
-                            $row->{$fld} = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
-                        }
-                    }
-
-                    $row->deliveryTo .= ", {$row->{$fld}}";
-                }
-            }
-
+            $addressData = array();
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperlink($rec->locationId);
                 if ($ourLocation = store_Stores::fetchField($rec->storeId, 'locationId')) {
@@ -557,27 +615,58 @@ abstract class store_DocumentMaster extends core_Master
                         $row->ourLocationAddress = $ourLocationAddress;
                     }
                 }
-                
-                $contLocationAddress = crm_Locations::getAddress($rec->locationId);
-                if ($contLocationAddress != '') {
-                    $row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
+
+                $Location = cls::get('crm_Locations');
+                $locationRec = $Location->fetch($rec->locationId);
+                $locationRow = $Location->recToVerbal($locationRec, $Location->selectFields());
+                foreach (array('countryId' => 'deliveryCountry', 'pCode' => 'deliverypCode', 'place' => 'deliveryPlace', 'address' => 'deliveryAddress', 'gln' => 'deliveryGln', 'countryId' => 'deliveryCountry', 'tel' => 'deliveryTel', 'mol' => 'deliveryPerson', 'features' => 'features', 'specifics' => 'addressInfo') as $recFld => $recPlaceholder){
+                    if (!empty($locationRec->{$recFld})) {
+                        if($recFld == 'features'){
+                            $addressData[$recPlaceholder] = $locationRec->{$recFld};
+                        } else {
+                            $addressData[$recPlaceholder] = $locationRow->{$recFld};
+                        }
+                    }
+                }
+            } else {
+                foreach (array('address' => 'deliveryAddress', 'company' => 'deliveryCompany', 'country' => 'deliveryCountry', 'person' => 'deliveryPerson', 'tel' => 'deliveryTel', 'pCode' => 'deliverypCode', 'place' => 'deliveryPlace', 'features' => 'features', 'addressInfo' => 'addressInfo') as $recFld => $recPlaceholder){
+                    if (!empty($rec->{$recFld})) {
+                        if($recFld == 'features'){
+                            $addressData[$recPlaceholder] = $rec->{$recFld};
+                        } else {
+                            $addressData[$recPlaceholder] = $row->{$recFld};
+                        }
+                    }
+                }
+            }
+
+            // Скриваме "Особености" на локацията ПРИ ПЕЧАТ И ИЗПРАЩАНЕ
+            // ВИНАГИ когато ЕН е включено в Транспортна линия и в нея "Изпълнител" НЕ Е "Моята фирма"
+            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+                if($rec->{$mvc->lineFieldName}){
+                    $forwarderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'forwarderId');
+                    if(isset($forwarderId) && $forwarderId != crm_Setup::BGERP_OWN_COMPANY_ID){
+                        unset($addressData['features']);
+                    }
+                }
+            }
+
+            if(countR($addressData)){
+                foreach ($addressData as $delKey => $delVal){
+                    if (in_array($delKey, array('deliveryAddress', 'deliveryPlace', 'deliveryPerson'))) {
+                        $addressData[$delKey] = core_Lg::transliterate($delVal);
+                    } elseif($delKey == 'features'){
+                        $addressData[$delKey] = trans_Features::getVerbalFeatures($delVal);
+                    } elseif($delKey == 'tel') {
+                        if (callcenter_Talks::haveRightFor('list')) {
+                            $addressData[$delKey] = ht::createLink($delVal, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
+                        }
+                    }
                 }
 
-                $locationRec = crm_Locations::fetch($rec->locationId, 'gln,tel,mol');
-                if ($locationRec->gln) {
-                    $row->deliveryLocationAddress = $locationRec->gln . ', ' . $row->deliveryLocationAddress;
-                    $row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ', ');
-                }
-                
-                if ($locationRec->tel) {
-                    $locTel = core_Type::getByName('varchar')->toVerbal($locationRec->tel);
-                    $row->deliveryLocationAddress .= ", {$locTel}";
-                }
-                
-                if ($locationRec->mol) {
-                    $locMol = core_Type::getByName('varchar')->toVerbal($locationRec->mol);
-                    $row->deliveryLocationAddress .= ", {$locMol}";
-                }
+                $addressBlock = getTplFromFile('store/tpl/DeliveryAddressTpl.shtml');
+                $addressBlock->placeArray($addressData);
+                $row->deliveryTo = $addressBlock->getContent();
             }
 
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
@@ -590,6 +679,7 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             core_Lg::pop();
+
         } elseif (isset($fields['-list'])) {
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
                 $row->title = '<b>' . $row->title . '</b>';
@@ -602,7 +692,7 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
-     * Документа не може да бъде начало на нишка; може да се създава само в съществуващи нишки
+     * Документът не може да бъде начало на нишка; може да се създава само в съществуващи нишки
      */
     public static function canAddToFolder($folderId)
     {
@@ -820,9 +910,10 @@ abstract class store_DocumentMaster extends core_Master
     public function getLogisticData($rec)
     {
         $rec = $this->fetchRec($rec);
-        $ownCompany = crm_Companies::fetchOurCompany();
+        $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : crm_Setup::BGERP_OWN_COMPANY_ID;
+        $ownCompany = crm_Companies::fetch($ownCompanyId);
         $ownCountryId = $ownCompany->country;
-        
+
         if ($locationId = store_Stores::fetchField($rec->storeId, 'locationId')) {
             $storeLocation = crm_Locations::fetch($locationId);
             $ownCountryId = $storeLocation->countryId;
@@ -1101,7 +1192,7 @@ abstract class store_DocumentMaster extends core_Master
      * 		o $fields['currencyId']         -  код на валута (ако няма е основната за периода)
      * 		o $fields['currencyRate']       -  курс към валутата (ако няма е този към основната валута)
      * 		o $fields['paymentMethodId']    -  ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 		o $fields['chargeVat']          -  да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
+     * 		o $fields['chargeVat']          -  да се начислява ли ДДС - separate=Отделен ред за ДДС, yes=Да, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
      * 		o $fields['shipmentStoreId']    -  ид на склад (@see store_Stores)
      * 		o $fields['deliveryTermId']     -  ид на метод на доставка (@see cond_DeliveryTerms)
      * 		o $fields['deliveryLocationId'] -  ид на локация за доставка (@see crm_Locations)
@@ -1319,36 +1410,16 @@ abstract class store_DocumentMaster extends core_Master
             'quantityInPack' => $quantityInPack,
             'notes' => $notes,
         );
-        
-        // Проверяваме дали въвдения детайл е уникален
-        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
-        
-        if (is_object($exRec)) {
-            
-            // Смятаме средно притеглената цена и отстъпка
-            $nPrice = ($exRec->quantity * $exRec->price + $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
-            $nDiscount = ($exRec->quantity * $exRec->discount + $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
-            $nTolerance = ($exRec->quantity * $exRec->tolerance + $dRec->quantity * $dRec->tolerance) / ($dRec->quantity + $exRec->quantity);
-            
-            // Ъпдейтваме к-то, цената и отстъпката на записа с новите
-            if ($term) {
-                $exRec->term = max($exRec->term, $dRec->term);
-            }
-            
-            $exRec->quantity += $dRec->quantity;
-            $exRec->price = $nPrice;
-            $exRec->discount = (empty($nDiscount)) ? null : round($nDiscount, 2);
-            $exRec->tolerance = (!isset($nTolerance)) ? null : round($nTolerance, 2);
-            
-            // Ъпдейтваме съществуващия запис
-            $id = $Detail->save($exRec);
-        } else {
-            
-            // Ако е уникален, добавяме го
-            $id = $Detail->save($dRec);
-            if(!empty($batch) && core_Packs::isInstalled('batch')){
-                batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
-            }
+
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            $dRec->autoAllocate = false;
+            $dRec->_clonedWithBatches = true;
+        }
+
+        // Ако е уникален, добавяме го
+        $id = $Detail->save($dRec);
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
         }
         
         // Връщаме резултата от записа
@@ -1457,5 +1528,25 @@ abstract class store_DocumentMaster extends core_Master
         $res = array('recs' => $res, 'detailMvc' => $Detail);
 
         return $res;
+    }
+
+
+    /**
+     * Връща информация за сумите по платежния документ
+     *
+     * @param mixed $id
+     * @return object
+     */
+    public function getPaymentData($id)
+    {
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            $rec = $this->fetchRec($id, '*', false);
+        }
+
+        $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
+
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
     }
 }

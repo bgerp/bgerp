@@ -36,7 +36,6 @@ class pwa_Setup extends core_ProtoSetup
     public $depends = 'cms=0.1';
 
 
-
     /**
      * Описание на конфигурационните константи
      */
@@ -88,7 +87,11 @@ class pwa_Setup extends core_ProtoSetup
         // Инсталираме плъгина към страницата
         $html .= $Plugins->installPlugin('bgERP PWA', 'pwa_Plugin', 'core_page_Active', 'family');
         $html .= $Plugins->installPlugin('bgERP PWA Profile', 'pwa_ProfilePlg', 'crm_Profiles', 'private');
+        $html .= $Plugins->installPlugin('bgERP PWA Profile за колаборатори', 'pwa_ProfilePlg', 'cms_Profiles', 'private');
         $html .= $Plugins->installPlugin('bgERP PWA Domains', 'pwa_DomainsPlg', 'cms_Domains', 'private');
+
+        $html .= $Plugins->installPlugin('PWA Абониране', 'pwa_SubscribePlg', 'bgerp_Index', 'private');
+        $html .= $Plugins->installPlugin('PWA Абониране в портала', 'pwa_SubscribePlg', 'bgerp_Portal', 'private');
 
         $Domains = cls::get('cms_Domains');
         $Domains->setupMvc();
@@ -170,23 +173,27 @@ class pwa_Setup extends core_ProtoSetup
             }
         }
 
-        if (core_Composer::isInUse()) {
-            $cVersion = 7;
-            $pVersion = phpversion();
-            if ((version_compare($pVersion, '7.3') < 0)) {
-                $cVersion = 6;
-            }
-            if ((version_compare($pVersion, '7.2') < 0)) {
-                $cVersion = 5;
-            }
-            if ((version_compare($pVersion, '7.1') < 0)) {
-                $cVersion = 2;
-            }
+        $cVersion = 7;
+        $pVersion = phpversion();
+        if ((version_compare($pVersion, '7.3') < 0)) {
+            $cVersion = 6;
+        }
+        if ((version_compare($pVersion, '7.2') < 0)) {
+            $cVersion = 5;
+        }
+        if ((version_compare($pVersion, '7.1') < 0)) {
+            $cVersion = 2;
+        }
 
-            if ((version_compare($pVersion, '8') >= 0)) {
-                $cVersion = 8;
-            }
+        if ((version_compare($pVersion, '8') >= 0)) {
+            $cVersion = 8;
+        }
 
+        if ($cVersion <= 6) {
+            $html .= '<li class="red">Препоръчва се да се използва PHP 7.3 или по-нова версия.</li>';
+        }
+
+        try {
             // 8 -> за PHP > PHP 8.0
             // 7 -> за PHP > PHP 7.3 7.4
             // 6 -> PHP 7.2
@@ -194,6 +201,10 @@ class pwa_Setup extends core_ProtoSetup
             // 2 -> PHP 7.0
             // 1 -> PHP 5.6
             $html .= core_Composer::install('minishlink/web-push', $cVersion);
+
+            if (!core_Composer::isInUse()) {
+                $html .= "<li class='red'>Проблем при зареждането на composer</li>";
+            }
 
             $dQuery = cms_Domains::getQuery();
             $existKeysDomainsArr = $notExistKeysDomainsArr =  array();
@@ -216,13 +227,17 @@ class pwa_Setup extends core_ProtoSetup
                 } else {
                     $keysArr = array();
                     try {
-                        $keysArr = VAPID::createVapidKeys();
+                        $keysArr = @VAPID::createVapidKeys();
                     } catch (core_exception_Expect $e) {
                         reportException($e);
                     } catch (Throwable $t) {
                         reportException($t);
                     } catch (Error $e) {
                         reportException($e);
+                    }
+
+                    if (empty($keysArr)) {
+                        $html .= "<li class='red'>Не може да се добавят 'VAPID' ключове за {$dName}</li>";
                     }
 
                     foreach ($notDArr as $nRec) {
@@ -237,7 +252,11 @@ class pwa_Setup extends core_ProtoSetup
                     sleep(1);
                 }
             }
-        } else {
+        } catch (core_exception_Expect $e) {
+            $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
+        } catch (Throwable $t) {
+            $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
+        } catch (Error $e) {
             $html .= '<li class="red">Composer не е инсталиран. Не е зададен "EF_VENDOR_PATH"</li>';
         }
 

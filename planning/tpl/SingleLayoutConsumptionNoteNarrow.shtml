@@ -3,8 +3,7 @@
             <tbody>
                 <tr>
                     <td class='centered'>  
-                        <div class="document-title">|протокол за влагане в производство|*</div>
-                        <div class='small'>( <i>|на складируеми суровини и материали|*</i> )</div>
+                        <div class="document-title">[#protocolTitle#]</div>
                         <div style="padding-top:5px;">
                                 <span class="state [#STATE_CLASS#]">
                                     № <span class="bigData">[#id#]</span> /
@@ -57,16 +56,29 @@
                                                 </tr>
                                                 <!--ET_END useResourceAccounts-->
                                             </table>
+                                            <!--ET_BEGIN description-->
+                                            <hr>
+                                            [#description#]
+                                            <!--ET_END description-->
+                                            <!--ET_BEGIN note-->
                                             <hr>
                                             [#note#]
-							                <!--ET_BEGIN responsible-->
-							                <hr>
-							                <div>|Получил|*:  [#responsible#]</div>
-							                <!--ET_END responsible-->
-							                
-							                <!--ET_BEGIN username-->
-							                <div>|Съставил|*:  [#username#]</div>
-							                <!--ET_END username-->
+                                            <!--ET_END note-->
+                                            <hr>
+                                            <table class='centered special-borders' style='width:100%;'>
+                                                <tr>
+                                                    <td class='centered border-right' style='width:50%;'>[#receiverCaption#]: [#RECEIVER_SIGN_PAD#]</td>
+                                                    <td class='centered'>[#senderCaption#]: [#SENDER_SIGN_PAD#]</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class='border-right' style='height:40px;'>[#RECEIVER_SIGN#]</td>
+                                                    <td>[#SENDER_SIGN#]</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class='centered border-right'><span class="sign_names nowrap"><!--ET_BEGIN receiver-->( [#receiver#] )<!--ET_END receiver--></span></td>
+                                                    <td class='centered'><span class="sign_names nowrap"><!--ET_BEGIN sender-->( [#sender#] )<!--ET_END sender--></span></td>
+                                                </tr>
+                                            </table>
                                         </td>
                                     </tr>
                                 </tbody>

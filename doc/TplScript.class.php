@@ -94,8 +94,20 @@ abstract class doc_TplScript
     public function beforeRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
     }
-    
-    
+
+
+    /**
+     * След рендиране на лист таблицата
+     *
+     * @param core_Mvc $detail
+     * @param core_ET  $tpl
+     * @param stdClass $data
+     */
+    public function afterRenderListTable(core_Mvc $detail, &$tpl, &$data)
+    {
+    }
+
+
     /**
      * Преди подготовка на мастър данните
      *
@@ -144,6 +156,18 @@ abstract class doc_TplScript
      * Функция, която прихваща след активирането на документа
      */
     public function afterActivation($mvc, &$rec)
+    {
+
+    }
+
+
+    /**
+     * Непосредствено преди рендирането на лист таблицата
+     *
+     * @param core_Mvc $detail
+     * @param stdClass $data
+     */
+    public function rightBeforeRenderListTable(core_Mvc $detail, &$data)
     {
 
     }

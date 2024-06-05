@@ -44,7 +44,7 @@ abstract class rack_MovementAbstract extends core_Manager
     {
         $mvc->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,column=none');
         $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'tdClass=productCell,caption=Артикул,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|zones|palletId,mandatory,remember');
-        $mvc->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Мярка,input=hidden,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack,silent');
+        $mvc->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Мярка,input=hidden,mandatory,smartCenter,remember,removeAndRefreshForm=quantity|quantityInPack,silent');
         $mvc->FNC('packQuantity', 'double(min=0)', 'caption=Количество,smartCenter,silent');
         $mvc->FNC('movementType', 'varchar', 'silent,input=hidden');
 
@@ -151,7 +151,7 @@ abstract class rack_MovementAbstract extends core_Manager
                         $row->batch = ht::createLink($row->batch, array('rack_ProductsByBatches', 'list', 'search' => $rec->batch));
                     }
                 } else {
-                    $row->batch = "<i class='quiet'>" . tr("Без партида") . "</i>";
+                    $row->batch = "<i class='quiet small'>" . tr("Без партида") . "</i>";
                 }
             }
         }
@@ -305,17 +305,20 @@ abstract class rack_MovementAbstract extends core_Manager
             $data->query->where("#palletId = {$palletId}");
         }
 
-        $data->listFilter->setFieldTypeParams('workerId', array('allowEmpty' => 'allowEmpty'));
+
         $data->listFilter->setField('fromIncomingDocument', 'input=none');
-        $data->listFilter->setField('workerId', 'caption=Товарач,after=to');
+
         $data->listFilter->FLD('from', 'date', 'caption=От');
         $data->listFilter->FLD('to', 'date', 'caption=До');
+        $data->listFilter->FNC('filterUser', 'enum(workerId=Товарач,createdBy=Създадено от)', 'caption=Филтър по,after=to,input');
+        $data->listFilter->FNC('userId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal,allowEmpty)', 'caption=Потребител,after=filterUser,input');
+
         $data->listFilter->FNC('documentHnd', 'varchar', 'placeholder=Документ,caption=Документ,input,silent,recently');
         $data->listFilter->FLD('state1', 'enum(all=Всички,pending=Чакащи,waiting=Запазени,active=Активни,closed=Приключени)', 'caption=Състояние');
         $data->listFilter->input('documentHnd', 'silent');
-
-        $data->listFilter->showFields = 'selectPeriod, from, to, workerId,search,documentHnd,state1';
+        $data->listFilter->showFields = 'selectPeriod, from, to, filterUser, userId, search, documentHnd, state1';
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
+        $data->listFilter->setDefault('filterUser', 'workerId');
 
         $data->listFilter->input();
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -333,8 +336,8 @@ abstract class rack_MovementAbstract extends core_Manager
                 $data->query->where("#createdOn <= '{$filterRec->to} 23:59:59'");
             }
 
-            if(!empty($filterRec->workerId)){
-                $data->query->where("#workerId = '{$filterRec->workerId}'");
+            if(!empty($filterRec->userId)){
+                $data->query->where("#{$filterRec->filterUser} = '{$filterRec->userId}'");
             }
 
             if(!empty($filterRec->documentHnd)){
@@ -449,7 +452,16 @@ abstract class rack_MovementAbstract extends core_Manager
 
         // Кои опаковки са с по-малко количество от нужното
         $packs = array_filter($packagingArr, function($a) use ($quantity) {return $a['quantity'] <= $quantity;});
-        if(!countR($packs)) return null;
+
+        if(!countR($packs)) {
+            // Ако няма нито една опаковка с достатъчно к-во - ще се показва винаги в основната да не се получават дробни числа
+            $baseMeasureId = cat_Products::fetchField($productId, 'measureId');
+            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+            $quantityVerbal = ht::styleIfNegative($quantityVerbal, $quantity);
+            $displayString = tr(cat_UoM::getSmartName($baseMeasureId, $quantity));
+
+            return "{$quantityVerbal} {$displayString}";
+        }
 
         // Подобрено сортиране
         uasort($packs, function (&$a, &$b)  {

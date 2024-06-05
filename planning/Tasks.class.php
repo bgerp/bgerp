@@ -38,19 +38,25 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
+    public $loadList = 'doc_plg_Prototype, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
 
 
     /**
      * На колко време да се рефрешва лист изгледа
      */
-    public $refreshRowsTime = 3000;
+    public $refreshRowsTime = 15000;
 
 
     /**
      * Заглавие
      */
     public $title = 'Производствени операции';
+
+
+    /**
+     * Скриване на полето за споделени потребители
+     */
+    public $hideSharedUsersFld = true;
 
 
     /**
@@ -297,14 +303,15 @@ class planning_Tasks extends core_Master
         }
 
         $this->FLD('manualPreviousTask', 'key(mvc=planning_Tasks,select=title)', 'caption=Предходна операция,input=none');
+
+        $this->FLD('mandatoryDocuments', 'classes(select=title)', 'caption=Задължителни,hint=Задължително изискуеми документи (поне един от всеки избран тип) за да може да бъде приключена операцията');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,class=w25,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=individual');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
-        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both,input=hidden');
+        $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано,autoPrint=Генериране и Печат)', 'caption=Етикиране->Производ. №,tdClass=small-field nowrap,notNull,value=both,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('labelPrintFromProgress', 'enum(no=Изключено,yes=Включено)', 'caption=Етикиране->Етикет от прогреса,tdClass=small-field nowrap,notNull,value=no,input=hidden');
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
@@ -339,7 +346,7 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
         $this->setDbIndex('modifiedOn');
-        $this->setDbIndex('originId,saoOrder');
+        $this->setDbIndex('saoOrder');
     }
 
 
@@ -370,7 +377,7 @@ class planning_Tasks extends core_Master
             if (!countR($in)) {
                 unset($data->paramData->addUrl);
             }
-            $pData['showPreviousJobField'] = true;
+
             if ($pData['showPreviousJobField']) {
                 $originRec = doc_Containers::getDocument($data->rec->originId)->fetch('oldJobId,productId');
 
@@ -406,8 +413,20 @@ class planning_Tasks extends core_Master
             $paramTpl = cat_products_Params::renderParams($data->paramData);
             $tpl->append($paramTpl, 'PARAMS');
         }
-
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
+
+        // Показване на обобщението на отпадъка в статистиката
+        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId, $data->rec->totalNetWeight);
+        if(countR($wasteArr)){
+            foreach ($wasteArr as $wasteRow){
+                $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
+                $cloneTpl->replace($wasteRow->productLink, 'wasteProducedProductId');
+                $cloneTpl->replace($wasteRow->class, 'wasteClass');
+                $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
+                $cloneTpl->removeBlocksAndPlaces();
+                $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
+            }
+        }
     }
 
 
@@ -555,7 +574,14 @@ class planning_Tasks extends core_Master
         $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
         if(isset($rec->assetId)){
             if(isset($fields['-single'])) {
-                $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+                $row->assetId = new core_ET(planning_AssetResources::getTitleById($rec->assetId));
+                $assetSingleUrlArray = planning_AssetResources::getSingleUrlArray($rec->assetId);
+                if(!Mode::isReadOnly()){
+                    if(countR($assetSingleUrlArray)){
+                        $assetSingleUrlArray['Tab'] = 'Tasks';
+                    }
+                    $row->assetId = ht::createLink($row->assetId, $assetSingleUrlArray, false, 'ef_icon=img/16/equipment.png');
+                }
             }
             if(planning_Tasks::haveRightFor('list') && !Mode::is('printing')) {
                 if(isset($fields['-single'])) {
@@ -781,32 +807,32 @@ class planning_Tasks extends core_Master
                     $row->notConvertedFromPreviousTasks = tr("Няма");
                 }
             }
-        } else {
-            if ($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])) {
-                core_RowToolbar::createIfNotExists($row->_rowTools);
-                $copyUrl = toUrl(array($mvc, 'copy2clipboard', $rec->id, 'ret_url' => true), 'local');
-                $row->_rowTools->addLink('Избор', '', "ef_icon=img/16/copy16.png,title=Запомняне на операцията в клипборда,data-url={$copyUrl},class=copy2clipboard");
+
+            if(!empty($rec->mandatoryDocuments)){
+                $row->mandatoryDocuments = ht::createHint(tr('Има посочени'), $row->mandatoryDocuments);
+            } else {
+                $row->mandatoryDocuments = tr('Няма');
             }
 
-            // Ако може да се пейства операция от клипборда
-            $rememberedTaskRec = Mode::get('rememberedTask');
-            if (is_object($rememberedTaskRec)) {
-
-                // Ако има предишна операция, ще може да се поставя след нея
+            $jobNotes = $origin->fetchField('notes');
+            if(!empty($jobNotes)){
+                $row->jobNotes = core_Type::getByName('richtext(hideTextAfterLength=100)')->toVerbal($jobNotes);
+            }
+        } else {
+            // Ако има предишна операция, ще може да се поставя след нея
+            if(Request::get('assetId', 'int')){
                 if (!$mvc->getPrevOrNextTask($rec)) {
                     if ($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'before')) && !isset($fields['-detail'])) {
                         core_RowToolbar::createIfNotExists($row->_rowTools);
                         $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'before', 'ret_url' => true), 'local');
-                        $row->_rowTools->addLink("Постави преди", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на|* #{$mvc->getHandle($rememberedTaskRec->id)} |преди|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=copy2clipboard");
+                        $row->_rowTools->addLink("Постави преди", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на избраните операции преди|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=pasteFromClipboard");
                     }
                 }
 
-                if ($rememberedTaskRec->id != $rec->taskId) {
-                    if ($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'after')) && !isset($fields['-detail'])) {
-                        core_RowToolbar::createIfNotExists($row->_rowTools);
-                        $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'after', 'ret_url' => true), 'local');
-                        $row->_rowTools->addLink("Постави след", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на|* #{$mvc->getHandle($rememberedTaskRec->id)} |след|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=copy2clipboard");
-                    }
+                if ($mvc->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $rec->id, 'place' => 'after')) && !isset($fields['-detail'])) {
+                    core_RowToolbar::createIfNotExists($row->_rowTools);
+                    $pasteUrl = toUrl(array($mvc, 'pastefromclipboard', 'refTaskId' => $rec->id, 'place' => 'after', 'ret_url' => true), 'local');
+                    $row->_rowTools->addLink("Постави след", '', "ef_icon=img/16/paste_plain.png,title=Поставяне на избраните операции след|* #{$mvc->getHandle($rec->id)},data-url={$pasteUrl},class=pasteFromClipboard");
                 }
             }
         }
@@ -876,7 +902,7 @@ class planning_Tasks extends core_Master
         $packRec = cat_products_Packagings::getPack($productId, $labelPackagingId);
         $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
 
-        if ($productMeasureId != $measureId) {
+        if (isset($measureId) && $productMeasureId != $measureId) {
             $packRec1 = cat_products_Packagings::getPack($productId, $measureId);
             $quantityInSecondMeasure = is_object($packRec1) ? $packRec1->quantity : 1;
             $quantityInPackDefault = (1 / $quantityInSecondMeasure) * $quantityInPackDefault;
@@ -1068,22 +1094,11 @@ class planning_Tasks extends core_Master
             }
         }
 
-        unset($row->labelPrintFromProgress);
-        if (core_Packs::isInstalled('label')) {
-            $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress == 'yes') {
-                $row->labelPrintFromProgress = $mvc->getFieldType('labelPrintFromProgress')->toVerbal($rec->labelPrintFromProgress);
-            }
-        }
-
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table style='display:{$display}' class='docHeaderVal'>
                 <tr><td style='font-weight:normal'>|Производ. №|*:</td><td>[#labelType#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#labelPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#labelQuantityInPack#]</td></tr>
                 <tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>
-                <!--ET_BEGIN labelPrintFromProgress-->
-                <tr><td style='font-weight:normal'>|Етикет от прогреса|*:</td><td>[#labelPrintFromProgress#]</td></tr>
-                <!--ET_END labelPrintFromProgress-->
                 <!--ET_BEGIN printCount-->
                 <tr><td style='font-weight:normal'>|Отпечатвания|*:</td><td>[#printCount#]</td></tr>
                 <!--ET_END printCount-->
@@ -1274,7 +1289,10 @@ class planning_Tasks extends core_Master
             core_Statuses::newStatus('Операцията е активирана след добавяне на прогрес|*!');
         }
 
-        return $this->save_($rec, $updateFields);
+        $res = $this->save_($rec, $updateFields);
+        plg_Search::forceUpdateKeywords($this, $rec);
+
+        return $res;
     }
 
 
@@ -1443,25 +1461,30 @@ class planning_Tasks extends core_Master
 
         if ($action == 'copy2clipboard') {
             $requiredRoles = $mvc->getRequiredRoles('edit', $rec);
+            if(isset($rec)){
+                $taskRec = planning_Tasks::fetch($rec->id, 'assetId');
+                if(empty($taskRec->assetId)){
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
 
         // След коя операция може да се пейстне запомнената в клипборда
         if ($action == 'pastefromclipboard') {
             $requiredRoles = $mvc->getRequiredRoles('edit', $rec);
-            $rememberedTaskRec = Mode::get('rememberedTask');
-            if (!is_object($rememberedTaskRec)) {
-                $requiredRoles = 'no_one';
-            } else {
-                if (isset($rec)) {
-                    if (empty($rec->refTaskId)) {
+            if(isset($rec)){
+                if(isset($rec->refTaskId)){
+                    $refTaskRec = planning_Tasks::fetch($rec->refTaskId, 'assetId');
+                    if(empty($refTaskRec->assetId)){
                         $requiredRoles = 'no_one';
-                    } else {
-                        $refTaskRec = $mvc->fetch($rec->refTaskId);
-                        if ($rememberedTaskRec->folderId != $refTaskRec->folderId || $rememberedTaskRec->id == $refTaskRec->id || empty($rememberedTaskRec->assetId) || empty($refTaskRec->assetId) || in_array($rememberedTaskRec, array('stopped', 'rejected')) || !in_array($refTaskRec->assetId, $rememberedTaskRec->_allowableAssets)) {
-                            $requiredRoles = 'no_one';
-                        }
                     }
+                } else {
+                    $requiredRoles = 'no_one';
                 }
+            }
+
+            if (isset($rec) && empty($rec->refTaskId)) {
+                $requiredRoles = 'no_one';
             }
         }
 
@@ -1504,7 +1527,12 @@ class planning_Tasks extends core_Master
                                 $nRec->taskId = $rec->id;
                                 $nRec->packagingId = $p->packagingId;
                                 $nRec->quantityInPack = $p->quantityInPack;
-                                $nRec->plannedQuantity = ($p->packQuantity / $originRec->quantity) * $rec->plannedQuantity;
+                                if($p->isPrevStep){
+                                    $nRec->plannedQuantity = ($p->packQuantity / $originRec->quantity) * $rec->plannedQuantity;
+                                } else {
+                                    $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity;
+                                }
+
                                 $nRec->productId = $p->productId;
                                 $nRec->type = $type;
                                 $nRec->storeId = $rec->storeId;
@@ -1566,13 +1594,6 @@ class planning_Tasks extends core_Master
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
 
-        if (core_Packs::isInstalled('label')) {
-            $labelPrintFromProgress = label_Setup::getGlobal('AUTO_PRINT_AFTER_SAVE_AND_NEW');
-            if ($labelPrintFromProgress == 'yes') {
-                $form->setField('labelPrintFromProgress', "input");
-            }
-        }
-
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
         }
@@ -1604,7 +1625,7 @@ class planning_Tasks extends core_Master
         try {
             $origin = doc_Containers::getDocument($rec->originId);
         } catch (core_exception_Expect $e) {
-            followRetUrl(null, 'Има грешка при създаването', 'error');
+            followRetUrl(null, '|Има грешка при създаването', 'error');
         }
 
         $originRec = $origin->fetch();
@@ -1627,6 +1648,9 @@ class planning_Tasks extends core_Master
                 $form->setDefault('isFinal', $isFinal);
             }
         }
+
+        $mandatoryClassOptions = planning_Steps::getMandatoryClassOptions();
+        $form->setSuggestions("mandatoryDocuments", array('' => '') + $mandatoryClassOptions);
 
         if (isset($rec->productId)) {
 
@@ -1661,7 +1685,7 @@ class planning_Tasks extends core_Master
             }
 
             if (!isset($rec->systemId) && empty($rec->id)) {
-                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode");
+                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode,mandatoryDocuments=mandatoryDocuments");
                 foreach ($defFields as $fld => $val) {
                     $form->setDefault($fld, $productionData[$val]);
                 }
@@ -1950,7 +1974,7 @@ class planning_Tasks extends core_Master
         $taskRec = static::fetchRec($taskId);
         $job = doc_Containers::getDocument($taskRec->originId);
         $jobTitle = cat_Products::fetchField($job->fetchField('productId'), 'name');
-        
+
         if($isShort){
             $oprTitle = "Opr{$taskRec->id}/";
             $jobTitle = str::limitLen($jobTitle, 36);
@@ -1961,7 +1985,7 @@ class planning_Tasks extends core_Master
 
         $jobTitle = "Job{$job->that}-{$jobTitle}";
 		$title = "{$oprTitle}{$jobTitle}";
-        
+
         return $title;
     }
 
@@ -1996,6 +2020,7 @@ class planning_Tasks extends core_Master
 
         return $packs;
     }
+
 
     /**
      * Изчисляване следващата или предишната операция от тази
@@ -2044,8 +2069,9 @@ class planning_Tasks extends core_Master
             if(core_Packs::isInstalled('batch')){
                 if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
                     $autoTaskBatchValue = $BatchDef->getAutoValue('planning_Tasks', $rec->id, null, null);
+
                     if(!empty($autoTaskBatchValue)){
-                        $batches = batch_Items::getBatchQuantitiesInStore($rec->productId);
+                        $batches = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $autoTaskBatchValue);
                         if(array_key_exists($autoTaskBatchValue, $batches)){
                             $notConvertedQuantity = $batches[$autoTaskBatchValue];
                         }
@@ -2077,10 +2103,13 @@ class planning_Tasks extends core_Master
         $query = $this->getQuery();
         $query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $query->where("#state != 'rejected'");
-        $query->orderBy('saoOrder', 'ASC');
+
         if ($data->masterMvc instanceof planning_AssetResources) {
+            $query->orderBy('orderByDate', 'ASC');
             $query->where("#assetId = {$data->masterId}");
+            $query->in("state", array('pending', 'active', 'wakeup', 'stopped'));
         } else {
+            $query->orderBy('saoOrder', 'ASC');
             $query->where("#originId = {$data->masterData->rec->containerId}");
         }
         $data->pager->setLimit($query);
@@ -2190,7 +2219,7 @@ class planning_Tasks extends core_Master
         }
 
         if ($data->masterMvc instanceof planning_AssetResources) {
-            $tpl->append(tr('Производствени операции'), 'title');
+            $tpl->append("Производствени операции (заявки, активни, събудени, спрени)", 'title');
             $tpl->append($contentTpl, 'content');
         } else {
             $tpl = $contentTpl;
@@ -2236,7 +2265,7 @@ class planning_Tasks extends core_Master
             $data->listFilter->input('state,isFinalSelect');
             $data->listFilter->setDefault('state', 'activeAndPending');
             $data->listFilter->setDefault('isFinalSelect', 'all');
-            
+
             $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 9999999999999)';
 
             if ($filter = $data->listFilter->rec) {
@@ -2281,9 +2310,10 @@ class planning_Tasks extends core_Master
      * @param mixed $states - В кои състояния
      * @param boolean $verbal - вербални или записи
      * @param boolean $skipTasksWithClosedParams - да се пропуснат ли операциите с деактивирани параметри
+     * @param null|bool $isFinal                 - дали да са само финалните или не
      * @return array $res      - масив с намерените задачи
      */
-    public static function getTasksByJob($jobId, $states, $verbal = true, $skipTasksWithClosedParams = false)
+    public static function getTasksByJob($jobId, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null)
     {
         $res = array();
         $oldContainerId = planning_Jobs::fetchField($jobId, 'containerId');
@@ -2292,6 +2322,10 @@ class planning_Tasks extends core_Master
         $states = arr::make($states, true);
         $query->in("state", $states);
         $query->orderBy("saoOrder", 'ASC');
+        if(isset($isFinal)){
+            $isFinalVal = $isFinal ? 'yes' : 'no';
+            $query->where("#isFinal = '{$isFinalVal}'");
+        }
 
         $taskClassId = planning_Tasks::getClassId();
         while ($rec = $query->fetch()) {
@@ -2317,8 +2351,13 @@ class planning_Tasks extends core_Master
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         // Ако ПО е към задание по продажба - добавя се хендлъра на продажбата в ключовите думи
-        if($jobSaleId = planning_Jobs::fetchField("#containerId = {$rec->originId}", 'saleId')){
-            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobSaleId));
+        if($jobRec = planning_Jobs::fetch("#containerId = '{$rec->originId}'", 'saleId,productId')){
+            $res .= ' ' . plg_Search::normalizeText(sales_Sales::getHandle($jobRec->saleId));
+
+            // Добавяне на драйвера на артикула в ключовите думи
+            $productDriverClass = cat_Products::getVerbal($jobRec->productId, 'innerClass');
+            $res .= ' ' . plg_Search::normalizeText($productDriverClass);
+            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getTitleById($jobRec->id));
         }
 
         // Добавяне на всички ключови думи от прогреса
@@ -2423,9 +2462,17 @@ class planning_Tasks extends core_Master
         $str = trim($str);
 
         $taskDetailQuery = planning_ProductionTaskDetails::getQuery();
+        $str = str_pad($str, 13, '0', STR_PAD_LEFT);
         $taskDetailQuery->where(array("#serial = '[#1#]'", $str));
 
+        $isPartner = core_Packs::isInstalled('colab') && core_Users::isContractor();
+        $taskDetailQuery->EXT('threadId', 'planning_Tasks', "externalName=threadId,externalKey=taskId");
         while ($dRec = $taskDetailQuery->fetch()) {
+
+            if($isPartner){
+                $threadRec = doc_Threads::fetch($dRec->threadId);
+                if(!colab_Threads::haveRightFor('single', $threadRec)) continue;
+            }
 
             $res = new stdClass();
             $tRec = $this->fetch($dRec->taskId);
@@ -2441,7 +2488,6 @@ class planning_Tasks extends core_Master
 
                 $dRow = planning_ProductionTaskDetails::recToVerbal($dRec);
                 $res->comment = tr('Артикул') . ': ' . $dRow->productId . ' ' . tr('Количество') . ': ' . $dRow->quantity . $dRow->shortUoM;
-
                 if ($tRec->progress) {
                     $progress = $this->getVerbal($tRec, 'progress');
                     $res->title .= ' (' . $progress . ')';
@@ -2602,7 +2648,7 @@ class planning_Tasks extends core_Master
             } else {
                 $selected = Request::get('selected', 'varchar');
                 $selectedArr = empty($selected) ? array() : array_combine(explode('|', $selected), explode('|', $selected));
-                if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
+                if(!countR($selectedArr)) followRetUrl(null, '|Не са избрани шаблонни операции за клониране', 'warning');
 
                 // От предходните ще се клонират САМО избраните
                 $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
@@ -2639,6 +2685,7 @@ class planning_Tasks extends core_Master
                         $newParamRec = clone $pRec;
                         unset($newParamRec->id);
                         $newParamRec->productId = $newTask->id;
+                        $newParamRec->paramValue = cat_Params::getReplacementValueOnClone($newParamRec->paramId, 'planning_Tasks', $taskRec->id,$newParamRec->paramValue);
                         cat_products_Params::save($newParamRec);
                     }
                 }
@@ -2666,7 +2713,7 @@ class planning_Tasks extends core_Master
                     $newTask = clone $defaultTask;
                     $newTask->originId = $jobRec->containerId;
                     $newTask->systemId = $sysId;
-                    $newTask->state = 'pending';
+
                     if(empty($defaultTask->plannedQuantity)){
                         $newTask->plannedQuantity = $jobRec->quantity;
                         $newTask->quantityInPack = 1;
@@ -2684,10 +2731,16 @@ class planning_Tasks extends core_Master
                     if (!planning_Tasks::canAddToFolder($folderId)) {
                         $folderId = planning_Centers::getUndefinedFolderId();
                     }
+
+                    $Cover = doc_Folders::getCover($folderId);
+                    $autoCreateTaskState = $Cover->fetchField('autoCreateTaskState');
+                    $newTask->state = ($autoCreateTaskState == 'auto') ? planning_Setup::get('AUTO_CREATE_TASK_STATE'): $autoCreateTaskState;
+
                     $newTask->folderId = $folderId;
                     $newTask->saoOrder = $num;
                     $ProductionData = cat_Products::getDriver($newTask->productId)->getProductionData($newTask->productId);
                     $newTask->isFinal = $ProductionData['isFinal'];
+
                     $this->save($newTask);
 
                     // Ако има параметри от рецептата се прехвърлят 1 към 1
@@ -2742,7 +2795,7 @@ class planning_Tasks extends core_Master
             followRetUrl(null, $msg, $msgType);
         }
 
-        followRetUrl(null, 'Имаше проблем', 'error');
+        followRetUrl(null, '|Имаше проблем', 'error');
     }
 
 
@@ -2838,7 +2891,6 @@ class planning_Tasks extends core_Master
 
         // Кои ще са планиращите параметри
         $plannedParams = array();
-
         // Еднократно извличане на таговете на листваните операции и заданията към тях
         $containerIds = arr::extractValuesFromArray($data->recs, 'containerId');
         $containerIds += arr::extractValuesFromArray($data->recs, 'originId');
@@ -2857,6 +2909,9 @@ class planning_Tasks extends core_Master
             $groupParams = planning_AssetGroups::fetchField($assetRec->groupId, 'planningParams');
             $plannedParams += keylist::toArray($groupParams);
             unset($data->listFields['assetId']);
+
+            $fieldsToFilterIfEmpty[] = 'selectBtn';
+            arr::placeInAssocArray($data->listFields, array('selectBtn' => "|*&nbsp;"), 'expectedTimeStart');
         }
 
         // Ако има избран център - тези параметри от тях
@@ -3022,6 +3077,13 @@ class planning_Tasks extends core_Master
             if(array_key_exists($rec->originId, $inlineTags)){
                 $row->originId .= $inlineTags[$rec->containerId];
             }
+
+            if(empty($data->masterMvc)){
+                if ($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])) {
+                    $checkBtn = ht::createElement('input', array('type' => 'checkbox', 'title' => 'Добавяне/Премахване на операцията в клипборда', 'data-id' => $rec->id, 'class' => 'copy2Storage'));
+                    $row->selectBtn = $checkBtn;
+                }
+            }
         }
 
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, $fieldsToFilterIfEmpty);
@@ -3061,10 +3123,10 @@ class planning_Tasks extends core_Master
             }
             $mQuery->where(array("#folderId = '[#1#]'", $folderId));
         }
+        $inSession = Request::get('inSession');
+        $inSessionStr = is_array($inSession) ? implode('|', json_decode($inSession)) : '';
 
-        $rememberedTask = Mode::get('rememberedTask');
-        $rememberedTask = is_object($rememberedTask) ? $rememberedTask->id : '';
-        $res = md5(trim($mQuery->fetch()->modifiedOn) . $rememberedTask);
+        $res = md5(trim($mQuery->fetch()->modifiedOn) . $inSessionStr);
     }
 
 
@@ -3139,14 +3201,18 @@ class planning_Tasks extends core_Master
 
         if($rec->state == 'pending' && in_array($rec->brState, array('draft', 'waiting'))){
             if($Driver = cat_Products::getDriver($rec->productId)){
-                $saveRecs = array();
                 $pData = $Driver->getProductionData($rec->productId);
 
                 // Ако има планиращи действия
                 if(is_array($pData['actions'])){
+                    $actionsWithNorms = isset($rec->assetId) ? planning_AssetResourcesNorms::getNormOptions($rec->assetId, array(), true) : array();
+
                     $now = dt::now();
                     foreach ($pData['actions'] as $actionId){
                         if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'input' AND #productId = {$actionId}")) continue;
+
+                        // Ако няма норма за планираното действие - ще се пропуска
+                        if(!in_array($actionId, $actionsWithNorms)) continue;
 
                         // Ще се създава запис за планираното действие за влагане
                         $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'), 'createdOn' => $now, 'modifiedBy' => core_Users::SYSTEM_USER, 'modifiedOn' => $now);
@@ -3233,11 +3299,13 @@ class planning_Tasks extends core_Master
     {
         // Включване на драг и дроп ако има избрано оборудване
         $tpl->push('planning/js/TaskCommon.js', 'JS');
-        jquery_Jquery::run($tpl, 'enableCopy2Clipboard();');
-        jquery_Jquery::runAfterAjax($tpl, 'enableCopy2Clipboard');
         jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
 
         if(isset($data->listFilter->rec->assetId)){
+            jquery_Jquery::run($tpl, 'enableCopy2Clipboard();');
+            jquery_Jquery::run($tpl, 'selectAllSession();');
+            jquery_Jquery::runAfterAjax($tpl, 'enableCopy2Clipboard');
+            jquery_Jquery::runAfterAjax($tpl, 'selectAllSession');
             if (!Request::get('ajax_mode')) {
                 jqueryui_Ui::enable($tpl);
                 $tpl->push('planning/js/Tasks.js', 'JS');
@@ -3401,7 +3469,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $assetId = Request::get('assetId', 'int');
-        if(isset($assetId)){
+        if(isset($assetId) && !Request::get('Rejected')){
             if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $assetId))){
                 $data->toolbar->addBtn('Преизчисляване', array('planning_AssetResources', 'recalcTimes', $assetId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
             }
@@ -3423,7 +3491,7 @@ class planning_Tasks extends core_Master
         $this->touchRec($rec);
         $this->logWrite('Преизчисляване на заработките', $rec->id);
 
-        followRetUrl(null, 'Заработките са преизчислени успешно|*!');
+        followRetUrl(null, '|Заработките са преизчислени успешно|*!');
     }
 
 
@@ -3442,109 +3510,119 @@ class planning_Tasks extends core_Master
             $errorMsg = '|Невалиден запис|*!';
         }
 
-        $rememberedTaskRec = Mode::get('rememberedTask');
         $refTaskRec = $this->fetch($refTaskId);
         if(!$this->haveRightFor('pastefromclipboard', (object)array('refTaskId' => $refTaskRec->id, 'place' => $place))){
             $errorMsg = '|Нямате права|*!';
         }
 
-        if(!empty($errorMsg)){
-            core_Statuses::newStatus($errorMsg, 'error');
-        } else {
-            $updateFields = arr::make('orderByAssetId,modifiedOn,modifiedBy');
-
-            if($place == 'after'){
-                $startAfterId = $refTaskRec->id;
-            } else {
-                $startAfterId = $this->getPrevOrNextTask($refTaskRec);
-            }
-
-            $msgPart = "|е преместена след|* #{$this->getHandle($startAfterId)}";
-            if(empty($startAfterId)){
-                $msgPart = "|е преместена преди|* #{$this->getHandle($refTaskRec->id)}";
-            }
-
-            // Ако оборудването е различно - подменя се
-            $assetIsChanged = false;
-            if($rememberedTaskRec->assetId != $refTaskRec->assetId){
-                $assetIsChanged = true;
-                $rememberedTaskRec->prevAssetId = $rememberedTaskRec->assetId;
-                $rememberedTaskRec->assetId = $refTaskRec->assetId;
-                $updateFields[] = 'assetId';
-                $updateFields[] = 'prevAssetId';
-            }
-
-            // След коя операция ще започне тази
-            $rememberedTaskRec->startAfter = $startAfterId;
-            $rememberedTaskRec->modifiedOn = dt::now();
-            $rememberedTaskRec->modifiedBy = core_Users::getCurrent();
-            $rememberedTaskRec->_isDragAndDrop = true;
-            $this->save($rememberedTaskRec, $updateFields);
-
-            // Ако е сменено оборудването се прави преподреждане на операциите от старото
-            if($assetIsChanged){
-                planning_AssetResources::reOrderTasks($rememberedTaskRec->prevAssetId);
-                unset($this->reorderTasksInAssetId[$rememberedTaskRec->prevAssetId]);
-                $this->logWrite("Сменено оборудване при поставяне от клипборда", $rememberedTaskRec->id);
-            }
-
-            // Преподреждане на операциите на новото оборудване
-            planning_AssetResources::reOrderTasks($rememberedTaskRec->assetId);
-            unset($this->reorderTasksInAssetId[$rememberedTaskRec->assetId]);
-            $this->logWrite("Операцията е поставена от клипборда", $rememberedTaskRec->id);
-            core_Statuses::newStatus("|*#{$this->getHandle($rememberedTaskRec->id)} {$msgPart}", 'notice', null, 180);
-
-            Mode::setPermanent('rememberedTask', null);
-        }
-
-        $res = array();
-        $res = $this->returnAjaxSuccessResponse($res);
-
-        return $res;
-    }
-
-
-    /**
-     * Запомняне на операцията в сесията
-     */
-    public function act_copy2clipboard()
-    {
-        // Проверка за права
-        $errorMsg = null;
-        if(!$this->haveRightFor('copy2clipboard')){
-            $errorMsg = '|Нямате права|*!';
-        }
-        $id = Request::get('id', 'int');
-        if(!$id){
-            $errorMsg = '|Невалиден запис|*!';
-        }
-
-        $rec = $this->fetch($id);
-        if(!$this->haveRightFor('copy2clipboard', $rec)){
-            $errorMsg = '|Нямате права|*!';
+        $taskJson = Request::get('taskJson', 'varchar');
+        $taskArr = arr::make(json_decode($taskJson), true);
+        if(empty($taskJson) || !countR($taskArr)){
+            $errorMsg = '|Няма избрани операции за поставяне|*!';
         }
 
         if(!empty($errorMsg)){
-            // Ако е имало грешки се показват
             core_Statuses::newStatus($errorMsg, 'error');
         } else {
-            // Кеш на допустимите за избор оборудвания
-            $rec->_allowableAssets = array();
-            if($Driver = cat_Products::getDriver($rec->productId)) {
-                $productionData = $Driver->getProductionData($rec->productId);
-                if(is_array($productionData['fixedAssets'])){
-                    $rec->_allowableAssets = $productionData['fixedAssets'];
+            $tQuery = static::getQuery();
+            $tQuery->in('id', $taskArr);
+            $tQuery->show('folderId,productId,assetId');
+            $taskFullArr = $tQuery->fetchAll();
+
+            // От избраните ПО се проверява, кои могат да се поставят след посочената
+            $tasksToMove = $tasksNotToMove = $errorTaskMoves = array();
+            array_walk($taskFullArr, function($a) use($refTaskRec, &$tasksToMove, &$tasksNotToMove){
+                $allowedAssetArr = array();
+                if($Driver = cat_Products::getDriver($a->productId)) {
+                    $productionData = $Driver->getProductionData($a->productId);
+                    if (is_array($productionData['fixedAssets'])) {
+                        $allowedAssetArr = $productionData['fixedAssets'];
+                    }
+                }
+
+                // Трябва да са в същия ЦД и машината на операцията да е от позволените
+                $allowedAssetArr = countR($allowedAssetArr) ? $allowedAssetArr : array_keys(planning_AssetResources::getByFolderId($a->folderId, $a->assetId, 'planning_Tasks', true));
+                if($refTaskRec->folderId == $a->folderId && in_array($refTaskRec->assetId, $allowedAssetArr) && $refTaskRec->id != $a->id){
+                    $tasksToMove[$a->id] = $a;
+                } else {
+                    $tasksNotToMove[$a->id] = "#" . $this->getHandle($a->id);
+                }
+            });
+
+            $movedArr = $reorderOldAssets = $reorderAssets = array();
+            foreach ($tasksToMove as $tRec){
+                $updateFields = arr::make('orderByAssetId,modifiedOn,modifiedBy');
+                if($place == 'after'){
+                    $startAfterId = $refTaskRec->id;
+                } else {
+                    $startAfterId = $this->getPrevOrNextTask($refTaskRec);
+                }
+
+                try{
+                    // Ако оборудването е различно - подменя се
+                    $assetIsChanged = false;
+                    if($tRec->assetId != $refTaskRec->assetId){
+                        $assetIsChanged = true;
+                        $tRec->prevAssetId = $tRec->assetId;
+                        $tRec->assetId = $refTaskRec->assetId;
+                        $updateFields[] = 'assetId';
+                        $updateFields[] = 'prevAssetId';
+                    }
+
+                    // След коя операция ще започне тази
+                    $tRec->startAfter = $startAfterId;
+                    $tRec->modifiedOn = dt::now();
+                    $tRec->modifiedBy = core_Users::getCurrent();
+                    $tRec->_isDragAndDrop = true;
+                    $this->save($tRec, $updateFields);
+
+                    // Ако е сменено оборудването се прави преподреждане на операциите от старото
+                    if($assetIsChanged){
+                        $reorderOldAssets[$tRec->prevAssetId] = $tRec->prevAssetId;
+                        $this->logWrite("Сменено оборудване при поставяне от клипборда", $tRec->id);
+                    }
+
+                    // Преподреждане на операциите на новото оборудване
+                    $reorderAssets[$tRec->assetId] = $tRec->assetId;
+                    $this->logWrite("Операцията е поставена от клипборда", $tRec->id);
+                    $movedArr[] = "#" . $this->getHandle($tRec->id);
+                } catch(core_exception_Expect $e){
+                    reportException($e);
+                    $errorTaskMoves[$tRec->id] = $this->getHandle($tRec->id);
+                }
+                unset($taskArr[$tRec->id]);
+            }
+
+            // Преподреждане на засегнатите обордувания
+            foreach (array($reorderOldAssets, $reorderAssets) as $assetArr){
+                foreach ($assetArr as $assetId){
+                    planning_AssetResources::reOrderTasks($assetId);
+                    unset($this->reorderTasksInAssetId[$assetId]);
                 }
             }
-            $rec->_allowableAssets = countR($rec->allowableAssets) ? $rec->allowableAssets : array_keys(planning_AssetResources::getByFolderId($rec->folderId, $rec->assetId, 'planning_Tasks', true));
 
-            // Ако е нямало избраната операция се записва в сесията
-            core_Statuses::newStatus("|*#{$this->getHandle($id)} |е запомнена в сесията", 'notice');
-            Mode::setPermanent('rememberedTask', $rec);
+            if(countR($movedArr)){
+                $msgPart = "|са преместена след|* #{$this->getHandle($startAfterId)}";
+                if(empty($startAfterId)){
+                    $msgPart = "|са преместена преди|* #{$this->getHandle($refTaskRec->id)}";
+                }
+                $implodedMoved = implode(', ', $movedArr);
+                core_Statuses::newStatus("Операциите|*: {$implodedMoved} {$msgPart}", 'notice', null, 180);
+            }
+
+            if(countR($tasksNotToMove)){
+                $implodedNotMoved = implode(', ', $tasksNotToMove);
+                core_Statuses::newStatus("Следните операции не могат да се преместят след избраната|*: {$implodedNotMoved}", 'warning', null, 180);
+            }
+
+            if(countR($errorTaskMoves)){
+                $implodedErrorMoved = implode(', ', $errorTaskMoves);
+                core_Statuses::newStatus("Имаше проблем при преместването на следните операции|*: {$implodedErrorMoved}", 'error', null, 180);
+            }
         }
 
         $res = array();
-        $res = $this->returnAjaxSuccessResponse($res);
+        $res = $this->returnAjaxSuccessResponse($res, true, true, $taskArr);
 
         return $res;
     }
@@ -3553,16 +3631,30 @@ class planning_Tasks extends core_Master
     /**
      * Какъв резултат да се върне при успешен ajax екшън
      *
-     * @param array $res
-     * @param boolean $refreshTable
-     * @return mixed
+     * @param array $res                 - масив с резултати
+     * @param bool $refreshTable         - да се рефрешне ли таблицата
+     * @param bool $clearNotices         - да се изчистят ли нотификациите
+     * @param string|null $idsInSession  - ид-та които да се запишат в сесията на браузъра
+     * @return array $res                - масив с резултата
      */
-    private function returnAjaxSuccessResponse($res, $refreshTable = true)
+    private function returnAjaxSuccessResponse($res, $refreshTable = true, $clearNotices = true, $idsInSession = null)
     {
         // Затваря се контектстното меню ако е отворено
         $resObj = new stdClass();
         $resObj->func = 'closeContextMenu';
         $res[] = $resObj;
+
+        $resObj2 = new stdClass();
+        $resObj2->func = 'clearStatuses';
+        $resObj2->arg = array('type' => 'notice');
+        $res[] = $resObj2;
+
+        if(isset($idsInSession)){
+            $resObj3 = new stdClass();
+            $resObj3->func = 'setInStorage';
+            $resObj3->arg = array('ids' => json_encode(array_keys($idsInSession)));
+            $res[] = $resObj3;
+        }
 
         // Форсиране на опресняване на лист таблицата
         $forwardRes = array();
@@ -3570,6 +3662,9 @@ class planning_Tasks extends core_Master
             $divId = Request::get('divId');
             Request::push(array('id' => false));
             $refreshUrl = array('Ctr' => 'planning_Tasks', 'Act' => 'ajaxrefreshrows', 'divId' => $divId, 'refreshUrl' => toUrl(getCurrentUrl(), 'local'));
+            if(isset($idsInSession)){
+                $refreshUrl['inSession'] = json_encode(array_keys($idsInSession));
+            }
             $forwardRes = Request::forward($refreshUrl);
         }
 
@@ -3764,7 +3859,7 @@ class planning_Tasks extends core_Master
         $this->requireRightFor('editprevioustask', $rec);
 
         $form = cls::get('core_Form');
-        $form->title = 'Избор на предходна операция|* <b>' . cat_Products::getHyperlink($id, true) . '</b>';
+        $form->title = 'Избор на предходна операция|* <b>' . planning_Tasks::getHyperlink($id, true) . '</b>';
         $form->FLD('manualPreviousTask', 'key(mvc=planning_Tasks,select=name,allowEmpty)', 'caption=Пр. операция');
 
         $options = array();
@@ -3856,5 +3951,32 @@ class planning_Tasks extends core_Master
         }
 
         return $prevRecValues;
+    }
+
+
+    /**
+     * След намиране на текста за грешка на бутона за 'Приключване'
+     *
+     * @param stdClass $rec
+     * @return null|string
+     */
+    public function getCloseBtnError($rec)
+    {
+        if(empty($rec->mandatoryDocuments)) return;
+
+        // Ако няма някой от задължителните документи да не може да се приключи операцията
+        $errorArr = array();
+        $mandatoryArr = keylist::toArray($rec->mandatoryDocuments);
+        foreach ($mandatoryArr as $classId){
+            if(!doc_Containers::count("#threadId = {$rec->threadId} AND #state IN ('active', 'pending') AND #docClass = {$classId}")){
+                $errorArr[] = tr(cls::get($classId)->singleTitle);
+            }
+        }
+
+        if(countR($errorArr)){
+            $msg = 'Задължително е да има|* създадени на заявка/активни следните документи|*: ' . implode(', ', $errorArr);
+
+            return $msg;
+        }
     }
 }

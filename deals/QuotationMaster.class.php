@@ -59,7 +59,7 @@ abstract class deals_QuotationMaster extends core_Master
         'validFor' => 'lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
-        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'defMethod',
         'others' => 'lastDocUser|lastDoc',
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'deliveryPlaceId' => 'lastDocUser|lastDoc|',
@@ -67,6 +67,10 @@ abstract class deals_QuotationMaster extends core_Master
         'pCode' => 'clientData',
         'place' => 'clientData',
         'address' => 'clientData',
+        'person' => 'clientData',
+        'email' => 'clientData',
+        'tel' => 'clientData',
+        'fax' => 'clientData',
         'contragentCountryId' => 'clientData',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
@@ -106,6 +110,18 @@ abstract class deals_QuotationMaster extends core_Master
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $valiorFld = 'date';
+
+
+    /**
+     * Кое поле ще се оказва за подредбата на детайла
+     */
+    public $detailOrderByField = 'detailOrderBy';
+
+
+    /**
      * Задължителни полета на модела
      */
     protected static function setQuotationFields($mvc)
@@ -118,7 +134,7 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
-        $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС');
+        $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС');
         $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress|deliveryCalcTransport');
 
         $mvc->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
@@ -138,6 +154,7 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData,input=hidden');
 
         $mvc->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,mandatory');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код)', 'caption=Допълнително->Подреждане по,notNull,value=auto');
     }
 
 
@@ -199,7 +216,7 @@ abstract class deals_QuotationMaster extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
-        if(!crm_Companies::isOwnCompanyVatRegistered()) {
+        if(!$mvc->isOwnCompanyVatRegistered($rec)) {
             $form->setReadOnly('chargeVat');
         }
 
@@ -241,7 +258,7 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
             // Избрания ДДС режим съответства ли на дефолтния
-            $defVat = $mvc->getDefaultChargeVat($rec);
+            $defVat = deals_Helper::getDefaultChargeVat($mvc, $rec, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
             if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
                 $form->setWarning('chargeVat', $vatWarning);
             }
@@ -279,7 +296,7 @@ abstract class deals_QuotationMaster extends core_Master
     public function getDefaultChargeVat($rec)
     {
         // Ako "Моята фирма" е без ДДС номер - без начисляване
-        if(!crm_Companies::isOwnCompanyVatRegistered()) return 'no';
+        if(!$this->isOwnCompanyVatRegistered($rec)) return 'no';
 
         // После се търси по приоритет
         foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
@@ -287,7 +304,7 @@ abstract class deals_QuotationMaster extends core_Master
             if(!empty($chargeVat)) return $chargeVat;
         }
 
-        return deals_Helper::getDefaultChargeVat($rec->folderId);
+        return deals_Helper::getDefaultChargeVat($this, $rec);
     }
 
 
@@ -353,15 +370,23 @@ abstract class deals_QuotationMaster extends core_Master
         $abbr[0] = strtoupper($abbr[0]);
 
         $date = dt::mysql2verbal($rec->date, 'd.m.year');
-        $crm = cls::get($rec->contragentClassId);
-        $cRec = $crm->getContragentData($rec->contragentId);
-        $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
+        $titleArr = array("{$abbr}{$rec->id}", $date);
+        if(!Mode::is('documentPortalShortName')) {
+            $crm = cls::get($rec->contragentClassId);
+            $cRec = $crm->getContragentData($rec->contragentId);
+            $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
 
-        if ($escaped) {
-            $contragent = type_Varchar::escape($contragent);
+            if ($escaped) {
+                $contragent = type_Varchar::escape($contragent);
+            }
+            $titleArr[] = $contragent;
         }
 
-        return "{$abbr}{$rec->id}/{$date}/{$contragent}";
+        if (!empty($rec->reff)) {
+            $titleArr[] = $rec->reff;
+        }
+
+        return implode('/', $titleArr);
     }
 
 
@@ -607,7 +632,7 @@ abstract class deals_QuotationMaster extends core_Master
      *   o $fields['currencyCode']          - код на валута (ако няма е основната за периода)
      * 	 o $fields['rate']                  - курс към валутата (ако няма е този към основната валута)
      * 	 o $fields['paymentMethodId']       - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 	 o $fields['chargeVat']             - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
+     * 	 o $fields['chargeVat']             - да се начислява ли ДДС - separate=Отделен ред за ДДС, yes=Да, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
      * 	 o $fields['deliveryTermId']        - ид на метод на доставка (@see cond_DeliveryTerms)
      *   o $fields['deliveryCalcTransport'] - дали да се начислява скрит или явен транспорт (@see cond_DeliveryTerms)
      * 	 o $fields['validFor']              - срок на годност
@@ -836,13 +861,6 @@ abstract class deals_QuotationMaster extends core_Master
             sales_TransportValues::prepareFee($newRec, $form, $clone, array('masterMvc' => 'sales_Quotations', 'deliveryLocationId' => 'deliveryPlaceId', 'deliveryData' => 'deliveryData'));
         }
 
-        // Проверки на записите
-        if ($sameProduct = $Detail->fetch("#{$Detail->masterKey} = {$newRec->quotationId} AND #productId = {$newRec->productId}")) {
-            if ($newRec->optional == 'no' && $sameProduct->optional == 'yes') {
-                expect(false, 'Не може да добавите продукта като задължителен, защото фигурира вече като опционален');
-            }
-        }
-
         if ($Detail->fetch("#{$Detail->masterKey} = {$newRec->quotationId} AND #productId = {$newRec->productId}  AND #quantity='{$newRec->quantity}'")) {
             expect(false, 'Избрания продукт вече фигурира с това количество');
         }
@@ -995,39 +1013,83 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
             if (!$form->gotErrors()) {
-                $sId = null;
-                try{
-                    $errorMsg = 'Проблем при създаването на сделка';
-                    $sId = $this->createDeal($rec);
-                } catch(core_exception_Expect $e){
-                    $errorMsg = $e->getMessage();
-                    reportException($e);
-                    $this->logErr($errorMsg, $rec->id);
-                }
 
-                if(empty($sId)){
-                    followRetUrl(null, $errorMsg, 'error');
-                }
-
+                $saveRecs = array();
                 $Detail = cls::get($this->mainDetail);
                 $DealClassName = $this->dealClass;
-                foreach ($products as $dRecId) {
-                    if(empty($dRecId)) continue;
+                foreach ($products as $key => $val) {
+                    if(empty($val)) continue;
 
-                    $dRec = $Detail->fetch($dRecId);
+                    list($pId, $optional, $packId) = explode('|', $key);
+                    $dQuery = $Detail->getQuery();
+                    $dQuery->where("#quotationId = {$rec->id} AND #productId = {$pId} AND #packagingId = {$packId} AND #optional='{$optional}'");
+                    $dQuery->orderBy("#quantity", 'ASC');
 
-                    // Копира се и транспорта, ако има
-                    $addedRecId = $DealClassName::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
-                    if($DealClassName == 'sales_Sales'){
-                        $tRec = sales_TransportValues::get($this, $id, $dRecId);
-                        if (isset($tRec->fee)) {
-                            sales_TransportValues::sync($DealClassName, $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime, $tRec->explain);
+                    if($optional == 'yes'){
+                        if(strpos($val, '#') !== false){
+                            $valArr = explode(':', $val);
+                            $val = $valArr[0];
+                            $pureId = str_replace('#', '', $val);
+                            $dQuery->where("id = {$pureId}");
+                            $dRec = $dQuery->fetch();
+                        } else {
+                            if(!core_Type::getByName('double')->fromVerbal($val)) {
+                                $form->setError($key, 'Невалидно к-во');
+                                continue;
+                            }
+                            $packRec = cat_products_Packagings::getPack($pId, $packId);
+                            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
+                            $dQuery2 = clone $dQuery;
+                            $q = $quantityInPack * $val;
+                            $dQuery2->where("#quantity = {$q}");
+                            $dRec = $dQuery2->fetch();
+                            if(empty($dRec)){
+                                $dRec = $dQuery->fetch();
+                                $dRec->packQuantity = $val;
+                            }
                         }
+                    } else {
+                        $dRec = $dQuery->fetch($val);
                     }
+
+                    if(!is_object($dRec)) {
+                        $form->setError($key, "Неразпознат ред");
+                        continue;
+                    }
+
+                    $saveRecs[] = $dRec;
                 }
 
-                // Редирект към сингъла на новосъздадената сделка
-                return new Redirect(array($DealClassName, 'single', $sId));
+                if(!$form->gotErrors()){
+                    $sId = null;
+                    try{
+                        $errorMsg = 'Проблем при създаването на сделка';
+                        $sId = $this->createDeal($rec);
+                    } catch(core_exception_Expect $e){
+                        $errorMsg = $e->getMessage();
+                        reportException($e);
+                        $this->logErr($errorMsg, $rec->id);
+                    }
+
+                    foreach ($saveRecs as $dRec){
+                        // Копира се и транспорта, ако има
+                        $addedRecId = $DealClassName::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
+                        if($DealClassName == 'sales_Sales'){
+                            $tRec = sales_TransportValues::get($this, $id, $dRec->id);
+                            if (isset($tRec->fee)) {
+                                sales_TransportValues::sync($DealClassName, $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime, $tRec->explain);
+                            }
+                        }
+                    }
+
+                    if(empty($sId)){
+                        followRetUrl(null, $errorMsg, 'error');
+                    }
+
+                    // Редирект към сингъла на новосъздадената сделка
+                    return new Redirect(array($DealClassName, 'single', $sId));
+                }
             }
         }
 
@@ -1143,13 +1205,18 @@ abstract class deals_QuotationMaster extends core_Master
                     $mandatory = 'mandatory';
                 }
             }
-            $form->FNC($index, 'double(decimals=2)', "input,caption={$product->title},hint={$product->hint},{$mandatory}");
+            $form->FNC($index, 'varchar', "input,caption={$product->title},hint={$product->hint},{$mandatory},class=w50");
             if (countR($product->options) == 1) {
                 $default = key($product->options);
             }
 
             $product->options = $product->options + array('0' => '0');
-            $form->setOptions($index, $product->options);
+            if($product->suggestions){
+                $form->setSuggestions($index, $product->options);
+            } else {
+                $form->setOptions($index, $product->options);
+            }
+
             $form->setDefault($index, $default);
         }
 
@@ -1215,8 +1282,8 @@ abstract class deals_QuotationMaster extends core_Master
                     }
                 }
                 core_Mode::pop('text');
-
-                $products[$index]->options[$dRec->id] = $val;
+                $key = ($dRec->optional == 'yes') ? "#{$dRec->id} : {$val}" : $dRec->id;
+                $products[$index]->options[$key] = $val;
             }
         }
 

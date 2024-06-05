@@ -65,7 +65,7 @@ class sales_SalesDetails extends deals_DealDetail
     /**
      * Полета за скриване/показване от шаблоните
      */
-    public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума';
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=К-во,packPrice=Цена,discount=Отст.,amount=Сума';
 
 
     /**
@@ -137,7 +137,7 @@ class sales_SalesDetails extends deals_DealDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, packQuantity=К-во, packPrice, discount=Отст., amount';
     
     
     /**
@@ -167,25 +167,8 @@ class sales_SalesDetails extends deals_DealDetail
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         parent::getDealDetailFields($this);
-        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'input=none');
         $this->setField('packPrice', 'silent');
-    }
-    
-    
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = &$data->form;
-        
-        if(isset($form->rec->autoDiscount)){
-            $placeholder = core_Type::getByName('percent')->toVerbal($form->rec->autoDiscount);
-            $form->setField('discount', "placeholder={$placeholder}");
-        }
+        $this->setField('discount', 'class=w1');
     }
     
     
@@ -233,12 +216,8 @@ class sales_SalesDetails extends deals_DealDetail
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             $pInfo = cat_Products::getProductInfo($rec->productId);
-            
-            if(!isset($rec->discount) && isset($rec->autoDiscount)){
-                $row->discount = $mvc->getFieldType('discount')->toVerbal($rec->autoDiscount);
-                $row->discount = ht::createHint($row->discount, 'Отстъпката е сметната автоматично');
-            }
-            
+
+            $row->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
             if (isset($pInfo->meta['canStore'])) {
                 $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
                 deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
@@ -249,14 +228,17 @@ class sales_SalesDetails extends deals_DealDetail
                $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
                
                // Предупреждение дали цената е под себестойност
-               $foundPrimeCost = null;
-               if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $foundPrimeCost)){
+               $comparedWithPrimeCostObj = sales_PrimeCostByDocument::comparePriceWithPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $mvc, $rec->id);
+               if($comparedWithPrimeCostObj->bellowPrimeCost){
 
                    $warning = 'Цената е под себестойността';
-                   if(isset($foundPrimeCost)){
-                       $foundPrimeCost /= $masterRec->currencyRate;
-                       $primeCostVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
+                   if(isset($comparedWithPrimeCostObj->primeCost)){
+                       $comparedWithPrimeCostObj->primeCost /= $masterRec->currencyRate;
+                       $primeCostVerbal = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($comparedWithPrimeCostObj->primeCost * $rec->quantityInPack);
                        $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
+                       if($comparedWithPrimeCostObj->isCache){
+                           $warning .= " (|Кеш|*)";
+                       }
                    }
                    if(!Mode::isReadOnly()){
                        $row->{$hintField} = "<span class='priceBellowPrimeCost'>{$row->{$hintField}}</span>";
@@ -266,9 +248,9 @@ class sales_SalesDetails extends deals_DealDetail
                    
                    // Предупреждение дали цената е под очакваната за клиента
                    $useQuotationPrice = isset($masterRec->originId);
-                   $discount = $rec->discount ?? $rec->autoDiscount;
+                   $discountPercent = ($rec->autoDiscount) ? round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4) : $rec->discount;
                    $transportFeeRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
-                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
+                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discountPercent, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
                         $row->{$hintField} = ht::createHint($row->{$hintField}, $checkedObject['hint'], $checkedObject['hintType'], false);
                    }
                }
@@ -289,6 +271,18 @@ class sales_SalesDetails extends deals_DealDetail
      */
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
+        $recalcPricesOnClone = sales_Setup::get('RECALC_PRICES_ON_CLONE');
+        if($recalcPricesOnClone == 'no'){
+
+            // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
+            $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
+            if (isset($cRec->fee) && $cRec->fee > 0) {
+                $rec->price -= $cRec->fee / $rec->quantity;
+            }
+
+            return;
+        }
+
         $masterRec = sales_Sales::fetch($rec->saleId);
 
         // Прави се опит да се преизичсли наново цената
@@ -300,14 +294,16 @@ class sales_SalesDetails extends deals_DealDetail
             $rec->price = $policyInfo->price;
             $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
             $rec->discount = $policyInfo->discount;
-        } else {
-
-            // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
+        } else {;
+            $rec->discount = $oldRec->inputDiscount;
             $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
             if (isset($cRec->fee) && $cRec->fee > 0) {
                 $rec->price -= $cRec->fee / $rec->quantity;
             }
         }
+
+
+
     }
     
     
@@ -379,5 +375,14 @@ class sales_SalesDetails extends deals_DealDetail
                 $requiredRoles = 'no_one';
             }
         }
+    }
+
+
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    protected static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        $data->showCodeColumn = sales_Setup::get('SHOW_CODE_IN_SEPARATE_COLUMN') == 'yes';
     }
 }

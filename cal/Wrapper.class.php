@@ -24,19 +24,17 @@ class cal_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $from = Request::get('from', 'date');
-        
-        if (!$from) {
-            $from = dt::verbal2mysql();
+        $period = Request::get('selectPeriod');
+
+        if (!isset($period) || (Request::get('Ctr') != 'cal_Calendar')) {
+            $period = 'today';
         }
-        
-        $from = dt::mysql2verbal($from, 'd.m.Y', null, false);
-        
-        $this->TAB(array('cal_Calendar', 'list',  'from' => $from), 'Календар->Списък', 'powerUser');
-        $this->TAB(array('cal_Calendar', 'day',  'from' => $from), 'Календар->Ден', 'powerUser');
-        $this->TAB(array('cal_Calendar', 'week',  'from' => $from), 'Календар->Седмица', 'powerUser');
-        $this->TAB(array('cal_Calendar', 'month',  'from' => $from), 'Календар->Месец', 'powerUser');
-        $this->TAB(array('cal_Calendar', 'year',  'from' => $from), 'Календар->Година', 'powerUser');
+
+        $this->TAB(array('cal_Calendar', 'list',  'selectPeriod' => $period), 'Календар->Списък', 'powerUser');
+        $this->TAB(array('cal_Calendar', 'day',  'selectPeriod' => $period), 'Календар->Ден', 'powerUser');
+        $this->TAB(array('cal_Calendar', 'week',  'selectPeriod' => $period), 'Календар->Седмица', 'powerUser');
+        $this->TAB(array('cal_Calendar', 'month',  'selectPeriod' => $period), 'Календар->Месец', 'powerUser');
+        $this->TAB(array('cal_Calendar', 'year',  'selectPeriod' => $period), 'Календар->Година', 'powerUser');
         
         $this->TAB('cal_Tasks', 'Задачи', 'admin,doc,powerUser');
         

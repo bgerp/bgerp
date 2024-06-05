@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -55,8 +55,8 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, plg_Printing,doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords,change_Plugin, plg_Search';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, cat_plg_NotifyProductOnDocumentStateChange, doc_DocumentPlg, acc_plg_DocumentSummary,
+					doc_EmailCreatePlg, price_plg_TotalDiscount, plg_Printing,doc_plg_HidePrices, doc_plg_TplManager, cat_plg_UsingProductVat, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords,change_Plugin, plg_Search';
 
 
     /**
@@ -83,8 +83,16 @@ class sales_Proformas extends deals_InvoiceMaster
      * Кой е основния детайл
      */
     public $mainDetail = 'sales_ProformaDetails';
-    
-    
+
+
+    /**
+     * Кой може да променя активирани записи
+     *
+     * @see change_Plugin
+     */
+    public $canChangerec = 'ceo, sales';
+
+
     /**
      * Кой има право да променя?
      */
@@ -101,12 +109,6 @@ class sales_Proformas extends deals_InvoiceMaster
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,sales';
-    
-    
-    /**
-     * Поле за единичния изглед
-     */
-    public $rowToolsSingleField = 'number';
     
     
     /**
@@ -475,7 +477,7 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
-        $rec = $self->fetch($id);
+        $rec = $self->fetchRec($id);
         
         if (!$rec->number) {
             $hnd = $self->abbr . $rec->id . doc_RichTextPlg::$identEnd;

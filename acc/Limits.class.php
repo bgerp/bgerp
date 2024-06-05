@@ -496,16 +496,16 @@ class acc_Limits extends core_Manager
             
             // Сравняваме стойността спрямо зададения лимит
             if ($rec->type == 'minimum') {
-                $sendNotification = abs($fieldToCompare) < $rec->limitQuantity;
+                $sendNotification = $fieldToCompare < $rec->limitQuantity;
             } else {
-                $sendNotification = abs($fieldToCompare) > $rec->limitQuantity;
+                $sendNotification = $fieldToCompare > $rec->limitQuantity;
             }
             
             // Ако има надвишаване изпращаме нотифификация
             if ($sendNotification === true) {
                 
                 // Ако лимита вече е бил надвишен, ъпдейтваме сумата с която е надвишен
-                $rec->exceededAmount = abs(abs($fieldToCompare) - $rec->limitQuantity);
+                $rec->exceededAmount = abs($fieldToCompare - $rec->limitQuantity);
                 
                 // Ако досега не е бил надвишен отбелязваме го като такъв
                 if (!isset($rec->when)) {
