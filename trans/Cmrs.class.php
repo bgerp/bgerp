@@ -105,7 +105,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     /**
      * Кои редове да са компресирани
      */
-    const NUMBER_GOODS_ROWS = 6;
+    const NUMBER_GOODS_ROWS = 5;
     
     
     /**
