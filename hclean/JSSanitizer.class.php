@@ -30,8 +30,9 @@ class hclean_JSSanitizer extends core_Manager
 
         $jsHtml = str_replace('width: 100%; display: flex;', 'width: 100% ; display: block;', $jsHtml);
         $jsHtml = str_replace('width: 100% ; display: flex;', 'width: 100% ; display: block;', $jsHtml);
-        $jsHtml = str_replace('display: flex;', 'display: table-cell;  ', $jsHtml);
-        $jsHtml = str_replace('display:flex;', 'display: table-cell;  ', $jsHtml);
+        $jsHtml = str_replace('display: flex;', 'display: table-cell;', $jsHtml);
+        $jsHtml = str_replace('display:flex;', 'display: table-cell;', $jsHtml);
+        $jsHtml = str_replace('display:flex', 'display:table-cell', $jsHtml);
 
         // Вземаме скрипта, който санитаризира HTML' а
         $sanitizer = new ET(static::JSSanitizer());
