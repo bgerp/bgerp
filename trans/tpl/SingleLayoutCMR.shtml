@@ -109,14 +109,32 @@
                         <td class='filledFieled' style="margin-left:5px;">[#grossWeight3#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#volume3#]</td>
                     </tr>
-                    <tr>
+                     <tr>
                         <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark4#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#numOfPacks4#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking4#]</td>
                         <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods4#]</td>
-                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#statNum4#]</td>
-                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#grossWeight4#]</td>
-                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#volume4#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#statNum4#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#grossWeight4#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#volume4#]</td>
+                    </tr>
+                    <tr>
+                        <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark5#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#numOfPacks5#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking5#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods5#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#statNum5#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#grossWeight5#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#volume5#]</td>
+                    </tr>
+                    <tr>
+                        <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark6#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#numOfPacks6#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking6#]</td>
+                        <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods6#]</td>
+                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#statNum6#]</td>
+                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#grossWeight6#]</td>
+                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#volume6#]</td>
                     </tr>
                     <tr>
                         <td class='miniText border-top' style="margin-left:5px;height: 10px">&nbsp;&nbsp;&nbsp; Class</td>
