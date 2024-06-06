@@ -844,12 +844,16 @@ class cal_Reminders extends core_Master
                         case 'replicateDraft':
                             self::replicateThread($rec, true);
 
+                            bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+
                             return;
 
                             //break;
 
                         case 'replicate':
                             self::replicateThread($rec);
+
+                            bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
 
                             return;
 
