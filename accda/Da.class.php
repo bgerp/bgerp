@@ -199,7 +199,7 @@ class accda_Da extends core_Master
         $rec = &$form->rec;
 
         $form->setDefault('valior', dt::today());
-        if (isset($rec->id)) {
+        if (isset($rec->id) && $data->action != 'clone') {
             $form->setReadOnly('productId');
         }
         
