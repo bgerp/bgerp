@@ -716,15 +716,14 @@ class acc_plg_Contable extends core_Plugin
                 $res = false;
             } elseif (countR($mvc->details)) {
                 $hasDetail = false;
-                
-                // Ако класа има поне един запис в детаил, той може да се активира
-                foreach ($mvc->details as $name) {
-                    $Details = cls::get($name);
-                    if (!$Details->masterKey && ($Details instanceof core_Detail)) {
-                        $hasDetail = true;
-                        continue;
-                    }
+                $haveDetailsToAdd = false;
 
+                // Ако класа има поне един запис в детаил, той може да се активира
+                $ignoreDetailsToCheckWhenTryingToPost = arr::make($mvc->ignoreDetailsToCheckWhenTryingToPost, true);
+                foreach ($mvc->details as $name) {
+                    if(in_array($name, $ignoreDetailsToCheckWhenTryingToPost)) continue;
+                    $haveDetailsToAdd = true;
+                    $Details = cls::get($name);
                     if ($rec->id && $Details->masterKey) {
                         if ($Details->fetch("#{$Details->masterKey} = {$rec->id}")) {
                             $hasDetail = true;
@@ -732,7 +731,9 @@ class acc_plg_Contable extends core_Plugin
                         }
                     }
                 }
-                
+                if(!$hasDetail && !$haveDetailsToAdd){
+                    $hasDetail = true;
+                }
                 $res = $hasDetail;
             } else {
                 $res = true;

@@ -25,6 +25,8 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     {
         $mvc->FLD('fromContainerId', 'int', 'caption=Към,input=hidden,silent');
         setIfNot($mvc->canSelectOnlyOneInvoice, false);
+        setIfNot($mvc->ignoreDetailsToCheckWhenTryingToPost, 'deals_InvoicesToDocuments');
+
         $mvc->setDbIndex('fromContainerId');
     }
 
