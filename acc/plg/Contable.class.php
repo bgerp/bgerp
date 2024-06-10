@@ -719,13 +719,13 @@ class acc_plg_Contable extends core_Plugin
                 
                 // Ако класа има поне един запис в детаил, той може да се активира
                 foreach ($mvc->details as $name) {
-                    $Details = $mvc->{$name};
-                    if (!$Details->masterKey) {
+                    $Details = cls::get($name);
+                    if (!$Details->masterKey && ($Details instanceof core_Detail)) {
                         $hasDetail = true;
                         continue;
                     }
-                    
-                    if ($rec->id) {
+
+                    if ($rec->id && $Details->masterKey) {
                         if ($Details->fetch("#{$Details->masterKey} = {$rec->id}")) {
                             $hasDetail = true;
                             break;
