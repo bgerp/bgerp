@@ -739,10 +739,10 @@ class planning_ProductionTaskProducts extends core_Detail
      * Извлича информация за отпадъка отчетен в нишката
      *
      * @param int $threadId               - ид на нишка
-     * @param null $totalWasterPercent    - сметнатия процент на общия отпадък
+     * @param null $totalWastePercent    - сметнатия процент на общия отпадък
      * @return array $res                 - масив с резултат за отпадъка
      */
-    public static function getTotalWasteArr($threadId, &$totalWasterPercent = null)
+    public static function getTotalWasteArr($threadId, &$totalWastePercent = null)
     {
         $producedNetWeight = null;
         $res = $tasks = array();
