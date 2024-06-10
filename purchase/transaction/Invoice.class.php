@@ -40,7 +40,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
        
         $result = (object) array(
             'reason' => "Входяща фактура №{$rec->number}", // основанието за ордера
-            'valior' => $rec->journalDate,   // датата на ордера
+            'valior' => !empty($rec->journalDate) ? $rec->journalDate : dt::today(),   // датата на ордера
             'entries' => array(),
         );
         
