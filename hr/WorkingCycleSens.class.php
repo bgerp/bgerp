@@ -50,10 +50,18 @@ class hr_WorkingCycleSens extends sens2_ProtoDriver
      */
     public function readInputs($inputs, $config, &$persistentState)
     {
+        $maxDays = 10;
         $resArr = array();
         $now = dt::now();
-        $to = dt::addDays(10, $now);
+        $to = dt::addDays($maxDays, $now);
         $Interval = hr_Schedules::getWorkingIntervals($config->schedule, $now, $to, true);
+
+        foreach ($inputs as $input) {
+            $resArr[$input] = 0;
+            if ($input == 'workingAfter') {
+                $resArr[$input] = $maxDays * 24 * 60 * 60;
+            }
+        }
 
         if (!$Interval) {
 
