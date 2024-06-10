@@ -444,15 +444,12 @@ class acc_BalanceHistory extends core_Manager
         $isGrouped = ($data->isGrouped !== 'yes') ? false : true;
         $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, false);
         $data->recs = $balHistory['history'];
-        
-        $addStartAndEnd = true;
+
         if(is_array($data->recs) && isset($data->type)){
             $type = $data->type;
             $data->recs = array_filter($data->recs, function($a) use ($type){
                 return $a['docType'] == $type;
             });
-            
-            $addStartAndEnd = false;
         }
         
         $rec->baseAmount = $balHistory['summary']['baseAmount'];
@@ -511,11 +508,9 @@ class acc_BalanceHistory extends core_Manager
             'creditQuantity' => $balHistory['summary']['creditQuantity'],
             'creditAmount' => $balHistory['summary']['creditAmount'],
             'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
-        
-        if($addStartAndEnd){
-            $data->zeroRec = $zeroRec;
-            $data->lastRec = $lastRec;
-        }
+
+        $data->zeroRec = $zeroRec;
+        $data->lastRec = $lastRec;
     }
     
     
