@@ -31,7 +31,7 @@ class sens2_Indicators extends core_Detail
     /**
      * @var int - Брой записи на страница
      */
-    public $listItemsPerPage = 20;
+    public $listItemsPerPage = 100;
 
 
     /**
@@ -338,7 +338,7 @@ class sens2_Indicators extends core_Detail
         $title = sens2_Controllers::getVerbal($cRec, 'name') . '.';
         
         $nameVar = $rec->port . '_name';
-        
+
         if ($cRec->config->{$nameVar}) {
             $title .= $cRec->config->{$nameVar};
         } else {
