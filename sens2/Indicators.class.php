@@ -376,7 +376,7 @@ class sens2_Indicators extends core_Detail
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholder=Тип на контролера,removeAndRefreshForm=controllerId');
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'driver, controllerId, port';
+        $data->listFilter->showFields = 'driver, controllerId, title';
         $data->listFilter->input(null, 'silent');
 
         if (isset($data->listFilter->rec->controllerId)) {
@@ -406,8 +406,12 @@ class sens2_Indicators extends core_Detail
             $data->listFilter->getField('controllerId')->type->options = $controllerOptArr;
         }
 
-        if (strlen($data->listFilter->rec->port)) {
-            $data->query->where(array("LOWER(#port) = '[#1#]'", mb_strtolower($data->listFilter->rec->port)));
+        if (strlen($data->listFilter->rec->title)) {
+            $data->query->EXT('cName', 'sens2_Controllers', 'externalName=name,externalKey=controllerId');
+
+            $data->query->where(array("LOWER(#port) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->title)));
+            $data->query->orWhere(array("LOWER(#name) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->title)));
+            $data->query->orWhere(array("LOWER(#cName) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->title)));
         }
 
         $data->listFilter->fields['controllerId']->refreshForm = 'controllerId';
