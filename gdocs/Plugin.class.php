@@ -37,9 +37,8 @@ class gdocs_Plugin extends core_Plugin
                     $data->toolbar->addBtn(
                         'Отвори',
                         $url,
-                        "id='btn-gdocs', checkPrivateHost, ef_icon=gdocs/img/drive.png",
-                        'title=Разглеждане с GOOGLE DOCS',
-                        array('target' => '_blank', 'order' => '30', 'row' => 1)
+                        "id='btn-gdocs', checkPrivateHost, ef_icon=gdocs/img/drive.png, title=Разглеждане с GOOGLE DOCS",
+                        array('target' => '_blank', 'order' => '20', 'row' => 1)
                     );
                 }
             } catch (core_Exception_Expect $expect) {
