@@ -119,6 +119,7 @@ class hr_Setup extends core_ProtoSetup
         array('hrMaster', 'hr'),
         array('hrAll'),
         array('hrAllGlobal', 'hrAll'),
+        array('hrSchedules'),
     );
     
     
