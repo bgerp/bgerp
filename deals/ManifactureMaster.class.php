@@ -98,8 +98,16 @@ abstract class deals_ManifactureMaster extends core_Master
             if (isset($rec->storeId)) {
                 $storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
                 if ($storeLocation) {
-                    $row->storeLocation = crm_Locations::getAddress($storeLocation);
+                    $row->storeId = ht::createHint($row->storeId, crm_Locations::getAddress($storeLocation));
                 }
+            }
+
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDoc->isInstanceOf('planning_Jobs')){
+                $row->jobId = $firstDoc->getHyperlink(true);
+            } elseif($firstDoc->isInstanceOf('planning_Tasks')){
+                $jobDoc = doc_Containers::getDocument($firstDoc->fetchField('originId'));
+                $row->jobId = $jobDoc->getHyperlink(true);
             }
         }
         

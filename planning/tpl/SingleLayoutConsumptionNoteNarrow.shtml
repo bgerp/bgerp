@@ -18,12 +18,12 @@
                 <tr>
                     <td>
                           <b>[#storeId#]</b>
-                          <!--ET_BEGIN storeLocation-->
-                          <br>[#storeLocation#]
-                          <!--ET_END storeLocation-->
                           <!--ET_BEGIN departmentId-->
                           <br>|Ц-р на дейност|*:[#departmentId#]
                           <!--ET_END departmentId-->
+                          <!--ET_BEGIN jobId-->
+                          <br>|Към|*: [#jobId#]
+                          <!--ET_END jobId-->
                     </td>
                 </tr>
             </tbody>
