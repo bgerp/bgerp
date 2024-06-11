@@ -2454,8 +2454,7 @@ pre.document {
   border-top: 2px dotted #666666;
   margin-left: 5px;
   padding: 5px 10px;
-  min-width: 110px;
-  min-height: 1.2em; }
+  min-width: 110px; }
 
 .nowrap {
   white-space: nowrap; }
