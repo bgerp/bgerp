@@ -95,16 +95,27 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
         $entries = array();
         $sign = ($reverse) ? -1 : 1;
         $dClass = ($reverse) ? 'sales_ServicesDetails' : 'purchase_ServicesDetails';
-        
+
         if (countR($rec->details)) {
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            $checkVatCredit = !$reverse && $firstDoc->isInstanceOf('purchase_Purchases') && in_array($rec->chargeVat, array('yes', 'separate'));
+            $entriesLast = array();
+
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
             $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-            
             foreach ($rec->details as $dRec) {
                 
                 // Към кои разходни обекти ще се разпределят разходите
                 $splitRecs = acc_CostAllocations::getRecsByExpenses($dClass, $dRec->id, $dRec->productId, $dRec->quantity, $dRec->amount, $dRec->discount);
-                
+
+                $revertVatPercent = null;
+                if($checkVatCredit) {
+                    $haveVatCredit = cat_Products::getParams($dRec->productId, 'vatCredit');
+                    if ($haveVatCredit == 'no') {
+                        $revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior);
+                    }
+                }
+
                 foreach ($splitRecs as $dRec1) {
                     $amount = $dRec1->amount;
                     $amountAllocated = $amount * $rec->currencyRate;
@@ -131,9 +142,22 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
                             $entries = array_merge($entries, $correctionEntries);
                         }
                     }
+
+                    if(isset($revertVatPercent)) {
+                        $entriesLast[] = array(
+                            'amount' => $sign * $amountAllocated * $revertVatPercent, // В основна валута
+                            'debit' => array('60201',
+                                $dRec1->expenseItemId,
+                                array('cat_Products', $dRec1->productId),
+                                'quantity' => 0),
+                            'credit' => array('4530',
+                                array($origin->className, $origin->that),
+                            ),
+                            'reason' => 'Сторно ДДС за начисляване при покупка - Артикул БЕЗ право на Данъчен кредит');
+                    }
                 }
             }
-            
+
             // Отчитаме ддс-то
             if ($this->class->_total) {
                 $vat = $this->class->_total->vat;
@@ -156,8 +180,12 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
                     'reason' => 'ДДС за начисляване при фактуриране',
                 );
             }
+
+            if(countR($entriesLast)){
+                $entries = array_merge($entries, $entriesLast);
+            }
         }
-        
+
         return $entries;
     }
     
