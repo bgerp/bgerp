@@ -1,4 +1,5 @@
 var shortURL;
+var hitState = {};
 
 function spr(sel, refresh, from, to) {
     if(refresh === undefined) {
@@ -5358,16 +5359,23 @@ function getHitState(bodyId) {
 
     if (!bodyId) {
 
-        return 'firstTime'
+        return 'firstTime';
+    }
+
+    if (this.hitState[bodyId]) {
+
+        return this.hitState[bodyId];
     }
 
     var bodyIds = sessionStorage.getItem('bodyIdHit');
 
     if (typeof (bodyIds) !== 'undefined' && bodyIds) {
         bodyIds = JSON.parse(bodyIds);
-        if(bodyIds[bodyId]) {
+        if (bodyIds[bodyId]) {
 
-            return bodyIds[bodyId];
+            this.hitState[bodyId] = bodyIds[bodyId];
+
+            return this.hitState[bodyId];
         }
     } else {
         bodyIds = {};
@@ -5376,7 +5384,9 @@ function getHitState(bodyId) {
 
     sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
 
-    return 'firstTime';
+    this.hitState[bodyId] = 'firstTime';
+
+    return this.hitState[bodyId];
 }
 
 
@@ -5467,7 +5477,6 @@ Experta.prototype.reloadFormData = function() {
  * Добавя ивент, който да кара страницата да се презарежда, ако условиет е изпълнено
  */
 function reloadOnPageShow() {
-
 	getEO().addEvent(window, 'pageshow', function() {
         if (getEO().checkBodyId()) {
         	location.reload();
