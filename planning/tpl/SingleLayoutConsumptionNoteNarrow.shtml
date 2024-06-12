@@ -17,13 +17,13 @@
                 </tr>
                 <tr>
                     <td>
-                          <b>[#storeId#]</b>
-                          <!--ET_BEGIN departmentId-->
-                          <br>|Ц-р на дейност|*:[#departmentId#]
-                          <!--ET_END departmentId-->
-                          <!--ET_BEGIN jobId-->
-                          <br>|Към|*: [#jobId#]
-                          <!--ET_END jobId-->
+                        <div style="margin-bottom: 3px;"><b>[#storeId#]</b></div>
+                        <!--ET_BEGIN departmentId-->
+                        <div style="margin-bottom: 3px;">|Ц-р на дейност|*: [#departmentId#]</div>
+                        <!--ET_END departmentId-->
+                        <!--ET_BEGIN jobId-->
+                        <div>|Към|*: <b>[#jobId#]</b></div>
+                        <!--ET_END jobId-->
                     </td>
                 </tr>
             </tbody>
