@@ -156,9 +156,10 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
         $dClass = ($reverse) ? 'store_ShipmentOrderDetails' : 'store_ReceiptDetails';
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $firstRec = $firstDoc->fetch();
 
         // Ако документа е с включено/отделно ддс и към покупка - ще се прави контировка за артикултие с данъчен кредит
-        $checkVatCredit = !$reverse && $firstDoc->isInstanceOf('purchase_Purchases') && in_array($rec->chargeVat, array('yes', 'separate'));
+        $checkVatCredit = !$reverse && $firstDoc->isInstanceOf('purchase_Purchases') && $firstRec->haveVatCreditProducts == 'no';
         $entriesLast = array();
 
         foreach ($rec->details as $detailRec) {
@@ -170,14 +171,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             $amount = round($amount, 2);
-
-            $revertVatPercent = null;
-            if($checkVatCredit) {
-                $haveVatCredit = cat_Products::getParams($detailRec->productId, 'vatCredit');
-                if ($haveVatCredit == 'no') {
-                    $revertVatPercent = cat_Products::getVat($detailRec->productId, $rec->valior);
-                }
-            }
+            $revertVatPercent = ($checkVatCredit) ? cat_Products::getVat($detailRec->productId, $rec->valior) : null;
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите

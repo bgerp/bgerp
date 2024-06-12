@@ -152,15 +152,10 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             // Извличаме детайлите на покупката
             $detailQuery = purchase_PurchasesDetails::getQuery();
             $detailQuery->where("#requestId = '{$rec->id}'");
-            $checkVatCredit = in_array($rec->chargeVat, array('yes', 'separate'));
-
             while ($dRec = $detailQuery->fetch()) {
                 $dRec->_revertVatPercent = null;
-                if($checkVatCredit) {
-                    $haveVatCredit = cat_Products::getParams($dRec->productId, 'vatCredit');
-                    if ($haveVatCredit == 'no') {
-                        $dRec->_revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior);
-                    }
+                if($rec->haveVatCreditProducts == 'no') {
+                    $dRec->_revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior);
                 }
 
                 $rec->details[] = $dRec;

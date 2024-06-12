@@ -105,6 +105,17 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 'debit' => array('4531'),
                 'credit' => array('4530', array($origin->className, $origin->that)),
             );
+
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            $haveVatCredit = $firstDoc->fetchField('haveVatCreditProducts');
+            if($haveVatCredit == 'no'){
+                $entries[] = array(
+                    'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
+                    'debit' => array('4530', array($origin->className, $origin->that)),
+                    'credit' => array('4531'),
+                    'reason' => '',
+                );
+            }
         }
 
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
