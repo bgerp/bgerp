@@ -159,7 +159,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $firstRec = $firstDoc->fetch();
 
         // Ако документа е с включено/отделно ддс и към покупка - ще се прави контировка за артикултие с данъчен кредит
-        $checkVatCredit = !$reverse && $firstDoc->isInstanceOf('purchase_Purchases') && $firstRec->haveVatCreditProducts == 'no';
+        $checkVatCredit = $firstDoc->isInstanceOf('purchase_Purchases') && $firstRec->haveVatCreditProducts == 'no';
         $entriesLast = array();
 
         foreach ($rec->details as $detailRec) {
