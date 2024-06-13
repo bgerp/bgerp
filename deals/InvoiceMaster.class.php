@@ -141,7 +141,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function setInvoiceFields(core_Master &$mvc)
     {
-        $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
+        $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата');
         $mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
 
         $mvc->FLD('displayContragentClassId', 'enum(crm_Companies=Фирма,crm_Persons=Лице,newCompany=Нова фирма)', 'input,silent,removeAndRefreshForm=displayContragentId|selectInvoiceText,caption=Друг контрагент->Източник');
@@ -458,7 +458,7 @@ abstract class deals_InvoiceMaster extends core_Master
         foreach ($invArr as $field => $value) {
             $form->rec->{$field} = $value;
         }
-        
+
         $form->setDefault('date', dt::today());
         
         $form->setField('vatRate', 'input=hidden');
@@ -744,7 +744,6 @@ abstract class deals_InvoiceMaster extends core_Master
         $form = &$data->form;
         $rec = $form->rec;
 
-        $form->setDefault('date', dt::today());
         if (empty($form->rec->id)) {
             $form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
             $form->rec->contragentId = doc_Folders::fetchCoverId($form->rec->folderId);

@@ -350,6 +350,12 @@ abstract class deals_DealMaster extends deals_DealBase
                 cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
             }
         }
+
+        if(!in_array($form->rec->chargeVat, array('yes', 'separate'))){
+            if($form->getField('haveVatCreditProducts', false)){
+                $form->setField('haveVatCreditProducts', 'input=none');
+            }
+        }
     }
     
     

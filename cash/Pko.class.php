@@ -82,8 +82,14 @@ class cash_Pko extends cash_Document
      * @see plg_Clone
      */
     public $cloneDetails = 'cash_NonCashPaymentDetails';
-    
-    
+
+
+    /**
+     * В кои детайли да не се изисква да има запис за активиране
+     */
+    public $ignoreDetailsToCheckWhenTryingToPost = 'cash_NonCashPaymentDetails,deals_InvoicesToDocuments';
+
+
     /**
      * Описание на модела
      */
