@@ -170,7 +170,7 @@ class cash_Cases extends core_Master
     public function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,mandatory');
-        $this->FLD('cashiers', 'userList(roles=cash|ceo)', 'caption=Контиране на документи->Потребители');
+        $this->FLD('cashiers', 'userList(roles=cash|ceo,showClosedUsers=no)', 'caption=Контиране на документи->Потребители');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
         $this->FLD('defaultPaymentType', 'key(mvc=cond_Payments,select=title,allowEmpty)', 'caption=Безналичен метод на плащане по подразбиране->Избор');
         
