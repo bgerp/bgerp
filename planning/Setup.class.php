@@ -360,7 +360,8 @@ class planning_Setup extends core_ProtoSetup
     public $defClasses = 'planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
                           planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,
-                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep,planning_interface_ImportFromConsignmentProtocol';
+                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep,
+                          planning_interface_ImportFromConsignmentProtocol,planning_reports_WasteAndScrapByJobs';
 
 
     /**
