@@ -143,7 +143,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
 
                     if(isset($revertVatPercent)) {
                         $entriesLast[] = array(
-                            'amount' => $sign * $amountAllocated * $revertVatPercent, // В основна валута
+                            'amount' => $sign * round($amountAllocated * $revertVatPercent, 2), // В основна валута
                             'debit' => array('60201',
                                 $dRec1->expenseItemId,
                                 array('cat_Products', $dRec1->productId),
