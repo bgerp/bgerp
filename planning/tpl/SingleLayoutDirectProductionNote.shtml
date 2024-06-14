@@ -8,7 +8,7 @@
                         <table class="innerTable border-table paddingCells">
                             <tbody>
                                 <tr>
-                                    <td class="cell centered" rowspan='3' style='width:30%;'>
+                                    <td class="cell centered" rowspan='3' style='width:37%;'>
                                         <div class="document-title">|протокол за производство|*</div>
                                         <div class='small'>( <i> [#subTitle#] </i> )</div>
                                         <div style="padding-top:5px;">
@@ -27,7 +27,7 @@
                                         </table>
                                         <!--ET_END zoneReadiness-->
                                     </td>
-                                    <td class="cell custom-header-bg" style='width:35%;'><b>|Произведено|*</b></td>
+                                    <td class="cell custom-header-bg"><b>|Произведено|*</b></td>
                                 </tr>
                                 <tr>
                                     <td class="cell">
