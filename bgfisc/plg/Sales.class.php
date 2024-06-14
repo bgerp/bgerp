@@ -34,9 +34,11 @@ class bgfisc_plg_Sales extends core_Plugin
             $rec = $form->rec;
             
             if (!$form->gotErrors()) {
-                $registerRec = bgfisc_Register::getFiscDevice($rec->caseId);
-                if (empty($registerRec)) {
-                    $form->setError('caseId', 'Не може да се генерира УНП, защото не може да се определи ФУ');
+                if(bgfisc_Register::doRequireFiscForConto($mvc, $rec)){
+                    $registerRec = bgfisc_Register::getFiscDevice($rec->caseId);
+                    if (empty($registerRec)) {
+                        $form->setError('caseId', 'Не може да се генерира УНП, защото не може да се определи ФУ');
+                    }
                 }
                 
                 if ($rec->makeInvoice == 'no' && !in_array($rec->chargeVat, array('yes', 'separate'))) {
@@ -225,7 +227,8 @@ class bgfisc_plg_Sales extends core_Plugin
     {
         $actions = type_Set::toArray($rec->contoActions);
         if (isset($actions['pay'])) {
-            
+            if(!bgfisc_Register::doRequireFiscForConto($mvc, $rec)) return;
+
             // След плащане с продажбата редирект към екшън за печат на бележка
             Request::setProtected('hash');
             $url = toUrl(array($mvc, 'trytoprintreceipt', $rec->id, 'hash' => 'yes'));
