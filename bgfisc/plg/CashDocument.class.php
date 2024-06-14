@@ -225,6 +225,9 @@ class bgfisc_plg_CashDocument extends core_Plugin
         // Ако има опции за избор на контирането, подмяна на бутона за контиране
         if ($data->toolbar->haveButton('btnConto')) {
             if (!$data->toolbar->isErrorBtn('btnConto')) {
+
+                if(!bgfisc_Register::doRequireFiscForConto($mvc, $rec)) return;
+
                 $data->toolbar->removeBtn('btnConto');
                 $contoUrl = toUrl(array($mvc, 'contocash', $rec->id), 'local');
                 $warning = $mvc->getContoWarning($rec, $rec->isContable);
