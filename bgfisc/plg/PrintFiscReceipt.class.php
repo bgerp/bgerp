@@ -302,7 +302,9 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
      */
     public static function checkBeforeConto($caseId, $currencyId, &$error)
     {
-        $registerRec = bgfisc_Register::getFiscDevice($caseId);
+        $registerRec = bgfisc_Register::getFiscDevice($caseId, $serialNum);
+        if($serialNum == bgfisc_Register::WITHOUT_REG_NUM) return true;
+
         if (empty($registerRec)) {
             $error = 'Няма връзка с ФУ';
             
