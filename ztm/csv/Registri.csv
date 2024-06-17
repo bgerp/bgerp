@@ -272,7 +272,7 @@
 "ecd.hot_water.tc.settings","json","","Energy Center Distribution","system","[{""input"": {""vendor"": ""CWT"", ""model"": ""MB318E"", ""options"": {""uart"": 0, ""mb_id"": 1, ""chanel"": 8}}, ""output"": {""vendor"": ""CWT"", ""model"": ""MB318E"", ""options"": {""uart"": 0, ""mb_id"": 1, ""chanel"": 9}}}]","ECD / Hot water thermo couples settings."
 "ecd.hot_water.tc.values","json","","Energy Center Distribution","device","[]","ECD / Hot water thermo couples values."
 "ecd.cold_water.tc.settings","json","","Energy Center Distribution","system","[{""input"": {""vendor"": ""CWT"", ""model"": ""MB318E"", ""options"": {""uart"": 0, ""mb_id"": 1, ""chanel"": 10}}, ""output"": {""vendor"": ""CWT"", ""model"": ""MB318E"", ""options"": {""uart"": 0, ""mb_id"": 1, ""chanel"": 11}}}]","ECD / Cold water thermo couples settings."
-"ecd.hot_water.tc.values","json","","Energy Center Distribution","device","[]","ECD / Hot water thermo couples values."
+"ecd.cold_water.tc.values","json","","Energy Center Distribution","device","[]","ECD / Hot water thermo couples values."
 "ecd.floor_entrance.valves.settings","json","","Energy Center Distribution","system","{""hot"": [], ""cold"": [{""vendor"": ""Flowx"", ""model"": ""FLX-05F"", ""options"": {""close_on_shutdown"": false, ""wait_on_shutdown"": false, ""io_mode"": 1, ""output_cw"": ""U0:ID11:FC5:R0:RO0"", ""output_ccw"": ""off"", ""limit_cw"": ""U0:ID11:FC2:R0:DI0"", ""limit_ccw"": ""!U0:ID11:FC2:R0:DI0""}}]}","ECD / Floor entrance valves settings."
 "ecd.enabled","bool","true|false","Energy Center Distribution","system","false","Plugin enabled"
 "echp.hp.count","int","0/","ECHP","system",3,"Energy Center Heat Pump machines count"
