@@ -7295,7 +7295,7 @@ only screen and (max-width: 320px) {
 
     .wasteBlockInThread tr td {
       font-weight: normal !important;
-      font-size: 0.65em !important;
+      font-size: 13px !important;
       border: none !important;
       border-bottom: 1px dotted #aaaaaa !important;
       padding: 2px !important; }
