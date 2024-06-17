@@ -2347,10 +2347,14 @@ class planning_Jobs extends core_Master
         // Показване на обобщението на отпадъка в статистиката
         $tasksInJob = planning_Tasks::getTasksByJob($data->rec->id, 'active,wakeup,closed,stopped', false, false, 'yes');
         $totalFinalNetWeight = countR($tasksInJob) ? arr::sumValuesArray($tasksInJob, 'totalNetWeight', true) : 0;
-
         $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId, $totalFinalNetWeight);
+
         if(countR($wasteArr) && !Mode::is('printBlank')){
             $tpl->replace(' ', 'captionWastes');
+            if(isset($wasteArr['total'])){
+                $tpl->append($wasteArr['total']->quantityVerbal, 'WASTE_BLOCK_TOTAL_PERCENT');
+                unset($wasteArr['total']);
+            }
             foreach ($wasteArr as $wasteRow){
                 $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
                 $cloneTpl->replace($wasteRow->productLink, 'wasteProducedProductId');
