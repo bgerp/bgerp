@@ -345,7 +345,7 @@ class doc_ExpensesSummary extends core_Manager
 
         $rec->count =0;
         $notDistributed = $allocated;
-        
+
         // За всички отнесени разходи
         foreach ($recs as $rec1) {
             $index = $rec1->index;
@@ -359,19 +359,19 @@ class doc_ExpensesSummary extends core_Manager
 
             // Ако има и коригиращи записи, добавят се след тях
             if (countR($foundArr)) {
-                
+                $foundClone = array();
                 // Преразпределяне на сумата спрямо тази, която е разпределена (не искаме усреднената сума)
                 foreach ($foundArr as &$f1) {
-                    if ($rec1->quantity) {
-                        $f1->amount = $rec1->amount * $f1->quantity / $rec1->quantity;
-                    }
+                    $f2 = clone $f1;
+                    $f2->amount = ($rec1->quantity) ? $rec1->amount * $f1->quantity / $rec1->quantity : $rec1->amount * $f1->quantity;
+                    $foundClone[] = $f2;
                 }
                 
-                $notDistributed = array_diff_key($notDistributed, $foundArr);
-                $res = array_merge($res, $foundArr);
+                $notDistributed = array_diff_key($notDistributed, $foundClone);
+                $res = array_merge($res, $foundClone);
             }
         }
-        
+
         // Ако има останали неразпределени добавят се най-отдолу
         if (countR($notDistributed)) {
             $res[] = (object) array('type' => 'allocated');
