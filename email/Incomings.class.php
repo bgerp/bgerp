@@ -3326,7 +3326,7 @@ class email_Incomings extends core_Master
         if (email_AddressesInfo::haveRightFor('powerUser')) {
             if ($uLink = $mvc->getUnsubscribeLink($data->rec)) {
                 $uLink = urldecode($uLink);
-
+                $uLink = str_replace(array("\n", "\r"), array('', ''), $uLink);
                 // Автоматично оттегля документа, ако е само един в нишката и има права за папката
                 $onClickArr = array();
                 if ($data->rec->state != 'rejected' && $data->rec->folderId && $data->rec->threadId && $data->rec->containerId) {

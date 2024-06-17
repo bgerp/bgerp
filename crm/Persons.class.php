@@ -814,7 +814,7 @@ class crm_Persons extends core_Master
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if(isset($id)){
+        if(isset($rec->id)){
             // Коя е старата фирма на лицето
             $rec->_exBuzCompanyId = $mvc->fetchField($rec->id, 'buzCompanyId', false);
         } else {
@@ -844,7 +844,6 @@ class crm_Persons extends core_Master
                 $mvc->updatedListsOnShutdown[$id] = $listId;
             }
         }
-
 
         if($rec->saveInSessionAfterCreation){
             Mode::setPermanent('lastAddedPersonId', $rec->id);

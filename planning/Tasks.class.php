@@ -416,7 +416,7 @@ class planning_Tasks extends core_Master
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
 
         // Показване на обобщението на отпадъка в статистиката
-        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId, $data->rec->totalNetWeight);
+        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId);
         if(countR($wasteArr)){
             foreach ($wasteArr as $wasteRow){
                 $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');

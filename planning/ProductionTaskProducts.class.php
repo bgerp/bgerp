@@ -739,17 +739,31 @@ class planning_ProductionTaskProducts extends core_Detail
      * Извлича информация за отпадъка отчетен в нишката
      *
      * @param int $threadId               - ид на нишка
-     * @param int|null $producedNetWeight - общо тегло, спрямо което да се смята процента
+     * @param null $totalWastePercent    - сметнатия процент на общия отпадък
      * @return array $res                 - масив с резултат за отпадъка
      */
-    public static function getTotalWasteArr($threadId, $producedNetWeight = 0)
+    public static function getTotalWasteArr($threadId, &$totalWastePercent = null)
     {
+        $producedNetWeight = null;
         $res = $tasks = array();
         $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $firstRec = $firstDoc->fetch();
         if($firstDoc->isInstanceOf('planning_Jobs')){
             $tasks = array_keys(planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped'));
+            $netWeight = cat_Products::convertToUom($firstRec->productId, 'kg');
+            if(!empty($netWeight)){
+                $producedNetWeight = $firstRec->quantity * $netWeight;
+            }
         } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
             $tasks = array($firstDoc->that);
+            $totalWeight = $firstRec->totalNetWeight;
+            if(empty($totalWeight)){
+                $jobRec = doc_Containers::getDocument($firstRec->originId)->fetch();
+                $netWeight = cat_Products::convertToUom($jobRec->productId, 'kg');
+                if(isset($netWeight)){
+                    $producedNetWeight = $jobRec->quantity * $netWeight * $firstRec->progress;
+                }
+            }
         }
 
         if(!countR($tasks)) return $res;
@@ -785,9 +799,9 @@ class planning_ProductionTaskProducts extends core_Detail
         }
 
         if(isset($totalKg)){
-            $percentWeight = ($producedNetWeight) ? round($totalKg / $producedNetWeight, 2) : 1;
-            $percentVerbal = core_Type::getByName('percent')->toVerbal($percentWeight);
-            $percentVerbal = ($percentWeight >= 0.2) ? "<b class='red'>{$percentVerbal}</b>" : ($percentWeight >= 0.1 ? "<b style='color:darkorange'>{$percentVerbal}</b>" : $percentVerbal);
+            $totalWastePercent = ($producedNetWeight) ? round($totalKg / $producedNetWeight, 2) : 1;
+            $percentVerbal = core_Type::getByName('percent')->toVerbal($totalWastePercent);
+            $percentVerbal = ($totalWastePercent >= 0.2) ? "<b class='red'>{$percentVerbal}</b>" : ($totalWastePercent >= 0.1 ? "<b style='color:darkorange'>{$percentVerbal}</b>" : $percentVerbal);
             $res[] = (object)array('class' => 'wasteWeightPercent', 'productLink' => tr('Общ отпадък'), 'quantityVerbal' => $percentVerbal);
         }
 
