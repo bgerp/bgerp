@@ -107,7 +107,6 @@ class price_Setup extends core_ProtoSetup
         'price_Cache',
         'price_ListBasicDiscounts',
         'price_DiscountsPerDocuments',
-        'migrate::deleteOldDiscounts2403',
         'migrate::updateCostList2524v2',
     );
 
@@ -176,17 +175,6 @@ class price_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
 
         return $html;
-    }
-
-
-    /**
-     * Изтриване на старите твърди отстъпки
-     */
-    public function deleteOldDiscounts2403()
-    {
-        $Discounts = cls::get('price_ListBasicDiscounts');
-        $Discounts->setupMvc();
-        $Discounts->delete("#groupId IS NULL");
     }
 
 

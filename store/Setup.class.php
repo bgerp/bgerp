@@ -112,8 +112,6 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteDetails',
         'store_StockPlanning',
         'store_ShipmentOrderTariffCodeSummary',
-        'migrate::updateShipmentNegativeRoles231311',
-        'migrate::updateNegativeQuantityRole'
     );
     
     
@@ -264,41 +262,6 @@ class store_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция на ролите за изписване от склада на минус
-     */
-    public function updateShipmentNegativeRoles231311()
-    {
-        $config = core_Packs::getConfig('store');
-        if(isset($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'])){
-            if($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'] !== 'no'){
-                core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
-            }
-        } else {
-            core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
-        }
-    }
-
-
-    /**
-     * Изтриване на кеш
-     */
-    public function truncateCacheProducts1()
-    {
-        try {
-            if (cls::load('store_Products', true)) {
-                $Products = cls::get('store_Products');
-                
-                if ($Products->db->tableExists($Products->dbTableName)) {
-                    store_Products::truncate();
-                }
-            }
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-        }
-    }
-
-
-    /**
      * Обновяване по разписание
      */
     function cron_RecalcShipmentDates()
@@ -333,15 +296,5 @@ class store_Setup extends core_ProtoSetup
                 $Class->saveArray($toSave, $updateFields);
             }
         }
-    }
-
-
-    /**
-     * Задаване на нова роля за изписване на наличности на минус от склада
-     */
-    function updateNegativeQuantityRole()
-    {
-        core_Roles::addOnce('contoNegativeQuantities');
-        core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('contoNegativeQuantities')));
     }
 }

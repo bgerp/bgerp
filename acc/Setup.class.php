@@ -204,9 +204,6 @@ class acc_Setup extends core_ProtoSetup
         'acc_CostAllocations',
         'acc_RatesDifferences',
         'acc_ProductPricePerPeriods',
-        'migrate::updatePriceRoles2247',
-        'migrate::deleteEmptyRateDifferences1620',
-        //'migrate::fillStockPrices',
     );
     
     
@@ -621,45 +618,6 @@ class acc_Setup extends core_ProtoSetup
         $options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
         
         return $options;
-    }
-
-
-    /**
-     * Миграция на ролите за виждане на цени
-     */
-    public function updatePriceRoles2247()
-    {
-        if(defined('BGERP_DONT_MIGRATE_USERS_WITH_SEE_PRICE')) return;
-
-        $seePriceRoleId = core_Roles::fetchByName('seePrice');
-        $seePriceSaleRoleId = core_Roles::fetchByName('seePriceSale');
-        $seePricePurchaseRoleId = core_Roles::fetchByName('seePricePurchase');
-
-        $updateUsers = array();
-        $uQuery = core_Users::getQuery();
-        $uQuery->where("#state != 'rejected' && LOCATE('|{$seePriceRoleId}|', #roles)");
-
-        $addKeylist = keylist::fromArray(array($seePriceSaleRoleId => $seePriceSaleRoleId, $seePricePurchaseRoleId => $seePricePurchaseRoleId));
-        while($uRec = $uQuery->fetch()){
-            if(!keylist::isIn($seePriceSaleRoleId, $uRec->roles) && !keylist::isIn($seePricePurchaseRoleId, $uRec->roles)){
-                $uRec->rolesInput = keylist::merge($uRec->rolesInput, $addKeylist);
-                $uRec->roles = keylist::merge($uRec->roles, $addKeylist);
-                $updateUsers[$uRec->id] = $uRec;
-            }
-        }
-
-        if(countR($updateUsers)){
-            cls::get('core_Users')->saveArray($updateUsers, 'id,roles,rolesInput');
-        }
-    }
-
-
-    /**
-     * Миграция за изтриване на замърсени данни за курсови разлики
-     */
-    public function deleteEmptyRateDifferences1620()
-    {
-        acc_RatesDifferences::delete("#threadId IS NULL AND #containerId IS NULL");
     }
 
 
