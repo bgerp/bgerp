@@ -116,19 +116,59 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-bp();
-        $recs = array();
+//bp();
+        $recs = $jobsArr = array();
 
         $stateArr = array('active', 'wakeup', 'closed');
 
-        $jQuery = planning_Tasks::getQuery();
-        $jQuery->in('state', $stateArr);
+        // Изваждаме всички задания за периода без оттеглените и черновите
+        $jobQuery = planning_Jobs::getQuery();
 
-       // bp($jQuery->fetchAll());
+        $jobQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+        $jobQuery->in('state', 'rejected, draft', true);
+        while ($jobRec = $jobQuery->fetch()){
+
+            //задания активирани в този период
+            $jobsArr[$jobRec->containerId] = $jobRec;
+
+        }
+
+        //Изваждаме всички задачи в нишките на заданията от периода
+        $taskQuery = planning_Tasks::getQuery();
+
+        $taskQuery->in('state', $stateArr);
+
+        $taskQuery->in('originId',array_keys($jobsArr));
 
 
+        while ($taskRec = $taskQuery->fetch()){
 
+            $prodWeigth = cat_Products::convertToUoM($taskRec->productId, 'kg');
 
+          // bp($taskRec,$prodWeigth);
+            $id = $jobsArr[$taskRec->originId]->id;
+
+            // Запис в масива
+            if (!array_key_exists($id, $recs)) {
+                $recs[$id] = (object)array(
+
+                    'jobId' => $jobsArr[$taskRec->originId]->id,                                             //Id на заданието
+                    'jobArt' => $jobsArr[$taskRec->originId]->productId,                                     // Продукта по заданието
+                    'scrappedQuantity' => $taskRec->scrappedQuantity,                                        // количество брак
+                    'wasteQuantity' => $taskRec->totalQuantity - $taskRec->producedQuantity,
+                    'prodWeight' => $prodWeigth,
+
+                );
+            } else {
+                $obj = &$recs[$id];
+
+                $obj->scrappedQuantity += $taskRec->scrappedQuantity;
+                $obj->wasteQuantity += $taskRec->totalQuantity - $taskRec->producedQuantity;
+
+            }
+        }
+
+      //  bp($recs);
 
         return $recs;
     }
@@ -146,7 +186,9 @@ bp();
     {
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
-            $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
+            $fld->FLD('jobsId', 'varchar', 'caption=Задание');
+            $fld->FLD('scrap', 'double(decimals=2)', 'caption=Отпадък');
+            $fld->FLD('waste', 'double(decimals=2)', 'caption=Брак');
 
         } else {
 
@@ -169,10 +211,25 @@ bp();
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 4;
-        $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произв.', 'consum' => 'вл.')));
+        $Double->params['decimals'] = 2;
 
         $row = new stdClass();
+
+
+
+        $weight = !is_null($dRec->prodWeight) ? $dRec->prodWeight : '?';
+
+        if (isset($dRec->prodWeight)) {
+            $row->scrap = $Double->toVerbal($dRec->scrap*$dRec->prodWeight);
+        }else{
+            $row->scrap = '?';
+        }
+
+
+
+        if (is_null($dRec->waste)) {
+            $row->waste = $Double->toVerbal($dRec->waste);
+        }
 
 
         return $row;
