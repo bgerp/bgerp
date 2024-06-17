@@ -166,7 +166,7 @@ class crm_Groups extends core_Master
      */
     public function description()
     {
-        $this->FLD('sysId', 'varchar(16)', 'caption=СисИД,input=none,column=none');
+        $this->FLD('sysId', 'varchar(32)', 'caption=СисИД,input=none,column=none');
         $this->FLD('name', 'varchar(128,ci)', 'caption=Група,mandatory, translate=user|tr|transliterate');
         $this->FLD('allow', 'enum(companies_and_persons=Фирми и лица,companies=Само фирми,persons=Само лица)', 'caption=Съдържание,notNull');
         $this->FLD('companiesCnt', 'int', 'caption=Брой->Фирми,input=none,smartCenter');
@@ -512,6 +512,7 @@ class crm_Groups extends core_Master
     public static function forceGroup($gRec)
     {
         $rec = self::fetch("#sysId = '{$gRec->sysId}'");
+
         if ($rec) {
             if(strtolower($rec->name) != strtolower($gRec->name)){
                 $rec->name = $gRec->name;
@@ -525,10 +526,10 @@ class crm_Groups extends core_Master
                 $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}') AND #parentId IS NULL");
             }
         }
-        
+
         if (!$rec) {
             $rec = $gRec;
-            
+            bp($rec);
             setIfNot($rec->inCharge, core_Users::getCurrent());
             setIfNot($rec->allow, 'companies_and_persons');
             $rec->companiesCnt = 0;
@@ -537,13 +538,13 @@ class crm_Groups extends core_Master
             $rec->name = str::mbUcfirst($rec->name);
             
             self::save($rec);
-        } elseif(empty($rec->sysId) && !empty($gRec->sysId)){
+        } elseif(empty($rec->sysId) && !empty($gRec->sysId)){ bp($rec);
             if(!self::fetch("#sysId = '{$gRec->sysId}'", '*', false)){
                 $rec->sysId = $gRec->sysId;
                 self::save($rec, 'sysId');
             }
         }
-        
+        bp($rec);
         return $rec->id;
     }
     
