@@ -529,7 +529,7 @@ class crm_Groups extends core_Master
 
         if (!$rec) {
             $rec = $gRec;
-            bp($rec);
+
             setIfNot($rec->inCharge, core_Users::getCurrent());
             setIfNot($rec->allow, 'companies_and_persons');
             $rec->companiesCnt = 0;
@@ -538,13 +538,13 @@ class crm_Groups extends core_Master
             $rec->name = str::mbUcfirst($rec->name);
             
             self::save($rec);
-        } elseif(empty($rec->sysId) && !empty($gRec->sysId)){ bp($rec);
+        } elseif(empty($rec->sysId) && !empty($gRec->sysId)){
             if(!self::fetch("#sysId = '{$gRec->sysId}'", '*', false)){
                 $rec->sysId = $gRec->sysId;
                 self::save($rec, 'sysId');
             }
         }
-        bp($rec);
+
         return $rec->id;
     }
     
