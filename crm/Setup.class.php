@@ -163,6 +163,7 @@ class crm_Setup extends core_ProtoSetup
         'migrate::fixCountryGroupsInput21233',
         'migrate::companiesRepairSerchKeywords2124',
         'migrate::updateCards',
+        'migrate::updateGroups2524',
     );
     
     
@@ -347,5 +348,19 @@ class crm_Setup extends core_ProtoSetup
                 crm_ext_Cards::save($rec);
             }
         }
+    }
+
+
+    /**
+     * Миграция на старите клиентски карти
+     */
+    public function updateGroups2524()
+    {
+        $Groups = cls::get('crm_Groups');
+        $Groups->setupMvc();
+
+        $sysIdColName = str::phpToMysqlName('sysId');
+        $query = "UPDATE {$Groups->dbTableName} SET {$sysIdColName} = 'quotationsClients' WHERE ({$sysIdColName} = 'quotationsClient')";
+        $Groups->db->query($query);
     }
 }
