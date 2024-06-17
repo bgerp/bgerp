@@ -108,6 +108,7 @@ class price_Setup extends core_ProtoSetup
         'price_ListBasicDiscounts',
         'price_DiscountsPerDocuments',
         'migrate::deleteOldDiscounts2403',
+        'migrate::updateCostList2524',
     );
 
 
@@ -186,5 +187,18 @@ class price_Setup extends core_ProtoSetup
         $Discounts = cls::get('price_ListBasicDiscounts');
         $Discounts->setupMvc();
         $Discounts->delete("#groupId IS NULL");
+    }
+
+
+    /**
+     * Миграция на замърсени каталози
+     */
+    public function updateCostList2524()
+    {
+        $rec = price_Lists::fetch(price_ListRules::PRICE_LIST_CATALOG);
+        if($rec->parentId == price_ListRules::PRICE_LIST_CATALOG){
+            $rec->parentId = price_ListRules::PRICE_LIST_COST;
+            price_Lists::save($rec, 'parentId');
+        }
     }
 }
