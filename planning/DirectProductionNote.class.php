@@ -1532,28 +1532,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
-     * Връща заданието към което е протокола за производство.
-     * Ако е към ПО, намира заданието към което е тя
-     *
-     * @param $id
-     * @return mixed
-     */
-    public static function getJobRec($id)
-    {
-        $rec = static::fetchRec($id);
-
-        $originDoc = doc_Containers::getDocument($rec->originId);
-        if ($originDoc->isInstanceOf('planning_Tasks')) {
-            $jobRec = doc_Containers::getDocument($originDoc->fetchField('originId'))->fetch();
-        } else {
-            $jobRec = $originDoc->fetch();
-        }
-
-        return $jobRec;
-    }
-
-
-    /**
      * Дали артикула от протокола е същия, като този от заданието
      *
      * @param $id
