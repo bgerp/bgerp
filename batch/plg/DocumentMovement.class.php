@@ -27,6 +27,7 @@ class batch_plg_DocumentMovement extends core_Plugin
     {
         setIfNot($mvc->storeFieldName, 'storeId');
         setIfNot($mvc->savedMovements, array());
+        setIfNot($mvc->allowInstantProductionBatches, true);
     }
     
     
@@ -161,8 +162,38 @@ class batch_plg_DocumentMovement extends core_Plugin
             return false;
         }
     }
-    
-    
+
+
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId} AND #isInstant = 'yes'");
+    }
+
+
+    /**
+     * Ре-контиране на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_BeforeReConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId} AND #isInstant = 'yes'");
+    }
+
+
     /**
      * Извиква се след успешен запис в модела
      *

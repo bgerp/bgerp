@@ -202,10 +202,6 @@ class pos_Setup extends core_ProtoSetup
         'pos_ReceiptDetails',
         'pos_Reports',
         'pos_SellableProductsCache',
-        'migrate::resyncSearchStrings2350',
-        'migrate::updateInputPercent2403',
-        'migrate::updateWrongReceipts2414',
-        'migrate::updatePointChargeVat1724',
     );
 
 
@@ -286,66 +282,6 @@ class pos_Setup extends core_ProtoSetup
     public function cron_UpdateStatistic()
     {
         pos_ReceiptDetails::getMostUsedTexts(24, true);
-    }
-
-
-    /**
-     * Ресинхронизира ключовите думи
-     */
-    public function resyncSearchStrings2350()
-    {
-        cls::get('pos_SellableProductsCache')->sync(true);
-    }
-
-
-    /**
-     * Миграция на новото поле на делтите
-     */
-    public function updateInputPercent2403()
-    {
-        $Receipts = cls::get('pos_ReceiptDetails');
-        $Receipts->setupMvc();
-
-        $inputDiscColName = str::phpToMysqlName('inputDiscount');
-        $discColName = str::phpToMysqlName('discountPercent');
-        $query = "UPDATE {$Receipts->dbTableName} SET {$inputDiscColName} = {$discColName} WHERE {$discColName} IS NOT NULL";
-        $Receipts->db->query($query);
-    }
-
-
-    /**
-     * Изтриване на грешни бележки
-     */
-    public function updateWrongReceipts2414()
-    {
-        $save = array();
-        $Receipts = cls::get('pos_Receipts');
-        $query = pos_Receipts::getQuery();
-        $query->where("#contragentClass IS NULL AND #contragentObjectId IS NULL");
-        while($rec = $query->fetch()){
-            $rec->contragentName = 'Анонимен Клиент';
-            $rec->contragentClass = core_Classes::getId('crm_Persons');
-            $rec->contragentObjectId = pos_Points::defaultContragent($posId);
-            $save[$rec->id] = $rec;
-        }
-
-        if(countR($save)){
-            $Receipts->saveArray($save);
-        }
-    }
-
-
-    /**
-     * Миграция на ДДС режима на ПОС-бележките
-     */
-    public function updatePointChargeVat1724()
-    {
-        if(crm_Companies::isOwnCompanyVatRegistered()) return;
-
-        $Points = cls::get('pos_Points');
-        $chargeVatColName = str::phpToMysqlName('chargeVat');
-        $query = "UPDATE {$Points->dbTableName} SET {$chargeVatColName} = 'no' WHERE ({$chargeVatColName} = 'yes'";
-        $Points->db->query($query);
     }
 }
 
