@@ -586,7 +586,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 
         // Проверка дали материалите са вложими и генерични
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
-            $batchesArr = array();
+            $batchesArr = $productsWithMandatoryBatches = array();
 
             // Ще се прави опит за автоматично разпределяне на партиди при контиране
             core_Debug::startTimer('CALC_BATCH_DATA');
@@ -594,6 +594,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             foreach ($inputedMaterials as $iMat){
                 $batches = $iMat->Def->allocateQuantityToBatches($iMat->quantity, $iMat->storeId, $class, $rec->id, $rec->valior);
                 $iMat->_leftQuantity = $iMat->quantity;
+
                 foreach ($batches as $b => $q){
                     $bRec = (object)array('productId' => $iMat->productId, 'operation' => 'out', 'storeId' => $iMat->storeId, 'quantity' => $q, 'quantityInPack' => 1, 'packagingId' => cat_Products::fetchField($iMat->productId, 'measureId'));
                     $bRec->detailClassId = $Class->getClassId();
@@ -610,32 +611,19 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             core_Debug::stopTimer('CALC_BATCH_DATA');
 
             // Проверка за намерените партиди дали отговарят на изискванията
-            $productsWithMandatoryBatches = $productsWithNotExistingBatchesArr = array();
             foreach ($inputedMaterials as $iMat1){
                 $checkIfBatchIsMandatory = ($iMat1->Def->getField('alwaysRequire') == 'auto') ? batch_Templates::fetchField($iMat1->Def->getField('templateId'), 'alwaysRequire') : $iMat1->Def->getField('alwaysRequire');
                 if($checkIfBatchIsMandatory == 'yes'){
-                    if(round($iMat1->_leftQuantity, 5) >= 0) {
-                        $productsWithMandatoryBatches[$iMat1->productId] = "<b>" . cat_Products::getTitleById($iMat1->productId, false) . "</b>";
-                    }
-                }
 
-                $checkIfBatchExists = ($iMat1->Def->getField('onlyExistingBatches') == 'auto') ? batch_Templates::fetchField($iMat1->Def->getField('templateId'), 'onlyExistingBatches') : $iMat1->Def->getField('onlyExistingBatches');
-                $checkIfBatchExists = haveRole('contoNegativeBatches') ? false : $checkIfBatchExists;
-                if($checkIfBatchExists == 'yes'){
-                    if(round($iMat1->quantity, 5) > round($iMat1->inStock, 5)){
-                        $productsWithNotExistingBatchesArr[$iMat1->productId] = "<b>" . cat_Products::getTitleById($iMat1->productId, false) . "</b>";
+                    if(round($iMat1->_leftQuantity, 5) > 0) {
+                        $productsWithMandatoryBatches[$iMat1->productId] = "<b>" . cat_Products::getTitleById($iMat1->productId, false) . "</b>";
                     }
                 }
             }
 
             if(countR($productsWithMandatoryBatches)){
                 $productMsg = implode(', ', $productsWithMandatoryBatches);
-                acc_journal_RejectRedirect::expect(false, "Артикулите не могат да са без партида|*: {$productMsg}");
-            }
-
-            if(countR($productsWithNotExistingBatchesArr)){
-                $productMsg = implode(', ', $productsWithNotExistingBatchesArr);
-                acc_journal_RejectRedirect::expect(false, "Артикули с неналични партиди|*: {$productMsg}");
+                acc_journal_RejectRedirect::expect(false, "(2)Артикулите не могат да са без партида|*: {$productMsg}");
             }
 
             // Запис
