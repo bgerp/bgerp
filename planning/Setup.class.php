@@ -314,7 +314,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkInProgress',
         'planning_AssetGroupIssueTemplates',
         'planning_AssetSparePartsDetail',
-        'migrate::changeCentreFieldToKeylistInWorkflows',
+        'migrate::repairSearchKeywords2524'
     );
 
 
@@ -416,23 +416,12 @@ class planning_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция за поправка на centre полето от key на keylist
+     * Миграция за регенериране на ключовите думи
      */
-    function changeCentreFieldToKeylistInWorkflows()
+    public static function repairSearchKeywords2524()
     {
-        $frameCls = cls::get('frame2_Reports');
-
-        $query = $frameCls::getQuery();
-
-        $repClass = planning_reports_Workflows::getClassId();
-
-        $query->where("#driverClass = $repClass");
-
-        while ($rec = $query->fetch()) {
-            if (is_integer($rec->centre)) {
-                $rec->centre = keylist::fromArray(array($rec->centre => $rec->centre));
-                $frameCls->save_($rec, $frameCls->centre);
-            }
-        }
+        $callOn = dt::addSecs(1200);
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ConsumptionNotes', $callOn);
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ReturnNotes', $callOn);
     }
 }

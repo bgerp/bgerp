@@ -102,12 +102,8 @@ abstract class deals_ManifactureMaster extends core_Master
                 }
             }
 
-            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-            if($firstDoc->isInstanceOf('planning_Jobs')){
-                $row->jobId = $firstDoc->getHyperlink(true);
-            } elseif($firstDoc->isInstanceOf('planning_Tasks')){
-                $jobDoc = doc_Containers::getDocument($firstDoc->fetchField('originId'));
-                $row->jobId = $jobDoc->getHyperlink(true);
+            if($jobId = static::getJobRec($rec)){
+                $row->jobId = planning_Jobs::getHyperlink($jobId, true);
             }
         }
         
@@ -115,8 +111,31 @@ abstract class deals_ManifactureMaster extends core_Master
             $row->title = $mvc->getLink($rec->id, 0);
         }
     }
-    
-    
+
+
+    /**
+     * Към кое задание е документа
+     *
+     * @param $rec
+     * @return mixed|null
+     */
+    public static function getJobRec($rec)
+    {
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        if($firstDoc){
+
+            if($firstDoc->isInstanceOf('planning_Jobs')) return $firstDoc->that;
+
+            if($firstDoc->isInstanceOf('planning_Tasks')){
+                $jobDoc = doc_Containers::getDocument($firstDoc->fetchField('originId'));
+                return $jobDoc->that;
+            }
+        }
+
+        return null;
+    }
+
+
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -336,23 +355,17 @@ abstract class deals_ManifactureMaster extends core_Master
 
 
     /**
-     * Към кое задание е свързана нишката
-     *
-     * @param int $threadId
-     * @return stdClass|null $jobRec
+     * Добавя ключови думи за пълнотекстово търсене
      */
-    public static function getJobFromThread($threadId)
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $jobRec = null;
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if($firstDoc){
-            if ($firstDoc->isInstanceOf('planning_Tasks')) {
-                $jobRec = doc_Containers::getDocument($firstDoc->fetchField('originId'))->fetch();
-            } elseif($firstDoc->isInstanceOf('planning_Jobs')) {
-                $jobRec = $firstDoc->fetch();
-            }
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
         }
 
-        return $jobRec;
+        if($jobId = static::getJobRec($rec)){
+            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getRecTitle($jobId));
+        }
     }
 }
