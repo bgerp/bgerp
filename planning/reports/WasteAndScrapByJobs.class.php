@@ -168,7 +168,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             }
         }
 
-      //  bp($recs);
+        //bp($recs);
 
         return $recs;
     }
@@ -186,7 +186,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
-            $fld->FLD('jobsId', 'varchar', 'caption=Задание');
+            $fld->FLD('jobId', 'varchar', 'caption=Задание');
             $fld->FLD('scrap', 'double(decimals=2)', 'caption=Отпадък');
             $fld->FLD('waste', 'double(decimals=2)', 'caption=Брак');
 
@@ -211,25 +211,22 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
+        $Double->params['decimals'] = 4;
 
         $row = new stdClass();
 
-
+        $row->jobId = planning_Jobs::getHyperlink($dRec->jobId);
 
         $weight = !is_null($dRec->prodWeight) ? $dRec->prodWeight : '?';
 
         if (isset($dRec->prodWeight)) {
-            $row->scrap = $Double->toVerbal($dRec->scrap*$dRec->prodWeight);
+            $row->scrap = $Double->toVerbal($dRec->scrappedQuantity*$weight);
+            $row->waste = $Double->toVerbal($dRec->wasteQuantity*$weight);
         }else{
             $row->scrap = '?';
+            $row->waste = '?';
         }
 
-
-
-        if (is_null($dRec->waste)) {
-            $row->waste = $Double->toVerbal($dRec->waste);
-        }
 
 
         return $row;
