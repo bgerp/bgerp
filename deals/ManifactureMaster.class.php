@@ -121,9 +121,10 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     public static function getJobRec($rec)
     {
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $rec = static::fetchRec($rec);
+        $threadId = isset($rec->originId) ? doc_Containers::fetchField($rec->originId, 'threadId') : $rec->threadId;
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
         if($firstDoc){
-
             if($firstDoc->isInstanceOf('planning_Jobs')) return $firstDoc->that;
 
             if($firstDoc->isInstanceOf('planning_Tasks')){
