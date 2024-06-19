@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -191,6 +191,21 @@ class acc_ProductPricePerPeriods extends core_Manager
         static::logDebug("EXTRACT: ROUND{$rTime} / COUNT{$count} / FETCH_D: {$fd}/ FETCH_E: {$feTime}");
 
         return $res;
+    }
+
+
+    /**
+     * Функция, която се вика по крон по разписание
+     * Синхронизира перата
+     */
+    public static function callback_SyncStockPrices()
+    {
+        $Cache = cls::get('acc_ProductPricePerPeriods');
+        core_App::setTimeLimit(300);
+        $res = acc_ProductPricePerPeriods::extractDataFromBalance(null);
+        foreach ($res as $recs4Balance){
+            $Cache->saveArray($recs4Balance);
+        }
     }
 
 
@@ -391,6 +406,37 @@ class acc_ProductPricePerPeriods extends core_Manager
 
         $to = static::getCacheMaxDate();
         static::logDebug("FROM '{$date}' TO '{$to}'-RES(I{$iCount}:U{$uCount}:D{$dCount})-T'{$wTime}'/TO:{$tTime}/E:{$eTime}/S:{$sTime}/TOPREV:{$tpTime}");
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        $cronRec = core_Cron::getRecForSystemId('UpdateStockPricesPerPeriod');
+        $url = array('core_Cron', 'ProcessRun', str::addHash($cronRec->id), 'forced' => 'yes');
+
+        $data->toolbar->addBtn('Преизчисляване', $url, 'ef_icon=img/16/arrow_refresh.png, title = Преизчисляване');
+    }
+
+
+    /**
+     * Обновяване на себестойностите по разписание
+     */
+    public function cron_UpdateStockPricesPerPeriod()
+    {
+        $from = dt::addSecs(-3600);
+
+        $bQuery = acc_Balances::getQuery();
+        $bQuery->orderBy('fromDate', 'ASC');
+        $bQuery->where("#lastCalculate >= '{$from}'");
+        $invalidateAfterDate = $bQuery->fetch()->fromDate;
+
+        core_Debug::log("INVALIDATE AFTER {$invalidateAfterDate}");
+        if($invalidateAfterDate){
+            acc_ProductPricePerPeriods::invalidateAfterDate($invalidateAfterDate);
+        }
     }
 
 
