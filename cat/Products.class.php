@@ -3218,8 +3218,9 @@ class cat_Products extends embed_Manager
         if (!$item2) {
             return;
         }
-        
-        
+
+        core_Debug::startTimer('WAC_AMOUNT');
+
         $item1 = '*';
         if (is_array($stores) && countR($stores)) {
             $item1 = array();
@@ -3236,7 +3237,10 @@ class cat_Products extends embed_Manager
         if (isset($amount)) {
             return round($amount, 4);
         }
-        
+
+        core_Debug::stopTimer('WAC_AMOUNT');
+        core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+
         // Връщаме сумата
         return $amount;
     }
