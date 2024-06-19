@@ -312,12 +312,12 @@ class acc_ProductPricePerPeriods extends core_Manager
     /**
      * Връща последните цени на артикулите към дата
      *
-     * @param date $toDate
+     * @param datetime $toDate
      * @param int $productItemId
      * @param int $storeItemId
      * @return array $res
      */
-    public static function getPricesToDate($toDate, $productItemId = null, $storeItemId = null)
+    public static function getPricesToDate($toDate, $productItemId = null, $storeItems = null)
     {
         $dateColName = str::phpToMysqlName('date');
         $storeColName = str::phpToMysqlName('storeItemId');
@@ -329,8 +329,11 @@ class acc_ProductPricePerPeriods extends core_Manager
         if (!empty($productItemId)) {
             $otherWhere[] = "`{$me->dbTableName}`.{$productColName} = {$productItemId}";
         }
-        if (!empty($storeItemId)) {
-            $otherWhere[] = "`{$me->dbTableName}`.{$storeColName} = {$storeItemId}";
+        if (!empty($storeItems)) {
+            $storeArr = arr::make($storeItems);
+            $storeStr = implode(',', $storeArr);
+
+            $otherWhere[] = "`{$me->dbTableName}`.{$storeColName} IN ({$storeStr})";
         }
         $otherWhere = implode(' AND ', $otherWhere);
         if (!empty($otherWhere)) {
@@ -339,7 +342,8 @@ class acc_ProductPricePerPeriods extends core_Manager
 
         core_Debug::log("START GROUP_ALL");
         core_Debug::startTimer('GROUP_ALL');
-        $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `storeItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} )ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 1000000) as temp GROUP BY temp.storeItemId, temp.productItemId";
+        $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `storeItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} ) ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 1000000) as temp GROUP BY temp.storeItemId, temp.productItemId";
+
         $dbTableRes = $me->db->query($query1);
         core_Debug::stopTimer('GROUP_ALL');
         core_Debug::log("END GROUP_ALL " . round(core_Debug::$timers["GROUP_ALL"]->workingTime, 6));
