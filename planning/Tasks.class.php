@@ -330,8 +330,8 @@ class planning_Tasks extends core_Master
         $this->FLD('systemId', 'int', 'silent,input=hidden');
 
         $this->FLD('deviationNettoNotice', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Информация,autohide');
-        $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRoun)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
-        $this->FLD('deviationNettoCritical', 'percent(Min=0,smartRoun)', 'caption=Прагове при разминаване на нетото в прогреса->Критично,autohide');
+        $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
+        $this->FLD('deviationNettoCritical', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Критично,autohide');
 
         $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');

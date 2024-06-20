@@ -49,7 +49,7 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,date,containerId=Документ,productId=Артикул,packagingId=Опаковка,quantityInPack=К-во в опаковка,quantity=Количество,batch=Партида,operation=Операция,storeId=Склад';
+    public $listFields = 'id,date,containerId=Документ,productId=Артикул,packagingId=Опаковка,quantityInPack=К-во в опаковка,quantity=Количество,batch=Партида,operation=Операция,storeId=Склад,isInstant';
 
 
     /**
@@ -80,6 +80,7 @@ class batch_BatchesInDocuments extends core_Manager
         $this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
         $this->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'mandatory,caption=Операция');
         $this->FLD('storeId', 'key(mvc=store_Stores)', 'caption=Склад');
+        $this->FLD('isInstant', 'enum(no=Не,yes=Да)', 'caption=Моментно?,notNull,value=no');
 
         $this->setDbIndex('detailClassId,detailRecId');
         $this->setDbIndex('productId');

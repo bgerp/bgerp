@@ -314,7 +314,6 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkInProgress',
         'planning_AssetGroupIssueTemplates',
         'planning_AssetSparePartsDetail',
-        'migrate::changeCentreFieldToKeylistInWorkflows',
         'migrate::repairSearchKeywords2524'
     );
 
@@ -350,7 +349,8 @@ class planning_Setup extends core_ProtoSetup
     public $defClasses = 'planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
                           planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,
-                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep,planning_interface_ImportFromConsignmentProtocol';
+                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep,
+                          planning_interface_ImportFromConsignmentProtocol,planning_reports_WasteAndScrapByJobs';
 
 
     /**
@@ -414,24 +414,6 @@ class planning_Setup extends core_ProtoSetup
         }
     }
 
-    /**
-     * Мигриране на етикетирането
-     */
-    function updateLabelType()
-    {
-        $Tasks = cls::get('planning_Tasks');
-        $Tasks->setupMvc();
-
-        $labelTypeColName = str::phpToMysqlName('labelType');
-        $query = "UPDATE {$Tasks->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
-        $Tasks->db->query($query);
-
-        $Steps = cls::get('planning_Steps');
-        $Steps->setupMvc();
-
-        $query = "UPDATE {$Steps->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
-        $Steps->db->query($query);
-    }
 
     /**
      * Миграция за регенериране на ключовите думи
@@ -441,6 +423,7 @@ class planning_Setup extends core_ProtoSetup
         $callOn = dt::addSecs(1200);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ConsumptionNotes', $callOn);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ReturnNotes', $callOn);
+<<<<<<< HEAD
     }
 
 
@@ -691,5 +674,7 @@ class planning_Setup extends core_ProtoSetup
     public static function tasksRepairSerchKeywords2346v5()
     {
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_Tasks', dt::addSecs(120));
+=======
+>>>>>>> refs/remotes/origin/test
     }
 }

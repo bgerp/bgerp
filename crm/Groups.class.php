@@ -536,8 +536,10 @@ class crm_Groups extends core_Master
             $rec->personsCnt = 0;
             setIfNot($rec->state, 'active');
             $rec->name = str::mbUcfirst($rec->name);
-            
+
+            core_Users::forceSystemUser();
             self::save($rec);
+            core_Users::cancelSystemUser();
         } elseif(empty($rec->sysId) && !empty($gRec->sysId)){
             if(!self::fetch("#sysId = '{$gRec->sysId}'", '*', false)){
                 $rec->sysId = $gRec->sysId;

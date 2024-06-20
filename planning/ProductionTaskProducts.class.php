@@ -503,7 +503,7 @@ class planning_ProductionTaskProducts extends core_Detail
      * @param string   $type      - вид на действието
      * @param int|NULL $assetId   - конкретно оборудване
      *
-     * @return stdClass
+     * @return stdClass|false
      *                  o productId       - ид на артикула
      *                  o packagingId     - ид на опаковката
      *                  o quantityInPack  - к-во в опаковката
@@ -756,9 +756,9 @@ class planning_ProductionTaskProducts extends core_Detail
             }
         } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
             $tasks = array($firstDoc->that);
-            $totalWeight = $firstRec->totalNetWeight;
-            if(empty($totalWeight)){
-                $jobRec = doc_Containers::getDocument($firstRec->originId)->fetch();
+            $producedNetWeight = $firstRec->totalNetWeight;
+            $jobRec = doc_Containers::getDocument($firstRec->originId)->fetch();
+            if(empty($producedNetWeight)){
                 $netWeight = cat_Products::convertToUom($jobRec->productId, 'kg');
                 if(isset($netWeight)){
                     $producedNetWeight = $jobRec->quantity * $netWeight * $firstRec->progress;
