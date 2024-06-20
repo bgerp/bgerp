@@ -82,19 +82,6 @@ class acc_ProductPricePerPeriods extends core_Manager
 
 
     /**
-     * Връща крайната дата до която да се кешират записите
-     *
-     * @return mixed|string
-     */
-    public static function getCacheMaxDate()
-    {
-        $balanceBeforeCnt = acc_Setup::get('NOT_TO_CACHE_STOCK_PRICES_IN_LAST_BALANCE_COUNT');
-
-        return dt::addMonths(-1 * $balanceBeforeCnt, dt::getLastDayOfMonth(), false);
-    }
-
-
-    /**
      * Извличане на данните от баланса
      *
      * @param date $fromDate
@@ -115,13 +102,8 @@ class acc_ProductPricePerPeriods extends core_Manager
         }
 
         // Взимат се балансите до посочената дата в настройките
-        if(!isset($toDate)){
-            $toDate = static::getCacheMaxDate();
-        }
-
-        if(isset($toDate)){
-            $bQuery->where("#toDate <= '{$toDate}'");
-        }
+        $toDate = $toDate ?? dt::getLastDayOfMonth();
+        $bQuery->where("#toDate <= '{$toDate}'");
 
         $bRecs = $bQuery->fetchAll();
         $balanceIds = array_keys($bRecs);
@@ -248,6 +230,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'balanceId,storeItemId,productItemId,toDate';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->query->orderBy('date', 'DESC');Кеш
 
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productItemId)) {
@@ -408,7 +391,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $sTime = round(core_Debug::$timers["SAVE_ARR"]->workingTime, 6);
         $tpTime = round(core_Debug::$timers["TO_DATE_PREV_EACH"]->workingTime, 6);
 
-        $to = static::getCacheMaxDate();
+        $to = dt::getLastDayOfMonth();
         static::logDebug("FROM '{$date}' TO '{$to}'-RES(I{$iCount}:U{$uCount}:D{$dCount})-T'{$wTime}'/TO:{$tTime}/E:{$eTime}/S:{$sTime}/TOPREV:{$tpTime}");
     }
 
@@ -444,6 +427,9 @@ class acc_ProductPricePerPeriods extends core_Manager
     }
 
 
+    /**
+     * Екшън за инвалидиране на данните
+     */
     function act_Invalidate()
     {
         $from = Request::get('FROM', 'date');
