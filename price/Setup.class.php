@@ -189,17 +189,4 @@ class price_Setup extends core_ProtoSetup
             price_Lists::save($rec, 'parent');
         }
     }
-
-
-    /**
-     * Миграция на замърсени каталози
-     */
-    public function updateCostList2524v2()
-    {
-        $rec = price_Lists::fetch(price_ListRules::PRICE_LIST_CATALOG);
-        if($rec->parent == price_ListRules::PRICE_LIST_CATALOG){
-            $rec->parent = price_ListRules::PRICE_LIST_COST;
-            price_Lists::save($rec, 'parent');
-        }
-    }
 }
