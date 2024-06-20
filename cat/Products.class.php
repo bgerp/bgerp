@@ -3215,12 +3215,10 @@ class cat_Products extends embed_Manager
     public static function getWacAmountInStore($quantity, $productId, $date, $stores = array(), $maxTry = null)
     {
         $item2 = acc_Items::fetchItem('cat_Products', $productId)->id;
-        if (!$item2) {
-            return;
-        }
-        
-        
-        $item1 = '*';
+        if (!$item2) return;
+
+        core_Debug::startTimer('WAC_AMOUNT');
+        $item1 = null;
         if (is_array($stores) && countR($stores)) {
             $item1 = array();
             foreach ($stores as $storeId) {
@@ -3228,17 +3226,30 @@ class cat_Products extends embed_Manager
                 $item1[$storeItemId] = $storeItemId;
             }
         }
-        
-        // Намираме сумата която струва к-то от артикула в склада
-        $maxTry = isset($maxTry) ? $maxTry : core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
-        $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
-        
-        if (isset($amount)) {
-            return round($amount, 4);
+
+        core_Debug::startTimer('WAC_AMOUNT_FROM_CACHE');
+        $pricesArr = acc_ProductPricePerPeriods::getPricesToDate($date, $item2, $item1);
+        $countPricesBefore = countR($pricesArr);
+
+        if($countPricesBefore){
+            $priceSum = arr::sumValuesArray($pricesArr, 'price');
+            core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
+            core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime, 6));
+
+            core_Debug::stopTimer('WAC_AMOUNT');
+            core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+
+            return round($priceSum / $countPricesBefore, 4);
         }
-        
+
+        core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
+        core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime, 6));
+
+        core_Debug::stopTimer('WAC_AMOUNT');
+        core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+
         // Връщаме сумата
-        return $amount;
+        return null;
     }
     
     
