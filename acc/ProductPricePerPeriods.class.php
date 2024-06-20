@@ -323,6 +323,7 @@ class acc_ProductPricePerPeriods extends core_Manager
             $otherWhere = " AND {$otherWhere}";
         }
 
+        $toDate = $toDate ?? dt::getLastDayOfMonth();
         core_Debug::log("START GROUP_ALL");
         core_Debug::startTimer('GROUP_ALL');
         $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `storeItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} ) ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 1000000) as temp GROUP BY temp.storeItemId, temp.productItemId";
