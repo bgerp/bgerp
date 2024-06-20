@@ -102,8 +102,8 @@ abstract class deals_ManifactureMaster extends core_Master
                 }
             }
 
-            if($jobId = static::getJobRec($rec)){
-                $row->jobId = planning_Jobs::getHyperlink($jobId, true);
+            if($jobRec = static::getJobRec($rec)){
+                $row->jobId = planning_Jobs::getHyperlink($jobRec->id, true);
             }
         }
         
@@ -125,11 +125,11 @@ abstract class deals_ManifactureMaster extends core_Master
         $threadId = isset($rec->originId) ? doc_Containers::fetchField($rec->originId, 'threadId') : $rec->threadId;
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         if($firstDoc){
-            if($firstDoc->isInstanceOf('planning_Jobs')) return $firstDoc->that;
+            if($firstDoc->isInstanceOf('planning_Jobs')) return $firstDoc->fetch();
 
             if($firstDoc->isInstanceOf('planning_Tasks')){
                 $jobDoc = doc_Containers::getDocument($firstDoc->fetchField('originId'));
-                return $jobDoc->that;
+                return $jobDoc->fetch();
             }
         }
 
@@ -365,8 +365,8 @@ abstract class deals_ManifactureMaster extends core_Master
             $res = plg_Search::getKeywords($mvc, $rec);
         }
 
-        if($jobId = static::getJobRec($rec)){
-            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getRecTitle($jobId));
+        if($jobRec = static::getJobRec($rec)){
+            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getRecTitle($jobRec));
         }
     }
 }
