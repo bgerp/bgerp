@@ -60,14 +60,14 @@ class hr_ScheduleDetails extends core_Detail
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,hrMaster';
+    public $canAdd = 'ceo, hrMaster, hrSchedules';
     
     
     /**
      * Кой може да го изтрие?
      *
      */
-    public $canDelete = 'ceo,hrMaster';
+    public $canDelete = 'ceo, hrMaster, hrSchedules';
     
     
     /**
