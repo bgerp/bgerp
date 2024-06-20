@@ -65,7 +65,7 @@ class batch_plg_PosReports extends core_Plugin
      * @param stdClass $rec
      */
     private static function saveMovement($rec)
-    {
+    {batch_Movements::saveMovement($rec->containerId);
         $details = $rec->details['receiptDetails'];
         $pointRec = pos_Points::fetch($rec->pointId);
         $date = dt::verbal2mysql($rec->createdOn, false);
@@ -109,5 +109,19 @@ class batch_plg_PosReports extends core_Plugin
                 cls::get('batch_Movements')->saveArray($toSave);
             }
         }
+    }
+
+
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId} AND #isInstant = 'yes'");
     }
 }
