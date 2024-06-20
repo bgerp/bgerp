@@ -27,7 +27,7 @@ class acc_ProductPricePerPeriods extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'acc_Wrapper, plg_Sorting, plg_SaveAndNew';
+    public $loadList = 'acc_Wrapper, plg_Sorting';
 
 
     /**
@@ -230,7 +230,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'balanceId,storeItemId,productItemId,toDate';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->query->orderBy('date', 'DESC');Кеш
+        $data->query->orderBy('date', 'DESC');
 
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productItemId)) {
@@ -343,6 +343,12 @@ class acc_ProductPricePerPeriods extends core_Manager
     }
 
 
+    /**
+     * Инвалидира данните след
+     *
+     * @param datetime $date
+     * @return void
+     */
     public static function invalidateAfterDate($date)
     {
         core_Debug::startTimer('INVALIDATE_ALL');
