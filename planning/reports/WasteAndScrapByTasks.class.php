@@ -144,59 +144,60 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-//bp();
-        $recs = $jobsArr = array();
+
+        $recs = array();
 
         $stateArr = array('active', 'wakeup', 'closed');
 
-        // Изваждаме всички задания за периода без оттеглените и черновите
-        $jobQuery = planning_Jobs::getQuery();
-
-        $jobQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
-        $jobQuery->in('state', 'rejected, draft', true);
-        while ($jobRec = $jobQuery->fetch()) {
-
-            //задания активирани в този период
-            $jobsArr[$jobRec->containerId] = $jobRec;
-
-        }
-
-        //Изваждаме всички задачи в нишките на заданията от периода
+        //Изваждаме всички задачи от периода
         $taskQuery = planning_Tasks::getQuery();
 
         $taskQuery->in('state', $stateArr);
 
-        $taskQuery->in('originId', array_keys($jobsArr));
+        $taskQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
 
+        $wasteQuantity = null;
 
         while ($taskRec = $taskQuery->fetch()) {
 
-            $prodWeigth = cat_Products::convertToUoM($taskRec->productId, 'kg');
-//bp($prodWeigth);
-            // bp($taskRec,$prodWeigth);
-            $id = $jobsArr[$taskRec->originId]->id;
+            $JOB = doc_Containers::getDocument($taskRec->originId);
+            $jobRec = planning_Jobs::fetch($JOB->that);
+
+            $prodWeigth = cat_Products::convertToUoM($jobRec->productId, 'kg');
+
+            if (!$wasteQuantity) {
+                $totalWastePercent = null;
+                $waste = planning_ProductionTaskProducts::getTotalWasteArr($taskRec->threadId, $totalWastePercent);
+            }
+            foreach ($waste as $v) {
+                if ($v->quantity) {
+                    $wasteWeight = $v->quantity;
+                }
+            }
+
+            if (!is_null($prodWeigth)) {
+                $scrappedWeight = $taskRec->scrappedQuantity * $prodWeigth;
+            } else {
+                $scrappedWeight = null;
+            }
+
+            $id = $taskRec->id;
 
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
 
-                    'jobId' => $jobsArr[$taskRec->originId]->id,                                             //Id на заданието
-                    'jobArt' => $jobsArr[$taskRec->originId]->productId,                                     // Продукта по заданието
-                    'scrappedQuantity' => $taskRec->scrappedQuantity,                                        // количество брак
-                    'wasteQuantity' => $taskRec->totalQuantity - $taskRec->producedQuantity,
+                    'taskId' => $taskRec->id,                                          //Id на операцията
+                    'jobArt' => $jobRec->productId,                                   // Продукта по заданието
+                    'scrappedQuantity' => $scrappedWeight,                            // количество брак
+                    'wasteQuantity' => $wasteWeight,
                     'prodWeight' => $prodWeigth,
+                    'assetResources' => $taskRec->assetId,
+                    'employees' => $taskRec->employees,
 
                 );
-            } else {
-                $obj = &$recs[$id];
-
-                $obj->scrappedQuantity += $taskRec->scrappedQuantity;
-                $obj->wasteQuantity += $taskRec->totalQuantity - $taskRec->producedQuantity;
-
             }
         }
-
-        // bp($recs);
 
         return $recs;
     }
@@ -214,9 +215,11 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
-            $fld->FLD('jobId', 'varchar', 'caption=Задание');
-            $fld->FLD('scrap', 'double(decimals=2)', 'caption=Брак');
-            $fld->FLD('waste', 'double(decimals=2)', 'caption=Отпадък');
+            $fld->FLD('taskId', 'varchar', 'caption=Операция');
+            $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
+            $fld->FLD('employees', 'varchar', 'caption=Служители');
+            $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
+            $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
 
         } else {
 
@@ -243,16 +246,29 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->jobId = planning_Jobs::getHyperlink($dRec->jobId);
-
-        $weight = !is_null($dRec->prodWeight) ? $dRec->prodWeight : '?';
+        $row->taskId = planning_Tasks::getHyperlink($dRec->taskId);
 
         if (isset($dRec->prodWeight)) {
-            $row->scrap = $Double->toVerbal($dRec->scrappedQuantity * $weight);
-            $row->waste = $Double->toVerbal($dRec->wasteQuantity * $weight);
+            $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeight);
+            $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
         } else {
-            $row->scrap = '?';
-            $row->waste = '?';
+            $row->scrappedWeight = '?';
+            $row->wasteWeight = '?';
+        }
+
+        if (isset($dRec->assetResources)) {
+            $row->assetResources = planning_AssetResources::getHyperlink($dRec->assetResources);
+        }
+
+        if (isset($dRec->employees)) {
+            $row->employees = '';
+            foreach (keylist::toArray($dRec->employees) as $val) {
+
+                $row->employees .= crm_Persons::getTitleById(($val)) . ' - ' . planning_Hr::getCodeLink($val) . ',' . "</br>";
+
+            }
+
+
         }
 
 
@@ -293,6 +309,8 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
                                     <div class='small'>
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN employees--><div>|Служители|*: [#employees#]</div><!--ET_END employees-->
+                                        <!--ET_BEGIN assetResources--><div>|Оборудване|*: [#assetResources#]</div><!--ET_END assetResources-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -305,6 +323,37 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
 
+        if (isset($data->rec->assetResources)) {
+            $marker = 0;
+            foreach (keylist::toArray($data->rec->assetResources) as $val) {
+                $marker++;
+                $valVerb = planning_AssetResources::getHyperlink($val);
+
+                if ((countR(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
+                    $valVerb .= ', ';
+                }
+
+                $fieldTpl->append('<b>' . $valVerb . '</b>', 'assetResources');
+            }
+        } else {
+            $fieldTpl->append('<b>' . "Всички" . '</b>', 'assetResources');
+        }
+
+        if (isset($data->rec->employees)) {
+            $marker = 0;
+            foreach (keylist::toArray($data->rec->employees) as $val) {
+                $marker++;
+                $valVerb = crm_Persons::getTitleById($val);
+
+                if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
+                    $valVerb .= ', ';
+                }
+
+                $fieldTpl->append('<b>' . $valVerb . '</b>', 'employees');
+            }
+        } else {
+            $fieldTpl->append('<b>' . "Всички" . '</b>', 'employees');
+        }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
