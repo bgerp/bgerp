@@ -300,7 +300,7 @@
 "echp.warm.pump.mode","int","0/100","Energy Center Heat Pump","system",0,"Heat Pump Control Group / Warm pump mode."
 "echp.warm.pump.state","json","","Energy Center Heat Pump","device","{}","Heat Pump Control Group / Warm pump state."
 "echp.hp.settings","json","","Energy Center Heat Pump","system","{""vendor"": ""HstarsGuangzhouRefrigeratingEquipmentGroup"", ""model"": ""40STD-N420WHSB4"", ""options"": {""uart"": 0, ""mb_id"": 1}}","Heat Pump Control Group / Heat Pump"
-"echp.hp.mode","int","","Energy Center Heat Pump","system",0,"The mode of the machine"
+"echp.hp.mode","int","","Energy Center Heat Pump","device",0,"The mode of the machine"
 "echp.hp.count","int","0/","Energy Center Heat Pump","system",3,"Energy Center Heat Pump machines count"
 "echp.hp.index","int","0/","Energy Center Heat Pump","system",0,"Energy Center Heat Pump machine index"
 "echp.hp.power","int","-100.0/100.0","Energy Center Heat Pump","system",0,"The power of machine"
