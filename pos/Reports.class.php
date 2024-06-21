@@ -134,6 +134,12 @@ class pos_Reports extends core_Master
 
 
     /**
+     * Дали автоматично да се разпределят партиди при моментно производство
+     */
+    public $allowInstantProductionBatches = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
