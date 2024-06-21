@@ -342,6 +342,7 @@ class planning_Tasks extends core_Master
         $this->FLD('nextErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Следваща грешка');
         $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
 
+        $this->setDbIndex('labelPackagingId');
         $this->setDbIndex('productId');
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');

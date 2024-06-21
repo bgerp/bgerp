@@ -159,6 +159,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FNC('scrapRecId', 'int', 'caption=Време,input=hidden,silent');
         $this->FNC('inputType', 'enum(materials,services,actions)', 'caption=Тип на влагане,input=hidden,silent');
 
+        $this->setDbIndex('productId');
         $this->setDbIndex('type');
         $this->setDbIndex('serial');
         $this->setDbIndex('taskId,productId');
