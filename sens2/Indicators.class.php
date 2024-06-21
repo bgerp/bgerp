@@ -374,9 +374,14 @@ class sens2_Indicators extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholder=Тип на контролера,removeAndRefreshForm=controllerId');
+        $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholder=Драйвер,removeAndRefreshForm=controllerId');
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'driver, controllerId, title';
+        $ctr = Request::get('Ctr');
+        if ($mvc instanceof $ctr) {
+            $data->listFilter->showFields = 'title, controllerId, driver';
+        } else {
+            $data->listFilter->showFields = 'title';
+        }
         $data->listFilter->input(null, 'silent');
 
         if (isset($data->listFilter->rec->controllerId)) {

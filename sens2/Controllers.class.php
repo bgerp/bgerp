@@ -113,7 +113,7 @@ class sens2_Controllers extends core_Master
     public function description()
     {
         $this->FLD('name', 'identifier(64,utf8)', 'caption=Наименование, mandatory,notConfig');
-        $this->FLD('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Тип на контролера');
+        $this->FLD('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Драйвер');
         $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Състояние,input=none');
         $this->FLD('persistentState', 'blob(serialize)', 'caption=Персистентно състояние,input=none,single=none,column=none');
@@ -656,11 +656,15 @@ class sens2_Controllers extends core_Master
     {
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'driver';
+        $data->listFilter->showFields = 'name, driver';
         $data->listFilter->input(null, 'silent');
 
         if (isset($data->listFilter->rec->driver)) {
             $data->query->where(array("#driver = '[#1#]'", $data->listFilter->rec->driver));
+        }
+
+        if (isset($data->listFilter->rec->name)) {
+            $data->query->where(array("LOWER(#name) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->name)));
         }
 
         $data->listFilter->fields['driver']->refreshForm = 'refreshForm';
