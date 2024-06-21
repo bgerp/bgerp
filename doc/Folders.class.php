@@ -305,16 +305,16 @@ class doc_Folders extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('order', 'enum(pending=Първо отворените,last=Сортиране по "последно", inCharge=Без споделените)', 'caption=Подредба,input,silent,autoFilter');
+        $data->listFilter->FNC('docType', 'class(interface=doc_FolderIntf,select=title,allowEmpty)', 'caption=Тип папка,input,silent,autoFilter');
+
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета
-        // на модела ще се появят
-        $data->listFilter->showFields = 'search,users,order';
-        $data->listFilter->input('search,users,order', 'silent');
+        // Показваме само това поле. Иначе и другите полета на модела ще се появят
+        $data->listFilter->showFields = 'search,users,order,docType';
+        $data->listFilter->input('search,users,order,docType', 'silent');
 
         $cu = core_Users::getCurrent();
-
         if (!$data->listFilter->rec->users) {
             $data->listFilter->rec->users = '|' . $cu . '|';
         }
@@ -330,7 +330,11 @@ class doc_Folders extends core_Master
             $data->title = 'Търсене на папки отговарящи на |*<span class="green">"' .
             $data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
         }
-        
+
+        if ($data->listFilter->rec->docType) {
+            $data->query->where("#coverClass={$data->listFilter->rec->docType}");
+        }
+
         switch ($data->listFilter->rec->order) {
             case 'inCharge':
             case 'last':
