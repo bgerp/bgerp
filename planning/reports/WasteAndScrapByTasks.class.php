@@ -22,6 +22,21 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
      */
     public $canSelectDriver = 'ceo, debug';
 
+    /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields = 'scrappedWeight,wasteWeight';
+
+
+    /**
+     * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
+     *
+     * @var int
+     */
+    protected $summaryRowCaption = 'ОБЩО';
+
 
     /**
      * Полета за хеширане на таговете
