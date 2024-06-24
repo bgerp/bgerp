@@ -114,7 +114,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                         'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
                         'debit' => array('4530', array($origin->className, $origin->that)),
                         'credit' => array('4531'),
-                        'reason' => '',
+                        'reason' => 'Сторно начислен ДДС при покупка - Артикул БЕЗ право на Данъчен кредит',
                     );
                 }
             }
