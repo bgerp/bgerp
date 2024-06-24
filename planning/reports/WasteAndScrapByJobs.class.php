@@ -178,10 +178,16 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             if (!$wasteQuantity) {
                 $totalWastePercent = null;
                 $waste = planning_ProductionTaskProducts::getTotalWasteArr($jobsArr[$taskRec->originId]->threadId, $totalWastePercent);
+
+
             }
             foreach ($waste as $v) {
+
+                $wasteWeight = 0;
                 if ($v->quantity) {
-                    $wasteWeight = $v->quantity;
+
+
+                    $wasteWeight += $v->quantity;
                 }
             }
 
