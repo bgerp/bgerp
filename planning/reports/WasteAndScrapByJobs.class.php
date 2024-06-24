@@ -211,6 +211,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                 $obj->scrappedWeight += $scrappedWeight;
 
             }
+            $wasteWeight = 0;
         }
 
         return $recs;
@@ -260,12 +261,15 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         $row->jobId = planning_Jobs::getHyperlink($dRec->jobId);
 
+        if (isset($dRec->wasteWeight)) {
+            $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
+        }
+
         if (isset($dRec->prodWeight)) {
             $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeight);
-            $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
+
         } else {
             $row->scrappedWeight = '?';
-            $row->wasteWeight = '?';
         }
 
 
