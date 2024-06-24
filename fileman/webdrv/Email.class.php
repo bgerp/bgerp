@@ -22,7 +22,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      *
      * @see fileman_webdrv_Generic::$defaultTab
      */
-    public static $defaultTab = 'html';
+    public static $defaultTab = 'info';
     
     
     /**
