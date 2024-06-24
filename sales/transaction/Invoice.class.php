@@ -54,8 +54,8 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             }
         }
 
+        $productArr = array();
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
-            $productArr = array();
             $error = null;
             if (!$this->class->isAllowedToBePosted($rec, $error, true)) {
                 acc_journal_RejectRedirect::expect(false, $error);
