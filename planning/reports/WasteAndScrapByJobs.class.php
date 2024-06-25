@@ -189,8 +189,10 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                     if(self::isWeightMeasure($v->packagingId) === false){
 
                         $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
+
                         if (!is_null($wasteProdWeigth)) {
-                            $wasteWeight = $v->quantity * $wasteProdWeigth;
+                            $wasteWeight += $v->quantity * $wasteProdWeigth;
+
                         } else {
                             $wasteWeight = null;
                         }
@@ -223,6 +225,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                     'scrappedWeight' => $scrappedWeight,                                                     // количество брак
                     'wasteWeight' => $wasteWeight,
                     'prodWeight' => $prodWeigth,
+                    'wasteProdWeigth' =>$wasteProdWeigth
 
                 );
             } else {
