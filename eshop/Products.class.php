@@ -945,6 +945,7 @@ class eshop_Products extends core_Master
                 $data->groups->groupId = $groupId;
             }
         }
+        expect($data->groups->groupId, $data->groups, $data);
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
 
         $settings = cms_Domains::getSettings();
@@ -1875,7 +1876,7 @@ class eshop_Products extends core_Master
         } else {
             $tpl = new core_ET("<div class='richtext'><ul>[#row#]</ul></div>");
             foreach ($array as $paramId => $value) {
-                $paramBlock = new core_ET('<li><b>[#caption#]</b> : [#value#]</li>');
+                $paramBlock = new core_ET('<li>[#caption#] : <b>[#value#]</b></li>');
                 $paramBlock->placeArray(array('caption' => str::mbUcfirst(tr(cat_Params::getTitleById($paramId))), 'value' => $value));
                 $paramBlock->removeBlocksAndPlaces();
                 $tpl->append($paramBlock, 'row');

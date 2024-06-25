@@ -60,13 +60,27 @@ class drdata_IpToCountry extends core_Manager
         $fields = array(
             0 => 'minIp',
             1 => 'maxIp',
-            4 => 'country2'
+            2 => 'country2'
         );
         
         // Импортираме данните
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
         
         $res .= $cntObj->html;
+    }
+
+
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, $rec)
+    {
+        if ($rec->minIp) {
+            $rec->minIp = sprintf("%u", ip2long($rec->minIp));
+        }
+        if ($rec->maxIp) {
+            $rec->maxIp = sprintf("%u", ip2long($rec->maxIp));
+        }
     }
     
     

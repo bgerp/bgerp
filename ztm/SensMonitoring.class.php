@@ -44,7 +44,9 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
     public $outputs = array(
         'goalBuildingTemp' => array('caption' => 'Температура на сградата', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
         'floorMode' => array('caption' => 'Мод на отоплението на пода', 'uom' => 'ENUM', 'logPeriod' => 3600, 'readPeriod' => 60),
-        'convMode' => array('caption' => 'Мод на отоплението на конвекторите', 'uom' => 'ENUM', 'logPeriod' => 3600, 'readPeriod' => 60)
+        'convMode' => array('caption' => 'Мод на отоплението на конвекторите', 'uom' => 'ENUM', 'logPeriod' => 3600, 'readPeriod' => 60),
+        'illuminationEast' => array('caption' => 'Осветеност изток', 'uom' => 'ENUM', 'logPeriod' => 3600, 'readPeriod' => 60),
+        'illuminationWest' => array('caption' => 'Осветеност запад', 'uom' => 'ENUM', 'logPeriod' => 3600, 'readPeriod' => 60)
     );
 
 
@@ -150,6 +152,7 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
      */
     public function writeOutputs($outputs, $config, &$persistentState)
     {
+        $resArr = array();
         foreach ($outputs as $oKey => $oVal) {
             $rKey = null;
             if ($oKey == 'goalBuildingTemp') {
@@ -161,13 +164,23 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
             if ($oKey == 'convMode') {
                 $rKey = 'glob.conv.mode';
             }
+            if ($oKey == 'illuminationEast') {
+                $rKey = 'glob.illumination.east';
+            }
+            if ($oKey == 'illuminationWest') {
+                $rKey = 'glob.illumination.west';
+            }
             expect($rKey);
 
             $regId = ztm_Registers::fetchField(array("#name = '[#1#]'", $rKey));
             if ($regId) {
                 ztm_RegisterValues::forceSync($regId, $oVal);
+
+                $resArr[$rKey] = $oVal;
             }
         }
+
+        return $resArr;
     }
 
 

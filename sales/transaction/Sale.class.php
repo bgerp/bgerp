@@ -522,8 +522,10 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      * @throws acc_journal_RejectRedirect
      * @return array $entries
      */
-    public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId', &$instantProducts = array(), $productFieldName = 'productId')
+    public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId', &$instantProducts = array(), $productFieldName = 'productId', &$inputedMaterials = array())
     {
+        $Class = cls::get($class);
+        core_Debug::startTimer('FAST_PRODUCTION_ENTRIES');
         $entries = $bomDataCombined = array();
         if(!is_array($rec->details)) return $entries;
 
@@ -539,15 +541,33 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             $bomDataCombined[$instantBomRec->id]->quantity += $quantity;
         }
 
+        core_Debug::startTimer('FAST_PRODUCTION_BOM_DATA');
         foreach ($bomDataCombined as $bomData){
 
             // И тя има ресурси, произвежда се по нея
             $bomInfo = cat_Boms::getResourceInfo($bomData->rec, $bomData->quantity, $rec->valior);
             if(is_array($bomInfo['resources'])){
+
                 foreach ($bomInfo['resources'] as &$resRec){
                     $resRec->quantity = $resRec->propQuantity;
                     $resRec->storeId = $bomData->storeId;
                     $resRec->fromAccId = '61102';
+
+                    // Ако е инсталиран пакета за партидности
+                    core_Debug::startTimer('CALC_BATCH_DATA');
+                    if(core_Packs::isInstalled('batch') && $Class->allowInstantProductionBatches){
+                        $canStore = cat_Products::fetchField($resRec->productId, 'canStore');
+                        if($canStore == 'yes'){
+                            if($Def = batch_Defs::getBatchDef($resRec->productId)){
+                                if(!array_key_exists("{$resRec->storeId}|{$resRec->productId}", $inputedMaterials)){
+                                    $inputedMaterials["{$resRec->storeId}|{$resRec->productId}"] = (object)array('productId' => $resRec->productId, 'quantity' => 0, 'storeId' => $resRec->storeId, 'Def' => $Def);
+                                    $inputedMaterials["{$resRec->storeId}|{$resRec->productId}"]->inStock = batch_Items::getBatchQuantitiesInStore($resRec->productId, $resRec->storeId);
+                                }
+                                $inputedMaterials["{$resRec->storeId}|{$resRec->productId}"]->quantity += $resRec->quantity * $resRec->quantityInPack;
+                            }
+                        }
+                    }
+                    core_Debug::stopTimer('CALC_BATCH_DATA');
                 }
 
                 // Извличане на записите за производството
@@ -561,8 +581,56 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
         }
 
+        core_Debug::stopTimer('FAST_PRODUCTION_BOM_DATA');
+        core_Debug::log("GET FAST_PRODUCTION_BOM_DATA " . round(core_Debug::$timers["FAST_PRODUCTION_BOM_DATA"]->workingTime, 6));
+
         // Проверка дали материалите са вложими и генерични
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            $batchesArr = $productsWithMandatoryBatches = array();
+
+            // Ще се прави опит за автоматично разпределяне на партиди при контиране
+            core_Debug::startTimer('CALC_BATCH_DATA');
+            core_Debug::startTimer('ALLOCATE_BATCH_DATA');
+            foreach ($inputedMaterials as $iMat){
+                $batches = $iMat->Def->allocateQuantityToBatches($iMat->quantity, $iMat->storeId, $class, $rec->id, $rec->valior);
+                $iMat->_leftQuantity = $iMat->quantity;
+
+                foreach ($batches as $b => $q){
+                    $bRec = (object)array('productId' => $iMat->productId, 'operation' => 'out', 'storeId' => $iMat->storeId, 'quantity' => $q, 'quantityInPack' => 1, 'packagingId' => cat_Products::fetchField($iMat->productId, 'measureId'));
+                    $bRec->detailClassId = $Class->getClassId();
+                    $bRec->detailRecId = $rec->id;
+                    $bRec->date = $rec->valior;
+                    $bRec->containerId = $rec->containerId;
+                    $bRec->batch = $b;
+                    $bRec->isInstant = 'yes';
+                    $batchesArr[] = $bRec;
+                    $iMat->_leftQuantity -= $q;
+                }
+            }
+            core_Debug::stopTimer('ALLOCATE_BATCH_DATA');
+            core_Debug::stopTimer('CALC_BATCH_DATA');
+
+            // Проверка за намерените партиди дали отговарят на изискванията
+            foreach ($inputedMaterials as $iMat1){
+                $checkIfBatchIsMandatory = ($iMat1->Def->getField('alwaysRequire') == 'auto') ? batch_Templates::fetchField($iMat1->Def->getField('templateId'), 'alwaysRequire') : $iMat1->Def->getField('alwaysRequire');
+                if($checkIfBatchIsMandatory == 'yes'){
+
+                    if(round($iMat1->_leftQuantity, 5) > 0) {
+                        $productsWithMandatoryBatches[$iMat1->productId] = "<b>" . cat_Products::getTitleById($iMat1->productId, false) . "</b>";
+                    }
+                }
+            }
+
+            if(countR($productsWithMandatoryBatches)){
+                $productMsg = implode(', ', $productsWithMandatoryBatches);
+                acc_journal_RejectRedirect::expect(false, "(2)Артикулите не могат да са без партида|*: {$productMsg}");
+            }
+
+            // Запис
+            if (countR($batchesArr)) {
+                cls::get('batch_BatchesInDocuments')->saveArray($batchesArr);
+            }
+
             $shipped = array();
             foreach ($entries as $d) {
                 if (in_array($d['credit'][0], array('60201', '321'))) {
@@ -577,6 +645,11 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
+
+        core_Debug::stopTimer('FAST_PRODUCTION_ENTRIES');
+        core_Debug::log("GET FAST_PRODUCTION_ENTRIES " . round(core_Debug::$timers["FAST_PRODUCTION_ENTRIES"]->workingTime, 6));
+        core_Debug::log("GET CALC_BATCH_DATA " . round(core_Debug::$timers["CALC_BATCH_DATA"]->workingTime, 6));
+        core_Debug::log("GET ALLOCATE_BATCH_DATA " . round(core_Debug::$timers["ALLOCATE_BATCH_DATA"]->workingTime, 6));
 
         return $entries;
     }

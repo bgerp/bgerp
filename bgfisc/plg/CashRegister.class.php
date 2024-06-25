@@ -45,7 +45,7 @@ class bgfisc_plg_CashRegister extends core_Plugin
         
         $cashRegOptions = bgfisc_Setup::getFiscDeviceOptins();
         if (count($cashRegOptions)) {
-            $form->setOptions('cashRegNum', $cashRegOptions);
+            $form->setOptions('cashRegNum', array(bgfisc_Register::WITHOUT_REG_NUM => 'Без устройство') + $cashRegOptions);
         } else {
             $form->setField('cashRegNum', 'input=none');
         }

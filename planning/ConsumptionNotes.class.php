@@ -211,7 +211,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
             $mvc->setEmployeesOptions($form);
         }
 
-        if($jobRec = static::getJobFromThread($rec->threadId)){
+        if($jobRec = static::getJobRec($rec)){
             $rec->_inputStores = keylist::toArray($jobRec->inputStores);
             $selectableStores = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $rec->_inputStores);
             if(countR($selectableStores) == 1){

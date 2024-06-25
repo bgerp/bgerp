@@ -434,17 +434,19 @@ class incoming_Documents extends core_Master
     public static function getActionsForFile($fRec)
     {
         if (self::canKeepDoc($fRec->name, $fRec->fileLen)) {
-            $dfRec = doc_files::fetch("#fileHnd = '{$fRec->fileHnd}'");
-            
-            // Създаваме масива за създаване на визитка
-            $arr = array();
-            $inst = cls::get('incoming_Documents');
-            $arr['incoming']['url'] = array($inst->className, 'add', 'fh' => $fRec->fileHnd, 'ret_url' => true);
-            if ($dfRec) {
-                $arr['incoming']['url']['defaultFolderId'] = $dfRec->folderId;
+            if(self::haveRightFor('add')){
+                $dfRec = doc_files::fetch("#fileHnd = '{$fRec->fileHnd}'");
+
+                // Създаваме масива за създаване на визитка
+                $arr = array();
+                $inst = cls::get('incoming_Documents');
+                $arr['incoming']['url'] = array($inst->className, 'add', 'fh' => $fRec->fileHnd, 'ret_url' => true);
+                if ($dfRec) {
+                    $arr['incoming']['url']['defaultFolderId'] = $dfRec->folderId;
+                }
+                $arr['incoming']['title'] = 'Входящ документ';
+                $arr['incoming']['icon'] = $inst->singleIcon;
             }
-            $arr['incoming']['title'] = 'Входящ документ';
-            $arr['incoming']['icon'] = $inst->singleIcon;
         }
         
         return $arr;

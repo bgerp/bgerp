@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -27,7 +27,7 @@ class acc_ProductPricePerPeriods extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'acc_Wrapper, plg_Sorting, plg_SaveAndNew';
+    public $loadList = 'acc_Wrapper, plg_Sorting';
 
 
     /**
@@ -82,19 +82,6 @@ class acc_ProductPricePerPeriods extends core_Manager
 
 
     /**
-     * Връща крайната дата до която да се кешират записите
-     *
-     * @return mixed|string
-     */
-    public static function getCacheMaxDate()
-    {
-        $balanceBeforeCnt = acc_Setup::get('NOT_TO_CACHE_STOCK_PRICES_IN_LAST_BALANCE_COUNT');
-
-        return dt::addMonths(-1 * $balanceBeforeCnt, dt::getLastDayOfMonth(), false);
-    }
-
-
-    /**
      * Извличане на данните от баланса
      *
      * @param date $fromDate
@@ -115,13 +102,8 @@ class acc_ProductPricePerPeriods extends core_Manager
         }
 
         // Взимат се балансите до посочената дата в настройките
-        if(!isset($toDate)){
-            $toDate = static::getCacheMaxDate();
-        }
-
-        if(isset($toDate)){
-            $bQuery->where("#toDate <= '{$toDate}'");
-        }
+        $toDate = $toDate ?? dt::getLastDayOfMonth();
+        $bQuery->where("#toDate <= '{$toDate}'");
 
         $bRecs = $bQuery->fetchAll();
         $balanceIds = array_keys($bRecs);
@@ -154,7 +136,7 @@ class acc_ProductPricePerPeriods extends core_Manager
                     $dRec->price = 0;
                 } else {
                     core_Debug::startTimer("ROUND");
-                    $dRec->price = round($dRec->blAmount / $dRec->blQuantity, 5);
+                    @$dRec->price = round($dRec->blAmount / $dRec->blQuantity, 5);
                     core_Debug::stopTimer("ROUND");
                 }
                 $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
@@ -191,6 +173,21 @@ class acc_ProductPricePerPeriods extends core_Manager
         static::logDebug("EXTRACT: ROUND{$rTime} / COUNT{$count} / FETCH_D: {$fd}/ FETCH_E: {$feTime}");
 
         return $res;
+    }
+
+
+    /**
+     * Функция, която се вика по крон по разписание
+     * Синхронизира перата
+     */
+    public static function callback_SyncStockPrices()
+    {
+        $Cache = cls::get('acc_ProductPricePerPeriods');
+        core_App::setTimeLimit(300);
+        $res = acc_ProductPricePerPeriods::extractDataFromBalance(null);
+        foreach ($res as $recs4Balance){
+            $Cache->saveArray($recs4Balance);
+        }
     }
 
 
@@ -233,6 +230,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'balanceId,storeItemId,productItemId,toDate';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->query->orderBy('date', 'DESC');
 
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productItemId)) {
@@ -297,12 +295,12 @@ class acc_ProductPricePerPeriods extends core_Manager
     /**
      * Връща последните цени на артикулите към дата
      *
-     * @param date $toDate
+     * @param datetime $toDate
      * @param int $productItemId
      * @param int $storeItemId
      * @return array $res
      */
-    public static function getPricesToDate($toDate, $productItemId = null, $storeItemId = null)
+    public static function getPricesToDate($toDate, $productItemId = null, $storeItems = null)
     {
         $dateColName = str::phpToMysqlName('date');
         $storeColName = str::phpToMysqlName('storeItemId');
@@ -314,17 +312,22 @@ class acc_ProductPricePerPeriods extends core_Manager
         if (!empty($productItemId)) {
             $otherWhere[] = "`{$me->dbTableName}`.{$productColName} = {$productItemId}";
         }
-        if (!empty($storeItemId)) {
-            $otherWhere[] = "`{$me->dbTableName}`.{$storeColName} = {$storeItemId}";
+        if (!empty($storeItems)) {
+            $storeArr = arr::make($storeItems);
+            $storeStr = implode(',', $storeArr);
+
+            $otherWhere[] = "`{$me->dbTableName}`.{$storeColName} IN ({$storeStr})";
         }
         $otherWhere = implode(' AND ', $otherWhere);
         if (!empty($otherWhere)) {
             $otherWhere = " AND {$otherWhere}";
         }
 
+        $toDate = $toDate ?? dt::getLastDayOfMonth();
         core_Debug::log("START GROUP_ALL");
         core_Debug::startTimer('GROUP_ALL');
-        $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `storeItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} )ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 1000000) as temp GROUP BY temp.storeItemId, temp.productItemId";
+        $query1 = "SELECT * FROM (SELECT `{$me->dbTableName}`.`id` AS `id` , `{$me->dbTableName}`.`{$dateColName}` AS `date` , `{$me->dbTableName}`.`{$storeColName}` AS `storeItemId` , `{$me->dbTableName}`.`{$productColName}` AS `productItemId` , `{$me->dbTableName}`.`{$priceColName}` AS `{$priceColName}` FROM `{$me->dbTableName}` WHERE (`{$me->dbTableName}`.`{$dateColName}` <= '{$toDate}'{$otherWhere} ) ORDER BY `{$me->dbTableName}`.`{$dateColName}` DESC LIMIT 1000000) as temp GROUP BY temp.storeItemId, temp.productItemId";
+
         $dbTableRes = $me->db->query($query1);
         core_Debug::stopTimer('GROUP_ALL');
         core_Debug::log("END GROUP_ALL " . round(core_Debug::$timers["GROUP_ALL"]->workingTime, 6));
@@ -341,6 +344,12 @@ class acc_ProductPricePerPeriods extends core_Manager
     }
 
 
+    /**
+     * Инвалидира данните след
+     *
+     * @param datetime $date
+     * @return void
+     */
     public static function invalidateAfterDate($date)
     {
         core_Debug::startTimer('INVALIDATE_ALL');
@@ -389,11 +398,45 @@ class acc_ProductPricePerPeriods extends core_Manager
         $sTime = round(core_Debug::$timers["SAVE_ARR"]->workingTime, 6);
         $tpTime = round(core_Debug::$timers["TO_DATE_PREV_EACH"]->workingTime, 6);
 
-        $to = static::getCacheMaxDate();
+        $to = dt::getLastDayOfMonth();
         static::logDebug("FROM '{$date}' TO '{$to}'-RES(I{$iCount}:U{$uCount}:D{$dCount})-T'{$wTime}'/TO:{$tTime}/E:{$eTime}/S:{$sTime}/TOPREV:{$tpTime}");
     }
 
 
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        $cronRec = core_Cron::getRecForSystemId('UpdateStockPricesPerPeriod');
+        $url = array('core_Cron', 'ProcessRun', str::addHash($cronRec->id), 'forced' => 'yes');
+
+        $data->toolbar->addBtn('Преизчисляване', $url, 'ef_icon=img/16/arrow_refresh.png, title = Преизчисляване');
+    }
+
+
+    /**
+     * Обновяване на себестойностите по разписание
+     */
+    public function cron_UpdateStockPricesPerPeriod()
+    {
+        $from = dt::addSecs(-3600);
+
+        $bQuery = acc_Balances::getQuery();
+        $bQuery->orderBy('fromDate', 'ASC');
+        $bQuery->where("#lastCalculate >= '{$from}'");
+        $invalidateAfterDate = $bQuery->fetch()->fromDate;
+
+        core_Debug::log("INVALIDATE AFTER {$invalidateAfterDate}");
+        if($invalidateAfterDate){
+            acc_ProductPricePerPeriods::invalidateAfterDate($invalidateAfterDate);
+        }
+    }
+
+
+    /**
+     * Екшън за инвалидиране на данните
+     */
     function act_Invalidate()
     {
         $from = Request::get('FROM', 'date');

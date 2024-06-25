@@ -2414,9 +2414,8 @@ class fileman_Files extends core_Master
             if (is_array($arrCreate)) {
                 // Обхождаме масива
                 foreach ($arrCreate as $id => $arr) {
-
                     // Ако има полета, създаваме бутона
-                    if (count($arr) && $className::haveRightFor('add')) {
+                    if (count($arr)) {
                         $data->toolbar->addBtn($arr['title'], $arr['url'], 'row=2,id=' . $id . ',ef_icon=' . $arr['icon'], $arr['btnParams']);
                     }
                 }

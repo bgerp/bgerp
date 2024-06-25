@@ -2,7 +2,7 @@
 
 
 /**
- * Толеранс за допустимо разминаване в салдото->Сума
+ * Сделката да не се показва като просрочена при салдо (неплатено)->под % от доставеното
  */
 defIfNot('DEALS_BALANCE_TOLERANCE', '0.01');
 
@@ -113,7 +113,7 @@ class deals_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Процент за допустимо разминаване в салдото според сумата->Процент'),
+        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Сделката да не се показва като просрочена при салдо (неплатено)->Под,unit= от доставеното'),
         'DEALS_ISSUER_USER' => array('user(roles=ceo|salesMaster,allowEmpty)', 'caption=Съставител на бизнес документи->Конкретен потребител'),
         'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Или'),
         'DEALS_OVERDUE_PENDING_DAYS_1' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Първо след,unit=дни'),
@@ -334,136 +334,6 @@ class deals_Setup extends core_ProtoSetup
                 } catch(core_exception_Expect $e){
                     reportException($e);
                 }
-            }
-        }
-    }
-
-
-    /**
-     * Миграция на КИ/ДИ разбити по артикули
-     * @todo да се премахне след рилийз
-     *
-     * @param mixed $Master
-     * @param mixed $Detail
-     * @return void
-     */
-    public function migrateDcNotes($Master, $Detail)
-    {
-        $Invoices = cls::get($Master);
-        $Details = cls::get($Detail);
-
-        $dRecs = array();
-        $dQuery = $Details->getQuery();
-        $dQuery->EXT('originId', $Invoices->className, "externalName=originId,externalKey=invoiceId");
-        $dQuery->EXT('state', $Invoices->className, "externalName=state,externalKey=invoiceId");
-        $dQuery->EXT('changeAmount', $Invoices->className, "externalName=changeAmount,externalKey=invoiceId");
-        $dQuery->EXT('stateInv', $Invoices->className, "externalName=state,externalKey=invoiceId");
-        $dQuery->EXT('number', $Invoices->className, "externalName=number,externalKey=invoiceId");
-        $dQuery->EXT('type', $Invoices->className, "externalName=type,externalKey=invoiceId");
-        $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-        while($dRec = $dQuery->fetch()){
-            if(!array_key_exists($dRec->invoiceId, $dRecs)){
-                $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
-            }
-            $dRecs[$dRec->invoiceId]['recs'][$dRec->id] = $dRec;
-        }
-
-        $update = $notUpdated = array();
-        $iCount = $dQuery->count();
-        core_App::setTimeLimit($iCount * 0.4, false, 400);
-        foreach ($dRecs as $invoiceId => $invoiceArr){
-            ksort($invoiceArr['recs']);
-            $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], true);
-
-            foreach ($invoiceArr['recs'] as $dRec){
-                $foundArr = array_filter($cached->recWithIds, function($a) use ($dRec){
-                    return ($a['productId'] == $dRec->productId && $a['packagingId'] == $dRec->packagingId);
-                });
-
-                if(countR($foundArr) > 1){
-                    $dRec->packPrice = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
-                    $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-
-                        return ($a['price'] == round($dRec->packPrice, 5) && $a['quantity'] = $dRec->quantity);
-                    });
-                    if(!countR($foundTotal)){
-                        $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                            return ($a['price'] == round($dRec->packPrice, 5));
-                        });
-                    }
-                    if(!countR($foundTotal)){
-                        $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                            return ($a['quantity'] == $dRec->quantity);
-                        });
-                    }
-
-                    $foundKey = key($foundTotal);
-                } else {
-                    $foundKey = key($foundArr);
-                }
-
-                if(isset($foundKey)){
-                    $dRec->clonedFromDetailId = $foundKey;
-                    $update[$dRec->id] = $dRec;
-                } else {
-                    $notUpdated[$dRec->id] = array('number' => $dRec->number, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
-                }
-            }
-        }
-
-        $Details->saveArray($update, 'id,clonedFromDetailId');
-        foreach ($dRecs as $invoiceId => $invoiceArr1){
-            $invoiceRec = $Invoices->fetch($invoiceId);
-            $invoiceRec->_notModified = true;
-            $Invoices->updateMaster($invoiceRec);
-            $Invoices->removeFromUpdateQueueOnShutdown($invoiceRec->id);
-        }
-        $Invoices->logDebug("RE_INV U:" . countR($update) . "/N:" . countR($notUpdated));
-    }
-
-
-    /**
-     * Миграция на КИ/ДИ разбити по артикули
-     * @todo да се премахне след рилийз
-     *
-     * @param mixed $class
-     * @return void
-     */
-    public function fixDcNotesModifiedOn($class)
-    {
-        $Class = cls::get($class);
-
-        $date = '2021-12-01';
-        $to = '2023-09-18';
-
-        $threads = array();
-        $cQuery = doc_Containers::getQuery();
-        $cQuery->where("#docClass = {$Class->getClassId()}");
-        $cQuery->EXT('last', 'doc_Threads', "externalName=last,externalKey=threadId");
-        $cQuery->where("#modifiedBy = " . core_Users::SYSTEM_USER);
-        $cQuery->where(array("#createdOn <= '{$date} 00:00:00'"));
-        $cQuery->where(array("#modifiedOn >= '{$to} 00:00:00'"));
-
-        $count = $cQuery->count();
-        core_App::setTimeLimit($count * 0.2, false, 300);
-
-        while ($cRec = $cQuery->fetch()) {
-            $cRec->modifiedOn = $cRec->createdOn;
-            $cRec->modifiedBy = $cRec->modifiedBy;
-            $cRec->_notModified = true;
-            doc_Containers::save($cRec, 'modifiedOn, modifiedBy');
-            $threads[$cRec->threadId] = $cRec->last;
-        }
-
-        foreach ($threads as $threadId => $threadLast) {
-            $firstDcRec = null;
-            $lastDcRec = null;
-            $lastChangeDate = null;
-
-            $tRec = doc_Threads::fetch($threadId);
-            doc_Threads::prepareDocCnt($tRec, $firstDcRec, $lastDcRec, $lastChangeDate);
-            if ($lastChangeDate != $tRec->last) {
-                doc_Threads::updateThread($tRec->id);
             }
         }
     }

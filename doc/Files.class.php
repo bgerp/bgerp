@@ -551,6 +551,26 @@ class doc_Files extends core_Manager
         }
 
         if ($filter->range) {
+            if ($filter->range == $folderPrefix . 'allFolders') {
+                $minLen = 3;
+                if (mb_strlen($filter->search) <= $minLen) {
+                    $msg = 'Когато се търси по "Всички папки" трябва да се попълни и "Ключови думи" с поне ' . ++$minLen . ' буквен стринг';
+                    if (haveRole('manager')) {
+                        $data->listFilter->setWarning('search, range', $msg);
+                    } else {
+                        $data->listFilter->setError('search, range', $msg);
+                    }
+
+                    if (!$data->listFilter->isSubmitted()) {
+                        $data->query->where('1 = 0');
+
+                        return ;
+                    }
+                }
+            }
+        }
+
+        if ($filter->range) {
             // Ако се филтрира по папките на текущия потребител или файловете му
             if (stripos($filter->range, $sPrefix) === 0) {
                 $fSearch = '';

@@ -158,8 +158,8 @@ class cat_Products extends embed_Manager
      * Кой може да пише?
      */
     public $canWrite = 'cat,ceo,sales,purchase,catEdit';
-    
-    
+
+
     /**
      * Кой може да добавя?
      */
@@ -440,7 +440,7 @@ class cat_Products extends embed_Manager
         // Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
         if (isset($rec->folderId)) {
             $cover = doc_Folders::getCover($rec->folderId);
-            $isTemplate = ($cover->getProductType() == 'template');
+            $isTemplate = isset($rec->id) ? ($rec->state == 'template') :  $cover->getProductType() == 'template';
 
             $defMetas = array();
             if (isset($rec->proto)) {
@@ -706,11 +706,8 @@ class cat_Products extends embed_Manager
         // Според папката се определя дали артикула е публичен/частен или е шаблон
         if (isset($rec->folderId)) {
             $Cover = doc_Folders::getCover($rec->folderId);
-            $type = $Cover->getProductType($id);
-            
-            if (!isset($rec->id)) {
-                $rec->isPublic = ($type != 'private') ? 'yes' : 'no';
-            }
+            $type = isset($rec->id) ? (($rec->state == 'template') ? 'template' : (($rec->isPublic == 'yes') ? 'public' : 'private')) : $Cover->getProductType();
+            $rec->isPublic = ($type != 'private') ? 'yes' : 'no';
             
             if ($rec->state != 'rejected' && $rec->state != 'closed') {
                 $rec->state = ($type == 'template') ? 'template' : 'draft';
@@ -1522,17 +1519,6 @@ class cat_Products extends embed_Manager
         
         if (isset($rec->originId)) {
             doc_DocumentCache::cacheInvalidation($rec->originId);
-        }
-        
-        if (isset($rec->folderId)) {
-            $Cover = doc_Folders::getCover($rec->folderId);
-            $type = $Cover->getProductType($rec->id);
-            $isPublic = isset($rec->isPublic) ? $rec->isPublic : $mvc->fetchField($rec->id, 'isPublic');
-            
-            if ($type == 'public' && $isPublic == 'no') {
-                $rec->isPublic = 'yes';
-                $mvc->save_($rec, 'isPublic');
-            }
         }
         
         // Ако артикула е редактиран, преизчислява се транспорта
@@ -2481,14 +2467,17 @@ class cat_Products extends embed_Manager
             if (isset($rec->proto)) {
                 $row->proto = core_Users::isContractor() ? $mvc->getTitleById($rec->proto) : $mvc->getHyperlink($rec->proto);
             }
-            
-            if ($mvc->haveRightFor('edit', $rec)) {
-                if (!Mode::isReadOnly()) {
+
+            if (!Mode::isReadOnly()) {
+                if ($mvc->haveRightFor('edit', $rec)) {
                     $row->editGroupBtn = ht::createLink('', array($mvc, 'EditGroups', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на групите на артикула');
+                }
+
+                if ($mvc->haveRightFor('changemeta', $rec)) {
                     $row->editMetaBtn = ht::createLink('', array($mvc, 'changemeta', 'Selected' => $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на мета-свойствата на артикула');
                 }
             }
-            
+
             $groupLinks = cat_Groups::getLinks($rec->groupsInput);
             $row->groupsInput = (countR($groupLinks)) ? implode(' ', $groupLinks) : (haveRole('partner') ? null : '<i>' . tr('Няма') . '</i>');
 
@@ -2513,8 +2502,10 @@ class cat_Products extends embed_Manager
             if ($meta['canSell']) {
                 if(doc_plg_HidePrices::canSeePriceFields($mvc, $rec)){
                     if ($rec->price = price_ListRules::getPrice(cat_Setup::get('DEFAULT_PRICELIST'), $rec->id, null, dt::now())) {
-                        $vat = self::getVat($rec->id);
-                        $rec->price *= (1 + $vat);
+                        if(crm_Companies::isOwnCompanyVatRegistered()){
+                            $vat = self::getVat($rec->id);
+                            $rec->price *= (1 + $vat);
+                        }
                         $row->price = $mvc->getVerbal($rec, 'price');
                     }
                 }
@@ -2860,6 +2851,10 @@ class cat_Products extends embed_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
+        if($action == 'changemeta'){
+            $res = $mvc->getRequiredRoles('edit', $rec, $userId);
+        }
+
         if ($action == 'add') {
             if (isset($rec)) {
                 if (isset($rec->originId)) {
@@ -3220,12 +3215,10 @@ class cat_Products extends embed_Manager
     public static function getWacAmountInStore($quantity, $productId, $date, $stores = array(), $maxTry = null)
     {
         $item2 = acc_Items::fetchItem('cat_Products', $productId)->id;
-        if (!$item2) {
-            return;
-        }
-        
-        
-        $item1 = '*';
+        if (!$item2) return;
+
+        core_Debug::startTimer('WAC_AMOUNT');
+        $item1 = null;
         if (is_array($stores) && countR($stores)) {
             $item1 = array();
             foreach ($stores as $storeId) {
@@ -3233,17 +3226,30 @@ class cat_Products extends embed_Manager
                 $item1[$storeItemId] = $storeItemId;
             }
         }
-        
-        // Намираме сумата която струва к-то от артикула в склада
-        $maxTry = isset($maxTry) ? $maxTry : core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
-        $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
-        
-        if (isset($amount)) {
-            return round($amount, 4);
+
+        core_Debug::startTimer('WAC_AMOUNT_FROM_CACHE');
+        $pricesArr = acc_ProductPricePerPeriods::getPricesToDate($date, $item2, $item1);
+        $countPricesBefore = countR($pricesArr);
+
+        if($countPricesBefore){
+            $priceSum = arr::sumValuesArray($pricesArr, 'price');
+            core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
+            core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime, 6));
+
+            core_Debug::stopTimer('WAC_AMOUNT');
+            core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+
+            return round($priceSum / $countPricesBefore, 4);
         }
-        
+
+        core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
+        core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime, 6));
+
+        core_Debug::stopTimer('WAC_AMOUNT');
+        core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+
         // Връщаме сумата
-        return $amount;
+        return null;
     }
     
     
@@ -4681,5 +4687,19 @@ class cat_Products extends embed_Manager
         $pRec = (object)array('id' => $productRec->id, 'meta' => $metas);
         $me->save($pRec, 'meta,canSell');
         $me->logWrite('Артикулът отново става продаваем', $productRec->id);
+    }
+
+
+    /**
+     * С какво заглавие да се създава прототипа
+     *
+     * @param stdClass $rec
+     * @return void
+     */
+    public function getPrototypeTitle($rec)
+    {
+        $rec = static::fetchRec($rec);
+
+        return self::getDisplayName($rec);
     }
 }

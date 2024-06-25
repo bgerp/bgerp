@@ -280,7 +280,7 @@ class store_ConsignmentProtocols extends core_Master
             $row->title = $mvc->getLink($rec->id, 0);
         }
 
-        $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
+        $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId);
         $row = (object) ((array) $row + (array) $headerInfo);
         
         if (isset($fields['-single'])) {

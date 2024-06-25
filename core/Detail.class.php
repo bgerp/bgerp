@@ -356,38 +356,43 @@ class core_Detail extends core_Manager
 
         // За екшъна за изтриване на избрани редове, се изисква да има поне един запис, който може да се изтрива
         if($action == 'selectrowstodelete'){
-            if(!$this->addDeleteSelectRows || (!$this->hasPlugin('plg_RowTools') && !$this->hasPlugin('plg_RowTools2'))) return 'no_one';
+            if(!$this->addDeleteSelectRows || (!$this->hasPlugin('plg_RowTools') && !$this->hasPlugin('plg_RowTools2')) || $this->hasPlugin('plg_Select')) return 'no_one';
 
             $actionCast = 'delete';
             $res = parent::getRequiredRoles_($actionCast, $rec, $userId);
-
 
             if($res != 'no_one'){
 
                 if(isset($rec->{$this->masterKey})){
                     $query = static::getQuery();
                     $query->where("#{$this->masterKey} = {$rec->{$this->masterKey}}");
-
-                    // Ако има указани допълнителни полета за филтриране на детайлите
-                    if(isset($rec->_filterFld)){
-                        $sign = ($rec->_filterFldNot) ? '!=' : '=';
-                        $query->where("#{$rec->_filterFld} {$sign} '{$rec->{$rec->_filterFldVal}}'");
+                    $dCount = $query->count();
+                    if($dCount > 100) {
+                        $res = 'no_one';
                     }
 
-                    $canDeleteCount = 0;
-                    $haveDeletableMoreThanOneRec = false;
-                    while ($dRec = $query->fetch()){
-                        if(static::haveRightFor('delete', $dRec)){
-                            $canDeleteCount++;
-                            if($canDeleteCount >= 2) {
-                                $haveDeletableMoreThanOneRec = true;
-                                break;
+                    if($res != 'no_one'){
+                        // Ако има указани допълнителни полета за филтриране на детайлите
+                        if(isset($rec->_filterFld)){
+                            $sign = ($rec->_filterFldNot) ? '!=' : '=';
+                            $query->where("#{$rec->_filterFld} {$sign} '{$rec->{$rec->_filterFldVal}}'");
+                        }
+
+                        $canDeleteCount = 0;
+                        $haveDeletableMoreThanOneRec = false;
+                        while ($dRec = $query->fetch()){
+                            if(static::haveRightFor('delete', $dRec)){
+                                $canDeleteCount++;
+                                if($canDeleteCount >= 2) {
+                                    $haveDeletableMoreThanOneRec = true;
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    if(!$haveDeletableMoreThanOneRec){
-                        $res = 'no_one';
+                        if(!$haveDeletableMoreThanOneRec){
+                            $res = 'no_one';
+                        }
                     }
                 } else {
                     $res = 'no_one';

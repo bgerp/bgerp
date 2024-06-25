@@ -14,13 +14,15 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class planning_reports_MaterialsImpl extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'planning, ceo';
+    public $canSelectSource = 'no_one';
     
     
     /**

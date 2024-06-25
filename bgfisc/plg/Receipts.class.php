@@ -40,6 +40,11 @@ class bgfisc_plg_Receipts extends core_Plugin
      */
     public static function on_BeforeGetPaymentTabBtns($mvc, &$buttons, $rec)
     {
+        $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
+        $deviceRec = bgfisc_Register::getFiscDevice($caseId, $serialNum);
+        if($serialNum == bgfisc_Register::WITHOUT_REG_NUM) return;
+
+        $deviceRec = bgfisc_Register::getFiscDevice($caseId);
         unset($buttons['close']);
         
         $url = ($mvc->haveRightFor('printFiscReceipt', $rec)) ? array('pos_Receipts', 'printfiscreceipt', $rec->id) : array();
@@ -52,15 +57,12 @@ class bgfisc_plg_Receipts extends core_Plugin
         } else {
             $attr['class'] .= " navigable printFiscBtn";
         }
-        $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
 
         $attr['title'] = 'Печат на фискален бон';
         $attr['data-url'] = toUrl($url, 'local');
         $closeBtn = ht::createFnBtn('Фискален бон', '', '', $attr);
         $buttons["close"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
-        
-        $deviceRec = bgfisc_Register::getFiscDevice($caseId);
-        
+
         if (is_object($deviceRec)) {
             
             // Добавяне на бутони за зареждане на средства и генериране на отчети от ФУ
@@ -127,8 +129,10 @@ class bgfisc_plg_Receipts extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($action == 'close' && isset($rec)) {
+            $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
+            bgfisc_Register::getFiscDevice($caseId, $serialNum);
             $hash = Request::get('hash', 'varchar');
-            if (empty($hash)) {
+            if (empty($hash) && $serialNum != bgfisc_Register::WITHOUT_REG_NUM) {
                 $res = 'no_one';
             }
         }
@@ -157,8 +161,8 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $res = 'no_one';
             } elseif(bgfisc_PrintedReceipts::getQrCode($mvc, $rec->id)){
                 $res = 'no_one';
-            } elseif (!bgfisc_Register::getFiscDevice($caseId)) {
-                $res = 'no_one';
+            } elseif (!bgfisc_Register::getFiscDevice($caseId, $serialNum)) {
+
             } elseif (!$mvc->haveRightFor('terminal', $rec)) {
                 $res = 'no_one';
             } elseif (abs(round($rec->paid, 2)) < abs(round($rec->total, 2)) || ($rec->total == 0 && !$countProducts)) {
@@ -515,12 +519,15 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         // Ако няма закачено ФУ, показва се съобщение
         if (in_array($action, array('new', 'terminal'))) {
-            if ($pointId = pos_Points::getCurrent('id', false)) {
+            if ($pointId = Request::get('pointId')) {
                 $caseId = pos_Points::fetchField($pointId, 'caseId');
-                if (!bgfisc_Register::getFiscDevice($caseId)) {
-                    $res = new Redirect(array('pos_Points', 'list'), '|Няма закачено фискално устройство|*!', 'error');
-                    
-                    return false;
+                $fiscSerialNum = null;
+                if (!bgfisc_Register::getFiscDevice($caseId, $fiscSerialNum)) {
+                    if($fiscSerialNum != bgfisc_Register::WITHOUT_REG_NUM){
+                        $res = new Redirect(array('pos_Points', 'list'), '|Няма закачено фискално устройство|*!', 'error');
+
+                        return false;
+                    }
                 }
             }
         }

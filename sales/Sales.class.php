@@ -240,9 +240,7 @@ class sales_Sales extends deals_DealMaster
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
-        'shipmentStoreId' => 'defMethod',
         'oneTimeDelivery' => 'clientCondition'
     );
     
@@ -449,9 +447,10 @@ class sales_Sales extends deals_DealMaster
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+
         $myCompany = crm_Companies::fetchOwnCompany();
         $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
+        $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$options));
 
         // Ако няма ръчно избрана БС гледа се последно избраната в папката
         $defaultBankAccountId = $rec->bankAccountId;
@@ -490,7 +489,7 @@ class sales_Sales extends deals_DealMaster
                 }
             }
         }
-        
+
         $form->setOptions('bankAccountId', $options);
         $form->setDefault('bankAccountId', $defaultBankAccountId);
         $defaultOptions = $options;
@@ -517,7 +516,16 @@ class sales_Sales extends deals_DealMaster
             if(isset($rec->paymentMethodId)){
                 $paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
                 if($paymentType == 'cash'){
-                    $caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc');
+
+                    // Ако има дефолтна каса
+                    if($caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc')){
+                        if(core_Packs::isInstalled('holding')){
+                            if(!holding_Companies::isValueAllowed($caseId, $rec->{$mvc->ownCompanyFieldName}, 'cashes')){
+                               $caseId = null;
+                           }
+                        }
+                    }
+
                     $form->setDefault('caseId', $caseId);
                 }
             }
@@ -528,6 +536,7 @@ class sales_Sales extends deals_DealMaster
                 
                 // И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
                 if (isset($rec->deliveryTermId)) {
+                    $deliveryCalcCost = null;
                     if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                         $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                         $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
@@ -795,7 +804,7 @@ class sales_Sales extends deals_DealMaster
         $result->set('defaultBankOperation', 'customer2bank');
         
         // Ако се очаква авансово плащане и платения аванс е под 80% от аванса,
-        // очакваме още да се плаща по аванаса
+        // очакваме още да се плаща по аванса
         if ($agreedDp) {
             if (empty($actualDp) || $actualDp < $agreedDp * 0.8) {
                 $result->set('defaultCaseOperation', 'customer2caseAdvance');
@@ -1028,7 +1037,7 @@ class sales_Sales extends deals_DealMaster
     public function cron_CheckSalesPayments()
     {
         core_App::setTimeLimit(300);
-        $overdueDelay =sales_Setup::get('OVERDUE_CHECK_DELAY');
+        $overdueDelay = sales_Setup::get('OVERDUE_CHECK_DELAY');
         $this->checkPayments($overdueDelay);
 
         // Изпращане на нотификации, за нефактурирани продажби

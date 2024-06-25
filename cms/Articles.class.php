@@ -101,6 +101,12 @@ class cms_Articles extends core_Master
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,cms';
+
+
+    /**
+     * Кой може да го вижда?
+     */
+    public $canShow = 'ceo,admin,cms';
     
     
     /**
@@ -122,10 +128,10 @@ class cms_Articles extends core_Master
     {
         $this->FLD('level', 'order(11)', 'caption=№,tdClass=rowtools-column,mandatory');
         $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
-        $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
+        $this->FLD('title', 'varchar', 'caption=Заглавие,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes,hideTextAfterLength=10000000)', 'caption=Текст,column=none');
         $this->FLD('background', 'color_Type(AllowEmpty)', 'caption=Фон на статията->Цвят,autohide');
-        $this->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Фон на статията->Статично изображение,autohide');
+        $this->FLD('wallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Фон на статията->Статично изображение,autohide,hint=Минимална ширина 1400px');
         
         $this->FLD('footerTitleLink', 'varchar', 'caption=Показване във футъра->Заглавие,autohide');
         
@@ -228,7 +234,7 @@ class cms_Articles extends core_Master
         Mode::set('wrapper', 'cms_page_External');
         
         $conf = core_Packs::getConfig('cms');
-        
+
         if (Mode::is('screenMode', 'narrow')) {
             Mode::set('cmsLayout', 'cms/themes/default/ArticlesNarrow.shtml');
         } else {
@@ -286,8 +292,11 @@ class cms_Articles extends core_Master
         }
         
         $navData = $this->prepareNavigation($rec, $menuId, $content, $lArr);
-        
-        
+
+        if ($navData->showCnt <= 1) {
+            Mode::set('cmsLayout', 'cms/themes/default/WideArticles.shtml');
+        }
+
         // Подготвяме SEO елементите
         cms_Content::prepareSeo($rec, array('seoDescription' => $rec->body, 'seoTitle' => $rec->title));
         
@@ -348,7 +357,8 @@ class cms_Articles extends core_Master
         
         $navData = new stdClass();
         $navData->cnt = 0;
-        
+        $navData->showCnt = 0;
+
         if (($q = Request::get('q')) && $menuId > 0 && !$rec) {
             $rec = new stdClass();
             $navData->q = $q;
@@ -381,6 +391,8 @@ class cms_Articles extends core_Master
                     continue;
                 }
             }
+
+            $navData->showCnt++;
             
             $title = self::getVerbal($rec1, 'title');
             

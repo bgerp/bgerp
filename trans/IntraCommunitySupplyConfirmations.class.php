@@ -192,14 +192,15 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
 
             // Ако има ф-ри в нишката предлагат се като предложения
             $invoicesInThread = deals_Helper::getInvoicesInThread($rec->threadId);
-            if(countR($invoicesInThread)){
+            $count = countR($invoicesInThread);
+            if($count){
                 $invoiceOptions = array();
                 foreach ($invoicesInThread as $iContainerId => $number) {
                     $InvoiceDocument = doc_Containers::getDocument($iContainerId);
                     $invoiceOptions[$iContainerId] = "{$number} / {$InvoiceDocument->getVerbal('date')}";
                 }
 
-                $defaultInvoiceValue = $invoiceOptions[$documentRec->fromContainerId];
+                $defaultInvoiceValue = $invoiceOptions[$documentRec->fromContainerId] ?? (($count == 1) ? $invoiceOptions[key($invoiceOptions)] : null);
                 $invoiceOptions = array_combine($invoiceOptions, $invoiceOptions);
                 $form->setSuggestions('invoiceDocument', array('' => '') + $invoiceOptions);
                 $form->setDefault('invoiceDocument', $defaultInvoiceValue);
@@ -279,7 +280,8 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $ourCompany = crm_Companies::fetchOurCompany();
+        $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : null;
+        $ourCompany = crm_Companies::fetchOurCompany('*', $ownCompanyId);
 
         // Данните на моята фирма
         $row->ourCompanyName = $ourCompany->name;

@@ -520,11 +520,11 @@ class doc_TplManager extends core_Master
 
             // Ако ще се обновява съществуващ системен шаблон
             if($object->id){
-                $clQuery = static::getQuery();
-                $clQuery->where("#originId = {$object->id}");
-                $admins = core_Users::getByRole('admin');
 
                 // и той вече е клониран в други шаблони
+                $clQuery = static::getQuery();
+                $clQuery->where("#originId = {$object->id} AND #state = 'active'");
+                $admins = core_Users::getByRole('admin');
                 while($clRec = $clQuery->fetch()){
                     $url = array('doc_TplManager', 'list', 'docClassId' => $clRec->docClassId);
 

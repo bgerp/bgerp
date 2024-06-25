@@ -4959,4 +4959,20 @@ class doc_DocumentPlg extends core_Plugin
     {
 
     }
+
+
+    /**
+     * След извличане дали моята фирма в документа е регистрирана по ДДС
+     *
+     * @param $mvc
+     * @param $res
+     * @param $rec
+     * @return void
+     */
+    public static function on_AfterIsOwnCompanyVatRegistered($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $res = crm_Companies::isOwnCompanyVatRegistered();
+        }
+    }
 }

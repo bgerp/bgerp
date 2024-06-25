@@ -98,8 +98,12 @@ abstract class deals_ManifactureMaster extends core_Master
             if (isset($rec->storeId)) {
                 $storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
                 if ($storeLocation) {
-                    $row->storeLocation = crm_Locations::getAddress($storeLocation);
+                    $row->storeId = ht::createHint($row->storeId, crm_Locations::getAddress($storeLocation));
                 }
+            }
+
+            if($jobRec = static::getJobRec($rec)){
+                $row->jobId = planning_Jobs::getHyperlink($jobRec->id, true);
             }
         }
         
@@ -107,8 +111,32 @@ abstract class deals_ManifactureMaster extends core_Master
             $row->title = $mvc->getLink($rec->id, 0);
         }
     }
-    
-    
+
+
+    /**
+     * Към кое задание е документа
+     *
+     * @param $rec
+     * @return mixed|null
+     */
+    public static function getJobRec($rec)
+    {
+        $rec = static::fetchRec($rec);
+        $threadId = isset($rec->originId) ? doc_Containers::fetchField($rec->originId, 'threadId') : $rec->threadId;
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if($firstDoc){
+            if($firstDoc->isInstanceOf('planning_Jobs')) return $firstDoc->fetch();
+
+            if($firstDoc->isInstanceOf('planning_Tasks')){
+                $jobDoc = doc_Containers::getDocument($firstDoc->fetchField('originId'));
+                return $jobDoc->fetch();
+            }
+        }
+
+        return null;
+    }
+
+
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -328,23 +356,17 @@ abstract class deals_ManifactureMaster extends core_Master
 
 
     /**
-     * Към кое задание е свързана нишката
-     *
-     * @param int $threadId
-     * @return stdClass|null $jobRec
+     * Добавя ключови думи за пълнотекстово търсене
      */
-    public static function getJobFromThread($threadId)
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $jobRec = null;
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if($firstDoc){
-            if ($firstDoc->isInstanceOf('planning_Tasks')) {
-                $jobRec = doc_Containers::getDocument($firstDoc->fetchField('originId'))->fetch();
-            } elseif($firstDoc->isInstanceOf('planning_Jobs')) {
-                $jobRec = $firstDoc->fetch();
-            }
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
         }
 
-        return $jobRec;
+        if($jobRec = static::getJobRec($rec)){
+            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getRecTitle($jobRec));
+        }
     }
 }

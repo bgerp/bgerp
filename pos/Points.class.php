@@ -317,12 +317,17 @@ class pos_Points extends core_Master
 
         if(!crm_Companies::isOwnCompanyVatRegistered()){
             $form->setDefault('chargeVat', 'no');
-            $form->setReadOnly('chargeVat');
+            if($form->rec->chargeVat != 'yes'){
+                $form->setReadOnly('chargeVat');
+            }
+        } else {
+            if($form->rec->chargeVat == 'yes'){
+                $form->setReadOnly('chargeVat');
+            }
         }
 
+        // Задаване на плейсхолдъри
         if(empty($form->rec->prototypeId)){
-            
-            // Задаване на плейсхолдъри
             foreach (static::$fieldMap as $field => $const){
                 $defaultValue = pos_Setup::get($const);
                 $form->setField($field, "placeholder={$defaultValue}");

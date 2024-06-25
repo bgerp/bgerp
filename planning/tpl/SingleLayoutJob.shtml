@@ -22,6 +22,12 @@
                     [#captionNotStored#] ([#measureId2#])
                 </td>
                 <!--ET_END captionNotStored-->
+                <!--ET_BEGIN captionWastes-->
+                <td class = 'sum-th'>
+                    [#captionWastes#]
+                    |Отпадък в операциите|*<!--ET_BEGIN WASTE_BLOCK_TOTAL_PERCENT-->: [#WASTE_BLOCK_TOTAL_PERCENT#]<!--ET_END WASTE_BLOCK_TOTAL_PERCENT-->
+                </td>
+                <!--ET_END captionWastes-->
             </tr>
             <tr>
                 <td class = 'nowrap'>[#packQuantity#]</td>
@@ -33,6 +39,20 @@
                 <!--ET_BEGIN quantityNotStored-->
                 <td class = 'nowrap'>[#quantityNotStored#]</td>
                 <!--ET_END quantityNotStored-->
+                <!--ET_BEGIN WASTES-->
+                <td class = 'nowrap'>
+                    [#WASTES#]
+                    <table class="wasteBlockInThread">
+                        [#WASTE_BLOCK_TABLE_ROW#]
+                        <!--ET_BEGIN WASTE_BLOCK_ROW-->
+                        [#WASTE_BLOCK_ROW#]
+                        <tr class="[#wasteClass#]">
+                            <td class="leftCol">[#wasteProducedProductId#]:</td><td class="rightCol">[#wasteQuantity#]</td>
+                        </tr>
+                        <!--ET_END WASTE_BLOCK_ROW-->
+                    </table>
+                </td>
+                <!--ET_END WASTES-->
             </tr>
         </table>
     </div>

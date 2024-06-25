@@ -294,6 +294,8 @@ div.folder-cover {
     background: #cef1d7 url('../img/cover-bg-green.png'); }
   div.folder-cover.state-active {
     background: #fffdea url('../img/cover-bg-yellow.png'); }
+  div.folder-cover.ownCompany .block_title {
+    background: #a0f1b3; }
   div.folder-cover .detail-info {
     background: none; }
     div.folder-cover .detail-info.portal {
@@ -1894,11 +1896,16 @@ a.tUnsighted {
 .dark-gray {
   color: #444444; }
 
-#packWrapper > .floatedElement {
+#packWrapper > .floatedElement,
+#packWrapper > .tab-control .tab-page .floatedElement {
   float: left; }
-  #packWrapper > .floatedElement.preview-holder {
+  #packWrapper > .floatedElement.preview-holder:not(.palletInfoBlock),
+  #packWrapper > .tab-control .tab-page .floatedElement.preview-holder:not(.palletInfoBlock) {
     margin-top: -20px !important;
     min-width: 800px; }
+  #packWrapper > .floatedElement.palletInfoBlock,
+  #packWrapper > .tab-control .tab-page .floatedElement.palletInfoBlock {
+    margin-top: -10px !important; }
 
 .palletInfoBlock {
   display: inline-block; }
@@ -2447,8 +2454,7 @@ pre.document {
   border-top: 2px dotted #666666;
   margin-left: 5px;
   padding: 5px 10px;
-  min-width: 110px;
-  min-height: 1.2em; }
+  min-width: 110px; }
 
 .nowrap {
   white-space: nowrap; }
@@ -7286,6 +7292,19 @@ only screen and (max-width: 320px) {
 
 .listTitleButtons {
   margin-bottom: 15px; }
+
+    .wasteBlockInThread tr td {
+      font-weight: normal !important;
+      font-size: 13px !important;
+      border: none !important;
+      border-bottom: 1px dotted #aaaaaa !important;
+      padding: 2px !important; }
+    .wasteBlockInThread tr:last-child td {
+      border-bottom: none !important; }
+
+tr.wasteWeightPercent td {
+  font-weight: bold !important;
+  border-top: 1px solid #aaaaaa !important; }
 
 /*
  * стилове за цвета на палитрa при лист изгледа

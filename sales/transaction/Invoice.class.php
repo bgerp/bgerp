@@ -39,7 +39,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
 
         $result = (object) array(
             'reason' => "Фактура №{$rec->id}", // основанието за ордера
-            'valior' => $rec->date,   // датата на ордера
+            'valior' => !empty($rec->date) ? $rec->date : dt::today(),   // датата на ордера
             'entries' => array(),
         );
 
@@ -54,8 +54,8 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             }
         }
 
+        $productArr = array();
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
-            $productArr = array();
             $error = null;
             if (!$this->class->isAllowedToBePosted($rec, $error, true)) {
                 acc_journal_RejectRedirect::expect(false, $error);
@@ -101,11 +101,15 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             if ($rec->type == 'invoice' && $onlyZeroQuantities === true && empty($rec->dpAmount)) {
                 acc_journal_RejectRedirect::expect(false, 'Трябва да има поне един ред с ненулево количество|*!');
             }
-            
+
+            $vatReasonMsg = $this->class->doRequireVatReasonWhenTryingToPost($rec, $productArr);
+            if($vatReasonMsg){
+                acc_journal_RejectRedirect::expect(false, $vatReasonMsg);
+            }
+
             // Проверка дали артикулите отговарят на нужните свойства
             if (countR($productArr)) {
                 if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canSell', 'generic', 'вече не са продаваеми или са генерични')){
-                    
                     acc_journal_RejectRedirect::expect(false, $redirectError);
                 }
             }

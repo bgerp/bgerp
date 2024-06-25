@@ -918,11 +918,11 @@ class price_Lists extends core_Master
     public static function getListWithBasicDiscounts($Master, $masterRec)
     {
         $Master = cls::get($Master);
+        $clone = clone $masterRec;
         if($Master instanceof sales_Sales){
-            $listId = $masterRec->priceListId ?? price_ListToCustomers::getListForCustomer($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior);
-
+            $listId = $clone->priceListId ?? price_ListToCustomers::getListForCustomer($clone->contragentClassId, $clone->contragentId, $clone->valior);
         } else {
-            $listId = pos_Receipts::isForDefaultContragent($masterRec) ? pos_Points::getSettings($masterRec->pointId)->policyId : price_ListToCustomers::getListForCustomer($masterRec->contragentClass, $masterRec->contragentObjectId);
+            $listId = pos_Receipts::isForDefaultContragent($clone) ? pos_Points::getSettings($clone->pointId)->policyId : price_ListToCustomers::getListForCustomer($clone->contragentClass, $clone->contragentObjectId);
         }
 
         // Обикаля се тази политика+бащите ѝ дали има поне една с общи отстъпки

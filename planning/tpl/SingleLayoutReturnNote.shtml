@@ -8,7 +8,7 @@
                         	<table class="innerTable border-table paddingCells">
                                 <tbody>
                                     <tr>
-                                       <td class="cell centered" rowspan='4' style='width:30%;'>
+                                       <td class="cell centered" rowspan='4'>
                                             <div class="document-title">|протокол за връщане от производство|*</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
@@ -18,17 +18,17 @@
                                             <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                                             <!--ET_END state-->
                                         </td>
-                                         <td class="cell custom-header-bg" style='width:35%;'><b>|В склад|*</b></td>
+                                         <td class="cell" style='padding-top:8px; background-color:#eee'><b>|В склад|*:</b>    <b style='font-size:18px;'>[#storeId#]</b></td>
                                     </tr>
                                     <tr>
                                         <td class="cell">
-                                            <b>[#storeId#]</b>
-                                            <!--ET_BEGIN storeLocation-->
-                                            <br>[#storeLocation#]
-                                            <!--ET_END storeLocation-->
                                             <!--ET_BEGIN departmentId-->
-                          					<br>|Ц-р на дейност|*: [#departmentId#]
-                          					<!--ET_END departmentId-->
+                                            <div style="padding-top: 3px;">|Ц-р на дейност|*: [#departmentId#]</div>
+                                            <!--ET_END departmentId-->
+											<hr>
+                                            <!--ET_BEGIN jobId-->
+                                            <div>|Към|*: <b>[#jobId#]</b></div>
+                                            <!--ET_END jobId-->
                                         </td>
                                     </tr>
                                     <tr>

@@ -337,7 +337,8 @@ class crm_Persons extends core_Master
         
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
-        
+        $this->FNC('saveInSessionAfterCreation', 'int', 'silent,input=hidden');
+
         // Индекси
         $this->setDbIndex('name');
         $this->setDbIndex('country');
@@ -813,7 +814,7 @@ class crm_Persons extends core_Master
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if(isset($id)){
+        if(isset($rec->id)){
             // Коя е старата фирма на лицето
             $rec->_exBuzCompanyId = $mvc->fetchField($rec->id, 'buzCompanyId', false);
         } else {
@@ -844,7 +845,7 @@ class crm_Persons extends core_Master
             }
         }
 
-        if($rec->_isBeingCreated){
+        if($rec->saveInSessionAfterCreation){
             Mode::setPermanent('lastAddedPersonId', $rec->id);
         }
     }

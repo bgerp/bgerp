@@ -188,8 +188,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $autoDiscountPercent = null;
         $iAmount = 0;
         if (is_array($dealInfo->dealProducts)) {
-            $valior = $dealInfo->get('agreedValior');
             foreach ($dealInfo->dealProducts as $det) {
+                if(!empty($det->discount) && empty($rec->autoDiscount) && empty($rec->inputDiscount)){
+                    $det->inputDiscount = $det->discount;
+                }
+
                 $autoDiscountPercent = $det->autoDiscount;
                 $det->discount = $det->inputDiscount;
                 $det->autoDiscount = null;
@@ -371,7 +374,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             deals_Helper::addNotesToProductRow($row1->productId, $rec->notes);
 
-            if ($masterRec->type != 'dc_note') {
+            if ($masterRec->type != 'dc_note' || !isset($masterRec->type)) {
                 $row1->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
             }
         }

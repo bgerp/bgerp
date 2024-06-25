@@ -95,12 +95,6 @@ class frame_Reports extends core_Embedder
     
     
     /**
-     * Икона по подразбиране за единичния обект
-     */
-    public $singleIcon = 'img/16/report.png';
-    
-    
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
@@ -211,18 +205,6 @@ class frame_Reports extends core_Embedder
         $row->title = $mvc->getLink($rec->id, 0);
         
         if ($fields['-single']) {
-            
-            // Обновяваме данните, ако отчета е в състояние 'draft'
-            if ($rec->state == 'draft') {
-                
-                // Ако сме минали зададеното време за обновяване на кеша на данните при чернова
-                if (dt::addSecs(self::KEEP_INNER_STATE_IN_DRAFT, $rec->modifiedOn) < dt::now()) {
-                    
-                    // Обновяваме записа, така че на ново да се извлече вътрешното състояние
-                    unset($rec->data);
-                    $mvc->save($rec);
-                }
-            }
             
             $now = dt::now();
             if ($rec->earlyActivationOn < $now) {

@@ -13,9 +13,11 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class sens2_reports_DataLog extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -25,7 +27,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo, sens, admin';
+    public $canSelectSource = 'no_one';
     
     
     /**

@@ -13,17 +13,17 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|От склад|*</b></td>
+                    <td class="cell" style='padding-top:8px; background-color:#eee'><b>|От склад|*: <b style='font-size:20px;'>[#storeId#]</b></b></td>
                 </tr>
                 <tr>
                     <td>
-                          <b>[#storeId#]</b>
-                          <!--ET_BEGIN storeLocation-->
-                          <br>[#storeLocation#]
-                          <!--ET_END storeLocation-->
-                          <!--ET_BEGIN departmentId-->
-                          <br>|Ц-р на дейност|*:[#departmentId#]
-                          <!--ET_END departmentId-->
+                        <!--ET_BEGIN departmentId-->
+                        <div style="padding-top: 3px;">|Ц-р на дейност|*: [#departmentId#]</div>
+                        <!--ET_END departmentId-->
+						<hr>
+                        <!--ET_BEGIN jobId-->
+                        <div>|Към|*: <b>[#jobId#]</b></div>
+                        <!--ET_END jobId-->
                     </td>
                 </tr>
             </tbody>

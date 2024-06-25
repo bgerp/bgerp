@@ -118,12 +118,6 @@ defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'yes');
 
 
 /**
- * Колко баланса назад да не се кешират складовите цени
- */
-defIfNot('ACC_NOT_TO_CACHE_STOCK_PRICES_IN_LAST_BALANCE_COUNT', 2);
-
-
-/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -204,9 +198,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_CostAllocations',
         'acc_RatesDifferences',
         'acc_ProductPricePerPeriods',
-        'migrate::updatePriceRoles2247',
-        'migrate::deleteEmptyRateDifferences1620',
-        //'migrate::fillStockPrices',
+        'migrate::updateStockPrices2524',
     );
     
     
@@ -282,10 +274,6 @@ class acc_Setup extends core_ProtoSetup
         'ACC_ALTERNATE_WINDOW' => array(
             'time(suggestions=3 месеца|6 месеца|9 месеца|12 месеца|24 месеца)',
             'caption=Балансите да НЕ се преизчисляват при промяна на документи по-стари от->Срок,placeholder=Винаги'
-        ),
-        'ACC_NOT_TO_CACHE_STOCK_PRICES_IN_LAST_BALANCE_COUNT' => array(
-            'int(min=0)',
-            'caption=Колко баланса назад да не се кешират складовите цени->Последните,placeholder=баланса',
         ),
     );
     
@@ -519,16 +507,22 @@ class acc_Setup extends core_ProtoSetup
             'period' => 30,
             'offset' => 1,
             'timeLimit' => 300
-        )
+        ), array(
+            'systemId' => 'UpdateStockPricesPerPeriod',
+            'description' => 'Кеширане на складовите себестойности по периоди',
+            'controller' => 'acc_ProductPricePerPeriods',
+            'action' => 'UpdateStockPricesPerPeriod',
+            'period' => 60,
+            'offset' => 1,
+            'timeLimit' => 300
+        ),
     );
 
 
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'acc_ReportDetails, acc_reports_BalanceImpl, acc_BalanceHistory, acc_reports_HistoryImpl,
-    					acc_reports_CorespondingImpl,
-    					acc_reports_BalancePeriodImpl, acc_reports_ProfitSales,
+    public $defClasses = 'acc_ReportDetails, acc_BalanceHistory,
                         acc_reports_MovementArtRep, acc_reports_TotalRep, acc_reports_UnpaidInvoices,
                         acc_reports_UnactiveContableDocs, acc_reports_NegativeQuantities,acc_reports_InvoicesByContragent, acc_drivers_TotalRepPortal,
                         acc_reports_SoldProductsByPrimeCost, acc_reports_GeneralDiscountsByGroups';
@@ -627,54 +621,12 @@ class acc_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция на ролите за виждане на цени
+     * Първоначално наливане на данните
      */
-    public function updatePriceRoles2247()
+    public function updateStockPrices2524()
     {
-        if(defined('BGERP_DONT_MIGRATE_USERS_WITH_SEE_PRICE')) return;
-
-        $seePriceRoleId = core_Roles::fetchByName('seePrice');
-        $seePriceSaleRoleId = core_Roles::fetchByName('seePriceSale');
-        $seePricePurchaseRoleId = core_Roles::fetchByName('seePricePurchase');
-
-        $updateUsers = array();
-        $uQuery = core_Users::getQuery();
-        $uQuery->where("#state != 'rejected' && LOCATE('|{$seePriceRoleId}|', #roles)");
-
-        $addKeylist = keylist::fromArray(array($seePriceSaleRoleId => $seePriceSaleRoleId, $seePricePurchaseRoleId => $seePricePurchaseRoleId));
-        while($uRec = $uQuery->fetch()){
-            if(!keylist::isIn($seePriceSaleRoleId, $uRec->roles) && !keylist::isIn($seePricePurchaseRoleId, $uRec->roles)){
-                $uRec->rolesInput = keylist::merge($uRec->rolesInput, $addKeylist);
-                $uRec->roles = keylist::merge($uRec->roles, $addKeylist);
-                $updateUsers[$uRec->id] = $uRec;
-            }
-        }
-
-        if(countR($updateUsers)){
-            cls::get('core_Users')->saveArray($updateUsers, 'id,roles,rolesInput');
-        }
-    }
-
-
-    /**
-     * Миграция за изтриване на замърсени данни за курсови разлики
-     */
-    public function deleteEmptyRateDifferences1620()
-    {
-        acc_RatesDifferences::delete("#threadId IS NULL AND #containerId IS NULL");
-    }
-
-
-    /**
-     * Първоначално попълване на модела с последните цени на артикулите
-     */
-    public function fillStockPrices()
-    {
-        $Cache = cls::get('acc_ProductPricePerPeriods');
-        core_App::setTimeLimit(300);
-        $res = acc_ProductPricePerPeriods::extractDataFromBalance(null);
-        foreach ($res as $recs4Balance){
-            $Cache->saveArray($recs4Balance);
-        }
+        cls::get('acc_ProductPricePerPeriods')->truncate();
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('acc_ProductPricePerPeriods', 'SyncStockPrices', null, $callOn);
     }
 }

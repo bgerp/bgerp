@@ -1157,7 +1157,7 @@ class doc_Threads extends core_Manager
             $selArr = arr::make($selected);
             Request::push(array('threadId' => $selArr[0]));
         }
-        
+
         $threadId = Request::get('threadId', 'int');
         
         if ($threadId) {
@@ -1685,17 +1685,13 @@ class doc_Threads extends core_Manager
             }
 
             $nRec->folderId = $destFolderId;
-
+            $nRec->_isBeingMoved = true;
             $doc->getInstance()->save($nRec, 'id,folderId');
         }
         
         // Преместваме самата нишка
-        if (doc_Threads::save(
-                (object) array(
-                    'id' => $id,
-                    'folderId' => $destFolderId
-                )
-            )) {
+        $mRec = (object) array('id' => $id, 'folderId' => $destFolderId);
+        if (doc_Threads::save($mRec)) {
                 
                 // Изчистваме нотификацията до потребители, които нямат достъп до нишката
             $urlArr = array('doc_Containers', 'list', 'threadId' => $id);

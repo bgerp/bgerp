@@ -86,8 +86,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      * Полета свързани с цени
      */
     public $priceFields = 'price, amount, discount, packPrice';
-    
-    
+
     /**
      * Описание на модела (таблицата)
      */
@@ -145,6 +144,20 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
             deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state, $data->masterData->rec->valior);
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'createproduct' && isset($rec)){
+            $productType = store_ConsignmentProtocols::fetchField($rec->protocolId, 'productType');
+            if($productType == 'other'){
+                $requiredRoles = 'no_one';
+            }
         }
     }
 }

@@ -196,9 +196,7 @@ class purchase_Purchases extends deals_DealMaster
         'dealerId' => 'defMethod',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
-        'shipmentStoreId' => 'defMethod',
         'oneTimeDelivery' => 'clientCondition'
     );
     
@@ -297,12 +295,13 @@ class purchase_Purchases extends deals_DealMaster
     {
         parent::setDealFields($this);
         $this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
+        $this->FLD('haveVatCreditProducts', 'enum(yes=С право,no=Без право)', 'caption=Допълнително->Данъчен кредит,before=template,notNull,value=yes');
         $this->setField('dealerId', 'caption=Наш персонал->Закупчик,notChangeableByContractor');
         $this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
         $this->setField('oneTimeDelivery', 'salecondSysId=purchaseOneTimeDelivery');
-        $this->setField('chargeVat', 'salecondSysId=purchaseChargeVat');
+        $this->setField('chargeVat', 'salecondSysId=purchaseChargeVat,removeAndRefreshForm=haveVatCreditProducts,silent');
     }
     
     
@@ -561,7 +560,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->set('defaultBankOperation', 'bank2supplier');
         
         // Ако се очаква авансово плащане и платения аванс е под 80% от аванса,
-        // очакваме още да се плаща по аванаса
+        // очакваме още да се плаща по аванса
         if ($agreedDp) {
             if (empty($actualDp) || $actualDp < $agreedDp * 0.8) {
                 $result->set('defaultCaseOperation', 'case2supplierAdvance');

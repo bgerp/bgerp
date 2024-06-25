@@ -285,6 +285,11 @@ class fileman_Buckets extends core_Manager
                     self::save($rec, 'maxSize');
                     
                     $res .= "<li style='color:darkgreen;'> Променен допустим размер на файловете в кофата</li>";
+                } elseif ($rec->extensions != $extensions) {
+                    $rec->extensions = $extensions;
+                    self::save($rec, 'extensions');
+
+                    $res .= "<li style='color:darkgreen;'> Променен позволени разширения</li>";
                 } else {
                     $res .= "<li style='color: #660000;'> Без промяна на настройките на кофата</li>";
                 }

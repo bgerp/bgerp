@@ -1,14 +1,17 @@
-<div class='contragent-external-list'>
- 
+<div class='company-holder'>
 	<!--ET_BEGIN CONTRAGENT-->
-	<div class='contragent-details'>
-		<!--ET_BEGIN CONTRAGENT_NAME-->
-		<div>[#name#]</div>
-		<!--ET_END CONTRAGENT_NAME-->
-		<!--ET_BEGIN CONTRAGENT_WEBSITE-->
-		<div>[#website#]</div>
-		<!--ET_END CONTRAGENT_WEBSITE-->
-	<div>
+	<div class='company-box'>
+		<div class='logo'>
+			[#logo#]
+		</div>
+		<div class='info'>
+			<h5>[#name#]</h5>
+			<!--ET_BEGIN place--><p>[#place#]</p> <!--ET_END place-->
+			<p>[#address#]</p>
+			<!--ET_BEGIN website-->
+			<p class="website">[#website#]</p>
+			<!--ET_END website-->
+		</div>
+	</div>
 	<!--ET_END CONTRAGENT-->
-
 </div>

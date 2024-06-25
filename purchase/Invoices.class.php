@@ -43,7 +43,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,plg_Clone, doc_DocumentPlg,
+    public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, deals_plg_SaveValiorOnActivation, acc_plg_Contable, cond_plg_DefaultValues,plg_Clone, doc_DocumentPlg,
 					doc_EmailCreatePlg, price_plg_TotalDiscount, bgerp_plg_Blank, plg_Printing,deals_plg_DpInvoice, 
                     doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_UsingProductVat, drdata_plg_Canonize,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export, doc_SharablePlg';
     
@@ -176,7 +176,6 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'place' => 'lastDocUser|lastDoc|defMethod',
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
@@ -265,7 +264,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $form->setOptions('accountId', bank_Accounts::getContragentIbans($coverId, $coverClass, true));
         
         if (!in_array($form->rec->vatRate, array('yes', 'separate'))) {
-            if(!crm_Companies::isOwnCompanyVatRegistered()){
+            if(!$mvc->isOwnCompanyVatRegistered($rec)){
                 $form->setField('vatReason', 'mandatory');
             }
         }
@@ -1160,12 +1159,22 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function getDefaultPlace($rec)
     {
-        $place = null;
-        $cData = doc_Folders::getContragentData($rec->folderId);
-        $place = !empty($cData->place) ? $cData->place : $cData->address;
-        
-        if(!empty($place)){
-            $myCompany = crm_Companies::fetchOwnCompany();
+        // Взимат се данните на избрания контрагент или на дефолтния
+        $cData = null;
+        if(isset($rec->displayContragentClassId) && isset($rec->displayContragentId)){
+           $cData = cls::get($rec->displayContragentClassId)->getContragentData($rec->displayContragentId);
+           $place = !empty($cData->place) ? $cData->place : (!empty($cData->address) ? $cData->address : null);
+        } else {
+            $place = cond_plg_DefaultValues::getDefValueByStrategy(cls::get(get_called_class()), $rec, 'place', 'lastDocUser|lastDoc');
+            if(empty($place)){
+                $cData = doc_Folders::getContragentData($rec->folderId);
+                $place = !empty($cData->place) ? $cData->place : (!empty($cData->address) ? $cData->address : null);
+            }
+        }
+
+        if(!empty($place) && is_object($cData)){
+            $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : null;
+            $myCompany = crm_Companies::fetchOwnCompany($ownCompanyId);
             if ($cData->countryId != $myCompany->countryId) {
                 $cCountry = drdata_Countries::fetchField($cData->countryId, 'commonName');
                 $place .= ", {$cCountry}";

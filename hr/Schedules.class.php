@@ -60,32 +60,32 @@ class hr_Schedules extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,hrMaster';
+    public $canList = 'ceo, hrMaster, hrSchedules';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,hrMaster';
+    public $canSingle = 'ceo, hrMaster, hrSchedules';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,hrMaster';
+    public $canRead = 'ceo, hrMaster, hrSchedules';
     
     
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'ceo,hrMaster';
+    public $canWrite = 'ceo, hrMaster, hrSchedules';
     
     
     /**
      * Кой може да го изтрие?
      *
      */
-    public $canDelete = 'ceo,hrMaster';
+    public $canDelete = 'ceo, hrMaster, hrSchedules';
     
     
     /**

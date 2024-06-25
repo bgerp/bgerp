@@ -238,6 +238,7 @@ class social_Sharings extends core_Master
             'twitter.com' => 'twitter',
             'digg.com' => 'digg',
             'facebook.com' => 'facebook',
+            'instagram.com' => 'instagram',
             'stumbleupon.com' => 'stumbleupon',
             'delicious.com' => 'delicious',
             'google.com' => 'google-buzz',

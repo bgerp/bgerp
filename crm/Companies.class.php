@@ -1477,12 +1477,14 @@ class crm_Companies extends core_Master
      * Връща информацията, която има за нашата фирма
      *
      * @param string $fields
-     *
+     * @param int|null $ownCompanyId
      * @return null|stdClass $rec
      */
-    public static function fetchOurCompany($fields = '*')
+    public static function fetchOurCompany($fields = '*', $ownCompanyId = null)
     {
-        $rec = self::fetch(crm_Setup::BGERP_OWN_COMPANY_ID, $fields);
+        $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
+        $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
+        $rec = self::fetch($id);
         
         if ($rec) {
             $rec->classId = core_Classes::getId('crm_Companies');
@@ -1625,12 +1627,16 @@ class crm_Companies extends core_Master
     
     /**
      * Фирмата, от чието лице работи bgerp (crm_Setup::BGERP_OWN_COMPANY_ID)
+     * @param int|null $ownCompanyId - ид на моята фирма
      *
      * @return stdClass @see doc_ContragentDataIntf::getContragentData()
      */
-    public static function fetchOwnCompany()
+    public static function fetchOwnCompany($ownCompanyId = null)
     {
-        return static::getContragentData(crm_Setup::BGERP_OWN_COMPANY_ID);
+        $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
+        $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
+
+        return static::getContragentData($id);
     }
     
     

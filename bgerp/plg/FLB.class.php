@@ -39,7 +39,7 @@ class bgerp_plg_FLB extends core_Plugin
         
         // Поле, в които се указват потребителите, които могат да избират обекта в документи
         if (!$mvc->getField($mvc->canSelectUserFld, false)) {
-            $mvc->FLD($mvc->canSelectUserFld, 'userList', "caption=Избор на текущ и използване в документи->Потребители,after={$mvc->canActivateRoleFld}");
+            $mvc->FLD($mvc->canSelectUserFld, 'userList(showClosedUsers=no)', "caption=Избор на текущ и използване в документи->Потребители,after={$mvc->canActivateRoleFld}");
         }
         
         // Поле, в които се указват ролите, които могат да избират обекта в документи
@@ -195,16 +195,32 @@ class bgerp_plg_FLB extends core_Plugin
     public static function on_AfterMakeArray4Select($mvc, &$res, $fields = null, &$where = '', $index = 'id')
     {
         $cu = core_Users::getCurrent();
-        if (haveRole('ceo', $cu)) {
-            
-            return;
-        }
-        
+
         // Ако потребителя не може да избира обекта от списъка се маха
         if (is_array($res)) {
+            $selectOnlyIds = Mode::get("{$mvc->className}_selectIds");
+            $selectNotOnlyIds = Mode::get("{$mvc->className}_notSelectIds");
+
             foreach ($res as $id => $title) {
-                if (!self::canUse($mvc, $id, $cu, 'select')) {
-                    unset($res[$id]);
+                if (!haveRole('ceo', $cu)) {
+                    if (!self::canUse($mvc, $id, $cu, 'select')) {
+                        unset($res[$id]);
+                    }
+                }
+
+                // Ако има зададени в сесията ид-та да се вземат те
+                if(isset($selectOnlyIds)){
+                    $selectOnlyIds = keylist::toArray($selectOnlyIds);
+                    if(!in_array($id, $selectOnlyIds)){
+                        unset($res[$id]);
+                    }
+                }
+
+                if(isset($selectNotOnlyIds)){
+                    $selectNotOnlyIds = keylist::toArray($selectNotOnlyIds);
+                    if(in_array($id, $selectNotOnlyIds)){
+                        unset($res[$id]);
+                    }
                 }
             }
         }

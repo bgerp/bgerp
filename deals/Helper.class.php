@@ -1045,6 +1045,7 @@ abstract class deals_Helper
      * Помощна ф-я връщаща подходящо представяне на клиентсктие данни и тези на моята фирма
      * в бизнес документите
      *
+     * @param int $containerId       - ид на контейнер на документа
      * @param mixed $contragentClass - клас на контрагента
      * @param int   $contragentId    - ид на контрагента
      * @param int   $contragentName  - името на контрагента, ако е предварително известно
@@ -1058,12 +1059,23 @@ abstract class deals_Helper
      *               ['contragentAddress'] - Адреса на контрагента
      *               ['vatNo']             - ДДС номера на контрагента
      */
-    public static function getDocumentHeaderInfo($contragentClass, $contragentId, $contragentName = null)
+    public static function getDocumentHeaderInfo($containerId, $contragentClass, $contragentId, $contragentName = null)
     {
-        $res = array();
-       
+        // Ако е инсталиран пакета за многофирменост - моята фирма е тази посочена в първия документ на нишката
+        $ownCompanyId = null;
+        if(core_Packs::isInstalled('holding')) {
+            $Document = doc_Containers::getDocument($containerId);
+            $firstDoc = doc_Threads::getFirstDocument($Document->fetchField('threadId'));
+            if($firstDoc->isInstanceOf('deals_DealMaster')) {
+                if(isset($firstDoc->ownCompanyFieldName)) {
+                    $ownCompanyId = $firstDoc->fetchField($firstDoc->ownCompanyFieldName);
+                }
+            }
+        }
+
         // Данните на 'Моята фирма'
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
+        $res = array();
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
 
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
@@ -2073,18 +2085,19 @@ abstract class deals_Helper
     /**
      * Дефолтния режим на ДДС за папката
      *
-     * @param int $folderId
-     * @param string|null $chargeVatConditionSysId
-     * @param int|null $ownCompanyId
+     * @param core_Mvc $mvc - документ
+     * @param stdClasss $rec - запис
+     * @param string|null $chargeVatConditionSysId - сис ид на търговско условие
+     *
      * @return string
      */
-    public static function getDefaultChargeVat($folderId, $chargeVatConditionSysId = null, $ownCompanyId = null)
+    public static function getDefaultChargeVat($mvc, $rec, $chargeVatConditionSysId = null)
     {
-        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return 'no';
+        if(!$mvc->isOwnCompanyVatRegistered($rec)) return 'no';
 
         // Ако не може да се намери се търси от папката
-        $coverId = doc_Folders::fetchCoverId($folderId);
-        $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
+        $coverId = doc_Folders::fetchCoverId($rec->folderId);
+        $Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
 
         if(isset($chargeVatConditionSysId)){
             $clientValue = cond_Parameters::getParameter($Class, $coverId, $chargeVatConditionSysId);
@@ -2092,10 +2105,10 @@ abstract class deals_Helper
         }
 
         if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
-            return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
+            return ($Class->shouldChargeVat($coverId)) ? 'separate' : 'no';
         }
         
-        return 'yes';
+        return 'separate';
     }
     
     
@@ -2109,10 +2122,11 @@ abstract class deals_Helper
      */
     public static function getVatWarning($defaultVat, $selectedVatType)
     {
-        if ($defaultVat == 'yes' && in_array($selectedVatType, array('exempt', 'no'))) {
-            return 'Избран е режим за неначисляване на ДДС, при очакван с ДДС';
-        } elseif ($defaultVat == 'no' && in_array($selectedVatType, array('yes', 'separate'))) {
-            return 'Избран е режим за начисляване на ДДС, при очакван без ДДС';
+        $Type = core_Type::getByName('enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)');
+        $showWarning = (in_array($defaultVat, array('yes', 'separate')) && in_array($selectedVatType, array('exempt', 'no'))) || in_array($defaultVat, array('no', 'exempt')) && in_array($selectedVatType, array('yes', 'separate'));
+        if ($showWarning) {
+
+            return "Избран е режим за|* <b>|{$Type->toVerbal($selectedVatType)}|*</b>, |при очакван|* <b>|{$Type->toVerbal($defaultVat)}|*</b>!";
         }
     }
     

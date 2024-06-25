@@ -65,6 +65,13 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
      */
     public function prepareExportForm(core_Form &$form)
     {
+        if(core_Packs::isInstalled('holding')){
+            $ownCompanyOptions = holding_Companies::getOwnCompanyOptions();
+            $form->FLD('ownCompanyId', 'varchar', 'caption=Наша фирма');
+            $form->setOptions("ownCompanyId", array('' => '') + $ownCompanyOptions);
+            $form->setField("ownCompanyId", "placeholder=" . crm_Companies::getTitleById(crm_Setup::BGERP_OWN_COMPANY_ID));
+        }
+
         $form->FLD('from', 'date', 'caption=От,mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
         
@@ -99,9 +106,18 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         $query->where("#state = 'active'");
         $query->between('date', $filter->from, $filter->to);
         $query->orderBy('#number', 'ASC');
-        
+
+        // Ако е инсталирана многофирменоста - филтър по Наша фирма
+        if(core_Packs::isInstalled('holding')){
+            if(!empty($filter->ownCompanyId)){
+                $query->where("#{$this->Invoices->ownCompanyFieldName} = $filter->ownCompanyId");
+            } else {
+                $query->where("#{$this->Invoices->ownCompanyFieldName} IS NULL");
+            }
+        }
+
         $recs = $query->fetchAll();
-        $data = $this->prepareExportData($recs);
+        $data = $this->prepareExportData($recs, $filter);
         if (!countR($data->recs)) {
             
             return;
@@ -112,19 +128,19 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         
         return $content;
     }
-    
-    
+
+
     /**
      * Подготвя данните за експорт
      *
      * @param array $recs - фактурите за експортиране
-     *
+     * @param stdClass $filter - филтър
      * @return stdClass $data - подготвените данни
      */
-    private function prepareExportData($recs)
+    private function prepareExportData($recs, $filter)
     {
         $data = new stdClass();
-        $data->static = $this->getStaticData();
+        $data->static = $this->getStaticData($filter);
         $data->recs = array();
         
         $count = 0;
@@ -348,12 +364,15 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         
         return $content;
     }
-    
-    
+
+
     /**
      * Извлича статичните данни от настройките
+     *
+     * @param stdClass $filter
+     * @return array $staticData
      */
-    private function getStaticData()
+    private function getStaticData($filter)
     {
         $staticData = new stdClass();
         
@@ -380,8 +399,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         $staticData->debitTransServiceAnal = $conf->BULMAR_PURINV_TRANS_SERVICE_ANAL;
         $staticData->debitOtherServiceAnal = $conf->BULMAR_PURINV_OTHER_SERVICE_ANAL;
 
-        $myCompany = crm_Companies::fetchOwnCompany();
-        
+        $myCompany = crm_Companies::fetchOwnCompany($filter->ownCompanyId);
         $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
         $staticData->OWN_COMPANY_BULSTAT = $num;
         

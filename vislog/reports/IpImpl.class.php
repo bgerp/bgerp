@@ -13,9 +13,11 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @deprecated
  */
 class vislog_reports_IpImpl extends frame_BaseDriver
 {
+    public $deprecated = true;
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
@@ -49,7 +51,7 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo, admin, cms';
+    public $canSelectSource = 'no_one';
     
     
     /**

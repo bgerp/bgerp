@@ -40,7 +40,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
        
         $result = (object) array(
             'reason' => "Входяща фактура №{$rec->number}", // основанието за ордера
-            'valior' => $rec->journalDate,   // датата на ордера
+            'valior' => !empty($rec->journalDate) ? $rec->journalDate : dt::today(),   // датата на ордера
             'entries' => array(),
         );
         
@@ -105,9 +105,22 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 'debit' => array('4531'),
                 'credit' => array('4530', array($origin->className, $origin->that)),
             );
+
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDoc->isInstanceOf('purchase_Purchases')){
+                $haveVatCredit = $firstDoc->fetchField('haveVatCreditProducts');
+                if($haveVatCredit == 'no'){
+                    $entries[] = array(
+                        'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
+                        'debit' => array('4530', array($origin->className, $origin->that)),
+                        'credit' => array('4531'),
+                        'reason' => 'Сторно начислен ДДС при покупка - Артикул БЕЗ право на Данъчен кредит',
+                    );
+                }
+            }
         }
-        
-        if (Mode::get('saveTransaction')) {
+
+        if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
             $productArr = array();
             $Detail = cls::get('purchase_InvoiceDetails');
             $dQuery = $Detail->getQuery();
@@ -124,7 +137,12 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 }
                 $productArr[$dRec->productId] = $dRec->productId;
             }
-            
+
+            $vatReasonMsg = $this->class->doRequireVatReasonWhenTryingToPost($rec, $productArr);
+            if($vatReasonMsg){
+                acc_journal_RejectRedirect::expect(false, $vatReasonMsg);
+            }
+
             // Проверка дали артикулите отговарят на нужните свойства
             if (acc_Journal::throwErrorsIfFoundWhenTryingToPost() && countR($productArr)) {
                 if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canBuy', 'generic', 'трябва да са купуваеми и да не са генерични')){

@@ -339,6 +339,9 @@ div.folder-cover {
 	&.state-active {
 		background: #FFFDEA url('../img/cover-bg-yellow.png');
 	}
+	&.ownCompany .block_title {
+		background: #a0f1b3;
+	}
 	.detail-info {
 		background: none;
         &.portal {
@@ -2213,12 +2216,15 @@ white-space: nowrap;
 .dark-gray {
 color: #444;
 }
-#packWrapper > .floatedElement {
-float: left;
-&.preview-holder {
-    margin-top: -20px !important;
-    min-width: 800px;
-}
+#packWrapper > .floatedElement,  #packWrapper > .tab-control .tab-page .floatedElement{
+	float: left;
+	&.preview-holder:not(.palletInfoBlock) {
+		margin-top: -20px !important;
+		min-width: 800px;
+	}
+	&.palletInfoBlock {
+		margin-top: -10px !important;
+	}
 }
 
 .palletInfoBlock {
@@ -2854,7 +2860,6 @@ max-width: 400px;
 	margin-left:5px;
 	padding: 5px 10px;
 	min-width: 110px;
-	min-height: 1.2em;
 }
 
 .nowrap {
@@ -8282,7 +8287,25 @@ body.narrow {
 .listTitleButtons{
 	margin-bottom: 15px;
 }
+.wasteBlockInThread {
+	tr {
+		td {
+			font-weight: normal !important;
+			font-size: 13px !important;
+			border: none !important;
+			border-bottom: 1px dotted #aaa !important;
+			padding: 2px !important;
+		}
+		&:last-child td {
+			border-bottom: none !important
+		}
+	}
+}
 
+tr.wasteWeightPercent td {
+	font-weight: bold !important;
+	border-top: 1px solid #aaa !important;
+}
 /*стилове за цвета на палитрa при лист изгледа */
 .color-short img{
 	border: 1px solid #000;

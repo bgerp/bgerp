@@ -311,7 +311,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 $form->setField('storeId', 'input=none');
-                $form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
+                $form->setField('inputStoreId', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->ОТ склад'));
             } else {
                 $form->setField('storeId', 'mandatory');
                 $form->setField('packagingId', 'input');
@@ -797,7 +797,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             if(countR($details2)){
                 foreach ($details2 as $d2){
                     $d2->_realData = true;
-
                     if(array_key_exists("{$d2->productId}|{$d2->type}", $detailsFromBom)){
                         $d2->quantityFromBom = $detailsFromBom["{$d2->productId}|{$d2->type}"]->quantityFromBom;
                         $d2->quantity = $d2->quantityFromBom;
@@ -939,8 +938,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $details = $mvc->getDefaultDetails($rec);
         if(countR($details)) {
+            $consignmentProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($rec->threadId, false);
+
             foreach ($details as $dRec) {
                 $dRec->noteId = $rec->id;
+                $dRec->isOutsourced = array_key_exists($dRec->productId, $consignmentProducts) ? 'yes' : 'no';
 
                 // Склада за влагане се добавя само към складируемите артикули, които не са отпадъци
                 if (empty($dRec->storeId) && isset($rec->inputStoreId) && $dRec->_realData !== true) {
@@ -1526,28 +1528,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return $res;
-    }
-
-
-    /**
-     * Връща заданието към което е протокола за производство.
-     * Ако е към ПО, намира заданието към което е тя
-     *
-     * @param $id
-     * @return mixed
-     */
-    public static function getJobRec($id)
-    {
-        $rec = static::fetchRec($id);
-
-        $originDoc = doc_Containers::getDocument($rec->originId);
-        if ($originDoc->isInstanceOf('planning_Tasks')) {
-            $jobRec = doc_Containers::getDocument($originDoc->fetchField('originId'))->fetch();
-        } else {
-            $jobRec = $originDoc->fetch();
-        }
-
-        return $jobRec;
     }
 
 

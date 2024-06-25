@@ -134,7 +134,7 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
-        $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС');
+        $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС');
         $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress|deliveryCalcTransport');
 
         $mvc->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
@@ -216,7 +216,7 @@ abstract class deals_QuotationMaster extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
-        if(!crm_Companies::isOwnCompanyVatRegistered()) {
+        if(!$mvc->isOwnCompanyVatRegistered($rec)) {
             $form->setReadOnly('chargeVat');
         }
 
@@ -258,7 +258,7 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
             // Избрания ДДС режим съответства ли на дефолтния
-            $defVat = deals_Helper::getDefaultChargeVat($rec->folderId, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
+            $defVat = deals_Helper::getDefaultChargeVat($mvc, $rec, $mvc->getFieldParam('chargeVat', 'salecondSysId'));
             if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
                 $form->setWarning('chargeVat', $vatWarning);
             }
@@ -296,7 +296,7 @@ abstract class deals_QuotationMaster extends core_Master
     public function getDefaultChargeVat($rec)
     {
         // Ako "Моята фирма" е без ДДС номер - без начисляване
-        if(!crm_Companies::isOwnCompanyVatRegistered()) return 'no';
+        if(!$this->isOwnCompanyVatRegistered($rec)) return 'no';
 
         // После се търси по приоритет
         foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
@@ -304,7 +304,7 @@ abstract class deals_QuotationMaster extends core_Master
             if(!empty($chargeVat)) return $chargeVat;
         }
 
-        return deals_Helper::getDefaultChargeVat($rec->folderId);
+        return deals_Helper::getDefaultChargeVat($this, $rec);
     }
 
 
@@ -632,7 +632,7 @@ abstract class deals_QuotationMaster extends core_Master
      *   o $fields['currencyCode']          - код на валута (ако няма е основната за периода)
      * 	 o $fields['rate']                  - курс към валутата (ако няма е този към основната валута)
      * 	 o $fields['paymentMethodId']       - ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 	 o $fields['chargeVat']             - да се начислява ли ДДС - yes=Да, separate=Отделен ред за ДДС, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
+     * 	 o $fields['chargeVat']             - да се начислява ли ДДС - separate=Отделен ред за ДДС, yes=Да, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
      * 	 o $fields['deliveryTermId']        - ид на метод на доставка (@see cond_DeliveryTerms)
      *   o $fields['deliveryCalcTransport'] - дали да се начислява скрит или явен транспорт (@see cond_DeliveryTerms)
      * 	 o $fields['validFor']              - срок на годност

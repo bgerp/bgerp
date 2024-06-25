@@ -2337,4 +2337,50 @@ class planning_Jobs extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Вкарваме css файл за единичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        // Показване на обобщението на отпадъка в статистиката
+        $tasksInJob = planning_Tasks::getTasksByJob($data->rec->id, 'active,wakeup,closed,stopped', false, false, 'yes');
+        $totalFinalNetWeight = countR($tasksInJob) ? arr::sumValuesArray($tasksInJob, 'totalNetWeight', true) : 0;
+        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId, $totalFinalNetWeight);
+
+        if(countR($wasteArr) && !Mode::is('printBlank')){
+            $tpl->replace(' ', 'captionWastes');
+            if(isset($wasteArr['total'])){
+                $tpl->append($wasteArr['total']->quantityVerbal, 'WASTE_BLOCK_TOTAL_PERCENT');
+                unset($wasteArr['total']);
+            }
+            foreach ($wasteArr as $wasteRow){
+                $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
+                $cloneTpl->replace($wasteRow->productLink, 'wasteProducedProductId');
+                $cloneTpl->replace($wasteRow->class, 'wasteClass');
+                $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
+                $cloneTpl->removeBlocksAndPlaces();
+                $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
+            }
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // При местене на заданието да се подменя и центъра на дейност
+        if($rec->_isBeingMoved && isset($rec->department)){
+            $folderCover = doc_Folders::getCover($rec->folderId);
+            if($folderCover->isInstanceOf('planning_Centers')){
+                if($rec->department != $folderCover->that){
+                    $rec->department = $folderCover->that;
+                    $mvc->save_($rec, 'department');
+                }
+            }
+        }
+    }
 }

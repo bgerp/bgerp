@@ -134,6 +134,12 @@ class pos_Reports extends core_Master
 
 
     /**
+     * Дали автоматично да се разпределят партиди при моментно производство
+     */
+    public $allowInstantProductionBatches = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -160,6 +166,7 @@ class pos_Reports extends core_Master
         $form->setField('valior', "placeholder=" . dt::mysql2verbal(dt::today(), 'd.m.Y'));
         $settings = pos_Points::getSettings($form->rec->pointId);
         $form->setDefault('chargeVat', $settings->chargeVat);
+        $form->setReadOnly('chargeVat');
 
         if(haveRole('pos,sales')){
             $form->setDefault('dealerId', core_Users::getCurrent());
@@ -235,7 +242,11 @@ class pos_Reports extends core_Master
             if (!self::canMakeReport($rec->pointId, $rec->operators, $errorMsg)) {
                 $form->setError('pointId', $errorMsg);
             }
-            
+
+            if(!empty($rec->valior) && $rec->valior < dt::today()){
+                $form->setError('valior', 'Вальорът не може да е в миналото');
+            }
+
             // Ако няма грешки, форсираме отчета да се създаде в папката на точката
             if (!$form->gotErrors()) {
                 $rec->folderId = pos_Points::forceCoverAndFolder($rec->pointId);

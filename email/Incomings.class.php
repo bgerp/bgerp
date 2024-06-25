@@ -143,6 +143,12 @@ class email_Incomings extends core_Master
      * Кой има право да го чете?
      */
     public $canSingle = 'powerUser';
+
+
+    /**
+     * Кой има право да го чете?
+     */
+    public $canChangeshowtype = 'powerUser';
     
     
     /**
@@ -687,8 +693,9 @@ class email_Incomings extends core_Master
         $rec->emlFile = $mime->getEmlFile();
         
         // Задаваме текстовата част
-        $rec->textPart = $mime->textPart;
-        
+//        $rec->textPart = $mime->textPart;
+        $rec->textPart = $mime->getTextPart();
+
         // Запазване на допълнителни MIME-хедъри за нуждите на рутирането
         $rec->inReplyTo = $mime->getHeader('In-Reply-To');
         
@@ -1200,6 +1207,83 @@ class email_Incomings extends core_Master
         if (Mode::is('text', 'xhtml')) {
             unset($row->ip);
         }
+
+        if ($mvc->getShowType($rec) == 'html') {
+            $fRec = fileman::fetch($rec->htmlFile);
+            if ($fRec) {
+                try {
+                    $htmlPartArr = fileman_webdrv_Html::getHtmlPart($fRec);
+                    $htmlPart = fileman_webdrv_Html::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path'],
+                        array('webdrvTabBody' => 'webdrvTabBodySingle',
+                            'webdrvFieldset' => 'webdrvFieldsetSingle',
+                            'webdrvIframe' => 'webdrvIframeSingle webdrvIframe'));
+                    $row->textPart = $htmlPart;
+                } catch (core_exception_Expect $exp) {
+                    reportException($exp);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Екшън за промяна на състоянието на показването на имейла
+     *
+     * @return void
+     * @throws core_exception_Break
+     */
+    function act_changeShowType()
+    {
+        $this->requireRightFor('changeshowtype');
+        $id = Request::get('id', 'int');
+
+        $rec = $this->fetch($id);
+        expect($rec);
+
+        $this->requireRightFor('changeshowtype', $rec);
+
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array($this, 'single', $id);
+        }
+
+        $showType = $this->getShowType($rec);
+        $showType = $showType == 'text' ? 'html' : 'text';
+        email_IncomingsShowTypes::setCurrentState($rec->id, $showType);
+
+        doc_DocumentCache::cacheInvalidation($rec->containerId);
+
+        return new Redirect($retUrl);
+    }
+
+
+    /**
+     * Помощна функция, която показва типа на показване на съответният имейл
+     *
+     * @param stdClass $rec
+     *
+     * @return string - 'text' или 'html'
+     */
+    protected static function getShowType($rec)
+    {
+        if ($showType = email_IncomingsShowTypes::getCurrentState($rec->id)) {
+
+            return $showType;
+        }
+
+        $showType = 'text';
+        if (email_Setup::get('SHOW_HTML_IN_SINGLE') == 'yes') {
+            if (!(Mode::is('text', 'xhtml') && !Mode::is('printing')) && !Mode::is('text', 'plain')) {
+                if ($rec->htmlFile) {
+                    $fRec = fileman::fetch($rec->htmlFile);
+                    if ($fRec) {
+                        $showType = 'html';
+                    }
+                }
+            }
+        }
+
+        return $showType;
     }
     
     
@@ -3213,24 +3297,33 @@ class email_Incomings extends core_Master
         // Ако имаме права за single
         if ($mvc->haveRightFor('single', $data->rec)) {
             if (($data->rec->emlFile) && fileman_Files::haveRightFor('single', $data->rec->emlFile)) {
-                
-                // Име на бутона
-                if ($data->rec->htmlFile) {
-                    $buttonName = 'Изглед';
-                } else {
-                    $buttonName = 'Детайли';
-                }
-                
                 // Добавяме бутон за разглеждане не EML файла
                 $data->toolbar->addBtn(
-                    $buttonName,
+                    'Детайли',
                     array(
                         'fileman_Files',
                         'single',
                         'id' => fileman_Files::fetchField($data->rec->emlFile, 'fileHnd'),
                     ),
                     null,
-                array('order' => '21', 'ef_icon' => 'img/16/file_extension_eml.png', 'title' => 'Преглед на различните части на имейла')
+                    array('order' => '1', 'row' => 2, 'ef_icon' => 'img/16/file_extension_eml.png', 'title' => 'Преглед на различните части на имейла')
+                );
+            }
+
+
+            if ($mvc->haveRightFor('changeshowtype', $data->rec)) {
+                $showType = $mvc->getShowType($data->rec);
+                $btnName = $showType == 'text' ? 'HTML' : 'Текст';
+                $btnIcon = $showType == 'text' ? 'email_open_image.png' : 'email_open.png';
+                $data->toolbar->addBtn(
+                    $btnName,
+                    array(
+                        $mvc,
+                        'changeShowType',
+                        'id' => $data->rec->id
+                    ),
+                    null,
+                    array('order' => '21', 'ef_icon' => "img/16/{$btnIcon}", 'title' => 'Смяна на изгледа на имейла')
                 );
             }
             
@@ -3305,7 +3398,7 @@ class email_Incomings extends core_Master
         if (email_AddressesInfo::haveRightFor('powerUser')) {
             if ($uLink = $mvc->getUnsubscribeLink($data->rec)) {
                 $uLink = urldecode($uLink);
-
+                $uLink = str_replace(array("\n", "\r"), array('', ''), $uLink);
                 // Автоматично оттегля документа, ако е само един в нишката и има права за папката
                 $onClickArr = array();
                 if ($data->rec->state != 'rejected' && $data->rec->folderId && $data->rec->threadId && $data->rec->containerId) {
@@ -3633,6 +3726,27 @@ class email_Incomings extends core_Master
         }
         
         return $query;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * Забранява изтриването на вече използвани сметки
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'changeshowtype') {
+            if ($requiredRoles != 'no_one') {
+                $requiredRoles = $mvc->getRequiredRoles('single', $rec, $userId);
+            }
+        }
     }
     
     

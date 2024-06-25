@@ -112,7 +112,7 @@
                   <!--ET_BEGIN deliveryAddressBlock-->
                   [#deliveryAddressBlock#]
                   <tr>
-                     <td class='quiet nowrap aright'>|До адрес|*:</td>
+                     <td class='quiet nowrap aright' style="width: 1%">|До адрес|*:</td>
                      <td>
                         [#deliveryTo#] [#deliveryLocationAddress#]
                      </td>
@@ -120,19 +120,19 @@
                   <!--ET_END deliveryAddressBlock-->
                   <!--ET_BEGIN lineId-->
                   <tr>
-                     <td class='quiet nowrap aright'>|Транспорт|*: </td>
+                     <td class='quiet nowrap aright' style="width: 1%">|Транспорт|*: </td>
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
                   <!--ET_BEGIN lineForwarderId-->
                   <tr>
-                     <td class='nowrap quiet aright'>|Спедитор|*: </td>
+                     <td class='nowrap quiet aright' style="width: 1%">|Спедитор|*: </td>
                      <td>[#lineForwarderId#]</td>
                   </tr>
                   <!--ET_END lineForwarderId-->
                   <!--ET_BEGIN lineVehicleId-->
                   <tr>
-                     <td class='nowrap quiet aright'>|МПС|*: </td>
+                     <td class='nowrap quiet aright' style="width: 1%">|МПС|*: </td>
                      <td>[#lineVehicleId#]</td>
                   </tr>
                   <!--ET_END lineVehicleId-->

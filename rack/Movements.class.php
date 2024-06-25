@@ -218,7 +218,7 @@ class rack_Movements extends rack_MovementAbstract
             if($measureId == $pcsId || $measureId == $thPcsId){
                 $pQuery = cat_products_Packagings::getQuery();
                 $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-                $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
+                $pQuery->where("#productId = {$productId} AND #type = 'packaging' AND #state != 'closed'");
                 $pQuery->show('quantity,packagingId');
                 while($pRec = $pQuery->fetch()){
                     $packagings[] = array('id' => $pRec->id, 'packagingId' => $pRec->packagingId, 'quantity' => $pRec->quantity);
@@ -414,6 +414,9 @@ class rack_Movements extends rack_MovementAbstract
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
+        if (Mode::is('screenMode', 'wide')) {
+            $data->form->class .= ' floatedElement ';
+        }
         $rec = &$form->rec;
 
         // Форсиране на склада от урл-то ако може

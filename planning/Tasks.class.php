@@ -330,8 +330,8 @@ class planning_Tasks extends core_Master
         $this->FLD('systemId', 'int', 'silent,input=hidden');
 
         $this->FLD('deviationNettoNotice', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Информация,autohide');
-        $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRoun)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
-        $this->FLD('deviationNettoCritical', 'percent(Min=0,smartRoun)', 'caption=Прагове при разминаване на нетото в прогреса->Критично,autohide');
+        $this->FLD('deviationNettoWarning', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Предупреждение,autohide');
+        $this->FLD('deviationNettoCritical', 'percent(Min=0,smartRound)', 'caption=Прагове при разминаване на нетото в прогреса->Критично,autohide');
 
         $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
@@ -342,6 +342,7 @@ class planning_Tasks extends core_Master
         $this->FLD('nextErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Следваща грешка');
         $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
 
+        $this->setDbIndex('labelPackagingId');
         $this->setDbIndex('productId');
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
@@ -414,8 +415,20 @@ class planning_Tasks extends core_Master
             $paramTpl = cat_products_Params::renderParams($data->paramData);
             $tpl->append($paramTpl, 'PARAMS');
         }
-
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
+
+        // Показване на обобщението на отпадъка в статистиката
+        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId);
+        if(countR($wasteArr)){
+            foreach ($wasteArr as $wasteRow){
+                $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
+                $cloneTpl->replace($wasteRow->productLink, 'wasteProducedProductId');
+                $cloneTpl->replace($wasteRow->class, 'wasteClass');
+                $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
+                $cloneTpl->removeBlocksAndPlaces();
+                $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
+            }
+        }
     }
 
 
@@ -2300,9 +2313,10 @@ class planning_Tasks extends core_Master
      * @param mixed $states - В кои състояния
      * @param boolean $verbal - вербални или записи
      * @param boolean $skipTasksWithClosedParams - да се пропуснат ли операциите с деактивирани параметри
+     * @param null|bool $isFinal                 - дали да са само финалните или не
      * @return array $res      - масив с намерените задачи
      */
-    public static function getTasksByJob($jobId, $states, $verbal = true, $skipTasksWithClosedParams = false)
+    public static function getTasksByJob($jobId, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null)
     {
         $res = array();
         $oldContainerId = planning_Jobs::fetchField($jobId, 'containerId');
@@ -2311,6 +2325,10 @@ class planning_Tasks extends core_Master
         $states = arr::make($states, true);
         $query->in("state", $states);
         $query->orderBy("saoOrder", 'ASC');
+        if(isset($isFinal)){
+            $isFinalVal = $isFinal ? 'yes' : 'no';
+            $query->where("#isFinal = '{$isFinalVal}'");
+        }
 
         $taskClassId = planning_Tasks::getClassId();
         while ($rec = $query->fetch()) {

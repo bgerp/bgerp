@@ -102,7 +102,6 @@ class acc_strategy_WAC extends acc_strategy_Strategy
         // Увеличаваме брояча
         $currentTry++;
 
-
         // Изчисляваме начална и крайна дата, която ще извличаме
         $from = dt::mysql2timestamp($date);
         $from = date('Y-m-01', $from);
