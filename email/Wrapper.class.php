@@ -42,6 +42,7 @@ class email_Wrapper extends plg_ProtoWrapper
         $this->TAB('email_Router', 'Дебъг->Рутиране', 'admin, email');
         $this->TAB('email_Salutations', 'Дебъг->Обръщения', 'debug');
         $this->TAB('email_ThreadHandles', 'Дебъг->Манипулатори', 'debug');
+        $this->TAB('email_IncomingsShowTypes', 'Дебъг->Изгледи', 'debug');
 
         $this->TAB('email_ServiceRules', 'Рутиране->Правила', 'admin,email');
         $this->TAB('email_AddressesInfo', 'Рутиране->Адреси', 'ceo, admin,email, blast');

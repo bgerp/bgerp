@@ -348,6 +348,7 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('saoOrder');
+        $this->setDbIndex('state');
     }
 
 
