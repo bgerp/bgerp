@@ -137,7 +137,7 @@ class accda_Da extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,title,num,assetCode';
+    public $fieldsNotToClone = 'valior,title,num,assetCode,exAssetId,assetGroupId,assetResourceFolderId,assetSupportFolderId';
     
     
     /**
@@ -177,11 +177,14 @@ class accda_Da extends core_Master
         $this->FLD('location', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,column=none,width=400px,silent,refreshForm');
         $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
-        
-        $this->FLD('assetCode', 'varchar(16)', 'caption=Оборудване->Код');
-        $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,remember');
-        $this->FLD('assetResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Папка,silent,remember,oldFieldName=assetoResourceFolderId');
-        $this->FLD('assetSupportFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Поддръжка,silent,remember');
+
+        $this->FLD('syncWithAsset', 'enum(no=Няма,new=Нов ресурс,existing=Съществуващ ресурс)', 'caption=Оборудване->Ресурс,notNull,value=new,silent,removeAndRefreshForm=exAssetId|assetCode|assetGroupId|assetResourceFolderId|assetSupportFolderId');
+
+        $this->FLD('exAssetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване->Избор,input=none');
+        $this->FLD('assetCode', 'varchar(16)', 'caption=Оборудване->Код,input=none,mandatory');
+        $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,remember,input=none,mandatory');
+        $this->FLD('assetResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Папка,silent,remember,input=none,mandatory');
+        $this->FLD('assetSupportFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Поддръжка,silent,remember,input=none');
         
         $this->setDbUnique('num');
     }
@@ -199,6 +202,8 @@ class accda_Da extends core_Master
         $rec = &$form->rec;
 
         $form->setDefault('valior', dt::today());
+        $form->setDefault('syncWithAsset', 'no');
+
         if (isset($rec->id) && $data->action != 'clone') {
             $form->setReadOnly('productId');
         }
@@ -254,15 +259,31 @@ class accda_Da extends core_Master
         if ($mvc->haveRightFor('conto', $form->rec)) {
             $form->toolbar->addSbBtn('Контиране', 'save_n_conto', array('id' => 'btnConto'), "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
         }
-        
-        // Какви са достъпните папки за оборудване
-        $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
-        $form->setOptions('assetResourceFolderId', array('' => '') + $resourceSuggestionsArr);
-        
-        // Какви са достъпните папки за поддръжка
-        $supportFolderParams = array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'support_Systems'); 
-        $supportSuggestionsArr = doc_Folders::getSelectArr($supportFolderParams);
-        $form->setOptions('assetSupportFolderId', array('' => '') + $supportSuggestionsArr);
+
+        if($rec->syncWithAsset == 'new'){
+            foreach (array('assetCode', 'assetGroupId', 'assetResourceFolderId', 'assetSupportFolderId') as $fld){
+                $form->setField($fld, 'input');
+            }
+
+            // Какви са достъпните папки за оборудване
+            $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
+            $form->setOptions('assetResourceFolderId', array('' => '') + $resourceSuggestionsArr);
+
+            // Какви са достъпните папки за поддръжка
+            $supportFolderParams = array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'support_Systems');
+            $supportSuggestionsArr = doc_Folders::getSelectArr($supportFolderParams);
+            $form->setOptions('assetSupportFolderId', array('' => '') + $supportSuggestionsArr);
+        } elseif($rec->syncWithAsset == 'existing'){
+            $form->setField('exAssetId', 'input');
+
+            $assetOptions = array();
+            $aQuery = planning_AssetResources::getQuery();
+            $aQuery->where("#state = 'active'");
+            while($aRec = $aQuery->fetch()){
+                $assetOptions[$aRec->id] = planning_AssetResources::getRecTitle($aRec, false);
+            }
+            $form->setOptions('exAssetId', $assetOptions);
+        }
     }
     
     
@@ -332,24 +353,22 @@ class accda_Da extends core_Master
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
-        if ($rec->assetGroupId && $rec->brState != 'rejected') {
-            if ($rec->assetCode) {
-                if (planning_AssetResources::fetch(array("#code = '[#1#]'", $form->rec->assetCode))) {
+        if ($rec->brState != 'rejected') {
+            if($rec->syncWithAsset == 'new'){
+                if (planning_AssetResources::fetch(array("#code = '[#1#]'", $rec->assetCode))) {
                     status_Messages::newStatus('|Не може да се добави "Оборудване", защото има запис с такъв код', 'warning');
                 } else {
                     $nRec = new stdClass();
                     $nRec->name = $rec->title;
                     $nRec->groupId = $rec->assetGroupId;
                     $nRec->code = $rec->assetCode;
-                    $nRec->protocolId = $rec->id;
-                    
+                    $nRec->protocols = keylist::addKey('', $rec->id);
                     if ($rec->assetResourceFolderId) {
                         $nRec->folderId = $rec->assetResourceFolderId;
                     }
-                    
+
                     if (planning_AssetResources::save($nRec)) {
                         if ($rec->assetSupportFolderId) {
-                            
                             if (!$nRec->folderId) {
                                 $nRec->folderId = $rec->assetSupportFolderId;
                             } else {
@@ -357,7 +376,6 @@ class accda_Da extends core_Master
                                 $pRec->classId = planning_AssetResources::getClassId();
                                 $pRec->objectId = $nRec->id;
                                 $pRec->folderId = $rec->assetSupportFolderId;
-                                
                                 planning_AssetResourceFolders::save($pRec);
                             }
                         }
@@ -365,6 +383,10 @@ class accda_Da extends core_Master
                         status_Messages::newStatus('|Грешка при добавяне на оборудване', 'warning');
                     }
                 }
+            } elseif($rec->syncWithAsset == 'existing'){
+                $exRec = planning_AssetResources::fetch($rec->exAssetId);
+                $exRec->protocols = keylist::addKey($exRec->protocols, $rec->id);
+                planning_AssetResources::save($exRec, 'protocols');
             }
         }
     }
@@ -595,21 +617,34 @@ class accda_Da extends core_Master
                 
                 // Ако има информация за оборудване, тя се показва само ако е чернова
                 if($rec->state == 'draft'){
-                    if(isset($rec->assetGroupId)){
-                        $row->assetGroupId = planning_AssetGroups::getHyperlink($rec->assetGroupId, true);
-                    }
-                    if(isset($rec->assetResourceFolderId)){
-                        $row->assetResourceFolderId = doc_Folders::recToVerbal($rec->assetResourceFolderId)->title;
+                    if($rec->syncWithAsset  == 'new'){
+                        $row->hint = "<small style='color:darkgreen'>(" . tr('ще се създаде при активиране') . ")</small>";
+                        if(isset($rec->assetGroupId)){
+                            $row->assetGroupId = planning_AssetGroups::getHyperlink($rec->assetGroupId, true);
+                        }
+                        if(isset($rec->assetResourceFolderId)){
+                            $row->assetResourceFolderId = doc_Folders::recToVerbal($rec->assetResourceFolderId)->title;
+                        }
                     }
                 } else {
-                    unset($row->assetGroupId, $row->assetCode, $row->assetResourceFolderId);
+                    unset($row->assetGroupId, $row->assetCode, $row->assetResourceFolderId, $row->assetSupportFolderId);
                 }
                 
                 $row->type = isset($rec->storeId) ? tr('Дълготраен материален актив') : tr('Дълготраен нематериален актив');
             }
-            
-            if ($assetId = planning_AssetResources::fetchField("#protocolId = {$rec->id}", 'id')) {
-                $row->assetId = planning_AssetResources::getHyperlink($assetId, true);
+
+            // Добавяне на свързаните оборудвания
+            $assets = array();
+            $aQuery = planning_AssetResources::getQuery();
+            $aQuery->where("LOCATE('|{$rec->id}|', #protocols)");
+            if(isset($rec->exAssetId)){
+                $aQuery->orWhere("#id = {$rec->exAssetId}");
+            }
+            while($aRec = $aQuery->fetch()){
+                $assets[] = planning_AssetResources::getHyperlink($aRec->id, true);
+            }
+            if(countR($assets)){
+                $row->assets = implode(',', $assets);
             }
         }
     }

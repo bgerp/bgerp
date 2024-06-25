@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -93,7 +93,7 @@ class planning_AssetResources extends core_Master
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'protocolId';
+    public $hideListFieldsIfEmpty = 'protocols';
     
     
     /**
@@ -111,7 +111,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, code, groupId, description, protocolId';
+    public $searchFields = 'name, code, groupId, description, protocols';
     
     
     /**
@@ -136,7 +136,8 @@ class planning_AssetResources extends core_Master
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory, remember');
         $this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent, remember');
         $this->FLD('code', 'varchar(16)', 'caption=Код,mandatory, remember');
-        $this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden, remember');
+        $this->FLD('protocols', 'keylist(mvc=accda_Da,select=id)', 'caption=Протоколи за пускане в експлоатация,silent,input=hidden,remember,oldFieldName=protocolId');
+        $this->FNC('protocolId', 'key(mvc=accda_Da,select=id)', 'silent');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none, remember');
         
         $this->FLD('image', 'fileman_FileType(bucket=planningImages)', 'caption=Допълнително->Снимка');
@@ -160,7 +161,6 @@ class planning_AssetResources extends core_Master
         $this->FLD('lastReorderedTasks', 'datetime(format=smartTime)', 'caption=Последно->Преподредени операции,input=none');
 
         $this->setDbUnique('code');
-        $this->setDbUnique('protocolId');
     }
     
     
@@ -173,10 +173,13 @@ class planning_AssetResources extends core_Master
         $rec = $form->rec;
         
         // От кое ДМА е оборудването
-        if (isset($rec->protocolId)) {
-            $daTitle = accda_Da::fetchField($rec->protocolId, 'title');
-            $form->setDefault('name', $daTitle);
-            $form->info = tr('От') . ' ' . accda_Da::getHyperLink($rec->protocolId, true);
+        if (!empty($rec->protocols)) {
+            $protocolIds = keylist::toArray($rec->protocols);
+            $protocolLinks = array();
+            foreach ($protocolIds as $protocolId){
+                $protocolLinks[] = accda_Da::getLink($rec->protocolId, 0);
+            }
+            $form->info = tr('От')  . ' ' . implode(',', $protocolLinks);
         }
         
         $defOptArr = array();
@@ -279,14 +282,8 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $limitForDocs = 5;
-        
         $row->groupId = planning_AssetGroups::getHyperlink($rec->groupId, true);
         $row->created = "{$row->createdOn} " . tr('от') . " {$row->createdBy}";
-        
-        if (isset($rec->protocolId)) {
-            $row->protocolId = accda_Da::getHyperlink($rec->protocolId, true);
-        }
 
         if (isset($fields['-single'])) {
 
@@ -344,6 +341,14 @@ class planning_AssetResources extends core_Master
                 }
                 $row->tracking = "<div class='state-{$vRec->state}'>{$vehicle}</div>";
             }
+
+            if (!empty($rec->protocols)) {
+                $daArray = array();
+                foreach (keylist::toArray($rec->protocols) as $protocolId){
+                    $daArray[] = accda_Da::getLink($protocolId, 0);
+                }
+                $row->protocols = implode(',', $daArray);
+            }
         }
     }
     
@@ -359,13 +364,13 @@ class planning_AssetResources extends core_Master
                 if ($state != 'active') {
                     $requiredRoles = 'no_one';
                 } else {
-                    if ($mvc->fetch("#protocolId = {$rec->protocolId}")) {
+                    if ($mvc->fetch("LOCATE('|{$rec->protocolId}|', #protocols)")) {
                         $requiredRoles = 'no_one';
                     }
                 }
             }
         }
-        
+
         // Ако е използван в група, не може да се изтрива
         if ($action == 'delete' && isset($rec->id)) {
             if (isset($rec->lastUsedOn) || planning_AssetResourcesNorms::fetchField("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'") || planning_AssetResourceFolders::fetchField("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'")) {
@@ -652,8 +657,8 @@ class planning_AssetResources extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Изпълнява се след създаване на нов запис
      */
