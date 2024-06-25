@@ -1216,17 +1216,19 @@ class email_Incomings extends core_Master
         }
 
         if ($mvc->getShowType($rec) == 'html') {
-            $fRec = fileman::fetch($rec->htmlFile);
-            if ($fRec) {
-                try {
-                    $htmlPartArr = fileman_webdrv_Html::getHtmlPart($fRec);
-                    $htmlPart = fileman_webdrv_Html::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path'],
-                        array('webdrvTabBody' => 'webdrvTabBodySingle',
-                            'webdrvFieldset' => 'webdrvFieldsetSingle',
-                            'webdrvIframe' => 'webdrvIframeSingle webdrvIframe'));
-                    $row->textPart = $htmlPart;
-                } catch (core_exception_Expect $exp) {
-                    reportException($exp);
+            if ($rec->htmlFile) {
+                $fRec = fileman::fetch($rec->htmlFile);
+                if ($fRec) {
+                    try {
+                        $htmlPartArr = fileman_webdrv_Html::getHtmlPart($fRec);
+                        $htmlPart = fileman_webdrv_Html::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path'],
+                            array('webdrvTabBody' => 'webdrvTabBodySingle',
+                                'webdrvFieldset' => 'webdrvFieldsetSingle',
+                                'webdrvIframe' => 'webdrvIframeSingle webdrvIframe'));
+                        $row->textPart = $htmlPart;
+                    } catch (core_exception_Expect $exp) {
+                        reportException($exp);
+                    }
                 }
             }
         }
