@@ -619,7 +619,7 @@ class pos_ReceiptDetails extends core_Detail
 
             if(isset($defaultStoreId)){
                 if(core_Packs::isInstalled('batch')){
-                    $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId);
+                    $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId, null, null, array(), false, null, true);
                     if(countR($batchQuantities) != 1){
                         $rec->batch = key($batchQuantities);
                     }
