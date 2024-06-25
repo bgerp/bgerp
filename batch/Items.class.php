@@ -747,7 +747,7 @@ class batch_Items extends core_Master
 
         foreach ($res as $b => $q){
             $res[$b] = round($q, 5);
-            if($onlyPositiveBatches && $res[$b] < 0){
+            if($onlyPositiveBatches && $res[$b] <= 0){
                 unset($res[$b]);
             }
         }
