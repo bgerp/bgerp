@@ -117,7 +117,7 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'valior=В употреба от,handler=Документ,title,num,serial,location,createdOn,createdBy';
+    public $listFields = 'valior=В употреба от,handler=Документ,num,title,serial,location,folderId,createdOn,createdBy';
     
     
     /**
@@ -499,8 +499,8 @@ class accda_Da extends core_Master
         $rec = $this->fetch($id);
         
         $row = new stdClass();
-        $row->title = static::getRecTitle($rec);
-        $row->subTitle = $this->getVerbal($rec, 'title');
+        $row->title =  tr("Пускане в експлоатация|*: [$rec->num] ") . static::getRecTitle($rec);
+        $row->subTitle = cat_Products::getTitleById($rec->productId);
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         $row->authorId = $rec->createdBy;
@@ -607,10 +607,6 @@ class accda_Da extends core_Master
                     $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
                 }
                 
-                if(isset($rec->location)){
-                    $row->location = crm_Locations::getHyperlink($rec->location, true);
-                }
-                
                 if(isset($rec->assetSupportFolderId)){
                     $row->assetSupportFolderId = doc_Folders::recToVerbal($rec->assetSupportFolderId)->title;
                 }
@@ -646,6 +642,10 @@ class accda_Da extends core_Master
             if(countR($assets)){
                 $row->assets = implode(',', $assets);
             }
+        }
+
+        if(isset($rec->location)){
+            $row->location = crm_Locations::getHyperlink($rec->location, true);
         }
     }
     
