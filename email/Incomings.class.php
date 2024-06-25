@@ -205,6 +205,13 @@ class email_Incomings extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'subject, fromEml, fromName, textPart, files';
+
+
+    /**
+     * Дали да се проверяват правописните грешки
+     * @see spcheck_Plugin
+     */
+    public $checkSpell = false;
     
     
     /**
