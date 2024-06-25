@@ -158,7 +158,7 @@ class planning_AssetResources extends core_Master
         $this->FLD('vehicle', 'key(mvc=tracking_Vehicles,select=number, allowEmpty)', 'caption=Други->Тракер, remember');
         $this->FLD('lastRecalcTimes', 'datetime(format=smartTime)', 'caption=Последно->Преизчислени времена,input=none');
         $this->FLD('lastReorderedTasks', 'datetime(format=smartTime)', 'caption=Последно->Преподредени операции,input=none');
-        $this->FNC('fromProtocolId', 'key(mvc=accda_Da,select=id)', 'silent');
+        $this->FNC('fromProtocolId', 'key(mvc=accda_Da,select=id)', 'silent,input=hidden');
 
         $this->setDbUnique('code');
     }
@@ -359,12 +359,12 @@ class planning_AssetResources extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'add' && isset($rec)) {
-            if (isset($rec->protocolId)) {
-                $state = accda_Da::fetchField($rec->protocolId, 'state');
+            if (isset($rec->fromProtocolId)) {
+                $state = accda_Da::fetchField($rec->fromProtocolId, 'state');
                 if ($state != 'active') {
                     $requiredRoles = 'no_one';
                 } else {
-                    if ($mvc->fetch("LOCATE('|{$rec->protocolId}|', #protocols)")) {
+                    if ($mvc->fetch("LOCATE('|{$rec->fromProtocolId}|', #protocols)")) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -660,12 +660,24 @@ class planning_AssetResources extends core_Master
 
 
     /**
+     * Изпълнява се преди записа
+     * Ако липсва - записваме id-то на връзката към титлата
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(empty($rec->id) && isset($rec->fromProtocolId)){
+            $rec->protocols = keylist::addKey($rec->protocols, $rec->fromProtocolId);
+        }
+    }
+
+
+    /**
      * Изпълнява се след създаване на нов запис
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        if (isset($rec->protocolId)) {
-            accda_Da::logWrite('Създаване на ново оборудване', $rec->protocolId);
+        if (isset($rec->fromProtocolId)) {
+            accda_Da::logWrite('Създаване на ново оборудване', $rec->fromProtocolId);
         }
     }
     
