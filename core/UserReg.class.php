@@ -118,6 +118,8 @@ class core_UserReg extends core_Manager
         $query = self::getQuery();
         $query->where(array("#objStr = '[#1#]'", $objId));
         $query->where(array("#classId = '[#1#]'", $classId));
+        $query->where("#phoneIsVerified != 'yes'");
+        $query->where("#emailIsVerified != 'yes'");
         $query->orderBy('modifiedOn', 'DESC');
 
         while ($rec = $query->fetch()) {
