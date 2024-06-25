@@ -123,7 +123,7 @@ class core_UserReg extends core_Manager
         while ($rec = $query->fetch()) {
             if ($rec->uId) {
                 $uRec = core_Users::fetch($rec->uId);
-                if ($uRec && ($uRec->state != 'rejected') && ($uRec->state != 'active')) {
+                if ($uRec && ($uRec->state == 'draft')) {
                     // Ако има добавен запис, преминаваме към активиране на акаунта
                     $retUrl = $this->activateAccount($class, $objId, $rec);
 
