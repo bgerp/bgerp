@@ -950,7 +950,7 @@ class pos_Terminal extends peripheral_Terminal
                     $class .= ' current';
                 }
                 
-                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => $class, 'title' => 'Избор на партидата', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
+                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => $class, 'title' => 'Задаване на партидата', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
                 $batchTpl->append($btn);
             }
             
@@ -1026,7 +1026,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $btnCaption = ($discountPercent == '0') ? tr('Без отстъпка') : "{$discAmount} %";
             $discountPercent = str_replace('.', '', $discountPercent);
-            $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$class}", 'data-url' => $url), $btnCaption, true);
+            $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$class}", 'data-url' => $url, 'title' => 'Задаване на избраната отстъпка'), $btnCaption, true);
             $discountTpl->append($element);
         }
 
@@ -1386,7 +1386,7 @@ class pos_Terminal extends peripheral_Terminal
         if(!isset($rec->revertId)){
             $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
             foreach ($payments as $paymentId => $paymentTitle){
-                $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl);
+                $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl, 'title' => 'Избор на вид плащане');
                 $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
                 if(!empty($currencyCode)){
                     $attr['class'] .= ' currencyBtn disabledBtn';
@@ -1494,7 +1494,7 @@ class pos_Terminal extends peripheral_Terminal
 
             $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($detailRec->value, $detailRec->quantity));
             $packDataName = cat_UoM::getTitleById($detailRec->value);
-            $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $detailRec->quantity, 'data-pack' => $packDataName, 'data-url' => $dataUrl), $btnCaption, true);
+            $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $detailRec->quantity, 'data-pack' => $packDataName, 'data-url' => $dataUrl, 'title' => 'Задаване на количеството'), $btnCaption, true);
         }
         
         $productRec = cat_Products::fetch($selectedRec->productId, 'canStore');
@@ -1622,7 +1622,7 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             $cnt++;
-            $buttons[$dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => 'resultPrice posBtns navigable', 'data-url' => $dataUrl), tr($btnName), true);
+            $buttons[$dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => 'resultPrice posBtns navigable', 'data-url' => $dataUrl, 'title' => 'Задаване на избраната цена'), tr($btnName), true);
         }
 
         $priceTpl = new core_ET("");
