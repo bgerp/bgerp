@@ -3760,6 +3760,12 @@ class email_Incomings extends core_Master
             if ($requiredRoles != 'no_one') {
                 $requiredRoles = $mvc->getRequiredRoles('single', $rec, $userId);
             }
+
+            if ($requiredRoles != 'no_one') {
+                if (!$rec->htmlFile) {
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
     
