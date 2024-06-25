@@ -177,9 +177,9 @@ class planning_AssetResources extends core_Master
             $protocolIds = keylist::toArray($rec->protocols);
             $protocolLinks = array();
             foreach ($protocolIds as $protocolId){
-                $protocolLinks[] = accda_Da::getLink($rec->protocolId, 0);
+                $protocolLinks[] = accda_Da::getHyperlink($protocolId, true);
             }
-            $form->info = tr('От')  . ' ' . implode(',', $protocolLinks);
+            $form->info = "<div class='formCustomInfo'>" . tr('Обвързано с')  . ' ' . implode(',', $protocolLinks) . "</div>";
         }
         
         $defOptArr = array();
@@ -345,7 +345,7 @@ class planning_AssetResources extends core_Master
             if (!empty($rec->protocols)) {
                 $daArray = array();
                 foreach (keylist::toArray($rec->protocols) as $protocolId){
-                    $daArray[] = accda_Da::getLink($protocolId, 0);
+                    $daArray[] = accda_Da::getHyperlink($protocolId, true);
                 }
                 $row->protocols = implode(',', $daArray);
             }
