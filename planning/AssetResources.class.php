@@ -137,7 +137,6 @@ class planning_AssetResources extends core_Master
         $this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent, remember');
         $this->FLD('code', 'varchar(16)', 'caption=Код,mandatory, remember');
         $this->FLD('protocols', 'keylist(mvc=accda_Da,select=id)', 'caption=Протоколи за пускане в експлоатация,silent,input=hidden,remember,oldFieldName=protocolId');
-        $this->FNC('protocolId', 'key(mvc=accda_Da,select=id)', 'silent');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none, remember');
         
         $this->FLD('image', 'fileman_FileType(bucket=planningImages)', 'caption=Допълнително->Снимка');
@@ -159,6 +158,7 @@ class planning_AssetResources extends core_Master
         $this->FLD('vehicle', 'key(mvc=tracking_Vehicles,select=number, allowEmpty)', 'caption=Други->Тракер, remember');
         $this->FLD('lastRecalcTimes', 'datetime(format=smartTime)', 'caption=Последно->Преизчислени времена,input=none');
         $this->FLD('lastReorderedTasks', 'datetime(format=smartTime)', 'caption=Последно->Преподредени операции,input=none');
+        $this->FNC('fromProtocolId', 'key(mvc=accda_Da,select=id)', 'silent');
 
         $this->setDbUnique('code');
     }
