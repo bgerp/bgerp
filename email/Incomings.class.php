@@ -3762,7 +3762,7 @@ class email_Incomings extends core_Master
             }
 
             if ($requiredRoles != 'no_one') {
-                if (!$rec->htmlFile) {
+                if ($rec && !$rec->htmlFile) {
                     $requiredRoles = 'no_one';
                 }
             }
