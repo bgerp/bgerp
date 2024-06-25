@@ -272,6 +272,7 @@ class store_Transfers extends core_Master
         );
 
         $this->setDbIndex('lineId');
+        $this->setDbIndex('state');
     }
 
 

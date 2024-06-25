@@ -151,6 +151,7 @@ class bgerp_Notifications extends core_Manager
         $this->setDbIndex('urlId');
         $this->setDbIndex('customUrlId');
         
+        $this->setDbIndex('state');
         $this->setDbIndex('activatedOn');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('lastTime');
