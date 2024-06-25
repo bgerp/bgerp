@@ -1275,6 +1275,11 @@ class email_Incomings extends core_Master
      */
     protected static function getShowType($rec)
     {
+        if (!$rec->htmlFile) {
+
+            return 'text';
+        }
+
         if ($showType = email_IncomingsShowTypes::getCurrentState($rec->id)) {
 
             return $showType;
