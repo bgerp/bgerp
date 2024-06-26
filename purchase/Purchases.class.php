@@ -772,7 +772,7 @@ class purchase_Purchases extends deals_DealMaster
 		
 		$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
         if($rec->haveVatCreditProducts == 'yes'){
-            $row->detailOrderBy = ht::createHint($row->detailOrderBy, "Артикулите са с право на данъчен кредит");
+            $row->detailOrderBy = ht::createHint($row->detailOrderBy, "С право на данъчен креди");
             unset($row->haveVatCreditProducts);
         }
     }
