@@ -276,7 +276,9 @@ class ztm_Devices extends core_Master
     {
         $ident = Request::get('serial_number');
         $bgerpId = Request::get('bgerp_id');
-        
+
+        $ident = trim($ident);
+
         expect($ident);
         
         $uniqId = getBGERPUniqId();
