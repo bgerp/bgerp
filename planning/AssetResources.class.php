@@ -136,7 +136,7 @@ class planning_AssetResources extends core_Master
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory, remember');
         $this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent, remember');
         $this->FLD('code', 'varchar(16)', 'caption=Код,mandatory, remember');
-        $this->FLD('protocols', 'keylist(mvc=accda_Da,select=id)', 'caption=Протоколи за пускане в експлоатация,silent,input=hidden,remember,oldFieldName=protocolId');
+        $this->FLD('protocols', 'keylist(mvc=accda_Da,select=id)', 'caption=Протоколи за пускане в експлоатация,silent,input=hidden,remember');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none, remember');
         
         $this->FLD('image', 'fileman_FileType(bucket=planningImages)', 'caption=Допълнително->Снимка');
