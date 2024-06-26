@@ -25,7 +25,7 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'batch_Wrapper,plg_RowTools2,plg_Select';
+    public $loadList = 'batch_Wrapper,plg_RowTools2,plg_Select,plg_Sorting';
 
 
     /**
@@ -101,6 +101,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
     }
 
 
