@@ -446,7 +446,7 @@ class planning_Setup extends core_ProtoSetup
                 $rec->protocols = keylist::addKey('', $rec->protocols);
                 $save[] = $rec;
             } elseif(!empty($rec->protocolId) && empty($rec->protocols)){
-                $rec->protocols = keylist::addKey('', $rec->protocols);
+                $rec->protocols = keylist::addKey('', $rec->protocolId);
                 $save[] = $rec;
             }
         }
