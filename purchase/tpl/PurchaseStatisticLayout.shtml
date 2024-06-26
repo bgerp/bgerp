@@ -63,7 +63,7 @@
                   <span style='font-weight:normal'>|Клонирано от|*</span>: [#clonedFromId#]<br>
                   <!--ET_END clonedFromId-->
                   <!--ET_BEGIN haveVatCreditProducts-->
-                  <span style='font-weight:normal'>|Данъчен кредит|*</span>: [#haveVatCreditProducts#]<br>
+                  <span class="red" style="text-transform: uppercase;">[#haveVatCreditProducts#] </span><span style='font-weight:normal'> |на данъчен кредит|*!</span><br>
                   <!--ET_END haveVatCreditProducts-->
               </td>
            </tr>

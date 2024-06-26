@@ -181,13 +181,27 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
 
             }
+
             foreach ($waste as $v) {
 
-                $wasteWeight = 0;
-                if ($v->quantity) {
+                if ($v->quantity ) {
 
+                    if(self::isWeightMeasure($v->packagingId) === false){
 
-                    $wasteWeight += $v->quantity;
+                        $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
+
+                        if (!is_null($wasteProdWeigth)) {
+                            $wasteWeight += $v->quantity * $wasteProdWeigth;
+
+                        } else {
+                            $wasteWeight = null;
+                        }
+
+                    }else{
+                        $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
+                        $wasteWeight += $v->quantity*$wasteProdWeigth;
+
+                    }
                 }
             }
 
@@ -200,15 +214,18 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             $id = $jobsArr[$taskRec->originId]->id;
 
+            if ($scrappedWeight <= 0 && $wasteWeight <= 0)continue;
+
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
 
                     'jobId' => $jobsArr[$taskRec->originId]->id,                                             //Id на заданието
                     'jobArt' => $jobsArr[$taskRec->originId]->productId,                                     // Продукта по заданието
-                    'scrappedWeight' => $scrappedWeight,                                        // количество брак
+                    'scrappedWeight' => $scrappedWeight,                                                     // количество брак
                     'wasteWeight' => $wasteWeight,
                     'prodWeight' => $prodWeigth,
+                    'wasteProdWeigth' =>$wasteProdWeigth
 
                 );
             } else {
@@ -237,6 +254,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
             $fld->FLD('jobId', 'varchar', 'caption=Задание');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
             $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
 
@@ -261,14 +279,16 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 4;
+        $Double->params['decimals'] = 3;
 
         $row = new stdClass();
 
         $row->jobId = planning_Jobs::getHyperlink($dRec->jobId);
 
-        if (isset($dRec->wasteWeight)) {
+        if (isset($dRec->wasteProdWeigth)) {
             $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
+        }else {
+            $row->wasteWeight = '?';
         }
 
         if (isset($dRec->prodWeight)) {
@@ -278,6 +298,8 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $row->scrappedWeight = '?';
         }
 
+        $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
+        $row->measure = cat_UoM::getShortName($kgMeasureId);
 
         return $row;
     }
@@ -373,6 +395,23 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произв.', 'consum' => 'вл.')));
 
         $res->type = $Enum->toVerbal($dRec->consumedType);
+    }
+
+    /**
+     * Определя дали дадена мерна единица е тегловна
+     *
+     * @return bool
+     *
+     */
+    public static function isWeightMeasure($mesureId)
+    {
+
+        $kgMeasures = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
+        if(in_array($mesureId,array_keys($kgMeasures))){
+            return true;
+        }
+
+        return false;
     }
 
 }

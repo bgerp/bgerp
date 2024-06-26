@@ -205,6 +205,13 @@ class email_Incomings extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'subject, fromEml, fromName, textPart, files';
+
+
+    /**
+     * Дали да се проверяват правописните грешки
+     * @see spcheck_Plugin
+     */
+    public $checkSpell = false;
     
     
     /**
@@ -1209,17 +1216,19 @@ class email_Incomings extends core_Master
         }
 
         if ($mvc->getShowType($rec) == 'html') {
-            $fRec = fileman::fetch($rec->htmlFile);
-            if ($fRec) {
-                try {
-                    $htmlPartArr = fileman_webdrv_Html::getHtmlPart($fRec);
-                    $htmlPart = fileman_webdrv_Html::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path'],
-                        array('webdrvTabBody' => 'webdrvTabBodySingle',
-                            'webdrvFieldset' => 'webdrvFieldsetSingle',
-                            'webdrvIframe' => 'webdrvIframeSingle webdrvIframe'));
-                    $row->textPart = $htmlPart;
-                } catch (core_exception_Expect $exp) {
-                    reportException($exp);
+            if ($rec->htmlFile) {
+                $fRec = fileman::fetch($rec->htmlFile);
+                if ($fRec) {
+                    try {
+                        $htmlPartArr = fileman_webdrv_Html::getHtmlPart($fRec);
+                        $htmlPart = fileman_webdrv_Html::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path'],
+                            array('webdrvTabBody' => 'webdrvTabBodySingle',
+                                'webdrvFieldset' => 'webdrvFieldsetSingle',
+                                'webdrvIframe' => 'webdrvIframeSingle webdrvIframe'));
+                        $row->textPart = $htmlPart;
+                    } catch (core_exception_Expect $exp) {
+                        reportException($exp);
+                    }
                 }
             }
         }
@@ -1266,6 +1275,11 @@ class email_Incomings extends core_Master
      */
     protected static function getShowType($rec)
     {
+        if (!$rec->htmlFile) {
+
+            return 'text';
+        }
+
         if ($showType = email_IncomingsShowTypes::getCurrentState($rec->id)) {
 
             return $showType;
@@ -3745,6 +3759,12 @@ class email_Incomings extends core_Master
         if ($action == 'changeshowtype') {
             if ($requiredRoles != 'no_one') {
                 $requiredRoles = $mvc->getRequiredRoles('single', $rec, $userId);
+            }
+
+            if ($requiredRoles != 'no_one') {
+                if ($rec && !$rec->htmlFile) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }

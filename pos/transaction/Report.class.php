@@ -140,10 +140,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
             // Проверка на артикулите
             if(countR($productCheck['notActive'])){
-                doc_Threads::doUpdateThread($rec->threadId);
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
-                doc_Threads::doUpdateThread($rec->threadId);
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!");
             }
 
@@ -157,7 +155,6 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
                 if(countR($contoWarnings)) {
                     $warning = implode('. ', $contoWarnings);
-                    doc_Threads::doUpdateThread($rec->threadId);
                     acc_journal_RejectRedirect::expect(false, $warning);
                 }
             }

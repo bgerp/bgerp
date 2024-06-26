@@ -314,7 +314,8 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkInProgress',
         'planning_AssetGroupIssueTemplates',
         'planning_AssetSparePartsDetail',
-        'migrate::repairSearchKeywords2524'
+        'migrate::repairSearchKeywords2524',
+        'migrate::renameResourceFields2624v2',
     );
 
 
@@ -423,5 +424,35 @@ class planning_Setup extends core_ProtoSetup
         $callOn = dt::addSecs(1200);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ConsumptionNotes', $callOn);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ReturnNotes', $callOn);
+    }
+
+
+    /**
+     * Миграция на ресурсите
+     */
+    public function renameResourceFields2624v2()
+    {
+        $Resources = cls::get('planning_AssetResources');
+        $Resources->setupMvc();
+        $query = $Resources->getQuery();
+        $protocolIdField = str::phpToMysqlName('protocolId');
+        if ($Resources->db->isFieldExists($Resources->dbTableName, $protocolIdField)) {
+            $query->FNC('protocolId', 'int');
+        }
+
+        $save = array();
+        while($rec = $query->fetch()){
+            if(is_numeric($rec->protocols)){
+                $rec->protocols = keylist::addKey('', $rec->protocols);
+                $save[] = $rec;
+            } elseif(!empty($rec->protocolId) && empty($rec->protocols)){
+                $rec->protocols = keylist::addKey('', $rec->protocolId);
+                $save[] = $rec;
+            }
+        }
+
+        if(countR($save)){
+            $Resources->saveArray($save, 'id,protocols');
+        }
     }
 }

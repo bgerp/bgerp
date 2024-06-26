@@ -2310,6 +2310,35 @@ function getSelText() {
         getEO().log('Грешка при извличане на текста');
     }
 
+    // Ако има функция за превръщане в стринг
+    if (txt.toString) {
+
+        // Вземаме стринга
+        txt = txt.toString();
+    }
+
+    if (txt && txt.trim) {
+        txt = txt.trim();
+    }
+
+    if (!txt) {
+        iframes = document.querySelectorAll('iframe');
+        if (iframes) {
+            iframes.forEach(function(el) {
+                try {
+                    selTextIframe = getEO().getIframeSelection(el);
+                    if (selTextIframe.trim()) {
+                        txt = selTextIframe;
+                    }
+                } catch (err) { }
+            });
+        }
+    }
+
+    if (txt && txt.trim) {
+        txt = txt.trim();
+    }
+
     return txt;
 }
 
@@ -5010,29 +5039,6 @@ Experta.prototype.saveSelText = function() {
     // Вземаме избрания текст
     var selText = getSelText();
 
-    // Ако има функция за превръщане в стринг
-    if (selText.toString) {
-
-        // Вземаме стринга
-        selText = selText.toString();
-    } else {
-
-        return;
-    }
-    if (!selText) {
-        iframes = document.querySelectorAll('iframe');
-        if (iframes) {
-            iframes.forEach(function(el) {
-                try {
-                    selTextIframe = getEO().getIframeSelection(el);
-                    if (selTextIframe.trim()) {
-                        selText = selTextIframe;
-                    }
-                } catch (err) { } 
-            });
-        }
-    }
-
     // Ако първия записан текст е еднакъв с избрания
     if (this.fSelText == selText) {
 
@@ -5079,7 +5085,6 @@ Experta.prototype.saveSelTextInTextarea = function(id) {
         //id = textarea.getAttribute('id');
 
         // Вземаме избрания текст
-        // var selText = getSelText();
         var selText = getSelectedText(textarea);
 
         // Ако има функция за превръщане в стринг

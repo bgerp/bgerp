@@ -25,7 +25,7 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'batch_Wrapper,plg_RowTools2,plg_Select';
+    public $loadList = 'batch_Wrapper,plg_RowTools2,plg_Select,plg_Sorting';
 
 
     /**
@@ -77,11 +77,12 @@ class batch_BatchesInDocuments extends core_Manager
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FLD('date', 'date', 'mandatory,caption=Дата,silent,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
-        $this->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
+        $this->FLD('batch', 'varchar(128)', 'input=none,caption=Партида,after=productId,forceField');
         $this->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'mandatory,caption=Операция');
         $this->FLD('storeId', 'key(mvc=store_Stores)', 'caption=Склад');
         $this->FLD('isInstant', 'enum(no=Не,yes=Да)', 'caption=Моментно?,notNull,value=no');
 
+        $this->setDbIndex('batch');
         $this->setDbIndex('detailClassId,detailRecId');
         $this->setDbIndex('productId');
         $this->setDbIndex('detailClassId,detailRecId,productId,storeId');
@@ -100,6 +101,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
     }
 
 
