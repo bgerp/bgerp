@@ -94,7 +94,7 @@ class sales_TransportValues extends core_Manager
         $this->FLD('deliveryTime', 'time', 'mandatory,caption=Срок на доставка');
         $this->FLD('explain', 'varchar(265)', 'mandatory,caption=Обяснение');
         
-        $this->setDbUnique('docClassId,docId,recId');
+        $this->setDbUnique('recId');
         $this->setDbIndex('docClassId,docId');
     }
     
