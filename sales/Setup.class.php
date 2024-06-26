@@ -472,6 +472,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
+        'migrate::updateProformasWithoutDate2624',
     );
     
     
@@ -655,5 +656,25 @@ class sales_Setup extends core_ProtoSetup
         $res .= cls::get('sales_Sales')->setupMvc();
 
         return $res;
+    }
+
+
+    /**
+     * Миграция на проформите без дата
+     */
+    function updateProformasWithoutDate2624()
+    {
+        $save = array();
+        $Proformas = cls::get('sales_Proformas');
+        $query = sales_Proformas::getQuery();
+        $query->where("#date IS NULL AND #state = 'active'");
+        while($rec = $query->fetch()){
+            $rec->date = dt::verbal2mysql($rec->activatedOn, false);
+            $save[$rec->id] = $rec;
+        }
+
+        if(countR($save)){
+            $Proformas->saveArray($save, 'id,date');
+        }
     }
 }
