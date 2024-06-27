@@ -6133,6 +6133,7 @@ div.location.public {
 .acc_JournalDetails {
 	margin-top: 10px;
 }
+
 .details .portal .formToolbar #filter{
 	background-color: #e5e5e5;
 	padding: 6px 4px !important;
@@ -6141,6 +6142,10 @@ div.location.public {
 	&:hover {
 		background-color: #ccc;
 	}
+}
+
+.document .details .portal .formToolbar #filter {
+	padding: 5px 4px 4px !important;
 }
 /*шаблон за журнал*/
 

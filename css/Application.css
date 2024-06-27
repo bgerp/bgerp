@@ -5328,6 +5328,9 @@ div.location.public {
   .details .portal .formToolbar #filter:hover {
     background-color: #cccccc; }
 
+.document .details .portal .formToolbar #filter {
+  padding: 5px 4px 4px !important; }
+
 /*
  * шаблон за журнал
  */
