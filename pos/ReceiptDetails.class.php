@@ -620,9 +620,7 @@ class pos_ReceiptDetails extends core_Detail
             if(core_Packs::isInstalled('batch')){
                 if(isset($defaultStoreId)){
                     $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId, null, null, array(), false, null, true);
-                    if(countR($batchQuantities) != 1){
-                        $rec->batch = key($batchQuantities);
-                    }
+                    $rec->batch = key($batchQuantities);
                 }
 
                 // Ако артикулът е с задължителна партидност, но няма налична така да се даде грешка
@@ -634,11 +632,9 @@ class pos_ReceiptDetails extends core_Detail
                 }
             }
 
-
             if((!empty($selectedRec->batch) && empty($rec->batch))){
                 $selectedRec = null;
             }
-
 
             if($selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value && $selectedRec->batch == $rec->batch){
                 $rec->value = $selectedRec->value;
