@@ -1467,6 +1467,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->groupByField = '_createdDate';
         } else {
             unset($data->listFields['_createdDate']);
+            $data->listFilter->FLD('from', 'date', 'caption=От,input');
+            $data->listFilter->FLD('to', 'date', 'caption=До,input');
 
             $data->listFilter->view = 'horizontal';
             $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
@@ -1481,6 +1483,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->listFilter->showFields .= ",employees";
                 $data->listFilter->setField('employees', 'input');
             }
+            $data->listFilter->showFields = "from,to,{$data->listFilter->showFields}";
         }
 
         $caption = isset($data->masterMvc) ? '' : 'Филтрирай';
@@ -1489,6 +1492,16 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         // Филтър по избраните стойности
         if ($filter = $data->listFilter->rec) {
+            if(!empty($filter->from) || !empty($filter->to)){
+                $data->query->XPR('dateCalc', 'date', "DATE(COALESCE(#date, #createdOn))");
+                if(!empty($filter->from)){
+                    $data->query->where("#dateCalc >= '{$filter->from}'");
+                }
+                if(!empty($filter->to)){
+                    $data->query->where("#dateCalc <= '{$filter->to}'");
+                }
+            }
+
             if (!empty($filter->fixedAsset)) {
                 $data->query->where("#fixedAsset = '{$filter->fixedAsset}'");
             }
