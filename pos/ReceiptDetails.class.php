@@ -617,14 +617,23 @@ class pos_ReceiptDetails extends core_Detail
             // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
             $defaultStoreId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
 
-            if(isset($defaultStoreId)){
-                if(core_Packs::isInstalled('batch')){
+            if(core_Packs::isInstalled('batch')){
+                if(isset($defaultStoreId)){
                     $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId, null, null, array(), false, null, true);
                     if(countR($batchQuantities) != 1){
                         $rec->batch = key($batchQuantities);
                     }
                 }
+
+                // Ако артикулът е с задължителна партидност, но няма налична така да се даде грешка
+                if($batchDef = batch_Defs::getBatchDef($rec->productId)){
+                    if(empty($rec->batch)){
+                        $alwaysRequire = $batchDef->getField('alwaysRequire');
+                        expect($alwaysRequire != 'yes', "Артикулът е със задължителна партидност, но няма налични|*!");
+                    }
+                }
             }
+
 
             if((!empty($selectedRec->batch) && empty($rec->batch))){
                 $selectedRec = null;

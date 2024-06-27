@@ -912,9 +912,14 @@ class pos_Terminal extends peripheral_Terminal
 
             $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior, null, array(), true, null, true);
             $cnt = 0;
+
+            // Може да се задава без парида, само ако е позволено на артикула
             if(countR($batchesInStore)){
-                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Добавяне на артикул без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
-                $batchTpl->append($btn);
+                $alwaysRequire = $Def->getField('alwaysRequire');
+                if($alwaysRequire != 'yes'){
+                    $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Добавяне на артикул без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
+                    $batchTpl->append($btn);
+                }
             }
 
             if(!empty($string)){
