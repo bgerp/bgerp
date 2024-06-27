@@ -99,6 +99,7 @@ class batch_Items extends core_Master
         $this->setDbIndex('productId');
         $this->setDbIndex('storeId');
         $this->setDbIndex('productId,storeId');
+        $this->setDbIndex('nullifiedDate');
     }
 
 
