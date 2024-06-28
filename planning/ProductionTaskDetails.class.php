@@ -151,7 +151,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('weight', 'double(Min=0)', 'caption=Бруто,unit=кг');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,input=hidden');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Допълнително->Оборудване,input=none,tdClass=nowrap,smartCenter');
-        $this->FLD('date', 'datetime', 'caption=Допълнително->Дата');
+        $this->FLD('date', 'datetime', 'caption=Допълнително->Дата,tdClass=taskDetailDateCol');
         $this->FNC('otherEmployees', 'planning_type_Operators(mvc=crm_Persons)', 'caption=Допълнително->Други оператори,input');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
@@ -1039,6 +1039,10 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $row->date = "<div class='nowrap small'>{$dateVerbal}";
         $row->date .= ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
+        if($rec->state == 'rejected'){
+            $row->modifiedOn = $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
+            $row->date = ht::createHint($row->date, "Оттегляне:|* {$row->modifiedOn} |от||by|* {$row->modifiedBy}", 'notice', false);
+        }
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : (($rec->type == 'scrap') ? 'state-hidden' : 'row-removed')));
 
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
