@@ -734,7 +734,7 @@ class batch_Items extends core_Master
         $bQuery = batch_BatchesInDocuments::getQuery();
         $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
         $bQuery->where("#productId = {$productId}");
-        if(isset($storeId)){
+        if(!empty($storeId)){
             $bQuery->where("#storeId = {$storeId}");
         }
         if(isset($batch)){
