@@ -224,7 +224,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                             array('cat_Products', $dRec->productId),
                             'quantity' => 0),
                         'credit' => array('4530', array('purchase_Purchases', $rec->id),),
-                        'reason' => 'Сторно ДДС за начисляване при покупка - Артикул БЕЗ право на Данъчен кредит',
+                        'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит',
                     );
                 }
             }
@@ -377,7 +377,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                                     array('cat_Products', $detailRec->productId),
                                     'quantity' => 0),
                         'credit' => array('4530', array('purchase_Purchases', $rec->id),),
-                        'reason' => 'Сторно ДДС за начисляване при покупка - Артикул БЕЗ право на Данъчен кредит',
+                        'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит',
                     );
                 }
             }

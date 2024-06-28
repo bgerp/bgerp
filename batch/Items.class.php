@@ -99,6 +99,7 @@ class batch_Items extends core_Master
         $this->setDbIndex('productId');
         $this->setDbIndex('storeId');
         $this->setDbIndex('productId,storeId');
+        $this->setDbIndex('nullifiedDate');
     }
 
 
@@ -707,12 +708,14 @@ class batch_Items extends core_Master
      * @param array         $except    - кой документ да се игнорира
      * @param boolean       $onlyActiveBatches - дали да са само текущо активните партиди
      * @param string|null   $batch     - ид на склад
+     * @param boolean       $onlyPositiveBatches - дали да са само положителните наличности
+     *
      *
      *
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false, $batch = null)
+    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false, $batch = null, $onlyPositiveBatches = false)
     {
         $res = array();
         $date = (isset($date)) ? $date : dt::today();
@@ -745,6 +748,9 @@ class batch_Items extends core_Master
 
         foreach ($res as $b => $q){
             $res[$b] = round($q, 5);
+            if($onlyPositiveBatches && $res[$b] <= 0){
+                unset($res[$b]);
+            }
         }
 
         // Намерените партиди се подават на партидната дефиниция, ако иска да ги преподреди

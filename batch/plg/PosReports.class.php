@@ -121,6 +121,6 @@ class batch_plg_PosReports extends core_Plugin
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId} AND #isInstant = 'yes'");
+        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId}");
     }
 }

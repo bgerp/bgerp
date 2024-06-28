@@ -1386,7 +1386,7 @@ a.profile {
 .state-rejected {
 	td, .document th, .document td a, .document p, .document h3, .document h4,
 	.richtext, .document a, .document span:not(.state), .richtext div, .cCode, .antetka,  .row-fluid div,
-	.document ul, .document ol, .document li, .document b, .document font, .document legend {
+	.document ul, .document ol, .document li, .document b, .document font, .document legend, .small {
 		color: #999 !important;
 		text-decoration: line-through !important;
 	}

@@ -81,7 +81,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
 
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)', 'caption=Работници,placeholder=Всички,after=to');
 
-        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources)', 'caption=Машини,placeholder=Всички,after=employees,single=none');
+        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Машини,placeholder=Всички,after=employees,single=none');
 
 
     }
@@ -136,15 +136,11 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
                 }
             }
 
-            $suggestionsAsset[$jRec->assetId] = planning_AssetResources::getTitleById($jRec->assetId);
 
         }
 
         asort($suggestions);
         $form->setSuggestions('employees', $suggestions);
-
-        asort($suggestionsAsset);
-        $form->setSuggestions('assetResources', $suggestionsAsset);
 
     }
 
@@ -171,6 +167,18 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
 
         $taskQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
 
+        //Филтър по машини
+        if ($rec->assetResources) {
+            $assetArr = keylist::toArray($rec->assetResources);
+
+            $taskQuery->in('assetId', $assetArr);
+        }
+
+        //Филтър по служители
+        if ($rec->employees) {
+            $taskQuery->likeKeylist('employees', $rec->employees);
+        }
+
         $wasteQuantity = null;
 
         while ($taskRec = $taskQuery->fetch()) {
@@ -183,10 +191,31 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
             if (!$wasteQuantity) {
                 $totalWastePercent = null;
                 $waste = planning_ProductionTaskProducts::getTotalWasteArr($taskRec->threadId, $totalWastePercent);
+
             }
+
+            $wasteWeightNullMark = null;     //Ако има поне един отпадък без тегло да се отбележи в изгледа с ? след цифрата
+
             foreach ($waste as $v) {
                 if ($v->quantity) {
-                    $wasteWeight = $v->quantity;
+
+                    if (planning_reports_WasteAndScrapByJobs::isWeightMeasure($v->packagingId) === false) {
+
+                        $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
+
+                        if (!is_null($wasteProdWeigth)) {
+                            $wasteWeight += $v->quantity * $wasteProdWeigth;
+
+                        } else {
+                            $wasteWeightNullMark = true;
+                            $wasteWeight = null;
+                        }
+
+                    } else {
+                        $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
+                        $wasteWeight += $v->quantity * $wasteProdWeigth;
+
+                    }
                 }
             }
 
@@ -198,20 +227,27 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
 
             $id = $taskRec->id;
 
+            if ($scrappedWeight <= 0 && $wasteWeight <= 0) continue;
+
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
 
                     'taskId' => $taskRec->id,                                          //Id на операцията
                     'jobArt' => $jobRec->productId,                                   // Продукта по заданието
-                    'scrappedQuantity' => $scrappedWeight,                            // количество брак
-                    'wasteQuantity' => $wasteWeight,
+                    'scrappedWeight' => $scrappedWeight,                            // количество брак
+                    'wasteWeight' => $wasteWeight,
                     'prodWeight' => $prodWeigth,
+                    'wasteProdWeigth' => $wasteProdWeigth,
                     'assetResources' => $taskRec->assetId,
                     'employees' => $taskRec->employees,
+                    'jobId' => $jobRec->id,
+                    'wasteWeightNullMark' => $wasteWeightNullMark
 
                 );
             }
+
+            $wasteWeight = 0;
         }
 
         return $recs;
@@ -233,6 +269,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
             $fld->FLD('taskId', 'varchar', 'caption=Операция');
             $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
             $fld->FLD('employees', 'varchar', 'caption=Служители');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
             $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
 
@@ -257,18 +294,26 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 4;
+        $Double->params['decimals'] = 3;
 
         $row = new stdClass();
 
         $row->taskId = planning_Tasks::getHyperlink($dRec->taskId);
 
+        if (isset($dRec->wasteProdWeigth)) {
+            $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
+            if ($dRec->wasteWeightNullMark === true) {
+                $row->wasteWeight .= "<span class='red'>?</span>";
+            }
+        } else {
+            $row->wasteWeight = '?';
+        }
+
         if (isset($dRec->prodWeight)) {
             $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeight);
-            $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
+
         } else {
             $row->scrappedWeight = '?';
-            $row->wasteWeight = '?';
         }
 
         if (isset($dRec->assetResources)) {
@@ -279,12 +324,15 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
             $row->employees = '';
             foreach (keylist::toArray($dRec->employees) as $val) {
 
-                $row->employees .= crm_Persons::getTitleById(($val)) . ' - ' . planning_Hr::getCodeLink($val) . ',' . "</br>";
-
+                //$row->employees .= crm_Persons::getTitleById(($val)) . ' - ' . planning_Hr::getCodeLink($val) . ',' . "</br>";
+                $row->employees .= crm_Persons::getTitleById(($val)) . "</br>";
             }
 
 
         }
+
+        $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
+        $row->measure = cat_UoM::getShortName($kgMeasureId);
 
 
         return $row;
@@ -387,53 +435,6 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
         $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произв.', 'consum' => 'вл.')));
 
         $res->type = $Enum->toVerbal($dRec->consumedType);
-    }
-
-    /**
-     * Рекурсивно извеждане на вложените материали
-     *
-     * @param stdClass $lastActivBomm
-     * @return array $material
-     *
-     */
-
-    private function getBaseMaterialFromBoms($lastActivBomm, &$arr, &$arr1)
-    {
-
-        //Вложени материали по рецепта (някои може да са заготовки т.е. да имат рецепти за влагане на по низши материали или заготовки)
-        $bommMaterials = cat_Boms::getBomMaterials($lastActivBomm->id, $lastActivBomm->quantity);
-        foreach ($bommMaterials as $baseMat) {
-            $arr1[$baseMat->productId] = $baseMat->quantity;
-
-        }
-
-
-        foreach ($bommMaterials as $material) {
-            if (cat_Products::getLastActiveBom($material->productId)) {
-                $lastActivBomm = cat_Products::getLastActiveBom($material->productId);
-
-                self::getBaseMaterialFromBoms($lastActivBomm, $arr, $arr1);
-
-            } else {
-
-                $id = $material->productId;
-
-                $jobsQuantityMaterial = (double)$arr1[$lastActivBomm->productId] * $material->quantity / $lastActivBomm->quantity;
-
-                if (!array_key_exists($id, $arr)) {
-                    $arr[$id] = (object)array(
-                        'productId' => $material->productId,
-                        'quantity' => $jobsQuantityMaterial
-                    );
-                } else {
-                    $obj = &$arr[$id];
-                    $obj->quantity += $jobsQuantityMaterial;
-                }
-            }
-
-        }
-
-        return $arr;
     }
 
 }

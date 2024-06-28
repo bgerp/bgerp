@@ -182,6 +182,8 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             }
 
+            $wasteWeightNullMark = null;     //Ако има поне един отпадък без тегло да се отбележи в изгледа с ? след цифрата
+
             foreach ($waste as $v) {
 
                 if ($v->quantity ) {
@@ -194,6 +196,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                             $wasteWeight += $v->quantity * $wasteProdWeigth;
 
                         } else {
+                            $wasteWeightNullMark = true;
                             $wasteWeight = null;
                         }
 
@@ -225,7 +228,8 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                     'scrappedWeight' => $scrappedWeight,                                                     // количество брак
                     'wasteWeight' => $wasteWeight,
                     'prodWeight' => $prodWeigth,
-                    'wasteProdWeigth' =>$wasteProdWeigth
+                    'wasteProdWeigth' =>$wasteProdWeigth,
+                    'wasteWeightNullMark' => $wasteWeightNullMark,
 
                 );
             } else {
@@ -285,8 +289,13 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         $row->jobId = planning_Jobs::getHyperlink($dRec->jobId);
 
-        if (isset($dRec->wasteWeight)) {
+        if (isset($dRec->wasteProdWeigth)) {
             $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
+            if($dRec->wasteWeightNullMark === true){
+                $row->wasteWeight .= "<span class='red'>?</span>";
+            }
+        }else {
+            $row->wasteWeight = '?';
         }
 
         if (isset($dRec->prodWeight)) {
@@ -296,8 +305,8 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $row->scrappedWeight = '?';
         }
 
-        $row->measure = 'кг';
-
+        $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
+        $row->measure = cat_UoM::getShortName($kgMeasureId);
 
         return $row;
     }
@@ -403,11 +412,9 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
      */
     public static function isWeightMeasure($mesureId)
     {
-        $weightMeasureArr = array('кг', 'т', 'г', 'мг');
-        $q = cat_UoM::getQuery();
-        $q -> in('shortName',$weightMeasureArr);
-        $arr = arr::extractValuesFromArray($q->fetchAll(),'id');
-        if(in_array($mesureId,$arr)){
+
+        $kgMeasures = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
+        if(in_array($mesureId,array_keys($kgMeasures))){
             return true;
         }
 

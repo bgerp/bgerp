@@ -748,7 +748,7 @@ class planning_Tasks extends core_Master
                             }
 
                             $startAfterTitleFull = $mvc->getAlternativeTitle($startAfter);
-                            $startAfterTitle = ht::createHint($startAfterTitle, $startAfterTitleFull, 'notice', false);
+                            $startAfterTitle = ht::createHint($startAfterTitle, "|*{$startAfterTitleFull}", 'notice', false);
                         }
                         $row->startAfter = $startAfterTitle;
                     } else {
@@ -819,6 +819,20 @@ class planning_Tasks extends core_Master
             $jobNotes = $origin->fetchField('notes');
             if(!empty($jobNotes)){
                 $row->jobNotes = core_Type::getByName('richtext(hideTextAfterLength=100)')->toVerbal($jobNotes);
+            }
+
+            // Показване на теглото на брака в сингъла на ПО
+            if(!empty($rec->scrappedQuantity) && $rec->showadditionalUom == 'yes'){
+                if(!cat_UoM::isWeightMeasure($rec->measureId)){
+                    $sQuery = planning_ProductionTaskDetails::getQuery();
+                    $sQuery->where("#taskId = {$rec->id} AND #type = 'scrap' AND #state != 'rejected' AND #productId = {$rec->productId}");
+                    $sQuery->XPR('sum', 'double', 'SUM(#netWeight)');
+                    $scrappedNetWeight = $sQuery->fetch()->sum;
+                    if($scrappedNetWeight){
+                        $scrappedNetWeightVerbal = core_Type::getByName('cat_type_Weight')->toVerbal($scrappedNetWeight);
+                        $row->scrappedQuantity = "{$row->scrappedQuantity} <small style='font-weight:normal;color:darkblue;font-style:italic;' class='secondMeasure'>({$scrappedNetWeightVerbal}) </small>";
+                    }
+                }
             }
         } else {
             // Ако има предишна операция, ще може да се поставя след нея
