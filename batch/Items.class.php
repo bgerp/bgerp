@@ -587,6 +587,11 @@ class batch_Items extends core_Master
                 $ht = ht::createLink('', $data->deleteBatchUrl, 'Сигурни ли сте, че искате да изтриете партидната дефиниция|*?', 'ef_icon=img/12/close.png,title=Изтриване на нова партидна дефиниция,style=vertical-align: middle;');
                 $title->replace($ht, 'btn');
             }
+            if(batch_Defs::haveRightFor('edit', $data->definitionRec)){
+                $editBtn = ht::createLink('', array('batch_Defs', 'edit', $data->definitionRec->id), false, 'ef_icon=img/16/edit-icon.png,title=Редактиране на конкретната партидна дефиниция,style=vertical-align: middle;');
+                $title->append($editBtn);
+            }
+
             $tpl->append($title, 'definition');
         } elseif ($data->addBatchUrl) {
             $ht = ht::createLink('', $data->addBatchUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на нова партидна дефиниция,style=vertical-align: middle;');
