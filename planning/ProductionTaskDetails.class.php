@@ -251,6 +251,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(isset($rec->scrapRecId)){
                 $form->setReadOnly('serial');
             } else {
+                // Добавяне като енум, за да може да се търси в опциите на полето
                 $form->setFieldType('serial', "enum(" . arr::fromArray($options) . ")");
                 $form->setFieldTypeParams('serial', 'minimumResultsForSearch=0,translate=no');
             }
