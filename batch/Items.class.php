@@ -662,8 +662,8 @@ class batch_Items extends core_Master
             $query->where(array("#batch = '[#1#]'", $batch));
         }
 
-        if(isset($storeId)){
-            $query->where("#storeId = {$storeId}");
+        if(!empty($storeId)){
+            $query->where("#storeId = '{$storeId}'");
         }
         $query->where("#date <= '{$date}'");
 
