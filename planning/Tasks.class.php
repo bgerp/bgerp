@@ -748,7 +748,7 @@ class planning_Tasks extends core_Master
                             }
 
                             $startAfterTitleFull = $mvc->getAlternativeTitle($startAfter);
-                            $startAfterTitle = ht::createHint($startAfterTitle, $startAfterTitleFull, 'notice', false);
+                            $startAfterTitle = ht::createHint($startAfterTitle, "|*{$startAfterTitleFull}", 'notice', false);
                         }
                         $row->startAfter = $startAfterTitle;
                     } else {
