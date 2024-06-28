@@ -248,7 +248,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $optionField = 'serial';
             $form->setField('serial', 'removeAndRefreshForm=productId|quantity|scrapRecId');
             $form->setFieldType('serial', "enum(" . arr::fromArray($options) . ")");
-            $form->setFieldTypeParams('serial', 'minimumResultsForSearch=0');
+            $form->setFieldTypeParams('serial', 'minimumResultsForSearch=0,translate=no');
             $form->setDefault('serial', key($options));
 
             if(isset($rec->scrapRecId)){
