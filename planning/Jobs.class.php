@@ -2365,4 +2365,22 @@ class planning_Jobs extends core_Master
             }
         }
     }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // При местене на заданието да се подменя и центъра на дейност
+        if($rec->_isBeingMoved && isset($rec->department)){
+            $folderCover = doc_Folders::getCover($rec->folderId);
+            if($folderCover->isInstanceOf('planning_Centers')){
+                if($rec->department != $folderCover->that){
+                    $rec->department = $folderCover->that;
+                    $mvc->save_($rec, 'department');
+                }
+            }
+        }
+    }
 }

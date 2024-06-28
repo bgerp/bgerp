@@ -86,6 +86,7 @@ class log_Ips extends core_Manager
         $this->FLD('createdOn', 'datetime', 'mandatory,caption=Създаване');
         
         $this->setDbUnique('ip');
+        $this->setDbIndex('createdOn');
     }
     
     

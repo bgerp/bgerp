@@ -499,6 +499,7 @@ class email_Setup extends core_ProtoSetup
         'email_ServiceRules',
         'email_ServiceRulesData',
         'email_AddressesInfo',
+        'email_IncomingsShowTypes',
         'migrate::repairSpamScore1219',
         'migrate::serviceRules2121',
     );

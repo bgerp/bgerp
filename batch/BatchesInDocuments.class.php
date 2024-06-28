@@ -25,7 +25,7 @@ class batch_BatchesInDocuments extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'batch_Wrapper,plg_RowTools2';
+    public $loadList = 'batch_Wrapper,plg_RowTools2,plg_Select';
 
 
     /**

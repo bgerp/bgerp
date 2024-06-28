@@ -44,7 +44,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper,plg_State2';
     
     
     /**
@@ -311,7 +311,11 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
-        $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
+        if($rec->state != 'closed'){
+            $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
+        } else {
+            $row->type = ht::createHint($row->type, 'Артикулът е деактивиран да не се добавя повече от прогреса', 'warning');
+        }
 
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         if (isset($rec->storeId)) {
@@ -366,6 +370,12 @@ class planning_ProductionTaskProducts extends core_Detail
                 if(planning_Tasks::fetchField($rec->taskId, 'wasteProductId') == $rec->productId){
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+
+        if($action == 'changestate' && isset($rec->taskId)){
+            if($mvc->haveRightFor('delete', $rec) && isset($rec->taskId)){
+                $requiredRoles = 'no_one';
             }
         }
         
@@ -455,7 +465,7 @@ class planning_ProductionTaskProducts extends core_Detail
 
         } else {
             $query = self::getQuery();
-            $query->where("#taskId = {$taskId}");
+            $query->where("#taskId = {$taskId} AND #state != 'closed'");
             $query->where("#type = '{$type}'");
             if(isset($inputType)){
                 if($inputType != 'actions'){

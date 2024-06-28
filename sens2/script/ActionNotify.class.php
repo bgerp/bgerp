@@ -109,6 +109,18 @@ class sens2_script_ActionNotify
             }
         }
         
+        // Предотвратяваме изпращането, ако от последното изпращане не е минал зададеният интервал
+        if($rec->minNotifyTime > 0) { 
+            $lastSent =  core_Cache::get('Sens2LS', $rec->action);
+           
+            if($lastSent && ($lastSent + $rec->minNotifyTime) > time()) {
+
+                return 'active';
+            } else {
+                core_Cache::set('Sens2LS', $rec->action, time(), floor($rec->minNotifyTime/60 + 2));
+            }
+        }
+        
         // Заменяме променливите от контекста
         $context = sens2_Scripts::getContext($rec->scriptId);
         $message = strtr($rec->message, $context);
