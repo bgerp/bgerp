@@ -247,12 +247,12 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             $optionField = 'serial';
             $form->setField('serial', 'removeAndRefreshForm=productId|quantity|scrapRecId');
-            $form->setFieldType('serial', "enum(" . arr::fromArray($options) . ")");
-            $form->setFieldTypeParams('serial', 'minimumResultsForSearch=0,translate=no');
             $form->setDefault('serial', key($options));
-
             if(isset($rec->scrapRecId)){
                 $form->setReadOnly('serial');
+            } else {
+                $form->setFieldType('serial', "enum(" . arr::fromArray($options) . ")");
+                $form->setFieldTypeParams('serial', 'minimumResultsForSearch=0,translate=no');
             }
         } else {
             $optionField = 'productId';
@@ -318,8 +318,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
             }
 
-            $form->setField('quantity', "placeholder={$defaultScrapQuantity}");
-            $form->setField('weight', "placeholder={$defaultWeight}");
+            $form->setField('quantity', "placeholder=|*{$defaultScrapQuantity}");
+            $form->setField('weight', "placeholder=|*{$defaultWeight}");
             $form->rec->_defaultScrapQuantity = $defaultScrapQuantity;
             $form->rec->_defaultScrapWeight = $defaultWeight;
             $form->rec->_defaultScrapNetWeight = $defaultNetWeight;
@@ -352,7 +352,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($pRec->canStore != 'yes' && $rec->type == 'production' && $rec->productId == $masterRec->productId) {
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
                     if ($rest > 0) {
-                        $form->setField('quantity', "placeholder={$rest}");
+                        $form->setField('quantity', "placeholder=|*{$rest}");
                         $form->rec->_defaultQuantity = $rest;
                     }
                 }
@@ -379,9 +379,9 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $defaultQuantity = planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $masterRec->measureId, $masterRec->labelPackagingId, $masterRec->id);
                 }
 
-                $form->setField('quantity', "placeholder={$defaultQuantity}");
+                $form->setField('quantity', "placeholder=|*{$defaultQuantity}");
                 if ($rec->_isKgMeasureId) {
-                    $form->setField('weight', "placeholder={$defaultQuantity}");
+                    $form->setField('weight', "placeholder=|*{$defaultQuantity}");
                 }
                 $form->rec->_defaultQuantity = $defaultQuantity;
             } else {
@@ -392,7 +392,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $form->setField('weight', "unit={$unit}");
                 }
             }
-            $form->setField('date', "placeholder=" . dt::now());
+            $form->setField('date', "placeholder=|*" . dt::now());
         } else {
             if ($rec->type == 'input') {
                 $form->setField('serial', 'input=none');
