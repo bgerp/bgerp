@@ -623,7 +623,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 
             if(countR($productsWithMandatoryBatches)){
                 $productMsg = implode(', ', $productsWithMandatoryBatches);
-                acc_journal_RejectRedirect::expect(false, "(2)Артикулите не могат да са без партида|*: {$productMsg}");
+                acc_journal_RejectRedirect::expect(false, "Артикулите не могат да са без партида|*(2): {$productMsg}");
             }
 
             // Запис
@@ -639,9 +639,6 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
 
             if($redirectError = deals_Helper::getContoRedirectError($shipped, 'canConvert', 'generic', 'трябва да са вложими и да не са генерични')){
-                if($class == 'pos_Reports'){
-                    doc_Threads::doUpdateThread($rec->threadId);
-                }
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
