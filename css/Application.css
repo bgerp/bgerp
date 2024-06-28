@@ -7672,6 +7672,9 @@ tr.wasteWeightPercent td {
 .frontTooltip {
   display: inline-block; }
 
+.taskDetailDateCol .small {
+  display: inline-block; }
+
 /*
  * край на стилове за външната част при потребител контрактор
  */

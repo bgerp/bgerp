@@ -1041,7 +1041,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->date .= ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
         if($rec->state == 'rejected'){
             $row->modifiedOn = $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
-            $row->date = ht::createHint($row->date, "Оттеглен от|* {$row->modifiedBy} [ {$row->modifiedOn} ]", 'notice', false);
+            $row->date = ht::createHint($row->date, "Оттеглен от|* {$row->modifiedBy} [ {$row->modifiedOn} ]", 'notice');
         }
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : (($rec->type == 'scrap') ? 'state-hidden' : 'row-removed')));
 
