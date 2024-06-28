@@ -661,7 +661,7 @@ class accda_Da extends core_Master
         $rec = $data->rec;
         
         $folderId = planning_AssetResources::canFolderHaveAsset($rec->folderId) ? $rec->folderId : null;
-        if (planning_AssetResources::haveRightFor('add', (object) array('protocolId' => $rec->id, 'folderId' => $folderId))) {
+        if (planning_AssetResources::haveRightFor('add', (object) array('fromProtocolId' => $rec->id, 'folderId' => $folderId))) {
             $data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'add', 'fromProtocolId' => $rec->id, 'folderId' => $folderId), 'ef_icon = img/16/add.png,title=Създаване на ново оборудване');
         }
     }
