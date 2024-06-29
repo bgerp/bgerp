@@ -529,25 +529,31 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $entries = $bomDataCombined = array();
         if(!is_array($rec->details)) return $entries;
 
+        $storeId = $rec->{$storeField};
+        if($Class instanceof pos_Reports){
+            $pointRec = pos_Points::fetch($rec->pointId);
+            $storeId = !empty($storeId) ? $storeId : $pointRec->storeId;
+        }
+
         foreach ($rec->details as $dRec1){
             // Ако имат моментна рецепта
             $instantBomRec = cat_Products::getLastActiveBom($dRec1->{$productFieldName}, 'instant');
             if(!is_object($instantBomRec)) continue;
             $quantity = $dRec1->quantity * $dRec1->quantityInPack;
             if(!array_key_exists($instantBomRec->id, $bomDataCombined)){
-                $bomDataCombined[$instantBomRec->id] = (object)array('rec' => $instantBomRec, 'storeId' => $rec->{$storeField}, 'quantity' => 0, 'productId' => $dRec1->{$productFieldName});
+                $bomDataCombined[$instantBomRec->id] = (object)array('rec' => $instantBomRec, 'storeId' => $storeId, 'quantity' => 0, 'productId' => $dRec1->{$productFieldName});
                 $instantProducts[$dRec1->{$productFieldName}] = $dRec1->{$productFieldName};
             }
             $bomDataCombined[$instantBomRec->id]->quantity += $quantity;
         }
 
         core_Debug::startTimer('FAST_PRODUCTION_BOM_DATA');
+
         foreach ($bomDataCombined as $bomData){
 
             // И тя има ресурси, произвежда се по нея
             $bomInfo = cat_Boms::getResourceInfo($bomData->rec, $bomData->quantity, $rec->valior);
             if(is_array($bomInfo['resources'])){
-
                 foreach ($bomInfo['resources'] as &$resRec){
                     $resRec->quantity = $resRec->propQuantity;
                     $resRec->storeId = $bomData->storeId;
