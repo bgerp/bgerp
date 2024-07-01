@@ -26,8 +26,9 @@
             padding:5px 10px;
             box-shadow: 0 0 1px #aaa;
         }
-        .product:last-child {
-            border-bottom: none !important;
+
+        .productName {
+            color: #000;
         }
     </style>
     <!--ET_BEGIN MASTER_BLOCK-->
