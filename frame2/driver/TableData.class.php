@@ -878,14 +878,14 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             if($row instanceof core_ET){
                 $block = clone $tpl->getBlock('DETAIL_GROUP_ROW');
                 $groupContent = strip_tags($row->getContent());
-                $block->append($groupContent);
+                $block->append($groupContent, 'DETAIL_GROUP_ROW');
             } else {
                 $block = clone $tpl->getBlock('DETAIL_ROW');
                 $block->placeObject($row);
             }
 
             $block->removeBlocksAndPlaces();
-            $tpl->append($block);
+            $tpl->append($block, 'DETAIL_BLOCK');
         }
 
         return $tpl;

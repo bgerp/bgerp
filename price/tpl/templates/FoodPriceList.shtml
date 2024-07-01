@@ -14,7 +14,7 @@
         </div>
     </fieldset>
     <!--ET_END MASTER_BLOCK-->
-    <div>[#VAT_STATE#]<div>
+    <div>[#VAT_STATE#]</div>
     <!--ET_BEGIN DETAIL_BLOCK-->
     [#DETAIL_BLOCK#]
     <!--ET_END DETAIL_BLOCK-->
@@ -28,7 +28,13 @@
         <div>[#productId#]</div>
         <div>[#measureId#]</div>
         <div>[#price#]</div>
-        <div>[#packs#]</div>
     </div>
     <!--ET_END DETAIL_ROW-->
+    [#GRID#]
+    <!--ET_BEGIN DETAIL_ROW_WITH_PHOTO-->
+    [#DETAIL_ROW_WITH_PHOTO#]
+    <div style="background-color:#eee">
+        <div>[#photo#]</div>
+    </div>
+    <!--ET_END DETAIL_ROW_WITH_PHOTO-->
 </div>

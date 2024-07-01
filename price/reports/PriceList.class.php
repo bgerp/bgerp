@@ -352,14 +352,25 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row = new stdClass();
         
         $display = ($rec->displayDetailed == 'yes') ? 'detailed' : 'short';
-        Mode::push('noIconImg', true);
-        $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
-        Mode::pop('noIconImg');
+
+        if($rec->templateType == 'foods'){
+            $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, 'short', 'public', $rec->lang, null, false);
+            $previewHandler = cat_Products::getParams($dRec->productId, 'preview');
+            if($previewHandler){
+                $Fancybox = cls::get('fancybox_Fancybox');
+                $row->photo = $Fancybox->getImage($previewHandler, array(280, 150), array(1200, 1200));
+            }
+        } else {
+            Mode::push('noIconImg', true);
+            $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
+            Mode::pop('noIconImg');
+        }
+
         $row->groupName = core_Type::getByName('varchar')->toVerbal($dRec->groupName);
         $row->code = core_Type::getByName('varchar')->toVerbal($dRec->code);
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
-        
-        $decimals = isset($rec->round) ? $rec->round : self::DEFAULT_ROUND;
+
+        $decimals = $rec->round ?? self::DEFAULT_ROUND;
         $row->price = core_Type::getByName("double(decimals={$decimals})")->toVerbal($dRec->price);
         
         // Рендиране на опаковките в таблица
@@ -752,5 +763,30 @@ class price_reports_PriceList extends frame2_driver_TableData
         if($rec->templateType == 'foods') return getTplFromFile("price/tpl/templates/FoodPriceList.shtml");
 
         return null;
+    }
+
+
+    /**
+     * Рендиране на частен изглед на таблицата
+     *
+     * @param stdClass $rec
+     * @param stdClass$data
+     * @return core_ET|null
+     */
+    protected function renderCustomLayout($rec, $data)
+    {
+        if($tpl = parent::renderCustomLayout($rec, $data)){
+            foreach ($data->rows as $row){
+                if(!empty($row->photo) && !($row instanceof core_ET)){
+                    $block = clone $tpl->getBlock('DETAIL_ROW_WITH_PHOTO');
+                    $block->photoId = $row->productId;
+                    $block->placeObject($row);
+                    $block->removeBlocksAndPlaces();
+                    $tpl->append($block, 'GRID');
+                }
+            }
+        }
+
+        return $tpl;
     }
 }
