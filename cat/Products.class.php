@@ -4268,7 +4268,7 @@ class cat_Products extends embed_Manager
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
                     if ($recs[$dRec->id] && isset($recs[$dRec->id]->packQuantity) && $Def) {
                         if (!$csvFields->fields['batch']) {
-                            $csvFields->FLD('batch', 'text', 'caption=Партида');
+                            $csvFields->FLD('batch', 'varchar(128)', 'caption=Партида');
                         }
 
                         $bQuery = batch_BatchesInDocuments::getQuery();
@@ -4377,7 +4377,7 @@ class cat_Products extends embed_Manager
             $csvFields->FLD('chargeVat', 'varchar', 'caption=ДДС');
             $csvFields->FLD('currency', 'varchar', 'caption=Валута');
             if (core_Packs::isInstalled('batch') && !$csvFields->fields['batch']) {
-                $csvFields->FLD('batch', 'text', 'caption=Партида');
+                $csvFields->FLD('batch', 'varchar(128)', 'caption=Партида');
             }
         }
 

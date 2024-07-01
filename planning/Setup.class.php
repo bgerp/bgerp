@@ -255,7 +255,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
         'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
         'PLANNING_TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се произведе ДРУГ артикул->Време'),
-        'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
+        'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(forbidden=Забранено,yes=Разрешено - с предупреждение,no=Разрешено - без предупреждение)', 'caption=Дублиране на производствени номера в ПО->Избор'),
         'PLANNING_TASK_NET_WEIGHT_WARNING' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Предупреждение'),
         'PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT' => array('int(Min=0)', 'caption=Максимално допустимо бруто тегло в прогреса на ПО->Максимално до,unit=кг'),
         'PLANNING_SHOW_SALE_IN_TASK_LIST' => array('enum(yes=Да,no=Не)', 'caption=Показване на продажбата в списъка на ПО->Избор'),
@@ -314,7 +314,8 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkInProgress',
         'planning_AssetGroupIssueTemplates',
         'planning_AssetSparePartsDetail',
-        'migrate::repairSearchKeywords2524'
+        'migrate::repairSearchKeywords2524',
+        'migrate::renameResourceFields2624v2',
     );
 
 
@@ -423,5 +424,35 @@ class planning_Setup extends core_ProtoSetup
         $callOn = dt::addSecs(1200);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ConsumptionNotes', $callOn);
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ReturnNotes', $callOn);
+    }
+
+
+    /**
+     * Миграция на ресурсите
+     */
+    public function renameResourceFields2624v2()
+    {
+        $Resources = cls::get('planning_AssetResources');
+        $Resources->setupMvc();
+        $query = $Resources->getQuery();
+        $protocolIdField = str::phpToMysqlName('protocolId');
+        if ($Resources->db->isFieldExists($Resources->dbTableName, $protocolIdField)) {
+            $query->FNC('protocolId', 'int');
+        }
+
+        $save = array();
+        while($rec = $query->fetch()){
+            if(is_numeric($rec->protocols)){
+                $rec->protocols = keylist::addKey('', $rec->protocols);
+                $save[] = $rec;
+            } elseif(!empty($rec->protocolId) && empty($rec->protocols)){
+                $rec->protocols = keylist::addKey('', $rec->protocolId);
+                $save[] = $rec;
+            }
+        }
+
+        if(countR($save)){
+            $Resources->saveArray($save, 'id,protocols');
+        }
     }
 }

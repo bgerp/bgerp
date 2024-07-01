@@ -99,6 +99,7 @@ class batch_Items extends core_Master
         $this->setDbIndex('productId');
         $this->setDbIndex('storeId');
         $this->setDbIndex('productId,storeId');
+        $this->setDbIndex('nullifiedDate');
     }
 
 
@@ -585,6 +586,11 @@ class batch_Items extends core_Master
                 $ht = ht::createLink('', $data->deleteBatchUrl, 'Сигурни ли сте, че искате да изтриете партидната дефиниция|*?', 'ef_icon=img/12/close.png,title=Изтриване на нова партидна дефиниция,style=vertical-align: middle;');
                 $title->replace($ht, 'btn');
             }
+            if(batch_Defs::haveRightFor('edit', $data->definitionRec)){
+                $editBtn = ht::createLink('', array('batch_Defs', 'edit', $data->definitionRec->id), false, 'ef_icon=img/16/edit-icon.png,title=Редактиране на конкретната партидна дефиниция,style=vertical-align: middle;');
+                $title->append($editBtn);
+            }
+
             $tpl->append($title, 'definition');
         } elseif ($data->addBatchUrl) {
             $ht = ht::createLink('', $data->addBatchUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на нова партидна дефиниция,style=vertical-align: middle;');
@@ -706,12 +712,14 @@ class batch_Items extends core_Master
      * @param array         $except    - кой документ да се игнорира
      * @param boolean       $onlyActiveBatches - дали да са само текущо активните партиди
      * @param string|null   $batch     - ид на склад
+     * @param boolean       $onlyPositiveBatches - дали да са само положителните наличности
+     *
      *
      *
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false, $batch = null)
+    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false, $batch = null, $onlyPositiveBatches = false)
     {
         $res = array();
         $date = (isset($date)) ? $date : dt::today();
@@ -744,6 +752,9 @@ class batch_Items extends core_Master
 
         foreach ($res as $b => $q){
             $res[$b] = round($q, 5);
+            if($onlyPositiveBatches && $res[$b] <= 0){
+                unset($res[$b]);
+            }
         }
 
         // Намерените партиди се подават на партидната дефиниция, ако иска да ги преподреди

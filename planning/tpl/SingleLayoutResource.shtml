@@ -6,7 +6,6 @@
             <legend class="groupTitle">|Информация|*</legend>
             <div><span class='quiet'>|Вид|*</span>: [#type#]</div>
             <div><span class='quiet'>|Мярка|*</span>: [#measureId#]</div>
-            
             <!--ET_BEGIN selfValue-->
             <div><span class='quiet'>|Себестойност|*</span>: [#selfValue#] <!--ET_BEGIN currencyId--><span class='cCode'>[#currencyId#]</span><!--ET_END currencyId--></div>
             <!--ET_END selfValue-->

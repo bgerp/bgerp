@@ -151,7 +151,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
                             'credit' => array('4530',
                                 array($origin->className, $origin->that),
                             ),
-                            'reason' => 'Сторно ДДС за начисляване при покупка - Артикул БЕЗ право на Данъчен кредит');
+                            'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит');
                     }
                 }
             }

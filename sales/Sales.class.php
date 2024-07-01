@@ -789,7 +789,7 @@ class sales_Sales extends deals_DealMaster
             if (empty($deliveredAmount)) {
                 $expectedPayment = $expectedPayment - $paidAmount;
             }
-            
+            $expectedPayment = round($expectedPayment, 2);
             if ($expectedPayment > 0) {
                 $result->set('expectedPayment', $expectedPayment);
             }

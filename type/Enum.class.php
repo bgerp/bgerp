@@ -28,10 +28,7 @@ class type_Enum extends core_Type
      */
     public function toVerbal($value)
     {
-        if (!isset($value)) {
-            
-            return;
-        }
+        if (!isset($value)) return;
         
         if (!isset($this->options[$value])) {
             
@@ -42,13 +39,15 @@ class type_Enum extends core_Type
         if (($div = $this->params['groupByDiv'])) {
             $options = ht::groupOptions($this->options, $div);
         }
-        
+
+        $translate = $this->params['translate'] != 'no';
         if (is_object($options[$value])) {
-            $res = tr($options[$value]->title);
+            $res = $options[$value]->title;
         } else {
-            $res = tr($options[$value]);
+            $res = $options[$value];
         }
-        
+        $res = $translate ? tr($res) : $res;
+
         return $res;
     }
     
@@ -102,7 +101,8 @@ class type_Enum extends core_Type
             }
             
             $arr = array();
-            
+            $translate = $this->params['translate'] != 'no';
+
             foreach ($options as $id => $title) {
                 if (is_object($title)) {
                     $arr[$id] = $title;
@@ -114,7 +114,8 @@ class type_Enum extends core_Type
                         $arr[$id]->title = tr($t1[0]);
                         $arr[$id]->attr['style'] = $t1[1];
                     } else {
-                        $arr[$id] = html_entity_decode(tr($title));
+                        $translatedTitle = $translate ? tr($title) : $title;
+                        $arr[$id] = html_entity_decode($translatedTitle);
                     }
                 }
             }
@@ -129,23 +130,9 @@ class type_Enum extends core_Type
             if (isset($value)) {
                 $value = '';
             }
-            
         }
         
-        $tpl = ht::createSmartSelect(
-            
-            $arr,
-            
-            $name,
-            
-            $value,
-            
-            $attr,
-            $this->params['maxRadio'],
-            $this->params['maxColumns'],
-            $this->params['columns']
-        
-        );
+        $tpl = ht::createSmartSelect($arr, $name, $value, $attr, $this->params['maxRadio'], $this->params['maxColumns'], $this->params['columns']);
         
         return $tpl;
     }

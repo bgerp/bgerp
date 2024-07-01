@@ -5328,6 +5328,9 @@ div.location.public {
   .details .portal .formToolbar #filter:hover {
     background-color: #cccccc; }
 
+.document .details .portal .formToolbar #filter {
+  padding: 5px 4px 4px !important; }
+
 /*
  * шаблон за журнал
  */
@@ -7667,6 +7670,9 @@ tr.wasteWeightPercent td {
   border-bottom: 1px dashed; }
 
 .frontTooltip {
+  display: inline-block; }
+
+.taskDetailDateCol .small {
   display: inline-block; }
 
 /*

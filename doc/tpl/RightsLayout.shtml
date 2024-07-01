@@ -20,7 +20,7 @@
             <tr>
                 [#mod#]
                 <td class='dt'>|Модифициране|*: </td>
-                <td><b>[#modifiedBy#]</b>, <b>[#modifiedOn#]</b></td>
+                <td><!--ET_BEGIN modifiedBy--><b>[#modifiedBy#]</b>,<!--ET_END modifiedBy--> <b>[#modifiedOn#]</b></td>
             </tr>
             <!--ET_END mod-->
             <tr>

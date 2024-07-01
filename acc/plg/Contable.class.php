@@ -596,6 +596,7 @@ class acc_plg_Contable extends core_Plugin
                 $mvc->save_($rec, 'contoActions');
             }
 
+            $mvc->invoke('beforeContoRedirectError', array($rec, $e));
             $url = $mvc->getSingleUrlArray($rec->id);
             redirect($url, false, '|' . $e->getMessage(), 'error');
         }

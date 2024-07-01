@@ -68,7 +68,9 @@ abstract class deals_ManifactureMaster extends core_Master
         $mvc->FLD('deadline', 'datetime', 'caption=Срок до');
         $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Забележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
+
         $mvc->setDbIndex('valior');
+        $mvc->setDbIndex('storeId');
     }
     
     

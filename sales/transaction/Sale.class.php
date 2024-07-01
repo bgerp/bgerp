@@ -529,25 +529,31 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $entries = $bomDataCombined = array();
         if(!is_array($rec->details)) return $entries;
 
+        $storeId = $rec->{$storeField};
+        if($Class instanceof pos_Reports){
+            $pointRec = pos_Points::fetch($rec->pointId);
+            $storeId = !empty($storeId) ? $storeId : $pointRec->storeId;
+        }
+
         foreach ($rec->details as $dRec1){
             // Ако имат моментна рецепта
             $instantBomRec = cat_Products::getLastActiveBom($dRec1->{$productFieldName}, 'instant');
             if(!is_object($instantBomRec)) continue;
             $quantity = $dRec1->quantity * $dRec1->quantityInPack;
             if(!array_key_exists($instantBomRec->id, $bomDataCombined)){
-                $bomDataCombined[$instantBomRec->id] = (object)array('rec' => $instantBomRec, 'storeId' => $rec->{$storeField}, 'quantity' => 0, 'productId' => $dRec1->{$productFieldName});
+                $bomDataCombined[$instantBomRec->id] = (object)array('rec' => $instantBomRec, 'storeId' => $storeId, 'quantity' => 0, 'productId' => $dRec1->{$productFieldName});
                 $instantProducts[$dRec1->{$productFieldName}] = $dRec1->{$productFieldName};
             }
             $bomDataCombined[$instantBomRec->id]->quantity += $quantity;
         }
 
         core_Debug::startTimer('FAST_PRODUCTION_BOM_DATA');
+
         foreach ($bomDataCombined as $bomData){
 
             // И тя има ресурси, произвежда се по нея
             $bomInfo = cat_Boms::getResourceInfo($bomData->rec, $bomData->quantity, $rec->valior);
             if(is_array($bomInfo['resources'])){
-
                 foreach ($bomInfo['resources'] as &$resRec){
                     $resRec->quantity = $resRec->propQuantity;
                     $resRec->storeId = $bomData->storeId;
@@ -623,7 +629,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 
             if(countR($productsWithMandatoryBatches)){
                 $productMsg = implode(', ', $productsWithMandatoryBatches);
-                acc_journal_RejectRedirect::expect(false, "(2)Артикулите не могат да са без партида|*: {$productMsg}");
+                acc_journal_RejectRedirect::expect(false, "Артикулите не могат да са без партида|*(2): {$productMsg}");
             }
 
             // Запис
@@ -639,9 +645,6 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
 
             if($redirectError = deals_Helper::getContoRedirectError($shipped, 'canConvert', 'generic', 'трябва да са вложими и да не са генерични')){
-                if($class == 'pos_Reports'){
-                    doc_Threads::doUpdateThread($rec->threadId);
-                }
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }

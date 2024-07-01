@@ -623,7 +623,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
             } else {
                 if(haveRole('debug')){
-                    $row->number = ht::createElement("span", array('title' => "ID: {$rec->id} / D: {$displayRange} [{$rec->numlimit}]"), $row->number);
+                    $row->number = ht::createElement("span", array('title' => "|*ID: {$rec->id} / D: {$displayRange} [{$rec->numlimit}]"), $row->number);
                 }
             }
         }

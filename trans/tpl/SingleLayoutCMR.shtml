@@ -138,6 +138,7 @@
                         <td class='filledFieled leftAlign' style="margin-left:5px;">[#number#]</td>
                         <td class='filledFieled leftAlign' style="margin-left:5px;">[#letter#]</td>
                         <td class='filledFieled leftAlign' style="margin-left:5px;">[#natureofGoods#]</td>
+                        <td class='filledFieled leftAlign' style="margin-left:5px;"></td>
                     </tr>
 
                 </table>

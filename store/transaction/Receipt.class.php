@@ -213,7 +213,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                                             array('cat_Products', $dRec1->productId),
                                             'quantity' => 0),
                             'credit' => array('4530', array($origin->className, $origin->that)),
-                            'reason' => 'Сторно ДДС за начисляване при покупка - Артикул БЕЗ право на Данъчен кредит');
+                            'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит');
                     }
                 }
             } else {
@@ -256,7 +256,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                                    array('cat_Products', $detailRec->productId),
                                             'quantity' => 0),
                         'credit' => array('4530', array($origin->className, $origin->that)),
-                        'reason' => 'Сторно ДДС за начисляване при покупка - Артикул БЕЗ право на Данъчен кредит');
+                        'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит');
                 }
             }
         }

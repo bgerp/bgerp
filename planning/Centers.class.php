@@ -173,7 +173,7 @@ class planning_Centers extends core_Master
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
         $this->FLD('mandatoryOperatorsInTasks', 'enum(auto=Автоматично,lastAndMandatory=Последно въведен (и задължително),lastAndOptional=Последно въведен (и опционално),emptyAndMandatory=Празно (и задължително),emptyAndOptional=Празно (и опционално), current=Текущ оператор)', 'caption=Прогрес в ПО->Оператор(и), notNull,value=auto');
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор, notNull,value=auto');
-        $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
+        $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,forbidden=Забранено,yes=Разрешено - с предупреждение,no=Разрешено - без предупреждение)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
 
         $this->FLD('useTareFromPackagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Опаковки');
         $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър,silent,removeAndRefreshForm=useTareFromParamMeasureId');
