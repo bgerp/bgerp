@@ -23,7 +23,6 @@ class batch_plg_PosReports extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->addToDraftJournal, array());
         setIfNot($mvc->allowInstantProductionBatches, true);
     }
 
@@ -36,6 +35,10 @@ class batch_plg_PosReports extends core_Plugin
         if (batch_Movements::haveRightFor('list') && $data->rec->state == 'active') {
             if(batch_Movements::count("#docType = {$mvc->getClassId()} AND #docId = {$data->rec->id}")){
                 $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Показване на движенията на партидите генерирани от документа,row=2');
+            }
+
+            if(batch_BatchesInDocuments::haveRightFor('list') && batch_BatchesInDocuments::count("#containerId = {$data->rec->containerId}")){
+                $data->toolbar->addBtn('Партиди (Чер.)', array('batch_BatchesInDocuments', 'list', 'document' => $mvc->getHandle($data->rec)), 'ef_icon = img/16/bug.png,title=Показване на черновите движения на партидите генерирани от документа,row=2');
             }
         }
     }
@@ -99,11 +102,6 @@ class batch_plg_PosReports extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFields = null)
     {
         if ($rec->state == 'active') {
-            if(!$mvc->addToDraftJournal[$rec->id]){
-                $mvc->addToDraftJournal[$rec->id] = true;
-                static::saveBatchesToDraft($rec);
-            }
-
             $mvc->saveMovementsOnShutdown[$rec->id] = $rec;
         } elseif ($rec->state == 'rejected') {
             batch_Movements::removeMovement($mvc, $rec->id);
@@ -122,5 +120,14 @@ class batch_plg_PosReports extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         batch_BatchesInDocuments::delete("#containerId = {$rec->containerId}");
+    }
+
+
+    /**
+     * Преди редирект след грешка при контиране
+     */
+    public static function on_BeforeContoRedirectError($mvc, $rec, acc_journal_RejectRedirect $e)
+    {
+        batch_BatchesInDocuments::delete("#containerId = '{$rec->containerId}'");
     }
 }

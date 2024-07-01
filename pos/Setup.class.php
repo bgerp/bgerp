@@ -218,7 +218,7 @@ class pos_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.1, 'Търговия', 'POS', 'pos_Points', 'default', 'ceo, pos, admin'),
+        array(3.2, 'Търговия', 'POS', 'pos_Points', 'default', 'ceo, pos, admin'),
     );
     
     

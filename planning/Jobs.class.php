@@ -2407,6 +2407,7 @@ class planning_Jobs extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        setIfNot($data->listTableMvc, clone $mvc);
         $data->listTableMvc->FLD('countTasks', 'int');
         $data->listTableMvc->FLD('countDocs', 'int');
     }

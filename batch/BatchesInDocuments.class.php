@@ -942,6 +942,7 @@ class batch_BatchesInDocuments extends core_Manager
     {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
+        $data->listFilter->input(null, 'silent');
         $data->listFilter->showFields = 'document,detailClassId';
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');

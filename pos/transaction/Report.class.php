@@ -42,6 +42,12 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
 
     /**
+     * Кеш
+     */
+    protected static $savedBatches = false;
+
+
+    /**
      * Връща транзакцията на бележката
      */
     public function getTransaction($id)
@@ -55,13 +61,21 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
         if(!Mode::is('recontoTransaction')){
             $this->class->extractData($rec);
+            if(core_Packs::isInstalled('batch')){
+                if(!static::$savedBatches){
+                    batch_plg_PosReports::saveBatchesToDraft($rec);
+                    static::$savedBatches = true;
+                }
+            }
         }
 
         if (countR($rec->details['receiptDetails'])) {
             foreach ($rec->details['receiptDetails'] as $dRec) {
                 if ($dRec->action == 'sale') {
                     $productsArr[] = $dRec;
-                    $batchesByStores[$dRec->storeId][$dRec->value][$dRec->batch] += $dRec->quantity;
+                    if(core_Packs::isInstalled('batch')){
+                        $batchesByStores[$dRec->storeId][$dRec->value][$dRec->batch] += $dRec->quantity;
+                    }
                 } elseif ($dRec->action == 'payment') {
                     $paymentsArr[] = $dRec;
                 }
