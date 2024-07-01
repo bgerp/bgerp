@@ -256,9 +256,8 @@ class batch_Items extends core_Master
         $query->XPR('quantityCalc', 'double', 'ROUND(#quantity, 4)');
         $query->where("#quantityCalc = 0 AND #state != 'closed'");
         $before = core_Packs::getConfigValue('batch', 'BATCH_CLOSE_OLD_BATCHES');
-        //$before = dt::addSecs(-1 * $before, dt::now());
-        
-        //$query->where("#nullifiedDate <= '{$before}'");
+        $before = dt::addSecs(-1 * $before, dt::now());
+        $query->where("#nullifiedDate <= '{$before}'");
         while ($rec = $query->fetch()) {
             $rec->state = 'closed';
             $this->save($rec, 'state');
