@@ -358,7 +358,9 @@ class price_reports_PriceList extends frame2_driver_TableData
             if($previewHandler){
                 $thumb = new thumb_Img($previewHandler, 280, 150);
                 $row->photo = $thumb->createImg(array('priceListFoodImage', 'title' => cat_Products::getTitleById($dRec->productId)))->getContent();
-                $row->photo = ht::createLink($row->photo, cat_Products::getSingleUrlArray($dRec->productId));
+                if(!Mode::isReadOnly()){
+                    $row->photo = ht::createLink($row->photo, cat_Products::getSingleUrlArray($dRec->productId));
+                }
             }
         } else {
             Mode::push('noIconImg', true);
