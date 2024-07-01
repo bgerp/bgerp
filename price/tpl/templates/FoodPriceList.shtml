@@ -6,9 +6,9 @@
             text-align: center;
             margin: 30px 0;
             grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
-            gap:5px;
+            gap:0px;
         }
-        .grid .fancybox {
+        .grid a {
             overflow: hidden;
             width: 100%;
             display: flex;
