@@ -1,0 +1,34 @@
+<div>
+    <!--ET_BEGIN MASTER_BLOCK-->
+    [#MASTER_BLOCK#]
+    <fieldset class='detail-info'>
+        <legend class='groupTitle' style="background-color:yellow"><small><b>|НОВ ШАБЛОН|*</b></small></legend>
+        <div class='small'>
+            <div>|Политика|*</span>: <b>[#policyId#]</b></div>
+            <!--ET_BEGIN variationId--><div>|Вариация|*</span>: <b>[#variationId#]</b></div><!--ET_END variationId-->
+            <div>|Цени към|*</span>: <b>[#date#]</b></div>
+            <!--ET_BEGIN period--><div>|Изменени за|*: [#period#] (|от|* [#periodDate#])</div><!--ET_END period-->
+            <div>|Групи|*: [#productGroups#]</div>
+            <!--ET_BEGIN notInGroups--><div>|С изключение на|*: [#notInGroups#]</div><!--ET_END notInGroups-->
+            <div>|Опаковки|*: [#packagings#]</div>
+        </div>
+    </fieldset>
+    <!--ET_END MASTER_BLOCK-->
+    <div>[#VAT_STATE#]<div>
+    <!--ET_BEGIN DETAIL_BLOCK-->
+    [#DETAIL_BLOCK#]
+    <!--ET_END DETAIL_BLOCK-->
+    <!--ET_BEGIN DETAIL_GROUP_ROW-->
+    <div class="priceListGroupName">[#DETAIL_GROUP_ROW#]</div>
+    <!--ET_END DETAIL_GROUP_ROW-->
+    <!--ET_BEGIN DETAIL_ROW-->
+    [#DETAIL_ROW#]
+    <div>
+        <div>[#code#]</div>
+        <div>[#productId#]</div>
+        <div>[#measureId#]</div>
+        <div>[#price#]</div>
+        <div>[#packs#]</div>
+    </div>
+    <!--ET_END DETAIL_ROW-->
+</div>

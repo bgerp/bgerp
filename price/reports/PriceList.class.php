@@ -81,6 +81,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('showEan', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Показване ЕАН,after=showMeasureId,single=internal');
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan,single=internal');
         $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan,single=internal');
+        $fieldset->FLD('templateType', 'enum(default=Стандартен изглед,foods=Храни)', 'caption=Допълнително->Изглед,after=lang,single=internal');
     }
     
     
@@ -515,9 +516,11 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function renderTable($rec, &$data)
     {
         $tpl = parent::renderTable($rec, $data);
+
         $vatRow = core_Type::getByName('enum(yes=с включено ДДС,no=без ДДС)')->toVerbal($rec->vat);
         $beforeRow = tr("Всички цени са в|* {$rec->currencyId}, |{$vatRow}|*");
-        $tpl->prepend($beforeRow, 'TABLE_BEFORE');
+        $vatPlaceholder = ($rec->templateType == 'foods') ? 'VAT_STATE' : 'TABLE_BEFORE';
+        $tpl->prepend($beforeRow, $vatPlaceholder);
 
         if($rec->displayDetailed == 'yes'){
             Mode::set('saveJS', true);
@@ -573,8 +576,8 @@ class price_reports_PriceList extends frame2_driver_TableData
             $row->date = ht::createHint($row->date, 'Датата ще се опресни при следващата актуализация', 'notice', false);
         }
     }
-    
-    
+
+
     /**
      * След рендиране на единичния изглед
      *
@@ -594,7 +597,11 @@ class price_reports_PriceList extends frame2_driver_TableData
             unset($data->row->variationId);
         }
 
-        $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
+        $customTpl = $Driver->getReportLayoutTpl($data->rec);
+        if($customTpl instanceof core_ET){
+            $fieldTpl = $customTpl->getBlock('MASTER_BLOCK');
+        } else {
+            $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                             <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                             <div class='small'>
                                                 <div>|Политика|*</span>: <b>[#policyId#]</b></div>
@@ -606,14 +613,16 @@ class price_reports_PriceList extends frame2_driver_TableData
                                                 <div>|Опаковки|*: [#packagings#]</div>
                                             </div>
                                         </fieldset>"));
+        }
 
         foreach (array('periodDate', 'date', 'period', 'productGroups', 'notInGroups', 'packagings', 'policyId', 'variationId') as $field) {
             $fieldTpl->replace($data->row->{$field}, $field);
         }
+
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
-    
-    
+
+
     /**
      * При събмитване на формата
      *
@@ -729,5 +738,19 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function showUiextRowLabelsIfExist($rec)
     {
         return $rec->showUiextLabels == 'yes';
+    }
+
+
+    /**
+     * Връща частния шаблон за отчета
+     *
+     * @param stdClass $rec
+     * @return core_ET|null
+     */
+    protected function getReportLayoutTpl($rec)
+    {
+        if($rec->templateType == 'foods') return getTplFromFile("price/tpl/templates/FoodPriceList.shtml");
+
+        return null;
     }
 }
