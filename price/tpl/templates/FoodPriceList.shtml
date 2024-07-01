@@ -33,7 +33,7 @@
     <!--ET_BEGIN MASTER_BLOCK-->
     [#MASTER_BLOCK#]
     <fieldset class='detail-info'>
-        <legend class='groupTitle' style="background-color:yellow"><small><b>|НОВ ШАБЛОН|*</b></small></legend>
+        <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
         <div class='small'>
             <div>|Политика|*</span>: <b>[#policyId#]</b></div>
             <!--ET_BEGIN variationId--><div>|Вариация|*</span>: <b>[#variationId#]</b></div><!--ET_END variationId-->

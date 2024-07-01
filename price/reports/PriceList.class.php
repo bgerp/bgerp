@@ -350,15 +350,15 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $row = new stdClass();
-        
         $display = ($rec->displayDetailed == 'yes') ? 'detailed' : 'short';
 
         if($rec->templateType == 'foods'){
             $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, 'short', 'public', $rec->lang, null, false);
             $previewHandler = cat_Products::getParams($dRec->productId, 'preview');
             if($previewHandler){
-                $Fancybox = cls::get('fancybox_Fancybox');
-                $row->photo = $Fancybox->getImage($previewHandler, array(280, 150), array(1200, 1200));
+                $thumb = new thumb_Img($previewHandler, 280, 150);
+                $row->photo = $thumb->createImg(array('priceListFoodImage', 'title' => cat_Products::getTitleById($dRec->productId)))->getContent();
+                $row->photo = ht::createLink($row->photo, cat_Products::getSingleUrlArray($dRec->productId));
             }
         } else {
             Mode::push('noIconImg', true);
@@ -372,7 +372,10 @@ class price_reports_PriceList extends frame2_driver_TableData
 
         $decimals = $rec->round ?? self::DEFAULT_ROUND;
         $row->price = core_Type::getByName("double(decimals={$decimals})")->toVerbal($dRec->price);
-        
+        if($rec->templateType == 'foods'){
+            $row->price = currency_Currencies::decorate($row->price, $rec->currencyId);
+        }
+
         // Рендиране на опаковките в таблица
         if (countR($dRec->packs)) {
             $row->packs = $this->getPackTable($rec, $dRec);
@@ -592,7 +595,7 @@ class price_reports_PriceList extends frame2_driver_TableData
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager     $Embedder
      * @param core_ET           $tpl
      * @param stdClass          $data
@@ -610,7 +613,10 @@ class price_reports_PriceList extends frame2_driver_TableData
 
         $customTpl = $Driver->getReportLayoutTpl($data->rec);
         if($customTpl instanceof core_ET){
-            $fieldTpl = $customTpl->getBlock('MASTER_BLOCK');
+            $fieldTpl = new core_ET("");
+            if(!Mode::isReadOnly()){
+                $fieldTpl = $customTpl->getBlock('MASTER_BLOCK');
+            }
         } else {
             $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                             <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
