@@ -547,11 +547,10 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         if ($rec->state == 'active') {
-            $minus = ($rec->type == 'dc_note' || $rec->dpOperation == 'accrued') ? 0 : 0.005;
-            $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - $minus;
+            $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
             $amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
             $amount = round($amount, 2);
-            $originId = isset($rec->originId) ? $rec->originId : doc_Threads::getFirstContainerId($rec->threadId);
+            $originId = $rec->originId ?? doc_Threads::getFirstContainerId($rec->threadId);
 
             if ($amount < 0) {
                 if (cash_Rko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
