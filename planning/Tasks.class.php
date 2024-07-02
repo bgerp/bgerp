@@ -1391,7 +1391,7 @@ class planning_Tasks extends core_Master
                     $requiredRoles = 'no_one';
                 } else {
                     if ($rec->type == 'clone') {
-                        if (empty($rec->cloneId) || empty($jobRec->oldJobId)) {
+                        if (empty($rec->cloneId)) {
                             $requiredRoles = 'no_one';
                         }
                     } elseif ($rec->type == 'all') {
@@ -1411,12 +1411,11 @@ class planning_Tasks extends core_Master
                             }
                         }
                     } elseif($rec->type == 'cloneAll'){
-                        if (empty($rec->oldJobId)) {
+                        if (empty($rec->jobsToCloneTasksFrom)) {
                             $requiredRoles = 'no_one';
                         } else {
-
                             // Дали може да се клонират неклонираните от предишно задание
-                            $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
+                            $oldTasks = planning_Tasks::getTasksByJob($rec->jobsToCloneTasksFrom, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
                             if(!countR($oldTasks)){
                                 $requiredRoles = 'no_one';
                             } else {
@@ -2323,19 +2322,26 @@ class planning_Tasks extends core_Master
     /**
      * Връща масив от задачи към дадено задание
      *
-     * @param int $jobId - ид на задание
+     * @param mixed $jobs - ид или масив от задания
      * @param mixed $states - В кои състояния
      * @param boolean $verbal - вербални или записи
      * @param boolean $skipTasksWithClosedParams - да се пропуснат ли операциите с деактивирани параметри
      * @param null|bool $isFinal                 - дали да са само финалните или не
      * @return array $res      - масив с намерените задачи
      */
-    public static function getTasksByJob($jobId, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null)
+    public static function getTasksByJob($jobs, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null)
     {
         $res = array();
-        $oldContainerId = planning_Jobs::fetchField($jobId, 'containerId');
+
+        // Всички ПО към посочените задания
+        $jobs = arr::make($jobs);
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in('id', $jobs);
+        $jQuery->show('containerId');
+        $containers = arr::extractValuesFromArray($jQuery->fetchAll(), 'containerId');
         $query = static::getQuery();
-        $query->where("#originId = {$oldContainerId}");
+        $query->in("originId", $containers);
+
         $states = arr::make($states, true);
         $query->in("state", $states);
         $query->orderBy("saoOrder", 'ASC');
@@ -2654,7 +2660,7 @@ class planning_Tasks extends core_Master
 
         // Ако ще се клонира съществуваща операция или ще се клонират всички от предходното
         if ($type == 'clone' || $type == 'cloneAll') {
-            $oldJobRec = planning_Jobs::fetch($jobRec->oldJobId);
+            $oldJobRec = isset($jobRec->oldJobId) ? planning_Jobs::fetch($jobRec->oldJobId) : $jobRec;
             $tasksToClone = array();
             $count = 0;
             if($type == 'clone'){
