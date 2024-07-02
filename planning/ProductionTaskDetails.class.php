@@ -629,7 +629,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                     if($rec->type == 'production'){
                         if(!empty($rec->serial)){
-                            if(static::fetchField("#type = 'production' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
+                            if(static::fetchField("#type = 'production' AND #weight = '{$rec->weight}' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
                                 $form->setError('serial,weight,quantity,employees', "Има вече същия прогрес с тези данни|*!");
                             }
                         }
