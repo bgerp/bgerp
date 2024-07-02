@@ -356,7 +356,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, 'short', 'public', $rec->lang, null, false);
             $previewHandler = cat_Products::getParams($dRec->productId, 'preview');
             if($previewHandler){
-                $thumb = new thumb_Img($previewHandler, 280, 150);
+                $thumb = new thumb_Img($previewHandler, 200, 200, 'fileman', null, null, 3, 'small-no-change', null, true);
                 $row->photo = $thumb->createImg(array('priceListFoodImage', 'title' => cat_Products::getTitleById($dRec->productId)))->getContent();
                 if(!Mode::isReadOnly()){
                     $row->photo = ht::createLink($row->photo, cat_Products::getSingleUrlArray($dRec->productId));
