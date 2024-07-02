@@ -5031,6 +5031,32 @@ Experta.prototype.getIframeSelection = function(iframe) {
     }
 }
 
+function resizeIframes() {
+    const iframes = document.querySelectorAll('iframe.autoHeight');
+    const windowHeight = window.innerHeight * 0.8;
+
+    iframes.forEach(iframe => {
+        // Задаване на максимална височина
+        iframe.style.maxHeight = windowHeight + 'px';
+        console.log(windowHeight);
+
+        try {
+            // Настройване на височината според съдържанието
+            iframe.style.height = 'auto';
+            const contentHeight = iframe.contentWindow.document.body.scrollHeight;
+            iframe.style.height = Math.min(contentHeight, windowHeight) + 'px';
+        } catch (e) {
+            // Ако възникне грешка (например поради политика за сигурност),
+            // задаваме височината на прозореца
+            console.warn("Couldn't access iframe content. Setting to window height.", e);
+            iframe.style.height = windowHeight + 'px';
+        }
+    });
+}
+
+window.addEventListener('load', resizeIframes);
+window.addEventListener('resize', resizeIframes);
+
 
 /**
  * Записва избрания текст
