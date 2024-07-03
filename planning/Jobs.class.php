@@ -1394,7 +1394,7 @@ class planning_Jobs extends core_Master
             $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Шаблонни операции за артикула'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
             $createAllUrl = array();
             if(planning_Tasks::haveRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'))){
-                $title = tr('автоматично на всички избрани / маркирани операции:');
+                $title = tr('Автоматично на всички избрани / маркирани операции:');
                 $createAllUrl = array('planning_Tasks', 'createjobtasks', 'type' => 'all', 'jobId' => $jobRec->id, 'ret_url' => true);
                 $createAllUrlString = toUrl($createAllUrl);
                 $urlLinkBtn = ht::createFnBtn('Създаване', null, 'Ще бъдат създадени всички маркирани шаблонни операции|*?', array('title' => 'Автоматично / едновременно създаване на всички маркирани от шаблонните операции за артикула', 'ef_icon' => 'img/16/add.png', 'data-url' => $createAllUrlString, 'class' => 'createAllCheckedTasks'));
@@ -1435,16 +1435,18 @@ class planning_Jobs extends core_Master
             }
         }
 
+        $this->invoke('AfterGetCreateTaskFormDetails', array($jobRec, &$options));
+
         // Показване на наличните опции за клониране на операция от предходно задание
         if (isset($jobRec->oldJobId)) {
             $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), true, true);
             $urlCloneAll = null;
 
             if (countR($oldTasks)) {
-                $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('От предишно задание') . planning_Jobs::getLink($jobRec->oldJobId, 0), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 3);
-                if(planning_Tasks::haveRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'oldJobId' => $jobRec->oldJobId, 'type' => 'cloneAll'))){
+                $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('От предишно задание') . tr(' ') . planning_Jobs::getLink($jobRec->oldJobId, 0), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 3);
+                if(planning_Tasks::haveRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'jobsToCloneTasksFrom' => $jobRec->oldJobId, 'type' => 'cloneAll'))){
                     $title = tr('Избраните от предишно задание');
-                    $urlCloneAll = array('planning_Tasks', 'createjobtasks', 'type' => 'cloneAll', 'jobId' => $jobRec->id, 'oldJobId' => $jobRec->oldJobId, 'ret_url' => true);
+                    $urlCloneAll = array('planning_Tasks', 'createjobtasks', 'type' => 'cloneAll', 'jobId' => $jobRec->id, 'jobsToCloneTasksFrom' => $jobRec->oldJobId, 'ret_url' => true);
                     $cloneAllUrlString = toUrl($urlCloneAll);
                     $urlLinkBtn = ht::createFnBtn('Клониране', null, 'Наистина ли желаете да клонирате наведнъж избраните операции|*?', array('title' => 'Клониране на всички предходни операции', 'ef_icon' => 'img/16/clone.png', 'data-url' => $cloneAllUrlString, 'class' => 'cloneAllCheckedTasks'));
 
@@ -1478,6 +1480,7 @@ class planning_Jobs extends core_Master
                 }
             }
         }
+
 
         // Създаване на нови ПО към наличните департаменти за избор
         $readyOptions = countR($options);

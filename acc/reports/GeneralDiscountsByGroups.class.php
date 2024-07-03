@@ -549,6 +549,9 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                         $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
                     }
+
+                    return $recs;
+
                 } elseif ($rec->seeBy == 'date') {
                     $dCloneRec = clone $dRec;
                     $d = substr(dt::mysql2verbal($dRec->waitingOn), 0, 8);
@@ -560,7 +563,6 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 }
             }
         }
-
 
         return $recs;
     }

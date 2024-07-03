@@ -306,10 +306,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     protected function renderTable($rec, &$data)
     {
         $tpl = new core_ET('');
-     
+        $customTpl = $this->getReportLayoutTpl($rec);
+
         // Подготовка на пейджъра
         $itemsPerPage = null;
-        if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'))) {
+        if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || isset($customTpl))) {
             setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
             $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $itemsPerPage));
             $data->Pager->setPageVar('frame2_Reports', $rec->id);
@@ -346,10 +347,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             }
             
             foreach ($data->recs as $index => $dRec) {
-                if (isset($data->Pager) && !$data->Pager->isOnPage()) {
-                    continue;
-                }
-                
+                if (isset($data->Pager) && !$data->Pager->isOnPage()) continue;
                 $data->rows[$index] = ($dRec->_isSummary !== true) ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
                 
                 // Ако реда е обобщаващ вербализира се отделно
@@ -361,19 +359,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 }
             }
         }
-       
-        // Рендиране на пейджъра
-        if (isset($data->Pager)) {
-            $tpl->replace($data->Pager->getHtml(), 'PAGER_TOP');
-            $tpl->replace($data->Pager->getHtml(), 'PAGER_BOTTOM');
-        }
-        
-        // Рендиране на лист таблицата
-        $fld = $this->getTableFieldSet($rec);
-        $table = cls::get('core_TableView', array('mvc' => $fld));
-        $table->tableClass = 'listTable frame2Table ' . cls::getClassName($this);
 
         // Показване на тагове
+        $fld = $this->getTableFieldSet($rec);
         if (core_Packs::isInstalled('uiext')) {
             if($this->showUiextRowLabelsIfExist($rec)){
                 uiext_Labels::showLabels($this, 'frame2_Reports', $rec->id, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);
@@ -382,7 +370,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         $filterFields = arr::make($this->filterEmptyListFields, true);
         $filterFields['_tagField'] = '_tagField';
-        
+
         // Ако има поле за групиране
         if (isset($data->groupByField)) {
             $totalRow = $data->rows['_total'];
@@ -409,11 +397,23 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $data->rows = array('_total' => $totalRow) + $data->rows;
             }
         }
-       
+
+        // Рендиране на кустом изгледа
+        $customLayout = $this->renderCustomLayout($rec, $data);
+        if($customLayout instanceof core_ET) return $customLayout;
+
         // Филтриране на празните колони и рендиране на таблицата
+        $table = cls::get('core_TableView', array('mvc' => $fld));
+        $table->tableClass = 'listTable frame2Table ' . cls::getClassName($this);
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, implode(',', $filterFields));
         $tpl->append($table->get($data->rows, $data->listFields), 'TABLE');
-        
+
+        // Рендиране на пейджъра
+        if (isset($data->Pager)) {
+            $tpl->replace($data->Pager->getHtml(), 'PAGER_TOP');
+            $tpl->replace($data->Pager->getHtml(), 'PAGER_BOTTOM');
+        }
+
         return $tpl;
     }
     
@@ -807,7 +807,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      *
      * @param frame2_driver_Proto $Driver   - драйвер
      * @param embed_Manager       $Embedder - ембедър
-     * @param core_Fieldset       $fieldset - форма
+     * @param core_ET             $tpl      - шаблон
+     * @param stdClass            $data     - данни
      */
     protected static function on_BeforeRenderSingleToolbar(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, &$data)
     {
@@ -845,6 +846,53 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     public function getUiextLabelHashFields($rec)
     {
         return $this->hashField;
+    }
+
+
+    /**
+     * Връща шаблона за отчета
+     *
+     * @param stdClass $rec
+     * @return core_ET|null
+     */
+    protected function getReportLayoutTpl($rec)
+    {
+        return null;
+    }
+
+
+    /**
+     * Рендиране на частен изглед на таблицата
+     *
+     * @param stdClass $rec
+     * @param stdClass$data
+     * @return core_ET|null
+     */
+    protected function renderCustomLayout($rec, $data)
+    {
+        $tpl = $this->getReportLayoutTpl($rec);
+        if(!($tpl instanceof core_ET)) return null;
+
+        $tpl->placeObject($data->row);
+        foreach ($data->rows as $row){
+            if($row instanceof core_ET){
+                try{
+                    $block = clone $tpl->getBlock('DETAIL_GROUP_ROW');
+                    $groupContent = strip_tags($row->getContent());
+                    $block->append($groupContent, 'DETAIL_GROUP_ROW');
+                } catch(core_exception_Expect $e){
+                    continue;
+                }
+            } else {
+                $block = clone $tpl->getBlock('DETAIL_ROW');
+                $block->placeObject($row);
+            }
+
+            $block->removeBlocksAndPlaces();
+            $tpl->append($block, 'DETAIL_BLOCK');
+        }
+
+        return $tpl;
     }
 
 
