@@ -28,15 +28,30 @@ function taskSelect() {
     });
 
     $(document.body).on('click', ".cloneAllCheckedTasks", function(e){
-        var url = $(this).attr("data-url");
-        var chkArray = [];
+        let url = $(this).attr("data-url");
+        let chkArray = [];
 
         $(".previousTaskCheckbox:checked").each(function() {
-            var cloneId = $(this).attr("data-cloneId");
+            let cloneId = $(this).attr("data-cloneId");
             chkArray.push(cloneId);
         });
 
-        var selected = chkArray.join('|');
+        let selected = chkArray.join('|');
+        window.location = url + "&selected=" + selected;
+    });
+
+    $(document.body).on('click', ".cloneAllSubRunTasks", function(e) {
+        let url = $(this).attr("data-url");
+        let chkArray = [];
+        let childrenClass = $(this).attr("data-clone-tasks");
+
+        $("." + childrenClass + ":checked").each(function() {
+            let cloneId = $(this).attr("data-cloneId");
+            chkArray.push(cloneId);
+        });
+
+
+        let selected = chkArray.join('|');
         window.location = url + "&selected=" + selected;
     });
 }
