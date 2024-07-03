@@ -1,0 +1,78 @@
+<?php
+
+
+/**
+ * Място на събитие
+ *
+ *
+ * @category  bgerp
+ * @package   eventhub
+ *
+ * @author    Ивета Мошева <ivetamosheva@gmail.com>
+ * @copyright 2006 - 2021 Experta OOD
+ * @license   GPL 3
+ *
+ * @since     v 0.1
+ */
+class eventhub_Venues extends core_Manager
+{
+    /**
+     * Заглавие на страницата
+     */
+    public $title = 'Място на събитие';
+
+
+    /**
+     * Зареждане на необходимите плъгини
+     */
+    public $loadList = 'plg_RowTools2, plg_State2, plg_Printing, 
+        plg_Search, plg_Created, plg_Modified, plg_Sorting,eventhub_Wrapper';
+
+
+    /**
+     * Полета за листов изглед
+     */
+    public $listFields = 'id, title, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
+
+
+    /**
+     *  Полета по които ще се търси
+     */
+    public $searchFields = 'title';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo, admin';
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo, admin';
+
+
+    /**
+     * Кой може да добявя,редактира или изтрива статия
+     */
+    public $canWrite = 'ceo, admin';
+
+
+    /**
+     * Единично заглавие на документа
+     */
+    public $singleTitle = 'Място на събитие';
+
+
+    /**
+     * Описание на модела
+     */
+    public function description()
+    {
+        $this->FLD('title', 'varchar(128)', 'caption=Наименование, mandatory');
+        $this->setDbUnique('title');
+        $this->FLD('city', 'varchar(64)', 'caption=Нас. място, mandatory');
+        $this->FLD('address', 'varchar(128)', 'caption=Адрес, mandatory');
+    }
+}
