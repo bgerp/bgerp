@@ -26,7 +26,7 @@ class eventhub_Series extends core_Manager
      * Зареждане на необходимите плъгини
      */
     public $loadList = 'plg_RowTools2, plg_State2, plg_Printing, 
-        plg_Search, plg_Created, plg_Modified, plg_Sorting';
+        plg_Search, plg_Created, plg_Modified, plg_Sorting,eventhub_Wrapper';
 
 
     /**
@@ -70,7 +70,7 @@ class eventhub_Series extends core_Manager
      */
     public function description()
     {
-        $this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory');
+        $this->FLD('title', 'varchar(190)', 'caption=Наименование, mandatory');
         $this->setDbUnique('title');
     }
 }
