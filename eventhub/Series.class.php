@@ -2,7 +2,7 @@
 
 
 /**
- * Формат на събития
+ * Поредица от събития
  *
  *
  * @category  bgerp
@@ -19,7 +19,7 @@ class eventhub_Series extends core_Manager
     /**
      * Заглавие на страницата
      */
-    public $title = 'Формат на събития';
+    public $title = 'Поредица от събития';
 
 
     /**
@@ -62,7 +62,7 @@ class eventhub_Series extends core_Manager
     /**
      * Единично заглавие на документа
      */
-    public $singleTitle = 'Формат на събитие';
+    public $singleTitle = 'Поредица от събития';
 
 
     /**
