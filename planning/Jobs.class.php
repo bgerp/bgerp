@@ -1411,12 +1411,19 @@ class planning_Jobs extends core_Master
                 }
 
                 $warning = false;
-                if($taskId = planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND (#systemId = {$sysId} OR (#productId = {$defTask->productId} AND #subTitle = '{$defTask->subTitle}'))AND #state != 'rejected'")){
-                    $warning = 'Наистина ли желаете да създадете отново шаблонна операция|*?';
-                    if(planning_Tasks::haveRightFor('single', $taskId)){
-                        $title = ht::createLinkRef($title, planning_Tasks::getSingleUrlArray($taskId), false, 'title=Преглед на производствената операция');
+                $exLinkArray = array();
+                $exQuery = planning_Tasks::getQuery();
+                $exQuery->where("#originId = {$jobRec->containerId} AND (#systemId = {$sysId} OR (#productId = {$defTask->productId} AND #subTitle = '{$defTask->subTitle}'))AND #state != 'rejected'");
+                $exQuery->show('id');
+                while($exRec = $exQuery->fetch()) {
+                    if (planning_Tasks::haveRightFor('single', $exRec->id)) {
+                        $exLinkArray[] = ht::createLinkRef('', planning_Tasks::getSingleUrlArray($exRec->id), false, "title=Към операция|* #" . planning_Tasks::getHandle($exRec->id));
                     }
-                    $title = "<span class='quiet'>{$title}</span>";
+                }
+                if(countR($exLinkArray)){
+                    $oldTitleContent = implode('', $exLinkArray);
+                    $title = "<span class='quiet'>{$title}</span>: <small>{$oldTitleContent}</small>";
+                    $warning = 'Наистина ли желаете да създадете отново шаблонна операция|*?';
                 }
 
                 $folderId = isset($defTask->centerId) ? planning_Centers::fetchField($defTask->centerId, 'folderId') : $folderId;
@@ -1457,11 +1464,11 @@ class planning_Jobs extends core_Master
                 foreach ($oldTasks as $k1 => $link) {
                     $oldTitle = $link;
                     $warning = false;
-                    if($taskId = planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #clonedFromId = {$k1} AND #state != 'rejected'")){
-                        if(planning_Tasks::haveRightFor('single', $taskId)){
-                            $oldTitle = ht::createLinkRef($oldTitle, planning_Tasks::getSingleUrlArray($taskId), false, 'title=Преглед на производствената операция');
-                        }
-                        $oldTitle = "<span class='quiet'>{$oldTitle}</span>";
+
+                    $alreadyCreatedTasksArr = planning_Tasks::getTasksClonedFromOtherTasks($k1, $jobRec->containerId);
+                    if(countR($alreadyCreatedTasksArr)){
+                        $oldTitleContent = implode('', $alreadyCreatedTasksArr);
+                        $oldTitle = "<span class='quiet'>{$link}</span>: <small>{$oldTitleContent}</small>";
                         $warning = 'Наистина ли желаете да клониране отново операцията от предходното задание|*?';
                     }
 
@@ -1480,7 +1487,6 @@ class planning_Jobs extends core_Master
                 }
             }
         }
-
 
         // Създаване на нови ПО към наличните департаменти за избор
         $readyOptions = countR($options);

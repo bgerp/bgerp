@@ -2671,10 +2671,13 @@ class planning_Tasks extends core_Master
             } else {
                 $selected = Request::get('selected', 'varchar');
                 $selectedArr = empty($selected) ? array() : array_combine(explode('|', $selected), explode('|', $selected));
+                $jobsToCloneFrom = Request::get('jobsToCloneTasksFrom', 'varchar');
+                $jobsToCloneFrom = !empty($jobsToCloneFrom) ? keylist::toArray($jobsToCloneFrom) : $jobRec->oldJobId;
+
                 if(!countR($selectedArr)) followRetUrl(null, '|Не са избрани шаблонни операции за клониране', 'warning');
 
                 // От предходните ще се клонират САМО избраните
-                $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
+                $oldTasks = planning_Tasks::getTasksByJob($jobsToCloneFrom, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
                 $tasksToClone = array_intersect_key($oldTasks, $selectedArr);
             }
 
@@ -2700,7 +2703,7 @@ class planning_Tasks extends core_Master
 
                 if ($this->save($newTask)) {
                     $this->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
-                    $this->logWrite('Клониране от предходно задание', $newTask->id);
+                    $this->logWrite('Клониране от предходна операция', $newTask->id);
 
                     $pQuery = cat_products_Params::getQuery();
                     $pQuery->where("#classId = {$this->getClassId()} AND #productId = {$taskRec->id}");
@@ -2715,7 +2718,7 @@ class planning_Tasks extends core_Master
                 $count++;
             }
 
-            $msg = "Успешно клонирани операции от предишно задание|*: {$count}";
+            $msg = "Успешно клонирани операции|*: {$count}";
             followRetUrl(null, $msg);
         } elseif ($type == 'all') {
             $selected = Request::get('selected', 'varchar');
@@ -4000,5 +4003,29 @@ class planning_Tasks extends core_Master
 
             return $msg;
         }
+    }
+
+
+    /**
+     * Помощна ф-я извличаща операциите създадени чрез клониране от дадена
+     *
+     * @param int $cloneFromId
+     * @param int$containerId
+     * @return array $exLinkArray
+     */
+    public static function getTasksClonedFromOtherTasks($cloneFromId, $containerId)
+    {
+        $exLinkArray = array();
+        $exQuery = planning_Tasks::getQuery();
+        $exQuery->where("#originId = {$containerId} AND #state != 'rejected' AND #clonedFromId = {$cloneFromId}");
+
+        $exQuery->show('id');
+        while($exRec = $exQuery->fetch()) {
+            if (planning_Tasks::haveRightFor('single', $exRec->id)) {
+                $exLinkArray[] = ht::createLinkRef('', planning_Tasks::getSingleUrlArray($exRec->id), false, "title=Към операция|* #" . planning_Tasks::getHandle($exRec->id));
+            }
+        }
+
+        return $exLinkArray;
     }
 }

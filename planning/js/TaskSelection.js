@@ -50,7 +50,6 @@ function taskSelect() {
             chkArray.push(cloneId);
         });
 
-
         let selected = chkArray.join('|');
         window.location = url + "&selected=" + selected;
     });
