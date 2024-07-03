@@ -7,22 +7,23 @@ function taskSelect() {
         $(".previousTaskCheckbox").prop('checked', $(this).prop("checked"));
     });
 
-    $(document.body).on('change', "input[name=checkAllSubRunTask]", function(e){
-        $(".subRunTaskCheckbox").prop('checked', $(this).prop("checked"));
+    $(document.body).on('click', ".checkAllSubRunTask", function(e){
+        let closeTaskClass = $(this).attr("data-close-tasks");
+        $("." + closeTaskClass).prop('checked', $(this).prop("checked"));
     });
 
     $(document.body).on('click', ".createAllCheckedTasks", function(e){
-        var url = $(this).attr("data-url");
+        let url = $(this).attr("data-url");
 
-        var chkArray = [];
+        let chkArray = [];
 
         // Look for all checkboxes that have a specific class and was checked
         $(".defaultTaskCheckbox:checked").each(function() {
-            var sysId = $(this).attr("data-sysId");
+            let sysId = $(this).attr("data-sysId");
             chkArray.push(sysId);
         });
 
-        var selected = chkArray.join('|');
+        let selected = chkArray.join('|');
         window.location = url + "&selected=" + selected;
     });
 
