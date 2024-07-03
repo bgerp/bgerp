@@ -876,9 +876,13 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $tpl->placeObject($data->row);
         foreach ($data->rows as $row){
             if($row instanceof core_ET){
-                $block = clone $tpl->getBlock('DETAIL_GROUP_ROW');
-                $groupContent = strip_tags($row->getContent());
-                $block->append($groupContent, 'DETAIL_GROUP_ROW');
+                try{
+                    $block = clone $tpl->getBlock('DETAIL_GROUP_ROW');
+                    $groupContent = strip_tags($row->getContent());
+                    $block->append($groupContent, 'DETAIL_GROUP_ROW');
+                } catch(core_exception_Expect $e){
+                    continue;
+                }
             } else {
                 $block = clone $tpl->getBlock('DETAIL_ROW');
                 $block->placeObject($row);

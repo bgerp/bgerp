@@ -54,10 +54,6 @@
     </div>
     <!--ET_END DETAIL_BLOCK-->
 
-    <!--ET_BEGIN DETAIL_GROUP_ROW-->
-    <div class="priceListGroupName" style="background: #eee; padding: 5px; box-shadow: 0 0 1px #333; margin-top: 20px;">[#DETAIL_GROUP_ROW#]</div>
-    <!--ET_END DETAIL_GROUP_ROW-->
-
     <!--ET_BEGIN DETAIL_ROW-->
     [#DETAIL_ROW#]
         <div class="product" >
