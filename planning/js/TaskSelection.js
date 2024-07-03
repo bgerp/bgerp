@@ -7,6 +7,10 @@ function taskSelect() {
         $(".previousTaskCheckbox").prop('checked', $(this).prop("checked"));
     });
 
+    $(document.body).on('change', "input[name=checkAllSubRunTask]", function(e){
+        $(".subRunTaskCheckbox").prop('checked', $(this).prop("checked"));
+    });
+
     $(document.body).on('click', ".createAllCheckedTasks", function(e){
         var url = $(this).attr("data-url");
 
