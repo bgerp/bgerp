@@ -5,10 +5,10 @@
             align-items: center;
             text-align: center;
             margin: 30px 0;
-            grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+            grid-template-columns: repeat(auto-fill,minmax(160px,1fr));
             gap:5px;
         }
-        .grid a {
+        .grid .gridPhoto {
             overflow: hidden;
             width: 100%;
             display: flex;
@@ -18,17 +18,22 @@
         }
         .priceListFoodImage {
             width: auto;
-            max-width: 140px;
-            max-height: 140px;
+            max-width: 160px;
+            max-height: 160px;
         }
 
         .product {
             display: flex;
             justify-content: space-between;
-            padding:5px 10px;
-            box-shadow: 0 0 1px #aaa;
+            padding:5px 5px;
+            border-bottom: 1px solid #ccc;
         }
 
+        .product b {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
         .productName {
             color: #000;
         }
@@ -49,22 +54,22 @@
     </fieldset>
     <!--ET_END MASTER_BLOCK-->
     <!--ET_BEGIN DETAIL_BLOCK-->
-    <div class="elementHolder" >
+    <div class="elementHolder" style="column-count: 2">
         [#DETAIL_BLOCK#]
     </div>
     <!--ET_END DETAIL_BLOCK-->
 
     <!--ET_BEGIN DETAIL_ROW-->
     [#DETAIL_ROW#]
-        <div class="product" >
-            <span>[#productId#]</span> <b>[#price#]</b>
-        </div>
+    <div class="product" >
+        <span>[#productId#]</span> <b style="">[#price#]</b>
+    </div>
     <!--ET_END DETAIL_ROW-->
     <div class="grid">
-    [#GRID#]
-    <!--ET_BEGIN DETAIL_ROW_WITH_PHOTO-->
-    [#DETAIL_ROW_WITH_PHOTO#]
+        [#GRID#]
+        <!--ET_BEGIN DETAIL_ROW_WITH_PHOTO-->
+        [#DETAIL_ROW_WITH_PHOTO#]
         [#photo#]
-    <!--ET_END DETAIL_ROW_WITH_PHOTO-->
+        <!--ET_END DETAIL_ROW_WITH_PHOTO-->
     </div>
 </div>
