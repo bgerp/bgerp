@@ -6,7 +6,7 @@
             text-align: center;
             margin: 30px 0;
             grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
-            gap:0px;
+            gap:5px;
         }
         .grid a {
             overflow: hidden;
@@ -16,10 +16,12 @@
             justify-content: center;
             height: 100%;
         }
-        .grid img {
+        .priceListFoodImage {
             width: auto;
-            max-height: 160px;
+            max-width: 140px;
+            max-height: 140px;
         }
+
         .product {
             display: flex;
             justify-content: space-between;
@@ -52,10 +54,10 @@
     <!--ET_BEGIN DETAIL_GROUP_ROW-->
     <div class="priceListGroupName" style="background: #eee; padding: 5px; box-shadow: 0 0 1px #333; margin-top: 20px;">[#DETAIL_GROUP_ROW#]</div>
     <!--ET_END DETAIL_GROUP_ROW-->
-    <div class="elementHolder">
+    <div class="elementHolder" >
     <!--ET_BEGIN DETAIL_ROW-->
     [#DETAIL_ROW#]
-        <div class="product">
+        <div class="product" >
             <span>[#productId#]</span> <b>[#price#]</b>
         </div>
     <!--ET_END DETAIL_ROW-->
