@@ -327,7 +327,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 core_Lg::push($rec->lang);
             }
             
-            $expand = ($rec->expandGroups === 'yes') ? true : false;
+            $expand = $rec->expandGroups === 'yes';
             store_InventoryNoteSummary::filterRecs($productGroups, $recs, 'code', 'name', 'groups', $expand);
             
             if ($rec->lang != 'auto') {
@@ -787,8 +787,8 @@ class price_reports_PriceList extends frame2_driver_TableData
             foreach ($data->rows as $row){
                 if(!empty($row->photo) && !($row instanceof core_ET)){
                     $block = clone $tpl->getBlock('DETAIL_ROW_WITH_PHOTO');
-                    $block->photoId = $row->productId;
-                    $block->placeObject($row);
+                    $photo = ht::createElement("div", array('class' => 'gridPhoto'), $row->photo, true);
+                    $block->append($photo);
                     $block->removeBlocksAndPlaces();
                     $tpl->append($block, 'GRID');
                 }
