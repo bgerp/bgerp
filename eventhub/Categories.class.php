@@ -19,14 +19,14 @@ class eventhub_Categories extends core_Manager
     /**
      * Заглавие на страницата
      */
-    public $title = 'Събития';
+    public $title = 'Категории на събития';
 
 
     /**
      * Зареждане на необходимите плъгини
      */
     public $loadList = 'plg_RowTools2, plg_State2, plg_Printing, 
-        plg_Search, plg_Created, plg_Modified, plg_Sorting';
+        plg_Search, plg_Created, plg_Modified, plg_Sorting, eventhub_Wrapper';
 
 
     /**
