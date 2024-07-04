@@ -47,6 +47,7 @@ class eventhub_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'eventhub_Series',
+        'eventhub_Categories',
         'eventhub_Forms',
         'eventhub_Venues',
     );
