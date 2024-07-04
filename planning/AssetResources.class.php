@@ -40,8 +40,14 @@ class planning_AssetResources extends core_Master
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, planningMaster';
-    
-    
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'ceo, planningMaster';
+
+
     /**
      * Кой има право да добавя?
      */
