@@ -72,7 +72,10 @@ class eventhub_Venues extends core_Manager
     {
         $this->FLD('title', 'varchar(128)', 'caption=Наименование, mandatory');
         $this->setDbUnique('title');
+        $this->FLD('type', 'enum(hall=Зала, stadium=Стадион, square=Площад, building=Сграда)', 'caption=Вид');
+        $this->FLD('district', 'enum(1=Благоевградска, 2=)', 'caption=Област');
         $this->FLD('city', 'varchar(64)', 'caption=Нас. място, mandatory');
         $this->FLD('address', 'varchar(128)', 'caption=Адрес, mandatory');
+        $this->FLD('geolocation', 'location_Type(geolocation=mobile)', 'caption=Адрес');
     }
 }

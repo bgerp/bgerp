@@ -46,7 +46,9 @@ class eventhub_Setup extends core_ProtoSetup
      * Мениджъри за инсталиране
      */
     public $managers = array(
+        'eventhub_Categories',
         'eventhub_Series',
         'eventhub_Forms',
+        'eventhub_Venues',
     );
 }
