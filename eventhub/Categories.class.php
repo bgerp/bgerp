@@ -73,6 +73,5 @@ class eventhub_Categories extends core_Manager
         $this->FLD('parentId', 'keylist(mvc=eventhub_Categories)', 'caption=Подкатегория, mandatory');
         $this->setDbUnique('title');
         $this->setDbUnique('parentId');
-
     }
 }
