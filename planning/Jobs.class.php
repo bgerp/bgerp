@@ -1462,7 +1462,9 @@ class planning_Jobs extends core_Master
                 }
 
                 foreach ($oldTasks as $k1 => $link) {
-                    $oldTitle = $link;
+                    $taskRec = planning_Tasks::fetch($k1);
+                    $taskStateVerbal = planning_Tasks::getVerbal($taskRec, 'state');
+                    $oldTitle = $link . " <span class= 'state-{$taskRec->state} document-handler'>{$taskStateVerbal}</span>";
                     $warning = false;
 
                     $alreadyCreatedTasksArr = planning_Tasks::getTasksClonedFromOtherTasks($k1, $jobRec->containerId);
