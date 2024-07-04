@@ -2,7 +2,7 @@
 
 
 /**
- * Категории на събития
+ * Събития
  *
  *
  * @category  bgerp
@@ -32,7 +32,7 @@ class eventhub_Events extends core_Manager
     /**
      * Полета за листов изглед
      */
-    public $listFields = 'id, title, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
+    public $listFields = 'id, title, format, poster, startDate, place, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
 
 
     /**
