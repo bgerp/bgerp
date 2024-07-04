@@ -362,6 +362,8 @@ class price_reports_PriceList extends frame2_driver_TableData
                     $row->photo = ht::createLink($row->photo, cat_Products::getSingleUrlArray($dRec->productId));
                 }
             }
+
+            $row->weightVerbal = cat_Products::getParams($dRec->productId, 'weight');
         } else {
             Mode::push('noIconImg', true);
             $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
@@ -562,7 +564,6 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
 
         $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
-
         $row->productGroups = (!empty($rec->productGroups)) ? implode(', ', cat_Groups::getLinks($rec->productGroups)) : tr('Всички');
         if(!empty($rec->notInGroups)){
             $row->notInGroups = implode(', ', cat_Groups::getLinks($rec->notInGroups));
