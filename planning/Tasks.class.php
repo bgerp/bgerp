@@ -2662,7 +2662,7 @@ class planning_Tasks extends core_Master
         if ($type == 'clone' || $type == 'cloneAll') {
             $oldJobRec = isset($jobRec->oldJobId) ? planning_Jobs::fetch($jobRec->oldJobId) : $jobRec;
             $tasksToClone = array();
-            $count = 0;
+            $count = $clonedConsumptionNotes = 0;
             if($type == 'clone'){
                 expect($cloneId = Request::get('cloneId', 'int'));
                 planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'cloneId' => $cloneId, 'type' => 'clone'));
@@ -2684,6 +2684,7 @@ class planning_Tasks extends core_Master
             foreach ($tasksToClone as $taskRec){
                 $newTask = clone $taskRec;
                 plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
+
 
                 // Преконвертиране на планираното к-во към новото от заданието, да се запази същото отношение
                 $q = $oldJobRec->quantity / $jobRec->quantity;
@@ -2716,9 +2717,33 @@ class planning_Tasks extends core_Master
                     }
                 }
                 $count++;
+
+                // Клониране и на протоколите за влагане
+                $Consumptions = cls::get('planning_ConsumptionNotes');
+                $cQuery = $Consumptions->getQuery();
+                $cQuery->where("#state != 'rejected' AND #threadId = {$taskRec->threadId}");
+                while($consRec = $cQuery->fetch()){
+                    $newConsRec = clone $consRec;
+                    unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy);
+
+                    $newConsRec->_isClone = true;
+                    $newConsRec->originId = $newTask->containerId;
+                    $newConsRec->state = 'draft';
+                    $newConsRec->threadId = $newTask->threadId;
+                    $newConsRec->folderId = $newTask->folderId;
+                    $newConsRec->clonedFromId = $newConsRec->id;
+
+                    if ($Consumptions->save($newConsRec)) {
+                        $clonedConsumptionNotes++;
+                        $Consumptions->invoke('AfterSaveCloneRec', array($consRec, &$newConsRec));
+                    }
+                }
             }
 
             $msg = "Успешно клонирани операции|*: {$count}";
+            if(!empty($clonedConsumptionNotes)){
+                $msg.= ", |Успешно клонирани протоколи за влагане|*: {$clonedConsumptionNotes}";
+            }
             followRetUrl(null, $msg);
         } elseif ($type == 'all') {
             $selected = Request::get('selected', 'varchar');
