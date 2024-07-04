@@ -22,7 +22,8 @@ class eventhub_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('eventhub_Forms', 'Forms', 'ceo,eventhub');
-        $this->TAB('eventhub_Series', 'Series', 'ceo,eventhub');
+        $this->TAB('eventhub_Forms', 'Формат', 'ceo,eventhub');
+        $this->TAB('eventhub_Series', 'Поредици', 'ceo,eventhub');
+        $this->TAB('eventhub_Venues', 'Места', 'ceo,eventhub');
     }
 }
