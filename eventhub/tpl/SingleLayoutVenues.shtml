@@ -1,0 +1,30 @@
+<div class="singleView email-class">
+    [#SingleToolbar#]
+    <div class="folder-cover state-draft state-active">
+        <div class="block_title state-draft state-active special-title">[#title#]</div>
+        <div>
+            <table>
+                <tr>
+                    <td>Вид</td>
+                    <td>[#type#]</td>
+                </tr>
+                <tr>
+                    <td>Област</td>
+                    <td>[#district#]</td>
+                </tr>
+                <tr>
+                    <td>Населено място</td>
+                    <td>[#city#]</td>
+                </tr>
+                <tr>
+                    <td>Адрес</td>
+                    <td>[#address#]</td>
+                </tr>
+                <tr>
+                    <td>Геолокация</td>
+                    <td>[#geolocation#]</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
