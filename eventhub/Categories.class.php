@@ -19,7 +19,7 @@ class eventhub_Categories extends core_Manager
     /**
      * Заглавие на страницата
      */
-    public $title = 'Събития';
+    public $title = 'Категории на събития';
 
 
     /**
