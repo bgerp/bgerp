@@ -38,7 +38,7 @@ class eventhub_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.99, 'Сайт', 'Events', 'eventhub_Series', 'default', 'ceo, eventhub'),
+        array(3.99, 'Сайт', 'Събития', 'eventhub_Series', 'default', 'ceo, eventhub'),
     );
 
 
