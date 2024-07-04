@@ -54,6 +54,7 @@
         </div>
     </fieldset>
     <!--ET_END MASTER_BLOCK-->
+    <h2 style="padding: 10px 5px; background: #ddd; margin-top: 5px">Меню на кантината за [#currentDate#]</h2>
     <!--ET_BEGIN DETAIL_BLOCK-->
     <div class="elementHolder" style="column-count: 2">
         [#DETAIL_BLOCK#]
