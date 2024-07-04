@@ -64,7 +64,6 @@ class eventhub_Forms extends core_Manager
      */
     public $singleTitle = 'Формат на събитие';
 
-
     /**
      * Описание на модела
      */
