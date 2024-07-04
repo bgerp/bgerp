@@ -38,7 +38,7 @@ class eventhub_Events extends core_Manager
     /**
      *  Полета по които ще се търси
      */
-    public $searchFields = 'title, parentId';
+    public $searchFields = 'title';
 
 
     /**
