@@ -2685,7 +2685,6 @@ class planning_Tasks extends core_Master
                 $newTask = clone $taskRec;
                 plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
 
-
                 // Преконвертиране на планираното к-во към новото от заданието, да се запази същото отношение
                 $q = $oldJobRec->quantity / $jobRec->quantity;
                 $round = cat_UoM::fetchField($newTask->measureId, 'round');
