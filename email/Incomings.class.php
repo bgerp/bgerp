@@ -1224,7 +1224,14 @@ class email_Incomings extends core_Master
                         $htmlPart = fileman_webdrv_Html::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path'],
                             array('webdrvTabBody' => 'webdrvTabBodySingle',
                                 'webdrvFieldset' => 'webdrvFieldsetSingle',
-                                'webdrvIframe' => 'webdrvIframeSingle webdrvIframe'));
+                                'webdrvIframe' => 'webdrvIframeSingle webdrvIframe autoHeight'));
+                        $htmlPart = "<script>function sendHeight() { 
+                                      const height = document.body.scrollHeight;
+                                      window.parent.postMessage(height, '*');
+                                    }
+                                    
+                                    window.addEventListener('load', sendHeight);
+                                    window.addEventListener('resize', sendHeight); </script>" . $htmlPart;
                         $row->textPart = $htmlPart;
                     } catch (core_exception_Expect $exp) {
                         reportException($exp);
