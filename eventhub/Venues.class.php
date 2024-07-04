@@ -87,4 +87,12 @@ class eventhub_Venues extends core_Master
         $this->FLD('address', 'varchar(128)', 'caption=Адрес, mandatory');
         $this->FLD('geolocation', 'location_Type(geolocation=mobile)', 'caption=Геолокация');
     }
+
+    /**
+     * Вкарваме css файл за единичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        $tpl->push('eventhub/tpl/css/style.css', 'CSS');
+    }
 }
