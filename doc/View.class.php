@@ -134,7 +134,13 @@ class doc_View extends core_Master
      */
     public $autoHideDoc = false;
 
+
+    /**
+     * Да се добавя ли документа като линк към ориджина си
+     */
     public $addLinkedDocumentToOriginId = true;
+
+
     /**
      * Описание на модела
      */
