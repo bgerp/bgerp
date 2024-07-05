@@ -26,7 +26,7 @@ class eventhub_Events extends core_Master
      * Зареждане на необходимите плъгини
      */
     public $loadList = 'plg_RowTools2, plg_State2, plg_Printing, 
-        plg_Search, plg_Created, plg_Modified, plg_Sorting,eventhub_Wrapper';
+        plg_Search, plg_Created, plg_Modified, plg_Sorting, eventhub_Wrapper';
 
 
     /**
@@ -70,9 +70,10 @@ class eventhub_Events extends core_Master
     public function description()
     {
         $this->FLD('series', 'key(mvc=eventhub_Series,select=title)', 'caption=Серии, mandatory');
+
         $this->FLD('categories', 'keylist(mvc=eventhub_Categories, select=title)', 'caption=Категории, mandatory');
 
-        $this->FLD('formId', 'key(mvc=eventhub_Forms,select=title)', 'caption=Формат, mandatory');
+        $this->FLD('formId', 'key(mvc=eventhub_Forms, select=title)', 'caption=Формат, mandatory');
 
         $this->FLD('description', 'richtext', 'caption=Описание на събитието');
 
@@ -88,11 +89,11 @@ class eventhub_Events extends core_Master
 
         $this->FLD('place', 'key(mvc=eventhub_Venues,select=title)', 'caption=връзка към модела за места, mandatory');
 
-        $this->FLD('participants', 'keylist(mvc=crm_Persons,select=name)', 'caption=връзка към Persons');
+        $this->FLD('participants', 'keylist(mvc=crm_Persons,select=name, allowEmpty)', 'caption=връзка към Persons');
 
-        $this->FLD('organizers', 'keylist(mvc=crm_Persons,select=name)', 'caption=връзка към организатора на събития, mandatory');
+        $this->FLD('organizers', 'keylist(mvc=crm_Persons,select=name, allowEmpty)', 'caption=връзка към организатора на събития, mandatory');
 
-        $this->FLD('tickets', 'type_Urls', 'caption=URL адреси за закупуване на билети, mandatory');
+        $this->FLD('tickets', 'type_Urls', 'caption=URL адреси за закупуване на билети');
 
         $this->FLD('magnitude', 'enum(1=локално, 2=регионално, 3=национално, 4=международно)', 'caption=значимостта на събитията');
     }
