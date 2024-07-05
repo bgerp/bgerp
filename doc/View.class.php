@@ -128,6 +128,12 @@ class doc_View extends core_Master
      */
     public $allowPrintingWithoutBlank = true;
 
+
+    /**
+     * Да не се скрива автоматично документа
+     */
+    public $autoHideDoc = false;
+
     
     /**
      * Описание на модела
