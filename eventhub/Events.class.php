@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class eventhub_Events extends core_Manager
+class eventhub_Events extends core_Master
 {
     /**
      * Заглавие на страницата
@@ -26,13 +26,13 @@ class eventhub_Events extends core_Manager
      * Зареждане на необходимите плъгини
      */
     public $loadList = 'plg_RowTools2, plg_State2, plg_Printing, 
-        plg_Search, plg_Created, plg_Modified, plg_Sorting';
+        plg_Search, plg_Created, plg_Modified, plg_Sorting,eventhub_Wrapper';
 
 
     /**
      * Полета за листов изглед
      */
-    public $listFields = 'id, title, format, poster, startDate, place, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
+    public $listFields = 'id, title, format, description, poster, startDate, startTime, duration, place, participants, organizer, tickets, magnitude, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
 
 
     /**
@@ -69,45 +69,31 @@ class eventhub_Events extends core_Manager
      */
     public function description()
     {
-        $this->FLD('series', 'key(mvc=eventhub_Series)', 'caption=Серии, mandatory');
-        $this->FLD('categoryId', 'keylist(mvc=eventhub_Categories)', 'caption=Подкатегория, mandatory');
-        $this->setDbUnique('serii');
-        $this->setDbUnique('categoryId');
+        $this->FLD('series', 'key(mvc=eventhub_Series,select=title)', 'caption=Серии, mandatory');
+        $this->FLD('categories', 'keylist(mvc=eventhub_Categories, select=title)', 'caption=Категории, mandatory');
 
-        $this->FLD('formId', 'key(mvc=eventhub_Formats)', 'caption=Формат, mandatory');
-        $this->setDbUnique('formId');
+        $this->FLD('formId', 'key(mvc=eventhub_Forms,select=title)', 'caption=Формат, mandatory');
 
         $this->FLD('description', 'richtext', 'caption=Описание на събитието');
-        $this->setDbUnique('desctiption');
 
-        $this->FLD('poster', 'fileman_FyleType(bucket=eshopImages', 'caption=Плакат');
-        $this->setDbUnique('poster');
+        $this->FLD('poster', 'fileman_FileType(bucket=pictures)', 'caption=Плакат');
 
         $this->FLD('startDate', 'date', 'caption=Дата на събитието, mandatory');
-        $this->setDbUnique('startDate');
 
         $this->FLD('openingTime', 'time', 'caption=час на отваряне, mandatory');
-        $this->setDbUnique('openingTime');
 
         $this->FLD('startTime', 'time', 'caption=час на започване, mandatory');
-        $this->setDbUnique('startTime');
 
         $this->FLD('duration', 'time', 'caption=очаквана продължителност');
-        $this->setDbUnique('duration');
 
-        $this->FLD('place', 'key(mvc=eventhub_Venues)', 'caption=връзка към модела за места, mandatory');
-        $this->setDbUnique('place');
+        $this->FLD('place', 'key(mvc=eventhub_Venues,select=title)', 'caption=връзка към модела за места, mandatory');
 
-        $this->FLD('participants', 'keylist(mvc=crm_Persons,select=name,allowEmpty)', 'caption=връзка към Persons');
-        $this->setDbUnique('participants');
+        $this->FLD('participants', 'keylist(mvc=crm_Persons,select=name)', 'caption=връзка към Persons');
 
-        $this->FLD('organizer', 'keylist(mvc=crm_Persons,select=name,allowEmpty)', 'caption=връзка към организатора на събития, mandatory');
-        $this->setDbUnique('organizer');
+        $this->FLD('organizers', 'keylist(mvc=crm_Persons,select=name)', 'caption=връзка към организатора на събития, mandatory');
 
         $this->FLD('tickets', 'type_Urls', 'caption=URL адреси за закупуване на билети, mandatory');
-        $this->setDbUnique('tickets');
 
         $this->FLD('magnitude', 'enum(1=локално, 2=регионално, 3=национално, 4=международно)', 'caption=значимостта на събитията');
-        $this->setDbUnique('magnitude');
     }
 }
