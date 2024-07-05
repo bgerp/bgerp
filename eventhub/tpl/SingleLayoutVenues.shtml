@@ -4,23 +4,23 @@
         <div class="block_title state-draft state-active special-title">[#title#]</div>
         <div>
             <table>
-                <tr>
+                <tr class="row">
                     <td>Вид</td>
                     <td>[#type#]</td>
                 </tr>
-                <tr>
+                <tr class="row">
                     <td>Област</td>
                     <td>[#district#]</td>
                 </tr>
-                <tr>
+                <tr class="row">
                     <td>Населено място</td>
                     <td>[#city#]</td>
                 </tr>
-                <tr>
+                <tr class="row">
                     <td>Адрес</td>
                     <td>[#address#]</td>
                 </tr>
-                <tr>
+                <tr class="row">
                     <td>Геолокация</td>
                     <td>[#geolocation#]</td>
                 </tr>
