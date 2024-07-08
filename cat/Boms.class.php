@@ -720,8 +720,8 @@ class cat_Boms extends core_Master
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
         $row->title = $mvc->getLink($rec->id, 0);
         $row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : (($rec->type == 'instant') ? tr('Моментна рецепта') : ('Работна рецепта'));
+        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
 
-        $measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
         $shortUom = cat_UoM::getShortName($measureId);
         $row->quantity .= ' ' . $shortUom;
 

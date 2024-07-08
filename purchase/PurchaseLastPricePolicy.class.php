@@ -85,7 +85,7 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
         }
 
         if (!is_null($rec->price)) {
-            $vat = cat_Products::getVat($productId);
+            $vat = cat_Products::getVat($productId, $date, 'purchase');
             $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
 

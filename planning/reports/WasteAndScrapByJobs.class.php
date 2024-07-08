@@ -175,11 +175,10 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             $prodWeigth = cat_Products::convertToUoM($jobsArr[$taskRec->originId]->productId, 'kg');
 
+            // Намиране на отпадъка
             if (!$wasteQuantity) {
                 $totalWastePercent = null;
                 $waste = planning_ProductionTaskProducts::getTotalWasteArr($jobsArr[$taskRec->originId]->threadId, $totalWastePercent);
-
-
             }
 
             $wasteWeightNullMark = null;     //Ако има поне един отпадък без тегло да се отбележи в изгледа с ? след цифрата
@@ -193,7 +192,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                         $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
 
                         if (!is_null($wasteProdWeigth)) {
-                            $wasteWeight += $v->quantity * $wasteProdWeigth;
+                            $wasteWeight += $v->quantity * $v->quantityInPack * $wasteProdWeigth;
 
                         } else {
                             $wasteWeightNullMark = true;
@@ -202,22 +201,22 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
                     }else{
                         $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
-                        $wasteWeight += $v->quantity*$wasteProdWeigth;
+                        $wasteWeight +=$v->quantity * $v->quantityInPack * $wasteProdWeigth;
 
                     }
                 }
             }
 
+            // Намиране на брака
             if (!is_null($prodWeigth)) {
                 $scrappedWeight = $taskRec->scrappedQuantity * $prodWeigth;
             } else {
                 $scrappedWeight = null;
             }
 
+            if ($scrappedWeight <= 0 && $wasteWeight <= 0)continue;
 
             $id = $jobsArr[$taskRec->originId]->id;
-
-            if ($scrappedWeight <= 0 && $wasteWeight <= 0)continue;
 
             // Запис в масива
             if (!array_key_exists($id, $recs)) {

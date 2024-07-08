@@ -83,6 +83,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
             $mvc->requireRightFor('createproduct');
             expect($masterId = Request::get($mvc->masterKey, 'int'));
             expect($masterRec = $mvc->Master->fetch($masterId));
+
+            $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+            $getVatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
             $cloneId = Request::get('cloneId', 'int');
             if ($cloneId) {
                 $cloneRec = $mvc->fetch($cloneId);
@@ -454,7 +457,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                             if($mvc instanceof store_InternalDocumentDetail){
                                 $dRec->packPrice = $price;
                             } else {
-                                $price = deals_Helper::getPurePrice($price, cat_Products::getVat($productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
+                                $price = deals_Helper::getPurePrice($price, cat_Products::getVat($productId, $masterRec->valior, $getVatType), $masterRec->currencyRate, $masterRec->chargeVat);
                                 $dRec->price = $price;
                             }
                         }
@@ -467,7 +470,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     }
 
                     if (!$dRec->autoPrice && $action != 'cloneRecInDocument') {
-                        $vat = cat_Products::getVat($productId, $masterRec->valior);
+                        $vat = cat_Products::getVat($productId, $masterRec->valior, $getVatType);
                         if ($masterRec->chargeVat == 'yes') {
                             $dRec->price = $dRec->price / (1 + $vat);
                         }

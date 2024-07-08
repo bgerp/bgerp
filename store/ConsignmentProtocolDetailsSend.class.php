@@ -114,6 +114,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         if($masterRec->productType == 'other'){
             $params['isPublic'] = 'no';
         }
+
         $data->form->setFieldTypeParams('productId', $params);
     }
 

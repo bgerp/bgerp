@@ -130,7 +130,7 @@ class bgfisc_reports_DetailedPurchasesData extends frame2_driver_TableData
             
             
             //ДДС - сума
-            $vatSum = $purDetailRec->amount * cat_Products::getVat($purDetailRec->productId);
+            $vatSum = $purDetailRec->amount * cat_Products::getVat($purDetailRec->productId, null, 'purchase');
             
             //Обща сума на продажбата - без ДДС
             $amountSum = $purDetailRec->amount;

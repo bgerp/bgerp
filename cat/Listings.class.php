@@ -318,7 +318,8 @@ class cat_Listings extends core_Master
                 $obj = (object) array('productId' => $rec->productId, 'packagingId' => $rec->packagingId, 'reff' => $reff, 'moq' => $rec->moq, 'multiplicity' => $rec->multiplicity, 'code' => $rec->code);
                 if (isset($rec->price)) {
                     if ($listRec->vat == 'yes') {
-                        $vat = cat_Products::getVat($rec->productId);
+                        $vatGroupType = $listRec->type == 'canBuy' ? 'purchase' : 'sales';
+                        $vat = cat_Products::getVat($rec->productId, null, $vatGroupType);
                         $rec->price /= 1 + $vat;
                     }
                     

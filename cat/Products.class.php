@@ -1094,33 +1094,42 @@ class cat_Products extends embed_Manager
         }
 
         $wherePartFour = "";
-        if(isset($filtersArr['vat0'])) {
-            $productWithVat = cat_products_VatGroups::getByVatPercent(0);
-            if(countR($productWithVat)){
-                $productWithVatStr = implode(',', $productWithVat);
-                $wherePartFour = "#{$productIdFld} IN ({$productWithVatStr})";
-            } else {
-                $wherePartFour = "1=2";
+        foreach (array('vat0', 'vat0pur') as $zeroVat){
+            if(isset($filtersArr[$zeroVat])) {
+                $vType = ($zeroVat == 'vat0') ? 'sales' : 'purchase';
+                $productWithVat = cat_products_VatGroups::getByVatPercent(0, null, null, $vType);
+                if(countR($productWithVat)){
+                    $productWithVatStr = implode(',', $productWithVat);
+                    $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#{$productIdFld} IN ({$productWithVatStr})";
+                } else {
+                    $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "1=2";
+                }
             }
         }
 
-        if(isset($filtersArr['vat9'])) {
-            $productWithVat = cat_products_VatGroups::getByVatPercent(0.09);
-            if(countR($productWithVat)){
-                $productWithVatStr = implode(',', $productWithVat);
-                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#{$productIdFld} IN ({$productWithVatStr})";
-            } else{
-                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "1=2";
+        foreach (array('vat9', 'vat9pur') as $nineVat) {
+            if(isset($filtersArr[$nineVat])) {
+                $vType = ($nineVat == 'vat9') ? 'sales' : 'purchase';
+                $productWithVat = cat_products_VatGroups::getByVatPercent(0.09, null, null, $vType);
+                if(countR($productWithVat)){
+                    $productWithVatStr = implode(',', $productWithVat);
+                    $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#{$productIdFld} IN ({$productWithVatStr})";
+                } else{
+                    $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "1=2";
+                }
             }
         }
 
-        if(isset($filtersArr['vat20'])) {
-            $productWithWith0And9Vat = cat_products_VatGroups::getByVatPercent(0) + cat_products_VatGroups::getByVatPercent(0.09);
-            if(countR($productWithWith0And9Vat)){
-                $productWithVatStr = implode(',', $productWithWith0And9Vat);
-                $wherePartFour = "#{$productIdFld} NOT IN ({$productWithVatStr})";
-            } else {
-                $wherePartFour = "1=2";
+        foreach (array('vat20', 'vat20pur') as $twentyVat) {
+            if (isset($filtersArr[$twentyVat])) {
+                $vType = ($twentyVat == 'vat20') ? 'sales' : 'purchase';
+                $productWithWith0And9Vat = cat_products_VatGroups::getByVatPercent(0, null, null, $vType) + cat_products_VatGroups::getByVatPercent(0.09, null, null, $vType);
+                if(countR($productWithWith0And9Vat)){
+                    $productWithVatStr = implode(',', $productWithWith0And9Vat);
+                    $wherePartFour = (!empty($wherePartFour) ? ' OR ' : '') . "#{$productIdFld} NOT IN ({$productWithVatStr})";
+                } else {
+                    $wherePartFour = (!empty($wherePartFour) ? ' OR ' : '') . "1=2";
+                }
             }
         }
 
@@ -1380,7 +1389,7 @@ class cat_Products extends embed_Manager
             'measureId' => $productRec->measureId,
             'code' => $productRec->code,);
         
-        $res->isPublic = ($productRec->isPublic == 'yes') ? true : false;
+        $res->isPublic = $productRec->isPublic == 'yes';
         
         if ($grRec = cat_products_VatGroups::getCurrentGroup($productId)) {
             $res->productRec->vatGroup = $grRec->title;
@@ -1465,13 +1474,12 @@ class cat_Products extends embed_Manager
     /**
      * Връща ДДС на даден продукт
      *
-     * @param int        - $productId - Ид на продукт
-     * @param date $date - dата към която начисляваме ДДС-то
-     *
-     * @return double $vat - ДДС-то на артикула kym datata
-     *
+     * @param int        $productId - ид на артикул
+     * @param null|date  $date      - към коя дата
+     * @param string     $type      - ДДС за продажба или за покупка
+     * @return double $vat          - ДДС-то на артикула към датата
      */
-    public static function getVat($productId, $date = null)
+    public static function getVat($productId, $date = null, $type = 'sales')
     {
         expect(static::fetchField($productId), 'Няма такъв артикул');
         if (!$date) {
@@ -1479,7 +1487,7 @@ class cat_Products extends embed_Manager
         }
 
         // Ако има валидна ДДС група към датата - нея
-        if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date)) {
+        if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date, $type)) {
             return $groupRec->vat;
         }
 
@@ -4048,6 +4056,9 @@ class cat_Products extends embed_Manager
     {
         expect($mRec);
 
+        $firstDoc = doc_Threads::getFirstDocument($mRec->threadId);
+
+        $vType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
         $canSeePrice = haveRole('seePrice,ceo', $activatedBy);
         $pStrName = 'price';
 
@@ -4261,7 +4272,7 @@ class cat_Products extends embed_Manager
                     }
                 }
 
-                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld});
+                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld}, $vType);
 
                 // За добавяне на бачовете
                 if ($allFFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
@@ -4365,7 +4376,7 @@ class cat_Products extends embed_Manager
                     }
 
                     if($chargeVat == 'yes'){
-                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $mRec->{$masterMvc->valiorFld}), $rate, $chargeVat);
+                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $mRec->{$masterMvc->valiorFld}, $vType), $rate, $chargeVat);
                         $rec->chargeVat = tr('с ДДС');
                     } else {
                         $rec->chargeVat = tr('без ДДС');

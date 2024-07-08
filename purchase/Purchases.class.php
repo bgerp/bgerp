@@ -975,6 +975,7 @@ class purchase_Purchases extends deals_DealMaster
     {
         // Ако има твърда отстъпка за целия документ, изчислява се тя
         $rec = $mvc->fetchRec($id);
+
         if($mvc->recalcAutoTotalDiscount($rec)){
             $mvc->updateMaster_($rec);
         }

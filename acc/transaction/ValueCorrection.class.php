@@ -81,7 +81,8 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         $currencyId = currency_Currencies::getIdByCode($correspondingDoc->fetchField('currencyId'));
         $vatType = $firstDoc->fetchField('chargeVat');
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-        
+        $vatField = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+
         // Ако е към продажба
         if ($firstDoc->isInstanceOf('sales_Sales')) {
             $debitArr = array('411', array($contragentClassId, $contragentId),
@@ -108,7 +109,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 );
                 
                 $total += $sign * $prod->allocated;
-                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior);
+                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior, $vatField);
             }
             
             if ($vatType == 'yes' || $vatType == 'separate') {
@@ -184,7 +185,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                     }
                 }
                 
-                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior);
+                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior, $vatField);
             }
             
             if ($vatType == 'yes' || $vatType == 'separate') {

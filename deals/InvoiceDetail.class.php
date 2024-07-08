@@ -571,10 +571,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
     {
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        
+        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+        $vatType = ($firstDoc->isInstanceOf('purchase_Purchases')) ? 'purchase' : 'sales';
+
         if ($form->rec->productId && $masterRec->type != 'dc_note' && $form->editActive !== true) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->date);
-            $productInfo = cat_Products::getProductInfo($rec->productId);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatType);
             
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
