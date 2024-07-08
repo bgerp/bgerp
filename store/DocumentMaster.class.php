@@ -829,7 +829,7 @@ abstract class store_DocumentMaster extends core_Master
                 $aggregator->push('shippedPacks', $arr, $index);
             }
 
-            $vatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+            $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
             $vat = cat_Products::getVat($dRec->productId, $rec->valior, $vatType);
             if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate') {
                 $dRec->packPrice += $dRec->packPrice * $vat;

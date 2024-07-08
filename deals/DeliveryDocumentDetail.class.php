@@ -55,7 +55,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $rec = &$data->form->rec;
         $masterRec = $data->masterRec;
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-        $vatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
 
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
@@ -87,7 +87,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-        $vatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
 
         if ($form->rec->productId) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatType);
@@ -388,7 +388,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             $row->price /= $quantityInPack;
 
             $firstDoc = doc_Threads::getFirstDocument($masterThreadId);
-            $vatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+            $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
 
             $masterRec = $Master->fetch($masterId);
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatType), $masterRec->currencyRate, $masterRec->chargeVat);

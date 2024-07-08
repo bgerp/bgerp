@@ -457,7 +457,7 @@ class acc_ValueCorrections extends core_Master
     public function getAverageVatRate($productArr, $rec)
     {
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $vatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
 
         $totalArr = array();
         $total = $averageVatSum = 0;

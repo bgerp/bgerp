@@ -82,7 +82,7 @@ class price_plg_TotalDiscount extends core_Plugin
         if(isset($res)) return;
         $rec = $mvc->fetchRec($rec);
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $vatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
 
         $totalDiscount = price_DiscountsPerDocuments::getDiscount4Document($mvc, $rec);
         if(empty($totalDiscount)) return;

@@ -171,7 +171,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             $amount = round($amount, 2);
-            $vatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+            $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
             $revertVatPercent = ($checkVatCredit) ? cat_Products::getVat($detailRec->productId, $rec->valior, $vatType) : null;
 
             if($canStore != 'yes'){
