@@ -456,7 +456,8 @@ class deals_plg_DpInvoice extends core_Plugin
 
                     // Към коя ДДС група е артикула от ориджина
                     while($dRec = $dQuery->fetch()){
-                        $grId = cat_products_VatGroups::getCurrentGroup($dRec->{$Detail->productFld}, $valior)->id;
+                        $vatType = ($mvc instanceof purchase_Purchases) ? 'purchase' : 'sales';
+                        $grId = cat_products_VatGroups::getCurrentGroup($dRec->{$Detail->productFld}, $valior, $vatType)->id;
                         if(isset($grId)){
                             $originVatGroups[$grId] = $grId;
                         }

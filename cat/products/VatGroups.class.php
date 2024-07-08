@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -27,18 +27,18 @@ class cat_products_VatGroups extends core_Detail
      * Заглавие
      */
     public $title = 'ДДС групи на артикулите';
-    
-    
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId,vatGroup,vatPercent=ДДС (%),validFrom';
+    public $listFields = 'productId,vatGroup,vatGroupPurchase,validFrom';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_Created,plg_Sorting';
+    public $loadList = 'cat_Wrapper, plg_Created, plg_Sorting';
     
     
     /**
@@ -79,8 +79,11 @@ class cat_products_VatGroups extends core_Detail
     public function description()
     {
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'caption=Артикул,input=hidden,silent,mandatory');
-        $this->FLD('vatGroup', 'key(mvc=acc_VatGroups,select=title,allowEmpty)', 'caption=Група,mandatory');
+        $this->FLD('vatGroup', 'key(mvc=acc_VatGroups,select=title,allowEmpty)', 'caption=За продажби,mandatory');
+        $this->FLD('vatGroupPurchase', 'key(mvc=acc_VatGroups,select=title,allowEmpty)', 'caption=За покупки,mandatory');
         $this->FLD('validFrom', 'date', 'caption=В сила от');
+
+        $this->setDbIndex('productId');
     }
     
     
@@ -135,7 +138,13 @@ class cat_products_VatGroups extends core_Detail
     {
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->vatGroup = acc_VatGroups::getTitleById($rec->vatGroup);
-        $row->vatPercent = acc_VatGroups::getVerbal($rec->vatGroup, 'vat');
+        $row->vatGroupPurchase = acc_VatGroups::getTitleById($rec->vatGroupPurchase);
+
+        $vatPercent = acc_VatGroups::getVerbal($rec->vatGroup, 'vat');
+        $row->vatGroup = "{$row->vatGroup} <span class='quiet'>[{$vatPercent}]</span>";
+
+        $vatPercentPurchase = acc_VatGroups::getVerbal($rec->vatGroupPurchase, 'vat');
+        $row->vatGroupPurchase = "{$row->vatGroupPurchase}  <span class='quiet'>[{$vatPercentPurchase}]</span>";
     }
     
     
@@ -197,7 +206,7 @@ class cat_products_VatGroups extends core_Detail
     {
         $wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
         $table = cls::get('core_TableView', array('mvc' => $this));
-        $data->listFields = array('vatGroup' => 'Група', 'vatPercent' => 'ДДС|* (%)', 'validFrom' => 'В сила от', 'createdOn' => 'Създаване');
+        $data->listFields = array('vatGroup' => 'ДДС|* ' . "<small>( Продажби )</small>", 'vatGroupPurchase' => 'ДДС|* ' . "<small>( Покупка )</small>", 'validFrom' => 'В сила от', 'createdOn' => 'Създаване');
         $tpl = $table->get($data->rows, $data->listFields);
         
         $title = 'ДДС';
@@ -238,12 +247,12 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Коя е активната данъчна група към дата
      *
-     * @param int       - $productId
-     * @param date|NULL - $date
-     *
+     * @param int       $productId - ид на артикул
+     * @param date|NULL $date      - към дата
+     * @param string    $type      - ДДС за продажба или за покупка
      * @return float|FALSE $value
      */
-    public static function getCurrentGroup($productId, $date = null)
+    public static function getCurrentGroup($productId, $date = null, $type = 'sales')
     {
         $date = (!empty($date)) ? dt::verbal2mysql($date, false) : dt::today();
 
@@ -253,10 +262,11 @@ class cat_products_VatGroups extends core_Detail
         $query->where("#validFrom <= '{$date}'");
         $query->orderBy('#validFrom', 'DESC');
         $query->limit(1);
-        
+
         $value = false;
         if ($rec = $query->fetch()) {
-            $value = acc_VatGroups::fetch($rec->vatGroup);
+            $field = $type == 'purchase' ? 'vatGroupPurchase' : 'vatGroup';
+            $value = acc_VatGroups::fetch($rec->{$field});
         }
         
         return $value;
@@ -269,9 +279,10 @@ class cat_products_VatGroups extends core_Detail
      * @param double     $percent    - търсен процент
      * @param datetime|NULL $date    - към коя дата
      * @param array|NULL $productIds - сред кои артикули да се търси, null за всички
+     * @param string|NULL $type      - ДДС за продажба или за покупка
      * @return array $products       - намерените артикули
      */
-    public static function getByVatPercent($percent, $date = null, $productIds = null)
+    public static function getByVatPercent($percent, $date = null, $productIds = null, $type = null)
     {
         $products = array();
         $date = (!empty($date)) ? dt::verbal2mysql($date, false) : dt::today();
@@ -283,7 +294,7 @@ class cat_products_VatGroups extends core_Detail
         $query = self::getQuery();
         $query->where("#validFrom <= '{$date}'");
         $query->orderBy('#validFrom', 'DESC');
-        $query->show('vatGroup,productId');
+        $query->show('vatGroup,vatGroupPurchase,productId');
         if(isset($productIds)){
             $query->in('productId', $productIds);
         }
@@ -294,8 +305,14 @@ class cat_products_VatGroups extends core_Detail
             }
         }
         
-        $products = array_filter($products, function ($obj) use ($groups) {
-            if (in_array($obj->vatGroup, $groups)) return true;
+        $products = array_filter($products, function ($obj) use ($groups, $type) {
+            if($type == 'purchase'){
+                if (in_array($obj->vatGroupPurchase, $groups)) return true;
+            } elseif($type == 'sales'){
+                if (in_array($obj->vatGroup, $groups)) return true;
+            } else {
+                if (in_array($obj->vatGroup, $groups) || in_array($obj->vatGroupPurchase, $groups)) return true;
+            }
         });
 
         // Ако дефолтното ддс за периода е колкото търсеното, се извличат и
@@ -342,5 +359,21 @@ class cat_products_VatGroups extends core_Detail
                 $data->query->where("#productId = {$filter->productId}");
             }
         }
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $rec = &$form->rec;
+
+        $currentGroup = static::getCurrentGroup($rec->productId);
+        $form->setDefault('vatGroup', $currentGroup->id);
+
+        $currentGroup = static::getCurrentGroup($rec->productId, null, 'purchase');
+        $form->setDefault('vatGroupPurchase', $currentGroup->id);
     }
 }

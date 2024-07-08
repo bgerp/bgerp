@@ -129,6 +129,7 @@ class deals_QuotationDetails extends doc_Detail
         $rec = &$form->rec;
         $masterRec = $data->masterRec;
         $form->setDefault('showMode', 'detailed');
+        $vatType = ($this instanceof purchase_QuotationDetails) ? 'purchase' : 'sales';
 
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $this->metaProducts, 'hasnotProperties' => 'generic'));
         if (isset($rec->id)) {
@@ -138,7 +139,7 @@ class deals_QuotationDetails extends doc_Detail
         if (!empty($rec->packPrice)) {
             if (strtolower(Request::get('Act')) != 'createproduct') {
                 $valior = !empty($masterRec->valior) ? $masterRec->valior : dt::today();
-                $vat = cat_Products::getVat($rec->productId, $valior);
+                $vat = cat_Products::getVat($rec->productId, $valior, $vatType);
             } else {
                 $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
             }
@@ -150,7 +151,7 @@ class deals_QuotationDetails extends doc_Detail
 
         if ($form->rec->price && $masterRec->currencyRate) {
             if ($masterRec->chargeVat == 'yes') {
-                ($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = cat_Products::getVat($rec->productId, $masterRec->date);
+                ($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatType);
                 $rec->price = $rec->price * (1 + $vat);
             }
 
@@ -209,11 +210,12 @@ class deals_QuotationDetails extends doc_Detail
     {
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+        $vatType = ($mvc instanceof purchase_QuotationDetails) ? 'purchase' : 'sales';
 
         if(isset($rec->productId)) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
 
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatType);
             $rec->vatPercent = $vat;
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
@@ -560,6 +562,7 @@ class deals_QuotationDetails extends doc_Detail
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
         $meta = cat_Products::fetchField($pRec->productId, 'canSell');
+        $vatType = ($this instanceof purchase_QuotationDetails) ? 'purchase' : 'sales';
         if($meta != 'yes') return;
 
         $price = null;
@@ -571,7 +574,7 @@ class deals_QuotationDetails extends doc_Detail
             $row->price /= $quantityInPack;
 
             $masterRec = $Master->fetch($masterId);
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatType), $masterRec->currencyRate, $masterRec->chargeVat);
         }
 
         $optionalReq = Request::get('optional');
@@ -674,8 +677,9 @@ class deals_QuotationDetails extends doc_Detail
 
             // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
             $fee = sales_TransportValues::get($mvc->Master, $rec->quotationId, $rec->id);
+            $vatType = ($mvc instanceof purchase_QuotationDetails) ? 'purchase' : 'sales';
 
-            $vat = cat_Products::getVat($rec->productId, $masterRec->date);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatType);
             $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
 
             if(isset($rec->vatPackPrice) && $data->renderVatPriceInRec){
@@ -716,7 +720,8 @@ class deals_QuotationDetails extends doc_Detail
                 }
 
                 if(isset($rec->price)) {
-                    $vat = cat_Products::getVat($rec->productId, $masterRec->date);
+                    $vatType = ($mvc instanceof purchase_QuotationDetails) ? 'purchase' : 'sales';
+                    $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatType);
                     $rec->vatPackPrice = ($rec->packPrice * (1 + $vat) / $masterRec->currencyRate);
                 }
 

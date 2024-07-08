@@ -796,7 +796,8 @@ abstract class store_DocumentMaster extends core_Master
     public function pushDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
-        
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+
         // Конвертираме данъчната основа към валутата идваща от продажбата
         if(isset($rec->locationId)){
             $aggregator->setIfNot('deliveryLocation', $rec->locationId);
@@ -827,8 +828,9 @@ abstract class store_DocumentMaster extends core_Master
                 $arr = (object) array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
                 $aggregator->push('shippedPacks', $arr, $index);
             }
-            
-            $vat = cat_Products::getVat($dRec->productId);
+
+            $vatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+            $vat = cat_Products::getVat($dRec->productId, $rec->valior, $vatType);
             if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate') {
                 $dRec->packPrice += $dRec->packPrice * $vat;
             }

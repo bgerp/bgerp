@@ -397,9 +397,7 @@ class pos_Receipts extends core_Master
         if ($rec->state != 'draft') {
             $row->valior = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y H:i:s');
         }
-        
-        $cu = core_Users::fetch($rec->createdBy);
-        $row->createdBy = ht::createLink(core_Users::recToVerbal($cu)->nick, crm_Profiles::getUrl($rec->createdBy));
+
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
         $row->time = dt::mysql2verbal(dt::now(), 'H:i');
         $row->productCount = $mvc->getProducts($rec->id, true);

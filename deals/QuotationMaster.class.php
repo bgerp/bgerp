@@ -809,9 +809,9 @@ abstract class deals_QuotationMaster extends core_Master
         $newRec->quotationId = $rec->id;
         $newRec->productId = $productId;
         $newRec->showMode = 'auto';
-        $newRec->vatPercent = cat_Products::getVat($productId, $rec->date);
+        $vatType = ($me instanceof purchase_Quotations) ? 'purchase' : 'sales';
+        $newRec->vatPercent = cat_Products::getVat($productId, $rec->date, $vatType);
         $newRec->optional = ($optional === true) ? 'yes' : 'no';
-        expect(in_array($newRec->optional, array('yes', 'no')));
 
         // Проверка на опаковката
         $newRec->packagingId = isset($packagingId) ? $packagingId : $productRec->measureId;
