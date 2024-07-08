@@ -1,0 +1,109 @@
+<style>
+    .detail-info {
+        margin: 20px 0;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+    }
+    .groupTitle {
+        font-size: 1.2em;
+        border-radius: 10px 10px 0 0;
+        padding: 5px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    td {
+        display: table-cell;
+        vertical-align: inherit;
+        unicode-bidi: isolate;
+    }
+    .groupList table .dt {
+        width: 21.5%;
+        text-align: right;
+        color: #888;
+        white-space: nowrap;
+        padding-right: 10px;
+    }
+</style>
+
+<div class="singleView event-class">
+    [#SingleToolbar#]
+    <div class="folder-cover state-draft state-active">
+        <div class="block_title state-draft state-active special-title">[#title#]</div>
+            <div>
+                [#poster#]
+                <div>
+                    <fieldset class="detail-info">
+                        <legend class="groupTitle">За събитието</legend>
+                            <div class="groupList">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td class="dt">Поредица:</td>
+                                            <td>[#series#]</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="dt">Категория:</td>
+                                            <td>[#categories#]</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="dt">Формат: </td>
+                                            <td>[#formId#]</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                    </fieldset>
+                    <fieldset class="detail-info">
+                        <legend class="groupTitle">Информация за провеждането</legend>
+                        <div class="groupList">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td class="dt">Начало:</td>
+                                        <td>[#startDate#]</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="dt">Отваряне:</td>
+                                        <td>[#time#]</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="dt">Започва:</td>
+                                        <td>[#startTime#]</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="dt">Продължителност:</td>
+                                        <td>[#duration#]</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="dt">Място:</td>
+                                        <td>[#venueId#]</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </fieldset>
+                    <fieldset class="detail-info">
+                        <legend class="groupTitle">Участващи</legend>
+                        <div class="groupList">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td class="dt">Организатор:</td>
+                                        <td>[#organizer#]</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="dt">Участници:</td>
+                                        <td>[#participants#]</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div>[#description#]</div>
+        </div>
+    </div>
