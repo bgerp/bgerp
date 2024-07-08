@@ -69,32 +69,34 @@ class eventhub_Events extends core_Master
      */
     public function description()
     {
-        $this->FLD('series', 'key(mvc=eventhub_Series,select=title)', 'caption=Серии, mandatory');
+        $this->FLD('title', 'varchar(128)', 'caption=Наименование, mandatory');
 
-        $this->FLD('categories', 'keylist(mvc=eventhub_Categories, select=title)', 'caption=Категории, mandatory');
+        $this->FLD('series', 'key(mvc=eventhub_Series,select=title)', 'caption=Поредица, mandatory');
+
+        $this->FLD('categories', 'keylist(mvc=eventhub_Categories, select=title)', 'caption=Категория, mandatory');
 
         $this->FLD('formId', 'key(mvc=eventhub_Forms, select=title)', 'caption=Формат, mandatory');
 
-        $this->FLD('description', 'richtext', 'caption=Описание на събитието');
+        $this->FLD('description', 'richtext', 'caption=Описание');
 
         $this->FLD('poster', 'fileman_FileType(bucket=pictures)', 'caption=Плакат');
 
-        $this->FLD('startDate', 'date', 'caption=Дата на събитието, mandatory');
+        $this->FLD('startDate', 'date', 'caption=Начало, mandatory');
 
-        $this->FLD('openingTime', 'time', 'caption=час на отваряне, mandatory');
+        $this->FLD('openingTime', 'hour', 'caption=Отваряне, mandatory');
 
-        $this->FLD('startTime', 'time', 'caption=час на започване, mandatory');
+        $this->FLD('startTime', 'hour', 'caption=Започва, mandatory');
 
-        $this->FLD('duration', 'time', 'caption=очаквана продължителност');
+        $this->FLD('duration', 'time', 'caption=Продължителност');
 
-        $this->FLD('place', 'key(mvc=eventhub_Venues,select=title)', 'caption=връзка към модела за места, mandatory');
+        $this->FLD('place', 'key(mvc=eventhub_Venues,select=title)', 'caption=Място, mandatory');
 
-        $this->FLD('participants', 'keylist(mvc=crm_Persons,select=name, allowEmpty)', 'caption=връзка към Persons');
+        $this->FLD('participants', 'keylist(mvc=crm_Persons,select=name, allowEmpty)', 'caption=Участват');
 
-        $this->FLD('organizers', 'keylist(mvc=crm_Persons,select=name, allowEmpty)', 'caption=връзка към организатора на събития, mandatory');
+        $this->FLD('organizers', 'keylist(mvc=crm_Persons,select=name, allowEmpty)', 'caption=Организатор, mandatory');
 
-        $this->FLD('tickets', 'type_Urls', 'caption=URL адреси за закупуване на билети');
+        $this->FLD('tickets', 'type_Urls', 'caption=Билети');
 
-        $this->FLD('magnitude', 'enum(1=локално, 2=регионално, 3=национално, 4=международно)', 'caption=значимостта на събитията');
+        $this->FLD('magnitude', 'enum(1=локално, 2=регионално, 3=национално, 4=международно)', 'caption=Магнитуд');
     }
 }

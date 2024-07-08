@@ -26,7 +26,7 @@ class eventhub_Categories extends core_Manager
      * Зареждане на необходимите плъгини
      */
     public $loadList = 'plg_RowTools2, plg_State2, plg_Printing, 
-        plg_Search, plg_Created, plg_Modified, plg_Sorting, eventhub_Wrapper';
+        plg_Search, plg_Created, plg_Modified, plg_Sorting, eventhub_Wrapper,plg_TreeObject';
 
 
     /**
@@ -64,14 +64,14 @@ class eventhub_Categories extends core_Manager
      */
     public $singleTitle = 'Категории събития';
 
+    public $nameField = 'title';
     /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('title', 'varchar(32)', 'caption=Категория, mandatory');
-        $this->FLD('parentId', 'keylist(mvc=eventhub_Categories)', 'caption=Подкатегория');
-        $this->setDbUnique('title');
-        $this->setDbUnique('parentId');
+        $this->FLD('parentId', 'key(mvc=eventhub_Categories, select=title, allowEmpty)', 'caption=Подкатегория');
+        $this->setDbUnique('title,parentId');
     }
 }
