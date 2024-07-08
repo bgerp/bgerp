@@ -1391,7 +1391,7 @@ class planning_Tasks extends core_Master
                     $requiredRoles = 'no_one';
                 } else {
                     if ($rec->type == 'clone') {
-                        if (empty($rec->cloneId) || empty($jobRec->oldJobId)) {
+                        if (empty($rec->cloneId)) {
                             $requiredRoles = 'no_one';
                         }
                     } elseif ($rec->type == 'all') {
@@ -1411,12 +1411,11 @@ class planning_Tasks extends core_Master
                             }
                         }
                     } elseif($rec->type == 'cloneAll'){
-                        if (empty($rec->oldJobId)) {
+                        if (empty($rec->jobsToCloneTasksFrom)) {
                             $requiredRoles = 'no_one';
                         } else {
-
                             // Дали може да се клонират неклонираните от предишно задание
-                            $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
+                            $oldTasks = planning_Tasks::getTasksByJob($rec->jobsToCloneTasksFrom, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
                             if(!countR($oldTasks)){
                                 $requiredRoles = 'no_one';
                             } else {
@@ -2322,19 +2321,26 @@ class planning_Tasks extends core_Master
     /**
      * Връща масив от задачи към дадено задание
      *
-     * @param int $jobId - ид на задание
+     * @param mixed $jobs - ид или масив от задания
      * @param mixed $states - В кои състояния
      * @param boolean $verbal - вербални или записи
      * @param boolean $skipTasksWithClosedParams - да се пропуснат ли операциите с деактивирани параметри
      * @param null|bool $isFinal                 - дали да са само финалните или не
      * @return array $res      - масив с намерените задачи
      */
-    public static function getTasksByJob($jobId, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null)
+    public static function getTasksByJob($jobs, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null)
     {
         $res = array();
-        $oldContainerId = planning_Jobs::fetchField($jobId, 'containerId');
+
+        // Всички ПО към посочените задания
+        $jobs = arr::make($jobs);
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in('id', $jobs);
+        $jQuery->show('containerId');
+        $containers = arr::extractValuesFromArray($jQuery->fetchAll(), 'containerId');
         $query = static::getQuery();
-        $query->where("#originId = {$oldContainerId}");
+        $query->in("originId", $containers);
+
         $states = arr::make($states, true);
         $query->in("state", $states);
         $query->orderBy("saoOrder", 'ASC');
@@ -2653,9 +2659,9 @@ class planning_Tasks extends core_Master
 
         // Ако ще се клонира съществуваща операция или ще се клонират всички от предходното
         if ($type == 'clone' || $type == 'cloneAll') {
-            $oldJobRec = planning_Jobs::fetch($jobRec->oldJobId);
+            $oldJobRec = isset($jobRec->oldJobId) ? planning_Jobs::fetch($jobRec->oldJobId) : $jobRec;
             $tasksToClone = array();
-            $count = 0;
+            $count = $clonedConsumptionNotes = 0;
             if($type == 'clone'){
                 expect($cloneId = Request::get('cloneId', 'int'));
                 planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'cloneId' => $cloneId, 'type' => 'clone'));
@@ -2664,10 +2670,13 @@ class planning_Tasks extends core_Master
             } else {
                 $selected = Request::get('selected', 'varchar');
                 $selectedArr = empty($selected) ? array() : array_combine(explode('|', $selected), explode('|', $selected));
+                $jobsToCloneFrom = Request::get('jobsToCloneTasksFrom', 'varchar');
+                $jobsToCloneFrom = !empty($jobsToCloneFrom) ? keylist::toArray($jobsToCloneFrom) : $jobRec->oldJobId;
+
                 if(!countR($selectedArr)) followRetUrl(null, '|Не са избрани шаблонни операции за клониране', 'warning');
 
                 // От предходните ще се клонират САМО избраните
-                $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
+                $oldTasks = planning_Tasks::getTasksByJob($jobsToCloneFrom, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), false, true);
                 $tasksToClone = array_intersect_key($oldTasks, $selectedArr);
             }
 
@@ -2693,7 +2702,7 @@ class planning_Tasks extends core_Master
 
                 if ($this->save($newTask)) {
                     $this->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
-                    $this->logWrite('Клониране от предходно задание', $newTask->id);
+                    $this->logWrite('Клониране от предходна операция', $newTask->id);
 
                     $pQuery = cat_products_Params::getQuery();
                     $pQuery->where("#classId = {$this->getClassId()} AND #productId = {$taskRec->id}");
@@ -2706,9 +2715,33 @@ class planning_Tasks extends core_Master
                     }
                 }
                 $count++;
+
+                // Клониране и на протоколите за влагане
+                $Consumptions = cls::get('planning_ConsumptionNotes');
+                $cQuery = $Consumptions->getQuery();
+                $cQuery->where("#state != 'rejected' AND #threadId = {$taskRec->threadId}");
+                while($consRec = $cQuery->fetch()){
+                    $newConsRec = clone $consRec;
+                    unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy);
+
+                    $newConsRec->_isClone = true;
+                    $newConsRec->originId = $newTask->containerId;
+                    $newConsRec->state = 'draft';
+                    $newConsRec->threadId = $newTask->threadId;
+                    $newConsRec->folderId = $newTask->folderId;
+                    $newConsRec->clonedFromId = $newConsRec->id;
+
+                    if ($Consumptions->save($newConsRec)) {
+                        $clonedConsumptionNotes++;
+                        $Consumptions->invoke('AfterSaveCloneRec', array($consRec, &$newConsRec));
+                    }
+                }
             }
 
-            $msg = "Успешно клонирани операции от предишно задание|*: {$count}";
+            $msg = "Успешно клонирани операции|*: {$count}";
+            if(!empty($clonedConsumptionNotes)){
+                $msg.= ", |Успешно клонирани протоколи за влагане|*: {$clonedConsumptionNotes}";
+            }
             followRetUrl(null, $msg);
         } elseif ($type == 'all') {
             $selected = Request::get('selected', 'varchar');
@@ -3994,5 +4027,29 @@ class planning_Tasks extends core_Master
 
             return $msg;
         }
+    }
+
+
+    /**
+     * Помощна ф-я извличаща операциите създадени чрез клониране от дадена
+     *
+     * @param int $cloneFromId
+     * @param int$containerId
+     * @return array $exLinkArray
+     */
+    public static function getTasksClonedFromOtherTasks($cloneFromId, $containerId)
+    {
+        $exLinkArray = array();
+        $exQuery = planning_Tasks::getQuery();
+        $exQuery->where("#originId = {$containerId} AND #state != 'rejected' AND #clonedFromId = {$cloneFromId}");
+
+        $exQuery->show('id');
+        while($exRec = $exQuery->fetch()) {
+            if (planning_Tasks::haveRightFor('single', $exRec->id)) {
+                $exLinkArray[] = ht::createLinkRef('', planning_Tasks::getSingleUrlArray($exRec->id), false, "title=Към операция|* #" . planning_Tasks::getHandle($exRec->id));
+            }
+        }
+
+        return $exLinkArray;
     }
 }

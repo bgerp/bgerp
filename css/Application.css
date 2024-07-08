@@ -4771,12 +4771,16 @@ table .eshop-btn {
 
 .webdrvIframe {
   width: 100%;
-  border: solid 0 rgba(0, 0, 0, 0);
-  min-height: 612px; }
+  border: solid 0 rgba(0, 0, 0, 0); }
+
+iframe.autoHeight {
+  width: 100%;
+  border: none;
+  overflow: hidden; }
 
 .wide .webdrvIframe,
 .wide .webdrvFieldset {
-  min-width: 880px; }
+  min-width: 885px; }
 
 .narrow .webdrvIframe {
   min-height: 300px; }

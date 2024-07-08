@@ -471,16 +471,20 @@ class planning_ProductionTaskDetails extends doc_Detail
                             $rec->serial = $Driver->canonizeSerial($checkProductId, $rec->serial);
                         }
 
-                        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'showSerialWarningOnDuplication');
-                        $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
                         if ($rec->type == 'production') {
+                            $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'showSerialWarningOnDuplication');
+                            $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
                             if($checkSerials4Warning == 'yes'){
                                 if(planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #type != 'scrap' AND #taskId = {$rec->taskId} AND #state != 'rejected'", $rec->serial))){
                                     $form->setWarning('serial', 'Производственият номер се повтаря в рамките на операцията');
                                 }
-                            } elseif($checkSerials4Warning == 'forbidden'){
-                                if(planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #taskId != {$rec->taskId} AND #type != 'scrap' AND #state != 'rejected'", $rec->serial))){
-                                    $form->setError('serial', 'Производственият номер се използва вече в друга операция');
+                            }
+
+                            $allowSerialDuplication = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'allowDuplicateSerialProgress');
+                            $allowSerialDuplication = ($allowSerialDuplication == 'auto') ? planning_Setup::get('ALLOW_SERIAL_IN_DIFF_TASKS') : $allowSerialDuplication;
+                            if($allowSerialDuplication == 'no') {
+                                if (planning_ProductionTaskDetails::fetchField(array("#serial = '[#1#]' AND #taskId != {$rec->taskId} AND #type != 'scrap' AND #state != 'rejected'", $rec->serial))) {
+                                    $form->setError('serial', 'Производственият номер се използва в прогреса на друга операция');
                                 }
                             }
                         }
@@ -629,7 +633,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                     if($rec->type == 'production'){
                         if(!empty($rec->serial)){
-                            if(static::fetchField("#type = 'production' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
+                            if(static::fetchField("#type = 'production' AND #weight = '{$rec->weight}' AND #employees = '{$rec->employees}' AND #serial = '{$rec->serial}' AND #quantity = {$rec->quantity} AND #taskId = {$rec->taskId} AND #id != '{$rec->id}' AND #state != 'rejected'")){
                                 $form->setError('serial,weight,quantity,employees', "Има вече същия прогрес с тези данни|*!");
                             }
                         }
@@ -1136,7 +1140,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $data->listTableId = "taskProgressTable{$data->masterData->rec->id}";
         $data->isMeasureKg = ($data->masterData->rec->measureId == cat_UoM::fetchBySinonim('kg')->id);
-        $lastRecId = null;
+        $lastRecId = $masterCenterRec = null;
 
         if (isset($data->masterMvc)) {
             unset($data->listFields['notes']);
