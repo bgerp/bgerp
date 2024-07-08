@@ -65,6 +65,11 @@ class eventhub_Events extends core_Master
     public $singleTitle = 'Събития';
 
     /**
+     * Нов темплейт за показване
+     */
+    public $singleLayoutFile = 'eventhub/tpl/SingleLayoutEvents.shtml';
+
+    /**
      * Описание на модела
      */
     public function description()
