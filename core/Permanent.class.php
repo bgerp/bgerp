@@ -231,4 +231,17 @@ class core_Permanent extends core_Manager
             $row->lifetime = tr("Без лимит");
         }
     }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param bgerp_Bookmark $mvc
+     * @param object         $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
+    }
 }

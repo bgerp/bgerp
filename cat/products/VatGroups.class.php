@@ -183,17 +183,17 @@ class cat_products_VatGroups extends core_Detail
                 $rec = $data->recs[$id];
                 
                 if ($rec->validFrom > $today) {
-                    $data->rows[$id]->ROW_ATTR['class'] = 'state-draft';
+                    $row->ROW_ATTR['class'] = 'state-draft';
                 } elseif (is_null($currentGroup)) {
                     $currentGroup = $rec->validFrom;
-                    $data->rows[$id]->ROW_ATTR['class'] = 'state-active';
+                    $row->ROW_ATTR['class'] = 'state-active';
                 } else {
-                    $data->rows[$id]->ROW_ATTR['class'] = 'state-closed';
+                    $row->ROW_ATTR['class'] = 'state-closed';
                 }
             }
         }
         
-        if (static::haveRightFor('add', (object) array('productId' => $data->masterId))) {
+        if(static::haveRightFor('add', (object) array('productId' => $data->masterId))) {
             $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => true);
         }
     }
@@ -233,11 +233,12 @@ class cat_products_VatGroups extends core_Detail
         }
         
         if ($action == 'add' && isset($rec->productId)) {
-            if (cat_Products::fetchField($rec->productId, 'state') != 'active') {
+            $productRec = cat_Products::fetch($rec->productId, 'state,createdBy');
+            if ($productRec->state != 'active') {
                 $requiredRoles = 'no_one';
             } elseif (!cat_Products::haveRightFor('single', $rec->productId)) {
                 $requiredRoles = 'no_one';
-            } elseif (cat_Products::fetchField($rec->productId, 'createdBy') == core_Users::SYSTEM_USER) {
+            } elseif ($productRec->createdBy == core_Users::SYSTEM_USER) {
                 $requiredRoles = 'no_one';
             }
         }

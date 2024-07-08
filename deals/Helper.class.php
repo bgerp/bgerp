@@ -114,7 +114,7 @@ abstract class deals_Helper
         }
 
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-        $vatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
 
         expect(is_object($masterRec));
         

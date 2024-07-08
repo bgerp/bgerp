@@ -85,7 +85,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
             expect($masterRec = $mvc->Master->fetch($masterId));
 
             $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-            $getVatType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+            $getVatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
             $cloneId = Request::get('cloneId', 'int');
             if ($cloneId) {
                 $cloneRec = $mvc->fetch($cloneId);

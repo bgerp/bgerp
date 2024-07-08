@@ -4058,7 +4058,7 @@ class cat_Products extends embed_Manager
 
         $firstDoc = doc_Threads::getFirstDocument($mRec->threadId);
 
-        $vType = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+        $vType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
         $canSeePrice = haveRole('seePrice,ceo', $activatedBy);
         $pStrName = 'price';
 

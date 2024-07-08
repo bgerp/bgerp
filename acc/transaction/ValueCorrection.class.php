@@ -81,7 +81,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         $currencyId = currency_Currencies::getIdByCode($correspondingDoc->fetchField('currencyId'));
         $vatType = $firstDoc->fetchField('chargeVat');
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-        $vatField = $firstDoc->isInstanceOf('purchase_Purchases') ? 'purchase' : 'sales';
+        $vatField = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
 
         // Ако е към продажба
         if ($firstDoc->isInstanceOf('sales_Sales')) {
