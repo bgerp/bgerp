@@ -3646,6 +3646,9 @@ div.statuses-message h2 {
 /*цветове*/
 .quiet {
 	color: $quiet-gray;
+	a {
+		color: $quiet-gray !important;
+	}
 }
 
 .quiet td {

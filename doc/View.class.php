@@ -128,7 +128,19 @@ class doc_View extends core_Master
      */
     public $allowPrintingWithoutBlank = true;
 
-    
+
+    /**
+     * Да не се скрива автоматично документа
+     */
+    public $autoHideDoc = false;
+
+
+    /**
+     * Да се добавя ли документа като линк към ориджина си
+     */
+    public $addLinkedDocumentToOriginId = true;
+
+
     /**
      * Описание на модела
      */
@@ -141,8 +153,8 @@ class doc_View extends core_Master
 
         $this->FNC('docHtml', 'html(rows=10, size=1000000)', 'caption=Преглед, input');
     }
-    
-    
+
+
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -151,7 +163,6 @@ class doc_View extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-
         return false;
     }
     

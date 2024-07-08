@@ -5058,6 +5058,16 @@ window.addEventListener('load', resizeIframes);
 window.addEventListener('resize', resizeIframes);
 
 
+window.addEventListener('message', function(event) {
+    const iframe = document.querySelector(`iframe[src^="${event.origin}"]`);
+    if (!iframe || !iframe.classList.contains('autoHeight')) return;
+
+    const height = Math.min(event.data, window.innerHeight);
+    iframe.style.height = height  + 'px';
+});
+
+
+
 /**
  * Записва избрания текст
  */

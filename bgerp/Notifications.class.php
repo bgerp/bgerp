@@ -924,7 +924,7 @@ class bgerp_Notifications extends core_Manager
             $stopNotifyArr['folOpenings'] = 'doc_Folders';
         } elseif ((strpos($msg, '|добави|') !== false) || (strpos($msg, '|хареса') !== false) || (strpos($msg, '|промени|') !== false)) {
             if (strpos($msg, '|входящ имейл|') !== false) {
-                $stopNotifyArr['personalEmailIncoming'] = 'doc_Folders';
+//                $stopNotifyArr['personalEmailIncoming'] = 'doc_Folders';
             }
             $stopNotifyArr['notify'] = 'doc_Threads';
             

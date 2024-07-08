@@ -54,6 +54,7 @@
         </div>
     </fieldset>
     <!--ET_END MASTER_BLOCK-->
+    [#currentDate#]
     <!--ET_BEGIN DETAIL_BLOCK-->
     <div class="elementHolder" style="column-count: 2">
         [#DETAIL_BLOCK#]
@@ -63,7 +64,7 @@
     <!--ET_BEGIN DETAIL_ROW-->
     [#DETAIL_ROW#]
     <div class="product" >
-        <span>[#productId#]</span> <b style="">[#price#]</b>
+        <span>[#productId#]</span><b style="">[#price#]</b>
     </div>
     <!--ET_END DETAIL_ROW-->
     <div class="grid">
