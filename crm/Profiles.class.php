@@ -1000,6 +1000,7 @@ class crm_Profiles extends core_Master
                 
                 // За отговорник стават първия админ/ceo
                 $person->inCharge = doc_FolderPlg::getDefaultInCharge();
+                $person->access = doc_Setup::get('DEFAULT_ACCESS');
             } else {
                 
                 // Ако е powerUse Лицето става отговорник на папката си
