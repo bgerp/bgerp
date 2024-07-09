@@ -23,13 +23,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, sales';
 
 
-//     /**
-//      * Кои полета от таблицата в справката да се сумират в обобщаващия ред
-//      *
-//      * @var int
-//      */
-//     protected $summaryListFields = 'invAmount,primeCost,delta,primeCostCompare,deltaCompare,changeSales,changeDeltas,';
-    protected $summaryListFields = 'invAmount';
+    /**
+     * Кои полета от листовия изглед да може да се сортират
+     *
+     * @var int
+     */
+    protected $sortableListFields = 'quantity';
+
+    /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields ;
 
 
     /**
@@ -37,7 +43,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryRowCaption = 'ОБЩО ЗА ПЕРИОДА';
+    protected $summaryRowCaption = 'ОБЩО';
 
 
     /**
@@ -100,7 +106,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
 
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, group=Групи, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=6,columns=3,after=primeCostType');
+        $fieldset->FLD('orderBy', 'enum(code=Код, primeCost=Продажби ст., quantity=Продажби кол., group=Групи, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=7,columns=3,after=primeCostType');
         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
 
         $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
@@ -661,7 +667,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId . ' | ' . $posKey : $recPrime->productId;
 
             } else {
-                $contragentName = doc_Folders::getTitleById($prodRec->foldreId);
+                $contragentName = doc_Folders::getTitleById($recPrime->folderId);
             }
 
 
