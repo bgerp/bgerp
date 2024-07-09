@@ -115,8 +115,13 @@ class eventhub_Events extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $thumb = new thumb_Img(array($rec->poster, 300, 300, 'fileman', 'isAbsolute' => true));
-        $row->poster = $thumb->createImg();
+        if (!empty($rec->poster)) {
+            $thumb = new thumb_Img(array($rec->poster, 300, 300, 'fileman', 'isAbsolute' => true));
+            $row->poster = $thumb->createImg();
+        } else {
+
+            $row->poster = 'Няма налични постери';
+        }
     }
 
     /**
