@@ -100,9 +100,9 @@
                             </table>
                         </div>
                     </fieldset>
+
                     <!--ET_BEGIN PARTICIPANTS_BLOCK-->
                     [#PARTICIPANTS_BLOCK#]
-
                     <fieldset class="detail-info">
                         <legend class="groupTitle">Участващи</legend>
                         <div class="groupList">
@@ -128,6 +128,8 @@
 
                 </div>
             </div>
+            <!--ET_BEGIN description-->
             <div>[#description#]</div>
+            <!--ET_END description-->
         </div>
     </div>

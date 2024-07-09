@@ -131,7 +131,7 @@ class eventhub_Events extends core_Master
         if ($form->isSubmitted()) {
             if ($form->rec->startDate) {
                 if ($form->rec->startDate < dt::today()) {
-                    $form->setError('startDate', 'Invalid start date: Event cannot start in the past.');
+                    $form->setError('startDate', 'Невалидна начална дата: Събитието не може да започва в миналото!');
                 }
             }
 
@@ -144,7 +144,7 @@ class eventhub_Events extends core_Master
                 $startTime = strtotime($form->rec->startTime);
 
                 if ($openingTime > $startTime) {
-                    $form->setError('openingTime, startTime', 'Opening time must be before the start time.');
+                    $form->setError('openingTime, startTime', 'Часът на отваряне трябва да бъде преди часа на започване!');
                 }
             }
 
@@ -152,7 +152,7 @@ class eventhub_Events extends core_Master
              * Продължителността не е задължително поле за попълване, но ако бъде попълнено не може да е <= 0
              */
             if($form->rec->duration<0){
-                $form->setError('duration', 'Duration cannot be negative.');
+                $form->setError('duration', 'Продъжлителността не може да бъде негативно число!');
             }
         }
     }
