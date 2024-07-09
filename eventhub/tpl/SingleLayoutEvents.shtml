@@ -10,10 +10,25 @@
         border-radius: 10px 10px 0 0;
         padding: 5px;
     }
-    table {
-        width: 100%;
-        border-collapse: collapse;
+
+    .groupList table .dt {
+        width: 21.5%;
+        text-align: right;
+        color: #888;
+        white-space: nowrap;
+        padding-right: 10px;
     }
+
+    table {
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+
+    .groupList table td {
+        vertical-align: top;
+        line-height: 1.2em;
+    }
+
     td {
         display: table-cell;
         vertical-align: inherit;
@@ -85,23 +100,32 @@
                             </table>
                         </div>
                     </fieldset>
+                    <!--ET_BEGIN PARTICIPANTS_BLOCK-->
+                    [#PARTICIPANTS_BLOCK#]
+
                     <fieldset class="detail-info">
                         <legend class="groupTitle">Участващи</legend>
                         <div class="groupList">
                             <table>
                                 <tbody>
+                                <!--ET_BEGIN organizer-->
                                     <tr>
                                         <td class="dt">Организатор:</td>
                                         <td>[#organizer#]</td>
                                     </tr>
+                                <!--ET_END organizer-->
+                                    <!--ET_BEGIN participants-->
                                     <tr>
                                         <td class="dt">Участници:</td>
                                         <td>[#participants#]</td>
                                     </tr>
+                                    <!--ET_END participants-->
                                 </tbody>
                             </table>
                         </div>
                     </fieldset>
+                    <!--ET_END PARTICIPANTS_BLOCK-->
+
                 </div>
             </div>
             <div>[#description#]</div>

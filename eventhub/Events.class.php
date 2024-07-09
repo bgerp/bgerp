@@ -102,6 +102,21 @@ class eventhub_Events extends core_Master
 
         $this->FLD('tickets', 'type_Urls', 'caption=Билети');
 
-        $this->FLD('magnitude', 'enum(1=локално, 2=регионално, 3=национално, 4=международно)', 'caption=Магнитуд');
+        $this
+            ->FLD('magnitude', 'enum(1=локално, 2=регионално, 3=национално, 4=международно)', 'caption=Магнитуд');
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $thumb = new thumb_Img(array($rec->poster, 300, 300, 'fileman', 'isAbsolute' => true));
+        $row->poster = $thumb->createImg();
     }
 }
