@@ -79,19 +79,25 @@ $this->FLD('magnitude', 'enum(1=локално, 2=регионално, 3=нац
 */
 protected static function on_AfterInputEditForm($mvc, &$form)
 {
+
+    /**
+     * проверява дали 'startdate' е записана и не е в миналото
+     */
 if ($form->isSubmitted()) {
-// проверява дали 'startdate' е записана и не е в миналото
 if ($form->rec->startDate) {
 if ($form->rec->startDate < dt::today()) {
 $form->setError('startDate', 'Invalid start date: Event cannot start in the past.');
 }
 }
 
-// Validate openingTime and startTime
+
+/**
+ * проверява дали обявеното време, в което отваря, е преди часът за започване на събитието ( ако е нужно )
+ */
 if ($form->rec->openingTime && $form->rec->startTime) {
 $openingTime = strtotime($form->rec->openingTime);
 $startTime = strtotime($form->rec->startTime);
-//проверява дали обявеното време, в което отваря, е преди часът за започване на събитието ( ако е нужно )
+
 if ($openingTime >= $startTime) {
 $form->setError('openingTime, startTime', 'Opening time must be before the start time.');
 }
