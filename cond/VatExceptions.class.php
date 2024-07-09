@@ -97,7 +97,9 @@ class cond_VatExceptions extends core_Manager
     public static function getFromThreadId($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if($firstDoc->getInstance()->getField('vatExceptionId', false)) return $firstDoc->fetchField('vatExceptionId');
+        if(is_object($firstDoc)){
+            if($firstDoc->getInstance()->getField('vatExceptionId', false)) return $firstDoc->fetchField('vatExceptionId');
+        }
 
         return null;
     }
