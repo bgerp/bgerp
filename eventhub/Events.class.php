@@ -119,4 +119,42 @@ class eventhub_Events extends core_Master
         $thumb = new thumb_Img(array($rec->poster, 300, 300, 'fileman', 'isAbsolute' => true));
         $row->poster = $thumb->createImg();
     }
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+
+        /**
+         * проверява дали 'startdate' е записана и не е в миналото
+         */
+        if ($form->isSubmitted()) {
+            if ($form->rec->startDate) {
+                if ($form->rec->startDate < dt::today()) {
+                    $form->setError('startDate', 'Invalid start date: Event cannot start in the past.');
+                }
+            }
+
+
+            /**
+             * проверява дали обявеното време, в което отваря, не е преди часът за започване на събитието
+             */
+            if ($form->rec->openingTime && $form->rec->startTime) {
+                $openingTime = strtotime($form->rec->openingTime);
+                $startTime = strtotime($form->rec->startTime);
+
+                if ($openingTime > $startTime) {
+                    $form->setError('openingTime, startTime', 'Opening time must be before the start time.');
+                }
+            }
+
+            /**
+             * Продължителността не е задължително поле за попълване, но ако бъде попълнено не може да е <= 0
+             */
+            if($form->rec->duration<0){
+                $form->setError('duration', 'Duration cannot be negative.');
+            }
+        }
+    }
 }

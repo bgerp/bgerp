@@ -72,6 +72,7 @@ class eventhub_Categories extends core_Manager
     {
         $this->FLD('title', 'varchar(32)', 'caption=Категория, mandatory');
         $this->FLD('parentId', 'key(mvc=eventhub_Categories, select=title, allowEmpty)', 'caption=Подкатегория на');
+
         $this->setDbUnique('title,parentId');
     }
 }
