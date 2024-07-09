@@ -1112,6 +1112,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public function getDefaultAccDate($date)
     {
+        $date = !empty($date) ? $date : dt::today();
         $today = dt::today();
         $cLastDay = dt::getLastDayOfMonth($today);
         $prevLastDay = dt::getLastDayOfMonth($today, -1);
@@ -1120,7 +1121,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         // Ако датата на фактурата (ДФ) е в текущия месец - СД = ДФ
         if ($day == $cLastDay) {
-            
+
             return $date;
         }
         $nDay = acc_Setup::get('DATE_FOR_INVOICE_DATE');
