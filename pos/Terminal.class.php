@@ -286,7 +286,7 @@ class pos_Terminal extends peripheral_Terminal
                 $contragentPriceListId = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
                 $price = pos_ReceiptDetails::getLowerPriceObj($settings->policyId, $contragentPriceListId, $productRec->id, $productRec->measureId, 1, dt::now());
                 $calcedPrice = !empty($price->discount) ? $price->price * (1 - $price->discount) : $price->price;
-                $calcedPrice *= 1 + cat_Products::getVat($productRec->id);
+                $calcedPrice *= 1 + cat_Products::getVat($productRec->id, null, $settings->vatExceptionId);
                 $Double = core_Type::getByName('double(decimals=2)');
                 
                 $row = new stdClass();
@@ -2161,7 +2161,7 @@ class pos_Terminal extends peripheral_Terminal
 
                 $price = $priceRes->price * $perPack;
                 if($settings->chargeVat == 'yes'){
-                    $vat = cat_Products::getVat($id);
+                    $vat = cat_Products::getVat($id, null, $settings->vatExceptionId);
                     $price *= 1 + $vat;
                 }
 

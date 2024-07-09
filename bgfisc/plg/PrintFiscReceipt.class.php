@@ -243,7 +243,8 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
     {
         $Origin = doc_Containers::getDocument($containerId);
         $originRec = $Origin->fetchRec();
-        
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($originRec->threadId);
+
         if ($Origin->isInstanceOf('store_ShipmentOrders')) {
             $dQuery = store_ShipmentOrderDetails::getQuery();
             $dQuery->where("#shipmentId = {$originRec->id}");
@@ -262,11 +263,10 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         $res = array();
         foreach ($all as $dRec) {
             $amountWithVatNotRound = $dRec->amount;
-            $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
+            $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId, null, $vatExceptionId)->sysId;
             $amount = $dRec->amount;
             
             if (in_array($originRec->chargeVat, array('yes', 'separate'))) {
-                $vatExceptionId = cond_VatExceptions::getFromThreadId($originRec->threadId);
                 $vatPercent = cat_Products::getVat($dRec->productId, null, $vatExceptionId);
                 $amount = round($dRec->amount + ($dRec->amount * $vatPercent), 2);
                 $amountWithVatNotRound += ($dRec->amount * $vatPercent);

@@ -88,7 +88,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $rQuery->orderBy('id', 'DESC');
                 $lastReceipt = $rQuery->fetch();
                 
-                if($lastReceipt->cashRegNum == $lastReceipt->cashRegNum && $lastReceipt->classId == $mvc->getClassId() && $lastReceipt->objectId == $rec->id){
+                if($lastReceipt->classId == $mvc->getClassId() && $lastReceipt->objectId == $rec->id){
                     $closeBtn = ht::createBtn("Дубликат", array($fiscDriver, 'printduplicate', $deviceRec->id, 'ret_url' => true, 'rand' => str::getRand()), false, false, "class=printReceiptBtn posBtns navigable,title=Отпечатване на дубликат");
                     $buttons["dublicate"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
                 }
@@ -217,7 +217,7 @@ class bgfisc_plg_Receipts extends core_Plugin
             }
 
             if($settings->chargeVat == 'yes'){
-                $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
+                $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId, null, $settings->vatExceptionId)->sysId;
                 $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
             } else {
                 $arr['VAT_CLASS'] = $vatClasses['A'];
