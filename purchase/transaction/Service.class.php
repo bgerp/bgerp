@@ -111,8 +111,8 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
 
                 $revertVatPercent = null;
                 if($checkVatCredit) {
-                    $type = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
-                    $revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior, $type);
+                    $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+                    $revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId);
                 }
 
                 foreach ($splitRecs as $dRec1) {

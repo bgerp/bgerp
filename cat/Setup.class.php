@@ -219,7 +219,6 @@ class cat_Setup extends core_ProtoSetup
         'cat_ListingDetails',
         'cat_PackParams',
         'cat_ParamFormulaVersions',
-        'migrate::updateVatGroups2724',
     );
     
     
@@ -425,19 +424,5 @@ class cat_Setup extends core_ProtoSetup
         }
 
         return $res;
-    }
-
-
-    /**
-     * Миграция на ддс групите за покупка
-     */
-    public function updateVatGroups2724()
-    {
-        $Vats = cls::get('cat_products_VatGroups');
-
-        $colNameSale = str::phpToMysqlName('vatGroup');
-        $colNamePurchase = str::phpToMysqlName('vatGroupPurchase');
-        $query = "UPDATE {$Vats->dbTableName} SET {$colNamePurchase} = {$colNameSale} WHERE {$colNamePurchase} IS NULL";
-        $Vats->db->query($query);
     }
 }

@@ -72,6 +72,7 @@ class cond_Setup extends core_ProtoSetup
         'cond_Ranges',
         'cond_Allergens',
         'cond_TariffCodes',
+        'cond_VatExceptions'
     );
     
     

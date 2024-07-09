@@ -113,8 +113,7 @@ abstract class deals_Helper
             return;
         }
 
-        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
         expect(is_object($masterRec));
         
@@ -134,7 +133,7 @@ abstract class deals_Helper
         foreach ($recs as &$rec) {
             $vat = 0;
             if ($masterRec->{$map['chargeVat']} == 'yes' || $masterRec->{$map['chargeVat']} == 'separate') {
-                $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']}, $vatType);
+                $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']}, $vatExceptionId);
             }
 
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то

@@ -456,13 +456,11 @@ class acc_ValueCorrections extends core_Master
      */
     public function getAverageVatRate($productArr, $rec)
     {
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
-
         $totalArr = array();
         $total = $averageVatSum = 0;
         foreach ($productArr as $pRec){
-            $vat = cat_Products::getVat($pRec->productId, $rec->valior, $vatType);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+            $vat = cat_Products::getVat($pRec->productId, $rec->valior, $vatExceptionId);
             if($rec->allocateBy == 'value'){
                 $currentAmount = $pRec->amount;
             } else {

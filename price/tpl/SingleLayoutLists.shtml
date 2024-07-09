@@ -44,6 +44,12 @@
             <td>[#vat#]</td>
         </tr>
         <!--ET_END vat-->
+        <!--ET_BEGIN vatExceptionId-->
+        <tr>
+            <td class="title-style">|ДДС изключение|*</td>
+            <td>[#vatExceptionId#]</td>
+        </tr>
+        <!--ET_END vatExceptionId-->
 
         <!--ET_BEGIN visiblePricesByAnyone-->
         <tr>

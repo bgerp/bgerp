@@ -202,7 +202,6 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             $prodCode = $prodRec->bnavCode ? $prodRec->bnavCode : $erpCode;
             $measure = cat_UoM::getShortName($prodRec->measureId);
             
-            
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(

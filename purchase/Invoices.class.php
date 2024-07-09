@@ -802,16 +802,17 @@ class purchase_Invoices extends deals_InvoiceMaster
             }
             
             $detFieldPref = '_pDet_';
-            
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($pRec->threadId);
+
             // Показваме полета и за попълване/промяна на детайлите от покупката
             $dQuery = purchase_PurchasesDetails::getQuery();
             $dQuery->where(array("#requestId = '[#1#]'", $pRec->id));
             while ($dRec = $dQuery->fetch()) {
                 $productName = cat_Products::getTitleById($dRec->productId);
-                
                 $productName = str_replace('->', '-', $productName);
-                
-                $vat = cat_Products::getVat($dRec->productId, $pRec->valior, 'purchase');
+
+
+                $vat = cat_Products::getVat($dRec->productId, $pRec->valior, $vatExceptionId);
                 $price = deals_Helper::getDisplayPrice($dRec->price, $vat, $pRec->currencyRate, $pRec->chargeVat, 3);
                 
                 $unit = $price . ' ' . $pRec->currencyId;

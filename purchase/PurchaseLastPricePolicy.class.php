@@ -70,6 +70,7 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
             $detailQuery = purchase_PurchasesDetails::getQuery();
             $detailQuery->EXT('contragentClassId', 'purchase_Purchases', 'externalName=contragentClassId,externalKey=requestId');
             $detailQuery->EXT('contragentId', 'purchase_Purchases', 'externalName=contragentId,externalKey=requestId');
+            $detailQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threatId,externalKey=requestId');
             $detailQuery->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
             $detailQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
             $detailQuery->where("#contragentClassId = {$customerClass}");
@@ -85,8 +86,9 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
         }
 
         if (!is_null($rec->price)) {
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
             $vat = cat_Products::getVat($productId, $date, 'purchase');
-            $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
+            $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $vatExceptionId);
         }
 
         return $rec;

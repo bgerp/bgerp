@@ -266,7 +266,8 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             $amount = $dRec->amount;
             
             if (in_array($originRec->chargeVat, array('yes', 'separate'))) {
-                $vatPercent = cat_Products::getVat($dRec->productId);
+                $vatExceptionId = cond_VatExceptions::getFromThreadId($originRec->threadId);
+                $vatPercent = cat_Products::getVat($dRec->productId, null, $vatExceptionId);
                 $amount = round($dRec->amount + ($dRec->amount * $vatPercent), 2);
                 $amountWithVatNotRound += ($dRec->amount * $vatPercent);
                 setIfNot($vatSysId, 'B');

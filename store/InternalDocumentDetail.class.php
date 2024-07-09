@@ -321,8 +321,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
         if ($row->price) {
-            $vatType = $this instanceof store_ConsignmentProtocolDetailsReceived ? 'purchase' : 'sales';
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, $masterRec->valior, $vatType), $currencyRate, $chargeVat);
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, $masterRec->valior), $currencyRate, $chargeVat);
         } else {
             $Policy = cls::get('price_ListToCustomers');
             $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $pRec->productId, $pRec->packagingId, ($row->quantity * $quantityInPack), $masterRec->valior, $currencyRate, $chargeVat);

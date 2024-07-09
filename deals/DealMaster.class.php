@@ -71,7 +71,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    public $lastUsedKeys = 'deliveryTermId,paymentMethodId';
+    public $lastUsedKeys = 'deliveryTermId,paymentMethodId,vatExceptionId';
     
     
     /**
@@ -278,6 +278,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Допълнително
         $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
+        $mvc->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Допълнително->ДДС изключение');
+
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
         $mvc->FLD('username', 'varchar', 'caption=Допълнително->Съставил');
@@ -334,8 +336,8 @@ abstract class deals_DealMaster extends deals_DealBase
             // Не може да се сменя ДДС-то ако има вече детайли
             $Detail = $mvc->mainDetail;
             if ($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$rec->id}")) {
-                foreach (array('chargeVat', 'currencyId', 'deliveryTermId') as $fld) {
-                    $form->setReadOnly($fld, isset($rec->{$fld}) ? $rec->{$fld} : $mvc->fetchField($rec->id, $fld));
+                foreach (array('chargeVat', 'currencyId', 'deliveryTermId', 'vatExceptionId') as $fld) {
+                    $form->setReadOnly($fld, $rec->{$fld} ?? $mvc->fetchField($rec->id, $fld));
                 }
             }
         } else {
@@ -2091,10 +2093,10 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($fields['receiptId'])) {
             $rec->_receiptId = $fields['receiptId'];
         }
-        
+
         if ($id = $me->save($rec)) {
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
-           
+
             return $id;
         }
         
