@@ -636,34 +636,41 @@ class pos_ReceiptDetails extends core_Detail
                 $selectedRec = null;
             }
 
+            $separateInPos = cat_Products::getParams($rec->productId, 'separateInPos');
             if($selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value && $selectedRec->batch == $rec->batch){
                 $rec->value = $selectedRec->value;
                 $rec->batch = $selectedRec->batch;
             } else {
-                $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId} AND #value = {$rec->value}");
-                expect($count <= 1, 'Не е избран конкретен ред|*!');
+                if($separateInPos != 'yes'){
+                    $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId} AND #value = {$rec->value}");
+                    expect($count <= 1, 'Не е избран конкретен ред|*!');
+                }
             }
 
             // Намираме дали този проект го има въведен
-            $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
-            if ($sameProduct) {
+            if($separateInPos != 'yes'){
+                $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
+                if ($sameProduct) {
 
-                // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
-                $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : (($increment === true) ? ($rec->quantity + $sameProduct->quantity) : $rec->quantity);
-                if($newQuantity <= 0 && !isset($receiptRec->revertId)){
-                    core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
+                    // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
+                    $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : (($increment === true) ? ($rec->quantity + $sameProduct->quantity) : $rec->quantity);
+                    if($newQuantity <= 0 && !isset($receiptRec->revertId)){
+                        core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
 
-                    return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $sameProduct->id));
+                        return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $sameProduct->id));
+                    }
+
+                    $rec->quantity = $newQuantity;
+                    $rec->price = $sameProduct->price;
+                    $rec->storeId = $sameProduct->storeId;
+                    $rec->amount += $sameProduct->amount;
+                    $rec->id = $sameProduct->id;
+
+                    Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => 'setquantity'));
                 }
+            }
 
-                $rec->quantity = $newQuantity;
-                $rec->price = $sameProduct->price;
-                $rec->storeId = $sameProduct->storeId;
-                $rec->amount += $sameProduct->amount;
-                $rec->id = $sameProduct->id;
-
-                Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => 'setquantity'));
-            } elseif(empty($receiptRec->revertId)) {
+            if(empty($receiptRec->revertId)) {
                 expect($rec->quantity > 0, 'При добавяне количеството трябва да е положително');
             }
 
