@@ -9,7 +9,7 @@ class eventhub_Events extends core_Master
 
     public $listFields = 'id, title, formId, description, poster, startDate, startTime, duration, place, participants, organizers, tickets, magnitude, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
 
-    public $searchFields = 'title';
+    public $searchFields = 'title,place,formId,categories,description';
 
     public $canList = 'ceo, admin';
 
@@ -28,7 +28,7 @@ class eventhub_Events extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Наименование, mandatory');
         $this->FLD('series', 'key(mvc=eventhub_Series,select=title)', 'caption=Поредица, mandatory');
         $this->FLD('categories', 'keylist(mvc=eventhub_Categories, select=title)', 'caption=Категория, mandatory');
-        $this->FLD('formId', 'key(mvc=eventhub_Forms, select=title)', 'caption=Формат, mandatory');
+        $this->FLD('formId', 'key(mvc=eventhub_Forms, select=title, allowEmpty)', 'caption=Формат, mandatory');
         $this->FLD('description', 'richtext', 'caption=Описание');
         $this->FLD('poster', 'fileman_FileType(bucket=pictures)', 'caption=Плакат');
         $this->FLD('startDate', 'date', 'caption=Начало, mandatory');
@@ -73,6 +73,29 @@ class eventhub_Events extends core_Master
 
             if ($form->rec->duration < 0) {
                 $form->setError('duration', 'Продължителността не може да бъде негативно число!');
+            }
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        $form->view = 'horizontal';
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $form->showFields = 'search,startDate,formId';
+
+        $form->input();
+
+        if (isset($form->rec)) {
+            if ($form->rec->formId) {
+                $data->query->where("#formId = {$form->rec->formId}");
+            }
+            if ($form->rec->startDate) {
+                $data->query->where("#startDate >= '{$form->rec->startDate}'");
             }
         }
     }
