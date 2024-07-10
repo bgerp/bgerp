@@ -1,28 +1,86 @@
 <?php
 
+
+/**
+ * Събития
+ *
+ *
+ * @category  bgerp
+ * @package   eventhub
+ *
+ * @author    Svetlozar Trifonov <svetlozartrifonov60@gmail.com>
+ * @copyright 2006 - 2021 Experta OOD
+ * @license   GPL 3
+ *
+ * @since     v 0.1
+ */
 class eventhub_Events extends core_Master
 {
+
+    /**
+     * Заглавие на страницата
+     */
     public $title = 'Събития';
 
+
+    /**
+     * Зареждане на необходимите плъгини
+     */
     public $loadList = 'plg_RowTools2, plg_State2, plg_Printing, 
         plg_Search, plg_Created, plg_Modified, plg_Sorting, eventhub_Wrapper';
 
+
+    /**
+     * Полета за листов изглед
+     */
     public $listFields = 'id, title, formId, description, poster, startDate, startTime, duration, place, participants, organizers, tickets, magnitude, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
 
+
+    /**
+     *  Полета по които ще се търси
+     */
     public $searchFields = 'title,place,formId,categories,description';
 
+
+    /**
+     * Кой може да го разглежда?
+     */
     public $canList = 'ceo, admin';
 
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
     public $canSingle = 'ceo, admin';
 
+
+    /**
+     * Кой може да добявя,редактира или изтрива статия
+     */
     public $canWrite = 'ceo, admin';
 
+
+    /**
+     * Единично заглавие на документа
+     */
     public $singleTitle = 'Събития';
 
+
+    /**
+     * Нов темплейт за показване
+     */
     public $singleLayoutFile = 'eventhub/tpl/SingleLayoutEvents.shtml';
 
+
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
     public $rowToolsSingleField = 'title';
 
+
+    /**
+     * Описание на модела
+     */
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Наименование, mandatory');
@@ -42,6 +100,14 @@ class eventhub_Events extends core_Master
         $this->FLD('magnitude', 'enum(1=локално, 2=регионално, 3=национално, 4=международно)', 'caption=Магнитуд');
     }
 
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (!empty($rec->poster)) {
@@ -54,6 +120,10 @@ class eventhub_Events extends core_Master
         $row->tickets = ht::createBtn('билети', $rec->tickets);
     }
 
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {

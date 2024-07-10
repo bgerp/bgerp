@@ -70,6 +70,10 @@ class eventhub_Venues extends core_Master
      */
     public $singleLayoutFile = 'eventhub/tpl/SingleLayoutVenues.shtml';
 
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'title';
 
     /**
      * Описание на модела
