@@ -307,9 +307,10 @@ class cat_products_VatGroups extends core_Detail
         }
 
         foreach ($productIds as $pId){
-            $currentGroup = static::getCurrentGroup($pId, $date, $exceptionId);
-            if($currentGroup->vat == $percent){
-                $products[$pId] = $pId;
+            if($currentGroup = static::getCurrentGroup($pId, $date, $exceptionId)){
+                if($currentGroup->vat == $percent){
+                    $products[$pId] = $pId;
+                }
             }
         }
 
