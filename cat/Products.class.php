@@ -1119,8 +1119,6 @@ class cat_Products extends embed_Manager
             if(countR($productWithWith0And9Vat)){
                 $productWithVatStr = implode(',', $productWithWith0And9Vat);
                 $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#{$productIdFld} NOT IN ({$productWithVatStr})";
-            } else {
-                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "1=2";
             }
         }
 
