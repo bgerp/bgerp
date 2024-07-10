@@ -317,7 +317,7 @@ class cat_products_VatGroups extends core_Detail
         // Ако дефолтното ддс за периода е колкото търсеното, се извличат и
         // всички които нямат записи в модела за конкретна ддс група
         $vatRate = acc_Periods::fetchByDate($date)->vatRate;
-        if ($vatRate === $percent) {
+        if ($vatRate == $percent) {
             $pQuery = cat_Products::getQuery();
             $pQuery->show('id');
             $pQuery->notIn('id', $products);
