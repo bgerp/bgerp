@@ -97,7 +97,7 @@ class eventhub_Events extends core_Master
         $this->FLD('participants', 'keylist(mvc=crm_Persons,select=name, allowEmpty)', 'caption=Участват');
         $this->FLD('organizers', 'keylist(mvc=crm_Persons,select=name, allowEmpty)', 'caption=Организатор, mandatory');
         $this->FLD('tickets', 'type_Urls', 'caption=Билети');
-        $this->FLD('magnitude', 'enum(1=локално, 2=регионално, 3=национално, 4=международно)', 'caption=Магнитуд');
+        $this->FLD('magnitude', 'enum(1=локално, 2=регионално, 3=национално, 4=международно)', 'caption=Магнитуд, mamdatory');
     }
 
 
