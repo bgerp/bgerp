@@ -33,7 +33,7 @@ class eventhub_Events extends core_Master
     /**
      * Полета за листов изглед
      */
-    public $listFields = 'id, title, formId, description, poster, startDate, startTime, duration, place, participants, organizers, tickets, magnitude, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
+    public $listFields = 'id, title, formId, categories, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
 
 
     /**
