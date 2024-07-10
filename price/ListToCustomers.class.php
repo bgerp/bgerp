@@ -375,7 +375,7 @@ class price_ListToCustomers extends core_Manager
 
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
         if (!is_null($rec->price)) {
-            $vatExceptionId = price_Lists::fetchField($listId, 'vatExceptionId');
+            $vatExceptionId = $listId ? price_Lists::fetchField($listId, 'vatExceptionId') : null;
             $vat = cat_Products::getVat($productId, $datetime, $vatExceptionId);
             $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
