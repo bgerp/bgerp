@@ -45,12 +45,13 @@ class eventhub_Events extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (!empty($rec->poster)) {
-            $size = isset($fields['-list']) ? 50 : 300;
+            $size = isset($fields['-list']) ? 100 : 300;
             $thumb = new thumb_Img(array($rec->poster, $size, $size, 'fileman', 'isAbsolute' => true));
             $row->poster = $thumb->createImg();
         } else {
             $row->poster = 'Няма налични постери';
         }
+        $row->tickets = ht::createBtn('билети', $rec->tickets);
     }
 
     protected static function on_AfterInputEditForm($mvc, &$form)
