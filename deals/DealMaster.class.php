@@ -2054,6 +2054,9 @@ abstract class deals_DealMaster extends deals_DealBase
 
         // Състояние на плащането, чакащо
         $fields['paymentState'] = 'pending';
+        if(isset($fields['vatExceptionId'])) {
+            expect(cond_VatExceptions::fetch($fields['vatExceptionId']), 'Няма такова ДДС основание');
+        }
 
         // Опиваме се да запишем мастъра на сделката
         $rec = (object)$fields;
