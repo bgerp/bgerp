@@ -87,8 +87,8 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
 
         if (!is_null($rec->price)) {
             $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
-            $vat = cat_Products::getVat($productId, $date, 'purchase');
-            $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $vatExceptionId);
+            $vat = cat_Products::getVat($productId, $date, $vatExceptionId);
+            $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
 
         return $rec;
