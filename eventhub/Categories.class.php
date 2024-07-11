@@ -32,7 +32,8 @@ class eventhub_Categories extends core_Manager
     /**
      * Полета за листов изглед
      */
-    public $listFields = 'id, title, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
+    public $listFields = 'id, title, createdOn=Създаване||Created->На, createdBy=Създаване||Created->От||By, 
+    modifiedOn=Модифицирано||Modified->На, modifiedBy=Модифицирано||Modified->От||By,state';
 
 
     /**
@@ -64,15 +65,21 @@ class eventhub_Categories extends core_Manager
      */
     public $singleTitle = 'Категории събития';
 
+
+    /**
+     * Единично заглавие на документа
+     */
     public $nameField = 'title';
+
+
     /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('title', 'varchar(32)', 'caption=Категория, mandatory');
-        $this->FLD('parentId', 'key(mvc=eventhub_Categories, select=title, allowEmpty)', 'caption=Подкатегория на');
-
+        $this->FLD('parentId', 'key(mvc=eventhub_Categories, select=title, allowEmpty)',
+            'caption=Подкатегория на');
         $this->setDbUnique('title,parentId');
     }
 
