@@ -87,8 +87,8 @@ class store_iface_ShipmentOrderToXmlImpl
             $pRec->packQuantity = $dRec->packQuantity;
             $pRec->amount = core_Math::roundNumber($dRec->packPrice / $rec->currencyRate);
 
-            $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
-            $pRec->vat = core_Type::getByName('percent')->toVerbal(cat_Products::getVat($dRec->productId, $rec->valior, $vatType));
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+            $pRec->vat = core_Type::getByName('percent')->toVerbal(cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId));
             $fieldsFromDetailRow = array('packagingId', 'notes', 'weight', 'volume', 'discount');
             foreach ($fieldsFromDetailRow as $fld){
                 $val = is_object($dRow->{$fld}) ? $dRow->{$fld}->getContent() : $dRow->{$fld};

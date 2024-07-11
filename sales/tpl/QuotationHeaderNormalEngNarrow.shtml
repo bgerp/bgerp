@@ -78,7 +78,9 @@
 	                	<!--ET_BEGIN validFor-->
 			            <li>Validity of Quotation: [#validFor#] (till [#validDate#])</li>
 			            <!--ET_END validFor-->
-			             
+                        <!--ET_BEGIN vatExceptionId-->
+                        <li>VAT Reason: [#vatExceptionId#]</li>
+                        <!--ET_END vatExceptionId-->
 			            <!--ET_BEGIN paymentMethodId-->
 			            <li>Payment method: [#paymentMethodId#]</li>
 				        <!--ET_END paymentMethodId-->

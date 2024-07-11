@@ -104,14 +104,14 @@ class pos_Points extends core_Master
      * Детайли на бележката
      */
     public $details = 'Receipts=pos_Receipts';
-    
-    
+
+
     /**
      * Полета за настройки
      * 
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,payments,chargeVat,setDiscounts,productBtnTpl,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups,showProductCode,discountPolicyId';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,payments,chargeVat,setDiscounts,productBtnTpl,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups,showProductCode,discountPolicyId,vatExceptionId';
       
     
     /**
@@ -137,6 +137,8 @@ class pos_Points extends core_Master
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Настройки->Политика, mandatory');
         $this->FLD('discountPolicyId', 'key(mvc=price_Lists, select=title, allowEmpty)', 'caption=Настройки->Политика за отстъпки');
         $this->FLD('chargeVat', 'enum(yes=С начисляване,no=Без начисляване)', 'caption=Настройки->Режим на ДДС,notNull,value=yes');
+        $this->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Настройки->ДДС изключение');
+
         $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Всички');
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=default,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');

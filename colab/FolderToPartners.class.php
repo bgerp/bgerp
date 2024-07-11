@@ -886,6 +886,7 @@ class colab_FolderToPartners extends core_Manager
                 $personRec->country = $form->rec->country;
                 $inChargeState = core_Users::fetchField($contragentRec->inCharge, 'state');
                 $personRec->inCharge = in_array($inChargeState, array('active', 'blocked')) ? $contragentRec->inCharge : doc_FolderPlg::getDefaultInCharge();
+                $personRec->access = doc_Setup::get('DEFAULT_ACCESS');
 
                 // Имейлът да е бизнес имейла му
                 $buzEmailsArr = type_Emails::toArray($personRec->buzEmail);

@@ -353,12 +353,12 @@ class price_ListRules extends core_Detail
             $query->limit(1);
 
             $rec = $query->fetch();
-            $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
+            $listRec = price_Lists::fetch($listId, 'title,parent,vat,vatExceptionId,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
 
             if ($rec) {
                 if ($rec->type == 'value') {
-                    $vat = cat_Products::getVat($productId, $datetime);
+                    $vat = cat_Products::getVat($productId, $datetime, $listRec->vatExceptionId);
                     $price = self::normalizePrice($rec, $vat, $datetime);
                     if(!empty($rec->discount)){
                         // От цената се приспада отстъпката
@@ -403,7 +403,7 @@ class price_ListRules extends core_Detail
                 $vat = 1;
                 if($isFirstCall) {
                     if ($listRec->vat == 'yes') {
-                         $vat = 1 + cat_Products::getVat($productId, $datetime);
+                         $vat = 1 + cat_Products::getVat($productId, $datetime, $listRec->vatExceptionId);
                     }
 
                     $cRate = currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
@@ -588,7 +588,7 @@ class price_ListRules extends core_Detail
                         
                         // Начисляваме VAT, ако политиката е с начисляване
                         if ($listRec->vat == 'yes') {
-                            $vat = cat_Products::getVat($rec->productId, $rec->validFrom);
+                            $vat = cat_Products::getVat($rec->productId, $rec->validFrom, $listRec->vatExceptionId);
                             $parentPrice = $parentPrice * (1 + $vat);
                         }
                         

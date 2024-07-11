@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -159,6 +159,7 @@ class price_Lists extends core_Master
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен,input=none');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС');
+        $this->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=ДДС изключение');
 
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');

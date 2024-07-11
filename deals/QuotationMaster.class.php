@@ -100,7 +100,7 @@ abstract class deals_QuotationMaster extends core_Master
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    public $lastUsedKeys = 'deliveryTermId, paymentMethodId';
+    public $lastUsedKeys = 'deliveryTermId, paymentMethodId, vatExceptionId';
 
 
     /**
@@ -135,6 +135,7 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС');
+        $mvc->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Плащане->ДДС изключение');
         $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress|deliveryCalcTransport');
 
         $mvc->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
@@ -809,8 +810,9 @@ abstract class deals_QuotationMaster extends core_Master
         $newRec->quotationId = $rec->id;
         $newRec->productId = $productId;
         $newRec->showMode = 'auto';
-        $vatType = ($me instanceof purchase_Quotations) ? 'purchase' : 'sales';
-        $newRec->vatPercent = cat_Products::getVat($productId, $rec->date, $vatType);
+
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+        $newRec->vatPercent = cat_Products::getVat($productId, $rec->date, $vatExceptionId);
         $newRec->optional = ($optional === true) ? 'yes' : 'no';
 
         // Проверка на опаковката
@@ -905,6 +907,7 @@ abstract class deals_QuotationMaster extends core_Master
             'deliveryTermTime' => $rec->deliveryTermTime,
             'deliveryData' => $rec->deliveryData,
             'deliveryCalcTransport' => $rec->deliveryCalcTransport,
+            'vatExceptionId' => $rec->vatExceptionId,
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
 

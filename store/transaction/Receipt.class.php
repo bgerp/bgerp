@@ -171,8 +171,8 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             $amount = round($amount, 2);
-            $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
-            $revertVatPercent = ($checkVatCredit) ? cat_Products::getVat($detailRec->productId, $rec->valior, $vatType) : null;
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+            $revertVatPercent = ($checkVatCredit) ? cat_Products::getVat($detailRec->productId, $rec->valior, $vatExceptionId) : null;
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите

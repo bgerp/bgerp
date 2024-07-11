@@ -155,7 +155,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             while ($dRec = $detailQuery->fetch()) {
                 $dRec->_revertVatPercent = null;
                 if($rec->haveVatCreditProducts == 'no') {
-                    $dRec->_revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior, 'purchase');
+                    $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+                    $dRec->_revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId);
                 }
 
                 $rec->details[] = $dRec;

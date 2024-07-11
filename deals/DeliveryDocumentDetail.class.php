@@ -54,8 +54,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         $rec = &$data->form->rec;
         $masterRec = $data->masterRec;
-        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
@@ -70,7 +69,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         }
         
         if (!empty($rec->packPrice)) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatType);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
     }
@@ -86,11 +85,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
         if ($form->rec->productId) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatType);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $productInfo = cat_Products::getProductInfo($rec->productId);
             
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
@@ -387,11 +385,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             $row->price /= $quantityInPack;
 
-            $firstDoc = doc_Threads::getFirstDocument($masterThreadId);
-            $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
-
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterThreadId);
             $masterRec = $Master->fetch($masterId);
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatType), $masterRec->currencyRate, $masterRec->chargeVat);
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
 
         return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);

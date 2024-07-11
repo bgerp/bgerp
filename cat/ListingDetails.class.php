@@ -261,8 +261,7 @@ class cat_ListingDetails extends doc_Detail
                         $row->productId = ht::createHint($row->productId, $hint, 'warning', false);
                         $row->productId = ht::createElement('span', array('style' => 'color:#755101'), $row->productId);
                     } else {
-                        $vatType = $listRec->type == 'canBuy' ? 'purchase' : 'sales';
-                        $vat = cat_Products::getVat($rec->productId, null, $vatType);
+                        $vat = cat_Products::getVat($rec->productId);
                         $date = null;
                         $rate = currency_CurrencyRates::getRate($date, $listRec->currencyId, null);
                         $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);

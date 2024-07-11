@@ -242,11 +242,10 @@ abstract class deals_DealDetail extends doc_Detail
             $form->setReadOnly('productId');
         }
 
-        $vatFieldType = ($mvc instanceof purchase_PurchasesDetails) ? 'purchase' : 'sales';
-
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
         if (!empty($rec->packPrice)) {
             if (strtolower(Request::get('Act')) != 'createproduct') {
-                $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatFieldType);
+                $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             } else {
                 $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
             }
@@ -295,8 +294,8 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         if ($rec->productId) {
-            $vatFieldType = ($mvc instanceof purchase_PurchasesDetails) ? 'purchase' : 'sales';
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatFieldType);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
@@ -525,8 +524,8 @@ abstract class deals_DealDetail extends doc_Detail
             $row->price /= $quantityInPack;
             
             $masterRec = $Master->fetch($masterId);
-            $vatFieldType = ($this instanceof purchase_PurchasesDetails) ? 'purchase' : 'sales';
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatFieldType), $masterRec->currencyRate, $masterRec->chargeVat);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
 
         return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);
@@ -606,8 +605,8 @@ abstract class deals_DealDetail extends doc_Detail
                     if (!isset($policyInfo->price)) {
                         $error[$lId] = "quantity{$lId}";
                     } else {
-                        $vatFieldType = ($this instanceof purchase_PurchasesDetails) ? 'purchase' : 'sales';
-                        $vat = cat_Products::getVat($productId, $saleRec->valior, $vatFieldType);
+                        $vatExceptionId = cond_VatExceptions::getFromThreadId($saleRec->threadId);
+                        $vat = cat_Products::getVat($productId, $saleRec->valior, $vatExceptionId);
                         if (isset($lRec->price)) {
                             $price = $lRec->price / $quantityInPack;
                         } else {
