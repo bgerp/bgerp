@@ -150,7 +150,7 @@ class acc_ProductPricePerPeriods extends core_Manager
                     $roundCurrent = round($dRec->price, 5);
 
                     // Ако е имало стара положителна цена, но новата е по-малка от 0.00001 - да не се записва
-                    if($roundPrev && $roundCurrent <= 0.00001) continue;
+                    if($roundPrev >= 0.00001 && $roundCurrent <= 0.00001) continue;
 
                     // Ако старата цена е колко новата - да не се записва
                     if ($roundCurrent == $roundPrev) continue;
