@@ -72,4 +72,28 @@ class eventhub_Forms extends core_Manager
         $this->FLD('title', 'varchar(32)', 'caption=Наименование, mandatory');
         $this->setDbUnique('title');
     }
+
+
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    public function loadSetupData()
+    {
+        // Подготвяме пътя до файла с данните
+        $file = 'eventhub/data/Forms.csv';
+
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => 'title'
+        );
+
+        // Импортираме данните от CSV файла.
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
+
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res = $cntObj->html;
+
+        return $res;
+    }
 }
