@@ -78,6 +78,15 @@ class eventhub_Categories extends core_Manager
 
 
     /**
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     */
+    protected static function on_AfterPrepareEditForm($mvc, $data)
+    {
+        $data->form->setField('makeDescendantsFeatures', 'input=hidden');
+    }
+
+
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public function loadSetupData()

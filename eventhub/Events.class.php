@@ -117,7 +117,9 @@ class eventhub_Events extends core_Master
         } else {
             $row->poster = 'Няма налични постери';
         }
-        $row->tickets = ht::createBtn('билети', $rec->tickets);
+        if (!empty($rec->tickets)) {
+            $row->tickets = ht::createBtn('билети', $rec->tickets);
+        }
     }
 
 
