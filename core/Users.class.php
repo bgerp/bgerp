@@ -921,7 +921,7 @@ class core_Users extends core_Manager
         if (core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
             $attr = array('attr' => array('onkeypress' => 'if(event.keyCode == 13) {' . $submit .'}'));
         }
-        $form->FNC('pass', 'password(allowEmpty,autocomplete=off)', 'caption=Парола,input,width=100%', $attr);
+        $form->FNC('pass', 'password(allowEmpty,autocomplete=off)', 'caption=Парола,input,width=100%,class=checkPass', $attr);
         
         if (Request::get('popup')) {
             $form->setHidden('ret_url', toUrl(array('log_Browsers', 'close'), 'local'));
