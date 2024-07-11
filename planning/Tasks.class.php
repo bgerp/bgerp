@@ -2655,6 +2655,7 @@ class planning_Tasks extends core_Master
         planning_Tasks::requireRightFor('createjobtasks');
         expect($type = Request::get('type', 'enum(all,clone,cloneAll)'));
         expect($jobId = Request::get('jobId', 'int'));
+        $cloneCn = Request::get('cloneNotes', 'int');
         expect($jobRec = planning_Jobs::fetch($jobId));
 
         // Ако ще се клонира съществуваща операция или ще се клонират всички от предходното
@@ -2717,23 +2718,25 @@ class planning_Tasks extends core_Master
                 $count++;
 
                 // Клониране и на протоколите за влагане
-                $Consumptions = cls::get('planning_ConsumptionNotes');
-                $cQuery = $Consumptions->getQuery();
-                $cQuery->where("#state != 'rejected' AND #threadId = {$taskRec->threadId}");
-                while($consRec = $cQuery->fetch()){
-                    $newConsRec = clone $consRec;
-                    unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy);
+                if($cloneCn){
+                    $Consumptions = cls::get('planning_ConsumptionNotes');
+                    $cQuery = $Consumptions->getQuery();
+                    $cQuery->where("#state != 'rejected' AND #threadId = {$taskRec->threadId}");
+                    while($consRec = $cQuery->fetch()){
+                        $newConsRec = clone $consRec;
+                        unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy);
 
-                    $newConsRec->_isClone = true;
-                    $newConsRec->originId = $newTask->containerId;
-                    $newConsRec->state = 'draft';
-                    $newConsRec->threadId = $newTask->threadId;
-                    $newConsRec->folderId = $newTask->folderId;
-                    $newConsRec->clonedFromId = $newConsRec->id;
+                        $newConsRec->_isClone = true;
+                        $newConsRec->originId = $newTask->containerId;
+                        $newConsRec->state = 'draft';
+                        $newConsRec->threadId = $newTask->threadId;
+                        $newConsRec->folderId = $newTask->folderId;
+                        $newConsRec->clonedFromId = $newConsRec->id;
 
-                    if ($Consumptions->save($newConsRec)) {
-                        $clonedConsumptionNotes++;
-                        $Consumptions->invoke('AfterSaveCloneRec', array($consRec, &$newConsRec));
+                        if ($Consumptions->save($newConsRec)) {
+                            $clonedConsumptionNotes++;
+                            $Consumptions->invoke('AfterSaveCloneRec', array($consRec, &$newConsRec));
+                        }
                     }
                 }
             }
