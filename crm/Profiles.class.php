@@ -739,7 +739,7 @@ class crm_Profiles extends core_Master
         
         // Нова парола и нейния производен ключ
         $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
-        $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола,input,hint={$minLenHint},width=15em");
+        $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола,input,hint={$minLenHint},width=15em,class=checkPass colorPass");
         $form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола,input=hidden');
         
         // Повторение на новата парола
@@ -747,7 +747,7 @@ class crm_Profiles extends core_Master
         $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', 'caption=Нова парола (пак),input,width=15em', array('hint' => $passReHint));
         
         // Подготвяме лентата с инструменти на формата
-        $form->toolbar->addSbBtn('Запис', 'change_password', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addSbBtn('Запис', 'change_password', 'ef_icon = img/16/disk.png, class=checkPassDisable');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
         
         // Потготвяме заглавието на формата
