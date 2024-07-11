@@ -146,7 +146,14 @@ class acc_ProductPricePerPeriods extends core_Manager
                 // Ако цената не е променяна няма да се обновява от предходния запис
                 $key = "{$dRec->ent1Id}|{$dRec->ent2Id}";
                 if (array_key_exists($key, $prevArr)) {
-                    if (round($dRec->price, 5) == round($prevArr[$key], 5)) continue;
+                    $roundPrev = round($prevArr[$key], 5);
+                    $roundCurrent = round($dRec->price, 5);
+
+                    // Ако е имало стара положителна цена, но новата е по-малка от 0.00001 - да не се записва
+                    if($roundPrev && $roundCurrent <= 0.00001) continue;
+
+                    // Ако старата цена е колко новата - да не се записва
+                    if ($roundCurrent == $roundPrev) continue;
                 }
                 $rec = (object)array('date' => $toDate,
                                      'storeItemId' => $dRec->ent1Id,
