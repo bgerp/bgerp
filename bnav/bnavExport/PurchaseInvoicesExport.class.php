@@ -212,7 +212,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
                     'price' => $dRec->price,
                     'vatAmount' => '',
                     'measure' => $measure,
-                    'vat' => cat_Products::getVat($prodRec->id, null, 'purchase') * 100,
+                    'vat' => cat_Products::getVat($prodRec->id, null) * 100,
                 
                 
                 );

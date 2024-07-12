@@ -1455,10 +1455,23 @@ class planning_Jobs extends core_Master
                     $title = tr('Избраните от предишно задание');
                     $urlCloneAll = array('planning_Tasks', 'createjobtasks', 'type' => 'cloneAll', 'jobId' => $jobRec->id, 'jobsToCloneTasksFrom' => $jobRec->oldJobId, 'ret_url' => true);
                     $cloneAllUrlString = toUrl($urlCloneAll);
-                    $urlLinkBtn = ht::createFnBtn('Клониране', null, 'Наистина ли желаете да клонирате наведнъж избраните операции|*?', array('title' => 'Клониране на всички предходни операции', 'ef_icon' => 'img/16/clone.png', 'data-url' => $cloneAllUrlString, 'class' => 'cloneAllCheckedTasks'));
 
-                    $urlLink = "<input type='checkbox' name='checkAllClonedTasks' checked class='inline-checkbox'>" . $urlLinkBtn->getContent() ;
-                    $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
+                    $urlAllBtnTpl = new core_ET("");
+                    $urlAllBtnTpl->append(ht::createFnBtn('Клониране', null, 'Наистина ли желаете да клонирате наведнъж избраните операции|*?', array('title' => 'Клониране на всички предходни операции', 'data-url' => $cloneAllUrlString, 'class' => 'cloneAllCheckedTasks')));
+
+                    $tQuery = planning_Tasks::getQuery();
+                    $tQuery->in('id', array_keys($oldTasks));
+                    $threads = arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
+
+                    $threadsString = implode(',', $threads);
+                    if(planning_ConsumptionNotes::count("#state != 'rejected' AND #threadId IN ({$threadsString})")){
+                        $urlCloneAll = array('planning_Tasks', 'createjobtasks', 'type' => 'cloneAll', 'jobId' => $jobRec->id, 'jobsToCloneTasksFrom' => $jobRec->oldJobId, 'cloneNotes' => true, 'ret_url' => true);
+                        $cloneAllUrlString = toUrl($urlCloneAll);
+                        $urlAllBtnTpl->append(ht::createFnBtn('|*+|ПВ|*', null, 'Наистина ли желаете да клонирате наведнъж избраните операции|*?', array('title' => 'Клониране на всички предходни операции', 'data-url' => $cloneAllUrlString, 'class' => 'cloneAllCheckedTasks')));
+                    }
+
+                    $urlAllBtnTpl->prepend("<input type='checkbox' name='checkAllClonedTasks' checked class='inline-checkbox'>");
+                    $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlAllBtnTpl, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
                 }
 
                 foreach ($oldTasks as $k1 => $link) {
@@ -1479,13 +1492,18 @@ class planning_Jobs extends core_Master
                         $urlClone = array('planning_Tasks', 'createjobtasks', 'type' => 'clone', 'cloneId' => $k1, 'jobId' => $jobRec->id, 'ret_url' => true);
                     }
 
-                    $urlLink = ht::createBtn('Клониране', $urlClone, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/clone.png');
+                    $urlTplBlock = new core_ET("");
+                    $urlTplBlock->append(ht::createBtn('Клониране', $urlClone, $warning, false, 'title=Създаване на производствена операция'));
                     if(countR($urlCloneAll)){
                         $checked = empty($warning) ? 'checked' : '';
-                        $urlLink = "<input type='checkbox' name='R[{$k1}]' id='cb_{$k1}' class='previousTaskCheckbox inline-checkbox' data-cloneId='{$k1}' {$checked}>{$urlLink}";
+                        $urlTplBlock->prepend("<input type='checkbox' name='R[{$k1}]' id='cb_{$k1}' class='previousTaskCheckbox inline-checkbox' data-cloneId='{$k1}' {$checked}>");
+                    }
+                    if(planning_ConsumptionNotes::count("#state != 'rejected' AND #threadId = {$taskRec->threadId}")){
+                        $urlClone['cloneNotes'] = true;
+                        $urlTplBlock->append(ht::createBtn('|*+|ПВ|*', $urlClone, $warning, false, 'title=Създаване на производствена операция с протоколите за влагане от оригинала'));
                     }
 
-                    $options[] = (object)array('DEFAULT_TASK_CAPTION' => $oldTitle, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
+                    $options[] = (object)array('DEFAULT_TASK_CAPTION' => $oldTitle, 'DEFAULT_TASK_LINK' => $urlTplBlock, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
                 }
             }
         }
