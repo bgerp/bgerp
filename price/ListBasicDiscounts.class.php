@@ -260,7 +260,7 @@ class price_ListBasicDiscounts extends core_Detail
         $salesByNow = array();
         $groupIds = arr::extractValuesFromArray($dRecs, 'groupId');
 
-        // Ако периода за продажба е различен от "текущата продажба" смятат се сумите от преидшните продажби за контрагента
+        // Ако периода за продажба е различен от "текущата продажба" смятат се сумите от предишните продажби за контрагента
         if($basicDiscountListRec->discountClassPeriod != 'default'){
             $contragentClassId = $masterRec->contragentClassId;
             $contragentId = $masterRec->contragentId;
