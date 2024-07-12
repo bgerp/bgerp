@@ -175,6 +175,8 @@ class barcode_Generator extends core_Manager
         // Създаваме GD изображението
         $im = imagecreatetruecolor($width, $height);
 
+        $colorArr = $params['colorArr'];
+
         setIfNot($colorArr['opacity'], 0);
         setIfNot($colorArr['color'], '0|0|0');
         setIfNot($colorArr['bgOpacity'], 0);
