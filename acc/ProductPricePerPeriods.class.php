@@ -82,7 +82,15 @@ class acc_ProductPricePerPeriods extends core_Manager
 
         $row->productItemId = cls::get($productItemRec->classId)->getHyperlink($productItemRec->objectId, true);
         $row->price = ht::styleNumber($row->price, $rec->price);
-        $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 321, 'ent1Id' => $rec->storeItemId, 'ent2Id' => $rec->productItemId);
+
+        if($rec->type == 'sales'){
+            $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 321, 'ent1Id' => $rec->storeItemId, 'ent2Id' => $rec->productItemId);
+        } elseif($rec->type == 'costs'){
+            $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 60201, 'ent1Id' => $rec->otherItemId, 'ent2Id' => $rec->productItemId);
+        } else {
+            $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 61101, 'ent1Id' => $rec->productItemId);
+        }
+
         $row->date = ht::createLink($row->date, $url, false, 'ef_icon=img/16/clock_history.png');
     }
 
