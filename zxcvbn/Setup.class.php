@@ -60,8 +60,7 @@ class zxcvbn_Setup extends core_ProtoSetup
         $html = parent::install();
 
         // Инсталираме плъгина
-        $html .= core_Plugins::forcePlugin('Проверка на сложността на паролите', 'zxcvbn_Plugin', 'crm_Profiles', 'private');
-        $html .= core_Plugins::forcePlugin('Проверка на сложността на паролите при вход', 'zxcvbn_Plugin', 'core_Users', 'private');
+        $html .= core_Plugins::forcePlugin('Проверка на сложността на паролите', 'zxcvbn_Plugin', 'type_Password', 'private');
 
         return $html;
     }
