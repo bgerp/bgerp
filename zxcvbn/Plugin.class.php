@@ -45,7 +45,7 @@ class zxcvbn_Plugin extends core_Plugin
 
         $warningTxt = tr('Паролата е много слаба.') . ' ';
         if ($mvc->params['checkPassAfterLogin']) {
-            $warningTxt .= tr('Сменете я след логване.');
+            $warningTxt .= tr('Използвайте бутона "Забравена парола".');
         } else {
             $warningTxt .= tr('Опитайте да добавите големи и малки букви и/или специални символи.');
         }
