@@ -56,7 +56,7 @@ class zxcvbn_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'ZXCVBN_MIN_SCORE' => array('int(min=0,max=4)', 'caption=Сложност на паролата->Точки'),
-        'ZXCVBN_CHECK_ON_LOGIN' => array('enum(no=Не,yes=Да)', 'caption=Дали да се проверява паролата при логване->Избор'),
+        'ZXCVBN_CHECK_ON_LOGIN' => array('enum(no=Не,yes=Да,stop=Спиране на логване)', 'caption=Дали да се проверява паролата при логване->Избор'),
     );
     
     /**
