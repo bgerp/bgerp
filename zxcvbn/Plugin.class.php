@@ -29,6 +29,11 @@ class zxcvbn_Plugin extends core_Plugin
      */
     public function on_AfterRenderInput(&$mvc, &$tpl, $name, $value, $attr = array())
     {
+        if ($mvc->params['checkPassAfterLogin'] && (zxcvbn_Setup::get('CHECK_ON_LOGIN') == 'no')) {
+
+            return ;
+        }
+
         $minPoints = zxcvbn_Setup::get('MIN_SCORE');
 
         if ($minPoints < 1) {
