@@ -18,21 +18,28 @@ class zxcvbn_Plugin extends core_Plugin
 
 
     /**
-     * Извиква се преди изпълняването на екшън
+     *
+     * Изпълнява се след рендирането на input
+     *
+     * @param core_Mvc $invoker
+     * @param core_Et  $tpl
+     * @param string   $name
+     * @param string   $value
+     * @param array    $attr
      */
-    public static function on_AfterAction($mvc, &$res, $action)
+    public function on_AfterRenderInput(&$mvc, &$tpl, $name, $value, $attr = array())
     {
-        if (($action != 'changepassword' && $mvc->className != 'crm_Profiles') && ($action != 'login' && $mvc->className != 'core_Users')) {
+        $minPoints = zxcvbn_Setup::get('MIN_SCORE');
+
+        if ($minPoints < 1) {
 
             return ;
         }
 
-        $res->push('zxcvbn/dropboxLib/zxcvbn.js', 'JS');
-
-        $minPoints = zxcvbn_Setup::get('MIN_SCORE');
+        $tpl->push('zxcvbn/dropboxLib/zxcvbn.js', 'JS', true);
 
         $warningTxt = tr('Паролата е много слаба.') . ' ';
-        if ($action == 'login' && $mvc->className == 'core_Users') {
+        if ($mvc->params['checkPassAfterLogin']) {
             $warningTxt .= tr('Сменете я след логване.');
         } else {
             $warningTxt .= tr('Опитайте да добавите големи и малки букви и/или специални символи.');
@@ -67,6 +74,6 @@ class zxcvbn_Plugin extends core_Plugin
                     }
                 }";
 
-        $res->appendOnce($js, 'SCRIPTS');
+        $tpl->appendOnce($js, 'SCRIPTS');
     }
 }
