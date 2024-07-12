@@ -34,6 +34,14 @@ class zxcvbn_Plugin extends core_Plugin
             return ;
         }
 
+        $disableBtn = "document.querySelectorAll('.checkPassDisable').forEach(function(disableEl) {
+                            disableEl.disabled = disableElVal;
+                        });";
+
+        if ($mvc->params['checkPassAfterLogin'] && (zxcvbn_Setup::get('CHECK_ON_LOGIN') == 'yes')) {
+            $disableBtn = '';
+        }
+
         $minPoints = zxcvbn_Setup::get('MIN_SCORE');
 
         if ($minPoints < 1) {
@@ -73,9 +81,7 @@ class zxcvbn_Plugin extends core_Plugin
                             el.style.backgroundColor = passColor;
                         }
                         
-                        document.querySelectorAll('.checkPassDisable').forEach(function(disableEl) {
-                            disableEl.disabled = disableElVal;
-                        });
+                        {$disableBtn}
                     }
                 }";
 
