@@ -2,14 +2,14 @@
 
 
 /**
- * Клас 'acc_VatGroups'
+ * Клас 'acc_VatGroups' за ДДС групи
  *
  *
  * @category  bgerp
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -139,7 +139,6 @@ class acc_VatGroups extends core_Manager
         while ($rec = $query->fetch($where)) {
             $title = self::getVerbal($rec->id, 'title') . ' (' . self::getVerbal($rec, 'vat') . ")";
             $title = str_replace('&nbsp;', ' ', $title);
-            
             $options[$rec->{$index}] = $title;
         }
         
@@ -174,5 +173,20 @@ class acc_VatGroups extends core_Manager
         $query->orderBy('id', 'ASC');
 
         return $query->fetch()->id;
+    }
+
+
+    /**
+     * Коя е дефолтната ДДС група за датата
+     *
+     * @param date $date
+     * @return int
+     */
+    public static function getDefaultVatGroupByDate($date)
+    {
+        $period = acc_Periods::fetchByDate($date);
+        $defaultRate = is_object($period) ? $period->vatRate : acc_Setup::get('DEFAULT_VAT_RATE');
+
+        return static::fetchField("#vat = '{$defaultRate}'");
     }
 }
