@@ -936,9 +936,9 @@ class core_Users extends core_Manager
         $form->addAttr('nick,pass,email', array('style' => 'min-width:14em;'));
         
         if (core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
-            $form->toolbar->addFnBtn('Вход', $submit, array('class' => 'noicon'));
+            $form->toolbar->addFnBtn('Вход', $submit, array('class' => 'noicon checkPassDisable'));
         } else {
-            $form->toolbar->addSbBtn('Вход', 'default', array('class' => 'noicon'));
+            $form->toolbar->addSbBtn('Вход', 'default', array('class' => 'noicon checkPassDisable'));
         }
         
         $httpUrl = core_App::getSelfURL();
@@ -947,7 +947,7 @@ class core_Users extends core_Manager
         $connection = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'HTTPS' : 'HTTP';
         
         if (EF_HTTPS === 'OPTIONAL' && $connection === 'HTTP') {
-            $form->toolbar->addFnBtn('Вход с криптиране', "this.form.action=('{$httpsUrl}');this.form.submit();", array('style' => 'background-color: #9999FF'));
+            $form->toolbar->addFnBtn('Вход с криптиране', "this.form.action=('{$httpsUrl}');this.form.submit();", array('style' => 'background-color: #9999FF', 'class' => 'checkPassDisable'));
         }
         
         $form->info = "<div style='text-align: center;font-size:0.8em;color:#666;'>" . tr($conf->CORE_LOGIN_INFO) . '</div>';
