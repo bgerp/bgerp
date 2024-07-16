@@ -1467,7 +1467,7 @@ class planning_Jobs extends core_Master
                     if(planning_ConsumptionNotes::count("#state != 'rejected' AND #threadId IN ({$threadsString})")){
                         $urlCloneAll = array('planning_Tasks', 'createjobtasks', 'type' => 'cloneAll', 'jobId' => $jobRec->id, 'jobsToCloneTasksFrom' => $jobRec->oldJobId, 'cloneNotes' => true, 'ret_url' => true);
                         $cloneAllUrlString = toUrl($urlCloneAll);
-                        $urlAllBtnTpl->append(ht::createFnBtn('|*+|ПВ|*', null, 'Наистина ли желаете да клонирате наведнъж избраните операции|*?', array('title' => 'Клониране на всички предходни операции', 'data-url' => $cloneAllUrlString, 'class' => 'cloneAllCheckedTasks')));
+                        $urlAllBtnTpl->append(ht::createFnBtn('|Кл|*+|ПВ|*', null, 'Наистина ли желаете да клонирате наведнъж избраните операции заедно с протоколите за влагане в тях|*?', array('title' => 'Клониране на всички предходни операции и на протоколите за влагане в тях', 'data-url' => $cloneAllUrlString, 'class' => 'cloneAllCheckedTasks')));
                     }
 
                     $urlAllBtnTpl->prepend("<input type='checkbox' name='checkAllClonedTasks' checked class='inline-checkbox'>");
@@ -1500,7 +1500,7 @@ class planning_Jobs extends core_Master
                     }
                     if(planning_ConsumptionNotes::count("#state != 'rejected' AND #threadId = {$taskRec->threadId}")){
                         $urlClone['cloneNotes'] = true;
-                        $urlTplBlock->append(ht::createBtn('|*+|ПВ|*', $urlClone, $warning, false, 'title=Създаване на производствена операция с протоколите за влагане от оригинала'));
+                        $urlTplBlock->append(ht::createBtn('|Кл|*+|ПВ|*', $urlClone, $warning, false, 'title=Създаване на производствена операция с протоколите за влагане от оригинала'));
                     }
 
                     $options[] = (object)array('DEFAULT_TASK_CAPTION' => $oldTitle, 'DEFAULT_TASK_LINK' => $urlTplBlock, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
