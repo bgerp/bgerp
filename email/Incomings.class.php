@@ -737,6 +737,10 @@ class email_Incomings extends core_Master
         // Записваме (и автоматично рутираме) писмото
         $saved = $this->save($rec);
 
+        if ($saved && $rec->fromEml) {
+            email_AddressesInfo::addEmail($rec->fromEml);
+        }
+
         // Ако са зададени хедъри, по които да сваля имейла
         if (defined('EMAIL_DUPLICATE_INCOMING_HEADERS')) {
             $isFirstDoc = true;
