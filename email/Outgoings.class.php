@@ -1791,7 +1791,11 @@ class email_Outgoings extends core_Master
             if (!$emailTo) {
                 $recEmailsArr = email_Inboxes::removeOurEmails($recEmailsArr);
             }
-            
+
+            foreach ($recEmailsArr as &$rEmailStr) {
+                $rEmailStr = type_Email::removeBadPart($rEmailStr);
+            }
+
             if ($contragentData->replyToEmail) {
                 $removeFromGroup = $recEmailsArr;
             } else {
