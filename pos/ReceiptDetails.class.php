@@ -159,6 +159,8 @@ class pos_ReceiptDetails extends core_Detail
 
         if($success){
             try{
+                expect(!(abs($receiptRec->paid) >= abs($receiptRec->total) && $receiptRec->total != 0), 'Вече е платено достатъчно|*!');
+
                 if(!pos_Receipts::haveRightFor('pay', $receiptRec)){
                     expect(false, 'Не може да се добави друго плащане');
                 }

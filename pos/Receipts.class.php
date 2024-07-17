@@ -695,8 +695,6 @@ class pos_Receipts extends core_Master
                 $res = 'no_one';
             } elseif (!$countProducts) {
                 $res = 'no_one';
-            } elseif (abs($rec->paid) >= abs($rec->total) && $rec->total != 0) {
-                $res = 'no_one';
             }
         }
 

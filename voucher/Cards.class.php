@@ -488,7 +488,7 @@ class voucher_Cards extends core_Manager
 
         if(countR($productsWithoutRequiredParams)){
 
-            return 'Следните артикули изискват ваучър от препоръчител|* ' . implode(', ', $productsWithoutRequiredParams);
+            return 'Следните артикули изискват ваучър от препоръчител|*: ' . implode(', ', $productsWithoutRequiredParams);
         }
     }
 
