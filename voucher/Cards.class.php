@@ -469,6 +469,13 @@ class voucher_Cards extends core_Manager
     }
 
 
+    /**
+     * Връща дали има грешка при контиране
+     *
+     * @param int $id
+     * @param array $products
+     * @return string|void
+     */
     public static function getContoErrors($id, $products)
     {
         if(isset($id)){
@@ -493,11 +500,20 @@ class voucher_Cards extends core_Manager
     }
 
 
-    public static function mark($voucherId, $type, $classId = null, $objectId = null)
+    /**
+     * Маркира ваучерът като използван/неизползван
+     *
+     * @param int $voucherId
+     * @param bool $isUsed
+     * @param int|null $classId
+     * @param int|null $objectId
+     * @return void
+     */
+    public static function mark($voucherId, $isUsed, $classId = null, $objectId = null)
     {
         $rec = static::fetch($voucherId);
 
-        if($type == 'used'){
+        if($isUsed){
             $rec->usedOn = dt::now();
             $rec->classId = $classId;
             $rec->objectId = $objectId;
@@ -512,6 +528,13 @@ class voucher_Cards extends core_Manager
         static::save($rec);
     }
 
+
+    /**
+     * Връща дали има грешка при възстановяване
+     *
+     * @param int $id
+     * @return string|void
+     */
     public static function getRestoreError($id)
     {
         $vRec = voucher_Cards::fetch($id);

@@ -224,7 +224,6 @@ class pos_Receipts extends core_Master
      */
     public function act_New()
     {
-        $cu = core_Users::getCurrent();
         $pointId = Request::get('pointId', 'int');
 
         if (!isset($pointId)) {
@@ -940,7 +939,7 @@ class pos_Receipts extends core_Master
             }
             $revertedRec = $this->fetchRec($rec->revertId);
             if(isset($revertedRec->voucherId) && core_Packs::isInstalled('voucher')){
-                voucher_Cards::mark($revertedRec->voucherId, 'unused');
+                voucher_Cards::mark($revertedRec->voucherId, false);
                 core_Statuses::newStatus('Ваучерът е освободен|*!');
             }
         }
@@ -992,7 +991,7 @@ class pos_Receipts extends core_Master
 
             if(core_Packs::isInstalled('voucher')){
                 if(isset($rec->voucherId)){
-                    voucher_Cards::mark($rec->voucherId, 'used', $this->getClassId(), $rec->id);
+                    voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id);
                 }
             }
 
@@ -1114,7 +1113,7 @@ class pos_Receipts extends core_Master
             pos_ReceiptDetails::delete("#receiptId = {$rec->id}");
 
             if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
-                voucher_Cards::mark($rec->voucherId, 'unused');
+                voucher_Cards::mark($rec->voucherId, false);
                 core_Statuses::newStatus('Ваучерът е освободен|*!');
             }
         }
@@ -1728,7 +1727,7 @@ class pos_Receipts extends core_Master
 
         // Ако има ваучър се маркира като използван
         if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
-            voucher_Cards::mark($rec->voucherId, 'unused');
+            voucher_Cards::mark($rec->voucherId, false);
         }
     }
 
