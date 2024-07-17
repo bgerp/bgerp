@@ -133,7 +133,7 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
                 $obj->hint .= '; '.$salesInfo[0];
             }
             if ($articul->productId) {
-                $recs[$id]->vat = (double) ($recs[$id]->amount * cat_Products::getVat($articul->productId));
+                $recs[$id]->vat = (double) ($recs[$id]->amount * cat_Products::getVat($articul->productId, $articul->valior, $articul->threadId));
             }
             
             $recs[$id]->price = (double) ($recs[$id]->amount / $recs[$id]->quantity);
