@@ -16,6 +16,11 @@
 <hr>
 	<span class='paymentNotRequiredLabel'>[#PAYMENT_NOT_REQUIRED#]</span>
 	<table class='total'>
+		<!--ET_BEGIN voucherId-->
+		<tr>
+			<td colspan=4 style="float:right;width:100%;"><span class="quiet">|Ваучър|*</span>: [#voucherId#]</td>
+		</tr>
+		<!--ET_END voucherId-->
 		<tr>
 			<th class = 'caption revertCaption' colspan="2">[#REVERT_CAPTION#]</th>
 			<th class='caption [#CHANGE_CLASS#]' style="width: 20%">[#CHANGE_CAPTION#]</th>

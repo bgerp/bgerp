@@ -49,7 +49,12 @@
 				<td>|Контрагент|*</td>
 				<td>[#contragentId#]</td>
 			</tr>
-			
+			<!--ET_BEGIN voucherId-->
+			<tr>
+				<td>|Ваучер|*</td>
+				<td><i>[#voucherId#]</i></td>
+			</tr>
+			<!--ET_END voucherId-->
 			<!--ET_BEGIN contragentLocationId-->
 			<tr>
 				<td>|Локация|*:</td>

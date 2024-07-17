@@ -923,7 +923,7 @@ class price_Lists extends core_Master
         if($Master instanceof sales_Sales){
             $listId = $clone->priceListId ?? price_ListToCustomers::getListForCustomer($clone->contragentClassId, $clone->contragentId, $clone->valior);
         } else {
-            $listId = pos_Receipts::isForDefaultContragent($clone) ? pos_Points::getSettings($clone->pointId)->policyId : price_ListToCustomers::getListForCustomer($clone->contragentClass, $clone->contragentObjectId);
+            $listId = $masterRec->policyId ? $masterRec->policyId : (pos_Receipts::isForDefaultContragent($clone) ? pos_Points::getSettings($clone->pointId)->policyId : price_ListToCustomers::getListForCustomer($clone->contragentClass, $clone->contragentObjectId));
         }
 
         // Обикаля се тази политика+бащите ѝ дали има поне една с общи отстъпки
