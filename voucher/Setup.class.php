@@ -85,7 +85,7 @@ class voucher_Setup extends core_ProtoSetup
     public function loadSetupData($itr = '')
     {
         $modified = $skipped = 0;
-        $array = array('default-voucher' => array('title' => 'Стандартен ваучер', 'path' => 'voucher/tpl/DefaultVoucherLabel.shtml', 'lang' => 'bg', 'class' => 'voucher_Types', 'sizes' => array('220', '160')),);
+        $array = array('default-voucher' => array('title' => 'Стандартен ваучер', 'path' => 'voucher/tpl/DefaultVoucherLabel.shtml', 'lang' => 'bg', 'class' => 'voucher_Types', 'sizes' => array('88.5', '54')),);
 
         core_Users::forceSystemUser();
         foreach ($array as $sysId => $cArr) {
