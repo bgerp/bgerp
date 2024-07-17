@@ -419,7 +419,7 @@ class voucher_Cards extends core_Manager
      */
     public static function getCheckSum($string)
     {
-        $hash = crc32($string + EF_SALT);
+        $hash = crc32("{$string}" . EF_SALT);
         $rest = $hash % 10000;
 
         return str_pad($rest, 4, "0",STR_PAD_LEFT);
