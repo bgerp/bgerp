@@ -373,6 +373,13 @@ class pos_Receipts extends core_Master
                     $row->voucherId .= " " . ht::createLink('', array('pos_Receipts', 'setvoucher', 'id' => $rec->id, 'voucherId' => null, 'ret_url' => true), false, array('ef_icon' => 'img/16/delete.png', 'title' => 'Премахване на избрания ваучър'));
                 }
             }
+        } else {
+            if (!empty($rec->voucherId)) {
+                $voucherRec = voucher_Cards::fetch($rec->voucherId);
+                if(isset($voucherRec->referrer)){
+                    $row->voucherId = ht::createHint($row->voucherId, "Препоръчител|*: " . crm_Persons::getTitleById($voucherRec->referrer));
+                }
+            }
         }
 
         $rec->total = abs($rec->total);
@@ -1335,7 +1342,6 @@ class pos_Receipts extends core_Master
             $query->where("#receiptId = {$rec->id} AND #action {$sign} 'sale|code'");
             $query->orderBy('id', 'ASC');
             $selectedRec = $query->fetch();
-            core_Statuses::newStatus("A:{$selectedRec->id}");
         }
 
         if (Request::get('ajax_mode')) {

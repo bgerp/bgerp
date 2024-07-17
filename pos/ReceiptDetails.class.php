@@ -169,9 +169,7 @@ class pos_ReceiptDetails extends core_Detail
                     expect(cond_Payments::fetch($type), 'Неразпознат метод на плащане');
                 }
 
-
                 $amount = core_Type::getByName('double')->fromVerbal($amount);
-
                 $paymentCount = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%payment%'");
                 $countProducts = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%sale%'");
                 if($countProducts && $receiptRec->total != 0){
