@@ -1425,11 +1425,7 @@ class pos_Terminal extends peripheral_Terminal
         cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
         
         $deleteBtn = $this->renderDeleteRowBtn($rec, $selectedRec);
-        if(!$payUrl){
-            $paymentArr = array('delete' => (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS')) + $paymentArr;
-        } else {
-            $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
-        }
+        $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
 
         foreach ($paymentArr as $btnObject){
             $tpl->append($btnObject->body, $btnObject->placeholder);

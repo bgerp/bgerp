@@ -1306,6 +1306,9 @@ class pos_Receipts extends core_Master
         $this->requireRightFor('setvoucher', $rec);
         $voucherId = Request::get('voucherId', 'int');
 
+        $paidWith = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}'");
+        $selectedRec = null;
+
         if(isset($rec->revertId)){
             core_Statuses::newStatus('Не може да се добави ваучър в сторно бележка|*!', 'error');
         } else {
@@ -1325,12 +1328,20 @@ class pos_Receipts extends core_Master
 
             $this->logWrite('Задаване на ваучър', $id);
 
-            Mode::setPermanent("currentOperation{$rec->id}", 'add');
+            $operation = $paidWith ? 'payment' : 'add';
+            $sign = $paidWith ? '!=' : '=';
+            Mode::setPermanent("currentOperation{$rec->id}", $operation);
             Mode::setPermanent("currentSearchString{$rec->id}", null);
+
+            $query = pos_ReceiptDetails::getQuery();
+            $query->where("#receiptId = {$rec->id} AND #action {$sign} 'sale|code'");
+            $query->orderBy('id', 'ASC');
+            $selectedRec = $query->fetch();
+            core_Statuses::newStatus("A:{$selectedRec->id}");
         }
 
         if (Request::get('ajax_mode')) {
-            return pos_Terminal::returnAjaxResponse($id, null, true, true, true, true, 'add', true);
+            return pos_Terminal::returnAjaxResponse($id, $selectedRec, true, true, true, true, 'add', true);
         }
 
         followRetUrl();
