@@ -1306,11 +1306,7 @@ class pos_Receipts extends core_Master
         $this->requireRightFor('setvoucher', $rec);
         $voucherId = Request::get('voucherId', 'int');
 
-        $paidWith = pos_ReceiptDetails::count("#action LIKE '%payment%' AND #receiptId = '{$rec->id}'");
-
-        if($paidWith){
-            core_Statuses::newStatus('Ваучерът не може да бъде добавен/премахнат след като има направено плащане|*!', 'error');
-        } elseif(isset($rec->revertId)){
+        if(isset($rec->revertId)){
             core_Statuses::newStatus('Не може да се добави ваучър в сторно бележка|*!', 'error');
         } else {
             if($voucherId){
