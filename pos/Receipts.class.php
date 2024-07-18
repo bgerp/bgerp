@@ -211,6 +211,7 @@ class pos_Receipts extends core_Master
         if (core_Packs::isInstalled('voucher')) {
             $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=id)', 'caption=Ваучер,input=none');
             $this->fetchFieldsBeforeDelete .= ",voucherId";
+            $this->setDbIndex('voucherId');
         }
 
         $this->setDbIndex('valior');
@@ -767,9 +768,19 @@ class pos_Receipts extends core_Master
         $settings = pos_Points::getSettings($rec->pointId);
         $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id, 'deliveryLocationId' => $rec->contragentLocationId);
         $fields['vatExceptionId'] = $settings->vatExceptionId;
+        $hasVoucher = isset($rec->voucherId) && core_Packs::isInstalled('voucher');
+
+        if($hasVoucher){
+            $fields['voucherId'] = $rec->voucherId;
+            $endVoucher = substr(voucher_Cards::getVerbal($rec->voucherId, 'number'), 12, 4);
+            $fields['note'] = tr("Ваучер") . ": *{$endVoucher}";
+        }
 
         // Опитваме се да създадем чернова на нова продажба породена от бележката
         if ($sId = sales_Sales::createNewDraft($contragentClassId, $contragentId, $fields)) {
+            if($hasVoucher){
+                voucher_Cards::mark($rec->voucherId, true, sales_Sales::getClassId(), $sId);
+            }
             sales_Sales::logWrite('Прехвърлена от POS продажба', $sId);
 
             // Намираме продуктите на бележката (трябва да има поне един)
@@ -790,6 +801,7 @@ class pos_Receipts extends core_Master
         $rec->transferredIn = $sId;
         $isBeingClosed = ($rec->state != 'closed');
         $rec->state = 'closed';
+        $rec->voucherId = null;
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
         if ($isBeingClosed) {
@@ -989,12 +1001,6 @@ class pos_Receipts extends core_Master
 
             cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent,inputDiscount');
             $this->logInAct('Приключване на бележка', $rec->id);
-
-            if(core_Packs::isInstalled('voucher')){
-                if(isset($rec->voucherId)){
-                    voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id, true);
-                }
-            }
 
             // Нотифициране на драйвера на артикулите, че той е включен в чакаща бележка
             $Products = cls::get('cat_Products');
@@ -1320,7 +1326,7 @@ class pos_Receipts extends core_Master
                 if($voucherId){
                     $rec->voucherId = $voucherId;
                     $voucherRec = voucher_Cards::fetch($voucherId);
-                    $rec->policyId = $voucherRec->priceListId;
+                    $rec->policyId = voucher_Types::fetchField($voucherRec->typeId, 'priceListId');
                     core_Statuses::newStatus("Ваучерът е добавен|*!");
                     voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id);
                 } else {
@@ -1729,7 +1735,7 @@ class pos_Receipts extends core_Master
     {
         $rec = $mvc->fetchRec($id);
 
-        // Ако има ваучър се маркира като използван
+        // Ако има ваучър се маркира като неизползван
         if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
             voucher_Cards::mark($rec->voucherId, false);
         }
@@ -1746,7 +1752,7 @@ class pos_Receipts extends core_Master
         // Проверка дали ваучерът е вече свободен
         if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
             if($error = voucher_Cards::getRestoreError($rec->voucherId)){
-                core_Statuses::newStatus($error, 'warning');
+                core_Statuses::newStatus($error, 'error');
 
                 return false;
             }

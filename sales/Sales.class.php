@@ -363,6 +363,11 @@ class sales_Sales extends deals_DealMaster
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,silent,removeAndRefreshForm=caseId|paymentType');
         $this->setField('chargeVat', 'salecondSysId=saleChargeVat');
         $this->setField('oneTimeDelivery', 'salecondSysId=salesOneTimeDelivery');
+
+        if (core_Packs::isInstalled('voucher')) {
+            $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=id)', 'caption=Ваучер,input=none');
+            $this->setDbIndex('voucherId');
+        }
     }
     
     
@@ -1480,6 +1485,10 @@ class sales_Sales extends deals_DealMaster
         }
         
         if (isset($fields['-single'])) {
+            if(isset($rec->voucherId)){
+                $row->voucherId = voucher_Cards::getVerbal($rec->voucherId, 'number');
+            }
+
             if(!empty($rec->courierApiPrice)){
                 $row->courierApiPrice = currency_Currencies::decorate($rec->courierApiPrice);
             }
@@ -1544,12 +1553,12 @@ class sales_Sales extends deals_DealMaster
         // Ако не е избрана сметка, от дефолтните
         if ($rec->bankAccountId && !Mode::isReadOnly() && haveRole('powerUser')) {
             $errorStr = null;
-			
-			if(in_array($ownBankRec->state, array('closed', 'rejected'))){
+
+            $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
+            if(in_array($ownBankRec->state, array('closed', 'rejected'))){
                 $errorStr = 'Банковата сметка е закрита|*!';
             }
-			
-            $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
+
             if(in_array($rec->state, array('draft', 'pending'))){
                 $cData = doc_Folders::getContragentData($rec->folderId);
                 $defBankId = null;
@@ -2009,6 +2018,13 @@ class sales_Sales extends deals_DealMaster
         }
 
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
+
+        // Маркиране на ваучера че е използван
+        if(core_Packs::isInstalled('voucher')){
+            if(isset($rec->voucherId)){
+                voucher_Cards::mark($rec->voucherId, true, $mvc->getClassId(), $rec->id, true);
+            }
+        }
     }
     
     
@@ -2323,6 +2339,39 @@ class sales_Sales extends deals_DealMaster
 
         if(countR($save)){
             $Detail->saveArray($save, 'id,autoDiscount');
+        }
+    }
+
+
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if(core_Packs::isInstalled('voucher') && isset($rec->voucherId)){
+            voucher_Cards::mark($rec->voucherId, false);
+        }
+    }
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        // Проверка дали ваучерът е вече свободен
+        if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
+            if($error = voucher_Cards::getRestoreError($rec->voucherId)){
+                core_Statuses::newStatus($error, 'error');
+
+                return false;
+            }
         }
     }
 }

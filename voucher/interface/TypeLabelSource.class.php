@@ -84,7 +84,7 @@ class voucher_interface_TypeLabelSource extends label_ProtoSequencerImpl
         $recs = array_values($query->fetchAll());
 
         $arr = array();
-        for ($i = 1; $i <= $cnt; $i++) {
+        for ($i = 0; $i < $cnt; $i++) {
             $dRec = $recs[$i];
             $res = array('NUMBER' => $dRec->number);
             $arr[] = $res;

@@ -460,14 +460,15 @@ class voucher_Cards extends core_Detail
                 }
             }
             if(!empty($rec->referrer)) return;
-            if($rec->requireReferrer == 'no') return;
+            $requireReferrer = voucher_Types::fetchField($rec->typeId, 'requireReferrer');
+            if($requireReferrer == 'no') return;
         }
 
         $productsWithoutRequiredParams = array();
         $requireReferrerId = cat_Params::force('requireReferrer', 'Изискуем препоръчител', 'cond_type_YesOrNo', null, '', false, false);
         foreach ($products as $productId){
-            $requireReferrer = cat_Products::getParams($productId, $requireReferrerId);
-            if($requireReferrer != 'yes') continue;
+            $requireReferrerVal = cat_Products::getParams($productId, $requireReferrerId);
+            if($requireReferrerVal != 'yes') continue;
             $productsWithoutRequiredParams[] = cat_Products::getTitleById($productId);
         }
 

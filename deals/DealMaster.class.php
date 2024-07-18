@@ -1992,7 +1992,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $allowedFields['deliveryData'] = true;
         $allowedFields['deliveryCalcTransport'] = true;
         $allowedFields['deliveryAdress'] = true;
-        
+        $allowedFields['note'] = true;
+        if(core_Packs::isInstalled('voucher')) {
+            $allowedFields['voucherId'] = true;
+        }
+
         // Проверяваме подадените полета дали са позволени
         if (countR($fields)) {
             foreach ($fields as $fld => $value) {
