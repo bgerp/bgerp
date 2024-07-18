@@ -365,7 +365,7 @@ class sales_Sales extends deals_DealMaster
         $this->setField('oneTimeDelivery', 'salecondSysId=salesOneTimeDelivery');
 
         if (core_Packs::isInstalled('voucher')) {
-            $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=id)', 'caption=Ваучер,input=none');
+            $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=id,allowEmpty)', 'caption=Ваучер,input=none');
             $this->setDbIndex('voucherId');
         }
     }

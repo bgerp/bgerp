@@ -209,7 +209,7 @@ class pos_Receipts extends core_Master
         $this->FLD('policyId', 'key(mvc=price_Lists,select=id)', 'caption=Ваучер,input=none');
 
         if (core_Packs::isInstalled('voucher')) {
-            $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=id)', 'caption=Ваучер,input=none');
+            $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=id,allowEmpty)', 'caption=Ваучер,input=none');
             $this->fetchFieldsBeforeDelete .= ",voucherId";
             $this->setDbIndex('voucherId');
         }
@@ -801,7 +801,7 @@ class pos_Receipts extends core_Master
         $rec->transferredIn = $sId;
         $isBeingClosed = ($rec->state != 'closed');
         $rec->state = 'closed';
-        $rec->voucherId = null;
+
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
         if ($isBeingClosed) {
