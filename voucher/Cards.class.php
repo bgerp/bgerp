@@ -268,7 +268,8 @@ class voucher_Cards extends core_Detail
             $rec = $form->rec;
 
             $errors = $okVouchers = array();
-            $valueArr = explode("\n", $rec->text);
+            $valueArr = preg_split('/[^0-9]+/', $rec->text);
+
             foreach ($valueArr as $v){
                 $res = static::getByNumber($v);
                 if(!$res){
