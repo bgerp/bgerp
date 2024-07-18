@@ -337,4 +337,18 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     {
         store_DocumentPackagingDetail::addBtnsToToolbar($data->toolbar, $mvc->Master, $data->masterId);
     }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if (in_array($action, array('add', 'import', 'createproduct')) && isset($rec)) {
+            $masterRec = $mvc->Master->fetch($rec->shipmentId);
+            if ($masterRec->isReverse == 'yes' && isset($masterRec->reverseContainerId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
 }
