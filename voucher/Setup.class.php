@@ -60,7 +60,7 @@ class voucher_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.6, 'Търговия', 'Ваучери', 'voucher_Cards', 'default', 'ceo,voucher')
+        array(3.4, 'Търговия', 'Ваучери', 'voucher_Cards', 'default', 'ceo, voucher'),
     );
 
 
@@ -84,6 +84,7 @@ class voucher_Setup extends core_ProtoSetup
      */
     public function loadSetupData($itr = '')
     {
+        $res = parent::loadSetupData($itr);
         $modified = $skipped = 0;
         $array = array('default-voucher' => array('title' => 'Стандартен ваучер', 'path' => 'voucher/tpl/DefaultVoucherLabel.shtml', 'lang' => 'bg', 'class' => 'voucher_Types', 'sizes' => array('220', '160')),);
 
@@ -94,7 +95,7 @@ class voucher_Setup extends core_ProtoSetup
         core_Users::cancelSystemUser();
 
         $class = ($modified > 0) ? ' class="green"' : '';
-        $res = "<li{$class}>Променени са са {$modified} шаблона за етикети, пропуснати са {$skipped}</li>";
+        $res .= "<li{$class}>Променени са са {$modified} шаблона за етикети, пропуснати са {$skipped}</li>";
 
         return $res;
     }

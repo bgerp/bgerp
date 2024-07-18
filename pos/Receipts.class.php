@@ -366,8 +366,9 @@ class pos_Receipts extends core_Master
 
         if (isset($fields['-terminal'])) {
             $row->id = ht::createLink($row->id, pos_Receipts::getSingleUrlArray($rec->id), false, array('class' => 'specialLink'));
-
             if (!empty($rec->voucherId)) {
+                $endVoucher = substr($row->voucherId, 12, 4);
+                $row->voucherId = "*{$endVoucher}";
                 if (pos_Receipts::haveRightFor('setvoucher', $rec)) {
                     $row->voucherId .= " " . ht::createLink('', array('pos_Receipts', 'setvoucher', 'id' => $rec->id, 'voucherId' => null, 'ret_url' => true), false, array('ef_icon' => 'img/16/delete.png', 'title' => 'Премахване на избрания ваучър'));
                 }
@@ -924,7 +925,7 @@ class pos_Receipts extends core_Master
         // Ако е инсталиран пакета за ваучъри, но не е инсталиран bgfisc да се провери за референт
         if(core_Packs::isInstalled('voucher') && !core_Packs::isInstalled('bgfisc')){
             $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($rec->id), 'productId');
-            if($error = voucher_Cards::getContoErrors($rec->voucherId, $productArr)){
+            if($error = voucher_Cards::getContoErrors($rec->voucherId, $productArr, $this->getClassId(), $rec->id)){
 
                 followRetUrl(null, $error, 'error');
             }
@@ -991,10 +992,9 @@ class pos_Receipts extends core_Master
 
             if(core_Packs::isInstalled('voucher')){
                 if(isset($rec->voucherId)){
-                    voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id);
+                    voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id, true);
                 }
             }
-
 
             // Нотифициране на драйвера на артикулите, че той е включен в чакаща бележка
             $Products = cls::get('cat_Products');
@@ -1316,18 +1316,22 @@ class pos_Receipts extends core_Master
         if(isset($rec->revertId)){
             core_Statuses::newStatus('Не може да се добави ваучър в сторно бележка|*!', 'error');
         } else {
-            if($voucherId){
-                $rec->voucherId = $voucherId;
-                $voucherRec = voucher_Cards::fetch($voucherId);
-                $rec->policyId = $voucherRec->priceListId;
-                core_Statuses::newStatus("Ваучерът е добавен|*!");
-            } else {
-                $rec->voucherId = null;
-                $rec->policyId = null;
-                core_Statuses::newStatus("Ваучерът е премахнат|*!");
+            if(core_Packs::isInstalled('voucher')){
+                if($voucherId){
+                    $rec->voucherId = $voucherId;
+                    $voucherRec = voucher_Cards::fetch($voucherId);
+                    $rec->policyId = $voucherRec->priceListId;
+                    core_Statuses::newStatus("Ваучерът е добавен|*!");
+                    voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id);
+                } else {
+                    voucher_Cards::mark($rec->voucherId, false);
+                    $rec->voucherId = null;
+                    $rec->policyId = null;
+                    core_Statuses::newStatus("Ваучерът е премахнат|*!");
+                }
             }
-            $this->save($rec);
 
+            $this->save($rec);
             static::recalcPricesInDetail($rec, false, true);
 
             $this->logWrite('Задаване на ваучър', $id);

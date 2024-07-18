@@ -15,7 +15,7 @@
  *
  * @since     v 0.1
  */
-class voucher_Types extends core_Manager
+class voucher_Types extends core_Master
 {
     /**
      * Заглавие
@@ -78,12 +78,30 @@ class voucher_Types extends core_Manager
 
 
     /**
+     * Детайла, на модела
+     */
+    public $details = 'voucher_Cards';
+
+
+    /**
+     * Работен кеш
+     */
+    protected $generateOnShutdown = array();
+
+
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'name';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory');
-        $this->FLD('referrer', 'enum(no=Без,yes=Да)', 'caption=Препоръчител,mandatory,notNull,value=no');
+        $this->FLD('referrer', 'enum(,no=Без,yes=Да)', 'caption=Препоръчител,mandatory');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика');
 
         $this->setdbUnique('name');
@@ -99,9 +117,42 @@ class voucher_Types extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
+        $rec = $form->rec;
 
         $parentOptions = price_Lists::getAccessibleOptions();
         $form->setOptions('priceListId', array('' => '') + $parentOptions);
+
+        if(empty($rec->id)){
+            $form->FLD('count', 'int(Min=1)', 'caption=Брой,mandatory,after=typeId');
+        } else {
+            if(voucher_Cards::count("#typeId = {$rec->id}")){
+                $form->setReadOnly('referrer');
+            }
+        }
+    }
+
+
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+        $mvc->generateOnShutdown[$rec->id] = $rec;
+    }
+
+
+    /**
+     * Изчиства записите, заопашени за запис
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(countR($mvc->generateOnShutdown)){
+            foreach ($mvc->generateOnShutdown as $rec){
+                voucher_Cards::generateCards($rec);
+            }
+        }
     }
 
 
@@ -117,8 +168,6 @@ class voucher_Types extends core_Manager
         if(isset($rec->priceListId)){
             $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
         }
-
-        $row->name = ht::createLink($row->name, array('voucher_Cards', 'list', 'typeId' => $rec->id));
     }
 
 
@@ -128,5 +177,18 @@ class voucher_Types extends core_Manager
     public function getLabelSourceLink($id)
     {
         return static::fetchRec($id)->name;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'delete' && isset($rec)){
+            if(voucher_Cards::count("#typeId = {$rec->id}")){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

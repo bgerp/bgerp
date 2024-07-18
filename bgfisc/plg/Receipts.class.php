@@ -345,7 +345,7 @@ class bgfisc_plg_Receipts extends core_Plugin
 
                 if(core_Packs::isInstalled('voucher')){
                     $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($rec->id), 'productId');
-                    if($errors = voucher_Cards::getContoErrors($rec->voucherId, $productArr)){
+                    if($errors = voucher_Cards::getContoErrors($rec->voucherId, $productArr, $mvc->getClassId(), $rec->id)){
                         throw new core_exception_Expect($errors, 'Несъответствие');
                     }
                 }

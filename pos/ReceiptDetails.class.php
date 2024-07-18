@@ -144,11 +144,8 @@ class pos_ReceiptDetails extends core_Detail
 
         if(pos_Receipts::haveRightFor('setvoucher', $receiptRec)){
             $voucherInfo = voucher_Cards::getByNumber($amount);
-            if($voucherInfo['status'] == voucher_Cards::STATUS_USED){
-                core_Statuses::newStatus('Ваучерът е вече използван|*!', 'error');
-                $success = false;
-            } elseif($voucherInfo['status'] == voucher_Cards::STATUS_INACTIVE){
-                core_Statuses::newStatus('Ваучерът вече не е валиден|*!', 'error');
+            if($voucherInfo['error']){
+                core_Statuses::newStatus($voucherInfo['error'], 'error');
                 $success = false;
             } elseif(isset($voucherInfo['id'])){
                 $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setvoucher', 'id' => $receiptRec->id, 'ajax_mode' => 1, 'voucherId' => $voucherInfo['id']);
@@ -615,10 +612,8 @@ class pos_ReceiptDetails extends core_Detail
                 if($check4Voucher && core_Packs::isInstalled('voucher')){
                     if(pos_Receipts::haveRightFor('setvoucher', $receiptRec)){
                         $voucherInfo = voucher_Cards::getByNumber($rec->ean);
-                        if($voucherInfo['status'] == voucher_Cards::STATUS_USED){
-                            core_Statuses::newStatus('Ваучерът е вече използван|*!', 'error');
-                        } elseif($voucherInfo['status'] == voucher_Cards::STATUS_INACTIVE){
-                            core_Statuses::newStatus('Ваучерът вече не е валиден|*!', 'error');
+                        if($voucherInfo['error']){
+                            core_Statuses::newStatus($voucherInfo['error'], 'error');
                         } elseif(isset($voucherInfo['id'])){
                             $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setvoucher', 'id' => $rec->receiptId, 'ajax_mode' => 1, 'voucherId' => $voucherInfo['id']);
                         }

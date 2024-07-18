@@ -15,7 +15,7 @@
  *
  * @since     v 0.1
  */
-class voucher_Cards extends core_Manager
+class voucher_Cards extends core_Detail
 {
     /**
      * Заглавие
@@ -38,7 +38,13 @@ class voucher_Cards extends core_Manager
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, voucher';
+    public $canEdit = 'no_one';
+
+
+    /**
+     * Заглавие в единствено число
+     */
+    public $canChangestate = 'ceo, voucher';
 
 
     /**
@@ -57,12 +63,6 @@ class voucher_Cards extends core_Manager
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, voucher';
-
-
-    /**
-     * Кой може да генерира карти
-     */
-    public $canGenerate = 'ceo, voucher';
 
 
     /**
@@ -88,6 +88,11 @@ class voucher_Cards extends core_Manager
      */
     const STATUS_USED = 'USED';
 
+    /**
+     * Име на поле от модела, външен ключ към мастър записа
+     */
+    public $masterKey = 'typeId';
+
 
     /**
      * Константа за състояние деактивирано
@@ -108,13 +113,12 @@ class voucher_Cards extends core_Manager
     {
         $this->FLD('number', 'varchar(16)', 'caption=Номер,mandatory,input=none');
         $this->FLD('typeId', 'key(mvc=voucher_Types,select=name)', 'caption=Тип,mandatory,silent,removeAndRefreshForm=referrer');
-        $this->EXT('priceListId', 'voucher_Types', 'externalName=priceListId,externalKey=typeId');
-        $this->EXT('requireReferrer', 'voucher_Types', 'externalName=referrer,externalKey=typeId');
 
         $this->FLD('referrer', 'key2(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Препоръчител');
         $this->FLD('usedOn', 'datetime(format=smartTime)', 'caption=Употреба->Кога,input=none');
         $this->FLD('classId', 'class', 'caption=Обект,input=none');
         $this->FLD('objectId', 'int', 'caption=Употреба->Къде,input=none');
+        $this->FLD('state', 'enum(active=Активно,closed=Затворено,pending=Чакащo)', 'caption=Състояние,input=none');
 
         $this->setdbUnique('number');
         $this->setDbIndex('referrer');
@@ -136,17 +140,6 @@ class voucher_Cards extends core_Manager
             if($requireReferrer == 'no'){
                 $form->setField('referrer', 'input=none');
             }
-        }
-    }
-
-
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        if ($mvc->haveRightFor('generate')) {
-            $data->toolbar->addBtn('Генериране', array($mvc, 'generate', 'ret_url' => true), null, 'ef_icon = img/16/star_2.png,title=Масово създаване на карти');
         }
     }
 
@@ -181,10 +174,16 @@ class voucher_Cards extends core_Manager
         $data->listFilter->FLD('isUsed', 'enum(all=Всички,used=Използвани,unUsed=Неизползвани)');
         $data->listFilter->setDefault('isUsed', 'all');
         $data->listFilter->setFieldTypeParams('typeId', 'allowEmpty');
-        $data->listFilter->showFields = 'search,typeId,isUsed,referrer';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
+
+        if(isset($data->masterMvc)){
+            $data->listFilter->showFields = 'search,isUsed,referrer';
+            unset($data->listFields['typeId']);
+        } else {
+            $data->listFilter->showFields = 'search,typeId,isUsed,referrer';
+        }
 
         if($filter = $data->listFilter->rec){
             if(isset($filter->referrer)){
@@ -237,6 +236,13 @@ class voucher_Cards extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
+
+        if($action == 'delete' && isset($rec)){
+            if($requiredRoles != 'no_one'){
+                //if(pos_Receipts::count("#voucherId = {}"))
+                //$requiredRoles = 'no_one';
+            }
+        }
     }
 
 
@@ -277,7 +283,7 @@ class voucher_Cards extends core_Manager
                     } elseif($res['referrer']) {
                         $errors[] = "Ваучерът е вече свързан|*: <b>{$v}</b>";
                     } else {
-                        $okVouchers[] = (object)array('id' => $res['id'], 'referrer' => $referrerRec->id);
+                        $okVouchers[] = (object)array('id' => $res['id'], 'referrer' => $referrerRec->id, 'state' => 'active');
                     }
                 }
             }
@@ -289,54 +295,10 @@ class voucher_Cards extends core_Manager
 
             if(!$form->gotErrors()){
                 $count = countR($okVouchers);
-                $this->saveArray($okVouchers, 'id,referrer');
+                $this->saveArray($okVouchers, 'id,referrer,state');
 
-                followRetUrl(null, "Обвързани ваучери|*: {$count}");
+                followRetUrl(null, "Свързани ваучери|*: {$count}");
             }
-        }
-
-        $form->toolbar->addSbBtn('Създаване', 'save', 'ef_icon = img/16/star_2.png, title = Създаване на карти');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-
-        // Рендиране на опаковката
-        $tpl = $this->renderWrapping($form->renderHtml());
-        core_Form::preventDoubleSubmission($tpl, $form);
-
-        return $tpl;
-    }
-
-
-    /**
-     * Създаване на ваучери
-     */
-    public function act_Generate()
-    {
-        // Подготвяме форма за започване на нова тема
-        $this->requireRightFor('generate');
-
-        // Подготовка на формата
-        $form = $this->getForm();
-        $form->title = 'Създаване на ваучерни карти';
-        $form->FLD('count', 'int(Min=1)', 'caption=Брой,mandatory,after=typeId');
-        $form->setField('referrer', 'input=none');
-        $form->input();
-
-        // Ако е събмитната формата
-        if ($form->isSubmitted()) {
-            $fRec = $form->rec;
-            $clone = (object)array('typeId' => $fRec->typeId);
-
-            // Генериране на уникални номера за ваучерите
-            foreach (range(1, $fRec->count) as $i){
-                $c = clone $clone;
-                $c->number = self::getNumber();
-                while (self::fetch(array("#number = '[#1#]'", $c->number))) {
-                    $c->number = self::getNumber();
-                }
-                $this->save($c);
-            }
-
-            followRetUrl(null, "Генерирани карти|*: {$fRec->count}");
         }
 
         $form->toolbar->addSbBtn('Създаване', 'save', 'ef_icon = img/16/star_2.png, title = Създаване на карти');
@@ -367,10 +329,13 @@ class voucher_Cards extends core_Manager
         if(is_object($rec)){
             $res['id'] = $rec->id;
             $res['referrer'] = $rec->referrer;
-            if(!empty($rec->usedOn)){
-                $res['status'] = self::STATUS_USED;
+            if($rec->state == 'pending'){
+                $res['error'] = 'Ваучерът още не е активиран|*!';
+            } elseif(!empty($rec->usedOn)){
+                $res['usage'] = array('classId' => $rec->classId, 'objectId' => $rec->objectId, 'usedOn' => $rec->usedOn);
+                $res['error'] = 'Ваучерът е използван|*!';
             } elseif($rec->state == 'closed') {
-                $res['status'] = self::STATUS_INACTIVE;
+                $res['error'] = 'Ваучерът е затворен|*!';
             }
         }
 
@@ -432,11 +397,14 @@ class voucher_Cards extends core_Manager
     public function prepareCards($data)
     {
         $masterRec = $data->masterData->rec;
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 10));
 
         $query = $this->getQuery();
         $data->listFields = arr::make('number=Карта,typeId=Вид,usedOn=Употреба,state=Състояние', true);
         $query->where("#referrer = '{$masterRec->id}'");
         $query->orderBy("#state");
+        $data->Pager->setLimit($query);
+
         while ($rec = $query->fetch()) {
             $row = $this->recToVerbal($rec);
             $data->rows[$rec->id] = $row;
@@ -458,8 +426,13 @@ class voucher_Cards extends core_Manager
         $fieldset = new core_FieldSet("");
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'usedOn');
+
         $details = $table->get($data->rows, $data->listFields);
         $tpl->append($details);
+        if (isset($data->Pager)) {
+            $tpl->append($data->Pager->getHtml());
+        }
 
         if (isset($data->linkBtn)) {
             $tpl->append($data->linkBtn, 'addVoucherBtn');
@@ -476,11 +449,15 @@ class voucher_Cards extends core_Manager
      * @param array $products
      * @return string|void
      */
-    public static function getContoErrors($id, $products)
+    public static function getContoErrors($id, $products, $classId, $objectId)
     {
         if(isset($id)){
             $rec = static::fetch($id);
-            if(!empty($rec->usedOn)) return 'Ваучерът е вече използван|*!';
+            if(!empty($rec->usedOn)) {
+                if(!($classId == $rec->classId && $objectId == $rec->objectId)){
+                    return 'Ваучерът е вече използван|*!';
+                }
+            }
             if(!empty($rec->referrer)) return;
             if($rec->requireReferrer == 'no') return;
         }
@@ -509,7 +486,7 @@ class voucher_Cards extends core_Manager
      * @param int|null $objectId
      * @return void
      */
-    public static function mark($voucherId, $isUsed, $classId = null, $objectId = null)
+    public static function mark($voucherId, $isUsed, $classId = null, $objectId = null, $close = false)
     {
         $rec = static::fetch($voucherId);
 
@@ -517,7 +494,7 @@ class voucher_Cards extends core_Manager
             $rec->usedOn = dt::now();
             $rec->classId = $classId;
             $rec->objectId = $objectId;
-            $rec->state = 'closed';
+            $rec->state = $close ? 'closed' : 'active';
         } else {
             $rec->usedOn = null;
             $rec->classId = null;
@@ -541,5 +518,23 @@ class voucher_Cards extends core_Manager
         if(!empty($vRec->usedOn)) return "Ваучерът е вече използван|*!";
 
         if($vRec->state == 'closed') return "Ваучерът вече не е активен|*";
+    }
+
+
+    public static function generateCards($typeRec)
+    {
+        $clone = (object)array('typeId' => $typeRec->id);
+
+        // Генериране на уникални номера за ваучерите
+        foreach (range(1, $typeRec->count) as $i){
+            $c = clone $clone;
+            $c->number = self::getNumber();
+            while (self::fetch(array("#number = '[#1#]'", $c->number))) {
+                $c->number = self::getNumber();
+            }
+            $c->state = ($typeRec->referrer == 'yes') ? 'pending' : 'active';
+
+            self::save($c);
+        }
     }
 }
