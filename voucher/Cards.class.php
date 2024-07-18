@@ -460,7 +460,7 @@ class voucher_Cards extends core_Detail
                 }
             }
             if(!empty($rec->referrer)) return;
-            $requireReferrer = voucher_Types::fetchField($rec->typeId, 'requireReferrer');
+            $requireReferrer = voucher_Types::fetchField($rec->typeId, 'referrer');
             if($requireReferrer == 'no') return;
         }
 

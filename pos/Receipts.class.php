@@ -1008,6 +1008,10 @@ class pos_Receipts extends core_Master
                 $Driver = cat_Products::getDriver($dRec1->productId);
                 $Driver->invoke('AfterDocumentInWhichIsUsedHasChangedState', array($Products, $dRec1->productId, $this, $rec->id, $Details, $dRec1->id, 'waiting'));
             }
+
+            if(isset($rec->voucherId)){
+                voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id, true);
+            }
         }
     }
 
