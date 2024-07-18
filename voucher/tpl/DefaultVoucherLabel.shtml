@@ -1,3 +1,88 @@
-<div style="padding:15px;background:#eee">
-    [#NUMBER#]
-</div>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Roboto&display=swap" rel="stylesheet">
+
+<style>
+
+
+
+    .vauchers {
+        position: relative;
+        width: 85mm;
+        height: 54mm;
+        text-align: center;
+        vertical-align: middle;
+        border: 0;
+        margin-bottom:10px;
+        display:block;
+        background-position: center;
+        background-size:cover;
+        border-radius:10px;
+        page-break-after: always;
+        font-family: "Noto Sans", sans-serif;
+    }
+    h2 {
+        color: #000;
+        margin: 0;
+        position:absolute;
+        top: 5px;
+        left: 10px;
+        text-align: left;
+        font-weight: 400;;
+
+    }
+
+    .qr {
+        position:absolute;
+        top: 52px;
+        left: 40px;
+        width: 50px;
+    }
+
+    .info {
+        position:absolute;
+        left:8px;
+        font-weight: 400;
+        bottom: 0;
+        color: #000;
+        font-size:0.7em;
+        text-align: justify;
+        width: 300px;
+        line-height: 1.7em;
+        margin: 0 !important;
+
+    }
+    .logo img {
+        width: 65px;
+        right: 7px;
+        bottom: 21px;
+        position: absolute;
+    }
+    .link {
+        position:absolute;
+        top: 94px;
+        font-weight: 400;
+        font-size: 20px;;
+        font-style: normal;
+        letter-spacing: 4px;;
+        left: 10px;
+    }
+    @page  {
+        size: 85mm 54mm;
+        margin:0;
+        padding:0;
+    }
+
+    @media print {
+        body {
+            margin: 0;
+        }
+    }
+</style>
+<section class='vauchers'>
+    <h2>Карта за препоръка</h2>
+    <div class="logo">[#LOGO#]</div>
+    [#QR#]
+    <p class='link'>[#NUMBER#]</p>
+    <p class='info'>[#TEXT#]</p>
+</section>
