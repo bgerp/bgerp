@@ -480,6 +480,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $query->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
 
+            $query->EXT('containerId', 'sales_Sales', 'externalName=containerId,externalKey=saleId');
+
             $query->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
 
             $query->EXT('dealerId', 'sales_Sales', 'externalName=dealerId,externalKey=saleId');
@@ -649,7 +651,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             //rec-a на артикула
             $prodRec = cat_Products::fetch($recPrime->productId);
-
+//bp($recPrime, $rec);
             //Ключ на масива
             $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId . ' | ' . $recPrime->folderId : $recPrime->productId;
             $Doc = doc_Containers::getDocument($recPrime->containerId);
@@ -661,7 +663,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                 $posContragentClassName = core_Classes::fetch($recPrime->contragentClassId)->name;
                 $contragentFolder = $posContragentClassName::fetch($recPrime->contragentId)->folderId;
-                $contragentName = doc_Folders::getTitleById($contragentFolder);
+
 
                 $posKey = $recPrime->contragentClassId . '|' . $recPrime->contragentId;
 
@@ -1244,6 +1246,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
 
         $invDetQuery->EXT('number', 'sales_Invoices', 'externalName=number,externalKey=invoiceId');
+
+        $invDetQuery->EXT('containerId', 'sales_Invoices', 'externalName=containerId,externalKey=invoiceId');
 
         $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
 
