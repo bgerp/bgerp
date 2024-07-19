@@ -158,7 +158,12 @@ class voucher_Cards extends core_Detail
         }
 
         if(isset($rec->classId) && isset($rec->objectId)){
-            $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+            $Class = cls::get($rec->classId);
+            if($Class->hasPlugin('doc_DocumentPlg')){
+                $row->objectId = cls::get($rec->classId)->getLink($rec->objectId, 0);
+            } else {
+                $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+            }
         }
     }
 
@@ -317,9 +322,10 @@ class voucher_Cards extends core_Detail
      * Връща информация за ваучъра от подадения стринг
      *
      * @param string $number - номер за проверка
+     * @param array $ignoreIfUsedIn - игнориране ако е използван в някой документ
      * @return null|stdClass - null, ако не е ваучер или обект с информация за него
      */
-    public static function getByNumber($number)
+    public static function getByNumber($number, $ignoreIfUsedIn = array())
     {
         $number = trim($number);
         if(!static::checkCheckSum($number)) return;
@@ -333,8 +339,11 @@ class voucher_Cards extends core_Detail
             if($rec->state == 'pending'){
                 $res['error'] = 'Ваучерът още не е активиран|*!';
             } elseif(!empty($rec->usedOn)){
-                $res['usage'] = array('classId' => $rec->classId, 'objectId' => $rec->objectId, 'usedOn' => $rec->usedOn);
-                $res['error'] = 'Ваучерът е използван|*!';
+                if(!countR($ignoreIfUsedIn)){
+                    $res['error'] = 'Ваучерът е използван|*!';
+                } elseif(!($ignoreIfUsedIn['classId'] == $rec->classId && $ignoreIfUsedIn['objectId'] == $rec->objectId)){
+                    $res['error'] = 'Ваучерът е използван|*!';
+                }
             } elseif($rec->state == 'closed') {
                 $res['error'] = 'Ваучерът е затворен|*!';
             }

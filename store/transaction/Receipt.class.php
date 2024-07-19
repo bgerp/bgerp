@@ -218,6 +218,17 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                     }
                 }
             } else {
+
+                if($reverse && isset($rec->reverseContainerId)){
+                    //$ReverseDoc
+                    //bp();
+                }
+
+
+
+
+
+
                 $debitAccId = '321';
 
                 $debit = array(

@@ -643,14 +643,24 @@ class eshop_CartDetails extends core_Detail
     public static function updatePriceInfo(&$rec, $domainId = null, $save = false)
     {
         $settings = cms_Domains::getSettings($domainId);
-        $rec->currencyId = isset($rec->currencyId) ? $rec->currencyId : $settings->currencyId;
-        
+        $rec->currencyId = $rec->currencyId ?? $settings->currencyId;
+        $cartRec = eshop_Carts::fetch($rec->cartId);
+
         // Коя е ценовата политика
+        // Ако има ваучер и той е с активна ЦП - нея, ако не тази от потребителя или от домейна
+        $listId = $finalPrice = null;
         $oldListId = $settings->listId;
-        $listId = cms_Helper::getCurrentEshopPriceList($settings);
-        $now = dt::now();
+        if(isset($cartRec->voucherId) && core_Packs::isInstalled('voucher')){
+            $voucherTypeId = voucher_Cards::fetchField($cartRec->voucherId, 'typeId');
+            if($voucherListId = voucher_Types::fetchField($voucherTypeId, 'priceListId')){
+                $listId = $voucherListId;
+            }
+        }
+
+        $listId = $listId ?? cms_Helper::getCurrentEshopPriceList($settings);
 
         // Ако има взема се цената от нея
+        $now = dt::now();
         if (isset($listId)) {
             $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId, $now);
             
@@ -664,7 +674,8 @@ class eshop_CartDetails extends core_Detail
                     $listId = $oldListId;
                 }
             }
-            
+
+            $discount = null;
             $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack, $now);
             if (!empty($priceObject->discount)) {
                 $discount = $priceObject->discount;
@@ -682,7 +693,7 @@ class eshop_CartDetails extends core_Detail
         $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
         
         if(empty($finalPrice) && is_null($price)){
-            if(is_null($price) && is_null($rec->finalPrice)){
+            if(is_null($rec->finalPrice)){
                 
                 return;
             }
@@ -696,7 +707,7 @@ class eshop_CartDetails extends core_Detail
            
             // Ако цената е променена, обновява се
             $update = false;
-            if (!isset($rec->finalPrice) || (isset($rec->finalPrice) && abs(core_Math::diffInPercent($finalPrice, $rec->finalPrice)) > $toleranceDiff)) {
+            if (!isset($rec->finalPrice) || (abs(core_Math::diffInPercent($finalPrice, $rec->finalPrice)) > $toleranceDiff)) {
                 $rec->oldPrice = $rec->finalPrice;
                 $rec->finalPrice = $finalPrice;
                 $rec->discount = $discount;

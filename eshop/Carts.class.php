@@ -211,6 +211,11 @@ class eshop_Carts extends core_Master
         $this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
         
         $this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
+        if (core_Packs::isInstalled('voucher')) {
+            $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=number,allowEmpty)', 'input=none');
+            $this->fetchFieldsBeforeDelete .= ",voucherId";
+            $this->setDbIndex('voucherId');
+        }
         $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceUicNo|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
         $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
@@ -231,7 +236,7 @@ class eshop_Carts extends core_Master
         $this->FLD('haveOnlyServices', 'enum(no=Не,yes=Да)', 'caption=Само услуги,input=none,notNull,value=no');
         $this->FLD('haveProductsWithExpectedDelivery', 'enum(no=Не,yes=Да)', 'caption=Очаквана доставка,input=none,notNull,value=no');
         $this->XPR('orderDate', 'datetime', 'COALESCE(#activatedOn, #createdOn)', 'caption=Дата');
-        
+
         $this->setDbIndex('brid');
         $this->setDbIndex('userId');
         $this->setDbIndex('domainId');
@@ -938,6 +943,12 @@ class eshop_Carts extends core_Master
         $notes = tr("Поръчка") . " #{$rec->id}" . "\n";
         $notes .= tr('Тел|*: ') . "{$rec->tel}" . "\n";
         $notes .= tr('Имейл|*: ') . "{$rec->email}";
+        $hasVoucher = core_Packs::isInstalled('voucher') && isset($rec->voucherId);
+        if ($hasVoucher) {
+            $endVoucher = substr(voucher_Cards::fetchField($rec->voucherId, 'number'), 12, 4);
+            $notes .= "\n" . tr('Ваучър|*: ') . "*{$endVoucher}";
+        }
+
         if(!empty($rec->instruction)){
             $notes .= "\n" . tr('Инструкции|*: ') . "{$rec->instruction}";
         }
@@ -963,7 +974,16 @@ class eshop_Carts extends core_Master
         );
 
         // Коя е ценовата политика
-        $fields['priceListId'] = cms_Helper::getCurrentEshopPriceList($settings);
+        $priceListId = cms_Helper::getCurrentEshopPriceList($settings);
+        if($hasVoucher){
+            $fields['voucherId'] = $rec->voucherId;
+            $voucherTypeId = voucher_Cards::fetchField($rec->voucherId, 'typeId');
+            if($voucherListId = voucher_Types::fetchField($voucherTypeId, 'priceListId')){
+                $priceListId = $voucherListId;
+            }
+        }
+
+        $fields['priceListId'] = $priceListId;
         $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
         if (haveRole('sales', $folderIncharge)) {
             $fields['dealerId'] = $folderIncharge;
@@ -2081,9 +2101,17 @@ class eshop_Carts extends core_Master
         if (isset($rec->paymentId) && !isset($fields['-external'])) {
             $row->paymentId = cond_PaymentMethods::getHyperlink($rec->paymentId, true);
         }
-        
+
+        if(isset($rec->voucherId)){
+            $row->voucherId = voucher_Cards::getVerbal($rec->voucherId, 'number');
+        }
+
         if(isset($fields['-external'])){
-            
+            if(isset($rec->voucherId)){
+                $endVoucher = substr($row->voucherId, 12, 4);
+                $row->voucherId = "*{$endVoucher}";
+            }
+
             // Показване на текст за очаквана доставка
             if($expectedDeliveryText = self::getExpectedDeliveryText($rec, $settings)){
                 $row->EXPECTED_DELIVERY = $expectedDeliveryText;
@@ -2186,7 +2214,11 @@ class eshop_Carts extends core_Master
             $form->setDefault('deliveryCountry', key($form->countries));
             $form->setReadOnly('deliveryCountry');
         }
-        
+
+        if (isset($form->rec->voucherId)) {
+            $form->setDefault('voucherNo', voucher_Cards::fetchField($form->rec->voucherId, 'number'));
+        }
+
         // Ако има условие на доставка то драйвера му може да добави допълнителни полета
         if (isset($form->rec->termId)) {
             
@@ -2210,6 +2242,29 @@ class eshop_Carts extends core_Master
         
         if ($form->isSubmitted()) {
             $rec = $form->rec;
+
+            // Ако има въведен номер на ваучер - той се записва успешно
+            $voucherAddedStatus = false;
+            $oldVoucherId = $rec->voucherId;
+
+            if(!empty($rec->voucherNo)){
+                $vInfo = voucher_Cards::getByNumber($rec->voucherNo, array('classId' => $this->getClassId(), 'objectId' => $rec->id));
+                if(!$vInfo){
+                    $form->setError('voucherNo', 'Невалиден ваучер');
+                } elseif(isset($vInfo['error'])){
+
+                    $form->setError('voucherNo', $vInfo['error']);
+                } elseif(isset($vInfo['id'])) {
+                    if($rec->voucherId != $vInfo['id']){
+                        $voucherAddedStatus = true;
+                    }
+                    $rec->voucherId = $vInfo['id'];
+                } else {
+                    $rec->voucherId = null;
+                }
+            } else {
+                $rec->voucherId = null;
+            }
 
             // Проверка на имената да са поне две с поне 2 букви
             if (!core_Users::checkNames($rec->personNames)) {
@@ -2284,7 +2339,20 @@ class eshop_Carts extends core_Master
                 $this->updateMaster($rec);
                 core_Lg::pop();
                 eshop_Carts::logWrite("Попълване на данни за поръчката от външната част", $rec->id);
-                
+                if($voucherAddedStatus){
+                    core_Statuses::newStatus('Ваучерът е приложен към текущата поръчка');
+                }
+
+                if(core_Packs::isInstalled('voucher')){
+                    if(isset($rec->voucherId)){
+                        voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id);
+                    }
+
+                    if(isset($oldVoucherId) && $rec->voucherId != $oldVoucherId){
+                        voucher_Cards::mark($oldVoucherId, false);
+                    }
+                }
+
                 return followRetUrl();
             }
         }
@@ -2405,6 +2473,10 @@ class eshop_Carts extends core_Master
         if ($settings->mandatoryEcartContactFields == 'company') {
             $form->setDefault('makeInvoice', 'company');
             $form->setField('makeInvoice', 'input=hidden');
+        }
+
+        if(core_Packs::isInstalled('voucher')){
+            $form->FLD('voucherNo', 'varchar(16)', 'caption=Плащане->Ваучер,after=paymentTermId');
         }
     }
     
@@ -3122,6 +3194,10 @@ class eshop_Carts extends core_Master
             // Ако има нови ключови думи, добавят се
             if (!empty($detailsKeywords)) {
                 $res = ' ' . $res . ' ' . $detailsKeywords;
+            }
+
+            if(isset($rec->voucherId)){
+                $res = ' ' . $res . ' ' . plg_Search::normalizeText(voucher_Cards::fetchField($rec->voucherId, 'number'));
             }
         }
     }

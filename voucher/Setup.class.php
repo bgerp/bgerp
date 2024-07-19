@@ -71,7 +71,7 @@ class voucher_Setup extends core_ProtoSetup
     {
         $html = parent::install();
 
-        foreach (array('pos_Receipts', 'sales_Sales') as $cls){
+        foreach (array('pos_Receipts', 'sales_Sales', 'eshop_Carts') as $cls){
             $Class = cls::get($cls);
             $Class->setupMvc();
         }

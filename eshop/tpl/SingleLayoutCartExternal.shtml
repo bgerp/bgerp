@@ -74,6 +74,11 @@
                   <td class="aright">|Плащане|*:</td><td> [#paymentId#]</td>
                </tr>
                <!--ET_END paymentId-->
+               <!--ET_BEGIN voucherId-->
+               <tr>
+                  <td class="aright">|Ваучер|*:</td><td> [#voucherId#]</td>
+               </tr>
+               <!--ET_END voucherId-->
 			<!--ET_END SALE_BLOCK-->
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
