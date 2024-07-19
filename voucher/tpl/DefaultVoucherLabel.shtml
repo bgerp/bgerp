@@ -22,6 +22,7 @@
         border-left: 1px solid #ccc;
         font-family: "Noto Sans", sans-serif;
     }
+
     h2 {
         color: #000;
         margin: 0;
