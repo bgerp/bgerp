@@ -80,9 +80,9 @@
     }
 </style>
 <section class='vauchers'>
-    <h2>Карта за препоръка</h2>
-    <div class="logo">[#LOGO#]</div>
-    [#QR#]
+    <h2>Карта за препоръка</h2>y
+    <div class="logo">[#IMAGE_100_100#]</div>
+    [#QR_CODE_100#]
     <p class='link'>[#NUMBER#]</p>
     <p class='info'>[#TEXT#]</p>
 </section>
