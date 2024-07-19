@@ -3,22 +3,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Roboto&display=swap" rel="stylesheet">
 
 <style>
-
-
-
+    .label-table {
+        border-collapse:collapse !important;
+    }
+    .label-table table td {
+        padding:0;
+        border: none !important;
+    }
     .vauchers {
         position: relative;
         width: 85mm;
         height: 54mm;
         text-align: center;
         vertical-align: middle;
-        border: 0;
-        margin-bottom:10px;
         display:block;
-        background-position: center;
-        background-size:cover;
-        border-radius:10px;
-        page-break-after: always;
+        border-radius:0;
+        border-bottom: 1px solid #ccc;
+        border-left: 1px solid #ccc;
         font-family: "Noto Sans", sans-serif;
     }
     h2 {
@@ -32,11 +33,12 @@
 
     }
 
-    .qr {
+    .qr img {
         position:absolute;
         top: 52px;
         left: 40px;
         width: 50px;
+        height: 50px;
     }
 
     .info {
@@ -53,30 +55,21 @@
 
     }
     .logo img {
-        width: 65px;
+        width: 120px;
+        height: auto;
         right: 7px;
-        bottom: 21px;
+        top:50%;
+        margin-top: -40px;
         position: absolute;
     }
     .link {
         position:absolute;
-        top: 94px;
+        top: 100px;
         font-weight: 400;
         font-size: 20px;;
         font-style: normal;
         letter-spacing: 4px;;
         left: 10px;
-    }
-    @page  {
-        size: 85mm 54mm;
-        margin:0;
-        padding:0;
-    }
-
-    @media print {
-        body {
-            margin: 0;
-        }
     }
 </style>
 <section class='vauchers'>
