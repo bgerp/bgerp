@@ -776,11 +776,12 @@ class label_Templates extends core_Master
                     } elseif ($placeholder == 'EAN_ROTATED') {
                         $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'ean13', 'Ratio' => '4', 'Width' => '160', 'Height' => '50', 'Rotation' => 'yes');
                         label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-                    }elseif($placeholder == 'QR_CODE'){
-                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '60', 'Height' => '60', 'Rotation' => 'no');
+                    } elseif(strpos($placeholder, 'QR_CODE_') !== false){
+                        $split = explode('_', $placeholder);
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => $split[2], 'Height' => $split[2], 'Rotation' => 'no');
                         label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
-                    } elseif($placeholder == 'QR_CODE_90'){
-                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '90', 'Height' => '90', 'Rotation' => 'no');
+                    } elseif($placeholder == 'QR_CODE'){
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '60', 'Height' => '60', 'Rotation' => 'no');
                         label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
                     } elseif($placeholder == 'BARCODE_WORK_CARDS'){
                         $params = array('Showing' => 'barcode', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '120', 'Height' => '60', 'Rotation' => 'no');
@@ -797,8 +798,13 @@ class label_Templates extends core_Master
                         if ($placeholder == 'PREVIEW') {
                             $type = 'image';
                             $params = array('Width' => planning_Setup::get('TASK_LABEL_PREVIEW_WIDTH'), 'Height' => planning_Setup::get('TASK_LABEL_PREVIEW_HEIGHT'));
+                        } elseif(strpos($placeholder, 'IMAGE_') !== false){
+                            $split = explode('_', $placeholder);
+                            $width = $split[1];
+                            $height = $split[2] ? $split[2] : $split[1];
+                            $type = 'image';
+                            $params = array('Width' => $width, 'Height' => $height);
                         }
-                        
                         label_TemplateFormats::addToTemplate($tRec->id, $placeholder, $type, $params);
                     }
                 }
