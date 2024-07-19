@@ -2221,7 +2221,7 @@ class sales_Sales extends deals_DealMaster
             return false;
         }
 
-        // Ако попирнцип бележката не може да се приключи - да не може да се и прехвърля
+        // Ако е инсталир пакета за ваучери проверка дали може да се контира
         if(core_Packs::isInstalled('voucher')){
             $dQuery = sales_SalesDetails::getQuery();
             $dQuery->where("#saleId = {$rec->id}");

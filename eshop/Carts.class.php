@@ -737,7 +737,18 @@ class eshop_Carts extends core_Master
             
             return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
         }
-        
+
+        if(core_Packs::isInstalled('voucher')){
+            $dQuery = eshop_CartDetails::getQuery();
+            $dQuery->where("#cartId = {$rec->id}");
+            $dQuery->show('productId');
+            $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+            if($error = voucher_Cards::getContoErrors($rec->voucherId, $productIds, $this->getClassId(), $rec->id)){
+
+                return new Redirect(array('eshop_Carts', 'view', 'id' => $rec->id), $error, 'error');
+            }
+        }
+
         $description = Request::get('description', 'varchar');
         $accountId = Request::get('accountId', 'key(mvc=bank_OwnAccounts)');
         

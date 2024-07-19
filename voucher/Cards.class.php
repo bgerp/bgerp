@@ -117,8 +117,8 @@ class voucher_Cards extends core_Detail
         $this->FLD('referrer', 'key2(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Препоръчител');
         $this->FLD('usedOn', 'datetime(format=smartTime)', 'caption=Употреба->Кога,input=none');
         $this->FLD('classId', 'class', 'caption=Обект,input=none');
-        $this->FLD('objectId', 'int', 'caption=Употреба->Къде,input=none');
-        $this->FLD('state', 'enum(active=Активно,closed=Затворено,pending=Чакащo)', 'caption=Състояние,input=none');
+        $this->FLD('objectId', 'int', 'caption=Употреба->Къде,input=none,tdClass=leftCol');
+        $this->FLD('state', 'enum(active=Активно,closed=Затворено,pending=Чакащо)', 'caption=Състояние,input=none');
 
         $this->setdbUnique('number');
         $this->setDbIndex('referrer');
@@ -176,18 +176,18 @@ class voucher_Cards extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('isUsed', 'enum(all=Всички,used=Използвани,unUsed=Неизползвани)');
-        $data->listFilter->setDefault('isUsed', 'all');
+        $data->listFilter->FLD('filter', 'enum(all=Всички,used=Използвани,unUsed=Неизползвани,pending=Чакащи,closed=Затворени,withReferrers=От препоръчители)');
+        $data->listFilter->setDefault('filter', 'all');
         $data->listFilter->setFieldTypeParams('typeId', 'allowEmpty');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
 
         if(isset($data->masterMvc)){
-            $data->listFilter->showFields = 'search,isUsed,referrer';
+            $data->listFilter->showFields = 'search,filter,referrer';
             unset($data->listFields['typeId']);
         } else {
-            $data->listFilter->showFields = 'search,typeId,isUsed,referrer';
+            $data->listFilter->showFields = 'search,typeId,filter,referrer';
         }
 
         if($filter = $data->listFilter->rec){
@@ -201,8 +201,14 @@ class voucher_Cards extends core_Detail
                 unset($data->listFields['typeId']);
             }
 
-            if($filter->isUsed != 'all'){
-                $where = $filter->isUsed == 'used' ? "#usedOn IS NOT NULL" : "#usedOn IS NULL";
+            if($filter->filter == 'withReferrers'){
+                $data->query->where("#referrer IS NOT NULL");
+            } elseif($filter->filter == 'pending'){
+                $data->query->where("#state = 'pending'");
+            } elseif($filter->filter == 'closed'){
+                $data->query->where("#state = 'closed'");
+            } elseif($filter->filter != 'all'){
+                $where = $filter->filter == 'used' ? "#usedOn IS NOT NULL" : "#usedOn IS NULL";
                 $data->query->where($where);
             }
         }
@@ -455,24 +461,24 @@ class voucher_Cards extends core_Detail
     /**
      * Връща дали има грешка при контиране
      *
-     * @param int $id
-     * @param array $products
-     * @return string|void
+     * @param int $id         - ид на ваучер
+     * @param array $products - масив от ид-та на артикули
+     * @param int $classId    - ид на клас
+     * @param int $objectId   - ид на обект
+     * @return string|void    - съобщение за грешка или null ако всичко е ок
      */
     public static function getContoErrors($id, $products, $classId, $objectId)
     {
         if(isset($id)){
             $rec = static::fetch($id);
             if(!empty($rec->usedOn)) {
-                if(!($classId == $rec->classId && $objectId == $rec->objectId)){
-                    return 'Ваучерът е вече използван|*!';
-                }
+                if(!($classId == $rec->classId && $objectId == $rec->objectId)) return 'Ваучерът е вече използван|*!';
             }
+
             if(!empty($rec->referrer)) return;
-            $requireReferrer = voucher_Types::fetchField($rec->typeId, 'referrer');
-            if($requireReferrer == 'no') return;
         }
 
+        // Ако има артикули, които изискват вауер от пропоръчител
         $productsWithoutRequiredParams = array();
         $requireReferrerId = cat_Params::force('requireReferrer', 'Изискуем препоръчител', 'cond_type_YesOrNo', null, '', false, false);
         foreach ($products as $productId){
@@ -482,6 +488,9 @@ class voucher_Cards extends core_Detail
         }
 
         if(countR($productsWithoutRequiredParams)){
+
+            // Ако няма ваучер или има такъв без препоръчител, тогава ще се покаже грешката
+            if(isset($rec) && !empty($rec->referrer)) return;
 
             return 'Следните артикули изискват ваучър от препоръчител|*: ' . implode(', ', $productsWithoutRequiredParams);
         }
