@@ -763,6 +763,15 @@ class pos_Receipts extends core_Master
         expect($contragentClass->fetch($contragentId));
         $this->requireRightFor('transfer', $rec);
 
+        // Ако попирнцип бележката не може да се приключи - да не може да се и прехвърля
+        if(core_Packs::isInstalled('voucher')){
+            $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($rec->id), 'productId');
+            if($error = voucher_Cards::getContoErrors($rec->voucherId, $productArr, $this->getClassId(), $rec->id)){
+
+                return new redirect(array('pos_Terminal', 'open', 'receiptId' => $rec->id), $error, 'error');
+            }
+        }
+
         // Подготвяме масива с данните на новата продажба, подаваме склада и касата на точката
         $posRec = pos_Points::fetch($rec->pointId);
         $settings = pos_Points::getSettings($rec->pointId);

@@ -343,7 +343,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'expectedTransportCost,valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
+    public $fieldsNotToClone = 'expectedTransportCost,valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions,voucherId';
 
 
     /**
@@ -2219,6 +2219,20 @@ class sales_Sales extends deals_DealMaster
             core_Statuses::newStatus($errorMsg, 'error');
 
             return false;
+        }
+
+        // Ако попирнцип бележката не може да се приключи - да не може да се и прехвърля
+        if(core_Packs::isInstalled('voucher')){
+            $dQuery = sales_SalesDetails::getQuery();
+            $dQuery->where("#saleId = {$rec->id}");
+            $dQuery->show('productId');
+            $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+            if($error = voucher_Cards::getContoErrors($rec->voucherId, $productIds, $mvc->getClassId(), $rec->id)){
+
+                core_Statuses::newStatus($error, 'error');
+
+                return false;
+            }
         }
     }
 

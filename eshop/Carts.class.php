@@ -1334,6 +1334,10 @@ class eshop_Carts extends core_Master
         // Ако се изтрие кошницата изтруват се и детайлите
         foreach ($query->getDeletedRecs() as $rec) {
             eshop_CartDetails::delete("#cartId = {$rec->id}");
+
+            if(core_Packs::isInstalled('voucher') && isset($rec->voucherId)){
+                voucher_Cards::mark($rec->voucherId, false);
+            }
         }
     }
     
