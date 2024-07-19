@@ -183,7 +183,7 @@ class planning_Centers extends core_Master
         $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Предупреждение');
         $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Критично');
         $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Параметър,silent,removeAndRefreshForm=paramExpectedNetMeasureId', "unit= |по количеството от Прогреса|*");
-        $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Мярка,input=hidden, "unit= (|каква е мярката на избрания параметър|*)"');
+        $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Мярка,input=hidden', "unit= (|каква е мярката на избрания параметър|*)");
         $this->FLD('showMaxPreviousTasksInATask', 'int', 'caption=За колко от предходните Операции да се визуализира готовността->До');
         $this->FLD('autoCreateTaskState', 'enum(auto=Автоматично,pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние,value=auto,notNull');
 
