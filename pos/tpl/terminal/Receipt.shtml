@@ -18,7 +18,7 @@
 	<table class='total'>
 		<!--ET_BEGIN voucherId-->
 		<tr>
-			<td colspan=4 style="float:right;width:100%;"><span class="quiet">|Ваучър|*</span>: [#voucherId#]</td>
+			<td colspan=4 style="float:right;width:100%;"><span class="quiet">|Ваучер|*</span>: [#voucherId#]</td>
 		</tr>
 		<!--ET_END voucherId-->
 		<tr>

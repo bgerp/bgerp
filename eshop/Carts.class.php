@@ -957,7 +957,7 @@ class eshop_Carts extends core_Master
         $hasVoucher = core_Packs::isInstalled('voucher') && isset($rec->voucherId);
         if ($hasVoucher) {
             $endVoucher = substr(voucher_Cards::fetchField($rec->voucherId, 'number'), 12, 4);
-            $notes .= "\n" . tr('Ваучър|*: ') . "*{$endVoucher}";
+            $notes .= "\n" . tr('Ваучер|*: ') . "*{$endVoucher}";
         }
 
         if(!empty($rec->instruction)){

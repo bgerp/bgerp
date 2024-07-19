@@ -371,7 +371,7 @@ class pos_Receipts extends core_Master
                 $endVoucher = substr($row->voucherId, 12, 4);
                 $row->voucherId = "*{$endVoucher}";
                 if (pos_Receipts::haveRightFor('setvoucher', $rec)) {
-                    $row->voucherId .= " " . ht::createLink('', array('pos_Receipts', 'setvoucher', 'id' => $rec->id, 'voucherId' => null, 'ret_url' => true), false, array('ef_icon' => 'img/16/delete.png', 'title' => 'Премахване на избрания ваучър'));
+                    $row->voucherId .= " " . ht::createLink('', array('pos_Receipts', 'setvoucher', 'id' => $rec->id, 'voucherId' => null, 'ret_url' => true), false, array('ef_icon' => 'img/16/delete.png', 'title' => 'Премахване на избрания ваучер'));
                 }
             }
         } else {
@@ -943,7 +943,7 @@ class pos_Receipts extends core_Master
 
         $this->requireRightFor('close', $rec);
 
-        // Ако е инсталиран пакета за ваучъри, но не е инсталиран bgfisc да се провери за референт
+        // Ако е инсталиран пакета за ваучери, но не е инсталиран bgfisc да се провери за референт
         if(core_Packs::isInstalled('voucher') && !core_Packs::isInstalled('bgfisc')){
             $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($rec->id), 'productId');
             if($error = voucher_Cards::getContoErrors($rec->voucherId, $productArr, $this->getClassId(), $rec->id)){
@@ -1353,7 +1353,7 @@ class pos_Receipts extends core_Master
             $this->save($rec);
             static::recalcPricesInDetail($rec, false, true);
 
-            $this->logWrite('Задаване на ваучър', $id);
+            $this->logWrite('Задаване на ваучер', $id);
 
             $operation = $paidWith ? 'payment' : 'add';
             $sign = $paidWith ? '!=' : '=';
@@ -1748,7 +1748,7 @@ class pos_Receipts extends core_Master
     {
         $rec = $mvc->fetchRec($id);
 
-        // Ако има ваучър се маркира като неизползван
+        // Ако има ваучер се маркира като неизползван
         if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
             voucher_Cards::mark($rec->voucherId, false);
         }

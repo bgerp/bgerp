@@ -270,8 +270,8 @@ class voucher_Cards extends core_Detail
 
         // Подготовка на формата
         $form = cls::get('core_Form');
-        $form->title = "Ваучъри към препоръчител|*: " . cls::get('crm_Persons')->getFormTitleLink($referrerRec);;
-        $form->FLD('text', 'text(rows=5)', 'caption=Ваучъри,mandatory');
+        $form->title = "Ваучери към препоръчител|*: " . cls::get('crm_Persons')->getFormTitleLink($referrerRec);;
+        $form->FLD('text', 'text(rows=5)', 'caption=Ваучери,mandatory');
         $form->input();
 
         // Ако е събмитната формата
@@ -325,7 +325,7 @@ class voucher_Cards extends core_Detail
 
 
     /**
-     * Връща информация за ваучъра от подадения стринг
+     * Връща информация за ваучера от подадения стринг
      *
      * @param string $number - номер за проверка
      * @param array $ignoreIfUsedIn - игнориране ако е използван в някой документ
@@ -492,7 +492,7 @@ class voucher_Cards extends core_Detail
             // Ако няма ваучер или има такъв без препоръчител, тогава ще се покаже грешката
             if(isset($rec) && !empty($rec->referrer)) return;
 
-            return 'Следните артикули изискват ваучър от препоръчител|*: ' . implode(', ', $productsWithoutRequiredParams);
+            return 'Следните артикули изискват ваучер от препоръчител|*: ' . implode(', ', $productsWithoutRequiredParams);
         }
     }
 
