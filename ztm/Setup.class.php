@@ -73,6 +73,7 @@ class ztm_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'ztm_Devices',
+        'ztm_Notes',
         'ztm_Groups',
         'ztm_Registers',
         'ztm_RegisterValues',
@@ -135,5 +136,37 @@ class ztm_Setup extends core_ProtoSetup
                 }
             }
         }
+    }
+
+
+    /**
+     * Миграция за прехвръляне на профилите в забележки
+
+     */
+    public function profilesToNotes2430ddd()
+    {
+        $pQuery = ztm_Profiles::getQuery();
+        while ($pRec = $pQuery->fetch()) {
+            if (!trim($pRec->description)) {
+
+                continue;
+            }
+
+            $zQuery = ztm_Devices::getQuery();
+            $zQuery->where(array("#profileId = '[#1#]'", $pRec->id));
+            while ($zRec = $zQuery->fetch()) {
+                $nRec = new stdClass();
+                $nRec->device = $zRec->name;
+                $nRec->state = 'active';
+                $nRec->note = $pRec->description;
+                $nRec->importance = 'normal';
+
+                ztm_Notes::save($nRec);
+            }
+        }
+
+        ztm_Profiles::truncate();
+
+        return 'yes';
     }
 }

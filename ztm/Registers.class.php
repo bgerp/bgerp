@@ -68,15 +68,22 @@ class ztm_Registers extends core_Master
      *
      * @var string
      */
-    public $listFields = 'id, name, type, range, plugin, scope, default, description';
+    public $listFields = 'id, name, type, range, plugin, scope, default, profileIds, description';
 
 
     /**
      * @var string
      */
-    public $searchFields = 'name, type, range, plugin, scope, default, description';
-    
-    
+    public $searchFields = 'name, type, range, plugin, scope, default, profileIds, description';
+
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'powerUser';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -88,8 +95,10 @@ class ztm_Registers extends core_Master
         $this->FLD('plugin', 'varchar(64)', 'caption=Модул');
         $this->FLD('scope', 'enum(system=Система, device=Устройство, global=Глобално, both=И двете)', 'caption=Обхват, oldFieldName=priority');
         $this->FLD('default', 'text', 'caption=Дефолтна стойност');
+        $this->FLD('profileIds', 'keylist(mvc=ztm_Profiles, select=name)', 'caption=Профили');
+//        $this->FLD('format', 'enum(,temperature=Температура, datalen_byte=Данни, time_sec=Време (s), time_min=Време (m), time_hour=Време (h))', 'caption=Формат');
         $this->FLD('description', 'text', 'caption=Описание на регистъра');
-        
+
         $this->setDbUnique('name');
     }
     
@@ -121,14 +130,21 @@ class ztm_Registers extends core_Master
 //             4 => 'scope',
 //             5 => 'default',
 //             6 => 'description',
+//             7 => 'profiles',
 //         );
-        
-        $cntObj = csv_Lib::importOnce($this, 'ztm/csv/Registri.csv');
+
+        $delete = false;
+        // Ако миграцията е успешна, изтриваме регистрите
+        if (cls::get('ztm_Setup')->callMigrate('profilesToNotes2430ddd', 'ztm') == 'yes') {
+            $delete = 'everytime';
+        }
+
+        $cntObj = csv_Lib::importOnce($this, 'ztm/csv/Registri.csv', array(), array(), array(), $delete);
         $res = $cntObj->html;
 
         return $res;
     }
-    
+
     
     /**
      * Какъв наш тип отговаря на техния
@@ -289,6 +305,18 @@ class ztm_Registers extends core_Master
     {
 //         $rec->default = trim($rec->default, '"');
         $rec->state = 'active';
+        if ($rec->profiles) {
+            $pArr = explode('|', $rec->profiles);
+            $pIdArr = array();
+            foreach ($pArr as $pSysId) {
+                $pId = ztm_Profiles::getIdFromSysId($pSysId);
+                if ($pId) {
+                    $pIdArr[$pId] = $pId;
+                }
+            }
+
+            $rec->profileIds = type_Keylist::fromArray($pIdArr);
+        }
     }
     
     

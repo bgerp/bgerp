@@ -18,12 +18,12 @@ class ztm_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('ztm_Devices', 'Устройства', 'ztm, ceo');
-        $this->TAB('ztm_Profiles', 'Профили', 'ztm, ceo');
-        $this->TAB('ztm_Groups', 'Групи', 'ztm, ceo');
-        
-        $this->TAB('ztm_RegisterValues', 'Регистри->Стойности', 'ztm, ceo');
-        $this->TAB('ztm_Registers', 'Регистри->Регистри', 'ztm, ceo');
-        $this->TAB('ztm_LongValues', 'Регистри->Дълги стойности', 'debug');
-//        $this->TAB('ztm_Simulation', 'Симулация->Топлинна', 'debug');
+        $this->TAB('ztm_RegisterValues', 'Стойности', 'ztm, ceo');
+        $this->TAB('ztm_Profiles', 'Настройки->Профили', 'ztm, ceo');
+        $this->TAB('ztm_Registers', 'Настройки->Регистри', 'ztm, ceo');
+        $this->TAB('ztm_Groups', 'Настройки->Групи', 'ztm, ceo');
+
+        $this->TAB('ztm_LongValues', 'Debug->Дълги стойности', 'debug');
+        $this->TAB('ztm_Notes', 'Debug->Дневник', 'debug');
     }
 }

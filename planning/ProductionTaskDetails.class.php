@@ -1452,6 +1452,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
         if(Mode::is('getLinkedObj') || Mode::is('inlineDocument')) {
             unset($data->listFields['productId']);
             return ;

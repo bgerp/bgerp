@@ -298,17 +298,19 @@ class select2_Plugin extends core_Plugin
         $maxSuggestions = $invoker->getMaxSuggestions();
         
         $ajaxUrl = '';
-        
+
+        $matchOnlyStartsWith = $invoker->params['find'] == 'everywhere' ? false : true;
+
         if (!$invoker->params['parentId'] && $cnt > $maxSuggestions) {
             self::setHandler($invoker, $value);
             
-            $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1));
+            $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1, 'matchOnlyStartsWith' => $matchOnlyStartsWith));
         }
 
         $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
 
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl, (boolean)$invoker->params['parentId'], $invoker->params['forceOpen'], $minimumResultsForSearch);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl, (boolean)$invoker->params['parentId'], $invoker->params['forceOpen'], $minimumResultsForSearch, $matchOnlyStartsWith);
 
         return false;
     }
@@ -447,8 +449,10 @@ class select2_Plugin extends core_Plugin
         }
         
         $q = Request::get('q');
-        
-        select2_Adapter::getAjaxRes('keylist', $hnd, $q, $maxSuggestions);
+
+        $matchOnlyStartsWith = Request::get('matchOnlyStartsWith') ? true : false;
+
+        select2_Adapter::getAjaxRes('keylist', $hnd, $q, $maxSuggestions, $matchOnlyStartsWith);
         
         return false;
     }
