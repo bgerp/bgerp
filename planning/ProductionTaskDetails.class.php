@@ -1126,7 +1126,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Линк към прогреса филтриран по сериен номер
         if (planning_ProductionTaskDetails::haveRightFor('list')) {
-            $serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $serialVerbal), false, 'title=Към историята на серийния номер');
+            $serialVerbal = ht::createLink($serialVerbal, array('planning_ProductionTaskDetails', 'list', 'search' => $serialVerbal), false, "title=Към историята на серийния номер,id={$serial}");
         }
 
         return $serialVerbal;
