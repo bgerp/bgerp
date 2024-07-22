@@ -18,7 +18,7 @@ class ztm_Devices extends core_Master
      * Заглавие на модела
      */
     public $title = 'Устройства';
-    public $singleTitle = 'Устройсво';
+    public $singleTitle = 'Устройство';
 
 
     /**
