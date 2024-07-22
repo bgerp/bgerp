@@ -68,7 +68,7 @@ class voucher_Types extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,referrer,priceListId,state,createdOn,createdBy';
+    public $listFields = 'name,count=Карти,referrer,priceListId,state,createdOn,createdBy';
 
 
     /**
@@ -168,6 +168,8 @@ class voucher_Types extends core_Master
         if(isset($rec->priceListId)){
             $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
         }
+
+        $row->count = core_Type::getByName('int')->toVerbal(voucher_Cards::count("#typeId = {$rec->id}"));
     }
 
 

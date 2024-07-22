@@ -185,7 +185,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
         $productTypeParams = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'generic');
         if($masterRec->isReverse == 'no'){
-            $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId);
+            $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId, 'threadId' => $masterRec->threadId);
             $productTypeParams['priceData'] = $priceData;
         } else {
             if($mvc->Master->isDocForReturnFromDocument($masterRec)){
