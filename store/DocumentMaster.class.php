@@ -670,14 +670,6 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
-
-            if ($rec->isReverse == 'yes') {
-                $row->operationSysId = tr('Връщане на стока');
-                if(isset($rec->reverseContainerId)){
-                    $row->operationSysId .= tr("|* |от|* ") . doc_Containers::getDocument($rec->reverseContainerId)->getLink(0, array('ef_icon' => false));
-                }
-            }
-
             core_Lg::pop();
 
         } elseif (isset($fields['-list'])) {
@@ -796,7 +788,6 @@ abstract class store_DocumentMaster extends core_Master
     public function pushDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 
         // Конвертираме данъчната основа към валутата идваща от продажбата
         if(isset($rec->locationId)){

@@ -454,7 +454,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $itemId = acc_items::fetchItem('purchase_Purchases', $id)->id;
         
         $delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit', null, array(null, $itemId, null))->amount;
-        $delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912')->amount;
+        $delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912', array(), array(store_ShipmentOrders::getClassId()))->amount;
         
         return $delivered;
     }

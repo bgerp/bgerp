@@ -187,6 +187,10 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         if($masterRec->isReverse == 'no'){
             $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId);
             $productTypeParams['priceData'] = $priceData;
+        } else {
+            if($mvc->Master->isDocForReturnFromDocument($masterRec)){
+                $form->setReadOnly('packPrice');
+            }
         }
         $form->setFieldTypeParams('productId', $productTypeParams);
 
