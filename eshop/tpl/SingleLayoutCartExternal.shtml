@@ -44,7 +44,7 @@
          <div class = 'cart-view-buttons-right' style="margin-bottom: 10px;">[#CART_TOOLBAR_TOP_RIGHT#]</div>
          <!--ET_END CART_TOOLBAR_TOP_RIGHT-->
       <!--ET_BEGIN activeFolderId-->
-            <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
+            <div style="padding-bottom: 5px;">|Папка|*: [#activeFolderId#]</div>
             <!--ET_END activeFolderId-->
          <!--ET_BEGIN SALE_BLOCK-->
          [#SALE_BLOCK#]

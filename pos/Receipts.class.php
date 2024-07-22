@@ -373,6 +373,7 @@ class pos_Receipts extends core_Master
                 if (pos_Receipts::haveRightFor('setvoucher', $rec)) {
                     $row->voucherId .= " " . ht::createLink('', array('pos_Receipts', 'setvoucher', 'id' => $rec->id, 'voucherId' => null, 'ret_url' => true), false, array('ef_icon' => 'img/16/delete.png', 'title' => 'Премахване на избрания ваучер'));
                 }
+                $row->voucherCaption = tr('Ваучер');
             }
         } else {
             if (!empty($rec->voucherId)) {
