@@ -103,6 +103,7 @@ class voucher_Types extends core_Master
         $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory');
         $this->FLD('referrer', 'enum(,no=Без,yes=Да)', 'caption=Препоръчител,mandatory');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика');
+        $this->FNC('count', 'int', 'single=none');
 
         $this->setdbUnique('name');
     }

@@ -156,6 +156,8 @@ class voucher_Cards extends core_Detail
         if(isset($rec->referrer)){
             $row->referrer = crm_Persons::getHyperlink($rec->referrer, true);
         }
+        $row->typeId = voucher_Types::getHyperlink($rec->typeId);
+
 
         if(isset($rec->classId) && isset($rec->objectId)){
             $Class = cls::get($rec->classId);
@@ -166,6 +168,7 @@ class voucher_Cards extends core_Detail
             }
         }
     }
+
 
 
     /**
