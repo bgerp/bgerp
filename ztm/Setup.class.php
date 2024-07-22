@@ -141,9 +141,8 @@ class ztm_Setup extends core_ProtoSetup
 
     /**
      * Миграция за прехвръляне на профилите в забележки
-
      */
-    public function profilesToNotes2430ddd()
+    public function profilesToNotes2430()
     {
         $pQuery = ztm_Profiles::getQuery();
         while ($pRec = $pQuery->fetch()) {
@@ -168,5 +167,30 @@ class ztm_Setup extends core_ProtoSetup
         ztm_Profiles::truncate();
 
         return 'yes';
+    }
+
+
+    /**
+     * Миграция за поправка на групите
+     */
+    public function fixProfiles2430()
+    {
+        $dQuery = ztm_Devices::getQuery();
+        $dQuery->where("#profileId IS NOT NULL");
+        $dQuery->orWhere("#profileId != ''");
+        while ($dRec = $dQuery->fetch()) {
+            $dRec->profileId = null;
+            if (stripos(mb_strtolower($dRec->name), 'ztm') === 0) {
+                $dRec->profileId = ztm_Profiles::getIdFromSysId('mz');
+            }
+            if (stripos(mb_strtolower($dRec->name), '-hp') !== false) {
+                $dRec->profileId = ztm_Profiles::getIdFromSysId('hp');
+            }
+            if (stripos(mb_strtolower($dRec->name), '-ecd') !== false) {
+                $dRec->profileId = ztm_Profiles::getIdFromSysId('dt');
+            }
+
+            ztm_Devices::save($dRec, 'profileId');
+        }
     }
 }
