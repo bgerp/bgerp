@@ -222,11 +222,9 @@
          <!--ET_BEGIN RIGHT_BLOCK-->
          [#RIGHT_BLOCK#]
          <div class = 'cart-view-buttons-right'>
-
-
             <!--ET_BEGIN CARD_LINK-->
             <div style="margin: 20px 0; color: #333; font-style: italic">
-               |Ако имате клиентска карта, може да я въведете от|* [#CARD_LINK#].
+               [#CARD_LINK#].
             </div>
             <!--ET_END CARD_LINK-->
          </div>

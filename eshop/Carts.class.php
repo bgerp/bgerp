@@ -1615,7 +1615,9 @@ class eshop_Carts extends core_Master
         
         // Ако няма потребител и има клиентски карти, ще се показва бутон за въвеждане на карта
         if (crm_ext_Cards::haveRightFor('checkcard', (object) array('domainId' => $rec->domainId))) {
-            $tpl->replace(ht::createLink(tr('тук'), array('crm_ext_Cards', 'CheckCard', 'ret_url' => true), false, 'ef_icon=img/16/client-card.png '), 'CARD_LINK');
+            $cardCaption = !core_Users::getCurrent() ? tr('Клиентска карта или ваучер, може да въведете от') : tr('Ваучер може да въведете от');
+            $cardCaption .= " " . ht::createLink(tr('тук'), array('crm_ext_Cards', 'CheckCard', 'ret_url' => true), false, 'ef_icon=img/16/client-card.png ')->getContent();
+            $tpl->replace($cardCaption, 'CARD_LINK');
         }
         
         if ($rec->deliveryNoVat < 0) {
