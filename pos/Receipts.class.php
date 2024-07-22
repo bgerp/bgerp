@@ -1364,7 +1364,9 @@ class pos_Receipts extends core_Master
             $query = pos_ReceiptDetails::getQuery();
             $query->where("#receiptId = {$rec->id} AND #action {$sign} 'sale|code'");
             $query->orderBy('id', 'ASC');
-            $selectedRec = $query->fetch();
+            if($firstRec = $query->fetch()){
+                $selectedRec = $firstRec;
+            }
         }
 
         if (Request::get('ajax_mode')) {
