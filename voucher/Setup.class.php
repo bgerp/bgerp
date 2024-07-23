@@ -71,6 +71,7 @@ class voucher_Setup extends core_ProtoSetup
     {
         $html = parent::install();
 
+        // Сетъпване на моделите, където ще се въвеждат ваучери
         foreach (array('pos_Receipts', 'sales_Sales', 'eshop_Carts') as $cls){
             $Class = cls::get($cls);
             $Class->setupMvc();
@@ -78,6 +79,7 @@ class voucher_Setup extends core_ProtoSetup
 
         return $html;
     }
+
 
     /**
      * Извиква се след SetUp-а на таблицата за модела

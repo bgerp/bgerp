@@ -4,7 +4,7 @@
 /**
  * Клас 'voucher_Types'
  *
- * Мениджър за транспортни средства
+ * Мениджър за Типове ваучери
  *
  * @category  bgerp
  * @package   voucher
@@ -32,7 +32,7 @@ class voucher_Types extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, voucher_Wrapper, plg_State2, label_plg_Print';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, voucher_Wrapper, plg_State2, label_plg_Print';
 
 
     /**

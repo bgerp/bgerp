@@ -95,12 +95,6 @@ class voucher_Cards extends core_Detail
 
 
     /**
-     * Константа за състояние деактивирано
-     */
-    const STATUS_INACTIVE = 'INACTIVE';
-
-
-    /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
     public $hideListFieldsIfEmpty = 'usedOn,classId,objectId,referrer';
@@ -122,6 +116,7 @@ class voucher_Cards extends core_Detail
 
         $this->setdbUnique('number');
         $this->setDbIndex('referrer');
+        $this->setDbIndex('classId,objectId');
     }
 
 
@@ -388,6 +383,7 @@ class voucher_Cards extends core_Detail
      */
     public static function getNumber()
     {
+        // Генериране на произволни 12 цифри, към тях се добавя чексума от 4 цифри
         $str = str::getRand("############");
         $rest = static::getCheckSum($str);
 
@@ -411,7 +407,7 @@ class voucher_Cards extends core_Detail
 
 
     /**
-     * Подготовка на клиентските карти на избраното лице
+     * Подготовка на ваучерни карти на избраното лице
      */
     public function prepareCards($data)
     {
@@ -437,7 +433,7 @@ class voucher_Cards extends core_Detail
 
 
     /**
-     * Рендиране на клиентските карти на избрания клиент
+     * Рендиране на ваучерни карти на избрания клиент
      */
     public function renderCards($data)
     {
@@ -544,6 +540,12 @@ class voucher_Cards extends core_Detail
     }
 
 
+    /**
+     * Генериране на карти спрямо зададения тип
+     *
+     * @param stdClass $typeRec
+     * @return void
+     */
     public static function generateCards($typeRec)
     {
         $clone = (object)array('typeId' => $typeRec->id);

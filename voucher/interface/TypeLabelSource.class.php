@@ -28,7 +28,7 @@ class voucher_interface_TypeLabelSource extends label_ProtoSequencerImpl
     {
         $rec = $this->class->fetchRec($id);
 
-        return "Ваучери {$rec->name}";
+        return "Ваучер: {$rec->name}";
     }
 
 
