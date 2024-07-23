@@ -362,6 +362,7 @@ class ztm_Devices extends core_Master
     public static function on_AfterGetVerbal($mvc, &$res, $rec, $part)
     {
         if ($part == 'name') {
+            $rec = $mvc->fetchRec($rec);
             if (!$rec->name) {
                 $res = $mvc->getRecTitle($rec);
             }
