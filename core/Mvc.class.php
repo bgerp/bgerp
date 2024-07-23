@@ -946,7 +946,7 @@ class core_Mvc extends core_FieldSet
      */
     public static function getTitleForId_($id, $escaped = true)
     {
-        return self::getTitleById($id);
+        return self::getTitleById($id, $escaped);
     }
     
     
