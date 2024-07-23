@@ -2180,7 +2180,20 @@ class planning_Tasks extends core_Master
                 $row->costsCount = ht::createLinkRef($costsCount, $linkArr, false, 'title=Показване на разходите към документа');
             }
 
-
+            // Показване на ПВ към операцията, групирани по тяхното състояние
+            $notesByStates = array();
+            $noteQuery = planning_ConsumptionNotes::getQuery();
+            $noteQuery->where("#threadId = {$rec->threadId} AND #state != 'rejected'");
+            $noteQuery->XPR('count', 'int', 'COUNT(#id)');
+            $noteQuery->groupBy('state');
+            $noteQuery->show('state,count');
+            while($noteRec = $noteQuery->fetch()){
+                $noteCountVerbal = core_Type::getByName('int')->toVerbal($noteRec->count);
+                $notesByStates[] = "<div class='state-{$noteRec->state} consumptionNoteBubble'>{$noteCountVerbal}</div>";
+            }
+            if(countR($notesByStates)){
+                $row->progress .= " <small>[<i>" . tr('ПВ') . "</i>: " . implode(' + ', $notesByStates) . "]</small>";
+            }
 
             $data->rows[$rec->id] = $row;
         }
