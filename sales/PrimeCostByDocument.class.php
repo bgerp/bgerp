@@ -1271,6 +1271,8 @@ class sales_PrimeCostByDocument extends core_Manager
         $query->where("#state != 'rejected'");
         $query->where("#activatedOn IS NULL");
         $query->show('docClass,docId,containerId,valior');
+        $query->orderBy('id', 'DESC');
+        $query->limit(1000);
         $recs = $query->fetchAll();
 
         foreach ($recs as $rec) {
