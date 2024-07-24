@@ -115,6 +115,10 @@
                             <div class='custom-bg-block'><b>Notes</b></div>
                             <div>[#additionalInfo#]</div>
                             <!--ET_END additionalInfo-->
+                            <div class="fright">
+                                [#NOTE_USERNAME_SIGN#]
+                                [#NOTE_USERNAME_SIGN_PAD#]
+                            </div>
                         </td>
                         <td id='invoice-info' style='width:40%;'>
                             [#/deals/tpl/DocumentPriceInfoInvoice.shtml#]
