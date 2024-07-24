@@ -287,7 +287,7 @@ class ztm_RegisterValues extends core_Manager
             }
         }
 
-        // Добавяме регистрите от старото устройсво към новото
+        // Добавяме регистрите от старото устройство към новото
         if (isset($grabDeviceRec)) {
             // Извлича нашите регистри обновени от предишното устройство
             $ourRegisters = self::grab($grabDeviceRec);
