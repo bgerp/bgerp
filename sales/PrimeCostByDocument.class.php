@@ -1283,7 +1283,7 @@ class sales_PrimeCostByDocument extends core_Manager
             $Class = cls::get($classId);
             $dQuery = $Class->getQuery();
             $dQuery->in('id', $ids);
-            $dQuery->show("valior,activatedOn,modifiedOn,containerId,{$Class->valiorFld}");
+            $dQuery->show("activatedOn,modifiedOn,containerId,{$Class->valiorFld}");
             while($dRec = $dQuery->fetch()) {
                 $activatedArr[$dRec->containerId] = ($dRec->activatedOn) ? $dRec->activatedOn : (($dRec->{$Class->valiorFld}) ? "{$dRec->{$Class->valiorFld}} 23:59:59" : $dRec->modifiedOn);
             }
@@ -1292,7 +1292,7 @@ class sales_PrimeCostByDocument extends core_Manager
             foreach ($filterArr as &$fRec) {
                 $fRec->activatedOn = $activatedArr[$fRec->containerId];
             }
-            bp($Class->className, $filterArr);
+            echo "<li>$classId - " . countR($filterArr);
             $Class->saveArray($filterArr, 'id,activatedOn');
         }
     }
