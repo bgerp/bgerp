@@ -1264,33 +1264,36 @@ class sales_PrimeCostByDocument extends core_Manager
         $Costs = cls::get('sales_PrimeCostByDocument');
         $Costs->setupMvc();
 
-        $activatedArr = $save = array();
+        $activatedArr = $save = $grouped = array();
         $query = $Costs->getQuery();
         $query->EXT('docClass', 'doc_Containers', "externalName=docClass,externalKey=containerId");
         $query->EXT('docId', 'doc_Containers', "externalName=docId,externalKey=containerId");
-        //$query->where("#activatedOn IS NULL");
+        $query->where("#state != 'rejected'");
+        $query->where("#activatedOn IS NULL");
         $query->show('docClass,docId,containerId,valior');
-        $count = $query->count();
+        $recs = $query->fetchAll();
 
-        core_App::setTimeLimit(0.2 * $count, false, 600);
-
-        $i = 0;
-        while($rec = $query->fetch()){
-            $i++;
-            if(!array_key_exists($rec->containerId, $activatedArr)) {
-                $docRec = cls::get($rec->docClass)->fetch($rec->docId);
-                $activatedOn = ($docRec->activatedOn) ? $docRec->activatedOn : (($rec->valior) ? "{$rec->valior} 23:59:59" : $docRec->modifiedOn);
-
-                $activatedArr[$rec->containerId] = $activatedOn;
-            }
-            $rec->activatedOn = $activatedArr[$rec->containerId];
-            $save[] = $rec;
-
-            if($i == 100) {
-                bp($save);
-            }
+        foreach ($recs as $rec) {
+            $grouped[$rec->docClass][$rec->docId] = $rec->docId;
         }
 
-        $Costs->saveArray($save, 'id,activatedOn');
+        core_App::setTimeLimit(6000, false, 6000);
+        foreach ($grouped as $classId => $ids) {
+
+            $Class = cls::get($classId);
+            $dQuery = $Class->getQuery();
+            $dQuery->in('id', $ids);
+            $dQuery->show("valior,activatedOn,modifiedOn,containerId,{$Class->valiorFld}");
+            while($dRec = $dQuery->fetch()) {
+                $activatedArr[$dRec->containerId] = ($dRec->activatedOn) ? $dRec->activatedOn : (($dRec->{$Class->valiorFld}) ? "{$dRec->{$Class->valiorFld}} 23:59:59" : $dRec->modifiedOn);
+            }
+
+            $filterArr = array_filter($recs, function($a) use ($classId){ return $a->docClass == $classId; });
+            foreach ($filterArr as &$fRec) {
+                $fRec->activatedOn = $activatedArr[$fRec->containerId];
+            }
+            bp($Class->className, $filterArr);
+            $Class->saveArray($filterArr, 'id,activatedOn');
+        }
     }
 }
