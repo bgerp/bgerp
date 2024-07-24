@@ -258,28 +258,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
         
         $productInfo = cat_Products::getProductInfo($pRec->productId);
         $quantityInPack = ($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
-        
         $packQuantity = $row->quantity;
         
-        if ($pRec->productId) {
-                $measureId = $productInfo->productRec->measureId;
-        }
-        
-        $price = null;
-        
-        // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
-        if ($row->price) {
-            
-            $packRec = cat_products_Packagings::getPack($pRec->productId,  $pRec->packagingId);
-            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-            $row->price /= $quantityInPack;
-            
-            $masterRec = $Master->fetch($masterId);
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
-            
-        }
-        
-        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId,$packQuantity, $quantityInPack);
+        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack);
     }
 
 

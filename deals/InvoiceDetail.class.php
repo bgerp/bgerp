@@ -571,10 +571,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
     {
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+
         if ($form->rec->productId && $masterRec->type != 'dc_note' && $form->editActive !== true) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->date);
-            $productInfo = cat_Products::getProductInfo($rec->productId);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
             
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);

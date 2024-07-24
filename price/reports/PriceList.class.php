@@ -68,6 +68,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Цени->Политика, silent, mandatory,after=date,removeAndRefreshForm=listingId,single=none');
         $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,input,after=policyId,single=none');
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=Цени->ДДС,after=currencyId,single=none');
+        $fieldset->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Цени->ДДС изключение,after=currencyId');
         $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
         $fieldset->FLD('round', 'int(Min=0,max=6)', 'caption=Цени->Точност,autohide,after=period');
         $fieldset->FLD('packType', 'enum(yes=Да,no=Не,base=Основна)', 'caption=Филтър->Опаковки,columns=3,after=round,single=none,silent,removeAndRefreshForm=packagings');
@@ -232,7 +233,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             $obj = (object) array('productId' => $productRec->id,
                 'code' => (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}",
                 'measureId' => $productRec->measureId,
-                'vat' => cat_Products::getVat($productRec->id, $date),
+                'vat' => cat_Products::getVat($productRec->id, $date, $rec->vatExceptionId),
                 'packs' => array(),
                 'groups' => $productRec->groups);
 
@@ -362,6 +363,8 @@ class price_reports_PriceList extends frame2_driver_TableData
                     $row->photo = ht::createLink($row->photo, cat_Products::getSingleUrlArray($dRec->productId));
                 }
             }
+
+            $row->weightVerbal = cat_Products::getParams($dRec->productId, 'weight');
         } else {
             Mode::push('noIconImg', true);
             $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
@@ -562,7 +565,6 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
 
         $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
-
         $row->productGroups = (!empty($rec->productGroups)) ? implode(', ', cat_Groups::getLinks($rec->productGroups)) : tr('Всички');
         if(!empty($rec->notInGroups)){
             $row->notInGroups = implode(', ', cat_Groups::getLinks($rec->notInGroups));
@@ -784,6 +786,7 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function renderCustomLayout($rec, $data)
     {
         if($tpl = parent::renderCustomLayout($rec, $data)){
+            $tpl->append(dt::mysql2verbal(dt::now(), 'd.m.Y'), 'currentDate');
             foreach ($data->rows as $row){
                 if(!empty($row->photo) && !($row instanceof core_ET)){
                     $block = clone $tpl->getBlock('DETAIL_ROW_WITH_PHOTO');

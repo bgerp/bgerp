@@ -112,10 +112,12 @@ abstract class deals_Helper
             
             return;
         }
-        
+
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+
         expect(is_object($masterRec));
         
-        // Комбиниране на дефолт стойнсотите с тези подадени от потребителя
+        // Комбиниране на дефолт стойнстите с тези подадени от потребителя
         $map = array_merge(self::$map, $map);
         $haveAtleastOneDiscount = false;
 
@@ -131,7 +133,7 @@ abstract class deals_Helper
         foreach ($recs as &$rec) {
             $vat = 0;
             if ($masterRec->{$map['chargeVat']} == 'yes' || $masterRec->{$map['chargeVat']} == 'separate') {
-                $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
+                $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']}, $vatExceptionId);
             }
 
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то

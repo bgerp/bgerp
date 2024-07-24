@@ -199,6 +199,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_RatesDifferences',
         'acc_ProductPricePerPeriods',
         'migrate::updateStockPrices2524',
+        'migrate::updateStockPrices2824',
     );
     
     
@@ -623,9 +624,8 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Първоначално наливане на данните
      */
-    public function updateStockPrices2524()
+    public function updateStockPrices2824()
     {
-        cls::get('acc_ProductPricePerPeriods')->truncate();
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('acc_ProductPricePerPeriods', 'SyncStockPrices', null, $callOn);
     }

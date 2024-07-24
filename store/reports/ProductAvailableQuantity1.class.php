@@ -883,12 +883,16 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->title = "Филтър по артикул";
 
-        foreach (array_keys($rec->data->recs) as $val) {
+        $artSuggestionsArr = array();
 
-            $pRec = cat_Products::fetch($val);
-            $code = $pRec->code ?: 'Art' . $pRec->productId;
-            $artSuggestionsArr[$val] = $code . '|' . $pRec->name;
+        if(is_array($rec->data->recs) && !empty($rec->data->recs)) {
+            foreach (array_keys($rec->data->recs) as $val) {
 
+                $pRec = cat_Products::fetch($val);
+                $code = $pRec->code ?: 'Art' . $pRec->productId;
+                $artSuggestionsArr[$val] = $code . '|' . $pRec->name;
+
+            }
         }
 
         $form->FLD('artFilter', 'key(mvc=cat_Products, select=name)', 'caption=Артикул,silent');

@@ -95,9 +95,9 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
         $entries = array();
         $sign = ($reverse) ? -1 : 1;
         $dClass = ($reverse) ? 'sales_ServicesDetails' : 'purchase_ServicesDetails';
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 
         if (countR($rec->details)) {
-            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             $firstRec = $firstDoc->fetch();
             $checkVatCredit = $firstDoc->isInstanceOf('purchase_Purchases') && $firstRec->haveVatCreditProducts == 'no';
             $entriesLast = array();
@@ -111,7 +111,8 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
 
                 $revertVatPercent = null;
                 if($checkVatCredit) {
-                    $revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior);
+                    $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+                    $revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId);
                 }
 
                 foreach ($splitRecs as $dRec1) {

@@ -447,16 +447,20 @@ class deals_plg_DpInvoice extends core_Plugin
         if($origin = $mvc::getOrigin($rec)){
             if(isset($origin->mainDetail)){
                 $Detail = cls::get($origin->mainDetail);
+
+                $originRec = $origin->fetch();
+                $valior = $originRec->{$origin->valiorFld};
                 if(isset($Detail->productFld)){
-                    $valior = $origin->fetchField($origin->valiorFld);
+
                     $originVatGroups = array();
                     $dQuery = $Detail->getQuery();
                     $dQuery->where("#{$Detail->masterKey} = {$origin->that}");
                     $dQuery->show($Detail->productFld);
+                    $vatExceptionId = cond_VatExceptions::getFromThreadId($originRec->threadId);
 
                     // Към коя ДДС група е артикула от ориджина
                     while($dRec = $dQuery->fetch()){
-                        $grId = cat_products_VatGroups::getCurrentGroup($dRec->{$Detail->productFld}, $valior)->id;
+                        $grId = cat_products_VatGroups::getCurrentGroup($dRec->{$Detail->productFld}, $valior, $vatExceptionId)->id;
                         if(isset($grId)){
                             $originVatGroups[$grId] = $grId;
                         }

@@ -173,7 +173,9 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         }
 
         $receiptQuery = pos_ReceiptDetails::getQuery();
+
         $receiptQuery->EXT('waitingOn', 'pos_Receipts', 'externalName=waitingOn,externalKey=receiptId');
+        $receiptQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
         $receiptQuery->where("#waitingOn IS NOT NULL");
         $receiptQuery->where("#autoDiscount IS NOT NULL");
 
@@ -191,7 +193,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
             $autoDiscount = $amount = 0;
 
-            $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
+          $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
 
             //Филтър по състояние
             if (in_array($receiptRec->state, array('rejected', 'draft', 'active'))) continue;
@@ -209,8 +211,10 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 if (!in_array($rec->catGroup, keylist::toArray(cat_Products::fetchField($receiptDetailRec->productId, 'groups')))) continue;
             }
 
+            $vagExeptionId = pos_Points::fetch($receiptDetailRec->pointId)->vatExceptionId;
+
             //ДДС на артикула
-            $prodVat = cat_Products::getVat($receiptDetailRec->productId);
+            $prodVat = cat_Products::getVat($receiptDetailRec->productId,$receiptDetailRec->waitingOn,$vagExeptionId);
 
             // Стойността намалена с отстъпките по политика $amount
             $amount = isset($receiptDetailRec->inputDiscount) ? ($receiptDetailRec->amount * (1 - $receiptDetailRec->inputDiscount)) : $receiptDetailRec->amount;

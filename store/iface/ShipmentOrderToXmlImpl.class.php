@@ -35,6 +35,7 @@ class store_iface_ShipmentOrderToXmlImpl
         $rec = $this->class->fetchRec($id);
         $fields = $this->class->selectFields();
         $fields['-single'] = true;
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 
         $Detail = cls::get('store_ShipmentOrderDetails');
         core_Lg::push('bg');
@@ -85,7 +86,9 @@ class store_iface_ShipmentOrderToXmlImpl
             $pRec->code = !empty($productRec->code) ? $productRec->code : "#Art{$productRec->id}";
             $pRec->packQuantity = $dRec->packQuantity;
             $pRec->amount = core_Math::roundNumber($dRec->packPrice / $rec->currencyRate);
-            $pRec->vat = core_Type::getByName('percent')->toVerbal(cat_Products::getVat($dRec->productId, $rec->valior));
+
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+            $pRec->vat = core_Type::getByName('percent')->toVerbal(cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId));
             $fieldsFromDetailRow = array('packagingId', 'notes', 'weight', 'volume', 'discount');
             foreach ($fieldsFromDetailRow as $fld){
                 $val = is_object($dRow->{$fld}) ? $dRow->{$fld}->getContent() : $dRow->{$fld};

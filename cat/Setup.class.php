@@ -254,7 +254,7 @@ class cat_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'CAT_PRODUCT_CODE_TYPE' => array('enum(default=Букви (латиница) + цифри + тире + интервал + долна черта,all=Букви (латиница и кирилица) + цифри + тире + интервал + долна черта,alphanumeric=Букви (латиница) и цифри,numbers=Само цифри)', 'caption=Код на артикула позволени символи->Допустими'),
+        'CAT_PRODUCT_CODE_TYPE' => array('enum(default=Букви (латиница) + цифри + тире + интервал + долна черта,all=Букви (латиница и кирилица) + цифри + тире + интервал + долна черта,alphanumeric=Букви (латиница) и цифри,numbers=Само цифри,allExtended=Букви (латиница и кирилица) + цифри + тире + интервал + долна черта + наклонена + точка)', 'caption=Код на артикула позволени символи->Допустими'),
         'CAT_BOM_REMEMBERED_RESOURCES' => array('int', 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
         'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
         'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
@@ -376,6 +376,12 @@ class cat_Setup extends core_ProtoSetup
             case 'all':
                 if (preg_match('/[^0-9a-zа-я\- _]/iu', $code)) {
                     $msg = 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта|*!';
+                    $res = false;
+                }
+                break;
+            case 'allExtended':
+                if (preg_match( '/[^0-9a-zа-я\- _\/\.]/iu', $code)) {
+                    $msg = 'Полето може да съдържа само букви, цифри, тирета, интервали, долна черта, наклонена и точка|*!';
                     $res = false;
                 }
                 break;

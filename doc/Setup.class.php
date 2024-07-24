@@ -190,6 +190,12 @@ defIfNot('DOC_DEFAULT_INCHARGE', '');
 
 
 /**
+ * Достъп по подразбиране на създаденият потребител
+ */
+defIfNot('DOC_DEFAULT_ACCESS', 'private');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -261,6 +267,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_PENDING_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за създадени документи->Заявки, customizeBy=powerUser'),
 
         'DOC_DEFAULT_INCHARGE' => array('user(roles=sales|ceo, allowEmpty)', 'caption=Отговорник по подразбиране на папките->Потребител'),
+        'DOC_DEFAULT_ACCESS' => array('enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Отговорник по подразбиране на папките->Достъп'),
 
         'DOC_SHOW_DOCUMENTS_BEGIN' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
