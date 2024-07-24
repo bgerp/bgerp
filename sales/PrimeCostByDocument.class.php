@@ -61,7 +61,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,sellCostWithOriginalDiscount,autoDiscountAmount,dealerId,initiatorId,state,isPublic,folderId,storeId';
+    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,sellCostWithOriginalDiscount,autoDiscountAmount,dealerId,initiatorId,state,isPublic,folderId,storeId,activatedOn';
     
     
     /**
@@ -105,7 +105,7 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     public function description()
     {
-        $this->FLD('valior', 'date(smartTime)', 'caption=Вальор,mandatory');
+        $this->FLD('valior', 'date(format=smartTime)', 'caption=Вальор,mandatory');
         $this->FLD('detailClassId', 'class(interface=core_ManagerIntf)', 'caption=Детайл,mandatory');
         $this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory, tdClass=leftCol');
         $this->FLD('containerId', 'int', 'caption=Документ,mandatory');
@@ -127,12 +127,14 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('contragentClassId', 'int', 'caption=Контрагент');
         $this->FLD('expenses', 'double', 'caption=Разходи,mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
-        
+        $this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране');
+
         $this->setDbIndex('productId,containerId');
         $this->setDbIndex('productId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
         $this->setDbIndex('valior');
+        $this->setDbIndex('activatedOn');
         $this->setDbIndex('detailClassId,detailRecId,productId');
     }
     
@@ -1242,5 +1244,38 @@ class sales_PrimeCostByDocument extends core_Manager
             
             return $persons;
         }
+    }
+
+
+    /**
+     * Миграция на датата за активиране
+     */
+    public static function callback_SyncActivatedOn()
+    {
+        $Costs = cls::get('sales_PrimeCostByDocument');
+        $Costs->setupMvc();
+
+        $activatedArr = $save = array();
+        $query = $Costs->getQuery();
+        $query->EXT('docClass', 'doc_Containers', "externalName=docClass,externalKey=containerId");
+        $query->EXT('docId', 'doc_Containers', "externalName=docId,externalKey=containerId");
+        $query->where("#activatedOn IS NULL");
+        $query->show('docClass,docId,containerId,valior');
+        $count = $query->count();
+
+        core_App::setTimeLimit(0.2 * $count, false, 600);
+
+        while($rec = $query->fetch()){
+            if(!array_key_exists($rec->containerId, $activatedArr)) {
+                $docRec = cls::get($rec->docClass)->fetch($rec->docId);
+                $activatedOn = ($docRec->activatedOn) ? $docRec->activatedOn : (($rec->valior) ? "{$rec->valior} 23:59:59" : $docRec->modifiedOn);
+
+                $activatedArr[$rec->containerId] = $activatedOn;
+            }
+            $rec->activatedOn = $activatedArr[$rec->containerId];
+            $save[] = $rec;
+        }
+
+        $Costs->saveArray($save, 'id,activatedOn');
     }
 }

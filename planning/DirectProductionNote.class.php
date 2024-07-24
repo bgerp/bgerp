@@ -1270,7 +1270,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      *
      * @return bool
      */
-    public static function  canAddToThread($threadId)
+    public static function canAddToThread($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
 

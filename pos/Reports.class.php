@@ -832,6 +832,7 @@ class pos_Reports extends core_Master
                     'state'    => 'active',
                     'isPublic' => cat_Products::fetchField($dRec->value, 'isPublic'),
                     'contragentId' => $dRec->contragentId,
+                    'activatedOn' => $rec->activatedOn,
                     'contragentClassId' => $dRec->contragentClassId,);
 
                 if(!isset($inCharge[$dRec->contragentClassId][$dRec->contragentId])){
