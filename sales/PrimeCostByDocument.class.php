@@ -1247,6 +1247,15 @@ class sales_PrimeCostByDocument extends core_Manager
     }
 
 
+
+    public function act_Test()
+    {
+        requireRole('debug');
+
+        static::callback_SyncActivatedOn();
+    }
+
+
     /**
      * Миграция на датата за активиране
      */
@@ -1259,13 +1268,15 @@ class sales_PrimeCostByDocument extends core_Manager
         $query = $Costs->getQuery();
         $query->EXT('docClass', 'doc_Containers', "externalName=docClass,externalKey=containerId");
         $query->EXT('docId', 'doc_Containers', "externalName=docId,externalKey=containerId");
-        $query->where("#activatedOn IS NULL");
+        //$query->where("#activatedOn IS NULL");
         $query->show('docClass,docId,containerId,valior');
         $count = $query->count();
 
         core_App::setTimeLimit(0.2 * $count, false, 600);
 
+        $i = 0;
         while($rec = $query->fetch()){
+            $i++;
             if(!array_key_exists($rec->containerId, $activatedArr)) {
                 $docRec = cls::get($rec->docClass)->fetch($rec->docId);
                 $activatedOn = ($docRec->activatedOn) ? $docRec->activatedOn : (($rec->valior) ? "{$rec->valior} 23:59:59" : $docRec->modifiedOn);
@@ -1274,6 +1285,10 @@ class sales_PrimeCostByDocument extends core_Manager
             }
             $rec->activatedOn = $activatedArr[$rec->containerId];
             $save[] = $rec;
+
+            if($i == 100) {
+                bp($save);
+            }
         }
 
         $Costs->saveArray($save, 'id,activatedOn');
