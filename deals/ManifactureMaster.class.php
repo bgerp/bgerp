@@ -234,8 +234,11 @@ abstract class deals_ManifactureMaster extends core_Master
         
         return ($folderClass == 'store_Stores' || $folderClass == 'planning_Centers');
     }
-    
-    
+
+
+
+
+
     /**
      * Проверка дали нов документ може да бъде добавен в посочената нишка
      *
@@ -247,9 +250,19 @@ abstract class deals_ManifactureMaster extends core_Master
     {
         // Може да добавяме или към нишка в която има задание
         if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
-            
+
             return true;
         }
+
+        // Може да добавяме или към нишка в която има задание
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
+
+            return true;
+        }
+
+        $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        $Cover = doc_Folders::getCover($folderId);
+        if($Cover->isInstanceOf('store_Stores')) return true;
 
         return false;
     }
