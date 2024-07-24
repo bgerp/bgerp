@@ -473,7 +473,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
         'migrate::updateProformasWithoutDate2624',
-        'migrate::migrateDeltas3024',
+        'migrate::migrateDeltas3024v2',
     );
     
     
@@ -679,7 +679,7 @@ class sales_Setup extends core_ProtoSetup
         }
     }
 
-    function migrateDeltas3024()
+    function migrateDeltas3024v2()
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('sales_PrimeCostByDocument', 'SyncActivatedOn', null, $callOn);

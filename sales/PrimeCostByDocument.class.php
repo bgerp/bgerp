@@ -1270,16 +1270,17 @@ class sales_PrimeCostByDocument extends core_Manager
         $query->EXT('docId', 'doc_Containers', "externalName=docId,externalKey=containerId");
         $query->where("#state != 'rejected'");
         $query->where("#activatedOn IS NULL");
-        $query->show('docClass,docId,containerId,valior');
-        $query->orderBy('id', 'DESC');
-        $query->limit(1000);
-        $recs = $query->fetchAll();
 
+        $clone = clone $query;
+        $query->show('docClass,docId,containerId,valior');
+        $query->limit(20000);
+
+        $maxTime = dt::addSecs(40);
+        $recs = $query->fetchAll();
         foreach ($recs as $rec) {
             $grouped[$rec->docClass][$rec->docId] = $rec->docId;
         }
 
-        core_App::setTimeLimit(6000, false, 6000);
         foreach ($grouped as $classId => $ids) {
 
             $Class = cls::get($classId);
@@ -1287,15 +1288,22 @@ class sales_PrimeCostByDocument extends core_Manager
             $dQuery->in('id', $ids);
             $dQuery->show("activatedOn,modifiedOn,containerId,{$Class->valiorFld}");
             while($dRec = $dQuery->fetch()) {
-                $activatedArr[$dRec->containerId] = ($dRec->activatedOn) ? $dRec->activatedOn : (($dRec->{$Class->valiorFld}) ? "{$dRec->{$Class->valiorFld}} 23:59:59" : $dRec->modifiedOn);
+                $activatedArr[$dRec->containerId] = ($dRec->activatedOn) ? $dRec->activatedOn : (($dRec->{$Class->valiorFld}) ? "{$dRec->{$Class->valiorFld}} 23:59:59" : (($dRec->modifiedOn) ? $dRec->modifiedOn : '1970-01-01 00:00:00'));
+
+                if (dt::now() >= $maxTime) break;
             }
 
             $filterArr = array_filter($recs, function($a) use ($classId){ return $a->docClass == $classId; });
             foreach ($filterArr as &$fRec) {
                 $fRec->activatedOn = $activatedArr[$fRec->containerId];
             }
-            echo "<li>$classId - " . countR($filterArr);
-            $Class->saveArray($filterArr, 'id,activatedOn');
+
+            $Costs->saveArray($filterArr, 'id,activatedOn');
+        }
+
+        if($clone->fetch()){
+            $callOn = dt::addSecs(20);
+            core_CallOnTime::setCall('sales_PrimeCostByDocument', 'SyncActivatedOn', null, $callOn);
         }
     }
 }
