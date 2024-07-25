@@ -397,7 +397,7 @@ class pos_Points extends core_Master
 
         unset($row->currentPlg);
         if (empty($rec->payments)) {
-            $row->payments = tr('Всички');
+            $row->payments = tr('Не са разрешени');
         }
         
         if(empty($rec->otherStores)){
