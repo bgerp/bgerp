@@ -1274,7 +1274,7 @@ class sales_PrimeCostByDocument extends core_Manager
 
         $clone = clone $query;
         $query->show('docClass,docId,containerId,valior');
-        $query->limit(100);
+        $query->limit(20000);
 
         $maxTime = dt::addSecs(40);
         $recs = $query->fetchAll();
@@ -1297,7 +1297,6 @@ class sales_PrimeCostByDocument extends core_Manager
             }
 
             $filterArr = array_filter($recs, function($a) use ($classId){ return $a->docClass == $classId; });
-
             foreach ($filterArr as &$fRec) {
                 $fRec->activatedOn = $activatedArr[$fRec->containerId];
             }
