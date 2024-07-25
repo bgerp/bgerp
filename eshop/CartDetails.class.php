@@ -103,6 +103,8 @@ class eshop_CartDetails extends core_Detail
         $this->FLD('haveVat', 'enum(yes=Да, separate=Отделно, no=Без)', 'caption=ДДС режим');
         
         $this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка');
+        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input');
+
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
         $this->FNC('external', 'int', 'input=hidden,silent');
         
@@ -367,15 +369,21 @@ class eshop_CartDetails extends core_Detail
             
             self::updatePriceInfo($rec, null, true);
             $masterRec = eshop_Carts::fetch($rec->cartId);
-            
+
             $settings = cms_Domains::getSettings($masterRec->domainId);
             if(isset($rec->finalPrice)){
-                $finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, null, $rec->currencyId, $settings->currencyId);
-                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
+                $finalPrice = $rec->finalPrice;
+                if(isset($rec->autoDiscount)){
+                    $rec->oldPrice = ($rec->discount) ? $finalPrice / (1 - $rec->discount) : $finalPrice;
+                    $finalPrice *= (1 - $rec->autoDiscount);
+                }
+
+                $finalPriceVerbal = currency_CurrencyRates::convertAmount($finalPrice, null, $rec->currencyId, $settings->currencyId);
+                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPriceVerbal);
                 $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId);
                 
                 if ($rec->oldPrice) {
-                    $difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
+                    $difference = round($finalPrice, 2) - round($rec->oldPrice, 2);
                     $caption = ($difference > 0) ? 'увеличена' : 'намалена';
                     $difference = abs($difference);
                     $difference = currency_CurrencyRates::convertAmount($difference, null, $rec->currencyId, $settings->currencyId);
@@ -383,7 +391,7 @@ class eshop_CartDetails extends core_Detail
                     $hint = "Цената е {$caption} с|* {$differenceVerbal} {$settings->currencyId}";
                     $row->finalPrice = ht::createHint($row->finalPrice, $hint, 'warning');
                 }
-                
+                $rec->amount = $finalPrice * ($rec->quantity / $rec->quantityInPack);
                 $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
                 $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
                 $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
@@ -448,10 +456,8 @@ class eshop_CartDetails extends core_Detail
         $deleteCart = false;
         
         if (isset($id)) {
-            $Carts = cls::get('eshop_Carts');
             $this->delete($id);
-            $Carts->updateMaster($cartId);
-            plg_Search::forceUpdateKeywords($Carts, $cartId);
+
             vislog_History::add("Изтриване на артикул от количка");
             $msg = '|Артикулът е премахнат|*!';
             $dCount = $this->count("#cartId = {$cartId}");
@@ -460,6 +466,10 @@ class eshop_CartDetails extends core_Detail
                 $deleteCart = true;
                 eshop_Carts::delete($cartId);
                 vislog_History::add("Изтриване на количката");
+            } else {
+                $Carts = cls::get('eshop_Carts');
+                $Carts->updateMaster($cartId);
+                plg_Search::forceUpdateKeywords($Carts, $cartId);
             }
         } else {
             $msg = '|Количката е изчистена|*!';
@@ -648,16 +658,9 @@ class eshop_CartDetails extends core_Detail
 
         // Коя е ценовата политика
         // Ако има ваучер и той е с активна ЦП - нея, ако не тази от потребителя или от домейна
-        $listId = $finalPrice = null;
+        $finalPrice = null;
         $oldListId = $settings->listId;
-        if(isset($cartRec->voucherId) && core_Packs::isInstalled('voucher')){
-            $voucherTypeId = voucher_Cards::fetchField($cartRec->voucherId, 'typeId');
-            if($voucherListId = voucher_Types::fetchField($voucherTypeId, 'priceListId')){
-                $listId = $voucherListId;
-            }
-        }
-
-        $listId = $listId ?? cms_Helper::getCurrentEshopPriceList($settings);
+        $listId = eshop_Carts::getCartListId($cartRec, $settings);
 
         // Ако има взема се цената от нея
         $now = dt::now();
@@ -680,7 +683,7 @@ class eshop_CartDetails extends core_Detail
             if (!empty($priceObject->discount)) {
                 $discount = $priceObject->discount;
             }
-           
+
             $finalPrice = $price * $rec->quantityInPack;
             if ($rec->haveVat == 'yes') {
                 $finalPrice *= 1 + $rec->vat;
@@ -693,10 +696,7 @@ class eshop_CartDetails extends core_Detail
         $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
         
         if(empty($finalPrice) && is_null($price)){
-            if(is_null($rec->finalPrice)){
-                
-                return;
-            }
+            if(is_null($rec->finalPrice)) return;
             
             $rec->oldPrice = $rec->finalPrice;
             $rec->finalPrice = null;
@@ -704,7 +704,7 @@ class eshop_CartDetails extends core_Detail
             $rec->amount = null;
             $update = true;
         } else {
-           
+
             // Ако цената е променена, обновява се
             $update = false;
             if (!isset($rec->finalPrice) || (abs(core_Math::diffInPercent($finalPrice, $rec->finalPrice)) > $toleranceDiff)) {
@@ -715,7 +715,7 @@ class eshop_CartDetails extends core_Detail
                 $update = true;
             }
         }
-        
+
         if ($update === true && $save === true) {
             self::save($rec, 'oldPrice,finalPrice,discount');
             $rec->_updatedPrice = true;

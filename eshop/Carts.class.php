@@ -503,8 +503,8 @@ class eshop_Carts extends core_Master
         
         return $query->fetch();
     }
-    
-    
+
+
     /**
      * Обновява данни в мастъра
      *
@@ -542,13 +542,22 @@ class eshop_Carts extends core_Master
         $rec->haveOnlyServices = $haveOnlyServices;
         $rec->haveProductsWithExpectedDelivery = 'no';
         $settings = cms_Domains::getSettings($rec->domainId);
-        
+
+        if($rec->_haveRecalcedAutoDiscounts === false){
+            foreach ($dRecs as $dRec1) {
+                $dRec1->autoDiscount = null;
+            }
+
+            $Details->saveArray($dRecs, 'id,autoDiscount');
+        }
+
         foreach ($dRecs as $dRec) {
             $rec->productCount++;
             $finalPrice = currency_CurrencyRates::convertAmount($dRec->finalPrice, null, $dRec->currencyId);
-            
-            if (!$dRec->discount) {
-                $finalPrice -= $finalPrice * $dRec->discount;
+            if(!empty($dRec->autoDiscount)){
+                $discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4);
+                $finalPrice = $dRec->discount != 1 ? $finalPrice / (1 - $dRec->discount)  : $finalPrice;
+                $finalPrice = $finalPrice * (1 - $discount);
             }
 
             if($dRec->haveVat != $chargeVat){
@@ -583,7 +592,7 @@ class eshop_Carts extends core_Master
                 }
             }
         }
-        
+
         // Ако има цена за доставка добавя се и тя
         if ($count) {
             $TransCalc = null;
@@ -628,8 +637,20 @@ class eshop_Carts extends core_Master
 
         return $id;
     }
-    
-    
+
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $rec->_haveRecalcedAutoDiscounts = $mvc->recalcAutoDiscount($rec);
+        $mvc->updateMaster_($rec);
+    }
+
+
     /**
      * Име на кошницата във външната част
      *
@@ -1038,7 +1059,7 @@ class eshop_Carts extends core_Master
             $notes = (!empty($paramsText)) ? $paramsText : null;
             
             $price = currency_CurrencyRates::convertAmount($price, null, $dRec->currencyId);
-            sales_Sales::addRow($saleId, $dRec->productId, $dRec->packQuantity, $price, $dRec->packagingId, $dRec->discount, null, null, $notes);
+            sales_Sales::addRow($saleId, $dRec->productId, $dRec->packQuantity, $price, $dRec->packagingId, $dRec->discount, null, null, $notes, null, $dRec->autoDiscount);
         }
         
         // Добавяне на транспорта, ако има
@@ -1615,9 +1636,12 @@ class eshop_Carts extends core_Master
         
         // Ако няма потребител и има клиентски карти, ще се показва бутон за въвеждане на карта
         if (crm_ext_Cards::haveRightFor('checkcard', (object) array('domainId' => $rec->domainId))) {
-            $cardCaption = !core_Users::getCurrent() ? tr('Клиентска карта или ваучер, може да въведете от') : tr('Ваучер може да въведете от');
-            $cardCaption .= " " . ht::createLink(tr('тук'), array('crm_ext_Cards', 'CheckCard', 'ret_url' => true), false, 'ef_icon=img/16/client-card.png ')->getContent();
-            $tpl->replace($cardCaption, 'CARD_LINK');
+            $cu = core_Users::getCurrent();
+            if(!($cu && isset($rec->voucherId))){
+                $cardCaption = !$cu ? tr('Клиентска карта или ваучер, може да въведете от') : tr('Ваучер може да въведете от');
+                $cardCaption .= " " . ht::createLink(tr('тук'), array('crm_ext_Cards', 'CheckCard', 'ret_url' => true), false, 'ef_icon=img/16/client-card.png ')->getContent();
+                $tpl->replace($cardCaption, 'CARD_LINK');
+            }
         }
         
         if ($rec->deliveryNoVat < 0) {
@@ -1865,48 +1889,51 @@ class eshop_Carts extends core_Master
         $fields['-external'] = true;
         $data->listFields = arr::make('code=Код,productId=Артикул,quantity=Количество,finalPrice=Цена,amount=Сума');
         $settings = cms_Domains::getSettings();
-        
+
         $data->productRecs = $data->productRows = array();
         $dQuery = eshop_CartDetails::getQuery();
         $dQuery->where("#cartId = {$data->rec->id}");
         $dQuery->orderBy('id', 'ASC');
-        
+
         while ($dRec = $dQuery->fetch()) {
             $data->recs[$dRec->id] = $dRec;
             $row = eshop_CartDetails::recToVerbal($dRec, $fields);
             if($dRec->_updatedPrice === true){
                 $data->rec->_updatedPrice = true;
             }
-            if (!empty($dRec->discount)) {
+            if (!empty($dRec->discount) || !empty($dRec->autoDiscount)) {
                 $discountType = type_Set::toArray($settings->discountType);
+
+                $amountWithoutPureDiscount = isset($dRec->discount) ? $dRec->finalPrice / (1 - $dRec->discount) : $dRec->finalPrice;
+                $discount = isset($dRec->autoDiscount) ? round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4) : $dRec->discount;
+
                 $row->finalPrice = "<span class='end-price'>{$row->finalPrice}</span>";
                 $row->finalPrice .= "<div class='external-discount'>";
-                
+
                 if (isset($discountType['amount'])) {
-                    $amountWithoutDiscount = $dRec->finalPrice / (1 - $dRec->discount);
-                    $discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
+                    $discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutPureDiscount);
                     $discountAmount = currency_Currencies::decorate($discountAmount, $settings->currencyId);
                     $row->finalPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
                 }
-                
+
                 if (isset($discountType['amount'], $discountType['percent'])) {
                     $row->finalPrice .= ' / ';
                 }
-                
+
                 if (isset($discountType['percent'])) {
-                    $discountPercent = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->discount);
+                    $discountPercent = core_Type::getByName('percent(decimals=2)')->toVerbal($discount);
                     $discountPercent = str_replace('&nbsp;', '', $discountPercent);
                     $row->finalPrice .= "<div class='external-discount-percent'> -{$discountPercent}</div>";
                 }
-                
+
                 $row->finalPrice .= '</div>';
             }
-            
+
             $fullCode = cat_products::getVerbal($dRec->productId, 'code');
             $row->code = substr($fullCode, 0, 10);
             $row->code = "<span title={$fullCode}>{$row->code}</span>";
             $row->amount = "<span class='end-price'>{$row->amount}</span>";
-            
+
             $data->rows[$dRec->id] = $row;
         }
     }
@@ -3262,5 +3289,61 @@ class eshop_Carts extends core_Master
             reportException($e);
             eshop_Carts::logErr("Грешка при записване на CSV");
         }
+    }
+
+
+    /**
+     * Каква е ЦП на количката
+     *
+     * @param stdClass$rec
+     * @param null|stdClass $settings
+     * @return int
+     */
+    public static function getCartListId($rec, $settings = null)
+    {
+        $settings = $settings ?? cms_Domains::getSettings($rec->domainId);
+        if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
+            $voucherTypeId = voucher_Cards::fetchField($rec->voucherId, 'typeId');
+            if($voucherListId = voucher_Types::fetchField($voucherTypeId, 'priceListId')){
+                $listId = $voucherListId;
+            }
+        }
+
+        return $listId ?? cms_Helper::getCurrentEshopPriceList($settings);
+    }
+
+
+    /**
+     * Рекалкулиране на автоматичните остъпки ако има такива
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public function recalcAutoDiscount($rec)
+    {
+        if(!is_object($rec)) return false;
+        $basicDiscountListRec = price_Lists::getListWithBasicDiscounts('eshop_Carts', $rec);
+        if(!is_object($basicDiscountListRec)) return false;
+
+        $dQuery = eshop_CartDetails::getQuery();
+        $dQuery->EXT('groups', 'cat_Products', "externalName=groups,externalKey=productId");
+        $dQuery->where("#cartId = {$rec->id}");
+        $detailsAll = $dQuery->fetchAll();
+
+        $save = array();
+        $discountData = price_ListBasicDiscounts::getAutoDiscountsByGroups($basicDiscountListRec, 'eshop_Carts', $rec, 'pos_ReceiptDetails', $detailsAll);
+
+        foreach ($detailsAll as $dRec){
+            foreach ($discountData['groups'] as $groupId => $d){
+                if(!keylist::isIn($groupId, $dRec->groups)) continue;
+                if(empty($d['percent'])) continue;
+                $dRec->autoDiscount = $d['percent'];
+                $save[] = $dRec;
+            }
+        }
+
+        cls::get('eshop_CartDetails')->saveArray($save, 'id,autoDiscount');
+
+        return true;
     }
 }

@@ -922,7 +922,9 @@ class price_Lists extends core_Master
         $clone = clone $masterRec;
         if($Master instanceof sales_Sales){
             $listId = $clone->priceListId ?? price_ListToCustomers::getListForCustomer($clone->contragentClassId, $clone->contragentId, $clone->valior);
-        } else {
+        } elseif($Master instanceof eshop_Carts) {
+            $listId = eshop_Carts::getCartListId($masterRec);
+        }  else {
             $listId = $masterRec->policyId ? $masterRec->policyId : (pos_Receipts::isForDefaultContragent($clone) ? pos_Points::getSettings($clone->pointId)->policyId : price_ListToCustomers::getListForCustomer($clone->contragentClass, $clone->contragentObjectId));
         }
 

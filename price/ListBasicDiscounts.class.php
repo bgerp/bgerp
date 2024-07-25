@@ -261,7 +261,7 @@ class price_ListBasicDiscounts extends core_Detail
         $groupIds = arr::extractValuesFromArray($dRecs, 'groupId');
 
         // Ако периода за продажба е различен от "текущата продажба" смятат се сумите от предишните продажби за контрагента
-        if($basicDiscountListRec->discountClassPeriod != 'default'){
+        if($basicDiscountListRec->discountClassPeriod != 'default' && !($Master instanceof eshop_Carts)){
             $contragentClassId = $masterRec->contragentClassId;
             $contragentId = $masterRec->contragentId;
             if($Master instanceof pos_Receipts){
@@ -281,7 +281,13 @@ class price_ListBasicDiscounts extends core_Detail
 
         // За всяка група от праговете
         $detailsByGroups = array();
-        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+        if($Master instanceof eshop_Carts){
+            $settings = cms_Domains::getSettings($masterRec->domainId);
+            $vatExceptionId = $settings->vatExceptionId;
+        } else {
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+        }
+
         foreach ($groupIds as $groupId){
 
             // Добавят се и данните за раздадените отстъпки от текущата продажба
