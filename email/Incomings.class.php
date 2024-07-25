@@ -3468,48 +3468,48 @@ class email_Incomings extends core_Master
             return $res;
         }
 
-        if ($rec->headers['list-unsubscribe']) {
-            $uData = $rec->headers['list-unsubscribe'][0];
-            if (preg_match(type_Richtext::URL_PATTERN, $uData, $matches)) {
+        $content = '';
+        if ($rec->htmlFile) {
+            $htmlFRec = fileman::fetch($rec->htmlFile);
+            $content = fileman_Files::getContent($htmlFRec->fileHnd);
+        }
 
-                $res = $matches[0];
+        if (!$content && $rec->emlFile) {
+            // Инстанция на класа
+            $mime = cls::get('email_Mime');
+
+            $fRec = fileman::fetch($rec->emlFile);
+
+            // Вземаме съдържанието на eml файла
+            $source = fileman::getContent($fRec->fileHnd);
+
+            $mime->parseAll($source);
+
+            $content = $mime->getJustTextPart();
+        }
+
+        if ($content) {
+            $content = str::utf2ascii($content);
+            $content = preg_replace('/\s+/ui', ' ', $content);
+
+            // Стрингове за отписване
+            $unsStr = 'Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
+            $unsStr = str::utf2ascii($unsStr);
+            $unsStr = preg_replace('/\s+/ui', ' ', $unsStr);
+
+            if (preg_match("/<a[^>]*>([^>]*({$unsStr})+[^>]*)<\/a>/iu", $content, $matches)) {
+                if (preg_match(type_Richtext::URL_PATTERN, $matches[0], $lMatches)) {
+                    $res = $lMatches[0];
+                }
             }
         }
 
         if (!$res) {
-            $content = '';
-            if ($rec->htmlFile) {
-                $htmlFRec = fileman::fetch($rec->htmlFile);
-                $content = fileman_Files::getContent($htmlFRec->fileHnd);
-            }
+            if ($rec->headers['list-unsubscribe']) {
+                $uData = $rec->headers['list-unsubscribe'][0];
+                if (preg_match(type_Richtext::URL_PATTERN, $uData, $matches)) {
 
-            if (!$content && $rec->emlFile) {
-                // Инстанция на класа
-                $mime = cls::get('email_Mime');
-
-                $fRec = fileman::fetch($rec->emlFile);
-
-                // Вземаме съдържанието на eml файла
-                $source = fileman::getContent($fRec->fileHnd);
-
-                $mime->parseAll($source);
-
-                $content = $mime->getJustTextPart();
-            }
-
-            if ($content) {
-                $content = str::utf2ascii($content);
-                $content = preg_replace('/\s+/ui', ' ', $content);
-
-                // Стрингове за отписване
-                $unsStr = 'Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
-                $unsStr = str::utf2ascii($unsStr);
-                $unsStr = preg_replace('/\s+/ui', ' ', $unsStr);
-
-                if (preg_match("/<a[^>]*>([^>]*({$unsStr})+[^>]*)<\/a>/iu", $content, $matches)) {
-                    if (preg_match(type_Richtext::URL_PATTERN, $matches[0], $lMatches)) {
-                        $res = $lMatches[0];
-                    }
+                    $res = $matches[0];
                 }
             }
         }
