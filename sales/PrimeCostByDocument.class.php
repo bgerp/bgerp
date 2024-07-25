@@ -1302,9 +1302,9 @@ class sales_PrimeCostByDocument extends core_Manager
                 $fRec->activatedOn = $activatedArr[$fRec->containerId];
             }
 
-            bp($filterArr, $activatedArr);
-
-            $Costs->saveArray($filterArr, 'id,activatedOn');
+            if(countR($filterArr)) {
+                $Costs->saveArray($filterArr, 'id,activatedOn');
+            }
         }
 
         if($clone->fetch()){
