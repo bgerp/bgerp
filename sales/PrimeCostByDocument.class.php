@@ -1269,11 +1269,12 @@ class sales_PrimeCostByDocument extends core_Manager
         $query->EXT('docClass', 'doc_Containers', "externalName=docClass,externalKey=containerId");
         $query->EXT('docId', 'doc_Containers', "externalName=docId,externalKey=containerId");
         $query->where("#state != 'rejected'");
+        $query->orderBy('id', 'DESC');
         $query->where("#activatedOn IS NULL");
 
         $clone = clone $query;
         $query->show('docClass,docId,containerId,valior');
-        $query->limit(20000);
+        $query->limit(100);
 
         $maxTime = dt::addSecs(40);
         $recs = $query->fetchAll();
@@ -1288,15 +1289,20 @@ class sales_PrimeCostByDocument extends core_Manager
             $dQuery->in('id', $ids);
             $dQuery->show("activatedOn,modifiedOn,containerId,{$Class->valiorFld}");
             while($dRec = $dQuery->fetch()) {
-                $activatedArr[$dRec->containerId] = ($dRec->activatedOn) ? $dRec->activatedOn : (($dRec->{$Class->valiorFld}) ? "{$dRec->{$Class->valiorFld}} 23:59:59" : (($dRec->modifiedOn) ? $dRec->modifiedOn : '1970-01-01 00:00:00'));
+                if(!array_key_exists($dRec->containerId, $activatedArr)) {
+                    $activatedArr[$dRec->containerId] = ($dRec->activatedOn) ? $dRec->activatedOn : (($dRec->{$Class->valiorFld}) ? "{$dRec->{$Class->valiorFld}} 23:59:59" : (($dRec->modifiedOn) ? $dRec->modifiedOn : '1970-01-01 00:00:00'));
+                }
 
                 if (dt::now() >= $maxTime) break;
             }
 
             $filterArr = array_filter($recs, function($a) use ($classId){ return $a->docClass == $classId; });
+
             foreach ($filterArr as &$fRec) {
                 $fRec->activatedOn = $activatedArr[$fRec->containerId];
             }
+
+            bp($filterArr, $activatedArr);
 
             $Costs->saveArray($filterArr, 'id,activatedOn');
         }
