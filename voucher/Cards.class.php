@@ -551,7 +551,7 @@ class voucher_Cards extends core_Detail
         $clone = (object)array('typeId' => $typeRec->id);
 
         // Генериране на уникални номера за ваучерите
-        foreach (range(1, $typeRec->count) as $i){
+        foreach (range(1, $typeRec->createCount) as $i){
             $c = clone $clone;
             $c->number = self::getNumber();
             while (self::fetch(array("#number = '[#1#]'", $c->number))) {

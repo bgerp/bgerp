@@ -124,7 +124,7 @@ class voucher_Types extends core_Master
         $form->setOptions('priceListId', array('' => '') + $parentOptions);
 
         if(empty($rec->id)){
-            $form->FLD('count', 'int(Min=1)', 'caption=Брой,mandatory,after=typeId');
+            $form->FLD('createCount', 'int(Min=1)', 'caption=Брой,mandatory,after=typeId');
         } else {
             if(voucher_Cards::count("#typeId = {$rec->id}")){
                 $form->setReadOnly('referrer');
