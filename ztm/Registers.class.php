@@ -133,16 +133,12 @@ class ztm_Registers extends core_Master
 //             7 => 'profiles',
 //         );
 
-        $delete = false;
-        // Ако миграцията е успешна, изтриваме регистрите
-        if (cls::get('ztm_Setup')->callMigrate('profilesToNotes2430', 'ztm') == 'yes') {
-            $delete = 'everytime';
-        }
+        $res = cls::get('ztm_Setup')->callMigrate('profilesToNotes2430', 'ztm');
 
-        $cntObj = csv_Lib::importOnce($this, 'ztm/csv/Registri.csv', array(), array(), array(), $delete);
-        $res = $cntObj->html;
+        $cntObj = csv_Lib::importOnce($this, 'ztm/csv/Registri.csv');
+        $res .= $cntObj->html;
 
-        cls::get('ztm_Setup')->callMigrate('fixProfiles2430', 'ztm');
+        $res .= cls::get('ztm_Setup')->callMigrate('fixProfiles2430', 'ztm');
 
         return $res;
     }
