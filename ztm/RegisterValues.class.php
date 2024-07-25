@@ -595,7 +595,7 @@ class ztm_RegisterValues extends core_Manager
     {
         $minMinutesForOld = 5;
         $value = ztm_LongValues::getValueByHash($rec->value);
-        $Type = ztm_Registers::getOurType($rec->registerId);
+        $Type = ztm_Registers::getOurType($rec->registerId, $value);
         if (($Type instanceof type_Double || $Type instanceof type_Int) && !is_numeric($value)) {
             $row->value = ht::createHint($row->value, 'Стойността е с променен тип', 'error');
         } else {
