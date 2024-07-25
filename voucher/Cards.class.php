@@ -101,6 +101,12 @@ class voucher_Cards extends core_Detail
 
 
     /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'barcode_SearchIntf';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -561,5 +567,36 @@ class voucher_Cards extends core_Detail
 
             self::save($c);
         }
+    }
+
+
+    /**
+     * Търси по подадения баркод
+     *
+     * @param string $str
+     * @return array
+     *               ->title - заглавие на резултата
+     *               ->url - линк за хипервръзка
+     *               ->comment - html допълнителна информация
+     *               ->priority - приоритет
+     */
+    public function searchByCode($str)
+    {
+        $resArr = array();
+
+        $str = trim($str);
+        $query = $this->getQuery();
+        $query->where(array("#number = '[#1#]'", $str));
+        $rec = $query->fetch();
+        if(!$rec) return $resArr;
+
+        $number = voucher_Cards::haveRightFor('list') ? ht::createLink($rec->number, array('voucher_Cards', 'list', 'search' => $str)) : $rec->number;
+        $res = (object)array('title' => tr('Ваучер') . ": {$number}",
+                             'url' => array(),
+                             'comment' => tr('Тип') . ": " . voucher_Types::getHyperlink($rec->typeId),
+                             'priority' => 1);
+        $resArr[] = $res;
+
+        return $resArr;
     }
 }
