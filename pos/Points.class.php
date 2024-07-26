@@ -139,7 +139,7 @@ class pos_Points extends core_Master
         $this->FLD('chargeVat', 'enum(yes=С начисляване,no=Без начисляване)', 'caption=Настройки->Режим на ДДС,notNull,value=yes');
         $this->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Настройки->ДДС изключение');
 
-        $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Всички');
+        $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Не са разрешени');
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=default,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
         $this->FLD('productGroups', 'table(columns=groupId,captions=Група,validate=pos_Points::validateGroups,groupId_class=leftCell)', 'caption=Настройки->Групи');
@@ -274,15 +274,14 @@ class pos_Points extends core_Master
      */
     public static function fetchSelected($pointId)
     {
-        $paymentQuery = cond_Payments::getQuery();
-        $paymentQuery->where("#state = 'active'");
-        
         // Ако са посочени конкретни, само те се разрешават
         $payments = keylist::toArray(static::getSettings($pointId, 'payments'));
-        if (countR($payments)) {
-            $paymentQuery->in('id', $payments);
-        }
-        
+        if(!countR($payments)) return array();
+
+        $paymentQuery = cond_Payments::getQuery();
+        $paymentQuery->where("#state = 'active'");
+        $paymentQuery->in('id', $payments);
+
         $payments = array();
         while ($paymentRec = $paymentQuery->fetch()) {
             $payments[$paymentRec->id] = tr($paymentRec->title);
@@ -398,7 +397,7 @@ class pos_Points extends core_Master
 
         unset($row->currentPlg);
         if (empty($rec->payments)) {
-            $row->payments = tr('Всички');
+            $row->payments = tr('Не са разрешени');
         }
         
         if(empty($rec->otherStores)){
@@ -526,5 +525,11 @@ class pos_Points extends core_Master
                 $res->{$field} = empty($res->{$field}) ? null : $res->{$field};
             }
         }
+    }
+
+
+    function act_Test()
+    {
+        cls::get('pos_Setup')->updateNonCashPayments3024();
     }
 }

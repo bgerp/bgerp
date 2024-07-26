@@ -120,7 +120,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId,folderId,countTasks=Брой->|*<small>|Операции|*</small>,countDocs=Брой->|*<small>|Документи|*</small>, state, modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId,folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -576,9 +576,6 @@ class planning_Jobs extends core_Master
         $data->listFilter->showFields .= ',contragentFolderId';
         
         if ($filter = $data->listFilter->rec) {
-            if(empty($filter->folder)){
-                unset($data->listFields['countTasks'], $data->listFields['countDocs']);
-            }
             if (isset($filter->contragentFolderId)) {
 
                 // Намиране на ид-та на всички продажби в избраната папка на контрагента
@@ -955,20 +952,6 @@ class planning_Jobs extends core_Master
             }
             
             $row->quantityNotStored = "<div class='fright'>{$row->quantityNotStored}</div>";
-
-            if(!$fields['__isDetail']){
-                // Пресмятане на документите
-                $threads = static::getJobLinkedThreads($rec->id);
-                $countTasks = countR($threads) - 1;
-                $row->countTasks = core_Type::getByName('int')->toVerbal($countTasks);
-                $row->countTasks = ht::styleNumber($row->countTasks, $countTasks);
-
-                $tQuery = doc_Threads::getQuery();
-                $tQuery->in('id', $threads);
-                $tQuery->XPR('sum', 'int', 'SUM(#allDocCnt)');
-                $countAllDocs = $tQuery->fetch()->sum;
-                $row->countDocs = core_Type::getByName('int')->toVerbal($countAllDocs);
-            }
         }
         
         if (isset($rec->saleId)) {
@@ -2428,16 +2411,5 @@ class planning_Jobs extends core_Master
                 }
             }
         }
-    }
-
-
-    /**
-     * Преди рендиране на таблицата
-     */
-    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
-    {
-        setIfNot($data->listTableMvc, clone $mvc);
-        $data->listTableMvc->FLD('countTasks', 'int');
-        $data->listTableMvc->FLD('countDocs', 'int');
     }
 }

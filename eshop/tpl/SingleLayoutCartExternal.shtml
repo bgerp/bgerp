@@ -44,7 +44,7 @@
          <div class = 'cart-view-buttons-right' style="margin-bottom: 10px;">[#CART_TOOLBAR_TOP_RIGHT#]</div>
          <!--ET_END CART_TOOLBAR_TOP_RIGHT-->
       <!--ET_BEGIN activeFolderId-->
-            <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
+            <div style="padding-bottom: 5px;">|Папка|*: [#activeFolderId#]</div>
             <!--ET_END activeFolderId-->
          <!--ET_BEGIN SALE_BLOCK-->
          [#SALE_BLOCK#]
@@ -74,6 +74,11 @@
                   <td class="aright">|Плащане|*:</td><td> [#paymentId#]</td>
                </tr>
                <!--ET_END paymentId-->
+               <!--ET_BEGIN voucherId-->
+               <tr>
+                  <td class="aright">|Ваучер|*:</td><td> [#voucherId#]</td>
+               </tr>
+               <!--ET_END voucherId-->
 			<!--ET_END SALE_BLOCK-->
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
@@ -217,11 +222,9 @@
          <!--ET_BEGIN RIGHT_BLOCK-->
          [#RIGHT_BLOCK#]
          <div class = 'cart-view-buttons-right'>
-
-
             <!--ET_BEGIN CARD_LINK-->
             <div style="margin: 20px 0; color: #333; font-style: italic">
-               |Ако имате клиентска карта, може да я въведете от|* [#CARD_LINK#].
+               [#CARD_LINK#].
             </div>
             <!--ET_END CARD_LINK-->
          </div>

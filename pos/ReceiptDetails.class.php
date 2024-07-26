@@ -139,72 +139,87 @@ class pos_ReceiptDetails extends core_Detail
         $success = true;
         $rec = null;
         $autoFiscPrintIfPossible = false;
+        $amount = Request::get('amount', 'varchar');
+        $amount = empty($amount) ? 0 : $amount;
 
-        try{
-            if(!pos_Receipts::haveRightFor('pay', $receiptRec)){
-                expect(false, 'Не може да се добави друго плащане');
+        if(pos_Receipts::haveRightFor('setvoucher', $receiptRec)){
+            $voucherInfo = voucher_Cards::getByNumber($amount);
+            if($voucherInfo['error']){
+                core_Statuses::newStatus($voucherInfo['error'], 'error');
+                $success = false;
+            } elseif(isset($voucherInfo['id'])){
+                $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setvoucher', 'id' => $receiptRec->id, 'ajax_mode' => 1, 'voucherId' => $voucherInfo['id']);
+
+                return core_Request::forward($forwardUrl);
             }
-            $type = Request::get('type', 'int');
-            if($type != -1){
-                expect(cond_Payments::fetch($type), 'Неразпознат метод на плащане');
-            }
+        }
 
-            $amount = Request::get('amount', 'varchar');
-            $amount = empty($amount) ? 0 : $amount;
-            $amount = core_Type::getByName('double')->fromVerbal($amount);
+        if($success){
+            try{
+                expect(!(abs($receiptRec->paid) >= abs($receiptRec->total) && $receiptRec->total != 0), 'Вече е платено достатъчно|*!');
 
-            $paymentCount = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%payment%'");
-            $countProducts = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%sale%'");
-            if($countProducts && $receiptRec->total != 0){
-                expect($amount, 'Невалидна сума за плащане|*!');
-                expect($amount > 0, 'Сумата трябва да е положителна');
-            } else {
-                expect(!$paymentCount, 'Има вече направено плащане|*!');
-                expect($type == -1, 'На бележките с нулева сума е позволено само плащане в брой|*!');
-                expect($amount == 0, 'Не може да платите по-голяма сума|*!');
-            }
+                if(!pos_Receipts::haveRightFor('pay', $receiptRec)){
+                    expect(false, 'Не може да се добави друго плащане');
+                }
+                $type = Request::get('type', 'int');
+                if($type != -1){
+                    expect(cond_Payments::fetch($type), 'Неразпознат метод на плащане');
+                }
 
-            $diff = abs($receiptRec->paid - $receiptRec->total);
+                $amount = core_Type::getByName('double')->fromVerbal($amount);
+                $paymentCount = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%payment%'");
+                $countProducts = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%sale%'");
+                if($countProducts && $receiptRec->total != 0){
+                    expect($amount, 'Невалидна сума за плащане|*!');
+                    expect($amount > 0, 'Сумата трябва да е положителна');
+                } else {
+                    expect(!$paymentCount, 'Има вече направено плащане|*!');
+                    expect($type == -1, 'На бележките с нулева сума е позволено само плащане в брой|*!');
+                    expect($amount == 0, 'Не може да платите по-голяма сума|*!');
+                }
 
-            if ($type != -1) {
-                $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receiptRec->valior);
-                expect(!(!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff), 'Платежния метод не позволява да се плати по-голяма сума от общата|*!');
-            }
+                $diff = abs($receiptRec->paid - $receiptRec->total);
 
-            if($receiptRec->revertId){
-                $amount *= -1;
-            }
+                if ($type != -1) {
+                    $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receiptRec->valior);
+                    expect(!(!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff), 'Платежния метод не позволява да се плати по-голяма сума от общата|*!');
+                }
 
-            // Подготвяме записа на плащането
-            $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
+                if($receiptRec->revertId){
+                    $amount *= -1;
+                }
 
-            if(!empty($param)){
-                $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
-                if($type == $cardPaymentId){
-                    $rec->param = $param;
+                // Подготвяме записа на плащането
+                $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
+
+                if(!empty($param)){
+                    $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
+                    if($type == $cardPaymentId){
+                        $rec->param = $param;
+                    }
+                }
+
+                if($this->save($rec)){
+                    $this->Master->logInAct('Направено плащане', $receiptRec->id);
+                }
+            } catch(core_exception_Expect $e){
+                $dump = $e->dump;
+                $dump1 = $dump[0];
+
+                if (!Request::get('ajax_mode')) {
+                    throw new core_exception_Expect('', 'Изключение', $dump);
+                } else {
+                    core_Statuses::newStatus($dump1, 'error');
+                    $success = false;
                 }
             }
 
-            if($this->save($rec)){
-                $this->Master->logInAct('Направено плащане', $receiptRec->id);
+            if($success && in_array($param, array('manual', 'card'))){
+                $autoFiscPrintIfPossible = true;
             }
-       } catch(core_exception_Expect $e){
-           $dump = $e->dump;
-           $dump1 = $dump[0];
+        }
 
-           if (!Request::get('ajax_mode')) {
-               throw new core_exception_Expect('', 'Изключение', $dump);
-           } else {
-               core_Statuses::newStatus($dump1, 'error');
-               $success = false;
-           }
-       }
-
-       if($success && in_array($param, array('manual', 'card'))){
-           $autoFiscPrintIfPossible = true;
-       }
-
-       return pos_Terminal::returnAjaxResponse($receiptId, $rec, $success, true, true, true, 'add', false, true, null, $autoFiscPrintIfPossible);
+        return pos_Terminal::returnAjaxResponse($receiptId, $rec, $success, true, true, true, 'add', false, true, null, $autoFiscPrintIfPossible);
     }
 
 
@@ -578,15 +593,30 @@ class pos_ReceiptDetails extends core_Detail
             if($rec->ean && empty($rec->productId)){
                 $operation = Mode::get("currentOperation{$rec->receiptId}");
                 $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $rec->ean, 'receiptId' => $receiptId, 'operation' => $operation, 'refreshPanel' => 'no');
+
+                $check4Voucher = true;
                 if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
                     $cardInfo = crm_ext_Cards::getInfo($rec->ean);
                     if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
                         $redirectToNotEmptyReceiptResponse = $this->getRedirectToNotEmptyReceiptAjaxResponse($receiptRec, $cardInfo['contragentClassId'], $cardInfo['contragentId']);
                         if(is_array($redirectToNotEmptyReceiptResponse)) return $redirectToNotEmptyReceiptResponse;
-
+                        $check4Voucher = false;
                         $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $rec->receiptId, 'ajax_mode' => 1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
-                    } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
+                    } elseif($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
+                        $check4Voucher = false;
                         core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
+                    }
+                }
+
+                // Проверка дали търсения стринг е неизползван ваучер
+                if($check4Voucher && core_Packs::isInstalled('voucher')){
+                    if(pos_Receipts::haveRightFor('setvoucher', $receiptRec)){
+                        $voucherInfo = voucher_Cards::getByNumber($rec->ean);
+                        if($voucherInfo['error']){
+                            core_Statuses::newStatus($voucherInfo['error'], 'error');
+                        } elseif(isset($voucherInfo['id'])){
+                            $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setvoucher', 'id' => $rec->receiptId, 'ajax_mode' => 1, 'voucherId' => $voucherInfo['id']);
+                        }
                     }
                 }
 

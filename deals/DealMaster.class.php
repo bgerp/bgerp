@@ -1992,7 +1992,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $allowedFields['deliveryData'] = true;
         $allowedFields['deliveryCalcTransport'] = true;
         $allowedFields['deliveryAdress'] = true;
-        
+        $allowedFields['note'] = true;
+        if(core_Packs::isInstalled('voucher')) {
+            $allowedFields['voucherId'] = true;
+        }
+
         // Проверяваме подадените полета дали са позволени
         if (countR($fields)) {
             foreach ($fields as $fld => $value) {
@@ -2098,6 +2102,12 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         if ($id = $me->save($rec)) {
+            if(core_Packs::isInstalled('voucher')) {
+                if(isset($rec->voucherId)) {
+                    voucher_Cards::mark($rec->voucherId, 'used', $me->getClassId(), $rec->id);
+                }
+            }
+
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
 
             return $id;

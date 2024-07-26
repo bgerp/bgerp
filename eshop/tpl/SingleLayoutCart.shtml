@@ -200,6 +200,12 @@
                <td> [#paymentId#]</td>
             </tr>
             <!--ET_END paymentId-->
+            <!--ET_BEGIN voucherId-->
+            <tr>
+               <td style='width:150px'><span class="title-style">|Ваучер|*: </span></td>
+               <td> [#voucherId#]</td>
+            </tr>
+            <!--ET_END voucherId-->
             <tr>
                <td><span class="title-style">|Вид фактуриране|*:</span> </td>
                <td>[#makeInvoice#]</td>

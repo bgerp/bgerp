@@ -213,13 +213,13 @@ class pos_Terminal extends peripheral_Terminal
         
         $headerData = (object)array('pointId' => pos_Points::getHyperlink($rec->pointId, false),
                                     'createdBy' => core_Users::getVerbal($rec->createdBy, 'nick'),
-                                    'ID' => pos_Receipts::getVerbal($rec->id, 'id'),
+                                    'ID' => ht::createLink(pos_Receipts::getVerbal($rec->id, 'id'), pos_Receipts::getSingleUrlArray($rec->id)),
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
 
         // Ако контрагента е лице и е потребител да се показва и аватара му
-        $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : pos_Receipts::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('blank' => true));
+        $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : pos_Receipts::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('blank' => true, 'policyId' => $rec->policyId));
        
         $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
         $logoTpl = new core_ET("[#img#] [#APP_NAME#]");
@@ -258,10 +258,7 @@ class pos_Terminal extends peripheral_Terminal
         $enlargeObjectId = Request::get('enlargeObjectId', 'int');
         $receiptId = Request::get('id', 'int');
 
-        if(empty($enlargeClassId) || empty($enlargeObjectId)) {
-            
-            return array();
-        }
+        if(empty($enlargeClassId) || empty($enlargeObjectId)) return array();
         
         $EnlargeClass = cls::get($enlargeClassId);
         $receiptRec = pos_Receipts::fetch($receiptId);
@@ -1428,11 +1425,7 @@ class pos_Terminal extends peripheral_Terminal
         cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
         
         $deleteBtn = $this->renderDeleteRowBtn($rec, $selectedRec);
-        if(!$payUrl){
-            $paymentArr = array('delete' => (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS')) + $paymentArr;
-        } else {
-            $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
-        }
+        $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
 
         foreach ($paymentArr as $btnObject){
             $tpl->append($btnObject->body, $btnObject->placeholder);
@@ -1696,6 +1689,7 @@ class pos_Terminal extends peripheral_Terminal
         if($data->rec->state == 'draft'){
             unset($data->row->STATE_CLASS);
         }
+
         $tpl->placeObject($data->row);
         
         if($lastRecId = pos_ReceiptDetails::getLastRec($data->rec->id)->id){

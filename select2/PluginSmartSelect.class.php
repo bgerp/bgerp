@@ -102,7 +102,9 @@ class select2_PluginSmartSelect extends core_Plugin
         $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
         $minimumResultsForSearch = isset($type->params['minimumResultsForSearch']) ? $type->params['minimumResultsForSearch'] : $minimumResultsForSearch;
 
+        $matchOnlyStartsWith = $invoker->params['find'] == 'everywhere' ? false : true;
+
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($input, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen'], $minimumResultsForSearch);
+        select2_Adapter::appendAndRun($input, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen'], $minimumResultsForSearch, $matchOnlyStartsWith);
     }
 }

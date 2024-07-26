@@ -26,6 +26,5 @@ class floor_Wrapper extends plg_ProtoWrapper
     {
         $this->TAB('floor_Plans', 'Планове', 'floor, ceo, admin');
         $this->TAB('floor_Views', 'Изгледи', 'floor, ceo, admin');
-        
     }
 }
