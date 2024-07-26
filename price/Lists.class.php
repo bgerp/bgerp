@@ -172,7 +172,7 @@ class price_Lists extends core_Master
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
 
-        $this->FLD('discountClassPeriod', 'enum(default=За продажба,daily=За ден,monthly=За текущ месец)', 'caption=Автоматични отстъпки->Сума за отстъпки,autohide,notNull,value=default');
+        $this->FLD('discountClassPeriod', 'enum(default=За продажба,daily=За ден,monthly=За текущ месец,hourly=В рамките на 1 час)', 'caption=Автоматични отстъпки->Сума за отстъпки,autohide,notNull,value=default');
         $this->FLD('haveBasicDiscounts', 'enum(no=Няма,yes=Има)', 'caption=Автоматични отстъпки->Има ли,notNull,value=no,input=none');
         $this->setDbUnique('title');
         $this->setDbIndex('cId,cClass');
