@@ -198,7 +198,6 @@ class acc_Setup extends core_ProtoSetup
         'acc_CostAllocations',
         'acc_RatesDifferences',
         'acc_ProductPricePerPeriods',
-        'migrate::updateStockPrices2524',
         'migrate::updateStockPrices2824',
     );
     
