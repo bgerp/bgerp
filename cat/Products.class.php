@@ -3228,6 +3228,7 @@ class cat_Products extends embed_Manager
         }
 
         core_Debug::startTimer('WAC_AMOUNT_FROM_CACHE');
+        $date = dt::getLastDayOfMonth($date);
         $pricesArr = acc_ProductPricePerPeriods::getPricesToDate($date, $item2, $item1);
         $countPricesBefore = countR($pricesArr);
 
