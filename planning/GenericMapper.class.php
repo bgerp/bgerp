@@ -407,7 +407,7 @@ class planning_GenericMapper extends core_Manager
             if($countPricesBefore){
                 $priceSum = arr::sumValuesArray($pricesArr, 'price');
 
-                return round($priceSum / $countPricesBefore, 4);
+                return round($quantity * ($priceSum / $countPricesBefore), 4);
             }
         }
 
@@ -435,7 +435,7 @@ class planning_GenericMapper extends core_Manager
             if($countPricesBefore){
                 $priceSum = arr::sumValuesArray($pricesArr, 'price');
 
-                return round($priceSum / $countPricesBefore, 4);
+                return round($quantity * ($priceSum / $countPricesBefore), 4);
             }
         }
 
