@@ -3237,7 +3237,7 @@ class cat_Products extends embed_Manager
             core_Debug::stopTimer('WAC_AMOUNT');
             core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
 
-            return round($priceSum / $countPricesBefore, 4);
+            return round($quantity * ($priceSum / $countPricesBefore), 4);
         }
 
         core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
