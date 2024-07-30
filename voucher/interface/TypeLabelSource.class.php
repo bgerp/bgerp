@@ -52,7 +52,7 @@ class voucher_interface_TypeLabelSource extends label_ProtoSequencerImpl
         $placeholders = array();
         $placeholders['NUMBER'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['QR_CODE_100'] = (object) array('type' => 'text', 'hidden' => true);
-        $placeholders['IMAGE_100_100'] = (object) array('type' => 'picture');
+        $placeholders['IMAGE_200_100'] = (object) array('type' => 'picture');
 
         return $placeholders;
     }
