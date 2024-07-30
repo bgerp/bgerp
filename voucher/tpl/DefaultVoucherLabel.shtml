@@ -45,12 +45,12 @@
         position:absolute;
         left:8px;
         font-weight: 400;
-        bottom: 0;
+        bottom: 8px;
         color: #000;
         font-size:0.7em;
         text-align: justify;
         width: 300px;
-        line-height: 1.7em;
+        line-height: 1.1em !important;
         margin: 0 !important;
 
     }
@@ -75,7 +75,7 @@
 
 <section class='vauchers'>
     <h2>Карта за препоръка</h2>
-    <div class="logo">[#IMAGE_100_100#]</div>
+    <div class="logo">[#IMAGE_200_100#]</div>
     <div class='qr'> [#QR_CODE_100#]</div>
     <p class='link'>[#NUMBER#]</p>
     <p class='info'>[#TEXT#]</p>
