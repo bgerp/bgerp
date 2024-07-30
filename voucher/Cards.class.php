@@ -107,6 +107,12 @@ class voucher_Cards extends core_Detail
 
 
     /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 20;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -251,13 +257,6 @@ class voucher_Cards extends core_Detail
                 $requiredRoles = 'no_one';
             }
         }
-
-        if($action == 'delete' && isset($rec)){
-            if($requiredRoles != 'no_one'){
-                //if(pos_Receipts::count("#voucherId = {}"))
-                //$requiredRoles = 'no_one';
-            }
-        }
     }
 
 
@@ -290,16 +289,21 @@ class voucher_Cards extends core_Detail
                 if(!$res){
                     $errors[] = "Невалиден номер|*: <b>{$v}</b>";
                 } else {
+
                     if(empty($res['id'])){
                         $errors[] = "Невалиден номер|*: <b>{$v}</b>";
-                    } elseif($res['requireReferrer'] == 'no'){
-                        $errors[] = "Ваучерът не очаква препорачител|*: <b>{$v}</b>";
-                    } elseif($res['status'] == self::STATUS_USED) {
-                        $errors[] = "Ваучерът е използван|*: <b>{$v}</b>";
-                    } elseif($res['referrer']) {
-                        $errors[] = "Ваучерът е вече свързан|*: <b>{$v}</b>";
                     } else {
-                        $okVouchers[] = (object)array('id' => $res['id'], 'referrer' => $referrerRec->id, 'state' => 'active');
+                        $voucherTypeId = voucher_Cards::fetchField($res['id'], 'typeId');
+                        $requireReferrer = voucher_Types::fetchField($voucherTypeId, 'referrer');
+                        if($requireReferrer == 'no'){
+                            $errors[] = "Ваучерът не може да се обвързва с препоръчител|*: <b>{$v}</b>";
+                        } elseif($res['status'] == self::STATUS_USED) {
+                            $errors[] = "Ваучерът е използван|*: <b>{$v}</b>";
+                        } elseif($res['referrer']) {
+                            $errors[] = "Ваучерът е вече свързан|*: <b>{$v}</b>";
+                        } else {
+                            $okVouchers[] = (object)array('id' => $res['id'], 'referrer' => $referrerRec->id, 'state' => 'active');
+                        }
                     }
                 }
             }
