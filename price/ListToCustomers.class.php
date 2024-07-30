@@ -62,7 +62,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Кой има право да листва?
      */
-    public $canList = 'price,ceo';
+    public $canList = 'price,sales,ceo';
     
     
     /**
