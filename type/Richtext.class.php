@@ -518,9 +518,12 @@ class type_Richtext extends type_Blob
                         $matches['text'] .= '<br>' . "<span style='height:5px; display:block;'>&nbsp;</span>";
                     } else {
                         
-                        // Ако следващият ред е друго 'li'
-                        if (self::getListMatches($lines[$i + 1])) {
-                            break;
+                        // Ако следващият ред е друго 'li' от същия вид
+                        if ($nMatches = self::getListMatches($lines[$i + 1])) {
+                            if ($nMatches['list'] == $matches['list']) {
+
+                                break;
+                            }
                         }
                         $matches['text'] .= ltrim($lines[$i + 1]);
                     }
