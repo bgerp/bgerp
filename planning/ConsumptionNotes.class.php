@@ -312,29 +312,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     
     
     /**
-     * Проверка дали нов документ може да бъде добавен в посочената нишка
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     *
-     * @return bool
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Може да добавяме или към нишка в която има сигнал
-        $originId = Request::get('originId', 'int');
-        if(isset($originId)){
-            $taskSupportClassId = support_TaskType::getClassId();
-            if (cal_Tasks::fetchField("#containerId = {$originId} AND #driverClass = {$taskSupportClassId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
-
-                return true;
-            }
-        }
-
-        return parent::canAddToThread($threadId);
-    }
-    
-    
-    /**
      * Изпълнява се след създаване на нов запис
      */
     protected static function on_AfterCreate($mvc, $rec)
