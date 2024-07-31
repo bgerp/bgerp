@@ -1,0 +1,294 @@
+<?php
+
+/**
+ * Клас 'change_History - История на версията на обектите
+ *
+ * @category  bgerp
+ * @package   change
+ *
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2024 Experta OOD
+ * @license   GPL 3
+ *
+ * @since     v 0.1
+ */
+class change_History extends core_Manager
+{
+
+
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'id,objectId=Обект,validFrom,validTo,data,createdOn,createdBy';
+
+
+    /**
+     * Заглавие
+     */
+    public $title = 'История на обекти';
+
+
+    /**
+     * Кой има право да променя?
+     */
+    public $canEdit = 'no_one';
+
+
+    /**
+     * Кой има право да добавя?
+     */
+    public $canAdd = 'no_one';
+
+
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'debug';
+
+
+    /**
+     * Кой може да го листва?
+     */
+    public $canList = 'admin';
+
+
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, plg_Select, doc_Wrapper';
+
+
+    /**
+     * Описание на модела
+     */
+    public function description()
+    {
+        $this->FLD('classId', 'class', 'caption=Документ->Клас,silent');
+        $this->FLD('objectId', 'int', 'caption=Документ->Обект,tdClass=leftCol,silent');
+        $this->FLD('validFrom', 'datetime(format=d.m.y H:i:s)', 'caption=Дата->От');
+        $this->FLD('validTo', 'datetime(format=d.m.y H:i:s)', 'caption=Дата->До');
+        $this->FLD('data', 'blob(serialize, compress)', 'caption=Версия');
+        $this->FLD('state', 'enum(active=Активен,rejected=Оттеглен)', 'caption=Състояние,notNull=active');
+
+        $this->setDbIndex('classId,objectId');
+        $this->setDbIndex('classId,objectId,validFrom');
+        $this->setDbIndex('validFrom');
+        $this->setDbIndex('validTo');
+    }
+
+
+    /**
+     * Коя е текущата версия от мнодежството:
+     * версии в историята + съществуващия запис + новия запис
+     *
+     * @param mixed $classId
+     * @param int $objectId
+     * @param stdClass $oldRec
+     * @param stdClass $newRec
+     * @param array $saveFields
+     * @return mixed
+     */
+    public static function getCurrentRec($classId, $objectId, $oldRec, $newRec = null, &$saveFields = array())
+    {
+        $Class = cls::get($classId);
+        $classId = $Class->getClassId();
+        $loggableFields = arr::make($Class->loggableFields, true);
+
+        // Оттегляне на съществуващите записи с това ид
+        if(isset($newRec)){
+            $eQuery = static::getQuery();
+            $eQuery->where("#classId = '{$classId}' AND #objectId = '{$objectId}' AND #state = 'active' AND #validFrom = '{$newRec->validFrom}'");
+            while($eRec = $eQuery->fetch()){
+                $eRec->state = 'rejected';
+                static::save($eRec, 'state');
+            }
+        }
+
+        // Извличаните на съществуващите версии
+        $arr = $validFromByNow = $validToMap = array();
+        $query = static::getQuery();
+        $query->where("#classId = '{$classId}' AND #objectId = '{$objectId}'");
+        while($rec = $query->fetch()){
+            $arr[$rec->id] = $rec;
+            $validFromByNow[$rec->validFrom] = $rec;
+        }
+
+        // Към тях се добавят текущия и новия запис
+        foreach (array('m' => $oldRec, 'n' => $newRec) as $k => $r1){
+            if(!isset($r1)) continue;
+            $data = new stdClass();
+            foreach ($loggableFields as $logFld){
+                $data->{$logFld} = $r1->{$logFld};
+            }
+            $arr[$k] = (object)array('id' => $k, 'data' => $data, 'classId' => $classId, 'objectId' => $objectId, 'validFrom' => $r1->validFrom, 'state' => 'active');
+        }
+
+        // Ако текущия запис вече идва от историята - него
+        if(array_key_exists($oldRec->validFrom, $validFromByNow)){
+            unset($arr['m']);
+        }
+
+        /*
+         *Правим един масив $validFrom => $id, в който са включени всички записи от историята, текущия от Мениджъра с
+         * ИД = 'M' и новият, който е подготвен за запис с ИД = 'N'. Подреждаме масива по validFrom .
+         *  Ако имаме запис от Историята, който е със същото време validFrom като записа от мениджъра,
+         * махаме от масива записа от мениджъра (това е заради възможността текущия запис да е сложен по-рано
+         * в историята с начало в бъдещето).
+         *
+         * 1. Попълване на масив id => validFrom за всички записи от Мениджъра, Историята и евентуално Нов запис
+         * 2. Подреждане на масива и определяне на текущия запис.
+         * 3. Записване в Историята на всички записи, които не са записани (нямат число за id) и не са текущи.
+         * 4. Записване на текущия запис в мениджъра.
+         * 5. Изчисляване на всички validTo и записването им.
+         */
+        arr::sortObjects($arr, 'validFrom', 'ASC');
+        $loggableFields['validTo'] = 'validTo';
+
+        $now = dt::now();
+        $currentRec = null;
+        foreach ($arr as &$r){
+            if($now >= $r->validFrom){
+                $currentRec = $r;
+            }
+        }
+
+        if($currentRec->id == 'n'){
+
+            // Ако текущия запис е новия, записваме съществуващия в историята
+            if(isset($arr['m'])){
+                unset($arr['m']->id);
+                $oldId = static::save($arr['m']);
+                $arr[$oldId] = $arr['m'];
+            }
+        } elseif($currentRec->id == 'm' && isset($arr['n'])){
+
+            // Ако съществуващия запис е текущия и има нов запис
+            unset($arr['n']->id);
+            $newId = static::save($arr['n']);
+            $arr[$newId] = $arr['n'];
+            $saveFields = $loggableFields;
+            unset($arr['n']);
+        } else {
+
+            // Ако текущия запис е някой от историята
+            // До тук се стига ако след ЧЕТЕНЕ текущия запис не е актуален, и има бъдещ такъв в модела
+            // Записване на съществуващия запис в историята (ако има такъв)
+            if(isset($arr['m'])){
+                unset($arr['m']->id);
+                $oldId = static::save($arr['m']);
+                $arr[$oldId] = $arr['m'];
+                unset($arr['m']);
+            }
+
+            // Записване на новия запис в историята (ако има такъв)
+            if(isset($arr['n'])){
+                unset($arr['n']->id);
+                $newId = static::save($arr['n']);
+                $arr[$newId] = $arr['n'];
+                unset($arr['n']);
+            }
+
+            $loggableFields['validFrom'] = 'validFrom';
+            $saveFields = $loggableFields;
+        }
+
+        // Преизчисляване на валидността на множеството от записи
+        $count = 0;
+        arr::sortObjects($arr, 'validFrom', 'ASC');
+        $arrVal = array_values($arr);
+        foreach ($arr as &$r){
+            if(isset($arrVal[$count + 1])){
+                $r->validTo = $arrVal[$count + 1]->validFrom;
+            } else {
+                $r->validTo = null;
+            }
+            $validToMap[$r->validFrom] = $r->validTo;
+            $count++;
+        }
+
+        cls::get(get_called_class())->saveArray($arr, 'id,validTo');
+
+        // Във върнатите данни добавяме и валидността, да се обновят данните в мениджъра
+        $currentRec->data->validFrom = $currentRec->validFrom;
+        $currentRec->data->validTo = $validToMap[$currentRec->validFrom];
+
+        return $currentRec->data;
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->showFields = 'classId,objectId,validFrom';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input(null, 'silent');
+        $data->listFilter->input();
+
+        // Сортиране на записите по num
+        $data->query->orderBy('validFrom', 'DESC');
+
+        if($filter = $data->listFilter->rec){
+            if(!empty($filter->classId)){
+                $data->query->where("#classId = {$filter->classId}");
+            }
+            if(!empty($filter->objectId)){
+                $data->query->where("#objectId = {$filter->objectId}");
+            }
+            if(!empty($filter->date)){
+                $data->query->where("#date >= {$filter->date}");
+            }
+        }
+    }
+
+
+    /**
+     * Обработка по вербалното представяне на данните
+     */
+    protected static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
+    {
+        $now = dt::now();
+
+        $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+        if($rec->state == 'rejected') {
+            $row->ROW_ATTR['class'] = "state-rejected";
+        } elseif($rec->validFrom > $now){
+            $row->ROW_ATTR['class'] = "state-draft";
+        } else {
+            $row->ROW_ATTR['class'] = "state-active";
+        }
+    }
+
+
+    /**
+     * Връща записа какъвто е бил към датата
+     *
+     * @param mixed $class
+     * @param int|stdClass $id
+     * @param datetime|null $date
+     * @return stdClass
+     */
+    public static function getRecOnDate($class, $id, $date = null)
+    {
+        $date = $date ?? dt::now();
+        $rec = static::fetchRec($id);
+
+        $res = clone $rec;
+        $Class = cls::get($class);
+        $historyRec = self::fetch("#classId = {$Class->getClassId()} AND #objectId = {$rec->id} AND #validFrom <= '{$date}' AND ('{$date}' < #validTo OR #validTo IS NULL)");
+
+        // Ако има запис в историята - ще се заместят текущите данни с кешираните
+        if(is_object($historyRec)){
+            foreach ((array)$historyRec->data as $cFld => $cVal){
+                $res->{$cFld} = $cVal;
+            }
+        }
+
+        return $res;
+    }
+}

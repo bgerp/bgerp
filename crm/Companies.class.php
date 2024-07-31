@@ -102,7 +102,7 @@ class crm_Companies extends core_Master
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, drdata_plg_Canonize, plg_Printing,
+                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, change_plg_History, bgerp_plg_Groups, drdata_plg_Canonize, plg_Printing,
                      acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,
                      plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg';
     
@@ -300,8 +300,17 @@ class crm_Companies extends core_Master
         'pCode' => array('Пощенски код', '#pCode=DESC', 'pCode=П. код'),
         'website' => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
     );
-    
-    
+
+
+    /**
+     * Кои полета да се следят за промяна в логовете
+     *
+     * @see change_plg_Log
+     * @var string
+     */
+    public $loggableFields = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax,info';
+
+
     /**
      * Описание на модела (таблицата)
      */

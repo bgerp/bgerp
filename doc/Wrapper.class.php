@@ -128,5 +128,9 @@ class doc_Wrapper extends plg_ProtoWrapper
         $this->TAB('doc_Prototypes', 'Дебъг->Шаблони', 'debug');
         $this->TAB('doc_Linked', 'Дебъг->Връзки', 'debug');
         $this->TAB('doc_TplManagerHandlerCache', 'Дебъг->Обработвачи', 'debug');
+
+        if(core_Packs::isInstalled('change')){
+            $this->TAB('change_History', 'Дебъг->Версии на обекти', 'debug');
+        }
     }
 }
