@@ -275,11 +275,11 @@ class change_History extends core_Manager
      */
     public static function getRecOnDate($class, $id, $date = null)
     {
+        $Class = cls::get($class);
         $date = $date ?? dt::now();
-        $rec = static::fetchRec($id);
+        $rec = $Class->fetchRec($id);
 
         $res = clone $rec;
-        $Class = cls::get($class);
         $historyRec = self::fetch("#classId = {$Class->getClassId()} AND #objectId = {$rec->id} AND #validFrom <= '{$date}' AND ('{$date}' < #validTo OR #validTo IS NULL)");
 
         // Ако има запис в историята - ще се заместят текущите данни с кешираните
