@@ -75,7 +75,6 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         $entries = array();
         
         $sign = ($rec->action == 'increase') ? 1 : -1;
-        //bp($rec);
         $contragentClassId = $correspondingDoc->fetchField('contragentClassId');
         $contragentId = $correspondingDoc->fetchField('contragentId');
         $currencyId = currency_Currencies::getIdByCode($correspondingDoc->fetchField('currencyId'));
