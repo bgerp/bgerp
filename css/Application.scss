@@ -4257,6 +4257,10 @@ fieldset.sharing-history {
 	margin-left: 2%;
 	td {
 		vertical-align: top;
+		&.cardValue {
+			white-space: normal;
+			word-break: break-word;
+		}
 	}
 	.aright {
 		padding-right: 5px;
