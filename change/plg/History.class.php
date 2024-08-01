@@ -133,12 +133,12 @@ class change_plg_History extends core_Plugin
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
-        if($mvc->count("#validFrom IS NULL")){
-            $validFromColName = str::phpToMysqlName('validFrom');
-            $createdOnColName = str::phpToMysqlName('createdOn');
-            $query = "UPDATE {$mvc->dbTableName} SET {$validFromColName} = {$createdOnColName} WHERE {$validFromColName} IS NULL";
-            $mvc->db->query($query);
-        }
+        if(!$mvc->count("#validFrom IS NULL")) return;
+
+        $validFromColName = str::phpToMysqlName('validFrom');
+        $createdOnColName = str::phpToMysqlName('createdOn');
+        $query = "UPDATE {$mvc->dbTableName} SET {$validFromColName} = {$createdOnColName} WHERE {$validFromColName} IS NULL";
+        $mvc->db->query($query);
     }
 
 

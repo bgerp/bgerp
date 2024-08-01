@@ -20,13 +20,13 @@ class voucher_Cards extends core_Detail
     /**
      * Заглавие
      */
-    public $title = 'Ваучерни карти';
+    public $title = 'Ваучери';
 
 
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Ваучерна карта';
+    public $singleTitle = 'Ваучер';
 
 
     /**
@@ -88,6 +88,7 @@ class voucher_Cards extends core_Detail
      */
     const STATUS_USED = 'USED';
 
+
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -126,7 +127,7 @@ class voucher_Cards extends core_Detail
         $this->FLD('objectId', 'int', 'caption=Употреба->Къде,input=none,tdClass=leftCol');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено,pending=Чакащо)', 'caption=Състояние,input=none');
 
-        $this->setdbUnique('number');
+        $this->setDbUnique('number');
         $this->setDbIndex('referrer');
         $this->setDbIndex('classId,objectId');
     }
