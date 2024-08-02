@@ -60,6 +60,12 @@ class voucher_Cards extends core_Detail
 
 
     /**
+     * Кой има право да освобождава?
+     */
+    public $canUnlink = 'ceo, voucher';
+
+
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, voucher';
@@ -166,7 +172,6 @@ class voucher_Cards extends core_Detail
         }
         $row->typeId = voucher_Types::getHyperlink($rec->typeId);
 
-
         if(isset($rec->classId) && isset($rec->objectId)){
             $Class = cls::get($rec->classId);
             if($Class->hasPlugin('doc_DocumentPlg')){
@@ -174,6 +179,11 @@ class voucher_Cards extends core_Detail
             } else {
                 $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
             }
+        }
+
+        if ($mvc->haveRightFor('unlink', $rec)) {
+            $url = array($mvc, 'unlink', 'id' => $rec->id, 'ret_url' => true);
+            $row->_rowTools->addLink('Освобождаване', $url, array('ef_icon' => 'img/16/link_break.png', 'title' => 'Освобождаване от препоръчителя'));
         }
     }
 
@@ -253,11 +263,29 @@ class voucher_Cards extends core_Detail
             }
         }
 
-        if($action == 'changestate' && isset($rec)){
-            if(!empty($rec->usedOn)){
+        if($action == 'unlink' && isset($rec)) {
+            if (empty($rec->referrer) || !empty($rec->usedOn)) {
                 $requiredRoles = 'no_one';
             }
         }
+    }
+
+
+    /**
+     * Отвързване на ваучер от препоръчителя му
+     */
+    public function act_Unlink()
+    {
+        $this->requireRightFor('unlink');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = static::fetch($id));
+        $this->requireRightFor('unlink', $rec);
+
+        $rec->referrer = null;
+        $rec->state = 'pending';
+        static::save($rec, 'referrer,state');
+
+        followRetUrl(null, 'Ваучерът е освободен от препоръчителя');
     }
 
 
@@ -303,7 +331,7 @@ class voucher_Cards extends core_Detail
                         } elseif($res['referrer']) {
                             $errors[] = "Ваучерът е вече свързан|*: <b>{$v}</b>";
                         } else {
-                            $okVouchers[] = (object)array('id' => $res['id'], 'referrer' => $referrerRec->id, 'state' => 'active');
+                            $okVouchers[$res['id']] = (object)array('id' => $res['id'], 'referrer' => $referrerRec->id, 'state' => 'active');
                         }
                     }
                 }
