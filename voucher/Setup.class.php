@@ -99,6 +99,8 @@ class voucher_Setup extends core_ProtoSetup
         $class = ($modified > 0) ? ' class="green"' : '';
         $res .= "<li{$class}>Променени са са {$modified} шаблона за етикети, пропуснати са {$skipped}</li>";
 
+        cat_Params::force('requireReferrer', 'Изискуем препоръчител', 'cond_type_YesOrNo', null, '', false, false);
+
         return $res;
     }
 
