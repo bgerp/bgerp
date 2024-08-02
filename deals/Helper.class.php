@@ -1078,7 +1078,7 @@ abstract class deals_Helper
         // Данните на 'Моята фирма'
         $res = array();
         $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
-
+        bp($ownCompanyData);
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
         $res['MyCompany'] = $ownCompanyData->companyVerb;

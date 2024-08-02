@@ -102,7 +102,7 @@ class crm_Companies extends core_Master
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, drdata_plg_Canonize, plg_Printing,
+                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, change_plg_History, drdata_plg_Canonize, plg_Printing,
                      acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,
                      plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg';
     
@@ -1487,9 +1487,10 @@ class crm_Companies extends core_Master
      *
      * @param string $fields
      * @param int|null $ownCompanyId
+     * @param datetime|null $date
      * @return null|stdClass $rec
      */
-    public static function fetchOurCompany($fields = '*', $ownCompanyId = null)
+    public static function fetchOurCompany($fields = '*', $ownCompanyId = null, $date = null)
     {
         $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
         $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
@@ -1636,16 +1637,16 @@ class crm_Companies extends core_Master
     
     /**
      * Фирмата, от чието лице работи bgerp (crm_Setup::BGERP_OWN_COMPANY_ID)
-     * @param int|null $ownCompanyId - ид на моята фирма
-     *
+     * @param int|null $ownCompanyId      - ид на моята фирма
+     * @param datetime|null $datetime     - към коя дата
      * @return stdClass @see doc_ContragentDataIntf::getContragentData()
      */
-    public static function fetchOwnCompany($ownCompanyId = null)
+    public static function fetchOwnCompany($ownCompanyId = null, $datetime = null)
     {
         $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
         $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
 
-        return static::getContragentData($id);
+        return static::getContragentData($id, $datetime);
     }
     
     
@@ -1757,12 +1758,12 @@ class crm_Companies extends core_Master
     /**
      * Връща данните на фирмата
      *
-     * @param int    $id    - id' то на записа
-     * @param string $email - Имейл
+     * @param int    $id          - id' то на записа
+     * @param datetime|null $date - към коя дата
      *
-     * return object
+     * return stdClass
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         //Вземаме данните от визитката
         $company = crm_Companies::fetch($id);
