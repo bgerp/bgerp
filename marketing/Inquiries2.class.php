@@ -1515,11 +1515,11 @@ class marketing_Inquiries2 extends embed_Manager
      * Връща данните за запитванията
      *
      * @param int   $id    - id' то на записа
-     * @param datetime|null $date - дата
+     * @param string $email - Имейл
      *
      * @return NULL|object
      */
-    public static function getContragentData($id, $date = null)
+    public static function getContragentData($id)
     {
         if (!$id) {
             

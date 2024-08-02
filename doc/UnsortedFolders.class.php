@@ -936,18 +936,34 @@ class doc_UnsortedFolders extends core_Master
         
         return $tpl;
     }
-
-
     /**
-     * Интерфейсен метод
+     * Връща данните на получателя
+     * return object
      *
-     * @param int $id
-     * @param date|null $date
-     * @return object
+     * $obj->company    - Името на компанията
+     * $obj->companyId  - Id' то на компанията - key(mvc=crm_Companies)
+     * $obj->country    - Името на държавата
+     * $obj->countryId  - Id' то на
+     * $obj->vatNo      - ДДС номер на компанията
+     * $obj->uicId      - Национален номер на компанията
+     * $obj->pCode      - код
+     * $obj->place      -
+     * $obj->email      - Имейл
+     * $obj->tel        - Телефон
+     * $obj->fax        - Факс
+     * $obj->address    - Адрес
      *
+     * $obj->name       - Име на физическо лице
+     * $obj->personId   - ИД на лице - key(mvc=crm_Persons)
+     * $obj->pTel       - Персонален телефон
+     * $obj->pMobile    - Мобилен
+     * $obj->pFax       - Персонален
+     * $obj->pAddress   - Персонален адрес
+     * $obj->pEmail     - Персонален имейл
+     * 
      * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id, $date = null)
+    public static function getContragentData($id)
     {
         $contragentData = null;
         

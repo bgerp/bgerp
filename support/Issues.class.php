@@ -1003,12 +1003,12 @@ class support_Issues extends core_Master
      * Интерфейсен метод
      *
      * @param int $id
-     * @param datetime|null $date
+     *
      * @return object
      *
      * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id, $date = null)
+    public static function getContragentData($id)
     {
         if (!$id) {
             

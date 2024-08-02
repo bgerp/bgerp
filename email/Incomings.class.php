@@ -3069,7 +3069,7 @@ class email_Incomings extends core_Master
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресата
      */
-    public static function getContragentData($id, $date = null)
+    public static function getContragentData($id)
     {
         //Данните за имейл-а
         $msg = email_Incomings::fetch($id);

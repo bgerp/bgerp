@@ -42,9 +42,9 @@ class doc_ContragentDataIntf
      * $obj->pAddress   - Персонален адрес
      * $obj->pEmail     - Персонален имейл
      */
-    public function getContragentData($id, $date = null)
+    public function getContragentData($id)
     {
-        return $this->class->getContragentData($id, $date);
+        return $this->class->getContragentData($id);
     }
     
     
