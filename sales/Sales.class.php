@@ -2130,11 +2130,12 @@ class sales_Sales extends deals_DealMaster
      * Интерфейсен метод
      *
      * @param int $id
+     * @param datetime|int $id
      * @return object
      *
      * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         if (core_Packs::isInstalled('eshop') && ($rec = self::fetchRec($id))) {
             if ($cartRec = eshop_Carts::fetch("#saleId = {$id}")) {

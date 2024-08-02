@@ -1404,16 +1404,18 @@ class crm_Persons extends core_Master
         
         return drdata_Countries::isEu($rec->country);
     }
-    
-    
+
+
     /**
-     * Връща данните на лицето
+     * Интерфейсен метод
      *
-     * @param int $id - id' то на записа
+     * @param int $id
+     * @param date|null $date
+     * @return object
      *
-     * return object
+     * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         //Вземаме данните
         $person = crm_Persons::fetch($id);
