@@ -165,7 +165,7 @@ class voucher_Cards extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if(isset($rec->referrer)){
             $row->referrer = crm_Persons::getHyperlink($rec->referrer, true);
@@ -181,10 +181,15 @@ class voucher_Cards extends core_Detail
             }
         }
 
+        core_RowToolbar::createIfNotExists($row->_rowTools);
         if ($mvc->haveRightFor('unlink', $rec)) {
             $url = array($mvc, 'unlink', 'id' => $rec->id, 'ret_url' => true);
             $row->_rowTools->addLink('Освобождаване', $url, array('ef_icon' => 'img/16/link_break.png', 'title' => 'Освобождаване от препоръчителя'));
         }
+
+        if($fields['-detail']){
+            $row->_rowTools->removeBtn("del{$rec->id}");
+       }
     }
 
 
@@ -285,7 +290,7 @@ class voucher_Cards extends core_Detail
         $rec->state = 'pending';
         static::save($rec, 'referrer,state');
 
-        followRetUrl(null, 'Ваучерът е освободен от препоръчителя');
+        followRetUrl(null, 'Ваучерът е освободен от препоръчителя|*!');
     }
 
 
@@ -458,9 +463,11 @@ class voucher_Cards extends core_Detail
         $query->where("#referrer = '{$masterRec->id}'");
         $query->orderBy("#state");
         $data->Pager->setLimit($query);
+        $fields = $this->selectFields();
+        $fields['-detail'] = true;
 
         while ($rec = $query->fetch()) {
-            $row = $this->recToVerbal($rec);
+            $row = $this->recToVerbal($rec, $fields);
             $data->rows[$rec->id] = $row;
         }
 
