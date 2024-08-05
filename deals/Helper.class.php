@@ -1065,9 +1065,11 @@ abstract class deals_Helper
     {
         // Ако е инсталиран пакета за многофирменост - моята фирма е тази посочена в първия документ на нишката
         $ownCompanyId = null;
+        $Document = doc_Containers::getDocument($containerId);
+        $docRec = $Document->fetch('activatedOn,threadId');
+
         if(core_Packs::isInstalled('holding')) {
-            $Document = doc_Containers::getDocument($containerId);
-            $firstDoc = doc_Threads::getFirstDocument($Document->fetchField('threadId'));
+            $firstDoc = doc_Threads::getFirstDocument($docRec->threadId);
             if($firstDoc->isInstanceOf('deals_DealMaster')) {
                 if(isset($firstDoc->ownCompanyFieldName)) {
                     $ownCompanyId = $firstDoc->fetchField($firstDoc->ownCompanyFieldName);
@@ -1077,7 +1079,7 @@ abstract class deals_Helper
 
         // Данните на 'Моята фирма'
         $res = array();
-        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $docRec->activatedOn);
 
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
@@ -1127,7 +1129,7 @@ abstract class deals_Helper
             }
         }
         
-        $showCountries = ($ownCompanyData->countryId == $cData->countryId) ? false : true;
+        $showCountries = !(($ownCompanyData->countryId == $cData->countryId));
         
         if (isset($contragentClass, $contragentId)) {
             $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries)->getContent();
@@ -1135,7 +1137,7 @@ abstract class deals_Helper
             $res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
         }
         
-        $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries)->getContent();
+        $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries, true, $docRec->activatedOn)->getContent();
 
         if(drdata_Countries::isEu($cData->countryId) && empty($cData->eori)){
             unset($res['MyCompanyEori']);

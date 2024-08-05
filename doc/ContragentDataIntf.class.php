@@ -46,20 +46,22 @@ class doc_ContragentDataIntf
     {
         return $this->class->getContragentData($id, $date);
     }
-    
-    
+
+
     /**
      * Връща пълния конкатениран адрес на контрагента
      *
-     * @param int       $id            - ид на контрагент
-     * @param bool      $translitarate - дали да се транслитерира адреса
-     * @param bool|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param int        $id            - ид на контрагент
+     * @param bool       $translitarate - дали да се транслитерира адреса
+     * @param bool|NULL  $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param bool       $showAddress   - да се показва ли адреса
+     * @param date|null  $date          - да се показва ли адреса
      *
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = false, $showCountry = null)
+    public function getFullAdress($id, $translitarate = false, $showCountry = null, $showAddress = true, $date = null)
     {
-        return $this->class->getFullAdress($id, $translitarate);
+        return $this->class->getFullAdress($id, $translitarate, $showCountry, $showAddress, $date);
     }
     
     

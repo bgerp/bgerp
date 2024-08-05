@@ -284,6 +284,7 @@ class change_History extends core_Manager
 
         // Ако има запис в историята - ще се заместят текущите данни с кешираните
         if(is_object($historyRec)){
+
             foreach ((array)$historyRec->data as $cFld => $cVal){
                 $res->{$cFld} = $cVal;
             }

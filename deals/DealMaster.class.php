@@ -1303,7 +1303,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     }
                 }
 
-                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc, $ownCompanyId);
+                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, doc_Containers::getDocument($rec->containerId), $ownCompanyId);
             }
            
             if (isset($rec->deliveryTermId) && !Mode::isReadOnly()) {

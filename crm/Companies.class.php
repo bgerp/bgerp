@@ -1495,7 +1495,8 @@ class crm_Companies extends core_Master
         $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
         $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
         $rec = self::fetch($id);
-        
+        $rec = change_History::getRecOnDate(get_called_class(), $rec->id, $date);
+
         if ($rec) {
             $rec->classId = core_Classes::getId('crm_Companies');
         }
@@ -1767,7 +1768,16 @@ class crm_Companies extends core_Master
     {
         //Вземаме данните от визитката
         $company = crm_Companies::fetch($id);
-        
+
+        // Ако има посочена дата, връщат се контрагент данните КЪМ тази дата
+        if(isset($date)) {
+            $recToDate = change_History::getRecOnDate(get_called_class(), $company, $date);
+
+            if($recToDate) {
+                $company = $recToDate;
+            }
+        }
+
         //Заместваме и връщаме данните
         if ($company) {
             $contrData = new stdClass();
@@ -1791,7 +1801,7 @@ class crm_Companies extends core_Master
             // Вземаме груповите имейли
             $contrData->groupEmails = crm_Persons::getGroupEmails($company->id);
         }
-        
+
         return $contrData;
     }
     
@@ -2171,24 +2181,27 @@ class crm_Companies extends core_Master
     /**
      * Връща пълния конкатениран адрес на контрагента
      *
-     * @param int       $id            - ид на контрагент
-     * @param bool      $translitarate - дали да се транслитерира адреса
-     * @param bool|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
-     * @param bool      $showAddress   - да се показва ли адреса
+     * @param int        $id            - ид на контрагент
+     * @param bool       $translitarate - дали да се транслитерира адреса
+     * @param bool|NULL  $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param bool       $showAddress   - да се показва ли адреса
+     * @param date|null  $date          - да се показва ли адреса
      *
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = false, $showCountry = null, $showAddress = true)
+    public function getFullAdress($id, $translitarate = false, $showCountry = null, $showAddress = true, $date = null)
     {
         expect($rec = $this->fetchRec($id));
-        
+        $rec = change_History::getRecOnDate($this, $rec, $date);
+
+
         $obj = new stdClass();
         $tpl = new ET('<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--> <!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--><!--ET_BEGIN place--> [#place#]<br><!--ET_END place--> [#address#]');
         
         // Показваме държавата само ако е различна от тази на моята компания
         if (!isset($showCountry)) {
             if ($rec->country) {
-                $ourCompany = crm_Companies::fetchOurCompany();
+                $ourCompany = crm_Companies::fetchOurCompany('*', null, $date);
                 if ($ourCompany->country != $rec->country) {
                     $obj->country = $this->getVerbal($rec, 'country');
                 }
