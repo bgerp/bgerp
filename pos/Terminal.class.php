@@ -280,8 +280,16 @@ class pos_Terminal extends peripheral_Terminal
                 $modalTpl->append($packagingTpl, 'Packagings');
                 Mode::pop();
                 $settings = pos_Points::getSettings($receiptRec->pointId);
-                $contragentPriceListId = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
-                $price = pos_ReceiptDetails::getLowerPriceObj($settings->policyId, $contragentPriceListId, $productRec->id, $productRec->measureId, 1, dt::now());
+
+                if(!empty($receiptRec->policyId)){
+                    $policy1 = $receiptRec->policyId;
+                    $policy2 = pos_Receipts::isForDefaultContragent($receiptRec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+                } else {
+                    $policy1 = $settings->policyId;
+                    $policy2 = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+                }
+
+                $price = pos_ReceiptDetails::getLowerPriceObj($policy1, $policy2, $productRec->id, $productRec->measureId, 1, dt::now());
                 $calcedPrice = !empty($price->discount) ? $price->price * (1 - $price->discount) : $price->price;
                 $calcedPrice *= 1 + cat_Products::getVat($productRec->id, null, $settings->vatExceptionId);
                 $Double = core_Type::getByName('double(decimals=2)');
@@ -1943,7 +1951,7 @@ class pos_Terminal extends peripheral_Terminal
     private function prepareProductTable($rec, $searchString, $selectedRec)
     {
         $cMin = date('i');
-        $cacheKey = "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}_{$cMin}";
+        $cacheKey = "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}_{$cMin}_{$rec->voucherId}";
         $result = core_Cache::get('pos_Terminal', $cacheKey);
         
         $settings = pos_Points::getSettings($rec->pointId);
@@ -2122,9 +2130,13 @@ class pos_Terminal extends peripheral_Terminal
         $productClassId = cat_Products::getClassId();
 
         $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
-        $contragentPriceListId = null;
-        if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
-            $contragentPriceListId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+
+        if(!empty($rec->policyId)){
+            $policy1 = $rec->policyId;
+            $policy2 = pos_Receipts::isForDefaultContragent($rec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+        } else {
+            $policy1 = $settings->policyId;
+            $policy2 = pos_Receipts::isForDefaultContragent($rec) ? null : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
 
         $now = dt::now();
@@ -2138,7 +2150,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $packQuantity = cat_products_Packagings::getPack($id, $packId, 'quantity');
             $perPack = (!empty($packQuantity)) ? $packQuantity : 1;
-            $priceRes = pos_ReceiptDetails::getLowerPriceObj($settings->policyId, $contragentPriceListId, $id, $packId, 1, $now);
+            $priceRes = pos_ReceiptDetails::getLowerPriceObj($policy1, $policy2, $id, $packId, 1, $now);
 
             // Обръщаме реда във вербален вид
             $res[$id] = new stdClass();;
