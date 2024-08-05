@@ -260,9 +260,19 @@ abstract class deals_ManifactureMaster extends core_Master
             return true;
         }
 
+        // Ако корицата е папка на склад
         $folderId = doc_Threads::fetchField($threadId, 'folderId');
         $Cover = doc_Folders::getCover($folderId);
         if($Cover->isInstanceOf('store_Stores')) return true;
+
+        // Ако не е ПП и е в нишка на сигнал за поддръжка
+        $me = cls::get(get_called_class());
+        if(!($me instanceof planning_ProductionDocument)){
+            if($Cover->isInstanceOf('planning_Centers')) return true;
+
+            $taskSupportClassId = support_TaskType::getClassId();
+            if(cal_Tasks::fetchField("#threadId = {$threadId} AND #driverClass = {$taskSupportClassId} AND #state IN ('active','stopped','wakeup','closed','pending')")) return true;
+        }
 
         return false;
     }
@@ -288,7 +298,7 @@ abstract class deals_ManifactureMaster extends core_Master
                     return false;
                 }
             }
-        } elseif(($this instanceof planning_ConsumptionNotes) && $origin->isInstanceOf('cal_Tasks')){
+        } elseif(($this instanceof planning_ConsumptionNotes || $this instanceof planning_ReturnNotes) && $origin->isInstanceOf('cal_Tasks')){
             $supportTaskClassType = support_TaskType::getClassId();
             $originRec = $origin->fetch('driverClass,state');
             if($originRec->driverClass != $supportTaskClassType) return false;

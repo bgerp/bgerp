@@ -488,12 +488,16 @@ class crm_ext_Cards extends core_Manager
                             if(crm_Profiles::getUserByPerson($Contragent->that)){
 
                                 redirect(array('core_Users', 'login'), false, 'Моля логнете се с вашия потребител');
+                            } else {
+                                $retUrl = array($this, 'checkCard', 'ret_url' => true);
+                                $redirectUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($Contragent->getInstance(), $Contragent->that, $retUrl);
+
+                                return new Redirect($redirectUrl);
                             }
                         }
                     } else {
                         $retUrl = array($this, 'checkCard', 'ret_url' => true);
                         $redirectUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($Contragent->getInstance(), $Contragent->that, $retUrl);
-                        expect(!empty($redirectUrl));
 
                         return new Redirect($redirectUrl);
                     }

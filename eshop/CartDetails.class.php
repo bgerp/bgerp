@@ -385,11 +385,12 @@ class eshop_CartDetails extends core_Detail
                 if ($rec->oldPrice) {
                     $difference = round($finalPrice, 2) - round($rec->oldPrice, 2);
                     $caption = ($difference > 0) ? 'увеличена' : 'намалена';
+                    $hintIcon = ($difference > 0) ? 'img/16/up16.png' : 'img/16/down16.png';
                     $difference = abs($difference);
                     $difference = currency_CurrencyRates::convertAmount($difference, null, $rec->currencyId, $settings->currencyId);
                     $differenceVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($difference);
                     $hint = "Цената е {$caption} с|* {$differenceVerbal} {$settings->currencyId}";
-                    $row->finalPrice = ht::createHint($row->finalPrice, $hint, 'warning');
+                    $row->finalPrice = ht::createHint($row->finalPrice, $hint, $hintIcon);
                 }
                 $rec->amount = $finalPrice * ($rec->quantity / $rec->quantityInPack);
                 $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);

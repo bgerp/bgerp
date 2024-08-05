@@ -15,7 +15,7 @@
                                         <div class='invInfo'>|Дата|* / Date</div>
                                         <div class="bigData">[#date#]</div>
                                         <div class='invInfo'>|Място|* / Place</div>
-                                        <div class="bigData">[#place#]</div>
+                                        <div class="boldText">[#place#]</div>
                                         <!--ET_BEGIN reff-->
                                         <div class="invInfo">Ваш реф / <i>Your reff</i>: <span class="bigData">[#reff#]</span></div>
                                         <!--ET_END reff-->

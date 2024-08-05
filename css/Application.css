@@ -3639,6 +3639,9 @@ span.sharing-history-title {
   margin-left: 2%; }
   .wide .cartInfoBlock td {
     vertical-align: top; }
+    .wide .cartInfoBlock td.cardValue {
+      white-space: normal;
+      word-break: break-word; }
   .wide .cartInfoBlock .aright {
     padding-right: 5px; }
 

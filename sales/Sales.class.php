@@ -2189,6 +2189,10 @@ class sales_Sales extends deals_DealMaster
         if (core_Packs::isInstalled('eshop')) {
             $res['onlineSale'] = 'Онлайн продажби';
         }
+
+        if (core_Packs::isInstalled('voucher')) {
+            $res['voucher'] = 'С ваучери';
+        }
     }
     
     
@@ -2200,6 +2204,9 @@ class sales_Sales extends deals_DealMaster
         if ($option == 'onlineSale') {
             $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
             $query->where('#cartId IS NOT NULL');
+        }
+        if ($option == 'voucher') {
+            $query->where('#voucherId IS NOT NULL');
         }
     }
     
