@@ -33,7 +33,7 @@ class visualcrossing_Forecasts extends core_Manager
     /**
      * Зареждане на използваните мениджъри
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Modified';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Modified, plg_Sorting';
 
 
     /**
@@ -61,6 +61,9 @@ class visualcrossing_Forecasts extends core_Manager
 
         // Максимален вятър
         $this->FLD('wind', 'double', 'caption=Вятър->Максимален,unit=км/ч');
+
+        // Валеже mm
+        $this->FLD('precip', 'double', 'caption=Валежи,unit=mm');
 
         // Икона
         $this->FLD('icon', 'varchar(64)', 'caption=Икона');
@@ -160,6 +163,7 @@ class visualcrossing_Forecasts extends core_Manager
                     $rec->high = $data->tempmax;
                     $rec->rh = $data->humidity ? $data->humidity / 100 : 0;
                     $rec->wind = $data->windspeed;
+                    $rec->precip = $data->precip;
                     $rec->icon = $data->icon;
 
                     self::save($rec);
@@ -188,6 +192,7 @@ class visualcrossing_Forecasts extends core_Manager
                         $rec->rh = $hour->humidity ? $hour->humidity / 100 : 0;
                         $rec->wind = $hour->windspeed;
                         $rec->icon = $hour->icon;
+                        $rec->precip = $hour->precip;
 
                         self::save($rec);
                     }
