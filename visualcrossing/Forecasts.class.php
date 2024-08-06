@@ -215,13 +215,15 @@ class visualcrossing_Forecasts extends core_Manager
     /**
      * Връща регистрите и стойностите им
      *
+     * @param int|stdClass $deviceId
+     *
      * @return array
      *
-     * @see ztm_interfaces_RegSyncValues::getRegValues()
+     * @see ztm_interfaces_RegSyncValues::getRegValues($deviceId)
      */
-    public function getRegValues()
+    public function getRegValues($deviceId)
     {
-        $rArr = $this->prepareRegs();
+        $rArr = $this->prepareRegs($deviceId);
 
         return $rArr;
     }
@@ -241,7 +243,7 @@ class visualcrossing_Forecasts extends core_Manager
      */
     public function prepareRegValues($result, $regArr, $oDeviceRec, $deviceRec)
     {
-//        $rArr = $this->prepareRegs();
+//        $rArr = $this->prepareRegs($deviceRec);
 //
 //        foreach ($rArr as $reg => $valArr) {
 //            $result->{$reg} = $valArr['val'];
@@ -254,10 +256,15 @@ class visualcrossing_Forecasts extends core_Manager
     /**
      * Помощна функция за подготовка на регистрите
      *
+     * @param int|stdClass $deviceId
+     *
      * @return array
      */
-    protected function prepareRegs()
+    protected function prepareRegs($deviceId)
     {
+        $dRec = ztm_Devices::fetchRec($deviceId);
+        $profileId = $dRec->profileId;
+
         static $regArr = array();
 
         if (!empty($regArr)) {
@@ -265,16 +272,26 @@ class visualcrossing_Forecasts extends core_Manager
             return $regArr;
         }
 
-        $now = dt::now(false);
         foreach (array(0, 3, 6) as $h) {
             $time = date('G', strtotime("{$h} hours"));
-            $forecast = $this->getForecast($now, $time);
+            $date = date('Y-m-d', strtotime("{$h} hours"));
+
+            $forecast = $this->getForecast($date, $time);
             if (!$forecast) {
 
                 continue;
             }
             foreach (array('icon' => 'icon', 'rh' => 'rh', 'temp' => 'low', 'wind' => 'wind') as $key => $field) {
                 $eKey = "envm.forecast.{$key}_{$h}";
+
+                if ($profileId) {
+                    $pIds = ztm_Registers::fetchField(array("#name = '[#1#]'", $eKey), 'profileIds');
+                    if ($pIds && !type_Keylist::isIn($profileId, $pIds)) {
+
+                        continue;
+                    }
+                }
+
                 $regArr[$eKey] = array('val' => $forecast->{$field}, 'time' => $forecast->modifiedOn);
                 if (is_numeric($regArr[$eKey])) {
                     $regArr[$eKey] = (double) $regArr[$eKey];
