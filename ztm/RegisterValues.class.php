@@ -278,7 +278,7 @@ class ztm_RegisterValues extends core_Manager
         $iArr = core_Classes::getOptionsByInterface('ztm_interfaces_RegSyncValues');
         foreach((array) $iArr as $iCls) {
             $intf = cls::getInterface('ztm_interfaces_RegSyncValues', $iCls);
-            $iRegAr = $intf->getRegValues();
+            $iRegAr = $intf->getRegValues($deviceId);
 
             foreach ($iRegAr as $rName => $rValArr) {
                 $sTime = isset($rValArr['time']) ? $rValArr['time'] : $lastSync;
@@ -534,7 +534,7 @@ class ztm_RegisterValues extends core_Manager
                 $result = $intf->prepareRegValues($result, $regArr, $oDeviceRec, $deviceRec);
             }
         } catch (core_exception_Expect $e) {
-            $result = $registers;
+            $result = (object) $regArr;
             reportException($e);
         }
 
