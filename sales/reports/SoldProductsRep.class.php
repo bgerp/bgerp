@@ -664,7 +664,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $posContragentClassName = core_Classes::fetch($recPrime->contragentClassId)->name;
                 $contragentFolder = $posContragentClassName::fetch($recPrime->contragentId)->folderId;
 
-
+                $contragentName = doc_Folders::getTitleById($contragentFolder);
                 $posKey = $recPrime->contragentClassId . '|' . $recPrime->contragentId;
 
                 $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId . ' | ' . $posKey : $recPrime->productId;
