@@ -609,7 +609,7 @@ class core_Form extends core_FieldSet
             $tpl = new ET("
                 <!--ET_BEGIN ERRORS_TITLE--><div class=\"formError\">\n" .
                 "<b>[#ERRORS_TITLE#]:</b><ul>[#ERROR_ROWS#]</ul>\n" .
-                '<!--ET_END ERRORS_TITLE--></div>' .
+                '</div><!--ET_END ERRORS_TITLE-->' .
                 "<!--ET_BEGIN WARNINGS_TITLE--><div class=\"formWarning\">\n" .
                 "<b>[#WARNINGS_TITLE#]:</b><ul>[#WARNING_ROWS#]</ul>\n" .
                 "<div style='border-top:solid 1px blue;padding-top:5px;'>[#IGNORE#]</div>\n" .

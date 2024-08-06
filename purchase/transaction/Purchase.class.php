@@ -36,8 +36,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      * Работен кеш
      */
     private static $cache2 = array();
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    private $entriesLast = array();
+
+
     /**
      * Генериране на счетоводните транзакции, породени от покупка.
      *
@@ -103,7 +109,11 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
             }
         }
-        
+
+        if (countR($this->entriesLast)) {
+            $entries = array_merge($entries, $this->entriesLast);
+        }
+
         // Проверка дали артикулите отговарят на нужните свойства
         $products = arr::extractValuesFromArray($rec->details, 'productId');
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost() && countR($products)) {
@@ -136,19 +146,23 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     protected function fetchPurchaseData($id)
     {
         $rec = $this->class->fetchRec($id);
-        
         $rec->details = array();
         
         if (!empty($rec->id)) {
             // Извличаме детайлите на покупката
             $detailQuery = purchase_PurchasesDetails::getQuery();
             $detailQuery->where("#requestId = '{$rec->id}'");
-            
             while ($dRec = $detailQuery->fetch()) {
+                $dRec->_revertVatPercent = null;
+                if($rec->haveVatCreditProducts == 'no') {
+                    $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+                    $dRec->_revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId);
+                }
+
                 $rec->details[] = $dRec;
             }
         }
-        
+
         return $rec;
     }
     
@@ -166,7 +180,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         
         // Покупката съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-        
+
         foreach ($rec->details as $dRec) {
             $pInfo = cat_Products::getProductInfo($dRec->productId);
             if (isset($pInfo->meta['canStore'])) {
@@ -201,6 +215,18 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     if (countR($correctionEntries)) {
                         $entries = array_merge($entries, $correctionEntries);
                     }
+                }
+
+                if($dRec->_revertVatPercent){
+                    $this->entriesLast[] = array(
+                        'amount' => round($amountAllocated * $dRec->_revertVatPercent, 2),
+                        'debit' => array('60201',
+                            $dRec1->expenseItemId,
+                            array('cat_Products', $dRec->productId),
+                            'quantity' => 0),
+                        'credit' => array('4530', array('purchase_Purchases', $rec->id),),
+                        'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит',
+                    );
                 }
             }
         }
@@ -300,15 +326,11 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     protected function getDeliveryPart($rec)
     {
         $entries = array();
-        
-        if (empty($rec->shipmentStoreId)) {
-            
-            return;
-        }
+        if (empty($rec->shipmentStoreId)) return;
         
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId = currency_Currencies::getIdByCode($currencyCode);
-        
+
         foreach ($rec->details as $detailRec) {
             $pInfo = cat_Products::getProductInfo($detailRec->productId);
             
@@ -347,6 +369,18 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     ),
                     'reason' => 'Заскладени материални запаси',
                 );
+
+                if($detailRec->_revertVatPercent){
+                    $this->entriesLast[] = array(
+                        'amount' => round($amount * $rec->currencyRate * $detailRec->_revertVatPercent, 2),
+                        'debit' => array($debitAccId,
+                                    array('store_Stores', $rec->shipmentStoreId),
+                                    array('cat_Products', $detailRec->productId),
+                                    'quantity' => 0),
+                        'credit' => array('4530', array('purchase_Purchases', $rec->id),),
+                        'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит',
+                    );
+                }
             }
         }
         

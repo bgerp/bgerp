@@ -23,13 +23,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, sales';
 
 
-//     /**
-//      * Кои полета от таблицата в справката да се сумират в обобщаващия ред
-//      *
-//      * @var int
-//      */
-//     protected $summaryListFields = 'invAmount,primeCost,delta,primeCostCompare,deltaCompare,changeSales,changeDeltas,';
-    protected $summaryListFields = 'invAmount';
+    /**
+     * Кои полета от листовия изглед да може да се сортират
+     *
+     * @var int
+     */
+    protected $sortableListFields = 'quantity';
+
+    /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields ;
 
 
     /**
@@ -37,7 +43,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryRowCaption = 'ОБЩО ЗА ПЕРИОДА';
+    protected $summaryRowCaption = 'ОБЩО';
 
 
     /**
@@ -100,7 +106,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
 
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, group=Групи, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=6,columns=3,after=primeCostType');
+        $fieldset->FLD('orderBy', 'enum(code=Код, primeCost=Продажби ст., quantity=Продажби кол., group=Групи, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=7,columns=3,after=primeCostType');
         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
 
         $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
@@ -404,7 +410,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
         if ($rec->seeByContragent == 'yes') {
-            $this->groupByField = 'contragent';
+            $this->groupByField = 'contragentName';
         }
 
         $recs = $invProd = array();
@@ -473,6 +479,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query = sales_SalesDetails::getQuery();
 
             $query->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
+
+            $query->EXT('containerId', 'sales_Sales', 'externalName=containerId,externalKey=saleId');
 
             $query->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
 
@@ -643,9 +651,29 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             //rec-a на артикула
             $prodRec = cat_Products::fetch($recPrime->productId);
-
+//bp($recPrime, $rec);
             //Ключ на масива
-            $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId : $recPrime->productId;
+            $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId . ' | ' . $recPrime->folderId : $recPrime->productId;
+            $Doc = doc_Containers::getDocument($recPrime->containerId);
+            $poscontragentClassId = $poscontragentId = null;
+            if ($Doc->isInstanceOf('pos_Reports')) {
+
+                $poscontragentClassId = $recPrime->contragentClassId;
+                $poscontragentId = $recPrime->contragentId;
+
+                $posContragentClassName = core_Classes::fetch($recPrime->contragentClassId)->name;
+                $contragentFolder = $posContragentClassName::fetch($recPrime->contragentId)->folderId;
+
+
+                $posKey = $recPrime->contragentClassId . '|' . $recPrime->contragentId;
+
+                $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId . ' | ' . $posKey : $recPrime->productId;
+
+            } else {
+
+                $contragentName = doc_Folders::getTitleById($recPrime->folderId);
+            }
+
 
             //Код на артикула
             $artCode = $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}";
@@ -671,7 +699,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
                         $quantityPrevious = $recPrime->quantity;
                         $primeCostPrevious = $recPrime->{"${price}"} * $recPrime->quantity;
-
 
 
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
@@ -820,6 +847,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $recs[$id] = (object)array(
 
                     'contragent' => $recPrime->folderId,                  //Папка на контрагента
+                    'poscontragentClassId' => $poscontragentClassId,
+                    'poscontragentId' => $poscontragentId,
+                    'contragentName' => $contragentName,
 
                     'code' => $artCode,                                   //Код на артикула
                     'productId' => $recPrime->productId,                  //Id на артикула
@@ -1217,6 +1247,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $invDetQuery->EXT('number', 'sales_Invoices', 'externalName=number,externalKey=invoiceId');
 
+        $invDetQuery->EXT('containerId', 'sales_Invoices', 'externalName=containerId,externalKey=invoiceId');
+
         $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
 
         $invDetQuery->EXT('changeAmount', 'sales_Invoices', 'externalName=changeAmount,externalKey=invoiceId');
@@ -1341,7 +1373,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
 
                     if ($rec->seeByContragent == 'yes') {
-                        $fld->FLD('contragent', 'keylist(mvc=doc_Folders,select=name)', 'caption=Контрагент');
+                        $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
                         $fld->FLD('invQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->количество');
                         $fld->FLD('invAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Фактурирано->стойност');
                     }
@@ -1380,7 +1412,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         } else {
             //експорт
             if ($rec->seeByContragent == 'yes') {
-                $fld->FLD('contragent', 'varchar', 'caption=Контрагент');
+                $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
             }
             if ($rec->group) {
                 $fld->FLD('group', 'varchar', 'caption=Група');
@@ -1470,8 +1502,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             } else {
                 $group = cat_Groups::getVerbal($dRec->group, 'name');
             }
-        }
-;
+        };
         return $group;
     }
 
@@ -1601,7 +1632,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         //Ако имаме избрано показване "ПО АРТИКУЛИ"
         if ($rec->grouping == 'no') {
-            $row->contragent = doc_Folders::getTitleById($dRec->contragent);
+
+            $row->contragentName = $dRec->contragentName;
+
 
             if (isset($dRec->code)) {
                 $row->code = $dRec->code;
@@ -1881,9 +1914,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $baseCurrency . ' (основна)' . '</b>', 'currency');
         }
 
-        if ($data->rec->primeCostType == 'dealerPrimeCost'){
+        if ($data->rec->primeCostType == 'dealerPrimeCost') {
             $coefDelta = core_Packs::getConfig('sales')->SALES_DELTA_MIN_PERCENT;
-            $fieldTpl->append('<b>' . $coefDelta*100 .'%'. '</b>', 'minDelta');
+            $fieldTpl->append('<b>' . $coefDelta * 100 . '%' . '</b>', 'minDelta');
 
         }
 
@@ -1929,7 +1962,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (isset($dRec->measure)) {
             $res->measure = $dRec->measure;
         }
-        if(isset($dRec->productId)){
+        if (isset($dRec->productId)) {
             $res->productId = cat_Products::fetch($dRec->productId)->name;
         }
 
@@ -1951,8 +1984,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         } else {
             if ($rec->seeByContragent == 'yes') {
-                if (isset($res->contragent)){
-                    $res->contragent = doc_Folders::fetch($dRec->contragent)->title;
+                if (isset($res->contragentName)) {
+                    $res->contragentName = $dRec->contragentName;
                 }
 
             }

@@ -82,6 +82,8 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
         
         $query->EXT('closedOn', 'sales_Sales', 'externalKey=saleId');
         $query->EXT('chargeVat', 'sales_Sales', 'externalKey=saleId');
+        $query->EXT('threadId', 'sales_Sales', 'externalKey=saleId');
+        $query->EXT('valior', 'sales_Sales', 'externalKey=saleId');
         $query->EXT('makeInvoice', 'sales_Sales', 'externalKey=saleId');
         $query->EXT('state', 'sales_Sales', 'externalKey=saleId');
         $query->EXT('code', 'cat_Products', 'externalKey=productId');
@@ -101,9 +103,9 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
             $id = $articul->productId;
             
             $discountedAmount = $articul->amount - ($articul->amount * $articul->discount);
-            
+
             if ($articul->productId) {
-                $totalVat += $discountedAmount * cat_Products::getVat($articul->productId);
+                $totalVat += $discountedAmount * cat_Products::getVat($articul->productId, $articul->valior, $articul->threadId);
             }
             
             if (!array_key_exists($id, $recs)) {
@@ -131,7 +133,7 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
                 $obj->hint .= '; '.$salesInfo[0];
             }
             if ($articul->productId) {
-                $recs[$id]->vat = (double) ($recs[$id]->amount * cat_Products::getVat($articul->productId));
+                $recs[$id]->vat = (double) ($recs[$id]->amount * cat_Products::getVat($articul->productId, $articul->valior, $articul->threadId));
             }
             
             $recs[$id]->price = (double) ($recs[$id]->amount / $recs[$id]->quantity);

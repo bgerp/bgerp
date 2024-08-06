@@ -264,14 +264,12 @@ class store_Transfers extends core_Master
         // Допълнително
         $this->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
+        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Състояние, input=none');
 
-        $this->FLD(
-            'state',
-            'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
-            'caption=Състояние, input=none'
-        );
-
+        $this->setDbIndex('fromStore');
+        $this->setDbIndex('toStore');
         $this->setDbIndex('lineId');
+        $this->setDbIndex('state');
     }
 
 

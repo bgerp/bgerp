@@ -2860,7 +2860,6 @@ max-width: 400px;
 	margin-left:5px;
 	padding: 5px 10px;
 	min-width: 110px;
-	min-height: 1.2em;
 }
 
 .nowrap {
@@ -5507,8 +5506,18 @@ table .eshop-btn {
 	min-height: 612px;
 }
 
+.webdrvIframeSingle {
+	min-height: 0px;
+}
+
+iframe.autoHeight {
+	width: 100%;
+	border: none;
+	overflow: hidden;
+}
+
 .wide .webdrvIframe, .wide .webdrvFieldset {
-	min-width: 880px;
+	min-width: 885px;
 }
 
 .narrow .webdrvIframe {
@@ -6134,6 +6143,7 @@ div.location.public {
 .acc_JournalDetails {
 	margin-top: 10px;
 }
+
 .details .portal .formToolbar #filter{
 	background-color: #e5e5e5;
 	padding: 6px 4px !important;
@@ -6142,6 +6152,10 @@ div.location.public {
 	&:hover {
 		background-color: #ccc;
 	}
+}
+
+.document .details .portal .formToolbar #filter {
+	padding: 5px 4px 4px !important;
 }
 /*шаблон за журнал*/
 
@@ -8292,7 +8306,7 @@ body.narrow {
 	tr {
 		td {
 			font-weight: normal !important;
-			font-size: 0.65em !important;
+			font-size: 13px !important;
 			border: none !important;
 			border-bottom: 1px dotted #aaa !important;
 			padding: 2px !important;
@@ -8747,6 +8761,10 @@ tr.wasteWeightPercent td {
 }
 
 .frontTooltip {
+	display: inline-block;
+}
+
+.taskDetailDateCol .small{
 	display: inline-block;
 }
 /* край на стилове за външната част при потребител контрактор */

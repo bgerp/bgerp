@@ -134,6 +134,12 @@ class pos_Reports extends core_Master
 
 
     /**
+     * Дали автоматично да се разпределят партиди при моментно производство
+     */
+    public $allowInstantProductionBatches = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -488,7 +494,10 @@ class pos_Reports extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        // Контираме документа
+        // Форсиране на обновяването на нишката, ако гръмне по време на контирането, да не остане развалена нишката
+        doc_Threads::doUpdateThread($rec->threadId);
+
+        // Контиране на документа
         $mvc->conto($rec);
         
         // Еднократно оттегляме всички празни чернови бележки

@@ -166,6 +166,7 @@ class sens2_DataLogs extends core_Manager
         }
         
         $data->query->orderBy('#time', 'DESC');
+        $data->query->orderBy('id', 'DESC');
     }
     
     

@@ -71,6 +71,9 @@
                   <!--ET_BEGIN courierApi-->
                   <span style='font-weight:normal'>|Куриерско API|*</span>: [#courierApi#] <!--ET_BEGIN courierApiPrice--><i style="color:#555">([#courierApiPrice#])</i><!--ET_END courierApiPrice--><br>
                   <!--ET_END courierApi-->
+                  <!--ET_BEGIN vatExceptionId-->
+                  <span style='font-weight:normal'>|ДДС изключение|*</span>: <b>[#vatExceptionId#]</b><br>
+                  <!--ET_END vatExceptionId-->
               </td>
            </tr>
            <tr>

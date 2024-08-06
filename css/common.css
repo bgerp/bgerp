@@ -1320,7 +1320,8 @@ a.profile {
   .state-rejected .document li,
   .state-rejected .document b,
   .state-rejected .document font,
-  .state-rejected .document legend {
+  .state-rejected .document legend,
+  .state-rejected .small {
     color: #999999 !important;
     text-decoration: line-through !important; }
   .state-rejected .tagColumn {
@@ -3327,6 +3328,8 @@ div.statuses-message h2 {
  */
 .quiet {
   color: #888888; }
+  .quiet a {
+    color: #888888 !important; }
 
 .quiet td {
   border-top-width: 0;

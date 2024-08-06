@@ -55,12 +55,6 @@ defIfNot('CAT_DEFAULT_META_IN_SUPPLIER_FOLDER', 'canBuy,canConvert,canStore');
 
 
 /**
- * При търсене на складова себестойност до колко месеца на зад да се търси
- */
-defIfNot('CAT_WAC_PRICE_PERIOD_LIMIT', 36);
-
-
-/**
  * Ценова политика по подразбиране
  */
 defIfNot('CAT_DEFAULT_PRICELIST', price_ListRules::PRICE_LIST_CATALOG);
@@ -219,8 +213,6 @@ class cat_Setup extends core_ProtoSetup
         'cat_ListingDetails',
         'cat_PackParams',
         'cat_ParamFormulaVersions',
-        'migrate::fixNewLinesInFormulas2706',
-        'migrate::updateCategories2124',
     );
     
     
@@ -256,13 +248,12 @@ class cat_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'CAT_PRODUCT_CODE_TYPE' => array('enum(default=Букви (латиница) + цифри + тире + интервал + долна черта,all=Букви (латиница и кирилица) + цифри + тире + интервал + долна черта,alphanumeric=Букви (латиница) и цифри,numbers=Само цифри)', 'caption=Код на артикула позволени символи->Допустими'),
+        'CAT_PRODUCT_CODE_TYPE' => array('enum(default=Букви (латиница) + цифри + тире + интервал + долна черта,all=Букви (латиница и кирилица) + цифри + тире + интервал + долна черта,alphanumeric=Букви (латиница) и цифри,numbers=Само цифри,allExtended=Букви (латиница и кирилица) + цифри + тире + интервал + долна черта + наклонена + точка)', 'caption=Код на артикула позволени символи->Допустими'),
         'CAT_BOM_REMEMBERED_RESOURCES' => array('int', 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
         'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
         'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
         'CAT_DEFAULT_MEASURE_ID' => array('key(mvc=cat_UoM,select=name,allowEmpty)', 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на артикулите->Мярка'),
         'CAT_BOM_MAX_COMPONENTS_LEVEL' => array('int(min=0)', 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
-        'CAT_WAC_PRICE_PERIOD_LIMIT' => array('int(min=1)', array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
         'CAT_DEFAULT_PRICELIST' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика по подразбиране->Избор,mandatory'),
         'CAT_AUTO_LIST_PRODUCT_COUNT' => array('int(min=1)', 'caption=Списъци от последно продавани артикули->Брой,customizeBy=label'),
         'CAT_AUTO_LIST_ALLOWED_GROUPS' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Списъци от последно продавани артикули->Групи'),
@@ -381,6 +372,12 @@ class cat_Setup extends core_ProtoSetup
                     $res = false;
                 }
                 break;
+            case 'allExtended':
+                if (preg_match( '/[^0-9a-zа-я\- _\/\.]/iu', $code)) {
+                    $msg = 'Полето може да съдържа само букви, цифри, тирета, интервали, долна черта, наклонена и точка|*!';
+                    $res = false;
+                }
+                break;
             case 'alphanumeric':
                 if (preg_match('/[^a-z_\-0-9]/i', $code)) {
                     $msg = 'Полето може да съдържа само латински букви и цифри|*!';
@@ -426,44 +423,5 @@ class cat_Setup extends core_ProtoSetup
         }
 
         return $res;
-    }
-
-
-    /**
-     * Миграция на паразитните нови редове във формулите
-     */
-    function fixNewLinesInFormulas2706()
-    {
-        $Params = cls::get('cat_products_Params');
-        $classId = cond_type_Formula::getClassId();
-        $query = $Params->getQuery();
-        $query->EXT('driverClass', 'cat_Params', 'externalName=driverClass,externalKey=paramId');
-        $query->where("#driverClass={$classId}");
-        $query->show('paramId,paramValue');
-
-        $toSave = array();
-        while($rec = $query->fetch()){
-            $paramValueParsed = preg_replace('/(\n\r)+|(\r\n)+/', "$1$2", $rec->paramValue);
-            if($paramValueParsed != $rec->paramValue){
-                $rec->paramValue = $paramValueParsed;
-                $toSave[] = $rec;
-            }
-        }
-
-        if(countR($toSave)){
-            $Params->saveArray($toSave, 'id,paramValue');
-        }
-    }
-
-
-    /**
-     * Миграция на категориите
-     */
-    function updateCategories2124()
-    {
-        $Categories = cls::get('cat_Categories');
-        $useAsProtoName = str::phpToMysqlName('useAsProto');
-        $query = "UPDATE {$Categories->dbTableName} SET {$useAsProtoName} = 'no' WHERE ({$useAsProtoName} IS NULL OR {$useAsProtoName} = '')";
-        $Categories->db->query($query);
     }
 }

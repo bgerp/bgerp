@@ -42,6 +42,12 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
 
     /**
+     * Кеш
+     */
+    protected static $savedBatches = false;
+
+
+    /**
      * Връща транзакцията на бележката
      */
     public function getTransaction($id)
@@ -50,17 +56,26 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
         $rec = $this->class->fetchRec($id);
         $posRec = pos_Points::fetch($rec->pointId);
-        $paymentsArr = $productsArr = $totalVat = $entries = array();
+        $paymentsArr = $productsArr = $totalVat = $entries = $batchesByStores = array();
         core_Debug::startTimer('GET_TRANSACTION');
 
         if(!Mode::is('recontoTransaction')){
             $this->class->extractData($rec);
+            if(core_Packs::isInstalled('batch')){
+                if(!static::$savedBatches){
+                    batch_plg_PosReports::saveBatchesToDraft($rec);
+                    static::$savedBatches = true;
+                }
+            }
         }
 
         if (countR($rec->details['receiptDetails'])) {
             foreach ($rec->details['receiptDetails'] as $dRec) {
                 if ($dRec->action == 'sale') {
                     $productsArr[] = $dRec;
+                    if(core_Packs::isInstalled('batch')){
+                        $batchesByStores[$dRec->storeId][$dRec->value][$dRec->batch] += $dRec->quantity;
+                    }
                 } elseif ($dRec->action == 'payment') {
                     $paymentsArr[] = $dRec;
                 }
@@ -122,6 +137,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         
         // Проверка на артикулите преди контиране
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+
             core_Debug::startTimer('META_CHECK');
             pos_Reports::logDebug('START META_CHECK');
 
@@ -140,10 +156,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
             // Проверка на артикулите
             if(countR($productCheck['notActive'])){
-                doc_Threads::doUpdateThread($rec->threadId);
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
-                doc_Threads::doUpdateThread($rec->threadId);
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!");
             }
 
@@ -157,8 +171,36 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
                 if(countR($contoWarnings)) {
                     $warning = implode('. ', $contoWarnings);
-                    doc_Threads::doUpdateThread($rec->threadId);
                     acc_journal_RejectRedirect::expect(false, $warning);
+                }
+
+                // Проверка за неналичните партиди
+                if(!haveRole('contoNegativeBatches')){
+                    $productsWithNotExistingBatchesArr = array();
+
+                    foreach ($batchesByStores as $storeId => $productBatches) {
+                        foreach ($productBatches as $productId => $batches) {
+                            if($Def = batch_Defs::getBatchDef($productId)){
+                                $checkIfBatchExists = $Def->getField('onlyExistingBatches');
+                                if($checkIfBatchExists == 'yes'){
+                                    $existingBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId);
+                                    foreach ($batches as $b => $q) {
+                                        $inStore = $existingBatches[$b] ?? 0;
+                                        if(round($q, 5) > round($inStore, 5)){
+                                            if(!array_key_exists($productId, $productsWithNotExistingBatchesArr)){
+                                                $productsWithNotExistingBatchesArr[$productId] = "<b>" . cat_Products::getTitleById($productId, false) . "</b>";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if(countR($productsWithNotExistingBatchesArr)){
+                        $productMsg = implode(', ', $productsWithNotExistingBatchesArr);
+                        acc_journal_RejectRedirect::expect(false, "Артикули с неналични партиди|*: {$productMsg}");
+                    }
                 }
             }
 

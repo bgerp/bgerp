@@ -155,6 +155,12 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $currencyId = currency_Currencies::getIdByCode($currencyCode);
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
         $dClass = ($reverse) ? 'store_ShipmentOrderDetails' : 'store_ReceiptDetails';
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $firstRec = $firstDoc->fetch();
+
+        // Ако документа е с включено/отделно ддс и към покупка - ще се прави контировка за артикултие с данъчен кредит
+        $checkVatCredit = $firstDoc->isInstanceOf('purchase_Purchases') && $firstRec->haveVatCreditProducts == 'no';
+        $entriesLast = array();
 
         foreach ($rec->details as $detailRec) {
             if (empty($detailRec->quantity) && Mode::get('saveTransaction')) {
@@ -165,6 +171,8 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             $amount = round($amount, 2);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+            $revertVatPercent = ($checkVatCredit) ? cat_Products::getVat($detailRec->productId, $rec->valior, $vatExceptionId) : null;
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
@@ -197,6 +205,17 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                             $entries = array_merge($entries, $correctionEntries);
                         }
                     }
+
+                    if($revertVatPercent){
+                        $entriesLast[] = array(
+                            'amount' => $sign * round($amountAllocated * $revertVatPercent, 2),
+                            'debit' => array('60201',
+                                            $dRec1->expenseItemId,
+                                            array('cat_Products', $dRec1->productId),
+                                            'quantity' => 0),
+                            'credit' => array('4530', array($origin->className, $origin->that)),
+                            'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит');
+                    }
                 }
             } else {
                 $debitAccId = '321';
@@ -210,7 +229,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
 
                 $cQuantity = $sign * $amount;
                 $amount = $sign * $amount * $rec->currencyRate;
-
+                $amountPure = $amount;
                 if($reverse){
                     $amountInStore = cat_Products::getWacAmountInStore($detailRec->quantity, $detailRec->productId, $rec->valior, $rec->storeId);
                     if(isset($amountInStore)){
@@ -229,6 +248,17 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                         'quantity' => $cQuantity, // "брой пари" във валутата на покупката
                     ),
                 );
+
+                if($revertVatPercent && !$reverse){
+                    $entriesLast[] = array(
+                        'amount' => round($amountPure * $revertVatPercent, 2),
+                        'debit' => array($debitAccId,
+                                   array('store_Stores', $rec->storeId),
+                                   array('cat_Products', $detailRec->productId),
+                                            'quantity' => 0),
+                        'credit' => array('4530', array($origin->className, $origin->that)),
+                        'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит');
+                }
             }
         }
         
@@ -258,7 +288,11 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         if (countR($entries2)) {
             $entries = array_merge($entries, $entries2);
         }
-        
+
+        if(countR($entriesLast)){
+            $entries = array_merge($entries, $entriesLast);
+        }
+
         return $entries;
     }
     

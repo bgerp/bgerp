@@ -945,6 +945,7 @@ class eshop_Products extends core_Master
                 $data->groups->groupId = $groupId;
             }
         }
+        expect($data->groups->groupId, $data->groups, $data);
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
 
         $settings = cms_Domains::getSettings();

@@ -154,7 +154,7 @@ class sales_Quotations extends deals_QuotationMaster
     /**
      * Кои полета да са нередактируеми, ако има вече детайли
      */
-    protected $readOnlyFieldsIfHaveDetail = 'chargeVat,currencyRate,currencyId,deliveryTermId,deliveryPlaceId,deliveryAdress,deliveryCalcTransport';
+    protected $readOnlyFieldsIfHaveDetail = 'chargeVat,currencyRate,currencyId,deliveryTermId,deliveryPlaceId,deliveryAdress,deliveryCalcTransport,vatExceptionId';
 
 
     /**
@@ -283,7 +283,7 @@ class sales_Quotations extends deals_QuotationMaster
             $origin = doc_Containers::getDocument($rec->originId);
             if ($origin && cls::haveInterface('cat_ProductAccRegIntf', $origin->instance)) {
                 $originRec = $origin->fetch('id,measureId');
-                $vat = cat_Products::getVat($origin->that, $rec->date);
+                $vat = cat_Products::getVat($origin->that, $rec->date, $rec->vatExceptionId);
                 
                 // Ако в река има 1 от 3 к-ва
                 foreach (range(1, 3) as $i) {

@@ -104,6 +104,7 @@ class email_AddressesInfo extends core_Manager
 
         $this->setDbUnique('email');
         $this->setDbIndex('redirection');
+        $this->setDbIndex('lastSent');
     }
 
 

@@ -141,7 +141,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function setInvoiceFields(core_Master &$mvc)
     {
-        $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
+        $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата');
         $mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
 
         $mvc->FLD('displayContragentClassId', 'enum(crm_Companies=Фирма,crm_Persons=Лице,newCompany=Нова фирма)', 'input,silent,removeAndRefreshForm=displayContragentId|selectInvoiceText,caption=Друг контрагент->Източник');
@@ -458,7 +458,7 @@ abstract class deals_InvoiceMaster extends core_Master
         foreach ($invArr as $field => $value) {
             $form->rec->{$field} = $value;
         }
-        
+
         $form->setDefault('date', dt::today());
         
         $form->setField('vatRate', 'input=hidden');
@@ -744,7 +744,6 @@ abstract class deals_InvoiceMaster extends core_Master
         $form = &$data->form;
         $rec = $form->rec;
 
-        $form->setDefault('date', dt::today());
         if (empty($form->rec->id)) {
             $form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
             $form->rec->contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
@@ -1603,6 +1602,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         expect($document = doc_Containers::getDocument($containerId));
         expect($document->isInstanceOf($this), $document->className, $this->className);
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($document->fetchField('threadId'));
 
         $vats = $cacheIds = array();
         $Detail = $this->mainDetail;
@@ -1624,7 +1624,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price, 'count' => $count, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);
             $v = 0;
             if ($docRec->vatRate != 'no' && $docRec->vatRate != 'exempt') {
-                $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
+                $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'), $vatExceptionId);
             }
             $vats["{$v}"] = $v;
             $count++;
@@ -2217,7 +2217,8 @@ abstract class deals_InvoiceMaster extends core_Master
 
             // Ако има артикули и поне един от тях е с нулева ставка
             if(countR($productArr)){
-                $productsWithZeroVat = cat_products_VatGroups::getByVatPercent(0, $rec->date, $productArr);
+                $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+                $productsWithZeroVat = cat_products_VatGroups::getByVatPercent(0, $rec->date, $productArr, $vatExceptionId);
                 if(countR($productsWithZeroVat)){
 
                     return 'При участие на артикули с нулева ставка, трябва да е посочено основание за неначисляване на ДДС|*!';

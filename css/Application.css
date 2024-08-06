@@ -2454,8 +2454,7 @@ pre.document {
   border-top: 2px dotted #666666;
   margin-left: 5px;
   padding: 5px 10px;
-  min-width: 110px;
-  min-height: 1.2em; }
+  min-width: 110px; }
 
 .nowrap {
   white-space: nowrap; }
@@ -4775,9 +4774,17 @@ table .eshop-btn {
   border: solid 0 rgba(0, 0, 0, 0);
   min-height: 612px; }
 
+.webdrvIframeSingle {
+  min-height: 0px; }
+
+iframe.autoHeight {
+  width: 100%;
+  border: none;
+  overflow: hidden; }
+
 .wide .webdrvIframe,
 .wide .webdrvFieldset {
-  min-width: 880px; }
+  min-width: 885px; }
 
 .narrow .webdrvIframe {
   min-height: 300px; }
@@ -5328,6 +5335,9 @@ div.location.public {
   background-position: center; }
   .details .portal .formToolbar #filter:hover {
     background-color: #cccccc; }
+
+.document .details .portal .formToolbar #filter {
+  padding: 5px 4px 4px !important; }
 
 /*
  * шаблон за журнал
@@ -7296,7 +7306,7 @@ only screen and (max-width: 320px) {
 
     .wasteBlockInThread tr td {
       font-weight: normal !important;
-      font-size: 0.65em !important;
+      font-size: 13px !important;
       border: none !important;
       border-bottom: 1px dotted #aaaaaa !important;
       padding: 2px !important; }
@@ -7668,6 +7678,9 @@ tr.wasteWeightPercent td {
   border-bottom: 1px dashed; }
 
 .frontTooltip {
+  display: inline-block; }
+
+.taskDetailDateCol .small {
   display: inline-block; }
 
 /*

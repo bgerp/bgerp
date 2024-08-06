@@ -25,7 +25,7 @@
                 <!--ET_BEGIN captionWastes-->
                 <td class = 'sum-th'>
                     [#captionWastes#]
-                    |Отпадък в операциите|*
+                    |Отпадък в операциите|*<!--ET_BEGIN WASTE_BLOCK_TOTAL_PERCENT-->: [#WASTE_BLOCK_TOTAL_PERCENT#]<!--ET_END WASTE_BLOCK_TOTAL_PERCENT-->
                 </td>
                 <!--ET_END captionWastes-->
             </tr>
@@ -47,7 +47,7 @@
                         <!--ET_BEGIN WASTE_BLOCK_ROW-->
                         [#WASTE_BLOCK_ROW#]
                         <tr class="[#wasteClass#]">
-                            <td class="leftCol">[#wasteProducedProductId#]</td><td class="rightCol">[#wasteQuantity#]</td>
+                            <td class="leftCol">[#wasteProducedProductId#]:</td><td class="rightCol">[#wasteQuantity#]</td>
                         </tr>
                         <!--ET_END WASTE_BLOCK_ROW-->
                     </table>

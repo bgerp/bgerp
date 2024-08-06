@@ -17,6 +17,17 @@
 class batch_plg_PosReports extends core_Plugin
 {
     /**
+     * След дефиниране на полетата на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+        setIfNot($mvc->allowInstantProductionBatches, true);
+    }
+
+
+    /**
      * След подготовка на тулбара на единичен изглед
      */
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
@@ -24,6 +35,10 @@ class batch_plg_PosReports extends core_Plugin
         if (batch_Movements::haveRightFor('list') && $data->rec->state == 'active') {
             if(batch_Movements::count("#docType = {$mvc->getClassId()} AND #docId = {$data->rec->id}")){
                 $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Показване на движенията на партидите генерирани от документа,row=2');
+            }
+
+            if(batch_BatchesInDocuments::haveRightFor('list') && batch_BatchesInDocuments::count("#containerId = {$data->rec->containerId}")){
+                $data->toolbar->addBtn('Партиди (Чер.)', array('batch_BatchesInDocuments', 'list', 'document' => $mvc->getHandle($data->rec)), 'ef_icon = img/16/bug.png,title=Показване на черновите движения на партидите генерирани от документа,row=2');
             }
         }
     }
@@ -36,12 +51,47 @@ class batch_plg_PosReports extends core_Plugin
     {
         if (is_array($mvc->saveMovementsOnShutdown)) {
             foreach ($mvc->saveMovementsOnShutdown as $rec) {
-                self::saveMovement($rec);
+                batch_Movements::saveMovement($rec->containerId);
             }
         }
     }
-    
-    
+
+
+    /**
+     * Записване на партидите от документа
+     *
+     * @param $rec
+     * @return void
+     */
+    public static function saveBatchesToDraft($rec)
+    {
+        $details = $rec->details['receiptDetails'];
+        $pointRec = pos_Points::fetch($rec->pointId);
+        $docType = pos_Reports::getClassId();
+        $toSave = array();
+
+        if(is_array($details)){
+            foreach ($details as $detRec){
+                if($detRec->action != 'sale' || empty($detRec->batch)) continue;
+                $quantity = round($detRec->quantity * $detRec->quantityInPack, 2);
+
+                $bRec = (object)array('productId' => $detRec->value, 'operation' => 'out', 'storeId' => $pointRec->storeId, 'quantity' => $quantity, 'quantityInPack' => 1, 'packagingId' => cat_Products::fetchField($detRec->value, 'measureId'));
+                $bRec->detailClassId = $docType;
+                $bRec->detailRecId = $rec->id;
+                $bRec->date = $rec->valior;
+                $bRec->containerId = $rec->containerId;
+                $bRec->batch = $detRec->batch;
+                $bRec->isInstant = 'no';
+                $toSave[] = $bRec;
+            }
+
+            if (countR($toSave)) {
+                cls::get('batch_BatchesInDocuments')->saveArray($toSave);
+            }
+        }
+    }
+
+
     /**
      * Извиква се след успешен запис в модела
      *
@@ -57,57 +107,27 @@ class batch_plg_PosReports extends core_Plugin
             batch_Movements::removeMovement($mvc, $rec->id);
         }
     }
-    
-    
+
+
     /**
-     * Записва движението на партидите
-     * 
-     * @param stdClass $rec
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
      */
-    private static function saveMovement($rec)
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
-        $details = $rec->details['receiptDetails'];
-        $pointRec = pos_Points::fetch($rec->pointId);
-        $date = dt::verbal2mysql($rec->createdOn, false);
-        $docType = pos_Reports::getClassId();
-        $toSave = array();
-        $cu = core_Users::getCurrent();
-        
-        if(is_array($details)){
-            foreach ($details as $detRec){
-                if($detRec->action != 'sale' || empty($detRec->batch)) continue;
-                $result = true;
-                
-                try {
-                    $itemId = batch_Items::forceItem($detRec->value, $detRec->batch, $pointRec->storeId);
-                    $quantity = round($detRec->quantity * $detRec->quantityInPack, 2);
-                    
-                    // Движението, което ще запишем
-                    $mRec = (object) array('itemId' => $itemId,
-                        'quantity' => $quantity,
-                        'operation' => 'out',
-                        'docType' => $docType,
-                        'docId' => $rec->id,
-                        'date' => $date,
-                        'createdOn' => $date,
-                        'createdBy' => $cu,
-                    );
-                    
-                    $toSave[] = $mRec;
-                } catch (core_exception_Expect $e) {
-                    reportException($e);
-                    
-                    // Ако е изникнала грешка
-                    $result = false;
-                }
-            }
-            
-            // При грешка изтриваме всички записи до сега
-            if ($result === false) {
-                batch_Movements::removeMovement('pos_Reports', $rec->id);
-            } elseif(countR($toSave)){
-                cls::get('batch_Movements')->saveArray($toSave);
-            }
-        }
+        $rec = $mvc->fetchRec($id);
+        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId}");
+    }
+
+
+    /**
+     * Преди редирект след грешка при контиране
+     */
+    public static function on_BeforeContoRedirectError($mvc, $rec, acc_journal_RejectRedirect $e)
+    {
+        batch_BatchesInDocuments::delete("#containerId = '{$rec->containerId}'");
     }
 }

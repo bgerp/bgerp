@@ -62,7 +62,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Кой има право да листва?
      */
-    public $canList = 'price,ceo';
+    public $canList = 'price,sales,ceo';
     
     
     /**
@@ -335,12 +335,13 @@ class price_ListToCustomers extends core_Manager
                 if ($Driver = cat_Products::getDriver($productId)) {
                     $rec = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat, $listId);
                     $rec = is_object($rec) ? $rec : (object)array('price' => $rec);
-                    
+
                     // @TODO хак за закръгляне на цените
                     if (isset($rec->price) && $rate > 0) {
                         $newPrice = $rec->price / $rate;
                         if ($chargeVat == 'yes') {
-                            $vat = cat_Products::getVat($productId, $datetime);
+
+                            $vat = cat_Products::getVat($productId, $datetime, $vatExceptionId);
                             $newPrice = $newPrice * (1 + $vat);
                         }
                         $newPrice = round($newPrice, 4);
@@ -374,7 +375,8 @@ class price_ListToCustomers extends core_Manager
 
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
         if (!is_null($rec->price)) {
-            $vat = cat_Products::getVat($productId);
+            $vatExceptionId = $listId ? price_Lists::fetchField($listId, 'vatExceptionId') : null;
+            $vat = cat_Products::getVat($productId, $datetime, $vatExceptionId);
             $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
         

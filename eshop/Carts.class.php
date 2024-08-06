@@ -597,12 +597,12 @@ class eshop_Carts extends core_Master
                         $deliveryNoVat = 0;
                     }
                     
-                    $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
+                    $transportId = cat_Products::fetchField("#code = 'transport'");
                     $rec->totalNoVat += $deliveryNoVat;
 
                     $transportVat = 0;
                     if(in_array($settings->chargeVat, array('yes', 'separate'))){
-                        $transportVat = cat_Products::getVat($transportId);
+                        $transportVat = cat_Products::getVat($transportId,null, $settings->vatExceptionId);
                     }
 
                     $rec->total += $deliveryNoVat * (1 + $transportVat);
@@ -906,7 +906,7 @@ class eshop_Carts extends core_Master
             $folderId = $rec->saleFolderId;
             $routerExplanation = 'Рутиране по ръчно избрана папка';
         } else {
-            $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : (isset($rec->deliveryCountry) ? $rec->deliveryCountry : $rec->country);
+            $country = $rec->invoiceCountry ?? ($rec->deliveryCountry ?? $rec->country);
             if (!empty($rec->invoicePCode) || !empty($rec->invoicePlace) || !empty($rec->invoiceAddress)) {
                 $pCode = $rec->invoicePCode;
                 $place = $rec->invoicePlace;
@@ -959,6 +959,7 @@ class eshop_Carts extends core_Master
             'onlineSale' => true,
             'deliveryCalcTransport' => 'no',
             'note' => $notes,
+            'vatExceptionId' => $settings->vatExceptionId,
         );
 
         // Коя е ценовата политика
@@ -981,11 +982,7 @@ class eshop_Carts extends core_Master
             }
         }
         
-        if (empty($saleId)) {
-            
-            return false;
-        }
-        
+        if (empty($saleId)) return false;
         sales_Sales::logWrite('Създаване от онлайн поръчка', $saleId, 360, $cu);
         if (!empty($routerExplanation)) {
             sales_Sales::logDebug($routerExplanation, $saleId, 7);
@@ -1657,7 +1654,7 @@ class eshop_Carts extends core_Master
             } else {
                 if (static::calcChargeVat($rec) == 'yes') {
                     $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-                    $transportVat = cat_Products::getVat($transportId);
+                    $transportVat = cat_Products::getVat($transportId,null, $settings->vatExceptionId);
                     
                     $deliveryAmount = $rec->deliveryNoVat * (1 + $transportVat);
                     $amountWithoutDelivery -= $deliveryNoVat * (1 + $transportVat);

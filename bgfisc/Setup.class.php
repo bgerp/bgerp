@@ -82,8 +82,6 @@ class bgfisc_Setup extends core_ProtoSetup
      */
     public $managers = array('bgfisc_Register',
         'bgfisc_PrintedReceipts',
-        'migrate::deletePlugins2449',
-        'migrate::updateWebConstants2349',
     );
     
     
@@ -158,35 +156,6 @@ class bgfisc_Setup extends core_ProtoSetup
         cls::get('cash_Rko')->setupMvc();
 
         return $html;
-    }
-
-
-    /**
-     * Миграция на уеб константите
-     */
-    public function updateWebConstants2349()
-    {
-        if(core_Packs::fetch("#name = 'n18'")){
-            if(cls::load('n18_Setup', true)){
-                foreach (array('DEFAULT_FISC_DEVICE_1', 'DEFAULT_FISC_DEVICE_2', 'PRICE_FU_ROUND') as $name){
-                    $val = n18_Setup::get($name);
-                    if(!empty($val)){
-                        core_Packs::setConfig('bgfisc', array("BGFISC_{$name}" => $val));
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
-     * Изтриване на стар плъгин
-     */
-    public function deletePlugins2449()
-    {
-        $Plugins = cls::get('core_Plugins');
-        $Plugins->deinstallPlugin('bgfisc_plg_TitlePlg', 'core_ObjectConfiguration');
-        $Plugins->deinstallPlugin('bgfisc_plg_Version', 'help_Info');
     }
 
 

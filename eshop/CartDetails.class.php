@@ -231,13 +231,13 @@ class eshop_CartDetails extends core_Detail
         $settings = eshop_Settings::getSettings('cms_Domains', $cartRec->domainId);
 
         $quantity = $packQuantity * $quantityInPack;
-        $currencyId = isset($currencyId) ? $currencyId : (isset($settings->currencyId) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode());
+        $currencyId = $currencyId ?? ($settings->currencyId ?? acc_Periods::getBaseCurrencyCode());
 
         $dRec = (object) array('cartId' => $cartId,
             'eshopProductId' => $eshopProductId,
             'productId' => $productId,
             'packagingId' => $packagingId,
-            'vat' => cat_Products::getVat($productId),
+            'vat' => cat_Products::getVat($productId, null, $settings->vatExceptionId),
             'quantityInPack' => $quantityInPack,
             'quantity' => $quantity,
             'currencyId' => $currencyId,

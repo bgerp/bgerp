@@ -92,8 +92,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $form->input('unpaid', 'silent');
 
         if ($rec->unpaid == 'unpaid') {
-            unset($rec->fromDate);
-            $form->setField('fromDate', 'input=none');
+          //  unset($rec->fromDate);
+           // $form->setField('fromDate', null);
             $form->setField('sill', 'input');
             $form->setField('seeProformаs', 'input=none');
             $form->setField('paymentType', 'input');
@@ -542,6 +542,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 }
                             }
 
+                            //Ако са избрани само НЕплатени и има посочена начална дата,
+                            // то тези преди тази дата не ги записва в масива
+                            if($rec->unpaid == 'unpaid' && !is_null($rec->fromDate)){
+
+                                if($rec->fromDate > $iRec->date) continue;
+                            }
+
                             // масива с фактурите за показване
                             if (!array_key_exists($iRec->id, $sRecs)) {
                                 $sRecs[$iRec->id] = (object)array(
@@ -862,6 +869,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $obj->totalInvoiceOverDue += $purchaseInvoiceOverDue * $iRec->rate;
                             }
 
+                            //Ако са избрани само НЕплатени и има посочена начална дата,
+                            // то тези преди тази дата не ги записва в масива
+                            if($rec->unpaid == 'unpaid' && !is_null($rec->fromDate)){
+
+                                if($rec->fromDate > $iRec->date) continue;
+                            }
+
 
                             // масива с фактурите за показване
                             if (!array_key_exists($iRec->id, $pRecs)) {
@@ -919,7 +933,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                     }
 
-                };
+                }
                 $pRecs = array();
                 $pRecs += $pRecsAll;
             }

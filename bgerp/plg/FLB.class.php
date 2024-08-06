@@ -39,7 +39,7 @@ class bgerp_plg_FLB extends core_Plugin
         
         // Поле, в които се указват потребителите, които могат да избират обекта в документи
         if (!$mvc->getField($mvc->canSelectUserFld, false)) {
-            $mvc->FLD($mvc->canSelectUserFld, 'userList', "caption=Избор на текущ и използване в документи->Потребители,after={$mvc->canActivateRoleFld}");
+            $mvc->FLD($mvc->canSelectUserFld, 'userList(showClosedUsers=no)', "caption=Избор на текущ и използване в документи->Потребители,after={$mvc->canActivateRoleFld}");
         }
         
         // Поле, в които се указват ролите, които могат да избират обекта в документи

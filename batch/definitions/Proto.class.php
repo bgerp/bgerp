@@ -129,6 +129,18 @@ abstract class batch_definitions_Proto extends core_BaseClass
 
 
     /**
+     * Връша поле от записа
+     *
+     * @param stdClass $field
+     * @return void
+     */
+    public function getField($field)
+    {
+       return $this->rec->{$field};
+    }
+
+
+    /**
      * Проверява дали стойността е невалидна
      *
      * @param mixed $class
@@ -286,19 +298,16 @@ abstract class batch_definitions_Proto extends core_BaseClass
         $date = (isset($date)) ? $date : dt::today();
         $quantities = batch_Items::getBatchQuantitiesInStore($this->rec->productId, $storeId, $date);
         $mvc = cls::get($mvc);
-        if($mvc instanceof core_Detail){
-            $masterId = $mvc->fetchField($id, $mvc->masterKey);
-            $containerId = $mvc->Master->fetchField($masterId, 'containerId');
+        $containerId = ($mvc instanceof core_Detail) ? $mvc->Master->fetchField($mvc->fetchField($id, $mvc->masterKey), 'containerId') : $mvc->fetchField($id, 'containerId');
 
-            // Приспадане на вече разпределените партиди ако документа е чернова
-            $bQuery = batch_BatchesInDocuments::getQuery();
-            $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
-            $bQuery->where("#state = 'draft' AND #containerId = {$containerId} AND #productId = {$this->rec->productId} AND #storeId = {$storeId}");
-            $bQuery->where("#detailClassId = '{$mvc->getClassId()}' AND #detailRecId != {$id}");
-            while($bRec = $bQuery->fetch()){
-                if(array_key_exists($bRec->batch, $quantities)){
-                    $quantities[$bRec->batch] -= $bRec->quantity;
-                }
+        // Приспадане на вече разпределените партиди ако документа е чернова
+        $bQuery = batch_BatchesInDocuments::getQuery();
+        $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
+        $bQuery->where("#containerId = {$containerId} AND #productId = {$this->rec->productId} AND #operation = 'out' AND #storeId = {$storeId}");
+
+        while($bRec = $bQuery->fetch()){
+            if(array_key_exists($bRec->batch, $quantities)){
+                $quantities[$bRec->batch] -= $bRec->quantity;
             }
         }
 

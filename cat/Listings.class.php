@@ -341,8 +341,7 @@ class cat_Listings extends core_Master
      * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
      * се връща първия намерен код
      *
-     * @param mixed    $cClass      - ид на клас
-     * @param int      $cId         - ид на контрагента
+     * @param int      $listId      - ид на списък
      * @param int      $productId   - ид на артикул
      * @param int|NULL $packagingId - ид на опаковка, NULL ако не е известна
      *
@@ -356,15 +355,9 @@ class cat_Listings extends core_Master
         // Намират се записите за търсения артикул
         $res = array_filter($all, function (&$e) use ($productId, $packagingId) {
             if (isset($packagingId)) {
-                if ($e->productId == $productId && $e->packagingId == $packagingId) {
-                    
-                    return true;
-                }
+                if ($e->productId == $productId && $e->packagingId == $packagingId) return true;
             } else {
-                if ($e->productId == $productId) {
-                    
-                    return true;
-                }
+                if ($e->productId == $productId) return true;
             }
             
             return false;
@@ -440,7 +433,6 @@ class cat_Listings extends core_Master
         $from = dt::addDays(-60, null, false);
         $today = dt::today();
         $now = dt::now();
-        
         $cache = array();
         
         // Намират се последните продажби за месеца

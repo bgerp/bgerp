@@ -68,6 +68,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Цени->Политика, silent, mandatory,after=date,removeAndRefreshForm=listingId,single=none');
         $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,input,after=policyId,single=none');
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=Цени->ДДС,after=currencyId,single=none');
+        $fieldset->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Цени->ДДС изключение,after=currencyId');
         $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
         $fieldset->FLD('round', 'int(Min=0,max=6)', 'caption=Цени->Точност,autohide,after=period');
         $fieldset->FLD('packType', 'enum(yes=Да,no=Не,base=Основна)', 'caption=Филтър->Опаковки,columns=3,after=round,single=none,silent,removeAndRefreshForm=packagings');
@@ -81,6 +82,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('showEan', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Показване ЕАН,after=showMeasureId,single=internal');
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan,single=internal');
         $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan,single=internal');
+        $fieldset->FLD('templateType', 'enum(default=Стандартен изглед,foods=Храни)', 'caption=Допълнително->Изглед,after=lang,single=internal');
     }
     
     
@@ -231,7 +233,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             $obj = (object) array('productId' => $productRec->id,
                 'code' => (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}",
                 'measureId' => $productRec->measureId,
-                'vat' => cat_Products::getVat($productRec->id, $date),
+                'vat' => cat_Products::getVat($productRec->id, $date, $rec->vatExceptionId),
                 'packs' => array(),
                 'groups' => $productRec->groups);
 
@@ -326,7 +328,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 core_Lg::push($rec->lang);
             }
             
-            $expand = ($rec->expandGroups === 'yes') ? true : false;
+            $expand = $rec->expandGroups === 'yes';
             store_InventoryNoteSummary::filterRecs($productGroups, $recs, 'code', 'name', 'groups', $expand);
             
             if ($rec->lang != 'auto') {
@@ -349,18 +351,36 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $row = new stdClass();
-        
         $display = ($rec->displayDetailed == 'yes') ? 'detailed' : 'short';
-        Mode::push('noIconImg', true);
-        $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
-        Mode::pop('noIconImg');
+
+        if($rec->templateType == 'foods'){
+            $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, 'short', 'public', $rec->lang, null, false);
+            $previewHandler = cat_Products::getParams($dRec->productId, 'preview');
+            if($previewHandler){
+                $thumb = new thumb_Img($previewHandler, 200, 200, 'fileman', null, null, 3, 'small-no-change', null, true);
+                $row->photo = $thumb->createImg(array('class' => 'priceListFoodImage', 'title' => cat_Products::getTitleById($dRec->productId)))->getContent();
+                if(!Mode::isReadOnly()){
+                    $row->photo = ht::createLink($row->photo, cat_Products::getSingleUrlArray($dRec->productId));
+                }
+            }
+
+            $row->weightVerbal = cat_Products::getParams($dRec->productId, 'weight');
+        } else {
+            Mode::push('noIconImg', true);
+            $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
+            Mode::pop('noIconImg');
+        }
+
         $row->groupName = core_Type::getByName('varchar')->toVerbal($dRec->groupName);
         $row->code = core_Type::getByName('varchar')->toVerbal($dRec->code);
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
-        
-        $decimals = isset($rec->round) ? $rec->round : self::DEFAULT_ROUND;
+
+        $decimals = $rec->round ?? self::DEFAULT_ROUND;
         $row->price = core_Type::getByName("double(decimals={$decimals})")->toVerbal($dRec->price);
-        
+        if($rec->templateType == 'foods'){
+            $row->price = currency_Currencies::decorate($row->price, $rec->currencyId);
+        }
+
         // Рендиране на опаковките в таблица
         if (countR($dRec->packs)) {
             $row->packs = $this->getPackTable($rec, $dRec);
@@ -515,9 +535,11 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function renderTable($rec, &$data)
     {
         $tpl = parent::renderTable($rec, $data);
+
         $vatRow = core_Type::getByName('enum(yes=с включено ДДС,no=без ДДС)')->toVerbal($rec->vat);
         $beforeRow = tr("Всички цени са в|* {$rec->currencyId}, |{$vatRow}|*");
-        $tpl->prepend($beforeRow, 'TABLE_BEFORE');
+        $vatPlaceholder = ($rec->templateType == 'foods') ? 'VAT_STATE' : 'TABLE_BEFORE';
+        $tpl->prepend($beforeRow, $vatPlaceholder);
 
         if($rec->displayDetailed == 'yes'){
             Mode::set('saveJS', true);
@@ -543,7 +565,6 @@ class price_reports_PriceList extends frame2_driver_TableData
         }
 
         $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
-
         $row->productGroups = (!empty($rec->productGroups)) ? implode(', ', cat_Groups::getLinks($rec->productGroups)) : tr('Всички');
         if(!empty($rec->notInGroups)){
             $row->notInGroups = implode(', ', cat_Groups::getLinks($rec->notInGroups));
@@ -573,12 +594,12 @@ class price_reports_PriceList extends frame2_driver_TableData
             $row->date = ht::createHint($row->date, 'Датата ще се опресни при следващата актуализация', 'notice', false);
         }
     }
-    
-    
+
+
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
+     * @param frame2_driver_Proto $Driver
      * @param embed_Manager     $Embedder
      * @param core_ET           $tpl
      * @param stdClass          $data
@@ -594,7 +615,14 @@ class price_reports_PriceList extends frame2_driver_TableData
             unset($data->row->variationId);
         }
 
-        $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
+        $customTpl = $Driver->getReportLayoutTpl($data->rec);
+        if($customTpl instanceof core_ET){
+            $fieldTpl = new core_ET("");
+            if(!Mode::isReadOnly()){
+                $fieldTpl = $customTpl->getBlock('MASTER_BLOCK');
+            }
+        } else {
+            $fieldTpl = new core_ET(tr("|*<fieldset class='detail-info'>
                                             <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                             <div class='small'>
                                                 <div>|Политика|*</span>: <b>[#policyId#]</b></div>
@@ -606,14 +634,16 @@ class price_reports_PriceList extends frame2_driver_TableData
                                                 <div>|Опаковки|*: [#packagings#]</div>
                                             </div>
                                         </fieldset>"));
+        }
 
         foreach (array('periodDate', 'date', 'period', 'productGroups', 'notInGroups', 'packagings', 'policyId', 'variationId') as $field) {
             $fieldTpl->replace($data->row->{$field}, $field);
         }
+
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
-    
-    
+
+
     /**
      * При събмитване на формата
      *
@@ -729,5 +759,45 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function showUiextRowLabelsIfExist($rec)
     {
         return $rec->showUiextLabels == 'yes';
+    }
+
+
+    /**
+     * Връща частния шаблон за отчета
+     *
+     * @param stdClass $rec
+     * @return core_ET|null
+     */
+    protected function getReportLayoutTpl($rec)
+    {
+        if($rec->templateType == 'foods') return getTplFromFile("price/tpl/templates/FoodPriceList.shtml");
+
+        return null;
+    }
+
+
+    /**
+     * Рендиране на частен изглед на таблицата
+     *
+     * @param stdClass $rec
+     * @param stdClass$data
+     * @return core_ET|null
+     */
+    protected function renderCustomLayout($rec, $data)
+    {
+        if($tpl = parent::renderCustomLayout($rec, $data)){
+            $tpl->append(dt::mysql2verbal(dt::now(), 'd.m.Y'), 'currentDate');
+            foreach ($data->rows as $row){
+                if(!empty($row->photo) && !($row instanceof core_ET)){
+                    $block = clone $tpl->getBlock('DETAIL_ROW_WITH_PHOTO');
+                    $photo = ht::createElement("div", array('class' => 'gridPhoto'), $row->photo, true);
+                    $block->append($photo);
+                    $block->removeBlocksAndPlaces();
+                    $tpl->append($block, 'GRID');
+                }
+            }
+        }
+
+        return $tpl;
     }
 }

@@ -214,7 +214,7 @@ abstract class deals_DealDetail extends doc_Detail
         $form = &$data->form;
         $rec = &$form->rec;
         $masterRec = $data->masterRec;
-        
+
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
 
@@ -241,17 +241,18 @@ abstract class deals_DealDetail extends doc_Detail
         } else {
             $form->setReadOnly('productId');
         }
-        
+
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
         if (!empty($rec->packPrice)) {
             if (strtolower(Request::get('Act')) != 'createproduct') {
-                $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+                $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             } else {
                 $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
             }
             
             $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
-        
+
         // Показване на толеранс аи срока на доставка, ако има
         if (isset($rec->productId) && !core_Users::haveRole('partner')) {
             if (cat_Products::getTolerance($rec->productId, 1)) {
@@ -293,7 +294,8 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         if ($rec->productId) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
@@ -522,7 +524,8 @@ abstract class deals_DealDetail extends doc_Detail
             $row->price /= $quantityInPack;
             
             $masterRec = $Master->fetch($masterId);
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
 
         return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);
@@ -602,7 +605,8 @@ abstract class deals_DealDetail extends doc_Detail
                     if (!isset($policyInfo->price)) {
                         $error[$lId] = "quantity{$lId}";
                     } else {
-                        $vat = cat_Products::getVat($productId, $saleRec->valior);
+                        $vatExceptionId = cond_VatExceptions::getFromThreadId($saleRec->threadId);
+                        $vat = cat_Products::getVat($productId, $saleRec->valior, $vatExceptionId);
                         if (isset($lRec->price)) {
                             $price = $lRec->price / $quantityInPack;
                         } else {

@@ -27,6 +27,7 @@ class batch_plg_DocumentMovement extends core_Plugin
     {
         setIfNot($mvc->storeFieldName, 'storeId');
         setIfNot($mvc->savedMovements, array());
+        setIfNot($mvc->allowInstantProductionBatches, true);
     }
     
     
@@ -161,8 +162,38 @@ class batch_plg_DocumentMovement extends core_Plugin
             return false;
         }
     }
-    
-    
+
+
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId} AND #isInstant = 'yes'");
+    }
+
+
+    /**
+     * Ре-контиране на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_BeforeReConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        batch_BatchesInDocuments::delete("#containerId = {$rec->containerId} AND #isInstant = 'yes'");
+    }
+
+
     /**
      * Извиква се след успешен запис в модела
      *
@@ -207,6 +238,10 @@ class batch_plg_DocumentMovement extends core_Plugin
         if (batch_Movements::haveRightFor('list') && $data->rec->state == 'active') {
             if(batch_Movements::count("#docType = {$mvc->getClassId()} AND #docId = {$data->rec->id}")){
                 $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Показване на движенията на партидите генерирани от документа,row=2');
+            }
+
+            if(batch_BatchesInDocuments::haveRightFor('list') && batch_BatchesInDocuments::count("#containerId = {$data->rec->containerId}")){
+                $data->toolbar->addBtn('Партиди (Чер.)', array('batch_BatchesInDocuments', 'list', 'document' => $mvc->getHandle($data->rec)), 'ef_icon = img/16/bug.png,title=Показване на черновите движения на партидите генерирани от документа,row=2');
             }
         }
     }

@@ -1899,8 +1899,10 @@ class doc_DocumentPlg extends core_Plugin
         if($attr['ef_icon'] !== false){
             $attr['ef_icon'] = $mvc->getIcon($id);
         }
-        
-        $attr['title'] .= "{$mvc->singleTitle}|* №{$rec->id}";
+
+        if(empty($attr['title'])){
+            $attr['title'] = "{$mvc->singleTitle}|* №{$rec->id}";
+        }
         
         if ($rec->state == 'rejected') {
             $attr['class'] .= ' state-rejected';

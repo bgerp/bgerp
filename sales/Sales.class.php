@@ -677,7 +677,7 @@ class sales_Sales extends deals_DealMaster
             }
             $pInfo = cat_Products::getProductInfo($dRec->productId);
             $nRec->measure = ($dRec->packagingId) ? cat_UoM::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
-            $nRec->vat = cat_Products::getVat($dRec->productId, $rec->valior);
+            $nRec->vat = cat_Products::getVat($dRec->productId, $rec->valior, $rec->vatExceptionId);
             if ($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate') {
                 $nRec->vat = 0;
             }
@@ -788,7 +788,7 @@ class sales_Sales extends deals_DealMaster
             if (empty($deliveredAmount)) {
                 $expectedPayment = $expectedPayment - $paidAmount;
             }
-            
+            $expectedPayment = round($expectedPayment, 2);
             if ($expectedPayment > 0) {
                 $result->set('expectedPayment', $expectedPayment);
             }
@@ -1434,7 +1434,7 @@ class sales_Sales extends deals_DealMaster
         
         core_Lg::push($rec->tplLang);
         
-        if (isset($rec->bankAccountId)) {
+        if (!empty($rec->bankAccountId)) {
             if (!Mode::isReadOnly()) {
                 
                 // Линк към нашата банкова сметка
@@ -1449,7 +1449,7 @@ class sales_Sales extends deals_DealMaster
                     }
                 }
             }
-            
+
             if ($bic = bank_Accounts::getVerbal($rec->bankAccountId, 'bic')) {
                 $row->bic = $bic;
             }

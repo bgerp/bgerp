@@ -596,6 +596,7 @@ class acc_plg_Contable extends core_Plugin
                 $mvc->save_($rec, 'contoActions');
             }
 
+            $mvc->invoke('beforeContoRedirectError', array($rec, $e));
             $url = $mvc->getSingleUrlArray($rec->id);
             redirect($url, false, '|' . $e->getMessage(), 'error');
         }
@@ -716,23 +717,24 @@ class acc_plg_Contable extends core_Plugin
                 $res = false;
             } elseif (countR($mvc->details)) {
                 $hasDetail = false;
-                
+                $haveDetailsToAdd = false;
+
                 // Ако класа има поне един запис в детаил, той може да се активира
+                $ignoreDetailsToCheckWhenTryingToPost = arr::make($mvc->ignoreDetailsToCheckWhenTryingToPost, true);
                 foreach ($mvc->details as $name) {
-                    $Details = $mvc->{$name};
-                    if (!$Details->masterKey) {
-                        $hasDetail = true;
-                        continue;
-                    }
-                    
-                    if ($rec->id) {
+                    if(in_array($name, $ignoreDetailsToCheckWhenTryingToPost)) continue;
+                    $haveDetailsToAdd = true;
+                    $Details = cls::get($name);
+                    if ($rec->id && $Details->masterKey) {
                         if ($Details->fetch("#{$Details->masterKey} = {$rec->id}")) {
                             $hasDetail = true;
                             break;
                         }
                     }
                 }
-                
+                if(!$hasDetail && !$haveDetailsToAdd){
+                    $hasDetail = true;
+                }
                 $res = $hasDetail;
             } else {
                 $res = true;

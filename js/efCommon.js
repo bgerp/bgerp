@@ -1,4 +1,5 @@
 var shortURL;
+var hitState = {};
 
 function spr(sel, refresh, from, to) {
     if(refresh === undefined) {
@@ -2307,6 +2308,35 @@ function getSelText() {
         }
     } catch (err) {
         getEO().log('Грешка при извличане на текста');
+    }
+
+    // Ако има функция за превръщане в стринг
+    if (txt.toString) {
+
+        // Вземаме стринга
+        txt = txt.toString();
+    }
+
+    if (txt && txt.trim) {
+        txt = txt.trim();
+    }
+
+    if (!txt) {
+        iframes = document.querySelectorAll('iframe');
+        if (iframes) {
+            iframes.forEach(function(el) {
+                try {
+                    selTextIframe = getEO().getIframeSelection(el);
+                    if (selTextIframe.trim()) {
+                        txt = selTextIframe;
+                    }
+                } catch (err) { }
+            });
+        }
+    }
+
+    if (txt && txt.trim) {
+        txt = txt.trim();
     }
 
     return txt;
@@ -5001,6 +5031,42 @@ Experta.prototype.getIframeSelection = function(iframe) {
     }
 }
 
+function resizeIframes() {
+    const iframes = document.querySelectorAll('iframe.autoHeight');
+    const windowHeight = window.innerHeight * 0.8;
+
+    iframes.forEach(iframe => {
+        // Задаване на максимална височина
+        iframe.style.maxHeight = windowHeight + 'px';
+        console.log(windowHeight);
+
+        try {
+            // Настройване на височината според съдържанието
+            iframe.style.height = 'auto';
+            const contentHeight = iframe.contentWindow.document.body.scrollHeight;
+            iframe.style.height = Math.min(contentHeight, windowHeight) + 'px';
+        } catch (e) {
+            // Ако възникне грешка (например поради политика за сигурност),
+            // задаваме височината на прозореца
+            console.warn("Couldn't access iframe content. Setting to window height.", e);
+            iframe.style.height = windowHeight + 'px';
+        }
+    });
+}
+
+window.addEventListener('load', resizeIframes);
+window.addEventListener('resize', resizeIframes);
+
+
+window.addEventListener('message', function(event) {
+    const iframe = document.querySelector(`iframe[src^="${event.origin}"]`);
+    if (!iframe || !iframe.classList.contains('autoHeight')) return;
+
+    const height = Math.min(event.data, window.innerHeight);
+    iframe.style.height = height  + 'px';
+});
+
+
 
 /**
  * Записва избрания текст
@@ -5008,26 +5074,6 @@ Experta.prototype.getIframeSelection = function(iframe) {
 Experta.prototype.saveSelText = function() {
     // Вземаме избрания текст
     var selText = getSelText();
-
-    // Ако има функция за превръщане в стринг
-    if (selText.toString) {
-
-        // Вземаме стринга
-        selText = selText.toString();
-    } else {
-
-        return;
-    }
-    if (!selText) {
-        iframes = document.querySelectorAll('iframe');
-        if (iframes) {
-            iframes.forEach(function(el) {
-                try {
-                    selText = getEO().getIframeSelection(el);
-                } catch (err) { } 
-            });
-        }
-    }
 
     // Ако първия записан текст е еднакъв с избрания
     if (this.fSelText == selText) {
@@ -5075,7 +5121,6 @@ Experta.prototype.saveSelTextInTextarea = function(id) {
         //id = textarea.getAttribute('id');
 
         // Вземаме избрания текст
-        // var selText = getSelText();
         var selText = getSelectedText(textarea);
 
         // Ако има функция за превръщане в стринг
@@ -5358,16 +5403,23 @@ function getHitState(bodyId) {
 
     if (!bodyId) {
 
-        return 'firstTime'
+        return 'firstTime';
+    }
+
+    if (this.hitState[bodyId]) {
+
+        return this.hitState[bodyId];
     }
 
     var bodyIds = sessionStorage.getItem('bodyIdHit');
 
     if (typeof (bodyIds) !== 'undefined' && bodyIds) {
         bodyIds = JSON.parse(bodyIds);
-        if(bodyIds[bodyId]) {
+        if (bodyIds[bodyId]) {
 
-            return bodyIds[bodyId];
+            this.hitState[bodyId] = bodyIds[bodyId];
+
+            return this.hitState[bodyId];
         }
     } else {
         bodyIds = {};
@@ -5376,7 +5428,9 @@ function getHitState(bodyId) {
 
     sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
 
-    return 'firstTime';
+    this.hitState[bodyId] = 'firstTime';
+
+    return this.hitState[bodyId];
 }
 
 
@@ -5467,7 +5521,6 @@ Experta.prototype.reloadFormData = function() {
  * Добавя ивент, който да кара страницата да се презарежда, ако условиет е изпълнено
  */
 function reloadOnPageShow() {
-
 	getEO().addEvent(window, 'pageshow', function() {
         if (getEO().checkBodyId()) {
         	location.reload();

@@ -39,32 +39,32 @@
             <div class='lines'></div>
             <table border='1px' cellpadding='5px'  class='border-table'>
                 <tr>
-                    <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
+                    <td class='aleft' style='padding-top: 10px;width:67%;'>
                         <!--ET_BEGIN Invoices-->
                         <table>
                             [#InvoicesToDocuments#]
                         </table>
                         <!--ET_END Invoices-->
                         <!--ET_BEGIN reason-->
-                        <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>[#reason#]</div>
+                        <div class='richtext-holder' style="padding: 0 3px;"><span class='quiet'>|Основание|*: </span>[#reason#]</div>
                         <!--ET_END reason-->
 
                         <!--ET_BEGIN termDate-->
-                        <div class='richtext-holder'><span class='quiet'>|Срок|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
+                        <div class='richtext-holder' style="padding: 0 3px;"><span class='quiet'>|Срок|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
                         <!--ET_END termDate-->
                         [#OTHER_TEXT#]
                         <!--ET_BEGIN otherText-->
-                        <div><span class='quiet'>[#otherCaption#]:</span>[#otherText#]</div>
+                        <div><span class='quiet' style="padding: 0 3px;">[#otherCaption#]:</span>[#otherText#]</div>
                         <!--ET_END otherText-->
 
                         <!--ET_BEGIN lineId-->
-                        <div class="no-print"><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#] </div>
+                        <div class="no-print" style="padding: 0 3px;"><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#] </div>
                         <!--ET_END lineId-->
                         <!--ET_BEGIN lineForwarderId-->
-                        <div><span class='quiet'>|Спедитор|*:</span> &nbsp;&nbsp;&nbsp;[#lineForwarderId#] </div>
+                        <div><span class='quiet' style="padding: 0 3px;">|Спедитор|*:</span> &nbsp;&nbsp;&nbsp;[#lineForwarderId#] </div>
                         <!--ET_END lineForwarderId-->
                         <!--ET_BEGIN lineVehicleId-->
-                        <div><span class='quiet'>|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
+                        <div><span class='quiet' style="padding: 0 3px;">|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
                         <!--ET_END lineVehicleId-->
                     </td>
                     <td style='padding-left:10px; padding-top: 10px;'>
@@ -100,8 +100,8 @@
                 </tr>
                 <!--ET_END rkoRow-->
                 <tr>
-                    <td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
-                        <table class='signature-table' >
+                    <td style='padding-left:1%;padding-bottom:1%;text-align:center;width:50%;'>
+                        <table class='signature-table'  style="width: 100px; margin: 20px auto 0">
                             <tr>
                                 <td style='width:1%'>|Касиер|*:  </td>
                                 <td></td>
@@ -119,7 +119,7 @@
                         </table>
                     </td>
                     <td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
-                        <table class='signature-table fright' style='width:1%'>
+                        <table class='signature-table'  style="width: 100px; margin: 20px auto 0">
                             <tr>
                                 <td style='width:1%'>|Получил|*:  </td>
                                 <td></td>

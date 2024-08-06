@@ -260,7 +260,7 @@ class price_ListBasicDiscounts extends core_Detail
         $salesByNow = array();
         $groupIds = arr::extractValuesFromArray($dRecs, 'groupId');
 
-        // Ако периода за продажба е различен от "текущата продажба" смятат се сумите от преидшните продажби за контрагента
+        // Ако периода за продажба е различен от "текущата продажба" смятат се сумите от предишните продажби за контрагента
         if($basicDiscountListRec->discountClassPeriod != 'default'){
             $contragentClassId = $masterRec->contragentClassId;
             $contragentId = $masterRec->contragentId;
@@ -274,13 +274,14 @@ class price_ListBasicDiscounts extends core_Detail
             $salesByNow = core_Cache::get($Master->className, $cacheKey);
             if(!is_array($salesByNow)){
                 $salesByNow = static::getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $basicDiscountListRec);
-                core_Cache::set($Master->className, $cacheKey, $salesByNow, 2);
+                core_Cache::set($Master->className, $cacheKey, $salesByNow, 1);
             }
         }
         $res['SALES_BY_NOW'] = $salesByNow;
 
         // За всяка група от праговете
         $detailsByGroups = array();
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
         foreach ($groupIds as $groupId){
 
             // Добавят се и данните за раздадените отстъпки от текущата продажба
@@ -290,7 +291,7 @@ class price_ListBasicDiscounts extends core_Detail
                     if($Detail instanceof sales_SalesDetails){
                         $amount = isset($detailRec->discount) ? ($detailRec->amount * (1 - $detailRec->discount)) : $detailRec->amount;
                         if($basicDiscountListRec->vat == 'yes'){
-                            $vat = cat_Products::getVat($detailRec->productId, $masterRec->valior);
+                            $vat = cat_Products::getVat($detailRec->productId, $masterRec->valior, $vatExceptionId);
                             $amount *= (1 + $vat);
                         }
                         $detailsByGroups[$groupId]['amount'] += $amount;
@@ -390,7 +391,7 @@ class price_ListBasicDiscounts extends core_Detail
         $dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $dQuery->where("#isPublic = 'yes' AND #state IN ('active', 'closed') AND #sellCost IS NOT NULL AND #contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId} AND #detailClassId != {$posReportClassId}");
         $dQuery->likeKeylist('groups', $groupKeylist);
-        $dQuery->show('groups,quantity,sellCost,valior,productId,sellCostWithOriginalDiscount,autoDiscountAmount');
+        $dQuery->show('groups,quantity,sellCost,valior,productId,sellCostWithOriginalDiscount,autoDiscountAmount,threadId');
         if($listRec->discountClassPeriod == 'monthly'){
             $firstDay = date('Y-m-01');
             $lastDay = dt::getLastDayOfMonth(dt::today());
@@ -401,6 +402,12 @@ class price_ListBasicDiscounts extends core_Detail
         }
         $saleRecs = $dQuery->fetchAll();
 
+        $threadExceptionCache = array();
+        $threadIds = arr::extractValuesFromArray($saleRecs, 'threadId');
+        foreach ($threadIds as $threadId){
+            $threadExceptionCache[$threadId] = cond_VatExceptions::getFromThreadId($threadId);
+        }
+
         // Сумира се сумата без оригинална отстъпка и сумата на автоматичните отстъпки от тях
         $sumByGroups = array();
         foreach ($groupIds as $groupId){
@@ -409,7 +416,7 @@ class price_ListBasicDiscounts extends core_Detail
                     $amount =  $sRec1->sellCostWithOriginalDiscount * $sRec1->quantity;
                     $autoDiscountAmount = isset($sRec1->autoDiscountAmount) ? ($sRec1->autoDiscountAmount * $sRec1->quantity): 0;
                     if($listRec->vat == 'yes'){
-                        $vat = cat_Products::getVat($sRec1->productId, $sRec1->valior);
+                        $vat = cat_Products::getVat($sRec1->productId, $sRec1->valior, $threadExceptionCache[$sRec1->threadId]);
                         $amount *= (1 + $vat);
                         $autoDiscountAmount *= (1 + $vat);
                     }

@@ -693,7 +693,7 @@ class core_Array
             $value = is_array($a) ? $a[$field] : $a->{$field};
             
             if($emptyAsZero === false){
-                expect(isset($value), "Няма поле: {$field}");
+                expect(isset($value), "Няма поле: {$field}", $a);
             }
             
             $sum += $value;

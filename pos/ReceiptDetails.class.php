@@ -534,7 +534,7 @@ class pos_ReceiptDetails extends core_Detail
 
                 // Проверяваме дали въведения "код" дали е във формата '< число > * < код >',
                 // ако да то приемаме числото преди '*' за количество а след '*' за код
-                preg_match('/(\-?[0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
+                preg_match('/(\-?[0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _\/\.]*)/iu', $ean, $matches);
 
                 // Ако има намерени к-во и код от регулярния израз
                 if (!empty($matches[1]) && !empty($matches[3])) {
@@ -617,11 +617,17 @@ class pos_ReceiptDetails extends core_Detail
             // Ако селектирания ред е с партида, се приема че ще се добавя нов ред
             $defaultStoreId = static::getDefaultStoreId($receiptRec->pointId, $rec->productId, $rec->quantity, $rec->value);
 
-            if(isset($defaultStoreId)){
-                if(core_Packs::isInstalled('batch')){
-                    $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId);
-                    if(countR($batchQuantities) != 1){
-                        $rec->batch = key($batchQuantities);
+            if(core_Packs::isInstalled('batch')){
+                if(isset($defaultStoreId)){
+                    $batchQuantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $defaultStoreId, null, null, array(), false, null, true);
+                    $rec->batch = key($batchQuantities);
+                }
+
+                // Ако артикулът е с задължителна партидност, но няма налична така да се даде грешка
+                if($batchDef = batch_Defs::getBatchDef($rec->productId)){
+                    if(empty($rec->batch)){
+                        $alwaysRequire = $batchDef->getField('alwaysRequire');
+                        expect($alwaysRequire != 'yes', "Артикулът е със задължителна партидност, но няма налични|*!");
                     }
                 }
             }
@@ -630,35 +636,41 @@ class pos_ReceiptDetails extends core_Detail
                 $selectedRec = null;
             }
 
-
+            $separateInPos = cat_Products::getParams($rec->productId, 'separateInPos');
             if($selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value && $selectedRec->batch == $rec->batch){
                 $rec->value = $selectedRec->value;
                 $rec->batch = $selectedRec->batch;
             } else {
-                $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId} AND #value = {$rec->value}");
-                expect($count <= 1, 'Не е избран конкретен ред|*!');
+                if($separateInPos != 'yes'){
+                    $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId} AND #value = {$rec->value}");
+                    expect($count <= 1, 'Не е избран конкретен ред|*!');
+                }
             }
 
             // Намираме дали този проект го има въведен
-            $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
-            if ($sameProduct) {
+            if($separateInPos != 'yes'){
+                $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
+                if ($sameProduct) {
 
-                // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
-                $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : (($increment === true) ? ($rec->quantity + $sameProduct->quantity) : $rec->quantity);
-                if($newQuantity <= 0 && !isset($receiptRec->revertId)){
-                    core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
+                    // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
+                    $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : (($increment === true) ? ($rec->quantity + $sameProduct->quantity) : $rec->quantity);
+                    if($newQuantity <= 0 && !isset($receiptRec->revertId)){
+                        core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
 
-                    return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $sameProduct->id));
+                        return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $sameProduct->id));
+                    }
+
+                    $rec->quantity = $newQuantity;
+                    $rec->price = $sameProduct->price;
+                    $rec->storeId = $sameProduct->storeId;
+                    $rec->amount += $sameProduct->amount;
+                    $rec->id = $sameProduct->id;
+
+                    Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => 'setquantity'));
                 }
+            }
 
-                $rec->quantity = $newQuantity;
-                $rec->price = $sameProduct->price;
-                $rec->storeId = $sameProduct->storeId;
-                $rec->amount += $sameProduct->amount;
-                $rec->id = $sameProduct->id;
-
-                Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => 'setquantity'));
-            } elseif(empty($receiptRec->revertId)) {
+            if(empty($receiptRec->revertId)) {
                 expect($rec->quantity > 0, 'При добавяне количеството трябва да е положително');
             }
 
@@ -686,14 +698,14 @@ class pos_ReceiptDetails extends core_Detail
 
             expect(!(!empty($receiptRec->revertId) && ($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
             $pointRec = pos_Points::getSettings($receiptRec->pointId);
+
             if($pointRec->chargeVat == 'yes'){
-                $rec->param = cat_Products::getVat($rec->productId, dt::now());
+                $rec->param = cat_Products::getVat($rec->productId, dt::now(), $pointRec->vatExceptionId);
             } else {
                 $rec->param = 0;
             }
 
             $productsByNow = pos_ReceiptDetails::count("#receiptId = {$rec->receiptId}");
-
             $this->save($rec);
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
