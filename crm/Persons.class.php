@@ -1437,11 +1437,19 @@ class crm_Persons extends core_Master
     {
         //Вземаме данните
         $person = crm_Persons::fetch($id);
-        
+        $company = null;
+
+        if(isset($date)) {
+            $recToDate = change_History::getRecOnDate(get_called_class(), $person, $date);
+            if($recToDate) {
+                $person = $recToDate;
+            }
+        }
+
         if ($person->buzCompanyId) {
             $company = crm_Companies::fetch($person->buzCompanyId);
         }
-        
+
         // Заместваме и връщаме данните
         if ($person) {
             $contrData = new stdClass();
