@@ -96,13 +96,14 @@ class crm_Companies extends core_Master
      * Полета за експорт
      */
     public $exportableCsvFields = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax,website,info,logo,folderName,nkid,groupList';
-    
+
+
     /**
      * Класове за автоматично зареждане
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
-                     Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, change_plg_History, drdata_plg_Canonize, plg_Printing,
+                     Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, change_plg_History, plg_SaveAndNew, plg_PrevAndNext,
+                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, drdata_plg_Canonize, plg_Printing,
                      acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,
                      plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg';
     
@@ -305,7 +306,7 @@ class crm_Companies extends core_Master
     /**
      * Кои полета да се следят за промяна в логовете
      *
-     * @see change_plg_Log
+     * @see change_plg_History
      * @var string
      */
     public $loggableFields = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax,info';
@@ -314,7 +315,7 @@ class crm_Companies extends core_Master
     /**
      * Кои изчислими полета от следените за промяна да се показват при сравнение на версиите
      *
-     * @see change_plg_Log
+     * @see change_plg_History
      * @var string
      */
     public $loggableAdditionalComparableFields = 'title';

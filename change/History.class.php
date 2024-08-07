@@ -339,7 +339,14 @@ class change_History extends core_Manager
 
         // Ако текущата версия е от историята - взима се тя, ако не показва се в историята
         if(!array_key_exists($masterRec->validFrom, $data->recs)){
-            $data->recs[$masterRec->validFrom] = (object)array('validFrom' => $masterRec->validFrom, 'validTo' => $masterRec->validTo, 'createdBy' => $masterRec->createdBy, 'classId' => $data->masterMvc->getClassId(), 'objectId' => $masterRec->id, 'isCurrent' => true);
+            $data->recs[$masterRec->validFrom] = (object)array('validFrom' => $masterRec->validFrom,
+                                                               'validTo'   => $masterRec->validTo,
+                                                               'createdBy' => $masterRec->createdBy,
+                                                               'classId'   => $data->masterMvc->getClassId(),
+                                                               'objectId'  => $masterRec->id,
+                                                               'isCurrent' => true,
+                                                               'createdOn' => $masterRec->createdOn,
+                                                               'createdBy' => $masterRec->createdBy);
         } else {
             $data->recs[$masterRec->validFrom]->isCurrent = true;
         }
@@ -367,13 +374,16 @@ class change_History extends core_Manager
             if($this->isSelected($data->masterMvc->getClassId(), $data->masterId, $versionId)){
                 $icon = 'img/16/checkbox_yes.png';
                 $action = 'deselect';
+                $title = 'Отказ от версията';
             } else {
                 $icon = 'img/16/checkbox_no.png';
                 $action = 'select';
+                $title = 'Избор на версията';
             }
 
             $link = array($this, 'log', 'classId' => $rec->classId, 'objectId' => $rec->objectId, 'versionId' => $versionId, 'tab' => Request::get('Tab'), 'action' => $action, 'verString' => $rec->count);
-            $row->count = ht::createLink('', $link, null, "ef_icon={$icon}")->getContent() . $row->count;
+            $row->count = ht::createLink('', $link, null, "ef_icon={$icon},title={$title}")->getContent() . $row->count;
+            $row->created =  "{$row->createdOn} " . tr('от||by') . " {$row->createdBy}";
 
             $data->rows[$rec->id] = $row;
             $count--;
@@ -395,7 +405,7 @@ class change_History extends core_Manager
         if($data->hide) return $tpl;
 
         // Рендиране на таблицата с оборудването
-        $data->listFields = arr::make('validFrom=От,validTo=До,createdBy=Създател,count=Вер.');
+        $data->listFields = arr::make('validFrom=От,validTo=До,created=Създаване,count=Вер.');
 
         $listTableMvc = clone $this;
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
@@ -408,9 +418,6 @@ class change_History extends core_Manager
         if(change_History::haveRightFor('list')){
             $title .= ht::createLink('', array('change_History', 'list', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->rec->id), false, 'ef_icon=img/16/funnel.png')->getContent();
         }
-
-
-
         $resTpl->append($title, 'title');
 
         return $resTpl;
