@@ -44,7 +44,7 @@
          <div class = 'cart-view-buttons-right' style="margin-bottom: 10px;">[#CART_TOOLBAR_TOP_RIGHT#]</div>
          <!--ET_END CART_TOOLBAR_TOP_RIGHT-->
       <!--ET_BEGIN activeFolderId-->
-            <div style="padding-bottom: 5px;">|Активна папка|*: [#activeFolderId#]</div>
+            <div style="padding-bottom: 5px;">|Папка|*: [#activeFolderId#]</div>
             <!--ET_END activeFolderId-->
          <!--ET_BEGIN SALE_BLOCK-->
          [#SALE_BLOCK#]
@@ -56,24 +56,29 @@
                </tr>
                <!--ET_BEGIN personNames-->
                <tr>
-                  <td class="aright">|Имена|*:</td><td> [#personNames#]</td>
+                  <td class="aright">|Имена|*:</td><td class="cardValue"> [#personNames#]</td>
                </tr>
                <!--ET_END personNames-->
                <!--ET_BEGIN email-->
                <tr>
-                  <td class="aright">|Имейл|*:</td><td> [#email#]</td>
+                  <td class="aright">|Имейл|*:</td><td class="cardValue"> [#email#]</td>
                </tr>
                <!--ET_END email-->
                <!--ET_BEGIN tel-->
                <tr>
-                  <td class="aright">|Телефон|*:</td><td> [#tel#]</td>
+                  <td class="aright">|Телефон|*:</td><td class="cardValue"> [#tel#]</td>
                </tr>
                <!--ET_END tel-->
                <!--ET_BEGIN paymentId-->
                <tr>
-                  <td class="aright">|Плащане|*:</td><td> [#paymentId#]</td>
+                  <td class="aright">|Плащане|*:</td><td class="cardValue"> [#paymentId#]</td>
                </tr>
                <!--ET_END paymentId-->
+               <!--ET_BEGIN voucherId-->
+               <tr>
+                  <td class="aright">|Ваучер|*:</td><td class="cardValue"> [#voucherId#]</td>
+               </tr>
+               <!--ET_END voucherId-->
 			<!--ET_END SALE_BLOCK-->
 
             <!--ET_BEGIN DELIVERY_BLOCK-->
@@ -85,20 +90,20 @@
                </tr>
                
                <tr>
-                  <td class="aright">|Начин|*:</td><td> [#termId#]</td>
+                  <td class="aright">|Начин|*:</td><td class="cardValue"> [#termId#]</td>
                </tr>
                <!--ET_END termId-->
                
                <!--ET_BEGIN deliveryCountry-->
                <tr>
                   <td class="aright">
-                     |Адрес|*: </td><td>[#deliveryCountry#]<!--ET_BEGIN deliveryPlace-->, [#deliveryPCode#] [#deliveryPlace#]<!--ET_END deliveryPlace--><!--ET_BEGIN deliveryAddress-->, [#deliveryAddress#]<!--ET_END deliveryAddress-->
+                     |Адрес|*: </td><td class="cardValue">[#deliveryCountry#]<!--ET_BEGIN deliveryPlace-->, [#deliveryPCode#] [#deliveryPlace#]<!--ET_END deliveryPlace--><!--ET_BEGIN deliveryAddress-->, [#deliveryAddress#]<!--ET_END deliveryAddress-->
                   </td>
                </tr>
                <!--ET_END deliveryCountry-->
                <!--ET_BEGIN deliveryTime-->
                <tr>
-                  <td class="aright">|Срок за доставка|*:</td><td> <b>[#deliveryTime#]</b></td>
+                  <td class="aright">|Срок за доставка|*:</td><td class="cardValue"> <b>[#deliveryTime#]</b></td>
                </tr>
                <!--ET_END deliveryTime-->
                <!--ET_BEGIN deliveryError-->
@@ -108,13 +113,13 @@
                <!--ET_END deliveryError-->
                <!--ET_BEGIN DELIVERY_DATA_VALUE-->
                <tr>
-                  <td class="aright">[#DELIVERY_DATA_CAPTION#]:</td><td> <span class="richtext-holder"> [#DELIVERY_DATA_VALUE#]</span></td>
+                  <td class="aright">[#DELIVERY_DATA_CAPTION#]:</td><td class="cardValue"> <span class="richtext-holder"> [#DELIVERY_DATA_VALUE#]</span></td>
                </tr>
                <!--ET_END DELIVERY_DATA_VALUE-->
                [#DELIVERY_BLOCK#]
                <!--ET_BEGIN instruction-->
                <tr>
-                  <td class="aright">|Инструкции|*:</td><td> <span class="richtext-holder"> [#instruction#]</span></td>
+                  <td class="aright">|Инструкции|*:</td><td class="cardValue"> <span class="richtext-holder"> [#instruction#]</span></td>
                </tr>
                <!--ET_END instruction-->
                
@@ -217,11 +222,9 @@
          <!--ET_BEGIN RIGHT_BLOCK-->
          [#RIGHT_BLOCK#]
          <div class = 'cart-view-buttons-right'>
-
-
             <!--ET_BEGIN CARD_LINK-->
             <div style="margin: 20px 0; color: #333; font-style: italic">
-               |Ако имате клиентска карта, може да я въведете от|* [#CARD_LINK#].
+               [#CARD_LINK#].
             </div>
             <!--ET_END CARD_LINK-->
          </div>

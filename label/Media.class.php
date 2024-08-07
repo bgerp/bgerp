@@ -285,7 +285,7 @@ class label_Media extends core_Manager
         $cnt = 0;
         
         // Създаваме таблицата
-        $t = "<div  class='label-table labelBreak' style='border-collapse: separate; margin-top: {$data->pageLayout->up}; margin-left: {$data->pageLayout->left};'><table>";
+        $t = "<div  class='label-table labelBreak' style='margin-top: {$data->pageLayout->up}; margin-left: {$data->pageLayout->left};'><table>";
         
         // Броя на редовете
         for ($i = 0; $i < $lines; $i++) {

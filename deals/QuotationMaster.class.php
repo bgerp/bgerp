@@ -495,8 +495,7 @@ abstract class deals_QuotationMaster extends core_Master
             $ownCompanyData = crm_Companies::fetchOwnCompany();
 
             $Varchar = cls::get('type_Varchar');
-            $row->MyCompany = $Varchar->toVerbal($ownCompanyData->company);
-            $row->MyCompany = transliterate(tr($row->MyCompany));
+            $row->MyCompany = $Varchar->toVerbal($ownCompanyData->companyVerb);
 
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
             $cData = $contragent->getContragentData();

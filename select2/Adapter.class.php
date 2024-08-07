@@ -42,8 +42,9 @@ class select2_Adapter
      * @param boolean $isTree
      * @param boolean $forceOpen
      * @param null|int $minimumResultsForSearch
+     * @param boolean $matchOnlyStartsWith
      */
-    public static function appendAndRun(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '', $isTree = false, $forceOpen = false, $minimumResultsForSearch = null)
+    public static function appendAndRun(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '', $isTree = false, $forceOpen = false, $minimumResultsForSearch = null, $matchOnlyStartsWith = true)
     {
         if (!($tpl instanceof core_ET)) {
             
@@ -55,7 +56,7 @@ class select2_Adapter
         }
         
         self::appendFiles($tpl, $lg, $isTree);
-        self::run($tpl, $id, $placeHolder, $allowClear, $lg, $ajaxUrl, $isTree, $minimumResultsForSearch);
+        self::run($tpl, $id, $placeHolder, $allowClear, $lg, $ajaxUrl, $isTree, $minimumResultsForSearch, $matchOnlyStartsWith);
 
         if ($forceOpen) {
             if (!Request::get('ajax_mode')) {
@@ -120,8 +121,9 @@ class select2_Adapter
      * @param string|NULL|FALSE $lg
      * @param boolean $isTree
      * @param null|int $minimumResultsForSearch
+     * @param boolean $matchOnlyStartsWith
      */
-    public static function run(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '', $isTree = false, $minimumResultsForSearch = null)
+    public static function run(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '', $isTree = false, $minimumResultsForSearch = null, $matchOnlyStartsWith = true)
     {
         if (!($tpl instanceof core_ET)) {
             
@@ -167,8 +169,10 @@ class select2_Adapter
     		
     		minimumInputLength: 0";
         }
-        
-        $select2Str .= ',templateResult: formatSelect2Data,templateSelection: formatSelect2DataSelection, matcher: modelMatcher';
+
+        $modelMatcher = $matchOnlyStartsWith ? 'modelMatcherStartWith' : 'modelMatcherEverywhere';
+
+        $select2Str .= ',templateResult: formatSelect2Data,templateSelection: formatSelect2DataSelection, matcher: ' . $modelMatcher;
         
         $select2Str .= '});';
         
@@ -186,10 +190,11 @@ class select2_Adapter
      * @param string $hnd
      * @param string $q
      * @param int    $maxSuggestions
+     * @param bool   $matchOnlyStartsWith
      *
      * @return bool
      */
-    public static function getAjaxRes($type, $hnd, $q, $maxSuggestions = 100)
+    public static function getAjaxRes($type, $hnd, $q, $maxSuggestions = 100, $matchOnlyStartsWith = true)
     {
         if (!$hnd || !($sugg = unserialize(core_Cache::get($type, $hnd)))) {
             core_App::outputJson(array(
@@ -200,8 +205,13 @@ class select2_Adapter
         }
         
         $q = plg_Search::normalizeText($q);
-        $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
-        
+
+        if ($matchOnlyStartsWith) {
+            $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
+        } else {
+            $q = '/[ \"\'\(\[\-\s]*' . str_replace(' ', '.*', $q) . '/';
+        }
+
         $resArr = array();
         
         $cnt = 0;

@@ -93,24 +93,73 @@ class ztm_Profiles extends core_Master
      *
      * @var string
      */
-    public $listFields = 'name, description';
+    public $listFields = 'sysId, name, description';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsSingleField = 'name';
-    
-    
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'admin, ceo';
+
+
     /**
      * Описание на модела (таблицата)
      */
     protected function description()
     {
-        $this->FLD('name', 'varchar(32)', 'caption=Име');
+        $this->FLD('sysId', 'varchar(16)', 'caption=Име->Съкратено, mandatory');
+        $this->FLD('name', 'varchar(32)', 'caption=Име->Детайлно, mandatory');
         $this->FLD('description', 'richtext', 'caption=Описание');
+
+        $this->setDbUnique('sysId');
     }
-    
+
+
+    /**
+     * Връща id на профил по sysId
+     *
+     * @param string $sysId
+     * @param boolean $force
+     *
+     * @return false|stdClass
+     */
+    public static function getIdFromSysId($sysId, $force = true)
+    {
+        if (!$sysId) {
+
+            return false;
+        }
+
+        $rec = self::fetch(array("#sysId = '[#1#]'", $sysId));
+
+        if (!$force && !$rec) {
+
+            return false;
+        }
+
+        if ($rec && $force && $rec->state != 'active') {
+            $rec->state = 'active';
+
+            self::save($rec);
+        }
+
+        if (!$rec) {
+            $rec = new stdClass();
+            $rec->sysId = $sysId;
+            $rec->name = $sysId;
+
+            self::save($rec);
+        }
+
+        return $rec->id;
+    }
+
     
     /**
      * Връща първоначалния отговор
@@ -141,7 +190,8 @@ class ztm_Profiles extends core_Master
         $res = array();
         $query = ztm_Registers::getQuery();
         $query->where("#state = 'active'");
-        
+        $query->likeKeylist("profileIds", $profileRec->id);
+
         while ($rec = $query->fetch()) {
             if (in_array($rec->type, array('int', 'float')) == 'int') {
                 $rec->default = (float) $rec->default;

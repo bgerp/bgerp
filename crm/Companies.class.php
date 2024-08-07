@@ -300,8 +300,17 @@ class crm_Companies extends core_Master
         'pCode' => array('Пощенски код', '#pCode=DESC', 'pCode=П. код'),
         'website' => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
     );
-    
-    
+
+
+    /**
+     * Кои полета да се следят за промяна в логовете
+     *
+     * @see change_plg_Log
+     * @var string
+     */
+    public $loggableFields = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax,info';
+
+
     /**
      * Описание на модела (таблицата)
      */

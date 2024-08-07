@@ -58,7 +58,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $this->FLD('productItemId', "acc_type_Item(select=titleNum,allowEmpty)", 'caption=Артикул');
         $this->FLD('price', 'double', 'caption=Цена');
         $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Промяна');
-        $this->FLD('type', 'enum(stores=Складове,production=Незавършено производство,costs=Разходи)', 'caption=Цена,silent');
+        $this->FLD('type', 'enum(stores=Складове,production=Незавършено производство,costs=Разходи)', 'caption=Цена,silent,input=hidden');
 
         $this->setDbIndex('type');
         $this->setDbIndex('date');
@@ -83,8 +83,8 @@ class acc_ProductPricePerPeriods extends core_Manager
         $row->productItemId = cls::get($productItemRec->classId)->getHyperlink($productItemRec->objectId, true);
         $row->price = ht::styleNumber($row->price, $rec->price);
 
-        if($rec->type == 'sales'){
-            $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 321, 'ent1Id' => $rec->storeItemId, 'ent2Id' => $rec->productItemId);
+        if($rec->type == 'stores'){
+            $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 321, 'ent1Id' => $rec->otherItemId, 'ent2Id' => $rec->productItemId);
         } elseif($rec->type == 'costs'){
             $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 60201, 'ent1Id' => $rec->otherItemId, 'ent2Id' => $rec->productItemId);
         } else {
@@ -254,8 +254,7 @@ class acc_ProductPricePerPeriods extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $type = Request::get('type', 'enum(stores,production,costs)');
-        $type = $type ?? 'stores';
-        $data->query->where("#type = '{$type}'");
+        $data->listFilter->input(null, 'silent');
 
         $data->listFilter->FLD('balanceId', 'varchar', 'caption=Баланс');
         $data->listFilter->FLD('toDate', 'date', 'caption=Към дата');
@@ -284,6 +283,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $data->query->orderBy('date', 'DESC');
 
         if ($rec = $data->listFilter->rec) {
+            $data->query->where("#type = '{$rec->type}'");
             if (!empty($rec->productItemId)) {
                 $data->query->where("#productItemId = {$rec->productItemId}");
             }
@@ -296,7 +296,7 @@ class acc_ProductPricePerPeriods extends core_Manager
             }
 
             if (!empty($rec->toDate)) {
-                redirect(array($mvc, 'filter', 'toDate' => $rec->toDate, 'productItemId' => $rec->productItemId, 'otherItemId' => $rec->otherItemId, 'type' => $type));
+                redirect(array($mvc, 'filter', 'toDate' => $rec->toDate, 'productItemId' => $rec->productItemId, 'otherItemId' => $rec->otherItemId, 'type' => $rec->type));
             }
         }
     }

@@ -61,7 +61,7 @@ class sales_PrimeCostByDocument extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,sellCostWithOriginalDiscount,autoDiscountAmount,dealerId,initiatorId,state,isPublic,folderId,storeId';
+    public $listFields = 'id,valior=Вальор,containerId,productId,quantity,sellCost,primeCost,delta,expenses,sellCostWithOriginalDiscount,autoDiscountAmount,dealerId,initiatorId,state,isPublic,folderId,storeId,activatedOn';
     
     
     /**
@@ -105,7 +105,7 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     public function description()
     {
-        $this->FLD('valior', 'date(smartTime)', 'caption=Вальор,mandatory');
+        $this->FLD('valior', 'date(format=smartTime)', 'caption=Вальор,mandatory');
         $this->FLD('detailClassId', 'class(interface=core_ManagerIntf)', 'caption=Детайл,mandatory');
         $this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory, tdClass=leftCol');
         $this->FLD('containerId', 'int', 'caption=Документ,mandatory');
@@ -127,12 +127,14 @@ class sales_PrimeCostByDocument extends core_Manager
         $this->FLD('contragentClassId', 'int', 'caption=Контрагент');
         $this->FLD('expenses', 'double', 'caption=Разходи,mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
-        
+        $this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране');
+
         $this->setDbIndex('productId,containerId');
         $this->setDbIndex('productId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
         $this->setDbIndex('valior');
+        $this->setDbIndex('activatedOn');
         $this->setDbIndex('detailClassId,detailRecId,productId');
     }
     
@@ -1241,6 +1243,72 @@ class sales_PrimeCostByDocument extends core_Manager
             $persons = sales_PrimeCostByDocument::getDealerAndInitiatorId($containerId);
             
             return $persons;
+        }
+    }
+
+
+
+    public function act_Test()
+    {
+        requireRole('debug');
+
+        static::callback_SyncActivatedOn();
+    }
+
+
+    /**
+     * Миграция на датата за активиране
+     */
+    public static function callback_SyncActivatedOn()
+    {
+        $Costs = cls::get('sales_PrimeCostByDocument');
+        $Costs->setupMvc();
+
+        $activatedArr = $save = $grouped = array();
+        $query = $Costs->getQuery();
+        $query->EXT('docClass', 'doc_Containers', "externalName=docClass,externalKey=containerId");
+        $query->EXT('docId', 'doc_Containers', "externalName=docId,externalKey=containerId");
+        $query->where("#state != 'rejected'");
+        $query->orderBy('id', 'DESC');
+        $query->where("#activatedOn IS NULL");
+
+        $clone = clone $query;
+        $query->show('docClass,docId,containerId,valior');
+        $query->limit(20000);
+
+        $maxTime = dt::addSecs(40);
+        $recs = $query->fetchAll();
+        foreach ($recs as $rec) {
+            $grouped[$rec->docClass][$rec->docId] = $rec->docId;
+        }
+
+        foreach ($grouped as $classId => $ids) {
+
+            $Class = cls::get($classId);
+            $dQuery = $Class->getQuery();
+            $dQuery->in('id', $ids);
+            $dQuery->show("activatedOn,modifiedOn,containerId,{$Class->valiorFld}");
+            while($dRec = $dQuery->fetch()) {
+                if(!array_key_exists($dRec->containerId, $activatedArr)) {
+                    $activatedArr[$dRec->containerId] = ($dRec->activatedOn) ? $dRec->activatedOn : (($dRec->{$Class->valiorFld}) ? "{$dRec->{$Class->valiorFld}} 23:59:59" : (($dRec->modifiedOn) ? $dRec->modifiedOn : '1970-01-01 00:00:00'));
+                }
+
+                if (dt::now() >= $maxTime) break;
+            }
+
+            $filterArr = array_filter($recs, function($a) use ($classId){ return $a->docClass == $classId; });
+            foreach ($filterArr as &$fRec) {
+                $fRec->activatedOn = $activatedArr[$fRec->containerId];
+            }
+
+            if(countR($filterArr)) {
+                $Costs->saveArray($filterArr, 'id,activatedOn');
+            }
+        }
+
+        if($clone->fetch()){
+            $callOn = dt::addSecs(20);
+            core_CallOnTime::setCall('sales_PrimeCostByDocument', 'SyncActivatedOn', null, $callOn);
         }
     }
 }

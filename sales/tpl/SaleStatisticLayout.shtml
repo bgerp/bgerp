@@ -74,6 +74,9 @@
                   <!--ET_BEGIN vatExceptionId-->
                   <span style='font-weight:normal'>|ДДС изключение|*</span>: <b>[#vatExceptionId#]</b><br>
                   <!--ET_END vatExceptionId-->
+                  <!--ET_BEGIN voucherId-->
+                  <span style='font-weight:normal'>|Ваучер|*</span>: <b>[#voucherId#]</b><br>
+                  <!--ET_END voucherId-->
               </td>
            </tr>
            <tr>

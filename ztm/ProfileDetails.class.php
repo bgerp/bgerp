@@ -221,7 +221,7 @@ class ztm_ProfileDetails extends core_Detail
     {
         $value = ztm_LongValues::getValueByHash($rec->value);
         
-        $Type = ztm_Registers::getOurType($rec->registerId, false);
+        $Type = ztm_Registers::getOurType($rec->registerId, $value);
         $row->value = $Type->toVerbal($value);
         
         if ($description = ztm_Registers::fetchField($rec->registerId, 'description')) {
