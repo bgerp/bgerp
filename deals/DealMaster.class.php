@@ -428,7 +428,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!Mode::is('documentPortalShortName')) {
             if (isset($rec->contragentClassId, $rec->contragentId)) {
                 $crm = cls::get($rec->contragentClassId);
-                $cRec = $crm->getContragentData($rec->contragentId);
+                $cRec = $crm->getContragentData($rec->contragentId, $rec->activatedOn);
                 $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
             } else {
                 $contragent = tr('Проблем при показването');

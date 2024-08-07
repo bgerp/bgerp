@@ -1096,7 +1096,7 @@ abstract class deals_Helper
         // името, адреса и ДДС номера на контрагента
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
-            $cData = $ContragentClass->getContragentData($contragentId);
+            $cData = $ContragentClass->getContragentData($contragentId, $docRec->activatedOn);
             $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
             $res['contragentName'] = isset($contragentName) ? $contragentName : $cName;
             if($res['contragentName'] != $cName){
@@ -1105,7 +1105,6 @@ abstract class deals_Helper
                 }
             }
             $res['inlineContragentName'] = $res['contragentName'];
-
             $res['eori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($cData->eori);
             $res['vatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($cData->vatNo);
             $res['contragentUicId'] = $cData->uicId;
@@ -1132,8 +1131,8 @@ abstract class deals_Helper
         $showCountries = !(($ownCompanyData->countryId == $cData->countryId));
         
         if (isset($contragentClass, $contragentId)) {
-            $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries)->getContent();
-            $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries)->getContent();
+            $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $docRec->activatedOn)->getContent();
+            $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $docRec->activatedO)->getContent();
             $res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
         }
         
