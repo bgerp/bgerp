@@ -404,7 +404,7 @@ class price_ListBasicDiscounts extends core_Detail
             $dQuery->where("#valior >= '{$firstDay}' AND #valior <= '{$lastDay}'");
         } elseif($listRec->discountClassPeriod == 'hourly'){
             $now = dt::now();
-            $before1Hour = dt::addSecs(-60, $now);
+            $before1Hour = dt::addSecs(-3600, $now);
             $dQuery->where("#activatedOn >= '{$before1Hour}' AND #activatedOn <= '{$now}'");
         } else{
             $today = dt::today();
@@ -453,7 +453,7 @@ class price_ListBasicDiscounts extends core_Detail
             $pQuery->where("#waitingOn >= '{$firstDay}' AND #waitingOn <= '{$lastDay}'");
         } elseif($listRec->discountClassPeriod == 'hourly'){
             $now = dt::now();
-            $before1Hour = dt::addSecs(-60, $now);
+            $before1Hour = dt::addSecs(-3600, $now);
             $pQuery->where("#waitingOn >= '{$before1Hour}' AND #waitingOn <= '{$now}'");
         }  else {
             $today = dt::today();
