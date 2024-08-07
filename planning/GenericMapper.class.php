@@ -402,16 +402,15 @@ class planning_GenericMapper extends core_Manager
         // Ако не е складируем взимаме среднопритеглената му цена в производството
         $item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
         if (isset($item1)) {
-            $pricesArr = acc_ProductPricePerPeriods::getPricesToDate($date, $item1, null, 'production');
-            $countPricesBefore = countR($pricesArr);
-            if($countPricesBefore){
-                $priceSum = arr::sumValuesArray($pricesArr, 'price');
-
-                return round($priceSum / $countPricesBefore, 4);
+            // Намираме сумата която струва к-то от артикула в склада
+            $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
+            $selfValue = acc_strategy_WAC::getAmount($quantity, $date, '61101', $item1, null, null, $maxTry);
+            if ($selfValue) {
+                $selfValue = round($selfValue, 4);
             }
         }
-
-        return null;
+        
+        return $selfValue;
     }
 
 
@@ -428,18 +427,19 @@ class planning_GenericMapper extends core_Manager
     public static function getWacAmountInAllCostsAcc($quantity, $objectId, $date, $costObjectItemId = null)
     {
         // Ако не е складируем взимаме среднопритеглената му цена в производството
-        $item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
-        if (isset($item1)) {
-            $pricesArr = acc_ProductPricePerPeriods::getPricesToDate($date, $item1, $costObjectItemId, 'costs');
-            $countPricesBefore = countR($pricesArr);
-            if($countPricesBefore){
-                $priceSum = arr::sumValuesArray($pricesArr, 'price');
+        $item = acc_Items::fetchItem('cat_Products', $objectId)->id;
+        if (isset($item)) {
+            // Намираме сумата която струва к-то от артикула в склада
+            $costItemId = isset($costObjectItemId) ? $costObjectItemId : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+            $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
+            $selfValue = acc_strategy_WAC::getAmount($quantity, $date, '60201', $costItemId, $item, null, $maxTry);
 
-                return round($priceSum / $countPricesBefore, 4);
+            if ($selfValue) {
+                $selfValue = round($selfValue, 4);
             }
         }
 
-        return null;
+        return $selfValue;
     }
 
 
