@@ -312,6 +312,15 @@ class crm_Companies extends core_Master
 
 
     /**
+     * Кои изчислими полета от следените за промяна да се показват при сравнение на версиите
+     *
+     * @see change_plg_Log
+     * @var string
+     */
+    public $loggableAdditionalComparableFields = 'title';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -989,7 +998,7 @@ class crm_Companies extends core_Master
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : '');
         
         if (!$row->title) {
-            $row->title .= $mvc->getTitleById($rec->id);
+            $row->title .= $mvc->getTitleById($rec);
         }
         
         if ($rec->folderName) {
