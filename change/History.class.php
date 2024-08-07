@@ -416,7 +416,7 @@ class change_History extends core_Manager
 
         $title = tr("Версии");
         if(change_History::haveRightFor('list')){
-            $title .= ht::createLink('', array('change_History', 'list', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->rec->id), false, 'ef_icon=img/16/funnel.png')->getContent();
+            $title .= ht::createLink('', array('change_History', 'list', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId), false, 'ef_icon=img/16/funnel.png')->getContent();
         }
         $resTpl->append($title, 'title');
 
