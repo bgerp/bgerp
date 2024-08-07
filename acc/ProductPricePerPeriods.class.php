@@ -168,10 +168,6 @@ class acc_ProductPricePerPeriods extends core_Manager
 
                 $item1Id = ($sysId == '61101') ? null : $dRec->ent1Id;
                 $item2Id = ($sysId == '61101') ? $dRec->ent1Id : $dRec->ent2Id;
-
-                if(empty($toDate)){
-                    wp("NO_DATE_CACHE", $dRec, $toDate, $balanceIds);
-                }
                 $rec = (object)array('date' => $toDate,
                                      'otherItemId' => $item1Id,
                                      'productItemId' => $item2Id,
