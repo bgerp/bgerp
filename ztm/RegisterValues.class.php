@@ -142,6 +142,11 @@ class ztm_RegisterValues extends core_Manager
                 $data->query->like('registerName', $kWord, true, $or);
             }
         }
+
+        // Да показва само регистрите, които са в съответният профил
+        $data->query->EXT('regProfileIds', 'ztm_Registers', 'externalName=profileIds,externalKey=registerId');
+        $data->query->EXT('deviceProfileId', 'ztm_Devices', 'externalName=profileId,externalKey=deviceId');
+        $data->query->where("#regProfileIds IS NULL OR #regProfileIds = '' OR #regProfileIds LIKE CONCAT('%|', #deviceProfileId, '|%')");
     }
     
     
