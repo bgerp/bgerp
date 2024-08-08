@@ -683,6 +683,21 @@ class blast_Lists extends core_Master
         
         return $title;
     }
+
+
+    /**
+     * Връща вербално представяне на събщението на дадения източник за персонализирани данни
+     *
+     * @param int  $id
+     * @param bool $verbal
+     *
+     * @return string
+     */
+    public function getPersonalizationBody($id, $verbal = false)
+    {
+
+        return '';
+    }
     
     
     /**

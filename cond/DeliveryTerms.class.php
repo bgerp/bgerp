@@ -308,14 +308,14 @@ class cond_DeliveryTerms extends core_Master
     /**
      * Помощен метод допълващ условието на доставка с адреса
      *
-     * @param int      $deliveryCode      - текста на търговското условие
-     * @param int      $contragentClassId - класа на контрагента
-     * @param int      $contragentId      - ид на котнрагента
-     * @param int      $storeId           - ид на склада
-     * @param int      $locationId        - ид на локация
-     * @param int      $deliveryData      - други параметри
-     * @param core_Mvc $document          - за кой документ се отнася
-     * @param int|null $ownCompanyId      - за коя моя фирма
+     * @param int      $deliveryCode         - текста на търговското условие
+     * @param int      $contragentClassId    - класа на контрагента
+     * @param int      $contragentId         - ид на котнрагента
+     * @param int      $storeId              - ид на склада
+     * @param int      $locationId           - ид на локация
+     * @param int      $deliveryData         - други параметри
+     * @param core_ObjectReference $document - за кой документ се отнася
+     * @param int|null $ownCompanyId         - за коя моя фирма
      *
      *
      *
@@ -323,40 +323,42 @@ class cond_DeliveryTerms extends core_Master
      */
     public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $deliveryData, $document, $ownCompanyId = null)
     {
-        $adress = null;
-        $isSale = ($document instanceof sales_Sales || $document instanceof sales_Quotations);
+
+        $address = null;
+        $isSale = ($document->isInstanceOf('sales_Sales') || $document->isInstanceOf('sales_Quotations'));
         if(empty($deliveryCode)){
             if(!empty($locationId)){
-                $adress = crm_Locations::getAddress($locationId, true);
+                $address = crm_Locations::getAddress($locationId, true);
             }
 
-            return $adress;
+            return $address;
         }
         
         expect($rec = self::fetch(array('[#1#]', $deliveryCode)));
-        
+
+        $activatedOn = $document->fetchField('activatedOn');
         if (($rec->address == 'supplier' && $isSale === true) || ($rec->address == 'receiver' && $isSale === false)) {
             if (isset($storeId)) {
                 if ($locationId = store_Stores::fetchField($storeId, 'locationId')) {
-                    $adress = crm_Locations::getAddress($locationId, true);
+                    $address = crm_Locations::getAddress($locationId, true);
                 }
             }
             
-            if (empty($adress)) {
+            if (empty($address)) {
                 $ownCompanyId = $ownCompanyId ?? crm_Setup::BGERP_OWN_COMPANY_ID;
-                $adress = cls::get('crm_Companies')->getFullAdress($ownCompanyId, true, null, false)->getContent();
+                $address = cls::get('crm_Companies')->getFullAdress($ownCompanyId, true, null, false, $activatedOn)->getContent();
             }
         } elseif (($rec->address == 'receiver' && $isSale === true) || ($rec->address == 'supplier' && $isSale === false)) {
             if (!empty($locationId)) {
-                $adress = crm_Locations::getAddress($locationId, true);
+                $address = crm_Locations::getAddress($locationId, true);
             } else {
-                $adress = cls::get($contragentClassId)->getFullAdress($contragentId, true, null, false)->getContent();
+                $address = cls::get($contragentClassId)->getFullAdress($contragentId, true, null, false, $activatedOn)->getContent();
             }
         }
-        
-        $adress = trim(strip_tags($adress));
 
-        return $adress;
+        $address = trim(strip_tags($address));
+
+        return $address;
     }
     
     

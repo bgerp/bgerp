@@ -462,12 +462,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Интерфейсен метод
      *
      * @param int $id
-     *
+     * @param datetime|int $date
      * @return object
      *
      * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         $rec = self::fetchRec($id);
 

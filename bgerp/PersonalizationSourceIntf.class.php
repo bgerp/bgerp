@@ -50,7 +50,23 @@ class bgerp_PersonalizationSourceIntf
      */
     public function getPersonalizationTitle($id, $verbal = false)
     {
+
         return $this->class->getPersonalizationTitle($id, $verbal);
+    }
+
+
+    /**
+     * Връща вербално представяне на събщението на дадения източник за персонализирани данни
+     *
+     * @param int  $id
+     * @param bool $verbal
+     *
+     * @return string
+     */
+    public function getPersonalizationBody($id, $verbal = false)
+    {
+
+        return $this->class->getPersonalizationBody($id, $verbal);
     }
     
     

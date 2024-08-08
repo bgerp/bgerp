@@ -373,8 +373,8 @@ class blast_Emails extends core_Master
         expect($rec, 'Няма такъв запис');
         
         // Инстанция на класа за персонализация
-        $srcClsInst = cls::get($rec->perSrcClassId);
-        
+        $srcClsInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId);
+
         // Масива с данните за персонализация
         $personalizationArr = $srcClsInst->getPresonalizationArr($rec->perSrcObjectId);
         
@@ -543,8 +543,8 @@ class blast_Emails extends core_Master
             }
             
             // Инстанция на обекта
-            $srcClassInst = cls::get($rec->perSrcClassId);
-            
+            $srcClassInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId);
+
             // Масив с полетата и описаниите за съответния обект
             $descArr = $srcClassInst->getPersonalizationDescr($rec->perSrcObjectId);
             
@@ -1116,7 +1116,7 @@ class blast_Emails extends core_Master
         $form->input($form->showFields);
         
         // Инстанция на избрания клас
-        $srcClsInst = cls::get($rec->perSrcClassId);
+        $srcClsInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId);
         
         // Ако формата е изпратена без грешки
         if ($form->isSubmitted()) {
@@ -1383,7 +1383,7 @@ class blast_Emails extends core_Master
         
         if (!$lang || ($lang == 'auto')) {
             if ($rec->perSrcClassId) {
-                $perClsInst = cls::get($rec->perSrcClassId);
+                $perClsInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId);
             }
             $lang = $perClsInst->getPersonalizationLg($rec->perSrcObjectId);
         }
@@ -1493,7 +1493,8 @@ class blast_Emails extends core_Master
         
         // Ако не е подаден клас да е blast_List
         $listClassId = blast_Lists::getClassId();
-        
+
+        $cover = null;
         if (isset($form->rec->folderId)) {
             $cover = doc_Folders::getCover($form->rec->folderId);
             
@@ -1511,15 +1512,21 @@ class blast_Emails extends core_Master
         $data->form->setDefault('perSrcClassId', $defPerSrcClassId);
         
         // Инстанция на източника за персонализация
-        $perClsInst = cls::get($data->form->rec->perSrcClassId);
-        
+        $perClsInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $data->form->rec->perSrcClassId);
+
         // id на обекта на персонализация
         $perSrcObjId = $data->form->rec->perSrcObjectId;
+
+        $perBody = $perClsInst->getPersonalizationBody($perSrcObjId, false);
+        $data->form->setDefault('body', $perBody);
         
         $pFingerPrint = array();
-        
-        $perOptArr = $perClsInst->getPersonalizationOptionsForId($cover->that);
-        
+
+        $perOptArr = array();
+        if ($cover) {
+            $perOptArr = $perClsInst->getPersonalizationOptionsForId($cover->that);
+        }
+
         // Обхождаме всички опции
         foreach ((array) $perOptArr as $id => $name) {
             
@@ -1684,7 +1691,7 @@ class blast_Emails extends core_Master
         
         // Премахваме избрания списък
         if ($rec->perSrcClassId && $rec->perSrcObjectId) {
-            if (cls::get($rec->perSrcClassId) instanceof blast_Lists) {
+            if (cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId)->class instanceof blast_Lists) {
                 $query->where(array("#id != '[#1#]'", $rec->perSrcObjectId));
             }
         }
@@ -1761,7 +1768,7 @@ class blast_Emails extends core_Master
         // Ако сме субмитнали формата
         // Проверява за плейсхолдери, които липсват в източника
         if ($form->isSubmitted()) {
-            $classInst = cls::get($rec->perSrcClassId);
+            $classInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId);
             
             // Масив с всички записи
             $recArr = (array) $form->rec;
@@ -1960,7 +1967,7 @@ class blast_Emails extends core_Master
         // Линка към обекта, който се използва за персонализация
         if ($rec->perSrcClassId && isset($rec->perSrcObjectId)) {
             if (cls::load($rec->perSrcClassId, true)) {
-                $inst = cls::get($rec->perSrcClassId);
+                $inst = cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId);
                 
                 if ($inst->canUsePersonalization($rec->perSrcObjectId)) {
                     $row->srcLink = $inst->getPersonalizationSrcLink($rec->perSrcObjectId);
@@ -2447,9 +2454,9 @@ class blast_Emails extends core_Master
     public function on_AfterGetUsedDocs($mvc, &$res, $id)
     {
         $rec = $mvc->fetch($id);
-        $srcClsInst = cls::get($rec->perSrcClassId);
-        if (cls::haveInterface('doc_DocumentIntf', $srcClsInst)) {
-            $cid = $srcClsInst->fetchField($rec->perSrcObjectId, 'containerId');
+        $srcClsInst = cls::getInterface('bgerp_PersonalizationSourceIntf', $rec->perSrcClassId);
+        if (cls::haveInterface('doc_DocumentIntf', $srcClsInst->class)) {
+            $cid = $srcClsInst->class->fetchField($rec->perSrcObjectId, 'containerId');
             $res[$cid] = $cid;
         }
     }

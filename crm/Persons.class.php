@@ -86,7 +86,7 @@ class crm_Persons extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, change_plg_History,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg,
@@ -282,8 +282,26 @@ class crm_Persons extends core_Master
      * Как се казва полето за държава на контрагента
      */
     public $countryFieldName = 'country';
-    
-    
+
+
+    /**
+     * Кои полета да се следят за промяна в логовете
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableFields = 'salutation,name,vatId,egn,eori,birthday,country,pCode,place,address,email,tel,mobile,fax,info,website';
+
+
+    /**
+     * Кои изчислими полета от следените за промяна да се показват при сравнение на версиите
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableAdditionalComparableFields = 'title';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -735,7 +753,7 @@ class crm_Persons extends core_Master
         
         $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
         
-        $row->title = $mvc->getTitleById($rec->id);
+        $row->title = $mvc->getTitleById($rec);
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
@@ -1404,24 +1422,34 @@ class crm_Persons extends core_Master
         
         return drdata_Countries::isEu($rec->country);
     }
-    
-    
+
+
     /**
-     * Връща данните на лицето
+     * Интерфейсен метод
      *
-     * @param int $id - id' то на записа
+     * @param int $id
+     * @param date|null $date
+     * @return object
      *
-     * return object
+     * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         //Вземаме данните
         $person = crm_Persons::fetch($id);
-        
+        $company = null;
+
+        if(isset($date)) {
+            $recToDate = change_History::getRecOnDate(get_called_class(), $person, $date);
+            if($recToDate) {
+                $person = $recToDate;
+            }
+        }
+
         if ($person->buzCompanyId) {
             $company = crm_Companies::fetch($person->buzCompanyId);
         }
-        
+
         // Заместваме и връщаме данните
         if ($person) {
             $contrData = new stdClass();

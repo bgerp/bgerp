@@ -271,7 +271,7 @@ class core_Backup extends core_Mvc
         }
         $description['appConfig'] = $file . '.zip';
         
-        // всема стойностите на някои константи
+        // Взема стойностите на някои константи
         $constArr = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
         foreach ($constArr as $const) {
             if (defined($const)) {
@@ -751,6 +751,8 @@ class core_Backup extends core_Mvc
                 self::runRestoreTable($file, $sess);
                 $log[] = $msg = 'msg: Възстановяване на: ' . $file;
                 self::fLog($msg);
+
+                // В заключващото съобщение показваме текущите таблици които възстановяваме в паралелни нишки
                 do {
                     $runned = self::getRuningProcess($tempRestoreDir);
                     $runnedCnt = countR($runned);
