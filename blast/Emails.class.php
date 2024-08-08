@@ -1516,6 +1516,9 @@ class blast_Emails extends core_Master
 
         // id на обекта на персонализация
         $perSrcObjId = $data->form->rec->perSrcObjectId;
+
+        $perBody = $perClsInst->getPersonalizationBody($perSrcObjId, false);
+        $data->form->setDefault('body', $perBody);
         
         $pFingerPrint = array();
 

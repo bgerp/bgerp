@@ -442,7 +442,7 @@ class borsa_Periods extends core_Manager
         
         $lg = core_Lg::getCurrent();
         
-        $key = md5($lg . '|' . $id . '|' . $vebal);
+        $key = md5($lg . '|' . $id . '|' . $verbal);
         
         if (!$resArr[$key]) {
             $rec = $this->fetchRec($id);
@@ -450,6 +450,21 @@ class borsa_Periods extends core_Manager
         }
         
         return $resArr[$key];
+    }
+
+
+    /**
+     * Връща вербално представяне на събщението на дадения източник за персонализирани данни
+     *
+     * @param int  $id
+     * @param bool $verbal
+     *
+     * @return string
+     */
+    public function getPersonalizationBody($id, $verbal = false)
+    {
+
+        return '';
     }
     
     
