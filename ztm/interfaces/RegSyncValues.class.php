@@ -27,13 +27,15 @@ class ztm_interfaces_RegSyncValues
     /**
      * Връща регистрите и стойностите им
      *
+     * @param int|stdClass $deviceId
+     *
      * @return array
      * [името на регистъра] => [val => стойност, time => време на последна промяна]
      */
-    public function getRegValues()
+    public function getRegValues($deviceId)
     {
 
-        return $this->class->getRegValues();
+        return $this->class->getRegValues($deviceId);
     }
 
 

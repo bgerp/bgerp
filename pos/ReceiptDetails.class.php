@@ -139,72 +139,87 @@ class pos_ReceiptDetails extends core_Detail
         $success = true;
         $rec = null;
         $autoFiscPrintIfPossible = false;
+        $amount = Request::get('amount', 'varchar');
+        $amount = empty($amount) ? 0 : $amount;
 
-        try{
-            if(!pos_Receipts::haveRightFor('pay', $receiptRec)){
-                expect(false, 'Не може да се добави друго плащане');
+        if(pos_Receipts::haveRightFor('setvoucher', $receiptRec)){
+            $voucherInfo = voucher_Cards::getByNumber($amount);
+            if($voucherInfo['error']){
+                core_Statuses::newStatus($voucherInfo['error'], 'error');
+                $success = false;
+            } elseif(isset($voucherInfo['id'])){
+                $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setvoucher', 'id' => $receiptRec->id, 'ajax_mode' => 1, 'voucherId' => $voucherInfo['id']);
+
+                return core_Request::forward($forwardUrl);
             }
-            $type = Request::get('type', 'int');
-            if($type != -1){
-                expect(cond_Payments::fetch($type), 'Неразпознат метод на плащане');
-            }
+        }
 
-            $amount = Request::get('amount', 'varchar');
-            $amount = empty($amount) ? 0 : $amount;
-            $amount = core_Type::getByName('double')->fromVerbal($amount);
+        if($success){
+            try{
+                expect(!(abs($receiptRec->paid) >= abs($receiptRec->total) && $receiptRec->total != 0), 'Вече е платено достатъчно|*!');
 
-            $paymentCount = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%payment%'");
-            $countProducts = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%sale%'");
-            if($countProducts && $receiptRec->total != 0){
-                expect($amount, 'Невалидна сума за плащане|*!');
-                expect($amount > 0, 'Сумата трябва да е положителна');
-            } else {
-                expect(!$paymentCount, 'Има вече направено плащане|*!');
-                expect($type == -1, 'На бележките с нулева сума е позволено само плащане в брой|*!');
-                expect($amount == 0, 'Не може да платите по-голяма сума|*!');
-            }
+                if(!pos_Receipts::haveRightFor('pay', $receiptRec)){
+                    expect(false, 'Не може да се добави друго плащане');
+                }
+                $type = Request::get('type', 'int');
+                if($type != -1){
+                    expect(cond_Payments::fetch($type), 'Неразпознат метод на плащане');
+                }
 
-            $diff = abs($receiptRec->paid - $receiptRec->total);
+                $amount = core_Type::getByName('double')->fromVerbal($amount);
+                $paymentCount = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%payment%'");
+                $countProducts = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%sale%'");
+                if($countProducts && $receiptRec->total != 0){
+                    expect($amount, 'Невалидна сума за плащане|*!');
+                    expect($amount > 0, 'Сумата трябва да е положителна');
+                } else {
+                    expect(!$paymentCount, 'Има вече направено плащане|*!');
+                    expect($type == -1, 'На бележките с нулева сума е позволено само плащане в брой|*!');
+                    expect($amount == 0, 'Не може да платите по-голяма сума|*!');
+                }
 
-            if ($type != -1) {
-                $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receiptRec->valior);
-                expect(!(!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff), 'Платежния метод не позволява да се плати по-голяма сума от общата|*!');
-            }
+                $diff = abs($receiptRec->paid - $receiptRec->total);
 
-            if($receiptRec->revertId){
-                $amount *= -1;
-            }
+                if ($type != -1) {
+                    $paidAmount = cond_Payments::toBaseCurrency($type, $amount, $receiptRec->valior);
+                    expect(!(!cond_Payments::returnsChange($type) && (string) abs($paidAmount) > (string) $diff), 'Платежния метод не позволява да се плати по-голяма сума от общата|*!');
+                }
 
-            // Подготвяме записа на плащането
-            $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
+                if($receiptRec->revertId){
+                    $amount *= -1;
+                }
 
-            if(!empty($param)){
-                $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
-                if($type == $cardPaymentId){
-                    $rec->param = $param;
+                // Подготвяме записа на плащането
+                $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
+
+                if(!empty($param)){
+                    $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
+                    if($type == $cardPaymentId){
+                        $rec->param = $param;
+                    }
+                }
+
+                if($this->save($rec)){
+                    $this->Master->logInAct('Направено плащане', $receiptRec->id);
+                }
+            } catch(core_exception_Expect $e){
+                $dump = $e->dump;
+                $dump1 = $dump[0];
+
+                if (!Request::get('ajax_mode')) {
+                    throw new core_exception_Expect('', 'Изключение', $dump);
+                } else {
+                    core_Statuses::newStatus($dump1, 'error');
+                    $success = false;
                 }
             }
 
-            if($this->save($rec)){
-                $this->Master->logInAct('Направено плащане', $receiptRec->id);
+            if($success && in_array($param, array('manual', 'card'))){
+                $autoFiscPrintIfPossible = true;
             }
-       } catch(core_exception_Expect $e){
-           $dump = $e->dump;
-           $dump1 = $dump[0];
+        }
 
-           if (!Request::get('ajax_mode')) {
-               throw new core_exception_Expect('', 'Изключение', $dump);
-           } else {
-               core_Statuses::newStatus($dump1, 'error');
-               $success = false;
-           }
-       }
-
-       if($success && in_array($param, array('manual', 'card'))){
-           $autoFiscPrintIfPossible = true;
-       }
-
-       return pos_Terminal::returnAjaxResponse($receiptId, $rec, $success, true, true, true, 'add', false, true, null, $autoFiscPrintIfPossible);
+        return pos_Terminal::returnAjaxResponse($receiptId, $rec, $success, true, true, true, 'add', false, true, null, $autoFiscPrintIfPossible);
     }
 
 
@@ -534,7 +549,7 @@ class pos_ReceiptDetails extends core_Detail
 
                 // Проверяваме дали въведения "код" дали е във формата '< число > * < код >',
                 // ако да то приемаме числото преди '*' за количество а след '*' за код
-                preg_match('/(\-?[0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
+                preg_match('/(\-?[0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _\/\.]*)/iu', $ean, $matches);
 
                 // Ако има намерени к-во и код от регулярния израз
                 if (!empty($matches[1]) && !empty($matches[3])) {
@@ -578,15 +593,30 @@ class pos_ReceiptDetails extends core_Detail
             if($rec->ean && empty($rec->productId)){
                 $operation = Mode::get("currentOperation{$rec->receiptId}");
                 $forwardUrl = array('Ctr' =>'pos_Terminal', 'Act' =>'displayOperation', 'search' => $rec->ean, 'receiptId' => $receiptId, 'operation' => $operation, 'refreshPanel' => 'no');
+
+                $check4Voucher = true;
                 if(pos_Receipts::haveRightFor('setcontragent', $receiptRec)){
                     $cardInfo = crm_ext_Cards::getInfo($rec->ean);
                     if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
                         $redirectToNotEmptyReceiptResponse = $this->getRedirectToNotEmptyReceiptAjaxResponse($receiptRec, $cardInfo['contragentClassId'], $cardInfo['contragentId']);
                         if(is_array($redirectToNotEmptyReceiptResponse)) return $redirectToNotEmptyReceiptResponse;
-
+                        $check4Voucher = false;
                         $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $rec->receiptId, 'ajax_mode' => 1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
-                    } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
+                    } elseif($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
+                        $check4Voucher = false;
                         core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
+                    }
+                }
+
+                // Проверка дали търсения стринг е неизползван ваучер
+                if($check4Voucher && core_Packs::isInstalled('voucher')){
+                    if(pos_Receipts::haveRightFor('setvoucher', $receiptRec)){
+                        $voucherInfo = voucher_Cards::getByNumber($rec->ean);
+                        if($voucherInfo['error']){
+                            core_Statuses::newStatus($voucherInfo['error'], 'error');
+                        } elseif(isset($voucherInfo['id'])){
+                            $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setvoucher', 'id' => $rec->receiptId, 'ajax_mode' => 1, 'voucherId' => $voucherInfo['id']);
+                        }
                     }
                 }
 
@@ -636,34 +666,41 @@ class pos_ReceiptDetails extends core_Detail
                 $selectedRec = null;
             }
 
+            $separateInPos = cat_Products::getParams($rec->productId, 'separateInPos');
             if($selectedRec->productId == $rec->productId && $selectedRec->value == $rec->value && $selectedRec->batch == $rec->batch){
                 $rec->value = $selectedRec->value;
                 $rec->batch = $selectedRec->batch;
             } else {
-                $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId} AND #value = {$rec->value}");
-                expect($count <= 1, 'Не е избран конкретен ред|*!');
+                if($separateInPos != 'yes'){
+                    $count = $this->count("#receiptId = {$rec->receiptId} && #productId = {$rec->productId} AND #value = {$rec->value}");
+                    expect($count <= 1, 'Не е избран конкретен ред|*!');
+                }
             }
 
             // Намираме дали този проект го има въведен
-            $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
-            if ($sameProduct) {
+            if($separateInPos != 'yes'){
+                $sameProduct = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
+                if ($sameProduct) {
 
-                // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
-                $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : (($increment === true) ? ($rec->quantity + $sameProduct->quantity) : $rec->quantity);
-                if($newQuantity <= 0 && !isset($receiptRec->revertId)){
-                    core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
+                    // Ако текущо селектирания ред е избрания инкрементира се, ако не се задава ново количество
+                    $newQuantity = ($selectedRec->id == $sameProduct->id) ? $rec->quantity + $sameProduct->quantity : (($increment === true) ? ($rec->quantity + $sameProduct->quantity) : $rec->quantity);
+                    if($newQuantity <= 0 && !isset($receiptRec->revertId)){
+                        core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
 
-                    return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $sameProduct->id));
+                        return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $sameProduct->id));
+                    }
+
+                    $rec->quantity = $newQuantity;
+                    $rec->price = $sameProduct->price;
+                    $rec->storeId = $sameProduct->storeId;
+                    $rec->amount += $sameProduct->amount;
+                    $rec->id = $sameProduct->id;
+
+                    Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => 'setquantity'));
                 }
+            }
 
-                $rec->quantity = $newQuantity;
-                $rec->price = $sameProduct->price;
-                $rec->storeId = $sameProduct->storeId;
-                $rec->amount += $sameProduct->amount;
-                $rec->id = $sameProduct->id;
-
-                Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => 'setquantity'));
-            } elseif(empty($receiptRec->revertId)) {
+            if(empty($receiptRec->revertId)) {
                 expect($rec->quantity > 0, 'При добавяне количеството трябва да е положително');
             }
 
@@ -691,14 +728,14 @@ class pos_ReceiptDetails extends core_Detail
 
             expect(!(!empty($receiptRec->revertId) && ($receiptRec->revertId != pos_Receipts::DEFAULT_REVERT_RECEIPT) && abs($originProductRec->quantity) < abs($rec->quantity)), "Количеството е по-голямо от продаденото|* " . core_Type::getByName('double(smartRound)')->toVerbal($originProductRec->quantity));
             $pointRec = pos_Points::getSettings($receiptRec->pointId);
+
             if($pointRec->chargeVat == 'yes'){
-                $rec->param = cat_Products::getVat($rec->productId, dt::now());
+                $rec->param = cat_Products::getVat($rec->productId, dt::now(), $pointRec->vatExceptionId);
             } else {
                 $rec->param = 0;
             }
 
             $productsByNow = pos_ReceiptDetails::count("#receiptId = {$rec->receiptId}");
-
             $this->save($rec);
             $success = true;
             $this->Master->logInAct('Добавяне на артикул', $rec->receiptId);
@@ -1027,12 +1064,19 @@ class pos_ReceiptDetails extends core_Detail
         $rec->value = ($basePackId) ? $basePackId : $productRec->measureId;
 
         $rec->productId = $product->productId;
-        $receiptRec = pos_Receipts::fetch($rec->receiptId, 'pointId,contragentClass,contragentObjectId,valior,createdOn');
+        $receiptRec = pos_Receipts::fetch($rec->receiptId);
 
         $discountPolicyId = pos_Points::getSettings($receiptRec->pointId, 'discountPolicyId');
         $posPolicyId = pos_Points::getSettings($receiptRec->pointId, 'policyId');
-        $contragentPolicyId = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
-        $price = static::getLowerPriceObj($posPolicyId, $contragentPolicyId, $product->productId, $rec->value, 1, dt::now(), $discountPolicyId);
+
+        if(!empty($receiptRec->policyId)){
+            $policy1 = $receiptRec->policyId;
+            $policy2 = pos_Receipts::isForDefaultContragent($receiptRec) ? $posPolicyId : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+        } else {
+            $policy1 = $posPolicyId;
+            $policy2 = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+        }
+        $price = static::getLowerPriceObj($policy1, $policy2, $product->productId, $rec->value, 1, dt::now(), $discountPolicyId);
 
         $rec->discountPercent = $price->discount;
         $rec->price = $price->price * $perPack;
@@ -1393,8 +1437,8 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Помощна ф-я намираща по-малката цена от клиентската и от тази на пос-а
      *
-     * @param int $posPolicyId           - ЦП на поса
-     * @param int $contragentPolicyId    - ЦП на клиента
+     * @param int $policy1               - първа ЦП
+     * @param int $policy2               - втора ЦП
      * @param int $productId             - ид на артикул
      * @param int $packagingId           - ид на опаковка
      * @param double $quantity           - за какво количество
@@ -1403,13 +1447,14 @@ class pos_ReceiptDetails extends core_Detail
      *
      * @return stdClass $priceRes
      */
-    public static function getLowerPriceObj($posPolicyId, $contragentPolicyId, $productId, $packagingId, $quantity, $date, $discountPolicyId = null)
+    public static function getLowerPriceObj($policy1, $policy2, $productId, $packagingId, $quantity, $date, $discountPolicyId = null)
     {
         $Policy = cls::get('price_ListToCustomers');
         $contragentPrice = (object)array('price' => null, 'discount' => null);
-        $price = $Policy->getPriceByList($posPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no', $discountPolicyId);
-        if(isset($contragentPolicyId)){
-            $contragentPrice = $Policy->getPriceByList($contragentPolicyId, $productId, $packagingId, $quantity, $date, 1, 'no', $discountPolicyId);
+
+        $price = $Policy->getPriceByList($policy1, $productId, $packagingId, $quantity, $date, 1, 'no', $discountPolicyId);
+        if(isset($policy2)){
+            $contragentPrice = $Policy->getPriceByList($policy2, $productId, $packagingId, $quantity, $date, 1, 'no', $discountPolicyId);
         }
 
         // Ще се взима по-малката крайна цена от тази на клиента и на пос-а

@@ -578,6 +578,7 @@ class bgerp_Setup extends core_ProtoSetup
         core_ProtoSetup::$dbInit = 'update';
 
         $res .= $this->callMigrate('setNewPortal46194', 'bgerp');
+        $res .= $this->callMigrate('removeTestFilters2824', 'bgerp');
 
         core_ProtoSetup::$dbInit = $dbUpdate;
 
@@ -777,5 +778,14 @@ class bgerp_Setup extends core_ProtoSetup
                 }
             }
         }
+    }
+
+
+    /**
+     * Изтриване на тестови филтри
+     */
+    public function removeTestFilters2824()
+    {
+        bgerp_Filters::delete("#name IN ('vat0pur', 'vat9pur', 'vat20pur')");
     }
 }

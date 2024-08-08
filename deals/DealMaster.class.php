@@ -71,7 +71,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    public $lastUsedKeys = 'deliveryTermId,paymentMethodId';
+    public $lastUsedKeys = 'deliveryTermId,paymentMethodId,vatExceptionId';
     
     
     /**
@@ -278,6 +278,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Допълнително
         $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
+        $mvc->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Допълнително->ДДС изключение');
+
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
         $mvc->FLD('username', 'varchar', 'caption=Допълнително->Съставил');
@@ -334,8 +336,8 @@ abstract class deals_DealMaster extends deals_DealBase
             // Не може да се сменя ДДС-то ако има вече детайли
             $Detail = $mvc->mainDetail;
             if ($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$rec->id}")) {
-                foreach (array('chargeVat', 'currencyId', 'deliveryTermId') as $fld) {
-                    $form->setReadOnly($fld, isset($rec->{$fld}) ? $rec->{$fld} : $mvc->fetchField($rec->id, $fld));
+                foreach (array('chargeVat', 'currencyId', 'deliveryTermId', 'vatExceptionId') as $fld) {
+                    $form->setReadOnly($fld, $rec->{$fld} ?? $mvc->fetchField($rec->id, $fld));
                 }
             }
         } else {
@@ -426,7 +428,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!Mode::is('documentPortalShortName')) {
             if (isset($rec->contragentClassId, $rec->contragentId)) {
                 $crm = cls::get($rec->contragentClassId);
-                $cRec = $crm->getContragentData($rec->contragentId);
+                $cRec = $crm->getContragentData($rec->contragentId, $rec->activatedOn);
                 $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
             } else {
                 $contragent = tr('Проблем при показването');
@@ -1301,7 +1303,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     }
                 }
 
-                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, $mvc, $ownCompanyId);
+                $deliveryAdress = cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, $rec->shipmentStoreId, $rec->deliveryLocationId, $rec->deliveryData, doc_Containers::getDocument($rec->containerId), $ownCompanyId);
             }
            
             if (isset($rec->deliveryTermId) && !Mode::isReadOnly()) {
@@ -1990,7 +1992,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $allowedFields['deliveryData'] = true;
         $allowedFields['deliveryCalcTransport'] = true;
         $allowedFields['deliveryAdress'] = true;
-        
+        $allowedFields['note'] = true;
+        if(core_Packs::isInstalled('voucher')) {
+            $allowedFields['voucherId'] = true;
+        }
+
         // Проверяваме подадените полета дали са позволени
         if (countR($fields)) {
             foreach ($fields as $fld => $value) {
@@ -2052,6 +2058,9 @@ abstract class deals_DealMaster extends deals_DealBase
 
         // Състояние на плащането, чакащо
         $fields['paymentState'] = 'pending';
+        if(isset($fields['vatExceptionId'])) {
+            expect(cond_VatExceptions::fetch($fields['vatExceptionId']), 'Няма такова ДДС основание');
+        }
 
         // Опиваме се да запишем мастъра на сделката
         $rec = (object)$fields;
@@ -2091,10 +2100,16 @@ abstract class deals_DealMaster extends deals_DealBase
         if (isset($fields['receiptId'])) {
             $rec->_receiptId = $fields['receiptId'];
         }
-        
+
         if ($id = $me->save($rec)) {
+            if(core_Packs::isInstalled('voucher')) {
+                if(isset($rec->voucherId)) {
+                    voucher_Cards::mark($rec->voucherId, 'used', $me->getClassId(), $rec->id);
+                }
+            }
+
             doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
-           
+
             return $id;
         }
         

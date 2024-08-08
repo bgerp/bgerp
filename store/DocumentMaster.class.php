@@ -670,14 +670,6 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
-
-            if ($rec->isReverse == 'yes') {
-                $row->operationSysId = tr('Връщане на стока');
-                if(isset($rec->reverseContainerId)){
-                    $row->operationSysId .= tr("|* |от|* ") . doc_Containers::getDocument($rec->reverseContainerId)->getLink(0, array('ef_icon' => false));
-                }
-            }
-
             core_Lg::pop();
 
         } elseif (isset($fields['-list'])) {
@@ -796,7 +788,7 @@ abstract class store_DocumentMaster extends core_Master
     public function pushDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
-        
+
         // Конвертираме данъчната основа към валутата идваща от продажбата
         if(isset($rec->locationId)){
             $aggregator->setIfNot('deliveryLocation', $rec->locationId);
@@ -827,8 +819,9 @@ abstract class store_DocumentMaster extends core_Master
                 $arr = (object) array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
                 $aggregator->push('shippedPacks', $arr, $index);
             }
-            
-            $vat = cat_Products::getVat($dRec->productId);
+
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+            $vat = cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId);
             if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate') {
                 $dRec->packPrice += $dRec->packPrice * $vat;
             }

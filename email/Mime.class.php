@@ -187,16 +187,34 @@ class email_Mime extends core_BaseClass
         $fromParser = new email_Rfc822Addr();
         $parseFrom = array();
         $fromParser->ParseAddressList($fromHeader, $parseFrom);
-        $fromEmlStr = $parseFrom[0]['address'] ? $parseFrom[0]['address'] : $parseFrom[1]['address'];
-        $this->fromName = $parseFrom[0]['name'] . ' ' . $parseFrom[1]['name'];
 
+        $fromEmlStr = $fromName = '';
+        foreach ((array)$parseFrom as $p) {
+            if (!$fromEmlStr && $p['address'] && type_Email::isValidEmail($p['address'])) {
+                $fromEmlStr .= $p['address'] . ',';
+            }
+
+            $p['name'] = trim($p['name']);
+            $fromName .= $fromName ? ' ' : '';
+            $fromName .= $p['name'] ? $p['name'] : '';
+        }
+        $fromEmlStr = trim($fromEmlStr, ',');
+
+        $this->fromName = $fromName;
         $fromEmlArr = array();
         if (trim($fromEmlStr)) {
             $fromEmlArr = type_Email::extractEmails($fromEmlStr);
         }
 
+        foreach ($fromEmlArr as &$fEmail) {
+            $fEmail = type_Email::removeBadPart($fEmail);
+        }
+
         if (empty($fromEmlArr)) {
             $fromEmlArr = type_Email::extractEmails($this->getHeader('Return-Path'));
+            foreach ($fromEmlArr as &$email) {
+                $email = type_Email::removeBadPart($email);
+            }
         }
 
         $this->fromEmail = $fromEmlArr[0];

@@ -57,6 +57,9 @@
                             <!--ET_BEGIN clonedFromId-->
                             <br><span style='font-weight:normal'>|Клонирано от|*</span>: [#clonedFromId#]
                             <!--ET_END clonedFromId-->
+                            <!--ET_BEGIN vatExceptionId-->
+                            <br><span style='font-weight:normal'>|ДДС изключение|*</span>: [#vatExceptionId#]
+                            <!--ET_END vatExceptionId-->
                         </td>
                     </tr>
                 </table>

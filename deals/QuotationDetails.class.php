@@ -90,7 +90,7 @@ class deals_QuotationDetails extends doc_Detail
         $mvc->FNC('vatPackPrice', 'double(minDecimals=2)', 'caption=Цена с ддс,smartCenter');
         $mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none');
         $mvc->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input=none');
-        $mvc->FLD('discount', 'percent(smartRound,min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
+        $mvc->FLD('discount', 'percent(smartRound,min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0,warningMax=0.1)', 'caption=Толеранс,input=none');
         $mvc->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,input=none');
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -99,6 +99,7 @@ class deals_QuotationDetails extends doc_Detail
         $mvc->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Изглед,notNull,default=auto');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Забележки,formOrder=110001');
         $mvc->setField('packPrice', 'silent');
+        $mvc->setFieldTypeParams('discount', array('warningMax' => deals_Setup::get('MAX_WARNING_DISCOUNT')));
 
         $mvc->setDbIndex('productId,quantity');
     }
@@ -129,6 +130,7 @@ class deals_QuotationDetails extends doc_Detail
         $rec = &$form->rec;
         $masterRec = $data->masterRec;
         $form->setDefault('showMode', 'detailed');
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $this->metaProducts, 'hasnotProperties' => 'generic'));
         if (isset($rec->id)) {
@@ -138,7 +140,7 @@ class deals_QuotationDetails extends doc_Detail
         if (!empty($rec->packPrice)) {
             if (strtolower(Request::get('Act')) != 'createproduct') {
                 $valior = !empty($masterRec->valior) ? $masterRec->valior : dt::today();
-                $vat = cat_Products::getVat($rec->productId, $valior);
+                $vat = cat_Products::getVat($rec->productId, $valior, $vatExceptionId);
             } else {
                 $vat = acc_Periods::fetchByDate($masterRec->valior)->vatRate;
             }
@@ -150,7 +152,7 @@ class deals_QuotationDetails extends doc_Detail
 
         if ($form->rec->price && $masterRec->currencyRate) {
             if ($masterRec->chargeVat == 'yes') {
-                ($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = cat_Products::getVat($rec->productId, $masterRec->date);
+                ($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
                 $rec->price = $rec->price * (1 + $vat);
             }
 
@@ -209,11 +211,10 @@ class deals_QuotationDetails extends doc_Detail
     {
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
         if(isset($rec->productId)) {
-            $productInfo = cat_Products::getProductInfo($rec->productId);
-
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $rec->vatPercent = $vat;
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
@@ -560,6 +561,8 @@ class deals_QuotationDetails extends doc_Detail
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
         $meta = cat_Products::fetchField($pRec->productId, 'canSell');
+
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($Master->fetchField($masterId, 'threadId'));
         if($meta != 'yes') return;
 
         $price = null;
@@ -571,7 +574,7 @@ class deals_QuotationDetails extends doc_Detail
             $row->price /= $quantityInPack;
 
             $masterRec = $Master->fetch($masterId);
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
 
         $optionalReq = Request::get('optional');
@@ -674,8 +677,9 @@ class deals_QuotationDetails extends doc_Detail
 
             // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
             $fee = sales_TransportValues::get($mvc->Master, $rec->quotationId, $rec->id);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
-            $vat = cat_Products::getVat($rec->productId, $masterRec->date);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
             $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
 
             if(isset($rec->vatPackPrice) && $data->renderVatPriceInRec){
@@ -716,7 +720,8 @@ class deals_QuotationDetails extends doc_Detail
                 }
 
                 if(isset($rec->price)) {
-                    $vat = cat_Products::getVat($rec->productId, $masterRec->date);
+                    $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+                    $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
                     $rec->vatPackPrice = ($rec->packPrice * (1 + $vat) / $masterRec->currencyRate);
                 }
 

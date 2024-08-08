@@ -1098,9 +1098,9 @@ class cat_Products extends embed_Manager
             $productWithVat = cat_products_VatGroups::getByVatPercent(0);
             if(countR($productWithVat)){
                 $productWithVatStr = implode(',', $productWithVat);
-                $wherePartFour = "#{$productIdFld} IN ({$productWithVatStr})";
+                $wherePartFour .= "#{$productIdFld} IN ({$productWithVatStr})";
             } else {
-                $wherePartFour = "1=2";
+                $wherePartFour .= "1=2";
             }
         }
 
@@ -1114,13 +1114,11 @@ class cat_Products extends embed_Manager
             }
         }
 
-        if(isset($filtersArr['vat20'])) {
+        if (isset($filtersArr['vat20'])) {
             $productWithWith0And9Vat = cat_products_VatGroups::getByVatPercent(0) + cat_products_VatGroups::getByVatPercent(0.09);
             if(countR($productWithWith0And9Vat)){
                 $productWithVatStr = implode(',', $productWithWith0And9Vat);
-                $wherePartFour = "#{$productIdFld} NOT IN ({$productWithVatStr})";
-            } else {
-                $wherePartFour = "1=2";
+                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#{$productIdFld} NOT IN ({$productWithVatStr})";
             }
         }
 
@@ -1380,7 +1378,7 @@ class cat_Products extends embed_Manager
             'measureId' => $productRec->measureId,
             'code' => $productRec->code,);
         
-        $res->isPublic = ($productRec->isPublic == 'yes') ? true : false;
+        $res->isPublic = $productRec->isPublic == 'yes';
         
         if ($grRec = cat_products_VatGroups::getCurrentGroup($productId)) {
             $res->productRec->vatGroup = $grRec->title;
@@ -1465,13 +1463,12 @@ class cat_Products extends embed_Manager
     /**
      * Връща ДДС на даден продукт
      *
-     * @param int        - $productId - Ид на продукт
-     * @param date $date - dата към която начисляваме ДДС-то
-     *
-     * @return double $vat - ДДС-то на артикула kym datata
-     *
+     * @param int        $productId   - ид на артикул
+     * @param null|date  $date        - към коя дата
+     * @param int        $exceptionId - ДДС изключение
+     * @return double                 - ДДС-то на артикула към датата
      */
-    public static function getVat($productId, $date = null)
+    public static function getVat($productId, $date = null, $exceptionId = null)
     {
         expect(static::fetchField($productId), 'Няма такъв артикул');
         if (!$date) {
@@ -1479,7 +1476,7 @@ class cat_Products extends embed_Manager
         }
 
         // Ако има валидна ДДС група към датата - нея
-        if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date)) {
+        if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date, $exceptionId)) {
             return $groupRec->vat;
         }
 
@@ -1842,10 +1839,13 @@ class cat_Products extends embed_Manager
                 $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');
                 if(!is_numeric($onlyIds)){
                     if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
-                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
+                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], 1, 'no', $params['priceData']['listId']);
                         if(isset($policyInfo->price)){
                             $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
-                            $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
+                            $vatExceptionId = cond_VatExceptions::getFromThreadId($params['priceData']['threadId']);
+                            $vat = cat_Products::getVat($rec->id, $params['priceData']['valior'], $vatExceptionId);
+                            $price = deals_Helper::getDisplayPrice($price, $vat, $params['priceData']['rate'], $params['priceData']['chargeVat']);
+                            $listId = $params['priceData']['listId'] ?? price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
                             $measureId = $rec->measureId;
 
                             if($showPrices == 'basePack'){
@@ -3228,6 +3228,7 @@ class cat_Products extends embed_Manager
         }
 
         core_Debug::startTimer('WAC_AMOUNT_FROM_CACHE');
+        $date = dt::getLastDayOfMonth($date);
         $pricesArr = acc_ProductPricePerPeriods::getPricesToDate($date, $item2, $item1);
         $countPricesBefore = countR($pricesArr);
 
@@ -3239,7 +3240,7 @@ class cat_Products extends embed_Manager
             core_Debug::stopTimer('WAC_AMOUNT');
             core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
 
-            return round($priceSum / $countPricesBefore, 4);
+            return round($quantity * ($priceSum / $countPricesBefore), 4);
         }
 
         core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
@@ -4048,6 +4049,7 @@ class cat_Products extends embed_Manager
     {
         expect($mRec);
 
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($mRec->threadId);
         $canSeePrice = haveRole('seePrice,ceo', $activatedBy);
         $pStrName = 'price';
 
@@ -4261,7 +4263,7 @@ class cat_Products extends embed_Manager
                     }
                 }
 
-                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld});
+                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld}, $vatExceptionId);
 
                 // За добавяне на бачовете
                 if ($allFFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
@@ -4365,7 +4367,7 @@ class cat_Products extends embed_Manager
                     }
 
                     if($chargeVat == 'yes'){
-                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $mRec->{$masterMvc->valiorFld}), $rate, $chargeVat);
+                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $mRec->{$masterMvc->valiorFld}, $vType), $rate, $chargeVat);
                         $rec->chargeVat = tr('с ДДС');
                     } else {
                         $rec->chargeVat = tr('без ДДС');

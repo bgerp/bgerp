@@ -18,7 +18,7 @@ class ztm_Groups extends core_Manager
      * Заглавие на модела
      */
     public $title = 'Групи';
-    public $singleTitle = 'Устройсво';
+    public $singleTitle = 'Устройство';
     
     
     /**

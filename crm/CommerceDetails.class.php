@@ -49,6 +49,15 @@ class crm_CommerceDetails extends core_Manager
         
         // Подготвяме клиентските карти
         $data->Cards->prepareCards($data->cardData);
+
+        // Ако е инсталиран пакета за ваучери и визитката е на лице
+        if($data->masterMvc instanceof crm_Persons){
+            if(core_Packs::isInstalled('voucher')){
+                $data->Vouchers = cls::get('voucher_Cards');
+                $data->voucherData = clone $data;
+                $data->Vouchers->prepareCards($data->voucherData);
+            }
+        }
     }
     
     
@@ -57,15 +66,9 @@ class crm_CommerceDetails extends core_Manager
      */
     public function renderCommerceDetails($data)
     {
-        if ($data->prepareTab === false || $data->renderTab === false) {
-            
-            return;
-        }
+        if ($data->prepareTab === false || $data->renderTab === false) return;
 
-        if (empty($data->Lists) && empty($data->Conditions) && empty($data->Cards)) {
-
-            return;
-        }
+        if (empty($data->Lists) && empty($data->Conditions) && empty($data->Cards) && empty($data->Vouchers)) return;
 
         // Взимаме шаблона
         $tpl = getTplFromFile('crm/tpl/CommerceDetails.shtml');
@@ -78,20 +81,27 @@ class crm_CommerceDetails extends core_Manager
             $tpl->append($listsTpl, 'LISTS');
         }
         
-        // Рендираме търговските условия
+        // Рендиране на търговските условия
         if (!empty($data->Conditions)) {
             $condTpl = $data->Conditions->renderCustomerSalecond($data->condData);
             $condTpl->removeBlocks();
             $tpl->append($condTpl, 'CONDITIONS');
         }
         
-        // Рендираме клиентските карти
+        // Рендиране на клиентски карти
         if (!empty($data->Cards)) {
             $cardTpl = $data->Cards->renderCards($data->cardData);
             $cardTpl->removeBlocks();
             $tpl->append($cardTpl, 'CARDS');
         }
-        
+
+        // Рендиране на ваучерните карти
+        if (!empty($data->Vouchers)) {
+            $voucherTpl = $data->Vouchers->renderCards($data->voucherData);
+            $voucherTpl->removeBlocks();
+            $tpl->append($voucherTpl, 'VOUCHERS');
+        }
+
         return $tpl;
     }
 }

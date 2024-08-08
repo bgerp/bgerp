@@ -241,7 +241,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
      */
     public function getBatchMovementDocument($rec)
     {
-        return isset($rec->type) ? $rec->type : 'out';
+        return $rec->type ?? 'out';
     }
     
     

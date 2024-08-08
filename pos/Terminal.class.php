@@ -213,13 +213,13 @@ class pos_Terminal extends peripheral_Terminal
         
         $headerData = (object)array('pointId' => pos_Points::getHyperlink($rec->pointId, false),
                                     'createdBy' => core_Users::getVerbal($rec->createdBy, 'nick'),
-                                    'ID' => pos_Receipts::getVerbal($rec->id, 'id'),
+                                    'ID' => ht::createLink(pos_Receipts::getVerbal($rec->id, 'id'), pos_Receipts::getSingleUrlArray($rec->id)),
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
 
         // Ако контрагента е лице и е потребител да се показва и аватара му
-        $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : pos_Receipts::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('blank' => true));
+        $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : pos_Receipts::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('blank' => true, 'policyId' => $rec->policyId));
        
         $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
         $logoTpl = new core_ET("[#img#] [#APP_NAME#]");
@@ -258,10 +258,7 @@ class pos_Terminal extends peripheral_Terminal
         $enlargeObjectId = Request::get('enlargeObjectId', 'int');
         $receiptId = Request::get('id', 'int');
 
-        if(empty($enlargeClassId) || empty($enlargeObjectId)) {
-            
-            return array();
-        }
+        if(empty($enlargeClassId) || empty($enlargeObjectId)) return array();
         
         $EnlargeClass = cls::get($enlargeClassId);
         $receiptRec = pos_Receipts::fetch($receiptId);
@@ -283,10 +280,18 @@ class pos_Terminal extends peripheral_Terminal
                 $modalTpl->append($packagingTpl, 'Packagings');
                 Mode::pop();
                 $settings = pos_Points::getSettings($receiptRec->pointId);
-                $contragentPriceListId = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
-                $price = pos_ReceiptDetails::getLowerPriceObj($settings->policyId, $contragentPriceListId, $productRec->id, $productRec->measureId, 1, dt::now());
+
+                if(!empty($receiptRec->policyId)){
+                    $policy1 = $receiptRec->policyId;
+                    $policy2 = pos_Receipts::isForDefaultContragent($receiptRec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+                } else {
+                    $policy1 = $settings->policyId;
+                    $policy2 = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+                }
+
+                $price = pos_ReceiptDetails::getLowerPriceObj($policy1, $policy2, $productRec->id, $productRec->measureId, 1, dt::now());
                 $calcedPrice = !empty($price->discount) ? $price->price * (1 - $price->discount) : $price->price;
-                $calcedPrice *= 1 + cat_Products::getVat($productRec->id);
+                $calcedPrice *= 1 + cat_Products::getVat($productRec->id, null, $settings->vatExceptionId);
                 $Double = core_Type::getByName('double(decimals=2)');
                 
                 $row = new stdClass();
@@ -1428,11 +1433,7 @@ class pos_Terminal extends peripheral_Terminal
         cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
         
         $deleteBtn = $this->renderDeleteRowBtn($rec, $selectedRec);
-        if(!$payUrl){
-            $paymentArr = array('delete' => (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS')) + $paymentArr;
-        } else {
-            $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
-        }
+        $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
 
         foreach ($paymentArr as $btnObject){
             $tpl->append($btnObject->body, $btnObject->placeholder);
@@ -1696,6 +1697,7 @@ class pos_Terminal extends peripheral_Terminal
         if($data->rec->state == 'draft'){
             unset($data->row->STATE_CLASS);
         }
+
         $tpl->placeObject($data->row);
         
         if($lastRecId = pos_ReceiptDetails::getLastRec($data->rec->id)->id){
@@ -1949,7 +1951,7 @@ class pos_Terminal extends peripheral_Terminal
     private function prepareProductTable($rec, $searchString, $selectedRec)
     {
         $cMin = date('i');
-        $cacheKey = "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}_{$cMin}";
+        $cacheKey = "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}_{$cMin}_{$rec->voucherId}";
         $result = core_Cache::get('pos_Terminal', $cacheKey);
         
         $settings = pos_Points::getSettings($rec->pointId);
@@ -2128,9 +2130,13 @@ class pos_Terminal extends peripheral_Terminal
         $productClassId = cat_Products::getClassId();
 
         $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
-        $contragentPriceListId = null;
-        if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
-            $contragentPriceListId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+
+        if(!empty($rec->policyId)){
+            $policy1 = $rec->policyId;
+            $policy2 = pos_Receipts::isForDefaultContragent($rec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+        } else {
+            $policy1 = $settings->policyId;
+            $policy2 = pos_Receipts::isForDefaultContragent($rec) ? null : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
 
         $now = dt::now();
@@ -2144,7 +2150,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $packQuantity = cat_products_Packagings::getPack($id, $packId, 'quantity');
             $perPack = (!empty($packQuantity)) ? $packQuantity : 1;
-            $priceRes = pos_ReceiptDetails::getLowerPriceObj($settings->policyId, $contragentPriceListId, $id, $packId, 1, $now);
+            $priceRes = pos_ReceiptDetails::getLowerPriceObj($policy1, $policy2, $id, $packId, 1, $now);
 
             // Обръщаме реда във вербален вид
             $res[$id] = new stdClass();;
@@ -2161,7 +2167,7 @@ class pos_Terminal extends peripheral_Terminal
 
                 $price = $priceRes->price * $perPack;
                 if($settings->chargeVat == 'yes'){
-                    $vat = cat_Products::getVat($id);
+                    $vat = cat_Products::getVat($id, null, $settings->vatExceptionId);
                     $price *= 1 + $vat;
                 }
 

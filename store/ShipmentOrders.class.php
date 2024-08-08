@@ -342,6 +342,13 @@ class store_ShipmentOrders extends store_DocumentMaster
                     }
                 }
             }
+
+            if ($rec->isReverse == 'yes') {
+                $row->operationSysId = $mvc->isDocForReturnFromDocument($rec) ? tr('Връщане на артикули') : tr('Експедиране на артикули');
+                if(isset($rec->reverseContainerId)){
+                    $row->operationSysId .= tr("|* |от|* ") . doc_Containers::getDocument($rec->reverseContainerId)->getLink(0, array('ef_icon' => false));
+                }
+            }
         }
 
         core_Lg::pop();
@@ -455,12 +462,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Интерфейсен метод
      *
      * @param int $id
-     *
+     * @param datetime|int $date
      * @return object
      *
      * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         $rec = self::fetchRec($id);
 
@@ -543,6 +550,17 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $ignoreContainerId = ($action != 'clonerec') ? $rec->containerId : null;
                 if (!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)) {
                     $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        if($action == 'add' && isset($rec->threadId)){
+            if(empty($rec->reverseContainerId)){
+                $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                if($firstDoc->isInstanceOf('purchase_Purchases')){
+                    if(!haveRole('revertShipmentDocs', $userId)){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
@@ -944,5 +962,32 @@ class store_ShipmentOrders extends store_DocumentMaster
         }
 
         return null;
+    }
+
+
+    /**
+     * Дали ЕН-то е за връщане към доставчик
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public function isDocForReturnFromDocument($rec)
+    {
+        $rec = static::fetchRec($rec);
+
+        // Ако ЕН-то е обратно и е създадено към конкретен документ и е в същия месец - значи е за връщане (иначе е за експедиране)
+        if(!($rec->isReverse == 'yes' && isset($rec->reverseContainerId))) return false;
+
+        $ReverseDoc = doc_Containers::getDocument($rec->reverseContainerId);
+        $reverseRec = $ReverseDoc->fetch();
+
+        $cDate = $rec->{$this->valiorFld} ?? dt::today();
+        $cDateMonth = dt::mysql2verbal($cDate, 'm.Y');
+        $revDateMonth = dt::mysql2verbal($reverseRec->{$ReverseDoc->valiorFld}, 'm.Y');
+        if ($cDateMonth == $revDateMonth) {
+            if ($rec->storeId == $reverseRec->{$ReverseDoc->storeFieldName}) return true;
+        }
+
+        return false;
     }
 }

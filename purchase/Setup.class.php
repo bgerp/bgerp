@@ -145,6 +145,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_PurchasesData',
         'purchase_Quotations',
         'purchase_QuotationDetails',
+        'migrate::fixInvoices2824',
     );
     
     
@@ -236,5 +237,25 @@ class purchase_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('purQuoteFiles', 'Прикачени файлове в офертите от доставчици', null, '104857600', 'user', 'user');
 
         return $html;
+    }
+
+
+    /**
+     * Поправка на входящите фактури без сч. дата
+     */
+    public function fixInvoices2824()
+    {
+        $save = array();
+        $Invoices = cls::get('purchase_Invoices');
+        $query = $Invoices->getQuery();
+        $query->where("#state = 'active' AND #journalDate IS NULL");
+        while($rec = $query->fetch()){
+            $rec->journalDate = $Invoices->getDefaultAccDate($rec->date);
+            $save[$rec->id] = $rec;
+        }
+
+        if(countR($save)){
+            $Invoices->saveArray($save, 'id,journalDate');
+        }
     }
 }

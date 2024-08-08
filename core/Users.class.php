@@ -619,9 +619,9 @@ class core_Users extends core_Manager
         // Нова парола и нейния производен ключ
         $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
         if (EF_USSERS_EMAIL_AS_NICK) {
-            $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=email");
+            $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=email,class=checkPass colorPass");
         } else {
-            $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=nick");
+            $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},after=nick,class=checkPass colorPass");
         }
         $form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола,input=hidden');
         
@@ -921,7 +921,7 @@ class core_Users extends core_Manager
         if (core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
             $attr = array('attr' => array('onkeypress' => 'if(event.keyCode == 13) {' . $submit .'}'));
         }
-        $form->FNC('pass', 'password(allowEmpty,autocomplete=off)', 'caption=Парола,input,width=100%', $attr);
+        $form->FNC('pass', 'password(allowEmpty, autocomplete=off, checkPassAfterLogin)', 'caption=Парола,input,width=100%,class=checkPass', $attr);
         
         if (Request::get('popup')) {
             $form->setHidden('ret_url', toUrl(array('log_Browsers', 'close'), 'local'));
@@ -936,9 +936,9 @@ class core_Users extends core_Manager
         $form->addAttr('nick,pass,email', array('style' => 'min-width:14em;'));
         
         if (core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
-            $form->toolbar->addFnBtn('Вход', $submit, array('class' => 'noicon'));
+            $form->toolbar->addFnBtn('Вход', $submit, array('class' => 'noicon checkPassDisable'));
         } else {
-            $form->toolbar->addSbBtn('Вход', 'default', array('class' => 'noicon'));
+            $form->toolbar->addSbBtn('Вход', 'default', array('class' => 'noicon checkPassDisable'));
         }
         
         $httpUrl = core_App::getSelfURL();
@@ -947,7 +947,7 @@ class core_Users extends core_Manager
         $connection = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'HTTPS' : 'HTTP';
         
         if (EF_HTTPS === 'OPTIONAL' && $connection === 'HTTP') {
-            $form->toolbar->addFnBtn('Вход с криптиране', "this.form.action=('{$httpsUrl}');this.form.submit();", array('style' => 'background-color: #9999FF'));
+            $form->toolbar->addFnBtn('Вход с криптиране', "this.form.action=('{$httpsUrl}');this.form.submit();", array('style' => 'background-color: #9999FF', 'class' => 'checkPassDisable'));
         }
         
         $form->info = "<div style='text-align: center;font-size:0.8em;color:#666;'>" . tr($conf->CORE_LOGIN_INFO) . '</div>';

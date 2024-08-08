@@ -99,7 +99,7 @@ class email_AddressesInfo extends core_Manager
         $this->FLD('redirection', 'email', 'caption=Пренасочване при изпращане->Имейл');
         $this->FLD('state', 'enum(,ok=OK, blocked=Блокирано, error=Грешка)', 'caption=Състояние');
         $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Последно->Проверка, input=none');
-        $this->FLD('lastSent', 'datetime(format=smartTime)', 'caption=Последно->Изпращане, input=none');
+        $this->FLD('lastSent', 'datetime(format=smartTime)', 'caption=Последно->Движение, input=none');
         $this->FLD('checkPoint', 'int', 'caption=Проверка->Точки, input=none');
 
         $this->setDbUnique('email');

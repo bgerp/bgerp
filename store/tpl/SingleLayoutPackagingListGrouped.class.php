@@ -128,6 +128,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
         // Скриване на колонките за нето/тара/бруто
         $masterRec = $data->masterData->rec;
+        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
 
         $columnCount = countR($data->listFields);
         $totalInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'totalInPackListWithTariffCode');
@@ -163,7 +165,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             if($totalInPackListWithTariffCodeVal == 'yes'){
                 $amountR = $rec1->amount * (1 - $rec1->discount);
                 if($masterRec->chargeVat == 'separate'){
-                    $vat = cat_Products::getVat($rec1->productId, $masterRec->valior);
+                    $vat = cat_Products::getVat($rec1->productId, $masterRec->valior, $vatType);
                     $amountR += $amountR * $vat;
                 }
 

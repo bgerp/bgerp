@@ -415,16 +415,9 @@ class crm_ext_Cards extends core_Manager
         }
 
         if ($action == 'checkcard') {
-            $domainId = isset($rec->domainId) ? $rec->domainId : cms_Domains::getPublicDomain()->id;
-            $settings = cms_Domains::getSettings($domainId);
-
-            if (isset($userId)) {
+            if (!core_Packs::isInstalled('colab') && !core_Packs::isInstalled('voucher')) {
                 $requiredRoles = 'no_one';
-            } elseif ($settings->canUseCards != 'yes') {
-                $requiredRoles = 'no_one';
-            } elseif (!crm_ext_Cards::count("#state = 'active'")) {
-                $requiredRoles = 'no_one';
-            } elseif (!core_Packs::isInstalled('colab')) {
+            } elseif(isset($userId) && !core_Packs::isInstalled('voucher')){
                 $requiredRoles = 'no_one';
             }
         }
@@ -440,42 +433,84 @@ class crm_ext_Cards extends core_Manager
         Mode::set('currentExternalTab', 'eshop_Carts');
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
+        $cu = core_Users::getCurrent();
 
         // Подготовка на формата
+        $title = $cu ? 'Ваучер' : 'Карта / Ваучер';
         $form = cls::get('core_Form');
-        $form->title = "Въвеждане на клиентска карта";
-        $form->FLD('search', 'varchar', 'mandatory,caption=Номер,silent');
+        $form->title = "Въвеждане на номер";
+        $form->FLD('search', 'varchar', "mandatory,caption={$title},silent");
         $form->input(null, 'silent');
         $form->input();
 
         if ($form->isSubmitted()) {
-
             // Извличане на иформацията за картата
-            $info = crm_ext_Cards::getInfo($form->rec->search);
-            if ($info['status'] == self::STATUS_NOT_FOUND) {
-                $form->setError('search', "Невалиден номер на карта");
-            } elseif ($info['status'] == self::STATUS_NOT_ACTIVE) {
-                $form->setError('search', "Картата вече не е активна");
+            $cardInfo = $voucherInfo = null;
+            $isCard = $isVoucher = false;
+            $number = $form->rec->search;
+            if(!$cu){
+                $cardInfo = crm_ext_Cards::getInfo($form->rec->search);
+                if ($cardInfo['status'] == self::STATUS_ACTIVE) {
+                    $isCard = true;
+                } elseif ($cardInfo['status'] == self::STATUS_NOT_ACTIVE) {
+                    $isCard = true;
+                    $form->setError('search', "Картата вече не е активна");
+                }
+            }
+
+            if(!$isCard && core_Packs::isInstalled('voucher')) {
+                $voucherInfo = voucher_Cards::getByNumber($number);
+                if ($voucherInfo['error']) {
+                    $form->setError('search', $voucherInfo['error']);
+                } elseif (isset($voucherInfo['id'])) {
+                    $isVoucher = true;
+                    if(!eshop_Carts::force(null, null, false)){
+                        $form->setError('search', "Нямате започната поръчка");
+                    }
+                }
+            }
+
+            if(!$isCard && !$isVoucher){
+                $form->setError('search', 'Невалидна карта/ваучер');
             }
 
             if (!$form->gotErrors()) {
                 $var = Mode::get(cms_Domains::CMS_CURRENT_DOMAIN_REC);
                 $domainRec = &$var;
-                $domainRec->clientCardNumber = $form->rec->search;
 
-                // Ако към папката на фирмата има свързани партньори, линк към формата за логване
-                $Contragent = new core_ObjectReference($info['contragentClassId'], $info['contragentId']);
-                $folderId = $Contragent->fetchField('folderId');
-                if (isset($folderId) && colab_FolderToPartners::count("#folderId = {$folderId}")) {
+                if($isCard){
+                    $domainRec->clientCardNumber = $number;
 
-                    return new Redirect(array('core_Users', 'login'), 'Моля логнете се с вашия потребител');
+                    // Ако към папката на фирмата има свързани партньори, линк към формата за логване
+                    $Contragent = new core_ObjectReference($cardInfo['contragentClassId'], $cardInfo['contragentId']);
+                    if($cardInfo['type'] == 'personal'){
+                        if($Contragent->isInstanceOf('crm_Persons')){
+                            if(crm_Profiles::getUserByPerson($Contragent->that)){
+
+                                redirect(array('core_Users', 'login'), false, 'Моля логнете се с вашия потребител');
+                            } else {
+                                $retUrl = array($this, 'checkCard', 'ret_url' => true);
+                                $redirectUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($Contragent->getInstance(), $Contragent->that, $retUrl);
+
+                                return new Redirect($redirectUrl);
+                            }
+                        }
+                    } else {
+                        $retUrl = array($this, 'checkCard', 'ret_url' => true);
+                        $redirectUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($Contragent->getInstance(), $Contragent->that, $retUrl);
+
+                        return new Redirect($redirectUrl);
+                    }
                 }
 
-                $retUrl = array($this, 'checkCard', 'ret_url' => true);
-                $redirectUrl = colab_FolderToPartners::getRegisterUserUrlByCardNumber($Contragent->getInstance(), $Contragent->that, $retUrl);
-                expect(!empty($redirectUrl));
-
-                return new Redirect($redirectUrl);
+                if($isVoucher && $voucherInfo){
+                    $cartId = eshop_Carts::force(null, null, false);
+                    $cartRec = eshop_Carts::fetch($cartId);
+                    $cartRec->voucherId = $voucherInfo['id'];
+                    eshop_Carts::save($cartRec);
+                    voucher_Cards::mark($cartRec->voucherId, true, eshop_Carts::getClassId(), $cartRec->id);
+                    followRetUrl(null, 'Ваучерът е добавен');
+                }
             }
         }
 

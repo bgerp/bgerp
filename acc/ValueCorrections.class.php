@@ -173,9 +173,9 @@ class acc_ValueCorrections extends core_Master
         
         $rec->amount /= $rec->rate;
         $row->realAmount = $mvc->getFieldType('amount')->toVerbal($rec->amount);
-        
+
         if ($chargeVat == 'yes' || $chargeVat == 'separate') {
-            $averageRate = $mvc->getAverageVatRate($rec->productsData, $rec->amount, $rec->valior, $rec->allocateBy);
+            $averageRate = $mvc->getAverageVatRate($rec->productsData, $rec);
             $amount = $rec->amount * (1 + $averageRate);
             $row->vatType = tr('с ДДС');
         } else {
@@ -386,7 +386,7 @@ class acc_ValueCorrections extends core_Master
         
         if ($chargeVat == 'yes' || $chargeVat == 'separate') {
             if ($form->rec->amount) {
-                $averageRate = $mvc->getAverageVatRate($form->allProducts, $rec->amount, $rec->valior, $rec->allocateBy);
+                $averageRate = $mvc->getAverageVatRate($form->allProducts, $rec);
                 $form->rec->amount = $form->rec->amount * (1 + $averageRate);
                 $form->rec->amount = round($form->rec->amount, 2);
             }
@@ -431,7 +431,7 @@ class acc_ValueCorrections extends core_Master
                 if ($form->chargeVat == 'yes' || $form->chargeVat == 'separate') {
                     $productData = type_Set::toArray($rec->chosenProducts);
                     $intersectedProducts = array_intersect_key($form->allProducts, $productData);
-                    $averageRate = $mvc->getAverageVatRate($intersectedProducts, $rec->amount, $rec->valior, $rec->allocateBy);
+                    $averageRate = $mvc->getAverageVatRate($intersectedProducts, $rec);
                     $rec->amount /= (1 + $averageRate);
                     $rec->amount = round($rec->amount, 2);
                 }
@@ -451,20 +451,20 @@ class acc_ValueCorrections extends core_Master
      * Помощна ф-я изчисляваща средно-претегления ддс курс на коригираните артикули
      *
      * @param array $productArr
-     * @param double $amount
-     * @param date|null $valior
+     * @param stdClass $rec
      * @return double
      */
-    public function getAverageVatRate($productArr, $amount, $valior = null, $allocatedBy)
+    public function getAverageVatRate($productArr, $rec)
     {
         $totalArr = array();
         $total = $averageVatSum = 0;
         foreach ($productArr as $pRec){
-            $vat = cat_Products::getVat($pRec->productId, $valior);
-            if($allocatedBy == 'value'){
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+            $vat = cat_Products::getVat($pRec->productId, $rec->valior, $vatExceptionId);
+            if($rec->allocateBy == 'value'){
                 $currentAmount = $pRec->amount;
             } else {
-                $currentAmount = $pRec->{$allocatedBy};
+                $currentAmount = $pRec->{$rec->allocateBy};
             }
             $totalArr["{$vat}"] += $currentAmount;
             $total += $currentAmount;
@@ -951,7 +951,7 @@ class acc_ValueCorrections extends core_Master
         $amount = $rec->amount;
         $chargeVat = doc_Threads::getFirstDocument($rec->threadId)->fetchField('chargeVat');
         if ($chargeVat == 'yes' || $chargeVat == 'separate') {
-            $averageRate = $this->getAverageVatRate($rec->productsData, $rec->amount, $rec->valior, $rec->allocateBy);
+            $averageRate = $this->getAverageVatRate($rec->productsData, $rec);
             $amount = $amount * (1 + $averageRate);
         }
         $amount = round($amount / $rec->rate, 2);

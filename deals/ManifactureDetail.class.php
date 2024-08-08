@@ -56,7 +56,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
      */
     public function setDetailFields($mvc)
     {
-        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity|isOutsourced');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity|isOutsourced');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,mandatory,input=hidden,silent');
         $mvc->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -258,28 +258,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
         
         $productInfo = cat_Products::getProductInfo($pRec->productId);
         $quantityInPack = ($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
-        
         $packQuantity = $row->quantity;
         
-        if ($pRec->productId) {
-                $measureId = $productInfo->productRec->measureId;
-        }
-        
-        $price = null;
-        
-        // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
-        if ($row->price) {
-            
-            $packRec = cat_products_Packagings::getPack($pRec->productId,  $pRec->packagingId);
-            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-            $row->price /= $quantityInPack;
-            
-            $masterRec = $Master->fetch($masterId);
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
-            
-        }
-        
-        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId,$packQuantity, $quantityInPack);
+        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack);
     }
 
 

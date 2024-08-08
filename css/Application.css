@@ -168,7 +168,6 @@ tr.noHover td:hover {
 
 .menuRow {
   color: #999977;
-  font-family: Arial;
   text-decoration: none;
   font-weight: bold; }
 
@@ -182,7 +181,6 @@ tr.noHover td:hover {
   padding: 1px;
   text-decoration: none;
   font-weight: bold;
-  font-family: arial;
   border: solid 1px rgba(0, 0, 0, 0); }
 
 .menuPage a {
@@ -976,6 +974,23 @@ div.mobile {
   color: #444444;
   border: solid 1px #bbbbbb;
   background-color: rgba(0, 0, 0, 0.05);
+  font-size: 0.8em;
+  top: -1px;
+  position: relative;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -ms-border-radius: 3px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1); }
+
+.versionBlock {
+  display: inline;
+  padding: 2px 5px;
+  margin-left: 3px;
+  margin-right: 3px;
+  color: blue;
+  border: solid 1px #bbbbbb;
+  background-color: rgba(247, 240, 240, 0.8);
   font-size: 0.8em;
   top: -1px;
   position: relative;
@@ -3641,6 +3656,9 @@ span.sharing-history-title {
   margin-left: 2%; }
   .wide .cartInfoBlock td {
     vertical-align: top; }
+    .wide .cartInfoBlock td.cardValue {
+      white-space: normal;
+      word-break: break-word; }
   .wide .cartInfoBlock .aright {
     padding-right: 5px; }
 
@@ -4771,7 +4789,11 @@ table .eshop-btn {
 
 .webdrvIframe {
   width: 100%;
-  border: solid 0 rgba(0, 0, 0, 0); }
+  border: solid 0 rgba(0, 0, 0, 0);
+  min-height: 612px; }
+
+.webdrvIframeSingle {
+  min-height: 0px; }
 
 iframe.autoHeight {
   width: 100%;
@@ -7862,4 +7884,10 @@ table.bomProductionStepTable td {
 
 .eshopHiddenRow {
   opacity: 0.3; }
+
+.consumptionNoteBubble {
+  display: inline-block;
+  border: 1px solid #bcbcbc;
+  padding-left: 5px;
+  padding-right: 5px; }
 

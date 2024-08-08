@@ -75,13 +75,13 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         $entries = array();
         
         $sign = ($rec->action == 'increase') ? 1 : -1;
-        
         $contragentClassId = $correspondingDoc->fetchField('contragentClassId');
         $contragentId = $correspondingDoc->fetchField('contragentId');
         $currencyId = currency_Currencies::getIdByCode($correspondingDoc->fetchField('currencyId'));
         $vatType = $firstDoc->fetchField('chargeVat');
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-        
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+
         // Ако е към продажба
         if ($firstDoc->isInstanceOf('sales_Sales')) {
             $debitArr = array('411', array($contragentClassId, $contragentId),
@@ -93,8 +93,8 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             foreach ($rec->productsData as $prod) {
                 $pInfo = cat_Products::getProductInfo($prod->productId);
                 $creditAcc = (isset($pInfo->meta['canStore'])) ? '701' : '703';
-                
-                $debitArr['quantity'] = currency_CurrencyRates::convertAmount($prod->allocated, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
+
+                $debitArr['quantity'] = $prod->allocated / $rec->rate;
                 $debitArr['quantity'] = $sign * currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
                 
                 $entries[] = array('amount' => $sign * $prod->allocated,
@@ -108,7 +108,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 );
                 
                 $total += $sign * $prod->allocated;
-                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior);
+                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior, $vatExceptionId);
             }
             
             if ($vatType == 'yes' || $vatType == 'separate') {
@@ -136,7 +136,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                     foreach ($prod->inStores as $storeId => $storeQuantity) {
                         $storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
                         $amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
-                        $creditArr['quantity'] = currency_CurrencyRates::convertAmount($amount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
+                        $creditArr['quantity'] = $amount / $rec->rate;
                         $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
                         
                         $entries[] = array('amount' => $sign * $amount,
@@ -184,7 +184,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                     }
                 }
                 
-                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior);
+                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior, $vatExceptionId);
             }
             
             if ($vatType == 'yes' || $vatType == 'separate') {

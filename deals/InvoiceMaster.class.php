@@ -1602,6 +1602,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         expect($document = doc_Containers::getDocument($containerId));
         expect($document->isInstanceOf($this), $document->className, $this->className);
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($document->fetchField('threadId'));
 
         $vats = $cacheIds = array();
         $Detail = $this->mainDetail;
@@ -1623,7 +1624,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price, 'count' => $count, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);
             $v = 0;
             if ($docRec->vatRate != 'no' && $docRec->vatRate != 'exempt') {
-                $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
+                $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'), $vatExceptionId);
             }
             $vats["{$v}"] = $v;
             $count++;
@@ -2216,7 +2217,8 @@ abstract class deals_InvoiceMaster extends core_Master
 
             // Ако има артикули и поне един от тях е с нулева ставка
             if(countR($productArr)){
-                $productsWithZeroVat = cat_products_VatGroups::getByVatPercent(0, $rec->date, $productArr);
+                $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+                $productsWithZeroVat = cat_products_VatGroups::getByVatPercent(0, $rec->date, $productArr, $vatExceptionId);
                 if(countR($productsWithZeroVat)){
 
                     return 'При участие на артикули с нулева ставка, трябва да е посочено основание за неначисляване на ДДС|*!';

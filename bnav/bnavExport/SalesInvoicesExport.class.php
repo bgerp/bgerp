@@ -127,7 +127,13 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $baseGroupId = (trim(core_Packs::getConfig('bnav')->BASE_GROUP, '|'));
             $gQuery = cat_Groups::getQuery();
             $gQuery->where("#parentId = $baseGroupId");
-            expect($gQuery->count(), 'Липсват регистрирани групи в основната група');
+            if (!$gQuery->count()){
+                cat_Products::logErr("Липсват регистрирани групи в основната група");
+                followRetUrl(null, "Липсват регистрирани групи в основната група", 'error');
+
+            }
+
+        //    expect($gQuery->count(), 'Липсват регистрирани групи в основната група');
 
             //масив с групи, които са едно ниво под основната
             $flGroups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
@@ -230,6 +236,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'dealType' => $rec->dealType,
                     'number' => $number,
                     'date' => $sRec->date,
+                    'threadId' => $sRec->threadId,
                     'contragentVatNo' => $contragentVatNo,
                     'contragentNo' => $contragentNo,
                     'contragentName' => $contragentName,
@@ -356,7 +363,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'detAmount' => $detAmount,
                     'vatAmount' => '',
                     'measure' => $measure,
-                    'vat' => cat_Products::getVat($pRec->id) * 100,
+                    'vat' => cat_Products::getVat($pRec->id,$invoices[$dRec->invoiceId]->date, $invoices[$dRec->invoiceId]->threadId) * 100,
                     'accText' => '',
                 );
 

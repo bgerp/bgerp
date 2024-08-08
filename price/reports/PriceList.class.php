@@ -58,6 +58,12 @@ class price_reports_PriceList extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от листовия изглед да може да се сортират
+     */
+    protected $sortableListFields = 'code,productId,price';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -68,6 +74,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Цени->Политика, silent, mandatory,after=date,removeAndRefreshForm=listingId,single=none');
         $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,input,after=policyId,single=none');
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=Цени->ДДС,after=currencyId,single=none');
+        $fieldset->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Цени->ДДС изключение,after=currencyId');
         $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
         $fieldset->FLD('round', 'int(Min=0,max=6)', 'caption=Цени->Точност,autohide,after=period');
         $fieldset->FLD('packType', 'enum(yes=Да,no=Не,base=Основна)', 'caption=Филтър->Опаковки,columns=3,after=round,single=none,silent,removeAndRefreshForm=packagings');
@@ -232,7 +239,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             $obj = (object) array('productId' => $productRec->id,
                 'code' => (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}",
                 'measureId' => $productRec->measureId,
-                'vat' => cat_Products::getVat($productRec->id, $date),
+                'vat' => cat_Products::getVat($productRec->id, $date, $rec->vatExceptionId),
                 'packs' => array(),
                 'groups' => $productRec->groups);
 

@@ -57,7 +57,36 @@ class bulmar_InvoiceExport extends core_Manager
      */
     private $cache = array();
     
-    
+
+    public static function getOwnCompanyOptions()
+    {
+        $ownCompanyIds = array(crm_Setup::BGERP_OWN_COMPANY_ID);
+        if(core_Packs::isInstalled('holding')){
+            $ownCompanyIds += array_keys(holding_Companies::getOwnCompanyOptions());
+        }
+
+        $ownCompanyOptions = array();
+        $companyClassId = crm_Companies::getClassId();
+        foreach ($ownCompanyIds as $ownCompanyId){
+            $cQuery = change_History::getQuery();
+            $cQuery->where("#classId = {$companyClassId} AND #objectId = {$ownCompanyId}");
+            $cQuery->show("data");
+            if($cQuery->count()){
+                while($cRec = $cQuery->fetch()){
+                    $num = (!empty($cRec->data->vatId)) ? str_replace('BG', '', $cRec->data->vatId) : $cRec->data->uicId;
+                    $ownCompanyOptions["{$ownCompanyId}|{$num}"] = $cRec->data->name . " [ {$num} ]";
+                }
+            } else {
+                $myCompany = crm_Companies::fetchOurCompany('*', $ownCompanyId);
+                $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
+                $ownCompanyOptions["{$ownCompanyId}|{$num}"] = $myCompany->name .  ((!empty($num)) ? " [ {$num} ]" : '');
+            }
+        }
+
+        return $ownCompanyOptions;
+    }
+
+
     /**
      * Подготвя формата за експорт
      *
@@ -65,12 +94,11 @@ class bulmar_InvoiceExport extends core_Manager
      */
     public function prepareExportForm(core_Form &$form)
     {
-        if(core_Packs::isInstalled('holding')){
-            $ownCompanyOptions = holding_Companies::getOwnCompanyOptions();
-            $form->FLD('ownCompanyId', 'varchar', 'caption=Наша фирма');
-            $form->setOptions("ownCompanyId", array('' => '') + $ownCompanyOptions);
-            $form->setField("ownCompanyId", "placeholder=" . crm_Companies::getTitleById(crm_Setup::BGERP_OWN_COMPANY_ID));
-        }
+        $ownCompanyOptions = static::getOwnCompanyOptions();
+
+        $form->FLD('ownCompanyId', 'varchar', 'caption=Наша фирма');
+        $form->setOptions('ownCompanyId', $ownCompanyOptions);
+        $form->setDefault('ownCompanyId', key($ownCompanyOptions));
 
         $form->FLD('from', 'date', 'caption=От,mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
@@ -102,27 +130,23 @@ class bulmar_InvoiceExport extends core_Manager
         $query = $this->Invoices->getQuery();
         $query->where("#state = 'active'");
         $query->between('date', $filter->from, $filter->to);
+        $query->orderBy('#number', 'ASC');
 
-        // Ако е инсталирана многофирменоста - филтър по Наша фирма
-        if(core_Packs::isInstalled('holding')){
-            if(!empty($filter->ownCompanyId)){
-                $query->where("#{$this->Invoices->ownCompanyFieldName} = $filter->ownCompanyId");
-            } else {
-                $query->where("#{$this->Invoices->ownCompanyFieldName} IS NULL");
+        $recs = array();
+        list($ownCompanyId, $uicId) = explode('|', $filter->ownCompanyId);
+
+        while($rec = $query->fetch()){
+            $ownCompanyFieldValue = core_Packs::isInstalled('holding') ? $rec->{$this->Invoices->ownCompanyFieldName} : null;
+            $ownCompanyRec = crm_Companies::fetchOurCompany('*', $ownCompanyFieldValue, $rec->activatedOn);
+            $num = (!empty($ownCompanyRec->vatNo)) ? str_replace('BG', '', $ownCompanyRec->vatNo) : $ownCompanyRec->uicId;
+            if($ownCompanyId == $ownCompanyRec->id && $num == $uicId){
+                $recs[$rec->id] = $rec;
             }
         }
 
-        $query->orderBy('#number', 'ASC');
-        $recs = $query->fetchAll();
-        
-        if (!countR($recs)) {
-            core_Statuses::newStatus('|Няма налични изходящи фактури за експортиране');
-            
-            return;
-        }
+        if (!countR($recs)) return;
         
         $data = $this->prepareExportData($recs, $filter);
-       
         $content = $this->prepareFileContent($data);
         $content = iconv('utf-8', 'CP1251', $content);
         
@@ -157,11 +181,11 @@ class bulmar_InvoiceExport extends core_Manager
     /**
      * Подготвя записа
      */
-    private function prepareRec($rec, $count)
+    protected function prepareRec($rec, $count)
     {
         $nRec = new stdClass();
         $nRec->contragent = $rec->contragentName;
-        $nRec->invNumber = sales_Invoices::getVerbal($rec, 'number');
+        $nRec->invNumber = $this->Invoices->getVerbal($rec, 'number');
         
         $nRec->date = dt::mysql2verbal($rec->date, 'd.m.Y');
         $nRec->num = $count;
@@ -280,7 +304,7 @@ class bulmar_InvoiceExport extends core_Manager
     /**
      * Подготвя съдържанието на файла
      */
-    private function prepareFileContent(&$data)
+    protected function prepareFileContent(&$data)
     {
         $static = $data->static;
         $content = 'Text Export To BMScety V2.0' . "\r\n";
@@ -377,9 +401,8 @@ class bulmar_InvoiceExport extends core_Manager
         $staticData->pptAndCardAccount = $conf->BULMAR_INV_PPT_AND_CARD_PAYMENT;
         $staticData->pptAndCardOperation = $conf->BULMAR_INV_PPT_AND_CARD_OPERATION;
 
-        $myCompany = crm_Companies::fetchOwnCompany($filter->ownCompanyId);
-        $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
-        $staticData->OWN_COMPANY_BULSTAT = $num;
+        list( , $uicId) = explode('|', $filter->ownCompanyId);
+        $staticData->OWN_COMPANY_BULSTAT = $uicId;
         
         return $staticData;
     }
@@ -390,7 +413,7 @@ class bulmar_InvoiceExport extends core_Manager
      */
     public function isApplicable($mvc)
     {
-        return $mvc->className == self::$applyOnlyTo;
+        return $mvc->className == static::$applyOnlyTo;
     }
     
     

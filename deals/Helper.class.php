@@ -112,10 +112,12 @@ abstract class deals_Helper
             
             return;
         }
-        
+
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+
         expect(is_object($masterRec));
         
-        // Комбиниране на дефолт стойнсотите с тези подадени от потребителя
+        // Комбиниране на дефолт стойнстите с тези подадени от потребителя
         $map = array_merge(self::$map, $map);
         $haveAtleastOneDiscount = false;
 
@@ -131,7 +133,7 @@ abstract class deals_Helper
         foreach ($recs as &$rec) {
             $vat = 0;
             if ($masterRec->{$map['chargeVat']} == 'yes' || $masterRec->{$map['chargeVat']} == 'separate') {
-                $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
+                $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']}, $vatExceptionId);
             }
 
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
@@ -1063,9 +1065,11 @@ abstract class deals_Helper
     {
         // Ако е инсталиран пакета за многофирменост - моята фирма е тази посочена в първия документ на нишката
         $ownCompanyId = null;
+        $Document = doc_Containers::getDocument($containerId);
+        $docRec = $Document->fetch('activatedOn,threadId');
+
         if(core_Packs::isInstalled('holding')) {
-            $Document = doc_Containers::getDocument($containerId);
-            $firstDoc = doc_Threads::getFirstDocument($Document->fetchField('threadId'));
+            $firstDoc = doc_Threads::getFirstDocument($docRec->threadId);
             if($firstDoc->isInstanceOf('deals_DealMaster')) {
                 if(isset($firstDoc->ownCompanyFieldName)) {
                     $ownCompanyId = $firstDoc->fetchField($firstDoc->ownCompanyFieldName);
@@ -1075,7 +1079,7 @@ abstract class deals_Helper
 
         // Данните на 'Моята фирма'
         $res = array();
-        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $docRec->activatedOn);
 
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
@@ -1092,7 +1096,7 @@ abstract class deals_Helper
         // името, адреса и ДДС номера на контрагента
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
-            $cData = $ContragentClass->getContragentData($contragentId);
+            $cData = $ContragentClass->getContragentData($contragentId, $docRec->activatedOn);
             $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
             $res['contragentName'] = isset($contragentName) ? $contragentName : $cName;
             if($res['contragentName'] != $cName){
@@ -1101,7 +1105,6 @@ abstract class deals_Helper
                 }
             }
             $res['inlineContragentName'] = $res['contragentName'];
-
             $res['eori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($cData->eori);
             $res['vatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($cData->vatNo);
             $res['contragentUicId'] = $cData->uicId;
@@ -1125,15 +1128,15 @@ abstract class deals_Helper
             }
         }
         
-        $showCountries = ($ownCompanyData->countryId == $cData->countryId) ? false : true;
+        $showCountries = !(($ownCompanyData->countryId == $cData->countryId));
         
         if (isset($contragentClass, $contragentId)) {
-            $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries)->getContent();
-            $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries)->getContent();
+            $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $docRec->activatedOn)->getContent();
+            $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $docRec->activatedO)->getContent();
             $res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
         }
         
-        $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries)->getContent();
+        $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries, true, $docRec->activatedOn)->getContent();
 
         if(drdata_Countries::isEu($cData->countryId) && empty($cData->eori)){
             unset($res['MyCompanyEori']);

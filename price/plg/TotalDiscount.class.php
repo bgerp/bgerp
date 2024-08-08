@@ -81,7 +81,8 @@ class price_plg_TotalDiscount extends core_Plugin
     {
         if(isset($res)) return;
         $rec = $mvc->fetchRec($rec);
-
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
         $totalDiscount = price_DiscountsPerDocuments::getDiscount4Document($mvc, $rec);
         if(empty($totalDiscount)) return;
 
@@ -96,7 +97,7 @@ class price_plg_TotalDiscount extends core_Plugin
         foreach ($detailsAll as $det1){
             $amount = isset($det1->discount) ? ($det1->amount * (1 - $det1->discount)) : $det1->amount;
             if($sourceData->chargeVat == 'yes'){
-                $vat = cat_Products::getVat($det1->productId, $rec->valior);
+                $vat = cat_Products::getVat($det1->productId, $rec->valior, $vatExceptionId);
                 $amount *= (1 + $vat);
             }
             $totalWithoutDiscount += $amount;
