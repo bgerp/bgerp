@@ -55,7 +55,7 @@ class change_History extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, plg_Select, doc_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, plg_Select, doc_Wrapper, plg_Sorting';
 
 
     /**
