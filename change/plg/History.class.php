@@ -159,7 +159,7 @@ class change_plg_History extends core_Plugin
 
         $rec->validFrom = !empty($rec->validFrom) ? $rec->validFrom : dt::now();
         $sync = false;
-        if(!empty($rec->validFrom) && $rec->validFrom != $rec->_oldRec->validFrom){
+        if(!empty($rec->newValidFrom)){
             $sync = true;
         } else {
             $modifiedBy = $rec->modifiedBy ?? $rec->_oldRec->modifiedBy;
