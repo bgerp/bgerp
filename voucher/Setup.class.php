@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ * Текст на циркулярния имейл за разпращане на ваучери
+ */
+defIfNot('VOUCHER_BLAST_DEFAULT_EMAIL_BODY', "Здравейте [#person#] това са вашите електронни ваучери: \n[#vouchers#].");
+
 
 /**
  * Пакет за клиентски ваучери
@@ -61,6 +66,14 @@ class voucher_Setup extends core_ProtoSetup
      */
     public $menuItems = array(
         array(3.4, 'Търговия', 'Ваучери', 'voucher_Cards', 'default', 'ceo, voucher'),
+    );
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'VOUCHER_BLAST_DEFAULT_EMAIL_BODY' => array('richtext(rows=3)', 'caption=Имейл за изпращане на електронни ваучери->Текст'),
     );
 
 

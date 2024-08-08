@@ -74,7 +74,7 @@ class voucher_Types extends core_Master
     /**
      * Интерфейсни методи
      */
-    public $interfaces = 'label_SequenceIntf=voucher_interface_TypeLabelSource';
+    public $interfaces = 'label_SequenceIntf=voucher_interface_TypeLabelSource,bgerp_PersonalizationSourceIntf=voucher_interface_BlastPersonalizationSourceImpl';
 
 
     /**
@@ -96,6 +96,12 @@ class voucher_Types extends core_Master
 
 
     /**
+     * Шаблон за единичния изглед
+     */
+    public $singleLayoutFile = 'voucher/tpl/SingleLayoutType.shtml';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -103,6 +109,7 @@ class voucher_Types extends core_Master
         $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory');
         $this->FLD('referrer', 'enum(,no=Без,yes=Да)', 'caption=Препоръчител,mandatory');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика');
+        $this->FLD('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Генериране на ваучери->За всяко лице в,input=hidden');
         $this->FNC('count', 'int', 'single=none');
 
         $this->setdbUnique('name');
@@ -124,10 +131,30 @@ class voucher_Types extends core_Master
         $form->setOptions('priceListId', array('' => '') + $parentOptions);
 
         if(empty($rec->id)){
-            $form->FLD('createCount', 'int(Min=1)', 'caption=Брой,mandatory,after=typeId');
+            $form->FLD('createCount', 'int(min=1)', 'caption=Генериране на ваучери->Брой,mandatory,after=priceListId');
+            $form->setField('groupId', 'input');
         } else {
             if(voucher_Cards::count("#typeId = {$rec->id}")){
                 $form->setReadOnly('referrer');
+            }
+        }
+    }
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            $rec = $form->rec;
+
+            if(!empty($rec->groupId) && !empty($rec->createCount)){
+                $personCount = crm_Persons::count("#state != 'rejected' AND LOCATE('|{$rec->groupId}|', #groupList)");
+                if(!$personCount){
+                    $form->setError('groupId', 'В групата няма лица, на които да се генерира ваучер');
+                } else {
+                    $form->setWarning('groupId', "В групата има|* <b>{$personCount}</b> |лица|*. |Наистина ли искате за всяко лице да генерирате по|* <b>{$rec->createCount}</b> |ваучера|*?");
+                }
             }
         }
     }
@@ -164,13 +191,26 @@ class voucher_Types extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if(isset($rec->priceListId)){
             $row->priceListId = price_Lists::getHyperlink($rec->priceListId, true);
         }
 
         $row->count = core_Type::getByName('int')->toVerbal(voucher_Cards::count("#typeId = {$rec->id}"));
+
+        if(isset($fields['-single'])){
+            $row->blasts = array();
+            $bQuery = blast_Emails::getQuery();
+            $bQuery->where("#perSrcClassId = {$mvc->getClassId()} AND #perSrcObjectId = {$rec->id} AND #state != 'rejected'");
+            while($bRec = $bQuery->fetch()){
+                $blastHandle = blast_Emails::getLink($bRec->id, 0)->getContent();
+                $row->blasts[] =  "<div class='state-{$rec->state} document-handler'>{$blastHandle}</div>";
+            }
+            $row->blasts = implode(' ', $row->blasts);
+        }
+
+
     }
 
 
@@ -193,5 +233,44 @@ class voucher_Types extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+    }
+
+
+    /**
+     * След подготовка на тулбара на единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = &$data->rec;
+
+        if (blast_Emails::haveRightFor('add') ) {
+            if(voucher_Cards::count("#typeId = {$rec->id} AND #referrer IS NOT NULL")){
+                Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
+                $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $rec->id), 'id=btnEmails', 'ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
+                if(!static::getReferrersCountHavingField($rec->id)){
+                    $data->toolbar->setError('btnEmails', 'Няма свързани лица с имейли, на които да се разпратят ваучерите|*!');
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Ф-я връщаща колко лица има със стойност на съответното поле обвързано с ваучерът
+     *
+     * @param int $id
+     * @param string $fld
+     * @return int
+     */
+    public static function getReferrersCountHavingField($id, $fld = 'email')
+    {
+        $query = voucher_Cards::getQuery();
+        $query->where("#typeId = {$id} AND #referrer IS NOT NULL AND #{$fld} IS NOT NULL");
+        $query->EXT($fld, 'crm_Persons', "externalName={$fld},externalKey=referrer");
+
+        return $query->count();
     }
 }
