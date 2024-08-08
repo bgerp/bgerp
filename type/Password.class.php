@@ -36,7 +36,7 @@ class type_Password extends type_Varchar
         // !isDebug() || $attr['title'] = $value;
         if ($this->params['show']) {
             $attr['type'] = 'text';
-            $attr['style'] = ';color:#ccc; text-shadow: 0px 0px 5px #444;';
+            $attr['style'] = ';color:#999; font-size:0.8em;padding:1em 0.3em;letter-spacing:0.05em; text-shadow: 3px 0px 5px #888, -3px 0px 5px #888, 0px 3px 5px #888, 0px -3px 5px #888, 2px 2px 5px #888, -2px 2px 5px #888, -2px 2px 5px #888, -2px -2px 5px #888, 0px 0px 5px #888';
         } elseif ($value && !$this->params['allowEmpty']) {
             $value = self::EF_PASS_NO_CHANGE;
             $attr['onfocus'] = "this.type='password'; if(this.value == '" . self::EF_PASS_NO_CHANGE . "') this.select();";
