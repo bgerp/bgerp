@@ -207,7 +207,9 @@ class change_History extends core_Manager
         $count = 0;
         arr::sortObjects($arr, 'validFrom', 'ASC');
         $arrVal = array_values($arr);
-        foreach ($arr as &$r){
+
+        $saveArr = array();
+        foreach ($arr as $k => &$r){
             if(isset($arrVal[$count + 1])){
                 $r->validTo = $arrVal[$count + 1]->validFrom;
             } else {
@@ -215,9 +217,13 @@ class change_History extends core_Manager
             }
             $validToMap[$r->validFrom] = $r->validTo;
             $count++;
+
+            if(is_numeric($k)){
+                $saveArr[$k] = $r;
+            }
         }
 
-        cls::get(get_called_class())->saveArray($arr, 'id,validTo');
+        cls::get(get_called_class())->saveArray($saveArr, 'id,validTo');
 
         // Във върнатите данни добавяме и валидността, да се обновят данните в мениджъра
         $currentRec->data->validFrom = $currentRec->validFrom;
@@ -265,7 +271,12 @@ class change_History extends core_Manager
     {
         $now = dt::now();
 
-        $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+        try{
+            $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+        } catch(core_exception_Expect $e){
+
+        }
+
         if($rec->state == 'rejected') {
             $row->ROW_ATTR['class'] = "state-rejected";
         } elseif($rec->validFrom > $now){
