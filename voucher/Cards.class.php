@@ -127,7 +127,7 @@ class voucher_Cards extends core_Detail
         $this->FLD('number', 'varchar(16)', 'caption=Номер,mandatory,input=none');
         $this->FLD('typeId', 'key(mvc=voucher_Types,select=name)', 'caption=Тип,mandatory,silent,removeAndRefreshForm=referrer');
 
-        $this->FLD('referrer', 'key2(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Препоръчител');
+        $this->FLD('referrer', 'key2(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Собственик');
         $this->FLD('usedOn', 'datetime(format=smartTime)', 'caption=Употреба->Кога,input=none');
         $this->FLD('classId', 'class', 'caption=Обект,input=none');
         $this->FLD('objectId', 'int', 'caption=Употреба->Къде,input=none,tdClass=leftCol');
@@ -136,25 +136,6 @@ class voucher_Cards extends core_Detail
         $this->setDbUnique('number');
         $this->setDbIndex('referrer');
         $this->setDbIndex('classId,objectId');
-    }
-
-
-    /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass     $data
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-        $form = $data->form;
-
-        if($form->rec->typeId){
-            $requireReferrer = voucher_Types::fetchField($form->rec->typeId, 'referrer');
-            if($requireReferrer == 'no'){
-                $form->setField('referrer', 'input=none');
-            }
-        }
     }
 
 
@@ -286,11 +267,12 @@ class voucher_Cards extends core_Detail
         expect($rec = static::fetch($id));
         $this->requireRightFor('unlink', $rec);
 
+        $typeRec = voucher_Types::fetch($rec->typeId);
         $rec->referrer = null;
-        $rec->state = 'pending';
+        $rec->state = ($typeRec->referrer == 'yes') ? 'pending' : 'active';
         static::save($rec, 'referrer,state');
 
-        followRetUrl(null, 'Ваучерът е освободен от препоръчителя|*!');
+        followRetUrl(null, 'Ваучерът е отвързан от собственика|*!');
     }
 
 
@@ -307,7 +289,7 @@ class voucher_Cards extends core_Detail
 
         // Подготовка на формата
         $form = cls::get('core_Form');
-        $form->title = "Ваучери към препоръчител|*: " . cls::get('crm_Persons')->getFormTitleLink($referrerRec);;
+        $form->title = "Ваучери на|*: " . cls::get('crm_Persons')->getFormTitleLink($referrerRec);;
         $form->FLD('text', 'text(rows=5)', 'caption=Ваучери,mandatory');
         $form->input();
 
@@ -327,11 +309,7 @@ class voucher_Cards extends core_Detail
                     if(empty($res['id'])){
                         $errors[] = "Невалиден номер|*: <b>{$v}</b>";
                     } else {
-                        $voucherTypeId = voucher_Cards::fetchField($res['id'], 'typeId');
-                        $requireReferrer = voucher_Types::fetchField($voucherTypeId, 'referrer');
-                        if($requireReferrer == 'no'){
-                            $errors[] = "Ваучерът не може да се обвързва с препоръчител|*: <b>{$v}</b>";
-                        } elseif($res['status'] == self::STATUS_USED) {
+                        if($res['status'] == self::STATUS_USED) {
                             $errors[] = "Ваучерът е използван|*: <b>{$v}</b>";
                         } elseif($res['referrer']) {
                             $errors[] = "Ваучерът е вече свързан|*: <b>{$v}</b>";
@@ -459,8 +437,10 @@ class voucher_Cards extends core_Detail
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 10));
 
         $query = $this->getQuery();
-        $data->listFields = arr::make('number=Карта,typeId=Вид,usedOn=Употреба,state=Състояние', true);
+        $data->listFields = arr::make('number=Номер,typeId=Вид,usedOn=Употреба,state=Състояние', true);
         $query->where("#referrer = '{$masterRec->id}'");
+        $query->EXT('haveReferrer', 'voucher_Types', "externalName=referrer,externalKey=typeId");
+
         $query->orderBy("#state");
         $data->Pager->setLimit($query);
         $fields = $this->selectFields();
@@ -468,6 +448,9 @@ class voucher_Cards extends core_Detail
 
         while ($rec = $query->fetch()) {
             $row = $this->recToVerbal($rec, $fields);
+            if($rec->haveReferrer == 'yes'){
+                $row->number = ht::createHint("<span style='color:blue'>{$row->number}</span>", 'Лицето е препоръчител|*!', 'notice', false);
+            }
             $data->rows[$rec->id] = $row;
         }
 
@@ -520,7 +503,8 @@ class voucher_Cards extends core_Detail
                 if(!($classId == $rec->classId && $objectId == $rec->objectId)) return 'Ваучерът е вече използван|*!';
             }
 
-            if(!empty($rec->referrer)) return;
+            $type = voucher_Types::fetch($rec->typeId);
+            if($type->referrer == 'no' || !empty($rec->referrer)) return;
         }
 
         // Ако има артикули, които изискват вауер от пропоръчител
@@ -596,17 +580,32 @@ class voucher_Cards extends core_Detail
     {
         $clone = (object)array('typeId' => $typeRec->id);
 
-        // Генериране на уникални номера за ваучерите
-        foreach (range(1, $typeRec->createCount) as $i){
-            $c = clone $clone;
-            $c->number = self::getNumber();
-            while (self::fetch(array("#number = '[#1#]'", $c->number))) {
-                $c->number = self::getNumber();
-            }
-            $c->state = ($typeRec->referrer == 'yes') ? 'pending' : 'active';
-
-            self::save($c);
+        $personIds = array(null => null);
+        if(!empty($typeRec->groupId)){
+            $personQuery = crm_Persons::getQuery();
+            $personQuery->where("#state != 'rejected' AND LOCATE('|{$typeRec->groupId}|', #groupList)");
+            $personQuery->show('id');
+            $personIds = arr::extractValuesFromArray($personQuery->fetchAll(), 'id');
         }
+
+        foreach ($personIds as $personId){
+
+            // Генериране на уникални номера за ваучерите
+            foreach (range(1, $typeRec->createCount) as $i){
+                $c = clone $clone;
+                $c->referrer = $personId;
+                $c->number = self::getNumber();
+                while (self::fetch(array("#number = '[#1#]'", $c->number))) {
+                    $c->number = self::getNumber();
+                }
+                $c->state = !empty($c->referrer) ? 'active' : ($typeRec->referrer == 'yes' ? 'pending' : 'active');
+
+                self::save($c);
+            }
+        }
+
+
+
     }
 
 

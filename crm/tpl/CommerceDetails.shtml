@@ -37,7 +37,7 @@
 
 	<!--ET_BEGIN VOUCHERS-->
 	<fieldset class='top-tab-content' style='margin-top:10px'>
-		<legend class='groupTitle'>|Ваучерни карти|* [#addVoucherBtn#]</legend>
+		<legend class='groupTitle'>|Ваучери|* [#addVoucherBtn#]</legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
 			<div class='groupList clearfix21'>
 				[#VOUCHERS#]
