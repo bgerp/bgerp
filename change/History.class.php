@@ -246,8 +246,6 @@ class change_History extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
-
-        // Сортиране на записите по num
         $data->query->orderBy('validFrom', 'DESC');
 
         if($filter = $data->listFilter->rec){
@@ -427,7 +425,7 @@ class change_History extends core_Manager
 
         $title = tr("Версии");
         if(change_History::haveRightFor('list')){
-            $title .= ht::createLink('', array('change_History', 'list', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId), false, 'ef_icon=img/16/funnel.png')->getContent();
+            $title .= ht::createLink('', array('change_History', 'list', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId), false, 'ef_icon=img/16/funnel.png,title=Преглед на версиите в историята')->getContent();
         }
         $resTpl->append($title, 'title');
 
