@@ -312,6 +312,25 @@ class plg_Clone extends core_Plugin
         // Ако не е подадено заглавиет, създаваме линк с иконата
         $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl, null, 'title=Клониране');
     }
+
+
+    /**
+     * Връща линк за клониране
+     *
+     * @param core_Mvc       $mvc
+     * @param core_ET        $res
+     * @param object|integer $rec
+     */
+    public static function on_AfterGetCloneUrl($mvc, &$res, $rec)
+    {
+        if (is_object($rec)) {
+            $id = $rec->id;
+        } else {
+            $id = $rec;
+        }
+        // URL' то за клониране
+        $res = array($mvc, 'cloneFields', $id, 'ret_url' => true);
+    }
     
     
     /**

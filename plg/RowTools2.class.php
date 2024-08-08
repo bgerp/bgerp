@@ -104,6 +104,13 @@ class plg_RowTools2 extends core_Plugin
                 $ddTools->addLink('Промяна', $changeUrl, "ef_icon=img/16/edit.png,id=chn{$rec->id},title=Промяна на|* {$singleTitle}");
             }
         }
+
+        if ($mvc->hasPlugin('plg_Clone')) {
+            if ($mvc->haveRightFor('clonerec', $rec)) {
+                $cloneUrl = $mvc->getCloneUrl($rec->id);
+                $ddTools->addLink('Клониране', $cloneUrl, "ef_icon=img/16/clone.png,id=clone{$rec->id},title=Клониране на|* {$singleTitle}");
+            }
+        }
         
         if (false) {
             $ddTools->addFnLink('Избор', 'actionsWithSelected();', array('ef_icon' => 'img/16/checked.png', 'title' => 'Действия с избраните', 'id' => "check{$rec->id}", 'class' => 'checkbox-btn'));
