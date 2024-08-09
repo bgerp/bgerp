@@ -79,7 +79,7 @@ class voucher_interface_BlastPersonalizationSourceImpl
     public function getPersonalizationSrcLink($id)
     {
         $link = $this->getPersonalizationTitle($id, true);
-        if(school_Groups::haveRightFor('single', $id)){
+        if(voucher_Types::haveRightFor('single', $id)){
             $link = ht::createLink($link, array('voucher_Types', 'single', $id));
         }
 

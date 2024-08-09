@@ -4,7 +4,7 @@
 /**
  * Текст на циркулярния имейл за разпращане на ваучери
  */
-defIfNot('VOUCHER_BLAST_DEFAULT_EMAIL_BODY', "Здравейте [#person#] това са вашите електронни ваучери: \n[#vouchers#].");
+defIfNot('VOUCHER_BLAST_DEFAULT_EMAIL_BODY', "Здравейте, [#person#],\nТова са Вашите електронни ваучери:\n[#vouchers#]");
 
 
 /**
