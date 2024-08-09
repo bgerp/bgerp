@@ -2,9 +2,7 @@
 
 
 /**
- * Клас 'voucher_Cards'
- *
- * Мениджър за карти за ваучери
+ * Клас 'voucher_Cards' - Мениджър за карти за ваучери
  *
  * @category  bgerp
  * @package   voucher
@@ -172,7 +170,6 @@ class voucher_Cards extends core_Detail
             $row->_rowTools->removeBtn("del{$rec->id}");
        }
     }
-
 
 
     /**
@@ -504,7 +501,7 @@ class voucher_Cards extends core_Detail
             }
 
             $type = voucher_Types::fetch($rec->typeId);
-            if($type->referrer == 'no' || !empty($rec->referrer)) return;
+            if($type->referrer == 'yes' && !empty($rec->referrer)) return;
         }
 
         // Ако има артикули, които изискват вауер от пропоръчител
@@ -603,9 +600,6 @@ class voucher_Cards extends core_Detail
                 self::save($c);
             }
         }
-
-
-
     }
 
 

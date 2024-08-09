@@ -140,6 +140,7 @@ class voucher_Types extends core_Master
         }
     }
 
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
@@ -209,8 +210,6 @@ class voucher_Types extends core_Master
             }
             $row->blasts = implode(' ', $row->blasts);
         }
-
-
     }
 
 
