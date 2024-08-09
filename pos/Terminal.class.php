@@ -1340,11 +1340,13 @@ class pos_Terminal extends peripheral_Terminal
 
             $obj->title = ht::createHint(str::limitLen($shortName, 28), "{$obj->title} [{$obj->contragentId}]");
             $subArr = array();
-            if(!empty($obj->email)){
-                $subArr[] = tr("Имейл") . ": " . str::maskEmail($obj->email);
-            }
-            if(!empty($obj->tel)){
-                $subArr[] = tr("Тел.") . ": " . str::maskString($obj->tel, 0, 3);
+            if($Class instanceof crm_Persons){
+                if(!empty($obj->email)){
+                    $subArr[] = tr("Имейл") . ": " . str::maskEmail($obj->email);
+                }
+                if(!empty($obj->tel)){
+                    $subArr[] = tr("Тел.") . ": " . str::maskString($obj->tel, 0, 3);
+                }
             }
 
             if($showUniqueNumberLike){
