@@ -114,7 +114,7 @@ class voucher_interface_BlastPersonalizationSourceImpl
             $res[$rec->referrer]['vouchers'][] = $rec->number;
         }
 
-        array_walk($res, function(&$a){$a['vouchers'] = implode(', ', $a['vouchers']);});
+        array_walk($res, function(&$a){$a['vouchers'] = implode("\n", $a['vouchers']);});
 
         if($limit){
             $res = array_slice($res, 0, $limit, true);
