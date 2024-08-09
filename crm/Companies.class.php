@@ -1009,7 +1009,9 @@ class crm_Companies extends core_Master
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         if ($rec->vatId && $rec->uicId) {
             if ("BG{$rec->uicId}" == $rec->vatId) {
-                unset($row->uicId);
+                if(!isset($fields['-compare'])) {
+                    unset($row->uicId);
+                }
             }
         }
     }

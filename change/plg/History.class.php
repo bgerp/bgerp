@@ -309,6 +309,7 @@ class change_plg_History extends core_Plugin
 
             // Подготвяне на вербалните данни на двете версии
             $mvc->prepareSingleFields($data);
+            $data->singleFields['-compare'] = true;
             $firstRow = $mvc->recToVerbal($firstRec, arr::combine($data->singleFields, '-single'));
             $lastRow = $mvc->recToVerbal($lastRec, arr::combine($data->singleFields, '-single'));
 
