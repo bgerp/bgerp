@@ -64,7 +64,7 @@
     <!--ET_BEGIN DETAIL_ROW-->
     [#DETAIL_ROW#]
     <div class="product" >
-        <span>[#productId#]</span> <b class="nowrap" style="align-items: end">[#price#]</b>
+        <span>[#productId#]</span> <b class="nowrap" style="align-items: end; padding-left: 5px">[#price#]</b>
     </div>
     <!--ET_END DETAIL_ROW-->
     <div class="grid">
