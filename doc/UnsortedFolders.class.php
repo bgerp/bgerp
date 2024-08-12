@@ -898,7 +898,7 @@ class doc_UnsortedFolders extends core_Master
             $data->rows[$rec->id]->created = $data->rows[$rec->id]->createdOn . " " . tr('от') . " " . $data->rows[$rec->id]->createdBy;
         }
 
-        if(doc_UnsortedFolders::haveRightFor('add')){
+        if(doc_UnsortedFolders::haveRightFor('add') && !Mode::isReadOnly()){
             $data->addBtn = ht::createLink('', array('doc_UnsortedFolders', 'add', 'contragentFolderId' => $folderId), false, 'ef_icon=img/16/add.png,caption=Добавяне на нов проект към контрагента');
         }
     }
