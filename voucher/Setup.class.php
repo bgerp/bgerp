@@ -4,7 +4,7 @@
 /**
  * Текст на циркулярния имейл за разпращане на ваучери
  */
-defIfNot('VOUCHER_BLAST_DEFAULT_EMAIL_BODY', "Здравейте [#person#] това са вашите електронни ваучери: \n[#vouchers#].");
+defIfNot('VOUCHER_BLAST_DEFAULT_EMAIL_BODY', "Здравейте, [#person#],\n\nТова са Вашите електронни ваучери:\n[#vouchers#]");
 
 
 /**
@@ -52,6 +52,22 @@ class voucher_Setup extends core_ProtoSetup
     public $managers = array(
         'voucher_Types',
         'voucher_Cards',
+    );
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Close Expire Vouchers',
+            'description' => 'Деактивиране на изтеклите ваучери',
+            'controller' => 'voucher_Cards',
+            'action' => 'CloseExpiredVoucher',
+            'period' => 1440,
+            'offset' => 5,
+            'timeLimit' => 100
+        ),
     );
 
 

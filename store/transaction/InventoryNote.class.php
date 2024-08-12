@@ -85,9 +85,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                 $productsArr[$dRec->productId] = $dRec->productId;
 
                 // Ако ще се занулява отрицателно к-во винаги ще е със складовата себестойност към момента
-                Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
                 $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
-                Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
 
                 if (isset($amount)) {
                     $entries[] = array(
