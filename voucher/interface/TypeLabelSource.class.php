@@ -54,6 +54,7 @@ class voucher_interface_TypeLabelSource extends label_ProtoSequencerImpl
         $placeholders['PERSON_NAME'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['QR_CODE_100'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['IMAGE_200_100'] = (object) array('type' => 'picture');
+        $placeholders['VALID_TO'] = (object) array('type' => 'text', 'hidden' => true);
 
         return $placeholders;
     }
@@ -91,7 +92,7 @@ class voucher_interface_TypeLabelSource extends label_ProtoSequencerImpl
             $dRec = $recs[$i];
 
             $referrerName = ($dRec->referrer) ? crm_Persons::fetchField($dRec->referrer, 'name') : null;
-            $res = array('NUMBER' => $dRec->number, 'QR_CODE_100' => $dRec->number, 'PERSON_NAME' => $referrerName);
+            $res = array('NUMBER' => $dRec->number, 'QR_CODE_100' => $dRec->number, 'PERSON_NAME' => $referrerName, 'VALID_TO' => $dRec->validTo);
             $arr[] = $res;
         }
 
