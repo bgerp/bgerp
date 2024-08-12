@@ -1066,7 +1066,7 @@ abstract class deals_Helper
         // Ако е инсталиран пакета за многофирменост - моята фирма е тази посочена в първия документ на нишката
         $ownCompanyId = null;
         $Document = doc_Containers::getDocument($containerId);
-        $docRec = $Document->fetch('activatedOn,threadId');
+        $docRec = $Document->fetch("activatedOn,threadId,{$Document->valiorFld}");
 
         if(core_Packs::isInstalled('holding')) {
             $firstDoc = doc_Threads::getFirstDocument($docRec->threadId);
@@ -1077,16 +1077,18 @@ abstract class deals_Helper
             }
         }
 
-        // Данните на 'Моята фирма'
+        // Данните на 'Моята фирма' към дата 00:00 на вальора
         $res = array();
-        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $docRec->activatedOn);
+        $dateFromWhichToGetName = !empty($docRec->{$Document->valiorFld}) ? $docRec->{$Document->valiorFld} : dt::now();
+        $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $dateFromWhichToGetName);
 
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
         $res['MyCompany'] = $ownCompanyData->companyVerb;
         
         // ДДС и националния номер на 'Моята фирма'
-        $uic = isset($ownCompanyData->uicId) ? $ownCompanyData->uicId : drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+        $uic = $ownCompanyData->uicId ?? drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if ($uic != $ownCompanyData->vatNo) {
             $res['MyCompanyVatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($ownCompanyData->vatNo);
         }
@@ -1096,9 +1098,9 @@ abstract class deals_Helper
         // името, адреса и ДДС номера на контрагента
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
-            $cData = $ContragentClass->getContragentData($contragentId, $docRec->activatedOn);
+            $cData = $ContragentClass->getContragentData($contragentId, $dateFromWhichToGetName);
             $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
-            $res['contragentName'] = isset($contragentName) ? $contragentName : $cName;
+            $res['contragentName'] = $contragentName ?? $cName;
             if($res['contragentName'] != $cName){
                 if(!Mode::isReadOnly()){
                     $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
