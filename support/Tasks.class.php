@@ -149,7 +149,7 @@ class support_Tasks extends core_Manager
         $pSuggArr = support_TaskType::getProgressSuggestions($tRec);
         $data->listFilter->setSuggestions('progress', $pSuggArr);
         
-        $data->listFilter->showFields = 'search, selectPeriod, state, systemId, maintainers, progress';
+        $data->listFilter->showFields = 'search, selectPeriod, createdFrom, createdTo, state, systemId, maintainers, progress';
         $default = $data->listFilter->getField('maintainers')->type->fitInDomain('all_users');
         $data->listFilter->setDefault('maintainers', $default);
         
