@@ -102,14 +102,17 @@ class voucher_interface_BlastPersonalizationSourceImpl
         $query = voucher_Cards::getQuery();
         $query->where("#typeId = {$rec->id} AND #referrer IS NOT NULL");
         $query->EXT('email', 'crm_Persons', 'externalName=email,externalKey=referrer');
+        $query->EXT('buzEmail', 'crm_Persons', 'externalName=buzEmail,externalKey=referrer');
         $query->EXT('name', 'crm_Persons', 'externalName=name,externalKey=referrer');
         $query->where("#email IS NOT NULL");
         $query->orderBy('id', 'ASC');
 
         $res = array();
         while ($rec = $query->fetch()) {
+            $emails = !empty($rec->email) ? $rec->email : $rec->buzEmail;
+            $emails = type_Emails::toArray($emails);
             if(!array_key_exists($rec->referrer, $res)){
-                $res[$rec->referrer] = array('emails' => $rec->email, 'person' => $rec->name, 'vouchers' => array());
+                $res[$rec->referrer] = array('emails' => $emails[0], 'person' => $rec->name, 'vouchers' => array());
             }
             $res[$rec->referrer]['vouchers'][] = $rec->number;
         }
@@ -173,7 +176,7 @@ class voucher_interface_BlastPersonalizationSourceImpl
     {
         // Всеки който има права до сингъла на записа, може да го използва
         if (isset($id)) {
-            $referrersWithEmail = voucher_Types::getReferrersCountHavingField($id);
+            $referrersWithEmail = voucher_Types::getReferrersCountHavingField($id, 'email,buzEmail');
             if(!$referrersWithEmail) return false;
 
             if (voucher_Types::haveRightFor('single', $id, $userId)) return true;

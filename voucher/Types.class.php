@@ -111,6 +111,7 @@ class voucher_Types extends core_Master
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика');
         $this->FLD('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Генериране на ваучери->За всяко лице в,input=hidden');
         $this->FNC('count', 'int', 'single=none');
+        $this->FLD('validTo', 'date', 'caption=Генериране на ваучери->Валидни до');
 
         $this->setdbUnique('name');
     }
@@ -148,6 +149,12 @@ class voucher_Types extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
+
+            if(isset($rec->validTo)){
+                if($rec->validTo <= dt::today()){
+                    $form->setError('validTo', 'Трябва да е с бъдеща дата');
+                }
+            }
 
             if(!empty($rec->groupId) && !empty($rec->createCount)){
                 $personCount = crm_Persons::count("#state != 'rejected' AND LOCATE('|{$rec->groupId}|', #groupList)");
@@ -249,7 +256,7 @@ class voucher_Types extends core_Master
             if(voucher_Cards::count("#typeId = {$rec->id} AND #referrer IS NOT NULL")){
                 Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
                 $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $rec->id), 'id=btnEmails', 'ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
-                if(!static::getReferrersCountHavingField($rec->id)){
+                if(!static::getReferrersCountHavingField($rec->id, 'email,buzEmail')){
                     $data->toolbar->setError('btnEmails', 'Няма свързани лица с имейли, на които да се разпратят ваучерите|*!');
                 }
             }
@@ -261,14 +268,20 @@ class voucher_Types extends core_Master
      * Ф-я връщаща колко лица има със стойност на съответното поле обвързано с ваучерът
      *
      * @param int $id
-     * @param string $fld
+     * @param array|string $personFields
      * @return int
      */
-    public static function getReferrersCountHavingField($id, $fld = 'email')
+    public static function getReferrersCountHavingField($id, $personFields = array())
     {
+        $personFields = arr::make($personFields, true);
         $query = voucher_Cards::getQuery();
-        $query->where("#typeId = {$id} AND #referrer IS NOT NULL AND #{$fld} IS NOT NULL");
-        $query->EXT($fld, 'crm_Persons', "externalName={$fld},externalKey=referrer");
+        $query->where("(#typeId = {$id} AND #referrer IS NOT NULL)");
+        $where = "";
+        foreach ($personFields as $fld){
+            $query->EXT($fld, 'crm_Persons', "externalName={$fld},externalKey=referrer");
+            $where .= (!empty($where) ? ' OR ' : '') . "#{$fld} IS NOT NULL";
+        }
+        $query->where($where);
 
         return $query->count();
     }

@@ -32,6 +32,12 @@
                 <td><b>[#blasts#]</b></td>
             </tr>
             <!--ET_END blasts-->
+            <!--ET_BEGIN validTo-->
+            <tr>
+                <td class="title-style aright"  style='padding-right: 5px'>|Валидни до|*:</td>
+                <td><b>[#validTo#]</b></td>
+            </tr>
+            <!--ET_END validTo-->
         </table>
         <br>
     [#DETAILS#]

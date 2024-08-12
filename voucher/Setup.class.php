@@ -56,6 +56,22 @@ class voucher_Setup extends core_ProtoSetup
 
 
     /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Close Expire Vouchers',
+            'description' => 'Деактивиране на изтеклите ваучери',
+            'controller' => 'voucher_Cards',
+            'action' => 'CloseExpiredVoucher',
+            'period' => 1440,
+            'offset' => 5,
+            'timeLimit' => 100
+        ),
+    );
+
+
+    /**
      * Роли за достъп до модула
      */
     public $roles = array('voucher');

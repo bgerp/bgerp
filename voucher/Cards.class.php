@@ -78,7 +78,7 @@ class voucher_Cards extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'number,typeId,usedOn,objectId,referrer,createdOn,createdBy,state';
+    public $listFields = 'number,typeId,usedOn,objectId,referrer,createdOn,createdBy,state,validTo';
 
 
     /**
@@ -130,6 +130,7 @@ class voucher_Cards extends core_Detail
         $this->FLD('classId', 'class', 'caption=Обект,input=none');
         $this->FLD('objectId', 'int', 'caption=Употреба->Къде,input=none,tdClass=leftCol');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено,pending=Чакащо)', 'caption=Състояние,input=none');
+        $this->FLD('validTo', 'date', 'caption=Валиден до');
 
         $this->setDbUnique('number');
         $this->setDbIndex('referrer');
@@ -251,6 +252,12 @@ class voucher_Cards extends core_Detail
                 $requiredRoles = 'no_one';
             }
         }
+
+        if($action == 'changestate' && isset($rec)) {
+            if(!empty($rec->validTo) && $rec->validTo <= dt::today()){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 
 
@@ -299,6 +306,7 @@ class voucher_Cards extends core_Detail
 
             foreach ($valueArr as $v){
                 $res = static::getByNumber($v);
+
                 if(!$res){
                     $errors[] = "Невалиден номер|*: <b>{$v}</b>";
                 } else {
@@ -311,7 +319,8 @@ class voucher_Cards extends core_Detail
                         } elseif($res['referrer']) {
                             $errors[] = "Ваучерът е вече свързан|*: <b>{$v}</b>";
                         } else {
-                            $okVouchers[$res['id']] = (object)array('id' => $res['id'], 'referrer' => $referrerRec->id, 'state' => 'active');
+                            $updateRec = (object)array('id' => $res['id'], 'referrer' => $referrerRec->id, 'state' => 'active');
+                            $okVouchers[$res['id']] = $updateRec;
                         }
                     }
                 }
@@ -358,6 +367,8 @@ class voucher_Cards extends core_Detail
 
         if(is_object($rec)){
             $res['id'] = $rec->id;
+            $res['lifetime'] = $rec->lifetime;
+            $res['typeId'] = $rec->typeId;
             $res['referrer'] = $rec->referrer;
             if($rec->state == 'pending'){
                 $res['error'] = 'Ваучерът още не е активиран|*!';
@@ -592,10 +603,12 @@ class voucher_Cards extends core_Detail
                 $c = clone $clone;
                 $c->referrer = $personId;
                 $c->number = self::getNumber();
+
                 while (self::fetch(array("#number = '[#1#]'", $c->number))) {
                     $c->number = self::getNumber();
                 }
                 $c->state = !empty($c->referrer) ? 'active' : ($typeRec->referrer == 'yes' ? 'pending' : 'active');
+                $c->validTo = dt::addSecs($typeRec->validTo);
 
                 self::save($c);
             }
@@ -631,5 +644,24 @@ class voucher_Cards extends core_Detail
         $resArr[] = $res;
 
         return $resArr;
+    }
+
+
+    /**
+     * Затваряне на изтеклите ваучери
+     */
+    function cron_CloseExpiredVoucher()
+    {
+        $today = dt::today();
+
+        $save = array();
+        $query = static::getQuery();
+        $query->where("#validTo IS NOT NULL AND #validTo <= '{$today}'");
+        while($rec = $query->fetch()){
+            $rec->state = 'closed';
+            $save[$rec->id] = $rec;
+        }
+
+        $this->saveArray($save, 'id,state');
     }
 }
