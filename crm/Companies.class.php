@@ -983,7 +983,7 @@ class crm_Companies extends core_Master
         } else {
             
             // Добавяме линк към профила на потребителя, който е inCharge на визитката
-            $row->phonesBox = tr('Отговорник') . ': ' . crm_Profiles::createLink($rec->inCharge);
+            $row->phonesBox = static::displayInfoWhenIsNotAccessible($rec->inCharge, $rec->shared);
         }
         
         $ownCompany = crm_Companies::fetchOurCompany();
@@ -2732,5 +2732,52 @@ class crm_Companies extends core_Master
         }
 
         return !empty($myCompanyVatId);
+    }
+
+
+    /**
+     * Каква информация да се показва във визитката, ако потребителя няма достъп до нея
+     *
+     * @param int $inCharge
+     * @param string $shared
+     * @return string $res
+     */
+    public static function displayInfoWhenIsNotAccessible($inCharge, $shared)
+    {
+        $res = tr('Отговорник') . ': ' . crm_Profiles::createLink($inCharge);
+
+        if (empty($shared)) return $res;
+
+        // Ако някои от споделените потребители са съекипници на текущия
+        $cTeamMates = core_Users::getTeammates(core_Users::getCurrent());
+        $teamMatesArr = keylist::toArray($cTeamMates);
+        $sharedUsers = keylist::toArray($shared);
+        $sharedTeamMates = array_intersect_key($sharedUsers, $teamMatesArr);
+
+        $sharedTeamMatesShow = array_slice($sharedTeamMates, 0, 7, true);
+        $sharedTeamMatesRest = array_slice($sharedTeamMates, 7, null, true);
+
+        $sharedUserArr = array();
+        foreach ($sharedTeamMatesShow as $uId) {
+            $sharedUserArr[] = crm_Profiles::createLink($uId)->getContent();
+        }
+
+        // Ако има споделени съекипници, ще се покажат част от тях
+        if (!countR($sharedUserArr)) return $res;
+
+        $subRow = tr('Споделени') . ': ' . implode(', ', $sharedUserArr);
+
+        // Ако има останали ще се покажат в хинт
+        if (countR($sharedTeamMatesRest)) {
+            $additionalSharedUserArr = array();
+            foreach ($sharedTeamMatesRest as $uId) {
+                $additionalSharedUserArr[] = core_Users::getVerbal($uId, 'nick');
+            }
+            $subRow = ht::createHint($subRow . "...", implode(', ', $additionalSharedUserArr));
+        }
+
+        $res .= "<br><small>{$subRow}</small>";
+
+        return $res;
     }
 }

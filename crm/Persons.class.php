@@ -745,11 +745,9 @@ class crm_Persons extends core_Master
             } else {
                 
                 // Добавяме линк към профила на потребителя, който е inCharge на визитката
-                $row->phonesBox = tr('Отговорник') . ': ' . crm_Profiles::createLink($rec->inCharge);
+                $row->phonesBox = crm_Companies::displayInfoWhenIsNotAccessible($rec->inCharge, $rec->shared);
             }
         }
-        $currentId = $mvc->getVerbal($rec, 'id');
-        
         
         $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
         
