@@ -161,7 +161,11 @@ class type_Email extends type_Varchar
         } else {
             $verbal = $email;
         }
-        
+
+        if($this->params['maskVerbal']){
+            $email = str::maskEmail($email);
+        }
+
         if (Mode::is('text', 'plain') || Mode::is('htmlEntity', 'none')) {
             $verbal = $email;
         } elseif ($this->params['link'] != 'no') {
@@ -169,7 +173,8 @@ class type_Email extends type_Varchar
         } else {
             $verbal = str_replace('@', '&#64;', $email);
         }
-        
+
+
         return $verbal;
     }
     
