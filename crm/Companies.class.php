@@ -966,24 +966,22 @@ class crm_Companies extends core_Master
         
         $row->addressBox .= $pCode ? "{$pCode} " : '';
         $row->addressBox .= $place;
-        
+
+        $row->addressBox .= $address ? "<br/>{$address}" : '';
+
+        $tel = $mvc->getVerbal($rec, 'tel');
+        $fax = $mvc->getVerbal($rec, 'fax');
+        $eml = $mvc->getVerbal($rec, 'email');
+
+        // phonesBox
+        $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : '';
+        $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : '';
+        $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : '';
+        $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
+
         // Ако имаме права за сингъл
-        if ($canSingle) {
-            $row->addressBox .= $address ? "<br/>{$address}" : '';
-            
-            $tel = $mvc->getVerbal($rec, 'tel');
-            $fax = $mvc->getVerbal($rec, 'fax');
-            $eml = $mvc->getVerbal($rec, 'email');
-            
-            // phonesBox
-            $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : '';
-            $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : '';
-            $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : '';
-            $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
-        } else {
-            
-            // Добавяме линк към профила на потребителя, който е inCharge на визитката
-            $row->phonesBox = static::displayInfoWhenIsNotAccessible($rec->inCharge, $rec->shared);
+        if (!$canSingle) {
+            $row->phonesBox = static::displayInfoWhenIsNotAccessible($rec->inCharge, $rec->shared) . $row->phonesBox;
         }
         
         $ownCompany = crm_Companies::fetchOurCompany();
