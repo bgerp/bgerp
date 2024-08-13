@@ -721,22 +721,16 @@ class crm_Persons extends core_Master
 
             // Добавяме адреса
             $row->addressBox .= $address ? "<br/>{$address}" : '';
+            $mvcClone = clone $mvc;
 
-            // Мобилен телефон
-            $mob = $mvc->getVerbal($rec, 'mobile');
-            $row->phonesBox .= $mob ? "<div class='crm-icon mobile'>{$mob}</div>" : '';
+            foreach (array('mobile' => 'mobile', 'buzTel' => 'tel', 'buzFax' => 'fax', 'buzEmail' => 'email') as $cFld1 => $cFld2){
+                $mvcClone->setFieldTypeParams($cFld1, array('maskVerbal' => true));
+                $mvcClone->setFieldTypeParams($cFld2, array('maskVerbal' => true));
 
-            // Телефон
-            $tel = $mvc->getVerbal($rec, $rec->buzTel ? 'buzTel' : 'tel');
-            $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : '';
-
-            // Факс
-            $fax = $mvc->getVerbal($rec, $rec->buzFax ? 'buzFax' : 'fax');
-            $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : '';
-
-            // Email
-            $eml = $mvc->getVerbal($rec, $rec->buzEmail ? 'buzEmail' : 'email');
-            $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : '';
+                $val = $mvc->getVerbal($rec, $rec->buzFax ? $cFld1 : $cFld2);
+                $valClass = $cFld1 == 'buzTel' ? 'telephone' : $cFld2;
+                $row->phonesBox .= $val ? "<div class='crm-icon {$valClass}'>{$val}</div>" : '';
+            }
 
             $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
 
@@ -768,9 +762,6 @@ class crm_Persons extends core_Master
 
             $dateType = tr($dateType);
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
-        } elseif ($rec->egn) {
-            $egn = $mvc->getVerbal($rec, 'egn');
-            $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$egn}</div>";
         }
         
         if ($rec->buzCompanyId && crm_Companies::haveRightFor('single', $rec->buzCompanyId)) {
