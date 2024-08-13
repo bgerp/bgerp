@@ -413,45 +413,9 @@ class doc_UnsortedFolders extends core_Master
         $tpl->replace($form->renderHtml(), 'FILTER');
         
         // слагаме бутони на къстам тулбара
-        $btns = ht::createBtn(
-            'Редакция',
-            array(
-                $mvc,
-                'edit',
-                $data->id
-            ),
-            null,
-            null,
-                    'ef_icon = img/16/edit-icon.png'
-        );
-        $btns .= ht::createBtn(
-            'Папка',
-            array(
-                'doc_Threads',
-                'list',
-                'folderId' => $data->folderId
-            ),
-            null,
-            null,
-                    'ef_icon = img/16/folder-y.png'
-        );
-        
-        $btns .= ht::createBtn(
-            
-            'Корица',
-            
-            array(
-                $mvc,
-                'single',
-                $data->id
-            ),
-            
-            null,
-            
-            null,
-                    'ef_icon = img/16/project-archive.png'
-        
-        );
+        $btns = ht::createBtn('Редакция', array(get_called_class(), 'edit', $data->id), null, null, 'ef_icon = img/16/edit-icon.png');
+        $btns .= ht::createBtn('Папка', array('doc_Threads', 'list', 'folderId' => $data->folderId), null, null, 'ef_icon = img/16/folder-y.png');
+        $btns .= ht::createBtn('Корица', array(get_called_class(), 'single', $data->id), null, null, 'ef_icon = img/16/project-archive.png');
         
         // иконата за пред името на проекта
         $icon = sbf('img/24/barchart-multicolor-24.png', '', '');
@@ -467,7 +431,7 @@ class doc_UnsortedFolders extends core_Master
         $tpl->replace('state-'.$data->state, 'STATE_CLASS_GANTT');
         $tpl->replace("<img alt='' src='{$icon}'>", 'SingleIconGantt');
         $tpl->replace($data->name, 'nameGantt');
-        $tpl->append($listFilter, 'FILTER');
+        $tpl->append($data->listFilter, 'FILTER');
         $tpl->replace($chart, 'Gantt');
         
         
