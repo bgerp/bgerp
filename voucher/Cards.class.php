@@ -608,7 +608,7 @@ class voucher_Cards extends core_Detail
                     $c->number = self::getNumber();
                 }
                 $c->state = !empty($c->referrer) ? 'active' : ($typeRec->referrer == 'yes' ? 'pending' : 'active');
-                $c->validTo = dt::addSecs($typeRec->validTo);
+                $c->validTo = $typeRec->validTo;
 
                 self::save($c);
             }
