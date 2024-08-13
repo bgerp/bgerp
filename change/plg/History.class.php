@@ -300,7 +300,8 @@ class change_plg_History extends core_Plugin
 
             // Ако има избрани две различни версии
             $firstVersionId = key($selected);
-            $lastVersionId = array_key_last($selected);
+            $lastVersionId = key(array_slice($selected, -1, 1, true));
+
             if($firstVersionId == $lastVersionId) return;
 
             // Подготвят се записите спрямо версиите от историята
