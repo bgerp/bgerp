@@ -4,7 +4,7 @@
 /**
  * Клас 'voucher_Types'
  *
- * Мениджър за Типове ваучери
+ * Мениджър за Групи ваучери
  *
  * @category  bgerp
  * @package   voucher
@@ -20,13 +20,13 @@ class voucher_Types extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Типове ваучери';
+    public $title = 'Групи ваучери';
 
 
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Тип ваучер';
+    public $singleTitle = 'Група ваучер';
 
 
     /**
@@ -68,7 +68,7 @@ class voucher_Types extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,count=Карти,referrer,priceListId,state,createdOn,createdBy';
+    public $listFields = 'name=Група,count=Карти,referrer,priceListId,validTo=Валидност,state,createdOn,createdBy';
 
 
     /**
@@ -285,5 +285,31 @@ class voucher_Types extends core_Master
         $query->where($where);
 
         return $query->count();
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+        $data->listFilter->showFields = 'priceListId,referrer';
+        $data->query->orderBy('id', 'ASC');
+
+        if($filter = $data->listFilter->rec){
+            if(isset($filter->referrer)){
+                $data->query->where("#referrer = '{$filter->referrer}'");
+            }
+
+            if(isset($filter->priceListId)){
+                $data->query->where("#priceListId = {$filter->priceListId}");
+            }
+        }
     }
 }
