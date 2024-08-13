@@ -1809,7 +1809,9 @@ class crm_Companies extends core_Master
             $contrData->address = $company->address;
             $contrData->email = $company->email;
             $contrData->website = $company->website;
-            
+            $contrData->validFrom = $company->validFrom;
+            $contrData->validTo = $company->validTo;
+
             // Вземаме груповите имейли
             $contrData->groupEmails = crm_Persons::getGroupEmails($company->id);
         }

@@ -307,6 +307,8 @@ class change_History extends core_Manager
             foreach ((array)$historyRec->data as $cFld => $cVal){
                 $res->{$cFld} = $cVal;
             }
+            $res->validFrom = $historyRec->validFrom;
+            $res->validTo = $historyRec->validTo;
         }
 
         return $res;

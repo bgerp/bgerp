@@ -1479,7 +1479,9 @@ class crm_Persons extends core_Master
             
             $contrData->salutationRec = $person->salutation;
             $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');
-            
+            $contrData->validFrom = $person->validFrom;
+            $contrData->validTo = $person->validTo;
+
             // Ако е свързан с фирма
             if ($person->buzCompanyId) {
                 
