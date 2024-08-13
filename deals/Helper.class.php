@@ -1086,7 +1086,12 @@ abstract class deals_Helper
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
         $res['MyCompany'] = $ownCompanyData->companyVerb;
-        
+        $now = dt::now();
+
+        if((!empty($ownCompanyData->validTo) && $now >= $ownCompanyData->validTo) || $now <= $ownCompanyData->validFrom) {
+            $res['MyCompany'] = ht::createHint($res['MyCompany'], 'Данните на моята фирма в момента са различни от тези към вальора на документа|*!', 'warning');
+        }
+
         // ДДС и националния номер на 'Моята фирма'
         $uic = $ownCompanyData->uicId ?? drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if ($uic != $ownCompanyData->vatNo) {
@@ -1101,11 +1106,7 @@ abstract class deals_Helper
             $cData = $ContragentClass->getContragentData($contragentId, $dateFromWhichToGetName);
             $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
             $res['contragentName'] = $contragentName ?? $cName;
-            if($res['contragentName'] != $cName){
-                if(!Mode::isReadOnly()){
-                    $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
-                }
-            }
+
             $res['inlineContragentName'] = $res['contragentName'];
             $res['eori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($cData->eori);
             $res['vatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($cData->vatNo);
@@ -1113,12 +1114,18 @@ abstract class deals_Helper
             if (!empty($cData->uicId)) {
                 $res['contragentUicCaption'] = ($ContragentClass instanceof crm_Companies) ? tr('ЕИК') : tr('ЕГН||Personal №');
             }
+
+            if((!empty($cData->validTo) && $now >= $cData->validTo) || $now <= $cData->validFrom) {
+                $res['contragentName'] = ht::createHint($res['contragentName'], 'Данните на контрагента в момента са различни от тези към вальора на документа|*!', 'warning');
+            } elseif($res['contragentName'] != $cName){
+                $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
+            }
         } elseif (isset($contragentName)) {
             $res['contragentName'] = $contragentName;
         }
         
         $makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain'));
-        
+
         // Имената на 'Моята фирма' и контрагента са линкове към тях, ако потребителя има права
         if ($makeLink === true) {
             $res['MyCompany'] = ht::createLink($res['MyCompany'], crm_Companies::getSingleUrlArray($ownCompanyData->companyId));

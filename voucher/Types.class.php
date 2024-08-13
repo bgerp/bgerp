@@ -111,7 +111,7 @@ class voucher_Types extends core_Master
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика');
         $this->FLD('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Генериране на ваучери->За всяко лице в,input=hidden');
         $this->FNC('count', 'int', 'single=none');
-        $this->FLD('validTo', 'date', 'caption=Генериране на ваучери->Валидни до');
+        $this->FLD('validTo', 'date', 'caption=Генериране на ваучери->Валидни до,input=none');
 
         $this->setdbUnique('name');
     }
@@ -134,6 +134,7 @@ class voucher_Types extends core_Master
         if(empty($rec->id)){
             $form->FLD('createCount', 'int(min=1)', 'caption=Генериране на ваучери->Брой,mandatory,after=priceListId');
             $form->setField('groupId', 'input');
+            $form->setField('validTo', 'input');
         } else {
             if(voucher_Cards::count("#typeId = {$rec->id}")){
                 $form->setReadOnly('referrer');
