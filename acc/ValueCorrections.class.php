@@ -182,13 +182,17 @@ class acc_ValueCorrections extends core_Master
             $row->vatType = tr('без ДДС');
             $amount = $rec->amount;
         }
-        
+
         $row->amount = $mvc->getFieldType('amount')->toVerbal($amount);
         
         if ($rec->amount < 0) {
             $row->amount = "<span class='red'>{$row->amount}</span>";
         } elseif ($rec->action == 'decrease') {
             $row->amount = "<span class='red'>-{$row->amount}</span>";
+        }
+
+        if (!doc_plg_HidePrices::canSeePriceFields('acc_ValueCorrections', $rec)) {
+            $row->amount = doc_plg_HidePrices::getBuriedElement();
         }
     }
     
@@ -225,10 +229,15 @@ class acc_ValueCorrections extends core_Master
         } else {
             $row->allocated = "<span class='green'>+{$row->allocated}</span>";
         }
-        
+
+        if (!doc_plg_HidePrices::canSeePriceFields('acc_ValueCorrections', $rec)) {
+            $row->allocated = doc_plg_HidePrices::getBuriedElement();
+            $row->amount = doc_plg_HidePrices::getBuriedElement();
+        }
+
         $measureShort = cat_UoM::getShortName(cat_Products::fetchField($pRec->productId, 'measureId'));
         $row->quantity = "{$row->quantity} {$measureShort}";
-        
+
         return $row;
     }
     
@@ -288,7 +297,11 @@ class acc_ValueCorrections extends core_Master
         } elseif ($data->rec->action == 'decrease') {
             $data->row->realAmount = "<span class='red'>-{$data->row->realAmount}</span>";
         }
-        
+
+        if (!doc_plg_HidePrices::canSeePriceFields('acc_ValueCorrections', $data->rec)) {
+            $data->row->realAmount = doc_plg_HidePrices::getBuriedElement();
+        }
+
         $lastRowTpl->replace($data->row->realAmount, 'amount');
         $details->append($lastRowTpl, 'ROW_AFTER');
         
