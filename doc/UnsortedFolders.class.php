@@ -413,45 +413,9 @@ class doc_UnsortedFolders extends core_Master
         $tpl->replace($form->renderHtml(), 'FILTER');
         
         // слагаме бутони на къстам тулбара
-        $btns = ht::createBtn(
-            'Редакция',
-            array(
-                $mvc,
-                'edit',
-                $data->id
-            ),
-            null,
-            null,
-                    'ef_icon = img/16/edit-icon.png'
-        );
-        $btns .= ht::createBtn(
-            'Папка',
-            array(
-                'doc_Threads',
-                'list',
-                'folderId' => $data->folderId
-            ),
-            null,
-            null,
-                    'ef_icon = img/16/folder-y.png'
-        );
-        
-        $btns .= ht::createBtn(
-            
-            'Корица',
-            
-            array(
-                $mvc,
-                'single',
-                $data->id
-            ),
-            
-            null,
-            
-            null,
-                    'ef_icon = img/16/project-archive.png'
-        
-        );
+        $btns = ht::createBtn('Редакция', array(get_called_class(), 'edit', $data->id), null, null, 'ef_icon = img/16/edit-icon.png');
+        $btns .= ht::createBtn('Папка', array('doc_Threads', 'list', 'folderId' => $data->folderId), null, null, 'ef_icon = img/16/folder-y.png');
+        $btns .= ht::createBtn('Корица', array(get_called_class(), 'single', $data->id), null, null, 'ef_icon = img/16/project-archive.png');
         
         // иконата за пред името на проекта
         $icon = sbf('img/24/barchart-multicolor-24.png', '', '');
@@ -467,7 +431,7 @@ class doc_UnsortedFolders extends core_Master
         $tpl->replace('state-'.$data->state, 'STATE_CLASS_GANTT');
         $tpl->replace("<img alt='' src='{$icon}'>", 'SingleIconGantt');
         $tpl->replace($data->name, 'nameGantt');
-        $tpl->append($listFilter, 'FILTER');
+        $tpl->append($data->listFilter, 'FILTER');
         $tpl->replace($chart, 'Gantt');
         
         
@@ -898,7 +862,7 @@ class doc_UnsortedFolders extends core_Master
             $data->rows[$rec->id]->created = $data->rows[$rec->id]->createdOn . " " . tr('от') . " " . $data->rows[$rec->id]->createdBy;
         }
 
-        if(doc_UnsortedFolders::haveRightFor('add')){
+        if(doc_UnsortedFolders::haveRightFor('add') && !Mode::isReadOnly()){
             $data->addBtn = ht::createLink('', array('doc_UnsortedFolders', 'add', 'contragentFolderId' => $folderId), false, 'ef_icon=img/16/add.png,caption=Добавяне на нов проект към контрагента');
         }
     }
@@ -936,34 +900,18 @@ class doc_UnsortedFolders extends core_Master
         
         return $tpl;
     }
+
+
     /**
-     * Връща данните на получателя
-     * return object
+     * Интерфейсен метод
      *
-     * $obj->company    - Името на компанията
-     * $obj->companyId  - Id' то на компанията - key(mvc=crm_Companies)
-     * $obj->country    - Името на държавата
-     * $obj->countryId  - Id' то на
-     * $obj->vatNo      - ДДС номер на компанията
-     * $obj->uicId      - Национален номер на компанията
-     * $obj->pCode      - код
-     * $obj->place      -
-     * $obj->email      - Имейл
-     * $obj->tel        - Телефон
-     * $obj->fax        - Факс
-     * $obj->address    - Адрес
+     * @param int $id
+     * @param date|null $date
+     * @return object
      *
-     * $obj->name       - Име на физическо лице
-     * $obj->personId   - ИД на лице - key(mvc=crm_Persons)
-     * $obj->pTel       - Персонален телефон
-     * $obj->pMobile    - Мобилен
-     * $obj->pFax       - Персонален
-     * $obj->pAddress   - Персонален адрес
-     * $obj->pEmail     - Персонален имейл
-     * 
      * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         $contragentData = null;
         

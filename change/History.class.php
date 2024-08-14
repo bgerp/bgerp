@@ -55,7 +55,19 @@ class change_History extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, plg_Select, doc_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, plg_Select, doc_Wrapper, plg_Sorting';
+
+
+    /**
+     * Име на перманентните данни
+     */
+    const PERMANENT_SAVE_NAME = 'changeHistory';
+
+
+    /**
+     * константа определяща ид-то на текущаъа версия от историята (ако не идва от нея)
+     */
+    const CURRENT_VERSION_ID = '_ID_';
 
 
     /**
@@ -128,8 +140,7 @@ class change_History extends core_Manager
             unset($arr['m']);
         }
 
-        /*
-         * Правим един масив $validFrom => $id, в който са включени всички записи от историята, текущия от Мениджъра с
+        /* Правим един масив $validFrom => $id, в който са включени всички записи от историята, текущия от Мениджъра с
          * ИД = 'M' и новият, който е подготвен за запис с ИД = 'N'. Подреждаме масива по validFrom .
          * Ако имаме запис от Историята, който е със същото време validFrom като записа от мениджъра,
          * махаме от масива записа от мениджъра (това е заради възможността текущия запис да е сложен по-рано
@@ -196,7 +207,9 @@ class change_History extends core_Manager
         $count = 0;
         arr::sortObjects($arr, 'validFrom', 'ASC');
         $arrVal = array_values($arr);
-        foreach ($arr as &$r){
+
+        $saveArr = array();
+        foreach ($arr as $k => &$r){
             if(isset($arrVal[$count + 1])){
                 $r->validTo = $arrVal[$count + 1]->validFrom;
             } else {
@@ -204,9 +217,13 @@ class change_History extends core_Manager
             }
             $validToMap[$r->validFrom] = $r->validTo;
             $count++;
+
+            if(is_numeric($k)){
+                $saveArr[$k] = $r;
+            }
         }
 
-        cls::get(get_called_class())->saveArray($arr, 'id,validTo');
+        cls::get(get_called_class())->saveArray($saveArr, 'id,validTo');
 
         // Във върнатите данни добавяме и валидността, да се обновят данните в мениджъра
         $currentRec->data->validFrom = $currentRec->validFrom;
@@ -229,8 +246,6 @@ class change_History extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
-
-        // Сортиране на записите по num
         $data->query->orderBy('validFrom', 'DESC');
 
         if($filter = $data->listFilter->rec){
@@ -254,7 +269,12 @@ class change_History extends core_Manager
     {
         $now = dt::now();
 
-        $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+        try{
+            $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+        } catch(core_exception_Expect $e){
+
+        }
+
         if($rec->state == 'rejected') {
             $row->ROW_ATTR['class'] = "state-rejected";
         } elseif($rec->validFrom > $now){
@@ -287,8 +307,220 @@ class change_History extends core_Manager
             foreach ((array)$historyRec->data as $cFld => $cVal){
                 $res->{$cFld} = $cVal;
             }
+            $res->validFrom = $historyRec->validFrom;
+            $res->validTo = $historyRec->validTo;
         }
 
         return $res;
+    }
+
+
+    /**
+     * Подготовка на детайла
+     *
+     * @param stdClass $data
+     */
+    public function prepareDetail_($data)
+    {
+        $tabParam = 'Tab';
+        if(!cls::haveInterface('doc_FolderIntf', $data->masterMvc)){
+            $tabParam = $data->masterData->tabTopParam;
+        }
+        $prepareTab = Request::get($tabParam);
+
+        // Подготовка на записите
+        $query = self::getQuery();
+        $query->where("#classId = {$data->masterMvc->getClassId()} AND #objectId = {$data->masterId} AND #state != 'rejected'");
+        $count = $query->count();
+
+        if($count > 0){
+            $data->TabCaption = tr('Версии');
+        }
+
+        if($prepareTab != 'change_History') {
+            $data->hide = true;
+            return;
+        }
+
+        $masterRec = $data->masterData->rec;
+        $data->rows = array();
+        while($rec = $query->fetch()){
+            $data->recs[$rec->validFrom] = $rec;
+        }
+
+        // Ако текущата версия е от историята - взима се тя, ако не показва се в историята
+        if(!array_key_exists($masterRec->validFrom, $data->recs)){
+            $data->recs[$masterRec->validFrom] = (object)array('validFrom' => $masterRec->validFrom,
+                                                               'validTo'   => $masterRec->validTo,
+                                                               'createdBy' => $masterRec->createdBy,
+                                                               'classId'   => $data->masterMvc->getClassId(),
+                                                               'objectId'  => $masterRec->id,
+                                                               'isCurrent' => true,
+                                                               'createdOn' => $masterRec->createdOn,
+                                                               'createdBy' => $masterRec->createdBy);
+        } else {
+            $data->recs[$masterRec->validFrom]->isCurrent = true;
+        }
+        $now = dt::now();
+
+        arr::sortObjects($data->recs, 'validFrom', 'DESC');
+        $count = countR($data->recs);
+        foreach ($data->recs as $rec) {
+            $rec->count = $count;
+            $row = $this->recToVerbal($rec);
+
+            $data->recs[$rec->id] = $rec;
+            $row->date = "{$row->validFrom}" . (!empty($row->validTo) ? " - {$row->validTo}" : '');
+            $row->count = core_Type::getByName('int')->toVerbal($rec->count);
+            if($rec->validFrom > $now){
+                $row->ROW_ATTR['class'] = "state-draft";
+            } elseif($rec->isCurrent){
+                $row->ROW_ATTR['class'] = "state-active";
+            } else {
+                $row->ROW_ATTR['class'] = "state-closed";
+            }
+
+            // Подготовка на бутоните за избор
+            $versionId = $rec->isCurrent ? static::CURRENT_VERSION_ID : $rec->id;
+            if($this->isSelected($data->masterMvc->getClassId(), $data->masterId, $versionId)){
+                $icon = 'img/16/checkbox_yes.png';
+                $action = 'deselect';
+                $title = 'Отказ от версията';
+            } else {
+                $icon = 'img/16/checkbox_no.png';
+                $action = 'select';
+                $title = 'Избор на версията';
+            }
+
+            $link = array($this, 'log', 'classId' => $rec->classId, 'objectId' => $rec->objectId, 'versionId' => $versionId, 'tab' => Request::get('Tab'), 'action' => $action, 'verString' => $rec->count);
+            $row->count = ht::createLink('', $link, null, "ef_icon={$icon},title={$title}")->getContent() . $row->count;
+            $row->created =  "{$row->createdOn} " . tr('от||by') . " {$row->createdBy}";
+
+            $data->rows[$rec->id] = $row;
+            $count--;
+        }
+
+        return $data;
+    }
+
+
+    /**
+     * Рендиране на детайла
+     *
+     * @param stdClass $data
+     * @return core_ET $resTpl
+     */
+    public function renderDetail_($data)
+    {
+        $tpl = new core_ET('');
+        if($data->hide) return $tpl;
+
+        // Рендиране на таблицата с оборудването
+        $data->listFields = arr::make('validFrom=От,validTo=До,created=Създаване,count=Вер.');
+
+        $listTableMvc = clone $this;
+        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
+        $tpl->append($table->get($data->rows, $data->listFields));
+
+        $resTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $resTpl->append($tpl, 'content');
+
+        $title = tr("Версии");
+        if(change_History::haveRightFor('list')){
+            $title .= ht::createLink('', array('change_History', 'list', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId), false, 'ef_icon=img/16/funnel.png,title=Преглед на версиите в историята')->getContent();
+        }
+        $resTpl->append($title, 'title');
+
+        return $resTpl;
+    }
+
+
+    /**
+     * Екшън за избиране/отказване на съответната версия
+     */
+    public function act_log()
+    {
+        // Изискваме да има права
+        requireRole('user');
+
+        expect($classId = Request::get('classId', 'int'));
+        expect($objectId = Request::get('objectId', 'int'));
+        expect($action = Request::get('action'));
+        expect($versionId = Request::get('versionId', 'varchar'));
+        expect($tab = Request::get('tab', 'varchar'));
+        expect($verString = Request::get('verString'));
+
+        $Class = cls::get($classId);
+        $cRec = $Class->fetch($objectId);
+        expect($Class->haveRightFor('single', $objectId) || doc_Threads::haveRightFor('single', $cRec->threadId));
+
+        // Масив с всички избрани версии за съответния документ
+        $selectedArr = self::getSelectedVersionsArr($classId, $objectId);
+
+        if ($action == 'deselect') {
+            if ($selectedArr[$versionId]) {
+                unset($selectedArr[$versionId]);
+            }
+        } else {
+            $selectedArr[$versionId] = array('date' => dt::now(), 'verString' => $verString);
+        }
+
+        $this->updateSelectedVersion($classId, $objectId, $selectedArr);
+        $link = array($Class, 'single', $cRec->id, 'Tab' => $tab);
+
+        return new Redirect($link);
+    }
+
+
+    /**
+     * Връща масив с всички избрани версии
+     *
+     * @param int $classId - id на класа
+     * @param int $objectId   - id на документа
+     *
+     * @return array - Масив с избраните версии
+     */
+    public static function getSelectedVersionsArr($classId, $objectId)
+    {
+        // Вземаме масива за версиите
+        $versionArr = mode::get(static::PERMANENT_SAVE_NAME);
+        $versionArr = is_array($versionArr) ? $versionArr : array();
+        if (!$classId || !$objectId) return $versionArr;
+
+        return array_key_exists("{$classId}_{$objectId}",  $versionArr) ? $versionArr["{$classId}_{$objectId}"] : array();
+    }
+
+
+    /**
+     * Задава в сесията масива със селектирани версии
+     *
+     * @param int  $classId - името или id на класа
+     * @param int $objectId - id на документа
+     * @param array  $arr   - масива, който ще добавим
+     */
+    private function updateSelectedVersion($classId, $objectId, $arr)
+    {
+        // Вземаме всички избрани версии за документите
+        $allVersionArr = self::getSelectedVersionsArr($classId, $objectId);
+        arr::sortObjects($allVersionArr, 'date', 'ASC');
+        $allVersionArr["{$classId}_{$objectId}"] = array_slice($arr, -2, 2, true);
+
+        Mode::setPermanent(static::PERMANENT_SAVE_NAME, $allVersionArr);
+    }
+
+
+    /**
+     * Дали текущата версия е избрана в сесията
+     *
+     * @param int $classId
+     * @param int $objectId
+     * @param int $versionId
+     * @return bool
+     */
+    private function isSelected($classId, $objectId, $versionId)
+    {
+        $arr = self::getSelectedVersionsArr($classId, $objectId);
+
+        return array_key_exists($versionId, $arr);
     }
 }

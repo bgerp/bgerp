@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ * Текст на циркулярния имейл за разпращане на ваучери
+ */
+defIfNot('VOUCHER_BLAST_DEFAULT_EMAIL_BODY', "Здравейте, [#person#],\n\nТова са Вашите електронни ваучери:\n[#vouchers#]");
+
 
 /**
  * Пакет за клиентски ваучери
@@ -51,6 +56,22 @@ class voucher_Setup extends core_ProtoSetup
 
 
     /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Close Expire Vouchers',
+            'description' => 'Деактивиране на изтеклите ваучери',
+            'controller' => 'voucher_Cards',
+            'action' => 'CloseExpiredVoucher',
+            'period' => 1440,
+            'offset' => 5,
+            'timeLimit' => 100
+        ),
+    );
+
+
+    /**
      * Роли за достъп до модула
      */
     public $roles = array('voucher');
@@ -61,6 +82,14 @@ class voucher_Setup extends core_ProtoSetup
      */
     public $menuItems = array(
         array(3.4, 'Търговия', 'Ваучери', 'voucher_Cards', 'default', 'ceo, voucher'),
+    );
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'VOUCHER_BLAST_DEFAULT_EMAIL_BODY' => array('richtext(rows=3)', 'caption=Имейл за изпращане на електронни ваучери->Текст'),
     );
 
 

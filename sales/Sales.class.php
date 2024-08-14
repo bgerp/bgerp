@@ -1640,7 +1640,7 @@ class sales_Sales extends deals_DealMaster
         $products = $query->fetchAll();
         
         $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, null, null, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
-        $ourCompany = crm_Companies::fetchOurCompany();
+        $ourCompany = crm_Companies::fetchOurCompany('*', null, $rec->activatedOn);
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         if ($rec->deliveryData) {
             $params += $rec->deliveryData;
@@ -2130,11 +2130,12 @@ class sales_Sales extends deals_DealMaster
      * Интерфейсен метод
      *
      * @param int $id
+     * @param datetime|int $id
      * @return object
      *
      * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         if (core_Packs::isInstalled('eshop') && ($rec = self::fetchRec($id))) {
             if ($cartRec = eshop_Carts::fetch("#saleId = {$id}")) {
@@ -2222,7 +2223,6 @@ class sales_Sales extends deals_DealMaster
         if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)) {
             $rec->contoActions = '';
             $mvc->save_($rec, 'contoActions');
-            
             core_Statuses::newStatus($errorMsg, 'error');
 
             return false;
@@ -2235,7 +2235,8 @@ class sales_Sales extends deals_DealMaster
             $dQuery->show('productId');
             $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
             if($error = voucher_Cards::getContoErrors($rec->voucherId, $productIds, $mvc->getClassId(), $rec->id)){
-
+                $rec->contoActions = '';
+                $mvc->save_($rec, 'contoActions');
                 core_Statuses::newStatus($error, 'error');
 
                 return false;

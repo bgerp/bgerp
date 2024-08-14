@@ -137,19 +137,20 @@ class support_Tasks extends core_Manager
         
         $data->listFilter->FNC('systemId', 'key(mvc=support_Systems, select=name, allowEmpty)', 'caption=Система, input=input, silent, autoFilter');
         $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support|ceo|admin)', 'caption=Отговорник, input, silent, autoFilter');
-        
+        $data->listFilter->FNC('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, input, silent, autoFilter');
+
         $data->listFilter->FNC('createdFrom', 'date', 'caption=От, input,silent, autoFilter, title=Създадено от');
         $data->listFilter->FNC('createdTo', 'date', 'caption=До, input,silent, autoFilter, title=Създадено до');
         
         $data->listFilter->FNC('state', 'enum(, active=Активен, pending=Заявка, stopped=Спрян)', 'caption=Състояние, input, silent, autoFilter, allowEmpty');
         
         $data->listFilter->FNC('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес,input=input,notNull,value=0, autoFilter');
-        
+
         $tRec = new stdClass();
         $pSuggArr = support_TaskType::getProgressSuggestions($tRec);
         $data->listFilter->setSuggestions('progress', $pSuggArr);
         
-        $data->listFilter->showFields = 'search, selectPeriod, state, systemId, maintainers, progress';
+        $data->listFilter->showFields = 'search, selectPeriod, createdFrom, createdTo, state, systemId, maintainers,assetResourceId, progress';
         $default = $data->listFilter->getField('maintainers')->type->fitInDomain('all_users');
         $data->listFilter->setDefault('maintainers', $default);
         
@@ -210,7 +211,15 @@ class support_Tasks extends core_Manager
         if ($rec->progress) {
             $data->query->where(array("#progress = '[#1#]'", $rec->progress));
         }
-        
+
+        if ($rec->assetResourceId) {
+            $data->query->where(array("#assetResourceId = '[#1#]'", $rec->assetResourceId));
+        } else {
+            if (Request::get('assetResourceId') === '0' || Request::get('assetResourceId') === 0) {
+                $data->query->where("#assetResourceId IS NULL OR #assetResourceId = ''");
+            }
+        }
+
         doc_Threads::restrictAccess($data->query);
     }
 }

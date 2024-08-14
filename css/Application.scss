@@ -1113,6 +1113,21 @@ div.mobile {
 	box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
+.versionBlock{
+	display:inline;
+	padding: 2px 5px;
+	margin-left: 3px;
+	margin-right: 3px;
+	color: blue;
+	border: solid 1px #BBB;
+	background-color: rgba(247, 240, 240, 0.8);
+	font-size: 0.8em;
+	top: -1px;
+	position: relative;
+	@include border-radius(3px);
+	box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
 .document-handler {
     font-size: 0.8em;
     border-radius:3px;

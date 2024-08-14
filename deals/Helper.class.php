@@ -1065,9 +1065,11 @@ abstract class deals_Helper
     {
         // Ако е инсталиран пакета за многофирменост - моята фирма е тази посочена в първия документ на нишката
         $ownCompanyId = null;
+        $Document = doc_Containers::getDocument($containerId);
+        $docRec = $Document->fetch("activatedOn,threadId,{$Document->valiorFld}");
+
         if(core_Packs::isInstalled('holding')) {
-            $Document = doc_Containers::getDocument($containerId);
-            $firstDoc = doc_Threads::getFirstDocument($Document->fetchField('threadId'));
+            $firstDoc = doc_Threads::getFirstDocument($docRec->threadId);
             if($firstDoc->isInstanceOf('deals_DealMaster')) {
                 if(isset($firstDoc->ownCompanyFieldName)) {
                     $ownCompanyId = $firstDoc->fetchField($firstDoc->ownCompanyFieldName);
@@ -1075,16 +1077,23 @@ abstract class deals_Helper
             }
         }
 
-        // Данните на 'Моята фирма'
+        // Данните на 'Моята фирма' към дата 00:00 на вальора
         $res = array();
-        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
+        $dateFromWhichToGetName = !empty($docRec->{$Document->valiorFld}) ? $docRec->{$Document->valiorFld} : dt::now();
+        $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $dateFromWhichToGetName);
 
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
         $res['MyCompany'] = $ownCompanyData->companyVerb;
-        
+        $now = dt::now();
+
+        if((!empty($ownCompanyData->validTo) && $now >= $ownCompanyData->validTo) || $now <= $ownCompanyData->validFrom) {
+            $res['MyCompany'] = ht::createHint($res['MyCompany'], 'Данните на моята фирма в момента са различни от тези към вальора на документа|*!', 'warning');
+        }
+
         // ДДС и националния номер на 'Моята фирма'
-        $uic = isset($ownCompanyData->uicId) ? $ownCompanyData->uicId : drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+        $uic = $ownCompanyData->uicId ?? drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if ($uic != $ownCompanyData->vatNo) {
             $res['MyCompanyVatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($ownCompanyData->vatNo);
         }
@@ -1094,28 +1103,29 @@ abstract class deals_Helper
         // името, адреса и ДДС номера на контрагента
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
-            $cData = $ContragentClass->getContragentData($contragentId);
+            $cData = $ContragentClass->getContragentData($contragentId, $dateFromWhichToGetName);
             $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
-            $res['contragentName'] = isset($contragentName) ? $contragentName : $cName;
-            if($res['contragentName'] != $cName){
-                if(!Mode::isReadOnly()){
-                    $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
-                }
-            }
-            $res['inlineContragentName'] = $res['contragentName'];
+            $res['contragentName'] = $contragentName ?? $cName;
 
+            $res['inlineContragentName'] = $res['contragentName'];
             $res['eori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($cData->eori);
             $res['vatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($cData->vatNo);
             $res['contragentUicId'] = $cData->uicId;
             if (!empty($cData->uicId)) {
                 $res['contragentUicCaption'] = ($ContragentClass instanceof crm_Companies) ? tr('ЕИК') : tr('ЕГН||Personal №');
             }
+
+            if((!empty($cData->validTo) && $now >= $cData->validTo) || $now <= $cData->validFrom) {
+                $res['contragentName'] = ht::createHint($res['contragentName'], 'Данните на контрагента в момента са различни от тези към вальора на документа|*!', 'warning');
+            } elseif($res['contragentName'] != $cName){
+                $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
+            }
         } elseif (isset($contragentName)) {
             $res['contragentName'] = $contragentName;
         }
         
         $makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain'));
-        
+
         // Имената на 'Моята фирма' и контрагента са линкове към тях, ако потребителя има права
         if ($makeLink === true) {
             $res['MyCompany'] = ht::createLink($res['MyCompany'], crm_Companies::getSingleUrlArray($ownCompanyData->companyId));
@@ -1127,15 +1137,15 @@ abstract class deals_Helper
             }
         }
         
-        $showCountries = ($ownCompanyData->countryId == $cData->countryId) ? false : true;
+        $showCountries = !(($ownCompanyData->countryId == $cData->countryId));
         
         if (isset($contragentClass, $contragentId)) {
-            $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries)->getContent();
-            $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries)->getContent();
+            $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $docRec->activatedOn)->getContent();
+            $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $docRec->activatedO)->getContent();
             $res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
         }
         
-        $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries)->getContent();
+        $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries, true, $docRec->activatedOn)->getContent();
 
         if(drdata_Countries::isEu($cData->countryId) && empty($cData->eori)){
             unset($res['MyCompanyEori']);

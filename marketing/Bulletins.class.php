@@ -1146,6 +1146,21 @@ class marketing_Bulletins extends core_Master
         
         return $rec->domain;
     }
+
+
+    /**
+     * Връща вербално представяне на събщението на дадения източник за персонализирани данни
+     *
+     * @param int  $id
+     * @param bool $verbal
+     *
+     * @return string
+     */
+    public function getPersonalizationBody($id, $verbal = false)
+    {
+
+        return '';
+    }
     
     
     /**

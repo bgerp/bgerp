@@ -195,9 +195,9 @@ class pos_Receipts extends core_Master
         $this->FLD('contragentObjectId', 'int', 'input=none');
         $this->FLD('contragentLocationId', 'key(mvc=crm_Locations)', 'caption=Локация,input=none');
         $this->FLD('contragentClass', 'key(mvc=core_Classes,select=name)', 'input=none');
-        $this->FLD('total', 'double(decimals=2)', 'caption=Общо, input=none, value=0, summary=amount');
-        $this->FLD('paid', 'double(decimals=2)', 'caption=Платено, input=none, value=0, summary=amount');
-        $this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
+        $this->FLD('total', 'double(decimals=2)', 'caption=Общо, input=none, value=0');
+        $this->FLD('paid', 'double(decimals=2)', 'caption=Платено, input=none, value=0');
+        $this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0');
         $this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,waiting=Чакащ)', 'caption=Статус, input=none');
         $this->FLD('transferredIn', 'key(mvc=sales_Sales)', 'input=none,oldFieldName=transferedIn');
@@ -1773,5 +1773,24 @@ class pos_Receipts extends core_Master
                 return false;
             }
         }
+    }
+
+
+    /**
+     * Рендира заявката за създаване на резюме
+     */
+    public function prepareListSummary_(&$data)
+    {
+        if(Request::get('Rejected')) return;
+
+        $summaryQuery = clone $data->query;
+        $summaryQuery->XPR('totalNoDraft', 'int', "(CASE WHEN (#state = 'draft' OR #transferredIn IS NOT NULL) THEN 0 ELSE #total END)");
+        $summaryQuery->XPR('paidNoDraft', 'int', "(CASE WHEN (#state = 'draft' OR #transferredIn IS NOT NULL) THEN 0 ELSE #paid END)");
+        $summaryQuery->XPR('changeNoDraft', 'int', "(CASE WHEN (#state = 'draft' OR #transferredIn IS NOT NULL) THEN 0 ELSE #change END)");
+
+        $data->listSummary = (object)array('mvc' => clone $this, 'query' => $summaryQuery);
+        $data->listSummary->mvc->FNC('totalNoDraft', 'varchar', 'caption=Общо (без чернови),input=none,summary=amount');
+        $data->listSummary->mvc->FNC('paidNoDraft', 'varchar', 'caption=Платено (без чернови),input=none,summary=amount');
+        $data->listSummary->mvc->FNC('changeNoDraft', 'varchar', 'caption=Ресто (без чернови),input=none,summary=amount');
     }
 }

@@ -885,8 +885,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $artSuggestionsArr = array();
 
+
+
         if(is_array($rec->data->recs) && !empty($rec->data->recs)) {
-            foreach (array_keys($rec->data->recs) as $val) {
+
+            $prArr = arr::extractValuesFromArray($rec->data->recs,'productId');
+            foreach (array_keys($prArr) as $val) {
 
                 $pRec = cat_Products::fetch($val);
                 $code = $pRec->code ?: 'Art' . $pRec->productId;
@@ -907,9 +911,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         if ($form->isSubmitted()) {
 
-            foreach ($rec->data->recs as $pRec) {
-                if ($form->rec->artFilter != $pRec->productId) {
-                    unset($rec->data->recs[$pRec->productId]);
+            foreach ($rec->data->recs as $key => $pRec) {
+                if (($pRec->productId) && ($form->rec->artFilter != $pRec->productId)) {
+                    unset($rec->data->recs[$key]);
                 }
             }
 

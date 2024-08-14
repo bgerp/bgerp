@@ -316,7 +316,7 @@ class dec_Declarations extends core_Master
         }
 
         // Зареждаме данните за собствената фирма
-        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $rec->activatedOn);
 
         // Адреса на фирмата
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
@@ -327,8 +327,7 @@ class dec_Declarations extends core_Master
         $Varchar = cls::get('type_Varchar');
 
         // името на фирмата
-        $row->MyCompany = crm_Companies::getTitleById($ownCompanyData->companyId);
-        $row->MyCompany = transliterate(tr($row->MyCompany));
+        $row->MyCompany = transliterate(tr($ownCompanyData->companyVerb));
 
         // държавата
         $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';

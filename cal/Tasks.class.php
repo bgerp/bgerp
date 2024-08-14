@@ -3636,12 +3636,12 @@ class cal_Tasks extends embed_Manager
      * Интерфейсен метод
      *
      * @param int $id
-     *
+     * @param date|null $date
      * @return object
      *
      * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         if (!$id) {
             

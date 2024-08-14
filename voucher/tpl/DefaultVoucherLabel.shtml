@@ -78,5 +78,6 @@
     <div class="logo">[#IMAGE_200_100#]</div>
     <div class='qr'> [#QR_CODE_100#]</div>
     <p class='link'>[#NUMBER#]</p>
+    <!--ET_BEGIN VALID_TO--><p class='info' style="bottom:48px;">Валиден до: [#VALID_TO#]</p><!--ET_END VALID_TO-->
     <p class='info'>[#TEXT#]</p>
 </section>

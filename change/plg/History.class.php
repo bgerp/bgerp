@@ -23,6 +23,8 @@ class change_plg_History extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         setIfNot($mvc->loggableFields, '');
+        setIfNot($mvc->loggableAdditionalComparableFields, '');
+
         $mvc->FLD('validFrom', 'datetime', 'caption=Валидност->От,input=none');
         $mvc->FLD('validTo', 'datetime', 'caption=Валидност->До,input=none');
     }
@@ -157,7 +159,7 @@ class change_plg_History extends core_Plugin
 
         $rec->validFrom = !empty($rec->validFrom) ? $rec->validFrom : dt::now();
         $sync = false;
-        if(!empty($rec->validFrom) && $rec->validFrom != $rec->_oldRec->validFrom){
+        if(!empty($rec->newValidFrom)){
             $sync = true;
         } else {
             $modifiedBy = $rec->modifiedBy ?? $rec->_oldRec->modifiedBy;
@@ -249,14 +251,118 @@ class change_plg_History extends core_Plugin
 
 
     /**
-     * След подготовка на тулбара за единичен изглед
+     * Изпълнява се след закачане на детайлите
      */
-    protected static function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterAttachDetails(core_Mvc $mvc, &$res, $details)
     {
-        if (change_History::haveRightFor('list')) {
-            $validFromVerbal = $mvc->getFieldType('validFrom')->toVerbal($data->rec->validFrom);
-            $validToVerbal = !empty($data->rec->validTo) ? " / " .  $mvc->getFieldType('validFrom')->toVerbal($data->rec->validTo) : null;
-            $data->toolbar->addBtn("Вер.|* {$validFromVerbal} {$validToVerbal}", array('change_History', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $data->rec->id), 'ef_icon=img/16/bug.png,title=Версии');
+        $details = arr::make($mvc->details);
+        $details['change_History'] = 'change_History';
+        $mvc->details = $details;
+    }
+
+
+    /**
+     * След подготовка на сингъла
+     *
+     * @param $mvc
+     * @param $res
+     * @param $data
+     * @return void
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {
+        if($data->skip) return;
+
+        $rec = &$data->rec;
+        $row = &$data->row;
+        $loggableFields = arr::make($mvc->loggableFields, true) + arr::make($mvc->loggableAdditionalComparableFields, true);
+        $loggableFields['validFrom'] = 'validFrom';
+        $loggableFields['validTo'] = 'validTo';
+
+        // Кои са избраните версии за преглед от сингъла
+        $selected = change_History::getSelectedVersionsArr($mvc->getClassId(), $rec->id);
+
+        $count = countR($selected);
+
+        // Ако е само една
+        if($count == 1){
+
+            // Ако е текущата - нищо не се прави
+            $versionId = key($selected);
+            if($versionId == change_History::CURRENT_VERSION_ID) return;
+
+            // Ако не е текущата зареждат се данните от избрания рек
+            $clone = static::getVersionRec($mvc, $rec, $versionId, $loggableFields);
+            $res->row = $mvc->recToVerbal($clone, arr::combine($data->singleFields, '-single'));
+            $res->row->VERSION_STRING = $selected[$versionId]['verString'];
+            $res->row->VERSION_STRING_HINT = tr('Показване на записа към версията от|* ') . dt::mysql2verbal($selected[$versionId]['date']);
+        } elseif($count == 2) {
+
+            // Ако има избрани две различни версии
+            $firstVersionId = key($selected);
+            $lastVersionId = key(array_slice($selected, -1, 1, true));
+
+            if($firstVersionId == $lastVersionId) return;
+
+            // Подготвят се записите спрямо версиите от историята
+            $firstRec = static::getVersionRec($mvc, $rec, $firstVersionId, $loggableFields);
+            $lastRec = static::getVersionRec($mvc, $rec, $lastVersionId, $loggableFields);
+
+            // Подготвяне на вербалните данни на двете версии
+            $mvc->prepareSingleFields($data);
+            $data->singleFields['-compare'] = true;
+            $firstRow = $mvc->recToVerbal($firstRec, arr::combine($data->singleFields, '-single'));
+            $lastRow = $mvc->recToVerbal($lastRec, arr::combine($data->singleFields, '-single'));
+
+            // Сравняват се двата варианта
+            foreach ($loggableFields as $fld){
+                $newFieldVal = lib_Diff::getDiff($firstRow->{$fld}, $lastRow->{$fld});
+
+                // Добавяне на pending полетата от новия запис
+                if ($firstRow->{$fld} instanceof core_ET) {
+                    $newFieldVal = new ET($newFieldVal);
+                    foreach ((array) $firstRow->{$fld}->pending as $pending) {
+                        $newFieldVal->addSubstitution($pending->str, $pending->place, $pending->once, $pending->mode);
+                    }
+                }
+
+                // Добавяне на pending полетата от стария запис
+                if ($lastRow->{$fld} instanceof core_ET) {
+                    $newFieldVal = new ET($newFieldVal);
+                    foreach ((array) $lastRow->{$fld}->pending as $pending) {
+                        $newFieldVal->addSubstitution($pending->str, $pending->place, $pending->once, $pending->mode);
+                    }
+                }
+
+                $res->row->{$fld} = $newFieldVal;
+                $res->row->VERSION_STRING = $selected[$firstVersionId]['verString'] . "/" . $selected[$lastVersionId]['verString'];
+                $res->row->VERSION_STRING_HINT = tr('Сравняване на версиите|*: ') . dt::mysql2verbal($selected[$firstVersionId]['date']) . " - " . dt::mysql2verbal($selected[$lastVersionId]['date']);
+            }
+        } else {
+            if(!empty($rec->validTo)){
+                $res->row->VALID_TO_HINT = ht::createImg(array('title' => "Има нова версия, влизаща в сила от|*: {$res->row->validTo}", 'src' => sbf('img/32/clock_history.png', '')));
+            }
         }
+    }
+
+
+    /**
+     * Връща клонинг на записа с подменени полета от версията
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @param int $versionId
+     * @param array $fields
+     * @return stdClass
+     */
+    private static function getVersionRec($mvc, $rec, $versionId , $fields)
+    {
+        $clone = clone $rec;
+        $versionRec = ($versionId == change_History::CURRENT_VERSION_ID) ? $rec : change_History::fetch($versionId);
+        foreach ($fields as $fld){
+            $clone->{$fld} = ($versionId == change_History::CURRENT_VERSION_ID) ? $versionRec->{$fld} : (property_exists($versionRec->data, $fld) ? $versionRec->data->{$fld} : $versionRec->{$fld});
+        }
+
+        return $clone;
     }
 }

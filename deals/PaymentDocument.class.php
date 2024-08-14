@@ -66,9 +66,14 @@ abstract class deals_PaymentDocument extends core_Master
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-        
-        $recTitle = currency_Currencies::decorate($rec->amount, $rec->currencyId);
-        $date = ($rec->valior) ? $rec->valior : (isset($rec->termDate) ? $rec->termDate : null);
+
+        if (!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
+            $recTitle = tr('Заличено');
+        } else {
+            $recTitle = currency_Currencies::decorate($rec->amount, $rec->currencyId);
+        }
+
+        $date = ($rec->valior) ? $rec->valior : ($rec->termDate ?? null);
         if (isset($date)) {
             $recTitle .= ' / ' . dt::mysql2verbal($date, 'd.m.y');
         }

@@ -3,7 +3,7 @@
     <div class="folder-cover [#STATE_CLASS#]">
         <div class="inner-folder">
             <div class="block_title [#STATE_CLASS#] special-title">
-                [#SingleIcon#] [#title#] [#titleNumber#]
+                [#SingleIcon#] [#title#] [#titleNumber#] <!--ET_BEGIN VERSION_STRING--><div class="versionBlock" title="[#VERSION_STRING_HINT#]"><small>|v|* </small>[#VERSION_STRING#]</div><!--ET_END VERSION_STRING--> <!--ET_BEGIN VALID_TO_HINT--><div style="float:right">[#VALID_TO_HINT#]</div><!--ET_END VALID_TO_HINT-->
             </div>
             <!--ET_BEGIN image-->
             <div class="crmImage">

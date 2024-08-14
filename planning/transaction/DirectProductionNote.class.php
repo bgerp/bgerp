@@ -299,9 +299,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                                 'quantity' => $det1->quantity),
                             'reason' => 'Влагане на чужди материали - производство на ишлеме');
 
-                        Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
                         $amountCheck = cat_Products::getWacAmountInStore($det1->quantity, $det1->productId, $valior, $det1->storeId);
-                        Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
                         if(!empty($amountCheck)){
                             $entry['amount'] = $amountCheck;
                         }
@@ -356,15 +354,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                                                      'quantity' => $dRec->quantity),
                                            'reason' => 'Влагане на материал в производството');
 
-                            Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
                             $amountCheck = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $valior, $dRec->storeId);
-                            Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
                             if(!empty($amountCheck)){
                                 $entry['amount'] = $amountCheck;
                             }
                         } else {
                             if(empty($dRec->fromAccId)) continue;
-                            $item = isset($dRec->expenseItemId) ? $dRec->expenseItemId : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+                            $item = $dRec->expenseItemId ?? acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
                             $entry = array('debit' => array('61103',
                                                       array($classId, $documentId),
                                                       array('cat_Products', $dRec->productId),
