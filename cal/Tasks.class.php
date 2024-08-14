@@ -637,7 +637,7 @@ class cal_Tasks extends embed_Manager
         if(isset($rec->parentId)){
             $parentState = cal_Tasks::fetchField($rec->parentId, 'state');
             $row->parentId = $mvc->getHyperlink($rec->parentId, true);
-            $row->parentId = ht::createElement("div", array('class' => "state-{$parentState} document-handler"), $row->parentId);
+            $row->parentId = ht::createElement("div", array('class' => "state-{$parentState} document-handler", 'style' => 'font-size:1em'), $row->parentId);
         }
 
         if ($mvc->haveRightFor('add', (object)array('parentId' => $rec->id))) {

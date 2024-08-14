@@ -38,8 +38,15 @@ class cal_SubTaskDetails extends core_Manager
 
         $countSubTasks = countR($data->recs);
         if($countSubTasks){
-            $data->TabCaption = "Подзадачи|* ({$countSubTasks})";
-            $data->Tab = 'top';
+
+            $cQuery = doc_Comments::getQuery();
+            $cQuery->where(array("#originId = '[#1#]'", $masterRec->containerId));
+            $cQuery->where(array("#driverClass = '[#1#]'", cal_Progresses::getClassId()));
+            $cQuery->where("#state != 'draft'");
+            if($cQuery->count()){
+                $data->TabCaption = "Подзадачи|* ({$countSubTasks})";
+                $data->Tab = 'top';
+            }
         } else {
             $data->hide = true;
         }
