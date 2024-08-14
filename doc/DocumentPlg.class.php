@@ -1687,6 +1687,7 @@ class doc_DocumentPlg extends core_Plugin
         doc_Containers::update_($res->containerId);
         $exRec = (object) array('containerId' => $res->containerId);
         doc_ExpensesSummary::save($exRec);
+        core_Statuses::newStatus("Документът е направен разходен обект|*!");
     }
 
 
