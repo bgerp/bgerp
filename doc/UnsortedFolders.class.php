@@ -241,7 +241,9 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('description', 'richtext(rows=3, passage,bucket=Notes)', 'caption=Описание');
         $this->FLD('contragentFolderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent');
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
-        
+        $this->FLD('makeTaskCostObjects', 'enum(yes=Да, no=Не)', 'caption=Задачите да са разходни обекти->Избор,notNull,value=no');
+        $this->FLD('resourceType', 'set(assets=Оборудване,hr=Оператори)', 'caption=Видове ресурси в папката->Избор,autohide=any');
+
         $this->setDbUnique('name');
     }
     
@@ -981,5 +983,56 @@ class doc_UnsortedFolders extends core_Master
     public function canCloneFolderSettings_($rec)
     {
         return $rec->cloneFolderSettings == 'yes';
+    }
+
+    /**
+     * Какви видове ресурси може да се добавят към модела
+     *
+     * @param stdClass $rec
+     *
+     * @return array - празен масив ако няма позволени ресурси
+     *               ['assets'] - оборудване
+     *               ['hr']     - служители
+     */
+    public function getResourceTypeArray_($rec)
+    {
+        $rec = $this->fetchRec($rec);
+
+        return arr::make($rec->resourceType, true);
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if($form->isSubmitted()) {
+            if(isset($rec->id)) {
+                $assetErrorMsgArr = array();
+                $resourceTypes = type_Set::toArray($rec->resourceType);
+
+                // При опит за отмаркирване на ресурсите да се спира - ако има вече избрани ресурси
+                if(empty($resourceTypes['assets'])) {
+                    $assetClassId = planning_AssetResources::getClassId();
+                    $resourceCount = planning_AssetResourceFolders::count("#classId = {$assetClassId} AND #folderId = {$rec->folderId}");
+                    if($resourceCount) {
+                        $assetErrorMsgArr[] = "В проекта има вече свързани оборудвания";
+                    }
+                }
+                if(empty($resourceTypes['hr'])) {
+                    $hrClassId = planning_Hr::getClassId();
+                    $resourceCount = planning_AssetResourceFolders::count("#classId = {$hrClassId} AND #folderId = {$rec->folderId}");
+                    if($resourceCount) {
+                        $assetErrorMsgArr[] = "В проекта има вече свързани оператори";
+                    }
+                }
+
+                if(countR($assetErrorMsgArr)) {
+                    $form->setError('resourceType', implode('. ', $assetErrorMsgArr));
+                }
+            }
+        }
     }
 }

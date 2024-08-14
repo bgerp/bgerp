@@ -297,8 +297,14 @@ class cal_Tasks extends embed_Manager
      * Кой може да добавя външен сигнал?
      */
     public $canNew = 'every_one';
-    
-    
+
+
+    /**
+     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име $autoList
+     */
+    public $addToListOnActivation = 'costObjects';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -449,7 +455,6 @@ class cal_Tasks extends embed_Manager
         $assetResArr = array();
         if ($rec->folderId) {
             $assetResArr += planning_AssetResources::getByFolderId($rec->folderId);
-
             if (!empty($assetResArr)) {
                 asort($assetResArr);
             }
@@ -3905,5 +3910,24 @@ class cal_Tasks extends embed_Manager
             $currentLevel = $path;
             static::expandChildrenArr($arr, $subRec->id, $currentLevel);
         }
+    }
+
+
+    /**
+     * При активиране да се добавили обекта като перо
+     */
+    public function canAddToListOnActivation($rec)
+    {
+        $rec = $this->fetchRec($rec);
+
+        // Ако задачата е в папка на проект и в него е указано да са РО, то тя ще стане разходен обект
+        $Cover = doc_Folders::getCover($rec->folderId);
+        if($Cover->isInstanceOf('doc_UnsortedFolders')) {
+            $makeTaskCostObjects = $Cover->fetchField('makeTaskCostObjects');
+
+            return $makeTaskCostObjects == 'yes';
+        }
+
+        return false;
     }
 }

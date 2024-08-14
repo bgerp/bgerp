@@ -1429,8 +1429,6 @@ class doc_DocumentPlg extends core_Plugin
             acc_Items::force($mvc->getClassId(), $rec->id, $listId);
             
             // Създаване на празен запис в кеш таблицата за разходите
-            $exRec = (object) array('containerId' => $rec->containerId);
-            doc_ExpensesSummary::save($exRec);
             $mvc->logInAct('Документа става разходно перо', $rec);
             $mvc->invoke('AfterForceAsExpenseItem', array($rec));
 
@@ -1674,8 +1672,24 @@ class doc_DocumentPlg extends core_Plugin
             return false;
         }
     }
-    
-    
+
+
+    /**
+     * След като документа е форсиран като разходен обект
+     *
+     * @param $mvc
+     * @param $res
+     * @return void
+     */
+    public static function on_AfterForceAsExpenseItem($mvc, &$res)
+    {
+        doc_Threads::doUpdateThread($res->threadId);
+        doc_Containers::update_($res->containerId);
+        $exRec = (object) array('containerId' => $res->containerId);
+        doc_ExpensesSummary::save($exRec);
+    }
+
+
     /**
      * Метод по подразбиране за проверка дали документа съществува в източника
      * За pSingle

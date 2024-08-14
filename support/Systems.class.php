@@ -458,7 +458,7 @@ class support_Systems extends core_Master
      *               ['assets'] - оборудване
      *               ['hr']     - служители
      */
-    public function getResourceTypeArray($rec)
+    public function getResourceTypeArray_($rec)
     {
         return arr::make('assets', true);
     }

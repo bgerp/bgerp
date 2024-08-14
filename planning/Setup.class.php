@@ -312,7 +312,6 @@ class planning_Setup extends core_ProtoSetup
         'planning_AssetResourcesNorms',
         'planning_Centers',
         'planning_Hr',
-        'planning_FoldersWithResources',
         'planning_WorkCards',
         'planning_Points',
         'planning_GenericMapper',

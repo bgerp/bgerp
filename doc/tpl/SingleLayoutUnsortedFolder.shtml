@@ -45,6 +45,19 @@
                             <td>[#clonedFromId#]</td>
                         </tr>
                         <!--ET_END clonedFromId-->
+                        <!--ET_BEGIN makeTaskCostObjects-->
+                        <tr>
+                            <td class='dt'>|Задачите да са автоматично разходни обекти|*:</td>
+                            <td>[#makeTaskCostObjects#]</td>
+                        </tr>
+                        <!--ET_END makeTaskCostObjects-->
+                        <!--ET_BEGIN resourceType-->
+                        <tr>
+                            <td class='dt'>|Избор на ресурси|*:</td>
+                            <td>[#resourceType#]</td>
+                        </tr>
+                        <!--ET_END resourceType-->
+
                     </table>
                 </div>
             </fieldset>

@@ -367,16 +367,15 @@ class doc_FolderResources extends core_Manager
             $sQuery->show('folderId');
             $suggestions += arr::extractValuesFromArray($sQuery->fetchAll(), 'folderId');
         }
-        
+
         // Твърдо забитите папки с ресурси
-        $fQuery = planning_FoldersWithResources::getQuery();
-        $fQuery->where('#folderId IS NOT NULL');
+        $uQuery = doc_UnsortedFolders::getQuery();
+        $uQuery->where('#resourceType IS NOT NULL');
         if (!is_null($forType)) {
-            $fQuery->where("LOCATE('{$forType}', #type)");
+            $uQuery->where("LOCATE('{$forType}', #resourceType)");
         }
-        
-        $fQuery->show('folderId');
-        $suggestions += arr::extractValuesFromArray($fQuery->fetchAll(), 'folderId');
+        $uQuery->show('folderId');
+        $suggestions += arr::extractValuesFromArray($uQuery->fetchAll(), 'folderId');
         
         // Намиране на имената на папките
         foreach ($suggestions as $key => &$v) {
