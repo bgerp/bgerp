@@ -104,7 +104,7 @@ class voucher_interface_BlastPersonalizationSourceImpl
         $query->EXT('email', 'crm_Persons', 'externalName=email,externalKey=referrer');
         $query->EXT('buzEmail', 'crm_Persons', 'externalName=buzEmail,externalKey=referrer');
         $query->EXT('name', 'crm_Persons', 'externalName=name,externalKey=referrer');
-        $query->where("#email IS NOT NULL");
+        $query->where("#email IS NOT NULL OR #buzEmail IS NOT NULL");
         $query->orderBy('id', 'ASC');
 
         $res = array();
