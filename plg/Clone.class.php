@@ -390,6 +390,8 @@ class plg_Clone extends core_Plugin
                             $dontCloneFields['modifiedBy'] = 'modifiedBy';
                             $dontCloneFields['createdOn'] = 'createdOn';
                             $dontCloneFields['createdBy'] = 'createdBy';
+                            $dontCloneFields['activatedOn'] = 'activatedOn';
+                            $dontCloneFields['activatedBy'] = 'activatedBy';
 
                             $dRec->{$Detail->masterKey} = $newMasterId;
                             unset($dRec->id);

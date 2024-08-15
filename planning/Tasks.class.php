@@ -2712,6 +2712,8 @@ class planning_Tasks extends core_Master
                 unset($newTask->containerId);
                 unset($newTask->createdOn);
                 unset($newTask->createdBy);
+                unset($newTask->activatedOn);
+                unset($newTask->activatedBy);
                 unset($newTask->systemId);
 
                 if ($this->save($newTask)) {
