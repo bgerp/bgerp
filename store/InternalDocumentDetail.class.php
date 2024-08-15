@@ -48,6 +48,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         $mvc->FNC('quantity', 'double(minDecimals=2,maxDecimals=2)', 'caption=К-во,input=none');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage)', 'caption=Допълнително->Забележки');
+        $mvc->setDbIndex('productId');
     }
     
     
