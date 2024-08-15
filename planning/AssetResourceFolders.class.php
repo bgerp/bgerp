@@ -54,7 +54,7 @@ class planning_AssetResourceFolders extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning';
+    public $canList = 'debug';
     
     
     /**

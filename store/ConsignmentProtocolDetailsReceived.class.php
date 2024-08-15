@@ -119,7 +119,6 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
         parent::setFields($this);
         $this->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
         $this->FLD('clonedFromDetailClass', "int", 'caption=От кое поле е клонирано,input=none');
-        $this->setDbUnique('protocolId,productId,packagingId');
     }
 
 
