@@ -288,6 +288,8 @@ class doc_UnsortedFolders extends core_Master
 
         if(countR($options)){
             $form->setSuggestions('steps', array('' => '') + $options);
+            $form->FLD('addSubSteps', 'enum(no=Не,yes=Да)', 'caption=Настройки на задачите в проекта->Добави подетапи,after=stepId,maxRadio=2');
+            $form->setDefault('addSubSteps', 'no');
         } else {
             $form->setField('steps', 'input=none');
         }
@@ -1071,6 +1073,17 @@ class doc_UnsortedFolders extends core_Master
 
                 if(countR($assetErrorMsgArr)) {
                     $form->setError('resourceType', implode('. ', $assetErrorMsgArr));
+                }
+
+                if(!$form->gotErrors()) {
+                    if(!empty($rec->steps) && $rec->addSubSteps == 'yes') {
+                        $expandedSteps = array();
+                        $steps = keylist::toArray($rec->steps);
+                        foreach ($steps as $stepId) {
+                            $expandedSteps += array($stepId => $stepId) + doc_UnsortedFolderSteps::getDescendantsArr($stepId);
+                        }
+                        $rec->steps = keylist::fromArray($expandedSteps);
+                    }
                 }
             }
         }
