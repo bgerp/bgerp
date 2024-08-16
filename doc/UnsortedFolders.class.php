@@ -25,7 +25,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,plg_Clone,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified, plg_Sorting';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,plg_Clone,doc_FolderPlg,plg_RowTools2,plg_LastUsedKeys,plg_Search, plg_Modified, plg_Sorting';
     
     
     /**
@@ -233,6 +233,12 @@ class doc_UnsortedFolders extends core_Master
 
 
     /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    public $lastUsedKeys = 'steps';
+
+
+    /**
      * Описание на полетата на модела
      */
     public function description()
@@ -241,7 +247,8 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('description', 'richtext(rows=3, passage,bucket=Notes)', 'caption=Описание');
         $this->FLD('contragentFolderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent');
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
-        $this->FLD('makeTaskCostObjects', 'enum(yes=Да, no=Не)', 'caption=Задачите да са разходни обекти->Избор,notNull,value=no');
+        $this->FLD('makeTaskCostObjects', 'enum(yes=Да, no=Не)', 'caption=Настройки на задачите в проекта->Разходни обекти,notNull,value=no');
+        $this->FLD('steps', 'keylist(mvc=doc_UnsortedFolderSteps,select=name,makeLink)', 'caption=Настройки на задачите в проекта->Етапи');
         $this->FLD('resourceType', 'set(assets=Оборудване,hr=Оператори)', 'caption=Видове ресурси в папката->Избор,autohide=any');
 
         $this->setDbUnique('name');
@@ -257,13 +264,32 @@ class doc_UnsortedFolders extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
+        $rec = &$form->rec;
+
         if($data->action == 'clone'){
             $form->FNC('newStartDate', 'datetime', 'mandatory,caption=Клониране на задачи->Ново начало,input,before=taskCloneState');
             $form->FNC('taskCloneState', 'enum(draft=Чернова,active=Активно)', 'mandatory,caption=Клониране на задачи->Състояние,input,before=receiveEmail,unit=след клониране');
             $form->FNC('cloneFolderSettings', 'enum(yes=Да,no=Не)', 'mandatory,caption=Клониране на настройките на папката->Избор,input,after=taskCloneState');
             $form->setDefault('cloneFolderSettings', (($mvc->cloneFolderSettings) ? 'yes' : 'no'));
             $form->setDefault('newStartDate', dt::now());
+        }
+
+        // Ако има налични етапи - добавят се за избор и те
+        $options = array();
+        $sQuery = doc_UnsortedFolderSteps::getQuery();
+        $sQuery->where("#state = 'active'");
+        if(!empty($rec->steps)){
+            $exStepStr = implode(',', keylist::toArray($rec->steps));
+            $sQuery->orWhere("#id IN ({$exStepStr})");
+        }
+        while($sRec = $sQuery->fetch()){
+            $options[$sRec->id] = cls::get('doc_UnsortedFolderSteps')->getSaoFullName($sRec);
+        }
+
+        if(countR($options)){
+            $form->setSuggestions('steps', array('' => '') + $options);
+        } else {
+            $form->setField('steps', 'input=none');
         }
     }
     
@@ -334,6 +360,20 @@ class doc_UnsortedFolders extends core_Master
         if($fields['-single']){
             if(isset($rec->clonedFromId)){
                 $row->clonedFromId = doc_UnsortedFolders::getHyperlink($rec->clonedFromId, true);
+            }
+
+            if(isset($rec->steps)){
+
+                // Хубаво показване на вложените етапи
+                $verbalStepArr = array();
+                $stepArr = keylist::toArray($rec->steps);
+                foreach ($stepArr as $stepId){
+                    $verbalStepArr[$stepId] = cls::get('doc_UnsortedFolderSteps')->getSaoFullName($stepId);
+                    if(doc_UnsortedFolderSteps::haveRightFor('single', $stepId)){
+                        $verbalStepArr[$stepId] = ht::createLink($verbalStepArr[$stepId], doc_UnsortedFolderSteps::getSingleUrlArray($stepId));
+                    }
+                }
+                $row->steps = implode('<br> ', $verbalStepArr);
             }
         }
 
@@ -1034,5 +1074,65 @@ class doc_UnsortedFolders extends core_Master
                 }
             }
         }
+    }
+
+
+    /**
+     * Поготовка на проектите като детайл на етапите
+     *
+     * @param stdClass $data
+     */
+    public function prepareStepFolders(&$data)
+    {
+        $data->TabCaption = tr('Проекти');
+
+        $uQuery = $this->getQuery();
+        $uQuery->where("#state != 'rejected'");
+        $data->recs = $data->rows = array();
+        $children = $data->masterMvc->getDescendantsArr($data->masterData->rec);
+        $children[$data->masterId] = $data->masterId;
+        $uQuery->likeKeylist('steps', $children);
+        $data->count = $uQuery->count();
+        $data->count = $uQuery->count();
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $data->Pager->setLimit($uQuery);
+
+        $fields = $this->selectFields();
+        $fields['-list'] = true;
+
+        while($rec = $uQuery->fetch()) {
+            $data->recs[$rec->id] = $rec;
+            $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
+        }
+    }
+
+
+    /**
+     * Рендиране на проектите като детайл на етапите
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderStepFolders(&$data)
+    {
+        $tpl = new core_ET('');
+
+        // Рендиране на таблицата с оборудването
+        $data->listFields = arr::make('name=Проект,folder=Папка,createdOn=Създадено->На,createdBy=Създадено->От');
+        $listTableMvc = clone $this;
+        $listTableMvc->setField('name', 'tdClass=leftCol');
+
+        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $tpl->append($table->get($data->rows, $data->listFields));
+        if ($data->Pager) {
+            $tpl->append($data->Pager->getHtml());
+        }
+
+        $resTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $resTpl->append($tpl, 'content');
+        $resTpl->append(tr("Проекти|* ({$data->count})"), 'title');
+
+        return $resTpl;
     }
 }

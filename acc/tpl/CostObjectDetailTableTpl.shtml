@@ -5,19 +5,19 @@
         <th>|Разход|*, [#currencyCode#]</th>
         <th>|Общо|*, [#currencyCode#]</th>
     </tr>
-    <tr class='costObjectCoverTotalRow'>
-        <th colspan='4' class="rightCol" style="padding-right: 6px;">|Общо|*</th>
-        <th class="rightCol">[#totalAmount#]</th>
-    </tr>
     [#ROWS#]
     <!--ET_BEGIN BLOCK-->
     [#BLOCK#]
     <tr class="[#ROW_CLASS#]">
-        <td >[#history#]</td>
-        <td style= 'padding-left:[#indent#]px;' class="leftCol">[#itemId#]</td>
+        <td style="width:1%">[#history#]</td>
+        <td style= 'padding-left:[#indent#]px;' class="leftCol"><!--ET_BEGIN symbol-->[#symbol#] <!--ET_END symbol-->[#itemId#]</td>
         <td class="rightCol"> [#info#]</td>
         <td class="rightCol">[#blAmount#]</td>
         <td class="rightCol"><b>[#totalAmount#]</b></td>
     </tr>
     <!--ET_END BLOCK-->
+    <tr class='costObjectCoverTotalRow'>
+        <th colspan='4' class="rightCol" style="padding-right: 6px;">|Общо|*</th>
+        <th class="rightCol">[#totalAmount#]</th>
+    </tr>
 </table>
