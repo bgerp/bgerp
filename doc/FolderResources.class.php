@@ -111,7 +111,7 @@ class doc_FolderResources extends core_Manager
             $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
             $query->EXT('name', 'crm_Persons', 'externalName=name,externalKey=personId');
         }
-        $query->orderBy('name=ASC,state=ASC');
+        $query->orderBy('code=ASC,state=ASC');
         
         // Подготовка на пейджъра
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
@@ -130,7 +130,7 @@ class doc_FolderResources extends core_Manager
             
             $data->rows[$dRec->id] = $row;
         }
-        
+
         // Подготовка на полетата за показване
         $listFields = ($DetailName == 'planning_Hr') ? 'code=Код,personId=Оператор,users=Потребители,created=Създаване' : 'code=Код,name=Оборудване,groupId=Група,users=Потребители,created=Създаване';
         $data->listFields = arr::make($listFields, true);
