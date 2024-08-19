@@ -3386,13 +3386,13 @@ class cal_Tasks extends embed_Manager
     {
         if ($rec->assetResourceId) {
             $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
-            $sTxt = ' ' . $pRec->code . ' ' . $pRec->name;
+            $sTxt = ' ' . plg_Search::normalizeText($pRec->code . ' ' . $pRec->name);
         } else {
             $sTxt = ' ' . $mvc->withoutResStr;
         }
 
         if ($rec->stepId) {
-            $sTxt .= ' ' . doc_UnsortedFolderSteps::getSaoFullName($rec->stepId);
+            $sTxt .= ' ' . plg_Search::normalizeText(doc_UnsortedFolderSteps::getSaoFullName($rec->stepId));
         }
 
         if (trim($sTxt)) {
@@ -3718,12 +3718,6 @@ class cal_Tasks extends embed_Manager
         $rec = self::fetch($id);
         
         $contrData = new stdClass();
-        
-//        if ($rec->createdBy > 0) {
-//            $personId = crm_Profiles::fetchField("#userId = '{$rec->createdBy}'", 'personId');
-//            $contrData = crm_Persons::getContragentData($personId);
-//        }
-        
         $Driver = self::getDriver($id);
         $Driver->prepareContragentData($rec, $contrData);
         
@@ -4016,8 +4010,13 @@ class cal_Tasks extends embed_Manager
         $fields['-list'] = true;
 
         while($rec = $uQuery->fetch()) {
+            $row = $this->recToVerbal($rec, $fields);
             $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
+            $data->rows[$rec->id] = $row;
+
+            if(acc_Items::isItemInList($this, $rec->id, 'costObjects')) {
+                $row->driverClass = ht::createHint($row->driverClass, 'Задачата е разходен обект|*!');
+            }
         }
     }
 
@@ -4037,6 +4036,7 @@ class cal_Tasks extends embed_Manager
         $listTableMvc = clone $this;
         $listTableMvc->setField('folderId', 'tdClass=leftCol');
         $listTableMvc->setField('title', 'tdClass=leftCol');
+        $listTableMvc->setField('driverClass', 'tdClass=leftCol');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
