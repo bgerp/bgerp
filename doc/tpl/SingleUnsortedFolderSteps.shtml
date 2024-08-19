@@ -38,6 +38,12 @@
                     </td>
                     <td>[#createdOn#] |от|* [#createdBy#]</td>
                 </tr>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Промяна|*:
+                    </td>
+                    <td>[#modifiedOn#] |от|* [#modifiedBy#]</td>
+                </tr>
                 <!--ET_BEGIN lastUsedOn-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">

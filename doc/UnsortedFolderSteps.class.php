@@ -55,7 +55,7 @@ class doc_UnsortedFolderSteps extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name=Етап,state,lastUsedOn=Последно,modifiedOn,modifiedBy,createdOn=Създаване->На,createdBy=Създаване->От';
+    public $listFields = 'code,name=Етап,saoOrder=Ред,state,lastUsedOn=Последно,modifiedOn,modifiedBy,createdOn=Създаване->На,createdBy=Създаване->От';
 
 
     /**
