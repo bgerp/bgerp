@@ -323,8 +323,8 @@ class acc_CostObjectDetail extends core_Manager
                 }
 
                 foreach ($newRows as $stepId => $stepRows){
-                    $stepName = $stepId ? doc_UnsortedFolderSteps::getSaoFullName($stepId) : 'Без етап';
-                    $extraBtnTpl = new core_ET( " <a id='toggleCostBtn" . $stepId. "' href=\"javascript:toggleClass('collapse{$stepId}', 'toggleCostBtn{$stepId}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn"> </div>');
+                    $stepName = $stepId ? ht::createLinkRef(doc_UnsortedFolderSteps::getSaoFullName($stepId), doc_UnsortedFolderSteps::getSingleUrlArray($stepId)) : 'Без етап';
+                    $extraBtnTpl = new core_ET( " <a id='toggleCostBtn" . $stepId. "' href=\"javascript:toggleClass('collapse{$stepId}', 'toggleCostBtn{$stepId}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn" title="'. tr('Скриване/показване на подетапите') .'"> </div>');
                     $parents = doc_UnsortedFolderSteps::getParentsArr($stepId);
                     $class = "";
                     foreach ($parents as $pId){
