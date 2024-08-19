@@ -2740,7 +2740,8 @@ class planning_Tasks extends core_Master
                     $cQuery->where("#state != 'rejected' AND #threadId = {$taskRec->threadId}");
                     while($consRec = $cQuery->fetch()){
                         $newConsRec = clone $consRec;
-                        unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy);
+                        plg_Clone::unsetFieldsNotToClone($Consumptions, $newConsRec, $consRec);
+                        unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy, $newConsRec->activatedBy, $newConsRec->activatedOn);
 
                         $newConsRec->_isClone = true;
                         $newConsRec->originId = $newTask->containerId;
