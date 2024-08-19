@@ -77,20 +77,46 @@ class acc_CostObjectDetail extends core_Manager
         $to = dt::today();
         $data->costItemRows = array();
 
+        $data->listFilter = cls::get('core_Form');
+        $data->listFilter->FLD('search', 'varchar', 'silent,placeholder=Търсене');
+        $data->listFilter->FLD('withAmount', 'enum(all=Всички,no=Без разход,yes=С разход)', 'silent');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input(null, 'silent');
+        $data->listFilter->input();
+
+
+        $data->listFilter->toolbar = cls::get('core_Toolbar');
+        $data->listFilter->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
         // Извличане на датата на най-ранно използване на перата
         $itemArr = array();
         $iQuery = acc_Items::getQuery();
         $iQuery->in('id', $data->costItemData->ids);
-        $iQuery->show('earliestUsedOn,state');
+        $iQuery->show('earliestUsedOn,state,classId,objectId,title');
         while($iRec = $iQuery->fetch()){
             $itemArr[$iRec->id] = $iRec;
         }
+        $normalizedSearch = plg_Search::normalizeText($data->listFilter->rec->search);
 
         // За всеки разходен обект, групиран по класа му
         $taskClassId = cal_Tasks::getClassId();
         foreach ($data->costItemData->recs as $classId => $itemData){
+            $Class = cls::get($classId);
+            $haveSearchKeywords = $Class->hasPlugin('plg_Search');
             $data->costItemData->rows[$classId] = array();
             foreach ($itemData as $tRec){
+                $iRec = $itemArr[$tRec->itemId];
+
+                if(!empty($normalizedSearch)){
+                    if($haveSearchKeywords){
+                        $searchKeywords = $Class->fetchField($iRec->objectId, 'searchKeywords');
+
+                        if(strpos($searchKeywords, $normalizedSearch) === false) continue;
+                    } else {
+                        if(strpos(plg_Search::normalizeText($irec->title), $normalizedSearch) === false) continue;
+                    }
+                }
+
                 $row = new stdClass();
                 $row->itemId = acc_Items::getVerbal($tRec->itemId, 'titleLink');
                 $blAmount = $totalAmount = null;
@@ -142,7 +168,17 @@ class acc_CostObjectDetail extends core_Manager
                 // Ако е задача, ще се показва състоянието и прогреса ѝ
                 $infoTpl = new core_ET("");
                 if($classId == $taskClassId){
-                    $documentRec = cls::get($classId)->fetch($tRec->id, 'state,progress');
+                    $documentRec = cls::get($classId)->fetch($tRec->id, 'state,progress,stepId');
+                    if(!empty($documentRec->stepId)){
+                        $row->stepId = $documentRec->stepId;
+                        $row->_stepSaoOrder = doc_UnsortedFolderSteps::fetchField($documentRec->stepId, 'saoOrder');
+                        $row->_stepParent = doc_UnsortedFolderSteps::getParentsArr($documentRec->stepId);
+                    } else {
+                        $row->stepId = null;
+                        $row->_stepSaoOrder = 999999;
+                        $row->_stepParent = array();
+                    }
+
                     $row->progress = cal_Tasks::getVerbal($documentRec, 'progress');
                     $infoTpl->append("<span style='color:blue'>{$row->progress}</span> ");
                 } else {
@@ -156,6 +192,10 @@ class acc_CostObjectDetail extends core_Manager
                     $infoTpl = ht::createHint($infoTpl, 'Перото е затворено', 'img/16/warning-gray.png', false);
                 }
                 $row->info = $infoTpl;
+
+                if($data->listFilter->rec->withAmount == 'yes' && empty($row->blAmount)) continue;
+                if($data->listFilter->rec->withAmount == 'no' && !empty($row->blAmount)) continue;
+
                 $data->costItemData->rows[$classId][$tRec->id] = $row;
             }
         }
@@ -233,6 +273,11 @@ class acc_CostObjectDetail extends core_Manager
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Отнесени разходи'), 'title');
 
+        if ($data->listFilter) {
+            $formTpl = $data->listFilter->renderHtml();
+            $tpl->append($formTpl, 'content');
+        }
+
         $total = arr::sumValuesArray($data->costItemAmounts, 'blAmount');
         $Double = core_Type::getByName('double(decimals=2)');
         $totalVerbal = ($total) ? $Double->toVerbal($total) : "<span class='quiet'>n/a</span>";
@@ -261,6 +306,7 @@ class acc_CostObjectDetail extends core_Manager
     {
         $tpl = getTplFromFile('acc/tpl/CostObjectDetailTableTpl.shtml');
 
+        $taskClassId = cal_Tasks::getClassId();
         foreach ($data->costItemData->rows as $classId => $rows){
             $Class = cls::get($classId);
             $classTitle = cls::getTitle($Class);
@@ -268,13 +314,49 @@ class acc_CostObjectDetail extends core_Manager
             $countVerbal = core_Type::getByName('int')->toVerbal($count);
             $tpl->append("<tr class='costObjectCoverClassRow'><td colspan='6'class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #666; color: #fff'>{$classTitle} ({$countVerbal})</td></tr>", 'ROWS');
 
-            foreach ($rows as $row){
-                $row->ROW_CLASS = (empty($row->blAmount)) ? 'state-waiting' : 'state-active';
-                $row->indent = ($row->level) ? $row->level * 20 : 0;
-                $blockTpl = clone $tpl->getBlock('BLOCK');
-                $blockTpl->placeObject($row);
-                $blockTpl->removeBlocksAndPlaces();
-                $tpl->append($blockTpl, 'ROWS');
+            if($classId == $taskClassId){
+                arr::sortObjects($rows, '_stepSaoOrder');
+
+                $newRows = array();
+                foreach ($rows as $row1){
+                    $newRows[$row1->stepId][] = $row1;
+                }
+
+                foreach ($newRows as $stepId => $stepRows){
+                    $stepName = $stepId ? doc_UnsortedFolderSteps::getSaoFullName($stepId) : 'Без етап';
+                    $extraBtnTpl = new core_ET( " <a id='toggleCostBtn" . $stepId. "' href=\"javascript:toggleClass('collapse{$stepId}', 'toggleCostBtn{$stepId}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn"> </div>');
+                    $parents = doc_UnsortedFolderSteps::getParentsArr($stepId);
+                    $class = "";
+                    foreach ($parents as $pId){
+                        $class .= " collapse{$pId}";
+                    }
+
+                    $tpl->append("<tr class='costObjectCoverClassRow {$class}'><td colspan='6'class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #6e7894; color: #fff;'>{$stepName} <div style='discplay:inline-block;float:right'>{$extraBtnTpl->getContent()}</div></td></tr>", 'ROWS');
+
+                    foreach ($stepRows as $row){
+                        $row->ROW_CLASS = (empty($row->blAmount)) ? 'state-waiting' : 'state-active';
+                        $row->ROW_CLASS .= " collapse{$stepId}";
+                        foreach ($row->_stepParent as $pId){
+                            $row->ROW_CLASS .= " collapse{$pId}";
+                        }
+
+                        $row->indent = ($row->level) ? $row->level * 20 : 10;
+                        $row->symbol = $row->level != 0 ? '»' : null;
+                        $blockTpl = clone $tpl->getBlock('BLOCK');
+                        $blockTpl->placeObject($row);
+                        $blockTpl->removeBlocksAndPlaces();
+                        $tpl->append($blockTpl, 'ROWS');
+                    }
+                }
+            } else {
+                foreach ($rows as $row){
+                    $row->ROW_CLASS = (empty($row->blAmount)) ? 'state-waiting' : 'state-active';
+                    $row->indent = ($row->level) ? $row->level * 20 : 0;
+                    $blockTpl = clone $tpl->getBlock('BLOCK');
+                    $blockTpl->placeObject($row);
+                    $blockTpl->removeBlocksAndPlaces();
+                    $tpl->append($blockTpl, 'ROWS');
+                }
             }
         }
 

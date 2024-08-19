@@ -310,6 +310,7 @@ class doc_Setup extends core_ProtoSetup
         'doc_FolderResources',
         'doc_LinkedLast',
         'doc_TplManagerHandlerCache',
+        'doc_UnsortedFolderSteps',
         'migrate::foldersRepairSerchKeywords2124',
         'migrate::showFiles2152',
     );

@@ -27,8 +27,8 @@ class hr_WorkingCycleSens extends sens2_ProtoDriver
      * Входове на контролера
      */
     public $inputs = array(
-        'workingAfter' => array('caption' => 'Минимална', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
-        'nonWorkingAfter' => array('caption' => 'Средна', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
+        'workingAfter' => array('caption' => 'Начало след', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
+        'nonWorkingAfter' => array('caption' => 'Спиране след', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
     );
 
 

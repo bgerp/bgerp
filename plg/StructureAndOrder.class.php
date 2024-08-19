@@ -100,12 +100,59 @@ class plg_StructureAndOrder extends core_Plugin
 
             if(is_scalar($title)) {
                 $rec = $mvc->fetch($key);
+
                 $title = self::padOpt($title, $rec->saoLevel);
             }
         }
     }
 
-    
+
+    /**
+     * Помощна ф-я връщаща пълното наименование на записа
+     *
+     * @param $mvc
+     * @param $res
+     * @param $rec
+     * @return void
+     */
+    public static function on_AfterGetSaoFullName($mvc, &$res, $rec)
+    {
+        if(isset($res)) return $res;
+        $rec = $mvc->fetchRec($rec);
+        $res = $mvc->getRecTitle($rec);
+
+        $parent = $rec->saoParentId;
+        while ($parent && ($pRec = $mvc->fetch($parent))) {
+            $pName = $mvc->getRecTitle($pRec);
+            $res = $pName . ' » ' . $res;
+            $parent = $pRec->saoParentId;
+        }
+    }
+
+
+    /**
+     * Помощна ф-я връщаща пълното наименование на записа
+     *
+     * @param $mvc
+     * @param $res
+     * @param $rec
+     * @return void
+     */
+    public static function on_AfterGetParentsArr($mvc, &$res, $rec)
+    {
+        if(isset($res)) return $res;
+        $res = array();
+        $rec = $mvc->fetchRec($rec);
+        $parent = $rec->saoParentId;
+        while ($parent && ($pRec = $mvc->fetch($parent))) {
+            $res[$pRec->id] = $pRec->id;
+            $parent = $pRec->saoParentId;
+        }
+
+        return $res;
+    }
+
+
     /**
      * Подготвя опциите за saoPosition
      */
@@ -481,5 +528,33 @@ class plg_StructureAndOrder extends core_Plugin
                 return -1;
             }
         });
+    }
+
+
+    /**
+     * Метод по подразбиране връщащ масив с всички наследници на дадения запис
+     *
+     * @param $mvc
+     * @param $res
+     * @param $rec
+     * @return void
+     */
+    public static function on_AfterGetDescendantsArr($mvc, &$res, $rec)
+    {
+        if(isset($res)) return $res;
+        $rec = $mvc->fetchRec($rec);
+
+        $res = array();
+        $query = $mvc->getQuery();
+        $query->where("#saoParentId = {$rec->id}");
+        $query->show("saoParentId,id");
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $rec->id;
+            $parent = $rec->id;
+            while ($parent && ($pRec = $mvc->fetch("#saoParentId = {$parent}", 'id'))) {
+                $res[$pRec->id] = $pRec->id;
+                $parent = $pRec->id;
+            }
+        }
     }
 }
