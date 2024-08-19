@@ -167,4 +167,43 @@ class doc_UnsortedFolderSteps extends core_Master
             $requiredRoles = 'no_one';
         }
     }
+
+
+    /**
+     * Масив за избор на етап
+     *
+     * @param mixed $selectedKeylist - м-во за избор, null за всички
+     * @param null $exId - съществуващо ид
+     * @return array $options
+     */
+    public static function getOptionArr($selectedKeylist = null, $exId = null)
+    {
+        // Прави се множество от избраните етапи и техните бащи
+        $me = cls::get(get_called_class());
+        $unsortedFolderStepArr = keylist::toArray($selectedKeylist);
+        $allStepsArr = $options = array();
+        foreach ($unsortedFolderStepArr as $stepId) {
+            $allStepsArr += array($stepId => $stepId) + $me->getParentsArr($stepId);
+        }
+
+        // Подреждат се и се задават като опции
+        $stepQuery = $me->getQuery();
+        $stepQuery->where("#state != 'rejected'");
+        if(isset($selectedKeylist)){
+            if(countR($allStepsArr)) {
+                $stepQuery->in('id', array_keys($allStepsArr));
+            } else {
+                $stepQuery->where("1 = 2");
+            }
+        }
+        if(isset($exId)) {
+            $stepQuery->orWhere("#id = {$exId}");
+        }
+
+        while($stepRec = $stepQuery->fetch()) {
+            $options[$stepRec->id] = $me->getSaoFullName($stepRec);
+        }
+
+        return $options;
+    }
 }
