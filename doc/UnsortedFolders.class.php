@@ -1148,4 +1148,41 @@ class doc_UnsortedFolders extends core_Master
 
         return $resTpl;
     }
+
+
+    /**
+     * След подготовка на филтъра за филтриране в корицата
+     *
+     * @param core_mvc   $mvc
+     * @param core_Form  $threadFilter
+     * @param core_Query $threadQuery
+     * @param array $listFilterAddedFields
+     */
+    protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery, &$listFilterAddedFields)
+    {
+        // Добавяме поле за избор на етапи
+        $listFilterAddedFields['stepId'] = 'stepId';
+        $threadFilter->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,allowEmpty)', 'caption=Етап,silent');
+        $threadFilter->showFields .= ',stepId';
+        $threadFilter->input('stepId', 'silent');
+        $threadFilter->input('stepId');
+        $threadFilter->setOptions('stepId', array('' => '') + doc_UnsortedFolderSteps::getOptionArr());
+
+        // Ако търсим по група
+        if ($stepId = $threadFilter->rec->stepId) {
+            $threadQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+
+            // Ако има филтър по етап остават само тези нишки в които има задача за този етап
+            $tQuery = cal_Tasks::getQuery();
+            $tQuery->where("#folderId = '{$threadFilter->rec->folderId}' AND #stepId = {$stepId}");
+            $tQuery->show('threadId');
+            $threadIds = arr::extractValuesFromArray($tQuery->fetchAll(),  'threadId');
+
+            if(countR($threadIds)) {
+                $threadQuery->in('id', $threadIds);
+            } else {
+                $threadQuery->where("1=2");
+            }
+        }
+    }
 }

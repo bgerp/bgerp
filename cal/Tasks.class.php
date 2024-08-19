@@ -492,33 +492,10 @@ class cal_Tasks extends embed_Manager
 
             // и той има посочени етапи
             if(!empty($unsortedFolderSteps) || isset($rec->stepId)) {
-                $Steps = cls::get('doc_UnsortedFolderSteps');
-                $form->setField('stepId', 'input,mandatory');
-
-                // Прави се множество от избраните етапи и техните бащи
-                $unsortedFolderStepArr = keylist::toArray($unsortedFolderSteps);
-                $allStepsArr = $availableStepOptions = array();
-                foreach ($unsortedFolderStepArr as $stepId) {
-                    $allStepsArr += array($stepId => $stepId) + $Steps->getParentsArr($stepId);
-                }
-
-                // Подреждат се и се задават като опции
-                $stepQuery = $Steps->getQuery();
-                $stepQuery->where("#state != 'rejected'");
-
-                if(countR($allStepsArr)) {
-                    $stepQuery->in('id', array_keys($allStepsArr));
-                } else {
-                    $stepQuery->where("1=2");
-                }
-                if(!empty($rec->stepId)) {
-                    $stepQuery->orWhere("#id = {$rec->stepId}");
-                }
-
-                while($stepRec = $stepQuery->fetch()) {
-                    $availableStepOptions[$stepRec->id] = $Steps->getSaoFullName($stepRec);
-                }
+                $unsortedFolderSteps = empty($unsortedFolderSteps) ? array() : $unsortedFolderSteps;
+                $availableStepOptions = doc_UnsortedFolderSteps::getOptionArr($unsortedFolderSteps, $rec->stepId);
                 $form->setOptions('stepId', array() + $availableStepOptions);
+                $form->setField('stepId', 'input,mandatory');
             }
 
             if(isset($rec->parentId)) {
