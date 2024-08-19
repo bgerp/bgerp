@@ -347,7 +347,8 @@ class thumb_Img
             } else {
                 if ($asString = $this->getAsString()) {
                     if ($this->format == 'webp') {
-                        $webpFile = fileman::addStrToFile($asString, $this->thumbName);
+                        $fName = $this->thumbName ? $this->thumbName : 'webp.webp';
+                        $webpFile = fileman::addStrToFile($asString, $fName);
                         $this->gdRes = @imagecreatefromwebp($webpFile);
                     } else {
                         $this->gdRes = @imagecreatefromstring($asString);
@@ -389,7 +390,8 @@ class thumb_Img
             if (!$this->gdRes) {
                 if ($this->sourceType == 'string') {
                     if ($this->format == 'webp') {
-                        $webpFile = fileman::addStrToFile($this->source, $this->thumbName);
+                        $fName = $this->thumbName ? $this->thumbName : 'webp.webp';
+                        $webpFile = fileman::addStrToFile($this->source, $fName);
                         $this->gdRes = @imagecreatefromwebp($webpFile);
                     } else {
                         $this->gdRes = @imagecreatefromstring($this->source);
