@@ -123,7 +123,7 @@ class ztm_RegisterValues extends core_Manager
         $data->query->orderBy('updatedOn,id', 'DESC');
         
         if ($data->listFilter->rec->devices) {
-            $data->query->in('deviceId', $data->listFilter->rec->devices);
+            $data->query->in('deviceId', type_Keylist::toArray($data->listFilter->rec->devices));
         }
 
         if ($registers = $data->listFilter->rec->registers) {
