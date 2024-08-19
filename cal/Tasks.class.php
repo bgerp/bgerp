@@ -495,7 +495,7 @@ class cal_Tasks extends embed_Manager
                 $unsortedFolderSteps = empty($unsortedFolderSteps) ? array() : $unsortedFolderSteps;
                 $availableStepOptions = doc_UnsortedFolderSteps::getOptionArr($unsortedFolderSteps, $rec->stepId);
                 $form->setOptions('stepId', array() + $availableStepOptions);
-                $form->setField('stepId', 'input');
+                $form->setField('stepId', 'input,mandatory');
             }
 
             if(isset($rec->parentId)) {
