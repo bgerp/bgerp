@@ -6947,6 +6947,9 @@ only screen and (max-width: 320px) {
 .qrcode {
   height: 87px; }
 
+.narrow .qrcode {
+  height: auto; }
+
 /*
  * стилове за принтиране
  */

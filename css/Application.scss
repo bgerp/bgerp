@@ -7910,6 +7910,9 @@ body.narrow {
 .qrcode {
 	height: 87px;
 }
+.narrow .qrcode {
+	height: auto;
+}
 /*стилове за принтиране*/
 @media print{
 	.wide .singleView {
