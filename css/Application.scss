@@ -5501,6 +5501,14 @@ table .eshop-btn {
 .cms-last {
 	margin-right: 0;
 }
+
+.cms-row .eightcol {
+	.document {
+		min-width: auto;
+		border: none;
+		padding: 0;
+	}
+}
 /*край на grid*/
 
 
@@ -7909,6 +7917,9 @@ body.narrow {
 }
 .qrcode {
 	height: 87px;
+}
+.narrow .qrcode {
+	height: auto;
 }
 /*стилове за принтиране*/
 @media print{
