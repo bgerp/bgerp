@@ -198,6 +198,10 @@ class acc_CostObjectDetail extends core_Manager
 
                 $data->costItemData->rows[$classId][$tRec->id] = $row;
             }
+
+            if(!countR($data->costItemData->rows[$classId])){
+                unset($data->costItemData->rows[$classId]);
+            }
         }
     }
 
