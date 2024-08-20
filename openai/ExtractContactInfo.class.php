@@ -187,7 +187,7 @@ class openai_ExtractContactInfo
             $tStr = trim($tStr);
             $mArr = explode('->', $tStr);
 
-            $mArr[0] = trim($mArr[0]), '\n\r\t :');
+            $mArr[0] = trim($mArr[0], "\n\r\t :");
             $mArr[1] = trim($mArr[1]);
 
             if ($mArr[1]) {
