@@ -1512,7 +1512,7 @@ class core_String
 
         $toShow = $first + $last;
         $smartLen = ($len - ($len <= $toShow ? 0 : $toShow));
-        $length = ($fixedLength && $fixedLength > $smartLen) ? $fixedLength : $smartLen;
+        $length = $fixedLength ? min($smartLen, $fixedLength) : $smartLen;
 
         return substr($str, 0, $len <= $toShow ? 0 : $first).str_repeat("*", $length).substr($str, $len - $last, $len <= $toShow ? 0 : $last);
     }
