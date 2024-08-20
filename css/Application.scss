@@ -5804,7 +5804,24 @@ iframe.autoHeight {
 		margin-top: 0;
 	}
 }
-
+.wide #Bottom-tab-doc_UnsortedFolders {
+	input[type=text] {
+		height: 1.85em;
+	}
+	#filter {
+		height: 25px;
+		padding-left: 22px !important
+	}
+}
+.narrow #Bottom-tab-doc_UnsortedFolders {
+	input[type=text] {
+		height: 2em !important;
+	}
+	#filter {
+		height: 30px !important;
+		padding-left: 22px !important
+	}
+}
 .planning_ProductionTaskDetails .listRowsDetail {
 	width: 100% !important;
 	overflow-x: auto !important;
