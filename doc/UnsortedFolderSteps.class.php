@@ -25,7 +25,7 @@ class doc_UnsortedFolderSteps extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, doc_Wrapper, plg_Sorting, plg_State2, plg_Modified, plg_SaveAndNew, plg_StructureAndOrder';
+    public $loadList = 'plg_RowTools2, plg_Created, doc_Wrapper, plg_Sorting, plg_State2, plg_Modified, plg_SaveAndNew, plg_StructureAndOrder,plg_Search';
 
 
     /**
@@ -94,6 +94,12 @@ class doc_UnsortedFolderSteps extends core_Master
      * Заглавие в единствено число
      */
     public $details = 'StepFolders=doc_UnsortedFolders,StepTasks=cal_Tasks';
+
+
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'name, code, description';
 
 
     /**
@@ -205,5 +211,28 @@ class doc_UnsortedFolderSteps extends core_Master
         }
 
         return $options;
+    }
+
+
+    /**
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->showFields = 'search';
+    }
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $res .= ' ' . plg_Search::normalizeText($mvc->getSaoFullName($rec));
     }
 }
