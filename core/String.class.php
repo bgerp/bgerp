@@ -1489,8 +1489,8 @@ class core_String
         $mailParts = explode("@", $email);
         $domainParts = explode('.', $mailParts[1]);
 
-        $mailParts[0] = str::maskString($mailParts[0], 1, 1);
-        $domainParts[0] = str::maskString($domainParts[0], 0, 0);
+        $mailParts[0] = str::maskString($mailParts[0], 1, 1, 5);
+        $domainParts[0] = str::maskString($domainParts[0], 0, 0, 5);
         $mailParts[1] = implode('.', $domainParts);
 
         return implode("@", $mailParts);
@@ -1500,16 +1500,20 @@ class core_String
     /**
      * Ф-я за маскиране на стринг с '*'
      *
-     * @param string $str
-     * @param int $first
-     * @param int $last
+     * @param string $str       - стринг
+     * @param int $first        - начало
+     * @param int $last         - край
+     * @param bool $fixedLength - твърд брой колко * да се сложат
      * @return string
      */
-    public static function maskString($str, $first, $last)
+    public static function maskString($str, $first, $last, $fixedLength = false)
     {
         $len = strlen($str);
-        $toShow = $first + $last;
 
-        return substr($str, 0, $len <= $toShow ? 0 : $first).str_repeat("*", $len - ($len <= $toShow ? 0 : $toShow)).substr($str, $len - $last, $len <= $toShow ? 0 : $last);
+        $toShow = $first + $last;
+        $smartLen = ($len - ($len <= $toShow ? 0 : $toShow));
+        $length = ($fixedLength && $fixedLength > $smartLen) ? $fixedLength : $smartLen;
+
+        return substr($str, 0, $len <= $toShow ? 0 : $first).str_repeat("*", $length).substr($str, $len - $last, $len <= $toShow ? 0 : $last);
     }
 }
