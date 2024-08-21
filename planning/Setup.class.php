@@ -428,8 +428,8 @@ class planning_Setup extends core_ProtoSetup
     public static function repairSearchKeywords2524()
     {
         $callOn = dt::addSecs(1200);
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ConsumptionNotes', $callOn);
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ReturnNotes', $callOn);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_ConsumptionNotes', $callOn);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_ReturnNotes', $callOn);
     }
 
 

@@ -48,7 +48,7 @@ class bgtaxes_ProductTaxes extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,acc';
+    public $canList = 'ceo,admin,acc';
 
 
     /**
@@ -60,7 +60,7 @@ class bgtaxes_ProductTaxes extends core_Manager
     /**
      * Кой може да пише?
      */
-    public $canEdit = 'accMaster,ceo';
+    public $canEdit = 'accMaster,ceo,admin';
 
 
     /**
@@ -72,7 +72,7 @@ class bgtaxes_ProductTaxes extends core_Manager
     /**
      * Кой има право да променя системните данни?
      */
-    public $canEditsysdata = 'accMaster,ceo';
+    public $canEditsysdata = 'accMaster,ceo,admin';
 
 
     /**

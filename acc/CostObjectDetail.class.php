@@ -51,7 +51,7 @@ class acc_CostObjectDetail extends core_Manager
                 $result[$tKey] = $tObject;
                 foreach ($children as $childKey => $childRec){
                     if(array_key_exists($childKey, $data->costItemData->recs[$taskClassId])){
-                        $result[$childKey] = array('itemId' => $data->costItemData->recs[$taskClassId][$childKey]->itemId, 'id' => $childRec->id);
+                        $result[$childKey] = (object)array('itemId' => $data->costItemData->recs[$taskClassId][$childKey]->itemId, 'id' => $childRec->id);
                         unset($data->costItemData->recs[$taskClassId][$childKey]);
                     }
                 }
@@ -197,6 +197,10 @@ class acc_CostObjectDetail extends core_Manager
                 if($data->listFilter->rec->withAmount == 'no' && !empty($row->blAmount)) continue;
 
                 $data->costItemData->rows[$classId][$tRec->id] = $row;
+            }
+
+            if(!countR($data->costItemData->rows[$classId])){
+                unset($data->costItemData->rows[$classId]);
             }
         }
     }

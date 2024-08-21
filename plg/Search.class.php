@@ -593,7 +593,7 @@ class plg_Search extends core_Plugin
         }
         
         $str = preg_replace("/[^a-z0-9{$ignoreStr}]+/", ' ', $str);
-        
+
         return trim($str);
     }
     
@@ -750,7 +750,7 @@ class plg_Search extends core_Plugin
      *
      * @param string $emlStatus
      */
-    public static function callback_repairSerchKeywords($clsName)
+    public static function callback_repairSearchKeywords($clsName)
     {
         $pKey = $clsName . '|repairSearchKeywords';
         
@@ -763,7 +763,7 @@ class plg_Search extends core_Plugin
         
         $clsInst = cls::get($clsName);
         
-        if ($clsInst->repairSerchKeywords === false) {
+        if ($clsInst->repairSearchKeywords === false) {
             $clsInst->logDebug('За този клас не се регенерират ключови думи');
             
             return ;
@@ -853,7 +853,7 @@ class plg_Search extends core_Plugin
         }
         
         $callOn = dt::addSecs(55);
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $clsName, $callOn);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', $clsName, $callOn);
         
         $clsInst->logDebug('Регенерирани ключови думи до id=' . $lastId);
         
