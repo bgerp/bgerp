@@ -499,7 +499,7 @@ class email_Setup extends core_ProtoSetup
         'email_ServiceRules',
         'email_ServiceRulesData',
         'email_AddressesInfo',
-        'migrate::repairSpamScore1219',
+        'email_IncomingsShowTypes',
         'migrate::serviceRules2121',
     );
     
@@ -660,16 +660,6 @@ class email_Setup extends core_ProtoSetup
         }
 
         core_Permanent::set('ourImgEmailArr', $oImgDataIdArr, 10000000);
-    }
-    
-    
-    /**
-     * Миграция за регенериране на ключовите думи
-     */
-    public static function repairSpamScore1219()
-    {
-        core_CallOnTime::setCall('email_Spam', 'repairSpamScore', null, dt::addSecs(120));
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'email_Spam', dt::addSecs(180));
     }
 
 

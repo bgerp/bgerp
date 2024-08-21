@@ -448,20 +448,9 @@ class planning_Setup extends core_ProtoSetup
      */
     function changeCentreFieldToKeylistInWorkflows()
     {
-        $frameCls = cls::get('frame2_Reports');
-
-        $query = $frameCls::getQuery();
-
-        $repClass = planning_reports_Workflows::getClassId();
-
-        $query->where("#driverClass = $repClass");
-
-        while ($rec = $query->fetch()) {
-            if (is_integer($rec->centre)) {
-                $rec->centre = keylist::fromArray(array($rec->centre => $rec->centre));
-                $frameCls->save_($rec, $frameCls->centre);
-            }
-        }
+        $callOn = dt::addSecs(1200);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_ConsumptionNotes', $callOn);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_ReturnNotes', $callOn);
     }
 
 

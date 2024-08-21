@@ -303,7 +303,7 @@ class doc_Setup extends core_ProtoSetup
         'doc_FolderResources',
         'doc_LinkedLast',
         'doc_TplManagerHandlerCache',
-        'migrate::foldersRepairSerchKeywords2124',
+        'doc_UnsortedFolderSteps',
         'migrate::showFiles2152',
     );
 
@@ -549,15 +549,6 @@ class doc_Setup extends core_ProtoSetup
 
             $Portal->save($rec);
         }
-    }
-
-
-    /**
-     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
-     */
-    public static function foldersRepairSerchKeywords2124()
-    {
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'doc_Folders', dt::addSecs(120));
     }
 
 

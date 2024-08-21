@@ -219,8 +219,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_ListingDetails',
         'cat_PackParams',
         'cat_ParamFormulaVersions',
-        'migrate::fixNewLinesInFormulas2706',
-        'migrate::updateCategories2124',
+        'migrate::repairSearchKeywords2434',
     );
     
     
@@ -430,40 +429,11 @@ class cat_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция на паразитните нови редове във формулите
+     * Миграция за регенериране на ключовите думи
      */
-    function fixNewLinesInFormulas2706()
+    public static function repairSearchKeywords2434()
     {
-        $Params = cls::get('cat_products_Params');
-        $classId = cond_type_Formula::getClassId();
-        $query = $Params->getQuery();
-        $query->EXT('driverClass', 'cat_Params', 'externalName=driverClass,externalKey=paramId');
-        $query->where("#driverClass={$classId}");
-        $query->show('paramId,paramValue');
-
-        $toSave = array();
-        while($rec = $query->fetch()){
-            $paramValueParsed = preg_replace('/(\n\r)+|(\r\n)+/', "$1$2", $rec->paramValue);
-            if($paramValueParsed != $rec->paramValue){
-                $rec->paramValue = $paramValueParsed;
-                $toSave[] = $rec;
-            }
-        }
-
-        if(countR($toSave)){
-            $Params->saveArray($toSave, 'id,paramValue');
-        }
-    }
-
-
-    /**
-     * Миграция на категориите
-     */
-    function updateCategories2124()
-    {
-        $Categories = cls::get('cat_Categories');
-        $useAsProtoName = str::phpToMysqlName('useAsProto');
-        $query = "UPDATE {$Categories->dbTableName} SET {$useAsProtoName} = 'no' WHERE ({$useAsProtoName} IS NULL OR {$useAsProtoName} = '')";
-        $Categories->db->query($query);
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'cat_Products', $callOn);
     }
 }

@@ -769,7 +769,7 @@ class core_Setup extends core_ProtoSetup
                 continue;
             }
             
-            core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', $rec->name, dt::addSecs($secs));
+            core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', $rec->name, dt::addSecs($secs));
             
             $secs += 60;
         }
@@ -864,6 +864,6 @@ class core_Setup extends core_ProtoSetup
      */
     function clearCallOnTimeBadData2212()
     {
-        core_CallOnTime::delete(array("#callOn < '[#1#]' AND #state = 'pending' AND #methodName = 'repairSerchKeywords'", dt::subtractSecs(30 * 86400)));
+        core_CallOnTime::delete(array("#callOn < '[#1#]' AND #state = 'pending' AND #methodName = 'repairSearchKeywords'", dt::subtractSecs(30 * 86400)));
     }
 }
