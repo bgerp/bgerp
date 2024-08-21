@@ -1050,6 +1050,7 @@ class doc_UnsortedFolders extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
+
         if($form->isSubmitted()) {
             if(isset($rec->id)) {
                 $assetErrorMsgArr = array();
@@ -1075,7 +1076,32 @@ class doc_UnsortedFolders extends core_Master
                     $form->setError('resourceType', implode('. ', $assetErrorMsgArr));
                 }
 
+                // Проверка дали са премахнати етапи, които вече са избрани в задачи в проекта
+                $cQuery = cal_Tasks::getQuery();
+                $cQuery->where("#folderId = {$rec->folderId} AND #stepId IS NOT NULL");
+                $stepsInTasks = arr::extractValuesFromArray($cQuery->fetchAll(), 'stepId');
+                $selectTaskDescendants = array();
+                if(!empty($rec->steps)) {
+                    $stepsArr = keylist::toArray($rec->steps);
+                    foreach ($stepsArr as $stepId) {
+                        $selectTaskDescendants += array($stepId => $stepId) + doc_UnsortedFolderSteps::getParentsArr($stepId);
+                    }
+                }
+
+                $stepTaskError = array();
+                foreach ($stepsInTasks as $stepInTask) {
+                    if(!array_key_exists($stepInTask, $selectTaskDescendants)) {
+                        $stepTaskError[] = "<b>" . doc_UnsortedFolderSteps::getSaoFullName($stepInTask) . "</b>";
+                    }
+                }
+
+                if(countR($stepTaskError)) {
+                    $form->setError('steps', "Следните етапи вече са избрани в задачи в проекта|*: " . implode(',', $stepTaskError));
+                }
+
                 if(!$form->gotErrors()) {
+
+                    // Ако има етапи и е избрано добавяне на децата - да се добавят
                     if(!empty($rec->steps) && $rec->addSubSteps == 'yes') {
                         $expandedSteps = array();
                         $steps = keylist::toArray($rec->steps);
