@@ -153,8 +153,15 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             } else {
                 $periods = explode(',', $this->periodFields);
                 $title = new core_ET($title);
-                $string = dt::getSmartPeriod($rec->{$periods[0]}, $rec->{$periods[1]});
-                $title->replace("({$string})", 'period');
+
+                if(!empty($rec->{$periods[1]})){
+                    $oldestAvailableDate = null;plg_SelectPeriod::getOldestAvailableDate();
+                    $fromDate = $rec->{$periods[0]} ? $rec->{$periods[0]} : (($oldestAvailableDate) ? $oldestAvailableDate : null);
+
+                    $string = dt::getSmartPeriod($fromDate, $rec->{$periods[1]});
+                    $title->replace("({$string})", 'period');
+                }
+
                 $title = $title->getContent();
             }
         }

@@ -1098,13 +1098,16 @@ class core_DateTime
         $fromDateObj = DateTime::createFromFormat("Y-m-d", $from);
         $toDateObj = DateTime::createFromFormat("Y-m-d", $to);
 
-        $fromYear = $fromDateObj->format("Y");
-        $fromDay = $fromDateObj->format("d");
-        $fromMonth = static::getMonth($fromDateObj->format("m"), 'M', $lg);
+        if(empty($from)) return tr('До') . ": " . dt::mysql2verbal($to, 'd M y');
 
         $toYear = $toDateObj->format("Y");
         $toMonth = static::getMonth($toDateObj->format("m"), 'M', $lg);
         $toDay = $toDateObj->format("d");
+
+        $fromYear = $fromDateObj->format("Y");
+        $fromDay = $fromDateObj->format("d");
+        $fromMonth = static::getMonth($fromDateObj->format("m"), 'M', $lg);
+
         $lastDayOfMonth = dt::getLastDayOfMonth($to);
         $fromDayPadded = ltrim($fromDay, '0');
         $toDayPadded = ltrim($toDay, '0');
