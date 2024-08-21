@@ -834,7 +834,7 @@ class sales_Invoices extends deals_InvoiceMaster
             $res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
         } elseif (!$mvc->isAllowedToBePosted($rec, $error)) {
             $res = strip_tags($error);
-        } else {
+        } elseif($rec->type == 'invoice') {
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
             if($rec->contragentCountryId != $bgId && drdata_Countries::isEu($bgId)){
                 $vatCheckArr = cls::get('drdata_Vats')->check($rec->contragentVatNo);
