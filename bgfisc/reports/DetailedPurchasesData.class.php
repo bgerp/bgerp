@@ -26,8 +26,14 @@ class bgfisc_reports_DetailedPurchasesData extends frame2_driver_TableData
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'acc,purchase,ceo';
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *

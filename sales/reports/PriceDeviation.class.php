@@ -48,8 +48,14 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId';
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *

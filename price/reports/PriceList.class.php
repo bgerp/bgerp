@@ -90,16 +90,17 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan,single=internal');
         $fieldset->FLD('templateType', 'enum(default=Стандартен изглед,foods=Храни)', 'caption=Допълнително->Изглед,after=lang,single=internal');
     }
-    
-    
+
+
     /**
      * Връща заглавието на отчета
      *
      * @param stdClass $rec - запис
+     * @param bool $isPlain - дали заглавието да е чисто (без окрасяване)
      *
      * @return string|NULL - заглавието или NULL, ако няма
      */
-    public function getTitle($rec)
+    public function getTitle($rec, $isPlain = false)
     {
         $policyName = price_Lists::getTitleById($rec->policyId);
         $title = "Ценоразпис \"{$policyName}\"";
