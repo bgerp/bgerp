@@ -500,7 +500,7 @@ class sales_Setup extends core_ProtoSetup
                        sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,
                        sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_reports_SalesByCreators,sales_interface_FreeRegularDelivery,
                        sales_reports_PriceComparison,sales_tpl_InvoiceHeaderEuro,sales_tpl_CustomsInvoiceEn,sales_tpl_InvoiceAccView,sales_reports_PassiveCustomers,
-                       sales_reports_OffersSentWithoutReply,sales_tpl_InvoiceWithTotalQuantity,sales_reports_MostFrequentlySoldQuantities';
+                       sales_reports_OffersSentWithoutReply,sales_tpl_InvoiceWithTotalQuantity,sales_tpl_SaleWithTotalQuantity,sales_reports_MostFrequentlySoldQuantities';
     
     /**
      * Настройки за Cron
