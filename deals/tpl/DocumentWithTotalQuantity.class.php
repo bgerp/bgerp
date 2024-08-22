@@ -15,7 +15,7 @@
  * @since     v 0.1
  * @title     Обработвач на шаблона за документ с обобщено количество
  */
-class deals_tpl_DocumentWithTotalQuantity extends doc_TplScript
+abstract class deals_tpl_DocumentWithTotalQuantity extends doc_TplScript
 {
     /**
      * Метод който подава данните на детайла на мастъра, за обработка на скрипта
