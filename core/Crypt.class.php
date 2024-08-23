@@ -310,4 +310,113 @@ class core_Crypt extends core_BaseClass
         
         return $var;
     }
+
+
+    /**
+     * Crypts integer id, adding an authentication hash
+     *
+     * @param integer $id
+     * @param string  $salt
+     * @param integer $idLen
+     * @param integer $hashLen
+     * @param boolean $toBase36
+     *
+     * @return int|null
+     */
+    public static function encryptId($id, $salt = EF_CRYPT_CODE, $idLen = 4, $hashLen = 2, $toBase36 = true)
+    {
+        $idHash = substr(hash('sha256', $id . $salt . $id, true), 0, $hashLen);
+        $key = substr(hash('sha256', $idHash . $salt . $idHash, true), 0, $idLen);
+        $idBin = substr(pack('Q', $id), 0, $idLen) ;
+        $idCrypt = $idHash . ($key ^ $idBin);
+
+        $res = rtrim(base64_encode($idCrypt), '=');
+        if ($toBase36 === true) {
+            $res = self::base64ToBase36($res);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Decrypts integer id, checking the authentication hash
+     *
+     * @param string  $idCrypt
+     * @param string  $salt
+     * @param integer $idLen
+     * @param integer $hashLen
+     * @param boolean $toBase64
+     *
+     * @return int|null
+     */
+    public static function decryptId($idCrypt, $salt = EF_CRYPT_CODE, $idLen = 4, $hashLen = 2, $toBase64 = true)
+    {
+        if ($toBase64 === true) {
+            $idCrypt = self::base36ToBase64($idCrypt);
+        }
+
+        $len = (int) ceil(strlen($idCrypt) / 4) * 4;
+        $idCrypt = base64_decode(str_pad($idCrypt, $len, '=', STR_PAD_RIGHT));
+        $idHash = substr($idCrypt, 0, $hashLen);
+        $res  = substr($idCrypt, $hashLen);
+        $key = substr(hash('sha256', $idHash . $salt . $idHash, true), 0, $idLen);
+        $res = $res ^ $key;
+        $res8 = str_pad($res, 8, chr(0), STR_PAD_RIGHT);
+        $res = unpack('Q', $res8);
+        $id = (int) $res[1];
+
+        if (substr(hash('sha256', $id . $salt . $id, true), 0, $hashLen) == $idHash) {
+
+            return $id;
+        }
+
+        return null;
+    }
+
+
+    /**
+     * base64 към base36 конвертор
+     *
+     * @param string $base64_string
+     *
+     * @return string
+     */
+    public static function base64ToBase36($base64_string)
+    {
+        // Step 1: Decode the Base64 string to binary data
+        $binary_data = base64_decode($base64_string);
+
+        // Step 2: Convert binary data to an integer (big-endian)
+        $decimal_number = 0;
+        foreach (unpack('C*', $binary_data) as $byte) {
+            $decimal_number = ($decimal_number << 8) + $byte;
+        }
+
+        return base_convert((string)$decimal_number, 10, 36);
+    }
+
+
+    /**
+     * base36 към base64 конвертор
+     *
+     * @param string $base36_number
+     *
+     * @return string
+     */
+    public static function base36ToBase64($base36_number)
+    {
+        // Step 1: Convert the decimal number to binary data
+        $binary_data = '';
+
+        $decimal_number = base_convert($base36_number, 36, 10);
+        while ($decimal_number > 0) {
+            $byte = $decimal_number & 0xFF; // Get the last 8 bits (1 byte)
+            $binary_data = chr($byte) . $binary_data; // Prepend the byte to the binary data string
+            $decimal_number = $decimal_number >> 8; // Shift the number 8 bits to the right
+        }
+
+        // Step 2: Encode the binary data to a Base64 string
+        return base64_encode($binary_data);
+    }
 }
