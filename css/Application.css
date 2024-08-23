@@ -6749,7 +6749,12 @@ only screen and (max-width: 360px) {
 
   .narrow .antetkaCell {
     white-space: normal;
-    max-width: 230px !important; } }
+    max-width: 230px !important; }
+
+    .user-profile .user-name {
+      font-size: 1.1em !important; }
+    .user-profile .personStatus {
+      font-size: 0.65em !important; } }
 
 @media handheld,
 only screen and (max-width: 320px) {

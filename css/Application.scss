@@ -7668,6 +7668,14 @@ body.narrow {
 		white-space: normal;
 		max-width: 230px !important;
 	}
+	.user-profile {
+		.user-name {
+			font-size: 1.1em !important;
+		}
+		.personStatus{
+			font-size: 0.65em !important;
+		}
+	}
 }
 
 
@@ -7718,6 +7726,8 @@ body.narrow {
 		font-size: 0.8em !important;
 		padding: 3px 3px 6px 3px;
 	}
+
+
 }
 .footerDocInfo{
     padding-top: 10px;
