@@ -194,11 +194,15 @@ class thumb_Img
                             $mode = 'small-no-change',
                             $expirationTime = null,
                             $isAbsolute = null,
-                            $quality = 95,
+                            $quality = null,
                             $possibleRotation = null,
                             $thumbPath = null,
                             $default = null
     ) {
+        if(!$quality) {
+            $quality = thumb_Setup::get('QUALITY');
+        }
+
         // Дефинираните променливи
         $def = get_defined_vars();
         
@@ -282,8 +286,11 @@ class thumb_Img
                 case 'gdRes':
                     ob_start();
                     switch ($this->getThumbFormat()) {
+                        case 'webp':
+                            @imagewebp($this->source, null, $this->quality);
+                            break;
                         case 'jpg':
-                            @imagejpeg($this->source);
+                            @imagejpeg($this->source, null, $this->quality);
                             break;
                         case 'gif':
                             @imagegif($this->source);
@@ -318,14 +325,14 @@ class thumb_Img
                     try {
                         $param = fileman_Files::fetchByFh($this->source, 'md5');
                     } catch (core_exception_Expect $e) {
-                        $param = str::getRand();
+                        $param = $this->source;
                     }
                     break;
                 case 'path':
-                    $param = md5_file($this->source);
+                    $param =  $this->source . filemtime($this->source);
                     break;
                 case 'gdRes':
-                    $param = md5($this->getAsString($this->source));
+                    $param = crc32($this->getAsString($this->source));
             }
             
             $this->hash = md5($param .  '|' . $this->sourceType  . '|' . $this->boxWidth . '|' .
@@ -448,7 +455,7 @@ class thumb_Img
     /**
      * Връща името на умаленото изображение
      */
-    public function getThumbFormat()
+    public function getThumbFormat($isForSave = false)
     {
         if (!$this->format) {
             switch ($this->sourceType) {
@@ -483,6 +490,15 @@ class thumb_Img
             $lFormat = strtolower($this->format);
             if ($this->blockedExtArr[$lFormat]) {
                 $this->format = 'png';
+            }
+        }
+        
+        if(thumb_Setup::get('WEBP') == 'yes') {
+            if (strpos($_SERVER['HTTP_ACCEPT'], 'image/webp') !== false && !Mode::is('text', 'xhtml')) {
+                if($this->format != 'gif') {
+
+                    return 'webp';
+                }
             }
         }
         
@@ -657,7 +673,7 @@ class thumb_Img
             $this->getSize();
             
             // Склаираме, само ако имаме пропорция, различна от 1 или ротираме
-            if ($this->ratio != 1 || $this->rotation) {
+            if ($this->ratio != 1 || $this->rotation || true) {
                 if ($this->rotation) {
                     $newGdRes = self::scaleGdImg($gdRes, $this->scaledHeight, $this->scaledWidth, $this->format);
                     
@@ -676,6 +692,9 @@ class thumb_Img
             if ($newGdRes) {
                 core_Os::forceDir(dirname($path)); 
                 switch ($this->getThumbFormat()) {
+                    case 'webp':
+                        imagewebp($newGdRes, $path, $this->quality);
+                        break;
                     case 'jpg':
                         imagejpeg($newGdRes, $path, $this->quality);
                         break;
