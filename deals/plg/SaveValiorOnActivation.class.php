@@ -36,7 +36,7 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $valiorToBe = $mvc->getFieldType($mvc->valiorFld)->toVerbal(dt::today());
-        $data->form->setField($mvc->valiorFld, "placeholder={$valiorToBe}");
+        $data->form->setField($mvc->valiorFld, "placeholder=|*{$valiorToBe}");
     }
     
     
