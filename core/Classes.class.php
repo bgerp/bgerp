@@ -497,7 +497,7 @@ class core_Classes extends core_Manager
                 } elseif (!countR($notImplemented)) {
                     $verbalInterfaces .= " <span class='interface-container not-implemented' style='color:green;'>{$intName}</span>";
                 } else {
-                    $hint = 'Не са имплементирани: ' . implode(', ', $notImplemented);
+                    $hint = 'Не са имплементирани|*: ' . implode(', ', $notImplemented);
                     $verbalInterfaces .= ' ' . ht::createHint("<span class='interface-container not-implemented' style='color:orange;'>{$intName}</span>", $hint, 'warning');
                 }
             }
