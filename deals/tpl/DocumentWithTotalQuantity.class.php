@@ -52,7 +52,7 @@ abstract class deals_tpl_DocumentWithTotalQuantity extends doc_TplScript
         }
 
         if($totalQuantity){
-            $totalQuantityVerbal = core_Type::getByName("double(smartRound})")->toVerbal($totalQuantity);
+            $totalQuantityVerbal = core_Type::getByName("double(smartRound)")->toVerbal($totalQuantity);
             $totalQuantityVerbal = ht::styleNumber($totalQuantityVerbal, $totalQuantity);
             $detail->Master->pushTemplateLg($data->masterData->rec->template);
             $data->totalQuantityData = (object)array('baseMeasureId' => tr(cat_UoM::getShortName($baseMeasureId)), 'totalQuantity' => $totalQuantityVerbal);
