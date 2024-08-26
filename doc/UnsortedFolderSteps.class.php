@@ -107,9 +107,9 @@ class doc_UnsortedFolderSteps extends core_Master
      */
     public function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование,mandatory, remember');
-        $this->FLD('code', 'varchar(16)', 'caption=Код,mandatory, remember');
-        $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none, remember');
+        $this->FLD('name', 'varchar', 'caption=Наименование,mandatory');
+        $this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
+        $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание');
         $this->setDbUnique('code');
     }
