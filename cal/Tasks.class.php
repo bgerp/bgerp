@@ -97,15 +97,21 @@ class cal_Tasks extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg, plg_LastUsedKeys';
     
     
     /**
      * Какви детайли има този мастер
      */
     public $details = 'cal_TaskConditions,cal_Progresses,cal_SubTaskDetails';
-    
-    
+
+
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    public $lastUsedKeys = 'stepId';
+
+
     /**
      * Заглавие
      */
@@ -297,8 +303,14 @@ class cal_Tasks extends embed_Manager
      * Кой може да добавя външен сигнал?
      */
     public $canNew = 'every_one';
-    
-    
+
+
+    /**
+     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име $autoList
+     */
+    public $addToListOnActivation = 'costObjects';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -307,7 +319,7 @@ class cal_Tasks extends embed_Manager
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
         $this->FLD('parentId', 'key2(mvc=cal_Tasks,select=title,allowEmpty)', 'caption=Подзадача на,width=100%,changable,silent,remember');
         $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, removeAndRefreshForm, silent, after=typeId, changable');
-
+        $this->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,input=none,allowEmpty)', 'caption=Етап,input=none');
         $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
 
         // Споделяне
@@ -449,7 +461,6 @@ class cal_Tasks extends embed_Manager
         $assetResArr = array();
         if ($rec->folderId) {
             $assetResArr += planning_AssetResources::getByFolderId($rec->folderId);
-
             if (!empty($assetResArr)) {
                 asort($assetResArr);
             }
@@ -461,17 +472,38 @@ class cal_Tasks extends embed_Manager
             $aUsersQuery->in('id', array_keys($assetResArr));
             $aUsersQuery->likeKeylist('assetUsers', core_Users::getCurrent());
             $aUsersQuery->show('id');
-            while ($rec = $aUsersQuery->fetch()) {
-                if (!$assetResArr[$rec->id]) continue;
+            while ($aRec = $aUsersQuery->fetch()) {
+                if (!$assetResArr[$aRec->id]) continue;
                 $opt = new stdClass();
-                $opt->title = $assetResArr[$rec->id];
+                $opt->title = $assetResArr[$aRec->id];
                 $opt->attr = array('class' => 'boldText');
-                $assetResArr[$rec->id] = $opt;
+                $assetResArr[$aRec->id] = $opt;
             }
 
             $data->form->setOptions('assetResourceId', $assetResArr);
         } else {
             $data->form->setField('assetResourceId', 'input=none');
+        }
+
+        // Ако задачата се създава в папка на проект
+        $Cover = doc_Folders::getCover($rec->folderId);
+        if($Cover->isInstanceOf('doc_UnsortedFolders')) {
+            $unsortedFolderSteps = $Cover->fetchField('steps');
+
+            // и той има посочени етапи
+            if(!empty($unsortedFolderSteps) || isset($rec->stepId)) {
+                $unsortedFolderSteps = empty($unsortedFolderSteps) ? array() : $unsortedFolderSteps;
+                $availableStepOptions = doc_UnsortedFolderSteps::getOptionArr($unsortedFolderSteps, $rec->stepId);
+                $form->setOptions('stepId', array() + $availableStepOptions);
+                $form->setField('stepId', 'input');
+            }
+
+            if(isset($rec->parentId)) {
+                $parentRec = $mvc->fetch($rec->parentId);
+                $form->setReadOnly('stepId', $parentRec->stepId);
+            } else {
+                $form->setField('stepId', 'mandatory');
+            }
         }
 
         if (($form->cmd == 'refresh') || (!$form->cmd && $rec->assetResourceId)) {
@@ -632,7 +664,7 @@ class cal_Tasks extends embed_Manager
         if(isset($rec->parentId)){
             $parentState = cal_Tasks::fetchField($rec->parentId, 'state');
             $row->parentId = $mvc->getHyperlink($rec->parentId, true);
-            $row->parentId = ht::createElement("div", array('class' => "state-{$parentState} document-handler"), $row->parentId);
+            $row->parentId = ht::createElement("div", array('class' => "state-{$parentState} document-handler", 'style' => 'font-size:1em'), $row->parentId);
         }
 
         if ($mvc->haveRightFor('add', (object)array('parentId' => $rec->id))) {
@@ -640,6 +672,11 @@ class cal_Tasks extends embed_Manager
             $url = array($mvc, 'add', 'parentId' => $rec->id, 'folderId' => $rec->folderId, 'ret_url' => true);
             $parentTitle = $mvc->getRecTitle($rec, false);
             $row->_rowTools->addLink(tr('Подзадача||Subtask'), $url, array('ef_icon' => 'img/16/add-sub.png', 'title' => "Добавяне на нова подзадача на|* '{$parentTitle}'"));
+        }
+
+        if(isset($rec->stepId)){
+            $row->stepId = doc_UnsortedFolderSteps::getSaoFullName($rec->stepId);
+            $row->stepId = ht::createLink($row->stepId, doc_UnsortedFolderSteps::getSingleUrlArray($rec->stepId));
         }
     }
     
@@ -1872,9 +1909,12 @@ class cal_Tasks extends embed_Manager
         }
 
         $row->subTitle = '';
+        if ($rec->stepId) {
+            $row->subTitle .= doc_UnsortedFolderSteps::getSaoFullName($rec->stepId);
+        }
 
         if ($rec->assetResourceId) {
-            $row->subTitle = planning_AssetResources::getTitleById($rec->assetResourceId);
+            $row->subTitle .= planning_AssetResources::getTitleById($rec->assetResourceId);
         }
 
         if ($rec->progress) {
@@ -3325,9 +3365,13 @@ class cal_Tasks extends embed_Manager
     {
         if ($rec->assetResourceId) {
             $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
-            $sTxt = ' ' . $pRec->code . ' ' . $pRec->name;
+            $sTxt = ' ' . plg_Search::normalizeText($pRec->code . ' ' . $pRec->name);
         } else {
             $sTxt = ' ' . $mvc->withoutResStr;
+        }
+
+        if ($rec->stepId) {
+            $sTxt .= ' ' . plg_Search::normalizeText(doc_UnsortedFolderSteps::getSaoFullName($rec->stepId));
         }
 
         if (trim($sTxt)) {
@@ -3352,13 +3396,16 @@ class cal_Tasks extends embed_Manager
         }
         
         $resArr[$mvc->driverClassField] = array('name' => tr('Вид'), 'val' => "[#{$mvc->driverClassField}#]");
-        
         $resArr['priority'] = array('name' => tr('Приоритет'), 'val' => '[#priority#]');
 
-        if ($row->assetResourceId) {
+        if(isset($rec->assetResourceId) && !isset($rec->stepId)) {
             $resArr['assetResourceId'] = array('name' => tr('Ресурс'), 'val' => '[#assetResourceId#]');
+        } elseif(isset($rec->stepId) && !isset($rec->assetResourceId)) {
+            $resArr['stepId'] = array('name' => tr('Етап'), 'val' => '[#stepId#]');
+        } elseif(isset($rec->assetResourceId) && isset($rec->stepId)) {
+            $resArr['assetResourceId'] = array('name' => tr('Поддръжка'), 'val' => tr("|Етап|*: [#stepId#]<br>|Ресурс|*: [#assetResourceId#]"));
         }
-        
+
         if ($row->timeStart) {
             $resArr['timeStart'] = array('name' => tr('Начало'), 'val' => '[#timeStart#]');
         }
@@ -3650,12 +3697,6 @@ class cal_Tasks extends embed_Manager
         $rec = self::fetch($id);
         
         $contrData = new stdClass();
-        
-//        if ($rec->createdBy > 0) {
-//            $personId = crm_Profiles::fetchField("#userId = '{$rec->createdBy}'", 'personId');
-//            $contrData = crm_Persons::getContragentData($personId);
-//        }
-        
         $Driver = self::getDriver($id);
         $Driver->prepareContragentData($rec, $contrData);
         
@@ -3916,5 +3957,88 @@ class cal_Tasks extends embed_Manager
             $currentLevel = $path;
             static::expandChildrenArr($arr, $subRec->id, $currentLevel);
         }
+    }
+
+
+    /**
+     * При активиране да се добавили обекта като перо
+     */
+    public function canAddToListOnActivation($rec)
+    {
+        $rec = $this->fetchRec($rec);
+
+        // Ако задачата е в папка на проект и в него е указано да са РО, то тя ще стане разходен обект
+        $Cover = doc_Folders::getCover($rec->folderId);
+        if($Cover->isInstanceOf('doc_UnsortedFolders')) {
+            $makeTaskCostObjects = $Cover->fetchField('makeTaskCostObjects');
+
+            return $makeTaskCostObjects == 'yes';
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Поготовка на проектите като детайл на етапите
+     *
+     * @param stdClass $data
+     */
+    public function prepareStepTasks(&$data)
+    {
+        $data->TabCaption = tr('Задачи');
+
+        $uQuery = $this->getQuery();
+        $uQuery->where("#state != 'rejected' AND #stepId = {$data->masterId}");
+        $uQuery->orderBy('createdOn', 'DESC');
+        $data->count = $uQuery->count();
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $data->Pager->setLimit($uQuery);
+
+        $data->recs = $data->rows = array();
+        $fields = $this->selectFields();
+        $fields['-list'] = true;
+
+        while($rec = $uQuery->fetch()) {
+            $row = $this->recToVerbal($rec, $fields);
+            $data->recs[$rec->id] = $rec;
+            $data->rows[$rec->id] = $row;
+
+            if(acc_Items::isItemInList($this, $rec->id, 'costObjects')) {
+                $row->driverClass = ht::createHint($row->driverClass, 'Задачата е разходен обект|*!');
+            }
+        }
+    }
+
+
+    /**
+     * Рендиране на проектите като детайл на етапите
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderStepTasks(&$data)
+    {
+        $tpl = new core_ET('');
+
+        // Рендиране на таблицата с оборудването
+        $data->listFields = arr::make('title=Задача,driverClass=Вид,folderId=Папка,state=Състояние,createdOn=Създадено->На,createdBy=Създадено->От');
+        $listTableMvc = clone $this;
+        $listTableMvc->setField('folderId', 'tdClass=leftCol');
+        $listTableMvc->setField('title', 'tdClass=leftCol');
+        $listTableMvc->setField('driverClass', 'tdClass=leftCol');
+
+        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        $tpl->append($table->get($data->rows, $data->listFields));
+        if ($data->Pager) {
+            $tpl->append($data->Pager->getHtml());
+        }
+
+        $resTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $resTpl->append($tpl, 'content');
+        $resTpl->append(tr("Задачи|* ({$data->count})"), 'title');
+
+        return $resTpl;
     }
 }

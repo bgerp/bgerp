@@ -4491,7 +4491,7 @@ class cat_Products extends embed_Manager
         // Извличане на мерките от същата група, като на $toUomId
         $sameTypeMeasures = cat_UoM::getSameTypeMeasures($toUomId);
         unset($sameTypeMeasures['']);
-        
+
         // Ако основната мярка е от същата група, конвертира се към $toUomId
         if (array_key_exists($measureId, $sameTypeMeasures)) {
             $res = cat_UoM::convertValue(1, $measureId, $toUomId);
@@ -4522,17 +4522,18 @@ class cat_Products extends embed_Manager
         // Ако търсената мярка е от групата на килограмите
         $kgUom = cat_UoM::fetchBySysId('kg')->id;
         $kgUoms = cat_UoM::getSameTypeMeasures($kgUom);
-        
+
         // Взима се стойност от параметрите на артикула
         if (array_key_exists($toUomId, $kgUoms)) {
             $paramValue = self::getParams($productId, 'weight');
             if (isset($paramValue)) {
                 $res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
-                
-                return $res;
+
+                return !is_nan($res) ? $res : null;
             } else {
                 $paramValue = self::getParams($productId, 'weightKg');
-                if (isset($paramValue)) return $paramValue;
+
+                return !is_nan($paramValue) ? $paramValue : null;
             }
         }
     }

@@ -975,7 +975,7 @@ class label_TemplateFormats extends core_Detail
         $Bucket = cls::get('fileman_Buckets');
         
         // Създаваме, кофа, където ще държим всички прикачени файлове
-        $res .= $Bucket->createBucket(self::$bucket, 'Файлове в етикети', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'user', 'user');
+        $res .= $Bucket->createBucket(self::$bucket, 'Файлове в етикети', 'jpg,jpeg,png,bmp,gif,image/*,webp', '10MB', 'user', 'user');
     }
     
     

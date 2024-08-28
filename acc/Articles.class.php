@@ -186,7 +186,7 @@ class acc_Articles extends core_Master
         $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен,template=Шаблон,stopped=Спряно,pending=Заявка)', 'caption=Състояние,input=none');
         $this->FLD('useCloseItems', 'enum(no=Не,yes=Да)', 'caption=Използване на приключени пера->Избор,maxRadio=2,notNull,default=no,input=none');
         
-        // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
+        // Ако потребителя има роля 'accMaster', може да контира/оттегля/възстановява МО със затворени пера
         if (haveRole('accMaster,ceo')) {
             $this->canUseClosedItems = true;
         }

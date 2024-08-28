@@ -5501,6 +5501,14 @@ table .eshop-btn {
 .cms-last {
 	margin-right: 0;
 }
+
+.cms-row .eightcol {
+	.document {
+		min-width: auto;
+		border: none;
+		padding: 0;
+	}
+}
 /*край на grid*/
 
 
@@ -5796,7 +5804,24 @@ iframe.autoHeight {
 		margin-top: 0;
 	}
 }
-
+.wide #Bottom-tab-doc_UnsortedFolders {
+	input[type=text] {
+		height: 1.85em;
+	}
+	#filter {
+		height: 25px;
+		padding-left: 22px !important
+	}
+}
+.narrow #Bottom-tab-doc_UnsortedFolders {
+	input[type=text] {
+		height: 2em !important;
+	}
+	#filter {
+		height: 30px !important;
+		padding-left: 22px !important
+	}
+}
 .planning_ProductionTaskDetails .listRowsDetail {
 	width: 100% !important;
 	overflow-x: auto !important;
@@ -7909,6 +7934,9 @@ body.narrow {
 }
 .qrcode {
 	height: 87px;
+}
+.narrow .qrcode {
+	height: auto;
 }
 /*стилове за принтиране*/
 @media print{

@@ -68,7 +68,7 @@ class tremol_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         
-        $html .= fileman_Buckets::createBucket('electronicReceipts', 'Електронни фискални бонове', 'pdf,png,jpg,jpeg', '104857600', 'every_one', 'every_one');
+        $html .= fileman_Buckets::createBucket('electronicReceipts', 'Електронни фискални бонове', 'pdf,png,jpg,jpeg,webp', '104857600', 'every_one', 'every_one');
         
         return $html;
     }

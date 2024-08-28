@@ -238,7 +238,7 @@ class fileman_Get extends core_Manager
                 }
             }
             
-            $fileName = $headers['filename'];
+            $fileName = $rec->name ? $rec->name : $headers['filename'];
             
             if (!$fileName && $ext) {
                 $fPattern = "/[^\\?\\/*:;{}\\\\]+\\.{$ext}/i";
