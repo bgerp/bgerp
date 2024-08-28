@@ -3403,7 +3403,7 @@ class cal_Tasks extends embed_Manager
         } elseif(isset($rec->stepId) && !isset($rec->assetResourceId)) {
             $resArr['stepId'] = array('name' => tr('Етап'), 'val' => '[#stepId#]');
         } elseif(isset($rec->assetResourceId) && isset($rec->stepId)) {
-            $resArr['assetResourceId'] = array('name' => tr('Поддръжка'), 'val' => tr("|Етап|*: [#stepId#]<br>|Ресурс|*: [#assetResourceId#]"));
+            $resArr['assetResourceId'] = array('name' => tr('Поддръжка'), 'val' => tr("<div class='taskWithStepAndResourceTd'>|Етап|*: [#stepId#]<br>|Ресурс|*: [#assetResourceId#]</div>"));
         }
 
         if ($row->timeStart) {
