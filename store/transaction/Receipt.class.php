@@ -175,7 +175,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $amount = round($amount, 2);
             $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
             $revertVatPercent = ($checkVatCredit) ? cat_Products::getVat($detailRec->productId, $rec->valior, $vatExceptionId) : null;
-            $reason = $reverse ? ($hasDifferentReverseEntries ? 'Експедиране (връщане) на Артикули към Доставчик' : "Връщане на Артикули към Доставчик") : null;
+            $reason = $reverse ? ($hasDifferentReverseEntries ? 'Експедиране (връщане без ограничения) на Артикули към Доставчик' : "Връщане на Артикули към Доставчик - в месеца и от склада на доставката им") : null;
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
