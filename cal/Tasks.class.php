@@ -904,7 +904,8 @@ class cal_Tasks extends embed_Manager
                 // Засичане с задачи по ресурс
                 $intersectedRanges = array();
                 $query = static::getQuery();
-                $query->where("#id != '{$rec->id}' AND #assetResourceId = {$rec->assetResourceId} AND #state IN ('active', 'wakeup', 'stopped', 'pending')");
+                $supportTypeClassId = support_TaskType::getClassId();
+                $query->where("#driverClass != '{$supportTypeClassId}' AND #id != '{$rec->id}' AND #assetResourceId = {$rec->assetResourceId} AND #state IN ('active', 'wakeup', 'stopped', 'pending')");
                 while($cRec = $query->fetch()) {
                     $mvc->calculateExpectationTime($cRec);
                     if(($cRec->expectationTimeStart <= $rec->expectationTimeEnd AND $cRec->expectationTimeEnd >= $rec->expectationTimeStart)) {
