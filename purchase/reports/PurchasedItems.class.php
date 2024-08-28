@@ -59,8 +59,14 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
      * @var int
      */
     protected $sortableListFields = 'code,productId,changePurchases,amount';
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *

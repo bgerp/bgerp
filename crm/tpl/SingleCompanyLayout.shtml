@@ -84,7 +84,7 @@
 
                 <fieldset class="detail-info">
                     <legend class="groupTitle">|Друга информация|*</legend>
-                    <div><span class="quiet">|Валидност|*</span> <i>[#validFrom#]</i> <!--ET_BEGIN validTo--><span class="quiet">-</span> <i>[#validTo#]</i><!--ET_END validTo--></div>
+                    <div> <!--ET_BEGIN validFrom--><span class="quiet">|Валидност|*</span> <i>[#validFrom#]</i><!--ET_END validFrom--> <!--ET_BEGIN validTo--><span class="quiet">-</span> <i>[#validTo#]</i><!--ET_END validTo--></div>
                     <!--ET_BEGIN info-->
                     <div class="groupList">
                         [#info#]

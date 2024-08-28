@@ -54,6 +54,12 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
 
     /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset

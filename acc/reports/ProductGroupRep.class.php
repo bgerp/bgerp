@@ -40,8 +40,14 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
      * @var string
      */
     protected $newFieldsToCheck = 'docId';
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *

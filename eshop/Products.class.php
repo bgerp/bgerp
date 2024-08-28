@@ -141,7 +141,7 @@ class eshop_Products extends core_Master
      */
     public function description()
     {
-        $this->FLD('code', 'varchar(10)', 'caption=Код');
+        $this->FLD('code', 'varchar(20)', 'caption=Код');
         $this->FLD('name', 'varchar(100)', 'caption=Артикул, mandatory,width=100%');
         
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация (1),hint=препоръчително квадрат поне 600х600px');

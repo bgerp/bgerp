@@ -26,7 +26,7 @@ class drdata_type_Eori extends type_Varchar
      * Описание на различните видове статуси за EORI номера
      */
     public $statuses = array(
-        'syntax' => array('Невалидна дължина на цифрите', 'red'),
+        'syntax' => array('Неправилен брой цифри', 'red'),
         'invalid' => array('Невалиден EORI номер', 'red'),
         'unknown' => array('EORI номер с неизвестна валидност', 'quiet'),
         'valid' => array('Валиден EORI номер', ''),

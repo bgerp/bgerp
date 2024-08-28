@@ -124,18 +124,48 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
 
     /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields;
+
+
+    /**
      * Връща заглавието на отчета
      *
      * @param stdClass $rec - запис
+     * @param bool $isPlain - дали заглавието да е чисто (без окрасяване)
      *
      * @return string|NULL - заглавието или NULL, ако няма
      */
-    public function getTitle($rec)
+    public function getTitle($rec, $isPlain = false)
     {
-        $title = core_Classes::fetchField("#id = {$this->getClassId()}", 'title');
-        $title = explode(' » ', $title);
-        $title = (countR($title) == 2) ? $title[1] : $title[0];
-        
+        if(empty($rec->title)){
+            $title = core_Classes::fetchField("#id = {$this->getClassId()}", 'title');
+            $title = explode(' » ', $title);
+            $title = (countR($title) == 2) ? $title[1] : $title[0];
+        } else {
+            $title = $rec->title;
+        }
+
+        if(isset($this->periodFields)){
+            if($isPlain){
+                $title .= " [#period#]";
+            } else {
+                $periods = explode(',', $this->periodFields);
+                $title = new core_ET($title);
+
+                if(!empty($rec->{$periods[1]})){
+                    $oldestAvailableDate = null;plg_SelectPeriod::getOldestAvailableDate();
+                    $fromDate = $rec->{$periods[0]} ? $rec->{$periods[0]} : (($oldestAvailableDate) ? $oldestAvailableDate : null);
+
+                    $string = dt::getSmartPeriod($fromDate, $rec->{$periods[1]});
+                    $title->replace("({$string})", 'period');
+                }
+
+                $title = $title->getContent();
+            }
+        }
+
         return $title;
     }
     
