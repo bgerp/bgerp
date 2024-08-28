@@ -2700,6 +2700,13 @@ margin: 2px 0 0 0;
 	}
 }
 
+.taskWithStepAndResourceTd {
+	max-width: 250px;
+	a {
+		display: inline !important;
+	}
+}
+
 .antetkaCell {
 max-width: 400px;
 }

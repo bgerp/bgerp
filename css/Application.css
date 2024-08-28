@@ -2332,6 +2332,11 @@ pre.document {
     .antetka .document-handler .linkWithIcon {
       height: auto !important; }
 
+.taskWithStepAndResourceTd {
+  max-width: 250px; }
+  .taskWithStepAndResourceTd a {
+    display: inline !important; }
+
 .antetkaCell {
   max-width: 400px; }
 
