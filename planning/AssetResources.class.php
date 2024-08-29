@@ -296,7 +296,7 @@ class planning_AssetResources extends core_Master
             }
 
             if (!$form->rec->assetFolders && $form->rec->simultaneity) {
-                $form->setError('assetFolders', "Не е избран център на дейност - ресурсът няма да може да бъде избиран в производствени операции|*!");
+                $form->setWarning('assetFolders,simultaneity', "Избрана е едновременност, но не е избран център на дейност - ресурсът няма да може да бъде избиран в производствени операции|*!");
             }
         }
     }
