@@ -322,12 +322,8 @@ class thumb_Img
                     $param = $this->source;
                     break;
                 case 'fileman':
-                    try {
-                        $param = fileman_Files::fetchByFh($this->source, 'md5');
-                    } catch (core_exception_Expect $e) {
-                        $param = $this->source;
-                    }
-                    break;
+                    $param = 'fileman' . $this->source;
+                     break;
                 case 'path':
                     $param =  $this->source . filemtime($this->source);
                     break;
@@ -493,14 +489,12 @@ class thumb_Img
             }
         }
         
-        if(thumb_Setup::get('WEBP') == 'yes') {
-            if (strpos($_SERVER['HTTP_ACCEPT'], 'image/webp') !== false && !Mode::is('text', 'xhtml')) {
-                if($this->format != 'gif') {
+        
+        if(self::canUseWebP() && $this->format != 'gif') {
 
-                    return 'webp';
-                }
-            }
+            return 'webp';
         }
+ 
         
         return $this->format;
     }
@@ -673,7 +667,7 @@ class thumb_Img
             $this->getSize();
             
             // Склаираме, само ако имаме пропорция, различна от 1 или ротираме
-            if ($this->ratio != 1 || $this->rotation || true) {
+            if ($this->ratio != 1 || $this->rotation || self::canUseWebP()) {
                 if ($this->rotation) {
                     $newGdRes = self::scaleGdImg($gdRes, $this->scaledHeight, $this->scaledWidth, $this->format);
                     
@@ -903,6 +897,19 @@ class thumb_Img
         if ($imgArr[$ext]) {
             
             return true;
+        }
+    }
+
+    /**
+     * Дали всички картинки кожем да ги заменим с webp фирмат 
+     */
+    public static function canUseWebP()
+    {
+        if(thumb_Setup::get('WEBP') == 'yes') {
+            if (strpos($_SERVER['HTTP_ACCEPT'], 'image/webp') !== false && !Mode::is('text', 'xhtml')) {
+
+                return true;
+            }
         }
     }
 }
