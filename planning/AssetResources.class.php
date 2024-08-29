@@ -294,6 +294,10 @@ class planning_AssetResources extends core_Master
             if(empty($form->rec->simultaneity) && $form->rec->assetFolders){
                 $form->setWarning('simultaneity', "Ако изберете '0' ресурсът няма да може да бъде избиран в производствени операции|*!");
             }
+
+            if (!$form->rec->assetFolders && $form->rec->simultaneity) {
+                $form->setError('assetFolders', "Не е избран център на дейност - ресурсът няма да може да бъде избиран в производствени операции|*!");
+            }
         }
     }
     
