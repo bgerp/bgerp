@@ -130,10 +130,12 @@ class core_Os
         $allFiles = self::listFiles($dir);
         
         $delCnt = 0;
+        $maxOldFileAccessTime = time() - $maxAge;
         if (is_array($allFiles['files'])) {
             foreach ($allFiles['files'] as $fPath) {
                 if (file_exists($fPath)) {
-                    if ((time() - @fileatime($fPath) > $maxAge) && str::matchPatterns($fPath, $negativePattern, $positivePattern)) {
+                    if (($maxOldFileAccessTime > self::getFileLastAccessTime($fPath)) && 
+                        str::matchPatterns($fPath, $negativePattern, $positivePattern)) {
                         if (@unlink($fPath)) {
                             $delCnt++;
                         }
@@ -143,6 +145,26 @@ class core_Os
         }
         
         return $delCnt;
+    }
+
+
+    /**
+     * Връща времето на последен достъп до файла
+     *
+     * @param string $path - Пътя до файла
+     *
+     * @return int - Времето на последен достъп до файла
+     */
+    public static function getFileLastAccessTime($path)
+    {
+        
+        $res = @fileatime($path);
+
+        if(!$res) {
+            $res = @filemtime($path);
+        }
+
+        return (int) $res;
     }
     
     

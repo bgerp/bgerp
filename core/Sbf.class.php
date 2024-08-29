@@ -231,7 +231,7 @@ class core_Sbf extends core_Mvc
                 
                 // Хедъри за управлението на кеша в браузъра
                 header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3153600) . ' GMT');
-                header('Cache-Control: public, max-age=3153600');
+                header('Cache-Control: max-age=31536000, immutable');
                 
                 // Поддържа ли се gzip компресиране на съдържанието?
                 $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));

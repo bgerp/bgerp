@@ -1224,7 +1224,7 @@ class doc_Threads extends core_Manager
         $exp->DEF('#email', 'emails', 'caption=Имейл,width=100%,notNull');
         $exp->DEF('#tel', 'drdata_PhoneType', 'caption=Телефони,width=100%,notNull');
         $exp->DEF('#fax', 'drdata_PhoneType', 'caption=Факс,width=100%,notNull');
-        $exp->DEF('#website', 'url', 'caption=Web сайт,width=100%,notNull');
+        $exp->DEF('#website', 'urls', 'caption=Web сайт,width=100%,notNull');
         
         // Стойности по подразбиране при нова папка на фирма или лице
         $exp->ASSUME('#email', "getContragentData(#threadId, 'email')", "#dest == 'newCompany' || #dest == 'newPerson'");
