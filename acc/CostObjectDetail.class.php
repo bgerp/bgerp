@@ -169,6 +169,7 @@ class acc_CostObjectDetail extends core_Manager
                 $infoTpl = new core_ET("");
                 if($classId == $taskClassId){
                     $documentRec = cls::get($classId)->fetch($tRec->id, 'state,progress,stepId');
+                    $row->_blAmount = $blAmount;
                     if(!empty($documentRec->stepId)){
                         $row->stepId = $documentRec->stepId;
                         $row->_stepSaoOrder = doc_UnsortedFolderSteps::fetchField($documentRec->stepId, 'saoOrder');
@@ -310,6 +311,7 @@ class acc_CostObjectDetail extends core_Manager
     {
         $tpl = getTplFromFile('acc/tpl/CostObjectDetailTableTpl.shtml');
 
+        $steps = array();
         $taskClassId = cal_Tasks::getClassId();
         foreach ($data->costItemData->rows as $classId => $rows){
             $Class = cls::get($classId);
@@ -323,10 +325,23 @@ class acc_CostObjectDetail extends core_Manager
 
                 $newRows = array();
                 foreach ($rows as $row1){
-                    $newRows[$row1->stepId][] = $row1;
+                    $stepAmount = $row1->_blAmount;
+                    if(!array_key_exists($row1->stepId, $newRows)){
+                        $newRows[$row1->stepId] = array('rows' => array(), 'blAmount' => 0);
+                    }
+                    $newRows[$row1->stepId]['rows'][] = $row1;
+
+                    array_walk($rows, function (&$val) use (&$stepAmount, $row1) {
+                        if(isset($val->_stepParent[$row1->stepId])){
+                            $stepAmount += $val->_blAmount;
+                        } elseif($row1->stepId == $val->stepId && $row1->itemId != $val->itemId){
+                            $stepAmount += $val->_blAmount;
+                        }
+                    });
+                    $newRows[$row1->stepId]['blAmount'] = $stepAmount;
                 }
 
-                foreach ($newRows as $stepId => $stepRows){
+                foreach ($newRows as $stepId => $stepData){
                     $stepName = $stepId ? ht::createLinkRef(doc_UnsortedFolderSteps::getSaoFullName($stepId), doc_UnsortedFolderSteps::getSingleUrlArray($stepId)) : 'Без етап';
                     $extraBtnTpl = new core_ET( " <a id='toggleCostBtn" . $stepId. "' href=\"javascript:toggleClass('collapse{$stepId}', 'toggleCostBtn{$stepId}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn" title="'. tr('Скриване/показване на подетапите') .'"> </div>');
                     $parents = doc_UnsortedFolderSteps::getParentsArr($stepId);
@@ -334,10 +349,10 @@ class acc_CostObjectDetail extends core_Manager
                     foreach ($parents as $pId){
                         $class .= " collapse{$pId}";
                     }
+                    $stepBlAmount = core_Type::getByName('double(decimals=2)')->toVerbal( $stepData['blAmount']);
+                    $tpl->append("<tr class='costObjectCoverClassRow {$class}'><td colspan='6'class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #6e7894; color: #fff;'>{$stepName} <span>{$stepBlAmount}</span><div style='display:inline-block;float:right'>{$extraBtnTpl->getContent()}</div></td></tr>", 'ROWS');
 
-                    $tpl->append("<tr class='costObjectCoverClassRow {$class}'><td colspan='6'class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #6e7894; color: #fff;'>{$stepName} <div style='discplay:inline-block;float:right'>{$extraBtnTpl->getContent()}</div></td></tr>", 'ROWS');
-
-                    foreach ($stepRows as $row){
+                    foreach ($stepData['rows'] as $row){
                         $row->ROW_CLASS = (empty($row->blAmount)) ? 'state-waiting' : 'state-active';
                         $row->ROW_CLASS .= " collapse{$stepId}";
                         foreach ($row->_stepParent as $pId){

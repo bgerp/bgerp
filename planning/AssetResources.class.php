@@ -291,8 +291,8 @@ class planning_AssetResources extends core_Master
                 $form->setError('unsortedFolders', 'Не е избран проект, но са избрани отговорници|*!');
             }
 
-            if(empty($form->rec->simultaneity)){
-                $form->setWarning('simultaneity', "Ако изберете '0'. Обектът няма да може да бъде избиран в производствени операции|*!");
+            if(empty($form->rec->simultaneity) && $form->rec->assetFolders){
+                $form->setWarning('simultaneity', "Ако изберете '0' ресурсът няма да може да бъде избиран в производствени операции|*!");
             }
         }
     }
