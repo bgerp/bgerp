@@ -489,10 +489,14 @@ class thumb_Img
             }
         }
         
-        
         if(self::canUseWebP() && $this->format != 'gif') {
 
             return 'webp';
+        }
+
+        if(Mode::is('pdf') && $this->format == 'webp') {
+
+             return 'jpg';
         }
  
         
