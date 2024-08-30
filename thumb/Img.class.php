@@ -494,7 +494,7 @@ class thumb_Img
             return 'webp';
         }
 
-        if(Mode::is('text', 'xhtml') && $this->format != 'gif') {
+        if(Mode::is('pdf') && $this->format == 'webp') {
 
              return 'jpg';
         }
