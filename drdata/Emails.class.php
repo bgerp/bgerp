@@ -73,7 +73,7 @@ class drdata_Emails extends core_BaseClass
         list($user, $domain) = explode('@', $email);
 
         if ((self::mxAndARecordsValidate($domain)) === false) {
-            if (!checkdnsrr($domain, 'MX') && !checkdnsrr($domain, 'A')) {
+            if (!checkdnsrr($domain, 'MX') && !checkdnsrr($domain, 'A') && !checkdnsrr($domain, 'CNAME')) {
                 $result['warning'] = "Възможен е проблем с домейна|* {$user}@<b>{$domain}</b>";
             }
 
@@ -92,18 +92,22 @@ class drdata_Emails extends core_BaseClass
         // Заобикаляне на останалите проверки
     }
     
-    
     /**
-     * Връща масив с MX и A записите на домейна, ако няма такива връща FALSE
+     * Връща масив с MX и A записите на домейна, ако няма такива и няма и CNAME връща FALSE
      *
      * @param string $domain
      */
     public static function mxAndARecordsValidate($domain)
     {
+        // Проверка за MX и A записи
         $hosts = @dns_get_record($domain, DNS_A + DNS_MX, $audthns, $addtl);
         
+        // Ако няма MX и A записи, проверка за CNAME записи
         if (!$hosts) {
-            
+            $hosts = @dns_get_record($domain, DNS_CNAME, $audthns, $addtl);
+        }
+ 
+        if (!$hosts) {
             return false;
         }
         
