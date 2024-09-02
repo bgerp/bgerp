@@ -916,6 +916,25 @@ class cal_Tasks extends embed_Manager
             }
         }
     }
+
+
+    /**
+     * Връща потребителите по подразбиране за споделяне
+     *
+     * @param core_Mvc    $mvc
+     * @param NULL|string $res
+     * @param stdClass    $rec
+     */
+    public static function on_AfterGetDefaultAssignUsers($mvc, &$res, $rec)
+    {
+        if ($rec->assetResourceId) {
+            $systemUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
+            if ($systemUsers) {
+                $assign = keylist::merge($systemUsers, $rec->assing);
+                $res = keylist::merge($systemUsers, $assign);
+            }
+        }
+    }
     
     
     /**
@@ -1106,38 +1125,6 @@ class cal_Tasks extends embed_Manager
         return $haveRes ? $link : false;
     }
 
-
-    /**
-     * Потребителя, на когото е възложена задачата
-     */
-    public function on_AfterGetShared($mvc, &$shared, $id)
-    {
-        // Ако има споделени потребители връщамес
-        if ($shared) {
-
-            return ;
-        }
-
-        // Вземаме записа
-        $rec = $mvc->fetchRec($id);
-
-        if (($rec->state == 'draft') || ($rec->state == 'rejected')) {
-
-            return ;
-        }
-
-        if ($rec->assetResourceId) {
-            $systemUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
-            if ($systemUsers) {
-                // Към отговорниците да не се показва създателя
-                $systemUsers = keylist::removeKey($systemUsers, $rec->createdBy);
-
-                // Добавяме към споделените
-                $shared = keylist::merge($systemUsers, $shared);
-            }
-        }
-    }
-    
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
