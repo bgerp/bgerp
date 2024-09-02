@@ -432,11 +432,6 @@ class doc_AssignPlg extends core_Plugin
      */
     public static function on_AfterGetDefaultAssignUsers($mvc, &$res, $rec)
     {
-        if ($mvc->addDefaultShared === false) {
-
-            return ;
-        }
-
         $folderId = $rec->folderId;
         
         if (!$folderId && $rec->threadId) {

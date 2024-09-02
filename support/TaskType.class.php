@@ -41,7 +41,6 @@ class support_TaskType extends core_Mvc
 
         if ($this->Embedder) {
             $this->Embedder->getContragentDataFromLastDoc = false;
-            $this->Embedder->addDefaultShared = false;
         }
     }
     
@@ -259,6 +258,27 @@ class support_TaskType extends core_Mvc
         }
         
         return $res;
+    }
+
+
+    /**
+     * Да няма потребители по подразбиране
+     *
+     * @param support_TaskType $Driver
+     * @param cal_Tasks        $mvc
+     * @param string|NULL      $res
+     * @param stdClass         $id
+     */
+    public static function on_AfterGetDefaultAssignUsers($Driver, $mvc, &$res, $rec)
+    {
+        $res = null;
+
+        if ($rec->assetResourceId) {
+            $systemUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
+            if ($systemUsers) {
+                $res = keylist::merge($systemUsers, $rec->assing);
+            }
+        }
     }
 
 
