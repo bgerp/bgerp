@@ -949,7 +949,7 @@ class cal_Tasks extends embed_Manager
             $systemUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
             if ($systemUsers) {
                 $assign = keylist::merge($systemUsers, $rec->assing);
-                $res = keylist::merge($systemUsers, $assign);
+                $res = keylist::merge($res, $assign);
             }
         }
     }
