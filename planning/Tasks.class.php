@@ -2108,6 +2108,10 @@ class planning_Tasks extends core_Master
     public function prepareTasks($data)
     {
         if ($data->masterMvc instanceof planning_AssetResources) {
+            if(empty($data->masterData->rec->simultaneity)) {
+                $data->hide = true;
+                return;
+            }
             $data->TabCaption = 'Операции';
         }
 
@@ -2218,7 +2222,10 @@ class planning_Tasks extends core_Master
     public function renderTasks($data)
     {
         $tpl = new ET('');
+
         if ($data->masterMvc instanceof planning_AssetResources) {
+            if($data->hide) return null;
+
             $data->TabCaption = 'Операции';
             $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         }
