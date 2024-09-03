@@ -952,6 +952,7 @@ class batch_BatchesInDocuments extends core_Manager
         $data->query->orderBy('id', 'DESC');
         
         if ($fRec = $data->listFilter->rec) {
+
             if (isset($fRec->document)) {
                 $document = doc_Containers::getDocumentByHandle($fRec->document);
                 if (is_object($document)) {
@@ -967,7 +968,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $data->query->where("#productId = {$fRec->productId}");
             }
 
-            if (isset($fRec->batch)) {
+            if (!empty($fRec->batch)) {
                 $data->query->where(array("#batch = '[#1#]'", $fRec->batch));
             }
         }
