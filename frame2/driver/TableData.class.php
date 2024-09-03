@@ -147,18 +147,15 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             $title = $rec->title;
         }
 
-        if(isset($this->periodFields)){
+        $range = $this->getPeriodRange($rec);
+
+        if(countR($range)){
             if($isPlain){
                 $title .= " [#period#]";
             } else {
-                $periods = explode(',', $this->periodFields);
                 $title = new core_ET($title);
-
-                if(!empty($rec->{$periods[1]})){
-                    $oldestAvailableDate = plg_SelectPeriod::getOldestAvailableDate();
-                    $fromDate = $rec->{$periods[0]} ? $rec->{$periods[0]} : (($oldestAvailableDate) ? $oldestAvailableDate : null);
-
-                    $string = dt::getSmartPeriod($fromDate, $rec->{$periods[1]});
+                if(!empty($range['to'])){
+                    $string = dt::getSmartPeriod($range['from'], $range['to']);
                     $title->replace("({$string})", 'period');
                 }
 
@@ -168,8 +165,28 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
         return $title;
     }
-    
-    
+
+
+    /**
+     * Връща периода на справката - ако има такъв
+     *
+     * @param stdClass $rec
+     * @return array
+     *          ['from'] - начало на период
+     *          ['to']   - край на период
+     */
+    protected function getPeriodRange($rec)
+    {
+        if(!isset($this->periodFields)) return array();
+
+        $periods = explode(',', $this->periodFields);
+        $oldestAvailableDate = plg_SelectPeriod::getOldestAvailableDate();
+        $fromDate = $rec->{$periods[0]} ? $rec->{$periods[0]} : (($oldestAvailableDate) ? $oldestAvailableDate : null);
+
+        return array('from' => $fromDate, 'to' => $rec->{$periods[1]});
+    }
+
+
     /**
      * Подготвя данните на справката от нулата, които се записват в модела
      *
