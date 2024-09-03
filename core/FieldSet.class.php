@@ -229,7 +229,7 @@ class core_FieldSet extends core_BaseClass
             $this->fields[$name]->name = $name;
             
             // Параметри, които се предават на типа
-            $typeParams = array('maxRadio' => 0, 'maxColumns' => 0, 'columns' => 0, 'mandatory' => 0, 'groupByDiv' => 0, 'maxCaptionLen' => 1, 'options' => 1);
+            $typeParams = array('maxRadio' => 0, 'maxColumns' => 0, 'columns' => 0, 'mandatory' => 0, 'groupByDiv' => 0, 'maxCaptionLen' => 1, 'options' => 1, 'translate' => 'yes');
             foreach ($typeParams as $pName => $force) {
                 if (isset($this->fields[$name]->{$pName}) && ($force || !isset($this->fields[$name]->type->params[$pName]))) {
                     if ($pName == 'options') {

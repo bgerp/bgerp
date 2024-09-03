@@ -488,17 +488,16 @@ class thumb_Img
                 $this->format = 'png';
             }
         }
-        
-        if(self::canUseWebP() && $this->format != 'gif') {
-
-            return 'webp';
-        }
 
         if(Mode::is('pdf') && $this->format == 'webp') {
 
              return 'jpg';
         }
- 
+        
+        if(self::canUseWebP() && $this->format != 'gif') {
+
+            return 'webp';
+        }
         
         return $this->format;
     }

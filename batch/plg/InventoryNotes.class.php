@@ -374,7 +374,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $bRec->productId = $sRec->productId;
 
                 $clone = clone $sRow;
-                $productId = new core_ET("<span class='note-batch-row'><span class='note-batch-product-name'>[#product#]</span>: <span class='note-batch-name'>[#batch#]</span></span>");
+                $productId = new core_ET("<span class='note-batch-row'><span class='note-batch-product-name' style='display:inline-block;padding-left:40px;'></span><span class='note-batch-name'>[#batch#]</span></span>");
                 $productId->replace(strip_tags($clone->productId), 'product');
                 $productId->replace(($batch) ? $Def->toVerbal($batch) : "<i class='quiet'>" . tr('Без партида') . "</i>", 'batch');
                 $clone->productId = $productId;
