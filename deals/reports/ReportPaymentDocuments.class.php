@@ -39,6 +39,11 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
      */
     protected $newFieldsToCheck = '';
 
+    /**
+     * По-кое поле да се групират листовите данни
+     */
+    protected $groupByField;
+
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
@@ -397,9 +402,11 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
 
         $artUrl = array('deals_reports_ReportPaymentDocuments', 'contragentFilter', 'recId' => $data->rec->id, 'ret_url' => true);
+        $artUrl1 = array('deals_reports_ReportPaymentDocuments', 'contragentGroup', 'recId' => $data->rec->id, 'ret_url' => true);
 
         $toolbar = cls::get('core_Toolbar');
 
+        $toolbar->addBtn('Групирай по контрагент', toUrl($artUrl1));
         $toolbar->addBtn('Избери контрагент', toUrl($artUrl));
 
         $fieldTpl->append('<b>' . $toolbar->renderHtml() . '</b>', 'button');
@@ -459,6 +466,25 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
             return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'contragentFilter' => $form->rec->contragentFilter, 'ret_url' => true));
 
         }
+
+        return $form->renderHtml();
+    }
+
+    /**
+     * Филтриране на артикул
+     */
+    public static function act_ContragentGroup()
+    {
+
+        expect($recId = Request::get('recId', 'int'));
+
+        $rec = frame2_Reports::fetch($recId);
+
+        frame2_Reports::refresh($rec);
+
+        $rec->data->groupByField = 'contragentName';
+        frame2_Reports::save($rec);
+        return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'contragentGroup' => $form->rec->contragentFilter, 'ret_url' => true));
 
         return $form->renderHtml();
     }
