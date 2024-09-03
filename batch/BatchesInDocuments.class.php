@@ -71,7 +71,7 @@ class batch_BatchesInDocuments extends core_Manager
     {
         $this->FLD('detailClassId', 'class(interface=core_ManagerIntf,select=title,allowEmpty)', 'caption=Клас,mandatory,silent,remember');
         $this->FLD('detailRecId', 'int', 'caption=Ред от детайл,mandatory,silent,input=hidden,remember');
-        $this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory,silent,input=hidden,remember');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', 'caption=Артикул,mandatory,silent,input=hidden,remember');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double(decimals=4)', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
@@ -942,8 +942,10 @@ class batch_BatchesInDocuments extends core_Manager
     {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
+        $data->listFilter->setField('productId', 'input');
+        $data->listFilter->setField('batch', 'input');
         $data->listFilter->input(null, 'silent');
-        $data->listFilter->showFields = 'document,detailClassId';
+        $data->listFilter->showFields = 'productId,batch,document,detailClassId';
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
@@ -959,6 +961,14 @@ class batch_BatchesInDocuments extends core_Manager
 
             if (isset($fRec->detailClassId)) {
                 $data->query->where("#detailClassId = {$fRec->detailClassId}");
+            }
+
+            if (isset($fRec->productId)) {
+                $data->query->where("#productId = {$fRec->productId}");
+            }
+
+            if (isset($fRec->batch)) {
+                $data->query->where(array("#batch = '[#1#]'", $fRec->batch));
             }
         }
     }
