@@ -318,7 +318,7 @@ class cal_Tasks extends embed_Manager
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
         $this->FLD('parentId', 'key2(mvc=cal_Tasks,select=title,allowEmpty)', 'caption=Подзадача на,width=100%,changable,silent,remember');
-        $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, removeAndRefreshForm, silent, after=typeId, changable');
+        $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=shortName,allowEmpty)', 'caption=Ресурс, removeAndRefreshForm, silent, after=typeId, changable');
         $this->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,input=none,allowEmpty)', 'caption=Етап,input=none');
         $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
 
