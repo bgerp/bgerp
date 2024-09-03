@@ -140,6 +140,7 @@ class planning_AssetResources extends core_Master
     public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory, remember');
+        $this->FNC('shortName', 'varchar', 'caption=Кратко име');
         $this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent, remember');
         $this->FLD('code', 'varchar(16,autocomplete=off)', 'caption=Код,mandatory');
         $this->FLD('protocols', 'keylist(mvc=accda_Da,select=id)', 'caption=Протоколи за пускане в експлоатация,silent,input=hidden,remember');
@@ -375,6 +376,20 @@ class planning_AssetResources extends core_Master
                 }
                 $row->protocols = implode(',', $daArray);
             }
+        }
+    }
+
+
+    /**
+     *
+     *
+     * @param $mvc
+     * @param $rec
+     */
+    function on_CalcShortName($mvc, &$rec)
+    {
+        if (!$rec->shortName) {
+            $rec->shortName = '[' . $rec->code . '] ' . $rec->name;
         }
     }
     
