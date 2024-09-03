@@ -155,7 +155,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $title = new core_ET($title);
 
                 if(!empty($rec->{$periods[1]})){
-                    $oldestAvailableDate = null;plg_SelectPeriod::getOldestAvailableDate();
+                    $oldestAvailableDate = plg_SelectPeriod::getOldestAvailableDate();
                     $fromDate = $rec->{$periods[0]} ? $rec->{$periods[0]} : (($oldestAvailableDate) ? $oldestAvailableDate : null);
 
                     $string = dt::getSmartPeriod($fromDate, $rec->{$periods[1]});
