@@ -143,8 +143,8 @@ class planning_AssetResources extends core_Master
         $this->FNC('shortName', 'varchar', 'caption=Кратко име');
         $this->FLD('groupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Вид,mandatory,silent, remember');
         $this->FLD('code', 'varchar(16,autocomplete=off)', 'caption=Код,mandatory');
-        $this->FLD('protocols', 'keylist(mvc=accda_Da,select=id)', 'caption=Протоколи за пускане в експлоатация,silent,input=hidden,remember');
-        $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none, remember');
+        $this->FLD('protocols', 'keylist(mvc=accda_Da,select=id)', 'caption=Протоколи за пускане в експлоатация,silent,input=hidden');
+        $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         
         $this->FLD('image', 'fileman_FileType(bucket=planningImages)', 'caption=Допълнително->Снимка');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание');
