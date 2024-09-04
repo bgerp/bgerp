@@ -700,7 +700,7 @@ class support_TaskType extends core_Mvc
      */
     public static function prepareAssetSupport($data)
     {
-        $data->TabCaption = tr('Сигнал');
+        $data->TabCaption = tr('Сигнали');
 
         // Подготовка на данните
         $data->listFields = arr::make("hnd=Сигнал,title=Заглавие,progress=Прогрес,folderId=Папка", true);
