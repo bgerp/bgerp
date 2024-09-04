@@ -1072,6 +1072,9 @@ class rack_Zones extends core_Master
 
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$userId}");
+        if($userId == core_Users::SYSTEM_USER){
+            $mQuery->where("#modifiedBy = {$userId}");
+        }
         if(countR($productIds)){
             $mQuery->in('productId', $productIds);
         }
