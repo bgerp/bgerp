@@ -37,7 +37,7 @@ class price_Updates extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type=За,name=Наименование,sourceClass1,sourceClass2,sourceClass3,costAdd,costValue=Сб-ст,appliedOn,updateMode=Обновяване';
+    public $listFields = 'type=За,name=Наименование,sourceClass1,sourceClass2,sourceClass3,costAdd,costValue=Сб-ст,appliedOn,createdOn,createdBy,updateMode=Обновяване';
     
     /**
      * Кой може да го промени?
