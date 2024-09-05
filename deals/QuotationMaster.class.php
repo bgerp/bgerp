@@ -500,10 +500,11 @@ abstract class deals_QuotationMaster extends core_Master
             $row->MyCompany = $Varchar->toVerbal($ownCompanyData->companyVerb);
 
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $cData = $contragent->getContragentData();
+            $cData = $contragent->getContragentData($dateFromWhichToGetName);
 
             $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
             $row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
+            $row->contragentCountryId = drdata_Countries::getVerbal($cData->countryId, $fld);
 
             foreach (array('pCode', 'place', 'address') as $fld) {
                 if ($cData->{$fld}) {
@@ -515,6 +516,7 @@ abstract class deals_QuotationMaster extends core_Master
                     $row->{"mycompany{$fld}"} = transliterate(tr($row->{"mycompany{$fld}"}));
                 }
             }
+
 
             if ($rec->currencyRate == 1) {
                 unset($row->currencyRate);
