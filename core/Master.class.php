@@ -865,10 +865,12 @@ class core_Master extends core_Manager
             }
         }
 
-        $doubleClickUrl = $me->getUrlForDblClick($id);
-        if(isset($doubleClickUrl)){
-            $doubleClickDataUrl = toUrl($doubleClickUrl);
-            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        if(isset($attr['ef_icon'])){
+            $doubleClickUrl = $me->getUrlForDblClick($id);
+            if(isset($doubleClickUrl)){
+                $doubleClickDataUrl = toUrl($doubleClickUrl);
+                $attr['data-doubleclick'] .= $doubleClickDataUrl;
+            }
         }
 
         if ($short === true) {
