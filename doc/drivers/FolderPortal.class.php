@@ -147,7 +147,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
             
             // Подготвяме редовете на таблицата
             $Threads->prepareListRows($data);
-            bp($data->rows);
+
             foreach ($data->rows as $row) {
                 $subTitle = "\n<div class='threadSubTitle'>{$row->_subTitle}<span class='portalAuthorTitle'>{$row->author}, {$row->last}</span></div>";
 
