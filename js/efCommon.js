@@ -2074,6 +2074,16 @@ function setFormElementsWidth() {
     }
 }
 
+// при двоен клин да отваря корицата
+function doubleClickOnLink(){
+    $('.linkWithIcon[data-doubleclick]').on('dblclick', function (e){
+        e.preventDefault();
+        e.stopPropagation();
+        var link = $(e.target).attr('data-doubleclick');
+        window.location = link;
+    });
+}
+
 
 /**
  * Задава ширина на селект2 в зависимост от ширината на прозореца/устройството
@@ -6362,3 +6372,4 @@ runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
+runOnLoad(doubleClickOnLink);
