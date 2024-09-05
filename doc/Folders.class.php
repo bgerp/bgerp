@@ -514,14 +514,10 @@ class doc_Folders extends core_Master
     public static function getFolderTitle($rec, $title = null, $limitLen = null)
     {
         $mvc = cls::get('doc_Folders');
-        
-        if (is_numeric($rec)) {
-            $rec = $mvc->fetch($rec);
-        }
+        $rec = $mvc->fetchRec($rec);
         
         $attr = array();
         $attr['class'] = 'linkWithIcon';
-
         if ($title === null) {
             $title = $mvc->getVerbal($rec, 'title');
         }
@@ -556,7 +552,7 @@ class doc_Folders extends core_Master
             $attr['class'] .= ' tUnsighted';
         }
 
-        $Cover = doc_Folders::getCover($rec->coverId);
+        $Cover = doc_Folders::getCover($rec->id);
         if($Cover->haveRightFor('single')){
             $attr['data-doubleclick'] .= toUrl(array($Cover->getInstance(), 'single', $Cover->that));
         }
