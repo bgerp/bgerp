@@ -338,7 +338,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $Date = cls::get('type_Date');
 
         $row = new stdClass();
-        $row->documentId = cls::get($dRec->className)->getLink($dRec->documentId, 0);
+
+        $DoocClass = cls::get($dRec->className);
+        $row->documentId = $DoocClass->getLink($dRec->documentId, 0);
 
         $row->contragentName = $dRec->contragentName;
 
@@ -352,8 +354,14 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         $row->created = $row->createdOn . ' от ' . $row->createdBy;
 
+        if (in_array($DoocClass->abbr, array('Pbd', 'Pko'))) {
+            $row->amountDeal = '<span style="color: green">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal) . '</span>';
+        } else {
+            $row->amountDeal = '<span style="color: red">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal) . '</span>';
+        }
+
         if (isset($dRec->amountDeal)) {
-            $row->amountDeal = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
+
             $row->amountDeal = ht::createHint($row->amountDeal, "${hint}", 'notice');
             $row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : tr('|*<span class="quiet">|не е посочен|*</span>');
         }
