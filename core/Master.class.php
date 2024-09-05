@@ -96,8 +96,16 @@ class core_Master extends core_Manager
                 }
             }
         }
-        
-        $link = ht::createLink($title, $linkArr);
+
+        // Ако има урл при двоен клик - да се добави като дата атрибут
+        $attr = array();
+        $doubleClickUrl = $me->getUrlForDblClick($objId);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
+
+        $link = ht::createLink($title, $linkArr, false, $attr);
         
         return $link;
     }
@@ -776,7 +784,14 @@ class core_Master extends core_Manager
         $url = $me->getSingleUrlArray($id);
         
         setIfNot($attr['ef_icon'], $me->getIcon($id));
-        
+
+        // Ако има урл при двоен клик - да се добави като дата атрибут
+        $doubleClickUrl = $me->getUrlForDblClick($id);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
+
         // Вземаме линка
         $link = ht::createLink($name, $url, null, $attr);
         
@@ -850,6 +865,12 @@ class core_Master extends core_Manager
             }
         }
 
+        $doubleClickUrl = $me->getUrlForDblClick($id);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
+
         if ($short === true) {
             if (!Mode::is('printing') && !Mode::is('text', 'xhtml')) {
                 $title = ht::createLinkRef($title, $url, null, $attr);
@@ -860,8 +881,23 @@ class core_Master extends core_Manager
         
         return $title;
     }
-    
-    
+
+
+    /**
+     * Връща урл което да се извика при двоен клик
+     *
+     * @param int|stdClass $id - ид или запис
+     * @return array|null      - урл или null ако нищо няма
+     */
+    public function getUrlForDblClick_($id)
+    {
+        $rec = $this->fetchRec($id);
+        if($this->haveRightFor('edit', $rec)) return array($this, 'edit', $rec->id);
+
+        return null;
+    }
+
+
     /**
      * Създава хиперлинк към единичния изглед който е стрелка след името
      *
