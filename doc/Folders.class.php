@@ -556,6 +556,11 @@ class doc_Folders extends core_Master
             $attr['class'] .= ' tUnsighted';
         }
 
+        $Cover = doc_Folders::getCover($rec->coverId);
+        if($Cover->haveRightFor('single')){
+            $attr['data-doubleclick'] .= toUrl(array($Cover->getInstance(), 'single', $Cover->that), 'local');
+        }
+
         if ($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
             
