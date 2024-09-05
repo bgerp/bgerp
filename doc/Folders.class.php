@@ -558,7 +558,7 @@ class doc_Folders extends core_Master
 
         $Cover = doc_Folders::getCover($rec->coverId);
         if($Cover->haveRightFor('single')){
-            $attr['data-doubleclick'] .= toUrl(array($Cover->getInstance(), 'single', $Cover->that), 'local');
+            $attr['data-doubleclick'] .= toUrl(array($Cover->getInstance(), 'single', $Cover->that));
         }
 
         if ($haveRight) {
