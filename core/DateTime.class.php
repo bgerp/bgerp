@@ -1098,7 +1098,8 @@ class core_DateTime
         $fromDateObj = DateTime::createFromFormat("Y-m-d", $from);
         $toDateObj = DateTime::createFromFormat("Y-m-d", $to);
 
-        if(empty($from)) return tr('Към') . ": " . ltrim(dt::mysql2verbal($to, 'd M y'),'0');
+        if(empty($from) && !empty($to)) return tr('Към') . ": " . ltrim(dt::mysql2verbal($to, 'd M y'),'0');
+        if(empty($to) && !empty($from)) return tr('От') . ": " . ltrim(dt::mysql2verbal($from, 'd M y'),'0');
 
         $toYear = $toDateObj->format("Y");
         $toMonth = static::getMonth($toDateObj->format("m"), 'M', $lg);
