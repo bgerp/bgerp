@@ -361,10 +361,4 @@ class bgfisc_plg_Sales extends core_Plugin
         
         $mvc->logWrite('Анулиране на документ', $rec->id);
     }
-    
-    
-    public static function on_AfterGetLinkForObject($mvc, &$res, $rec)
-    {
-        bp();
-    }
 }

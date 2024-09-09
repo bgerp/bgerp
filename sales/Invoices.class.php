@@ -490,6 +490,13 @@ class sales_Invoices extends deals_InvoiceMaster
                     }
                 }
             }
+
+            $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+            if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
+                if(!drdata_Vats::isBulstat($rec->contragentVatNo)){
+                    $form->setError('contragentVatNo', 'Невалиден български данъчен номер');
+                }
+            }
         }
     }
 
@@ -827,6 +834,14 @@ class sales_Invoices extends deals_InvoiceMaster
             $res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
         } elseif (!$mvc->isAllowedToBePosted($rec, $error)) {
             $res = strip_tags($error);
+        } elseif($rec->type == 'invoice') {
+            $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+            if($rec->contragentCountryId != $bgId && drdata_Countries::isEu($bgId)){
+                $vatCheckArr = cls::get('drdata_Vats')->check($rec->contragentVatNo);
+                if($vatCheckArr[0] == 'invalid'){
+                    $res = "Невалиден ДДС № на клиент от чужбина - ЕС|*!";
+                }
+            }
         }
     }
     
@@ -943,5 +958,26 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         return $res;
+    }
+
+
+    /**
+     * Какво да е предупреждението на бутона за контиране
+     *
+     * @param int $id - ид
+     * @param string $isContable - какво е действието
+     *
+     * @return NULL|string - текста на предупреждението или NULL ако няма
+     */
+    public function getContoWarning_($id, $isContable)
+    {
+        $rec = static::fetchRec($id);
+        $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+        if($rec->contragentCountryId == $bgId){
+            $VatType = core_Type::getByName('drdata_VatType');
+            $vatCheck = $VatType->isValid($rec->contragentVatNo);
+
+            return $vatCheck['warning'] ? "Евентуален проблем при контиране на фактурата с полето|* ДДС №: |{$vatCheck['warning']}|*" : null;
+        }
     }
 }

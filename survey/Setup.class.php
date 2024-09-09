@@ -89,7 +89,7 @@ class survey_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('survey_Images', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('survey_Images', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png,webp', '6MB', 'user', 'every_one');
         
         return $html;
     }

@@ -218,6 +218,8 @@ class findeals_Deals extends deals_DealBase
         $this->FNC('contragentItemId', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Втори контрагент,input');
 
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,silent,removeAndRefreshForm=currencyRate');
+        $this->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=ДДС изключение');
+
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
 
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
@@ -229,12 +231,11 @@ class findeals_Deals extends deals_DealBase
         
         $this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
         $this->FLD('secondContragentId', 'int', 'input=none');
-        $this->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Допълнително->ДДС изключение');
 
-        $this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=currencyId');
+        $this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=vatExceptionId');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен,stopped=Спряно,template=Шаблон)', 'caption=Състояние, input=none');
         $this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
-        
+
         // Индекс
         $this->setDbIndex('dealManId');
     }

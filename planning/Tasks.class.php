@@ -2179,7 +2179,20 @@ class planning_Tasks extends core_Master
                 $row->costsCount = ht::createLinkRef($costsCount, $linkArr, false, 'title=Показване на разходите към документа');
             }
 
-
+            // Показване на ПВ към операцията, групирани по тяхното състояние
+            $notesByStates = array();
+            $noteQuery = planning_ConsumptionNotes::getQuery();
+            $noteQuery->where("#threadId = {$rec->threadId} AND #state != 'rejected'");
+            $noteQuery->XPR('count', 'int', 'COUNT(#id)');
+            $noteQuery->groupBy('state');
+            $noteQuery->show('state,count');
+            while($noteRec = $noteQuery->fetch()){
+                $noteCountVerbal = core_Type::getByName('int')->toVerbal($noteRec->count);
+                $notesByStates[] = "<div class='state-{$noteRec->state} consumptionNoteBubble'>{$noteCountVerbal}</div>";
+            }
+            if(countR($notesByStates)){
+                $row->progress .= " <small>[<i>" . tr('ПВ') . "</i>: " . implode(' + ', $notesByStates) . "]</small>";
+            }
 
             $data->rows[$rec->id] = $row;
         }
@@ -2503,7 +2516,7 @@ class planning_Tasks extends core_Master
             if ($this->haveRightFor('single', $tRec)) {
                 if (doc_Threads::haveRightFor('single', $tRec->threadId)) {
                     $hnd = $this->getHandle($tRec->id);
-                    $res->url = array('doc_Containers', 'list', 'threadId' => $tRec->threadId, 'docId' => $hnd, 'serial' => $str, 'Q' => $str, '#' => $hnd);
+                    $res->url = array('doc_Containers', 'list', 'threadId' => $tRec->threadId, 'docId' => $hnd, 'Q' => $str, '#' => $dRec->serial);
                 } else {
                     $res->url = array('planning_Tasks', 'single', $dRec->taskId, 'Q' => $str);
                 }
@@ -2699,6 +2712,8 @@ class planning_Tasks extends core_Master
                 unset($newTask->containerId);
                 unset($newTask->createdOn);
                 unset($newTask->createdBy);
+                unset($newTask->activatedOn);
+                unset($newTask->activatedBy);
                 unset($newTask->systemId);
 
                 if ($this->save($newTask)) {
@@ -2724,7 +2739,8 @@ class planning_Tasks extends core_Master
                     $cQuery->where("#state != 'rejected' AND #threadId = {$taskRec->threadId}");
                     while($consRec = $cQuery->fetch()){
                         $newConsRec = clone $consRec;
-                        unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy);
+                        plg_Clone::unsetFieldsNotToClone($Consumptions, $newConsRec, $consRec);
+                        unset($newConsRec->id, $newConsRec->threadId, $newConsRec->containerId, $newConsRec->createdOn, $newConsRec->createdBy, $newConsRec->activatedBy, $newConsRec->activatedOn);
 
                         $newConsRec->_isClone = true;
                         $newConsRec->originId = $newTask->containerId;

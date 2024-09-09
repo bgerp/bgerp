@@ -35,7 +35,7 @@ class thumb_Img
     /**
      * Масив с позволените разширения за генериране на thumbnail
      */
-    protected static $allowedExtArr = array('jpg' => 'jpg', 'jpeg' => 'jpeg', 'png' => 'png', 'gif' => 'gif', 'bmp' => 'bmp', 'ico' => 'ico');
+    protected static $allowedExtArr = array('jpg' => 'jpg', 'jpeg' => 'jpeg', 'png' => 'png', 'gif' => 'gif', 'bmp' => 'bmp', 'ico' => 'ico', 'webp' => 'webp');
     
     
     /**
@@ -346,8 +346,14 @@ class thumb_Img
                 $this->gdRes = $this->source;
             } else {
                 if ($asString = $this->getAsString()) {
-                    $this->gdRes = @imagecreatefromstring($asString);
-                    
+                    if ($this->format == 'webp') {
+                        $fName = $this->thumbName ? $this->thumbName : 'webp.webp';
+                        $webpFile = fileman::addStrToFile($asString, $fName);
+                        $this->gdRes = @imagecreatefromwebp($webpFile);
+                    } else {
+                        $this->gdRes = @imagecreatefromstring($asString);
+                    }
+
                     if (thumb_Setup::get('OPTIMIZATORS')) {
                         // Ако е от URL и е определно грешно разширението го киригираме, за да може да се не гърми при оптимизиране
 //                         if(!in_array($this->format, array('png', 'jpg', 'gif', 'jpeg')) || (stripos($this->source, 'gravatar'))) {
@@ -383,7 +389,14 @@ class thumb_Img
         if (!$this->width || !$this->height) {
             if (!$this->gdRes) {
                 if ($this->sourceType == 'string') {
-                    $this->gdRes = @imagecreatefromstring($this->source);
+                    if ($this->format == 'webp') {
+                        $fName = $this->thumbName ? $this->thumbName : 'webp.webp';
+                        $webpFile = fileman::addStrToFile($this->source, $fName);
+                        $this->gdRes = @imagecreatefromwebp($webpFile);
+                    } else {
+                        $this->gdRes = @imagecreatefromstring($this->source);
+                    }
+
                 } elseif ($this->sourceType == 'gdRes') {
                     $this->gdRes = $this->source;
                 }

@@ -804,7 +804,7 @@ class log_Data extends core_Manager
                         $clsInst = cls::get($className);
                         
                         if (method_exists($clsInst, 'getTitleForId_')) {
-                            $objSuggArr[$cRec->objectId] = $clsInst->getTitleForId($cRec->objectId);
+                            $objSuggArr[$cRec->objectId] = $clsInst->getTitleForId($cRec->objectId, false);
                         } else {
                             $objSuggArr[$cRec->objectId] = $cRec->objectId;
                         }

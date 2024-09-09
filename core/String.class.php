@@ -1476,4 +1476,44 @@ class core_String
 
         return preg_match('/(?:^|[^\\p{L}0-9])\\p{L}+(?:$|[^\\p{L}0-9])/u', ' ' . $str . ' ', $matches);
     }
+
+
+    /**
+     * Ф-я за маскиране на имейл
+     *
+     * @param string $email
+     * @return string
+     */
+    public static function maskEmail($email)
+    {
+        $mailParts = explode("@", $email);
+        $domainParts = explode('.', $mailParts[1]);
+
+        $mailParts[0] = str::maskString($mailParts[0], 1, 1, 5);
+        $domainParts[0] = str::maskString($domainParts[0], 0, 0, 5);
+        $mailParts[1] = implode('.', $domainParts);
+
+        return implode("@", $mailParts);
+    }
+
+
+    /**
+     * Ф-я за маскиране на стринг с '*'
+     *
+     * @param string $str       - стринг
+     * @param int $first        - начало
+     * @param int $last         - край
+     * @param bool $fixedLength - твърд брой колко * да се сложат
+     * @return string
+     */
+    public static function maskString($str, $first, $last, $fixedLength = false)
+    {
+        $len = strlen($str);
+
+        $toShow = $first + $last;
+        $smartLen = ($len - ($len <= $toShow ? 0 : $toShow));
+        $length = $fixedLength ? min($smartLen, $fixedLength) : $smartLen;
+
+        return substr($str, 0, $len <= $toShow ? 0 : $first).str_repeat("*", $length).substr($str, $len - $last, $len <= $toShow ? 0 : $last);
+    }
 }

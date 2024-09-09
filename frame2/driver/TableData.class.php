@@ -271,7 +271,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         
         return $summaryRow;
     }
-    
+
+
     /**
      * Сортира полетата на записите в указаната стойност
      * 
@@ -283,16 +284,10 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     private function sortRecsByDirection(&$recs, $sortFld = null, $sortDirection = null)
     {
-        if(!isset($sortFld) || !isset($sortDirection)) {
-            
-            return;
-        }
-       
-        if($sortDirection != 'none'){
-            uasort($recs, function($a, $b) use ($sortFld, $sortDirection) {
-                return (strip_tags($a->{$sortFld}) > strip_tags($b->{$sortFld})) ? (($sortDirection  == 'up') ? -1 : 1) : (($sortDirection  == 'up')? 1 : -1);
-            });
-        }
+        if(!isset($sortFld) || !isset($sortDirection) || $sortDirection == 'none') return;
+
+        $direction = $sortDirection == 'up' ? 'asc' : 'desc';
+        arr::sortObjects($recs, $sortFld, $direction);
     }
     
     
@@ -456,7 +451,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
             $this->sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
 
-            //Сортира се вътре във всяка група по втори показател $subGroupFieldOrder ако не е null
+            // Сортира се вътре във всяка група по втори показател $subGroupFieldOrder ако не е null
             if ($groupField && $subGroupFieldOrder){
                 arr::sortObjects($groupedArr, $subGroupFieldOrder, 'asc');
             }

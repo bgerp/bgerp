@@ -83,8 +83,8 @@ class acc_ProductPricePerPeriods extends core_Manager
         $row->productItemId = cls::get($productItemRec->classId)->getHyperlink($productItemRec->objectId, true);
         $row->price = ht::styleNumber($row->price, $rec->price);
 
-        if($rec->type == 'sales'){
-            $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 321, 'ent1Id' => $rec->storeItemId, 'ent2Id' => $rec->productItemId);
+        if($rec->type == 'stores'){
+            $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 321, 'ent1Id' => $rec->otherItemId, 'ent2Id' => $rec->productItemId);
         } elseif($rec->type == 'costs'){
             $url = array('acc_BalanceHistory', 'History', 'fromDate' => $productItemRec->earliestUsedOn, 'toDate' => $rec->date, 'accNum' => 60201, 'ent1Id' => $rec->otherItemId, 'ent2Id' => $rec->productItemId);
         } else {
@@ -124,6 +124,10 @@ class acc_ProductPricePerPeriods extends core_Manager
 
         $bRecs = $bQuery->fetchAll();
         $balanceIds = array_keys($bRecs);
+        if(!countR($balanceIds)) {
+            wp("PRICE_CACHE_NO_BALANCE", $fromDate, $toDate);
+            return $res;
+        }
 
         $groupedDetails = array();
         $dQuery = acc_BalanceDetails::getQuery();
@@ -131,7 +135,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $dQuery->EXT('periodId', 'acc_Balances', 'externalName=periodId,externalKey=balanceId');
         $dQuery->where("#accountId = {$accId} AND #ent1Id IS NOT NULL");
         $dQuery->in('balanceId', $balanceIds);
-        $dQuery->show('balanceId,blAmount,blQuantity,ent1Id,ent2Id');
+        $dQuery->show('balanceId,blAmount,blQuantity,ent1Id,ent2Id,debitQuantity,debitAmount');
         while($dRec1 = $dQuery->fetch()){
             $groupedDetails[$bRecs[$dRec1->balanceId]->toDate][] = $dRec1;
         }
@@ -145,8 +149,15 @@ class acc_ProductPricePerPeriods extends core_Manager
 
             foreach ($details as $dRec){
                 if(empty($dRec->blQuantity)){
-                    $dRec->price = 0;
+                    if(empty($dRec->debitQuantity)){
+                        // Ако има ненулево крайно к-во и нулево дебитно к-во значи е 0
+                        $dRec->price = 0;
+                    } else {
+                        // Ако има дебитно к-во цената е частното между дебитното салдо и количество
+                        @$dRec->price = round($dRec->debitAmount / $dRec->debitQuantity, 5);
+                    }
                 } else {
+                    // Ако има ненулево крайно к-во - цената е частното на крайното салдо и количество
                     @$dRec->price = round($dRec->blAmount / $dRec->blQuantity, 5);
                 }
                 $dRec->price = ($dRec->price == 0) ? 0 : $dRec->price;
@@ -170,7 +181,7 @@ class acc_ProductPricePerPeriods extends core_Manager
                 $item2Id = ($sysId == '61101') ? $dRec->ent1Id : $dRec->ent2Id;
 
                 if(empty($toDate)){
-                    wp("NO_DATE_CACHE", $dRec, $toDate, $balanceIds);
+                    wp("PRICE_CACHE_NO_DATE", $dRec, $toDate, $balanceIds);
                 }
                 $rec = (object)array('date' => $toDate,
                                      'otherItemId' => $item1Id,

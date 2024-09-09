@@ -589,4 +589,37 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $query->where("#storeId = '{$masterRec->inputStoreId}' AND #type = 'input'");
     }
+
+
+    /**
+     * Извиква се преди запис в модела
+     */
+    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if(isset($rec->id)){
+            $rec->_oldStoreId = $mvc->fetchField($rec->id, 'storeId', false);
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if(isset($rec->_oldStoreId) && $rec->_oldStoreId != $rec->storeId){
+            if(core_Packs::isInstalled('batch')){
+                $bQuery = batch_BatchesInDocuments::getQuery();
+                $bQuery->where("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id} AND #storeId = {$rec->_oldStoreId}");
+                if(isset($rec->storeId)){
+                    while($bRec = $bQuery->fetch()){
+                        $bRec->storeId = $rec->storeId;
+                        batch_BatchesInDocuments::save($bRec, 'storeId');
+                    }
+                } else {
+                    $bQuery->delete();
+                }
+            }
+        }
+    }
 }

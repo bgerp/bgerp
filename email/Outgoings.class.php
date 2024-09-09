@@ -1792,7 +1792,11 @@ class email_Outgoings extends core_Master
             if (!$emailTo) {
                 $recEmailsArr = email_Inboxes::removeOurEmails($recEmailsArr);
             }
-            
+
+            foreach ($recEmailsArr as &$rEmailStr) {
+                $rEmailStr = type_Email::removeBadPart($rEmailStr);
+            }
+
             if ($contragentData->replyToEmail) {
                 $removeFromGroup = $recEmailsArr;
             } else {
@@ -3043,7 +3047,7 @@ class email_Outgoings extends core_Master
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресата
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         $posting = email_Outgoings::fetch($id);
         

@@ -1,0 +1,44 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <h2>[#SingleTitle#]</h2>
+        <table>
+            <tr>
+                <td class="title-style aright" style='padding-right: 5px'>№:</td>
+                <td><b>[#id#]</b></td>
+            </tr>
+            <tr>
+                <td class="title-style aright"  style='padding-right: 5px'>|Препоръчител|*:</td>
+                <td><b>[#referrer#]</b></td>
+            </tr>
+            <!--ET_BEGIN priceListId-->
+            <tr>
+                <td class="title-style aright"  style='padding-right: 5px'>|Ценова политика|*:</td>
+                <td><b>[#priceListId#]</b></td>
+            </tr>
+            <!--ET_END priceListId-->
+            <!--ET_BEGIN groupId-->
+            <tr>
+                <td class="title-style aright"  style='padding-right: 5px'>|Група|*:</td>
+                <td><b>[#groupId#]</b></td>
+            </tr>
+            <!--ET_END groupId-->
+            <tr>
+                <td class="title-style aright"  style='padding-right: 5px'>|Брой ваучери|*:</td>
+                <td><b>[#count#]</b></td>
+            </tr>
+            <!--ET_BEGIN blasts-->
+            <tr>
+                <td class="title-style aright"  style='padding-right: 5px'>|Циркулярни имейли|*:</td>
+                <td><b>[#blasts#]</b></td>
+            </tr>
+            <!--ET_END blasts-->
+            <!--ET_BEGIN validTo-->
+            <tr>
+                <td class="title-style aright"  style='padding-right: 5px'>|Валидни до|*:</td>
+                <td><b>[#validTo#]</b></td>
+            </tr>
+            <!--ET_END validTo-->
+        </table>
+        <br>
+    [#DETAILS#]
+</div>

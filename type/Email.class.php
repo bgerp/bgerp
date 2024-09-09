@@ -161,15 +161,22 @@ class type_Email extends type_Varchar
         } else {
             $verbal = $email;
         }
-        
+
         if (Mode::is('text', 'plain') || Mode::is('htmlEntity', 'none')) {
             $verbal = $email;
         } elseif ($this->params['link'] != 'no') {
+            if($this->params['maskVerbal']){
+                $verbal = str::maskEmail($email);
+            }
             $verbal = $this->addHyperlink($email, $verbal);
         } else {
+            if($this->params['maskVerbal']){
+                $email = str::maskEmail($email);
+            }
             $verbal = str_replace('@', '&#64;', $email);
         }
-        
+
+
         return $verbal;
     }
     

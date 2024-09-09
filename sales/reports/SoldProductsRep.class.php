@@ -432,7 +432,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $originQuantity = $changeQuatity = 0;
 
                 //Ключ на масива
-                $id = $invDetRec->productId . ' | ' . $invDetRec->folderId;
+                $id = $invDetRec->productId . ' | ' . $invDetRec->folderId. ' | ' . $invDetRec->folderId;
 
                 $invQuantity = $invDetRec->quantity * $invDetRec->quantityInPack;
                 $discount = $invDetRec->price * $invQuantity * $invDetRec->discount;
@@ -651,7 +651,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             //rec-a на артикула
             $prodRec = cat_Products::fetch($recPrime->productId);
-//bp($recPrime, $rec);
+
             //Ключ на масива
             $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId . ' | ' . $recPrime->folderId : $recPrime->productId;
             $Doc = doc_Containers::getDocument($recPrime->containerId);
@@ -664,7 +664,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $posContragentClassName = core_Classes::fetch($recPrime->contragentClassId)->name;
                 $contragentFolder = $posContragentClassName::fetch($recPrime->contragentId)->folderId;
 
-
+                $contragentName = doc_Folders::getTitleById($contragentFolder);
                 $posKey = $recPrime->contragentClassId . '|' . $recPrime->contragentId;
 
                 $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId . ' | ' . $posKey : $recPrime->productId;

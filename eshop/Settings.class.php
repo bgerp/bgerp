@@ -265,7 +265,6 @@ class eshop_Settings extends core_Master
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Показване на е-артикулите във външната част->Опаковки/Мерки');
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа артикули)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
-        $this->FLD('canUseCards', 'enum(yes=Включено,no=Изключено)', 'caption=Възможност за логване с клиентска карта->Избор,notNull,value=yes');
         $this->FLD('locationIsMandatory', 'enum(no=Опционална,yes=Задължителна)', 'caption=Настройки на партньори за онлайн магазина->Локация,notNull,value=no');
         
         $this->FLD('addProductText', 'text(rows=3)', 'caption=Добавяне на артикул към количката->Текст');

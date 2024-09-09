@@ -261,7 +261,7 @@ class price_ListBasicDiscounts extends core_Detail
         $groupIds = arr::extractValuesFromArray($dRecs, 'groupId');
 
         // Ако периода за продажба е различен от "текущата продажба" смятат се сумите от предишните продажби за контрагента
-        if($basicDiscountListRec->discountClassPeriod != 'default'){
+        if($basicDiscountListRec->discountClassPeriod != 'default' && !($Master instanceof eshop_Carts)){
             $contragentClassId = $masterRec->contragentClassId;
             $contragentId = $masterRec->contragentId;
             if($Master instanceof pos_Receipts){
@@ -281,7 +281,13 @@ class price_ListBasicDiscounts extends core_Detail
 
         // За всяка група от праговете
         $detailsByGroups = array();
-        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+        if($Master instanceof eshop_Carts){
+            $settings = cms_Domains::getSettings($masterRec->domainId);
+            $vatExceptionId = $settings->vatExceptionId;
+        } else {
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+        }
+
         foreach ($groupIds as $groupId){
 
             // Добавят се и данните за раздадените отстъпки от текущата продажба
@@ -391,12 +397,16 @@ class price_ListBasicDiscounts extends core_Detail
         $dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $dQuery->where("#isPublic = 'yes' AND #state IN ('active', 'closed') AND #sellCost IS NOT NULL AND #contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId} AND #detailClassId != {$posReportClassId}");
         $dQuery->likeKeylist('groups', $groupKeylist);
-        $dQuery->show('groups,quantity,sellCost,valior,productId,sellCostWithOriginalDiscount,autoDiscountAmount,threadId');
+        $dQuery->show('groups,quantity,sellCost,valior,productId,sellCostWithOriginalDiscount,autoDiscountAmount,threadId,activatedOn');
         if($listRec->discountClassPeriod == 'monthly'){
             $firstDay = date('Y-m-01');
             $lastDay = dt::getLastDayOfMonth(dt::today());
             $dQuery->where("#valior >= '{$firstDay}' AND #valior <= '{$lastDay}'");
-        } else {
+        } elseif($listRec->discountClassPeriod == 'hourly'){
+            $now = dt::now();
+            $before1Hour = dt::addSecs(-3600, $now);
+            $dQuery->where("#activatedOn >= '{$before1Hour}' AND #activatedOn <= '{$now}'");
+        } else{
             $today = dt::today();
             $dQuery->where("#valior = '{$today}'");
         }
@@ -441,7 +451,11 @@ class price_ListBasicDiscounts extends core_Detail
             $firstDay = date('Y-m-01');
             $lastDay = dt::getLastDayOfMonth(dt::today());
             $pQuery->where("#waitingOn >= '{$firstDay}' AND #waitingOn <= '{$lastDay}'");
-        } else {
+        } elseif($listRec->discountClassPeriod == 'hourly'){
+            $now = dt::now();
+            $before1Hour = dt::addSecs(-3600, $now);
+            $pQuery->where("#waitingOn >= '{$before1Hour}' AND #waitingOn <= '{$now}'");
+        }  else {
             $today = dt::today();
             $pQuery->where("#waitingOn >= '{$today} 00:00:00' AND #waitingOn <= '{$today} 23:59:59'");
         }

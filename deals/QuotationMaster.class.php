@@ -492,11 +492,10 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
-            $ownCompanyData = crm_Companies::fetchOwnCompany();
+            $ownCompanyData = crm_Companies::fetchOwnCompany(null, $rec->activatedOn);
 
             $Varchar = cls::get('type_Varchar');
-            $row->MyCompany = $Varchar->toVerbal($ownCompanyData->company);
-            $row->MyCompany = transliterate(tr($row->MyCompany));
+            $row->MyCompany = $Varchar->toVerbal($ownCompanyData->companyVerb);
 
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
             $cData = $contragent->getContragentData();
@@ -549,7 +548,7 @@ abstract class deals_QuotationMaster extends core_Master
                 $deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
             } else {
                 $placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
-                $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, $mvc);
+                $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, doc_Containers::getDocument($rec->containerId));
             }
 
             if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){

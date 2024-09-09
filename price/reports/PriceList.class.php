@@ -58,6 +58,12 @@ class price_reports_PriceList extends frame2_driver_TableData
 
 
     /**
+     * Кои полета от листовия изглед да може да се сортират
+     */
+    protected $sortableListFields = 'code,productId,price';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset

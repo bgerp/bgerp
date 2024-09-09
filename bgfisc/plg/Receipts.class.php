@@ -343,6 +343,13 @@ class bgfisc_plg_Receipts extends core_Plugin
                     throw new core_exception_Expect('Нямате права', 'Несъответствие');
                 }
 
+                if(core_Packs::isInstalled('voucher')){
+                    $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($rec->id), 'productId');
+                    if($errors = voucher_Cards::getContoErrors($rec->voucherId, $productArr, $mvc->getClassId(), $rec->id)){
+                        throw new core_exception_Expect($errors, 'Несъответствие');
+                    }
+                }
+
                 bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id);
                 core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
                 
@@ -379,8 +386,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $fiscalArr['STORNO_REASON'] = $reasonCode;
                     $fiscalArr['RELATED_TO_URN'] = $receiptNumber;
                     $fiscalArr['QR_CODE_DATA'] = bgfisc_PrintedReceipts::getQrCode($mvc, $rec->revertId);
-                    //$fiscalArr['QR_CODE_DATA'] = '99999999*999999*2019-12-14*11:35:00*8.18';
-                    
+
                     if (empty($fiscalArr['QR_CODE_DATA'])) {
                         throw new core_exception_Expect('Към оригиналната бележка няма фискален бон', 'Несъответствие');
                     }

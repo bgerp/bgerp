@@ -295,7 +295,7 @@ class purchase_Purchases extends deals_DealMaster
     {
         parent::setDealFields($this);
         $this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
-        $this->FLD('haveVatCreditProducts', 'enum(yes=С право,no=Без право)', 'caption=Допълнително->Данъчен кредит,before=template,notNull,value=yes');
+        $this->FLD('haveVatCreditProducts', 'enum(yes=С право,no=Без право)', 'caption=Допълнително->Данъчен кредит,maxRadio=2,columns=2,before=template,notNull,value=yes');
         $this->setField('dealerId', 'caption=Наш персонал->Закупчик,notChangeableByContractor');
         $this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');

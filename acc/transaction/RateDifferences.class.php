@@ -90,7 +90,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
             $threads += arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
         }
 
-        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
+        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId(), acc_ValueCorrections::getClassId());
         $query = doc_Containers::getQuery();
         $query->where("#state = 'active'");
         $query->in('docClass', $paymentIds);
@@ -222,7 +222,9 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
         foreach ($documents as $d) {
             $Doc = doc_Containers::getDocument($d->id);
             $docRec = $Doc->fetch();
+            $finalAmount = null;
 
+            $reverseDebit = false;
             if($Doc->isInstanceOf('deals_PaymentDocument')){
 
                 $sign = ($docRec->isReverse == 'yes') ? -1 : 1;
@@ -251,22 +253,49 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
                 $diffRate = $rate - $strategyRate;
                 $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
-                if($finalAmount){
-                    $totalAmount += $finalAmount;
-                    $data[$docRec->containerId] = $finalAmount;
+                $quantity = round($docRec->amountDeal, 2);
 
-                    $entries[] = array('amount' => $finalAmount,
-                        'credit' => array($creditAccId,
-                            array($dealRec->contragentClassId, $dealRec->contragentId),
-                            array('sales_Sales', $dealRec->id),
-                            array('currency_Currencies', $currencyId),
-                            'quantity' => $sign * round($docRec->amountDeal, 2)),
-                        'debit' => array('481',
-                            array('currency_Currencies', $currencyId),
-                            'quantity' => $sign * round($docRec->amountDeal, 2)),
+            } elseif($Doc->isInstanceOf('acc_ValueCorrections')){
+                $sign = ($docRec->action == 'increase') ? -1 : 1;
+                $strategyRate = currency_CurrencyRates::getRate($valior, $docRec->currencyId, null);
+                $diffRate = round($docRec->rate - $strategyRate, 5);
+                $finalAmount = round($diffRate * $sign * ($docRec->amount / $docRec->rate), 2);
+                $quantity = round($docRec->amount / $docRec->rate, 2);
+                $creditAccId = 411;
+                $currencyId = currency_Currencies::getIdByCode($docRec->currencyId);
+                $reverseDebit = true;
+            } else {
+                continue;
+            }
+
+            if(!$finalAmount) continue;
+
+            $totalAmount += $finalAmount;
+            $data[$docRec->containerId] = $finalAmount;
+
+            if($reverseDebit){
+                $entries[] = array('amount' => $finalAmount,
+                    'debit' => array($creditAccId,
+                        array($dealRec->contragentClassId, $dealRec->contragentId),
+                        array('sales_Sales', $dealRec->id),
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * $quantity),
+                    'credit' => array('481',
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * $quantity),
+                    'reason' => "Валутни разлики");
+            } else {
+                $entries[] = array('amount' => $finalAmount,
+                    'credit' => array($creditAccId,
+                        array($dealRec->contragentClassId, $dealRec->contragentId),
+                        array('sales_Sales', $dealRec->id),
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * $quantity),
+                    'debit' => array('481',
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * $quantity),
                         'reason' => "Валутни разлики");
                 }
-            }
         }
 
         return $entries;
@@ -379,7 +408,29 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 $totalAmount += $finalAmount;
 
                 $debitQuantity = ($docRec->amountDeal / $rate);
-                $creditQuantity = $debitQuantity;
+            } elseif($Doc->isInstanceOf('acc_ValueCorrections')) {
+
+                $sign = ($docRec->action == 'increase') ? -1 : 1;
+                $currencyId = currency_Currencies::getIdByCode($docRec->currencyId);
+
+                $strategyRate = currency_CurrencyRates::getRate($valior, $docRec->currencyId, null);
+                $diffRate = round($docRec->rate - $strategyRate, 5);
+                $finalAmount = round($diffRate * $sign * ($docRec->amount / $docRec->rate), 2);
+                $debitQuantity = ($docRec->amount / $docRec->rate);
+                $totalAmount += $finalAmount;
+
+                $data[$docRec->containerId] = $finalAmount;
+                $entries[] = array('amount' => $finalAmount,
+                    'credit' => array('401',
+                        array($dealRec->contragentClassId, $dealRec->contragentId),
+                        array('purchase_Purchases', $dealRec->id),
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * round($debitQuantity, 2)),
+                    'debit' => array('481',
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * round($debitQuantity, 2)),
+                    'reason' => "Валутни разлики");
+                continue;
             } else {
                 continue;
             }

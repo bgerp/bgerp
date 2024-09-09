@@ -34,7 +34,18 @@
 	    </div>
 	</fieldset>
 	<!--ET_END CARDS-->
-	
+
+	<!--ET_BEGIN VOUCHERS-->
+	<fieldset class='top-tab-content' style='margin-top:10px'>
+		<legend class='groupTitle'>|Ваучери|* [#addVoucherBtn#]</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+			<div class='groupList clearfix21'>
+				[#VOUCHERS#]
+			</div>
+		</div>
+	</fieldset>
+	<!--ET_END VOUCHERS-->
+
 	<!--ET_BEGIN PRODUCT_LISTS-->
 	<fieldset class='top-tab-content' style='margin-top:10px'>
 	<legend class='groupTitle'>[#listTitle#]</legend>

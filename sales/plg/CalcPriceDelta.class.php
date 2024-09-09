@@ -260,6 +260,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 'isPublic' => cat_Products::fetchField($dRec->{$mvc->detailProductFld}, 'isPublic'),
                 'contragentId' => $Cover->that,
                 'contragentClassId' => $Cover->getClassId(),
+                'activatedOn' => $rec->activatedOn,
                 'primeCost' => $primeCost);
             
             $canStore = cat_products::fetchField($dRec->{$mvc->detailProductFld}, 'canStore');

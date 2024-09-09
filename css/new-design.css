@@ -484,7 +484,6 @@ body {
 .logoText {
   font-weight: bold;
   font-size: 26px;
-  font-family: Arial;
   position: relative;
   display: inline-block; }
 
@@ -859,7 +858,6 @@ body {
   border: none; }
 
 #main-container > div.tab-control > div.tab-row > .row-holder .tab {
-  font-family: arial;
   display: inline-block;
   height: 18px;
   margin: 0;
@@ -991,7 +989,6 @@ button {
   -webkit-border-radius: 3px !important;
   border-radius: 3px !important;
   color: #333333;
-  font-family: arial;
   font-weight: bold;
   text-decoration: none;
   border-right: 1px solid #dfdfdf;

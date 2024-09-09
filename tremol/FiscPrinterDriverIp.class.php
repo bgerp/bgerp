@@ -552,12 +552,13 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      * @param float    $amount - ако е минус - изкрва пари, а с плюс - вкарва
      * @param boolean  $printAvailability
      * @param string   $text
+     * @param integer  $defPaymentType
      *
      * @return boolean
      *
      * @see peripheral_FiscPrinterIp
      */
-    public function cashReceivedOrPaidOut($rec, $operNum, $operPass, $amount, $printAvailability = false, $text = '')
+    public function cashReceivedOrPaidOut($rec, $operNum, $operPass, $amount, $printAvailability = false, $text = '', $defPaymentType = 0)
     {
         $printAvailability = (int) $printAvailability;
         
@@ -565,10 +566,15 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
         
         try {
             $fp = self::connectToPrinter($rec);
-            
+
             if ($fp) {
-                $fp->ReceivedOnAccount_PaidOut($operNum, $operPass, $amount, $printAvailability, $text);
-                
+                list($mVer) = explode('.', $rec->driverVersion);
+                if ($mVer == 19) {
+                    $fp->ReceivedOnAccount_PaidOut($operNum, $operPass, $amount, $printAvailability, $text);
+                } else {
+                    $fp->ReceivedOnAccount_PaidOut($operNum, $operPass, $defPaymentType, $amount, $printAvailability, $text);
+                }
+
                 return true;
             }
         } catch (\Tremol\SException $e) {
@@ -1101,13 +1107,14 @@ class tremol_FiscPrinterDriverIp extends tremol_FiscPrinterDriverParent
      * @param string $text
      * @param string $actTypeVerb
      * @param null|core_Et $jsTpl
+     * @param integer $defPaymentType
      * 
      * @see tremol_FiscPrinterDriverParent::getResForCashReceivedOrPaidOut()
      */
-    protected function getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl = array(), $printAvailability = false, $text = '', $actTypeVerb = '', &$jsTpl = null)
+    protected function getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl = array(), $printAvailability = false, $text = '', $actTypeVerb = '', &$jsTpl = null, $defPaymentType = 0)
     {
         try {
-            $this->cashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $printAvailability, $text);
+            $this->cashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $printAvailability, $text, $defPaymentType);
             if ($retUrl) {
                 redirect($retUrl, false, "|Успешно {$actTypeVerb} във ФУ");
             }

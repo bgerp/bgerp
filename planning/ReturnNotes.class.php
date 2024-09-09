@@ -303,31 +303,6 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 
 
     /**
-     * Проверка дали нов документ може да бъде добавен в посочената нишка
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     *
-     * @return bool
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Може да добавяме или към нишка в която има задание
-        if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
-
-            return true;
-        }
-
-        // Може да добавяме или към нишка в която има задание
-        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
-
-            return true;
-        }
-
-        return false;
-    }
-
-
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)

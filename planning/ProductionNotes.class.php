@@ -71,7 +71,7 @@ class planning_ProductionNotes extends planning_ProductionDocument
     /**
      * Да не се регенерират ключовите думи
      */
-    public $repairSerchKeywords = false;
+    public $repairSearchKeywords = false;
     
     
     /**

@@ -147,7 +147,9 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
     {
         $entries = array();
         $sign = ($reverse) ? -1 : 1;
-        
+
+        $hasDifferentReverseEntries = $reverse && !cls::get('store_ShipmentOrders')->isDocForReturnFromDocument($rec);
+
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         $currencyRate = $rec->currencyRate;
         currency_CurrencyRates::checkRateAndRedirect($currencyRate);
@@ -173,6 +175,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $amount = round($amount, 2);
             $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
             $revertVatPercent = ($checkVatCredit) ? cat_Products::getVat($detailRec->productId, $rec->valior, $vatExceptionId) : null;
+            $reason = $reverse ? ($hasDifferentReverseEntries ? 'Експедиране (връщане без ограничения) на Артикули към Доставчик' : "Връщане на Артикули към Доставчик - в месеца и от склада на доставката им") : null;
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
@@ -182,13 +185,17 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 foreach ($splitRecs as $dRec1) {
                     $amount = $dRec1->amount;
                     $amountAllocated = $amount * $rec->currencyRate;
-                    
+
+                    $debitArr = array('60201', $dRec1->expenseItemId, array('cat_Products', $dRec1->productId), 'quantity' => $sign * $dRec1->quantity);
+                    if($hasDifferentReverseEntries){
+                        $reverseCredit = $debitArr;
+                        $reverseCredit['quantity'] = abs($reverseCredit['quantity']);
+                        $debitArr = array('6912', array($rec->contragentClassId, $rec->contragentId), array($origin->className, $origin->that));
+                    }
+
                     $entries[] = array(
                         'amount' => $sign * $amountAllocated, // В основна валута
-                        'debit' => array('60201',
-                            $dRec1->expenseItemId,
-                            array('cat_Products', $dRec1->productId),
-                            'quantity' => $sign * $dRec1->quantity),
+                        'debit' => $debitArr,
                         'credit' => array($rec->accountId,
                             array($rec->contragentClassId, $rec->contragentId),
                             array($origin->className, $origin->that),
@@ -197,6 +204,14 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                         ),
                         'reason' => $dRec1->reason,
                     );
+
+                    if($hasDifferentReverseEntries){
+                        $entries[] = array(
+                            'debit' => $debitArr,
+                            'credit' => $reverseCredit,
+                            'reason' => $reason,
+                        );
+                    }
                     
                     // Корекция на стойности при нужда
                     if (isset($dRec1->correctProducts) && countR($dRec1->correctProducts)) {
@@ -219,7 +234,6 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 }
             } else {
                 $debitAccId = '321';
-
                 $debit = array(
                     $debitAccId,
                     array('store_Stores', $rec->storeId), // Перо 1 - Склад
@@ -230,11 +244,11 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 $cQuantity = $sign * $amount;
                 $amount = $sign * $amount * $rec->currencyRate;
                 $amountPure = $amount;
-                if($reverse){
-                    $amountInStore = cat_Products::getWacAmountInStore($detailRec->quantity, $detailRec->productId, $rec->valior, $rec->storeId);
-                    if(isset($amountInStore)){
-                        $amount = $sign * $amountInStore;
-                    }
+
+                if($hasDifferentReverseEntries){
+                    $reverseCredit = $debit;
+                    $reverseCredit['quantity'] = abs($reverseCredit['quantity']);
+                    $debit = array('6912', array($rec->contragentClassId, $rec->contragentId), array($origin->className, $origin->that));
                 }
 
                 $entries[] = array(
@@ -247,7 +261,16 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                         array('currency_Currencies', $currencyId),          // Перо 3 - Валута
                         'quantity' => $cQuantity, // "брой пари" във валутата на покупката
                     ),
+                    'reason' => $reason,
                 );
+
+                if($hasDifferentReverseEntries){
+                    $entries[] = array(
+                        'debit' => $debit,
+                        'credit' => $reverseCredit,
+                        'reason' => $reason,
+                    );
+                }
 
                 if($revertVatPercent && !$reverse){
                     $entriesLast[] = array(

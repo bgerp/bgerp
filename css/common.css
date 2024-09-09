@@ -806,7 +806,6 @@ button {
   cursor: pointer;
   font-size: 0.8em;
   padding: 0.34em 0.5em;
-  font-family: Arial, sans-serif;
   display: inline-block;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
@@ -2300,7 +2299,6 @@ select.tab-control option {
   background-color: #dddddd; }
 
 div.tab-control div.tab-row .tab {
-  font-family: arial;
   display: inline;
   margin: 1px -16px -1px 18px;
   padding: 4px 5px 5px 5px;

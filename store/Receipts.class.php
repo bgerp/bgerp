@@ -416,6 +416,14 @@ class store_Receipts extends store_DocumentMaster
             if(!empty($rec->deliveryTime)){
                 $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
             }
+
+            if ($rec->isReverse == 'yes') {
+                $row->operationSysId = tr('Връщане на стока');
+                if(isset($rec->reverseContainerId)){
+                    $row->operationSysId .= tr("|* |от|* ") . doc_Containers::getDocument($rec->reverseContainerId)->getLink(0, array('ef_icon' => false));
+                }
+            }
+
             core_Lg::pop();
         }
     }

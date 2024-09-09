@@ -153,7 +153,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         parent::setDocumentFields($this);
         $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Допълнително->Ц-р на дейност,after=receiver');
-        $this->FLD('description', 'richtext(bucket=Notes,rows=2)', 'caption=Информация за ремонта->Извършени дейности,after=departmentId,input=none');
+        $this->FLD('description', 'richtext(bucket=Notes,rows=2)', 'caption=Информация за ремонта->Извършено,after=departmentId,input=none');
         $this->FLD('sender', 'varchar', 'caption=Допълнително->Предал');
         $this->FLD('receiver', 'varchar', 'caption=Допълнително->Получил');
         $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Детайлно влагане,notNull,default=yes,maxRadio=2');
@@ -308,41 +308,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId, $rec->state);
         
         return $warning;
-    }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в посочената нишка
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     *
-     * @return bool
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Може да добавяме или към нишка в която има задание
-        if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
-
-            return true;
-        }
-        
-        // Може да добавяме или към нишка в която има задание
-        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
-
-            return true;
-        }
-
-        // Може да добавяме или към нишка в която има сигнал
-        $originId = Request::get('originId', 'int');
-        if(isset($originId)){
-            $taskSupportClassId = support_TaskType::getClassId();
-            if (cal_Tasks::fetchField("#containerId = {$originId} AND #driverClass = {$taskSupportClassId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
-
-                return true;
-            }
-        }
-
-        return false;
     }
     
     

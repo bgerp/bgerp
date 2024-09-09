@@ -185,8 +185,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
         $productTypeParams = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'generic');
         if($masterRec->isReverse == 'no'){
-            $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId);
+            $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId, 'threadId' => $masterRec->threadId);
             $productTypeParams['priceData'] = $priceData;
+        } else {
+            if($mvc->Master->isDocForReturnFromDocument($masterRec)){
+                $form->setReadOnly('packPrice');
+            }
         }
         $form->setFieldTypeParams('productId', $productTypeParams);
 
@@ -336,5 +340,19 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         store_DocumentPackagingDetail::addBtnsToToolbar($data->toolbar, $mvc->Master, $data->masterId);
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if (in_array($action, array('add', 'import', 'createproduct')) && isset($rec)) {
+            $masterRec = $mvc->Master->fetch($rec->shipmentId);
+            if ($masterRec->isReverse == 'yes' && isset($masterRec->reverseContainerId)) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }

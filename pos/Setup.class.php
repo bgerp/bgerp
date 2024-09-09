@@ -202,6 +202,7 @@ class pos_Setup extends core_ProtoSetup
         'pos_ReceiptDetails',
         'pos_Reports',
         'pos_SellableProductsCache',
+        'migrate::updateNonCashPayments3024',
     );
 
 
@@ -270,7 +271,7 @@ class pos_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png,webp', '6MB', 'user', 'every_one');
 
         return $html;
     }
@@ -282,6 +283,27 @@ class pos_Setup extends core_ProtoSetup
     public function cron_UpdateStatistic()
     {
         pos_ReceiptDetails::getMostUsedTexts(24, true);
+    }
+
+
+    /**
+     * Миграция на безналичните начини на плащане в точкитте на продажба
+     */
+    public function updateNonCashPayments3024()
+    {
+        $pointQuery = pos_Points::getQUery();
+        $pointQuery->where("#payments IS NULL AND #prototypeId IS NULL");
+
+        $paymentQuery = cond_Payments::getQuery();
+        $paymentQuery->where("#state = 'active'");
+        $payments = arr::extractValuesFromArray($paymentQuery->fetchAll(), 'id');
+
+        $pointQuery = pos_Points::getQUery();
+        $pointQuery->where("#payments IS NULL AND #prototypeId IS NULL");
+        while($posRec = $pointQuery->fetch()){
+            $posRec->payments = keylist::fromArray($payments);
+            pos_Points::save($posRec, 'payments');
+        }
     }
 }
 

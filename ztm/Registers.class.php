@@ -68,15 +68,22 @@ class ztm_Registers extends core_Master
      *
      * @var string
      */
-    public $listFields = 'id, name, type, range, plugin, scope, default, description';
+    public $listFields = 'id, name, type, format, range, plugin, scope, default, profileIds, description';
 
 
     /**
      * @var string
      */
-    public $searchFields = 'name, type, range, plugin, scope, default, description';
-    
-    
+    public $searchFields = 'name, type, range, plugin, scope, default, profileIds, description, format';
+
+
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'powerUser';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -88,8 +95,10 @@ class ztm_Registers extends core_Master
         $this->FLD('plugin', 'varchar(64)', 'caption=Модул');
         $this->FLD('scope', 'enum(system=Система, device=Устройство, global=Глобално, both=И двете)', 'caption=Обхват, oldFieldName=priority');
         $this->FLD('default', 'text', 'caption=Дефолтна стойност');
+        $this->FLD('profileIds', 'keylist(mvc=ztm_Profiles, select=name)', 'caption=Профили');
         $this->FLD('description', 'text', 'caption=Описание на регистъра');
-        
+        $this->FLD('format', 'enum(,temperature=Температура, datalen_byte=Данни, time_sec=Време (s), time_min=Време (m), time_hour=Време (h))', 'caption=Формат');
+
         $this->setDbUnique('name');
     }
     
@@ -121,27 +130,91 @@ class ztm_Registers extends core_Master
 //             4 => 'scope',
 //             5 => 'default',
 //             6 => 'description',
+//             7 => 'profiles',
+//             8 => 'format',
 //         );
-        
+
+        $res = cls::get('ztm_Setup')->callMigrate('profilesToNotes2430', 'ztm');
+
         $cntObj = csv_Lib::importOnce($this, 'ztm/csv/Registri.csv');
-        $res = $cntObj->html;
+        $res .= $cntObj->html;
+
+        $res .= cls::get('ztm_Setup')->callMigrate('fixProfiles2430', 'ztm');
 
         return $res;
     }
-    
+
     
     /**
      * Какъв наш тип отговаря на техния
      *
      * @param int  $registerId
-     * @param bool $forForm
+     * @param mixed $value
      *
      * @return core_Type
      */
-    public static function getOurType($registerId)
+    public static function getOurType($registerId, &$value = null)
     {
-        $type = ztm_Registers::fetchField($registerId, 'type');
-        switch ($type) {
+        $rec = self::fetch($registerId);
+
+        if ($rec->format && isset($value)) {
+            $decimals = null;
+            $roundToSec = 0;
+            if ($rec->format == 'time_min') {
+                $roundToSec = 60;
+            } elseif ($rec->format == 'time_hour') {
+                $roundToSec = 3600;
+            }
+
+            $defType = null;
+            switch ($rec->format) {
+                case 'temperature':
+                    $defType = 'physics_TemperatureType';
+                    $decimals = 1;
+                    break;
+                case 'datalen_byte':
+                    $defType = 'fileman_FileSize';
+                    break;
+                case 'time_sec':
+                case 'time_min':
+                case 'time_hour':
+                    if ($roundToSec) {
+                        if ($value < $roundToSec/2) {
+                            $value = 0;
+                        }
+
+                        if ($value) {
+
+
+                            $secs = $value % $roundToSec;
+
+                            if ($secs >= ($roundToSec/2)) {
+                                $secs = $roundToSec - $secs;
+                            } else {
+                                $secs *= -1;
+                            }
+                            $value = $value + $secs;
+                        }
+                    }
+
+                    $defType = 'time';
+                    break;
+                default:
+                    wp('Грешен формат', $rec, $value);
+                    break;
+            }
+
+            if (isset($defType)) {
+                $type = core_Type::getByName($defType);
+                if (isset($decimals)) {
+                    $type->params['decimals'] = $decimals;
+                }
+
+                return $type;
+            }
+        }
+
+        switch ($rec->type) {
             case 'int':
                 $ourType = 'Int';
                 break;
@@ -163,7 +236,7 @@ class ztm_Registers extends core_Master
         }
 
         $oType = core_Type::getByName($ourType);
-        if ($type == 'json') {
+        if ($rec->type == 'json') {
             $oType->params['hideLevel'] = 0;
         }
 
@@ -289,6 +362,18 @@ class ztm_Registers extends core_Master
     {
 //         $rec->default = trim($rec->default, '"');
         $rec->state = 'active';
+        if ($rec->profiles) {
+            $pArr = explode('|', $rec->profiles);
+            $pIdArr = array();
+            foreach ($pArr as $pSysId) {
+                $pId = ztm_Profiles::getIdFromSysId($pSysId);
+                if ($pId) {
+                    $pIdArr[$pId] = $pId;
+                }
+            }
+
+            $rec->profileIds = type_Keylist::fromArray($pIdArr);
+        }
     }
     
     

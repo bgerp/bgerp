@@ -179,29 +179,4 @@ abstract class planning_ProductionDocument extends deals_ManifactureMaster
     {
         return false;
     }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в
-     * посочената нишка
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     *
-     * @return bool
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Може да добавяме или към нишка с начало задание
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if ($firstDoc->isInstanceOf('planning_Jobs')) {
-            
-            return true;
-        }
-        
-        $folderId = doc_Threads::fetchField($threadId, 'folderId');
-        $folderClass = doc_Folders::fetchCoverClassName($folderId);
-        
-        // или към нишка в папка на склад
-        return cls::haveInterface('store_AccRegIntf', $folderClass);
-    }
 }

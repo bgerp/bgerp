@@ -1,5 +1,5 @@
 <div class="fleft">
-    <span class='headerReceiptIdLink'>[#ID#] / [#createdBy#] / [#valior#]</span>
+    <span class='specialLink headerReceiptIdLink'>[#ID#] / [#createdBy#] / [#valior#]</span>
     <span class="unp">[#SUB_TITLE#]</span>
     <!--ET_BEGIN contragentId-->
     <span class="companyName specialLink"><!--ET_BEGIN contragentAvatar--><span class="contragentImg">[#contragentAvatar#]</span><!--ET_END contragentAvatar-->[#contragentId#]</span>

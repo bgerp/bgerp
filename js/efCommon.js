@@ -1272,6 +1272,12 @@ function toggleDisplay(id) {
     elem.toggleClass('show-btn');
 }
 
+function toggleClass(cls, id) {
+    var elem = $("." + cls);
+    elem.fadeToggle("slow");
+    $("#" + id).toggleClass('show-btn');
+}
+
 function toggleDisplayBomStepDetails() {
     $('.cat_BomDetails .listTable th').on('click', '.newIconStyle.toggleAllRows', function (e) {
         if($(this).hasClass('openAllRows')){

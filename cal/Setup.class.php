@@ -75,16 +75,15 @@ class cal_Setup extends core_ProtoSetup
         'cal_ReminderSnoozes',
         'cal_TaskConditions',
         'cal_LinkedPostponed',
-        'migrate::repairSerchKeywords',
     );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'cal_TaskType, cal_Progresses';
-    
-    
+    public $defClasses = 'cal_TaskType, cal_Progresses, cal_TasksResourceCycleSens';
+
+
     /**
      * Описание на конфигурационните константи
      */
@@ -267,15 +266,5 @@ class cal_Setup extends core_ProtoSetup
         core_Cache::set($type, $handler, $res, $keepMinutes, $depends);
         
         return $res;
-    }
-    
-    
-    /**
-     * Миграция за регенериране на ключовите думи
-     */
-    public static function repairSerchKeywords()
-    {
-        $callOn = dt::addSecs(1200);
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'cal_Tasks', $callOn);
     }
 }

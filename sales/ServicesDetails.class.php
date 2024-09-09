@@ -116,7 +116,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
         
         $productTypeParams = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'canStore,generic');
         if($masterRec->isReverse == 'no'){
-            $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId);
+            $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId, 'threadId' => $masterRec->threadId);
             $productTypeParams['priceData'] = $priceData;
         }
         $form->setFieldTypeParams('productId', $productTypeParams);

@@ -216,10 +216,12 @@ class drdata_PhoneType extends type_Varchar
             }
             
             $title = $t->original;
-            
-            //$res->append(ht::createLink($title, 'tel:00'. $value, NULL, $attr));
+
+            if($this->params['maskVerbal']){
+                $title = str::maskString($title, 0, 3);
+            }
+
             $res->append(self::getLink($title, $value, false, $attr));
-            
             if ($t->internal) {
                 $res->append(tr('вътр.') . $t->internal) ;
             }

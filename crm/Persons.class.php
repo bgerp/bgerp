@@ -86,7 +86,7 @@ class crm_Persons extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, change_plg_History,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg,
@@ -282,8 +282,26 @@ class crm_Persons extends core_Master
      * Как се казва полето за държава на контрагента
      */
     public $countryFieldName = 'country';
-    
-    
+
+
+    /**
+     * Кои полета да се следят за промяна в логовете
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableFields = 'salutation,name,vatId,egn,eori,birthday,country,pCode,place,address,email,tel,mobile,fax,info,website';
+
+
+    /**
+     * Кои изчислими полета от следените за промяна да се показват при сравнение на версиите
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableAdditionalComparableFields = 'title';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -700,42 +718,31 @@ class crm_Persons extends core_Master
             
             $row->addressBox .= $pCode ? "{$pCode} " : '';
             $row->addressBox .= $place;
-            
+
+            // Добавяме адреса
+            $row->addressBox .= $address ? "<br/>{$address}" : '';
+            $mvcClone = clone $mvc;
+
+            foreach (array('mobile' => 'mobile', 'buzTel' => 'tel', 'buzFax' => 'fax', 'buzEmail' => 'email') as $cFld1 => $cFld2){
+                $mvcClone->setFieldTypeParams($cFld1, array('maskVerbal' => true));
+                $mvcClone->setFieldTypeParams($cFld2, array('maskVerbal' => true));
+
+                $val = $mvc->getVerbal($rec, $rec->buzFax ? $cFld1 : $cFld2);
+                $valClass = $cFld1 == 'buzTel' ? 'telephone' : $cFld2;
+                $row->phonesBox .= $val ? "<div class='crm-icon {$valClass}'>{$val}</div>" : '';
+            }
+
+            $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
+
             // Ако имаме права за сингъл
-            if ($canSingle) {
-                
-                // Добавяме адреса
-                $row->addressBox .= $address ? "<br/>{$address}" : '';
-                
-                // Мобилен телефон
-                $mob = $mvc->getVerbal($rec, 'mobile');
-                $row->phonesBox .= $mob ? "<div class='crm-icon mobile'>{$mob}</div>" : '';
-                
-                // Телефон
-                $tel = $mvc->getVerbal($rec, $rec->buzTel ? 'buzTel' : 'tel');
-                $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : '';
-                
-                // Факс
-                $fax = $mvc->getVerbal($rec, $rec->buzFax ? 'buzFax' : 'fax');
-                $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : '';
-                
-                // Email
-                $eml = $mvc->getVerbal($rec, $rec->buzEmail ? 'buzEmail' : 'email');
-                $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : '';
-                
-                $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
-            } else {
-                
-                // Добавяме линк към профила на потребителя, който е inCharge на визитката
-                $row->phonesBox = tr('Отговорник') . ': ' . crm_Profiles::createLink($rec->inCharge);
+            if (!$canSingle) {
+                $row->phonesBox = crm_Companies::displayInfoWhenIsNotAccessible($rec->inCharge, $rec->shared) . $row->phonesBox;
             }
         }
-        $currentId = $mvc->getVerbal($rec, 'id');
-        
         
         $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
         
-        $row->title = $mvc->getTitleById($rec->id);
+        $row->title = $mvc->getTitleById($rec);
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
@@ -755,9 +762,6 @@ class crm_Persons extends core_Master
 
             $dateType = tr($dateType);
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
-        } elseif ($rec->egn) {
-            $egn = $mvc->getVerbal($rec, 'egn');
-            $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$egn}</div>";
         }
         
         if ($rec->buzCompanyId && crm_Companies::haveRightFor('single', $rec->buzCompanyId)) {
@@ -1404,24 +1408,34 @@ class crm_Persons extends core_Master
         
         return drdata_Countries::isEu($rec->country);
     }
-    
-    
+
+
     /**
-     * Връща данните на лицето
+     * Интерфейсен метод
      *
-     * @param int $id - id' то на записа
+     * @param int $id
+     * @param date|null $date
+     * @return object
      *
-     * return object
+     * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         //Вземаме данните
         $person = crm_Persons::fetch($id);
-        
+        $company = null;
+
+        if(isset($date)) {
+            $recToDate = change_History::getRecOnDate(get_called_class(), $person, $date);
+            if($recToDate) {
+                $person = $recToDate;
+            }
+        }
+
         if ($person->buzCompanyId) {
             $company = crm_Companies::fetch($person->buzCompanyId);
         }
-        
+
         // Заместваме и връщаме данните
         if ($person) {
             $contrData = new stdClass();
@@ -1453,7 +1467,9 @@ class crm_Persons extends core_Master
             
             $contrData->salutationRec = $person->salutation;
             $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');
-            
+            $contrData->validFrom = $person->validFrom;
+            $contrData->validTo = $person->validTo;
+
             // Ако е свързан с фирма
             if ($person->buzCompanyId) {
                 

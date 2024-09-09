@@ -109,7 +109,7 @@ class ztm_DeviceCardReadersDetail extends core_Detail
      */
     protected function description()
     {
-        $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name)', 'caption=Устройство,mandatory');
+        $this->FLD('deviceId', 'key(mvc=ztm_Devices, select=name, find=everywhere)', 'caption=Устройство,mandatory');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация, mandatory');
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
         

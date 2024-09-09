@@ -412,7 +412,7 @@ class planning_Centers extends core_Master
      *               ['assets'] - оборудване
      *               ['hr']     - служители
      */
-    public function getResourceTypeArray($rec)
+    public function getResourceTypeArray_($rec)
     {
         return arr::make('assets,hr', true);
     }

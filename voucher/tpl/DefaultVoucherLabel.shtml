@@ -1,0 +1,83 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Roboto&display=swap" rel="stylesheet">
+
+<style>
+    .label-table {
+        border-collapse:collapse !important;
+    }
+    .label-table  table td {
+        padding:0;
+        border: none !important;
+    }
+    .vauchers {
+        position: relative;
+        width: 85mm;
+        height: 54mm;
+        text-align: center;
+        vertical-align: middle;
+        display:block;
+        border-radius:0;
+        border-bottom: 1px solid #ccc;
+        border-left: 1px solid #ccc;
+        font-family: "Noto Sans", sans-serif;
+    }
+    h2 {
+        color: #000;
+        margin: 0;
+        position:absolute;
+        top: 5px;
+        left: 10px;
+        text-align: left;
+        font-weight: 400;;
+
+    }
+
+    .qr img {
+        position:absolute;
+        top: 52px;
+        left: 40px;
+        width: 50px;
+        height: 50px;
+    }
+
+    .info {
+        position:absolute;
+        left:8px;
+        font-weight: 400;
+        bottom: 8px;
+        color: #000;
+        font-size:0.7em;
+        text-align: justify;
+        width: 300px;
+        line-height: 1.1em !important;
+        margin: 0 !important;
+
+    }
+    .logo img {
+        width: 120px;
+        height: auto;
+        right: 25px;
+        top:50%;
+        margin-top: -40px;
+        position: absolute;
+    }
+    .link {
+        position:absolute;
+        top: 100px;
+        font-weight: 400;
+        font-size: 20px;;
+        font-style: normal;
+        letter-spacing: 4px;;
+        left: 10px;
+    }
+</style>
+
+<section class='vauchers'>
+    <h2>Карта за препоръка</h2>
+    <div class="logo">[#IMAGE_200_100#]</div>
+    <div class='qr'> [#QR_CODE_100#]</div>
+    <p class='link'>[#NUMBER#]</p>
+    <!--ET_BEGIN VALID_TO--><p class='info' style="bottom:48px;">Валиден до: [#VALID_TO#]</p><!--ET_END VALID_TO-->
+    <p class='info'>[#TEXT#]</p>
+</section>

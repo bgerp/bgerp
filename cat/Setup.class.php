@@ -213,6 +213,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_ListingDetails',
         'cat_PackParams',
         'cat_ParamFormulaVersions',
+        'migrate::repairSearchKeywords2434',
     );
     
     
@@ -321,7 +322,7 @@ class cat_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg,png,bmp,gif,image/*,webp', '3MB', 'user', 'every_one');
         
         return $html;
     }
@@ -423,5 +424,15 @@ class cat_Setup extends core_ProtoSetup
         }
 
         return $res;
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи
+     */
+    public static function repairSearchKeywords2434()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'cat_Products', $callOn);
     }
 }

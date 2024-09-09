@@ -85,5 +85,9 @@ class cat_plg_AddSearchKeywords extends core_Plugin
                 $res = ' ' . $res . ' ' . $detailsKeywords;
             }
         }
+
+        if(core_Packs::isInstalled('voucher') && isset($rec->voucherId)){
+            $res = ' ' . $res . ' ' . plg_Search::normalizeText(voucher_Cards::fetchField($rec->voucherId, 'number'));
+        }
     }
 }

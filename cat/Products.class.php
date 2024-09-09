@@ -1843,10 +1843,13 @@ class cat_Products extends embed_Manager
                 $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');
                 if(!is_numeric($onlyIds)){
                     if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
-                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
+                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], 1, 'no', $params['priceData']['listId']);
                         if(isset($policyInfo->price)){
                             $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
-                            $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
+                            $vatExceptionId = cond_VatExceptions::getFromThreadId($params['priceData']['threadId']);
+                            $vat = cat_Products::getVat($rec->id, $params['priceData']['valior'], $vatExceptionId);
+                            $price = deals_Helper::getDisplayPrice($price, $vat, $params['priceData']['rate'], $params['priceData']['chargeVat']);
+                            $listId = $params['priceData']['listId'] ?? price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
                             $measureId = $rec->measureId;
 
                             if($showPrices == 'basePack'){
@@ -4492,7 +4495,7 @@ class cat_Products extends embed_Manager
         // Извличане на мерките от същата група, като на $toUomId
         $sameTypeMeasures = cat_UoM::getSameTypeMeasures($toUomId);
         unset($sameTypeMeasures['']);
-        
+
         // Ако основната мярка е от същата група, конвертира се към $toUomId
         if (array_key_exists($measureId, $sameTypeMeasures)) {
             $res = cat_UoM::convertValue(1, $measureId, $toUomId);
@@ -4523,17 +4526,18 @@ class cat_Products extends embed_Manager
         // Ако търсената мярка е от групата на килограмите
         $kgUom = cat_UoM::fetchBySysId('kg')->id;
         $kgUoms = cat_UoM::getSameTypeMeasures($kgUom);
-        
+
         // Взима се стойност от параметрите на артикула
         if (array_key_exists($toUomId, $kgUoms)) {
             $paramValue = self::getParams($productId, 'weight');
             if (isset($paramValue)) {
                 $res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
-                
-                return $res;
+
+                return !is_nan($res) ? $res : null;
             } else {
                 $paramValue = self::getParams($productId, 'weightKg');
-                if (isset($paramValue)) return $paramValue;
+
+                return !is_nan($paramValue) ? $paramValue : null;
             }
         }
     }

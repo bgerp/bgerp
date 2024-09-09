@@ -289,11 +289,13 @@ class type_Key2 extends type_Int
             // Показваме Select2
             ht::setUniqId($attr);
             $tpl = ht::createSelect($name, $options, $value, $attr);
-            
+
+            $matchOnlyStartsWith = $this->params['find'] == 'everywhere' ? false : true;
+
             $ajaxUrl = '';
             $handler = $this->getHandler();
             if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions - 1)) {
-                $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute-force');
+                $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1, 'matchOnlyStartsWith' => $matchOnlyStartsWith), 'absolute-force');
             }
             
             $allowClear = false;
@@ -304,7 +306,7 @@ class type_Key2 extends type_Int
             $minimumResultsForSearch = isset($this->params['minimumResultsForSearch']) ? $this->params['minimumResultsForSearch'] : null;
 
             // Добавяме необходимите файлове и стартирам select2
-            select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl, false, $this->params['forceOpen'], $minimumResultsForSearch);
+            select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl, false, $this->params['forceOpen'], $minimumResultsForSearch, $matchOnlyStartsWith);
         } elseif ((!defined('TEST_MODE') && !TEST_MODE) && ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')))) {
             // Показваме Combobox
             

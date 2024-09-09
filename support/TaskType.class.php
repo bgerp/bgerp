@@ -259,8 +259,8 @@ class support_TaskType extends core_Mvc
         
         return $res;
     }
-    
-    
+
+
     /**
      * Да няма потребители по подразбиране
      *
@@ -272,6 +272,13 @@ class support_TaskType extends core_Mvc
     public static function on_AfterGetDefaultAssignUsers($Driver, $mvc, &$res, $rec)
     {
         $res = null;
+
+        if ($rec->assetResourceId) {
+            $systemUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
+            if ($systemUsers) {
+                $res = keylist::merge($systemUsers, $rec->assing);
+            }
+        }
     }
 
 
@@ -654,6 +661,10 @@ class support_TaskType extends core_Mvc
         if(planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
             $data->toolbar->addBtn('Влагане', array('planning_ConsumptionNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/produce_in.png,title=Създаване на протокол за влагане към сигнала');
         }
+
+        if(planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
+            $data->toolbar->addBtn('Връщане', array('planning_ReturnNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/produce_out.png,title=Създаване на протокол за връщане към сигнала');
+        }
     }
     
     
@@ -689,7 +700,7 @@ class support_TaskType extends core_Mvc
      */
     public static function prepareAssetSupport($data)
     {
-        $data->TabCaption = tr('Сигнал');
+        $data->TabCaption = tr('Сигнали');
 
         // Подготовка на данните
         $data->listFields = arr::make("hnd=Сигнал,title=Заглавие,progress=Прогрес,folderId=Папка", true);

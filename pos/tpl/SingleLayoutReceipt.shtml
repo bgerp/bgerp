@@ -49,7 +49,6 @@
 				<td>|Контрагент|*</td>
 				<td>[#contragentId#]</td>
 			</tr>
-			
 			<!--ET_BEGIN contragentLocationId-->
 			<tr>
 				<td>|Локация|*:</td>
@@ -93,6 +92,12 @@
 				<td class = 'summary-right'><span class='cCode' style='margin:0px 12px'>[#returnedCurrency#]</span> <b>[#returnedTotal#]</b></td>
 			</tr>
 			<!--ET_END returnedTotal-->
+			<!--ET_BEGIN voucherId-->
+			<tr>
+				<td>|Ваучер|*</td>
+				<td><i>[#voucherId#]</i></td>
+			</tr>
+			<!--ET_END voucherId-->
 		</table>
 	<br /><br />
 	<!--ET_BEGIN DETAILS-->

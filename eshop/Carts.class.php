@@ -211,6 +211,11 @@ class eshop_Carts extends core_Master
         $this->FLD('instruction', 'richtext(rows=2)', 'caption=Доставка->Инструкции');
         
         $this->FLD('paymentId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Начин,mandatory');
+        if (core_Packs::isInstalled('voucher')) {
+            $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=number,allowEmpty)', 'input=none');
+            $this->fetchFieldsBeforeDelete .= ",voucherId";
+            $this->setDbIndex('voucherId');
+        }
         $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceUicNo|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
         $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
@@ -231,7 +236,7 @@ class eshop_Carts extends core_Master
         $this->FLD('haveOnlyServices', 'enum(no=Не,yes=Да)', 'caption=Само услуги,input=none,notNull,value=no');
         $this->FLD('haveProductsWithExpectedDelivery', 'enum(no=Не,yes=Да)', 'caption=Очаквана доставка,input=none,notNull,value=no');
         $this->XPR('orderDate', 'datetime', 'COALESCE(#activatedOn, #createdOn)', 'caption=Дата');
-        
+
         $this->setDbIndex('brid');
         $this->setDbIndex('userId');
         $this->setDbIndex('domainId');
@@ -498,8 +503,8 @@ class eshop_Carts extends core_Master
         
         return $query->fetch();
     }
-    
-    
+
+
     /**
      * Обновява данни в мастъра
      *
@@ -537,13 +542,22 @@ class eshop_Carts extends core_Master
         $rec->haveOnlyServices = $haveOnlyServices;
         $rec->haveProductsWithExpectedDelivery = 'no';
         $settings = cms_Domains::getSettings($rec->domainId);
-        
+
+        if($rec->_haveRecalcedAutoDiscounts === false){
+            foreach ($dRecs as $dRec1) {
+                $dRec1->autoDiscount = null;
+            }
+
+            $Details->saveArray($dRecs, 'id,autoDiscount');
+        }
+
         foreach ($dRecs as $dRec) {
             $rec->productCount++;
             $finalPrice = currency_CurrencyRates::convertAmount($dRec->finalPrice, null, $dRec->currencyId);
-            
-            if (!$dRec->discount) {
-                $finalPrice -= $finalPrice * $dRec->discount;
+            if(!empty($dRec->autoDiscount)){
+                $discount = round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4);
+                $finalPrice = $dRec->discount != 1 ? $finalPrice / (1 - $dRec->discount)  : $finalPrice;
+                $finalPrice = $finalPrice * (1 - $discount);
             }
 
             if($dRec->haveVat != $chargeVat){
@@ -578,7 +592,7 @@ class eshop_Carts extends core_Master
                 }
             }
         }
-        
+
         // Ако има цена за доставка добавя се и тя
         if ($count) {
             $TransCalc = null;
@@ -623,8 +637,20 @@ class eshop_Carts extends core_Master
 
         return $id;
     }
-    
-    
+
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $rec->_haveRecalcedAutoDiscounts = $mvc->recalcAutoDiscount($rec);
+        $mvc->updateMaster_($rec);
+    }
+
+
     /**
      * Име на кошницата във външната част
      *
@@ -732,7 +758,18 @@ class eshop_Carts extends core_Master
             
             return new Redirect(cls::get('eshop_Groups')->getUrlByMenuId(null), $msg);
         }
-        
+
+        if(core_Packs::isInstalled('voucher')){
+            $dQuery = eshop_CartDetails::getQuery();
+            $dQuery->where("#cartId = {$rec->id}");
+            $dQuery->show('productId');
+            $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+            if($error = voucher_Cards::getContoErrors($rec->voucherId, $productIds, $this->getClassId(), $rec->id)){
+
+                return new Redirect(array('eshop_Carts', 'view', 'id' => $rec->id), $error, 'error');
+            }
+        }
+
         $description = Request::get('description', 'varchar');
         $accountId = Request::get('accountId', 'key(mvc=bank_OwnAccounts)');
         
@@ -938,6 +975,12 @@ class eshop_Carts extends core_Master
         $notes = tr("Поръчка") . " #{$rec->id}" . "\n";
         $notes .= tr('Тел|*: ') . "{$rec->tel}" . "\n";
         $notes .= tr('Имейл|*: ') . "{$rec->email}";
+        $hasVoucher = core_Packs::isInstalled('voucher') && isset($rec->voucherId);
+        if ($hasVoucher) {
+            $endVoucher = substr(voucher_Cards::fetchField($rec->voucherId, 'number'), 12, 4);
+            $notes .= "\n" . tr('Ваучер|*: ') . "*{$endVoucher}";
+        }
+
         if(!empty($rec->instruction)){
             $notes .= "\n" . tr('Инструкции|*: ') . "{$rec->instruction}";
         }
@@ -963,7 +1006,16 @@ class eshop_Carts extends core_Master
         );
 
         // Коя е ценовата политика
-        $fields['priceListId'] = cms_Helper::getCurrentEshopPriceList($settings);
+        $priceListId = cms_Helper::getCurrentEshopPriceList($settings);
+        if($hasVoucher){
+            $fields['voucherId'] = $rec->voucherId;
+            $voucherTypeId = voucher_Cards::fetchField($rec->voucherId, 'typeId');
+            if($voucherListId = voucher_Types::fetchField($voucherTypeId, 'priceListId')){
+                $priceListId = $voucherListId;
+            }
+        }
+
+        $fields['priceListId'] = $priceListId;
         $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
         if (haveRole('sales', $folderIncharge)) {
             $fields['dealerId'] = $folderIncharge;
@@ -1007,7 +1059,7 @@ class eshop_Carts extends core_Master
             $notes = (!empty($paramsText)) ? $paramsText : null;
             
             $price = currency_CurrencyRates::convertAmount($price, null, $dRec->currencyId);
-            sales_Sales::addRow($saleId, $dRec->productId, $dRec->packQuantity, $price, $dRec->packagingId, $dRec->discount, null, null, $notes);
+            sales_Sales::addRow($saleId, $dRec->productId, $dRec->packQuantity, $price, $dRec->packagingId, $dRec->discount, null, null, $notes, null, $dRec->autoDiscount);
         }
         
         // Добавяне на транспорта, ако има
@@ -1314,6 +1366,10 @@ class eshop_Carts extends core_Master
         // Ако се изтрие кошницата изтруват се и детайлите
         foreach ($query->getDeletedRecs() as $rec) {
             eshop_CartDetails::delete("#cartId = {$rec->id}");
+
+            if(core_Packs::isInstalled('voucher') && isset($rec->voucherId)){
+                voucher_Cards::mark($rec->voucherId, false);
+            }
         }
     }
     
@@ -1580,7 +1636,12 @@ class eshop_Carts extends core_Master
         
         // Ако няма потребител и има клиентски карти, ще се показва бутон за въвеждане на карта
         if (crm_ext_Cards::haveRightFor('checkcard', (object) array('domainId' => $rec->domainId))) {
-            $tpl->replace(ht::createLink(tr('тук'), array('crm_ext_Cards', 'CheckCard', 'ret_url' => true), false, 'ef_icon=img/16/client-card.png '), 'CARD_LINK');
+            $cu = core_Users::getCurrent();
+            if(!($cu && isset($rec->voucherId))){
+                $cardCaption = !$cu ? tr('Клиентска карта или ваучер, може да въведете от') : tr('Ваучер може да въведете от');
+                $cardCaption .= " " . ht::createLink(tr('тук'), array('crm_ext_Cards', 'CheckCard', 'ret_url' => true), false, 'ef_icon=img/16/client-card.png ')->getContent();
+                $tpl->replace($cardCaption, 'CARD_LINK');
+            }
         }
         
         if ($rec->deliveryNoVat < 0) {
@@ -1828,48 +1889,51 @@ class eshop_Carts extends core_Master
         $fields['-external'] = true;
         $data->listFields = arr::make('code=Код,productId=Артикул,quantity=Количество,finalPrice=Цена,amount=Сума');
         $settings = cms_Domains::getSettings();
-        
+
         $data->productRecs = $data->productRows = array();
         $dQuery = eshop_CartDetails::getQuery();
         $dQuery->where("#cartId = {$data->rec->id}");
         $dQuery->orderBy('id', 'ASC');
-        
+
         while ($dRec = $dQuery->fetch()) {
             $data->recs[$dRec->id] = $dRec;
             $row = eshop_CartDetails::recToVerbal($dRec, $fields);
             if($dRec->_updatedPrice === true){
                 $data->rec->_updatedPrice = true;
             }
-            if (!empty($dRec->discount)) {
+            if (!empty($dRec->discount) || !empty($dRec->autoDiscount)) {
                 $discountType = type_Set::toArray($settings->discountType);
+
+                $amountWithoutPureDiscount = isset($dRec->discount) ? $dRec->finalPrice / (1 - $dRec->discount) : $dRec->finalPrice;
+                $discount = isset($dRec->autoDiscount) ? round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4) : $dRec->discount;
+
                 $row->finalPrice = "<span class='end-price'>{$row->finalPrice}</span>";
                 $row->finalPrice .= "<div class='external-discount'>";
-                
+
                 if (isset($discountType['amount'])) {
-                    $amountWithoutDiscount = $dRec->finalPrice / (1 - $dRec->discount);
-                    $discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDiscount);
+                    $discountAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutPureDiscount);
                     $discountAmount = currency_Currencies::decorate($discountAmount, $settings->currencyId);
                     $row->finalPrice .= "<div class='external-discount-amount'> {$discountAmount}</div>";
                 }
-                
+
                 if (isset($discountType['amount'], $discountType['percent'])) {
                     $row->finalPrice .= ' / ';
                 }
-                
+
                 if (isset($discountType['percent'])) {
-                    $discountPercent = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->discount);
+                    $discountPercent = core_Type::getByName('percent(decimals=2)')->toVerbal($discount);
                     $discountPercent = str_replace('&nbsp;', '', $discountPercent);
                     $row->finalPrice .= "<div class='external-discount-percent'> -{$discountPercent}</div>";
                 }
-                
+
                 $row->finalPrice .= '</div>';
             }
-            
+
             $fullCode = cat_products::getVerbal($dRec->productId, 'code');
             $row->code = substr($fullCode, 0, 10);
             $row->code = "<span title={$fullCode}>{$row->code}</span>";
             $row->amount = "<span class='end-price'>{$row->amount}</span>";
-            
+
             $data->rows[$dRec->id] = $row;
         }
     }
@@ -2081,9 +2145,17 @@ class eshop_Carts extends core_Master
         if (isset($rec->paymentId) && !isset($fields['-external'])) {
             $row->paymentId = cond_PaymentMethods::getHyperlink($rec->paymentId, true);
         }
-        
+
+        if(isset($rec->voucherId)){
+            $row->voucherId = voucher_Cards::getVerbal($rec->voucherId, 'number');
+        }
+
         if(isset($fields['-external'])){
-            
+            if(isset($rec->voucherId)){
+                $endVoucher = substr($row->voucherId, 12, 4);
+                $row->voucherId = "*{$endVoucher}";
+            }
+
             // Показване на текст за очаквана доставка
             if($expectedDeliveryText = self::getExpectedDeliveryText($rec, $settings)){
                 $row->EXPECTED_DELIVERY = $expectedDeliveryText;
@@ -2186,7 +2258,11 @@ class eshop_Carts extends core_Master
             $form->setDefault('deliveryCountry', key($form->countries));
             $form->setReadOnly('deliveryCountry');
         }
-        
+
+        if (isset($form->rec->voucherId)) {
+            $form->setDefault('voucherNo', voucher_Cards::fetchField($form->rec->voucherId, 'number'));
+        }
+
         // Ако има условие на доставка то драйвера му може да добави допълнителни полета
         if (isset($form->rec->termId)) {
             
@@ -2210,6 +2286,29 @@ class eshop_Carts extends core_Master
         
         if ($form->isSubmitted()) {
             $rec = $form->rec;
+
+            // Ако има въведен номер на ваучер - той се записва успешно
+            $voucherAddedStatus = false;
+            $oldVoucherId = $rec->voucherId;
+
+            if(!empty($rec->voucherNo)){
+                $vInfo = voucher_Cards::getByNumber($rec->voucherNo, array('classId' => $this->getClassId(), 'objectId' => $rec->id));
+                if(!$vInfo){
+                    $form->setError('voucherNo', 'Невалиден ваучер');
+                } elseif(isset($vInfo['error'])){
+
+                    $form->setError('voucherNo', $vInfo['error']);
+                } elseif(isset($vInfo['id'])) {
+                    if($rec->voucherId != $vInfo['id']){
+                        $voucherAddedStatus = true;
+                    }
+                    $rec->voucherId = $vInfo['id'];
+                } else {
+                    $rec->voucherId = null;
+                }
+            } else {
+                $rec->voucherId = null;
+            }
 
             // Проверка на имената да са поне две с поне 2 букви
             if (!core_Users::checkNames($rec->personNames)) {
@@ -2284,7 +2383,20 @@ class eshop_Carts extends core_Master
                 $this->updateMaster($rec);
                 core_Lg::pop();
                 eshop_Carts::logWrite("Попълване на данни за поръчката от външната част", $rec->id);
-                
+                if($voucherAddedStatus){
+                    core_Statuses::newStatus('Ваучерът е приложен към текущата поръчка');
+                }
+
+                if(core_Packs::isInstalled('voucher')){
+                    if(isset($rec->voucherId)){
+                        voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id);
+                    }
+
+                    if(isset($oldVoucherId) && $rec->voucherId != $oldVoucherId){
+                        voucher_Cards::mark($oldVoucherId, false);
+                    }
+                }
+
                 return followRetUrl();
             }
         }
@@ -2405,6 +2517,10 @@ class eshop_Carts extends core_Master
         if ($settings->mandatoryEcartContactFields == 'company') {
             $form->setDefault('makeInvoice', 'company');
             $form->setField('makeInvoice', 'input=hidden');
+        }
+
+        if(core_Packs::isInstalled('voucher')){
+            $form->FLD('voucherNo', 'varchar(16)', 'caption=Плащане->Ваучер,after=paymentTermId');
         }
     }
     
@@ -3123,6 +3239,10 @@ class eshop_Carts extends core_Master
             if (!empty($detailsKeywords)) {
                 $res = ' ' . $res . ' ' . $detailsKeywords;
             }
+
+            if(isset($rec->voucherId)){
+                $res = ' ' . $res . ' ' . plg_Search::normalizeText(voucher_Cards::fetchField($rec->voucherId, 'number'));
+            }
         }
     }
 
@@ -3169,5 +3289,61 @@ class eshop_Carts extends core_Master
             reportException($e);
             eshop_Carts::logErr("Грешка при записване на CSV");
         }
+    }
+
+
+    /**
+     * Каква е ЦП на количката
+     *
+     * @param stdClass$rec
+     * @param null|stdClass $settings
+     * @return int
+     */
+    public static function getCartListId($rec, $settings = null)
+    {
+        $settings = $settings ?? cms_Domains::getSettings($rec->domainId);
+        if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
+            $voucherTypeId = voucher_Cards::fetchField($rec->voucherId, 'typeId');
+            if($voucherListId = voucher_Types::fetchField($voucherTypeId, 'priceListId')){
+                $listId = $voucherListId;
+            }
+        }
+
+        return $listId ?? cms_Helper::getCurrentEshopPriceList($settings);
+    }
+
+
+    /**
+     * Рекалкулиране на автоматичните остъпки ако има такива
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public function recalcAutoDiscount($rec)
+    {
+        if(!is_object($rec)) return false;
+        $basicDiscountListRec = price_Lists::getListWithBasicDiscounts('eshop_Carts', $rec);
+        if(!is_object($basicDiscountListRec)) return false;
+
+        $dQuery = eshop_CartDetails::getQuery();
+        $dQuery->EXT('groups', 'cat_Products', "externalName=groups,externalKey=productId");
+        $dQuery->where("#cartId = {$rec->id}");
+        $detailsAll = $dQuery->fetchAll();
+
+        $save = array();
+        $discountData = price_ListBasicDiscounts::getAutoDiscountsByGroups($basicDiscountListRec, 'eshop_Carts', $rec, 'pos_ReceiptDetails', $detailsAll);
+
+        foreach ($detailsAll as $dRec){
+            foreach ($discountData['groups'] as $groupId => $d){
+                if(!keylist::isIn($groupId, $dRec->groups)) continue;
+                if(empty($d['percent'])) continue;
+                $dRec->autoDiscount = $d['percent'];
+                $save[] = $dRec;
+            }
+        }
+
+        cls::get('eshop_CartDetails')->saveArray($save, 'id,autoDiscount');
+
+        return true;
     }
 }

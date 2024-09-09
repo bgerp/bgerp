@@ -93,7 +93,7 @@ class sens2_DataLogs extends core_Manager
      */
     public function description()
     {
-        $this->FLD('indicatorId', 'key(mvc=sens2_Indicators, select=title, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Индикатор,input=silent,autoFilter,chart=diff');
+        $this->FLD('indicatorId', 'key(mvc=sens2_Indicators, select=title, allowEmpty, find=everywhere, where=#state !\\= \\\'rejected\\\')', 'caption=Индикатор,input=silent,autoFilter,chart=diff');
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност, chart=ay');
         $this->FLD('time', 'datetime', 'caption=Към момент,chart=ax');
         $this->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input=silent,autoFilter');

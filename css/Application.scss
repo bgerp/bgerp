@@ -221,7 +221,6 @@ tr.noHover td:hover {
 
 .menuRow {
 	color: #997;
-	font-family: Arial;
 	text-decoration: none;
 	font-weight: bold;
 }
@@ -233,8 +232,7 @@ tr.noHover td:hover {
 #mainMenu a { /*nav при wide*/
 	padding:1px; 
 	text-decoration: none; 
-	font-weight: bold; 
-	font-family: arial; 
+	font-weight: bold;
 	border: solid 1px transparent;
 }
 
@@ -1108,6 +1106,21 @@ div.mobile {
 	color: #444;
 	border: solid 1px #BBB;
 	background-color: rgba(0, 0, 0, 0.05);
+	font-size: 0.8em;
+	top: -1px;
+	position: relative;
+	@include border-radius(3px);
+	box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.versionBlock{
+	display:inline;
+	padding: 2px 5px;
+	margin-left: 3px;
+	margin-right: 3px;
+	color: blue;
+	border: solid 1px #BBB;
+	background-color: rgba(247, 240, 240, 0.8);
 	font-size: 0.8em;
 	top: -1px;
 	position: relative;
@@ -4259,6 +4272,10 @@ fieldset.sharing-history {
 	margin-left: 2%;
 	td {
 		vertical-align: top;
+		&.cardValue {
+			white-space: normal;
+			word-break: break-word;
+		}
 	}
 	.aright {
 		padding-right: 5px;
@@ -5484,6 +5501,14 @@ table .eshop-btn {
 .cms-last {
 	margin-right: 0;
 }
+
+.cms-row .eightcol {
+	.document {
+		min-width: auto;
+		border: none;
+		padding: 0;
+	}
+}
 /*край на grid*/
 
 
@@ -5779,7 +5804,24 @@ iframe.autoHeight {
 		margin-top: 0;
 	}
 }
-
+.wide #Bottom-tab-doc_UnsortedFolders {
+	input[type=text] {
+		height: 1.85em;
+	}
+	#filter {
+		height: 25px;
+		padding-left: 22px !important
+	}
+}
+.narrow #Bottom-tab-doc_UnsortedFolders {
+	input[type=text] {
+		height: 2em !important;
+	}
+	#filter {
+		height: 30px !important;
+		padding-left: 22px !important
+	}
+}
 .planning_ProductionTaskDetails .listRowsDetail {
 	width: 100% !important;
 	overflow-x: auto !important;
@@ -7893,6 +7935,9 @@ body.narrow {
 .qrcode {
 	height: 87px;
 }
+.narrow .qrcode {
+	height: auto;
+}
 /*стилове за принтиране*/
 @media print{
 	.wide .singleView {
@@ -8976,4 +9021,11 @@ table.bomProductionStepTable td{
 
 .eshopHiddenRow {
 	opacity:0.3;
+}
+
+.consumptionNoteBubble {
+	display:inline-block;
+	border:1px solid #bcbcbc;
+	padding-left:5px;
+	padding-right:5px;
 }
