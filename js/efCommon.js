@@ -2082,19 +2082,20 @@ function doubleClickOnLink() {
     // при 1 клик да се отваря href
     $(".linkWithIcon[data-doubleclick]").on("click", function(e) {
         e.preventDefault();
+        var elem = $(this);
         clearTimeout(timer);
 
         timer = setTimeout(function() {
-            window.location.href = $(this).attr("href");
+            window.location.href = elem.attr("href");
         }, delay);
     });
-
-    // при 2 кликa да се отваря data атрибута
+   // при 2 кликa да се отваря data атрибута
     $(".linkWithIcon[data-doubleclick]").on("dblclick", function(e) {
         e.preventDefault();
+        var elem = $(this);
 
         clearTimeout(timer);
-        window.location.href = $(this).attr("data-doubleclick");
+        window.location.href = elem.attr("data-doubleclick");
     });
 }
 
