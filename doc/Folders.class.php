@@ -203,8 +203,10 @@ class doc_Folders extends core_Master
         }
 
         $Cover = doc_Folders::getCover($rec->id);
-        if($Cover->haveRightFor('single')){
-            $attr['data-doubleclick'] .= toUrl(array($Cover->getInstance(), 'single', $Cover->that));
+        $doubleClickUrl = $Cover->getUrlForDblClick();
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
         }
 
         $link = ht::createLink($title, $url, null, $attr);
@@ -558,8 +560,10 @@ class doc_Folders extends core_Master
         }
 
         $Cover = doc_Folders::getCover($rec->id);
-        if($Cover->haveRightFor('single')){
-            $attr['data-doubleclick'] .= toUrl(array($Cover->getInstance(), 'single', $Cover->that));
+        $doubleClickUrl = $Cover->getUrlForDblClick();
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
         }
 
         if ($haveRight) {
