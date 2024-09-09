@@ -1008,7 +1008,17 @@ class cal_Tasks extends embed_Manager
         if (cal_TaskConditions::haveRightFor('add', (object) array('baseId' => $data->rec->id))) {
             $data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
-        
+
+        $inputRows = $data->rec->driverClass == support_TaskType::getClassId() ? 1 : 2;
+        if(planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
+            $data->toolbar->addBtn('Влагане', array('planning_ConsumptionNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), "ef_icon=img/16/produce_in.png,title=Създаване на протокол за влагане към сигнала,row={$inputRows}");
+        }
+
+        if(planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
+            $data->toolbar->addBtn('Връщане', array('planning_ReturnNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), "ef_icon=img/16/produce_out.png,title=Създаване на протокол за връщане към сигнала,row={$inputRows}");
+        }
+
+
         // Ако имаме бутон "Активиране"
         if (isset($data->toolbar->buttons['btnActivate'])) {
             
