@@ -1120,23 +1120,23 @@ class core_DateTime
                 } elseif($fromDay == '01' && $lastDayOfMonth == $to){
                     $res = "{$toMonth} {$fromDateObj->format("y")}";
                 } else {
-                    $res = "{$fromDayPadded}-{$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
+                    $res = "{$fromDayPadded} – {$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
                 }
             } else {
                 if($fromDay == '01' && $lastDayOfMonth == $to){
                     $res = "{$fromMonth}-{$toMonth} {$fromDateObj->format("y")}";
                 } else {
-                    $res = "{$fromDayPadded} {$fromMonth}-{$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
+                    $res = "{$fromDayPadded} {$fromMonth} – {$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
                 }
             }
         } else {
             if($fromDay == '01' && $lastDayOfMonth == $to) {
-                $res = "{$fromMonth} {$fromDateObj->format("y")}-{$toMonth} {$toDateObj->format("y")}";
+                $res = "{$fromMonth} {$fromDateObj->format("y")} – {$toMonth} {$toDateObj->format("y")}";
             }
         }
 
         if(empty($res)){
-            $res = "{$fromDayPadded} {$fromMonth} {$fromDateObj->format("y")}-{$toDayPadded} {$toMonth} {$toDateObj->format("y")}";
+            $res = "{$fromDayPadded} {$fromMonth} {$fromDateObj->format("y")} – {$toDayPadded} {$toMonth} {$toDateObj->format("y")}";
         }
 
         return $res;

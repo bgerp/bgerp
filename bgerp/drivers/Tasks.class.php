@@ -175,7 +175,13 @@ class bgerp_drivers_Tasks extends core_BaseClass
                     if (doc_Threads::fetchField($rec->threadId, 'state') == 'opened') {
                         $linkArr['class'] .= ' state-opened';
                     }
-                    
+
+                    $doubleClickUrl = $Tasks->getUrlForDblClick($rec->id);
+                    if(isset($doubleClickUrl)){
+                        $doubleClickDataUrl = toUrl($doubleClickUrl);
+                        $linkArr['data-doubleclick'] .= $doubleClickDataUrl;
+                    }
+
                     // Документа да е линк към single' а на документа
                     $row->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
                     

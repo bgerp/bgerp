@@ -102,6 +102,11 @@ class planning_AssetResourcesNorms extends core_Manager
      */
     public function prepareDetail_(&$data)
     {
+        if(empty($data->masterData->rec->simultaneity)) {
+            $data->hide = true;
+            return;
+        }
+
         $data->TabCaption = tr('Норми');
         $data->recs = $data->rows = array();
         $masterClassId = $data->masterMvc->getClassId();
@@ -162,6 +167,8 @@ class planning_AssetResourcesNorms extends core_Manager
      */
     public function renderDetail_($data)
     {
+        if($data->hide) return new core_ET("");
+
         $tpl = $this->renderList($data);
         
         if (isset($data->addUrl)) {

@@ -151,7 +151,7 @@ class pos_Receipts extends core_Master
     /**
      * Кои полета да се извлекат преди изтриване
      */
-    public $fetchFieldsBeforeDelete = 'id,voucherId';
+    public $fetchFieldsBeforeDelete = 'id';
 
 
     /**

@@ -1931,7 +1931,16 @@ class doc_DocumentPlg extends core_Plugin
                 unset($attr['class'], $attr['style']);
             }
         }
-        
+
+        // Ако има урл при двоен клик - да се добави като дата атрибут
+        if(isset($attr['ef_icon'])){
+            $doubleClickUrl = $mvc->getUrlForDblClick($id);
+            if(isset($doubleClickUrl)){
+                $doubleClickDataUrl = toUrl($doubleClickUrl);
+                $attr['data-doubleclick'] .= $doubleClickDataUrl;
+            }
+        }
+
         $link = ht::createLink("{$row->title}", $url, null, $attr);
     }
     
