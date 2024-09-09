@@ -2074,6 +2074,29 @@ function setFormElementsWidth() {
     }
 }
 
+// при двоен клин да отваря корицата
+function doubleClickOnLink() {
+    var timer;
+    var delay = 250;
+
+    // при 1 клик да се отваря href
+    $(".linkWithIcon[data-doubleclick]").on("click", function(e) {
+        e.preventDefault();
+        clearTimeout(timer);
+
+        timer = setTimeout(function() {
+            window.location.href = $(this).attr("href");
+        }, delay);
+    });
+
+    // при 2 кликa да се отваря data атрибута
+    $(".linkWithIcon[data-doubleclick]").on("dblclick", function(e) {
+        e.preventDefault();
+
+        clearTimeout(timer);
+        window.location.href = $(this).attr("data-doubleclick");
+    });
+}
 
 /**
  * Задава ширина на селект2 в зависимост от ширината на прозореца/устройството
@@ -2185,7 +2208,6 @@ function scrollLongListTable() {
         }
     }
 }
-
 
 /**
  * При натискане с мишката върху елемента, маркираме текста
@@ -6212,6 +6234,7 @@ function checkVatAndTriger(name) {
 		name.value = '';
 		const e = new Event("change");
 		target.dispatchEvent(e);
+		target.dispatchEvent(e);
 	} else {
 
 		if(name.value != '') {
@@ -6362,3 +6385,4 @@ runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
+runOnLoad(doubleClickOnLink);
