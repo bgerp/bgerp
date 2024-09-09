@@ -2075,12 +2075,26 @@ function setFormElementsWidth() {
 }
 
 // при двоен клин да отваря корицата
-function doubleClickOnLink(){
-    $('.linkWithIcon[data-doubleclick]').on('dblclick', function (e){
+function doubleClickOnLink() {
+    var timer;
+    var delay = 250;
+
+    // при 1 клик да се отваря href
+    $(".linkWithIcon[data-doubleclick]").on("click", function(e) {
         e.preventDefault();
-        e.stopPropagation();
-        var link = $(e.target).attr('data-doubleclick');
-        window.location = link;
+        clearTimeout(timer);
+
+        timer = setTimeout(function() {
+            window.location.href = $(this).attr("href");
+        }, delay);
+    });
+
+    // при 2 кликa да се отваря data атрибута
+    $(".linkWithIcon[data-doubleclick]").on("dblclick", function(e) {
+        e.preventDefault();
+
+        clearTimeout(timer);
+        window.location.href = $(this).attr("data-doubleclick");
     });
 }
 
@@ -2195,7 +2209,6 @@ function scrollLongListTable() {
         }
     }
 }
-
 
 /**
  * При натискане с мишката върху елемента, маркираме текста
@@ -6221,6 +6234,7 @@ function checkVatAndTriger(name) {
 		target.value = name.value;
 		name.value = '';
 		const e = new Event("change");
+		target.dispatchEvent(e);
 		target.dispatchEvent(e);
 	} else {
 
