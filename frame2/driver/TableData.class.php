@@ -154,7 +154,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
                 $title .= " [#period#]";
             } else {
                 $title = new core_ET($title);
-                if(!empty($range['to'])){
+                if(!empty($range['to']) || !empty($range['from'])){
                     $string = dt::getSmartPeriod($range['from'], $range['to']);
                     $title->replace("({$string})", 'period');
                 }

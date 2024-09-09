@@ -96,8 +96,16 @@ class core_Master extends core_Manager
                 }
             }
         }
-        
-        $link = ht::createLink($title, $linkArr);
+
+        // Ако има урл при двоен клик - да се добави като дата атрибут
+        $attr = array();
+        $doubleClickUrl = $me->getUrlForDblClick($objId);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
+
+        $link = ht::createLink($title, $linkArr, false, $attr);
         
         return $link;
     }
@@ -776,7 +784,14 @@ class core_Master extends core_Manager
         $url = $me->getSingleUrlArray($id);
         
         setIfNot($attr['ef_icon'], $me->getIcon($id));
-        
+
+        // Ако има урл при двоен клик - да се добави като дата атрибут
+        $doubleClickUrl = $me->getUrlForDblClick($id);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
+
         // Вземаме линка
         $link = ht::createLink($name, $url, null, $attr);
         
@@ -847,6 +862,14 @@ class core_Master extends core_Manager
             $title = str::limitLen($title, $attr['limit']);
             if(mb_strlen($originTitle) > $attr['limit']){
                 $attr['title'] = $originTitle;
+            }
+        }
+
+        if(isset($attr['ef_icon'])){
+            $doubleClickUrl = $me->getUrlForDblClick($id);
+            if(isset($doubleClickUrl)){
+                $doubleClickDataUrl = toUrl($doubleClickUrl);
+                $attr['data-doubleclick'] .= $doubleClickDataUrl;
             }
         }
 

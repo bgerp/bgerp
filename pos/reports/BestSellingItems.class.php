@@ -104,9 +104,9 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
 
         $fieldset->FLD('pos', 'keylist(mvc=pos_Points,select=name,allowEmpty)', 'caption=ПОС терминали->ПОС,placeholder=Всички,after=to,single=none');
 
-        $fieldset->FLD('begin', 'hour', 'caption=Времена на засичане->Начало,after=pos,single=none');
-        $fieldset->FLD('end', 'hour', 'caption=Времена на засичане->Край,after=mark,single=none,mandatory');
-        $fieldset->FNC('days', 'int', 'caption=Брой дни със продажби,after=end,single=none,mandatory');
+        $fieldset->FLD('begin', 'hour', 'caption=Времена на засичане->Начало,after=pos,mandatory,single=none');
+        $fieldset->FLD('end', 'hour', 'caption=Времена на засичане->Край,after=begin,single=none,mandatory');
+        $fieldset->FNC('days', 'int', 'caption=Брой дни със продажби,after=end,single=none,input=none,mandatory');
 
     }
 
@@ -195,8 +195,8 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
             if (($sellTime > $rec->begin) && ($sellTime < $rec->end)) {
 
                 //Честота на продажбите(брой дни в които е продаван артикул)
-                if (!array_key_exists($receiptDetailRec->productId.'|'.$sellDate, $date)) {
-                    $date[$receiptDetailRec->productId.'|'.$sellDate] = $sellDate;
+                if (!array_key_exists($receiptDetailRec->productId . '|' . $sellDate, $date)) {
+                    $date[$receiptDetailRec->productId . '|' . $sellDate] = $sellDate;
                     $salesFrequency[$receiptDetailRec->productId]++;
                 }
 
@@ -231,8 +231,8 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
                 'quantity' => $val->quantity,
                 'amount' => $val->amount,
                 'salesFrequency' => $salesFrequency[$val->productId],
-                'marketabilityQ' => $val->quantity/$salesFrequency[$val->productId],
-                'marketabilityA' => $val->amount/$salesFrequency[$val->productId],
+                'marketabilityQ' => $val->quantity / $salesFrequency[$val->productId],
+                'marketabilityA' => $val->amount / $salesFrequency[$val->productId],
             );
 
         }
@@ -266,7 +266,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
             $fld->FLD('amount', 'double(decimals=2)', 'caption=Продажби->Стойност');
             $fld->FLD('marketabilityQ', 'double(decimals=2)', 'caption=Продаваемост->Ср. К-во');
             $fld->FLD('marketabilityA', 'double(decimals=2)', 'caption=Продаваемост->Ср. Стойност');
-           // $fld->FLD('salesFrequency', 'varchar', 'caption=Продаваемост->Честота,tdClass=centered');
+            // $fld->FLD('salesFrequency', 'varchar', 'caption=Продаваемост->Честота,tdClass=centered');
 
         } else {
 
@@ -300,7 +300,7 @@ class pos_reports_BestSellingItems extends frame2_driver_TableData
         $row->amount = $Double->toVerbal($dRec->amount);
         $row->marketabilityA = $Double->toVerbal($dRec->marketabilityA);
         $row->marketabilityQ = $Double->toVerbal($dRec->marketabilityQ);
-        $row->salesFrequency = $dRec->salesFrequency.'/'.$rec->days;
+        $row->salesFrequency = $dRec->salesFrequency . '/' . $rec->days;
 
         return $row;
     }

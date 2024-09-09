@@ -17,6 +17,17 @@
  */
 class plg_SaveAndNew extends core_Plugin
 {
+
+
+    /**
+     * Извиква се след описанието на модела
+     */
+    public static function on_AfterDescription(&$mvc)
+    {
+        setIfNot($mvc->canSaveandnew, 'every_one');
+    }
+
+
     /**
      * Логика за определяне къде да се пренасочва потребителския интерфейс.
      *
@@ -132,7 +143,7 @@ class plg_SaveAndNew extends core_Plugin
             return;
         }
 
-        if (empty($data->form->rec->id)) {
+        if (empty($data->form->rec->id) && $mvc->haveRightFor('saveandnew')) {
             $data->form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', null, array('id' => 'saveAndNew', 'order' => '9.99965', 'ef_icon' => 'img/16/save_and_new.png', 'title' => 'Запиши документа и създай нов'));
         }
     }

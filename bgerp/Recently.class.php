@@ -237,7 +237,13 @@ class bgerp_Recently extends core_Manager
                     $linkUrl = array($docProxy->getInstance(), 'single',
                         'id' => $docRec->id);
                 }
-                
+
+                $doubleClickUrl = $docProxy->getUrlForDblClick();
+                if(isset($doubleClickUrl)){
+                    $doubleClickDataUrl = toUrl($doubleClickUrl);
+                    $attr['data-doubleclick'] .= $doubleClickDataUrl;
+                }
+
                 $row->title = ht::createLink(
                     str::limitLen($docRow->title, self::maxLenTitle, 20, ' ... ', true),
                     $linkUrl,

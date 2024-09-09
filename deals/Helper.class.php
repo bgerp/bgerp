@@ -1143,8 +1143,8 @@ abstract class deals_Helper
         $showCountries = !(($ownCompanyData->countryId == $cData->countryId));
         
         if (isset($contragentClass, $contragentId)) {
-            $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $docRec->activatedOn)->getContent();
-            $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $docRec->activatedO)->getContent();
+            $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $dateFromWhichToGetName)->getContent();
+            $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $dateFromWhichToGetName)->getContent();
             $res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
         }
         
