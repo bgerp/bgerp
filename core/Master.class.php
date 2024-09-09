@@ -895,8 +895,9 @@ class core_Master extends core_Manager
     {
         $rec = $this->fetchRec($id);
         if($this->haveRightFor('edit', $rec)) return array($this, 'edit', $rec->id);
+        $singleUrlArray = static::getSingleUrlArray($rec->id);
 
-        return null;
+        return countR($singleUrlArray) ? $singleUrlArray : null;
     }
 
 

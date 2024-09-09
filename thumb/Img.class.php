@@ -672,7 +672,7 @@ class thumb_Img
             // Склаираме, само ако имаме пропорция, различна от 1 или ротираме
             if ($this->ratio != 1 || $this->rotation || self::canUseWebP()) {
                 if ($this->rotation) {
-                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledHeight, $this->scaledWidth, $this->format);
+                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledHeight, $this->scaledWidth, $this->getThumbFormat());
                     
                     $white = imagecolorallocatealpha($newGdRes, 255, 255, 255, 127);
                     
@@ -680,7 +680,7 @@ class thumb_Img
                     
                     $newGdRes = imagerotate($newGdRes, $angle, $white);
                 } else {
-                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledWidth, $this->scaledHeight, $this->format);
+                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledWidth, $this->scaledHeight, $this->getThumbFormat());
                 }
             } elseif ($this->sourceType == 'gdRes') {
                 $newGdRes = $gdRes;
@@ -836,7 +836,7 @@ class thumb_Img
         $newImg = imagecreatetruecolor($dstWidth, $dstHeight);
         
         // Само на gif и png изображенията запазваме прозрачността
-        if ($format == 'gif' || $format == 'png') {
+        if ($format == 'gif' || $format == 'png' || $format == 'webp') {
             $transparentIndex = -1;
             
             if ($format == 'gif') {
@@ -871,7 +871,7 @@ class thumb_Img
     {
         $this->getSize();
         $imageGd = $this->getGdRes();
-        $newImage = $this->scaleGdImg($imageGd, $this->scaledWidth, $this->scaledHeight, $this->format);
+        $newImage = $this->scaleGdImg($imageGd, $this->scaledWidth, $this->scaledHeight, $this->getThumbFormat());
         
         return $newImage;
     }

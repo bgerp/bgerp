@@ -161,7 +161,7 @@ class bulmar_InvoiceExport extends core_Manager
      * @param stdClass $filter - филтър
      * @return stdClass $data - подготвените данни
      */
-    private function prepareExportData($recs, $filter)
+    protected function prepareExportData($recs, $filter)
     {
         $data = new stdClass();
         
@@ -378,7 +378,7 @@ class bulmar_InvoiceExport extends core_Manager
      * @param stdClass $filter
      * @return array $staticData
      */
-    private function getStaticData($filter)
+    protected function getStaticData($filter)
     {
         $staticData = new stdClass();
         

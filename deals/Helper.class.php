@@ -1081,6 +1081,9 @@ abstract class deals_Helper
         $res = array();
         $dateFromWhichToGetName = !empty($docRec->{$Document->valiorFld}) ? $docRec->{$Document->valiorFld} : dt::now();
         $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
+
+
+
         $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $dateFromWhichToGetName);
 
         // Името и адреса на 'Моята фирма'
@@ -1145,7 +1148,7 @@ abstract class deals_Helper
             $res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
         }
         
-        $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries, true, $docRec->activatedOn)->getContent();
+        $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries, true, $dateFromWhichToGetName)->getContent();
 
         if(drdata_Countries::isEu($cData->countryId) && empty($cData->eori)){
             unset($res['MyCompanyEori']);
