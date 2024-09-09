@@ -114,7 +114,9 @@ class frame2_CsvExport extends core_Mvc
         // Подготовка на данните
         $lang = null;
         $csvRecs = $fields = array();
+        $title = $frameRec->titie;
         if ($Driver = $Frame->getDriver($frameRec)) {
+            $title = $Driver->getTitle($frameRec);
             $lang = $Driver->getRenderLang($frameRec);
             if(isset($lang)){
                 core_Lg::push($lang);
@@ -143,7 +145,7 @@ class frame2_CsvExport extends core_Mvc
             
             // Записване във файловата система
             $extension = $params['extension'];
-            $fileName = $Frame->getHandle($objId) . '-' . str::removeWhiteSpace(str::utf2ascii($frameRec->title), '_');
+            $fileName = $Frame->getHandle($objId) . '-' . str::removeWhiteSpace(str::utf2ascii($title), '_');
             $fileHnd = fileman::absorbStr($csv, "exportFiles", "{$fileName}.{$extension}");
             $fileId = fileman::fetchByFh($fileHnd, 'id');
             doc_Linked::add($frameRec->containerId, $fileId, 'doc', 'file');

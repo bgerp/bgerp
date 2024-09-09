@@ -899,6 +899,24 @@ class cal_Tasks extends embed_Manager
                 $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
             }
 
+            if(isset($rec->assetResourceId)) {
+
+                // Засичане с задачи по ресурс
+                $intersectedRanges = array();
+                $query = static::getQuery();
+                $supportTypeClassId = support_TaskType::getClassId();
+                $query->where("#driverClass != '{$supportTypeClassId}' AND #id != '{$rec->id}' AND #assetResourceId = {$rec->assetResourceId} AND #state IN ('active', 'wakeup', 'stopped', 'pending')");
+                while($cRec = $query->fetch()) {
+                    $mvc->calculateExpectationTime($cRec);
+                    if(($cRec->expectationTimeStart <= $rec->expectationTimeEnd AND $cRec->expectationTimeEnd >= $rec->expectationTimeStart)) {
+                        $intersectedRanges[] = cal_Tasks::getHyperlink($cRec->id, true)->getContent();
+                    }
+                }
+                if(countR($intersectedRanges)) {
+                    $form->setWarning('timeStart, timeDuration, timeEnd, assetResourceId', "|Засичане по ресурс с|*: " . implode(',', $intersectedRanges));
+                }
+            }
+
             if(isset($rec->id)){
                 if(isset($rec->parentId)){
                     // Добавяме и всички негови бащи
@@ -3210,7 +3228,7 @@ class cal_Tasks extends embed_Manager
                 $timeStart = $rec->timeStart;
                 $timeEnd = $rec->timeEnd;
                 $timeDuration = $rec->timeDuration;
-                
+
                 if ($timeDuration && !$timeEnd) {
                     $timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($timeStart) + $timeDuration);
                 } elseif (($timeDuration && $timeEnd) && !$timeStart) {
@@ -3422,7 +3440,7 @@ class cal_Tasks extends embed_Manager
         } elseif(isset($rec->stepId) && !isset($rec->assetResourceId)) {
             $resArr['stepId'] = array('name' => tr('Етап'), 'val' => '[#stepId#]');
         } elseif(isset($rec->assetResourceId) && isset($rec->stepId)) {
-            $resArr['assetResourceId'] = array('name' => tr('Поддръжка'), 'val' => tr("|Етап|*: [#stepId#]<br>|Ресурс|*: [#assetResourceId#]"));
+            $resArr['assetResourceId'] = array('name' => tr('Поддръжка'), 'val' => tr("<div class='taskWithStepAndResourceTd'><div>|Етап|*: [#stepId#]</div><div>|Ресурс|*: [#assetResourceId#]</div></div>"));
         }
 
         if ($row->timeStart) {

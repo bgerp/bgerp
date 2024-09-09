@@ -401,7 +401,7 @@ class frame2_Reports extends embed_Manager
                 
                 // и няма заглавие на справката, прави се опит да се вземе от драйвера
                 if (empty($rec->title)) {
-                    $rec->title = $Driver->getTitle($rec);
+                    $rec->title = $Driver->getTitle($rec, true);
                 }
                 
                 $refresh = true;
@@ -504,17 +504,15 @@ class frame2_Reports extends embed_Manager
     public static function getRecTitle($rec, $escaped = true)
     {
         $title = $rec->title;
-        if(empty($title)){
-            if($Driver = static::getDriver($rec)){
-                $title = $Driver->getTitle($rec);
-            }
+        if($Driver = static::getDriver($rec)){
+            $title = $Driver->getTitle($rec);
         }
 
         if(empty($title)){
             $title = '???';
         }
 
-        return "{$title} №{$rec->id}";
+        return "{$title}";
     }
     
     
@@ -527,21 +525,24 @@ class frame2_Reports extends embed_Manager
         
         $row = new stdClass();
         $row->title = $this->getRecTitle($rec);
+        $row->recTitle = $row->title;
 
         $Driver = $this->getDriver($rec);
         if (is_object($Driver)) {
-            $driverTitle = $Driver->getTitle($rec);
-            
-            if(trim($driverTitle) != trim($rec->title)){
-                $row->title = $rec->title;
-                $row->subTitle = $driverTitle . " №{$rec->id}";
+
+            // Ако името на драйвера не се съдържа в името на справката - да се показва
+            $subTitle = core_Classes::fetchField("#id = {$Driver->getClassId()}", 'title');
+            $subTitle = explode(' » ', $subTitle);
+            $subTitle = (countR($subTitle) == 2) ? $subTitle[1] : $subTitle[0];
+            if(strpos($row->title, $subTitle) === false){
+                $row->subTitle = $subTitle;
             }
         }
         
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
-        $row->recTitle = $driverTitle;
+
         
         return $row;
     }
@@ -949,12 +950,15 @@ class frame2_Reports extends embed_Manager
     protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
         $resArr = arr::make($resArr);
-        
-        $titleObj = new core_ET("{$row->title}<!--ET_BEGIN driverTitle--><br>[#driverTitle#]<!--ET_END driverTitle-->");
+
+        $titleObj = new core_ET("{$row->title}<!--ET_BEGIN driverTitle--><br>[#driverClass#]<!--ET_END driverTitle-->");
         if($Driver = $mvc->getDriver($rec)){
-            $driverTitle = $Driver->getTitle($rec);
-            if(trim($driverTitle) != trim($row->title)){
-                $titleObj->replace($driverTitle, 'driverTitle');
+            $titleObj->replace($Driver->getTitle($rec), 'title');
+            $subTitle = core_Classes::fetchField("#id = {$Driver->getClassId()}", 'title');
+            $subTitle = explode(' » ', $subTitle);
+            $subTitle = (countR($subTitle) == 2) ? $subTitle[1] : $subTitle[0];
+            if(strpos($row->title, $subTitle) === false){
+                $titleObj->replace($subTitle, 'driverClass');
             }
         }
         
@@ -1062,8 +1066,19 @@ class frame2_Reports extends embed_Manager
             $row->nextUpdate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($callOn);
         }
     }
-    
-    
+
+
+    /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    protected static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+        if($Driver = $mvc->getDriver($rec)){
+             $rec->title = $Driver->getTitle($rec);
+        }
+    }
+
+
     /**
      * Премахване на зададените времена за обновяване
      *

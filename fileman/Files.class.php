@@ -883,7 +883,7 @@ class fileman_Files extends core_Master
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
         
-        return fileatime($path);
+        return core_Os::getFileLastAccessTime($path);
     }
     
     
@@ -3176,5 +3176,27 @@ class fileman_Files extends core_Master
         }
         
         return $newArr;
+    }
+
+
+    /**
+     * Връща пътя до данните на файла
+     */
+    public static function getDataPath($id)
+    {
+        $Files = cls::get('fileman_Files');
+        
+        $rec = $Files->fetch($id);
+        
+        if ($field === null) {
+            
+            return null;
+        }
+        
+        $Data = cls::get('fileman_Data');
+     
+        $rec = $Data->fetch($rec->dataId);
+        
+        return $rec->path;
     }
 }

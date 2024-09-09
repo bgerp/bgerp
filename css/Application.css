@@ -2332,6 +2332,11 @@ pre.document {
     .antetka .document-handler .linkWithIcon {
       height: auto !important; }
 
+.taskWithStepAndResourceTd {
+  max-width: 250px; }
+  .taskWithStepAndResourceTd a {
+    display: inline !important; }
+
 .antetkaCell {
   max-width: 400px; }
 
@@ -6749,7 +6754,12 @@ only screen and (max-width: 360px) {
 
   .narrow .antetkaCell {
     white-space: normal;
-    max-width: 230px !important; } }
+    max-width: 230px !important; }
+
+    .user-profile .user-name {
+      font-size: 1.1em !important; }
+    .user-profile .personStatus {
+      font-size: 0.65em !important; } }
 
 @media handheld,
 only screen and (max-width: 320px) {

@@ -124,22 +124,69 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
 
     /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields;
+
+
+    /**
      * Връща заглавието на отчета
      *
      * @param stdClass $rec - запис
+     * @param bool $isPlain - дали заглавието да е чисто (без окрасяване)
      *
      * @return string|NULL - заглавието или NULL, ако няма
      */
-    public function getTitle($rec)
+    public function getTitle($rec, $isPlain = false)
     {
-        $title = core_Classes::fetchField("#id = {$this->getClassId()}", 'title');
-        $title = explode(' » ', $title);
-        $title = (countR($title) == 2) ? $title[1] : $title[0];
-        
+        if(empty($rec->title)){
+            $title = core_Classes::fetchField("#id = {$this->getClassId()}", 'title');
+            $title = explode(' » ', $title);
+            $title = (countR($title) == 2) ? $title[1] : $title[0];
+        } else {
+            $title = $rec->title;
+        }
+
+        $range = $this->getPeriodRange($rec);
+
+        if(countR($range)){
+            if($isPlain){
+                $title .= " [#period#]";
+            } else {
+                $title = new core_ET($title);
+                if(!empty($range['to'])){
+                    $string = dt::getSmartPeriod($range['from'], $range['to']);
+                    $title->replace("({$string})", 'period');
+                }
+
+                $title = $title->getContent();
+            }
+        }
+
         return $title;
     }
-    
-    
+
+
+    /**
+     * Връща периода на справката - ако има такъв
+     *
+     * @param stdClass $rec
+     * @return array
+     *          ['from'] - начало на период
+     *          ['to']   - край на период
+     */
+    protected function getPeriodRange($rec)
+    {
+        if(!isset($this->periodFields)) return array();
+
+        $periods = explode(',', $this->periodFields);
+        $oldestAvailableDate = plg_SelectPeriod::getOldestAvailableDate();
+        $fromDate = $rec->{$periods[0]} ? $rec->{$periods[0]} : (($oldestAvailableDate) ? $oldestAvailableDate : null);
+
+        return array('from' => $fromDate, 'to' => $rec->{$periods[1]});
+    }
+
+
     /**
      * Подготвя данните на справката от нулата, които се записват в модела
      *

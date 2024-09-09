@@ -275,6 +275,14 @@ class change_plg_History extends core_Plugin
 
         $rec = &$data->rec;
         $row = &$data->row;
+
+        if(isset($rec->validFrom)){
+            $oneMothAgo = dt::addMonths(-1);
+            if($rec->validFrom < $oneMothAgo){
+                unset($row->validFrom);
+            }
+        }
+
         $loggableFields = arr::make($mvc->loggableFields, true) + arr::make($mvc->loggableAdditionalComparableFields, true);
         $loggableFields['validFrom'] = 'validFrom';
         $loggableFields['validTo'] = 'validTo';

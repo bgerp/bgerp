@@ -29,7 +29,7 @@ class drdata_VatType extends type_Varchar
     public $statuses = array(
         'not_vat' => array('Липсва двубуквен префикс', 'red'),
         'bulstat' => array('Валиден ЕИК, но липсва BG в началото', 'red'),
-        'syntax' => array('Невалидна дължина на цифрите', 'red'),
+        'syntax' => array('Неправилен брой цифри', 'red'),
         'invalid' => array('Невалиден VAT номер', 'red'),
         'unknown' => array('VAT номер с неизвестна валидност', 'quiet'),
         'valid' => array('Валиден VAT номер', ''),

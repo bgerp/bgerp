@@ -85,6 +85,11 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
      */
     protected $changeableFields;
 
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
 
     /**
      * Добавя полетата на драйвера към Fieldset

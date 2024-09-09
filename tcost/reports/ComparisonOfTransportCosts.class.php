@@ -58,8 +58,14 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
      * @var int
      */
     protected $sortableListFields = 'difference,contragent';
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *

@@ -87,6 +87,12 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
 
     /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -423,7 +429,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         $Hour = cls::get('type_Hour');
         $Enum = cls::get('type_Enum', array('options' => array('date' => 'Дата', 'productId' => 'Артикул')));
-
+        $data->row->title = 'aaaaaa';
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>

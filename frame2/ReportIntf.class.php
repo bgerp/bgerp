@@ -52,14 +52,15 @@ class frame2_ReportIntf extends embed_DriverIntf
      * Връща заглавието на отчета
      *
      * @param stdClass $rec - запис
+     * @param bool $isPlain - дали заглавието да е чисто (без окрасяване)
      *
      * @return string|NULL - заглавието или NULL, ако няма
      */
-    public function getTitle($rec)
+    public function getTitle($rec, $isPlain = false)
     {
-        return $this->class->getTitle($rec);
+        return $this->class->getTitle($rec, $isPlain);
     }
-    
+
     
     /**
      * Подготвя данните на справката от нулата, които се записват в модела

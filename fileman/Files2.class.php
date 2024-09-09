@@ -770,7 +770,7 @@ class fileman_Files2 extends core_Master
         // Очакваме да е валиден път
         expect(static::isCorrectPath($path));
         
-        return fileatime($path);
+        return core_Os::getFileLastAccessTime($path);
     }
     
     

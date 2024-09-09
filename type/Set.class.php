@@ -45,7 +45,11 @@ class type_Set extends core_Type
         
         foreach ($vals as $v) {
             if (isset($v)) {
-                $verb = tr($this->getVerbal($v));
+                if ($this->params['translate'] != 'none') {
+                    $verb = tr($this->getVerbal($v));
+                } else {
+                    $verb = $this->getVerbal($v);
+                }
                 if (!$verb) {
                     continue;
                 }
@@ -88,7 +92,8 @@ class type_Set extends core_Type
         $maxChars = $this->params['maxChars'];
         $displayHtml = $this->params['displayHtml'];
         $col = type_Keylist::getCol($this->suggestions, $maxChars);
-        
+
+        $className = '';
         if (countR($this->suggestions) < 4) {
             $className .= ' shrinked';
         }
@@ -151,7 +156,12 @@ class type_Set extends core_Type
                     }
                     
                     $cb = ht::createElement('input', $attr);
-                    $cb->append("<label {$title} data-colsInRow='" . $col . "' for=\"" . $attr['id'] . '">' . tr($v) . '</label>');
+
+                    if ($this->params['translate'] != 'none') {
+                        $v = tr($v);
+                    }
+
+                    $cb->append("<label {$title} data-colsInRow='" . $col . "' for=\"" . $attr['id'] . '">' . $v . '</label>');
                     
                     // След рендиране на полето, махаме атрибутите за да не се принесат на другите опции
                     if (isset($this->readOnly[$key])) {
