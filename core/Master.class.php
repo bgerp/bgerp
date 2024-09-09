@@ -860,8 +860,24 @@ class core_Master extends core_Manager
         
         return $title;
     }
-    
-    
+
+
+    /**
+     * Връща урл което да се извика при двоен клик
+     *
+     * @param int|stdClass $id - ид или запис
+     * @return array|null      - урл или null ако нищо няма
+     */
+    public function getUrlForDblClick_($id)
+    {
+        $rec = $this->fetchRec($id);
+        if($this->haveRightFor('edit', $rec)) return array($this, 'edit', $rec->id);
+        $singleUrlArray = static::getSingleUrlArray($rec->id);
+
+        return countR($singleUrlArray) ? $singleUrlArray : null;
+    }
+
+
     /**
      * Създава хиперлинк към единичния изглед който е стрелка след името
      *
