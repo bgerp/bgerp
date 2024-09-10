@@ -35,7 +35,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields ;
+    protected $summaryListFields;
 
 
     /**
@@ -438,7 +438,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $originQuantity = $changeQuatity = 0;
 
                 //Ключ на масива
-                $id = $invDetRec->productId . ' | ' . $invDetRec->folderId. ' | ' . $invDetRec->folderId;
+                $id = $invDetRec->productId . ' | ' . $invDetRec->folderId . ' | ' . $invDetRec->folderId;
 
                 $invQuantity = $invDetRec->quantity * $invDetRec->quantityInPack;
                 $discount = $invDetRec->price * $invQuantity * $invDetRec->discount;
@@ -668,9 +668,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $poscontragentId = $recPrime->contragentId;
 
                 $posContragentClassName = core_Classes::fetch($recPrime->contragentClassId)->name;
-                $contragentFolder = $posContragentClassName::fetch($recPrime->contragentId)->folderId;
+                $posContragentFolder = $posContragentClassName::fetch($recPrime->contragentId)->folderId;
 
-                $contragentName = doc_Folders::getTitleById($contragentFolder);
+                $contragentName = doc_Folders::getTitleById($posContragentFolder);
                 $posKey = $recPrime->contragentClassId . '|' . $recPrime->contragentId;
 
                 $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId . ' | ' . $posKey : $recPrime->productId;
@@ -852,10 +852,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
 
-                    'contragent' => $recPrime->folderId,                  //Папка на контрагента
+                    'contragent' => $recPrime->folderId,                  //Папка на контрагента, когато продажбата не е от POS
                     'poscontragentClassId' => $poscontragentClassId,
                     'poscontragentId' => $poscontragentId,
                     'contragentName' => $contragentName,
+                    'posContragentFolder' => $posContragentFolder,
 
                     'code' => $artCode,                                   //Код на артикула
                     'productId' => $recPrime->productId,                  //Id на артикула
@@ -991,7 +992,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $typeGroup = 'category';
         }
 
-
         // Изчисляване на общите продажби и продажбите по групи
         foreach ($recs as $v) {
 
@@ -1033,7 +1033,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 //изчислява обща стойност на артикулите от избраните групи продадени
                 //през текущ, предходен период и предходна година, и стойността по групи(само ИЗБРАНИТЕ)
 
-
                 $grArr = array();
 
                 //Масив с избраните групи
@@ -1049,7 +1048,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                 unset($key, $val);
 
-                $tempArrKey = ($rec->seeByContragent == 'yes') ? $v->productId . ' | ' . $v->contragent : $v->productId;
+                $tempArrKey = ($rec->seeByContragent == 'yes') ? $v->productId . ' | ' . $v->posContragentFolder : $v->productId;
 
 
                 $tempArr[$tempArrKey] = $v;
@@ -1068,6 +1067,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 //Изчислява продажбите по артикул за всички артикули във всяка избрана група
                 //Един артикул може да го има в няколко групи
                 foreach ($tempArr[$tempArrKey]->$typeGroup as $gro) {
+
                     $groupValues[$gro] += $v->primeCost;
                     $groupQuantity[$gro] += $v->quantity;
                     $groupDeltas[$gro] += $v->delta;
@@ -1091,7 +1091,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $changeDelta = 'changeDeltaLastYear';
             }
         }
-
 
         //при избрани групи включва артикулите във всички групи в които са регистрирани, и се сумира във всички групи
         if (!is_null(($rec->group || $rec->category))) {
@@ -1236,6 +1235,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         array_unshift($recs, $totalArr['total']);
 
         return $recs;
+
+
     }
 
     /**
@@ -1880,8 +1881,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'contragent');
         }
-
+        $marker = 0;
         if (isset($data->rec->group)) {
+
+            foreach (type_Keylist::toArray($data->rec->group) as $group) {
+                $marker++;
+
+                $groupVerb .= (cat_Groups::fetch($group)->name);
+
+                if ((countR(type_Keylist::toArray($data->rec->$group))) - $marker != 0) {
+                    $groupVerb .= ', ';
+                }
+            }
             $fieldTpl->append('<b>' . $data->row->group . '</b>', 'group');
         }
 
