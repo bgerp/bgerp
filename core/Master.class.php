@@ -99,7 +99,7 @@ class core_Master extends core_Manager
 
         // Ако има урл при двоен клик - да се добави като дата атрибут
         $attr = array();
-        $doubleClickUrl = $me->getUrlForDblClick($objId);
+        $doubleClickUrl = $inst->getUrlForDblClick($objId);
         if(isset($doubleClickUrl)){
             $doubleClickDataUrl = toUrl($doubleClickUrl);
             $attr['data-doubleclick'] .= $doubleClickDataUrl;
