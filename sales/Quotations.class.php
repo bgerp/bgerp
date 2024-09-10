@@ -555,7 +555,7 @@ class sales_Quotations extends deals_QuotationMaster
         $tpl->append($handle, 'handle');
         
         if($rec->chargeVat == 'separate'){
-            $tpl->append("\n\n" . tr("Обърнете внимание, че цените в тази оферта са [b]без ДДС[/b]. В договора ДДС ще е на отделен ред."));
+            $tpl->append("\n\n" . tr("Обърнете внимание, че цените в тази оферта са| [b]|без ДДС|*[/b]. |В договора ДДС ще е на отделен ред|*."));
         }
         
         return $tpl->getContent();
@@ -715,11 +715,12 @@ class sales_Quotations extends deals_QuotationMaster
      */
     public function getDefaultEmailSubject($id, $isForwarding = false)
     {
-        $res = '';
+        $res = tr('Оферта') . " {$this->getHandle($id)} / ";
         $rec = $this->fetchRec($id);
-        
+        $rec->reff = null;
+
         if ($rec->reff) {
-            $res = $rec->reff . ' ';
+            $res .= $rec->reff;
         } else {
             $dQuery = sales_QuotationsDetails::getQuery();
             $dQuery->where(array("#quotationId = '[#1#]'", $id));
