@@ -336,9 +336,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $posDetQuery->in('state', $posDetStateArr);
 
-            $posDetQuery->show('productId');
+            $posDetQuery->show('productId, receiptId');
 
-            $posProdsArr = arr::extractValuesFromArray($posDetQuery->fetchAll(), 'productId');
+            foreach ($posDetQuery->fetchAll() as $det) {
+
+                $posProdsArr[$det->productId] = $det->productId;
+                $posReceiptIdArr[$det->receiptId] = $det->receiptId;
+
+            }
 
             $prodArr = array_unique(array_merge($prodArr, $posProdsArr));
 
@@ -357,6 +362,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setSuggestions('products', $prodSuggestions);
 
         //Масив с предложения за избор на контрагент $suggestions[]
+
+        // Да се заредят контрагентите от продажбите
         $salesQuery = sales_Sales::getQuery();
 
         $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
@@ -369,6 +376,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = $contragent->folderTitle;
             }
+        }
+
+        // Да се заредят контрагентите от POS  бележките
+        foreach ($posReceiptIdArr as $recept) {
+
+            $recptRec = pos_Receipts::fetch($recept);
+            $posContragentClassName = core_Classes::fetch($recptRec->contragentClass)->name;
+            $posContragentFolder = $posContragentClassName::fetch($recptRec->contragentObjectId)->folderId;
+
+            if (!in_array($posContragentFolder, array_keys($suggestions))) {
+                $suggestions[$posContragentFolder] = $recptRec->contragentName;
+            }
+
         }
 
         asort($suggestions);
@@ -560,31 +580,87 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
         if ($rec->contragent || $rec->crmGroup) {
-            $contragentsArr = array();
-            $contragentsId = array();
+
+            $contragentsIdArr = array();
+            $cmpClsId = crm_Companies::getClassId();
+            $prsClsId = crm_Persons::getClassId();
+
+            foreach (keylist::toArray($rec->contragent) as $contragent) {
+                $Cover = doc_Folders::getCover($contragent);
+                $contragentsIdArr[$Cover->getClassId()][$Cover->that] = $Cover->that;
+            }
 
             if (!$rec->crmGroup && $rec->contragent) {
-                $contragentsArr = keylist::toArray($rec->contragent);
+                $mark = 0;
+                if (countR($contragentsIdArr[$prsClsId])) {
+                    $personStr = implode(',', $contragentsIdArr[$prsClsId]);
 
-                $query->in('folderId', $contragentsArr);
+                    $query->where("(#contragentId IN ({$personStr})) AND (#contragentClassId = '{$prsClsId}')");
+                    $mark++;
+
+                };
+                if (countR($contragentsIdArr[$cmpClsId])) {
+                    $companyStr = implode(',', $contragentsIdArr[$cmpClsId]);
+                    if ($mark > 0) {
+
+                        $query->orWhere("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
+
+                    } else {
+
+                        $query->where("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
+
+                    }
+                }
             }
 
             if ($rec->crmGroup && !$rec->contragent) {
-                $foldersInGroups = self::getFoldersInGroups($rec);
+                $contragentsInGroupIdArr = self::getContragentsInGroups($rec);
 
-                $query->in('folderId', $foldersInGroups);
+                $mark = 0;
+                if (countR($contragentsInGroupIdArr[$prsClsId])) {
+                    $personStr = implode(',', $contragentsInGroupIdArr[$prsClsId]);
+
+                    $query->where("(#contragentId IN ({$personStr})) AND (#contragentClassId = '{$prsClsId}')");
+                    $mark++;
+
+                };
+                if (countR($contragentsInGroupIdArr[$cmpClsId])) {
+                    $companyStr = implode(',', $contragentsInGroupIdArr[$cmpClsId]);
+                    if ($mark > 0) {
+
+                        $query->orWhere("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
+
+                    } else {
+
+                        $query->where("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
+
+                    }
+                }
             }
 
             if ($rec->crmGroup && $rec->contragent) {
-                $foldersInGroups = self::getFoldersInGroups($rec);
+                $contragentsInGroupIdArr = self::getContragentsInGroups($rec);
 
-                $contragentsArr = keylist::toArray($rec->contragent);
+                $mark = 0;
+                if (countR($contragentsInGroupIdArr[$prsClsId])) {
+                    $personStr = implode(',', $contragentsInGroupIdArr[$prsClsId]);
 
-                $foldersInGroups = array_merge($foldersInGroups, $contragentsArr);
+                    $query->where("(#contragentId IN ({$personStr})) AND (#contragentClassId = '{$prsClsId}')");
+                    $mark++;
 
-                $foldersInGroups = array_unique($foldersInGroups);
+                };
+                if (countR($contragentsInGroupIdArr[$cmpClsId])) {
+                    $companyStr = implode(',', $contragentsInGroupIdArr[$cmpClsId]);
+                    if ($mark > 0) {
 
-                $query->in('folderId', $foldersInGroups);
+                        $query->orWhere("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
+
+                    } else {
+
+                        $query->where("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
+
+                    }
+                }
             }
         }
 
@@ -2048,7 +2124,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @return array
      */
-    public static function getFoldersInGroups($rec)
+    public static function getContragentsInGroups($rec)
     {
         $foldersInGroups = array();
         foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
@@ -2062,8 +2138,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $foldersInGroups = array_merge($foldersInGroups, arr::extractValuesFromArray($q->fetchAll(), 'folderId'));
         }
+        foreach ($foldersInGroups as $contragent) {
+            $Cover = doc_Folders::getCover($contragent);
+            $contragentsIdArr[$Cover->getClassId()][$Cover->that] = $Cover->that;
+        }
 
-        return $foldersInGroups;
+        return $contragentsIdArr;
     }
 
     /**
