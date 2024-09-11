@@ -717,7 +717,6 @@ class sales_Quotations extends deals_QuotationMaster
     {
         $res = tr('Оферта') . " {$this->getHandle($id)} / ";
         $rec = $this->fetchRec($id);
-        $rec->reff = null;
 
         if ($rec->reff) {
             $res .= $rec->reff;
