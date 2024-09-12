@@ -581,86 +581,78 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
         if ($rec->contragent || $rec->crmGroup) {
 
-            $contragentsIdArr = array();
-            $cmpClsId = crm_Companies::getClassId();
-            $prsClsId = crm_Persons::getClassId();
+            $contragentsArr = [];
 
             foreach (keylist::toArray($rec->contragent) as $contragent) {
+
                 $Cover = doc_Folders::getCover($contragent);
-                $contragentsIdArr[$Cover->getClassId()][$Cover->that] = $Cover->that;
+                $contragentsArr[] =[$Cover->getClassId(),$Cover->that];
+
             }
 
             if (!$rec->crmGroup && $rec->contragent) {
-                $mark = 0;
-                if (countR($contragentsIdArr[$prsClsId])) {
-                    $personStr = implode(',', $contragentsIdArr[$prsClsId]);
 
-                    $query->where("(#contragentId IN ({$personStr})) AND (#contragentClassId = '{$prsClsId}')");
-                    $mark++;
+                // Генерираме частта от заявката, която съдържа IN условието
+                $in_clause = implode(", ", array_map(function($pair) {
+                    return "('" . $pair[0] . "', '" . $pair[1] . "')";
+                }, $contragentsArr));
 
-                };
-                if (countR($contragentsIdArr[$cmpClsId])) {
-                    $companyStr = implode(',', $contragentsIdArr[$cmpClsId]);
-                    if ($mark > 0) {
+                // Създаваме SQL заявка
+                $query->where("(#contragentClassId, #contragentId) IN ($in_clause)");
 
-                        $query->orWhere("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
-
-                    } else {
-
-                        $query->where("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
-
-                    }
-                }
             }
 
             if ($rec->crmGroup && !$rec->contragent) {
-                $contragentsInGroupIdArr = self::getContragentsInGroups($rec);
+                $contragentsInGroupFoldersArr = self::getContragentsInGroups($rec);
 
-                $mark = 0;
-                if (countR($contragentsInGroupIdArr[$prsClsId])) {
-                    $personStr = implode(',', $contragentsInGroupIdArr[$prsClsId]);
+                foreach ($contragentsInGroupFoldersArr as $contragent) {
 
-                    $query->where("(#contragentId IN ({$personStr})) AND (#contragentClassId = '{$prsClsId}')");
-                    $mark++;
+                    $Cover = doc_Folders::getCover($contragent);
+                    $contragentsArr[] =[$Cover->getClassId(),$Cover->that];
 
-                };
-                if (countR($contragentsInGroupIdArr[$cmpClsId])) {
-                    $companyStr = implode(',', $contragentsInGroupIdArr[$cmpClsId]);
-                    if ($mark > 0) {
-
-                        $query->orWhere("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
-
-                    } else {
-
-                        $query->where("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
-
-                    }
                 }
+
+                // Генерираме частта от заявката, която съдържа IN условието
+                $in_clause = implode(", ", array_map(function($pair) {
+                    return "('" . $pair[0] . "', '" . $pair[1] . "')";
+                }, $contragentsArr));
+
+                // Създаваме SQL заявка
+                $query->where("(#contragentClassId, #contragentId) IN ($in_clause)");
+
             }
 
             if ($rec->crmGroup && $rec->contragent) {
-                $contragentsInGroupIdArr = self::getContragentsInGroups($rec);
+                $contragentsInGroupFoldersArr = self::getContragentsInGroups($rec);
 
-                $mark = 0;
-                if (countR($contragentsInGroupIdArr[$prsClsId])) {
-                    $personStr = implode(',', $contragentsInGroupIdArr[$prsClsId]);
+                foreach ($contragentsInGroupFoldersArr as $contragent) {
 
-                    $query->where("(#contragentId IN ({$personStr})) AND (#contragentClassId = '{$prsClsId}')");
-                    $mark++;
+                    $Cover = doc_Folders::getCover($contragent);
+                    $contragentsInGroup[] =[$Cover->getClassId(),$Cover->that];
 
-                };
-                if (countR($contragentsInGroupIdArr[$cmpClsId])) {
-                    $companyStr = implode(',', $contragentsInGroupIdArr[$cmpClsId]);
-                    if ($mark > 0) {
-
-                        $query->orWhere("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
-
-                    } else {
-
-                        $query->where("(#contragentId IN ({$companyStr}) AND (#contragentClassId = '{$cmpClsId}'))");
-
-                    }
+                    // $contragentsIdArr[$Cover->getClassId()][$Cover->that] = $Cover->that;
                 }
+
+                $contragentsArr = array_merge($contragentsArr, $contragentsInGroup);
+
+                // Премахване на дублиращите се двойки
+                $unique = [];
+                foreach ($contragentsArr as $pair) {
+                    $key = $pair[0] . '-' . $pair[1]; // Ключ от двете стойности
+                    $unique[$key] = $pair; // Добавяне на уникална двойка
+                }
+
+                // Преобразуване обратно в нормален масив
+                $contragentsArr = array_values($unique);
+
+                // Генерираме частта от заявката, която съдържа IN условието
+                $in_clause = implode(", ", array_map(function($pair) {
+                    return "('" . $pair[0] . "', '" . $pair[1] . "')";
+                }, $contragentsArr));
+
+                // Създаваме SQL заявка
+                $query->where("(#contragentClassId, #contragentId) IN ($in_clause)");
+
             }
         }
 
@@ -2138,12 +2130,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $foldersInGroups = array_merge($foldersInGroups, arr::extractValuesFromArray($q->fetchAll(), 'folderId'));
         }
-        foreach ($foldersInGroups as $contragent) {
-            $Cover = doc_Folders::getCover($contragent);
-            $contragentsIdArr[$Cover->getClassId()][$Cover->that] = $Cover->that;
-        }
+//        foreach ($foldersInGroups as $contragent) {
+//            $Cover = doc_Folders::getCover($contragent);
+//            $contragentsIdArr[$Cover->getClassId()][$Cover->that] = $Cover->that;
+//        }
 
-        return $contragentsIdArr;
+        return $foldersInGroups;
     }
 
     /**
