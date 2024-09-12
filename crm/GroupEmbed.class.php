@@ -69,7 +69,7 @@ class crm_GroupEmbed extends core_BaseClass
             $contragents[$cRec->id] = crm_Companies::recToVerbal($cRec);
             $contragents[$cRec->id]->name = crm_Companies::getVerbal($cRec, 'name');
             if ($cRec->logo) {
-                $thumb = new thumb_Img(array($cRec->logo, 100, 100));
+                $thumb = new thumb_Img(array($cRec->logo, 100, 100, 'fileman', $contragents[$cRec->id]->name));
                 $contragents[$cRec->id]->logo = $thumb->createImg();
             } else {
                 $contragents[$cRec->id]->logo = ht::createImg(array('class' => 'logoImg', 'alt' => $contragents[$cRec->id]->name, 'src' => sbf("img/noimage120.gif", '')));
