@@ -525,7 +525,9 @@ class plg_SelectPeriod extends core_Plugin
         });
         
         $opt = $first + $second;
-        
+
+        setIfNot($keySel, 'select');
+
         // Добавяме избор на производлен период
         $opt['select'] = (object) array('title' => tr('Избор'), 'attr' => array('class' => 'out-btn multipleFiles'));
         
