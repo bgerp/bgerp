@@ -93,7 +93,10 @@ class core_Detail extends core_Manager
         
         // Подготвяме полетата за показване
         $this->prepareListFields($data);
-        
+
+        // Махане на мастър ключа ако се рендира като детайл по-време на сингъл
+        unset($data->listFields[$this->masterKey]);
+
         // Подготвяме филтъра
         $this->prepareListFilter($data);
         

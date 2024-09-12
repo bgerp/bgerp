@@ -336,9 +336,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $posDetQuery->in('state', $posDetStateArr);
 
-            $posDetQuery->show('productId');
+            $posDetQuery->show('productId, receiptId');
 
-            $posProdsArr = arr::extractValuesFromArray($posDetQuery->fetchAll(), 'productId');
+            foreach ($posDetQuery->fetchAll() as $det) {
+
+                $posProdsArr[$det->productId] = $det->productId;
+                $posReceiptIdArr[$det->receiptId] = $det->receiptId;
+
+            }
 
             $prodArr = array_unique(array_merge($prodArr, $posProdsArr));
 
@@ -357,6 +362,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setSuggestions('products', $prodSuggestions);
 
         //Масив с предложения за избор на контрагент $suggestions[]
+
+        // Да се заредят контрагентите от продажбите
         $salesQuery = sales_Sales::getQuery();
 
         $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
@@ -369,6 +376,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = $contragent->folderTitle;
             }
+        }
+
+        // Да се заредят контрагентите от POS  бележките
+        foreach ($posReceiptIdArr as $recept) {
+
+            $recptRec = pos_Receipts::fetch($recept);
+            $posContragentClassName = core_Classes::fetch($recptRec->contragentClass)->name;
+            $posContragentFolder = $posContragentClassName::fetch($recptRec->contragentObjectId)->folderId;
+
+            if (!in_array($posContragentFolder, array_keys($suggestions))) {
+                $suggestions[$posContragentFolder] = $recptRec->contragentName;
+            }
+
         }
 
         asort($suggestions);
@@ -560,31 +580,79 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
         if ($rec->contragent || $rec->crmGroup) {
-            $contragentsArr = array();
-            $contragentsId = array();
+
+            $contragentsArr = [];
+
+            foreach (keylist::toArray($rec->contragent) as $contragent) {
+
+                $Cover = doc_Folders::getCover($contragent);
+                $contragentsArr[] =[$Cover->getClassId(),$Cover->that];
+
+            }
 
             if (!$rec->crmGroup && $rec->contragent) {
-                $contragentsArr = keylist::toArray($rec->contragent);
 
-                $query->in('folderId', $contragentsArr);
+                // Генерираме частта от заявката, която съдържа IN условието
+                $in_clause = implode(", ", array_map(function($pair) {
+                    return "('" . $pair[0] . "', '" . $pair[1] . "')";
+                }, $contragentsArr));
+
+                // Създаваме SQL заявка
+                $query->where("(#contragentClassId, #contragentId) IN ($in_clause)");
+
             }
 
             if ($rec->crmGroup && !$rec->contragent) {
-                $foldersInGroups = self::getFoldersInGroups($rec);
+                $contragentsInGroupFoldersArr = self::getContragentsInGroups($rec);
 
-                $query->in('folderId', $foldersInGroups);
+                foreach ($contragentsInGroupFoldersArr as $contragent) {
+
+                    $Cover = doc_Folders::getCover($contragent);
+                    $contragentsArr[] =[$Cover->getClassId(),$Cover->that];
+
+                }
+
+                // Генерираме частта от заявката, която съдържа IN условието
+                $in_clause = implode(", ", array_map(function($pair) {
+                    return "('" . $pair[0] . "', '" . $pair[1] . "')";
+                }, $contragentsArr));
+
+                // Създаваме SQL заявка
+                $query->where("(#contragentClassId, #contragentId) IN ($in_clause)");
+
             }
 
             if ($rec->crmGroup && $rec->contragent) {
-                $foldersInGroups = self::getFoldersInGroups($rec);
+                $contragentsInGroupFoldersArr = self::getContragentsInGroups($rec);
 
-                $contragentsArr = keylist::toArray($rec->contragent);
+                foreach ($contragentsInGroupFoldersArr as $contragent) {
 
-                $foldersInGroups = array_merge($foldersInGroups, $contragentsArr);
+                    $Cover = doc_Folders::getCover($contragent);
+                    $contragentsInGroup[] =[$Cover->getClassId(),$Cover->that];
 
-                $foldersInGroups = array_unique($foldersInGroups);
+                    // $contragentsIdArr[$Cover->getClassId()][$Cover->that] = $Cover->that;
+                }
 
-                $query->in('folderId', $foldersInGroups);
+                $contragentsArr = array_merge($contragentsArr, $contragentsInGroup);
+
+                // Премахване на дублиращите се двойки
+                $unique = [];
+                foreach ($contragentsArr as $pair) {
+                    $key = $pair[0] . '-' . $pair[1]; // Ключ от двете стойности
+                    $unique[$key] = $pair; // Добавяне на уникална двойка
+                }
+
+                // Преобразуване обратно в нормален масив
+                $contragentsArr = array_values($unique);
+
+                // Генерираме частта от заявката, която съдържа IN условието
+                $in_clause = implode(", ", array_map(function($pair) {
+                    return "('" . $pair[0] . "', '" . $pair[1] . "')";
+                }, $contragentsArr));
+
+                // Създаваме SQL заявка
+                $query->where("(#contragentClassId, #contragentId) IN ($in_clause)");
+
             }
         }
 
@@ -2048,7 +2116,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @return array
      */
-    public static function getFoldersInGroups($rec)
+    public static function getContragentsInGroups($rec)
     {
         $foldersInGroups = array();
         foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
@@ -2062,6 +2130,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $foldersInGroups = array_merge($foldersInGroups, arr::extractValuesFromArray($q->fetchAll(), 'folderId'));
         }
+//        foreach ($foldersInGroups as $contragent) {
+//            $Cover = doc_Folders::getCover($contragent);
+//            $contragentsIdArr[$Cover->getClassId()][$Cover->that] = $Cover->that;
+//        }
 
         return $foldersInGroups;
     }
