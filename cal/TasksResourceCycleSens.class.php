@@ -29,6 +29,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
     public $inputs = array(
         'startAfter' => array('caption' => 'Начало след', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
         'endAfter' => array('caption' => 'Край след', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
+        'lastClosed' => array('caption' => 'Последно приключен', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
     );
 
 
@@ -111,6 +112,30 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
 
         } else {
             $resArr['startAfter'] = ceil(dt::secsBetween($startIn, $now) / 60);
+        }
+
+        // Намираме последно приключената задача и времето
+        $query = cal_Tasks::getQuery();
+        $query->where(array("#assetResourceId = '[#1#]'", $config->resource));
+        $query->where("#state = 'closed' OR #state = 'stopped'");
+        $query->where(array("#expectationTimeEnd <= '[#1#]'", $now));
+        $query->orWhere("#timeEnd IS NULL");
+        $query->orderBy('expectationTimeEnd', 'DESC');
+        $query->orderBy('expectationTimeStart', 'DESC');
+        $query->orderBy('id', "DESC");
+        $query->limit(1);
+
+        $cRec = $query->fetch();
+
+        if ($cRec) {
+            if ($cRec->timeStart && !$cRec->timeEnd && $timeDeviation) {
+                $newTimeEnd = dt::addSecs($timeDeviation, $cRec->timeStart);
+                if ($newTimeEnd <= $now) {
+                    $cRec->expectationTimeEnd = $newTimeEnd;
+                }
+            }
+
+            $resArr['lastClosed'] = ceil(dt::secsBetween($now, $cRec->expectationTimeEnd) / 60);
         }
 
         return $resArr;
