@@ -667,4 +667,59 @@ class acc_Articles extends core_Master
         // Запис
         return acc_ArticleDetails::save($rec);
     }
+
+
+    /**
+     * След контиране на документа
+     *
+     * @param accda_Da $mvc
+     * @param stdClass $rec
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        $mvc->markUsedDocuments($rec);
+    }
+
+
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($rec->brState == 'active'){
+            $mvc->markUsedDocuments($rec, true);
+        }
+    }
+
+
+    /**
+     * Маркира използваните пера на документи
+     */
+    private function markUsedDocuments($rec, $remove = false)
+    {
+        $rec = $this->fetchRec($rec);
+        $dQuery = acc_ArticleDetails::getQuery();
+        $dQuery->where("#articleId = {$rec->id}");
+
+        while($dRec = $dQuery->fetch()){
+            foreach (array('debitEnt1', 'debitEnt2', 'debitEnt3', 'creditEnt1', 'creditEnt2', 'creditEnt3') as $fld){
+                if(!empty($dRec->{$fld})){
+                    $iRec = acc_Items::fetch($dRec->{$fld});
+                    if(cls::haveInterface('doc_DocumentIntf', $iRec->classId)){
+                        $containerId = cls::get($iRec->classId)->fetchField($iRec->objectId, 'containerId');
+                        if($remove){
+                            doclog_Used::remove($rec->containerId, $containerId);
+                        } else {
+                            doclog_Used::add($rec->containerId, $containerId);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
