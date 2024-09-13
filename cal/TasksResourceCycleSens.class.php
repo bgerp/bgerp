@@ -84,10 +84,10 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $endIn = null;
         $startIn = dt::addDays($maxDays, $now);
         while ($rec = $query->fetch()) {
-            if (!$rec->timeStart && $rec->timeEnd) {
+            if (!$rec->timeStart && $rec->timeEnd && $timeDeviation) {
                 $rec->expectationTimeStart = dt::subtractSecs($timeDeviation, $rec->timeEnd);
             }
-            if ($rec->timeStart && !$rec->timeEnd) {
+            if ($rec->timeStart && !$rec->timeEnd && $timeDeviation) {
                 $rec->expectationTimeEnd = dt::addSecs($timeDeviation, $rec->timeStart);
             }
             if ($timeRound) {
