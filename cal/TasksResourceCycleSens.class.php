@@ -42,6 +42,8 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
     public function prepareConfigForm($form)
     {
         $form->FLD('resource', 'key(mvc=planning_AssetResources, select=name)', 'caption=Ресурс, input, mandatory');
+        $form->FLD('timeDeviation', 'time(suggestions=30 мин.|1 час| 2 часа)', 'caption=Време при липса на начало или край->Време, input');
+        $form->FLD('timeActiveAdd', 'time(suggestions=2 мин.|5 мин.|10 мин.)', 'caption=Време за добавяне към активността на задачата->Време, input');
     }
 
 
@@ -50,8 +52,8 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
      */
     public function readInputs($inputs, $config, &$persistentState)
     {
-        $timeDeviation = 60 * 60; // 1 час // Ако не е зададени начало или край на задача, да се изчисли от времето на другата
-        $timeRound = 5 * 60; // 5 минути // Закръгляне на времето
+        $timeDeviation = $config->timeDeviation; // Ако не е зададени начало или край на задача, да се изчисли от времето на другата
+        $timeRound = $config->timeActiveAdd; // Закръгляне на времето
 
         $maxDays = 10; // Максимален брой дни за проверка
         $resArr = array();
