@@ -50,7 +50,10 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
      */
     public function readInputs($inputs, $config, &$persistentState)
     {
-        $maxDays = 10;
+        $timeDeviation = 60 * 60; // 1 час // Ако не е зададени начало или край на задача, да се изчисли от времето на другата
+        $timeRound = 5 * 60; // 5 минути // Закръгляне на времето
+
+        $maxDays = 10; // Максимален брой дни за проверка
         $resArr = array();
 
         if (!$config->resource) {
@@ -68,6 +71,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $query->where(array("#expectationTimeStart >= '[#1#]'", $now));
         $query->orWhere(array("#expectationTimeEnd >= '[#1#]'", $now));
         $query->orWhere("#timeStart IS NULL");
+        $query->orWhere("#timeEnd IS NULL");
         $query->where(array("#expectationTimeStart <= '[#1#]'", $to));
         $query->orWhere(array("#expectationTimeEnd <= '[#1#]'", $to));
         $query->orWhere("#timeEnd IS NULL");
@@ -76,8 +80,20 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $query->orderBy('id', "DESC");
 
         $endIn = null;
-        $startIn = dt::addDays($maxDays);
+        $startIn = dt::addDays($maxDays, $now);
         while ($rec = $query->fetch()) {
+            if (!$rec->timeStart && $rec->timeEnd) {
+                $rec->expectationTimeStart = dt::subtractSecs($timeDeviation, $rec->timeEnd);
+            }
+            if ($rec->timeStart && !$rec->timeEnd) {
+                $rec->expectationTimeEnd = dt::addSecs($timeDeviation, $rec->timeStart);
+            }
+            if ($timeRound) {
+                $rec->expectationTimeStart = dt::subtractSecs($timeRound, $rec->expectationTimeStart);
+                $rec->expectationTimeEnd = dt::addSecs($timeRound, $rec->expectationTimeEnd);
+            }
+
+
             if (($rec->expectationTimeStart <= $now) && ($rec->expectationTimeEnd >= $now)) {
                 $endIn = isset($endIn) ? max($endIn, $rec->expectationTimeEnd) : $rec->expectationTimeEnd;
             }
