@@ -394,10 +394,34 @@ class core_page_InternalModern extends core_page_Active
             $search = str_replace("'", '"', $search);
             $val = "value='{$search}'";
         }
-        
-        // Рендираме бутоните за търсене
-        $inputType = "<input {$val} class='search-input-modern' type='search' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
-        
+
+        $inputType = "<input {$val} class='search-input-modern' type='search' list = 'searchList' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
+
+        // Показване на даталист с последно търсените стрингове
+        $countDocSearch = $countFolSearch = array();
+        $rQuery = recently_Values::getQuery();
+        $rQuery->where("#createdBy = " . core_Users::getCurrent());
+        $rQuery->where("#name IN ('doc_containers.search', 'doc_folders.search')");
+        $rQuery->orderBy('createdOn', 'DESC');
+        $lastSearchedValues = array();
+        while ($rRec = $rQuery->fetch()){
+            $lastSearchedValues[$rRec->name][$rRec->value] = $rRec->value;
+            if($rRec->name == 'doc_containers.search'){
+                $countDocSearch++;
+                if($countDocSearch >= 10) continue;
+            } else {
+                $countFolSearch++;
+                if($countFolSearch >= 10) continue;
+            }
+        }
+
+        if(countR($lastSearchedValues)){
+          $searchVals = array();
+          array_walk($lastSearchedValues, function($a) use (&$searchVals){ $searchVals += $a;});
+          $dataList = ht::createDataList("searchList", $searchVals);
+          $tpl->append($dataList, 'SEARCH_INPUT');
+        }
+
         $tpl->replace($inputType, 'SEARCH_INPUT');
         
         $attr = array();
