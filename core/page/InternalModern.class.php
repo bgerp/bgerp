@@ -405,7 +405,7 @@ class core_page_InternalModern extends core_page_Active
         $rQuery->orderBy('createdOn', 'DESC');
         $lastSearchedValues = array();
         while ($rRec = $rQuery->fetch()){
-            $lastSearchedValues[$rRec->name][$rRec->value] = $rRec->value;
+            $lastSearchedValues[$rRec->name][$rRec->value] = (object)array('value' => $rRec->value, 'createdOn' => $rRec->createdOn);
             if($rRec->name == 'doc_containers.search'){
                 $countDocSearch++;
                 if($countDocSearch >= 10) continue;
@@ -416,10 +416,12 @@ class core_page_InternalModern extends core_page_Active
         }
 
         if(countR($lastSearchedValues)){
-          $searchVals = array();
-          array_walk($lastSearchedValues, function($a) use (&$searchVals){ $searchVals += $a;});
-          $dataList = ht::createDataList("searchList", $searchVals);
-          $tpl->append($dataList, 'SEARCH_INPUT');
+            $searchVals = array();
+            array_walk($lastSearchedValues, function($a) use (&$searchVals){ $searchVals += $a;});
+            arr::sortObjects($searchVals, 'createdOn', 'DESC');
+            $searchVals = array_combine(array_keys($searchVals), array_keys($searchVals));
+            $dataList = ht::createDataList("searchList", $searchVals);
+            $tpl->append($dataList, 'SEARCH_INPUT');
         }
 
         $tpl->replace($inputType, 'SEARCH_INPUT');
