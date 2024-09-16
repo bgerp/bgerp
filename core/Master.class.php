@@ -888,13 +888,17 @@ class core_Master extends core_Manager
     /**
      * Връща урл което да се извика при двоен клик
      *
-     * @param int|stdClass $id - ид или запис
-     * @return array|null      - урл или null ако нищо няма
+     * @param int|stdClass $id        - ид или запис
+     * @param bool         $forFolder - дали да е към папка
+     * @return array|null             - урл или null ако нищо няма
      */
-    public function getUrlForDblClick_($id)
+    public function getUrlForDblClick_($id, $forFolder = false)
     {
         $rec = $this->fetchRec($id);
-        if($this->haveRightFor('edit', $rec)) return array($this, 'edit', $rec->id);
+        if(!$forFolder) {
+            if($this->haveRightFor('edit', $rec)) return array($this, 'edit', $rec->id);
+        }
+
         $singleUrlArray = static::getSingleUrlArray($rec->id);
 
         return countR($singleUrlArray) ? $singleUrlArray : null;

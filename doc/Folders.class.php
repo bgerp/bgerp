@@ -203,7 +203,7 @@ class doc_Folders extends core_Master
         }
 
         $Cover = doc_Folders::getCover($rec->id);
-        $doubleClickUrl = $Cover->getUrlForDblClick();
+        $doubleClickUrl = $Cover->getUrlForDblClick(true);
         if(isset($doubleClickUrl)){
             $doubleClickDataUrl = toUrl($doubleClickUrl);
             $attr['data-doubleclick'] .= $doubleClickDataUrl;
@@ -560,7 +560,7 @@ class doc_Folders extends core_Master
         }
 
         $Cover = doc_Folders::getCover($rec->id);
-        $doubleClickUrl = $Cover->getUrlForDblClick();
+        $doubleClickUrl = $Cover->getUrlForDblClick(true);
         if(isset($doubleClickUrl)){
             $doubleClickDataUrl = toUrl($doubleClickUrl);
             $attr['data-doubleclick'] .= $doubleClickDataUrl;
