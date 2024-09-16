@@ -73,7 +73,7 @@ class doc_plg_CanSelectSteps extends core_Plugin
 
             // Проверка дали са премахнати етапи, които вече са избрани в задачи в проекта
             $cQuery = cal_Tasks::getQuery();
-            $cQuery->where("#folderId = {$rec->folderId} AND #stepId IS NOT NULL");
+            $cQuery->where("#folderId = '{$rec->folderId}' AND #stepId IS NOT NULL");
             $stepsInTasks = arr::extractValuesFromArray($cQuery->fetchAll(), 'stepId');
             $selectTaskDescendants = array();
             if(!empty($rec->steps)) {
