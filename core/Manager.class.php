@@ -550,8 +550,61 @@ class core_Manager extends core_Mvc
         
         return $data;
     }
-    
-    
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_BeforeRenderListFilter($mvc, &$res, &$data)
+    {
+        // Най-накрая ще се премахват от лист филтъра полетата от тип енум/кей/кейлист/сет
+        // без опции или с налични само една
+        if(isset($data->listFilter)){
+            $showFields = arr::make($data->listFilter->showFields, true);
+
+            foreach ($showFields as $name) {
+                $Type = $data->listFilter->getField($name);
+                $options = array();
+
+                // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
+                $skip = true;
+                if ($Type->type instanceof type_Enum || $Type->type instanceof type_Key) {
+                    $skip = false;
+                    if (method_exists($Type->type, 'prepareOptions')) {
+                        $options = $Type->type->prepareOptions();
+                    } else {
+                        $options = $Type->type->options;
+                    }
+                } elseif ($Type->type instanceof type_Keylist) {
+                    $skip = false;
+                    $options = $Type->type->prepareSuggestions();
+                } elseif ($Type->type instanceof type_Set) {
+                    $options = $Type->type->suggestions;
+                    $skip = false;
+                }
+
+                if ($skip) continue;
+                unset($options[''], $options[' ']);
+
+                // Ако има само една опция или няма - няма да се показва полето във филтъра
+                $count = countR($options);
+                if ($count == 1) {
+                    unset($showFields[$name]);
+                    $data->listFilter->setField($name, 'input=hidden');
+                } elseif ($count == 0) {
+                    unset($showFields[$name]);
+                    $data->listFilter->setField($name, 'input=none');
+                }
+            }
+
+            $data->listFilter->showFields = implode(',', $showFields);
+        }
+    }
+
+
     /**
      * Рендира заявката за създаване на резюме
      */

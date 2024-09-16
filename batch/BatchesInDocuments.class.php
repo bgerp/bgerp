@@ -244,7 +244,7 @@ class batch_BatchesInDocuments extends core_Manager
 
                 $label = ($count == 0) ? "{$label} " : '';
                 $end = ($count == $totalCount) ? '' : ',';
-                $string = "{$label}{$batch}{$end}";
+                $string = "{$label}<span class='batchSerialBlock'>{$batch}</span>{$end}";
             } else {
                 $string = "{$label} {$batch}" . '<br>';
             }
@@ -255,7 +255,7 @@ class batch_BatchesInDocuments extends core_Manager
             $blocks[$rec->batch] = $block;
             $count++;
         }
-
+        //bp($blocks);
         $batchDef->orderBatchesForDisplay($blocks);
         foreach ($blocks as $block) {
             $block->append2Master();
