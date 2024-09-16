@@ -92,7 +92,7 @@ class support_Systems extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'support_Wrapper, doc_FolderPlg, plg_Created, plg_Rejected, plg_RowTools2, plg_Search, plg_State, plg_Modified';
+    public $loadList = 'support_Wrapper, doc_FolderPlg, plg_Created, plg_Rejected, doc_plg_CanSelectSteps, plg_RowTools2, plg_Search, plg_State, plg_Modified';
 
 
     /**
@@ -135,6 +135,12 @@ class support_Systems extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'name, description, defaultTitle';
+
+
+    /**
+     * Кое поле да се използва за линк към нишките на папката
+     */
+    public $listFieldForFolderLink = 'folder=Папка';
 
 
     /**
@@ -434,6 +440,9 @@ class support_Systems extends core_Master
             $data->form->setField('defaultTitle', array('input' => 'input'));
             $data->form->setField('addContragentValues', array('input' => 'input'));
         }
+
+        $data->form->setField('steps', 'caption=Настройки на сигналите в системата->Етапи');
+        $data->form->setField('addSubSteps', 'caption=Настройки на сигналите в системата->Добави подетапи');
     }
 
 

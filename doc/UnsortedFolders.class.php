@@ -25,7 +25,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,plg_Clone,doc_FolderPlg,plg_RowTools2,plg_LastUsedKeys,plg_Search, plg_Modified, plg_Sorting';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_plg_CanSelectSteps,plg_Clone,doc_FolderPlg,plg_RowTools2,plg_LastUsedKeys,plg_Search, plg_Modified, plg_Sorting';
     
     
     /**
@@ -73,7 +73,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Кое поле да се използва за линк към нишките на папката
      */
-    public $listFieldForFolderLink = 'folder';
+    public $listFieldForFolderLink = 'folder=Папка';
     
     
     /**
@@ -233,12 +233,6 @@ class doc_UnsortedFolders extends core_Master
 
 
     /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'steps';
-
-
-    /**
      * Описание на полетата на модела
      */
     public function description()
@@ -248,7 +242,6 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('contragentFolderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent');
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
         $this->FLD('makeTaskCostObjects', 'enum(yes=Да, no=Не)', 'caption=Настройки на задачите в проекта->Разходни обекти,notNull,value=no');
-        $this->FLD('steps', 'keylist(mvc=doc_UnsortedFolderSteps,select=name,makeLink)', 'caption=Настройки на задачите в проекта->Етапи');
         $this->FLD('resourceType', 'set(assets=Оборудване,hr=Оператори)', 'caption=Видове ресурси в папката->Избор,autohide=any');
 
         $this->setDbUnique('name');
@@ -272,26 +265,6 @@ class doc_UnsortedFolders extends core_Master
             $form->FNC('cloneFolderSettings', 'enum(yes=Да,no=Не)', 'mandatory,caption=Клониране на настройките на папката->Избор,input,after=taskCloneState');
             $form->setDefault('cloneFolderSettings', (($mvc->cloneFolderSettings) ? 'yes' : 'no'));
             $form->setDefault('newStartDate', dt::now());
-        }
-
-        // Ако има налични етапи - добавят се за избор и те
-        $options = array();
-        $sQuery = doc_UnsortedFolderSteps::getQuery();
-        $sQuery->where("#state = 'active'");
-        if(!empty($rec->steps)){
-            $exStepStr = implode(',', keylist::toArray($rec->steps));
-            $sQuery->orWhere("#id IN ({$exStepStr})");
-        }
-        while($sRec = $sQuery->fetch()){
-            $options[$sRec->id] = cls::get('doc_UnsortedFolderSteps')->getSaoFullName($sRec);
-        }
-
-        if(countR($options)){
-            $form->setSuggestions('steps', array('' => '') + $options);
-            $form->FLD('addSubSteps', 'enum(no=Не,yes=Да)', 'caption=Настройки на задачите в проекта->Добави подетапи,after=stepId,maxRadio=2');
-            $form->setDefault('addSubSteps', 'no');
-        } else {
-            $form->setField('steps', 'input=none');
         }
     }
     
@@ -354,7 +327,6 @@ class doc_UnsortedFolders extends core_Master
     public static function recToVerbal_($rec, &$fields = array())
     {
         $row = parent::recToVerbal_($rec, $fields);
-        $row->folder = 'Папка';
         if(isset($rec->contragentFolderId)){
             $row->contragentFolderId = doc_Folders::recToVerbal($rec->contragentFolderId)->title;
         }
@@ -362,20 +334,6 @@ class doc_UnsortedFolders extends core_Master
         if($fields['-single']){
             if(isset($rec->clonedFromId)){
                 $row->clonedFromId = doc_UnsortedFolders::getHyperlink($rec->clonedFromId, true);
-            }
-
-            if(isset($rec->steps)){
-
-                // Хубаво показване на вложените етапи
-                $verbalStepArr = array();
-                $stepArr = keylist::toArray($rec->steps);
-                foreach ($stepArr as $stepId){
-                    $verbalStepArr[$stepId] = cls::get('doc_UnsortedFolderSteps')->getSaoFullName($stepId);
-                    if(doc_UnsortedFolderSteps::haveRightFor('single', $stepId)){
-                        $verbalStepArr[$stepId] = ht::createLink($verbalStepArr[$stepId], doc_UnsortedFolderSteps::getSingleUrlArray($stepId));
-                    }
-                }
-                $row->steps = implode('<br> ', $verbalStepArr);
             }
         }
 
@@ -1075,139 +1033,6 @@ class doc_UnsortedFolders extends core_Master
                 if(countR($assetErrorMsgArr)) {
                     $form->setError('resourceType', implode('. ', $assetErrorMsgArr));
                 }
-
-                // Проверка дали са премахнати етапи, които вече са избрани в задачи в проекта
-                $cQuery = cal_Tasks::getQuery();
-                $cQuery->where("#folderId = {$rec->folderId} AND #stepId IS NOT NULL");
-                $stepsInTasks = arr::extractValuesFromArray($cQuery->fetchAll(), 'stepId');
-                $selectTaskDescendants = array();
-                if(!empty($rec->steps)) {
-                    $stepsArr = keylist::toArray($rec->steps);
-                    foreach ($stepsArr as $stepId) {
-                        $selectTaskDescendants += array($stepId => $stepId) + doc_UnsortedFolderSteps::getParentsArr($stepId);
-                    }
-                }
-
-                $stepTaskError = array();
-                foreach ($stepsInTasks as $stepInTask) {
-                    if(!array_key_exists($stepInTask, $selectTaskDescendants)) {
-                        $stepTaskError[] = "<b>" . doc_UnsortedFolderSteps::getSaoFullName($stepInTask) . "</b>";
-                    }
-                }
-
-                if(countR($stepTaskError)) {
-                    $form->setError('steps', "Следните етапи вече са избрани в задачи в проекта|*: " . implode(',', $stepTaskError));
-                }
-
-                if(!$form->gotErrors()) {
-
-                    // Ако има етапи и е избрано добавяне на децата - да се добавят
-                    if(!empty($rec->steps) && $rec->addSubSteps == 'yes') {
-                        $expandedSteps = array();
-                        $steps = keylist::toArray($rec->steps);
-                        foreach ($steps as $stepId) {
-                            $expandedSteps += array($stepId => $stepId) + doc_UnsortedFolderSteps::getDescendantsArr($stepId);
-                        }
-                        $rec->steps = keylist::fromArray($expandedSteps);
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
-     * Поготовка на проектите като детайл на етапите
-     *
-     * @param stdClass $data
-     */
-    public function prepareStepFolders(&$data)
-    {
-        $data->TabCaption = tr('Проекти');
-
-        $uQuery = $this->getQuery();
-        $uQuery->where("#state != 'rejected'");
-        $data->recs = $data->rows = array();
-        $children = $data->masterMvc->getDescendantsArr($data->masterData->rec);
-        $children[$data->masterId] = $data->masterId;
-        $uQuery->likeKeylist('steps', $children);
-        $data->count = $uQuery->count();
-        $data->count = $uQuery->count();
-        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
-        $data->Pager->setLimit($uQuery);
-
-        $fields = $this->selectFields();
-        $fields['-list'] = true;
-
-        while($rec = $uQuery->fetch()) {
-            $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
-        }
-    }
-
-
-    /**
-     * Рендиране на проектите като детайл на етапите
-     *
-     * @param stdClass $data
-     * @return core_ET $tpl
-     */
-    public function renderStepFolders(&$data)
-    {
-        $tpl = new core_ET('');
-
-        // Рендиране на таблицата с оборудването
-        $data->listFields = arr::make('name=Проект,folder=Папка,createdOn=Създадено->На,createdBy=Създадено->От');
-        $listTableMvc = clone $this;
-        $listTableMvc->setField('name', 'tdClass=leftCol');
-
-        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
-        $tpl->append($table->get($data->rows, $data->listFields));
-        if ($data->Pager) {
-            $tpl->append($data->Pager->getHtml());
-        }
-
-        $resTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $resTpl->append($tpl, 'content');
-        $resTpl->append(tr("Проекти|* ({$data->count})"), 'title');
-
-        return $resTpl;
-    }
-
-
-    /**
-     * След подготовка на филтъра за филтриране в корицата
-     *
-     * @param core_mvc   $mvc
-     * @param core_Form  $threadFilter
-     * @param core_Query $threadQuery
-     * @param array $listFilterAddedFields
-     */
-    protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery, &$listFilterAddedFields)
-    {
-        // Добавяме поле за избор на етапи
-        $listFilterAddedFields['stepId'] = 'stepId';
-        $threadFilter->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,allowEmpty)', 'caption=Етап,silent');
-        $threadFilter->showFields .= ',stepId';
-        $threadFilter->input('stepId', 'silent');
-        $threadFilter->input('stepId');
-        $threadFilter->setOptions('stepId', array('' => '') + doc_UnsortedFolderSteps::getOptionArr());
-
-        // Ако търсим по група
-        if ($stepId = $threadFilter->rec->stepId) {
-            $threadQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-
-            // Ако има филтър по етап остават само тези нишки в които има задача за този етап
-            $tQuery = cal_Tasks::getQuery();
-            $tQuery->where("#folderId = '{$threadFilter->rec->folderId}' AND #stepId = {$stepId}");
-            $tQuery->show('threadId');
-            $threadIds = arr::extractValuesFromArray($tQuery->fetchAll(),  'threadId');
-
-            if(countR($threadIds)) {
-                $threadQuery->in('id', $threadIds);
-            } else {
-                $threadQuery->where("1=2");
             }
         }
     }

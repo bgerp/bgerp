@@ -19,7 +19,7 @@ class doc_UnsortedFolderSteps extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Етапи в проекти';
+    public $title = 'Етапи в папки';
 
 
     /**
@@ -61,7 +61,7 @@ class doc_UnsortedFolderSteps extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Етап в проект';
+    public $singleTitle = 'Етап в папка';
 
 
     /**
@@ -93,7 +93,7 @@ class doc_UnsortedFolderSteps extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $details = 'StepFolders=doc_UnsortedFolders,StepTasks=cal_Tasks';
+    public $details = 'StepFolders=doc_StepFolderDetails,StepTasks=cal_Tasks';
 
 
     /**

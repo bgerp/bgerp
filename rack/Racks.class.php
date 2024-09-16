@@ -445,6 +445,7 @@ class rack_Racks extends core_Master
             $to = 1;
         }
 
+        bp($row);
         while ($row >= 'A') {
             $trStyle = ($row <= $rec->firstRowTo) ? 'border:1px solid #2cc3229e;' : '';
             $res .= "<tr style='{$trStyle}'>";
