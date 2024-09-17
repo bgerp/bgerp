@@ -903,7 +903,9 @@ class core_Form extends core_FieldSet
 
                 // Ако опциите са <= от тези за радиото - се дисейбва плъгина `select`
                 if(isset($maxRadio) && $optionsCount <= $maxRadio){
-                    $type->params['select2MinItems'] = 10000;
+                    if(!($type instanceof type_Keylist)){
+                        $type->params['select2MinItems'] = 10000;
+                    }
                 }
 
                 if (($optionsCount > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
