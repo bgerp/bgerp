@@ -131,7 +131,16 @@ class type_Enum extends core_Type
                 $value = '';
             }
         }
-        
+
+        $countOptions = countR($arr);
+        if($countOptions <= $this->params['maxRadio']){
+            if(isset($arr[''])){
+                $attr['_isAllowEmpty'] = true;
+                if(countR($arr) >= 2){
+                    unset($arr['']);
+                }
+            }
+        }
         $tpl = ht::createSmartSelect($arr, $name, $value, $attr, $this->params['maxRadio'], $this->params['maxColumns'], $this->params['columns']);
         
         return $tpl;
