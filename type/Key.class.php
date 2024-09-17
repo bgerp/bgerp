@@ -719,9 +719,12 @@ class type_Key extends type_Int
 
                     $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
                 } else {
+
                     // ако ще се рендират опциите като радио-бутони маха се празната опция
                     if(isset($this->params['maxRadio']) && $optionsCnt <= $this->params['maxRadio']){
-                        unset($options['']);
+                        if(isset($options['']) && countR($options) >= 2){
+                            unset($options['']);
+                        }
                     }
 
                     // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
@@ -733,21 +736,8 @@ class type_Key extends type_Int
                             $value = $o1;
                         }
                     }
-                    
-                    $tpl = ht::createSmartSelect(
-                        
-                        $options,
-                        
-                        $name,
-                        
-                        $value,
-                        
-                        $attr,
-                        $this->params['maxRadio'],
-                        $this->params['maxColumns'],
-                        $this->params['columns']
-                    
-                    );
+
+                    $tpl = ht::createSmartSelect($options, $name, $value, $attr, $this->params['maxRadio'], $this->params['maxColumns'], $this->params['columns']);
                 }
             }
         } else {
