@@ -748,6 +748,11 @@ body {
 .menuIcon:hover {
   opacity: 1; }
 
+.search-input-modern::-webkit-calendar-picker-indicator,
+.search-input-modern::-webkit-list-button {
+  display: none !important;
+  opacity: 0 !important; }
+
 .menu-options {
   display: block;
   float: left;
