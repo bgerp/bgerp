@@ -896,7 +896,7 @@ class core_Form extends core_FieldSet
                 $optionsCount = countR($options);
 
                 // Ако има зададено `maxRadio` е то, ако няма и формата е вертикална дефолтно забиваме, иначе няма
-                $maxRadio = $type->params['maxRadio'] ?? (!$isHorizontal ? 4 : null);
+                $maxRadio = $type->params['maxRadio'] ?? (!$isHorizontal ? bgerp_Setup::get('VERTICAL_FORM_DEFAULT_MAX_RADIO') : null);
                 if($type->params['allowEmpty']){
                     $attr['_isAllowEmpty'] = true;
                 }
