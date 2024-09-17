@@ -896,7 +896,10 @@ class core_Form extends core_FieldSet
                 $optionsCount = countR($options);
 
                 // Ако има зададено `maxRadio` е то, ако няма и формата е вертикална дефолтно забиваме, иначе няма
-                $maxRadio = $type->params['maxRadio'] ?? (!$isHorizontal ? 5 : null);
+                $maxRadio = $type->params['maxRadio'] ?? (!$isHorizontal ? 4 : null);
+                if($type->params['allowEmpty']){
+                    $attr['_isAllowEmpty'] = true;
+                }
 
                 // Ако опциите са <= от тези за радиото - се дисейбва плъгина `select`
                 if(isset($maxRadio) && $optionsCount <= $maxRadio){
