@@ -702,7 +702,8 @@ class core_Form extends core_FieldSet
         } else {
             $fields = $this->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none' && #input != 'hidden')");
         }
-        
+
+        $isHorizontal = ($this->view == 'horizontal');
         if (countR($fields)) {
             if ($this->defOrder) {
                 $this->orderField();
@@ -892,8 +893,17 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Рендиране на select или input полето
+                $optionsCount = countR($options);
 
-                if ((countR($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
+                // Ако има зададено `maxRadio` е то, ако няма и формата е вертикална дефолтно забиваме, иначе няма
+                $maxRadio = $type->params['maxRadio'] ?? (!$isHorizontal ? 5 : null);
+
+                // Ако опциите са <= от тези за радиото - се дисейбва плъгина `select`
+                if(isset($maxRadio) && $optionsCount <= $maxRadio){
+                    $type->params['select2MinItems'] = 10000;
+                }
+
+                if (($optionsCount > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     
@@ -907,17 +917,19 @@ class core_Form extends core_FieldSet
                             $title = tr($title);
                         }
                     }
+
                     $input = ht::createSmartSelect(
                         $options,
                         $name,
                         $value,
                         $attr,
-                        $type->params['maxRadio'],
+                        $maxRadio,
                         $type->params['maxColumns'],
                         $type->params['columns']
                     );
                     $this->invoke('AfterCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                 } else {
+                    $type->params['maxRadio'] = $maxRadio;
                     $input = $type->renderInput($name, $value, $attr);
                 }
 
