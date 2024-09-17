@@ -894,6 +894,9 @@ class core_Master extends core_Manager
      */
     public function getUrlForDblClick_($id, $forFolder = false)
     {
+        $dblClickEnabled = bgerp_Setup::get('ENABLE_DOUBLE_CLICK_ON_LINK');
+        if($dblClickEnabled == 'no') return null;
+
         $rec = $this->fetchRec($id);
         if(!$forFolder) {
             if($this->haveRightFor('edit', $rec)) return array($this, 'edit', $rec->id);
