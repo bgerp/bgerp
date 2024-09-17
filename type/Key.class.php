@@ -633,7 +633,7 @@ class type_Key extends type_Int
         if (($div = $this->params['groupByDiv'])) {
             $options = ht::groupOptions($options, $div);
         }
-        
+
         if ($this->getSelectFld() || countR($options)) {
             $optionsCnt = countR($options);
             
@@ -650,7 +650,7 @@ class type_Key extends type_Int
             $maxSuggestions = $this->getMaxSuggestions();
             
             parent::setFieldWidth($attr);
-            
+
             if (($optionsCnt > $maxSuggestions) && (!core_Packs::isInstalled('select2'))) {
                 $options = $this->prepareOptions($value);
                 
@@ -716,10 +716,14 @@ class type_Key extends type_Int
                     }
                     
                     $cssClass = $this->params['mandatory'] ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
-                    
+                  //  bp($name, $this);
                     $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
                 } else {
-                    
+                    // ако ще се рендират опциите като радио-бутони маха се празната опция
+                    if(isset($this->params['maxRadio']) && $optionsCnt <= $this->params['maxRadio']){
+                        unset($options['']);
+                    }
+
                     // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
                     if ($this->params['mandatory'] && $optionsCnt == 2 && empty($value) && $options[key($options)] === '') {
                         list($o1, $o2) = array_keys($options);
