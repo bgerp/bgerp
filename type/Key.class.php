@@ -716,7 +716,7 @@ class type_Key extends type_Int
                     }
                     
                     $cssClass = $this->params['mandatory'] ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
-                  //  bp($name, $this);
+
                     $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
                 } else {
                     // ако ще се рендират опциите като радио-бутони маха се празната опция
