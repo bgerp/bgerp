@@ -514,7 +514,22 @@ class core_Manager extends core_Mvc
         }
         
         if (countR($data->listFields)) {
-            
+            if (haveRole('debug') && haveRole('admin')) {
+                if (Request::get('debugSearchKeywords')) {
+                    $data->listFields['searchKeywords'] = 'Ключови думи';
+                }
+
+                if (Request::get('debugShowAll')) {
+                    // Използваме за колони, всички полета, които не са означени с column = 'none'
+                    $fields = $this->selectFields();
+                    if (countR($fields)) {
+                        foreach ($fields as $name => $fld) {
+                            $data->listFields[$name] = $fld->caption;
+                        }
+                    }
+                }
+            }
+
             // Ако титлата съвпада с името на полето, вадим името от caption
             foreach ($data->listFields as $field => $caption) {
                 if (($field == $caption) && $this->fields[$field]->caption) {
