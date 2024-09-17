@@ -24,6 +24,8 @@ class doc_plg_CanSelectSteps extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->FLD('steps', 'keylist(mvc=doc_UnsortedFolderSteps,select=name,makeLink)', 'caption=Настройки на задачите в проекта->Етапи');
+        $mvc->FNC('addSubSteps', 'enum(no=Не,yes=Да)', 'caption=Настройки на задачите в проекта->Добави подетапи,input=hidden,after=stepId,maxRadio=2');
+
         $mvc->lastUsedKeys .= (!empty($mvc->lastUsedKeys) ? ',' : '') . 'steps';
     }
 
@@ -39,7 +41,6 @@ class doc_plg_CanSelectSteps extends core_Plugin
         $form = &$data->form;
         $rec = &$form->rec;
 
-
         // Ако има налични етапи - добавят се за избор и те
         $options = array();
         $sQuery = doc_UnsortedFolderSteps::getQuery();
@@ -54,7 +55,7 @@ class doc_plg_CanSelectSteps extends core_Plugin
 
         if(countR($options)){
             $form->setSuggestions('steps', array('' => '') + $options);
-            $form->FLD('addSubSteps', 'enum(no=Не,yes=Да)', 'caption=Настройки на задачите в проекта->Добави подетапи,after=stepId,maxRadio=2');
+            $form->setField('addSubSteps', 'input');
             $form->setDefault('addSubSteps', 'no');
         } else {
             $form->setField('steps', 'input=none');
