@@ -821,9 +821,9 @@ class plg_Search extends core_Plugin
                 
                 try {
                     $generatedKeywords = $clsInst->getSearchKeywords($rec);
-                    if ($generatedKeywords != $rec->searchKeywords) {
+                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
 
-                        $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+                    if ($generatedKeywords != $rec->searchKeywords) {
 
                         $rec->searchKeywords = $generatedKeywords;
 
