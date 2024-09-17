@@ -382,7 +382,7 @@ class core_Html
         
         // Очакваме да има поне една опция
         expect($optionsCnt > 0, "Липсват опции за '{$name}'");
-        
+
         // Когато имаме само една опция, правим readOnly <input>
         if ($optionsCnt == 1) {
             foreach ($options as $id => $opt) {
@@ -424,7 +424,8 @@ class core_Html
                     $value = '&nbsp;';
                 }
             }
-            
+
+            unset($attr['_isAllowEmpty']);
             $input = self::createElement('select', $attr, "<option>${value}</option>", true);
             
             $input->append(self::createElement('input', array(
@@ -432,9 +433,10 @@ class core_Html
                 'name' => $name,
                 'value' => $id
             )));
+
         } elseif ($optionsCnt <= $maxRadio) {
             if ($optionsCnt < 4) {
-                $keyListClass .= 'shrinked';
+                $keyListClass .= ' shrinked';
             }
             
             // Когато броя на опциите са по-малко
@@ -508,9 +510,15 @@ class core_Html
             
             // Добавка (временна) за да не се свиват радио бутоните от w25 - w75
             $attr['style'] .= 'width:100%';
-            
+
+            if(isset($attr['_isAllowEmpty'])){
+                $attr['class'] .= ' allowEmptyRadioHolder';
+                unset($attr['_isAllowEmpty']);
+            }
+
             $input = self::createElement('div', $attr, $tpl);
         } else {
+            unset($attr['_isAllowEmpty']);
             $input = self::createSelect($name, $options, $value, $attr);
         }
         
