@@ -338,6 +338,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $posDetQuery->show('productId, receiptId');
 
+            $posProdsArr = $posReceiptIdArr = array();
+
             foreach ($posDetQuery->fetchAll() as $det) {
 
                 $posProdsArr[$det->productId] = $det->productId;

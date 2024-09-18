@@ -29,7 +29,7 @@ class cal_Calendar extends core_Master
     /**
      * Класове за автоматично зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, plg_GroupByDate, plg_Printing, plg_Search, plg_SelectPeriod';
+    public $loadList = 'plg_Created, plg_RowTools, cal_Wrapper, plg_Sorting, plg_State, plg_GroupByDate, plg_Printing, plg_SelectPeriod, plg_Search';
     
     
     /**
@@ -1164,13 +1164,13 @@ class cal_Calendar extends core_Master
      */
     public static function generateYear()
     {
-    	$fromFilter = $from = Request::get('from');
-    	$fromFilter = explode(".", $fromFilter);
-	    
+    	$fromFilter = Request::get('from');
+    	$fromFilter = explode("-", $fromFilter);
+
 	    for($m = 1; $m <= 12; $m++){
 			
 			// Таймстамп на първия ден на месеца
-			$firstDayTms = mktime(0, 0, 0, $m, 1, $fromFilter[2]);
+			$firstDayTms = mktime(0, 0, 0, $m, 1, $fromFilter[0]);
 		    
 		    // Броя на дните в месеца
 	    	$lastDay = date('t', $firstDayTms);
@@ -1178,12 +1178,11 @@ class cal_Calendar extends core_Master
 	    	// Днешната дата без час
 	    	$today = dt::now($full = FALSE);
         	$today = explode("-", $today);
-			
-			
+
 			for($i = 1; $i <= $lastDay; $i++) {
-				$t = mktime(0, 0, 0, $m, $i, $fromFilter[2]);
+				$t = mktime(0, 0, 0, $m, $i, $fromFilter[0]);
 				
-				$isToday = ($i == $today[2] && $m == $today[1] && $fromFilter[2] == $today[0]);
+				$isToday = ($i == $today[2] && $m == $today[1] && $fromFilter[0] == $today[0]);
 				
 				$yearArr[$m][date('W', $t)]["d".date('N', $t)] = $i;
 				
@@ -1607,17 +1606,17 @@ class cal_Calendar extends core_Master
     public static function getFromToYear()
     {
     	$fromFilter = Request::get('from');
-    	$fromFilter = explode(".", $fromFilter);
-    	
+    	$fromFilter = explode("-", $fromFilter);
+
     	// Таймстамп на първия ден на месеца
-		$lastDayTms = mktime(0, 0, 0, 12, 31, $fromFilter[2]);
-		
+		$lastDayTms = mktime(0, 0, 0, 12, 31, $fromFilter[0]);
+
 		// От началото на месеца
-		$from['fromDate'] = date("Y-m-d 00:00:00", mktime(0, 0, 0, 1, 1, $fromFilter[2]));
+		$from['fromDate'] = date("Y-m-d 00:00:00", mktime(0, 0, 0, 1, 1, $fromFilter[0]));
 		
 		// До края на месеца
 		$from['toDate'] = date('Y-m-t 23:59:59', $lastDayTms);
-    	
+
     	return $from;
     }
     
@@ -1712,7 +1711,7 @@ class cal_Calendar extends core_Master
     	// Извличане на събитията за целия месец
 		$state = new stdClass();
 		$state->query = self::getQuery();
-		
+
 		// Кой ни е текущия потребител? 
 		// Показване на календара и събитията според потребителя
 		$state->query->where("#time >= '{$fromDate}' AND #time <= '{$toDate}' AND #type = '{$type}'");
@@ -1912,7 +1911,7 @@ class cal_Calendar extends core_Master
         
         // До края на същия ден
         $toDate = $from['toDate'];
-        
+
         // TODO всеки ден от отпуската
         $stateYearLeave = self::prepareStateYear($fromDate, $toDate, $selectedUsers, $type = 'leave');
         
@@ -2512,9 +2511,9 @@ class cal_Calendar extends core_Master
     	$yearData = self::prepareRecYear($data);
     	$yearArr = self::generateYear($data);
     	
-    	$fromFilter = $from = Request::get('from');
-    	$fromFilter = explode(".", $fromFilter);
-	    
+    	$fromFilter = Request::get('from');
+    	$fromFilter = explode("-", $fromFilter);
+
 	    // Зареждаме шаблона
         $tpl = new ET(tr('|*' . getFileContent($layout)));
         
@@ -2549,7 +2548,7 @@ class cal_Calendar extends core_Master
          }
         
         // Заглавието на страницата
-    	$tpl->replace(tr('Събития за година') . ' » '. $fromFilter[2], 'title');
+    	$tpl->replace(tr('Събития за година') . ' » '. $fromFilter[0], 'title');
     	
     	// Имената на дните от седмицата
     	if(core_Lg::getCurrent() == 'en'){

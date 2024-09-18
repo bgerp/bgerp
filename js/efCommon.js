@@ -5416,6 +5416,40 @@ Experta.prototype.saveBodyId = function() {
 };
 
 
+/*
+    да може деселектира радио бутон, ако е allowEmpty
+ */
+function deselectRadioButton() {
+
+    let lastChecked = null;
+
+    //отбелязваме всички чекнати радио бутони
+    $('.allowEmptyRadioHolder input[type="radio"]').each(function() {
+        $(this).data('wasChecked', $(this).prop('checked')); // Track initial state
+        if ($(this).prop('checked')) {
+            lastChecked = $(this); // Set the lastChecked if it's checked on load
+        }
+    });
+
+    $('.allowEmptyRadioHolder input[type="radio"]').click(function() {
+        let $this = $(this);
+
+        // Ако е чекнат, се размаркирва
+        if ($this.data('wasChecked')) {
+            $this.prop('checked', false);
+            $this.data('wasChecked', false); // Reset the state
+            lastChecked = null;
+        } else {
+            // Маркираме го чекнат и го записваме като последен
+            $this.data('wasChecked', true);
+            lastChecked = $this;
+        }
+
+        // Махаме всички останали радио бутони
+        $('.allowEmptyRadioHolder input[type="radio"]').not($this).data('wasChecked', false);
+    });
+}
+
 /**
  * Определя състоянието на страницата - дали е първо посещение, дали е след рефреш или след рефреш по ajax
  *
@@ -6388,3 +6422,4 @@ runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
 runOnLoad(doubleClickOnLink);
+runOnLoad(deselectRadioButton);

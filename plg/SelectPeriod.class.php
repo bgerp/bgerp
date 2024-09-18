@@ -83,7 +83,17 @@ class plg_SelectPeriod extends core_Plugin
         
         $keySel = null;
         $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}, $showFuturePeriods));
-        
+
+        if (!$form->isSubmitted() && ($form->cmd != 'refresh')) {
+            if (!$keySel) {
+                if ($data->form->rec->id && $fF && $fT) {
+                    if ((!$rec->{$fF} || !$rec->{$fT}) && ($rec->{$fF} || $rec->{$fT})) {
+                        $keySel = 'select';
+                    }
+                }
+            }
+        }
+
         if ($rec->selectPeriod && $rec->selectPeriod != 'select') {
             list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
             Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
@@ -525,8 +535,6 @@ class plg_SelectPeriod extends core_Plugin
         });
         
         $opt = $first + $second;
-
-        setIfNot($keySel, 'select');
 
         // Добавяме избор на производлен период
         $opt['select'] = (object) array('title' => tr('Избор'), 'attr' => array('class' => 'out-btn multipleFiles'));

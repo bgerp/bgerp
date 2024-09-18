@@ -487,7 +487,7 @@ class cal_Tasks extends embed_Manager
 
         // Ако задачата се създава в папка на проект
         $Cover = doc_Folders::getCover($rec->folderId);
-        if($Cover->isInstanceOf('doc_UnsortedFolders')) {
+        if($Cover->isInstanceOf('doc_UnsortedFolders') || $Cover->isInstanceOf('support_Systems')) {
             $unsortedFolderSteps = $Cover->fetchField('steps');
 
             // и той има посочени етапи

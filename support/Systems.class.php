@@ -42,12 +42,6 @@ class support_Systems extends core_Master
 
 
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'admin, support';
-
-
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'admin, support';
@@ -56,13 +50,7 @@ class support_Systems extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'admin, support';
-
-
-    /**
-     * Кой има право да го види?
-     */
-    public $canView = 'admin, support';
+    public $canAdd = 'admin, supportMaster';
 
 
     /**
@@ -80,7 +68,7 @@ class support_Systems extends core_Master
     /**
      * Необходими роли за оттегляне на документа
      */
-    public $canReject = 'admin, support';
+    public $canReject = 'admin, supportMaster';
 
 
     /**
@@ -92,7 +80,7 @@ class support_Systems extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'support_Wrapper, doc_FolderPlg, plg_Created, plg_Rejected, plg_RowTools2, plg_Search, plg_State, plg_Modified';
+    public $loadList = 'support_Wrapper, doc_FolderPlg, plg_Created, plg_Rejected, doc_plg_CanSelectSteps, plg_RowTools2, plg_Search, plg_State, plg_Modified';
 
 
     /**
@@ -104,10 +92,7 @@ class support_Systems extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces =
-
-    // Интерфейс за корица на папка
-    'doc_FolderIntf, support_IssueIntf';
+    public $interfaces = 'doc_FolderIntf, support_IssueIntf';
 
 
     /**
@@ -122,6 +107,9 @@ class support_Systems extends core_Master
     public $defaultDefaultDocuments = 'cal_Tasks';
 
 
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
     public $rowToolsField = 'id';
 
 
@@ -135,6 +123,12 @@ class support_Systems extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'name, description, defaultTitle';
+
+
+    /**
+     * Кое поле да се използва за линк към нишките на папката
+     */
+    public $listFieldForFolderLink = 'folder=Папка';
 
 
     /**
@@ -413,26 +407,41 @@ class support_Systems extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+        $form = &$data->form;
+
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
 
             // Да има само 1 колони
-            $data->form->setField('allowedTypes', array('maxColumns' => 1));
+            $form->setField('allowedTypes', array('maxColumns' => 1));
         }
 
         $query = support_IssueTypes::getQuery();
-
+        $options = array();
         while ($rec = $query->fetch("#state = 'active'")) {
             $options[$rec->id] = $rec->type;
         }
 
-        $data->form->setSuggestions('allowedTypes', $options);
+        $form->setSuggestions('allowedTypes', $options);
+        $form->input('addFromEveryOne');
 
-        $data->form->input('addFromEveryOne');
+        if ($form->rec->addFromEveryOne == 'yes') {
+            $form->setField('defaultTitle', array('input' => 'input'));
+            $form->setField('addContragentValues', array('input' => 'input'));
+        }
 
-        if ($data->form->rec->addFromEveryOne == 'yes') {
-            $data->form->setField('defaultTitle', array('input' => 'input'));
-            $data->form->setField('addContragentValues', array('input' => 'input'));
+        $form->setField('steps', 'caption=Настройки на сигналите в системата->Етапи');
+        $form->setField('addSubSteps', 'caption=Настройки на сигналите в системата->Добави подетапи');
+
+        if(!haveRole('admin, supportMaster')){
+            $form->info = tr("|*<div class='formCustomInfo'><b>Може да редактирате само полетата за достъп|*!</b></div>");
+
+            $form->setReadOnly('name');
+            $fieldsToHide = $form->selectFields("#input != 'hidden' AND #input != 'none' AND #name != 'inCharge' AND #name != 'access' AND #name != 'shared' AND #name != 'name'");
+            $fieldsToHide = array_keys($fieldsToHide);
+            foreach ($fieldsToHide as $field) {
+                $form->setField($field, 'input=none');
+            }
         }
     }
 
