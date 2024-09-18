@@ -514,6 +514,8 @@ class core_Html
             if(isset($attr['_isAllowEmpty'])){
                 $attr['class'] .= ' allowEmptyRadioHolder';
                 unset($attr['_isAllowEmpty']);
+            } else {
+                $attr['class'] .= ' notAllowEmptyRadioHolder';
             }
 
             $input = self::createElement('div', $attr, $tpl);
