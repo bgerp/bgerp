@@ -131,17 +131,17 @@ class type_Enum extends core_Type
                 $value = '';
             }
         }
-
+        $countOptions = countR($arr);
         $maxRadio = $this->params['maxRadio'];
         if(empty($maxRadio) && !$this->params['isHorizontal']){
             if(arr::isOptionsTotalLenBellowAllowed($arr)){
                 $maxRadio = 4;
                 $this->params['select2MinItems'] = 10000;
-                $this->params['columns'] = 3;
+                if ($countOptions == 3 ) $this->params['columns'] = 3;
             }
         }
 
-        $countOptions = countR($arr);
+
         if($countOptions <= $maxRadio){
             if(isset($arr[''])){
                 $attr['_isAllowEmpty'] = true;
