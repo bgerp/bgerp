@@ -413,28 +413,36 @@ class support_Systems extends core_Master
         if (Mode::is('screenMode', 'narrow')) {
 
             // Да има само 1 колони
-            $data->form->setField('allowedTypes', array('maxColumns' => 1));
+            $form->setField('allowedTypes', array('maxColumns' => 1));
         }
 
         $query = support_IssueTypes::getQuery();
-
+        $options = array();
         while ($rec = $query->fetch("#state = 'active'")) {
             $options[$rec->id] = $rec->type;
         }
 
-        $data->form->setSuggestions('allowedTypes', $options);
+        $form->setSuggestions('allowedTypes', $options);
+        $form->input('addFromEveryOne');
 
-        $data->form->input('addFromEveryOne');
-
-        if ($data->form->rec->addFromEveryOne == 'yes') {
-            $data->form->setField('defaultTitle', array('input' => 'input'));
-            $data->form->setField('addContragentValues', array('input' => 'input'));
+        if ($form->rec->addFromEveryOne == 'yes') {
+            $form->setField('defaultTitle', array('input' => 'input'));
+            $form->setField('addContragentValues', array('input' => 'input'));
         }
 
-        $data->form->setField('steps', 'caption=Настройки на сигналите в системата->Етапи');
-        $data->form->setField('addSubSteps', 'caption=Настройки на сигналите в системата->Добави подетапи');
+        $form->setField('steps', 'caption=Настройки на сигналите в системата->Етапи');
+        $form->setField('addSubSteps', 'caption=Настройки на сигналите в системата->Добави подетапи');
 
+        if(!haveRole('admin, supportMaster')){
+            $form->info = tr("|*<div class='formCustomInfo'><b>Може да редактирате само полетата за достъп|*!</b></div>");
 
+            $form->setReadOnly('name');
+            $fieldsToHide = $form->selectFields("#input != 'hidden' AND #input != 'none' AND #name != 'inCharge' AND #name != 'access' AND #name != 'shared' AND #name != 'name'");
+            $fieldsToHide = array_keys($fieldsToHide);
+            foreach ($fieldsToHide as $field) {
+                $form->setField($field, 'input=none');
+            }
+        }
     }
 
 
