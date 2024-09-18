@@ -57,7 +57,10 @@ class support_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'support';
+    public $roles = array(
+        array('support'),
+        array('supportMaster', 'support'),
+    );
 
 
     /**

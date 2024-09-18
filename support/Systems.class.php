@@ -42,12 +42,6 @@ class support_Systems extends core_Master
 
 
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'admin, support';
-
-
-    /**
      * Кой има право да променя?
      */
     public $canEdit = 'admin, support';
@@ -56,13 +50,7 @@ class support_Systems extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'admin, support';
-
-
-    /**
-     * Кой има право да го види?
-     */
-    public $canView = 'admin, support';
+    public $canAdd = 'admin, supportMaster';
 
 
     /**
@@ -80,7 +68,7 @@ class support_Systems extends core_Master
     /**
      * Необходими роли за оттегляне на документа
      */
-    public $canReject = 'admin, support';
+    public $canReject = 'admin, supportMaster';
 
 
     /**
@@ -104,10 +92,7 @@ class support_Systems extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces =
-
-    // Интерфейс за корица на папка
-    'doc_FolderIntf, support_IssueIntf';
+    public $interfaces = 'doc_FolderIntf, support_IssueIntf';
 
 
     /**
@@ -122,6 +107,9 @@ class support_Systems extends core_Master
     public $defaultDefaultDocuments = 'cal_Tasks';
 
 
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
     public $rowToolsField = 'id';
 
 
@@ -419,6 +407,8 @@ class support_Systems extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+        $form = &$data->form;
+
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
 
@@ -443,6 +433,8 @@ class support_Systems extends core_Master
 
         $data->form->setField('steps', 'caption=Настройки на сигналите в системата->Етапи');
         $data->form->setField('addSubSteps', 'caption=Настройки на сигналите в системата->Добави подетапи');
+
+
     }
 
 
