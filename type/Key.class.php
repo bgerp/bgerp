@@ -656,7 +656,7 @@ class type_Key extends type_Int
                 if(arr::isOptionsTotalLenBellowAllowed($options)){
                     $maxRadio = 4;
                     $this->params['select2MinItems'] = 10000;
-                    if ($optionsCnt == 3 || $optionsCnt == 4) $this->params['columns'] = $optionsCnt;
+                    $this->params['columns'] =  ($optionsCnt > 3) ?  4 : 3;
                 }
             }
 

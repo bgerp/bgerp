@@ -137,10 +137,9 @@ class type_Enum extends core_Type
             if(arr::isOptionsTotalLenBellowAllowed($arr)){
                 $maxRadio = 4;
                 $this->params['select2MinItems'] = 10000;
-                if ($countOptions == 3 || $countOptions == 4) $this->params['columns'] = $countOptions;
+                $this->params['columns'] =  ($countOptions > 3) ?  4 : 3;
             }
         }
-
 
         if($countOptions <= $maxRadio){
             if(isset($arr[''])){
