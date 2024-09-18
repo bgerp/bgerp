@@ -6355,6 +6355,11 @@ only screen and (max-width: 950px) {
   body {
     -webkit-text-size-adjust: none; }
 
+  .richtext .document {
+    min-width: 100%;
+    border: none;
+    padding: 0; }
+
   .cms-row,
   body,
   .cms-container {
