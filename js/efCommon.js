@@ -5424,10 +5424,22 @@ function deselectRadioButton() {
     let lastChecked = null;
 
     //отбелязваме всички чекнати радио бутони
-    $('.allowEmptyRadioHolder input[type="radio"]').each(function() {
-        $(this).data('wasChecked', $(this).prop('checked')); // Track initial state
+    $('input[type="radio"]').each(function() {
+        $(this).data('wasChecked', $(this).prop('checked')); // Начално състояние
         if ($(this).prop('checked')) {
-            lastChecked = $(this); // Set the lastChecked if it's checked on load
+            lastChecked = $(this); //задаване на последния избран бутон
+        }
+    });
+
+     // Маркирай първия бутон, ако не е allowEmpty и няма маркиран в групата
+    $('.notAllowEmptyRadioHolder input[type="radio"]').each(function() {
+        const groupName = $(this).attr('name');
+        const radiosInGroup = $(`input[name="${groupName}"]`);
+
+        if (!radiosInGroup.is(':checked')) {
+            const firstRadio = radiosInGroup.first();
+            firstRadio.prop('checked', true);
+            firstRadio.data('wasChecked', true);
         }
     });
 
@@ -5437,7 +5449,7 @@ function deselectRadioButton() {
         // Ако е чекнат, се размаркирва
         if ($this.data('wasChecked')) {
             $this.prop('checked', false);
-            $this.data('wasChecked', false); // Reset the state
+            $this.data('wasChecked', false);
             lastChecked = null;
         } else {
             // Маркираме го чекнат и го записваме като последен
