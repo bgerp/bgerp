@@ -439,7 +439,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение');
                 }
             } else {
-                $form->info = tr("|*<div class='richtext-message richtext-warning'>|В оригиналната фактура има артикули с различни ставки на ДДС. За корекция трябва да специфицирате точните суми/количества на коригираните артикули|*!</div>");
+                $form->info = tr("|*<div class='richtext-message richtext-warning'>|В оригиналната фактура има артикули с различни ставки на ДДС. Сумата на известието трябва да се отрази за съответните артикули|*Ф-р</div>");
             }
         }
         
