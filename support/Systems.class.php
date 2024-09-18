@@ -132,6 +132,12 @@ class support_Systems extends core_Master
 
 
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'prototype';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
