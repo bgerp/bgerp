@@ -595,7 +595,7 @@ class core_Manager extends core_Mvc
                     }
                 } elseif ($Type->type instanceof type_Keylist) {
                     $skip = false;
-                    $options = $Type->type->prepareSuggestions();
+                    $options = $Type->type->getSuggestions();
                 } elseif ($Type->type instanceof type_Set) {
                     $options = $Type->type->suggestions;
                     $skip = false;
