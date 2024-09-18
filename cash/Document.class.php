@@ -180,7 +180,7 @@ abstract class cash_Document extends deals_PaymentDocument
      */
     protected function getFields(core_Mvc &$mvc)
     {
-        $mvc->FLD('operationSysId', 'varchar(maxRadio=1)', 'caption=Операция,mandatory');
+        $mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
         $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Платени,mandatory,silent');
         $mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
         $mvc->FLD('reason', 'richtext(rows=2, bucket=Notes)', 'caption=Основание');

@@ -894,18 +894,9 @@ class core_Form extends core_FieldSet
                 
                 // Рендиране на select или input полето
                 $optionsCount = countR($options);
-
-                // Ако има зададено `maxRadio` е то, ако няма и формата е вертикална дефолтно забиваме, иначе няма
-                $maxRadio = $type->params['maxRadio'] ?? (!$isHorizontal ? bgerp_Setup::get('VERTICAL_FORM_DEFAULT_MAX_RADIO') : null);
+                $type->params['isHorizontal'] = $isHorizontal;
                 if($type->params['allowEmpty']){
                     $attr['_isAllowEmpty'] = true;
-                }
-
-                // Ако опциите са <= от тези за радиото - се дисейбва плъгина `select`
-                if(isset($maxRadio) && $optionsCount <= $maxRadio){
-                    if(!($type instanceof type_Keylist)){
-                        $type->params['select2MinItems'] = 10000;
-                    }
                 }
 
                 if (($optionsCount > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
@@ -920,6 +911,14 @@ class core_Form extends core_FieldSet
                     if (is_a($type, 'type_Enum') && $type->params['isReadOnly']) {
                         foreach ($options as &$title) {
                             $title = tr($title);
+                        }
+                    }
+
+                    $maxRadio = $type->params['maxRadio'];
+                    if(empty($maxRadio) && !$type->params['isHorizontal']){
+                        if(arr::isOptionsTotalLenBellowAllowed($options)){
+                            $maxRadio = 4;
+                            $type->params['select2MinItems'] = 10000;
                         }
                     }
 
@@ -941,7 +940,6 @@ class core_Form extends core_FieldSet
                     );
                     $this->invoke('AfterCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                 } else {
-                    $type->params['maxRadio'] = $maxRadio;
                     $input = $type->renderInput($name, $value, $attr);
                 }
 

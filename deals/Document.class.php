@@ -63,7 +63,7 @@ abstract class deals_Document extends deals_PaymentDocument
      */
     protected static function addDocumentFields(core_Mvc $mvc)
     {
-        $mvc->FLD('operationSysId', 'varchar(maxRadio=1)', 'caption=Операция,input=hidden');
+        $mvc->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
         $mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
         $mvc->FLD('dealId', 'key(mvc=doc_Containers,select=id,allowEmpty)', 'caption=Сделка,input=none');
