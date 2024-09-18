@@ -2196,7 +2196,7 @@ class planning_Tasks extends core_Master
                 $notesByStates[] = "<div class='state-{$noteRec->state} consumptionNoteBubble'>{$noteCountVerbal}</div>";
             }
             if(countR($notesByStates)){
-                $row->progress .= " <small>[<i>" . tr('ПВ') . "</i>: " . implode(' + ', $notesByStates) . "]</small>";
+                $row->progress .= " <small><i>" . tr('ПВ') . ":" . implode($notesByStates) . "</i></small>";
             }
 
             $data->rows[$rec->id] = $row;
