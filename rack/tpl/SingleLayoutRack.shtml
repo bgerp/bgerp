@@ -5,7 +5,7 @@
         [#places#]
         <table class="styled-table">
             <tr style='background-color:#eee;'>
-                <td>|Места|*</td><td>|Използвани|*</td><td>|Запазени|*</td><td>|Свободни|*</td><td>|Редове|*</td><td>|Колони|*</td><td>|Номерация|*</td><td>|Създаване|*</td>
+                <td>|Места|*</td><td>|Използвани|*</td><td>|Запазени|*</td><td>|Свободни|*</td><td>|Редове|*</td><td>|Колони|*</td><td>А-1 (|Позиция|*)</td><td>|Създаване|*</td>
             </tr>
             <tr style='text-align:center;'>
                 <td><strong>[#total#]</strong></td><td><strong>[#used#]</strong></td><td><strong style='color:#933;'>[#reserved#]</strong></td><td><strong>[#free#]</strong></td>
