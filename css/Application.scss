@@ -7183,6 +7183,18 @@ body.narrow {
 		max-width: 1200px !important;
 	}
 }
+@media handheld , only screen and (min-width: 2100px) {
+	.listTable .ui-droppable {
+		border-width: 4px !important;
+	}
+	.listTable .rowBlock.ui-droppable-hover-top {
+		border-top:4px solid red !important;
+	}
+
+	.listTable .rowBlock.ui-droppable-hover-bottom {
+		border-bottom:4px solid red !important;
+	}
+}
 
 @media handheld , only screen and (min-width: 1600px) {
     #cmsNavigation div.nav_item {
