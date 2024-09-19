@@ -578,6 +578,7 @@ class core_Manager extends core_Mvc
         // Най-накрая ще се премахват от лист филтъра полетата от тип енум/кей/кейлист/сет
         // без опции или с налични само една
         if(isset($data->listFilter)){
+            core_Debug::startTimer('HIDE_EMPTY_OPTIONS');
             $showFields = arr::make($data->listFilter->showFields, true);
 
             foreach ($showFields as $name) {
@@ -616,6 +617,7 @@ class core_Manager extends core_Mvc
             }
 
             $data->listFilter->showFields = implode(',', $showFields);
+            core_Debug::stopTimer('HIDE_EMPTY_OPTIONS');
         }
     }
 
