@@ -364,12 +364,13 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         if(!$rec->data->groupByField) {
             $row->contragentName = $dRec->contragentName;
         }else{
+            $row->contragentName = '<span class="cCode fright">'  .currency_Currencies::getCodeById($dRec->currencyId). '</span>';
             if($dRec->totalSumContr[$dRec->folderId] >= 0){
-                $row->contragentName = $dRec->contragentName.'             '.'<span style="color: green">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSumContr[$dRec->folderId]) . '</span>';
+                $row->contragentName .= $dRec->contragentName.'<span style="color: green" class="fright">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSumContr[$dRec->folderId]) . '</span>';
             }else{
-                $row->contragentName = $dRec->contragentName.'             '.'<span style="color: red">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSumContr[$dRec->folderId]) . '</span>';
+                $row->contragentName .= $dRec->contragentName.'<span style="color: red" class="fright">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSumContr[$dRec->folderId]) . '</span>';
             }
-            $row->contragentName .= currency_Currencies::getCodeById($dRec->currencyId);
+
         }
 
         if (isset($dRec->createdBy)) {
