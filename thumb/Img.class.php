@@ -668,7 +668,37 @@ class thumb_Img
             $path = $this->getThumbPath();
             
             $this->getSize();
-            
+
+            // Опитваме се да определим ротацията от изображението
+            if (!$this->rotation) {
+                if ($this->sourceType == 'fileman') {
+                    if ($exif = exif_Reader::get($this->source)) {
+                        if ($exif['Orientation'] == '3') {
+                            $this->rotation = 180;
+                        } else {
+                            if ($exif['Orientation'] == '6') {
+                                $this->rotation = 270;
+                            }
+                            if ($exif['Orientation'] == '8') {
+                                $this->rotation = 90;
+                            }
+
+                            $w = $this->boxWidth;
+                            $this->boxWidth = $this->boxHeight;
+                            $this->boxHeight = $w;
+
+                            $w = $this->width;
+                            $this->width = $this->height;
+                            $this->height = $w;
+
+                            $w = $this->scaledWidth;
+                            $this->scaledWidth = $this->scaledHeight;
+                            $this->scaledHeight = $w;
+                        }
+                    }
+                }
+            }
+
             // Склаираме, само ако имаме пропорция, различна от 1 или ротираме
             if ($this->ratio != 1 || $this->rotation || self::canUseWebP()) {
                 if ($this->rotation) {

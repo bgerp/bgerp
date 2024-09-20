@@ -32,7 +32,7 @@ class exif_Reader
         $ext = strtolower($namesAndExt['ext']);
         
         // Разширението трябва да е един от посочните
-        if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif')) {
+        if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif') && ($ext != 'webp')) {
             
             return;
         }
@@ -45,9 +45,13 @@ class exif_Reader
             
             return;
         }
-        
+
+        core_Debug::startTimer('EXIF_READER_TIMER');
+
         // EXIF информация
         $exif = @exif_read_data($path);
+
+        core_Debug::stopTimer('EXIF_READER_TIMER');
         
         // Изтриваме временния файл
         fileman::deleteTempPath($path);
