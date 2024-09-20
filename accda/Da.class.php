@@ -183,7 +183,7 @@ class accda_Da extends core_Master
         $this->FLD('exAssetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване->Избор,input=none');
         $this->FLD('assetCode', 'varchar(16)', 'caption=Оборудване->Код,input=none,mandatory');
         $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,remember,input=none,mandatory');
-        $this->FLD('assetResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Папка,silent,remember,input=none,mandatory');
+        $this->FLD('assetResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Папка,silent,remember,input=none');
         $this->FLD('assetSupportFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Поддръжка,silent,remember,input=none');
         
         $this->setDbUnique('num');
