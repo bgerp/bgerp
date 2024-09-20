@@ -683,17 +683,19 @@ class thumb_Img
                                 $this->rotation = 90;
                             }
 
-                            $w = $this->boxWidth;
-                            $this->boxWidth = $this->boxHeight;
-                            $this->boxHeight = $w;
+                            if ($this->rotation) {
+                                $w = $this->boxWidth;
+                                $this->boxWidth = $this->boxHeight;
+                                $this->boxHeight = $w;
 
-                            $w = $this->width;
-                            $this->width = $this->height;
-                            $this->height = $w;
+                                $w = $this->width;
+                                $this->width = $this->height;
+                                $this->height = $w;
 
-                            $w = $this->scaledWidth;
-                            $this->scaledWidth = $this->scaledHeight;
-                            $this->scaledHeight = $w;
+                                $w = $this->scaledWidth;
+                                $this->scaledWidth = $this->scaledHeight;
+                                $this->scaledHeight = $w;
+                            }
                         }
                     }
                 }
