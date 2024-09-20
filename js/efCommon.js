@@ -5087,7 +5087,9 @@ function resizeIframes() {
 
 window.addEventListener('load', resizeIframes);
 window.addEventListener('resize', resizeIframes);
-
+$( document ).on( "ajaxComplete", function() {
+    resizeIframes();
+});
 
 window.addEventListener('message', function(event) {
     const iframe = document.querySelector(`iframe[src^="${event.origin}"]`);
