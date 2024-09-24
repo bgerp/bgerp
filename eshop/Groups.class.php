@@ -748,6 +748,11 @@ class eshop_Groups extends core_Master
      */
     public static function getUrl($rec, $canonical = false)
     {
+        if (!$rec->menuId) {
+
+            return null;
+        }
+
         $mRec = cms_Content::fetch($rec->menuId);
         
         $lg = $mRec->lang;
