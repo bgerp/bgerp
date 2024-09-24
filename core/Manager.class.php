@@ -585,21 +585,29 @@ class core_Manager extends core_Mvc
                 $Type = $data->listFilter->getField($name);
                 $options = array();
 
-                // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
-                $skip = true;
-                if ($Type->type instanceof type_Enum || $Type->type instanceof type_Key) {
-                    $skip = false;
-                    if (method_exists($Type->type, 'prepareOptions')) {
-                        $options = $Type->type->prepareOptions();
-                    } else {
-                        $options = $Type->type->options;
+                try {
+                    // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
+                    $skip = true;
+                    if ($Type->type instanceof type_Enum || $Type->type instanceof type_Key) {
+                        if (method_exists($Type->type, 'prepareOptions')) {
+                            $options = $Type->type->prepareOptions();
+                        } else {
+                            $options = $Type->type->options;
+                        }
+                        $skip = false;
+                    } elseif ($Type->type instanceof type_Keylist) {
+                        $options = $Type->type->getSuggestions();
+                        $skip = false;
+                    } elseif ($Type->type instanceof type_Set) {
+                        $options = $Type->type->suggestions;
+                        $skip = false;
                     }
-                } elseif ($Type->type instanceof type_Keylist) {
-                    $skip = false;
-                    $options = $Type->type->getSuggestions();
-                } elseif ($Type->type instanceof type_Set) {
-                    $options = $Type->type->suggestions;
-                    $skip = false;
+                } catch (Exception $t) {
+                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                } catch (Error $t) {
+                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                } catch (Throwable $t) {
+                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
                 }
 
                 if ($skip) continue;
