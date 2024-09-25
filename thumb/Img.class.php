@@ -715,15 +715,11 @@ class thumb_Img
 
                     $white = imagecolorallocatealpha($newGdRes, 255, 255, 255, 127);
 
-<<<<<<< HEAD
-                    $angle = $this->possibleRotation == 'left' ? 90 : 270;
-=======
                     if (is_numeric($this->rotation)) {
                         $angle = $this->rotation;
                     } else {
                         $angle = $this->possibleRotation == 'left' ? 90 : 270;
                     }
->>>>>>> refs/remotes/origin/dev
 
                     $newGdRes = imagerotate($newGdRes, $angle, $white);
                 } else {
