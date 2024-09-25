@@ -442,21 +442,22 @@ class thumb_Img
 
         if (!$this->scaledWidth || !$this->scaledHeight || !$this->ratio) {
 
+            $rotation = null;
             // Опитваме се да определим ротацията от изображението
             if (!$this->rotation) {
                 if ($this->sourceType == 'fileman') {
                     if ($this->source && ($exif = exif_Reader::get($this->source))) {
                         if ($exif['Orientation'] == '3') {
-                            $this->rotation = 180;
+                            $rotation = 180;
                         } else {
                             if ($exif['Orientation'] == '6') {
-                                $this->rotation = 270;
+                                $rotation = 270;
                             }
                             if ($exif['Orientation'] == '8') {
-                                $this->rotation = 90;
+                                $rotation = 90;
                             }
 
-                            if ($this->rotation) {
+                            if ($rotation) {
                                 $w = $this->boxWidth;
                                 $this->boxWidth = $this->boxHeight;
                                 $this->boxHeight = $w;
@@ -477,6 +478,9 @@ class thumb_Img
             }
 
             list($this->scaledWidth, $this->scaledHeight, $this->ratio, $this->rotation) = self::scaleSize($this->width, $this->height, $this->boxWidth, $this->boxHeight, $this->mode, (boolean) $this->possibleRotation);
+            if (isset($rotation)) {
+                $this->rotation = $rotation;
+            }
         }
 
         return array($this->width, $this->height);
@@ -711,7 +715,15 @@ class thumb_Img
 
                     $white = imagecolorallocatealpha($newGdRes, 255, 255, 255, 127);
 
+<<<<<<< HEAD
                     $angle = $this->possibleRotation == 'left' ? 90 : 270;
+=======
+                    if (is_numeric($this->rotation)) {
+                        $angle = $this->rotation;
+                    } else {
+                        $angle = $this->possibleRotation == 'left' ? 90 : 270;
+                    }
+>>>>>>> refs/remotes/origin/dev
 
                     $newGdRes = imagerotate($newGdRes, $angle, $white);
                 } else {

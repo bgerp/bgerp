@@ -578,27 +578,38 @@ class core_Manager extends core_Mvc
         // Най-накрая ще се премахват от лист филтъра полетата от тип енум/кей/кейлист/сет
         // без опции или с налични само една
         if(isset($data->listFilter)){
+            core_Debug::startTimer('HIDE_EMPTY_OPTIONS');
             $showFields = arr::make($data->listFilter->showFields, true);
 
             foreach ($showFields as $name) {
                 $Type = $data->listFilter->getField($name);
                 $options = array();
 
-                // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
-                $skip = true;
-                if ($Type->type instanceof type_Enum || $Type->type instanceof type_Key) {
-                    $skip = false;
-                    if (method_exists($Type->type, 'prepareOptions')) {
-                        $options = $Type->type->prepareOptions();
-                    } else {
-                        $options = $Type->type->options;
+                if (($Type->input == 'hidden') || ($Type->input == 'none')) continue;
+
+                try {
+                    // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
+                    $skip = true;
+                    if ($Type->type instanceof type_Enum || $Type->type instanceof type_Key) {
+                        if (method_exists($Type->type, 'prepareOptions')) {
+                            $options = $Type->type->prepareOptions();
+                        } else {
+                            $options = $Type->type->options;
+                        }
+                        $skip = false;
+                    } elseif ($Type->type instanceof type_Keylist) {
+                        $options = $Type->type->getSuggestions();
+                        $skip = false;
+                    } elseif ($Type->type instanceof type_Set) {
+                        $options = $Type->type->suggestions;
+                        $skip = false;
                     }
-                } elseif ($Type->type instanceof type_Keylist) {
-                    $skip = false;
-                    $options = $Type->type->getSuggestions();
-                } elseif ($Type->type instanceof type_Set) {
-                    $options = $Type->type->suggestions;
-                    $skip = false;
+                } catch (Exception $t) {
+                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                } catch (Error $t) {
+                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                } catch (Throwable $t) {
+                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
                 }
 
                 if ($skip) continue;
@@ -616,6 +627,7 @@ class core_Manager extends core_Mvc
             }
 
             $data->listFilter->showFields = implode(',', $showFields);
+            core_Debug::stopTimer('HIDE_EMPTY_OPTIONS');
         }
     }
 

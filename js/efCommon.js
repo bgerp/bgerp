@@ -2058,6 +2058,7 @@ function setFormElementsWidth() {
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");
+                 $(this).parent().css('width', "25%");
              }
              // ако етикета е много широк, режем го и слагаме хинт
              if ($(this).width() > 450){
@@ -5086,7 +5087,9 @@ function resizeIframes() {
 
 window.addEventListener('load', resizeIframes);
 window.addEventListener('resize', resizeIframes);
-
+$( document ).on( "ajaxComplete", function() {
+    resizeIframes();
+});
 
 window.addEventListener('message', function(event) {
     const iframe = document.querySelector(`iframe[src^="${event.origin}"]`);

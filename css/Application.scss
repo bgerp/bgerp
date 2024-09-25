@@ -1147,7 +1147,13 @@ option.team {
 	background: black;
 	color: #fc0;
 }
-
+#Bottom-tab-planning_Centers td {
+	max-width: 260px;
+	.linkWithIcon {
+		overflow-wrap: break-word;
+		white-space: break-spaces;
+	}
+}
 /*Стилове за acc*/
 div.acc-detail {
 	font-size: 0.8em;

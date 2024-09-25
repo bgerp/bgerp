@@ -435,10 +435,7 @@ class core_Html
             )));
 
         } elseif ($optionsCnt <= $maxRadio) {
-            if ($optionsCnt < 4) {
-                $keyListClass .= ' shrinked';
-            }
-            
+
             // Когато броя на опциите са по-малко
             
             // Определяме броя на колоните, ако не са зададени.
