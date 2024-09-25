@@ -94,10 +94,10 @@ class deepl_Setup extends core_ProtoSetup
      * https://www.deepl.com/docs-api/translate-text/translate-text/
      * target_lang
      */
-    public static function getCountries()
+    public static function getCountries($type)
     {
 
-        return self::$lgArr;
+        return $type->options + self::$lgArr;
     }
 
 
