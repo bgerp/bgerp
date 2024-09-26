@@ -2087,7 +2087,7 @@ function doubleClickOnLink() {
         clearTimeout(timer);
 
         timer = setTimeout(function() {
-            window.location.href = elem.attr("href");
+            top.window.location.href = elem.attr("href");
         }, delay);
     });
    // при 2 кликa да се отваря data атрибута
@@ -2096,7 +2096,7 @@ function doubleClickOnLink() {
         var elem = $(this);
 
         clearTimeout(timer);
-        window.location.href = elem.attr("data-doubleclick");
+        top.window.location.href = elem.attr("data-doubleclick");
     });
 }
 
