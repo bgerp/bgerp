@@ -22,6 +22,12 @@ class exif_Reader
      */
     public static function get($fileHnd)
     {
+        $exif = core_Cache::get('EXIF_READ_DATA', $fileHnd);
+        if ($exif !== false) {
+
+            return $exif;
+        }
+
         // Името на файла
         $name = fileman_Files::fetchByFh($fileHnd, 'name');
         
@@ -55,7 +61,9 @@ class exif_Reader
         
         // Изтриваме временния файл
         fileman::deleteTempPath($path);
-        
+
+        core_Cache::set('EXIF_READ_DATA', $fileHnd, $exif, 10000);
+
         // Връщаме exif информация
         return $exif;
     }
