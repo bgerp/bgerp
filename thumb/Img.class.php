@@ -444,7 +444,7 @@ class thumb_Img
 
             $rotation = null;
             // Опитваме се да определим ротацията от изображението
-            if (!$this->rotation) {
+            if (!$this->rotation && thumb_Setup::get('FIX_ORIENTATION') == 'yes') {
                 if ($this->sourceType == 'fileman') {
                     if ($this->source && ($exif = exif_Reader::get($this->source))) {
                         if ($exif['Orientation'] == '3') {
