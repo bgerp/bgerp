@@ -22,12 +22,6 @@ class exif_Reader
      */
     public static function get($fileHnd)
     {
-        $exif = core_Cache::get('EXIF_READ_DATA', $fileHnd);
-        if ($exif !== false) {
-
-            return $exif;
-        }
-
         // Името на файла
         $name = fileman_Files::fetchByFh($fileHnd, 'name');
         
@@ -36,15 +30,25 @@ class exif_Reader
         
         // Разширението на файла
         $ext = strtolower($namesAndExt['ext']);
-        
+
         // Разширението трябва да е един от посочните
         if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif') && ($ext != 'webp')) {
             
             return;
         }
-        
+
+        $exif = core_Cache::get('EXIF_READ_DATA', $fileHnd);
+        if ($exif !== false) {
+
+            return $exif;
+        }
+
+        Mode::push('FILEMAN_STOP_LOG_INFO', true);
+
         // Пътя до файла
         $path = fileman::extract($fileHnd);
+
+        Mode::pop('FILEMAN_STOP_LOG_INFO');
         
         // Трябва да има валиден път
         if (!$path) {
