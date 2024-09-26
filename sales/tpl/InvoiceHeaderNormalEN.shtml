@@ -115,7 +115,7 @@
                                         <div class='custom-bg-block'><b>Notes</b></div>
                                         <div>[#additionalInfo#]</div>
                                         <!--ET_END additionalInfo-->
-                                        <div class="fright">
+                                        <div class="fright notesSign">
                                             [#NOTE_USERNAME_SIGN#]
                                             [#NOTE_USERNAME_SIGN_PAD#]
                                         </div>
