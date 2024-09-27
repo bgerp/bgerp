@@ -1524,12 +1524,13 @@ class core_String
      * @param string $val
      * @param string $str
      * @param string|null $matchStr
+     * @param array $delimArr
      *
      * @return boolean
      */
-    public static function checkExist($val, $str, $matchStr = null)
+    public static function checkExist($val, $str, $matchStr = null, $delimArr = array(',', ';'))
     {
-        $str = str_replace(array(',', ';'), ' ', $str);
+        $str = str_replace($delimArr, ' ', $str);
 
         $val = trim($val);
         $str = trim($str);
