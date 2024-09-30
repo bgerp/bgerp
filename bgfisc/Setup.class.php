@@ -87,21 +87,6 @@ class bgfisc_Setup extends core_ProtoSetup
     
     
     /**
-     * Настройки за Cron
-     */
-    public $cronSettings = array(
-        array(
-            'systemId' => 'delete_not_finished_receipts',
-            'description' => 'Изтриване на незавършените бележки',
-            'controller' => 'bgfisc_PrintedReceipts',
-            'action' => 'DeleteUnfinishedReceipts',
-            'period' => 1,
-            'timeLimit' => 1
-        )
-    );
-    
-    
-    /**
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'bgfisc_reports_SalesPayments,bgfisc_reports_AggregateSalesData,bgfisc_reports_DetailedSalesData,bgfisc_reports_ReversedSales,

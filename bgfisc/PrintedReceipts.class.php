@@ -328,37 +328,6 @@ class bgfisc_PrintedReceipts extends core_Manager
     
     
     /**
-     * Ревъртване на документите със започнато но недовършено отпечатване на бележка
-     */
-    public function cron_DeleteUnfinishedReceipts()
-    {
-        // Временно закоментиране
-        return;
-        
-        $query = bgfisc_PrintedReceipts::getQuery();
-        $query->where("#state = 'waiting' AND (#string = '' OR #string IS NULL)");
-        
-        while ($rec = $query->fetch()) {
-            if (cls::load($rec->classId, true)) {
-                $Class = cls::get($rec->classId);
-                
-                // Ревъртва контировката на документа, ако е нужно
-                if (!core_Locks::isLocked("lock_{$Class->className}_{$rec->objectId}")) {
-                    if (cls::haveInterface('acc_TransactionSourceIntf', $Class)) {
-                        $Class->logDebug("NOT LOCKED: lock_{$Class->className}_{$rec->objectId}", $rec->objectId);
-                        $Class->rollbackConto($rec->objectId);
-                        $Class->logWrite('Ревъртване на контировката от крон-а', $rec->objectId);
-                    }
-                    
-                    // Отмаркиране че е чакащо
-                    bgfisc_PrintedReceipts::removeWaitingLog($rec->classId, $rec->objectId);
-                }
-            }
-        }
-    }
-    
-    
-    /**
      * Преди рендиране на таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
