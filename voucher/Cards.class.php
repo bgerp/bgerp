@@ -505,6 +505,12 @@ class voucher_Cards extends core_Detail
      */
     public static function getContoErrors($id, $products, $classId, $objectId)
     {
+        // Ако е за приключване на сторно бележка да не се проверява за изисквируем препоръчител
+        if($classId == pos_Receipts::getClassId() && isset($objectId)){
+            $receiptRec = pos_Receipts::fetch($objectId);
+            if(isset($receiptRec->revertId)) return;
+        }
+
         if(isset($id)){
             $rec = static::fetch($id);
             if(!empty($rec->usedOn)) {
