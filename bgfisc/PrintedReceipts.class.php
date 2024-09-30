@@ -110,7 +110,7 @@ class bgfisc_PrintedReceipts extends core_Manager
 
         if(isset($rec->classId) && isset($rec->objectId)){
             $Class = cls::get($rec->classId);
-            $objectName = (cls::haveInterface('doc_DocumentIntf', $Class)) ? $Class->getHandle($rec->objectId, 0) : $Class->getTitleById($rec->objectId);
+            $objectName = (cls::haveInterface('doc_DocumentIntf', $Class)) ? $Class->getHandle($rec->objectId) : $Class->getTitleById($rec->objectId);
             $res .= ' ' . plg_Search::normalizeText($objectName);
         }
     }
