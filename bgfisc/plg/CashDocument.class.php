@@ -681,7 +681,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
             $mvc->requireRightFor('hardconto', $rec);
             
             $form = cls::get('core_Form');
-            $form->title = 'Контиране без отпечатване на QR кода на|* ' . $mvc->getFormTitleLink($rec);
+            $form->title = 'Контиране без отпечатване на ФБ на|* ' . $mvc->getFormTitleLink($rec);
             $form->info = tr("За да контирате документа ръчно, моля въведете номер на вече издадена бележка");
             $form->FLD('qr', 'varchar', 'caption=QR код');
 
@@ -709,9 +709,11 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 if(!$form->gotErrors()){
                     $qrCode = !empty($fRec->qr) ? $fRec->qr : implode('*', $nums);
                     if(!empty($qrCode)){
-                        if(bgfisc_PrintedReceipts::fetchField(array("#string = '[#1#]'", $qrCode))){
-                            $errFld = !empty($fRec->qr) ? 'qr' : 'qrFN,qrNum,qrDate,qrTime,qrAmount';
-                            $form->setError($errFld, "Има вече издадена бележка с код|*:<b>{$qrCode}</b>");
+                        if($printedRec = bgfisc_PrintedReceipts::fetch(array("#string = '[#1#]'", $qrCode))){
+                            if(!($printedRec->classId == $mvc->getClassId() && $printedRec->objectId == $rec->id)){
+                                $errFld = !empty($fRec->qr) ? 'qr' : 'qrFN,qrNum,qrDate,qrTime,qrAmount';
+                                $form->setError($errFld, "Има вече издадена бележка с код|*:<b>{$qrCode}</b>");
+                            }
                         } else {
                             $parsedQr = explode('*', $qrCode);
                             if(!empty($fRec->qr)){
