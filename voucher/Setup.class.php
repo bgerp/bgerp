@@ -132,5 +132,4 @@ class voucher_Setup extends core_ProtoSetup
 
         return $res;
     }
-
 }
