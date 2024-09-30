@@ -555,12 +555,10 @@ class store_ShipmentOrders extends store_DocumentMaster
         }
 
         if($action == 'add' && isset($rec->threadId)){
-            if(empty($rec->reverseContainerId)){
-                $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-                if($firstDoc->isInstanceOf('purchase_Purchases')){
-                    if(!haveRole('revertShipmentDocs', $userId)){
-                        $requiredRoles = 'no_one';
-                    }
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDoc->isInstanceOf('purchase_Purchases')){
+                if(!haveRole('revertShipmentDocs,ceo', $userId)){
+                    $requiredRoles = 'no_one';
                 }
             }
         }
