@@ -1020,7 +1020,13 @@ class pos_Receipts extends core_Master
             }
 
             if(isset($rec->voucherId)){
-                voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id, true);
+
+                // Ако е сторно ваучерът се освобождава, ако не е се маркира като използван
+                if(isset($rec->revertId)){
+                    voucher_Cards::mark($rec->voucherId, false);
+                } else {
+                    voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id, true);
+                }
             }
         }
     }
