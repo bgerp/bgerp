@@ -2891,7 +2891,9 @@ max-width: 400px;
 .nowrap {
 	white-space: nowrap;
 }
-
+.wide .wideNowrap {
+	white-space: nowrap;
+}
 .wrapText {
 	white-space: normal !important;
 }
