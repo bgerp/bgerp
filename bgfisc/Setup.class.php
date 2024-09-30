@@ -82,6 +82,7 @@ class bgfisc_Setup extends core_ProtoSetup
      */
     public $managers = array('bgfisc_Register',
         'bgfisc_PrintedReceipts',
+        'migrate::repairSearchKeywords2440',
     );
     
     
@@ -173,5 +174,15 @@ class bgfisc_Setup extends core_ProtoSetup
         }
         
         return array('' => '') + $options;
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи
+     */
+    public static function repairSearchKeywords2440()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'bgfisc_PrintedReceipts', $callOn);
     }
 }
