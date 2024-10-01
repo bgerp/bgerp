@@ -32,6 +32,12 @@ defIfNot('BGFISC_PRINT_VAT_GROUPS', 'yes');
 
 
 /**
+ * До кой ден месеца след издаване на бележката да може да се сторнира с основание "Операторска грешка"
+ */
+defIfNot('BGFISC_REVERT_OPERATION_ERROR_ALLOWED_BEFORE', '7');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с печатане на касови бележки
  *
@@ -101,6 +107,7 @@ class bgfisc_Setup extends core_ProtoSetup
         'BGFISC_PRICE_FU_ROUND' => array('int', 'caption=Разпечатване на фискален бон от ФУ->Закръгляне (Цена)'),
         'BGFISC_CHECK_SERIAL_NUMBER' => array('enum(yes=Включено,no=Изключено)', 'caption=Разпечатване на фискален бон от ФУ->Проверка на сер. номер'),
         'BGFISC_PRINT_VAT_GROUPS'  => array('enum(yes=Включено,no=Изключено)', 'caption=Разпечатване на фискален бон от ФУ->Разбивка по ДДС'),
+        'BGFISC_REVERT_OPERATION_ERROR_ALLOWED_BEFORE'  => array('int(min=1)', 'caption=До кое число на месеца след бележката да може да се сторнира с основание "Операторска грешка"->Ден'),
     );
     
     

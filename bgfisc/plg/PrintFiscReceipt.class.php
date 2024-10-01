@@ -136,15 +136,21 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
 
         $receiptNumber = bgfisc_Register::getSaleNumber($mvc, $rec->id);
         if ($rec->isReverse == 'yes') {
-            $fiscalArr['RELATED_TO_URN'] = $receiptNumber;
             $Origin = doc_Containers::getDocument($rec->originId);
-            
             $fiscalArr['RELATED_TO_URN'] = $receiptNumber;
             $fiscalArr['IS_STORNO'] = true;
             
             $reasonCode = $Driver->getStornoReasonCode($registerRec, $rec->stornoReason);
             if (!isset($reasonCode)) {
-                throw new core_exception_Expect('Липсва код на основанието за плащане във ФУ|*', 'Несъответствие');
+                if($reasonCode == 0){
+                    $valior = $Origin->fetchField($Origin->valiorFld);
+                    $maxDateForError = bgfisc_Register::getMaxDateForStornoOperationError($valior);
+                    if(dt::today() > $maxDateForError){
+                        $maxDateForErrorVerbal = dt::mysql2verbal($maxDateForError, 'd.m.Y');
+
+                        throw new core_exception_Expect("Сторно по бележката с основание \"Операторска грешка\" не може да се издава след|*: {$maxDateForErrorVerbal}", 'Несъответствие');
+                    }
+                }
             }
             
             $fiscalArr['STORNO_REASON'] = $reasonCode;
