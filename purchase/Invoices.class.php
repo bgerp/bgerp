@@ -551,7 +551,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                 if(!isset($rec->changeAmount)){
                     if($rec->dealValue <= 0) {
                         if(haveRole('debug')){
-                            bp($rec);
+                            bp($rec, $rec->dealValue <= 0, store_ShipmentOrders::haveRightFor('add', array('threadId' => $rec->threadId)));
                         }
                         if(store_ShipmentOrders::haveRightFor('add', array('threadId' => $rec->threadId))){
                             $data->toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/EN.png,title=Създаване на експедиционно нареждане към дебитно известие");
