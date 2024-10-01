@@ -708,7 +708,7 @@ abstract class store_DocumentMaster extends core_Master
         if ($docState == 'active') {
             if ($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) {
                 $operations = $firstDoc->getShipmentOperations();
-                bp($operations, $operations, isset($operations[static::$defOperationSysId]));
+
                 return isset($operations[static::$defOperationSysId]);
             }
         }
