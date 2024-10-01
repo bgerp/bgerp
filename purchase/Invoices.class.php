@@ -547,17 +547,20 @@ class purchase_Invoices extends deals_InvoiceMaster
                 }
             }
 
-            //if($rec->type == 'dc_note'){
-                //if(!isset($rec->changeAmount)){
-                   // if($rec->dealValue <= 0) {
-                        //if(store_ShipmentOrders::haveRightFor('add', array('threadId' => $rec->threadId))){
+            if($rec->type == 'dc_note'){
+                if(!isset($rec->changeAmount)){
+                    if($rec->dealValue <= 0) {
+                        if(haveRole('debug')){
+                            bp($rec);
+                        }
+                        if(store_ShipmentOrders::haveRightFor('add', array('threadId' => $rec->threadId))){
                             $data->toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/EN.png,title=Създаване на експедиционно нареждане към дебитно известие");
-                       // }
-                    //} elseif(store_Receipts::haveRightFor('add', array('threadId' => $rec->threadId))){
-                       // $data->toolbar->addBtn('Засклаждане', array('store_Receipts', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/store-receipt.png,title=Създаване на складова разписка към кредитното известие");
-                    //}
-                //}
-            //}
+                        }
+                    } elseif(store_Receipts::haveRightFor('add', array('threadId' => $rec->threadId))){
+                        $data->toolbar->addBtn('Засклаждане', array('store_Receipts', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/store-receipt.png,title=Създаване на складова разписка към кредитното известие");
+                    }
+                }
+            }
         }
     }
     
