@@ -703,7 +703,7 @@ abstract class store_DocumentMaster extends core_Master
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $docState = $firstDoc->fetchField('state');
-        
+        bp($firstDoc, $docState, $firstDoc->fetch());
         // Може да се добавя само към активиран документ
         if ($docState == 'active') {
             if ($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) {
