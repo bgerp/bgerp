@@ -560,7 +560,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         if($action == 'add' && isset($rec->threadId)){
             if($rec->threadId == 2453){
-                bp($requiredRoles);
+               // bp($requiredRoles);
             }
 
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
