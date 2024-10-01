@@ -372,7 +372,14 @@ class ztm_RegisterValues extends core_Manager
 
         $sArr = array();
         while ($rec = $query->fetch()) {
-            $rec->value = ztm_Registers::recordValue($rec->registerId, $val);
+            // Ако има промяна, да се обнови
+            $newVal = ztm_Registers::recordValue($rec->registerId, $val);
+            if ($rec->value == $newVal) {
+
+                continue;
+            }
+
+            $rec->value = $newVal;
             $rec->updatedOn = $lastSync;
             $rec->modifiedOn = dt::now();
             $rec->modifiedBy = core_Users::getCurrent();
