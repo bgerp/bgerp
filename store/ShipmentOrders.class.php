@@ -525,6 +525,10 @@ class store_ShipmentOrders extends store_DocumentMaster
     }
 
 
+    function act_Test()
+    {
+        bp(store_ShipmentOrders::haveRightFor('add', array('threadId' => 2453)));
+    }
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
