@@ -66,10 +66,10 @@ class ibex_Sensor extends sens2_ProtoDriver
     {
         $res = array();
         $time = dt::mysql2timestamp(dt::now());
-        $h = date('G', $time);
-        $h = $h .'-' . ($h+1);
+        $h = date('H', $time);
+        $h = $h . '-' . date('H', $time + 3600);
         if(date('I', $time ) == 1 && date('I', $time + 3600) == 0) {
-            $h = date('G', $time - 3600) . '-' . date('G', $time) . 'a';
+            $h = date('H', $time - 3600) . '-' . date('H', $time) . 'a';
         }
 
         $date = dt::now(false);
