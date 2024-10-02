@@ -352,16 +352,49 @@ class planning_Jobs extends core_Master
         }
 
         $defaultProductId = $defaultProductPack = $defaultQuantity = null;
-        if (isset($rec->saleId)) {
+        if($data->action == 'changefields' && isset($rec->id)){
+
+            $connectedThreads = planning_Jobs::getJobLinkedThreads($rec->id, true);
+            $connectedThreadsStr = implode(',', $connectedThreads);
+            if(planning_DirectProductionNote::count("#threadId IN ({$connectedThreadsStr}) AND #state IN ('active', 'pending')")){
+                $form->info = "<div class='formNotice'>" . tr("Не може да се променя дали има/няма втора мярка, защото вече има пуснати протоколи за производство към заданието и/или финалните операции към него|*!") . '</div>';
+
+                $form->setField('allowSecondMeasure', 'notChangeableIfHidden,input=none');
+            }
+
+            $exRec = $mvc->fetch($rec->id, '*', false);
+            list($productId, $packagingId, $secondMeasureId, $saleId) = array($exRec->productId, $exRec->packagingId, $exRec->secondMeasureId, $rec->saleId);
+
+            if(isset($secondMeasureId)){
+                $tQuery = planning_Tasks::getQuery();
+                $tQuery->in('threadId', $connectedThreads);
+                $tQuery->where("#state != 'rejected'");
+                $derivitiveMeasures = cat_UoM::getSameTypeMeasures($secondMeasureId);
+                if(array_key_exists($packagingId, $derivitiveMeasures)){
+                    $derivitiveMeasures = cat_UoM::getSameTypeMeasures(cat_Products::fetchField($productId, 'measureId'));
+                }
+                unset($derivitiveMeasures['']);
+                $tQuery->in("measureId", array_keys($derivitiveMeasures));
+
+                if($tQuery->count()){
+                    $form->info .= "<div class='formNotice'>" . tr("Не може да се променя дали има/няма втора мярка, защото вече има пуснати ПО с втората мярка|*!") . '</div>';
+                    $form->setField('allowSecondMeasure', 'notChangeableIfHidden,input=none');
+                }
+            }
+        } else {
+            list($productId, $packagingId, $secondMeasureId, $saleId) = array($rec->productId, $rec->packagingId, $rec->secondMeasureId, $rec->saleId);
+        }
+
+        if (isset($saleId)) {
 
             // Ако заданието е към продажба, може да се избират само измежду артикулите в нея
-            $products = sales_Sales::getManifacturableProducts($rec->saleId, true);
+            $products = sales_Sales::getManifacturableProducts($saleId, true);
             $form->setFieldType('productId', 'key(mvc=cat_Products)');
 
             // Дефолтния артикул е първия без задание към продажбата
             $packsInDeal = $packsInDealOrdered = array();
             $sQuery = sales_SalesDetails::getQuery();
-            $sQuery->where("#saleId = {$rec->saleId}");
+            $sQuery->where("#saleId = {$saleId}");
             $sQuery->in('productId', array_keys($products));
             $sQuery->show('productId,packagingId,packQuantity');
             while($sRec = $sQuery->fetch()){
@@ -406,26 +439,26 @@ class planning_Jobs extends core_Master
         }
 
         // Ако има предишни задания зареждат се за избор
-        if(isset($rec->productId)){
-            $previousJobs = self::getPreviousJob($rec->productId, $rec->saleId);
+        if(isset($productId)){
+            $previousJobs = self::getPreviousJob($productId, $saleId);
             if (countR($previousJobs)) {
                 $form->setField('oldJobId', 'input');
                 $form->setOptions('oldJobId', array('' => '') + $previousJobs);
             }
 
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId, false, $rec->secondMeasureId);
+            $packs = cat_Products::getPacks($productId, $packagingId, false, $secondMeasureId);
             $form->setOptions('packagingId', $packs);
             $form->setField('packagingId', 'input');
 
-            if ($tolerance = cat_Products::getParams($rec->productId, 'tolerance')) {
+            if ($tolerance = cat_Products::getParams($productId, 'tolerance')) {
                 $form->setDefault('tolerance', $tolerance);
             }
 
-            if (isset($rec->saleId)) {
+            if (isset($saleId)) {
                 $deliveryDate = null;
-                $form->setDefault('dueDate', $mvc->getDefaultDueDate($rec->productId, $rec->saleId, $deliveryDate));
+                $form->setDefault('dueDate', $mvc->getDefaultDueDate($productId, $saleId, $deliveryDate));
 
-                $saleRec = sales_Sales::fetch($rec->saleId);
+                $saleRec = sales_Sales::fetch($saleId);
                 $form->setDefault('packagingId', $defaultProductPack);
                 $form->setDefault('packQuantity', $defaultQuantity);
 
@@ -436,7 +469,7 @@ class planning_Jobs extends core_Master
                 $form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
                 $locations = crm_Locations::getContragentOptions($saleRec->contragentClassId, $saleRec->contragentId);
                 $form->setOptions('deliveryPlace', $locations);
-                $caption = '|Данни от|* <b>' . sales_Sales::getRecTitle($rec->saleId) . '</b>';
+                $caption = '|Данни от|* <b>' . sales_Sales::getRecTitle($saleId) . '</b>';
                 $caption = str_replace(',', ' ', str_replace(', ', ' ', $caption));
 
                 $form->setField('deliveryTermId', "caption={$caption}->Условие,changable");
@@ -468,22 +501,23 @@ class planning_Jobs extends core_Master
 
             $form->setDefault('packagingId', key($packs));
 
-            if ($Driver = cat_Products::getDriver($rec->productId)) {
+            if ($Driver = cat_Products::getDriver($productId)) {
 
                 // Коя е втората мярка, ако не идва от драйвера се търси в опаковките
-                $secondMeasureId = (isset($rec->id) && $rec->secondMeasureId) ? $rec->secondMeasureId : cat_Products:: getSecondMeasureId($rec->productId);
-
+                $secondMeasureId = (isset($rec->id) && $secondMeasureId) ? $secondMeasureId : cat_Products:: getSecondMeasureId($productId);
+                $packagingId = isset($packagingId) ? $packagingId : $rec->packagingId;
                 if(empty($secondMeasureId)){
                     $form->setField('allowSecondMeasure', 'input=none');
                 } else {
                     $derivitiveMeasures = cat_UoM::getSameTypeMeasures($secondMeasureId);
                     $form->setDefault('allowSecondMeasure', 'yes');
-                    if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
-                        $mandatoryMeasure = cat_Products::fetchField($rec->productId, 'measureId');
+                    if(array_key_exists($packagingId, $derivitiveMeasures)){
+                        $mandatoryMeasure = cat_Products::fetchField($productId, 'measureId');
                     } else {
                         $mandatoryMeasure = $secondMeasureId;
                     }
                     $mandatoryMeasureName = tr(cat_UoM::getVerbal($mandatoryMeasure, 'name'));
+
                     $form->setFieldType('allowSecondMeasure', "enum(no=Без,yes=Задължително ({$mandatoryMeasureName}))");
                     $form->setDefault('secondMeasureId', $secondMeasureId);
                 }
@@ -1124,7 +1158,8 @@ class planning_Jobs extends core_Master
         
         // Само спрените могат да се променят
         if ($action == 'changerec' && isset($rec)) {
-            if ($rec->state != 'stopped') {
+            $state = isset($rec->id) ? $mvc->fetchField($rec->id, 'state', false) : $rec->state;
+            if ($state != 'stopped') {
                 $res = 'no_one';
             }
         }
@@ -1680,15 +1715,19 @@ class planning_Jobs extends core_Master
     /**
      * Връща свързаните нишки към заданието (неговата и тази на неговите операции)
      *
-     * @param mixed $id
-     * @return array $threadsArr
+     * @param mixed $id                - ид на задание
+     * @param  bool $skipNotFinalTasks - да се игнорират ли нишките на междинните ПО
+     * @return array $threadsArr       - масив от нишката на заданието + нишките на ПО към него
      */
-    public static function getJobLinkedThreads($id)
+    public static function getJobLinkedThreads($id, $skipNotFinalTasks = false)
     {
         $rec = static::fetchRec($id);
 
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#originId = {$rec->containerId} AND #state != 'rejected'");
+        if($skipNotFinalTasks){
+            $tQuery->where("#isFinal = 'yes'");
+        }
         $tQuery->show("threadId");
 
         $threadsArr = array($rec->threadId => $rec->threadId) + arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
@@ -2406,6 +2445,11 @@ class planning_Jobs extends core_Master
                     $mvc->save_($rec, 'department');
                 }
             }
+        }
+
+        if($rec->__isBeingChanged && $rec->allowSecondMeasure == 'no'){
+            $rec->secondMeasureId = null;
+            $mvc->save_($rec, 'secondMeasureId');
         }
     }
 }
