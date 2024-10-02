@@ -86,6 +86,18 @@ defIfNot('BGERP_LAST_SEEN_DOC_BY_USER_CACHE_LIFETIME', 12 * dt::SECONDS_IN_MONTH
 
 
 /**
+ * Да се активира ли действието при дабъл клик върху линк?
+ */
+defIfNot('BGERP_ENABLE_DOUBLE_CLICK_ON_LINK', 'no');
+
+
+/**
+ * Колко символа максимална дължина опции да се показват като радио бутони (а не като селект) до 4
+ */
+defIfNot('BGERP_VERTICAL_FORM_DEFAULT_MAX_RADIO_LENGTH', 42);
+
+
+/**
  * Клавиши за бързо избиране на бутони
  */
 defIfNot(
@@ -169,7 +181,9 @@ class bgerp_Setup extends core_ProtoSetup
         'BGERP_START_OF_WORKING_DAY' => array('enum(08:00,09:00,10:00,11:00,12:00)', 'caption=Начало на работния ден->Час'),
 
         'BGERP_ACCESS_KEYS' => array('text(rows=6)', 'caption=Клавиши за бързо избиране на бутони->Дефиниции, customizeBy=powerUser'),
-        
+        'BGERP_ENABLE_DOUBLE_CLICK_ON_LINK' => array('enum(no=Изключено,yes=Включено)', 'caption=Изпълняване на заложени действия при дабъл клик върху линк с икона->Избор, customizeBy=powerUser'),
+        'BGERP_VERTICAL_FORM_DEFAULT_MAX_RADIO_LENGTH' => array('int(min=1)', 'caption=Максимална обща дължина на опциите за да се показват като радио бутони->Брой символи, unit=&nbsp;|(в това число 3 символа за бутона на всяка опция)|*, customizeBy=user'),
+
         'BGERP_NOTIFY_ALERT' => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Критични,placeholder=Неограничено, customizeBy=powerUser'),
         
         'BGERP_NOTIFY_WARNING' => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Спешни,placeholder=Неограничено, customizeBy=powerUser'),

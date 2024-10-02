@@ -65,7 +65,7 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
     {
         $tmpArr = $res = array();
         $balanceRec = acc_Balances::getLastBalance();
-        
+
         // Ако няма баланс няма какво да подготвяме
         if (empty($balanceRec)) {
             
@@ -109,26 +109,43 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
             
             return $res;
         }
-        
+
+        unset($productMap[5315]);
+
+        $balanceBefore = acc_Balances::getBalanceBefore($balanceRec->fromDate);
+
         // Филтриране да се показват само записите от зададените сметки
         $dQuery = acc_BalanceDetails::getQuery();
-        acc_BalanceDetails::filterQuery($dQuery, $balanceRec->id, '321', null, null, $productMap);
+        acc_BalanceDetails::filterQuery($dQuery, $balanceBefore->id, '321', null, null, $productMap);
         $positionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
-        
+
+        bp($dQuery->fetchAll());
         // За всеки запис в баланса
         while ($dRec = $dQuery->fetch()) {
             $itemId = $dRec->{"ent{$positionId}Id"};
             if (!array_key_exists($itemId, $tmpArr)) {
                 $tmpArr[$itemId] = new stdClass();
             }
-            
-            // Сумираме неотрицателните сумите и количества
-            if ($dRec->blQuantity >= 0 && $dRec->blAmount >= 0) {
-                $tmpArr[$itemId]->quantity += $dRec->blQuantity;
-                $tmpArr[$itemId]->amount += $dRec->blAmount;
+
+            if(isset($dRec->blQuantity)){
+                if(!empty($dRec->blQuantity)){
+                    if ($dRec->blQuantity >= 0 && $dRec->blAmount >= 0) {
+                        $tmpArr[$itemId]->quantity += $dRec->blQuantity;
+                        $tmpArr[$itemId]->amount += $dRec->blAmount;
+                    }
+                } else {
+                    if ($dRec->debitQuantity >= 0 && $dRec->debitAmount >= 0) {
+                        $tmpArr[$itemId]->quantity += $dRec->debitQuantity;
+                        $tmpArr[$itemId]->amount += $dRec->debitAmount;
+                    }
+                }
             }
         }
-        
+
+
+
+
+
         // Намиране на цената
         $productMap = array_flip($productMap);
         foreach ($tmpArr as $index => $r) {

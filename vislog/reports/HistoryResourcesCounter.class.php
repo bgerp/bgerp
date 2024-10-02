@@ -217,15 +217,15 @@ class vislog_reports_HistoryResourcesCounter extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->from)) {
-            $fieldTpl->append('<b>' . $data->rec->from . '</b>', 'from');
+            $fieldTpl->append('<b>' . core_Type::getByName('date(format=smartTime)')->toVerbal($data->rec->from) . '</b>', 'from');
         }
         
         if (isset($data->rec->to)) {
-            $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
+            $fieldTpl->append('<b>' . core_Type::getByName('date(format=smartTime)')->toVerbal($data->rec->to) . '</b>', 'to');
         }
         
         if (isset($data->rec->text)) {
-            $fieldTpl->append('<b>' . ' ' . $data->rec->text . ' ' . '</b>', 'text');
+            $fieldTpl->append('<b>' . ' ' . core_Type::getByName('text')->toVerbal($data->rec->text) . ' ' . '</b>', 'text');
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');

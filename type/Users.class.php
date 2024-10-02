@@ -412,6 +412,11 @@ class type_Users extends type_Keylist
         $this->prepareOptions();
         
         if (isset($value) && !$this->options[$value]) {
+            if (type_Keylist::isKeylist($value)) {
+
+                return $value;
+            }
+
             if (strpos($value, '_')) {
                 list($gr, $value) = explode('_', $value);
             }

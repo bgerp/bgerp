@@ -171,7 +171,7 @@ class change_plg_History extends core_Plugin
         }
 
         if(!$sync) return;
-        $rec->validFrom = !empty($rec->newValidFrom) ? $rec->newValidFrom : dt::now();
+        $rec->validFrom = !empty($rec->newValidFrom) ? $rec->newValidFrom : (dt::today() . " 00:00:00");
         $updateFields = array();
         $currentRecData = change_History::getCurrentRec($mvc->getClassId(), $rec->id, $rec->_oldRec, $rec, $updateFields);
 

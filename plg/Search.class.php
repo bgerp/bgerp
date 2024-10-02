@@ -821,9 +821,9 @@ class plg_Search extends core_Plugin
                 
                 try {
                     $generatedKeywords = $clsInst->getSearchKeywords($rec);
-                    if ($generatedKeywords != $rec->searchKeywords) {
+                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
 
-                        $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+                    if ($generatedKeywords != $rec->searchKeywords) {
 
                         $rec->searchKeywords = $generatedKeywords;
 
@@ -831,9 +831,10 @@ class plg_Search extends core_Plugin
                     }
 
                     // Обновяваме и ключовите думи в контейнерите, дори и да няма промяна в модела
-                    if ($rec->containerId) {
+                    if ($rec->containerId && cls::haveInterface('doc_DocumentIntf', $clsInst)) {
                         $cRec = $Containers->fetch($rec->containerId);
-                        if ($cRec) {
+
+                        if ($cRec && ($cRec->docClass == $clsInst->getClassId())) {
                             if ($generatedKeywords != $cRec->searchKeywords) {
                                 $cRec->searchKeywords = $generatedKeywords;
                                 $Containers->save_($cRec, 'searchKeywords');

@@ -355,8 +355,8 @@ class change_History extends core_Manager
                                                                'classId'   => $data->masterMvc->getClassId(),
                                                                'objectId'  => $masterRec->id,
                                                                'isCurrent' => true,
-                                                               'createdOn' => $masterRec->createdOn,
-                                                               'createdBy' => $masterRec->createdBy);
+                                                               'createdOn' => $masterRec->validFrom,
+                                                               'createdBy' => $masterRec->modifiedBy);
         } else {
             $data->recs[$masterRec->validFrom]->isCurrent = true;
         }

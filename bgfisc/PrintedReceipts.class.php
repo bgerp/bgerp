@@ -107,6 +107,12 @@ class bgfisc_PrintedReceipts extends core_Manager
         $urn = bgfisc_Register::fetchField($rec->urnId, 'urn');
         
         $res .= ' ' . plg_Search::normalizeText($urn);
+
+        if(isset($rec->classId) && isset($rec->objectId)){
+            $Class = cls::get($rec->classId);
+            $objectName = (cls::haveInterface('doc_DocumentIntf', $Class)) ? $Class->getHandle($rec->objectId) : $Class->getTitleById($rec->objectId);
+            $res .= ' ' . plg_Search::normalizeText($objectName);
+        }
     }
     
     
@@ -240,8 +246,8 @@ class bgfisc_PrintedReceipts extends core_Manager
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
         $data->listFilter->FLD('to', 'date', 'caption=До,silent');
         $data->listFilter->setField('createdBy', 'placeholder=Потребител,formOrder=11');
-        
-        $data->listFilter->view = 'horizontal';
+
+        $data->listFilter->class = 'simpleForm';
         $data->listFilter->setFieldTypeParams('createdBy', array('allowEmpty' => 'allowEmpty'));
         
         return $data;
@@ -259,7 +265,7 @@ class bgfisc_PrintedReceipts extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->showFields = 'selectPeriod,search,createdBy';
+        $data->listFilter->showFields = 'selectPeriod,from,to,search,createdBy';
         $data->listFilter->input();
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -267,15 +273,16 @@ class bgfisc_PrintedReceipts extends core_Manager
             if (!empty($filterRec->createdBy)) {
                 $data->query->where("#createdBy = {$filterRec->createdBy}");
             }
-            
+
+
             if (!empty($filterRec->from)) {
-                $data->query->where("#createdOn >= '{$filterRec->from}'");
+                $data->query->where("#createdOn >= '{$filterRec->from} 00:00:00'");
             }
-            
-            if (!empty($filterRec->to) && $filterRec->to != $filterRec->from) {
-                $data->query->where("#createdOn <= '{$filterRec->to}'");
+
+            if (!empty($filterRec->to)) {
+                $data->query->where("#createdOn <= '{$filterRec->to} 23:59:59'");
             }
-           
+
             // И този стринг отговаря на хендлър на документ в системата
             $doc = doc_Containers::getDocumentByHandle($filterRec->search);
             if (is_object($doc)) {
@@ -317,37 +324,6 @@ class bgfisc_PrintedReceipts extends core_Manager
         }
         
         followRetUrl(array($Class, 'single', $docId));
-    }
-    
-    
-    /**
-     * Ревъртване на документите със започнато но недовършено отпечатване на бележка
-     */
-    public function cron_DeleteUnfinishedReceipts()
-    {
-        // Временно закоментиране
-        return;
-        
-        $query = bgfisc_PrintedReceipts::getQuery();
-        $query->where("#state = 'waiting' AND (#string = '' OR #string IS NULL)");
-        
-        while ($rec = $query->fetch()) {
-            if (cls::load($rec->classId, true)) {
-                $Class = cls::get($rec->classId);
-                
-                // Ревъртва контировката на документа, ако е нужно
-                if (!core_Locks::isLocked("lock_{$Class->className}_{$rec->objectId}")) {
-                    if (cls::haveInterface('acc_TransactionSourceIntf', $Class)) {
-                        $Class->logDebug("NOT LOCKED: lock_{$Class->className}_{$rec->objectId}", $rec->objectId);
-                        $Class->rollbackConto($rec->objectId);
-                        $Class->logWrite('Ревъртване на контировката от крон-а', $rec->objectId);
-                    }
-                    
-                    // Отмаркиране че е чакащо
-                    bgfisc_PrintedReceipts::removeWaitingLog($rec->classId, $rec->objectId);
-                }
-            }
-        }
     }
     
     

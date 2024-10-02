@@ -1098,7 +1098,8 @@ class core_DateTime
         $fromDateObj = DateTime::createFromFormat("Y-m-d", $from);
         $toDateObj = DateTime::createFromFormat("Y-m-d", $to);
 
-        if(empty($from)) return tr('Към') . ": " . ltrim(dt::mysql2verbal($to, 'd M y'),'0');
+        if(empty($from) && !empty($to)) return tr('Към') . ": " . ltrim(dt::mysql2verbal($to, 'd M y'),'0');
+        if(empty($to) && !empty($from)) return tr('От') . ": " . ltrim(dt::mysql2verbal($from, 'd M y'),'0');
 
         $toYear = $toDateObj->format("Y");
         $toMonth = static::getMonth($toDateObj->format("m"), 'M', $lg);
@@ -1120,23 +1121,23 @@ class core_DateTime
                 } elseif($fromDay == '01' && $lastDayOfMonth == $to){
                     $res = "{$toMonth} {$fromDateObj->format("y")}";
                 } else {
-                    $res = "{$fromDayPadded}-{$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
+                    $res = "{$fromDayPadded} – {$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
                 }
             } else {
                 if($fromDay == '01' && $lastDayOfMonth == $to){
                     $res = "{$fromMonth}-{$toMonth} {$fromDateObj->format("y")}";
                 } else {
-                    $res = "{$fromDayPadded} {$fromMonth}-{$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
+                    $res = "{$fromDayPadded} {$fromMonth} – {$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
                 }
             }
         } else {
             if($fromDay == '01' && $lastDayOfMonth == $to) {
-                $res = "{$fromMonth} {$fromDateObj->format("y")}-{$toMonth} {$toDateObj->format("y")}";
+                $res = "{$fromMonth} {$fromDateObj->format("y")} – {$toMonth} {$toDateObj->format("y")}";
             }
         }
 
         if(empty($res)){
-            $res = "{$fromDayPadded} {$fromMonth} {$fromDateObj->format("y")}-{$toDayPadded} {$toMonth} {$toDateObj->format("y")}";
+            $res = "{$fromDayPadded} {$fromMonth} {$fromDateObj->format("y")} – {$toDayPadded} {$toMonth} {$toDateObj->format("y")}";
         }
 
         return $res;

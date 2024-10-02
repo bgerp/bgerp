@@ -724,8 +724,8 @@ class rack_Zones extends core_Master
         if($remove){
 
             // Ако документа се премахва от зоната, изтриват се чакащите движения към тях
-            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending'");
-            rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}'");
+            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending' AND #modifiedBy = -1");
+            rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}' NOT MODIFIED BY USER");
         }
 
         // Обновяване на информацията в зоната
@@ -1072,6 +1072,9 @@ class rack_Zones extends core_Master
 
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$userId}");
+        if($userId == core_Users::SYSTEM_USER){
+            $mQuery->where("#modifiedBy = {$userId}");
+        }
         if(countR($productIds)){
             $mQuery->in('productId', $productIds);
         }

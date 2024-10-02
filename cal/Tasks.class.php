@@ -318,7 +318,7 @@ class cal_Tasks extends embed_Manager
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
         $this->FLD('parentId', 'key2(mvc=cal_Tasks,select=title,allowEmpty)', 'caption=Подзадача на,width=100%,changable,silent,remember');
-        $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, removeAndRefreshForm, silent, after=typeId, changable');
+        $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=shortName,allowEmpty, minimumResultsForSearch=5)', 'caption=Ресурс, removeAndRefreshForm=assign, silent, after=typeId, changable');
         $this->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,input=none,allowEmpty)', 'caption=Етап,input=none');
         $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
 
@@ -487,7 +487,7 @@ class cal_Tasks extends embed_Manager
 
         // Ако задачата се създава в папка на проект
         $Cover = doc_Folders::getCover($rec->folderId);
-        if($Cover->isInstanceOf('doc_UnsortedFolders')) {
+        if($Cover->isInstanceOf('doc_UnsortedFolders') || $Cover->isInstanceOf('support_Systems')) {
             $unsortedFolderSteps = $Cover->fetchField('steps');
 
             // и той има посочени етапи
@@ -934,6 +934,25 @@ class cal_Tasks extends embed_Manager
             }
         }
     }
+
+
+    /**
+     * Връща потребителите по подразбиране за споделяне
+     *
+     * @param core_Mvc    $mvc
+     * @param NULL|string $res
+     * @param stdClass    $rec
+     */
+    public static function on_AfterGetDefaultAssignUsers($mvc, &$res, $rec)
+    {
+        if ($rec->assetResourceId) {
+            $systemUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
+            if ($systemUsers) {
+                $assign = keylist::merge($systemUsers, $rec->assing);
+                $res = keylist::merge($res, $assign);
+            }
+        }
+    }
     
     
     /**
@@ -989,7 +1008,17 @@ class cal_Tasks extends embed_Manager
         if (cal_TaskConditions::haveRightFor('add', (object) array('baseId' => $data->rec->id))) {
             $data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
-        
+
+        $inputRows = $data->rec->driverClass == support_TaskType::getClassId() ? 1 : 2;
+        if(planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
+            $data->toolbar->addBtn('Влагане', array('planning_ConsumptionNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), "ef_icon=img/16/produce_in.png,title=Създаване на протокол за влагане към сигнала,row={$inputRows}");
+        }
+
+        if(planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
+            $data->toolbar->addBtn('Връщане', array('planning_ReturnNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), "ef_icon=img/16/produce_out.png,title=Създаване на протокол за връщане към сигнала,row={$inputRows}");
+        }
+
+
         // Ако имаме бутон "Активиране"
         if (isset($data->toolbar->buttons['btnActivate'])) {
             
@@ -1123,7 +1152,7 @@ class cal_Tasks extends embed_Manager
         
         return $haveRes ? $link : false;
     }
-    
+
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела

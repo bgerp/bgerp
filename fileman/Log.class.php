@@ -120,6 +120,11 @@ class fileman_Log extends core_Manager
      */
     public static function updateLogInfo($fileHnd, $action, $userId = null)
     {
+        if (Mode::is('FILEMAN_STOP_LOG_INFO')) {
+
+            return false;
+        }
+
         // Ако не е подадено id на потребител
         if (!$userId) {
             

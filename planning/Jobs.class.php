@@ -255,7 +255,7 @@ class planning_Jobs extends core_Master
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('allowSecondMeasure', 'enum(no=Без,yes=Задължителна)', 'caption=Втора мярка,notNull,value=no,silent,removeAndRefreshForm=secondMeasureId');
-        $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,remember');
+        $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,remember,mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане в,remember');
         $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLinks)', 'caption=Влагане от,after=storeId,remember');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Забележки,remember');
@@ -743,10 +743,6 @@ class planning_Jobs extends core_Master
         if ($form->isSubmitted()) {
             if (isset($rec->deliveryDate) && $rec->deliveryDate < $rec->dueDate) {
                 $form->setWarning('deliveryDate', 'Срокът за доставка не може да е преди падежа');
-            }
-            
-            if (empty($rec->department)) {
-                $form->setWarning('department', 'В заданието липсва избран ц-р на дейност и ще бъде записано в нишката');
             }
             
             if ($rec->dueDate < dt::today()) {

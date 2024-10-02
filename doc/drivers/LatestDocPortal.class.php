@@ -283,7 +283,14 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                             $subTitleClass = '';
                         }
 
-                        $dRowStr = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted} {$subTitleClass}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . '</div>';
+                        $attr = array('ef_icon' => $doc->getIcon());
+                        $doubleClickUrl = $doc->getUrlForDblClick();
+                        if(isset($doubleClickUrl)){
+                            $doubleClickDataUrl = toUrl($doubleClickUrl);
+                            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+                        }
+
+                        $dRowStr = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted} {$subTitleClass}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, $attr) . '</div>';
                         if ($subTitle) {
                             $dRowStr .= "<div class='threadSubTitle {$subTitleClass}'>{$subTitle}</div>";
                         }

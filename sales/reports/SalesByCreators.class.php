@@ -156,7 +156,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
                 );
             } else {
                 $obj = &$recs[$id];
-                $obj->salesAmount += $sRec->amountDeal;
+                $obj->salesAmount += $sRec->amountDeal- $sRec->amountVat;
                 $obj->salesCount++;
             }
         }

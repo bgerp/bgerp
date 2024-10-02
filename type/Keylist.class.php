@@ -233,10 +233,6 @@ class type_Keylist extends core_Type
         $suggCnt = countR($this->suggestions);
         
         if ($suggCnt) {
-            if ($suggCnt < 4) {
-                $keyListClass .= ' shrinked';
-            }
-            
             $groupOpen = 0;
             $addKeylistWide = false;
             

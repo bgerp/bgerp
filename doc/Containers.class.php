@@ -373,11 +373,12 @@ class doc_Containers extends core_Manager
                 try {
                     // Ако новите ключови думи не отговарят на старите, записваме ги
                     $generatedKeywords = $clsInst->getSearchKeywords($cRec);
-                    
+                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+
                     if (!$force && ($generatedKeywords == $cRec->searchKeywords)) {
                         continue;
                     }
-                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+
                     $cRec->searchKeywords = $generatedKeywords;
                     $clsInst->save_($cRec, 'searchKeywords');
                     

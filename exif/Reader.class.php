@@ -30,28 +30,48 @@ class exif_Reader
         
         // Разширението на файла
         $ext = strtolower($namesAndExt['ext']);
-        
+
         // Разширението трябва да е един от посочните
-        if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif')) {
+        if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif') && ($ext != 'webp')) {
             
-            return;
+            return ;
         }
-        
-        // Пътя до файла
-        $path = fileman::extract($fileHnd);
+
+        $exif = core_Cache::get('EXIF_READ_DATA', $fileHnd);
+        if ($exif !== false) {
+
+            return $exif;
+        }
+
+        Mode::push('FILEMAN_STOP_LOG_INFO', true);
+
+        try {
+            // Пътя до файла
+            $path = fileman::extract($fileHnd);
+        } catch (core_exception_Expect $e) {
+            log_System::add(get_called_class(), "Грешка при екстрактване на '{$fileHnd}'", null, 'warning');
+        }
+
+        Mode::pop('FILEMAN_STOP_LOG_INFO');
         
         // Трябва да има валиден път
         if (!$path) {
             
             return;
         }
-        
+
+        core_Debug::startTimer('EXIF_READER_TIMER');
+
         // EXIF информация
         $exif = @exif_read_data($path);
+
+        core_Debug::stopTimer('EXIF_READER_TIMER');
         
         // Изтриваме временния файл
         fileman::deleteTempPath($path);
-        
+
+        core_Cache::set('EXIF_READ_DATA', $fileHnd, $exif, 10000);
+
         // Връщаме exif информация
         return $exif;
     }

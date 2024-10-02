@@ -30,27 +30,15 @@ class support_IssueTypes extends core_Manager
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'admin, support';
-    
-    
-    /**
      * Кой има право да променя?
      */
-    public $canEdit = 'admin, support';
+    public $canEdit = 'admin, supportMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'admin, support';
-    
-    
-    /**
-     * Кой има право да го види?
-     */
-    public $canView = 'admin, support';
+    public $canAdd = 'admin, supportMaster';
     
     
     /**

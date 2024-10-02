@@ -96,8 +96,16 @@ class core_Master extends core_Manager
                 }
             }
         }
-        
-        $link = ht::createLink($title, $linkArr);
+
+        // Ако има урл при двоен клик - да се добави като дата атрибут
+        $attr = array();
+        $doubleClickUrl = $inst->getUrlForDblClick($objId);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
+
+        $link = ht::createLink($title, $linkArr, false, $attr);
         
         return $link;
     }
@@ -776,7 +784,14 @@ class core_Master extends core_Manager
         $url = $me->getSingleUrlArray($id);
         
         setIfNot($attr['ef_icon'], $me->getIcon($id));
-        
+
+        // Ако има урл при двоен клик - да се добави като дата атрибут
+        $doubleClickUrl = $me->getUrlForDblClick($id);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
+
         // Вземаме линка
         $link = ht::createLink($name, $url, null, $attr);
         
@@ -850,6 +865,14 @@ class core_Master extends core_Manager
             }
         }
 
+        if(isset($attr['ef_icon'])){
+            $doubleClickUrl = $me->getUrlForDblClick($id);
+            if(isset($doubleClickUrl)){
+                $doubleClickDataUrl = toUrl($doubleClickUrl);
+                $attr['data-doubleclick'] .= $doubleClickDataUrl;
+            }
+        }
+
         if ($short === true) {
             if (!Mode::is('printing') && !Mode::is('text', 'xhtml')) {
                 $title = ht::createLinkRef($title, $url, null, $attr);
@@ -860,8 +883,31 @@ class core_Master extends core_Manager
         
         return $title;
     }
-    
-    
+
+
+    /**
+     * Връща урл което да се извика при двоен клик
+     *
+     * @param int|stdClass $id        - ид или запис
+     * @param bool         $forFolder - дали да е към папка
+     * @return array|null             - урл или null ако нищо няма
+     */
+    public function getUrlForDblClick_($id, $forFolder = false)
+    {
+        $dblClickEnabled = bgerp_Setup::get('ENABLE_DOUBLE_CLICK_ON_LINK');
+        if($dblClickEnabled == 'no') return null;
+
+        $rec = $this->fetchRec($id);
+        if(!$forFolder) {
+            if($this->haveRightFor('edit', $rec)) return array($this, 'edit', $rec->id);
+        }
+
+        $singleUrlArray = static::getSingleUrlArray($rec->id);
+
+        return countR($singleUrlArray) ? $singleUrlArray : null;
+    }
+
+
     /**
      * Създава хиперлинк към единичния изглед който е стрелка след името
      *
