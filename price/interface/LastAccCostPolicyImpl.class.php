@@ -110,8 +110,6 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
             return $res;
         }
 
-        unset($productMap[5315]);
-
         $balanceBefore = acc_Balances::getBalanceBefore($balanceRec->fromDate);
 
         // Филтриране да се показват само записите от зададените сметки
