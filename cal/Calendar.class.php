@@ -92,6 +92,14 @@ class cal_Calendar extends core_Master
      * Кой има право да го види?
      */
     public $canView = 'powerUser';
+
+
+    /**
+     * Покзванва не възможност за избор на дата
+     *
+     * @see plg_SelectPeriod
+     */
+    public $showSelectPeriod = false;
     
     
     // Масив с цветове за събитията
@@ -1165,7 +1173,11 @@ class cal_Calendar extends core_Master
     public static function generateYear()
     {
     	$fromFilter = Request::get('from');
-    	$fromFilter = explode("-", $fromFilter);
+        if ($fromFilter) {
+            $fromFilter = explode("-", $fromFilter);
+        } else {
+            $fromFilter = date('Y');
+        }
 
 	    for($m = 1; $m <= 12; $m++){
 			
@@ -1606,8 +1618,11 @@ class cal_Calendar extends core_Master
     public static function getFromToYear()
     {
     	$fromFilter = Request::get('from');
-    	$fromFilter = explode("-", $fromFilter);
-
+        if ($fromFilter) {
+            $fromFilter = explode("-", $fromFilter);
+        } else {
+            $fromFilter = date('Y');
+        }
     	// Таймстамп на първия ден на месеца
 		$lastDayTms = mktime(0, 0, 0, 12, 31, $fromFilter[0]);
 

@@ -450,7 +450,7 @@ class core_Html
             }
             
             if ($col > 1) {
-                $tpl = "<table class='keylist {$keyListClass}'><tr>";
+                $tpl = "<table class='keylist'><tr>";
                 
                 for ($i = 1; $i <= $col; $i++) {
                     $tpl .= "<td style='vertical-align: top;'>[#OPT" . ($i - 1) . '#]</td>';

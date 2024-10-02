@@ -2485,6 +2485,9 @@ pre.document {
 .nowrap {
   white-space: nowrap; }
 
+.wide .wideNowrap {
+  white-space: nowrap; }
+
 .wrapText {
   white-space: normal !important; }
 

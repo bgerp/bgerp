@@ -1516,4 +1516,56 @@ class core_String
 
         return substr($str, 0, $len <= $toShow ? 0 : $first).str_repeat("*", $length).substr($str, $len - $last, $len <= $toShow ? 0 : $last);
     }
+
+
+    /**
+     * Помощна фунцкия за проверка дали пододана стойност я има в стинг
+     *
+     * @param string $val
+     * @param string $str
+     * @param string|null $matchStr
+     * @param array $delimArr
+     *
+     * @return boolean
+     */
+    public static function checkExist($val, $str, $matchStr = null, $delimArr = array(',', ';'))
+    {
+        $str = str_replace($delimArr, ' ', $str);
+
+        $val = trim($val);
+        $str = trim($str);
+        $exist = false;
+        if ($val) {
+            if ($str) {
+                $valArr = explode(' ', $str);
+                foreach ($valArr as $valStr) {
+                    $valStr = trim($valStr);
+                    if ($valStr == $val) {
+                        $exist = true;
+                        break;
+                    } else {
+
+                        // Ако има символ, за заместване на израз
+                        if (isset($matchStr) && (stripos($valStr, $matchStr) !== false)) {
+                            $pattern = preg_quote($valStr, '/');
+
+                            $pattern = str_replace(preg_quote($matchStr, '/'), '.*', $pattern);
+
+                            $pattern = "/^{$pattern}$/";
+                            if (preg_match($pattern, $val)) {
+                                $exist = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                $exist = true;
+            }
+        } else {
+            $exist = true;
+        }
+
+        return $exist;
+    }
 }

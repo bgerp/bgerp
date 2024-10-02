@@ -1011,27 +1011,30 @@ class doc_UnsortedFolders extends core_Master
 
         if($form->isSubmitted()) {
             if(isset($rec->id)) {
-                $assetErrorMsgArr = array();
-                $resourceTypes = type_Set::toArray($rec->resourceType);
 
                 // При опит за отмаркирване на ресурсите да се спира - ако има вече избрани ресурси
-                if(empty($resourceTypes['assets'])) {
-                    $assetClassId = planning_AssetResources::getClassId();
-                    $resourceCount = planning_AssetResourceFolders::count("#classId = {$assetClassId} AND #folderId = {$rec->folderId}");
-                    if($resourceCount) {
-                        $assetErrorMsgArr[] = "В проекта има вече свързани оборудвания";
-                    }
-                }
-                if(empty($resourceTypes['hr'])) {
-                    $hrClassId = planning_Hr::getClassId();
-                    $resourceCount = planning_AssetResourceFolders::count("#classId = {$hrClassId} AND #folderId = {$rec->folderId}");
-                    if($resourceCount) {
-                        $assetErrorMsgArr[] = "В проекта има вече свързани оператори";
-                    }
-                }
+                if(isset($rec->folderId)) {
+                    $assetErrorMsgArr = array();
+                    $resourceTypes = type_Set::toArray($rec->resourceType);
 
-                if(countR($assetErrorMsgArr)) {
-                    $form->setError('resourceType', implode('. ', $assetErrorMsgArr));
+                    if(empty($resourceTypes['assets'])) {
+                        $assetClassId = planning_AssetResources::getClassId();
+                        $resourceCount = planning_AssetResourceFolders::count("#classId = {$assetClassId} AND #folderId = {$rec->folderId}");
+                        if($resourceCount) {
+                            $assetErrorMsgArr[] = "В проекта има вече свързани оборудвания";
+                        }
+                    }
+                    if(empty($resourceTypes['hr'])) {
+                        $hrClassId = planning_Hr::getClassId();
+                        $resourceCount = planning_AssetResourceFolders::count("#classId = {$hrClassId} AND #folderId = {$rec->folderId}");
+                        if($resourceCount) {
+                            $assetErrorMsgArr[] = "В проекта има вече свързани оператори";
+                        }
+                    }
+
+                    if(countR($assetErrorMsgArr)) {
+                        $form->setError('resourceType', implode('. ', $assetErrorMsgArr));
+                    }
                 }
             }
         }

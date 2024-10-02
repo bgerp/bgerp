@@ -172,9 +172,12 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
             }
             expect($rKey);
 
+            $dName = $this->driverRec->name;
+            $dId = ztm_Devices::fetchField(array("#name = '[#1#]'", $dName));
+
             $regId = ztm_Registers::fetchField(array("#name = '[#1#]'", $rKey));
             if ($regId) {
-                ztm_RegisterValues::forceSync($regId, $oVal);
+                ztm_RegisterValues::forceSync($regId, $oVal, $dId);
 
                 $resArr[$rKey] = $oVal;
             }
