@@ -119,7 +119,6 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
         acc_BalanceDetails::filterQuery($dQuery, $balanceBefore->id, '321', null, null, $productMap);
         $positionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
 
-        bp($dQuery->fetchAll());
         // За всеки запис в баланса
         while ($dRec = $dQuery->fetch()) {
             $itemId = $dRec->{"ent{$positionId}Id"};
