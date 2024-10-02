@@ -67,6 +67,8 @@ class ibex_Register extends core_Manager
         $this->FLD('date', 'date', 'caption=Дата');
         $this->FLD('kind', 'varchar(32)', 'caption=Вид,smartCenter');
         $this->FLD('price', 'double(decimals=2)', 'caption=Стойност');
+
+        $this->setDbIndex('date,kind');
     }
 
 
@@ -121,7 +123,7 @@ class ibex_Register extends core_Manager
                     $rec->kind = $hour;
                     $rec->price = $price;
                     
-                    if($rec->price > 0) {
+                    if($rec->price > 0 && !$this->fetch("#date = '{$rec->date}' AND #kind = '{$rec->kind}' && #price = {$rec->price}")) {
                         $this->save($rec);
                     }
                 }
