@@ -328,12 +328,8 @@ class doc_FolderResources extends core_Manager
                 $Cover = doc_Folders::getCover($rec->folderId);
                 if (!$Cover->haveRightFor('edit') && $Cover->fetchField('createdBy') != core_Users::SYSTEM_USER) {
                     $requiredRoles = 'no_one';
-                } elseif ($rec->type == 'asset') {
-                    if (!planning_AssetResources::haveRightFor('add')) {
-                        $requiredRoles = 'no_one';
-                    }
-                } elseif ($rec->type == 'employee') {
-                    if (!planning_Hr::haveRightFor('edit')) {
+                } elseif($Cover->isInstanceOf('support_Systems')){
+                    if(!haveRole('support', $userId)){
                         $requiredRoles = 'no_one';
                     }
                 }
