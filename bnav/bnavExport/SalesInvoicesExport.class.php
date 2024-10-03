@@ -622,7 +622,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $this->kgId = cat_UoM::fetchBySinonim('kg')->id;
 
         if ($rec->type == 'dc_note') {
-            if ($rec->dpAmount > 0 || $rec->changeAmount) {
+            //if ($rec->dpAmount > 0 || $rec->changeAmount) {
+            if ($rec->dealValue > 0) {
                 $docType = $this->confCache->FSD_DOC_DEBIT_NOTE_TYPE;
             } else {
                 $docType = $this->confCache->FSD_DOC_CREDIT_NOTE_TYPE;
