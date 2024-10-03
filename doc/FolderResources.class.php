@@ -329,7 +329,7 @@ class doc_FolderResources extends core_Manager
                 if (!$Cover->haveRightFor('edit') && $Cover->fetchField('createdBy') != core_Users::SYSTEM_USER) {
                     $requiredRoles = 'no_one';
                 } elseif($Cover->isInstanceOf('support_Systems')){
-                    if(!haveRole('support', $userId)){
+                    if(!haveRole('supportMaster,ceo', $userId)){
                         $requiredRoles = 'no_one';
                     }
                 }
