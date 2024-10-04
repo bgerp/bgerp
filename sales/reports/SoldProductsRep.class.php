@@ -371,6 +371,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         }
 
+        $posReceiptIdArr = array();
+
+        // Да се заредят контрагентите от POS  бележките
+        foreach ($posReceiptIdArr as $recept) {
+
+            $recptRec = pos_Receipts::fetch($recept);
+            $posContragentClassName = core_Classes::fetch($recptRec->contragentClass)->name;
+            $posContragentFolder = $posContragentClassName::fetch($recptRec->contragentObjectId)->folderId;
+
+            if (!in_array($posContragentFolder, array_keys($suggestions))) {
+                $suggestions[$posContragentFolder] = $recptRec->contragentName;
+            }
+
+        }
+
         asort($suggestions);
 
         $form->setSuggestions('contragent', $suggestions);
