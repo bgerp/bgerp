@@ -91,6 +91,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+        // Ако няма детайл ще се връзва към документа след създаване
         if(!isset($mvc->mainDetail)){
             if(isset($rec->fromContainerId)){
                 static::saveIfFromContainer($mvc, $rec);
@@ -104,6 +105,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
+        $rec = $mvc->fetchRec($id);
         if(isset($rec->fromContainerId)){
             $rec = $mvc->fetchRec($id);
             static::saveIfFromContainer($mvc, $rec);

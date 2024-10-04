@@ -4078,4 +4078,24 @@ class planning_Tasks extends core_Master
 
         return $exLinkArray;
     }
+
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($rec->isFinal == 'yes'){
+            $jobRec = doc_Containers::getDocument($rec->originId)->fetch();
+            if($jobRec->allowSecondMeasure == 'no'){
+                $derivativeMeasures = cat_UoM::getSameTypeMeasures(cat_Products::fetchField($jobRec->productId, 'measureId'));
+                if(!array_key_exists($rec->measureId, $derivativeMeasures)){
+                    core_Statuses::newStatus("Не може да се възстанови операцията, защото заданието вече не поддържа избраната мярка в операцията|*!", 'error');
+
+                    return false;
+                }
+            }
+        }
+    }
 }
