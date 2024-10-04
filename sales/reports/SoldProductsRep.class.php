@@ -2047,12 +2047,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
 
+        $prodRec = cat_Products::fetch($dRec->productId);
         $res->group = self::getGroups($dRec, false, $rec);
         if (isset($dRec->measure)) {
             $res->measure = $dRec->measure;
         }
         if (isset($dRec->productId)) {
-            $res->productId = cat_Products::fetch($dRec->productId)->name;
+            $res->productId = $prodRec->name;
         }
 
         if ($rec->compare != 'no') {
@@ -2100,11 +2101,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         } else {
             if ($rec->engName == 'yes') {
-                $engName = cat_Products::fetch($dRec->productId)->nameEn ? cat_Products::fetch($dRec->productId)->nameEn : 'none';
+                $engName = $prodRec->nameEn ? $prodRec->nameEn : 'none';
                 $res->engName = $engName;
             }
             if ($rec->seeCategory == 'yes') {
-                $prodFolderId = cat_Products::fetch($dRec->productId)->folderId;
+                $prodFolderId = $prodRec->folderId;
                 $prodCategory = doc_Folders::fetch($prodFolderId)->title;
                 $res->category = $prodCategory;
             }
