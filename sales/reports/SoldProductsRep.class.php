@@ -380,6 +380,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         }
 
+        $posReceiptIdArr = array();
+
         // Да се заредят контрагентите от POS  бележките
         foreach ($posReceiptIdArr as $recept) {
 
