@@ -2049,7 +2049,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
 
-        $prodRec = cat_Products::fetch($dRec->productId);
+        if($dRec->productId){
+            $prodRec = cat_Products::fetch($dRec->productId);
+        }
+
         $res->group = self::getGroups($dRec, false, $rec);
         if (isset($dRec->measure)) {
             $res->measure = $dRec->measure;
