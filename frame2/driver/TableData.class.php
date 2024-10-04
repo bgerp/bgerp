@@ -736,7 +736,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     public function getExportRec_($rec, $dRec, $ExportClass)
     {
-        return $dRec;
+        return clone $dRec;
     }
     
     
