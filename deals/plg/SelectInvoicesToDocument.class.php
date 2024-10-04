@@ -91,11 +91,12 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        if(!isset($mvc->mainDetail)){
+       // if(!isset($mvc->mainDetail)){
             if(isset($rec->fromContainerId)){
+
                 static::saveIfFromContainer($mvc, $rec);
             }
-        }
+       // }
     }
 
 
