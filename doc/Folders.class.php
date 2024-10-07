@@ -208,7 +208,7 @@ class doc_Folders extends core_Master
             $doubleClickDataUrl = toUrl($doubleClickUrl);
             $attr['data-doubleclick'] .= $doubleClickDataUrl;
         }
-        //bp($url, $doubleClickDataUrl);
+
         $link = ht::createLink($title, $url, null, $attr);
         
         return $link;
