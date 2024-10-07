@@ -238,7 +238,7 @@ class bgerp_Recently extends core_Manager
                         'id' => $docRec->id);
                 }
 
-                $doubleClickUrl = $docProxy->getUrlForDblClick();
+                $doubleClickUrl = $docProxy->getUrlForDblClick($linkUrl);
                 if(isset($doubleClickUrl)){
                     $doubleClickDataUrl = toUrl($doubleClickUrl);
                     $attr['data-doubleclick'] .= $doubleClickDataUrl;
