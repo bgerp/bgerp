@@ -221,11 +221,11 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                         'accItem' => '',
                         'currencyId' => $sRec->currencyId,
                         'rate' => $sRec->rate,
-                        'dealValue' => $dealValue,
-                        'detAmount' => $dealValue,
+                        'dealValue' => $dealValue*$sRec->rate,
+                        'detAmount' => $dealValue*$sRec->rate,
                         'dpOperation' => $sRec->dpOperation,
-                        'dpAmount' => $sRec->dpAmount,
-                        'changeAmount' => $sRec->changeAmount,
+                        'dpAmount' => $sRec->dpAmount*$sRec->rate,
+                        'changeAmount' => $sRec->changeAmount*$sRec->rate,
                         'state' => $state,
                         'brState' => $brState,
 
@@ -250,12 +250,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'accItem' => '',
                     'currencyId' => $sRec->currencyId,
                     'rate' => $sRec->rate,
-                    'dealValue' => $sRec->dealValue,
+                    'dealValue' => $sRec->dealValue*$sRec->rate,
                     'state' => $state,
                     'brState' => $brState,
                     'dpOperation' => $sRec->dpOperation,
-                    'dpAmount' => $sRec->dpAmount,
-                    'changeAmount' => $sRec->changeAmount,
+                    'dpAmount' => $sRec->dpAmount*$sRec->rate,
+                    'changeAmount' => $sRec->changeAmount*$sRec->rate,
 
                 );
             }
@@ -310,10 +310,10 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'accItem' => '',
                     'currencyId' => $invoices[$dRec->invoiceId]->currencyId,
                     'rate' => $invoices[$dRec->invoiceId]->rate,
-                    'dealValue' => $invoices[$dRec->invoiceId]->dealValue,
+                    'dealValue' => $invoices[$dRec->invoiceId]->dealValue*$invoices[$dRec->invoiceId]->rate,
                     'state' => $invoices[$dRec->invoiceId]->state,
                     'brState' => $invoices[$dRec->invoiceId]->brState,
-                    'detAmount' => $invoices[$dRec->invoiceId]->dpAmount,
+                    'detAmount' => $invoices[$dRec->invoiceId]->dpAmount*$invoices[$dRec->invoiceId]->rate,
 
                 );
                 $id = $dRec->id;
@@ -364,8 +364,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'prodCode' => $prodCode,
                     'group' => $group,
                     'quantity' => $dRec->quantity,
-                    'price' => $dRec->price,
-                    'detAmount' => $detAmount,
+                    'price' => $dRec->price*$invoices[$dRec->invoiceId]->rate,
+                    'detAmount' => $detAmount*$invoices[$dRec->invoiceId]->rate,
                     'vatAmount' => '',
                     'measure' => $measure,
                     'vat' => cat_Products::getVat($pRec->id,$invoices[$dRec->invoiceId]->date, $invoices[$dRec->invoiceId]->threadId) * 100,
