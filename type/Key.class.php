@@ -731,7 +731,9 @@ class type_Key extends type_Int
                     // ако ще се рендират опциите като радио-бутони маха се празната опция
                     if(isset($maxRadio) && $optionsCnt <= $maxRadio){
                         if($this->params['allowEmpty']){
-                            unset($options['']);
+                            if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2){
+                                unset($options['']);
+                            }
                         }
                     }
 
