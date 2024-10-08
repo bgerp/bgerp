@@ -303,6 +303,18 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         }
 
         foreach ($details as $dRec) {
+
+            //река на артикула от детайла
+            $pRec = cat_Products::fetch($dRec->productId);
+
+            //Извличане на счетоводна сметка и код на артикула
+            if($pRec->bnavCode){
+
+                //todo
+
+
+            }
+
             $id = $dRec->id;
 
             //Ако има авансово приспадане на суми
@@ -345,8 +357,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 }
             }
 
-            $pRec = cat_Products::fetch($dRec->productId);
-
             //Ако има регистрирана "ОСНОВНА ГРУПА", определяме група на артикула спрямо нея
             if (core_Packs::getConfig('bnav')->BASE_GROUP != '') {
 
@@ -379,6 +389,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 $recs[$id] = (object)array(
                     'invoice' => $invoices[$dRec->invoiceId],
                     'number' => $invoices[$dRec->invoiceId]->number,
+                    'accItem' => '',
                     'prodCode' => $prodCode,
                     'group' => $group,
                     'quantity' => $dRec->quantity,
