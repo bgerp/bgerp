@@ -439,6 +439,7 @@ class planning_Jobs extends core_Master
         }
 
         // Ако има предишни задания зареждат се за избор
+        $productId = $productId ?? $rec->productId;
         if(isset($productId)){
             $previousJobs = self::getPreviousJob($productId, $saleId);
             if (countR($previousJobs)) {
