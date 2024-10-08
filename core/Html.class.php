@@ -384,7 +384,7 @@ class core_Html
         expect($optionsCnt > 0, "Липсват опции за '{$name}'");
 
         // Когато имаме само една опция, правим readOnly <input>
-        if ($optionsCnt == 1 && !$attr['_isAllowEmpty']) {
+        if ($optionsCnt == 1 && (!$attr['_isAllowEmpty'] || array_key_exists('', $options))) {
             foreach ($options as $id => $opt) {
                 if (is_object($opt) && $opt->group) {
                     continue;
