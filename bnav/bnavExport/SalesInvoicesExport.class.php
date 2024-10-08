@@ -75,7 +75,10 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FNC('dealType', 'int', 'caption=Тип сделка,after=to,input=none,single=none,mandatory');
+        $fieldset->FLD('currencyType', 'set(yes = )', 'caption=Експорт във валута,after=to,input,single=none');
+
+
+        $fieldset->FNC('dealType', 'int', 'caption=Тип сделка,after=currencyType,input=none,single=none,mandatory');
     }
 
 
@@ -91,6 +94,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        $form->setDefault('currencyType', null);
     }
 
 
@@ -125,6 +130,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $currencyType = 1;
 
         //Ако има регистрирана "ОСНОВНА ГРУПА", вадим групите, които са едно ниво под нея
         if (core_Packs::getConfig('bnav')->BASE_GROUP != '') {
@@ -202,6 +208,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $rec->dealType = self::getDealType($sRec);
             $rec->docType = self::getDocType($sRec);
 
+            if ($rec->currencyType == 'yes'){
+                $currencyType = $sRec->rate;
+            }else{
+                $currencyType = 1;
+            }
+
             //Ако има авансово начисляване на суми по цялата фактура
             if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {
                 $dealValue = $sRec->changeAmount ? $sRec->dealValue : $sRec->dpAmount;
@@ -221,11 +233,11 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                         'accItem' => '',
                         'currencyId' => $sRec->currencyId,
                         'rate' => $sRec->rate,
-                        'dealValue' => $dealValue,
-                        'detAmount' => $dealValue,
+                        'dealValue' => $dealValue*$currencyType,
+                        'detAmount' => $dealValue*$currencyType,
                         'dpOperation' => $sRec->dpOperation,
-                        'dpAmount' => $sRec->dpAmount,
-                        'changeAmount' => $sRec->changeAmount,
+                        'dpAmount' => $sRec->dpAmount*$currencyType,
+                        'changeAmount' => $sRec->changeAmount*$currencyType,
                         'state' => $state,
                         'brState' => $brState,
 
@@ -250,12 +262,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'accItem' => '',
                     'currencyId' => $sRec->currencyId,
                     'rate' => $sRec->rate,
-                    'dealValue' => $sRec->dealValue,
+                    'dealValue' => $sRec->dealValue*$sRec->rate,
                     'state' => $state,
                     'brState' => $brState,
                     'dpOperation' => $sRec->dpOperation,
-                    'dpAmount' => $sRec->dpAmount,
-                    'changeAmount' => $sRec->changeAmount,
+                    'dpAmount' => $sRec->dpAmount*$sRec->rate,
+                    'changeAmount' => $sRec->changeAmount*$sRec->rate,
 
                 );
             }
@@ -297,6 +309,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             if ($invoices[$dRec->invoiceId]->dpOperation == 'deducted') {
                 $id = $invoices[$dRec->invoiceId]->number;
 
+                if ($rec->currencyType == 'yes'){
+                    $currencyType = $invoices[$dRec->invoiceId]->rate;
+                }else{
+                    $currencyType = 1;
+                }
+
                 $recs[$id] = (object)array(
                     'type' => $invoices[$dRec->invoiceId]->type,
                     'dealType' => $rec->dealType,
@@ -310,10 +328,10 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'accItem' => '',
                     'currencyId' => $invoices[$dRec->invoiceId]->currencyId,
                     'rate' => $invoices[$dRec->invoiceId]->rate,
-                    'dealValue' => $invoices[$dRec->invoiceId]->dealValue,
+                    'dealValue' => $invoices[$dRec->invoiceId]->dealValue*$currencyType,
                     'state' => $invoices[$dRec->invoiceId]->state,
                     'brState' => $invoices[$dRec->invoiceId]->brState,
-                    'detAmount' => $invoices[$dRec->invoiceId]->dpAmount,
+                    'detAmount' => $invoices[$dRec->invoiceId]->dpAmount*$currencyType,
 
                 );
                 $id = $dRec->id;
@@ -364,8 +382,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'prodCode' => $prodCode,
                     'group' => $group,
                     'quantity' => $dRec->quantity,
-                    'price' => $dRec->price,
-                    'detAmount' => $detAmount,
+                    'price' => $dRec->price*$currencyType,
+                    'detAmount' => $detAmount*$currencyType,
                     'vatAmount' => '',
                     'measure' => $measure,
                     'vat' => cat_Products::getVat($pRec->id,$invoices[$dRec->invoiceId]->date, $invoices[$dRec->invoiceId]->threadId) * 100,

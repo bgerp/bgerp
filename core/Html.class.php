@@ -384,7 +384,7 @@ class core_Html
         expect($optionsCnt > 0, "Липсват опции за '{$name}'");
 
         // Когато имаме само една опция, правим readOnly <input>
-        if ($optionsCnt == 1) {
+        if ($optionsCnt == 1 && (!$attr['_isAllowEmpty'] || array_key_exists('', $options))) {
             foreach ($options as $id => $opt) {
                 if (is_object($opt) && $opt->group) {
                     continue;
@@ -435,7 +435,9 @@ class core_Html
             )));
 
         } elseif ($optionsCnt <= $maxRadio) {
-
+            if ($optionsCnt < 4) {
+                $keyListClass .= ' shrinked';
+            }
             // Когато броя на опциите са по-малко
             
             // Определяме броя на колоните, ако не са зададени.
@@ -450,7 +452,7 @@ class core_Html
             }
             
             if ($col > 1) {
-                $tpl = "<table class='keylist'><tr>";
+                $tpl = "<table class='keylist {$keyListClass}'><tr>";
                 
                 for ($i = 1; $i <= $col; $i++) {
                     $tpl .= "<td style='vertical-align: top;'>[#OPT" . ($i - 1) . '#]</td>';

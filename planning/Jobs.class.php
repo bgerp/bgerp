@@ -239,7 +239,7 @@ class planning_Jobs extends core_Master
      */
     public function  description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|quantity|oldJobId');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|productionScrap|quantity|oldJobId');
         $this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none,class=w100');
         $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory,remember');
         
@@ -253,6 +253,7 @@ class planning_Jobs extends core_Master
 
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
+        $this->FLD('productionScrap', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Произв.брак');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('allowSecondMeasure', 'enum(no=Без,yes=Задължителна)', 'caption=Втора мярка,notNull,value=no,silent,removeAndRefreshForm=secondMeasureId');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,remember,mandatory');
@@ -439,6 +440,7 @@ class planning_Jobs extends core_Master
         }
 
         // Ако има предишни задания зареждат се за избор
+        $productId = $productId ?? $rec->productId;
         if(isset($productId)){
             $previousJobs = self::getPreviousJob($productId, $saleId);
             if (countR($previousJobs)) {
@@ -524,9 +526,21 @@ class planning_Jobs extends core_Master
             }
         }
 
+        if ($productionScrap = cat_Products::getParams($productId, 'productionScrap')) {
+            $form->setDefault('productionScrap', $productionScrap);
+        }
+
+        $withProductionScrap = $rec->packQuantity * (1 + $rec->productionScrap);
+        $scrapHintDisplay = (empty($rec->packQuantity) || empty($rec->productionScrap)) ? 'none' : 'inline-block';
+        $form->setField('packQuantity', array('unit' => "|*<span style='display:{$scrapHintDisplay};'><span class='quiet'>|включен техн. брак|*:</span> <span class='withProductionScrap'>{$withProductionScrap}</span></span>"));
+
         if($data->action == 'clone'){
             $form->setReadOnly('department');
         }
+
+        $form->layout = $form->renderLayout();
+        $jsTpl = new core_ET("console.log('test');");
+        $form->layout->appendOnce($jsTpl, 'SCRIPTS');
     }
 
 
@@ -1062,6 +1076,13 @@ class planning_Jobs extends core_Master
 
             if(!empty($rec->deliveryTermId)){
                 $row->deliveryTermId = cond_DeliveryTerms::getHyperlink($rec->deliveryTermId, true);
+            }
+
+            // Показване и на к-то с очаквания произв. брак
+            if(isset($rec->productionScrap)){
+                $packQuantityWithScrap = $rec->packQuantity * (1 + $rec->productionScrap);
+                $packQuantityWithScrapVerbal = core_Type::getByName('double(smartRound)')->toVerbal($packQuantityWithScrap);
+                $row->packQuantityWithScrap = ht::createHint($packQuantityWithScrapVerbal, "Техн. брак|*: {$row->productionScrap}");
             }
         }
         

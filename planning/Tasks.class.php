@@ -988,9 +988,10 @@ class planning_Tasks extends core_Master
             $rec->title = cat_Products::getTitleById($rec->productId);
 
             planning_Centers::checkDeviationPercents($form);
+
             if (in_array($form->cmd, array('save_pending', 'save_pending_new'))) {
-                if (empty($rec->indTime) && empty($rec->timeDuration)) {
-                    $form->setError('timeDuration,indTime', "Необходими са данни за да се изчисли продължителността на операцията|*!");
+                if (empty($rec->indTime) && empty($rec->timeDuration) && (empty($rec->timeStart) || empty($rec->timeEnd))) {
+                    $form->setError('timeDuration,indTime,timeStart,timeEnd', "Необходими са данни за да се изчисли продължителността на операцията|*!");
                 }
             }
 
@@ -1050,6 +1051,12 @@ class planning_Tasks extends core_Master
 
                 if ($whenToUnsetStartAfter) {
                     $rec->startAfter = null;
+                }
+
+                if(empty($rec->timeDuration)){
+                    if(!empty($rec->timeStart) && !empty($rec->timeEnd)){
+                        $rec->timeDuration = dt::secsBetween($rec->timeEnd, $rec->timeStart);
+                    }
                 }
             }
         }

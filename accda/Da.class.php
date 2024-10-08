@@ -531,7 +531,7 @@ class accda_Da extends core_Master
         }
 
         if($mvc->haveRightFor('selectresource', $rec)){
-            $row->btns .= ht::createLink('', array($mvc, 'selectresource', 'id' => $rec->id, 'ret_url' => true), false, 'ef_icon = img/16/edit.png,title=Свързване с вече съществуващ ресурс')->getContent();
+            $row->btns .= ht::createLink('', array($mvc, 'selectresource', 'id' => $rec->id, 'ret_url' => true), false, 'ef_icon = img/16/edit.png,title=Свързване с вече съществуващи ресурси')->getContent();
         }
     }
     
@@ -633,7 +633,7 @@ class accda_Da extends core_Master
                 $assets[] = planning_AssetResources::getHyperlink($aRec->id, true);
             }
             if(countR($assets)){
-                $row->assets = implode(',', $assets);
+                $row->assets = implode('<br>', $assets);
             }
         }
 

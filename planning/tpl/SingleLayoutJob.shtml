@@ -30,7 +30,12 @@
                 <!--ET_END captionWastes-->
             </tr>
             <tr>
-                <td class = 'nowrap'>[#packQuantity#]</td>
+                <td class = 'nowrap'>
+                    <div>[#packQuantity#]</div>
+                    <!--ET_BEGIN packQuantityWithScrap-->
+                    <div class="small"><span class="quiet">|С техн. брак|*:</span> [#packQuantityWithScrap#]</div>
+                    <!--ET_END packQuantityWithScrap-->
+                </td>
                 <!--ET_BEGIN quantityFromTasks-->
                 <td class = 'nowrap'>[#quantityFromTasks#] </td>
                 <!--ET_END quantityFromTasks-->
