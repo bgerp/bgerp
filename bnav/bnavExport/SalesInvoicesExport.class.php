@@ -138,13 +138,13 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $baseGroupId = (trim(core_Packs::getConfig('bnav')->BASE_GROUP, '|'));
             $gQuery = cat_Groups::getQuery();
             $gQuery->where("#parentId = $baseGroupId");
-            if (!$gQuery->count()){
+            if (!$gQuery->count()) {
                 cat_Products::logErr("Липсват регистрирани групи в основната група");
                 followRetUrl(null, "Липсват регистрирани групи в основната група", 'error');
 
             }
 
-        //    expect($gQuery->count(), 'Липсват регистрирани групи в основната група');
+            //    expect($gQuery->count(), 'Липсват регистрирани групи в основната група');
 
             //масив с групи, които са едно ниво под основната
             $flGroups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
@@ -208,9 +208,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $rec->dealType = self::getDealType($sRec);
             $rec->docType = self::getDocType($sRec);
 
-            if ($rec->currencyType == 'yes'){
+            if ($rec->currencyType == 'yes') {
                 $currencyType = $sRec->rate;
-            }else{
+            } else {
                 $currencyType = 1;
             }
 
@@ -233,11 +233,11 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                         'accItem' => '',
                         'currencyId' => $sRec->currencyId,
                         'rate' => $sRec->rate,
-                        'dealValue' => $dealValue*$currencyType,
-                        'detAmount' => $dealValue*$currencyType,
+                        'dealValue' => $dealValue * $currencyType,
+                        'detAmount' => $dealValue * $currencyType,
                         'dpOperation' => $sRec->dpOperation,
-                        'dpAmount' => $sRec->dpAmount*$currencyType,
-                        'changeAmount' => $sRec->changeAmount*$currencyType,
+                        'dpAmount' => $sRec->dpAmount * $currencyType,
+                        'changeAmount' => $sRec->changeAmount * $currencyType,
                         'state' => $state,
                         'brState' => $brState,
 
@@ -262,12 +262,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'accItem' => '',
                     'currencyId' => $sRec->currencyId,
                     'rate' => $sRec->rate,
-                    'dealValue' => $sRec->dealValue*$sRec->rate,
+                    'dealValue' => $sRec->dealValue * $sRec->rate,
                     'state' => $state,
                     'brState' => $brState,
                     'dpOperation' => $sRec->dpOperation,
-                    'dpAmount' => $sRec->dpAmount*$sRec->rate,
-                    'changeAmount' => $sRec->changeAmount*$sRec->rate,
+                    'dpAmount' => $sRec->dpAmount * $sRec->rate,
+                    'changeAmount' => $sRec->changeAmount * $sRec->rate,
 
                 );
             }
@@ -303,15 +303,36 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         }
 
         foreach ($details as $dRec) {
+
+            //река на артикула от детайла
+            $pRec = cat_Products::fetch($dRec->productId);
+
+            //Извличане на счетоводна сметка и код на артикула
+            $accItem = null;
+            if ($pRec->bnavCode) {
+
+                //todo
+                $accItem = core_Packs::getConfig('bnav')->FSD_SALES;
+
+                $startPos = strpos($pRec->bnavCode, '[') + 1;
+                $endPos = strpos($pRec->bnavCode, ']');
+                $subAccItem = substr($pRec->bnavCode, $startPos, $endPos - $startPos);
+
+                $accItem .= $subAccItem;
+
+                $prodCode = substr($pRec->bnavCode, $endPos + 1);  // +1, за да пропуснем самата скоба
+
+            }
+
             $id = $dRec->id;
 
             //Ако има авансово приспадане на суми
             if ($invoices[$dRec->invoiceId]->dpOperation == 'deducted') {
                 $id = $invoices[$dRec->invoiceId]->number;
 
-                if ($rec->currencyType == 'yes'){
+                if ($rec->currencyType == 'yes') {
                     $currencyType = $invoices[$dRec->invoiceId]->rate;
-                }else{
+                } else {
                     $currencyType = 1;
                 }
 
@@ -325,13 +346,13 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'contragentName' => $invoices[$dRec->invoiceId]->contragentName,
                     'paymentType' => $invoices[$dRec->invoiceId]->paymentType,
                     'accountId' => $invoices[$dRec->invoiceId]->bankAccount,
-                    'accItem' => '',
+                    'accItem' => $accItem,
                     'currencyId' => $invoices[$dRec->invoiceId]->currencyId,
                     'rate' => $invoices[$dRec->invoiceId]->rate,
-                    'dealValue' => $invoices[$dRec->invoiceId]->dealValue*$currencyType,
+                    'dealValue' => $invoices[$dRec->invoiceId]->dealValue * $currencyType,
                     'state' => $invoices[$dRec->invoiceId]->state,
                     'brState' => $invoices[$dRec->invoiceId]->brState,
-                    'detAmount' => $invoices[$dRec->invoiceId]->dpAmount*$currencyType,
+                    'detAmount' => $invoices[$dRec->invoiceId]->dpAmount * $currencyType,
 
                 );
                 $id = $dRec->id;
@@ -344,8 +365,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     continue;
                 }
             }
-
-            $pRec = cat_Products::fetch($dRec->productId);
 
             //Ако има регистрирана "ОСНОВНА ГРУПА", определяме група на артикула спрямо нея
             if (core_Packs::getConfig('bnav')->BASE_GROUP != '') {
@@ -366,8 +385,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 }
 
             }
-            $erpCode = $pRec->code ? $pRec->code : 'Art' . $pRec->id;
-            $prodCode = $pRec->bnavCode ? $pRec->bnavCode : $erpCode;
+            // $erpCode = $pRec->code ? $pRec->code : 'Art' . $pRec->id;
+            //   $prodCode = $pRec->bnavCode ? $pRec->bnavCode : $erpCode;
             $measure = cat_UoM::getShortName($pRec->measureId);
             $detAmount = $dRec->amount;
 
@@ -379,14 +398,15 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 $recs[$id] = (object)array(
                     'invoice' => $invoices[$dRec->invoiceId],
                     'number' => $invoices[$dRec->invoiceId]->number,
+                    'accItem' => $accItem,
                     'prodCode' => $prodCode,
                     'group' => $group,
                     'quantity' => $dRec->quantity,
-                    'price' => $dRec->price*$currencyType,
-                    'detAmount' => $detAmount*$currencyType,
+                    'price' => $dRec->price * $currencyType,
+                    'detAmount' => $detAmount * $currencyType,
                     'vatAmount' => '',
                     'measure' => $measure,
-                    'vat' => cat_Products::getVat($pRec->id,$invoices[$dRec->invoiceId]->date, $invoices[$dRec->invoiceId]->threadId) * 100,
+                    'vat' => cat_Products::getVat($pRec->id, $invoices[$dRec->invoiceId]->date, $invoices[$dRec->invoiceId]->threadId) * 100,
                     'accText' => '',
                 );
 
@@ -475,7 +495,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $row->contragentName = $dRec->invoice->contragentName;
             $row->contragentVatNo = $dRec->invoice->contragentVatNo;
             $row->contragentNo = $dRec->invoice->contragentNo;
-            $row->accItem = $dRec->invoice->accItem;
+            $row->accItem = $dRec->accItem;
             $row->currencyId = $dRec->invoice->currencyId;
             $row->rate = core_Type::getByName('double(decimals=4)')->toVerbal($dRec->invoice->rate);
             $row->dealValue = $Double->toVerbal($dRec->invoice->dealValue);
@@ -554,7 +574,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $res->contragentName = $dRec->invoice->contragentName;
             $res->contragentVatNo = $dRec->invoice->contragentVatNo;
             $res->contragentNo = $dRec->invoice->contragentNo;
-            $res->accItem = $dRec->invoice->accItem;
+            $res->accItem = $dRec->accItem;
             $res->currencyId = $dRec->invoice->currencyId;
             $res->rate = ($dRec->invoice->rate);
             $res->dealValue = ($dRec->invoice->dealValue);
