@@ -538,6 +538,7 @@ class planning_Jobs extends core_Master
             $form->setReadOnly('department');
         }
 
+        $form->layout = $form->renderLayout();
         $jsTpl = new core_ET("console.log('test');");
         $form->layout->appendOnce($jsTpl, 'SCRIPTS');
     }
