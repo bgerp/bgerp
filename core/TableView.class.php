@@ -318,7 +318,7 @@ class core_TableView extends core_BaseClass
         if (countR($rows)) {
             foreach ($rows as $r) {
                 $rowTpl = $tpl->getBlock('ROW');
-                
+
                 if ($r instanceof core_Et) {
                     $rowTpl->replace($r);
                 }
@@ -340,7 +340,15 @@ class core_TableView extends core_BaseClass
                     
                     $rowTpl->replace($value, $name);
                 }
-                
+
+                if (is_array($r['TBODY_ROW_ATTR'])) {
+                    $tBodyAttr = '';
+                    foreach ($r['TBODY_ROW_ATTR'] as $attrName => $attrValue) {
+                        $tBodyAttr .= " ${attrName}=\"{$attrValue}\"";
+                    }
+                    $rowTpl->replace($tBodyAttr, 'TBODY_ROW_ATTR', false, false);
+                }
+
                 // Добавяме атрибутите на реда от таблицата, ако има такива
                 if (countR($r['ROW_ATTR'])) {
                     $attrs = $attrs1 = '';
