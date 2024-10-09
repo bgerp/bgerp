@@ -651,6 +651,15 @@ class type_Key extends type_Int
             
             parent::setFieldWidth($attr);
 
+            $maxRadio = $this->params['maxRadio'];
+            if(empty($maxRadio) && !$this->params['isHorizontal']){
+                if(arr::isOptionsTotalLenBellowAllowed($options)){
+                    $maxRadio = 4;
+                    $this->params['select2MinItems'] = 10000;
+                    $this->params['columns'] =  ($optionsCnt > 3) ?  4 : 3;
+                }
+            }
+
             if (($optionsCnt > $maxSuggestions) && (!core_Packs::isInstalled('select2'))) {
                 $options = $this->prepareOptions($value);
                 
@@ -720,8 +729,12 @@ class type_Key extends type_Int
                     $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
                 } else {
                     // ако ще се рендират опциите като радио-бутони маха се празната опция
-                    if(isset($this->params['maxRadio']) && $optionsCnt <= $this->params['maxRadio']){
-                        unset($options['']);
+                    if(isset($maxRadio) && $optionsCnt <= $maxRadio){
+                        if($this->params['allowEmpty']){
+                            if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2){
+                                unset($options['']);
+                            }
+                        }
                     }
 
                     // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
@@ -733,21 +746,8 @@ class type_Key extends type_Int
                             $value = $o1;
                         }
                     }
-                    
-                    $tpl = ht::createSmartSelect(
-                        
-                        $options,
-                        
-                        $name,
-                        
-                        $value,
-                        
-                        $attr,
-                        $this->params['maxRadio'],
-                        $this->params['maxColumns'],
-                        $this->params['columns']
-                    
-                    );
+
+                    $tpl = ht::createSmartSelect($options, $name, $value, $attr, $maxRadio, $this->params['maxColumns'], $this->params['columns']);
                 }
             }
         } else {

@@ -205,6 +205,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
                         $bankRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
                             'amountDeal' => $cRec->amountDeal,
+                            'totalSumContr' => array(),
                             'className' => $className,
                             'payDate' => $payDate,
                             'termDate' => $cRec->termDate,
@@ -263,6 +264,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                         }
                         $caseRecs[$cRec->containerId] = (object)array('containerId' => $cRec->containerId,
                             'amountDeal' => $cRec->amountDeal,
+                            'totalSumContr' => array(),
                             'className' => $className,
                             'payDate' => $payDate,
                             'termDate' => $cRec->termDate,
@@ -282,6 +284,24 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         }
 
         $recs = $bankRecs + $caseRecs;
+
+        //Извеждане на резултатните суми по контрагент
+        $totalContragentaSumArr = array();
+        foreach ($recs as $r) {
+            $m = 1;
+            $DoocClass = cls::get($r->className);
+            if (!in_array($DoocClass->abbr, array('Pbd', 'Pko'))) {
+                $m = -1;
+            }
+            if(!in_array($r->folderId,array_keys($totalContragentaSumArr))){
+                $totalContragentaSumArr[$r->folderId] = $r->amountDeal*$m;
+            }else{
+                $totalContragentaSumArr[$r->folderId] += $r->amountDeal*$m;
+            }
+
+            $r->totalSumContr = $totalContragentaSumArr;
+        }
+
 
         usort($recs, array($this, 'orderByPayDate'));
 
@@ -309,8 +329,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
         $fld->FLD('documentId', 'varchar', 'caption=Документ');
         $fld->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума,smartCenter');
-        $fld->FLD('payDate', 'date', 'caption=Плащане до');
         $fld->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,smartCenter');
+        $fld->FLD('payDate', 'date', 'caption=Плащане до');
 
         if ($export === false) {
             $fld->FLD('created', 'varchar', 'caption=Създаване,smartCenter');
@@ -338,9 +358,18 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $Date = cls::get('type_Date');
 
         $row = new stdClass();
-        $row->documentId = cls::get($dRec->className)->getLink($dRec->documentId, 0);
 
-        $row->contragentName = $dRec->contragentName;
+        $DoocClass = cls::get($dRec->className);
+        $row->documentId = $DoocClass->getLink($dRec->documentId, 0);
+        if(!$rec->data->groupByField) {
+            $row->contragentName = $dRec->contragentName;
+        }else{
+            if($dRec->totalSumContr[$dRec->folderId] >= 0){
+                $row->contragentName = $dRec->contragentName .'<span style="color: green" class="fright">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSumContr[$dRec->folderId]) . '<span class="cCode" style="position:relative; top: -2px; margin-left: 2px;">' . currency_Currencies::getCodeById($dRec->currencyId). '</span>';
+            }else{
+                $row->contragentName = $dRec->contragentName.'<span style="color: red" class="fright">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSumContr[$dRec->folderId]) . '<span class="cCode" style="position:relative; top: -2px; margin-left: 2px;">' . currency_Currencies::getCodeById($dRec->currencyId). '</span>';
+            }
+        }
 
         if (isset($dRec->createdBy)) {
             $row->createdBy = crm_Profiles::createLink($dRec->createdBy);
@@ -352,8 +381,15 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         $row->created = $row->createdOn . ' от ' . $row->createdBy;
 
+        if (in_array($DoocClass->abbr, array('Pbd', 'Pko'))) {
+            $row->amountDeal = '<span style="color: green">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal) . '</span>';
+        } else {
+            $row->amountDeal = '<span style="color: red">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal) . '</span>';
+        }
+
+
         if (isset($dRec->amountDeal)) {
-            $row->amountDeal = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal);
+
             $row->amountDeal = ht::createHint($row->amountDeal, "${hint}", 'notice');
             $row->payDate = ($dRec->payDate) ? $Date->toVerbal($dRec->payDate) : tr('|*<span class="quiet">|не е посочен|*</span>');
         }

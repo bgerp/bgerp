@@ -100,7 +100,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
     {
 
         $fieldset->FLD('from', 'date', 'caption=От,refreshForm,after=title,single=none');
-        $fieldset->FLD('to', 'date', 'caption=До,refreshForm,after=from,single=none');
+        $fieldset->FLD('to', 'date', 'caption=До,refreshForm,after=from,placeholder=До днес,single=none');
 
         // $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
 
@@ -135,6 +135,9 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $form->setField('inDet', 'input');
         }
 
+        if (is_null($rec->to)) {
+            $form->setDefault('to', dt::today());
+        }
 
     }
 
@@ -198,7 +201,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
             $autoDiscount = $amount = 0;
 
-          $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
+            $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
 
             //Филтър по състояние
             if (in_array($receiptRec->state, array('rejected', 'draft', 'active'))) continue;
@@ -219,7 +222,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $vagExeptionId = pos_Points::fetch($receiptDetailRec->pointId)->vatExceptionId;
 
             //ДДС на артикула
-            $prodVat = cat_Products::getVat($receiptDetailRec->productId,$receiptDetailRec->waitingOn,$vagExeptionId);
+            $prodVat = cat_Products::getVat($receiptDetailRec->productId, $receiptDetailRec->waitingOn, $vagExeptionId);
 
             // Стойността намалена с отстъпките по политика $amount
             $amount = isset($receiptDetailRec->inputDiscount) ? ($receiptDetailRec->amount * (1 - $receiptDetailRec->inputDiscount)) : $receiptDetailRec->amount;
@@ -299,6 +302,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $rec->allCompanyDiscount = $allCompanyDiscount;
 
         if ((countR($recs)) && (($rec->seeBy == 'kross') || ($rec->seeBy == 'contragentName'))) {
+
             arr::sortObjects($recs, 'contragentName', 'asc');
         }
         if ((countR($recs) && ($rec->seeBy == 'date'))) {
@@ -558,6 +562,16 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                         $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
                     }
+
+                    usort($recs, function($a, $b) {
+                        // Сравняване по първото поле (price)
+                        if ($a->contragentName == $b->contragentName) {
+                            // Ако цените са еднакви, сравняваме по второто поле (quantity)
+                            return $a->waitingOn <=> $b->waitingOn;
+                        }
+                        // Иначе сравняваме по price
+                        return $a->contragentName <=> $b->contragentName;
+                    });
 
                     return $recs;
 

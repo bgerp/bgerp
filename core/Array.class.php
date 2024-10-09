@@ -750,4 +750,32 @@ class core_Array
              }
         }
     }
+
+
+    /**
+     * Проверка дали максималната дължина на опциите е под зададената
+     *
+     * @param array $options   - масив с опции
+     * @param bool $allowedLen - разрешената дължина, null за дефолтната
+     * @return bool
+     */
+    public static function isOptionsTotalLenBellowAllowed($options, $allowedLen = null)
+    {
+        $allowedLen = $allowed ?? bgerp_Setup::get('VERTICAL_FORM_DEFAULT_MAX_RADIO_LENGTH');
+
+        $count = $totalLen = 0;
+        array_walk($options, function ($v) use (&$count, &$totalLen){
+            $str = is_object($v) ? $v->title : $v;
+
+            if(!empty($str)){
+                $count++;
+                $totalLen += mb_strlen($str);
+            }
+        });
+
+       // броя на опциите * 3 + броя на символите на всичките < уеб константата
+        $res = $count * 3 + $totalLen;
+
+        return $res < $allowedLen;
+    }
 }

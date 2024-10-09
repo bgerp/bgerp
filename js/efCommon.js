@@ -2086,7 +2086,7 @@ function doubleClickOnLink() {
         clearTimeout(timer);
 
         timer = setTimeout(function() {
-            window.location.href = elem.attr("href");
+            top.window.location.href = elem.attr("href");
         }, delay);
     });
    // при 2 кликa да се отваря data атрибута
@@ -2095,7 +2095,7 @@ function doubleClickOnLink() {
         var elem = $(this);
 
         clearTimeout(timer);
-        window.location.href = elem.attr("data-doubleclick");
+        top.window.location.href = elem.attr("data-doubleclick");
     });
 }
 
@@ -5085,7 +5085,9 @@ function resizeIframes() {
 
 window.addEventListener('load', resizeIframes);
 window.addEventListener('resize', resizeIframes);
-
+$( document ).on( "ajaxComplete", function() {
+    resizeIframes();
+});
 
 window.addEventListener('message', function(event) {
     const iframe = document.querySelector(`iframe[src^="${event.origin}"]`);
@@ -5414,6 +5416,52 @@ Experta.prototype.saveBodyId = function() {
     sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
 };
 
+
+/*
+    да може деселектира радио бутон, ако е allowEmpty
+ */
+function deselectRadioButton() {
+
+    let lastChecked = null;
+
+    //отбелязваме всички чекнати радио бутони
+    $('input[type="radio"]').each(function() {
+        $(this).data('wasChecked', $(this).prop('checked')); // Начално състояние
+        if ($(this).prop('checked')) {
+            lastChecked = $(this); //задаване на последния избран бутон
+        }
+    });
+
+     // Маркирай първия бутон, ако не е allowEmpty и няма маркиран в групата
+    $('.notAllowEmptyRadioHolder input[type="radio"]').each(function() {
+        const groupName = $(this).attr('name');
+        const radiosInGroup = $(`input[name="${groupName}"]`);
+
+        if (!radiosInGroup.is(':checked')) {
+            const firstRadio = radiosInGroup.first();
+            firstRadio.prop('checked', true);
+            firstRadio.data('wasChecked', true);
+        }
+    });
+
+    $('.allowEmptyRadioHolder input[type="radio"]').click(function() {
+        let $this = $(this);
+
+        // Ако е чекнат, се размаркирва
+        if ($this.data('wasChecked')) {
+            $this.prop('checked', false);
+            $this.data('wasChecked', false);
+            lastChecked = null;
+        } else {
+            // Маркираме го чекнат и го записваме като последен
+            $this.data('wasChecked', true);
+            lastChecked = $this;
+        }
+
+        // Махаме всички останали радио бутони
+        $('.allowEmptyRadioHolder input[type="radio"]').not($this).data('wasChecked', false);
+    });
+}
 
 /**
  * Определя състоянието на страницата - дали е първо посещение, дали е след рефреш или след рефреш по ajax
@@ -6387,3 +6435,4 @@ runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
 runOnLoad(doubleClickOnLink);
+runOnLoad(deselectRadioButton);

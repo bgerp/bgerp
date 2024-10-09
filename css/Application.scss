@@ -1147,7 +1147,13 @@ option.team {
 	background: black;
 	color: #fc0;
 }
-
+#Bottom-tab-planning_Centers td {
+	max-width: 260px;
+	.linkWithIcon {
+		overflow-wrap: break-word;
+		white-space: break-spaces;
+	}
+}
 /*Стилове за acc*/
 div.acc-detail {
 	font-size: 0.8em;
@@ -2885,7 +2891,9 @@ max-width: 400px;
 .nowrap {
 	white-space: nowrap;
 }
-
+.wide .wideNowrap {
+	white-space: nowrap;
+}
 .wrapText {
 	white-space: normal !important;
 }
@@ -7286,6 +7294,11 @@ body.narrow {
 @media handheld, only screen and (max-width: 950px) {
 	body {
 		-webkit-text-size-adjust: none;
+	}
+	.richtext .document {
+		min-width: 100%;
+		border: none;
+		padding: 0;
 	}
 	.cms-row, body, .cms-container {
 		width: 100%;

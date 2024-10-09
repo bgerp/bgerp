@@ -34,7 +34,7 @@ class exif_Reader
         // Разширението трябва да е един от посочните
         if (($ext != 'jpg') && ($ext != 'jpeg') && ($ext != 'tiff') && ($ext != 'tif') && ($ext != 'webp')) {
             
-            return;
+            return ;
         }
 
         $exif = core_Cache::get('EXIF_READ_DATA', $fileHnd);
@@ -45,8 +45,12 @@ class exif_Reader
 
         Mode::push('FILEMAN_STOP_LOG_INFO', true);
 
-        // Пътя до файла
-        $path = fileman::extract($fileHnd);
+        try {
+            // Пътя до файла
+            $path = fileman::extract($fileHnd);
+        } catch (core_exception_Expect $e) {
+            log_System::add(get_called_class(), "Грешка при екстрактване на '{$fileHnd}'", null, 'warning');
+        }
 
         Mode::pop('FILEMAN_STOP_LOG_INFO');
         

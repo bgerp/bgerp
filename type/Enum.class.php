@@ -120,7 +120,7 @@ class type_Enum extends core_Type
                 }
             }
         }
-        
+
         parent::setFieldWidth($attr, null, $arr);
         
         if (isset($value) && !isset($arr[$value]) && strlen($value)) {
@@ -131,8 +131,25 @@ class type_Enum extends core_Type
                 $value = '';
             }
         }
-        
-        $tpl = ht::createSmartSelect($arr, $name, $value, $attr, $this->params['maxRadio'], $this->params['maxColumns'], $this->params['columns']);
+        $countOptions = countR($arr);
+        $maxRadio = $this->params['maxRadio'];
+        if(empty($maxRadio) && !$this->params['isHorizontal']){
+            if(arr::isOptionsTotalLenBellowAllowed($arr)){
+                $maxRadio = 4;
+                $this->params['select2MinItems'] = 10000;
+                $this->params['columns'] =  ($countOptions > 3) ?  4 : 3;
+            }
+        }
+
+        if($countOptions <= $maxRadio){
+            if(isset($arr[''])){
+                $attr['_isAllowEmpty'] = true;
+                if(countR($arr) >= 2){
+                    unset($arr['']);
+                }
+            }
+        }
+        $tpl = ht::createSmartSelect($arr, $name, $value, $attr, $maxRadio, $this->params['maxColumns'], $this->params['columns']);
         
         return $tpl;
     }

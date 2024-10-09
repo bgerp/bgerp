@@ -29,6 +29,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
     public $inputs = array(
         'startAfter' => array('caption' => 'Начало след', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
         'endAfter' => array('caption' => 'Край след', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
+        'lastClosed' => array('caption' => 'Последно приключен', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
     );
 
 
@@ -42,6 +43,8 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
     public function prepareConfigForm($form)
     {
         $form->FLD('resource', 'key(mvc=planning_AssetResources, select=name)', 'caption=Ресурс, input, mandatory');
+        $form->FLD('timeDeviation', 'time(suggestions=30 мин.|1 час| 2 часа)', 'caption=Време при липса на начало или край->Време, input');
+        $form->FLD('timeActiveAdd', 'time(suggestions=2 мин.|5 мин.|10 мин.)', 'caption=Време за добавяне към активността на задачата->Време, input');
     }
 
 
@@ -50,7 +53,10 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
      */
     public function readInputs($inputs, $config, &$persistentState)
     {
-        $maxDays = 10;
+        $timeDeviation = $config->timeDeviation; // Ако не е зададени начало или край на задача, да се изчисли от времето на другата
+        $timeRound = $config->timeActiveAdd; // Закръгляне на времето
+
+        $maxDays = 10; // Максимален брой дни за проверка
         $resArr = array();
 
         if (!$config->resource) {
@@ -68,6 +74,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $query->where(array("#expectationTimeStart >= '[#1#]'", $now));
         $query->orWhere(array("#expectationTimeEnd >= '[#1#]'", $now));
         $query->orWhere("#timeStart IS NULL");
+        $query->orWhere("#timeEnd IS NULL");
         $query->where(array("#expectationTimeStart <= '[#1#]'", $to));
         $query->orWhere(array("#expectationTimeEnd <= '[#1#]'", $to));
         $query->orWhere("#timeEnd IS NULL");
@@ -76,8 +83,20 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $query->orderBy('id', "DESC");
 
         $endIn = null;
-        $startIn = dt::addDays($maxDays);
+        $startIn = dt::addDays($maxDays, $now);
         while ($rec = $query->fetch()) {
+            if (!$rec->timeStart && $rec->timeEnd && $timeDeviation) {
+                $rec->expectationTimeStart = dt::subtractSecs($timeDeviation, $rec->timeEnd);
+            }
+            if ($rec->timeStart && !$rec->timeEnd && $timeDeviation) {
+                $rec->expectationTimeEnd = dt::addSecs($timeDeviation, $rec->timeStart);
+            }
+            if ($timeRound) {
+                $rec->expectationTimeStart = dt::subtractSecs($timeRound, $rec->expectationTimeStart);
+                $rec->expectationTimeEnd = dt::addSecs($timeRound, $rec->expectationTimeEnd);
+            }
+
+
             if (($rec->expectationTimeStart <= $now) && ($rec->expectationTimeEnd >= $now)) {
                 $endIn = isset($endIn) ? max($endIn, $rec->expectationTimeEnd) : $rec->expectationTimeEnd;
             }
@@ -87,12 +106,36 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
             }
         }
 
-        $resArr['startAfter'] = $resArr['endAfter'] = 0;
+        $resArr['startAfter'] = $resArr['lastClosed'] = $resArr['endAfter'] = 0;
         if (isset($endIn)) {
             $resArr['endAfter'] = ceil(dt::secsBetween($endIn, $now) / 60);
 
         } else {
             $resArr['startAfter'] = ceil(dt::secsBetween($startIn, $now) / 60);
+        }
+
+        // Намираме последно приключената задача и времето
+        $query = cal_Tasks::getQuery();
+        $query->where(array("#assetResourceId = '[#1#]'", $config->resource));
+        $query->where("#state = 'closed' OR #state = 'stopped'");
+        $query->where(array("#expectationTimeEnd <= '[#1#]'", $now));
+        $query->orWhere("#timeEnd IS NULL");
+        $query->orderBy('expectationTimeEnd', 'DESC');
+        $query->orderBy('expectationTimeStart', 'DESC');
+        $query->orderBy('id', "DESC");
+        $query->limit(1);
+
+        $cRec = $query->fetch();
+
+        if ($cRec) {
+            if ($cRec->timeStart && !$cRec->timeEnd && $timeDeviation) {
+                $newTimeEnd = dt::addSecs($timeDeviation, $cRec->timeStart);
+                if ($newTimeEnd <= $now) {
+                    $cRec->expectationTimeEnd = $newTimeEnd;
+                }
+            }
+
+            $resArr['lastClosed'] = ceil(dt::secsBetween($now, $cRec->expectationTimeEnd) / 60);
         }
 
         return $resArr;

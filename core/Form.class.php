@@ -763,6 +763,7 @@ class core_Form extends core_FieldSet
             
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
             $haveErrors = $this->gotErrors();
+            $firstError = false;
 
             // Създаваме input - елементите
             foreach ($fields as $name => $field) {
@@ -894,20 +895,14 @@ class core_Form extends core_FieldSet
                 
                 // Рендиране на select или input полето
                 $optionsCount = countR($options);
-
-                // Ако има зададено `maxRadio` е то, ако няма и формата е вертикална дефолтно забиваме, иначе няма
-                $maxRadio = $type->params['maxRadio'] ?? (!$isHorizontal ? 4 : null);
+                $type->params['isHorizontal'] = $isHorizontal;
                 if($type->params['allowEmpty']){
                     $attr['_isAllowEmpty'] = true;
                 }
 
-                // Ако опциите са <= от тези за радиото - се дисейбва плъгина `select`
-                if(isset($maxRadio) && $optionsCount <= $maxRadio){
-                    $type->params['select2MinItems'] = 10000;
-                }
-
                 if (($optionsCount > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     unset($attr['value']);
+                    $input = new ET();
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     
                     // Групиране по частта преди посочения разделител
@@ -918,6 +913,25 @@ class core_Form extends core_FieldSet
                     if (is_a($type, 'type_Enum') && $type->params['isReadOnly']) {
                         foreach ($options as &$title) {
                             $title = tr($title);
+                        }
+                    }
+
+                    if (!isset($field->removeAndRefreshForm) && !isset($field->refreshForm)) {
+                        $maxRadio = $type->params['maxRadio'];
+                        if(empty($maxRadio) && !$type->params['isHorizontal']){
+                            if(arr::isOptionsTotalLenBellowAllowed($options)){
+                                $maxRadio = 4;
+                                $type->params['select2MinItems'] = 10000;
+                            }
+                        }
+
+                        // ако ще се рендират опциите като радио-бутони маха се празната опция
+                        if(isset($maxRadio) && countR($options) <= $maxRadio){
+                            if($type->params['allowEmpty']){
+                                if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2) {
+                                    unset($options['']);
+                                }
+                            }
                         }
                     }
 
@@ -1098,7 +1112,7 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? (', ' . $fUnit) : '';
                     
-                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#]' nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#] wideNowrap'  style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
                     if ($emptyRow) {
                         $tpl->append(new ET("\n<tr class='{$fsRow}'><td colspan=2><div class='formGroup'>&nbsp;</div></td></tr>"), 'FIELDS');

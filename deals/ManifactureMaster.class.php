@@ -270,8 +270,7 @@ abstract class deals_ManifactureMaster extends core_Master
         if(!($me instanceof planning_ProductionDocument)){
             if($Cover->isInstanceOf('planning_Centers')) return true;
 
-            $taskSupportClassId = support_TaskType::getClassId();
-            if(cal_Tasks::fetchField("#threadId = {$threadId} AND #driverClass = {$taskSupportClassId} AND #state IN ('active','stopped','wakeup','closed','pending')")) return true;
+            if(cal_Tasks::fetchField("#threadId = {$threadId} AND #state IN ('active','stopped','wakeup','closed','pending')")) return true;
         }
 
         return false;
@@ -299,9 +298,7 @@ abstract class deals_ManifactureMaster extends core_Master
                 }
             }
         } elseif(($this instanceof planning_ConsumptionNotes || $this instanceof planning_ReturnNotes) && $origin->isInstanceOf('cal_Tasks')){
-            $supportTaskClassType = support_TaskType::getClassId();
             $originRec = $origin->fetch('driverClass,state');
-            if($originRec->driverClass != $supportTaskClassType) return false;
             if (in_array($originRec->state, array('rejected', 'draft', 'waiting', 'stopped'))) return false;
         } elseif(($this instanceof planning_ReturnNotes) && $origin->isInstanceOf('planning_DirectProductionNote')){
             $originRec = $origin->fetch('state');

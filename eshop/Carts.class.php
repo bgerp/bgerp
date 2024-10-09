@@ -646,8 +646,10 @@ class eshop_Carts extends core_Master
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        $rec->_haveRecalcedAutoDiscounts = $mvc->recalcAutoDiscount($rec);
-        $mvc->updateMaster_($rec);
+        if(is_object($rec)){
+            $rec->_haveRecalcedAutoDiscounts = $mvc->recalcAutoDiscount($rec);
+            $mvc->updateMaster_($rec);
+        }
     }
 
 

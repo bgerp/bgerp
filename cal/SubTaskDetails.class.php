@@ -32,7 +32,9 @@ class cal_SubTaskDetails extends core_Manager
             $indent = ($depth > 0) ? $depth * 15 : 0;
 
             $row->title = ht::createElement("div", array('style' => "margin-left:{$indent}px;", ''), $row->title);
+            $row->state = "<span class='state-{$taskRec->state} document-handler'>{$row->state}</span>";
             $data->recs[$taskRec->id] = $taskRec;
+            unset($row->ROW_ATTR);
             $data->rows[$taskRec->id] = $row;
         }
 
@@ -59,18 +61,24 @@ class cal_SubTaskDetails extends core_Manager
     public function renderDetail_($data)
     {
         if($data->hide) return null;
-        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+
+        $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
+                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black">' . tr('Подзадачи') . '</div>
+                            <div class="listRows" style="margin-top:10px">
+                            [#TABLE#]
+                            </div>
+	                   </div>');
+
         $listTableMvc = clone $data->masterMvc;
         $listTableMvc->setField('title', 'tdClass=leftCol');
+        $listTableMvc->setField('state', 'smartCenter');
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-
-        $data->listFields = arr::make('title=Задача,progress=Прогрес,expectationTimeEnd=Оч. край,assign=Възложено на,modified=Промяна', true);
+        $data->listFields = arr::make('title=Задача,progress=Прогрес,state,expectationTimeEnd=Оч. край,assign=Възложено на,modified=Промяна', true);
 
         $listTableMvc->invoke('BeforeRenderListTable', array($tpl, &$data));
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'expectationTimeEnd,assign');
         $tableTpl = $table->get($data->rows, $data->listFields);
-        $tpl->append(tr('Подзадачи'), 'title');
-        $tpl->replace($tableTpl, 'content');
+        $tpl->replace($tableTpl, 'TABLE');
 
         return $tpl;
     }
