@@ -946,7 +946,6 @@ class core_Form extends core_FieldSet
                     );
                     $this->invoke('AfterCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                 } else {
-                    $type->params['maxRadio'] = $maxRadio;
                     $input = $type->renderInput($name, $value, $attr);
                 }
 
