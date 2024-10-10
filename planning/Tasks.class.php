@@ -3003,7 +3003,6 @@ class planning_Tasks extends core_Master
                 $plannedParams += keylist::toArray($Cover->fetchField('planningParams'));
             }
         }
-        core_Debug::stopTimer('RENDER_HEADER');
 
         // Ако има намерени планиращи параметри - показват се в таблицата
         if (countR($plannedParams)) {
