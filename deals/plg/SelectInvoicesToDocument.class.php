@@ -106,9 +106,12 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        if(isset($rec->fromContainerId)){
+        if(isset($rec->fromContainerId) && isset($mvc->mainDetail)){
             $rec = $mvc->fetchRec($id);
-            static::saveIfFromContainer($mvc, $rec);
+
+            if (!deals_InvoicesToDocuments::fetch("#documentContainerId = {$rec->containerId} AND #containerId = {$rec->fromContainerId}")) {
+                static::saveIfFromContainer($mvc, $rec);
+            }
         }
     }
 
