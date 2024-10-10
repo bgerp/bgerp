@@ -63,16 +63,17 @@ abstract class frame2_driver_Proto extends core_BaseClass
     {
         return core_Users::haveRole($this->canSelectDriver, $userId);
     }
-    
-    
+
+
     /**
      * Връща заглавието на отчета
      *
      * @param stdClass $rec - запис
+     * @param bool $isPlain - дали заглавието да е чисто (без окрасяване)
      *
      * @return string|NULL - заглавието или NULL, ако няма
      */
-    public function getTitle($rec)
+    public function getTitle($rec, $isPlain = false)
     {
     }
     

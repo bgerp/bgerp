@@ -61,5 +61,17 @@ class accda_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.2, 'Счетоводство', 'ДА', 'accda_Da', 'default', 'accda, ceo'),
     );
-    
+
+
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+
+        $html .= fileman_Buckets::createBucket('accda', 'Прикачени файлове в ДА', null, '50MB', 'powerUser', 'powerUser');
+
+        return $html;
+    }
 }

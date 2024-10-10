@@ -487,7 +487,7 @@ class cal_Tasks extends embed_Manager
 
         // Ако задачата се създава в папка на проект
         $Cover = doc_Folders::getCover($rec->folderId);
-        if($Cover->isInstanceOf('doc_UnsortedFolders')) {
+        if($Cover->isInstanceOf('doc_UnsortedFolders') || $Cover->isInstanceOf('support_Systems')) {
             $unsortedFolderSteps = $Cover->fetchField('steps');
 
             // и той има посочени етапи
@@ -899,6 +899,24 @@ class cal_Tasks extends embed_Manager
                 $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
             }
 
+            if(isset($rec->assetResourceId)) {
+
+                // Засичане с задачи по ресурс
+                $intersectedRanges = array();
+                $query = static::getQuery();
+                $supportTypeClassId = support_TaskType::getClassId();
+                $query->where("#driverClass != '{$supportTypeClassId}' AND #id != '{$rec->id}' AND #assetResourceId = {$rec->assetResourceId} AND #state IN ('active', 'wakeup', 'stopped', 'pending')");
+                while($cRec = $query->fetch()) {
+                    $mvc->calculateExpectationTime($cRec);
+                    if(($cRec->expectationTimeStart <= $rec->expectationTimeEnd AND $cRec->expectationTimeEnd >= $rec->expectationTimeStart)) {
+                        $intersectedRanges[] = cal_Tasks::getHyperlink($cRec->id, true)->getContent();
+                    }
+                }
+                if(countR($intersectedRanges)) {
+                    $form->setWarning('timeStart, timeDuration, timeEnd, assetResourceId', "|Засичане по ресурс с|*: " . implode(',', $intersectedRanges));
+                }
+            }
+
             if(isset($rec->id)){
                 if(isset($rec->parentId)){
                     // Добавяме и всички негови бащи
@@ -990,7 +1008,17 @@ class cal_Tasks extends embed_Manager
         if (cal_TaskConditions::haveRightFor('add', (object) array('baseId' => $data->rec->id))) {
             $data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
-        
+
+        $inputRows = $data->rec->driverClass == support_TaskType::getClassId() ? 1 : 2;
+        if(planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
+            $data->toolbar->addBtn('Влагане', array('planning_ConsumptionNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), "ef_icon=img/16/produce_in.png,title=Създаване на протокол за влагане към сигнала,row={$inputRows}");
+        }
+
+        if(planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
+            $data->toolbar->addBtn('Връщане', array('planning_ReturnNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), "ef_icon=img/16/produce_out.png,title=Създаване на протокол за връщане към сигнала,row={$inputRows}");
+        }
+
+
         // Ако имаме бутон "Активиране"
         if (isset($data->toolbar->buttons['btnActivate'])) {
             
@@ -3210,7 +3238,7 @@ class cal_Tasks extends embed_Manager
                 $timeStart = $rec->timeStart;
                 $timeEnd = $rec->timeEnd;
                 $timeDuration = $rec->timeDuration;
-                
+
                 if ($timeDuration && !$timeEnd) {
                     $timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($timeStart) + $timeDuration);
                 } elseif (($timeDuration && $timeEnd) && !$timeStart) {
@@ -3422,7 +3450,7 @@ class cal_Tasks extends embed_Manager
         } elseif(isset($rec->stepId) && !isset($rec->assetResourceId)) {
             $resArr['stepId'] = array('name' => tr('Етап'), 'val' => '[#stepId#]');
         } elseif(isset($rec->assetResourceId) && isset($rec->stepId)) {
-            $resArr['assetResourceId'] = array('name' => tr('Поддръжка'), 'val' => tr("|Етап|*: [#stepId#]<br>|Ресурс|*: [#assetResourceId#]"));
+            $resArr['assetResourceId'] = array('name' => tr('Поддръжка'), 'val' => tr("<div class='taskWithStepAndResourceTd'><div>|Етап|*: [#stepId#]</div><div>|Ресурс|*: [#assetResourceId#]</div></div>"));
         }
 
         if ($row->timeStart) {

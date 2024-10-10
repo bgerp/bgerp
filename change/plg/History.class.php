@@ -171,7 +171,7 @@ class change_plg_History extends core_Plugin
         }
 
         if(!$sync) return;
-        $rec->validFrom = !empty($rec->newValidFrom) ? $rec->newValidFrom : dt::now();
+        $rec->validFrom = !empty($rec->newValidFrom) ? $rec->newValidFrom : (dt::today() . " 00:00:00");
         $updateFields = array();
         $currentRecData = change_History::getCurrentRec($mvc->getClassId(), $rec->id, $rec->_oldRec, $rec, $updateFields);
 
@@ -275,6 +275,14 @@ class change_plg_History extends core_Plugin
 
         $rec = &$data->rec;
         $row = &$data->row;
+
+        if(isset($rec->validFrom)){
+            $oneMothAgo = dt::addMonths(-1);
+            if($rec->validFrom < $oneMothAgo){
+                unset($row->validFrom);
+            }
+        }
+
         $loggableFields = arr::make($mvc->loggableFields, true) + arr::make($mvc->loggableAdditionalComparableFields, true);
         $loggableFields['validFrom'] = 'validFrom';
         $loggableFields['validTo'] = 'validTo';

@@ -80,7 +80,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('packType', 'enum(yes=Да,no=Не,base=Основна)', 'caption=Филтър->Опаковки,columns=3,after=round,single=none,silent,removeAndRefreshForm=packagings');
         $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Филтър->Избор,columns=3,placeholder=Всички опаковки,after=packType,single=none');
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Групи,columns=2,placeholder=Всички,after=packagings,single=none');
-        $fieldset->FLD('listingId', 'keylist(mvc=cat_Listings,select=id)', 'caption=Филтър->Листвани артикули,columns=2,after=productGroups,input=hidden');
+        $fieldset->FLD('listingId', 'keylist(mvc=cat_Listings,select=id,allowEmpty)', 'caption=Филтър->Листвани артикули,columns=2,after=productGroups,input=hidden,maxRadio=1');
         $fieldset->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Филтър->Подгрупи,columns=2,after=listingId,single=none');
         $fieldset->FLD('notInGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Без групи,after=expandGroups,single=none');
         $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=expandGroups,single=none');
@@ -90,16 +90,17 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan,single=internal');
         $fieldset->FLD('templateType', 'enum(default=Стандартен изглед,foods=Храни)', 'caption=Допълнително->Изглед,after=lang,single=internal');
     }
-    
-    
+
+
     /**
      * Връща заглавието на отчета
      *
      * @param stdClass $rec - запис
+     * @param bool $isPlain - дали заглавието да е чисто (без окрасяване)
      *
      * @return string|NULL - заглавието или NULL, ако няма
      */
-    public function getTitle($rec)
+    public function getTitle($rec, $isPlain = false)
     {
         $policyName = price_Lists::getTitleById($rec->policyId);
         $title = "Ценоразпис \"{$policyName}\"";

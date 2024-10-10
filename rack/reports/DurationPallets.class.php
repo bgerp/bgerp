@@ -65,8 +65,14 @@ class rack_reports_DurationPallets extends frame2_driver_TableData
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields ;
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *

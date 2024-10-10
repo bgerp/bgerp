@@ -988,9 +988,10 @@ class planning_Tasks extends core_Master
             $rec->title = cat_Products::getTitleById($rec->productId);
 
             planning_Centers::checkDeviationPercents($form);
+
             if (in_array($form->cmd, array('save_pending', 'save_pending_new'))) {
-                if (empty($rec->indTime) && empty($rec->timeDuration)) {
-                    $form->setError('timeDuration,indTime', "Необходими са данни за да се изчисли продължителността на операцията|*!");
+                if (empty($rec->indTime) && empty($rec->timeDuration) && (empty($rec->timeStart) || empty($rec->timeEnd))) {
+                    $form->setError('timeDuration,indTime,timeStart,timeEnd', "Необходими са данни за да се изчисли продължителността на операцията|*!");
                 }
             }
 
@@ -1050,6 +1051,12 @@ class planning_Tasks extends core_Master
 
                 if ($whenToUnsetStartAfter) {
                     $rec->startAfter = null;
+                }
+
+                if(empty($rec->timeDuration)){
+                    if(!empty($rec->timeStart) && !empty($rec->timeEnd)){
+                        $rec->timeDuration = dt::secsBetween($rec->timeEnd, $rec->timeStart);
+                    }
                 }
             }
         }
@@ -2107,6 +2114,10 @@ class planning_Tasks extends core_Master
     public function prepareTasks($data)
     {
         if ($data->masterMvc instanceof planning_AssetResources) {
+            if(empty($data->masterData->rec->simultaneity)) {
+                $data->hide = true;
+                return;
+            }
             $data->TabCaption = 'Операции';
         }
 
@@ -2191,7 +2202,7 @@ class planning_Tasks extends core_Master
                 $notesByStates[] = "<div class='state-{$noteRec->state} consumptionNoteBubble'>{$noteCountVerbal}</div>";
             }
             if(countR($notesByStates)){
-                $row->progress .= " <small>[<i>" . tr('ПВ') . "</i>: " . implode(' + ', $notesByStates) . "]</small>";
+                $row->progress .= " <small><i>" . tr('ПВ') . ":" . implode($notesByStates) . "</i></small>";
             }
 
             $data->rows[$rec->id] = $row;
@@ -2217,7 +2228,10 @@ class planning_Tasks extends core_Master
     public function renderTasks($data)
     {
         $tpl = new ET('');
+
         if ($data->masterMvc instanceof planning_AssetResources) {
+            if($data->hide) return null;
+
             $data->TabCaption = 'Операции';
             $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         }
@@ -3148,7 +3162,7 @@ class planning_Tasks extends core_Master
 
             if(empty($data->masterMvc)){
                 if ($mvc->haveRightFor('copy2clipboard', $rec) && !isset($fields['-detail'])) {
-                    $checkBtn = ht::createElement('input', array('type' => 'checkbox', 'title' => 'Добавяне/Премахване на операцията в клипборда', 'data-id' => $rec->id, 'class' => 'copy2Storage'));
+                    $checkBtn = ht::createElement('input', array('type' => 'checkbox', 'title' => 'Добавяне/Премахване на операцията в клипборда', 'id' => 'tsk' . $rec->id, 'data-id' => $rec->id, 'class' => 'copy2Storage'));
                     $row->selectBtn = $checkBtn;
                 }
             }
@@ -4070,5 +4084,25 @@ class planning_Tasks extends core_Master
         }
 
         return $exLinkArray;
+    }
+
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($rec->isFinal == 'yes'){
+            $jobRec = doc_Containers::getDocument($rec->originId)->fetch();
+            if($jobRec->allowSecondMeasure == 'no'){
+                $derivativeMeasures = cat_UoM::getSameTypeMeasures(cat_Products::fetchField($jobRec->productId, 'measureId'));
+                if(!array_key_exists($rec->measureId, $derivativeMeasures)){
+                    core_Statuses::newStatus("Не може да се възстанови операцията, защото заданието вече не поддържа избраната мярка в операцията|*!", 'error');
+
+                    return false;
+                }
+            }
+        }
     }
 }

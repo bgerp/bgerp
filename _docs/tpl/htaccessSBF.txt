@@ -4,8 +4,7 @@ Options -Indexes
     <FilesMatch "\.(pdf|doc|docs|html|htm|txt|rtf|xls)$">
         Header set X-Robots-Tag "noindex, nofollow"
     </FilesMatch>
-    Header set Cache-control "max-age=290304000, public"
-    Header set Expires "Tue, 20 Jan 2037 04:20:42 GMT"
+    Header set Cache-Control "max-age=31536000, immutable"
     Header unset ETag
     FileETag None
 </IfModule>

@@ -511,4 +511,24 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
+
+
+    /**
+     * Връща периода на справката - ако има такъв
+     *
+     * @param stdClass $rec
+     * @return array
+     *          ['from'] - начало на период
+     *          ['to']   - край на период
+     */
+    protected function getPeriodRange($rec)
+    {
+        if(isset($rec->periods)){
+            $periodRec = acc_Periods::fetch($rec->periods);
+
+            return array('from' => $periodRec->start, 'to' => $periodRec->end);
+        }
+
+        return array('from' => $rec->fromDate, 'to' => $rec->toDate);
+    }
 }

@@ -1147,7 +1147,13 @@ option.team {
 	background: black;
 	color: #fc0;
 }
-
+#Bottom-tab-planning_Centers td {
+	max-width: 260px;
+	.linkWithIcon {
+		overflow-wrap: break-word;
+		white-space: break-spaces;
+	}
+}
 /*Стилове за acc*/
 div.acc-detail {
 	font-size: 0.8em;
@@ -2700,6 +2706,13 @@ margin: 2px 0 0 0;
 	}
 }
 
+.taskWithStepAndResourceTd {
+	max-width: 250px;
+	a {
+		display: inline !important;
+	}
+}
+
 .antetkaCell {
 max-width: 400px;
 }
@@ -2878,7 +2891,9 @@ max-width: 400px;
 .nowrap {
 	white-space: nowrap;
 }
-
+.wide .wideNowrap {
+	white-space: nowrap;
+}
 .wrapText {
 	white-space: normal !important;
 }
@@ -7176,6 +7191,18 @@ body.narrow {
 		max-width: 1200px !important;
 	}
 }
+@media handheld , only screen and (min-width: 2100px) {
+	.listTable .ui-droppable {
+		border-width: 4px !important;
+	}
+	.listTable .rowBlock.ui-droppable-hover-top {
+		border-top:4px solid red !important;
+	}
+
+	.listTable .rowBlock.ui-droppable-hover-bottom {
+		border-bottom:4px solid red !important;
+	}
+}
 
 @media handheld , only screen and (min-width: 1600px) {
     #cmsNavigation div.nav_item {
@@ -7267,6 +7294,11 @@ body.narrow {
 @media handheld, only screen and (max-width: 950px) {
 	body {
 		-webkit-text-size-adjust: none;
+	}
+	.richtext .document {
+		min-width: 100%;
+		border: none;
+		padding: 0;
 	}
 	.cms-row, body, .cms-container {
 		width: 100%;
@@ -7668,6 +7700,14 @@ body.narrow {
 		white-space: normal;
 		max-width: 230px !important;
 	}
+	.user-profile {
+		.user-name {
+			font-size: 1.1em !important;
+		}
+		.personStatus{
+			font-size: 0.65em !important;
+		}
+	}
 }
 
 
@@ -7718,6 +7758,8 @@ body.narrow {
 		font-size: 0.8em !important;
 		padding: 3px 3px 6px 3px;
 	}
+
+
 }
 .footerDocInfo{
     padding-top: 10px;

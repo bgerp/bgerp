@@ -173,7 +173,6 @@ class doc_Folders extends core_Master
     {
         $rec = static::fetch($id);
         $haveRight = static::haveRightFor('single', $rec);
-        
         $iconStyle = 'background-image:url(' . static::getIconImg($rec, $haveRight) . ');';
         
         if ($attr['url']) {
@@ -202,7 +201,14 @@ class doc_Folders extends core_Master
         if ($url) {
             unset($attr['url']);
         }
-        
+
+        $Cover = doc_Folders::getCover($rec->id);
+        $doubleClickUrl = $Cover->getUrlForDblClick($url, true);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
+        //bp($url, $doubleClickDataUrl);
         $link = ht::createLink($title, $url, null, $attr);
         
         return $link;
@@ -484,6 +490,7 @@ class doc_Folders extends core_Master
             $attr['style'] = 'background-image:url(' . sbf($signleIcon) . ');';
             
             $singleTitle = $typeMvc->getSingleTitle($rec->coverId);
+
             if ($typeMvc->haveRightFor('single', $rec->coverId)) {
                 $row->type = ht::createLink($singleTitle, array($typeMvc, 'single', $rec->coverId), null, $attr);
             } else {
@@ -514,14 +521,10 @@ class doc_Folders extends core_Master
     public static function getFolderTitle($rec, $title = null, $limitLen = null)
     {
         $mvc = cls::get('doc_Folders');
-        
-        if (is_numeric($rec)) {
-            $rec = $mvc->fetch($rec);
-        }
+        $rec = $mvc->fetchRec($rec);
         
         $attr = array();
         $attr['class'] = 'linkWithIcon';
-
         if ($title === null) {
             $title = $mvc->getVerbal($rec, 'title');
         }
@@ -554,6 +557,13 @@ class doc_Folders extends core_Master
 
         if ($rec->last > bgerp_Recently::getLastFolderSee($rec->id)) {
             $attr['class'] .= ' tUnsighted';
+        }
+
+        $Cover = doc_Folders::getCover($rec->id);
+        $doubleClickUrl = $Cover->getUrlForDblClick($link, true);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
         }
 
         if ($haveRight) {

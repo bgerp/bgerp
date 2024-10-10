@@ -1018,6 +1018,12 @@ option.team {
   background: black;
   color: #ffcc00; }
 
+#Bottom-tab-planning_Centers td {
+  max-width: 260px; }
+  #Bottom-tab-planning_Centers td .linkWithIcon {
+    overflow-wrap: break-word;
+    white-space: break-spaces; }
+
 /*
  * Стилове за acc
  */
@@ -2332,6 +2338,11 @@ pre.document {
     .antetka .document-handler .linkWithIcon {
       height: auto !important; }
 
+.taskWithStepAndResourceTd {
+  max-width: 250px; }
+  .taskWithStepAndResourceTd a {
+    display: inline !important; }
+
 .antetkaCell {
   max-width: 400px; }
 
@@ -2472,6 +2483,9 @@ pre.document {
   min-width: 110px; }
 
 .nowrap {
+  white-space: nowrap; }
+
+.wide .wideNowrap {
   white-space: nowrap; }
 
 .wrapText {
@@ -6266,6 +6280,17 @@ only screen and (max-width: 1500px) {
     max-width: 1200px !important; } }
 
 @media handheld,
+only screen and (min-width: 2100px) {
+  .listTable .ui-droppable {
+    border-width: 4px !important; }
+
+  .listTable .rowBlock.ui-droppable-hover-top {
+    border-top: 4px solid red !important; }
+
+  .listTable .rowBlock.ui-droppable-hover-bottom {
+    border-bottom: 4px solid red !important; } }
+
+@media handheld,
 only screen and (min-width: 1600px) {
   #cmsNavigation div.nav_item {
     font-size: 1.04em; } }
@@ -6349,6 +6374,11 @@ only screen and (max-width: 1024px) {
 only screen and (max-width: 950px) {
   body {
     -webkit-text-size-adjust: none; }
+
+  .richtext .document {
+    min-width: 100%;
+    border: none;
+    padding: 0; }
 
   .cms-row,
   body,
@@ -6749,7 +6779,12 @@ only screen and (max-width: 360px) {
 
   .narrow .antetkaCell {
     white-space: normal;
-    max-width: 230px !important; } }
+    max-width: 230px !important; }
+
+    .user-profile .user-name {
+      font-size: 1.1em !important; }
+    .user-profile .personStatus {
+      font-size: 0.65em !important; } }
 
 @media handheld,
 only screen and (max-width: 320px) {

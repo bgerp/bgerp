@@ -35,9 +35,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, doc_SharablePlg, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, change_Plugin, doc_SharablePlg, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
 
+
+
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'detailOrderBy,note';
+	
 
     /**
      * Полета свързани с цени
@@ -91,6 +98,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,production,store';
+	
+	
+    /**
+     * Кои роли може да променят активен ПП
+     */
+    public $canChangerec = 'ceo,production,store';
 
 
     /**
@@ -185,6 +198,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
+     * Поле за подредбата на детайла
+     */
+    public $detailOrderByField = 'detailOrderBy';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -206,8 +225,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->setField('storeId', 'caption=Произвеждане (заприхождаване на произведеното)->В склад,silent,removeAndRefreshForm');
         $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->ОТ склад'),'input,silent,removeAndRefreshForm=inputServicesFrom,placeholder=Незавършено производство,after=storeId');
         $this->FLD('inputServicesFrom', 'enum(unfinished=Незавършено производство,all=Разходи за услуги (без влагане))', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->Услуги от'),'maxRadio=2');
+        $this->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->Подреждане по'), 'notNull,value=auto');
 		
-		$this->setField('deadline', 'caption=Информация->Срок до');
+        $this->setField('deadline', 'caption=Информация->Срок до');
         $this->FLD('debitAmount', 'double(decimals=2)', 'input=none');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=expenses,caption=Разходен обект / Продажба->Избор');
 
@@ -1581,5 +1601,59 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return null;
+    }
+
+
+    /**
+     * Проверка може ли да се контира/възстанови ПП
+     *
+     * @param $rec
+     * @param $action
+     * @return string|null
+     */
+    private function getErrorWhenTryingToConto($rec, $action = 'conto')
+    {
+        $errorMsg = null;
+        $rec = $this->fetchRec($rec);
+
+        if($action == 'restore' && $rec->brState != 'active') return $errorMsg;
+        $jobRec = static::getJobRec($rec);
+
+        $action = $action == 'conto' ? 'контирате' : 'възстановяване';
+        if ($jobRec->allowSecondMeasure == 'no' && !empty($rec->additionalMeasureId)) {
+            $errorMsg = "Не може да {$action} протокола, защото е с втора мярка, а заданието вече не е избрана";
+        } elseif ($jobRec->allowSecondMeasure == 'yes' && empty($rec->additionalMeasureId)) {
+            $errorMsg = "Не може да {$action} протокола, защото е без втора мярка, а заданието вече не позволява";
+        }
+
+        return $errorMsg;
+    }
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $errorMsg = $mvc->getErrorWhenTryingToConto($id);
+        if(!empty($errorMsg)){
+            core_Statuses::newStatus($errorMsg, 'error');
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $errorMsg = $mvc->getErrorWhenTryingToConto($id, 'restore');
+        if(!empty($errorMsg)){
+            core_Statuses::newStatus($errorMsg, 'error');
+
+            return false;
+        }
     }
 }

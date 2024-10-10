@@ -114,7 +114,9 @@ class frame2_CsvExport extends core_Mvc
         // Подготовка на данните
         $lang = null;
         $csvRecs = $fields = array();
+        $title = $frameRec->titie;
         if ($Driver = $Frame->getDriver($frameRec)) {
+            $title = $Driver->getTitle($frameRec);
             $lang = $Driver->getRenderLang($frameRec);
             if(isset($lang)){
                 core_Lg::push($lang);
@@ -143,7 +145,7 @@ class frame2_CsvExport extends core_Mvc
             
             // Записване във файловата система
             $extension = $params['extension'];
-            $fileName = $Frame->getHandle($objId) . '-' . str::removeWhiteSpace(str::utf2ascii($frameRec->title), '_');
+            $fileName = $Frame->getHandle($objId) . '-' . str::removeWhiteSpace(str::utf2ascii($title), '_');
             $fileHnd = fileman::absorbStr($csv, "exportFiles", "{$fileName}.{$extension}");
             $fileId = fileman::fetchByFh($fileHnd, 'id');
             doc_Linked::add($frameRec->containerId, $fileId, 'doc', 'file');
@@ -161,11 +163,28 @@ class frame2_CsvExport extends core_Mvc
         foreach ($fields as $fld){
             $form->setField($fld, 'input=none');
         }
-        
+
+        $cacheKey = $this->getCacheKey($Driver);
+        core_Permanent::set("{$cacheKey}_encoding", $params['encoding'], core_Permanent::FOREVER_VALUE);
+
         return $fileHnd;
     }
-    
-    
+
+
+    /**
+     * Какъв е основния ключ на кеша
+     *
+     * @param frame2_driver_Proto $Driver
+     * @return string
+     */
+    private function getCacheKey($Driver)
+    {
+        $cu = core_Users::getCurrent();
+        $driverName = cls::getClassName($Driver);
+
+        return "{$driverName}_csvExport_{$cu}";
+    }
+
     /**
      * Връща линк за експортиране във външната част
      *
@@ -200,11 +219,11 @@ class frame2_CsvExport extends core_Mvc
         $form->FLD("columns", 'enum(yes=Да,none=Не)', "caption=|{$title}|* - |настройки|*->Имена на колони,autohide=any");
         $form->setDefault("columns", 'yes');
         
-        $form->FNC('decPoint', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Десетичен знак,autohide=any");
-        $form->FNC('dateFormat', 'enum(,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', "input,caption=|{$title}|* - |настройки|*->Формат за дата,autohide=any");
-        $form->FNC('datetimeFormat', 'enum(,d.m.y H:i=|*22.11.1999 00:00, d.m.y H:i:s=|*22.11.1999 00:00:00)', "input,caption=|{$title}|* - |настройки|*->Формат за дата и час,autohide=any");
-        $form->FNC('delimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Разделител,autohide=any");
-        $form->FNC('enclosure', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Ограждане,autohide");
+        $form->FNC('decPoint', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Десетичен знак,autohide=any,maxRadio=1");
+        $form->FNC('dateFormat', 'enum(,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', "input,caption=|{$title}|* - |настройки|*->Формат за дата,autohide=any,maxRadio=1");
+        $form->FNC('datetimeFormat', 'enum(,d.m.y H:i=|*22.11.1999 00:00, d.m.y H:i:s=|*22.11.1999 00:00:00)', "input,caption=|{$title}|* - |настройки|*->Формат за дата и час,autohide=any,maxRadio=1");
+        $form->FNC('delimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Разделител,autohide=any,maxRadio=1");
+        $form->FNC('enclosure', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Ограждане,autohide,maxRadio=1");
         $form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),cp1251=Windows Cyrillic|* (CP1251),cp1252=Windiws ANSI|* (CP1252))', "caption=|{$title}|* - |разширени настройки|*->Кодиране,input,autohide=any");
         $form->FNC('extension', 'enum(csv=.csv,txt=.txt)', "input,caption=|{$title}|* - |разширени настройки|*->Файлово разширение,autohide=any");
         $form->FNC('newLineDelimiter', 'varchar(1,size=3)', "input,caption=|{$title}|* - |разширени настройки|*->Нов ред,autohide=any");
@@ -212,7 +231,11 @@ class frame2_CsvExport extends core_Mvc
         $dateFormat = null;
         setIfNot($dateFormat, csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', true));
         $form->setDefault('dateFormat', $dateFormat);
-        
+
+        $cacheKey = $this->getCacheKey(cls::get($clsId)->getDriver($objId));
+        setIfNot($defaultEncoding, core_Permanent::get("{$cacheKey}_encoding"), 'utf-8');
+        $form->setDefault('encoding', $defaultEncoding);
+
         $datetimeFormat = null;
         setIfNot($datetimeFormat, csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
         $form->setDefault('datetimeFormat', $datetimeFormat);

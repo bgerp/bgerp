@@ -24,11 +24,19 @@ class minify_Plugin extends core_Plugin
     public static function on_BeforeSaveFile($mvc, $res, &$content, $path, $isFullPath = null)
     {
         $ext = str::getFileExt($path);
-        
-        if ($ext == 'css') {
-            $content = minify_Css::process($content);
-        } elseif ($ext == 'js') {
-            $content = minify_Js::process($content);
+
+        try {
+            if ($ext == 'css') {
+                $content = minify_Css::process($content);
+            } elseif ($ext == 'js') {
+                $content = minify_Js::process($content);
+            }
+        } catch (Exception $t) {
+            reportException('Грешка при minify', $t);
+        } catch (Error $t) {
+            reportException('Грешка при minify', $t);
+        } catch (Throwable $t) {
+            reportException('Грешка при minify', $t);
         }
     }
 }

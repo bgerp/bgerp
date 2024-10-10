@@ -79,10 +79,11 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
      * @param stdClass $filter - филтър
      * @return stdClass $data - подготвените данни
      */
-    private function prepareExportData($recs, $filter)
+    protected function prepareExportData($recs, $filter)
     {
         $data = new stdClass();
         $data->static = $this->getStaticData($filter);
+
         $data->recs = array();
         
         $count = 0;
@@ -300,7 +301,7 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
             
             $content .= $line;
         }
-        
+
         // Няма да се импортира ако не завършва на 0
         $content .= "0\r\n";
         
@@ -314,7 +315,7 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
      * @param stdClass $filter
      * @return array $staticData
      */
-    private function getStaticData($filter)
+    protected function getStaticData($filter)
     {
         $staticData = new stdClass();
         

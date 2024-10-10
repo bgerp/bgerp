@@ -289,7 +289,7 @@ class support_TaskType extends core_Mvc
     {
         $rec = &$form->rec;
         if($form->isSubmitted()){
-            if(empty($rec->assetResourceId) && $rec->_assetsAllowed){
+            if(empty($rec->assetResourceId) && empty($rec->stepId) && $rec->_assetsAllowed){
                 $form->setWarning('assetResourceId', 'За по-бърза обработка на сигнала, моля изберете "Ресурс"!');
             }
         }
@@ -657,14 +657,6 @@ class support_TaskType extends core_Mvc
         $data->toolbar->setBtnAttr("btnSubTask_{$data->rec->containerId}", 'row', 2);
         $data->toolbar->setBtnAttr("btnClose_{$data->rec->containerId}", 'row', 2);
         $data->toolbar->setBtnAttr("btnComment_{$data->rec->id}", 'row', 2);
-
-        if(planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
-            $data->toolbar->addBtn('Влагане', array('planning_ConsumptionNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/produce_in.png,title=Създаване на протокол за влагане към сигнала');
-        }
-
-        if(planning_ReturnNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
-            $data->toolbar->addBtn('Връщане', array('planning_ReturnNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/produce_out.png,title=Създаване на протокол за връщане към сигнала');
-        }
     }
     
     

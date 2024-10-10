@@ -2179,7 +2179,8 @@ class cat_Boms extends core_Master
         $this->requireRightFor('syncparams', $rec);
 
         $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales');
-        if(isset($bomRec)){
+        if(is_object($bomRec)){
+
             $params = array();
             $materials = cat_Boms::getBomMaterials($bomRec, 1);
             $classes = core_Classes::getOptionsByInterface('cat_ParamAggregateIntf');

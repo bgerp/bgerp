@@ -977,7 +977,11 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             } else {
                 unset($retUrl['update']);
             }
-            
+
+            if ($rec->printIn == 'PC') {
+                $retUrl = array();
+            }
+
             $this->getResForReport($pRec, $rec, $rVerb, $jsTpl, $retUrl);
             
             $closeBtnName = 'Назад';

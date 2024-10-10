@@ -343,7 +343,7 @@ class change_History extends core_Manager
         }
 
         $masterRec = $data->masterData->rec;
-        $data->rows = array();
+        $data->rows = $data->recs = array();
         while($rec = $query->fetch()){
             $data->recs[$rec->validFrom] = $rec;
         }
@@ -352,12 +352,11 @@ class change_History extends core_Manager
         if(!array_key_exists($masterRec->validFrom, $data->recs)){
             $data->recs[$masterRec->validFrom] = (object)array('validFrom' => $masterRec->validFrom,
                                                                'validTo'   => $masterRec->validTo,
-                                                               'createdBy' => $masterRec->createdBy,
                                                                'classId'   => $data->masterMvc->getClassId(),
                                                                'objectId'  => $masterRec->id,
                                                                'isCurrent' => true,
-                                                               'createdOn' => $masterRec->createdOn,
-                                                               'createdBy' => $masterRec->createdBy);
+                                                               'createdOn' => $masterRec->validFrom,
+                                                               'createdBy' => $masterRec->modifiedBy);
         } else {
             $data->recs[$masterRec->validFrom]->isCurrent = true;
         }

@@ -34,8 +34,14 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields;
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -275,7 +281,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
                 $fld->FLD('group', 'varchar', 'caption=Група');
             }
             $fld->FLD('quantity', 'double', 'caption=Кол');
-            $fld->FLD('price', 'double', 'caption=Цена');
+            $fld->FLD('price', 'double', 'caption=Ед.Цена');
             $fld->FLD('measure', 'varchar', 'caption=Мерна ед.,tdClass=centered');
             $fld->FLD('vat', 'double', 'caption=ДДС ставка');
             $fld->FLD('paymentType', 'varchar', 'caption=Плащане');

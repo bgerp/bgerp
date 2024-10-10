@@ -182,7 +182,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery,detailOrderBy,reff';
+    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery,detailOrderBy,reff,makeInvoice';
 
 
     /**

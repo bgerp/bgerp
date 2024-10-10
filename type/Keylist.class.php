@@ -236,7 +236,6 @@ class type_Keylist extends core_Type
             if ($suggCnt < 4) {
                 $keyListClass .= ' shrinked';
             }
-            
             $groupOpen = 0;
             $addKeylistWide = false;
             

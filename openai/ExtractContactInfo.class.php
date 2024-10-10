@@ -31,7 +31,12 @@ class openai_ExtractContactInfo
     {
         $rec = email_Incomings::fetchRec($id);
 
-        expect($rec && $rec->emlFile);
+        expect($rec);
+
+        if (!$rec->emlFile) {
+
+            return false;
+        }
 
         return self::extractEmailDataFromEml($rec->emlFile, $rec->lg, $cData, $useCache);
     }

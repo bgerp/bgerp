@@ -68,6 +68,12 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
 
     /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset

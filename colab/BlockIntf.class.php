@@ -30,7 +30,7 @@ class colab_BlockIntf extends core_BaseClass
     /**
      * Подготвя данните
      *
-     * @return string
+     * @return array
      */
     public function getBlockTabUrl()
     {

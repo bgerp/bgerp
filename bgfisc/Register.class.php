@@ -485,4 +485,19 @@ class bgfisc_Register extends core_Manager
 
         return $serialNum != bgfisc_Register::WITHOUT_REG_NUM;
     }
+
+
+    /**
+     * До коя дата може да се издава КБ за сторно с основание Операторска грешка
+     *
+     * @param datetime $valior
+     * @return false|string
+     */
+    public static function getMaxDateForStornoOperationError($valior)
+    {
+        $dayBefore = bgfisc_Setup::get('REVERT_OPERATION_ERROR_ALLOWED_BEFORE');
+        $dayBeforePadded = str_pad($dayBefore, 2, '0', STR_PAD_LEFT);
+
+        return date("Y-m-{$dayBeforePadded}", strtotime(dt::addMonths(1, $valior)));
+    }
 }

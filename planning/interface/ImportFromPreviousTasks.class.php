@@ -139,10 +139,9 @@ class planning_interface_ImportFromPreviousTasks extends planning_interface_Cons
                 $noBatchCaption = 'Без партида';
                 foreach ($pData['batches'] as $bArr){
                     if($batchDef = batch_Defs::getBatchDef($pData['productId'])){
-
-
                         $key = "{$pData['productId']}|" . md5($bArr['batch']);
                         $subCaption = $batchDef->toVerbal($bArr['batch']);
+                        $subCaption = str_replace(',', ' ', $subCaption);
                         $form->FLD($key, 'double(min=0)', "caption={$caption}->{$subCaption}");
                         $pData['batch'] = $bArr['batch'];
                         $rec->_details[$key] = $pData;

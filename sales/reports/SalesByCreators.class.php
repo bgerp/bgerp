@@ -54,6 +54,12 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
 
 
     /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -150,7 +156,7 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
                 );
             } else {
                 $obj = &$recs[$id];
-                $obj->salesAmount += $sRec->amountDeal;
+                $obj->salesAmount += $sRec->amountDeal- $sRec->amountVat;
                 $obj->salesCount++;
             }
         }

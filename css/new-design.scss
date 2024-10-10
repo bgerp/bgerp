@@ -821,6 +821,12 @@ body {
     opacity: 1;
 }
 
+// махната стрелка в менюто за търсене
+.search-input-modern::-webkit-calendar-picker-indicator, .search-input-modern::-webkit-list-button {
+    display:none !important;
+    opacity: 0 !important;
+}
+
 .menu-options{
     display: block;
     float: left;

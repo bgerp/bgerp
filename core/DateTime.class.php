@@ -1075,4 +1075,71 @@ class core_DateTime
 
         return $mysqlDate;
     }
+
+
+    /**
+     * Умно показване на период
+     *
+     * 1-15 Aug 24, ако двете дати са в един месец
+     * Aug 24, ако двете дати обхващат точно един месец
+     * 7 Jul-15 Aug 24, ако двете дати са в една гидина
+     * Jul-Aug 24, ако двете дати са точни месеци
+     * 7 Jul 24, ако двете дати са в един и същи ден
+     * 7 Jul 24-15 Aug 25, ако двете дати нямат нищо общо
+     * Jul 24-Aug 25, ако двете дати са точни месеци в различни години
+     *
+     * @param string $from    - начало на периода
+     * @param string $to      - край на периода
+     * @param string|null $lg - език (null) за текущия
+     * @return string $res
+     */
+    public static function getSmartPeriod($from, $to, $lg = null)
+    {
+        $fromDateObj = DateTime::createFromFormat("Y-m-d", $from);
+        $toDateObj = DateTime::createFromFormat("Y-m-d", $to);
+
+        if(empty($from) && !empty($to)) return tr('Към') . ": " . ltrim(dt::mysql2verbal($to, 'd M y'),'0');
+        if(empty($to) && !empty($from)) return tr('От') . ": " . ltrim(dt::mysql2verbal($from, 'd M y'),'0');
+
+        $toYear = $toDateObj->format("Y");
+        $toMonth = static::getMonth($toDateObj->format("m"), 'M', $lg);
+        $toDay = $toDateObj->format("d");
+
+        $fromYear = $fromDateObj->format("Y");
+        $fromDay = $fromDateObj->format("d");
+        $fromMonth = static::getMonth($fromDateObj->format("m"), 'M', $lg);
+
+        $lastDayOfMonth = dt::getLastDayOfMonth($to);
+        $fromDayPadded = ltrim($fromDay, '0');
+        $toDayPadded = ltrim($toDay, '0');
+
+        $res = null;
+        if($fromYear == $toYear) {
+            if($fromMonth == $toMonth){
+                if($fromDay == $toDay){
+                    $res = "{$fromDayPadded} {$toMonth} {$fromDateObj->format("y")}";
+                } elseif($fromDay == '01' && $lastDayOfMonth == $to){
+                    $res = "{$toMonth} {$fromDateObj->format("y")}";
+                } else {
+                    $res = "{$fromDayPadded} – {$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
+                }
+            } else {
+                if($fromDay == '01' && $lastDayOfMonth == $to){
+                    $res = "{$fromMonth}-{$toMonth} {$fromDateObj->format("y")}";
+                } else {
+                    $res = "{$fromDayPadded} {$fromMonth} – {$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
+                }
+            }
+        } else {
+            if($fromDay == '01' && $lastDayOfMonth == $to) {
+                $res = "{$fromMonth} {$fromDateObj->format("y")} – {$toMonth} {$toDateObj->format("y")}";
+            }
+        }
+
+        if(empty($res)){
+            $res = "{$fromDayPadded} {$fromMonth} {$fromDateObj->format("y")} – {$toDayPadded} {$toMonth} {$toDateObj->format("y")}";
+        }
+
+        return $res;
+    }
 }

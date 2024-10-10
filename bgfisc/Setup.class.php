@@ -32,6 +32,12 @@ defIfNot('BGFISC_PRINT_VAT_GROUPS', 'yes');
 
 
 /**
+ * До кой ден месеца след издаване на бележката да може да се сторнира с основание "Операторска грешка"
+ */
+defIfNot('BGFISC_REVERT_OPERATION_ERROR_ALLOWED_BEFORE', '7');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с печатане на касови бележки
  *
@@ -82,21 +88,7 @@ class bgfisc_Setup extends core_ProtoSetup
      */
     public $managers = array('bgfisc_Register',
         'bgfisc_PrintedReceipts',
-    );
-    
-    
-    /**
-     * Настройки за Cron
-     */
-    public $cronSettings = array(
-        array(
-            'systemId' => 'delete_not_finished_receipts',
-            'description' => 'Изтриване на незавършените бележки',
-            'controller' => 'bgfisc_PrintedReceipts',
-            'action' => 'DeleteUnfinishedReceipts',
-            'period' => 1,
-            'timeLimit' => 1
-        )
+        'migrate::repairSearchKeywords2440',
     );
     
     
@@ -115,6 +107,7 @@ class bgfisc_Setup extends core_ProtoSetup
         'BGFISC_PRICE_FU_ROUND' => array('int', 'caption=Разпечатване на фискален бон от ФУ->Закръгляне (Цена)'),
         'BGFISC_CHECK_SERIAL_NUMBER' => array('enum(yes=Включено,no=Изключено)', 'caption=Разпечатване на фискален бон от ФУ->Проверка на сер. номер'),
         'BGFISC_PRINT_VAT_GROUPS'  => array('enum(yes=Включено,no=Изключено)', 'caption=Разпечатване на фискален бон от ФУ->Разбивка по ДДС'),
+        'BGFISC_REVERT_OPERATION_ERROR_ALLOWED_BEFORE'  => array('int(min=1)', 'caption=До кое число на месеца след бележката да може да се сторнира с основание "Операторска грешка"->Ден'),
     );
     
     
@@ -173,5 +166,15 @@ class bgfisc_Setup extends core_ProtoSetup
         }
         
         return array('' => '') + $options;
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи
+     */
+    public static function repairSearchKeywords2440()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'bgfisc_PrintedReceipts', $callOn);
     }
 }

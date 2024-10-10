@@ -846,8 +846,8 @@ class email_Outgoings extends core_Master
         $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
         
         if (countR($docHandlesArr) > 0) {
-            $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4,formOrder=6');
-            
+            $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4,formOrder=6, translate=none');
+
             $suggestion = array();
             $setDef = array();
             
@@ -887,7 +887,7 @@ class email_Outgoings extends core_Master
         if (countR($filesArr) > 0) {
             
             // Задаваме на формата да се покажат полетата
-            $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,formOrder=7,maxCaptionLen=25');
+            $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,formOrder=7,maxCaptionLen=25, translate=none');
             $data->form->setSuggestions('attachmentsSet', $filesArr);
         }
         

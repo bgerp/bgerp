@@ -81,7 +81,7 @@ class cms_plg_ContentSharable extends core_Plugin
 
         // Добавяме бутон
         $domains = cms_Domains::getDomainOptions(false, core_Users::getCurrent());
-        $form->FLD('domainId', 'key(mvc=cms_Domains,select=title)', 'caption=Домейн,silent,autoFilter,forceField');
+        $form->FLD('domainId', 'key(mvc=cms_Domains,select=titleExt)', 'caption=Домейн,silent,autoFilter,forceField');
         if (countR($domains) == 1) {
             $form->setField('domainId', 'input=hidden');
         } else {

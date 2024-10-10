@@ -702,7 +702,8 @@ class core_Form extends core_FieldSet
         } else {
             $fields = $this->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none' && #input != 'hidden')");
         }
-        
+
+        $isHorizontal = ($this->view == 'horizontal');
         if (countR($fields)) {
             if ($this->defOrder) {
                 $this->orderField();
@@ -762,6 +763,7 @@ class core_Form extends core_FieldSet
             
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
             $haveErrors = $this->gotErrors();
+            $firstError = false;
 
             // Създаваме input - елементите
             foreach ($fields as $name => $field) {
@@ -892,9 +894,15 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Рендиране на select или input полето
+                $optionsCount = countR($options);
+                $type->params['isHorizontal'] = $isHorizontal;
+                if($type->params['allowEmpty']){
+                    $attr['_isAllowEmpty'] = true;
+                }
 
-                if ((countR($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
+                if (($optionsCount > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     unset($attr['value']);
+                    $input = new ET();
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     
                     // Групиране по частта преди посочения разделител
@@ -907,17 +915,38 @@ class core_Form extends core_FieldSet
                             $title = tr($title);
                         }
                     }
+
+                    if (!isset($field->removeAndRefreshForm) && !isset($field->refreshForm)) {
+                        $maxRadio = $type->params['maxRadio'];
+                        if(empty($maxRadio) && !$type->params['isHorizontal']){
+                            if(arr::isOptionsTotalLenBellowAllowed($options)){
+                                $maxRadio = 4;
+                                $type->params['select2MinItems'] = 10000;
+                            }
+                        }
+
+                        // ако ще се рендират опциите като радио-бутони маха се празната опция
+                        if(isset($maxRadio) && countR($options) <= $maxRadio){
+                            if($type->params['allowEmpty']){
+                                if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2) {
+                                    unset($options['']);
+                                }
+                            }
+                        }
+                    }
+
                     $input = ht::createSmartSelect(
                         $options,
                         $name,
                         $value,
                         $attr,
-                        $type->params['maxRadio'],
+                        $maxRadio,
                         $type->params['maxColumns'],
                         $type->params['columns']
                     );
                     $this->invoke('AfterCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                 } else {
+                    $type->params['maxRadio'] = $maxRadio;
                     $input = $type->renderInput($name, $value, $attr);
                 }
 
@@ -1083,7 +1112,7 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? (', ' . $fUnit) : '';
                     
-                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#]' nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#] wideNowrap'  style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
                     if ($emptyRow) {
                         $tpl->append(new ET("\n<tr class='{$fsRow}'><td colspan=2><div class='formGroup'>&nbsp;</div></td></tr>"), 'FIELDS');
