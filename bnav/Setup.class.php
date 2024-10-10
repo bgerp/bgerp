@@ -131,6 +131,16 @@ defIfNot('FSD_ZDDS_CHL163A', 88);
  */
 defIfNot('BASE_GROUP', '');
 
+/**
+ * Сметка  продажби
+ */
+defIfNot('FSD_SALES', '');
+
+/**
+ * Сметка покупки
+ */
+defIfNot('FSD_PURCHASE', '');
+
 
 /**
  * class bnav_Setup
