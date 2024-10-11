@@ -92,15 +92,12 @@ defIfNot('BGERP_ENABLE_DOUBLE_CLICK_ON_LINK', 'no');
 
 
 /**
-<<<<<<< HEAD
-=======
  * Колко символа максимална дължина опции да се показват като радио бутони (а не като селект) до 4
  */
 defIfNot('BGERP_VERTICAL_FORM_DEFAULT_MAX_RADIO_LENGTH', 42);
 
 
 /**
->>>>>>> refs/remotes/origin/test
  * Клавиши за бързо избиране на бутони
  */
 defIfNot(

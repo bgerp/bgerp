@@ -195,7 +195,6 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $prodInbeginArr = $prodInEndArr = array();
 
         while ($receiptDetailRec = $receiptQuery->fetch()) {
-//if(cat_Products::fetch($receiptDetailRec->productId)->code != '16-66')continue;
             $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
 
             //Филтър по POS
