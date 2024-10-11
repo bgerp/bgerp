@@ -105,7 +105,7 @@ class openai_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'openai_TextDavinci003, openai_GPT35Turbo, openai_GPT4, openai_GPT4Turbo';
+    public $defClasses = 'openai_TextDavinci003, openai_GPT35Turbo, openai_GPT4, openai_GPT4Turbo, openai_GPT4o, openai_GPT4omini';
 
 
     /**

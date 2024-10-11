@@ -37,7 +37,7 @@ class openai_GPT4Turbo extends openai_GPT35Turbo
      *
      * @return string|false
      */
-    public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null)
+    public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null, $timeout = 12)
     {
         setIfNot($pArr['model'], 'gpt-4-1106-preview');
         setIfNot($pArr['__convertRes'], false);
@@ -57,7 +57,7 @@ class openai_GPT4Turbo extends openai_GPT35Turbo
             $pArr['messages'][] = array('role' => 'system', 'content' => 'You are a helpful assistant designed to output JSON.');
         }
 
-        $resObj = self::execCurl($pArr, $useCache, $cKey);
+        $resObj = self::execCurl($pArr, $useCache, $cKey, $timeout);
 
         $jsonContent = $resObj->choices[$index]->message ? $resObj->choices[$index]->message->content : false;
 
