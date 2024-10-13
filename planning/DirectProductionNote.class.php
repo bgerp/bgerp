@@ -1602,4 +1602,58 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         return null;
     }
+
+
+    /**
+     * Проверка може ли да се контира/възстанови ПП
+     *
+     * @param $rec
+     * @param $action
+     * @return string|null
+     */
+    private function getErrorWhenTryingToConto($rec, $action = 'conto')
+    {
+        $errorMsg = null;
+        $rec = $this->fetchRec($rec);
+
+        if($action == 'restore' && $rec->brState != 'active') return $errorMsg;
+        $jobRec = static::getJobRec($rec);
+
+        $action = $action == 'conto' ? 'контирате' : 'възстановяване';
+        if ($jobRec->allowSecondMeasure == 'no' && !empty($rec->additionalMeasureId)) {
+            $errorMsg = "Не може да {$action} протокола, защото е с втора мярка, а заданието вече не е избрана";
+        } elseif ($jobRec->allowSecondMeasure == 'yes' && empty($rec->additionalMeasureId)) {
+            $errorMsg = "Не може да {$action} протокола, защото е без втора мярка, а заданието вече не позволява";
+        }
+
+        return $errorMsg;
+    }
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $errorMsg = $mvc->getErrorWhenTryingToConto($id);
+        if(!empty($errorMsg)){
+            core_Statuses::newStatus($errorMsg, 'error');
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $errorMsg = $mvc->getErrorWhenTryingToConto($id, 'restore');
+        if(!empty($errorMsg)){
+            core_Statuses::newStatus($errorMsg, 'error');
+
+            return false;
+        }
+    }
 }

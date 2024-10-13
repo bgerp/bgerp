@@ -36,9 +36,9 @@ class openai_GPTIntf
      *
      * @return string|false
      */
-    public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null)
+    public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null, $timeout = 12)
     {
 
-        return $this->class->getRes($prompt, $pArr, $useCache, $index, $cKey);
+        return $this->class->getRes($prompt, $pArr, $useCache, $index, $cKey, $timeout);
     }
 }

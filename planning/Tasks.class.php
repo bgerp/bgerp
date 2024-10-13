@@ -988,9 +988,10 @@ class planning_Tasks extends core_Master
             $rec->title = cat_Products::getTitleById($rec->productId);
 
             planning_Centers::checkDeviationPercents($form);
+
             if (in_array($form->cmd, array('save_pending', 'save_pending_new'))) {
-                if (empty($rec->indTime) && empty($rec->timeDuration)) {
-                    $form->setError('timeDuration,indTime', "Необходими са данни за да се изчисли продължителността на операцията|*!");
+                if (empty($rec->indTime) && empty($rec->timeDuration) && (empty($rec->timeStart) || empty($rec->timeEnd))) {
+                    $form->setError('timeDuration,indTime,timeStart,timeEnd', "Необходими са данни за да се изчисли продължителността на операцията|*!");
                 }
             }
 
@@ -1050,6 +1051,12 @@ class planning_Tasks extends core_Master
 
                 if ($whenToUnsetStartAfter) {
                     $rec->startAfter = null;
+                }
+
+                if(empty($rec->timeDuration)){
+                    if(!empty($rec->timeStart) && !empty($rec->timeEnd)){
+                        $rec->timeDuration = dt::secsBetween($rec->timeEnd, $rec->timeStart);
+                    }
                 }
             }
         }
@@ -4077,5 +4084,25 @@ class planning_Tasks extends core_Master
         }
 
         return $exLinkArray;
+    }
+
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($rec->isFinal == 'yes'){
+            $jobRec = doc_Containers::getDocument($rec->originId)->fetch();
+            if($jobRec->allowSecondMeasure == 'no'){
+                $derivativeMeasures = cat_UoM::getSameTypeMeasures(cat_Products::fetchField($jobRec->productId, 'measureId'));
+                if(!array_key_exists($rec->measureId, $derivativeMeasures)){
+                    core_Statuses::newStatus("Не може да се възстанови операцията, защото заданието вече не поддържа избраната мярка в операцията|*!", 'error');
+
+                    return false;
+                }
+            }
+        }
     }
 }

@@ -37,10 +37,10 @@ class openai_GPT4 extends openai_GPT35Turbo
      *
      * @return string|false
      */
-    public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null)
+    public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null, $timeout = 12)
     {
         setIfNot($pArr['model'], 'gpt-4');
 
-        return parent::getRes($prompt, $pArr, $useCache, $index, $cKey);
+        return parent::getRes($prompt, $pArr, $useCache, $index, $cKey, $timeout);
     }
 }
