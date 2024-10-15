@@ -883,6 +883,17 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'paramId';
+        $data->listFilter->setFieldTypeParams('paramId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+        if($filter = $data->listFilter->rec){
+            if(isset($filter->paramId)){
+                $data->query->where("#paramId = {$filter->paramId}");
+            }
+        }
+
         $data->query->orderBy('id', 'DESC');
     }
 }
