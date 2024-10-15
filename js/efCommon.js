@@ -2156,7 +2156,7 @@ function changeHint(quantity, scrap){
     if(!quantity || !scrap)  {
         $('.scrapHint').css('display', 'none');
     } else {
-        var result = quantity * scrap / 100;
+        var result = quantity *  (1 + scrap / 100);
         if (result) {
             $('.scrapHint').css('display', 'inline-block');
             $('.scrapHint .withProductionScrap').html(result);
