@@ -3605,7 +3605,7 @@ class planning_Tasks extends core_Master
                 $tpl->push($scriptUrl, 'JS');
 
                 $tpl->push('planning/js/Tasks.js', 'JS');
-                $tpl->push('planning/tpl/reorderStyles.css', 'CSS');
+                $tpl->push('planning/tpl/TaskReordering.css', 'CSS');
             } else{
                 jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
 

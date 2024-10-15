@@ -2134,6 +2134,38 @@ function setThreadElemWidth() {
 
 
 /**
+ * Следим к-вото и процента, за да сметнем брака
+ */
+function scrapCalculation(){
+    var quantity = parseInt($("input[name='packQuantity']").val(),10);
+    var scrap = parseInt($("input[name='productionScrap']").val(),10);
+    $("input[name='packQuantity']").on('change keydown paste input', function(){
+        quantity = parseInt($("input[name='packQuantity']").val(),10);
+        changeHint(quantity, scrap);
+    });
+    $("input[name='productionScrap']").on('change keydown paste input', function(){
+        scrap = parseInt($("input[name='productionScrap']").val(),10);
+        changeHint(quantity, scrap);
+    });
+}
+
+/**
+ * Пресмятане на технологичния брак и показване като хинт
+ */
+function changeHint(quantity, scrap){
+    if(!quantity || !scrap)  {
+        $('.scrapHint').css('display', 'none');
+    } else {
+        var result = quantity * scrap / 100;
+        if (result) {
+            $('.scrapHint').css('display', 'inline-block');
+            $('.scrapHint .withProductionScrap').html(result);
+        }
+    }
+}
+
+
+/**
  * Задава ширина на таблицата за резултатите на баркодовете в мобилен
  */
 function setBarcodeHolderWidth(){

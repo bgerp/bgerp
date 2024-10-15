@@ -27,3 +27,6 @@ td {
   border: 1px solid #dddddd;
   padding: 8px; }
 
+.dropped-highlight {
+  background-color: #fffdd7f2; }
+

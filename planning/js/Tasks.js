@@ -59,7 +59,11 @@ $(document).ready(function () {
             evt.item.classList.add('selected');
         },
         onEnd: function (evt) {
-            evt.item.classList.remove('selected');
+            // Remove 'selected' class from all elements with that class
+            const selectedElements = document.querySelectorAll('.selected');
+            selectedElements.forEach(function (element) {
+                element.classList.remove('selected');
+            });
             let table = document.querySelector("#dragTable");
             let url = table.dataset.url;
 
@@ -74,6 +78,21 @@ $(document).ready(function () {
 
                 getEfae().preventRequest = 0;
                 getEfae().process(resObj, params);
+            }
+
+            const dropIndex = evt.newIndex;  // The index where the item is dropped
+            const rows = Array.from(table.querySelectorAll("tbody tr"));  // Get all rows
+
+            // Check if the dropIndex is valid
+            if (dropIndex < rows.length) {
+                const droppedRow = rows[dropIndex];
+
+                // Add class before or after the selected rows
+                selectedElements.forEach(function (selectedElement) {
+                    // Example: Add class 'dropped-highlight' before the dropped row
+                    droppedRow.insertAdjacentElement('beforebegin', selectedElement);
+                    selectedElement.classList.add('dropped-highlight'); // Add your class here
+                });
             }
 
             console.log("Items moved from index " + evt.oldIndex + " to " + evt.newIndex);
