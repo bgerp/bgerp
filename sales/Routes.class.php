@@ -233,9 +233,13 @@ class sales_Routes extends core_Manager
     {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('user', 'user(roles=sales|ceo,allowEmpty)', 'input,caption=Търговец,placeholder=Търговец,silent,autoFilter');
+        $data->listFilter->FNC('user', 'user(roles=sales|ceo)', 'input,caption=Търговец,placeholder=Търговец,silent,autoFilter');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
-        
+        if(haveRole('officer')){
+            $data->listFilter->setFieldTypeParams('user', array('allowEmpty' => 'allowEmpty'));
+        } else {
+            $data->listFilter->setDefault('user', core_Users::getCurrent());
+        }
         $data->listFilter->showFields = 'search,user,date';
         $data->listFilter->input();
         $data->query->orderBy('#nextVisit', 'ASC');
