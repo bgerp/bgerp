@@ -839,7 +839,7 @@ class planning_AssetResources extends core_Master
         $tQuery->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
         $tQuery->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 9999)");
         $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'pending', 'stopped')))) AND #assetId = {$assetId}");
-        $tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId,timeStart,isFinal,jobProductId,labelQuantityInPack,labelPackagingId,simultaneity');
+        //$tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,calcedDuration,indTime,progress,timeDuration,indPackagingId,timeStart,isFinal,jobProductId,labelQuantityInPack,labelPackagingId,simultaneity');
         $tQuery->orderBy('orderByAssetIdCalc,id', $order);
         $taskRecs = $tQuery->fetchAll();
 
@@ -901,6 +901,7 @@ class planning_AssetResources extends core_Master
 
         $from = isset($from) ? $from : dt::now();
         $to = isset($to) ? $to : dt::addSecs(planning_Setup::get('ASSET_HORIZON'), $from);
+
         $int = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to, false, false);
 
         return $int;
@@ -1024,17 +1025,7 @@ class planning_AssetResources extends core_Master
             }
         }
 
-        // Какви са плануваните отмествания при прекъсване
-        $taskProductIds = arr::extractValuesFromArray($tasks, 'productId');
-        $iQuery = planning_Steps::getQuery();
-        $iQuery->where("#classId = {$productsClassId}");
-        $iQuery->show('interruptOffset,objectId');
-        $iQuery->in("objectId", $taskProductIds);
-        $interruptionArr = array();
-        while($iRec = $iQuery->fetch()){
-            $interruptionArr[$iRec->objectId] = $iRec->interruptOffset;
-        }
-
+        $interruptionArr = planning_Steps::getInterruptionArr($tasks);
         $minDuration = planning_Setup::get('MIN_TASK_DURATION');
 
         // Разделяне на ПО на такива с ръчно зададени времена и без
@@ -1086,7 +1077,7 @@ class planning_AssetResources extends core_Master
 
         // Запис на преизчислените начала и краища на операциите
         $Tasks = cls::get('planning_Tasks');
-        $Tasks->saveArray($updateRecs, 'id,freeTimeAfter,expectedTimeStart,expectedTimeEnd,orderByAssetId,calcedDuration');
+        $Tasks->saveArray($updateRecs, 'id,freeTimeAfter,expectedTimeStart,expectedTimeEnd,orderByAssetId,calcedCurrentDuration,calcedDuration');
 
         // Записване на времето за обновяване
         $me = cls::get(get_called_class());
@@ -1167,6 +1158,8 @@ class planning_AssetResources extends core_Master
             $begin = max($taskRec->timeStart, $now);
             $begin = strtotime($begin);
         }
+
+        $res->calcedCurrentDuration = $duration;
         $timeArr = $Interval->consume($duration, $begin, null, $interruptOffset);
 
         // Ако е успешно записват се началото и края
