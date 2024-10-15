@@ -524,10 +524,10 @@ class planning_Jobs extends core_Master
                     $form->setDefault('secondMeasureId', $secondMeasureId);
                 }
             }
-        }
 
-        if ($productionScrap = cat_Products::getParams($productId, 'productionScrap')) {
-            $form->setDefault('productionScrap', $productionScrap);
+            if ($productionScrap = cat_Products::getParams($productId, 'productionScrap')) {
+                $form->setDefault('productionScrap', $productionScrap);
+            }
         }
 
         $withProductionScrap = $rec->packQuantity * (1 + $rec->productionScrap);
