@@ -532,15 +532,15 @@ class planning_Jobs extends core_Master
 
         $withProductionScrap = $rec->packQuantity * (1 + $rec->productionScrap);
         $scrapHintDisplay = (empty($rec->packQuantity) || empty($rec->productionScrap)) ? 'none' : 'inline-block';
-        $form->setField('packQuantity', array('unit' => "|*<span style='display:{$scrapHintDisplay};'><span class='quiet'>|включен техн. брак|*:</span> <span class='withProductionScrap'>{$withProductionScrap}</span></span>"));
+
+        $form->setField('packQuantity', array('unit' => "|*<span class='scrapHint' style='display:{$scrapHintDisplay};'><span class='quiet'>|включен техн. брак|*:</span> <span class='withProductionScrap'>{$withProductionScrap}</span></span>"));
 
         if($data->action == 'clone'){
             $form->setReadOnly('department');
         }
 
         $form->layout = $form->renderLayout();
-        $jsTpl = new core_ET("console.log('test');");
-        $form->layout->appendOnce($jsTpl, 'SCRIPTS');
+        jquery_Jquery::run( $form->layout,'scrapCalculation();');
     }
 
 
