@@ -287,6 +287,7 @@ class eshop_Settings extends core_Master
         $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Каса');
 
         $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми,both=Фирми и лица)', 'caption=Онлайн поръчки->Допускат се за,notNull,value=auto');
+        $this->FLD('inputCardBtn', 'enum(yes=Включено,no=Изключено)', 'caption=Онлайн поръчки->Въвеждане на карта/ваучер,notNull,value=no');
         $this->FLD('mandatoryInquiryContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допускат се за,notNull,value=auto');
         $this->FLD('mandatoryEGN', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕГН');
         $this->FLD('mandatoryUicId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕИК');
@@ -537,13 +538,12 @@ class eshop_Settings extends core_Master
             return self::get($classId, $objectId, $date);
         }
         
-        $settingRec = core_Cache::get('eshop_Settings', $cacheKey);
-        
+        $settingRec = core_Cache::get('eshop_Settings', $cacheKey, 1440, array('eshop_Settings'));
         if (!is_object($settingRec)) {
             $date = dt::now();
             $settingRec = self::get($classId, $objectId, $date);
             if (is_object($settingRec)) {
-                core_Cache::set('eshop_Settings', $cacheKey, $settingRec, 10080);
+                core_Cache::set('eshop_Settings', $cacheKey, $settingRec, 1440, array('eshop_Settings'));
             }
         }
         

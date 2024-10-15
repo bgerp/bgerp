@@ -1,10 +1,12 @@
 $(document).ready(function () {
+
     // Initialize DataTable
     var table = $('#dragTable').DataTable({
         searching:false,
         paging: false,
-        info: false}
-    );
+        info: false,
+        autoWidth: true,
+        ordering: false,});
 
     // Initialize colResizable
     $('#dragTable').colResizable({
