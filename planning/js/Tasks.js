@@ -59,7 +59,11 @@ $(document).ready(function () {
             evt.item.classList.add('selected');
         },
         onEnd: function (evt) {
-            evt.item.classList.remove('selected');
+            // Remove 'selected' class from all elements with that class
+            const selectedElements = document.querySelectorAll('.selected');
+            selectedElements.forEach(function (element) {
+                element.classList.remove('selected');
+            });
             let table = document.querySelector("#dragTable");
             let url = table.dataset.url;
 
