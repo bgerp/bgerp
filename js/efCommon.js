@@ -2017,6 +2017,7 @@ function setFormElementsWidth() {
                 }
                 $(this).parent().css('maxWidth', parseInt((formElWidth - 20) / colsInRow));
                 $(this).parent().css('overflow-x', 'hidden');
+                $(this).parent().css('white-space', 'nowrap');
 
                 $(this).attr('title', $(this).text());
             }
