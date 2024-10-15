@@ -1395,16 +1395,30 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div></div>"));
+        // Ако попирнцип бележката не може да се приключи - да не може да се и прехвърля
+        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><!--ET_BEGIN PAYMENT_ERROR--><div class='paymentErrorInfo'>[#PAYMENT_ERROR#]</div><!--ET_END PAYMENT_ERROR--><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div></div>"));
+
+        $rec->_disableAllPayments = false;
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
-        $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
-        
+        if(core_Packs::isInstalled('voucher')) {
+            if(!isset($rec->revertId)){
+                $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($rec->id), 'productId');
+                $errorStartStr = 'Не може да платите, докато има артикули изискващи препоръчител и няма такъв';
+                if ($error = voucher_Cards::getErrorForVoucherAndProducts($rec->voucherId, $productArr, $errorStartStr)) {
+                    $tpl->append(tr($error), 'PAYMENT_ERROR');
+                    $rec->_disableAllPayments = true;
+                }
+            }
+        }
+
+        $disClass = ($payUrl && !$rec->_disableAllPayments) ? 'navigable' : 'disabledBtn';
         $paymentArr = array();
         $paymentArr["payment-1"] = (object)array('body' => ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true), 'placeholder' => 'PAYMENTS');
         $payments = pos_Points::fetchSelected($rec->pointId);
 
         if(!isset($rec->revertId)){
             $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
+
             foreach ($payments as $paymentId => $paymentTitle){
                 $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl, 'title' => 'Избор на вид плащане');
                 $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
@@ -1417,6 +1431,7 @@ class pos_Terminal extends peripheral_Terminal
                 // Ако е плащане с карта и има периферия подменя се с връзка с касовия апарат
                 if($paymentId == $cardPaymentId){
                     $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+
                     if(is_object($deviceRec)){
                         $attr['id'] = 'card-payment';
                         $attr['data-onerror'] = tr('Неуспешно плащане с банковия терминал|*!');
@@ -1441,7 +1456,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на бутон за приключване на бележката
         cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
-        
+
         $deleteBtn = $this->renderDeleteRowBtn($rec, $selectedRec);
         $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
 
@@ -1578,7 +1593,7 @@ class pos_Terminal extends peripheral_Terminal
     private function renderDeleteRowBtn($rec, $selectedRec)
     {
         $deleteAttr = array('id' => "delete{$selectedRec->id}", 'class' => "posBtns deleteRow", 'title' => 'Изтриване на реда');
-        if($selectedRec){
+        if($selectedRec && !$rec->_disableAllPayments){
             if(strpos($selectedRec->action, 'payment') !== false){
                 $deleteAttr['class'] .= (pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
             } else {
