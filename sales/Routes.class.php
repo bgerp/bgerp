@@ -237,7 +237,7 @@ class sales_Routes extends core_Manager
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
         if(haveRole('officer')){
             $data->listFilter->setFieldTypeParams('user', array('allowEmpty' => 'allowEmpty'));
-        } else {
+        } elseif(haveRole('sales')) {
             $data->listFilter->setDefault('user', core_Users::getCurrent());
         }
         $data->listFilter->showFields = 'search,user,date';
