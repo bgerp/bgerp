@@ -700,4 +700,28 @@ class planning_Steps extends core_Extender
 
         return static::count("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
     }
+
+
+    /**
+     * Връща масив с отместванията
+     *
+     * @param array $tasks
+     * @return array $interruptionArr
+     */
+    public static function getInterruptionArr($tasks)
+    {
+        // Какви са плануваните отмествания при прекъсване
+        $taskProductIds = arr::extractValuesFromArray($tasks, 'productId');
+        $iQuery = planning_Steps::getQuery();
+        $iQuery->where("#classId = " . cat_Products::getClassId());
+        $iQuery->show('interruptOffset,objectId');
+        $iQuery->in("objectId", $taskProductIds);
+
+        $interruptionArr = array();
+        while($iRec = $iQuery->fetch()){
+            $interruptionArr[$iRec->objectId] = $iRec->interruptOffset;
+        }
+
+        return $interruptionArr;
+    }
 }

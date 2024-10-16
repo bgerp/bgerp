@@ -322,6 +322,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_AssetSparePartsDetail',
         'migrate::repairSearchKeywords2524',
         'migrate::renameResourceFields2624v2',
+        'migrate::removeCachedAssetModified4124v2',
     );
 
 
@@ -459,6 +460,19 @@ class planning_Setup extends core_ProtoSetup
 
         if(countR($save)){
             $Resources->saveArray($save, 'id,protocols');
+        }
+    }
+
+
+    /**
+     * Изтриване на кеш да се преизчислят продължителноста на времената
+     */
+    public function removeCachedAssetModified4124v2()
+    {
+        $query = planning_AssetResources::getQuery();
+        $query->show('id');
+        while ($rec = $query->fetch()){
+            core_Permanent::remove("assetTaskOrder|{$rec->id}");
         }
     }
 }

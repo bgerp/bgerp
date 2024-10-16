@@ -1,0 +1,32 @@
+.selected {
+  background-color: #cce5ff; }
+
+.dragging {
+  opacity: 0.5; }
+
+.reorderSmallCol,
+.taskParamCol {
+  width: 1%;
+  white-space: nowrap; }
+
+.document-handler {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(181, 181, 181, 0.8); }
+
+.taskParamCol {
+  text-align: right; }
+
+table {
+  width: 100%;
+  border-collapse: collapse; }
+
+th,
+td {
+  border: 1px solid #dddddd;
+  padding: 8px; }
+
+.dropped-highlight {
+  background-color: #fffdd7f2; }
+
