@@ -1619,6 +1619,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         if($action == 'restore' && $rec->brState != 'active') return $errorMsg;
         $jobRec = static::getJobRec($rec);
 
+        // Ако ПП е за междинен етап - няма проблем
+        if($jobRec->productId != $rec->productId) return $errorMsg;
+
         $action = $action == 'conto' ? 'контирате' : 'възстановяване';
         if ($jobRec->allowSecondMeasure == 'no' && !empty($rec->additionalMeasureId)) {
             $errorMsg = "Не може да {$action} протокола, защото е с втора мярка, а заданието вече не е избрана";
