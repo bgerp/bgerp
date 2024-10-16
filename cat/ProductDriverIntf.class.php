@@ -670,6 +670,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      *          string      ['wasteStart']           - начално количество отпадък
      *          string      ['wastePercent']         - процент отпадък
      *          string      ['calcWeightMode']       - изчисляване на тегло или не
+     *          text        ['description']          - описание на операцията
      */
     public function getProductionData($productId)
     {

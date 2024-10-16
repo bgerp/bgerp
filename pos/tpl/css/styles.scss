@@ -1325,6 +1325,16 @@ th.revertCaption, td.revertCaption {
 	top: -1px;
 }
 
+.paymentErrorInfo {
+	padding:5px;
+	font-size:1.4em;
+	background-color: #fdfdc0;
+	border: solid 1px #cccccc;
+	color: #666666;
+	border-radius: 5px;
+	margin-bottom:3px;
+}
+
 .actionBtn {
 	height: 40px;
 	cursor: pointer;

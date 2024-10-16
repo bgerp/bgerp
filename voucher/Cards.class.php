@@ -495,13 +495,50 @@ class voucher_Cards extends core_Detail
 
 
     /**
+     * Ф-я връщаща грешка ако има артикули изискващи препоръчител
+     * и ваучерът не е с препоръчител (или няма ваулчер)
+     *
+     * @param int $id
+     * @param array $products
+     * @return string|null
+     */
+    public static function getErrorForVoucherAndProducts($id, $products, $startErrString = null)
+    {
+        if(isset($id)){
+            $rec = static::fetchRec($id);
+
+            $type = voucher_Types::fetch($rec->typeId);
+            if($type->referrer == 'yes' && !empty($rec->referrer)) return null;
+        }
+
+        // Ако има артикули, които изискват ваучер от препоръчител
+        $productsWithoutRequiredParams = array();
+        $requireReferrerId = cat_Params::force('requireReferrer', 'Изискуем препоръчител', 'cond_type_YesOrNo', null, '', false, false);
+        foreach ($products as $productId){
+            $requireReferrerVal = cat_Products::getParams($productId, $requireReferrerId);
+            if($requireReferrerVal != 'yes') continue;
+            $productsWithoutRequiredParams[] = "<b>" . cat_Products::getTitleById($productId) . "</b>";
+        }
+
+        if(!countR($productsWithoutRequiredParams)) return null;
+
+        // Ако няма ваучер или има такъв без препоръчител, тогава ще се покаже грешката
+        if(isset($rec) && !empty($rec->referrer)) return null;
+
+        $startErrString = !empty($startErrString) ? $startErrString : 'Следните артикули изискват ваучер от препоръчител';
+
+        return "{$startErrString}|*: " . implode(', ', $productsWithoutRequiredParams);
+    }
+
+
+    /**
      * Връща дали има грешка при контиране
      *
-     * @param int $id         - ид на ваучер
-     * @param array $products - масив от ид-та на артикули
-     * @param int $classId    - ид на клас
-     * @param int $objectId   - ид на обект
-     * @return string|void    - съобщение за грешка или null ако всичко е ок
+     * @param int $id                    - ид на ваучер
+     * @param array $products            - масив от ид-та на артикули
+     * @param int $classId               - ид на клас
+     * @param int $objectId              - ид на обект
+     * @return string|void               - съобщение за грешка или null ако всичко е ок
      */
     public static function getContoErrors($id, $products, $classId, $objectId)
     {
@@ -516,27 +553,9 @@ class voucher_Cards extends core_Detail
             if(!empty($rec->usedOn)) {
                 if(!($classId == $rec->classId && $objectId == $rec->objectId)) return 'Ваучерът е вече използван|*!';
             }
-
-            $type = voucher_Types::fetch($rec->typeId);
-            if($type->referrer == 'yes' && !empty($rec->referrer)) return;
         }
 
-        // Ако има артикули, които изискват вауер от пропоръчител
-        $productsWithoutRequiredParams = array();
-        $requireReferrerId = cat_Params::force('requireReferrer', 'Изискуем препоръчител', 'cond_type_YesOrNo', null, '', false, false);
-        foreach ($products as $productId){
-            $requireReferrerVal = cat_Products::getParams($productId, $requireReferrerId);
-            if($requireReferrerVal != 'yes') continue;
-            $productsWithoutRequiredParams[] = cat_Products::getTitleById($productId);
-        }
-
-        if(countR($productsWithoutRequiredParams)){
-
-            // Ако няма ваучер или има такъв без препоръчител, тогава ще се покаже грешката
-            if(isset($rec) && !empty($rec->referrer)) return;
-
-            return 'Следните артикули изискват ваучер от препоръчител|*: ' . implode(', ', $productsWithoutRequiredParams);
-        }
+        return static::getErrorForVoucherAndProducts($id, $products);
     }
 
 

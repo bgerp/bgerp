@@ -323,6 +323,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::repairSearchKeywords2524',
         'migrate::renameResourceFields2624v2',
         'migrate::removeCachedAssetModified4124v2',
+        'migrate::repairSearchKeywords2442',
     );
 
 
@@ -474,5 +475,15 @@ class planning_Setup extends core_ProtoSetup
         while ($rec = $query->fetch()){
             core_Permanent::remove("assetTaskOrder|{$rec->id}");
         }
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи
+     */
+    public static function repairSearchKeywords2442()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_Steps', $callOn);
     }
 }

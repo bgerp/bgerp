@@ -127,7 +127,9 @@ abstract class deals_ManifactureMaster extends core_Master
         $threadId = isset($rec->originId) ? doc_Containers::fetchField($rec->originId, 'threadId') : $rec->threadId;
         $Origin = isset($rec->originId) ? doc_Containers::getDocument($rec->originId) : doc_Threads::getFirstDocument($threadId);
         if($Origin){
+
             if($Origin->isInstanceOf('planning_Jobs')) return $Origin->fetch();
+            if($Origin->isInstanceOf('planning_ConsumptionNotes')) return $Origin->getJobRec();
 
             if($Origin->isInstanceOf('planning_Tasks')){
                 $jobDoc = doc_Containers::getDocument($Origin->fetchField('originId'));
