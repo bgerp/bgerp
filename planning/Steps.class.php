@@ -388,6 +388,7 @@ class planning_Steps extends core_Extender
         // Състоянието на екстендъра се синхронизира с това на мениджъра
         $rec->state = $managerRec->state;
         $mvc->save_($rec, 'state');
+        plg_Search::forceUpdateKeywords($mvc, $rec);
     }
 
 
@@ -723,5 +724,14 @@ class planning_Steps extends core_Extender
         }
 
         return $interruptionArr;
+    }
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $res = ' ' . cls::get($rec->classId)::fetchField($rec->objectId, 'searchKeywords');
     }
 }
