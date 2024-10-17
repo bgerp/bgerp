@@ -13,6 +13,7 @@ $(document).ready(function () {
         live: true,
         gripInnerHtml: '<div style="width:10px;"></div>',
         gripClass: 'grip',
+        postbackSafe: true,
         hoverCursor: 'col-resize',
         minWidth: 50,
         onResize: function() {
