@@ -2159,7 +2159,7 @@ function changeHint(quantity, scrap){
         var result = quantity *  (1 + scrap / 100);
         if (result) {
             $('.scrapHint').css('display', 'inline-block');
-            $('.scrapHint .withProductionScrap').html(result);
+            $('.scrapHint .withProductionScrap').html(Math.round(result));
         }
     }
 }

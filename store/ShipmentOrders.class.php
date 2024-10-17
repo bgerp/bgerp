@@ -553,6 +553,20 @@ class store_ShipmentOrders extends store_DocumentMaster
                 }
             }
         }
+
+        // Обратна ЕН ако не е към документ да може да се създава от потребители с по-високи права
+        if($action == 'add' && isset($rec->threadId)){
+            $fromSource = (isset($rec->fromContainerId) || isset($rec->reverseContainerId));
+
+            if(!$fromSource){
+                $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                if($firstDoc->isInstanceOf('purchase_Purchases')) {
+                    if(!haveRole('revertShipmentDocs,ceo')){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
     }
 
 
