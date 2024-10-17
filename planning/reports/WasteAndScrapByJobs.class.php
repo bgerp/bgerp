@@ -161,7 +161,12 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             if (isset($rec->groups)) {
 
                 $prodRec = cat_Products::fetch($jobRec->productId);
-                $jobQuery->likeKeyList('groups', $rec->groups);
+
+                $grArr = keylist::toArray($rec->groups);
+                if(!keylist::isIn($grArr, $prodRec->groups) || !$prodRec->groups){
+                   continue;
+                }
+
             }
 
             //задания активирани в този период
@@ -262,10 +267,13 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
         if ($export === false) {
+
             $fld->FLD('jobId', 'varchar', 'caption=Задание');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
             $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
+            $fld->FLD('positiveAvDev', 'double(decimals=2)', 'caption=Средно отклонение в количества -> Положително,tdClass=centered');
+            $fld->FLD('negativeAvDev', 'double(decimals=2)', 'caption=Средно отклонение в количества -> Отрицателно,tdClass=centered');
 
         } else {
 
