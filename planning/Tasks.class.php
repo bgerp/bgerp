@@ -496,7 +496,7 @@ class planning_Tasks extends core_Master
         if(Mode::is('isReorder')){
             $row->title = "{$rec->id}| " . str::limitLen($row->productId, 42);
         }
-        $row->title = ht::createLink($row->title, static::getSingleUrlArray($rec->id), false, "title=#" . $mvc->getTitleById($rec->id));
+        $row->title = ht::createLink($row->title, static::getSingleUrlArray($rec->id), false, "target=_blank,title=#" . $mvc->getTitleById($rec->id));
 
         if (!Mode::isReadOnly()) {
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
@@ -3305,12 +3305,12 @@ class planning_Tasks extends core_Master
                 if(!empty($rec->prevIdRec)){
                     $prevProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->prevIdRec->progress);
                     $prevId = "<span class='state-{$rec->prevIdRec->state} document-handler'>{$rec->prevIdRec->id} [{$prevProgressVerbal}]</span>";
-                    $row->prevId = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($rec->prevIdRec->id), false, "title=#" . $mvc->getTitleById($rec->prevIdRec->id));
+                    $row->prevId = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($rec->prevIdRec->id), false, "target=_blank,title=#" . $mvc->getTitleById($rec->prevIdRec->id));
                 }
                 if(!empty($rec->nextIdRec)){
                     $nextProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->nextIdRec->progress);
                     $nextId = "<span class='state-{$rec->nextIdRec->state} document-handler'>{$rec->nextIdRec->id} [{$nextProgressVerbal}]</span>";
-                    $row->nextId = ht::createLink($nextId, planning_Tasks::getSingleUrlArray($rec->nextIdRec->id), false, "title=#" . $mvc->getTitleById($rec->nextIdRec->id));
+                    $row->nextId = ht::createLink($nextId, planning_Tasks::getSingleUrlArray($rec->nextIdRec->id), false, "target=_blank,title=#" . $mvc->getTitleById($rec->nextIdRec->id));
                 }
 
                 if(!empty($rec->dueDate)){
@@ -3318,9 +3318,8 @@ class planning_Tasks extends core_Master
                 }
 
                 $jobTitle = planning_Jobs::getTitleById($jobRecs[$rec->originId]);
-                $jobTitle = str::limitLen($jobTitle, 32);
                 $singleJobUrl = planning_Jobs::getSingleUrlArray($jobRecs[$rec->originId]);
-                $row->originId = countR($singleJobUrl) ? ht::createLink($jobTitle, $singleJobUrl) : $jobTitle;
+                $row->originId = countR($singleJobUrl) ? ht::createLink($jobTitle, $singleJobUrl, false, "target=_blank,title={$jobTitle}") : $jobTitle;
             } else {
                 $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
                 $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> ") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
@@ -3356,8 +3355,6 @@ class planning_Tasks extends core_Master
      */
     protected function on_AfterGetContentHash($mvc, &$res, &$status)
     {
-        if(Mode::is('isReorder')) return ' ';
-
         // Хеша е датата на последна модификация на движенията
         $mQuery = $mvc->getQuery();
         $mQuery->orderBy('modifiedOn', 'DESC');
