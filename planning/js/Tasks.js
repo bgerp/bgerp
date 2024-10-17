@@ -101,6 +101,8 @@ $(document).ready(function () {
                 let dataIdString = JSON.stringify(dataIds);
                 let params = { orderedTasks: dataIdString };
 
+                console.log('DROP: ' + dataIdString);
+
                 getEfae().preventRequest = 0;
                 getEfae().process(resObj, params);
             }
