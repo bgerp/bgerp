@@ -493,10 +493,12 @@ class planning_Tasks extends core_Master
         }
 
         $row->title = "{$rec->id}|{$row->productId}";
+        $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
         if(Mode::is('isReorder')){
             $row->title = "{$rec->id}| " . str::limitLen($row->productId, 42);
+            $titleAttr['target'] = '_blank';
         }
-        $row->title = ht::createLink($row->title, static::getSingleUrlArray($rec->id), false, "target=_blank,title=#" . $mvc->getTitleById($rec->id));
+        $row->title = ht::createLink($row->title, static::getSingleUrlArray($rec->id), false, $titleAttr);
 
         if (!Mode::isReadOnly()) {
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
