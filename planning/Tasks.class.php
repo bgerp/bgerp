@@ -875,7 +875,15 @@ class planning_Tasks extends core_Master
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
 
-        $row->progress = (isset($fields['-list']) && empty($rec->progress)) ? ("<i>" . $mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId) . "</i>") : "<span style='color:{$grey};'>{$row->progress}</span>";
+        Mode::push('text', 'plain');
+        $plannedQuantityVerbal = $mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId);
+        Mode::pop('text');
+        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
+        if(Mode::is('isReorder')){
+            $row->progress = ht::createElement("span", array('title' => "Планирано|*: {$plannedQuantityVerbal}"), $row->progress, true);
+        } elseif(isset($fields['-list']) && empty($rec->progress)) {
+            $row->progress = "<i>{$plannedQuantityVerbal}</i>";
+        }
         core_Debug::stopTimer('RENDER_VERBAL');
 
         return $row;
@@ -2435,7 +2443,7 @@ class planning_Tasks extends core_Master
                 $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
             }
 
-            $data->title = "Производствени операции към|* " . planning_AssetResources::getHyperlink($assetId, true) . " " . ht::createBtn('Назад', getRetUrl(), false, false, array('class' => 'backBtn')) . " " . ht::createFnBtn('Запази', '', false, $saveBtnAttr);
+            $data->title = "|*" . planning_AssetResources::getHyperlink($assetId) . " " . ht::createBtn('Назад', getRetUrl(), false, false, array('class' => 'backBtn')) . " " . ht::createFnBtn('Запази', '', false, $saveBtnAttr);
         }
     }
 
@@ -3272,7 +3280,7 @@ class planning_Tasks extends core_Master
             }
 
             // Допълнителна обработка на показването на заданието в списъка на ПО
-            $row->dueDate = core_Type::getByName('date(format=smartTime)')->toVerbal($jobRecs[$rec->originId]->dueDate);
+            $row->dueDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($jobRecs[$rec->originId]->dueDate);
             $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity);
 
@@ -3316,7 +3324,7 @@ class planning_Tasks extends core_Master
                 }
 
                 if(!empty($rec->dueDate)){
-                    $row->dueDate = dt::mysql2verbal($rec->{$fld}, 'd.m.y');
+                    $row->dueDate = dt::mysql2verbal($rec->{$fld}, 'd.m.y 00:00');
                 }
 
                 $jobTitle = planning_Jobs::getTitleById($jobRecs[$rec->originId]);
