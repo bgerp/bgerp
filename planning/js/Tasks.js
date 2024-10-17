@@ -25,7 +25,7 @@ $(document).ready(function () {
         let url = $(this).attr("data-url");
 
         if(url){
-            $('body').append($('<div class="loadingModal">'));
+            $('body').css('overflow', 'hidden').append($('<div class="loadingModal"></div>'));
 
             let dataIds = getOrderedTasks();
             let dataIdString = JSON.stringify(dataIds);
