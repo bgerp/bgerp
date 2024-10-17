@@ -153,7 +153,7 @@
 "light.r2.output","str","","Light","system","U0:ID2:FC5:R0:DO7","Digital output 7. U0:ID2:FC5:R0:DO7","mz"
 "light.hallway_lighting.output","str","","Light","system","off","Hallway lighting digital output. U1:ID2:R0:DO3","mz"
 "light.hallway_lighting.time","float","0.0/","Light","system",60.0,"Hallway lighting wait time.","mz"
-"light.sensor.settings","json","","Light","system","{""vendor"": ""PT"", ""model"": ""light_sensor"", ""options"": {""input"": ""AI2""}}","Sensor settings","mz"
+"light.sensor.settings","json","","Light","system","{""vendor"": ""Gemho"", ""model"": ""envse"", ""options"": {""uart"": 0, ""mb_id"": 3}}","Sensor settings","mz"
 "light.target_illum","float","0.0/10000.0","Light","device",0.0,"Target illumination","mz"
 "light.illumination","float","0.0/10000.0","Light","device",0.0,"Current illumination","mz"
 "light.error_gain","float","/","Light","system",0.01,"Error gain","mz"
