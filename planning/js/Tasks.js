@@ -71,11 +71,20 @@ $(document).ready(function () {
         },
 
         onEnd: function (evt) {
-            // Remove 'selected' class from all elements with that class
+
+            // If no multi-drag is happening, treat the dragged item as a single element
+            if (selectedElements.length === 0) {
+                selectedElements.push({
+                    element: evt.item,  // Push the single dragged element
+                    originalIndex: evt.oldIndex  // Save its original index
+                });
+            }
+
+            // Remove 'selected' class from all selected elements
             selectedElements.forEach((item) => item.element.classList.remove('selected'));
 
             let table = document.querySelector("#dragTable");
-            const dropIndex = evt.newIndex;  // The index where the item is dropped
+            const dropIndex = evt.newIndex;  // Index where the item is dropped
             const rows = Array.from(table.querySelectorAll("tbody tr"));  // Get all rows
 
             // Reinsert the selected elements in their original order, relative to the new drop position
@@ -88,6 +97,9 @@ $(document).ready(function () {
                     table.querySelector('tbody').appendChild(item.element);  // Append if dropped at the end
                 }
             });
+
+            // Add 'dropped-highlight' class to each dropped element after reinserting
+            selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
 
             console.log("Items moved and reinserted in original order.");
 
