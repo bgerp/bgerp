@@ -96,6 +96,18 @@ $(document).ready(function () {
             }
 
             console.log("Items moved from index " + evt.oldIndex + " to " + evt.newIndex);
+        }, store: {
+            // Save the order of items to localStorage
+            set: function (sortable) {
+                var order = sortable.toArray();
+                localStorage.setItem('sortableOrder', order.join('|'));
+            },
+
+            // Get the order of items from localStorage
+            get: function (sortable) {
+                var order = localStorage.getItem('sortableOrder');
+                return order ? order.split('|') : [];
+            }
         }
     });
 })
