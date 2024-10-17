@@ -2219,7 +2219,7 @@ class planning_Tasks extends core_Master
             $noteQuery->show('state,count');
             while($noteRec = $noteQuery->fetch()){
                 $noteCountVerbal = core_Type::getByName('int')->toVerbal($noteRec->count);
-                $notesByStates[] = "<div class='state-{$noteRec->state} consumptionNoteBubble'>{$noteCountVerbal}</div>";
+                $notesByStates[] = " <div class='state-{$noteRec->state} consumptionNoteBubble'>{$noteCountVerbal}</div>";
             }
             if(countR($notesByStates)){
                 $row->progress .= " <small><i>" . tr('ПВ') . ":" . implode($notesByStates) . "</i></small>";
