@@ -199,8 +199,6 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
 
         while ($taskRec = $taskQuery->fetch()) {
 
-            bp($taskRec);
-
             $JOB = doc_Containers::getDocument($taskRec->originId);
             $jobRec = planning_Jobs::fetch($JOB->that);
 
