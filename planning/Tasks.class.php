@@ -4424,9 +4424,9 @@ class planning_Tasks extends core_Master
         unset($data->listFields['expectedTimeStart']);
         unset($data->listFields['expectedTimeEnd']);
         $data->listFields = array('prevId' => 'Пред. №',
-                                  'prevExpectedTimeEnd' => 'Пред. Край',
-                                  'expectedTimeStart' => 'Тек. Начало',
-                                  'title' => 'Тек. №', 'expectedTimeEnd' => 'Тек. Край', 'nextExpectedTimeStart' => 'След. Начало', 'nextId' => 'След. №', 'dueDate' => 'Падеж', 'originId' => 'Задание')
+                                  'prevExpectedTimeEnd' => 'Пред. край',
+                                  'expectedTimeStart' => 'Тек. начало',
+                                  'title' => 'Тек. №', 'expectedTimeEnd' => 'Тек. край', 'nextExpectedTimeStart' => 'След. начало', 'nextId' => 'След. №', 'dueDate' => 'Падеж', 'originId' => 'Задание')
          + $data->listFields;
     }
 
