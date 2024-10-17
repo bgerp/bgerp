@@ -58,7 +58,7 @@ class planning_Jobs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'oldJobId,storeId,dueDate,packQuantity,notes,tolerance,inputStores,sharedUsers,allowSecondMeasure';
+    public $changableFields = 'oldJobId,storeId,dueDate,packQuantity,notes,tolerance,productionScrap,inputStores,sharedUsers,allowSecondMeasure';
     
     
     /**
