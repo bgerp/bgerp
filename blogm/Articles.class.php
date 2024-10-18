@@ -874,7 +874,7 @@ class blogm_Articles extends core_Master
         $data->searchForm->layout->replace(toUrl(array('blogm_Articles', 'Browse', 'cMenuId' => $data->menuId)), 'ACTION');
         
         $data->searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
-        $data->searchForm->layout->replace($data->q, 'VALUE');
+        $data->searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
         $data->searchForm->layout->replace($data->menuId, 'cMenuId');
 
         return $data->searchForm->renderHtml();

@@ -494,11 +494,15 @@ class planning_Tasks extends core_Master
 
         $row->title = "{$rec->id}|{$row->productId}";
         $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
+        $singleUrl = static::getSingleUrlArray($rec->id);
         if(Mode::is('isReorder')){
             $row->title = "{$rec->id}| " . str::limitLen($row->productId, 42);
-            $titleAttr['target'] = '_blank';
+            $titleAttr['data-doubleclick-url'] = toUrl($singleUrl);
+            $titleAttr['class'] = 'doubleclicklink';
+            $row->title = ht::createElement("span", $titleAttr, $row->title, true);
+        } else {
+            $row->title = ht::createLink($row->title, $singleUrl, false, $titleAttr);
         }
-        $row->title = ht::createLink($row->title, static::getSingleUrlArray($rec->id), false, $titleAttr);
 
         if (!Mode::isReadOnly()) {
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
@@ -607,7 +611,7 @@ class planning_Tasks extends core_Master
                 if(isset($fields['-single'])) {
                     $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
                 } else {
-                    $row->assetId = ht::createLink($row->assetId, array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/equipment.png,title=Филтър по център на дейност и оборудване');
+                    $row->assetId = ht::createLink(planning_AssetResources::getTitleById($rec->assetId), array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/equipment.png,title=Филтър по център на дейност и оборудване');
                 }
             }
         }
@@ -3108,11 +3112,22 @@ class planning_Tasks extends core_Master
             unset($data->listFields['selectBtn']);
         }
 
-        // Ако има избран център - тези параметри от тях
-        if (isset($data->listFilter->rec->folder)) {
-            $Cover = doc_Folders::getCover($data->listFilter->rec->folder);
-            if ($Cover->isInstanceOf('planning_Centers')) {
-                $plannedParams += keylist::toArray($Cover->fetchField('planningParams'));
+        // Ако има избран център - тези параметри от тях/ ако няма всички параметри от центровете с листвани задачи
+        if(!$data->masterMvc){
+            if (isset($data->listFilter->rec->folder)) {
+                $folderIds = array($data->listFilter->rec->folder);
+            } else {
+                $folderIds = arr::extractValuesFromArray($data->recs, 'folderId');
+            }
+
+            if(countR($folderIds)){
+                $cQuery = planning_Centers::getQuery();
+                $cQuery->in('folderId', $folderIds);
+                $cQuery->where("#planningParams IS NOT NULL");
+                $cQuery->show('planningParams');
+                while($cRec = $cQuery->fetch()){
+                    $plannedParams += keylist::toArray($cRec->planningParams);
+                }
             }
         }
 
@@ -3250,6 +3265,7 @@ class planning_Tasks extends core_Master
             if(Mode::get('isReorder')){
                 if (!$mvc->haveRightFor('reordertask', $rec)) {
                     $row->ROW_ATTR['data-dragging'] = "false";
+                    $row->ROW_ATTR['class'] .= " state-forbidden";
                     $row->ROW_ATTR['style'] = 'opacity:0.2';
                 }
             }
@@ -3308,6 +3324,7 @@ class planning_Tasks extends core_Master
                 foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart') as $fld) {
                     if(!empty($rec->{$fld})){
                         $row->{$fld} = dt::mysql2verbal($rec->{$fld}, 'd.m.y H:i');
+                        $row->{$fld} = ht::createElement("span", array('data-date' => "{$rec->{$fld}}", 'class' => "{$fld}Col"), $row->{$fld}, true)->getContent();
                     }
                     $row->{$fld} = ht::createElement("span", array('id' => "{$fld}{$rec->id}"), $row->{$fld}, true)->getContent();
                 }
@@ -3315,21 +3332,27 @@ class planning_Tasks extends core_Master
                 if(!empty($rec->prevIdRec)){
                     $prevProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->prevIdRec->progress);
                     $prevId = "<span class='state-{$rec->prevIdRec->state} document-handler'>{$rec->prevIdRec->id} [{$prevProgressVerbal}]</span>";
-                    $row->prevId = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($rec->prevIdRec->id), false, "target=_blank,title=#" . $mvc->getTitleById($rec->prevIdRec->id));
+
+                    $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($rec->prevIdRec->id));
+                    $row->prevId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => "#" . $mvc->getTitleById($rec->prevIdRec->id)), $prevId, true);
                 }
+
                 if(!empty($rec->nextIdRec)){
                     $nextProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->nextIdRec->progress);
                     $nextId = "<span class='state-{$rec->nextIdRec->state} document-handler'>{$rec->nextIdRec->id} [{$nextProgressVerbal}]</span>";
-                    $row->nextId = ht::createLink($nextId, planning_Tasks::getSingleUrlArray($rec->nextIdRec->id), false, "target=_blank,title=#" . $mvc->getTitleById($rec->nextIdRec->id));
+
+                    $singleNextUrl = toUrl(planning_Tasks::getSingleUrlArray($rec->nextIdRec->id));
+                    $row->nextId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleNextUrl, 'title' => "#" . $mvc->getTitleById($rec->nextIdRec->id)), $nextId, true);
                 }
 
                 if(!empty($rec->dueDate)){
-                    $row->dueDate = dt::mysql2verbal($rec->{$fld}, 'd.m.y 00:00');
+                    $row->dueDate = dt::mysql2verbal($rec->dueDate, 'd.m.y 00:00');
+                    $row->dueDate = ht::createElement("span", array('data-date' => "{$rec->dueDate} 00:00:00", 'class' => "dueDateCol"), $row->dueDate, true)->getContent();
                 }
 
                 $jobTitle = planning_Jobs::getTitleById($jobRecs[$rec->originId]);
-                $singleJobUrl = planning_Jobs::getSingleUrlArray($jobRecs[$rec->originId]);
-                $row->originId = countR($singleJobUrl) ? ht::createLink($jobTitle, $singleJobUrl, false, "target=_blank,title={$jobTitle}") : $jobTitle;
+                $singleJobUrl = toUrl(planning_Jobs::getSingleUrlArray($jobRecs[$rec->originId]));
+                $row->originId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleJobUrl, 'title' => $jobTitle), $jobTitle, true);
             } else {
                 $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
                 $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> ") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
@@ -4361,8 +4384,11 @@ class planning_Tasks extends core_Master
                 $new[$taskRec->id] = array('expectedTimeStart' => null, 'expectedTimeEnd' => null);
                 $timeArr = $Interval->consume($taskRec->calcedCurrentDuration, $begin, null, $interruptionArr);
                 if (is_array($timeArr)) {
-                    $new[$taskRec->id]['expectedTimeStart'] = dt::mysql2verbal(date('Y-m-d H:i:00', $timeArr[0]));
-                    $new[$taskRec->id]['expectedTimeEnd'] = dt::mysql2verbal(date('Y-m-d H:i:00', $timeArr[1]));
+                    $startDate = date('Y-m-d H:i', $timeArr[0]);
+                    $new[$taskRec->id]['expectedTimeStart'] = ht::createElement("span", array('data-date' => "{$startDate}", 'class' => "expectedTimeStartCol"), dt::mysql2verbal($startDate), true)->getContent();
+
+                    $endDate = date('Y-m-d H:i', $timeArr[1]);
+                    $new[$taskRec->id]['expectedTimeEnd'] = ht::createElement("span", array('data-date' => "{$endDate}", 'class' => "expectedTimeEndCol"), dt::mysql2verbal($endDate), true)->getContent();
                 } else{
                     $new[$taskRec->id]['expectedTimeStart'] = ' ';
                     $new[$taskRec->id]['expectedTimeEnd'] = ' ';
@@ -4411,6 +4437,10 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+
+        $resObj = new stdClass();
+        $resObj->func = 'compareDates';
+        $res[] = $resObj;
 
         // Показване на статусите веднага
         $hitTime = Request::get('hitTime', 'int');
