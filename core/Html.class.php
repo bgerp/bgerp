@@ -23,9 +23,12 @@ class core_Html
     public static function createElement($name, $attributes = array(), $body = null, $closeTag = false, $translate = true)
     {
         $attrStr = '';
-        
+
+        $isTitleTranslated = false;
         if ($attributes['title'] && $translate && ($attributes['translate'] != 'no')) {
             $attributes['title'] = tr($attributes['title']);
+            $isTitleTranslated = true;
+            $attributes['title'] = str_replace(array("\""), array("&quot;"), $attributes['title']);
         }
         
         if ($name == 'img') {
@@ -42,19 +45,16 @@ class core_Html
                 foreach ($attributes as $atr => $content) {
                     // Смятаме, че всички атрибути с имена, започващи със '#'
                     // са вътрешни и поради това не ги показваме в елемента
-                    if ($atr[0] == '#') {
-                        continue;
-                    }
-                    
-                    
+                    if ($atr[0] == '#') continue;
+
                     if (is_string($content)) {
-                        // $content = htmlspecialchars($content, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                         /**
                          * Необходимо ли е да се ескейпва символи различни от двойни кавички
                          * в стойностите на HTML атрибутите?
-                         *
                          */
-                        $content = self::escapeAttr($content);
+                        if($atr != 'title' || !$isTitleTranslated){
+                            $content = self::escapeAttr($content);
+                        }
                     }
                     
                     $attrStr .= ' ' . $atr . '="' . $content . '"';
