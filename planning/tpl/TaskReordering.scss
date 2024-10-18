@@ -1,6 +1,10 @@
-.selected {
-  background-color: #cce5ff !important;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+body {
+  background: #fff !important;
 }
+
+
 
 .dragging {
   opacity: 0.5;
@@ -26,13 +30,44 @@ table {
   width: 100%;
   border-collapse: collapse;
 }
+th {
+  background: #eee !important;
+  font-weight: normal !important;
+}
 th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
+  border: 1px solid #ddd !important;
+  padding: 3px  5px !important;
+  font-family: "Roboto", sans-serif !important;
+  font-weight: 400;
+  font-size: 14px !important;
+  box-sizing: content-box;
 }
 
+
+.state-pending, .state-pending:hover {
+  background-color: rgba(238,204,255,.7) !important;
+}
+.state-active, .state-active:hover {
+  background-color: rgba(250,221,187,.7);
+}
+.state-wakeup, .state-wakeup:hover {
+  background-color: rgba(43,175,76,.7);
+}
+.state-stopped, .state-stopped:hover {
+  background-color: rgba(255,187,51,.7);
+}
+.state-forbidden, .state-forbidden:hover {
+  background: #ccc;
+}
+
+.selected {
+  background-color: #cce5ff !important;
+}
 .dropped-highlight {
-  background-color:#fffdd7f2;
+  background-color:#fffdd7f2 !important;
+}
+tr:hover td {
+ outline: 2px solid #999;
 }
 
 .loadingModal {

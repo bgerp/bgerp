@@ -70,6 +70,7 @@ $(document).ready(function () {
         },
 
         onStart: function (evt) {
+
             // Capture the original index and element before dragging
             selectedElements = Array.from(document.querySelectorAll('.selected')).map((element) => {
                 return {
