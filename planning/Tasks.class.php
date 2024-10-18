@@ -611,7 +611,7 @@ class planning_Tasks extends core_Master
                 if(isset($fields['-single'])) {
                     $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
                 } else {
-                    $row->assetId = ht::createLink($row->assetId, array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/equipment.png,title=Филтър по център на дейност и оборудване');
+                    $row->assetId = ht::createLink(planning_AssetResources::getTitleById($rec->assetId), array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/equipment.png,title=Филтър по център на дейност и оборудване');
                 }
             }
         }
@@ -3113,19 +3113,21 @@ class planning_Tasks extends core_Master
         }
 
         // Ако има избран център - тези параметри от тях/ ако няма всички параметри от центровете с листвани задачи
-        if (isset($data->listFilter->rec->folder)) {
-            $folderIds = array($data->listFilter->rec->folder);
-        } else {
-            $folderIds = arr::extractValuesFromArray($data->recs, 'folderId');
-        }
+        if(!$data->masterMvc){
+            if (isset($data->listFilter->rec->folder)) {
+                $folderIds = array($data->listFilter->rec->folder);
+            } else {
+                $folderIds = arr::extractValuesFromArray($data->recs, 'folderId');
+            }
 
-        if(countR($folderIds)){
-            $cQuery = planning_Centers::getQuery();
-            $cQuery->in('folderId', $folderIds);
-            $cQuery->where("#planningParams IS NOT NULL");
-            $cQuery->show('planningParams');
-            while($cRec = $cQuery->fetch()){
-                $plannedParams += keylist::toArray($cRec->planningParams);
+            if(countR($folderIds)){
+                $cQuery = planning_Centers::getQuery();
+                $cQuery->in('folderId', $folderIds);
+                $cQuery->where("#planningParams IS NOT NULL");
+                $cQuery->show('planningParams');
+                while($cRec = $cQuery->fetch()){
+                    $plannedParams += keylist::toArray($cRec->planningParams);
+                }
             }
         }
 
