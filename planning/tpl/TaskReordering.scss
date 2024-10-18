@@ -56,8 +56,8 @@ th, td {
 .state-stopped, .state-stopped:hover {
   background-color: rgba(255,187,51,.7);
 }
-.state-forbidden, .state-forbidden:hover {
-  background: #ccc;
+.state-forbidden, .state-forbidden:hover td {
+  background: #666;
 }
 
 .selected {

@@ -53,8 +53,8 @@ td {
   background-color: rgba(255, 187, 51, 0.7); }
 
 .state-forbidden,
-.state-forbidden:hover {
-  background: #cccccc; }
+.state-forbidden:hover td {
+  background: #666666; }
 
 .selected {
   background-color: #cce5ff !important; }
