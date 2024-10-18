@@ -3336,16 +3336,22 @@ class planning_Tasks extends core_Master
                 }
 
                 if(!empty($rec->prevIdRec)){
-                    $prevProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->prevIdRec->progress);
-                    $prevId = "<span class='state-{$rec->prevIdRec->state} document-handler'>{$rec->prevIdRec->id} [{$prevProgressVerbal}]</span>";
+                    $prevProgressVerbal = "[" . core_Type::getByName('percent(decimals=0)')->toVerbal($rec->prevIdRec->progress) . "]";
+                    if($rec->prevIdRec->progress >= 1){
+                        $prevProgressVerbal = "<span class='readyPercent'>{$prevProgressVerbal}</span>";
+                    }
+                    $prevId = "<span class='state-{$rec->prevIdRec->state} document-handler'>{$prevProgressVerbal}</span>";
 
                     $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($rec->prevIdRec->id));
                     $row->prevId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => "#" . $mvc->getTitleById($rec->prevIdRec->id)), $prevId, true);
                 }
 
                 if(!empty($rec->nextIdRec)){
-                    $nextProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->nextIdRec->progress);
-                    $nextId = "<span class='state-{$rec->nextIdRec->state} document-handler'>{$rec->nextIdRec->id} [{$nextProgressVerbal}]</span>";
+                    $nextProgressVerbal = "[" . core_Type::getByName('percent(decimals=0)')->toVerbal($rec->nextIdRec->progress) . "]";
+                    if($rec->nextIdRec->progress >= 1){
+                        $nextProgressVerbal = "<span class='readyPercent'>{$nextProgressVerbal}</span>";
+                    }
+                    $nextId = "<span class='state-{$rec->nextIdRec->state} document-handler'>{$nextProgressVerbal}</span>";
 
                     $singleNextUrl = toUrl(planning_Tasks::getSingleUrlArray($rec->nextIdRec->id));
                     $row->nextId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleNextUrl, 'title' => "#" . $mvc->getTitleById($rec->nextIdRec->id)), $nextId, true);

@@ -90,3 +90,8 @@ tr:hover td {
   width: 100%;
   background: rgba( 255,255,255, .8 ) url('../../img/ajax-loader.gif') 50% 50% no-repeat;
 }
+
+.readyPercent {
+  color: green !important;
+  font-weight:bold;
+}
