@@ -3328,8 +3328,9 @@ class planning_Tasks extends core_Master
 
                 foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart') as $fld) {
                     if(!empty($rec->{$fld})){
-                        $row->{$fld} = dt::mysql2verbal($rec->{$fld}, 'd.m.y H:i');
-                        $row->{$fld} = ht::createElement("span", array('data-date' => "{$rec->{$fld}}", 'class' => "{$fld}Col"), $row->{$fld}, true)->getContent();
+                        $datePure = strlen($rec->{$fld}) == 10 ? "{$rec->{$fld}} 00:00:00" : $rec->{$fld};
+                        $row->{$fld} = dt::mysql2verbal($datePure, 'd.m.y H:i');
+                        $row->{$fld} = ht::createElement("span", array('data-date' => "{$datePure}", 'class' => "{$fld}Col"), $row->{$fld}, true)->getContent();
                     }
                     $row->{$fld} = ht::createElement("span", array('id' => "{$fld}{$rec->id}"), $row->{$fld}, true)->getContent();
                 }
