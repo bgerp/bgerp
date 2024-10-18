@@ -3112,11 +3112,20 @@ class planning_Tasks extends core_Master
             unset($data->listFields['selectBtn']);
         }
 
-        // Ако има избран център - тези параметри от тях
+        // Ако има избран център - тези параметри от тях/ ако няма всички параметри от центровете с листвани задачи
         if (isset($data->listFilter->rec->folder)) {
-            $Cover = doc_Folders::getCover($data->listFilter->rec->folder);
-            if ($Cover->isInstanceOf('planning_Centers')) {
-                $plannedParams += keylist::toArray($Cover->fetchField('planningParams'));
+            $folderIds = array($data->listFilter->rec->folder);
+        } else {
+            $folderIds = arr::extractValuesFromArray($data->recs, 'folderId');
+        }
+
+        if(countR($folderIds)){
+            $cQuery = planning_Centers::getQuery();
+            $cQuery->in('folderId', $folderIds);
+            $cQuery->where("#planningParams IS NOT NULL");
+            $cQuery->show('planningParams');
+            while($cRec = $cQuery->fetch()){
+                $plannedParams += keylist::toArray($cRec->planningParams);
             }
         }
 
