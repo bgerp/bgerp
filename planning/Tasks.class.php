@@ -348,6 +348,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
+        $this->FLD('notes', 'varchar(255)', 'caption=Допълнително->Забележка');
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
         $this->FLD('saoOrder', 'double(smartRound)', 'caption=Структура и подредба->Подредба,input=none,column=none,order=100000');
 
@@ -3160,6 +3161,7 @@ class planning_Tasks extends core_Master
         }
 
         if (Mode::is('isReorder')){
+            $data->listFields['notes'] = 'Забележка';
             $data->listTableMvc->tableRowTpl = "[#ROW#]";
 
             unset($data->listFields['dependantProgress']);
@@ -3170,7 +3172,6 @@ class planning_Tasks extends core_Master
             $data->listTableMvc->FNC('prevId', 'datetime');
             $data->listTableMvc->FNC('nextId', 'datetime');
             $data->listTableMvc->FNC('saleId', 'varchar');
-
             foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'prevId', 'nextId', 'title', 'originId', 'progress', 'saleId') as $fld) {
                 $data->listTableMvc->setField($fld, "tdClass=reorderSmallCol");
             }
@@ -3263,6 +3264,10 @@ class planning_Tasks extends core_Master
             // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
             if(Mode::get('isReorder')){
+                if(!empty($rec->notes)){
+                    $row->notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
+                }
+
                 if (!$mvc->haveRightFor('reordertask', $rec)) {
                     $row->ROW_ATTR['data-dragging'] = "false";
                     $row->ROW_ATTR['class'] .= " state-forbidden";
