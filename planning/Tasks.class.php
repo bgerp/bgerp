@@ -494,11 +494,15 @@ class planning_Tasks extends core_Master
 
         $row->title = "{$rec->id}|{$row->productId}";
         $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
+        $singleUrl = static::getSingleUrlArray($rec->id);
         if(Mode::is('isReorder')){
             $row->title = "{$rec->id}| " . str::limitLen($row->productId, 42);
-            $titleAttr['target'] = '_blank';
+            $titleAttr['data-doubleclick-url'] = toUrl($singleUrl);
+            $titleAttr['class'] = 'doubleclicklink';
+            $row->title = ht::createElement("span", $titleAttr, $row->title, true);
+        } else {
+            $row->title = ht::createLink($row->title, $singleUrl, false, $titleAttr);
         }
-        $row->title = ht::createLink($row->title, static::getSingleUrlArray($rec->id), false, $titleAttr);
 
         if (!Mode::isReadOnly()) {
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
@@ -3250,6 +3254,7 @@ class planning_Tasks extends core_Master
             if(Mode::get('isReorder')){
                 if (!$mvc->haveRightFor('reordertask', $rec)) {
                     $row->ROW_ATTR['data-dragging'] = "false";
+                    $row->ROW_ATTR['class'] .= " state-forbidden";
                     $row->ROW_ATTR['style'] = 'opacity:0.2';
                 }
             }
@@ -3315,12 +3320,16 @@ class planning_Tasks extends core_Master
                 if(!empty($rec->prevIdRec)){
                     $prevProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->prevIdRec->progress);
                     $prevId = "<span class='state-{$rec->prevIdRec->state} document-handler'>{$rec->prevIdRec->id} [{$prevProgressVerbal}]</span>";
-                    $row->prevId = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($rec->prevIdRec->id), false, "target=_blank,title=#" . $mvc->getTitleById($rec->prevIdRec->id));
+
+                    $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($rec->prevIdRec->id));
+                    $row->prevId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => "#" . $mvc->getTitleById($rec->prevIdRec->id)), $prevId, true);
                 }
                 if(!empty($rec->nextIdRec)){
                     $nextProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->nextIdRec->progress);
                     $nextId = "<span class='state-{$rec->nextIdRec->state} document-handler'>{$rec->nextIdRec->id} [{$nextProgressVerbal}]</span>";
-                    $row->nextId = ht::createLink($nextId, planning_Tasks::getSingleUrlArray($rec->nextIdRec->id), false, "target=_blank,title=#" . $mvc->getTitleById($rec->nextIdRec->id));
+
+                    $singleNextUrl = toUrl(planning_Tasks::getSingleUrlArray($rec->nextIdRec->id));
+                    $row->nextId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleNextUrl, 'title' => "#" . $mvc->getTitleById($rec->nextIdRec->id)), $nextId, true);
                 }
 
                 if(!empty($rec->dueDate)){
@@ -3328,8 +3337,8 @@ class planning_Tasks extends core_Master
                 }
 
                 $jobTitle = planning_Jobs::getTitleById($jobRecs[$rec->originId]);
-                $singleJobUrl = planning_Jobs::getSingleUrlArray($jobRecs[$rec->originId]);
-                $row->originId = countR($singleJobUrl) ? ht::createLink($jobTitle, $singleJobUrl, false, "target=_blank,title={$jobTitle}") : $jobTitle;
+                $singleJobUrl = toUrl(planning_Jobs::getSingleUrlArray($jobRecs[$rec->originId]));
+                $row->originId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleJobUrl, 'title' => $jobTitle), $jobTitle, true);
             } else {
                 $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
                 $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> ") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");

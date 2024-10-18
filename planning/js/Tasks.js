@@ -1,5 +1,4 @@
 $(document).ready(function () {
-
     // Initialize DataTable
     var table = $('#dragTable').DataTable({
         searching:false,
@@ -18,6 +17,17 @@ $(document).ready(function () {
         minWidth: 50,
         onResize: function() {
             console.log('Column resized!'); // Callback on resize
+        }
+    });
+
+    $(".doubleclicklink").on("dblclick", function(e) {
+        e.preventDefault();
+        let elem = $(this);
+
+        let doubleClickUrl = elem.attr("data-doubleclick-url");
+        if(doubleClickUrl){
+
+            window.open(doubleClickUrl, '_blank');
         }
     });
 
