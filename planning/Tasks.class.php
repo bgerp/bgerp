@@ -493,10 +493,12 @@ class planning_Tasks extends core_Master
         }
 
         $row->title = "{$rec->id}|{$row->productId}";
+        $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
         if(Mode::is('isReorder')){
             $row->title = "{$rec->id}| " . str::limitLen($row->productId, 42);
+            $titleAttr['target'] = '_blank';
         }
-        $row->title = ht::createLink($row->title, static::getSingleUrlArray($rec->id), false, "title=#" . $mvc->getTitleById($rec->id));
+        $row->title = ht::createLink($row->title, static::getSingleUrlArray($rec->id), false, $titleAttr);
 
         if (!Mode::isReadOnly()) {
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
@@ -873,7 +875,15 @@ class planning_Tasks extends core_Master
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
 
-        $row->progress = (isset($fields['-list']) && empty($rec->progress)) ? ("<i>" . $mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId) . "</i>") : "<span style='color:{$grey};'>{$row->progress}</span>";
+        Mode::push('text', 'plain');
+        $plannedQuantityVerbal = $mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId);
+        Mode::pop('text');
+        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
+        if(Mode::is('isReorder')){
+            $row->progress = ht::createElement("span", array('title' => "Планирано|*: {$plannedQuantityVerbal}"), $row->progress, true);
+        } elseif(isset($fields['-list']) && empty($rec->progress)) {
+            $row->progress = "<i>{$plannedQuantityVerbal}</i>";
+        }
         core_Debug::stopTimer('RENDER_VERBAL');
 
         return $row;
@@ -1734,7 +1744,7 @@ class planning_Tasks extends core_Master
             if (isset($productionData['wasteProductId'])) {
                 $wasteOptions = planning_GenericMapper::getEquivalentProducts($productionData['wasteProductId'], null, true, true);
                 if (countR($wasteOptions)) {
-                    $form->setFieldType('wasteProductId', 'int');
+                    $form->setFieldType('wasteProductId', 'int(maxRadio=1)');
                     $form->setOptions('wasteProductId', $wasteOptions);
                 }
             }
@@ -2219,7 +2229,7 @@ class planning_Tasks extends core_Master
             $noteQuery->show('state,count');
             while($noteRec = $noteQuery->fetch()){
                 $noteCountVerbal = core_Type::getByName('int')->toVerbal($noteRec->count);
-                $notesByStates[] = "<div class='state-{$noteRec->state} consumptionNoteBubble'>{$noteCountVerbal}</div>";
+                $notesByStates[] = " <div class='state-{$noteRec->state} consumptionNoteBubble'>{$noteCountVerbal}</div>";
             }
             if(countR($notesByStates)){
                 $row->progress .= " <small><i>" . tr('ПВ') . ":" . implode($notesByStates) . "</i></small>";
@@ -2433,7 +2443,7 @@ class planning_Tasks extends core_Master
                 $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
             }
 
-            $data->title = "Производствени операции към|* " . planning_AssetResources::getHyperlink($assetId, true) . " " . ht::createBtn('Назад', getRetUrl(), false, false, array('class' => 'backBtn')) . " " . ht::createFnBtn('Запази', '', false, $saveBtnAttr);
+            $data->title = "|*" . planning_AssetResources::getHyperlink($assetId) . " " . ht::createBtn('Назад', getRetUrl(), false, false, array('class' => 'backBtn')) . " " . ht::createFnBtn('Запази', '', false, $saveBtnAttr);
         }
     }
 
@@ -3270,7 +3280,7 @@ class planning_Tasks extends core_Master
             }
 
             // Допълнителна обработка на показването на заданието в списъка на ПО
-            $row->dueDate = core_Type::getByName('date(format=smartTime)')->toVerbal($jobRecs[$rec->originId]->dueDate);
+            $row->dueDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($jobRecs[$rec->originId]->dueDate);
             $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity);
 
@@ -3305,22 +3315,21 @@ class planning_Tasks extends core_Master
                 if(!empty($rec->prevIdRec)){
                     $prevProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->prevIdRec->progress);
                     $prevId = "<span class='state-{$rec->prevIdRec->state} document-handler'>{$rec->prevIdRec->id} [{$prevProgressVerbal}]</span>";
-                    $row->prevId = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($rec->prevIdRec->id), false, "title=#" . $mvc->getTitleById($rec->prevIdRec->id));
+                    $row->prevId = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($rec->prevIdRec->id), false, "target=_blank,title=#" . $mvc->getTitleById($rec->prevIdRec->id));
                 }
                 if(!empty($rec->nextIdRec)){
                     $nextProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->nextIdRec->progress);
                     $nextId = "<span class='state-{$rec->nextIdRec->state} document-handler'>{$rec->nextIdRec->id} [{$nextProgressVerbal}]</span>";
-                    $row->nextId = ht::createLink($nextId, planning_Tasks::getSingleUrlArray($rec->nextIdRec->id), false, "title=#" . $mvc->getTitleById($rec->nextIdRec->id));
+                    $row->nextId = ht::createLink($nextId, planning_Tasks::getSingleUrlArray($rec->nextIdRec->id), false, "target=_blank,title=#" . $mvc->getTitleById($rec->nextIdRec->id));
                 }
 
                 if(!empty($rec->dueDate)){
-                    $row->dueDate = dt::mysql2verbal($rec->{$fld}, 'd.m.y');
+                    $row->dueDate = dt::mysql2verbal($rec->{$fld}, 'd.m.y 00:00');
                 }
 
                 $jobTitle = planning_Jobs::getTitleById($jobRecs[$rec->originId]);
-                $jobTitle = str::limitLen($jobTitle, 32);
                 $singleJobUrl = planning_Jobs::getSingleUrlArray($jobRecs[$rec->originId]);
-                $row->originId = countR($singleJobUrl) ? ht::createLink($jobTitle, $singleJobUrl) : $jobTitle;
+                $row->originId = countR($singleJobUrl) ? ht::createLink($jobTitle, $singleJobUrl, false, "target=_blank,title={$jobTitle}") : $jobTitle;
             } else {
                 $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
                 $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> ") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
@@ -3356,8 +3365,6 @@ class planning_Tasks extends core_Master
      */
     protected function on_AfterGetContentHash($mvc, &$res, &$status)
     {
-        if(Mode::is('isReorder')) return ' ';
-
         // Хеша е датата на последна модификация на движенията
         $mQuery = $mvc->getQuery();
         $mQuery->orderBy('modifiedOn', 'DESC');
@@ -4427,9 +4434,9 @@ class planning_Tasks extends core_Master
         unset($data->listFields['expectedTimeStart']);
         unset($data->listFields['expectedTimeEnd']);
         $data->listFields = array('prevId' => 'Пред. №',
-                                  'prevExpectedTimeEnd' => 'Пред. Край',
-                                  'expectedTimeStart' => 'Тек. Начало',
-                                  'title' => 'Тек. №', 'expectedTimeEnd' => 'Тек. Край', 'nextExpectedTimeStart' => 'След. Начало', 'nextId' => 'След. №', 'dueDate' => 'Падеж', 'originId' => 'Задание')
+                                  'prevExpectedTimeEnd' => 'Пред. край',
+                                  'expectedTimeStart' => 'Тек. начало',
+                                  'title' => 'Тек. №', 'expectedTimeEnd' => 'Тек. край', 'nextExpectedTimeStart' => 'След. начало', 'nextId' => 'След. №', 'dueDate' => 'Падеж', 'originId' => 'Задание')
          + $data->listFields;
     }
 
