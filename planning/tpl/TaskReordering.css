@@ -1,5 +1,5 @@
 .selected {
-  background-color: #cce5ff; }
+  background-color: #cce5ff !important; }
 
 .dragging {
   opacity: 0.5; }
@@ -29,4 +29,16 @@ td {
 
 .dropped-highlight {
   background-color: #fffdd7f2; }
+
+.loadingModal {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.8) url('../../img/ajax-loader.gif') 50% 50% no-repeat; }
+
+body + .loadingModal {
+  overflow: hidden; }
 
