@@ -3313,6 +3313,7 @@ class planning_Tasks extends core_Master
                 foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart') as $fld) {
                     if(!empty($rec->{$fld})){
                         $row->{$fld} = dt::mysql2verbal($rec->{$fld}, 'd.m.y H:i');
+                        $row->{$fld} = ht::createElement("span", array('data-date' => "{$rec->{$fld}}", 'class' => "{$fld}Col"), $row->{$fld}, true)->getContent();
                     }
                     $row->{$fld} = ht::createElement("span", array('id' => "{$fld}{$rec->id}"), $row->{$fld}, true)->getContent();
                 }
@@ -3324,6 +3325,7 @@ class planning_Tasks extends core_Master
                     $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($rec->prevIdRec->id));
                     $row->prevId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => "#" . $mvc->getTitleById($rec->prevIdRec->id)), $prevId, true);
                 }
+
                 if(!empty($rec->nextIdRec)){
                     $nextProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($rec->nextIdRec->progress);
                     $nextId = "<span class='state-{$rec->nextIdRec->state} document-handler'>{$rec->nextIdRec->id} [{$nextProgressVerbal}]</span>";
@@ -3333,7 +3335,8 @@ class planning_Tasks extends core_Master
                 }
 
                 if(!empty($rec->dueDate)){
-                    $row->dueDate = dt::mysql2verbal($rec->{$fld}, 'd.m.y 00:00');
+                    $row->dueDate = dt::mysql2verbal($rec->dueDate, 'd.m.y 00:00');
+                    $row->dueDate = ht::createElement("span", array('data-date' => "{$rec->dueDate} 00:00:00", 'class' => "dueDateCol"), $row->dueDate, true)->getContent();
                 }
 
                 $jobTitle = planning_Jobs::getTitleById($jobRecs[$rec->originId]);
@@ -4370,8 +4373,11 @@ class planning_Tasks extends core_Master
                 $new[$taskRec->id] = array('expectedTimeStart' => null, 'expectedTimeEnd' => null);
                 $timeArr = $Interval->consume($taskRec->calcedCurrentDuration, $begin, null, $interruptionArr);
                 if (is_array($timeArr)) {
-                    $new[$taskRec->id]['expectedTimeStart'] = dt::mysql2verbal(date('Y-m-d H:i:00', $timeArr[0]));
-                    $new[$taskRec->id]['expectedTimeEnd'] = dt::mysql2verbal(date('Y-m-d H:i:00', $timeArr[1]));
+                    $startDate = date('Y-m-d H:i', $timeArr[0]);
+                    $new[$taskRec->id]['expectedTimeStart'] = ht::createElement("span", array('data-date' => "{$startDate}", 'class' => "expectedTimeStartCol"), dt::mysql2verbal($startDate), true)->getContent();
+
+                    $endDate = date('Y-m-d H:i', $timeArr[1]);
+                    $new[$taskRec->id]['expectedTimeEnd'] = ht::createElement("span", array('data-date' => "{$endDate}", 'class' => "expectedTimeEndCol"), dt::mysql2verbal($endDate), true)->getContent();
                 } else{
                     $new[$taskRec->id]['expectedTimeStart'] = ' ';
                     $new[$taskRec->id]['expectedTimeEnd'] = ' ';
@@ -4420,6 +4426,10 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+
+        $resObj = new stdClass();
+        $resObj->func = 'compareDates';
+        $res[] = $resObj;
 
         // Показване на статусите веднага
         $hitTime = Request::get('hitTime', 'int');

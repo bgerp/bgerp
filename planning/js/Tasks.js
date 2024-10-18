@@ -1,6 +1,8 @@
 $(document).ready(function () {
+    compareDates();
+
     // Initialize DataTable
-    var table = $('#dragTable').DataTable({
+    let table = $('#dragTable').DataTable({
         searching:false,
         paging: false,
         info: false,
@@ -164,3 +166,73 @@ function getOrderedTasks()
     return dataIds;
 }
 
+function render_compareDates()
+{
+    compareDates();
+}
+
+
+/**
+ * Сравняване на датите и оцветяването им
+ */
+function compareDates()
+{
+    let table = document.getElementById('dragTable');
+
+    // Loop through each row of the table
+    for (let i = 0, row; row = table.rows[i]; i++) {
+
+        // Get the spans within the row
+        let prevTimeOuterSpan = row.querySelector('td span span.prevExpectedTimeEndCol');
+        let startTimeOuterSpan = row.querySelector('td span span.expectedTimeStartCol');
+        compareDateSpan(prevTimeOuterSpan, startTimeOuterSpan);
+
+        let endTimeOuterSpan = row.querySelector('td span span.expectedTimeEndCol');
+        let nextTimeOuterSpan = row.querySelector('td span span.nextExpectedTimeStartCol');
+        compareDateSpan(endTimeOuterSpan, nextTimeOuterSpan);
+
+        let dueDateSpan = row.querySelector('td span span.dueDateCol');
+        compareDateSpan(endTimeOuterSpan, dueDateSpan);
+    }
+}
+
+
+/**
+ * Сравняване на спановете с дати
+ *
+ * @param elementOne
+ * @param elementTwo
+ */
+function compareDateSpan(elementOne, elementTwo)
+{
+    // Check if both spans exist
+    if (elementOne && elementTwo) {
+        var prevTimeStr = elementOne.getAttribute('data-date');
+        var startTimeStr = elementTwo.getAttribute('data-date');
+
+        // Replace the space with 'T' to make it ISO 8601 compliant
+        var prevDateISO = prevTimeStr.replace(' ', 'T');
+        var startDateISO = startTimeStr.replace(' ', 'T');
+
+        // Convert to Date objects
+        var prevTime = new Date(prevDateISO);
+        var startTime = new Date(startDateISO);
+
+        // Compare the dates
+        if (prevTime > startTime) {
+            elementOne.classList.add('wrongDates');
+            elementTwo.classList.add('wrongDates');
+        } else {
+            elementOne.classList.remove('wrongDates');
+            elementTwo.classList.remove('wrongDates');
+        }
+    } else {
+        if(elementOne){
+            elementOne.classList.remove('wrongDates');
+        }
+
+        if(elementTwo){
+            elementTwo.classList.remove('wrongDates');
+        }
+    }
+}
