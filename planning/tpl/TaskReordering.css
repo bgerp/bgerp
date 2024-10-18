@@ -40,6 +40,9 @@ td {
   background: red;
   color: white; }
 
+td:has(.wrongDates) {
+  background: red; }
+
 .state-pending,
 .state-pending:hover {
   background-color: rgba(238, 204, 255, 0.7) !important; }
