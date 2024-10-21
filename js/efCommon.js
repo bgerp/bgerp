@@ -5120,8 +5120,27 @@ function resizeIframes() {
 
 window.addEventListener('load', resizeIframes);
 window.addEventListener('resize', resizeIframes);
-$( document ).on( "ajaxComplete", function() {
-    resizeIframes();
+
+
+let scrollTop = 0;
+let ajaxInProgress = false;
+
+// Запазване на скрола преди ajax-a
+$(document).ajaxStart(function() {
+    if (!ajaxInProgress && $('iframe.autoHeight').length) {
+        scrollTop = $(document).scrollTop();
+        ajaxInProgress = true;
+    }
+});
+
+// След ajax-а да се скролира до старата позиция
+$(document).ajaxStop(function() {
+    if (!$('iframe.autoHeight').length) return;
+    setTimeout(function() {
+        resizeIframes(); // Adjust as needed
+        $(document).scrollTop(scrollTop);
+        ajaxInProgress = false; // Reset flag
+    }, 100);
 });
 
 window.addEventListener('message', function(event) {
