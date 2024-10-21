@@ -2,7 +2,7 @@ $(document).ready(function () {
     compareDates();
 
     // Initialize DataTable
-    let table = $('#dragTable').DataTable({
+    let table = $('.wide #dragTable').DataTable({
         searching:false,
         paging: false,
         info: false,
@@ -10,7 +10,7 @@ $(document).ready(function () {
         ordering: false,});
 
     // Initialize colResizable
-    $('#dragTable').colResizable({
+    $('.wide #dragTable').colResizable({
         live: true,
         gripInnerHtml: '<div style="width:10px;"></div>',
         gripClass: 'grip',
