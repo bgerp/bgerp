@@ -74,6 +74,13 @@ $(document).ready(function () {
         },
 
         onStart: function (evt) {
+            const rows = document.querySelectorAll("#dragTable tbody tr");
+            if (rows.length <= 1) {
+                evt.cancel();  // Disable dragging if there's only one row
+                return;  // Exit the onStart function early
+            }
+
+
             selectedElements = Array.from(document.querySelectorAll('.selected')).map((element) => {
                 return {
                     element: element,
@@ -173,14 +180,14 @@ $(document).ready(function () {
         isScrolling = false;  // Reset scrolling state
     });
 
-    // Add a double-click event listener to all td elements with class 'notesCol'
-    $('.notesCol').on('dblclick', function() {
-        let holder = $(this).find('.notesHolder');
+    // Function to handle the editing of notes
+    function handleEditing(cell) {
+        let holder = cell.find('.notesHolder');
         let promptText = holder.attr("data-prompt-text");
         let currentText = holder.text();
 
-        if ($(this).closest('tr').hasClass('state-forbidden')) {
-
+        // Prevent editing if the row is forbidden
+        if (cell.closest('tr').hasClass('state-forbidden')) {
             return;
         }
 
@@ -188,21 +195,39 @@ $(document).ready(function () {
         let newText = prompt(promptText, currentText);
 
         if (newText !== null) {
-
             // Update the text inside the span with class 'notesHolder'
             holder.text(newText);
 
             let url = holder.attr("data-url");
 
-            if(url){
-
+            if (url) {
                 let resObj = {};
                 resObj['url'] = url;
-                let params = {notes: newText};
+                let params = { notes: newText };
 
                 getEfae().preventRequest = 0;
                 getEfae().process(resObj, params);
             }
+        }
+    }
+
+// Add a double-click event listener to all td elements with class 'notesCol'
+    $('.notesCol').on('dblclick', function() {
+        handleEditing($(this));
+    });
+
+// Add touch event listener for double touch on mobile devices
+    $('.notesCol').on('touchstart', function(e) {
+        const cell = $(this);
+        // Check if the first touch event was already triggered
+        if (cell.data('touchTimer')) {
+            clearTimeout(cell.data('touchTimer'));
+            cell.removeData('touchTimer'); // Clear the timer
+            handleEditing(cell); // Trigger edit on double touch
+        } else {
+            cell.data('touchTimer', setTimeout(() => {
+                cell.removeData('touchTimer'); // Clear the timer if single touch
+            }, 300)); // Adjust time as needed (300ms for double touch)
         }
     });
 })
