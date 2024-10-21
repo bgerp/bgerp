@@ -52,13 +52,13 @@ $(document).ready(function () {
     });
 
     let selectedElements = [];
-    let isScrolling = false;
-    let startY = 0;  // Store the starting Y position of the touch
-    let startX = 0;  // Store the starting X position of the touch
+    let isScrolling = false; // Flag to track scrolling state
+    let touchStartY = 0; // Store the initial Y position of the touch
 
-    // Get all rows in the table body
+// Get all rows in the table body
     const rows = document.querySelectorAll("#dragTable tbody tr");
 
+// Check if there are multiple rows
     if (rows.length > 1) {
         let sortable = new Sortable(document.querySelector("#dragTable tbody"), {
             animation: 150,
@@ -69,7 +69,9 @@ $(document).ready(function () {
             preventOnFilter: false,
 
             onChoose: function (evt) {
-                evt.item.classList.add('dragging');
+                if (!isScrolling) { // Only allow dragging if not scrolling
+                    evt.item.classList.add('dragging');
+                }
             },
 
             onUnchoose: function (evt) {
@@ -77,7 +79,6 @@ $(document).ready(function () {
             },
 
             onStart: function (evt) {
-                // Store selected elements and their original indices
                 selectedElements = Array.from(document.querySelectorAll('.selected')).map((element) => {
                     return {
                         element: element,
@@ -85,7 +86,6 @@ $(document).ready(function () {
                     };
                 });
 
-                // Sort selected elements by original index
                 selectedElements.sort((a, b) => a.originalIndex - b.originalIndex);
                 isScrolling = false; // Reset scrolling flag
             },
@@ -93,7 +93,6 @@ $(document).ready(function () {
             onEnd: function (evt) {
                 console.log("END");
 
-                // If no elements were selected, treat the dragged item as a single element
                 if (selectedElements.length === 0) {
                     selectedElements.push({
                         element: evt.item,
@@ -101,7 +100,6 @@ $(document).ready(function () {
                     });
                 }
 
-                // Remove 'selected' class from all selected elements
                 selectedElements.forEach((item) => item.element.classList.remove('selected'));
 
                 let table = document.querySelector("#dragTable");
@@ -119,7 +117,6 @@ $(document).ready(function () {
                     }
                 });
 
-                // Highlight dropped elements
                 selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
 
                 console.log("Items moved and reinserted in original order.");
@@ -153,6 +150,24 @@ $(document).ready(function () {
                     var order = localStorage.getItem('sortableOrder');
                     return order ? order.split('|') : [];
                 }
+            }
+        });
+
+        // Touch event handling for mobile scrolling
+        const dragTableBody = document.querySelector("#dragTable tbody");
+
+        dragTableBody.addEventListener('touchstart', (event) => {
+            touchStartY = event.touches[0].clientY; // Get the initial touch position
+            isScrolling = false; // Reset scrolling flag
+        });
+
+        dragTableBody.addEventListener('touchmove', (event) => {
+            const touchCurrentY = event.touches[0].clientY;
+            const touchDifference = touchCurrentY - touchStartY;
+
+            // Determine if user is scrolling based on Y movement
+            if (Math.abs(touchDifference) > 10) { // 10 pixels threshold
+                isScrolling = true; // Set scrolling flag
             }
         });
     } else {
