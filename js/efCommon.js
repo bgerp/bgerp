@@ -2139,6 +2139,8 @@ function setThreadElemWidth() {
 function scrapCalculation(){
     var quantity = parseInt($("input[name='packQuantity']").val(),10);
     var scrap = parseInt($("input[name='productionScrap']").val(),10);
+
+    changeHint(quantity, scrap);
     $("input[name='packQuantity']").on('change keydown paste input', function(){
         quantity = parseInt($("input[name='packQuantity']").val(),10);
         changeHint(quantity, scrap);
@@ -5101,7 +5103,6 @@ function resizeIframes() {
     iframes.forEach(iframe => {
         // Задаване на максимална височина
         iframe.style.maxHeight = windowHeight + 'px';
-        console.log(windowHeight);
 
         try {
             // Настройване на височината според съдържанието
@@ -5120,6 +5121,9 @@ function resizeIframes() {
 window.addEventListener('load', resizeIframes);
 window.addEventListener('resize', resizeIframes);
 $( document ).on( "ajaxComplete", function() {
+    console.log('now');
+    let scrollTop = $('#main-container').scrollTop();
+   // console.log(scrollTop);
     resizeIframes();
 });
 
