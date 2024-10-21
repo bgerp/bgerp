@@ -52,71 +52,67 @@ $(document).ready(function () {
     });
 
     let selectedElements = [];
+    let isScrolling = false;
+    let startY = 0;  // Store the starting Y position of the touch
+    let startX = 0;  // Store the starting X position of the touch
 
-    var sortable = new Sortable(document.querySelector("#dragTable tbody"), {
+    //   Initialize Sortable
+    let sortable = new Sortable(document.querySelector("#dragTable tbody"), {
         animation: 150,
-        handle: "tr",           // Ensure that rows are draggable
-        multiDrag: true,        // Enable multi-drag functionality
-        selectedClass: "selected",  // Class for selected rows during multi-drag
-        filter: "tr[data-dragging='false']",  // Prevent rows with data-dragging="false" from being dragged
-        preventOnFilter: false,  // Optional, false means no event is triggered when a filtered item is clicked
+        handle: "tr",
+        multiDrag: true,
+        selectedClass: "selected",
+        filter: "tr[data-dragging='false']",
+        preventOnFilter: false,
+
         onChoose: function (evt) {
             evt.item.classList.add('dragging');
         },
 
-        // Remove class when dragging ends
         onUnchoose: function (evt) {
             evt.item.classList.remove('dragging');
         },
 
         onStart: function (evt) {
-
-            // Capture the original index and element before dragging
             selectedElements = Array.from(document.querySelectorAll('.selected')).map((element) => {
                 return {
                     element: element,
-                    originalIndex: Array.from(element.parentNode.children).indexOf(element)  // Save the original index in the DOM
+                    originalIndex: Array.from(element.parentNode.children).indexOf(element)
                 };
             });
 
-            // Sort selectedElements by their original DOM index (important for retaining order)
             selectedElements.sort((a, b) => a.originalIndex - b.originalIndex);
+            isScrolling = false;  // Reset scrolling flag
         },
 
         onEnd: function (evt) {
-
-            // If no multi-drag is happening, treat the dragged item as a single element
             if (selectedElements.length === 0) {
                 selectedElements.push({
-                    element: evt.item,  // Push the single dragged element
-                    originalIndex: evt.oldIndex  // Save its original index
+                    element: evt.item,
+                    originalIndex: evt.oldIndex
                 });
             }
 
-            // Remove 'selected' class from all selected elements
             selectedElements.forEach((item) => item.element.classList.remove('selected'));
 
             let table = document.querySelector("#dragTable");
-            const dropIndex = evt.newIndex;  // Index where the item is dropped
-            const rows = Array.from(table.querySelectorAll("tbody tr"));  // Get all rows
+            const dropIndex = evt.newIndex;
+            const rows = Array.from(table.querySelectorAll("tbody tr"));
 
-            // Reinsert the selected elements in their original order, relative to the new drop position
             selectedElements.forEach((item, index) => {
-                const targetIndex = dropIndex + index;  // Adjust to drop at the correct place
-                const targetRow = rows[targetIndex] || null;  // Handle appending at the end
+                const targetIndex = dropIndex + index;
+                const targetRow = rows[targetIndex] || null;
                 if (targetRow) {
                     targetRow.insertAdjacentElement('beforebegin', item.element);
                 } else {
-                    table.querySelector('tbody').appendChild(item.element);  // Append if dropped at the end
+                    table.querySelector('tbody').appendChild(item.element);
                 }
             });
 
-            // Add 'dropped-highlight' class to each dropped element after reinserting
             selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
 
             console.log("Items moved and reinserted in original order.");
 
-            // Optional: Process server update
             if (table.dataset.url) {
                 let dataIds = getOrderedTasks();
 
@@ -132,23 +128,49 @@ $(document).ready(function () {
                 getEfae().process(resObj, params);
             }
 
-            // Clear selectedElements after the operation
             selectedElements = [];
+            isScrolling = false;  // Reset scrolling state
         },
 
         store: {
-            // Save the order of items to localStorage
             set: function (sortable) {
                 var order = sortable.toArray();
                 localStorage.setItem('sortableOrder', order.join('|'));
             },
 
-            // Get the order of items from localStorage
             get: function (sortable) {
                 var order = localStorage.getItem('sortableOrder');
                 return order ? order.split('|') : [];
             }
         }
+    });
+
+// Touch event handlers
+    document.addEventListener('touchstart', function(event) {
+        isScrolling = false;  // Reset scrolling state
+        const touch = event.touches[0];  // Get the first touch point
+        startY = touch.clientY;  // Store starting Y position
+        startX = touch.clientX;  // Store starting X position
+    });
+
+    document.addEventListener('touchmove', function(event) {
+        const touch = event.touches[0];  // Get the first touch point
+        const deltaY = touch.clientY - startY;  // Calculate vertical movement
+        const deltaX = touch.clientX - startX;  // Calculate horizontal movement
+
+        // Check if the movement is primarily vertical (scrolling)
+        if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
+            isScrolling = true;  // User is scrolling
+        }
+
+        // Prevent the drag if scrolling is detected
+        if (isScrolling) {
+            event.preventDefault();
+        }
+    });
+
+    document.addEventListener('touchend', function(event) {
+        isScrolling = false;  // Reset scrolling state
     });
 
     // Add a double-click event listener to all td elements with class 'notesCol'
