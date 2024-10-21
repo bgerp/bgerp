@@ -191,8 +191,26 @@ $(document).ready(function () {
             return;
         }
 
+        // Disable touch events temporarily to avoid repeated prompts
+        cell.off('touchstart');
+
         // Show prompt to the user and get new text input
         let newText = prompt(promptText, currentText);
+
+        // Re-enable touch events after the prompt is closed
+        cell.on('touchstart', function(e) {
+            const cell = $(this);
+            // Check if the first touch event was already triggered
+            if (cell.data('touchTimer')) {
+                clearTimeout(cell.data('touchTimer'));
+                cell.removeData('touchTimer'); // Clear the timer
+                handleEditing(cell); // Trigger edit on double touch
+            } else {
+                cell.data('touchTimer', setTimeout(() => {
+                    cell.removeData('touchTimer'); // Clear the timer if single touch
+                }, 300)); // Adjust time as needed (300ms for double touch)
+            }
+        });
 
         if (newText !== null) {
             // Update the text inside the span with class 'notesHolder'
