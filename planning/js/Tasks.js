@@ -56,7 +56,7 @@ $(document).ready(function () {
     let startY = 0;  // Store the starting Y position of the touch
     let startX = 0;  // Store the starting X position of the touch
 
-    //   Initialize Sortable
+    // Get all rows in the table body
     const rows = document.querySelectorAll("#dragTable tbody tr");
 
     if (rows.length > 1) {
@@ -77,6 +77,7 @@ $(document).ready(function () {
             },
 
             onStart: function (evt) {
+                // Store selected elements and their original indices
                 selectedElements = Array.from(document.querySelectorAll('.selected')).map((element) => {
                     return {
                         element: element,
@@ -84,12 +85,15 @@ $(document).ready(function () {
                     };
                 });
 
+                // Sort selected elements by original index
                 selectedElements.sort((a, b) => a.originalIndex - b.originalIndex);
-                isScrolling = false;  // Reset scrolling flag
+                isScrolling = false; // Reset scrolling flag
             },
 
             onEnd: function (evt) {
                 console.log("END");
+
+                // If no elements were selected, treat the dragged item as a single element
                 if (selectedElements.length === 0) {
                     selectedElements.push({
                         element: evt.item,
@@ -97,57 +101,62 @@ $(document).ready(function () {
                     });
                 }
 
+                // Remove 'selected' class from all selected elements
                 selectedElements.forEach((item) => item.element.classList.remove('selected'));
 
                 let table = document.querySelector("#dragTable");
-                const dropIndex = evt.newIndex;
-                const rows = Array.from(table.querySelectorAll("tbody tr"));
+                const dropIndex = evt.newIndex; // Index where the item is dropped
+                const rows = Array.from(table.querySelectorAll("tbody tr")); // Get all rows
 
+                // Reinsert the selected elements in their original order, relative to the new drop position
                 selectedElements.forEach((item, index) => {
-                    const targetIndex = dropIndex + index;
-                    const targetRow = rows[targetIndex] || null;
+                    const targetIndex = dropIndex + index; // Adjust to drop at the correct place
+                    const targetRow = rows[targetIndex] || null; // Handle appending at the end
                     if (targetRow) {
                         targetRow.insertAdjacentElement('beforebegin', item.element);
                     } else {
-                        table.querySelector('tbody').appendChild(item.element);
+                        table.querySelector('tbody').appendChild(item.element); // Append if dropped at the end
                     }
                 });
 
+                // Highlight dropped elements
                 selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
 
                 console.log("Items moved and reinserted in original order.");
 
+                // Optional: Process server update
                 if (table.dataset.url) {
                     let dataIds = getOrderedTasks();
-
-                    let resObj = {};
-                    resObj['url'] = table.dataset.url;
-
+                    let resObj = { url: table.dataset.url };
                     let dataIdString = JSON.stringify(dataIds);
                     let params = { orderedTasks: dataIdString };
 
                     console.log('DROP: ' + dataIdString);
-
                     getEfae().preventRequest = 0;
                     getEfae().process(resObj, params);
                 }
 
+                // Clear selectedElements after the operation
                 selectedElements = [];
-                isScrolling = false;  // Reset scrolling state
+                isScrolling = false; // Reset scrolling state
             },
 
             store: {
+                // Save the order of items to localStorage
                 set: function (sortable) {
                     var order = sortable.toArray();
                     localStorage.setItem('sortableOrder', order.join('|'));
                 },
 
+                // Get the order of items from localStorage
                 get: function (sortable) {
                     var order = localStorage.getItem('sortableOrder');
                     return order ? order.split('|') : [];
                 }
             }
         });
+    } else {
+        console.log("Not enough rows to enable sorting.");
     }
 
 
