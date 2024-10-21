@@ -180,7 +180,10 @@ $(document).ready(function () {
         isScrolling = false;  // Reset scrolling state
     });
 
-    // Function to handle the editing of notes
+    // Flag to prevent multiple prompts
+    let isPromptOpen = false;
+
+// Function to handle the editing of notes
     function handleEditing(cell) {
         let holder = cell.find('.notesHolder');
         let promptText = holder.attr("data-prompt-text");
@@ -191,26 +194,10 @@ $(document).ready(function () {
             return;
         }
 
-        // Disable touch events temporarily to avoid repeated prompts
-        cell.off('touchstart');
-
         // Show prompt to the user and get new text input
+        isPromptOpen = true; // Set flag to indicate the prompt is open
         let newText = prompt(promptText, currentText);
-
-        // Re-enable touch events after the prompt is closed
-        cell.on('touchstart', function(e) {
-            const cell = $(this);
-            // Check if the first touch event was already triggered
-            if (cell.data('touchTimer')) {
-                clearTimeout(cell.data('touchTimer'));
-                cell.removeData('touchTimer'); // Clear the timer
-                handleEditing(cell); // Trigger edit on double touch
-            } else {
-                cell.data('touchTimer', setTimeout(() => {
-                    cell.removeData('touchTimer'); // Clear the timer if single touch
-                }, 300)); // Adjust time as needed (300ms for double touch)
-            }
-        });
+        isPromptOpen = false; // Reset flag after prompt is closed
 
         if (newText !== null) {
             // Update the text inside the span with class 'notesHolder'
@@ -237,6 +224,11 @@ $(document).ready(function () {
 // Add touch event listener for double touch on mobile devices
     $('.notesCol').on('touchstart', function(e) {
         const cell = $(this);
+        // Check if the prompt is currently open
+        if (isPromptOpen) {
+            return; // Prevent action if the prompt is open
+        }
+
         // Check if the first touch event was already triggered
         if (cell.data('touchTimer')) {
             clearTimeout(cell.data('touchTimer'));
