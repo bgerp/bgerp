@@ -5121,9 +5121,6 @@ function resizeIframes() {
 window.addEventListener('load', resizeIframes);
 window.addEventListener('resize', resizeIframes);
 $( document ).on( "ajaxComplete", function() {
-    console.log('now');
-    let scrollTop = $('#main-container').scrollTop();
-   // console.log(scrollTop);
     resizeIframes();
 });
 
