@@ -150,6 +150,39 @@ $(document).ready(function () {
             }
         }
     });
+
+    // Add a double-click event listener to all td elements with class 'notesCol'
+    $('.notesCol').on('dblclick', function() {
+        let holder = $(this).find('.notesHolder');
+        let promptText = holder.attr("data-prompt-text");
+        let currentText = holder.text();
+
+        if ($(this).closest('tr').hasClass('state-forbidden')) {
+
+            return;
+        }
+
+        // Show prompt to the user and get new text input
+        let newText = prompt(promptText, currentText);
+
+        if (newText !== null) {
+
+            // Update the text inside the span with class 'notesHolder'
+            holder.text(newText);
+
+            let url = holder.attr("data-url");
+
+            if(url){
+
+                let resObj = {};
+                resObj['url'] = url;
+                let params = {notes: newText};
+
+                getEfae().preventRequest = 0;
+                getEfae().process(resObj, params);
+            }
+        }
+    });
 })
 
 function getOrderedTasks()
@@ -186,14 +219,14 @@ function compareDates()
         // Get the spans within the row
         let prevTimeOuterSpan = row.querySelector('td span span.prevExpectedTimeEndCol');
         let startTimeOuterSpan = row.querySelector('td span span.expectedTimeStartCol');
-        compareDateSpan(prevTimeOuterSpan, startTimeOuterSpan);
+        compareDateSpan(prevTimeOuterSpan, startTimeOuterSpan, 'eGroupOne');
 
         let endTimeOuterSpan = row.querySelector('td span span.expectedTimeEndCol');
         let nextTimeOuterSpan = row.querySelector('td span span.nextExpectedTimeStartCol');
-        compareDateSpan(endTimeOuterSpan, nextTimeOuterSpan);
+        compareDateSpan(endTimeOuterSpan, nextTimeOuterSpan, 'eGroupTwo');
 
-        let dueDateSpan = row.querySelector('td span span.dueDateCol');
-        compareDateSpan(endTimeOuterSpan, dueDateSpan);
+        let dueDateSpan = row.querySelector('td span.dueDateCol');
+        compareDateSpan(endTimeOuterSpan, dueDateSpan, 'eGroupThree');
     }
 }
 
@@ -204,7 +237,7 @@ function compareDates()
  * @param elementOne
  * @param elementTwo
  */
-function compareDateSpan(elementOne, elementTwo)
+function compareDateSpan(elementOne, elementTwo, groupStr)
 {
     // Check if both spans exist
     if (elementOne && elementTwo) {
@@ -221,19 +254,35 @@ function compareDateSpan(elementOne, elementTwo)
 
         // Compare the dates
         if (prevTime > startTime) {
+            elementOne.setAttribute('data-errorGroup', groupStr);
             elementOne.classList.add('wrongDates');
+
+            elementTwo.setAttribute('data-errorGroup', groupStr);
             elementTwo.classList.add('wrongDates');
         } else {
-            elementOne.classList.remove('wrongDates');
-            elementTwo.classList.remove('wrongDates');
+            let elementErrOneString = elementOne.getAttribute('data-errorGroup');
+            if(elementErrOneString === groupStr){
+                elementOne.classList.remove('wrongDates');
+            }
+
+            let elementErrTwoString = elementTwo.getAttribute('data-errorGroup');
+            if(elementErrTwoString === groupStr){
+                elementTwo.classList.remove('wrongDates');
+            }
         }
     } else {
         if(elementOne){
-            elementOne.classList.remove('wrongDates');
+            let elementErrOneString = elementOne.getAttribute('data-errorGroup');
+            if(elementErrOneString === groupStr){
+                elementOne.classList.remove('wrongDates');
+            }
         }
 
         if(elementTwo){
-            elementTwo.classList.remove('wrongDates');
+            let elementErTwoString = elementTwo.getAttribute('data-errorGroup');
+            if(elementErTwoString === groupStr){
+                elementTwo.classList.remove('wrongDates');
+            }
         }
     }
 }

@@ -48,6 +48,9 @@ th, td {
    color: white;
 }
 
+td:has(.wrongDates) {
+  background: red;
+}
 .state-pending, .state-pending:hover {
   background-color: rgba(238,204,255,.7) !important;
 }
@@ -86,4 +89,9 @@ tr:hover td {
   height: 100%;
   width: 100%;
   background: rgba( 255,255,255, .8 ) url('../../img/ajax-loader.gif') 50% 50% no-repeat;
+}
+
+.readyPercent {
+  color: green !important;
+  font-weight:bold;
 }
