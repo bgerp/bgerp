@@ -57,100 +57,99 @@ $(document).ready(function () {
     let startX = 0;  // Store the starting X position of the touch
 
     //   Initialize Sortable
-    let sortable = new Sortable(document.querySelector("#dragTable tbody"), {
-        animation: 150,
-        handle: "tr",
-        multiDrag: true,
-        selectedClass: "selected",
-        filter: "tr[data-dragging='false']",
-        preventOnFilter: false,
+    const rows = document.querySelectorAll("#dragTable tbody tr");
 
-        onChoose: function (evt) {
-            evt.item.classList.add('dragging');
-        },
+    if (rows.length > 1) {
+        let sortable = new Sortable(document.querySelector("#dragTable tbody"), {
+            animation: 150,
+            handle: "tr",
+            multiDrag: true,
+            selectedClass: "selected",
+            filter: "tr[data-dragging='false']",
+            preventOnFilter: false,
 
-        onUnchoose: function (evt) {
-            evt.item.classList.remove('dragging');
-        },
-
-        onStart: function (evt) {
-            const rows = document.querySelectorAll("#dragTable tbody tr");
-            if (rows.length <= 1) {
-                evt.cancel();  // Disable dragging if there's only one row
-                return;  // Exit the onStart function early
-            }
-
-
-            selectedElements = Array.from(document.querySelectorAll('.selected')).map((element) => {
-                return {
-                    element: element,
-                    originalIndex: Array.from(element.parentNode.children).indexOf(element)
-                };
-            });
-
-            selectedElements.sort((a, b) => a.originalIndex - b.originalIndex);
-            isScrolling = false;  // Reset scrolling flag
-        },
-
-        onEnd: function (evt) {
-            if (selectedElements.length === 0) {
-                selectedElements.push({
-                    element: evt.item,
-                    originalIndex: evt.oldIndex
-                });
-            }
-
-            selectedElements.forEach((item) => item.element.classList.remove('selected'));
-
-            let table = document.querySelector("#dragTable");
-            const dropIndex = evt.newIndex;
-            const rows = Array.from(table.querySelectorAll("tbody tr"));
-
-            selectedElements.forEach((item, index) => {
-                const targetIndex = dropIndex + index;
-                const targetRow = rows[targetIndex] || null;
-                if (targetRow) {
-                    targetRow.insertAdjacentElement('beforebegin', item.element);
-                } else {
-                    table.querySelector('tbody').appendChild(item.element);
-                }
-            });
-
-            selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
-
-            console.log("Items moved and reinserted in original order.");
-
-            if (table.dataset.url) {
-                let dataIds = getOrderedTasks();
-
-                let resObj = {};
-                resObj['url'] = table.dataset.url;
-
-                let dataIdString = JSON.stringify(dataIds);
-                let params = { orderedTasks: dataIdString };
-
-                console.log('DROP: ' + dataIdString);
-
-                getEfae().preventRequest = 0;
-                getEfae().process(resObj, params);
-            }
-
-            selectedElements = [];
-            isScrolling = false;  // Reset scrolling state
-        },
-
-        store: {
-            set: function (sortable) {
-                var order = sortable.toArray();
-                localStorage.setItem('sortableOrder', order.join('|'));
+            onChoose: function (evt) {
+                evt.item.classList.add('dragging');
             },
 
-            get: function (sortable) {
-                var order = localStorage.getItem('sortableOrder');
-                return order ? order.split('|') : [];
+            onUnchoose: function (evt) {
+                evt.item.classList.remove('dragging');
+            },
+
+            onStart: function (evt) {
+                selectedElements = Array.from(document.querySelectorAll('.selected')).map((element) => {
+                    return {
+                        element: element,
+                        originalIndex: Array.from(element.parentNode.children).indexOf(element)
+                    };
+                });
+
+                selectedElements.sort((a, b) => a.originalIndex - b.originalIndex);
+                isScrolling = false;  // Reset scrolling flag
+            },
+
+            onEnd: function (evt) {
+                console.log("END");
+                if (selectedElements.length === 0) {
+                    selectedElements.push({
+                        element: evt.item,
+                        originalIndex: evt.oldIndex
+                    });
+                }
+
+                selectedElements.forEach((item) => item.element.classList.remove('selected'));
+
+                let table = document.querySelector("#dragTable");
+                const dropIndex = evt.newIndex;
+                const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+                selectedElements.forEach((item, index) => {
+                    const targetIndex = dropIndex + index;
+                    const targetRow = rows[targetIndex] || null;
+                    if (targetRow) {
+                        targetRow.insertAdjacentElement('beforebegin', item.element);
+                    } else {
+                        table.querySelector('tbody').appendChild(item.element);
+                    }
+                });
+
+                selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
+
+                console.log("Items moved and reinserted in original order.");
+
+                if (table.dataset.url) {
+                    let dataIds = getOrderedTasks();
+
+                    let resObj = {};
+                    resObj['url'] = table.dataset.url;
+
+                    let dataIdString = JSON.stringify(dataIds);
+                    let params = { orderedTasks: dataIdString };
+
+                    console.log('DROP: ' + dataIdString);
+
+                    getEfae().preventRequest = 0;
+                    getEfae().process(resObj, params);
+                }
+
+                selectedElements = [];
+                isScrolling = false;  // Reset scrolling state
+            },
+
+            store: {
+                set: function (sortable) {
+                    var order = sortable.toArray();
+                    localStorage.setItem('sortableOrder', order.join('|'));
+                },
+
+                get: function (sortable) {
+                    var order = localStorage.getItem('sortableOrder');
+                    return order ? order.split('|') : [];
+                }
             }
-        }
-    });
+        });
+    }
+
 
 // Touch event handlers
     document.addEventListener('touchstart', function(event) {
@@ -182,6 +181,7 @@ $(document).ready(function () {
 
     // Flag to prevent multiple prompts
     let isPromptOpen = false;
+    let touchTimer;
 
 // Function to handle the editing of notes
     function handleEditing(cell) {
@@ -216,28 +216,35 @@ $(document).ready(function () {
         }
     }
 
-// Add a double-click event listener to all td elements with class 'notesCol'
+    // Add a double-click event listener to all td elements with class 'notesCol'
     $('.notesCol').on('dblclick', function() {
         handleEditing($(this));
     });
 
-// Add touch event listener for double touch on mobile devices
+    // Add touch event listener for double touch on mobile devices
     $('.notesCol').on('touchstart', function(e) {
         const cell = $(this);
+
         // Check if the prompt is currently open
         if (isPromptOpen) {
             return; // Prevent action if the prompt is open
         }
 
-        // Check if the first touch event was already triggered
-        if (cell.data('touchTimer')) {
-            clearTimeout(cell.data('touchTimer'));
-            cell.removeData('touchTimer'); // Clear the timer
+        // Clear the previous timer if it exists
+        clearTimeout(touchTimer);
+
+        // Set a new timer for the touch event
+        touchTimer = setTimeout(() => {
+            // This will execute if a single touch occurs
+            cell.data('touchTimer', false); // Clear the timer
+        }, 300); // Duration for detecting double touch
+
+        // If the timer was already set, we are in a double touch scenario
+        if (cell.data('touchTimer') === false) {
+            clearTimeout(touchTimer); // Clear the timeout for the double touch
             handleEditing(cell); // Trigger edit on double touch
         } else {
-            cell.data('touchTimer', setTimeout(() => {
-                cell.removeData('touchTimer'); // Clear the timer if single touch
-            }, 300)); // Adjust time as needed (300ms for double touch)
+            cell.data('touchTimer', true); // Indicate that the first touch happened
         }
     });
 })
