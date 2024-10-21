@@ -1396,6 +1396,7 @@ class pos_Terminal extends peripheral_Terminal
     private function renderResultPayment($rec, $string, $selectedRec)
     {
         // Ако попирнцип бележката не може да се приключи - да не може да се и прехвърля
+        core_Debug::startTimer('RES_RENDER_PAYMENTS');
         $tpl = new core_ET(tr("|*<div class='contentHolderResults'><!--ET_BEGIN PAYMENT_ERROR--><div class='paymentErrorInfo'>[#PAYMENT_ERROR#]</div><!--ET_END PAYMENT_ERROR--><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div></div>"));
 
         $rec->_disableAllPayments = false;
@@ -1465,7 +1466,10 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $tpl->append("<div class='clearfix21'></div>");
-        
+
+        core_Debug::stopTimer('RES_RENDER_PAYMENTS');
+        core_Debug::log("END RES_RENDER_PAYMENTS " . round(core_Debug::$timers["RES_RENDER_PAYMENTS"]->workingTime, 6));
+
         return $tpl;
     }
     
