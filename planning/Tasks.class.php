@@ -3172,6 +3172,7 @@ class planning_Tasks extends core_Master
             $data->listTableMvc->FNC('prevId', 'datetime');
             $data->listTableMvc->FNC('nextId', 'datetime');
             $data->listTableMvc->FNC('saleId', 'varchar');
+            $data->listTableMvc->setField('notes', 'tdClass=notesCol');
             foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'prevId', 'nextId', 'title', 'originId', 'progress', 'saleId') as $fld) {
                 $data->listTableMvc->setField($fld, "tdClass=reorderSmallCol");
             }
@@ -3264,9 +3265,12 @@ class planning_Tasks extends core_Master
             // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
             if(Mode::get('isReorder')){
-                if(!empty($rec->notes)){
+                $rowNoteAttr = array('class' => 'notesHolder', 'id' => "notesHolder{$rec->id}", 'data-prompt-text' => tr('Забележка на|*: ') . $mvc->getRecTitle($rec));
+                $rowNoteAttr['data-url'] = $mvc->haveRightFor('edit', $rec) ? toUrl(array($mvc, 'editnotes', $rec->id), 'local') : null;
+                if(!empty($rec->notes)) {
                     $row->notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
                 }
+                $row->notes = ht::createElement("span", $rowNoteAttr, $row->notes, true);
 
                 if (!$mvc->haveRightFor('reordertask', $rec)) {
                     $row->ROW_ATTR['data-dragging'] = "false";
@@ -4551,6 +4555,33 @@ class planning_Tasks extends core_Master
         $idleTime = Request::get('idleTime', 'int');
         $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         $res = array_merge($res, (array) $statusData);
+
+        return $res;
+    }
+
+
+    /**
+     * Екшън за редактиране на забележката на операцията
+     */
+    public function act_editnotes()
+    {
+        expect(Request::get('ajax_mode'));
+        $this->requireRightFor('edit');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('edit', $rec);
+        $notes = Request::get('notes', 'varchar');
+
+        $rec->notes = $notes;
+        $this->save_($rec, 'notes');
+        $this->logWrite('Промяна на забележка', $rec->id);
+
+        // Показване на статусите веднага
+        $res = array();
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => "notesHolder{$rec->id}", 'html' => core_Type::getByName('varchar')->toVerbal($notes), 'replace' => true);
+        $res[] = $resObj;
 
         return $res;
     }

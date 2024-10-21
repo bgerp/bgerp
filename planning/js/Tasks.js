@@ -150,6 +150,39 @@ $(document).ready(function () {
             }
         }
     });
+
+    // Add a double-click event listener to all td elements with class 'notesCol'
+    $('.notesCol').on('dblclick', function() {
+        let holder = $(this).find('.notesHolder');
+        let promptText = holder.attr("data-prompt-text");
+        let currentText = holder.text();
+
+        if ($(this).closest('tr').hasClass('state-forbidden')) {
+
+            return;
+        }
+
+        // Show prompt to the user and get new text input
+        let newText = prompt(promptText, currentText);
+
+        if (newText !== null) {
+
+            // Update the text inside the span with class 'notesHolder'
+            holder.text(newText);
+
+            let url = holder.attr("data-url");
+
+            if(url){
+
+                let resObj = {};
+                resObj['url'] = url;
+                let params = {notes: newText};
+
+                getEfae().preventRequest = 0;
+                getEfae().process(resObj, params);
+            }
+        }
+    });
 })
 
 function getOrderedTasks()
