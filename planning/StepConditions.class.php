@@ -296,15 +296,14 @@ class planning_StepConditions extends core_Detail
 
 
     /**
-     * Върща масив с прогреса на предходните операции на подадените такива
+     * Връщане на предишните и следващите ПО на подадените
      *
      * @param array $taskArr
-     * @param bool $verbal
-     * @param int|null $totalWidth
-     * @param int|null $height
-     * @return array
+     * @return array $res
+     *              ['previous'] - масив с последните N предходни
+     *              ['next']     - масив със следващите N
      */
-    public static function getDependantTasksProgress($taskArr, $verbal = false, $totalWidth = 90, $height = 10)
+    public static function getPrevAndNextTasks($taskArr)
     {
         $arr = is_array($taskArr) ? $taskArr : array($taskArr);
 
@@ -317,16 +316,16 @@ class planning_StepConditions extends core_Detail
         $taskQuery = planning_Tasks::getQuery();
         $taskQuery->in('originId', $originIds);
         $taskQuery->where("#state != 'rejected'");
+        $taskQuery->show('id,progress,saoOrder,expectedTimeEnd,expectedTimeStart,state,originId,folderId,productId');
         while($tRec = $taskQuery->fetch()){
             $folders[$tRec->folderId] = $tRec->folderId;
-            $timeStart = !empty($tRec->timeStart) ? $tRec->timeStart : "9999-99-{$tRec->id}";
             $saoOrder = !empty($tRec->saoOrder) ? $tRec->saoOrder : 0;
-            $tasks[$tRec->originId][$tRec->id] = array('id' => $tRec->id, 'progress' => $tRec->progress, 'timeStart' => $timeStart, 'saoOrder' => $saoOrder);
+            $tasks[$tRec->originId][$tRec->id] = (object)array('id' => $tRec->id, 'state' => $tRec->state, 'productId' => $tRec->productId, 'progress' => $tRec->progress, 'saoOrder' => $saoOrder, 'expectedTimeEnd' => $tRec->expectedTimeEnd, 'expectedTimeStart' => $tRec->expectedTimeStart);
         }
 
         // Сортират се по подредбата им във низходящ ред
         foreach ($tasks as &$tasksByOrigin){
-            arr::sortObjects($tasksByOrigin, 'saoOrder', 'DESC');
+            arr::sortObjects($tasksByOrigin, 'saoOrder', 'ASC');
         }
 
         // Кеш на максималния брой предходни операции, които да се показват във всеки център на дейност
@@ -346,26 +345,71 @@ class planning_StepConditions extends core_Detail
         $res = array();
         foreach ($arr as $taskRec){
             $lessThen = $taskRec->saoOrder;
+            $arr1 = array('previous' => array(), 'next' => array());
 
             // Намират се всички ПО с подредба преди нейната
-            $subArr = array();
             if(is_array($tasks[$taskRec->originId])){
-                $subArr = array_filter($tasks[$taskRec->originId], function($a) use ($lessThen) { return $a['saoOrder'] < $lessThen;});
+                array_walk($tasks[$taskRec->originId], function($a) use ($lessThen, &$arr1) {
+                    if($a->saoOrder < $lessThen){
+                        $arr1['previous'][$a->id] = $a;
+                    } elseif($a->saoOrder > $lessThen) {
+                        $arr1['next'][$a->id] = $a;
+                    };
+                });
             }
 
             // От тях се оставят до изисквания брой от центъра на дейност, после се сортират от ляво на дясно
-            $subArr = array_splice($subArr, 0, $centerMaxPreviousArr[$taskRec->folderId]);
-            arr::sortObjects($subArr, 'saoOrder', 'ASC');
+            arr::sortObjects($arr1['previous'], 'saoOrder', 'ASC');
+            $startCut = countR($arr1['previous']) - $centerMaxPreviousArr[$taskRec->folderId];
+            $prevArr = array_splice($arr1['previous'], $startCut, $centerMaxPreviousArr[$taskRec->folderId]);
 
-            $count = countR($subArr);
-            if($count){
-                $eachWith = $totalWidth / $count;
-                foreach ($subArr as $depTaskArr){
-                    if($verbal){
-                        $depTaskArr = static::getDependantTaskBlock($eachWith, $height, $depTaskArr['progress'], $depTaskArr['id']);
-                    }
-                    $res[$taskRec->id][] = $depTaskArr;
+            arr::sortObjects($arr1['next'], 'saoOrder', 'ASC');
+            $nextArr = array_splice($arr1['next'], 0, $centerMaxPreviousArr[$taskRec->folderId]);
+
+            $res[$taskRec->id] = array('previous' => $prevArr, 'next' => $nextArr);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Рендиране на блока с предходните/следващите операции
+     *
+     * @param array $taskArr
+     * @param string $type
+     * @param int|null $limit
+     * @return array $res
+     */
+    public static function renderTaskBlock($taskArr, $type, $limit = null)
+    {
+        $res = array();
+        $count = countR($taskArr);
+        if (!$count) return $res;
+
+        if(in_array($type, array('smallBar', 'bigBar'))){
+            $count = 0;
+            $width = ($type == 'smallBar') ? 90 : 150;
+            $eachWith = $width / $count;
+            foreach ($taskArr as $taskRec) {
+                if($limit && $count == $limit) break;
+                $res[] = static::getDependantTaskBlock($eachWith, 10, $taskRec->progress, $taskRec->id);
+                $count++;
+            }
+        } elseif($type == 'reorderBlocks'){
+            $count = 0;
+            foreach ($taskArr as $taskRec) {
+                if($limit && $count == $limit) break;
+
+                $prevProgressVerbal = "[" . core_Type::getByName('percent(decimals=0)')->toVerbal($taskRec->progress) . "]";
+                if($taskRec->progress >= 1){
+                    $prevProgressVerbal = "<span class='readyPercent'>{$prevProgressVerbal}</span>";
                 }
+                $prevId = "<span class='state-{$taskRec->state} document-handler'>{$prevProgressVerbal}</span>";
+                $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($taskRec->id));
+                $prevElement = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => planning_Tasks::getrecTitle($taskRec)), $prevId, true);
+                $res[] = $prevElement->getContent();
+                $count++;
             }
         }
 

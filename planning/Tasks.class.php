@@ -623,9 +623,11 @@ class planning_Tasks extends core_Master
             $row->deviationNettoNotice = $eFields['notice'];
             $row->deviationNettoWarning = $eFields['warning'];
             $row->deviationNettoCritical = $eFields['critical'];
-            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true, 150, 9);
-            if (is_array($dependentTasks[$rec->id])) {
-                $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
+
+            $dependantTaskArr = planning_StepConditions::getPrevAndNextTasks($rec);
+            if (!empty($dependantTaskArr[$rec->id]['previous'])) {
+                $dependantTask = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['previous'], 'bigBar');
+                $row->dependantProgress = implode("", $dependantTask);
             }
 
             if (isset($rec->assetId)) {
@@ -3157,25 +3159,25 @@ class planning_Tasks extends core_Master
             }
             $data->listTableMvc->setField("assetId", 'tdClass=small');
             $fieldsToFilterIfEmpty = array_merge($paramFields, $fieldsToFilterIfEmpty);
-            arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
+            arr::placeInAssocArray($data->listFields, $paramFields, null, 'saleId');
         }
 
         if (Mode::is('isReorder')){
             $data->listFields['notes'] = 'Забележка';
             $data->listTableMvc->tableRowTpl = "[#ROW#]";
 
-            unset($data->listFields['dependantProgress']);
             unset($data->listFields['folderId']);
             $data->listTableMvc->FNC('prevExpectedTimeEnd', 'datetime');
             $data->listTableMvc->FNC('nextExpectedTimeStart', 'datetime');
             $data->listTableMvc->FNC('dueDate', 'datetime');
-            $data->listTableMvc->FNC('prevId', 'datetime');
+            $data->listTableMvc->FNC('dependantProgress', 'datetime');
             $data->listTableMvc->FNC('nextId', 'datetime');
             $data->listTableMvc->FNC('saleId', 'varchar');
             $data->listTableMvc->setField('notes', 'tdClass=notesCol');
-            foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'prevId', 'nextId', 'title', 'originId', 'progress', 'saleId') as $fld) {
+            foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId') as $fld) {
                 $data->listTableMvc->setField($fld, "tdClass=reorderSmallCol");
             }
+            $data->listTableMvc->setField('dependantProgress', "tdClass=reorderSmallCol dependantProgress");
         }
 
         core_Debug::stopTimer('RENDER_HEADER');
@@ -3201,7 +3203,7 @@ class planning_Tasks extends core_Master
 
         // Еднократно извличане на зависимите предходни операции
         core_Debug::startTimer('RENDER_DEPENDANT');
-        $dependentTasks = planning_StepConditions::getDependantTasksProgress($data->recs, true);
+        $dependantTaskArr = planning_StepConditions::getPrevAndNextTasks($data->recs);
         core_Debug::stopTimer('RENDER_DEPENDANT');
 
         // Еднократно извличане на заданията за бързодействие
@@ -3248,6 +3250,7 @@ class planning_Tasks extends core_Master
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
 
+
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
@@ -3256,9 +3259,14 @@ class planning_Tasks extends core_Master
             }
 
             // Ако има планирани предходни операции - да се показват с техните прогреси
-            if (isset($dependentTasks[$rec->id])) {
-                if (is_array($dependentTasks[$rec->id])) {
-                    $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
+            if (!empty($dependantTaskArr[$rec->id]['previous'])) {
+                if(Mode::is('isReorder')){
+                    $dependantTaskBlocks = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['previous'], 'reorderBlocks');
+                } else {
+                    $dependantTaskBlocks = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['previous'], 'smallBar');
+                }
+                if(countR($dependantTaskBlocks)){
+                    $row->dependantProgress = implode("", $dependantTaskBlocks);
                 }
             }
 
@@ -3310,22 +3318,12 @@ class planning_Tasks extends core_Master
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity);
 
             if(Mode::is('isReorder')){
-
-                $filteredKeys = array_keys(array_filter($jobRecs[$rec->originId]->tasks, function($o) use ($rec) {
-                    return $o->id == $rec->id;
-                }));
-
-                $currentKey = $filteredKeys[0];
-                $prevOrder = $currentKey - 1;
-                $nextOrder = $currentKey + 1;
-
-                if($jobRecs[$rec->originId]->tasks[$prevOrder]){
-                    $rec->prevExpectedTimeEnd = $jobRecs[$rec->originId]->tasks[$prevOrder]->expectedTimeEnd;
-                    $rec->prevIdRec = $jobRecs[$rec->originId]->tasks[$prevOrder];
+                if($dependantTaskArr[$rec->id]['previous'][0]){
+                    $rec->prevExpectedTimeEnd = $dependantTaskArr[$rec->id]['previous'][0]->expectedTimeEnd;
                 }
-                if($jobRecs[$rec->originId]->tasks[$nextOrder]){
-                    $rec->nextExpectedTimeStart = $jobRecs[$rec->originId]->tasks[$nextOrder]->expectedTimeEnd;
-                    $rec->nextIdRec = $jobRecs[$rec->originId]->tasks[$nextOrder];
+
+                if(!empty($dependantTaskArr[$rec->id]['next'][0])){
+                    $rec->nextExpectedTimeStart = $dependantTaskArr[$rec->id]['next'][0]->expectedTimeStart;
                 } else {
                     $rec->nextExpectedTimeStart = $jobRecs[$rec->originId]->dueDate;
                 }
@@ -3339,26 +3337,9 @@ class planning_Tasks extends core_Master
                     $row->{$fld} = ht::createElement("span", array('id' => "{$fld}{$rec->id}"), $row->{$fld}, true)->getContent();
                 }
 
-                if(!empty($rec->prevIdRec)){
-                    $prevProgressVerbal = "[" . core_Type::getByName('percent(decimals=0)')->toVerbal($rec->prevIdRec->progress) . "]";
-                    if($rec->prevIdRec->progress >= 1){
-                        $prevProgressVerbal = "<span class='readyPercent'>{$prevProgressVerbal}</span>";
-                    }
-                    $prevId = "<span class='state-{$rec->prevIdRec->state} document-handler'>{$prevProgressVerbal}</span>";
-
-                    $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($rec->prevIdRec->id));
-                    $row->prevId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => "#" . $mvc->getTitleById($rec->prevIdRec->id)), $prevId, true);
-                }
-
-                if(!empty($rec->nextIdRec)){
-                    $nextProgressVerbal = "[" . core_Type::getByName('percent(decimals=0)')->toVerbal($rec->nextIdRec->progress) . "]";
-                    if($rec->nextIdRec->progress >= 1){
-                        $nextProgressVerbal = "<span class='readyPercent'>{$nextProgressVerbal}</span>";
-                    }
-                    $nextId = "<span class='state-{$rec->nextIdRec->state} document-handler'>{$nextProgressVerbal}</span>";
-
-                    $singleNextUrl = toUrl(planning_Tasks::getSingleUrlArray($rec->nextIdRec->id));
-                    $row->nextId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleNextUrl, 'title' => "#" . $mvc->getTitleById($rec->nextIdRec->id)), $nextId, true);
+                if(!empty($dependantTaskArr[$rec->id]['next'])){
+                    $nextArr = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['next'], 'reorderBlocks', 1);
+                    $row->nextId = $nextArr[key($nextArr)];
                 }
 
                 if(!empty($rec->dueDate)){
@@ -4479,7 +4460,7 @@ class planning_Tasks extends core_Master
         unset($data->listFields['title']);
         unset($data->listFields['expectedTimeStart']);
         unset($data->listFields['expectedTimeEnd']);
-        $data->listFields = array('prevId' => 'Пред. №',
+        $data->listFields = array('dependantProgress' => 'Пред.',
                                   'prevExpectedTimeEnd' => 'Пред. край',
                                   'expectedTimeStart' => 'Тек. начало',
                                   'title' => 'Тек. №', 'expectedTimeEnd' => 'Тек. край', 'nextExpectedTimeStart' => 'След. начало', 'nextId' => 'След. №', 'dueDate' => 'Падеж', 'originId' => 'Задание')
