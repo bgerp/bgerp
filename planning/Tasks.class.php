@@ -4524,35 +4524,12 @@ class planning_Tasks extends core_Master
         $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
         foreach ($inOrderTasks as $i => $taskId){
             $tasks[$taskId] = $cachedData['tasks'][$taskId];
-            if($i){
-                $tasks[$taskId]->startAfter = $inOrderTasks[$i-1];
-            }
         }
 
         core_Debug::startTimer('TASKS_LIVE_REORDER_TASKS');
         $errorWhenReordering = array();
-        foreach ($tasks as $tRec) {
-            if($tRec->startAfter){
-                try{
-                    $updateFields = arr::make('orderByAssetId,modifiedOn,modifiedBy');
 
-                    // След коя операция ще започне тази
-                    $tRec->modifiedOn = dt::now();
-                    $tRec->modifiedBy = core_Users::getCurrent();
-                    $tRec->_isDragAndDrop = true;
-                    $this->save($tRec, $updateFields);
-                } catch(core_exception_Expect $e){
-                    $errorWhenReordering[] = planning_Tasks::getHandle($tRec);
-                }
-            }
-        }
-
-        if(countR($errorWhenReordering)){
-            $errorMsg = "Проблем при преместването на|*: " . implode(',', $errorWhenReordering);
-            core_Statuses::newStatus($errorMsg, 'error');
-        }
-
-        planning_AssetResources::reOrderTasks($assetId);
+        planning_AssetResources::reOrderTasks($assetId, $tasks, true);
         unset($this->reorderTasksInAssetId[$assetId]);
         core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
         $this->logDebug("END TASKS_LIVE_REORDER_TASKS " . round(core_Debug::$timers["TASKS_LIVE_REORDER_TASKS"]->workingTime, 6));
