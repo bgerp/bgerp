@@ -4604,7 +4604,7 @@ class planning_Tasks extends core_Master
     private function getEditWatchHtml($assetId)
     {
         $cu = core_Users::getCurrent();
-        core_Permanent::set("isReorderingTasks|{$assetId}|{$cu}", $cu, 1);
+        core_Permanent::set("isReorderingTasks|{$assetId}|{$cu}", $cu, 5);
 
         $res  = array();
         $editedCache = core_Permanent::getLikeKey("isReorderingTasks|{$assetId}|");
