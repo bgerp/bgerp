@@ -2434,30 +2434,6 @@ class planning_Tasks extends core_Master
         }
     }
 
-    /**
-     * Изпълнява се след подготовката на листовия изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     *
-     * @return bool
-     */
-    protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
-    {
-        if(Mode::is('isReorder', true)){
-            $assetId = $data->listFilter->rec->assetId;
-
-            $hash = str::addHash($assetId, 6, 'RO');
-            $saveBtnAttr = array('id' => 'saveBtn');
-            if($mvc->haveRightFor('savereorderedtasks', (object)array('assetId' => $assetId))){
-                $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
-            }
-
-            $backUrl = toUrl(getRetUrl());
-            $data->title = "|*" . planning_AssetResources::getHyperlink($assetId) . " " . ht::createFnBtn('Назад', '', false, array('id' => 'backBtn', 'data-url' => $backUrl)) . " " . ht::createFnBtn('Запази', '', false, $saveBtnAttr);        }
-    }
-
 
     /**
      * Връща масив от задачи към дадено задание
@@ -3065,10 +3041,28 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Изпълнява се след подготовката на листовия изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
+    {
+        if(Mode::is('isReorder')){
+            unset($data->title);
+        }
+    }
+
+
+    /**
      * Преди рендиране на таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        unset($data->title);
         $data->listTableId = 'dragTable';
         core_Debug::startTimer('RENDER_TABLE');
         $rows = &$data->rows;
@@ -3660,8 +3654,24 @@ class planning_Tasks extends core_Master
         jquery_Jquery::enable($tpl);
 
         if(isset($data->listFilter->rec->assetId)){
+            $assetId = $data->listFilter->rec->assetId;
             if(Mode::get('isReorder')){
-                $dataUrl = toUrl(array($mvc, 'livereorder', 'assetId' => $data->listFilter->rec->assetId), 'local');
+                $headerTpl = new core_ET("<div class='reorderTableHeader'><span id='reorderTableHeaderAssetId'>[#assetId#]</span> [#backBtn#] [#saveBtn#] <div id='editWatchHolder'>[#editWatchBlock#]</div></div>");
+                $headerTpl->append($mvc->getEditWatchHtml($assetId), 'editWatchBlock');
+                $headerTpl->append(planning_AssetResources::getHyperlink($assetId), 'assetId');
+                $backUrl = toUrl(getRetUrl());
+
+                $hash = str::addHash($assetId, 6, 'RO');
+                $saveBtnAttr = array('id' => 'saveBtn');
+                if ($mvc->haveRightFor('savereorderedtasks', (object)array('assetId' => $assetId))) {
+                    $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
+                }
+                $headerTpl->append(ht::createFnBtn('Запази', '', false, $saveBtnAttr), 'saveBtn');
+                $headerTpl->append(ht::createFnBtn('Назад', '', false, array('id' => 'backBtn', 'data-url' => $backUrl)), 'assetId');
+                $tpl->prepend($headerTpl);
+
+                core_Ajax::subscribe($tpl, array($mvc, 'reorderTaskWatch', 'assetId' => $assetId, 'isReorder' => true), 'editWatchTasks', 5000);
+                $dataUrl = toUrl(array($mvc, 'livereorder', 'assetId' => $assetId), 'local');
                 $tpl->append("data-url={$dataUrl}", 'TABLE_ATTR');
 
                 $scriptUrl = "https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js";
@@ -4540,6 +4550,7 @@ class planning_Tasks extends core_Master
 
         $cu = core_Users::getCurrent();
         core_Permanent::remove("folderFilter{$this->className}|{$cu}");
+        core_Permanent::remove("isReorderingTasks|{$assetId}|{$cu}");
 
         $res = array();
         $resObj = new stdClass();
@@ -4581,5 +4592,47 @@ class planning_Tasks extends core_Master
         $res[] = $resObj;
 
         return $res;
+    }
+
+
+    /**
+     * Връща Хтмл с потребителите разглеждащи преподреждането на операциите
+     *
+     * @param int $assetId
+     * @return string
+     */
+    private function getEditWatchHtml($assetId)
+    {
+        $cu = core_Users::getCurrent();
+        core_Permanent::set("isReorderingTasks|{$assetId}|{$cu}", $cu, 1);
+
+        $res  = array();
+        $editedCache = core_Permanent::getLikeKey("isReorderingTasks|{$assetId}|");
+        foreach ($editedCache as $userId){
+            $res[$userId] = "<span class='otherEditors'>" . core_Users::getNick($userId) . "<span>";
+        }
+        unset($res[$cu]);
+
+        return countR($res) ? implode('', $res) : ' ';
+    }
+
+
+    /**
+     * Кои потребители текущо са отворили преподреждането на операциите
+     *
+     * @return array
+     */
+    public function act_reorderTaskWatch()
+    {
+        expect(Request::get('isReorder'));
+        expect($assetId = Request::get('assetId', 'varchar'));
+        $this->requireRightFor('list');
+        $otherEditorsHtml = $this->getEditWatchHtml($assetId);
+
+        $resObj = new stdClass();
+        $resObj->func = 'html';
+        $resObj->arg = array('id' => "editWatchHolder", 'html' => $otherEditorsHtml, 'replace' => true);
+
+        return array($resObj);
     }
 }

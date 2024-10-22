@@ -93,3 +93,6 @@ tr:hover td {
 .readyPercent {
   color: green !important; }
 
+#editWatchHolder {
+  float: right; }
+
