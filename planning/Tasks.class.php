@@ -4527,12 +4527,11 @@ class planning_Tasks extends core_Master
         }
 
         core_Debug::startTimer('TASKS_LIVE_REORDER_TASKS');
-        $errorWhenReordering = array();
-
         planning_AssetResources::reOrderTasks($assetId, $tasks, true);
         unset($this->reorderTasksInAssetId[$assetId]);
         core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
         $this->logDebug("END TASKS_LIVE_REORDER_TASKS " . round(core_Debug::$timers["TASKS_LIVE_REORDER_TASKS"]->workingTime, 6));
+        planning_AssetResources::logWrite('Ръчни преподреждане на операциите', $assetId);
 
         $this->recalcTaskTimes = true;
         $count = countR($tasks);
