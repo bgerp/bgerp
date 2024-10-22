@@ -69,6 +69,13 @@ $(document).ready(function () {
             preventOnFilter: false,
 
             onChoose: function (evt) {
+                const rows = document.querySelectorAll("#dragTable tbody tr");
+
+                // Iterate through each row and remove the specified class
+                rows.forEach(row => {
+                    row.classList.remove('dropped-highlight'); // Remove the specified class
+                });
+
                 if (!isScrolling) { // Only allow dragging if not scrolling
                     evt.item.classList.add('dragging');
                 }
