@@ -1219,6 +1219,7 @@ class planning_Tasks extends core_Master
      */
     public function updateMaster_($id)
     {
+        core_Debug::startTimer('UPDATE_TASK_MASTER');
         $rec = $this->fetch($id);
         $originalProgress = $rec->progress;
         $updateFields = 'totalQuantity,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy,prevAssetId,assetId';
@@ -1347,6 +1348,9 @@ class planning_Tasks extends core_Master
 
         $res = $this->save_($rec, $updateFields);
         plg_Search::forceUpdateKeywords($this, $rec);
+
+        core_Debug::stopTimer('UPDATE_TASK_MASTER');
+        core_Debug::log('END UPDATE_TASK_MASTER: ' . round(core_Debug::$timers['UPDATE_TASK_MASTER']->workingTime, 2));
 
         return $res;
     }
@@ -3545,17 +3549,43 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Връща файла, който се използва в документа
+     *
+     * @param object $rec
+     * @return array
+     */
+    public function getLinkedFiles($rec)
+    {
+        $fhArr = array();
+        $rec = $this->fetchRec($rec);
+        if(!empty($rec->description)){
+            $fhArr += fileman_RichTextPlg::getFiles($rec->description);
+        }
+
+        if($Driver = cat_Products::getDriver($rec->productId)){
+            $fhArr += $Driver->getLinkedFiles($rec->productId);
+        }
+
+        return $fhArr;
+    }
+
+    /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
     public static function on_AfterSessionClose($mvc)
     {
+        core_Debug::startTimer('AFTER_SESSION_TASKS');
+
         // Задачите към заопашените оборудвания се преподреждат
         if (countR($mvc->reorderTasksInAssetId)) {
+            core_Debug::startTimer('REORDER_TASK_ASSET_SHUTDOWN');
             foreach ($mvc->reorderTasksInAssetId as $assetId) {
                 if(isset($assetId)){
                     planning_AssetResources::reOrderTasks($assetId);
                 }
             }
+            core_Debug::stopTimer('REORDER_TASK_ASSET_SHUTDOWN');
+            $mvc->logDebug("END REORDER_TASK_ASSET_SHUTDOWN " . round(core_Debug::$timers["REORDER_TASK_ASSET_SHUTDOWN"]->workingTime, 6));
         }
 
         if (countR($mvc->recalcProducedDetailIndTime)) {
@@ -3572,6 +3602,9 @@ class planning_Tasks extends core_Master
             core_Debug::stopTimer('TASKS_AFTER_SESSION_RECALC_TIMES');
             $mvc->logDebug("END TASKS_AFTER_SESSION_RECALC_TIMES " . round(core_Debug::$timers["TASKS_AFTER_SESSION_RECALC_TIMES"]->workingTime, 6));
         }
+
+        core_Debug::stopTimer('AFTER_SESSION_TASKS');
+        $mvc->logDebug("END AFTER_SESSION_TASKS " . round(core_Debug::$timers["AFTER_SESSION_TASKS"]->workingTime, 6));
     }
 
 
@@ -3582,13 +3615,17 @@ class planning_Tasks extends core_Master
     {
         // Преподреждане на операциите в рамките на бутнатите задания
         if (countR($mvc->reorderTasksByJobIds)) {
+            core_Debug::startTimer('REORDER_BY_JOB');
             foreach ($mvc->reorderTasksByJobIds as $originId) {
                 $mvc->reorderTasksInJob($originId);
                 core_Statuses::newStatus('Преподредени са операциите в заданието|*!');
             }
+            core_Debug::stopTimer('REORDER_BY_JOB');
+            $mvc->logDebug("END REORDER_BY_JOB " . round(core_Debug::$timers["REORDER_BY_JOB"]->workingTime, 6));
         }
 
         if (countR($mvc->cacheAssetDataOnShutdown)) {
+            core_Debug::startTimer('CACHE_ON_SHUTDOWN');
             foreach ($mvc->cacheAssetDataOnShutdown as $assetId) {
                 $cacheData = array('assetId' => planning_AssetResources::fetch($assetId), 'tasks' => planning_AssetResources::getAssetTaskOptions($assetId, true));
                 $originIds = arr::extractValuesFromArray($cacheData['tasks'], 'originId');
@@ -3607,6 +3644,8 @@ class planning_Tasks extends core_Master
 
                 core_Cache::set('planning_Tasks',"reorderAsset{$assetId}", $cacheData, 60);
             }
+            core_Debug::stopTimer('CACHE_ON_SHUTDOWN');
+            $mvc->logDebug("END CACHE_ON_SHUTDOWN " . round(core_Debug::$timers["CACHE_ON_SHUTDOWN"]->workingTime, 6));
         }
     }
 
