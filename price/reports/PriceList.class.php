@@ -794,9 +794,9 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         if($tpl = parent::renderCustomLayout($rec, $data)){
             $tpl->append(dt::mysql2verbal(dt::now(), 'd.m.Y'), 'currentDate');
-            static $counter = 1;
+            $counter = 0;
             foreach ($data->rows as $row){
-                if(!empty($row->photo) && !($row instanceof core_ET) && $counter <= 16){
+                if(!empty($row->photo) && !($row instanceof core_ET) && $counter < 16){
                     $counter++;
                     $block = clone $tpl->getBlock('DETAIL_ROW_WITH_PHOTO');
                     $photo = ht::createElement("div", array('class' => 'gridPhoto'), $row->photo, true);
