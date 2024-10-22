@@ -2454,8 +2454,8 @@ class planning_Tasks extends core_Master
                 $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
             }
 
-            $data->title = "|*" . planning_AssetResources::getHyperlink($assetId) . " " . ht::createBtn('Назад', getRetUrl(), false, false, array('class' => 'backBtn')) . " " . ht::createFnBtn('Запази', '', false, $saveBtnAttr);
-        }
+            $backUrl = toUrl(getRetUrl());
+            $data->title = "|*" . planning_AssetResources::getHyperlink($assetId) . " " . ht::createFnBtn('Назад', '', false, array('id' => 'backBtn', 'data-url' => $backUrl)) . " " . ht::createFnBtn('Запази', '', false, $saveBtnAttr);        }
     }
 
 
@@ -4553,6 +4553,7 @@ class planning_Tasks extends core_Master
         }
 
         planning_AssetResources::reOrderTasks($assetId);
+        unset($this->reorderTasksInAssetId[$assetId]);
         core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
         $this->logDebug("END TASKS_LIVE_REORDER_TASKS " . round(core_Debug::$timers["TASKS_LIVE_REORDER_TASKS"]->workingTime, 6));
 

@@ -1,6 +1,17 @@
 $(document).ready(function () {
     compareDates();
 
+    $('#backBtn').on('click', function(e) {
+        let url = $(this).attr("data-url");
+
+        sessionStorage.removeItem('sortableOrder');
+
+        // Redirect to the new page using the provided URL
+        if(url){
+            window.location.href = url;
+        }
+    });
+
     // Initialize DataTable
     let table = $('.wide #dragTable').DataTable({
         searching:false,
@@ -43,8 +54,15 @@ $(document).ready(function () {
             let dataIdString = JSON.stringify(dataIds);
             let params = { orderedTasks: dataIdString };
 
+            console.log(url);
+            console.log(dataIdString);
+            sessionStorage.removeItem('sortableOrder');
+
+            //return;
             let resObj = {};
             resObj['url'] = url;
+
+
 
             getEfae().preventRequest = 0;
             getEfae().process(resObj, params);
@@ -148,13 +166,20 @@ $(document).ready(function () {
             store: {
                 // Save the order of items to localStorage
                 set: function (sortable) {
+
                     let order = sortable.toArray();
-                    sessionStorage.setItem('sortableOrder', order.join('|'));
+                    let val = order.join('|');
+                    console.log('session set', val);
+
+                    sessionStorage.setItem('sortableOrder', val);
                 },
 
                 // Get the order of items from localStorage
                 get: function (sortable) {
+
                     let order = sessionStorage.getItem('sortableOrder');
+
+                    console.log('session get', order);
                     return order ? order.split('|') : [];
                 }
             }
