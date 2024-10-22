@@ -148,13 +148,13 @@ $(document).ready(function () {
             store: {
                 // Save the order of items to localStorage
                 set: function (sortable) {
-                    var order = sortable.toArray();
-                    localStorage.setItem('sortableOrder', order.join('|'));
+                    let order = sortable.toArray();
+                    sessionStorage.setItem('sortableOrder', order.join('|'));
                 },
 
                 // Get the order of items from localStorage
                 get: function (sortable) {
-                    var order = localStorage.getItem('sortableOrder');
+                    let order = sessionStorage.getItem('sortableOrder');
                     return order ? order.split('|') : [];
                 }
             }
