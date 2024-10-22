@@ -4609,7 +4609,7 @@ class planning_Tasks extends core_Master
         $res  = array();
         $editedCache = core_Permanent::getLikeKey("isReorderingTasks|{$assetId}|");
         foreach ($editedCache as $userId){
-            $res[$userId] = "<span class='otherEditors'>" . core_Users::getNick($userId) . "<span>";
+            $res[$userId] = "<span class='otherEditors'>" . core_Users::getNick($userId) . "</span>";
         }
         unset($res[$cu]);
 
