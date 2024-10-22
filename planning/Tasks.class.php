@@ -3666,8 +3666,8 @@ class planning_Tasks extends core_Master
                 if ($mvc->haveRightFor('savereorderedtasks', (object)array('assetId' => $assetId))) {
                     $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
                 }
-                $headerTpl->append(ht::createFnBtn('Запази', '', false, $saveBtnAttr), 'saveBtn');
-                $headerTpl->append(ht::createFnBtn('Назад', '', false, array('id' => 'backBtn', 'data-url' => $backUrl)), 'assetId');
+                $headerTpl->append(ht::createFnBtn('Запази промените', '', false, $saveBtnAttr), 'saveBtn');
+                $headerTpl->append(ht::createFnBtn('Отмени', '', false, array('id' => 'backBtn', 'data-url' => $backUrl)), 'assetId');
                 $tpl->prepend($headerTpl);
 
                 core_Ajax::subscribe($tpl, array($mvc, 'reorderTaskWatch', 'assetId' => $assetId, 'isReorder' => true), 'editWatchTasks', 5000);
