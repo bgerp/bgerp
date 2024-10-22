@@ -390,7 +390,7 @@ class planning_StepConditions extends core_Detail
         if(in_array($type, array('smallBar', 'bigBar'))){
             $count = 0;
             $width = ($type == 'smallBar') ? 90 : 150;
-            $eachWith = $width / $count;
+            $eachWith = $width / countR($taskArr);
             foreach ($taskArr as $taskRec) {
                 if($limit && $count == $limit) break;
                 $res[] = static::getDependantTaskBlock($eachWith, 10, $taskRec->progress, $taskRec->id);
