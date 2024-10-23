@@ -1101,7 +1101,7 @@ class planning_Jobs extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $rec = static::fetchRec($rec);
-        $pTitle = cat_Products::getTitleById($rec->productId);
+        $pTitle = cat_Products::getTitleById($rec->productId, $escaped);
         
         return "Job{$rec->id} - {$pTitle}";
     }

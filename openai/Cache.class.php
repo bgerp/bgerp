@@ -203,7 +203,15 @@ class openai_Cache extends core_Manager
                             $isMessage = true;
                         }
 
-                        continue;
+                        if ($prompt == 'gpt-4o-mini') {
+                            $defModel = core_Classes::getId('openai_GPT4omini');
+                            $isMessage = true;
+                        }
+
+                        if ($prompt == 'gpt-4o') {
+                            $defModel = core_Classes::getId('openai_GPT4o');
+                            $isMessage = true;
+                        }
                     }
                 }
 
