@@ -401,7 +401,7 @@ class planning_StepConditions extends core_Detail
             foreach ($taskArr as $taskRec) {
                 if($limit && $count == $limit) break;
 
-                $prevProgressVerbal = "[" . core_Type::getByName('percent(decimals=0)')->toVerbal($taskRec->progress) . "]";
+                $prevProgressVerbal = core_Type::getByName('percent(decimals=0)')->toVerbal($taskRec->progress);
                 if($taskRec->progress >= 1){
                     $prevProgressVerbal = "<span class='readyPercent'>{$prevProgressVerbal}</span>";
                 }
