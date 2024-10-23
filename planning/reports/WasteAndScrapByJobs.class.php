@@ -311,12 +311,11 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             // Намиране на брака
             if (!is_null($prodWeigth)) {
+
                 $scrappedWeight = $taskRec->scrappedQuantity * $prodWeigth;
             } else {
                 $scrappedWeight = null;
             }
-
-            if ($scrappedWeight <= 0 && $wasteWeight <= 0)continue;
 
             if($rec->type == 'job'){
                 $id = $jobsArr[$taskRec->originId]->id;
@@ -324,7 +323,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                 $id = $taskRec->id;
             }
 
-            if ($scrappedWeight <= 0 && $wasteWeight <= 0) continue;
+           // if ($scrappedWeight <= 0 && $wasteWeight <= 0) continue;
 
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
