@@ -71,12 +71,14 @@ td:has(.wrongDates) {
   background: #777 !important;
 }
 
-.selected {
+.selected, .selected:hover {
   background-color: #cce5ff !important;
 }
-.dropped-highlight {
+
+.dropped-highlight, .dropped-highlight:hover {
   background-color:#fffdd7f2 !important;
 }
+
 tr:hover td {
  outline: 2px solid #999;
 }

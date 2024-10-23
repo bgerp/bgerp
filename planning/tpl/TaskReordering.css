@@ -63,10 +63,12 @@ td:has(.wrongDates) {
 .state-forbidden:hover td {
   background: #777777 !important; }
 
-.selected {
+.selected,
+.selected:hover {
   background-color: #cce5ff !important; }
 
-.dropped-highlight {
+.dropped-highlight,
+.dropped-highlight:hover {
   background-color: #fffdd7f2 !important; }
 
 tr:hover td {
