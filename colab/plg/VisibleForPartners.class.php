@@ -52,41 +52,57 @@ class colab_plg_VisibleForPartners extends core_Plugin
             // Полето се показва ако е в папката, споделена до колаборатор
             // Ако няма originId или ако originId е към документ, който е видим от колаборатор
             if (colab_FolderToPartners::fetch(array("#folderId = '[#1#]'", $folderId))) {
-                if (core_Users::haveRole('partner')) {
-                    // Ако текущия потребител е контрактор, полето да е скрито
-                    $data->form->setField('visibleForPartners', 'input=hidden');
-                    $data->form->setDefault('visibleForPartners', 'yes');
-                } else {
-                    $showField = true;
-                    if(isset($rec->threadId) && !($mvc instanceof planning_Tasks)){
-                        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-                        if($rec->containerId != $firstDoc->fetchField('containerId')){
-                            if(!$firstDoc->isVisibleForPartners()){
-                                $showField = false;
+                $doc = $dIsVisible = null;
+                $showVisibleField = true;
+                if(isset($rec->originId)){
+                    $doc = doc_Containers::getDocument($rec->originId);
+                    if(!$mvc->onlyFirstInThread){
+                        $dIsVisible = $doc->isVisibleForPartners();
+                        if(!$dIsVisible){
+                            $showVisibleField = false;
+                        }
+                    } else{
+                        $dIsVisible = true;
+                    }
+                }
+
+                if ($showVisibleField) {
+
+                    if (core_Users::haveRole('partner')) {
+                        // Ако текущия потребител е контрактор, полето да е скрито
+                        $data->form->setField('visibleForPartners', 'input=hidden');
+                        $data->form->setDefault('visibleForPartners', 'yes');
+                    } else {
+                        $showField = true;
+                        if(isset($rec->threadId) && !($mvc instanceof planning_Tasks)){
+                            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                            if($rec->containerId != $firstDoc->fetchField('containerId')){
+                                if(!$firstDoc->isVisibleForPartners()){
+                                    $showField = false;
+                                }
+                            }
+                        }
+
+                        if($showField){
+                            $data->form->setField('visibleForPartners', 'input=input');
+                        }
+                    }
+                    
+                    if ($rec->originId) {
+                        $dRec = $doc->fetch();
+                        
+                        // Ако документа е създаден от контрактор или предишния документ е видим, тогава да е споделен по-подразбиране
+                        if (!$rec->id) {
+                            if (core_Users::haveRole('partner', $dRec->createdBy) || $dIsVisible) {
+                                $data->form->setDefault('visibleForPartners', 'yes');
                             }
                         }
                     }
-
-                    if($showField){
-                        $data->form->setField('visibleForPartners', 'input=input');
-                    }
-                }
                     
-                if ($rec->originId) {
-                    $doc = doc_Containers::getDocument($rec->originId);
-                    $dRec = $doc->fetch();
-                        
-                    // Ако документа е създаден от контрактор или предишния документ е видим, тогава да е споделен по-подразбиране
-                    if (!$rec->id) {
-                        if (core_Users::haveRole('partner', $dRec->createdBy) || $doc->isVisibleForPartners()) {
-                            $data->form->setDefault('visibleForPartners', 'yes');
-                        }
+                    // Ако няма да се показва на колаборатори по-подразбиране, да е скрито полето
+                    if ($rec->visibleForPartners !== 'yes') {
+                        $data->form->setField('visibleForPartners', 'autohide');
                     }
-                }
-                    
-                // Ако няма да се показва на колаборатори по-подразбиране, да е скрито полето
-                if ($rec->visibleForPartners !== 'yes') {
-                    $data->form->setField('visibleForPartners', 'autohide');
                 }
 
                 if (!$rec->originId && $mvc->visibleForPartners && core_Users::isPowerUser()) {
