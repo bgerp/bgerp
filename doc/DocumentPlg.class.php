@@ -826,6 +826,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterSessionClose($mvc)
     {
+        core_Debug::startTimer('DOCUMENT_SAVE_FILES');
         foreach ((array)$mvc->saveFileArr as $rec) {
             try {
                 // Опитваме се да запишем файловете от документа в модела
@@ -837,6 +838,9 @@ class doc_DocumentPlg extends core_Plugin
                 $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
             }
         }
+
+        core_Debug::stopTimer('DOCUMENT_SAVE_FILES');
+        $mvc->logDebug("END DOCUMENT_SAVE_FILES " . round(core_Debug::$timers["DOCUMENT_SAVE_FILES"]->workingTime, 6));
     }
     
     

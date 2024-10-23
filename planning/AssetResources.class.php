@@ -800,14 +800,14 @@ class planning_AssetResources extends core_Master
      * @param int $assetId
      * @return void
      */
-    public static function reOrderTasks($assetId)
+    public static function reOrderTasks($assetId, $orderedTaskRecs = null, $alwaysReorder = false)
     {
-        $assetTasks = static::getAssetTaskOptions($assetId, true);
+        $assetTasks = is_array($orderedTaskRecs) ? $orderedTaskRecs : static::getAssetTaskOptions($assetId, true);
 
         $i = 1;
         $tasksToUpdate = array();
         foreach ($assetTasks as &$t) {
-            if ($t->orderByAssetId != $i) {
+            if ($t->orderByAssetId != $i || $alwaysReorder) {
                 $t->orderByAssetId = $i;
                 $tasksToUpdate[$t->id] = $t;
             }
@@ -839,7 +839,6 @@ class planning_AssetResources extends core_Master
         $tQuery->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
         $tQuery->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 9999)");
         $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'pending', 'stopped')))) AND #assetId = {$assetId}");
-        //$tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,calcedDuration,indTime,progress,timeDuration,indPackagingId,timeStart,isFinal,jobProductId,labelQuantityInPack,labelPackagingId,simultaneity');
         $tQuery->orderBy('orderByAssetIdCalc,id', $order);
         $taskRecs = $tQuery->fetchAll();
 
