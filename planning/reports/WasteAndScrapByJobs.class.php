@@ -146,6 +146,30 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $form->setField('dealers', 'input=none');
         }
 
+
+        $suggestions = $suggestionsAsset = array();
+
+        $stateArr = array('active', 'wakeup', 'closed');
+
+        $jQuery = planning_Tasks::getQuery();
+        $jQuery->in('state', $stateArr);
+        $jQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+        $jQuery->show('employees,assetId');
+
+        while ($jRec = $jQuery->fetch()) {
+
+            foreach (keylist::toArray($jRec->employees) as $v) {
+
+                if (!in_array($v, $suggestions)) {
+                    $suggestions[$v] = crm_Persons::getTitleById($v);
+                }
+            }
+
+        }
+
+        asort($suggestions);
+        $form->setSuggestions('employees', $suggestions);
+
     }
 
 
@@ -245,7 +269,11 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             // Намиране на отпадъка
             if (!$wasteQuantity) {
                 $totalWastePercent = null;
-                $waste = planning_ProductionTaskProducts::getTotalWasteArr($originJobRec->threadId, $totalWastePercent);
+                if($rec->type == 'job') {
+                    $waste = planning_ProductionTaskProducts::getTotalWasteArr($originJobRec->threadId, $totalWastePercent);
+                }else{
+                    $waste = planning_ProductionTaskProducts::getTotalWasteArr($taskRec->threadId, $totalWastePercent);
+                }
             }
 
             $wasteWeightNullMark = null;     //Ако има поне един отпадък без тегло да се отбележи в изгледа с ? след цифрата
@@ -259,7 +287,11 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                         $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
 
                         if (!is_null($wasteProdWeigth)) {
-                            $wasteWeight += $v->quantity * $v->quantityInPack * $wasteProdWeigth;
+                            if($rec->type == 'job') {
+                                $wasteWeight += $v->quantity * $v->quantityInPack * $wasteProdWeigth;
+                            }else{
+                                $wasteWeight += $v->quantity * $wasteProdWeigth;
+                            }
 
                         } else {
                             $wasteWeightNullMark = true;
@@ -268,8 +300,11 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
                     }else{
                         $wasteProdWeigth = cat_Products::convertToUoM($v->productId, 'kg');
-                        $wasteWeight +=$v->quantity * $v->quantityInPack * $wasteProdWeigth;
-
+                        if($rec->type == 'job') {
+                            $wasteWeight += $v->quantity * $v->quantityInPack * $wasteProdWeigth;
+                        }else{
+                            $wasteWeight += $v->quantity * $wasteProdWeigth;
+                        }
                     }
                 }
             }
