@@ -81,6 +81,7 @@ td:has(.wrongDates) {
 
 tr:hover td {
  outline: 2px solid #999;
+  cursor: grab;
 }
 
 .loadingModal {
@@ -160,4 +161,7 @@ tr:hover td {
     background-color: #218838 !important;
     border-color: #1e7e34 !important;
   }
+}
+.notesCol:hover {
+  cursor: text !important;
 }
