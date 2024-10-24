@@ -77,7 +77,7 @@ class export_Txt extends core_Mvc
 
         $fileHnd = null;
         if (!empty($txtContent)) {
-            $fileName = $Cls->getHandle($clsId) . '_Export.txt';
+            $fileName = $Cls->getHandle($objId) . '_Export.txt';
             $fileHnd = fileman::absorbStr($txtContent, 'exportFiles', $fileName);
         }
 
