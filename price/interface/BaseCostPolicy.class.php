@@ -126,11 +126,11 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
     /**
      * Кои са засегнатите артикули с движения в посочените складове
      * 
-     * @param datetime $beforeDate    - преди коя дата
-     * @param string   $type            - дебит, кредит или всички
+     * @param datetime $beforeDate       - преди коя дата
+     * @param string   $type             - дебит, кредит или всички
      * @param array    $storeItems       - избрани складове, ако има
      * @param array    $skipDocumentArr  - кои документи да се пропуснат
-     * @param array    $onlyStorable     - избрани складове, ако има
+     * @param bool     $onlyStorable     - избрани складове, ако има
      * @return array
      */
     protected function getAffectedProductWithMovement($beforeDate, $type, $storeItems = array(), $skipDocumentArr = array(), $onlyStorable = true)
