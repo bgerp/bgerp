@@ -157,9 +157,13 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
             
             if($type == 'all' || $type == 'debit'){
                 if($onlyStorable){
+
+                    // Ако е само за скалдируеми - гледа се само в склада
                     $where = "#debitAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}' AND #debitQuantity >= 0";
                     $jQuery->where($where);
                 } else {
+
+                    // Ако е за всички, гледа се за склада и за сметката на услугите
                     $where = "#debitAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}' AND #debitQuantity >= 0";
                     $jQuery->setUnion($where);
 
@@ -177,14 +181,17 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
                 
                 $itemsWithMovement = arr::extractValuesFromArray($jQuery->fetchAll(), 'debitItem2');
             }
-            
-            
+
             // Кои пера на артикули са участвали в кредитирането на склад след посочената дата
             if($type == 'all' || $type == 'credit'){
                 if($onlyStorable){
+
+                    // Ако е само за скалдируеми - гледа се само в склада
                     $where = "#creditAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}' AND #creditQuantity >= 0";
                     $jQuery2->where($where);
                 } else {
+
+                    // Ако е за всички, гледа се за склада и за сметката на услугите
                     $where = "#creditAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}' AND #creditQuantity >= 0";
                     $jQuery2->setUnion($where);
 
