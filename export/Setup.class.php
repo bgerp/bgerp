@@ -39,6 +39,7 @@ class export_Setup extends core_ProtoSetup
         'export_Xls',
         'export_Doc',
         'export_Xml',
+        'export_Txt',
     );
     
     

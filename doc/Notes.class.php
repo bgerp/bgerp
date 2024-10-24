@@ -93,7 +93,7 @@ class doc_Notes extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'doc_Wrapper, doc_SharablePlg,doc_plg_Prototype, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone, doc_plg_TxtExportable';
     
     
     /**
@@ -131,7 +131,7 @@ class doc_Notes extends core_Master
      */
     public $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
     
-    
+
     /**
      * Кой може да променя активирани записи
      */
@@ -171,8 +171,8 @@ class doc_Notes extends core_Master
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn,state';
-    
-    
+
+
     /**
      * Описание на модела
      */

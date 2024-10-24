@@ -461,7 +461,7 @@ abstract class deals_QuotationMaster extends core_Master
 
                 $date = dt::verbal2mysql($validDate, false);
                 if ($date < dt::today()) {
-                    if (!Mode::isReadOnly()) {
+                    if (!Mode::isReadOnly() && !Mode::is('text', 'plain')) {
                         $row->validDate = "<span class='red'>{$row->validDate}</span>";
 
                         if ($rec->state == 'draft') {
@@ -473,7 +473,7 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
-            if(!Mode::isReadOnly()){
+            if(!Mode::isReadOnly() && !Mode::is('text', 'plain')){
                 $folderCover = doc_Folders::getCover($rec->folderId);
                 if($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId){
                     $row->company = "<span class ='red'>{$row->company}</span>";
@@ -522,11 +522,12 @@ abstract class deals_QuotationMaster extends core_Master
                 unset($row->currencyRate);
             }
 
+            $isPlain = Mode::is('text', 'plain');
             if ($rec->others) {
                 $others = explode('<br>', $row->others);
                 $row->others = '';
                 foreach ($others as $other) {
-                    $row->others .= "<li>{$other}</li>";
+                    $row->others .= (!$isPlain) ? "<li>{$other}</li>" : strip_tags($other) . ',';
                 }
             }
 
@@ -543,7 +544,7 @@ abstract class deals_QuotationMaster extends core_Master
             $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
             if (is_array($additionalConditions)) {
                 foreach ($additionalConditions as $cond) {
-                    $row->others .= "<li>{$cond}</li>";
+                    $row->others .= (!$isPlain) ? "<li>{$cond}</li>" : strip_tags($cond) . ", ";
                 }
             }
 
@@ -555,7 +556,7 @@ abstract class deals_QuotationMaster extends core_Master
                 $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, doc_Containers::getDocument($rec->containerId));
             }
 
-            if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){
+            if(isset($rec->deliveryTermId) && !Mode::isReadOnly() && !Mode::is('text', 'plain')){
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
 
