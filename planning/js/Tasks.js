@@ -97,6 +97,8 @@ $(document).ready(function () {
                 if (!isScrolling) { // Only allow dragging if not scrolling
                     evt.item.classList.add('dragging');
                 }
+
+                console.log('CHOOSE');
             },
 
             onUnchoose: function (evt) {
@@ -113,6 +115,8 @@ $(document).ready(function () {
 
                 selectedElements.sort((a, b) => a.originalIndex - b.originalIndex);
                 isScrolling = false; // Reset scrolling flag
+
+                console.log('START: ' + selectedElements.length);
             },
 
             onEnd: function (evt) {
@@ -144,8 +148,6 @@ $(document).ready(function () {
 
                 selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
 
-                console.log("Items moved and reinserted in original order.");
-
                 // Optional: Process server update
                 if (table.dataset.url) {
                     let dataIds = getOrderedTasks();
@@ -169,17 +171,16 @@ $(document).ready(function () {
 
                     let order = sortable.toArray();
                     let val = order.join('|');
-                    console.log('session set', val);
+                    //console.log('session set', val);
 
                     sessionStorage.setItem('sortableOrder', val);
                 },
 
                 // Get the order of items from localStorage
                 get: function (sortable) {
-
                     let order = sessionStorage.getItem('sortableOrder');
 
-                    console.log('session get', order);
+                    //console.log('session get', order);
                     return order ? order.split('|') : [];
                 }
             }
