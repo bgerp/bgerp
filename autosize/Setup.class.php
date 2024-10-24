@@ -72,7 +72,8 @@ class autosize_Setup extends core_ProtoSetup
      * Плъгини, които трябва да се инсталират
      */
     public $plugins = array(
-        array('Редове на текст', 'autosize_Plugin', 'type_Richtext', 'private'),
+        array('Редове на ричтекст', 'autosize_Plugin', 'type_Richtext', 'private'),
+        array('Редове на текст', 'autosize_Plugin', 'type_Text', 'private'),
     );
     
     

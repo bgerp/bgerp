@@ -525,10 +525,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     }
 
 
-    function act_Test()
-    {
-        bp(store_ShipmentOrders::haveRightFor('add', array('threadId' => 2453)));
-    }
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -558,15 +554,16 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
         }
 
+        // Обратна ЕН ако не е към документ да може да се създава от потребители с по-високи права
         if($action == 'add' && isset($rec->threadId)){
-            if($rec->threadId == 2453){
-               // bp($requiredRoles);
-            }
+            $fromSource = (isset($rec->fromContainerId) || isset($rec->reverseContainerId));
 
-            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-            if($firstDoc->isInstanceOf('purchase_Purchases')){
-                if(!haveRole('revertShipmentDocs,ceo', $userId)){
-                    $requiredRoles = 'no_one';
+            if(!$fromSource){
+                $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                if($firstDoc->isInstanceOf('purchase_Purchases')) {
+                    if(!haveRole('revertShipmentDocs,ceo')){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }

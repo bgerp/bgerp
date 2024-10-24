@@ -234,7 +234,7 @@ class cond_type_Formula extends cond_type_Text
         $calced = cat_BomDetails::calcExpr($value, $paramMap);
 
         $verbal = $calced;
-        if(!Mode::is('text', 'plain')){
+        if(!Mode::is('text', 'plain') && !Mode::is('isReorder')){
             $exprDisplay = strtr($value, $idToNameArr);
             if ($calced === cat_BomDetails::CALC_ERROR) {
                 $verbal = ht::createHint('', "Не може да се изчисли|*: {$exprDisplay}", 'warning', false);

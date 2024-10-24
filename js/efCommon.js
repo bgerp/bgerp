@@ -2017,6 +2017,7 @@ function setFormElementsWidth() {
                 }
                 $(this).parent().css('maxWidth', parseInt((formElWidth - 20) / colsInRow));
                 $(this).parent().css('overflow-x', 'hidden');
+                $(this).parent().css('white-space', 'nowrap');
 
                 $(this).attr('title', $(this).text());
             }
@@ -2058,7 +2059,6 @@ function setFormElementsWidth() {
     	 $('.formTable label').each(function() {
     		 if($(this).parent().is('td')){
              	$(this).parent().css('white-space', "nowrap");
-                 $(this).parent().css('width', "25%");
              }
              // ако етикета е много широк, режем го и слагаме хинт
              if ($(this).width() > 450){
@@ -2130,6 +2130,40 @@ function setThreadElemWidth() {
     $('#main-container .doc_Containers table.listTable.listAction > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.background-holder .doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
+}
+
+
+/**
+ * Следим к-вото и процента, за да сметнем брака
+ */
+function scrapCalculation(){
+    var quantity = parseInt($("input[name='packQuantity']").val(),10);
+    var scrap = parseInt($("input[name='productionScrap']").val(),10);
+
+    changeHint(quantity, scrap);
+    $("input[name='packQuantity']").on('change keydown paste input', function(){
+        quantity = parseInt($("input[name='packQuantity']").val(),10);
+        changeHint(quantity, scrap);
+    });
+    $("input[name='productionScrap']").on('change keydown paste input', function(){
+        scrap = parseInt($("input[name='productionScrap']").val(),10);
+        changeHint(quantity, scrap);
+    });
+}
+
+/**
+ * Пресмятане на технологичния брак и показване като хинт
+ */
+function changeHint(quantity, scrap){
+    if(!quantity || !scrap)  {
+        $('.scrapHint').css('display', 'none');
+    } else {
+        var result = quantity *  (1 + scrap / 100);
+        if (result) {
+            $('.scrapHint').css('display', 'inline-block');
+            $('.scrapHint .withProductionScrap').html(Math.round(result));
+        }
+    }
 }
 
 
@@ -5069,7 +5103,6 @@ function resizeIframes() {
     iframes.forEach(iframe => {
         // Задаване на максимална височина
         iframe.style.maxHeight = windowHeight + 'px';
-        console.log(windowHeight);
 
         try {
             // Настройване на височината според съдържанието
@@ -5087,8 +5120,27 @@ function resizeIframes() {
 
 window.addEventListener('load', resizeIframes);
 window.addEventListener('resize', resizeIframes);
-$( document ).on( "ajaxComplete", function() {
-    resizeIframes();
+
+
+let scrollTop = 0;
+let ajaxInProgress = false;
+
+// Запазване на скрола преди ajax-a
+$(document).ajaxStart(function() {
+    if (!ajaxInProgress && $('iframe.autoHeight').length) {
+        scrollTop = $(document).scrollTop();
+        ajaxInProgress = true;
+    }
+});
+
+// След ajax-а да се скролира до старата позиция
+$(document).ajaxStop(function() {
+    if (!$('iframe.autoHeight').length) return;
+    setTimeout(function() {
+        resizeIframes(); // Adjust as needed
+        $(document).scrollTop(scrollTop);
+        ajaxInProgress = false; // Reset flag
+    }, 100);
 });
 
 window.addEventListener('message', function(event) {

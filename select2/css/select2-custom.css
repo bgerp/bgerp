@@ -29,6 +29,19 @@ select.largeSelect + span.select2-container--default{
     height: 29px;
 }
 
+.narrow #all .select2-container .select2-selection--single {
+    height: 29px;
+}
+
+#all .select2-container .select2-selection--single {
+    height: 32px;
+}
+
+#all .select2-container .select2-selection--single .select2-selection__rendered {
+    max-height: 28px;
+    line-height: 28px;
+}
+
 .select2-container .select2-selection--single .select2-selection__rendered {
     padding-left: 4px;
     color: #000;
@@ -193,12 +206,18 @@ span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-
     margin-top: 1px;
     border: 1px solid #000;
 }
-
+#all .color-preview {
+    margin-top: -5px;
+    margin-bottom: 4px !important;
+}
 .select2-selection--multiple .color-preview {
     height: 10px;
     box-sizing: border-box;
 }
-
+.narrow #all .color-preview {
+    margin-top: 4px;
+    margin-bottom: 0 !important;
+}
 .narrow .color-preview {
 	height: 3px;
 	vertical-align: top;

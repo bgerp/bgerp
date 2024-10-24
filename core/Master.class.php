@@ -99,7 +99,7 @@ class core_Master extends core_Manager
 
         // Ако има урл при двоен клик - да се добави като дата атрибут
         $attr = array();
-        $doubleClickUrl = $inst->getUrlForDblClick($objId);
+        $doubleClickUrl = $inst->getUrlForDblClick($objId, $linkArr);
         if(isset($doubleClickUrl)){
             $doubleClickDataUrl = toUrl($doubleClickUrl);
             $attr['data-doubleclick'] .= $doubleClickDataUrl;
@@ -786,7 +786,7 @@ class core_Master extends core_Manager
         setIfNot($attr['ef_icon'], $me->getIcon($id));
 
         // Ако има урл при двоен клик - да се добави като дата атрибут
-        $doubleClickUrl = $me->getUrlForDblClick($id);
+        $doubleClickUrl = $me->getUrlForDblClick($id, $url);
         if(isset($doubleClickUrl)){
             $doubleClickDataUrl = toUrl($doubleClickUrl);
             $attr['data-doubleclick'] .= $doubleClickDataUrl;
@@ -866,7 +866,7 @@ class core_Master extends core_Manager
         }
 
         if(isset($attr['ef_icon'])){
-            $doubleClickUrl = $me->getUrlForDblClick($id);
+            $doubleClickUrl = $me->getUrlForDblClick($id, $url);
             if(isset($doubleClickUrl)){
                 $doubleClickDataUrl = toUrl($doubleClickUrl);
                 $attr['data-doubleclick'] .= $doubleClickDataUrl;
@@ -889,22 +889,37 @@ class core_Master extends core_Manager
      * Връща урл което да се извика при двоен клик
      *
      * @param int|stdClass $id        - ид или запис
+     * @param array         $url      - основното урл на линка
      * @param bool         $forFolder - дали да е към папка
      * @return array|null             - урл или null ако нищо няма
      */
-    public function getUrlForDblClick_($id, $forFolder = false)
+    public function getUrlForDblClick_($id, $url = null, $forFolder = false)
     {
         $dblClickEnabled = bgerp_Setup::get('ENABLE_DOUBLE_CLICK_ON_LINK');
         if($dblClickEnabled == 'no') return null;
 
+        $resUrl = array();
         $rec = $this->fetchRec($id);
         if(!$forFolder) {
-            if($this->haveRightFor('edit', $rec)) return array($this, 'edit', $rec->id);
+            if($this->haveRightFor('edit', $rec)) {
+                $resUrl = array($this, 'edit', $rec->id);
+            }
         }
 
-        $singleUrlArray = static::getSingleUrlArray($rec->id);
+        // Дефолтното урл ще е към сингъла, ако основното урл не е също за него
+        if(empty($resUrl)){
+            $resUrl = static::getSingleUrlArray($rec->id);
+        }
 
-        return countR($singleUrlArray) ? $singleUrlArray : null;
+        if($url){
+            if($url[1] == $resUrl[1] && $url[2] == $resUrl[2]){
+                if(cls::getClassName($url[0]) == cls::getClassName($resUrl[0])){
+                    return null;
+                }
+            }
+        }
+
+        return countR($resUrl) ? $resUrl : null;
     }
 
 

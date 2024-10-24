@@ -102,9 +102,11 @@ class planning_AssetResourcesNorms extends core_Manager
      */
     public function prepareDetail_(&$data)
     {
-        if(empty($data->masterData->rec->simultaneity)) {
-            $data->hide = true;
-            return;
+        if(!($data->masterMvc instanceof planning_AssetGroups)){
+            if(empty($data->masterData->rec->simultaneity)) {
+                $data->hide = true;
+                return;
+            }
         }
 
         $data->TabCaption = tr('Норми');

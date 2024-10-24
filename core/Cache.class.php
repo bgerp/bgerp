@@ -85,8 +85,13 @@ class core_Cache extends core_Manager
      * Дали да се използва кеширане в хита
      */
     public static $stopCaching = false;
-    
-    
+
+    /**
+     * Неща, подлежащи на начално зареждане
+     */
+    public $loadList = 'plg_Sorting';
+
+
     /**
      * Описание на модела (таблицата)
      */

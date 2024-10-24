@@ -151,16 +151,20 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          string      ['wastePercent']         - процент отпадък
      *          string      ['calcWeightMode']       - изчисляване на тегло или не
      *          string      ['mandatoryDocuments']   - задължителни документи
-     * mandatoryDocuments
+     *          text        ['description']          - описание на операцията
      */
     public function getProductionData($productId)
     {
         $rec = planning_Steps::getRec('cat_Products', $productId);
-        $measureId = cat_Products::fetchField($productId, 'measureId');
+        $productRec = cat_Products::fetch($productId, 'measureId,info');
+
         $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent, 'mandatoryDocuments' => $rec->mandatoryDocuments);
+        if(!empty($productRec->info)){
+            $res['description'] = $productRec->info;
+        }
         if(!empty($rec->norm)){
             $res['norm'] = $rec->norm;
-            $res['normPackagingId'] = $measureId;
+            $res['normPackagingId'] = $productRec->measureId;
         }
 
         $res['fixedAssets'] = null;

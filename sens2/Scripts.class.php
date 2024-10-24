@@ -25,7 +25,7 @@ class sens2_Scripts extends core_Master
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper';
+    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper, plg_Search';
     
     
     /**
@@ -92,7 +92,13 @@ class sens2_Scripts extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'order,name,state,lastRun';
-    
+
+
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'name, state';
+
     
     /**
      * Описание на модела
@@ -292,5 +298,16 @@ class sens2_Scripts extends core_Master
  
             bgerp_Notifications::clear($url);
         }
+    }
+
+
+    /**
+     * Малко манипулации след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 }

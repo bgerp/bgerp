@@ -127,7 +127,7 @@ class cms_Articles extends core_Master
     public function description()
     {
         $this->FLD('level', 'order(11)', 'caption=№,tdClass=rowtools-column,mandatory');
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu,allowEmpty)', 'caption=Меню,mandatory,silent');
         $this->FLD('title', 'varchar', 'caption=Заглавие,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes,hideTextAfterLength=10000000)', 'caption=Текст,column=none');
         $this->FLD('background', 'color_Type(AllowEmpty)', 'caption=Фон на статията->Цвят,autohide');

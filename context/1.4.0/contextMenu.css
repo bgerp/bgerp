@@ -74,6 +74,13 @@
   float: none;
 }
 
+.narrow  .toolbar .toolbar-first{
+  display: flex;
+}
+.narrow .listBlock .toolbar-first {
+  display: block;
+}
+
 .portal .modal-toolbar, .bgerp_Notifications .modal-toolbar {
   min-height: 40px !important;
 }

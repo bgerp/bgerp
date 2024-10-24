@@ -159,11 +159,11 @@ class frame2_Reports extends embed_Manager
      */
     public $listFields = 'id,title=Наименование,lastRefreshed=Обновяване->Последно,nextUpdate=Обновяване->Следващо,updateDays=Обновяване->Дни,updateTime=Обновяване->Час,folderId,modifiedOn,modifiedBy';
     
-    
+
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
-    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders,crm_ContragentAccRegIntf';
+    public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders,crm_ContragentAccRegIntf,planning_Centers';
     
     
     /**

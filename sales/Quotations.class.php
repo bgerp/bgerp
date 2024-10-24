@@ -48,7 +48,7 @@ class sales_Quotations extends deals_QuotationMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Sorting, sales_Wrapper, doc_plg_Close, doc_EmailCreatePlg, acc_plg_DocumentSummary, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, plg_Clone, cat_plg_UsingProductVat, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys,cat_plg_AddSearchKeywords, plg_Search';
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, plg_Clone, cat_plg_UsingProductVat, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys,cat_plg_AddSearchKeywords, plg_Search, doc_plg_TxtExportable';
     
     
     /**
@@ -395,7 +395,7 @@ class sales_Quotations extends deals_QuotationMaster
             if (isset($rec->bankAccountId)) {
                 $ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
                 $row->bankAccountId = $ownAccount->iban;
-                if(!Mode::isReadOnly()){
+                if(!Mode::isReadOnly() && !Mode::is('text', 'plain')){
                     $row->bankAccountId = ht::createLink($ownAccount->iban, bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId));
                 }
             }

@@ -1,0 +1,162 @@
+<style>
+    /*.detail-info {
+        margin: 20px 0;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+    }*/
+    /*.groupTitle {
+        font-size: 1.2em;
+        border-radius: 10px 10px 0 0;
+        padding: 5px;
+    }*/
+
+    .groupList table .dt {
+        width: 21.5%;
+        text-align: right;
+        color: #888;
+        white-space: nowrap;
+        padding-right: 10px;
+    }
+
+    table {
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+
+    .groupList table td {
+        vertical-align: top;
+        line-height: 1.2em;
+    }
+
+    td {
+        display: table-cell;
+        vertical-align: inherit;
+        unicode-bidi: isolate;
+    }
+    .groupList table .dt {
+        width: 21.5%;
+        text-align: right;
+        color: #888;
+        white-space: nowrap;
+        padding-right: 10px;
+    }
+
+    .container{
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .poster{
+        padding-right: 50px;
+        padding-top: 15px;
+        margin-right: 20px;
+        max-width: 150px;
+    }
+
+    .description{
+        padding-top: 10px;
+    }
+
+    .tickets{
+        padding-top: 10px;
+    }
+</style>
+
+<div class="singleView event-class">
+    [#SingleToolbar#]
+    <div class="folder-cover state-draft state-active">
+        <div class="block_title state-draft state-active special-title">[#title#]</div>
+            <div>
+                <div class="container">
+                    <div class="poster">[#poster#]</div>
+                <div>
+                    <fieldset class="detail-info">
+                        <legend class="groupTitle">За събитието</legend>
+                            <div class="groupList">
+                                <table>
+                                    <tbody>
+                                        <tr>
+                                            <td class="dt">Поредица:</td>
+                                            <td>[#series#]</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="dt">Категория:</td>
+                                            <td>[#categories#]</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="dt">Формат: </td>
+                                            <td>[#formId#]</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="dt">Магнитуд:</td>
+                                            <td>[#magnitude#]</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                    </fieldset>
+                    <fieldset class="detail-info">
+                        <legend class="groupTitle">Информация за провеждането</legend>
+                        <div class="groupList">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td class="dt">Начало:</td>
+                                        <td>[#startDate#]</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="dt">Отваряне:</td>
+                                        <td>[#openingTime#]</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="dt">Започва:</td>
+                                        <td>[#startTime#]</td>
+                                    </tr>
+                                    <!--ET_BEGIN duration-->
+                                    <tr>
+                                        <td class="dt">Продължителност:</td>
+                                        <td>[#duration#]</td>
+                                    </tr>
+                                    <!--ET_END duration-->
+                                    <tr>
+                                        <td class="dt">Място:</td>
+                                        <td>[#place#]</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="detail-info">
+                        <legend class="groupTitle">Участващи</legend>
+                        <div class="groupList">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td class="dt">Организатор:</td>
+                                        <td>[#organizers#]</td>
+                                    </tr>
+                                    <!--ET_BEGIN participants-->
+                                    <tr>
+                                        <td class="dt">Участници:</td>
+                                        <td>[#participants#]</td>
+                                    </tr>
+                                    <!--ET_END participants-->
+                                </tbody>
+                            </table>
+                        </div>
+                    </fieldset>
+
+                </div>
+                </div>
+            </div>
+            <!--ET_BEGIN description-->
+            <div class="description">[#description#]</div>
+            <!--ET_END description-->
+
+            <!--ET_BEGIN tickets-->
+            <div class="tickets">[#tickets#]</div>
+            <!--ET_END tickets-->
+        </div>
+    </div>

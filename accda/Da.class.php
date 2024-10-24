@@ -9,7 +9,7 @@
  * @package   accda
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -64,8 +64,14 @@ class accda_Da extends core_Master
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,accda';
-    
-    
+
+
+    /**
+     * Кой има право да го обвързва със съществуващ ресурс?
+     */
+    public $canSelectresource = 'ceo,accda';
+
+
     /**
      * Кой има право да добавя?
      */
@@ -180,11 +186,11 @@ class accda_Da extends core_Master
 
         $this->FLD('syncWithAsset', 'enum(no=Няма,new=Нов ресурс,existing=Съществуващ ресурс)', 'caption=Оборудване->Ресурс,notNull,value=new,silent,removeAndRefreshForm=exAssetId|assetCode|assetGroupId|assetResourceFolderId|assetSupportFolderId');
 
-        $this->FLD('exAssetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване->Избор,input=none');
-        $this->FLD('assetCode', 'varchar(16)', 'caption=Оборудване->Код,input=none,mandatory');
-        $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,remember,input=none,mandatory');
-        $this->FLD('assetResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Папка,silent,remember,input=none');
-        $this->FLD('assetSupportFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Поддръжка,silent,remember,input=none');
+        $this->FLD('exAssetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване->Избор,input=hidden');
+        $this->FLD('assetCode', 'varchar(16)', 'caption=Оборудване->Код,input=hidden');
+        $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,input=hidden');
+        $this->FLD('assetResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Център на дейност,silent,input=hidden');
+        $this->FLD('assetSupportFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Поддръжка,silent,input=hidden');
         
         $this->setDbUnique('num');
     }
@@ -265,9 +271,10 @@ class accda_Da extends core_Master
                 $form->setField($fld, 'input');
             }
 
-            // Какви са достъпните папки за оборудване
-            $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
-            $form->setOptions('assetResourceFolderId', array('' => '') + $resourceSuggestionsArr);
+            // Какви са достъпните центрове на дейност
+            $centerFolderParams = array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'planning_Centers');
+            $centerSuggestionsArr = doc_Folders::getSelectArr($centerFolderParams);
+            $form->setOptions('assetResourceFolderId', array('' => '') + $centerSuggestionsArr);
 
             // Какви са достъпните папки за поддръжка
             $supportFolderParams = array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'support_Systems');
@@ -275,18 +282,27 @@ class accda_Da extends core_Master
             $form->setOptions('assetSupportFolderId', array('' => '') + $supportSuggestionsArr);
         } elseif($rec->syncWithAsset == 'existing'){
             $form->setField('exAssetId', 'input');
-
-            $assetOptions = array();
-            $aQuery = planning_AssetResources::getQuery();
-            $aQuery->where("#state = 'active'");
-            while($aRec = $aQuery->fetch()){
-                $assetOptions[$aRec->id] = planning_AssetResources::getRecTitle($aRec, false);
-            }
-            $form->setOptions('exAssetId', $assetOptions);
+            $form->setOptions('exAssetId', $mvc->getSelectableResourcesToLink());
         }
     }
-    
-    
+
+
+    /**
+     * Помощна ф-я връщаща наличните за избор съществуващи ресурси
+     */
+    private function getSelectableResourcesToLink()
+    {
+        $assetOptions = array();
+        $aQuery = planning_AssetResources::getQuery();
+        $aQuery->where("#state = 'active'");
+        while($aRec = $aQuery->fetch()){
+            $assetOptions[$aRec->id] = planning_AssetResources::getRecTitle($aRec, false);
+        }
+
+        return $assetOptions;
+    }
+
+
     /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      *
@@ -295,7 +311,8 @@ class accda_Da extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, $form)
     {
-        $rec = $form->rec;
+        $rec = &$form->rec;
+
         if (!$rec->gpsCoords && $rec->image) {
             if ($gps = exif_Reader::getGps($rec->image)) {
                 // Ако има GPS коодинати в снимката ги извличаме
@@ -304,29 +321,15 @@ class accda_Da extends core_Master
         }
         
         if ($form->isSubmitted()) {
-            if ($form->rec->assetResourceFolderId || $form->rec->assetSupportFolderId || $form->rec->assetCode) {
-                if (!$form->rec->assetGroupId) {
-                    $form->setError('assetGroupId', 'Непопълнено задължително поле');
+            if ($rec->syncWithAsset == 'new') {
+                if(empty($rec->assetGroupId) || empty($rec->assetCode)) {
+                    $form->setError('assetGroupId, assetCode', 'Непопълнено задължително поле');
                 }
             }
-        }
-        
-        if ($form->isSubmitted()) {
-            if ($form->rec->assetCode) {
-                if (planning_AssetResources::fetch(array("#code = '[#1#]'", $form->rec->assetCode))) {
+
+            if ($rec->assetCode) {
+                if (planning_AssetResources::fetch(array("#code = '[#1#]'", $rec->assetCode))) {
                     $form->setError('assetCode', 'Вече съществува запис със същите данни');
-                }
-            }
-        }
-        
-        if ($form->isSubmitted()) {
-            if ($form->rec->assetGroupId) {
-                if (!$form->rec->assetResourceFolderId && !$form->rec->assetSupportFolderId) {
-                    $form->setError('assetResourceFolderId, assetSupportFolderId', 'Непопълнено задължително поле');
-                }
-                
-                if (!$form->rec->assetCode) {
-                    $form->setError('assetCode', 'Непопълнено задължително поле');
                 }
             }
         }
@@ -338,8 +341,8 @@ class accda_Da extends core_Master
             }
             
             // При Запис и Нов да контира
-            if ($form->cmd == 'save_n_new' && $mvc->haveRightFor('conto', $form->rec)) {
-                $form->rec->_conto_n_new = true;
+            if ($form->cmd == 'save_n_new' && $mvc->haveRightFor('conto', $rec)) {
+                $rec->_conto_n_new = true;
             }
         }
     }
@@ -363,25 +366,9 @@ class accda_Da extends core_Master
                     $nRec->groupId = $rec->assetGroupId;
                     $nRec->code = $rec->assetCode;
                     $nRec->protocols = keylist::addKey('', $rec->id);
-                    if ($rec->assetResourceFolderId) {
-                        $nRec->folderId = $rec->assetResourceFolderId;
-                    }
-
-                    if (planning_AssetResources::save($nRec)) {
-                        if ($rec->assetSupportFolderId) {
-                            if (!$nRec->folderId) {
-                                $nRec->folderId = $rec->assetSupportFolderId;
-                            } else {
-                                $pRec = new stdClass();
-                                $pRec->classId = planning_AssetResources::getClassId();
-                                $pRec->objectId = $nRec->id;
-                                $pRec->folderId = $rec->assetSupportFolderId;
-                                planning_AssetResourceFolders::save($pRec);
-                            }
-                        }
-                    } else {
-                        status_Messages::newStatus('|Грешка при добавяне на оборудване', 'warning');
-                    }
+                    $nRec->assetFolders = $rec->assetResourceFolderId;
+                    $nRec->systemFolderId = $rec->assetSupportFolderId;
+                    planning_AssetResources::save($nRec);
                 }
             } elseif($rec->syncWithAsset == 'existing'){
                 $exRec = planning_AssetResources::fetch($rec->exAssetId);
@@ -491,11 +478,6 @@ class accda_Da extends core_Master
      */
     public function getDocumentRow_($id)
     {
-        if (!$id) {
-            
-            return;
-        }
-        
         $rec = $this->fetch($id);
         
         $row = new stdClass();
@@ -515,30 +497,41 @@ class accda_Da extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        $data->row->createdByName = core_Users::getVerbal($data->rec->createdBy, 'names');
+        $row = &$data->row;
+        $rec = $data->rec;
+        $row->createdByName = core_Users::getVerbal($rec->createdBy, 'names');
         
         if ($data->rec->location) {
-            $locationRec = crm_Locations::fetch($data->rec->location);
+            $locationRec = crm_Locations::fetch($rec->location);
             
             if ($locationRec->address || $locationRec->place || $locationRec->countryId) {
                 $locationRow = crm_Locations::recToVerbal($locationRec);
                 
                 if ($locationRow->address) {
-                    $data->row->locationAddress .= ", {$locationRow->address}";
+                    $row->locationAddress .= ", {$locationRow->address}";
                 }
                 
                 if ($locationRow->place) {
-                    $data->row->locationAddress .= ", {$locationRow->place}";
+                    $row->locationAddress .= ", {$locationRow->place}";
                 }
                 
                 if ($locationRow->countryId) {
-                    $data->row->locationAddress .= ", {$locationRow->countryId}";
+                    $row->locationAddress .= ", {$locationRow->countryId}";
                 }
             }
         }
         
-        if (!$data->rec->gpsCoords) {
-            $data->row->gpsCoords = null;
+        if (!$rec->gpsCoords) {
+            $row->gpsCoords = null;
+        }
+
+        $folderId = planning_AssetResources::canFolderHaveAsset($rec->folderId) ? $rec->folderId : null;
+        if (planning_AssetResources::haveRightFor('add', (object) array('fromProtocolId' => $rec->id, 'folderId' => $folderId))) {
+            $row->btns = ht::createLink('', array('planning_AssetResources', 'add', 'fromProtocolId' => $rec->id, 'folderId' => $folderId), false, 'ef_icon = img/16/add.png,title=Създаване на ново оборудване')->getContent();
+        }
+
+        if($mvc->haveRightFor('selectresource', $rec)){
+            $row->btns .= ht::createLink('', array($mvc, 'selectresource', 'id' => $rec->id, 'ret_url' => true), false, 'ef_icon = img/16/edit.png,title=Свързване с вече съществуващи ресурси')->getContent();
         }
     }
     
@@ -640,7 +633,7 @@ class accda_Da extends core_Master
                 $assets[] = planning_AssetResources::getHyperlink($aRec->id, true);
             }
             if(countR($assets)){
-                $row->assets = implode(',', $assets);
+                $row->assets = implode('<br>', $assets);
             }
         }
 
@@ -648,21 +641,83 @@ class accda_Da extends core_Master
             $row->location = crm_Locations::getHyperlink($rec->location, true);
         }
     }
-    
-    
+
+
     /**
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * Екшън за избор на ф-ри към документ
      */
-    protected static function on_AfterPrepareSingleToolbar($mvc, $data)
+    function act_Selectresource()
     {
-        $rec = $data->rec;
-        
-        $folderId = planning_AssetResources::canFolderHaveAsset($rec->folderId) ? $rec->folderId : null;
-        if (planning_AssetResources::haveRightFor('add', (object) array('fromProtocolId' => $rec->id, 'folderId' => $folderId))) {
-            $data->toolbar->addBtn('Оборудване', array('planning_AssetResources', 'add', 'fromProtocolId' => $rec->id, 'folderId' => $folderId), 'ef_icon = img/16/add.png,title=Създаване на ново оборудване');
+        $this->requireRightFor('selectresource');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('selectresource', $rec);
+
+        $form = cls::get('core_Form');
+        $form->title = "Свързани ресурси към|* " . $this->getFormTitleLink($rec->id);
+
+        // Добавяне на свързаните оборудвания
+        $aQuery = planning_AssetResources::getQuery();
+        $aQuery->where("LOCATE('|{$rec->id}|', #protocols)");
+        $linkedResources = arr::extractValuesFromArray($aQuery->fetchAll(), 'id');
+
+        $form->setDefault('linkedAssets', keylist::fromArray($linkedResources));
+        $form->FLD('linkedAssets', 'keylist(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурси');
+        $form->setSuggestions('linkedAssets', array('' => '') + $this->getSelectableResourcesToLink());
+
+        $form->input();
+        if($form->isSubmitted()) {
+            $formRec = $form->rec;
+
+            $newLinkedAssets = keylist::toArray($formRec->linkedAssets);
+            $removed = array_diff_key($linkedResources, $newLinkedAssets);
+
+            foreach ($newLinkedAssets as $linkedAssetId){
+                $exRec = planning_AssetResources::fetch($linkedAssetId);
+                $exRec->protocols = keylist::addKey($exRec->protocols, $rec->id);
+                planning_AssetResources::save($exRec, 'protocols');
+            }
+
+            foreach ($removed as $removedAssetId){
+                $exRec = planning_AssetResources::fetch($removedAssetId);
+                $exRec->protocols = keylist::removeKey($exRec->protocols, $rec->id);
+                planning_AssetResources::save($exRec, 'protocols');
+            }
+
+            $this->logWrite('Промяна на свързаните ресурси', $rec->id);
+
+            followRetUrl(null, 'Свързаните ресурси са променени');
+        }
+
+        // Добавяне на тулбар
+        $form->toolbar->addSbBtn('Свързване', 'save', 'ef_icon = img/16/disk.png, title = Импорт');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+        // Рендиране на опаковката
+        $tpl = $this->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($tpl, $form);
+
+        return $tpl;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * Забранява изтриването на вече използвани сметки
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'selectresource' && isset($rec)){
+            if($rec->state != 'active'){
+                $requiredRoles = 'no_one';
+            }
         }
     }
 }

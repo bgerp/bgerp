@@ -166,9 +166,11 @@ class sens2_script_Actions extends core_Detail
             
             $rec->data->scriptId = $rec->scriptId;
 
-            if(isset($rec->data->cond) && $rec->data->cond == '[go]') {
+            if(isset($rec->data->cond) && ($button = self::extractButton($rec->data->cond))) {
                 $rec->data->cond = '';
-                $go =  '<span style="padding-left:10px;">' . ht::createBtn('Run', array('sens2_Scripts', 'Run', $rec->scriptId, 'startId' => $rec->order), 'Наистина ли искате да стартирате действието?') . '</span>';
+                $context = sens2_Scripts::getContext($rec->scriptId);
+                $button = strtr($button, $context);
+                $go =  '<span style="padding-left:10px;">' . ht::createBtn($button, array('sens2_Scripts', 'Run', $rec->scriptId, 'startId' => $rec->order), 'Наистина ли искате да стартирате действието?') . '</span>';
             } else {
                 $go = '';
             }
@@ -196,7 +198,7 @@ class sens2_script_Actions extends core_Detail
         if($startId = Request::get('startId', 'int')) {
             $query->where("#order = {$startId}");
         } else {
-            $startId = 0;
+            $startId = -1000;
         }
         while ($rec = $query->fetch("#scriptId = {$scriptId}")) {
             
@@ -214,7 +216,7 @@ class sens2_script_Actions extends core_Detail
             if($startId == $rec->order && isset($rec->data->cond)) {
                 $rec->data->cond = '1 == 1';
             }
-            if(isset($rec->data->cond) && $rec->data->cond == '[go]') {
+            if(isset($rec->data->cond) && self::extractButton($rec->data->cond) !== null) {
                 $rec->data->cond = '1 != 1';
             }
             $rec->state = $action->run($rec->data);
@@ -222,5 +224,22 @@ class sens2_script_Actions extends core_Detail
                 self::save($rec, 'state');
             }
         }
+    }
+
+    /**
+     * Ако в стринга е дефиниран бутон, ограден с [] - връщаме го
+     */
+    public static function extractButton($str) 
+    {
+        $res = null;
+
+        if(strlen($str) >= 3 && $str[0] == '[' && $str[strlen($str)-1] == ']') {
+            $res = substr($str, 1, strlen($str)-2);
+            if($res == 'go') {
+                $res = 'Run';
+            }
+        }
+
+        return $res;
     }
 }

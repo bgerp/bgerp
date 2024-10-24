@@ -302,6 +302,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $rec->allCompanyDiscount = $allCompanyDiscount;
 
         if ((countR($recs)) && (($rec->seeBy == 'kross') || ($rec->seeBy == 'contragentName'))) {
+
             arr::sortObjects($recs, 'contragentName', 'asc');
         }
         if ((countR($recs) && ($rec->seeBy == 'date'))) {
@@ -561,6 +562,16 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                         $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
                     }
+
+                    usort($recs, function($a, $b) {
+                        // Сравняване по първото поле (price)
+                        if ($a->contragentName == $b->contragentName) {
+                            // Ако цените са еднакви, сравняваме по второто поле (quantity)
+                            return $a->waitingOn <=> $b->waitingOn;
+                        }
+                        // Иначе сравняваме по price
+                        return $a->contragentName <=> $b->contragentName;
+                    });
 
                     return $recs;
 

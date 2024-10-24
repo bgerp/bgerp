@@ -916,8 +916,9 @@ class core_Form extends core_FieldSet
                         }
                     }
 
+                    $maxRadio = $type->params['maxRadio'];
                     if (!isset($field->removeAndRefreshForm) && !isset($field->refreshForm)) {
-                        $maxRadio = $type->params['maxRadio'];
+
                         if(empty($maxRadio) && !$type->params['isHorizontal']){
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
                                 $maxRadio = 4;
@@ -927,8 +928,8 @@ class core_Form extends core_FieldSet
 
                         // ако ще се рендират опциите като радио-бутони маха се празната опция
                         if(isset($maxRadio) && countR($options) <= $maxRadio){
-                            if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2){
-                                if(!$type->params['allowEmpty']){
+                            if($type->params['allowEmpty']){
+                                if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2) {
                                     unset($options['']);
                                 }
                             }

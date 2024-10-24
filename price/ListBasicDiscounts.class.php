@@ -44,13 +44,13 @@ class price_ListBasicDiscounts extends core_Detail
     /**
      * Кой може да го промени?
      */
-    public $canEdit = 'debug';
+    public $canEdit = 'price,sales,ceo';
 
 
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'debug';
+    public $canAdd = 'price,sales,ceo';
 
 
     /**

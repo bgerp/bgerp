@@ -37,7 +37,7 @@ class openai_TextDavinci003 extends openai_Api
      *
      * @return string|false
      */
-    public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null)
+    public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null, $timeout = 12)
     {
         self::setDefaultParams($pArr);
         setIfNot($pArr['__endpoint'], 'completions');
@@ -49,7 +49,7 @@ class openai_TextDavinci003 extends openai_Api
 
         expect($pArr['prompt'], $pArr);
 
-        $resObj = self::execCurl($pArr, $useCache, $cKey);
+        $resObj = self::execCurl($pArr, $useCache, $cKey, $timeout);
 
         return $resObj->choices[$index]->text ? $resObj->choices[$index]->text : false;
     }

@@ -23,9 +23,12 @@ class core_Html
     public static function createElement($name, $attributes = array(), $body = null, $closeTag = false, $translate = true)
     {
         $attrStr = '';
-        
+
+        $isTitleTranslated = false;
         if ($attributes['title'] && $translate && ($attributes['translate'] != 'no')) {
             $attributes['title'] = tr($attributes['title']);
+            $isTitleTranslated = true;
+            $attributes['title'] = str_replace(array("\""), array("&quot;"), $attributes['title']);
         }
         
         if ($name == 'img') {
@@ -42,19 +45,16 @@ class core_Html
                 foreach ($attributes as $atr => $content) {
                     // Смятаме, че всички атрибути с имена, започващи със '#'
                     // са вътрешни и поради това не ги показваме в елемента
-                    if ($atr[0] == '#') {
-                        continue;
-                    }
-                    
-                    
+                    if ($atr[0] == '#') continue;
+
                     if (is_string($content)) {
-                        // $content = htmlspecialchars($content, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                         /**
                          * Необходимо ли е да се ескейпва символи различни от двойни кавички
                          * в стойностите на HTML атрибутите?
-                         *
                          */
-                        $content = self::escapeAttr($content);
+                        if($atr != 'title' || !$isTitleTranslated){
+                            $content = self::escapeAttr($content);
+                        }
                     }
                     
                     $attrStr .= ' ' . $atr . '="' . $content . '"';
@@ -384,7 +384,7 @@ class core_Html
         expect($optionsCnt > 0, "Липсват опции за '{$name}'");
 
         // Когато имаме само една опция, правим readOnly <input>
-        if ($optionsCnt == 1) {
+        if ($optionsCnt == 1 && (!$attr['_isAllowEmpty'] || array_key_exists('', $options))) {
             foreach ($options as $id => $opt) {
                 if (is_object($opt) && $opt->group) {
                     continue;
@@ -435,7 +435,9 @@ class core_Html
             )));
 
         } elseif ($optionsCnt <= $maxRadio) {
-
+            if ($optionsCnt < 4) {
+                $keyListClass .= ' shrinked';
+            }
             // Когато броя на опциите са по-малко
             
             // Определяме броя на колоните, ако не са зададени.
@@ -450,7 +452,7 @@ class core_Html
             }
             
             if ($col > 1) {
-                $tpl = "<table class='keylist'><tr>";
+                $tpl = "<table class='keylist {$keyListClass}'><tr>";
                 
                 for ($i = 1; $i <= $col; $i++) {
                     $tpl .= "<td style='vertical-align: top;'>[#OPT" . ($i - 1) . '#]</td>';

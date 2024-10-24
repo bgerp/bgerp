@@ -82,15 +82,17 @@ class bgfisc_plg_Receipts extends core_Plugin
             }
             
             if (haveRole($fiscDriver->canPrintDuplicate)) {
-                $rQuery = bgfisc_PrintedReceipts::getQuery();
-                $rQuery->EXT("cashRegNum", 'bgfisc_Register', 'externalName=cashRegNum,externalKey=urnId');
-                $rQuery->where("#string IS NOT NULL");
-                $rQuery->orderBy('id', 'DESC');
-                $lastReceipt = $rQuery->fetch();
-                
-                if($lastReceipt->classId == $mvc->getClassId() && $lastReceipt->objectId == $rec->id){
-                    $closeBtn = ht::createBtn("Дубликат", array($fiscDriver, 'printduplicate', $deviceRec->id, 'ret_url' => true, 'rand' => str::getRand()), false, false, "class=printReceiptBtn posBtns navigable,title=Отпечатване на дубликат");
-                    $buttons["dublicate"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
+                if($rec->state != 'draft'){
+                    $rQuery = bgfisc_PrintedReceipts::getQuery();
+                    $rQuery->where("#string IS NOT NULL");
+                    $rQuery->orderBy('id', 'DESC');
+                    $rQuery->limit(1);
+
+                    $lastReceipt = $rQuery->fetch();
+                    if($lastReceipt->classId == $mvc->getClassId() && $lastReceipt->objectId == $rec->id){
+                        $closeBtn = ht::createBtn("Дубликат", array($fiscDriver, 'printduplicate', $deviceRec->id, 'ret_url' => true, 'rand' => str::getRand()), false, false, "class=printReceiptBtn posBtns navigable,title=Отпечатване на дубликат");
+                        $buttons["duplicate"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
+                    }
                 }
             }
             

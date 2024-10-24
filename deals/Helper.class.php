@@ -2249,10 +2249,10 @@ abstract class deals_Helper
      */
     public static function getIssuer($createdBy, $activatedBy, &$userId = null)
     {
-        $userId = deals_Setup::get('ISSUER_USER');
+        $userId = deals_Setup::get('ISSUER_USER', false, $createdBy);
         
         if (empty($userId)) {
-            $selected = deals_Setup::get('ISSUER');
+            $selected = deals_Setup::get('ISSUER', false, $createdBy);
             $userId = ($selected == 'activatedBy') ? $activatedBy : $createdBy;
             $userId = (!core_Users::isContractor($userId)) ? $userId : $activatedBy;
         }

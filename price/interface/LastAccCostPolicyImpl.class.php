@@ -110,18 +110,22 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
             return $res;
         }
 
-        unset($productMap[5315]);
-
-        $balanceBefore = acc_Balances::getBalanceBefore($balanceRec->fromDate);
-
         // Филтриране да се показват само записите от зададените сметки
         $dQuery = acc_BalanceDetails::getQuery();
-        acc_BalanceDetails::filterQuery($dQuery, $balanceBefore->id, '321', null, null, $productMap);
+        acc_BalanceDetails::filterQuery($dQuery, $balanceRec->id, '321', null, null, $productMap);
+        $dRecs = $dQuery->fetchAll();
+
+        if(!countR($dRecs)){
+            $balanceBefore = acc_Balances::getBalanceBefore($balanceRec->fromDate);
+            $dQuery1 = acc_BalanceDetails::getQuery();
+            acc_BalanceDetails::filterQuery($dQuery1, $balanceBefore->id, '321', null, null, $productMap);
+            $dRecs = $dQuery1->fetchAll();
+        }
+
         $positionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
 
-        bp($dQuery->fetchAll());
         // За всеки запис в баланса
-        while ($dRec = $dQuery->fetch()) {
+        foreach ($dRecs as $dRec) {
             $itemId = $dRec->{"ent{$positionId}Id"};
             if (!array_key_exists($itemId, $tmpArr)) {
                 $tmpArr[$itemId] = new stdClass();
@@ -141,10 +145,6 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
                 }
             }
         }
-
-
-
-
 
         // Намиране на цената
         $productMap = array_flip($productMap);

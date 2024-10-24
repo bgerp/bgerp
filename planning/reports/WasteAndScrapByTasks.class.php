@@ -89,6 +89,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
 
         $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Машини,placeholder=Всички,after=employees,single=none');
 
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,after=assetResources,single=none');
 
     }
 
@@ -183,6 +184,15 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
         //Филтър по служители
         if ($rec->employees) {
             $taskQuery->likeKeylist('employees', $rec->employees);
+        }
+
+        //Филтър по център на дейност
+        if ($rec->centre) {
+
+            foreach (keylist::toArray($rec->centre) as $cent) {
+                $centFoldersArr[planning_Centers::fetch($cent)->folderId] = planning_Centers::fetch($cent)->folderId;
+            }
+            $taskQuery->in('folderId', $centFoldersArr);
         }
 
         $wasteQuantity = null;

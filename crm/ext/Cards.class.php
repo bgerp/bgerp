@@ -415,7 +415,10 @@ class crm_ext_Cards extends core_Manager
         }
 
         if ($action == 'checkcard') {
-            if (!core_Packs::isInstalled('colab') && !core_Packs::isInstalled('voucher')) {
+            $settings = cms_Domains::getSettings($rec->domainId);
+            if($settings->inputCardBtn != 'yes'){
+                $requiredRoles = 'no_one';
+            } elseif (!core_Packs::isInstalled('colab') && !core_Packs::isInstalled('voucher')) {
                 $requiredRoles = 'no_one';
             } elseif(isset($userId) && !core_Packs::isInstalled('voucher')){
                 $requiredRoles = 'no_one';

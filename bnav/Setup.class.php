@@ -131,6 +131,16 @@ defIfNot('FSD_ZDDS_CHL163A', 88);
  */
 defIfNot('BASE_GROUP', '');
 
+/**
+ * Сметка  продажби
+ */
+defIfNot('FSD_SALES', '');
+
+/**
+ * Сметка покупки
+ */
+defIfNot('FSD_PURCHASE', '');
+
 
 /**
  * class bnav_Setup
@@ -201,6 +211,8 @@ class bnav_Setup extends core_ProtoSetup
         'FSD_DP_CONTRAGENTS_BG_ACCOUNT' => array('varchar', 'caption=Експорт сметки->Клиенти по аванси вътрешен пазар'),
         'FSD_DP_CONTRAGENTS_NON_BG_ACCOUNT' => array('varchar', 'caption=Експорт сметки->Клиенти по аванси в чужбина'),
         'FSD_FUTURE_INCOME_ACCOUNT' => array('varchar', 'caption=Експорт сметки->Приходи за бъдещи периоди'),
+        'FSD_SALES' => array('varchar', 'caption=Експорт сметки->Продажби'),
+        'FSD_PURCHASE' => array('varchar', 'caption=Експорт сметки->Покупки'),
         'FSD_VAT_ACCOUNT' => array('varchar', 'caption=Експорт сметки->Начислен ДДС за проджби'),
         'FSD_PBD_NUM' => array('int', 'caption=Приходни банкови документи->Последователен номер'),
         'FSD_ZDDS_CHL163A' => array('int', 'caption=Сделка по чл 163 А ЗДДС->FSD номер'),

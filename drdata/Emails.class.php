@@ -102,11 +102,17 @@ class drdata_Emails extends core_BaseClass
         // Проверка за MX и A записи
         $hosts = @dns_get_record($domain, DNS_A + DNS_MX, $audthns, $addtl);
         
-        // Ако няма MX и A записи, проверка за CNAME записи
+        // Ако няма MX и A записи, проверка за CNAME запис
         if (!$hosts) {
-            $hosts = @dns_get_record($domain, DNS_CNAME, $audthns, $addtl);
+            $cnameRecords = @dns_get_record($domain, DNS_CNAME, $audthns, $addtl);
+            
+            // Ако има CNAME запис, правим запитване за A или MX записи за новия домейн
+            if ($cnameRecords) {
+                $cnameDomain = $cnameRecords[0]['target'];
+                $hosts = @dns_get_record($cnameDomain, DNS_A + DNS_MX, $audthns, $addtl);
+            }
         }
- 
+        
         if (!$hosts) {
             return false;
         }

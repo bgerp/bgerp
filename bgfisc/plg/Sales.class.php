@@ -43,7 +43,7 @@ class bgfisc_plg_Sales extends core_Plugin
                 
                 if ($rec->makeInvoice == 'no' && !in_array($rec->chargeVat, array('yes', 'separate'))) {
                     if($mvc->isOwnCompanyVatRegistered($rec)){
-                        $form->setError('makeInvoice,chargeVat', 'Не може едновременно да не се начислява ДДС и без фактуриране|*!');
+                        $form->setWarning('makeInvoice,chargeVat', 'Фирмата ни е регистрирана по ДДС, а продажбата е без начисляване на ДДС и без фактуриране|*?');
                     }
                 }
             }

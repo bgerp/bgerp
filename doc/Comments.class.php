@@ -117,7 +117,7 @@ class doc_Comments extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone, doc_plg_TxtExportable';
     
     
     /**
@@ -183,8 +183,8 @@ class doc_Comments extends embed_Manager
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn';
-    
-    
+
+
     /**
      * Описание на модела
      */

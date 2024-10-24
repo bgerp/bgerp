@@ -964,12 +964,12 @@ class core_Manager extends core_Mvc
      */
     public function renderListFilter_($data)
     {
-        if (!isset($data->listFilter)) {
-            return;
-        }
+        if (!isset($data->listFilter)) return;
         
         $data->listFilter->showFields = isset($data->listFilter->showFields) ? arr::make($data->listFilter->showFields, true) : array();
         if (countR($data->listFilter->showFields)) {
+            if($data->listFilter->hide === true) return new core_ET("");
+
             $tpl = new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(null, $data->listFilter->rec));
             core_Form::preventDoubleSubmission($tpl, $data->listFilter);
             

@@ -32,3 +32,4 @@
 Тип,cond_type_Enum,,vegetarian,"vegetarian=Вегетарианско,vegan=Веган",yes,active,,no
 Люто,cond_type_Enum,,spicy,"littleSpicy=Малко люто,mediumSpicy=Средно люто,verySpice=Много люто",yes,active,,no
 Отделни редове в POS,cond_type_YesOrNo,,separateInPos,,no,active,,no
+Технологичен брак,cond_type_Percent,,productionScrap,,no,active,,no

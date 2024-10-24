@@ -61,7 +61,7 @@ class doc_TplManagerHandlerCache extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'classId,objectId,key,data,createdOn,createdBy';
+    public $listFields = 'containerId=Документ,classId,objectId,key,data,createdOn,createdBy';
 
 
     /**
@@ -111,6 +111,28 @@ class doc_TplManagerHandlerCache extends core_Manager
         $class = cls::get($classId);
         $data = static::fetchField(array("#classId = {$class->getClassId()} AND #objectId = {$objectId} AND #key = '[#1#]'", $key), 'data');
 
-        return isset($data) ? $data : null;
+        return $data ?? null;
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $Class = cls::get($rec->classId);
+
+        $Master = $Class;
+        $masterId = $rec->objectId;
+        if($Class instanceof core_Detail){
+            $Master = $Class->Master;
+            $masterId = $Class->fetchField($rec->objectId, $Class->masterKey);
+        }
+
+        $row->containerId = $Master->getLink($masterId, 0);
     }
 }

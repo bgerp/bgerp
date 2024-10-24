@@ -773,7 +773,7 @@ class forum_Postings extends core_Detail
         $layout->push($data->ForumTheme->getStyles(), 'CSS');
         $layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         $layout->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
-        $layout->replace($data->q, 'SEARCH_FOR');
+        $layout->replace(ht::escapeAttr($data->q), 'SEARCH_FOR');
         
         return $layout;
     }
