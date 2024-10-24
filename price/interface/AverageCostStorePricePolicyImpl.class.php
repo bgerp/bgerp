@@ -391,8 +391,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             // Опит бъгфикс
             $lastCalcedDebitTime = core_Permanent::get('lastCalcedDebitTime');
             $time = !empty($lastCalcedDebitTime) ? $lastCalcedDebitTime : $datetime;
-
-            $affected = parent::getAffectedProductWithStoreMovement($time, 'debit', $storeData['storeItemIds'], $skipDocumentArr);
+            $affected = parent::getAffectedProductWithMovement($time, 'debit', $storeData['storeItemIds'], $skipDocumentArr);
         }
         
         return $affected;
