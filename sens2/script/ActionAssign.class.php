@@ -39,8 +39,8 @@ class sens2_script_ActionAssign
     public function prepareActionForm(&$form)
     {
         $form->FLD('varId', 'varchar', 'caption=Променлива,mandatory,oldFieldName=var,silent');
-        $form->FLD('expr', 'text(rows=2)', 'caption=Нова стойност на променливата->Израз,width=100%,mandatory');
-        $form->FLD('cond', 'text(rows=2)', 'caption=Условие за да се присвои->Израз,width=100%');
+        $form->FLD('expr', 'text(rows=2,maxOptionsShowCount=20)', 'caption=Нова стойност на променливата->Израз,width=100%,mandatory');
+        $form->FLD('cond', 'text(rows=2,maxOptionsShowCount=20)', 'caption=Условие за да се присвои->Израз,width=100%');
         
         $vars = sens2_script_DefinedVars::getContex($form->rec->scriptId);
         foreach ($vars as $i => $v) {
