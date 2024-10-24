@@ -97,7 +97,7 @@ class cal_Tasks extends embed_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, cal_Wrapper,doc_plg_SelectFolder, doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg, plg_LastUsedKeys';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_SelectPeriod, plg_Search, change_Plugin, plg_Sorting, plg_Clone, doc_AssignPlg, plg_LastUsedKeys, doc_plg_TxtExportable';
     
     
     /**

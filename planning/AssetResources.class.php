@@ -1051,7 +1051,7 @@ class planning_AssetResources extends core_Master
         usort($updateRecs, function ($a, $b) {
             $expectedTimeStartLeft = empty($a->expectedTimeStart) ? '9999-99-99 23:59:59' : $a->expectedTimeStart;
             $expectedTimeStartRight = empty($b->expectedTimeStart) ? '9999-99-99 23:59:59' : $b->expectedTimeStart;
-            if($expectedTimeStartLeft == $expectedTimeStartRight) return ($a->id < $b->id) ? -1 : 1;
+            if($expectedTimeStartLeft == $expectedTimeStartRight) return ($a->orderByAssetId < $b->orderByAssetId) ? -1 : 1;
 
             return strcasecmp($expectedTimeStartLeft, $expectedTimeStartRight);
         });

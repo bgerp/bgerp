@@ -39,8 +39,8 @@ class sens2_script_ActionSignal
     public function prepareActionForm(&$form)
     {
         $form->FLD('output', 'varchar', 'caption=Изход,mandatory');
-        $form->FLD('expr', 'text(rows=2)', 'caption=Израз,width=100%,mandatory');
-        $form->FLD('cond', 'text(rows=2)', 'caption=Условие,width=100%');
+        $form->FLD('expr', 'text(rows=2,maxOptionsShowCount=20)', 'caption=Израз,width=100%,mandatory');
+        $form->FLD('cond', 'text(rows=2,maxOptionsShowCount=20)', 'caption=Условие,width=100%');
         
         $opt = self::getOutputOpts();
         
