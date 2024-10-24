@@ -528,10 +528,10 @@ class planning_Jobs extends core_Master
             if ($productionScrap = cat_Products::getParams($productId, 'productionScrap')) {
                 $form->setDefault('productionScrap', $productionScrap);
             }
-        }
 
-        $roundPackagingId = cat_UoM::fetchField($rec->packagingId, 'round');
-        $form->setField('packQuantity', array('unit' => "|*<span class='scrapHint' style='display:none;'><span class='quiet'>|включен техн. брак|*:</span> <span class='withProductionScrap' data-packaging-round='{$roundPackagingId}'></span></span>"));
+            $roundPackagingId = cat_UoM::fetchField($rec->packagingId, 'round');
+            $form->setField('packQuantity', array('unit' => "|*<span class='scrapHint' style='display:none;'><span class='quiet'>|включен техн. брак|*:</span> <span class='withProductionScrap' data-packaging-round='{$roundPackagingId}'></span></span>"));
+        }
 
         if($data->action == 'clone'){
             $form->setReadOnly('department');
