@@ -793,7 +793,14 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function renderCustomLayout($rec, $data)
     {
         if($tpl = parent::renderCustomLayout($rec, $data)){
-            $tpl->append(dt::mysql2verbal(dt::now(), 'd F'), 'currentDate');
+            $now = dt::now();
+            $cDay = dt::mysql2verbal($now, 'd');
+
+            $lg = ($rec->lang == 'auto') ? null : $rec->lang;
+            $cDayWithSuffix = dt::getDayWithSuffix($cDay, $lg);
+            $cMonth = mb_strtolower(dt::mysql2verbal($now, 'F'));
+            $tpl->append("{$cDayWithSuffix} {$cMonth}", 'currentDate');
+
             $counter = 0;
             foreach ($data->rows as $row){
                 if(!empty($row->photo) && !($row instanceof core_ET) && $counter < 16){
