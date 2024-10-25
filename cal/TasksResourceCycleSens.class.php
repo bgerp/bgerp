@@ -98,25 +98,26 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
                 $rec->expectationTimeEnd = dt::addSecs($timeRound, $rec->expectationTimeEnd);
             }
 
-            // Проверка за работно време по график
-            $pWorkingInterval = planning_AssetResources::getWorkingInterval($config->resource, $rec->expectationTimeStart, $rec->expectationTimeEnd);
-            if ($pWorkingInterval) {
-                $frames = $pWorkingInterval->getFrame(dt::mysql2timestamp($rec->expectationTimeStart), dt::mysql2timestamp($rec->expectationTimeEnd));
-                if (!$pWorkingInterval->isIn($rec->expectationTimeStart)) {
-                    $rec->expectationTimeStart = $frames[0][0] ? dt::timestamp2Mysql($frames[0][0]) : null;
-                }
-
-                if (!$pWorkingInterval->isIn($rec->expectationTimeEnd)) {
-                    $rec->expectationTimeEnd = $frames[0][1] ? dt::timestamp2Mysql($frames[0][1]) : null;
-                }
-            }
-
             if (($rec->expectationTimeStart <= $now) && ($rec->expectationTimeEnd >= $now)) {
                 $endIn = isset($endIn) ? max($endIn, $rec->expectationTimeEnd) : $rec->expectationTimeEnd;
             }
 
             if (($rec->expectationTimeStart > $now)) {
                 $startIn = min($startIn, $rec->expectationTimeStart);
+            }
+
+            // Проверка за работно време по график
+            $pWorkingInterval = planning_AssetResources::getWorkingInterval($config->resource, dt::now(), $rec->expectationTimeEnd);
+            if ($pWorkingInterval) {
+                $frames = $pWorkingInterval->getFrame(dt::mysql2timestamp(dt::now()), dt::mysql2timestamp($rec->expectationTimeEnd));
+                if ($frames) {
+                    if ($frames[0][0]) {
+                        $startIn = min($startIn, dt::timestamp2Mysql($frames[0][0]));
+                    }
+                    if ($frames[0][1]) {
+                        $endIn = max($endIn, dt::timestamp2Mysql($frames[0][1]));
+                    }
+                }
             }
         }
 
