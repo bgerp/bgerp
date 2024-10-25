@@ -30,18 +30,18 @@ class deals_plg_AdditionalConditions extends core_Plugin
         $addDocumentFields = arr::make($mvc->additionalConditionsToDocuments, true);
 
         if(isset($addDocumentFields['sales_Sales'])){
-            $mvc->FLD('conditionSaleBg', 'text(rows=2)', 'caption=Допълнителни условия към Продажба->BG,autohide');
-            $mvc->FLD('conditionSaleEn', 'text(rows=2)', 'caption=Допълнителни условия към Продажба->EN,autohide');
+            $mvc->FLD('conditionSaleBg', 'richtext(rows=2)', 'caption=Допълнителни условия към Продажба->BG,autohide');
+            $mvc->FLD('conditionSaleEn', 'richtext(rows=2)', 'caption=Допълнителни условия към Продажба->EN,autohide');
         }
 
         if(isset($addDocumentFields['purchase_Purchases'])){
-            $mvc->FLD('conditionPurchaseBg', 'text(rows=2)', 'caption=Допълнителни условия към Покупка->BG,autohide');
-            $mvc->FLD('conditionPurchaseEn', 'text(rows=2)', 'caption=Допълнителни условия към Покупка->EN,autohide');
+            $mvc->FLD('conditionPurchaseBg', 'richtext(rows=2)', 'caption=Допълнителни условия към Покупка->BG,autohide');
+            $mvc->FLD('conditionPurchaseEn', 'richtext(rows=2)', 'caption=Допълнителни условия към Покупка->EN,autohide');
         }
 
         if(isset($addDocumentFields['store_ShipmentOrders'])){
-            $mvc->FLD('conditionExpBg', 'text(rows=2)', 'caption=Допълнителни условия към ЕН->BG,autohide');
-            $mvc->FLD('conditionExpEn', 'text(rows=2)', 'caption=Допълнителни условия към ЕН->EN,autohide');
+            $mvc->FLD('conditionExpBg', 'richtext(rows=2)', 'caption=Допълнителни условия към ЕН->BG,autohide');
+            $mvc->FLD('conditionExpEn', 'richtext(rows=2)', 'caption=Допълнителни условия към ЕН->EN,autohide');
         }
     }
 
@@ -68,9 +68,12 @@ class deals_plg_AdditionalConditions extends core_Plugin
                     $value = $mvc->fetchField($objectOd, $field);
                     if(!empty($value)){
                         $res = $value;
+                        //bp($res);
                     }
                 }
             }
         }
+
+
     }
 }

@@ -1451,6 +1451,7 @@ abstract class deals_InvoiceMaster extends core_Master
                             $condition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $rec->tplLang);
                             if (!empty($condition)) {
                                 if (!Mode::isReadOnly()) {
+                                    $condition = core_Type::getByName('richtext')->toVerbal($condition);
                                     $condition = "<span style='color:blue'>{$condition}</span>";
                                 }
                                 $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
@@ -1463,6 +1464,9 @@ abstract class deals_InvoiceMaster extends core_Master
 
             if (is_array($conditions)) {
                 foreach ($conditions as $cond) {
+                    if(!is_object($cond)){
+                        $cond = core_Type::getByName('richtext')->toVerbal($cond);
+                    }
                     $row->additionalInfo .= "\n" . $cond;
                 }
             }
