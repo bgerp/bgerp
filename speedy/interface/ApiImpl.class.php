@@ -459,7 +459,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
             if(isset($codOptions['including'])){
                 $serviceArray['additionalServices']['cod']['includeShippingPrice'] = true;
             }
-            $serviceArray['additionalServices']['cod']['cardPaymentForbidden'] = isset($codOptions['cardPaymentAllowed']);
+            $serviceArray['additionalServices']['cod']['cardPaymentForbidden'] = !isset($codOptions['cardPaymentAllowed']);
         }
 
         if(!empty($formRec->amountInsurance)){
