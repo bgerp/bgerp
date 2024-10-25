@@ -481,10 +481,13 @@ abstract class deals_InvoiceMaster extends core_Master
         $form->setField('deliveryId', 'input=none');
         $form->setField('deliveryPlaceId', 'input=none');
         $form->setField('displayRate', 'input=hidden');
-        
-        foreach (array('contragentName', 'contragentEori', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'displayContragentClassId', 'displayContragentId') as $name) {
-            if ($form->rec->{$name}) {
-                $form->setReadOnly($name);
+
+        $readOnlyContragentData = ($form->rec->type == 'dc_note' && empty($originRec->displayContragentId));
+        if($readOnlyContragentData){
+            foreach (array('contragentName', 'contragentEori', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'displayContragentClassId', 'displayContragentId') as $name) {
+                if ($form->rec->{$name}) {
+                    $form->setReadOnly($name);
+                }
             }
         }
     }
