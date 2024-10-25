@@ -793,7 +793,7 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function renderCustomLayout($rec, $data)
     {
         if($tpl = parent::renderCustomLayout($rec, $data)){
-            $tpl->append(dt::mysql2verbal(dt::now(), 'd.m.Y'), 'currentDate');
+            $tpl->append(dt::mysql2verbal(dt::now(), 'd F'), 'currentDate');
             $counter = 0;
             foreach ($data->rows as $row){
                 if(!empty($row->photo) && !($row instanceof core_ET) && $counter < 16){
