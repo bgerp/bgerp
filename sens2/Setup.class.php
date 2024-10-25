@@ -61,6 +61,7 @@ class sens2_Setup extends core_ProtoSetup
         'sens2_script_DefinedVars',
         'sens2_IOPorts',
         'migrate::changeToDot',
+        'migrate::updateScriptKeywords2443',
     );
     
     
@@ -153,6 +154,21 @@ class sens2_Setup extends core_ProtoSetup
                     $query->mvc->save($rec);
                 }
             }
+        }
+    }
+
+
+    /**
+     * Обновява ключовите думи на скриптовете
+     *
+     * @return void
+     */
+    public function updateScriptKeywords2443()
+    {
+        $Scripts = cls::get('sens2_Scripts');
+        $sQuery = $Scripts->getQuery();
+        while ($sRec = $sQuery->fetch()) {
+            plg_Search::forceUpdateKeywords($Scripts, $sRec);
         }
     }
 }
