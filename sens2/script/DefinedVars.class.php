@@ -22,7 +22,7 @@ class sens2_script_DefinedVars extends core_Detail
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_Modified,plg_RowTools, sens2_Wrapper';
+    public $loadList = 'plg_Created, plg_Modified,plg_RowTools, sens2_Wrapper, plg_Search';
     
     
     /**
@@ -81,6 +81,12 @@ class sens2_script_DefinedVars extends core_Detail
      * Runtime съхраняване на контекстите за всеки скрипт
      */
     public static $contex = array();
+
+
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'name, scope, value';
     
     
     /**

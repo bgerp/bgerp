@@ -22,7 +22,7 @@ class sens2_script_Actions extends core_Detail
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_RowTools, sens2_Wrapper, plg_State';
+    public $loadList = 'plg_Created, plg_RowTools, sens2_Wrapper, plg_State, plg_Search';
     
     
     /**
@@ -79,7 +79,13 @@ class sens2_script_Actions extends core_Detail
     
     
     public $rowToolsField = 'order';
-    
+
+
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'action, data, comment';
+
     
     /**
      * Описание на модела
