@@ -411,7 +411,8 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected function populateNoteFromInvoice(core_Form &$form, core_ObjectReference $origin)
     {
-        $invArr = (array) $origin->fetch();
+        $originRec = $origin->fetch();
+        $invArr = (array) $originRec;
         if(!($this instanceof sales_Proformas)){
             $form->setField('displayContragentClassId', 'input=hidden');
             $form->setField('displayContragentId', 'input=hidden');
@@ -419,7 +420,8 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // Трябва фактурата основание да не е ДИ или КИ
         expect($invArr['type'] == 'invoice');
-        
+        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible', 'numlimit', 'username', 'issuerId');
+
         if ($invArr['type'] != 'dc_note') {
             $cache = $this->getInvoiceDetailedInfo($form->rec->originId);
 
@@ -442,8 +444,13 @@ abstract class deals_InvoiceMaster extends core_Master
                 $form->info = tr("|*<div class='richtext-message richtext-warning'>|В оригиналната фактура има артикули с различни ставки на ДДС. Сумата на известието трябва да се отрази за съответните артикули|*Ф-р</div>");
             }
         }
-        
-        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible', 'numlimit', 'username', 'issuerId');
+
+        if($form->rec->type == 'dc_note') {
+            if(empty($originRec->displayContragentId)){
+                $unsetArr += arr::make('contragentName,contragentPCode,contragentPlace,contragentAddress,uicNo,contragentEori,contragentVatNo,contragentCountryId', true);
+            }
+        }
+
         if ($this instanceof purchase_Invoices) {
             $unsetArr[] = 'journalDate';
         }
@@ -455,7 +462,14 @@ abstract class deals_InvoiceMaster extends core_Master
         if ($form->rec->type == 'credit_note') {
             unset($invArr['dueDate']);
         }
-        
+
+        if ($invArr['type'] == 'dc_note') {
+            foreach (array() as $fld){
+
+                unset($invArr[$fld]);
+            }
+        }
+
         // Копиране на повечето от полетата на фактурата
         foreach ($invArr as $field => $value) {
             $form->rec->{$field} = $value;
@@ -875,11 +889,12 @@ abstract class deals_InvoiceMaster extends core_Master
             $data->aggregateInfo = $aggregateInfo;
             $form->aggregateInfo = $aggregateInfo;
         }
-        
+
         // Ако ориджина също е фактура
         $origin = $mvc->getSourceOrigin($form->rec);
         if ($origin->className == $mvc->className) {
             $mvc->populateNoteFromInvoice($form, $origin);
+
             $data->flag = true;
         } elseif ($origin->className == 'store_ShipmentOrders') {
             $originValior = $origin->fetchField('valior');
