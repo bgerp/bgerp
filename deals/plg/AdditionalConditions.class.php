@@ -68,12 +68,9 @@ class deals_plg_AdditionalConditions extends core_Plugin
                     $value = $mvc->fetchField($objectOd, $field);
                     if(!empty($value)){
                         $res = $value;
-                        //bp($res);
                     }
                 }
             }
         }
-
-
     }
 }
