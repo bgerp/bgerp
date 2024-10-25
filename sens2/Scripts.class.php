@@ -310,4 +310,45 @@ class sens2_Scripts extends core_Master
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
+        }
+
+        foreach ($mvc->details as $det) {
+            $detInst = cls::get($det);
+            $dQuery = $detInst::getQuery();
+            $dQuery->where("#{$detInst->masterKey} = '{$rec->id}'");
+            while ($dRec = $dQuery->fetch()) {
+
+                $res .= ' ' . $detInst->getSearchKeywords($dRec);
+            }
+        }
+    }
+
+
+    /**
+     *
+     *
+     * @param $mvc
+     * @param $res
+     * @param $id
+     * @return void
+     * @throws core_exception_Break
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        if ($id) {
+            $rec = $mvc->fetchRec($id);
+
+            plg_Search::forceUpdateKeywords($mvc, $rec);
+        }
+    }
 }
