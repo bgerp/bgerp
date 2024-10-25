@@ -26,7 +26,13 @@ class sens2_Scripts extends core_Master
      * Необходими плъгини
      */
     public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper, plg_Search';
-    
+
+
+    /**
+     * По подразбиране колко резултата да показва на страница
+     */
+    public $listItemsPerPage = 100;
+
     
     /**
      * Заглавие
