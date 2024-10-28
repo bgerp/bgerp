@@ -3597,7 +3597,6 @@ class planning_Tasks extends core_Master
         }
 
         core_Debug::stopTimer('AFTER_SESSION_TASKS');
-        $mvc->logDebug("END AFTER_SESSION_TASKS " . round(core_Debug::$timers["AFTER_SESSION_TASKS"]->workingTime, 6));
     }
 
 
