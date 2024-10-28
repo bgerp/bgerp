@@ -306,10 +306,11 @@ abstract class store_DocumentMaster extends core_Master
 
         // Ако е към ориджин на КИ/ДИ да се налеят променените к-ва от него
         if(isset($rec->fromContainerId) && empty($rec->importProducts)){
-            store_ReceiptDetails::delete("#receiptId = {$rec->id}");
             $fromDocument = doc_Containers::getDocument($rec->fromContainerId);
+
             if($fromDocument->isInstanceOf('deals_InvoiceMaster')){
                 $invRec = $fromDocument->fetch();
+
                 if($invRec->type == 'dc_note'){
                     $invDetail = cls::get($fromDocument->mainDetail);
                     $dQuery = $invDetail->getQuery();
