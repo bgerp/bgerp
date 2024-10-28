@@ -3589,11 +3589,9 @@ class planning_Tasks extends core_Master
         }
 
         if ($mvc->recalcTaskTimes) {
-
             core_Debug::startTimer('TASKS_AFTER_SESSION_RECALC_TIMES');
             cls::get('planning_AssetResources')->cron_RecalcTaskTimes();
             core_Debug::stopTimer('TASKS_AFTER_SESSION_RECALC_TIMES');
-            $mvc->logDebug("END TASKS_AFTER_SESSION_RECALC_TIMES " . round(core_Debug::$timers["TASKS_AFTER_SESSION_RECALC_TIMES"]->workingTime, 6));
         }
 
         core_Debug::stopTimer('AFTER_SESSION_TASKS');
