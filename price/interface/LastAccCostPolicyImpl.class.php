@@ -2,7 +2,7 @@
 
 
 /**
- * Имплементация на изчисляване на мениджърски себестойности "Складова (счетоводна, доставна) себестойност"
+ * Имплементация на изчисляване на мениджърски себестойности "Счетоводна (доставна) себестойност"
  *
  * @category  bgerp
  * @package   price
@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  * @see price_CostPolicyIntf
- * @title Мениджърска себестойност "Складова (счетоводна, доставна)"
+ * @title Мениджърска себестойност "Счетоводна (доставна)"
  *
  */
 class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPolicy
@@ -40,7 +40,7 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
      */
     public function getName($verbal = false)
     {
-        $res = ($verbal) ? tr('Складова (счетоводна, доставна)') : 'accCost';
+        $res = ($verbal) ? tr('Счетоводна (доставна)') : 'accCost';
         
         return $res;
     }
@@ -94,11 +94,11 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
                 return $res;
             }
         }
-        
+
         $productClassId = cat_Products::getClassId();
         $productMap = array();
         $iQuery = acc_Items::getQuery();
-        $iQuery->where("#classId={$productClassId}");
+        $iQuery->where("#classId = {$productClassId}");
         $iQuery->in('objectId', $affectedTargetedProducts);
         $iQuery->show('id,objectId');
         while($iRec = $iQuery->fetch()){
@@ -112,21 +112,19 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
 
         // Филтриране да се показват само записите от зададените сметки
         $dQuery = acc_BalanceDetails::getQuery();
-        acc_BalanceDetails::filterQuery($dQuery, $balanceRec->id, '321', null, null, $productMap);
+        acc_BalanceDetails::filterQuery($dQuery, $balanceRec->id, '321,60201', null, null, $productMap);
         $dRecs = $dQuery->fetchAll();
 
         if(!countR($dRecs)){
             $balanceBefore = acc_Balances::getBalanceBefore($balanceRec->fromDate);
             $dQuery1 = acc_BalanceDetails::getQuery();
-            acc_BalanceDetails::filterQuery($dQuery1, $balanceBefore->id, '321', null, null, $productMap);
+            acc_BalanceDetails::filterQuery($dQuery1, $balanceBefore->id, '321,60201', null, null, $productMap);
             $dRecs = $dQuery1->fetchAll();
         }
 
-        $positionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
-
         // За всеки запис в баланса
         foreach ($dRecs as $dRec) {
-            $itemId = $dRec->{"ent{$positionId}Id"};
+            $itemId = $dRec->{"ent2Id"};
             if (!array_key_exists($itemId, $tmpArr)) {
                 $tmpArr[$itemId] = new stdClass();
             }
@@ -171,8 +169,24 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
            
             self::$cache[$pId] = $res[$pId];
         }
-        
+
         // Връщаме резултатите
         return $res;
+    }
+
+
+    /**
+     * Дали има самостоятелен крон процес за изчисление
+     *
+     * @param datetime $datetime
+     *
+     * @return array
+     */
+    public function getAffectedProducts($datetime)
+    {
+        // Всички артикули с движения
+        $affected = $this->getAffectedProductWithMovement($datetime, 'all', array(), array(), false);
+
+        return $affected;
     }
 }

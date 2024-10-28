@@ -840,7 +840,6 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         core_Debug::stopTimer('DOCUMENT_SAVE_FILES');
-        $mvc->logDebug("END DOCUMENT_SAVE_FILES " . round(core_Debug::$timers["DOCUMENT_SAVE_FILES"]->workingTime, 6));
     }
     
     

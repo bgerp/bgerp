@@ -1081,9 +1081,6 @@ abstract class deals_Helper
         $res = array();
         $dateFromWhichToGetName = !empty($docRec->{$Document->valiorFld}) ? $docRec->{$Document->valiorFld} : dt::now();
         $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
-
-
-
         $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $dateFromWhichToGetName);
 
         // Името и адреса на 'Моята фирма'
@@ -1092,7 +1089,11 @@ abstract class deals_Helper
         $now = dt::now();
 
         if((!empty($ownCompanyData->validTo) && $now >= $ownCompanyData->validTo) || $now <= $ownCompanyData->validFrom) {
-            $res['MyCompany'] = ht::createHint($res['MyCompany'], 'Данните на моята фирма в момента са различни от тези към вальора на документа|*!', 'warning');
+            $ownCompanyData2 =  crm_Companies::fetchOwnCompany($ownCompanyId);
+            $warningMyCompanyArr =  static::getContragentDataCompareString($ownCompanyData, $ownCompanyData2);
+            if(!empty($warningMyCompanyArr)) {
+                $res['MyCompany'] = ht::createHint($res['MyCompany'], 'Следните данни на моята фирма във визитката се различават от тези към вальора на документа|*: ' . implode(', ', $warningMyCompanyArr), 'warning');
+            }
         }
 
         // ДДС и националния номер на 'Моята фирма'
@@ -1119,7 +1120,12 @@ abstract class deals_Helper
             }
 
             if((!empty($cData->validTo) && $now >= $cData->validTo) || $now <= $cData->validFrom) {
-                $res['contragentName'] = ht::createHint($res['contragentName'], 'Данните на контрагента в момента са различни от тези към вальора на документа|*!', 'warning');
+                // Ако се извлича версия към по-стара дата - проверка дали се различават съществените данни
+                $currentContragentData = $ContragentClass->getContragentData($contragentId);
+                $warningMsgArr = static::getContragentDataCompareString($cData, $currentContragentData);
+                if(!empty($warningMsgArr)) {
+                    $res['contragentName'] = ht::createHint($res['contragentName'], "Следните полета във визитката се различават от тези към вальора на документа|*: " . implode(', ', $warningMsgArr), 'warning');
+                }
             } elseif($res['contragentName'] != $cName){
                 $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
             }
@@ -1141,7 +1147,6 @@ abstract class deals_Helper
         }
         
         $showCountries = !(($ownCompanyData->countryId == $cData->countryId));
-        
         if (isset($contragentClass, $contragentId)) {
             $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $dateFromWhichToGetName)->getContent();
             $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $dateFromWhichToGetName)->getContent();
@@ -1156,8 +1161,37 @@ abstract class deals_Helper
 
         return $res;
     }
-    
-    
+
+
+    /**
+     * Помощна ф-я връщаща разликата между контрагентските данни на един и същ контрагент
+     *
+     * @param stdClass $cData1
+     * @param stdClass $cData2
+     * @return array $warningMsgArr
+     */
+    private static function getContragentDataCompareString($cData1, $cData2)
+    {
+        $warningMsgArr = array();
+        $cName1 = ($cData1->personVerb) ? $cData1->personVerb : $cData1->companyVerb;
+        $cName2 = ($cData2->personVerb) ? $cData2->personVerb : $cData2->companyVerb;
+        if ($cName1 != $cName2) {
+            $warningMsgArr[] = tr('Име') . (!empty($cName2) ? " [{$cName2}]" : "");
+        }
+        if ($cData1->vatNo != $cData2->vatNo) {
+            $warningMsgArr[] = tr('ДДС№') . (!empty($cData2->vatNo) ? " [{$cData2->vatNo}]" : "");
+        }
+        if ($cData1->eori != $cData2->eori) {
+            $warningMsgArr[] = tr('ЕОРИ') . " [{$cData2->eori}]";
+        }
+        if ($cData1->uicId != $cData2->uicId) {
+            $warningMsgArr[] = ($cData1->personVerb) ? tr('ЕГН') : (tr('Нац. №') . (!empty($cData2->uicId) ? " [{$cData2->uicId}]" : ''));
+        }
+
+        return $warningMsgArr;
+    }
+
+
     /**
      * Помощна ф-я проверяваща дали подаденото к-во може да се зададе за опаковката
      *
