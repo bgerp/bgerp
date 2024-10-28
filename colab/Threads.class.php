@@ -386,6 +386,12 @@ class colab_Threads extends core_Manager
         if(core_Users::isContractor() && !haveRole('powerPartner')){
             unset($data->listFields['partnerDocCnt']);
         }
+
+
+        // Ако има търсене, рефрешването да е след по-дълго време
+        if (isset($data->listFilter->rec->search)) {
+            $this->refreshRowsTime = 600000; // 10 мин.
+        }
     }
     
     
