@@ -658,46 +658,47 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     unset($row->inputServicesFrom);
                 }
             }
+
+
+            if (isset($rec->inputStoreId)) {
+                $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
+            }
+
+            $productRec = cat_Products::fetch($rec->productId, 'measureId');
+            $shortUom = cat_UoM::getShortName($productRec->measureId);
+            $row->quantity .= " {$shortUom}";
+
+            if (isset($rec->debitAmount)) {
+                $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+                $row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
+            }
+
+            $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
+            $row->subTitle = tr($row->subTitle);
+
+            $quantityInPack = $rec->quantityInPack;
+            if(!empty($rec->additionalMeasureId)){
+
+                // Ако има втора мярка, показване на информацията за нея
+                $additionalMeasureType = cat_UoM::fetchField($rec->additionalMeasureId, 'type');
+                if($rec->additionalMeasureId == $productRec->measureId || $additionalMeasureType != 'uom'){
+                    if($additionalMeasureType != 'uom'){
+                        deals_Helper::getPackInfo($row->additionalMeasureId, $rec->productId, $rec->additionalMeasureId);
+                    }
+                    $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще се отчете в производството");
+                }
+
+                if($additionalQuantityWarning = $mvc->checkAdditionalMeasureQuantity($rec)){
+                    $row->additionalMeasureQuantity = ht::createHint($row->additionalMeasureQuantity, $additionalQuantityWarning, 'warning', false);
+                }
+            }
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
         } else {
             $row->productId = cat_Products::getShortHyperlink($rec->productId, null, 'short', 'internal');
         }
 
-        $productRec = cat_Products::fetch($rec->productId, 'measureId');
-        $shortUom = cat_UoM::getShortName($productRec->measureId);
-        $row->quantity .= " {$shortUom}";
-
-        if (isset($rec->debitAmount)) {
-            $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-            $row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
-        }
         if (isset($rec->expenseItemId)) {
             $row->expenseItemId = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-        }
-
-        $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
-        $row->subTitle = tr($row->subTitle);
-
-        $quantityInPack = $rec->quantityInPack;
-        if(!empty($rec->additionalMeasureId)){
-
-            // Ако има втора мярка, показване на информацията за нея
-            $additionalMeasureType = cat_UoM::fetchField($rec->additionalMeasureId, 'type');
-            if($rec->additionalMeasureId == $productRec->measureId || $additionalMeasureType != 'uom'){
-                if($additionalMeasureType != 'uom'){
-                    deals_Helper::getPackInfo($row->additionalMeasureId, $rec->productId, $rec->additionalMeasureId);
-                }
-                $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще се отчете в производството");
-            }
-
-            if($additionalQuantityWarning = $mvc->checkAdditionalMeasureQuantity($rec)){
-                $row->additionalMeasureQuantity = ht::createHint($row->additionalMeasureQuantity, $additionalQuantityWarning, 'warning', false);
-            }
-        }
-
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
-
-        if (isset($rec->inputStoreId)) {
-            $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
         }
 
         if(isset($fields['-list'])){
