@@ -3579,7 +3579,6 @@ class planning_Tasks extends core_Master
                 }
             }
             core_Debug::stopTimer('REORDER_TASK_ASSET_SHUTDOWN');
-            $mvc->logDebug("END REORDER_TASK_ASSET_SHUTDOWN " . round(core_Debug::$timers["REORDER_TASK_ASSET_SHUTDOWN"]->workingTime, 6));
         }
 
         if (countR($mvc->recalcProducedDetailIndTime)) {
@@ -3612,7 +3611,6 @@ class planning_Tasks extends core_Master
                 core_Statuses::newStatus('Преподредени са операциите в заданието|*!');
             }
             core_Debug::stopTimer('REORDER_BY_JOB');
-            $mvc->logDebug("END REORDER_BY_JOB " . round(core_Debug::$timers["REORDER_BY_JOB"]->workingTime, 6));
         }
 
         if (countR($mvc->cacheAssetDataOnShutdown)) {
@@ -3636,7 +3634,6 @@ class planning_Tasks extends core_Master
                 core_Cache::set('planning_Tasks',"reorderAsset{$assetId}", $cacheData, 60);
             }
             core_Debug::stopTimer('CACHE_ON_SHUTDOWN');
-            $mvc->logDebug("END CACHE_ON_SHUTDOWN " . round(core_Debug::$timers["CACHE_ON_SHUTDOWN"]->workingTime, 6));
         }
     }
 
@@ -4537,7 +4534,6 @@ class planning_Tasks extends core_Master
         planning_AssetResources::reOrderTasks($assetId, $tasks, true);
         unset($this->reorderTasksInAssetId[$assetId]);
         core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
-        $this->logDebug("END TASKS_LIVE_REORDER_TASKS " . round(core_Debug::$timers["TASKS_LIVE_REORDER_TASKS"]->workingTime, 6));
         planning_AssetResources::logWrite('Ръчни преподреждане на операциите', $assetId);
 
         $this->recalcTaskTimes = true;
