@@ -153,7 +153,10 @@ class type_Key2 extends type_Int
                 $this->params['selectSourceArr'] = array($this->params['mvc'], 'getSelectArr');
             }
         }
-        
+
+        $debugKey = 'KEY2_SELECTSOURCE_' . implode('::', $this->params['selectSourceArr']);
+        core_Debug::startTimer($debugKey);
+
         if (!$this->params['titleFld']) {
             $mvc = cls::get($this->params['mvc']);
             if ($mvc->getField('name', false)) {
@@ -184,6 +187,8 @@ class type_Key2 extends type_Int
                 core_Cache::remove('key2getOptions', $handler);
             }
         }
+
+        core_Debug::stopTimer($debugKey);
 
         return $resArr;
     }
