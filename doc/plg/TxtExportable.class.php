@@ -79,7 +79,7 @@ class doc_plg_TxtExportable extends core_Plugin
             $Document = doc_Containers::getDocument($cRec->id);
             if($Document->haveInterface('export_TxtExportIntf')){
                 $txtExportIntf = cls::getInterface('export_TxtExportIntf', $Document->getInstance());
-                $res .= "\n" . '======================================================' . "\n";
+                $res .= !empty($res) ? ("\n" . '======================================================' . "\n") : '';
                 $res .= $txtExportIntf->getTxtContent($Document->that);
             }
         }
