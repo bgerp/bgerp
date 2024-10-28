@@ -834,6 +834,7 @@ class planning_AssetResources extends core_Master
      */
     public static function getAssetTaskOptions($assetId, $onlyIds = false, $order = 'ASC')
     {
+        core_Debug::startTimer('GET_TASK_OPTIONS');
         $res = array();
         $tQuery = planning_Tasks::getQuery();
         $tQuery->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
@@ -849,6 +850,7 @@ class planning_AssetResources extends core_Master
                 $res[$tRec->id] = planning_Tasks::getTitleById($tRec->id, false);
             }
         }
+        core_Debug::stopTimer('GET_TASK_OPTIONS');
 
         return $res;
     }
