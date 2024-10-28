@@ -154,7 +154,8 @@ class type_Key2 extends type_Int
             }
         }
 
-        $debugKey = 'KEY2_SELECTSOURCE_' . implode('::', $this->params['selectSourceArr']);
+//        $debugKey = 'KEY2_SELECTSOURCE_' . implode('::', $this->params['selectSourceArr']);
+        $debugKey = 'KEY2_SELECTSOURCE_';
         core_Debug::startTimer($debugKey);
 
         if (!$this->params['titleFld']) {
