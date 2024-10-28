@@ -117,9 +117,10 @@ class doc_Linked extends core_Manager
         $this->FLD('state', 'enum(active=Активно, rejected=Оттеглено)', 'caption=Състояние, input=none');
         
         $this->setDbUnique('outType, outVal, inType, inVal');
-        $this->setDbIndex('outType, outVal');
-        $this->setDbIndex('inType, inVal');
+        $this->setDbIndex('outVal');
+        $this->setDbIndex('inVal');
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('createdBy');
      }
     
     
