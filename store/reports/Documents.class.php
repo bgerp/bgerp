@@ -198,8 +198,8 @@ class store_reports_Documents extends frame2_driver_TableData
         
         if (empty($rec->{$documentFld}) || ($rec->{$documentFld} == planning_DirectProductionNote::getClassId())) {
             $pQuery = planning_DirectProductionNote::getQuery();
-            $pQuery->where('#deadline IS NOT NULL');
             self::applyFilters($pQuery, $storeIds, 'planning_DirectProductionNote', $rec, 'deadline');
+
             while ($pRec = $pQuery->fetch()) {
                 $recs[$pRec->containerId] = (object) array('containerId' => $pRec->containerId,
                     'stores' => array($pRec->storeId),
