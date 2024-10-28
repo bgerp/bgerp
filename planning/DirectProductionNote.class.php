@@ -629,6 +629,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        if(isset($fields['-list'])){
+            core_Debug::startTimer('REC_TO_VERBAL');
+        }
+
         if(isset($fields['-single'])){
             $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
 
@@ -694,6 +698,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         if (isset($rec->inputStoreId)) {
             $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
+        }
+
+        if(isset($fields['-list'])){
+            core_Debug::stopTimer('REC_TO_VERBAL');
         }
     }
 
