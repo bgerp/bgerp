@@ -32,7 +32,7 @@ class colab_Threads extends core_Manager
     /**
      * 10 секунди време за опресняване на нишката
      */
-    public $refreshRowsTime = 10000;
+    public $refreshRowsTime = 60000;
     
     
     /**
