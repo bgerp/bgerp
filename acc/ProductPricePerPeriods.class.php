@@ -350,10 +350,10 @@ class acc_ProductPricePerPeriods extends core_Manager
      * @param datetime $toDate
      * @param mixed $productItems
      * @param mixed $otherItems
-     * @param string $type
+     * @param string $types
      * @return array $res
      */
-    public static function getPricesToDate($toDate, $productItems = null, $otherItems = null, $type = 'stores')
+    public static function getPricesToDate($toDate, $productItems = null, $otherItems = null, $types = 'stores')
     {
         $dateColName = str::phpToMysqlName('date');
         $storeColName = str::phpToMysqlName('otherItemId');
@@ -362,7 +362,9 @@ class acc_ProductPricePerPeriods extends core_Manager
         $typeColName = str::phpToMysqlName('type');
 
         $me = cls::get(get_called_class());
-        $otherWhere = array("`{$me->dbTableName}`.{$typeColName} = '{$type}'");
+        $typesString = "'" . implode("','", explode(",", $types)) . "'";
+        $otherWhere = array("`{$me->dbTableName}`.{$typeColName} IN ({$typesString})");
+
         if (!empty($productItems)) {
             $productItemsArr = arr::make($productItems);
             $productItemsArr = implode(',', $productItemsArr);
