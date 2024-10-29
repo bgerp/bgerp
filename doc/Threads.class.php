@@ -763,7 +763,18 @@ class doc_Threads extends core_Manager
     
     
     /**
-     *
+     * Лист на папките на колабораторите
+     */
+    public function act_List()
+    {
+        $this->forceProxy($this->className);
+
+        return parent::act_List();
+    }
+
+
+    /**
+     * Листване
      *
      * @param doc_Threads $mvc
      * @param object      $data
