@@ -164,6 +164,17 @@ class doc_Folders extends core_Master
         
         return new Redirect(array('doc_Threads', 'list', 'folderId' => $id));
     }
+
+
+    /**
+     * Листване
+     */
+    public function act_List()
+    {
+        $this->forceProxy($this->className);
+
+        return parent::act_List();
+    }
     
     
     /**
