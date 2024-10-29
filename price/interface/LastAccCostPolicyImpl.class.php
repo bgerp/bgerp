@@ -110,17 +110,10 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
             return $res;
         }
 
-        // Филтриране да се показват само записите от зададените сметки
+        // Филтриране да се показват само записите от зададените сметки за ТЕКУЩИЯ период
         $dQuery = acc_BalanceDetails::getQuery();
         acc_BalanceDetails::filterQuery($dQuery, $balanceRec->id, '321,60201', null, null, $productMap);
         $dRecs = $dQuery->fetchAll();
-
-        if(!countR($dRecs)){
-            $balanceBefore = acc_Balances::getBalanceBefore($balanceRec->fromDate);
-            $dQuery1 = acc_BalanceDetails::getQuery();
-            acc_BalanceDetails::filterQuery($dQuery1, $balanceBefore->id, '321,60201', null, null, $productMap);
-            $dRecs = $dQuery1->fetchAll();
-        }
 
         // За всеки запис в баланса
         foreach ($dRecs as $dRec) {
@@ -141,6 +134,26 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
                         $tmpArr[$itemId]->amount += $dRec->debitAmount;
                     }
                 }
+            }
+        }
+
+        // Гледа се дали в текущия период има артикули, които НЯМАТ записи
+        $productsInCurrentBalance = arr::extractValuesFromArray($dRecs, 'ent2Id');
+        $productsNotInBalance = array_diff($productMap, $productsInCurrentBalance);
+        if(countR($productsNotInBalance)){
+
+            // Ако има такива ще се извлекат от кешираните цени по периоди
+            $productsInOtherBalances = array();
+            $productsToDate = acc_ProductPricePerPeriods::getPricesToDate($balanceRec->fromDate, $productsNotInBalance, null, 'stores,costs');
+            foreach ($productsToDate as $pRec){
+                $productsInOtherBalances[$pRec->productItemId][] = $pRec->price;
+            }
+
+            // средно аритметично
+            $tmpArr = array();
+            foreach ($productsInOtherBalances as $pKey => $pGrouped) {
+                if (array_key_exists($pKey, $tmpArr)) continue;
+                $tmpArr[$pKey] = (object)array('amount' => array_sum($pGrouped), 'quantity' => countR($pGrouped));
             }
         }
 
@@ -170,7 +183,7 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
             self::$cache[$pId] = $res[$pId];
         }
 
-        // Връщаме резултатите
+        // Връщане на резултатите
         return $res;
     }
 
