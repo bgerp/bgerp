@@ -18,6 +18,13 @@ class doc_FoldersProxy extends core_Master
 {
 
 
+
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin';
+
+
     /**
     /**
      * Описание на модела
