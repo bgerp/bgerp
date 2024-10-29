@@ -525,7 +525,7 @@ class batch_BatchesInDocuments extends core_Manager
             }
             Mode::pop('htmlEntity');
             $displayBatches = batch_Setup::get('COUNT_IN_EDIT_WINDOW');
-
+            $displayBatches = max($displayBatches, countR($exTableRec['batch']));
             // Ако всички партиди са над разрешените показваме първите N
             if ($batchesCount > $displayBatches) {
                 $haveMoreThenDisplayedBatches = true;
@@ -567,6 +567,7 @@ class batch_BatchesInDocuments extends core_Manager
             }
 
             if($haveMoreThenDisplayedBatches && $Detail->cantCreateNewBatch){
+                $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $suggestions));
             } else {
                 $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
