@@ -9,7 +9,7 @@
  * @package   export
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -28,7 +28,7 @@ class export_TxtExportIntf
      *
      * @see export_Xml
      * @param mixed $id
-     * @return core_ET $tpl
+     * @return string $tpl
      */
     public function getTxtContent($id)
     {

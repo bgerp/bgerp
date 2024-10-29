@@ -87,16 +87,17 @@ $(document).ready(function () {
             preventOnFilter: false,
 
             onChoose: function (evt) {
-                const rows = document.querySelectorAll("#dragTable tbody tr");
-
-                // Iterate through each row and remove the specified class
-                rows.forEach(row => {
-                    row.classList.remove('dropped-highlight'); // Remove the specified class
+                // Remove highlight from all rows
+                document.querySelectorAll("#dragTable tbody tr").forEach(row => {
+                    row.classList.remove('dropped-highlight');
                 });
 
-                if (!isScrolling) { // Only allow dragging if not scrolling
+                // Add dragging class to the current item
+                if (!isScrolling) {
                     evt.item.classList.add('dragging');
                 }
+
+                console.log('CHOOSE');
             },
 
             onUnchoose: function (evt) {
@@ -104,54 +105,49 @@ $(document).ready(function () {
             },
 
             onStart: function (evt) {
-                selectedElements = Array.from(document.querySelectorAll('.selected')).map((element) => {
-                    return {
-                        element: element,
-                        originalIndex: Array.from(element.parentNode.children).indexOf(element)
-                    };
-                });
+                // Collect selected elements based on their original order
+                selectedElements = Array.from(document.querySelectorAll('.selected')).map(element => ({
+                    element: element,
+                    originalIndex: Array.from(element.parentNode.children).indexOf(element)
+                }));
 
+                // Sort selected elements based on their original index
                 selectedElements.sort((a, b) => a.originalIndex - b.originalIndex);
+
                 isScrolling = false; // Reset scrolling flag
+
+                console.log('START: ' + selectedElements.length);
             },
 
             onEnd: function (evt) {
                 console.log("END");
 
-                if (selectedElements.length === 0) {
-                    selectedElements.push({
-                        element: evt.item,
-                        originalIndex: evt.oldIndex
-                    });
-                }
+                // Clear previously selected rows after dropping
+                selectedElements.forEach(item => item.element.classList.remove('selected'));
 
-                selectedElements.forEach((item) => item.element.classList.remove('selected'));
-
-                let table = document.querySelector("#dragTable");
+                const tableBody = document.querySelector("#dragTable tbody");
                 const dropIndex = evt.newIndex; // Index where the item is dropped
-                const rows = Array.from(table.querySelectorAll("tbody tr")); // Get all rows
 
-                // Reinsert the selected elements in their original order, relative to the new drop position
-                selectedElements.forEach((item, index) => {
-                    const targetIndex = dropIndex + index; // Adjust to drop at the correct place
-                    const targetRow = rows[targetIndex] || null; // Handle appending at the end
-                    if (targetRow) {
-                        targetRow.insertAdjacentElement('beforebegin', item.element);
-                    } else {
-                        table.querySelector('tbody').appendChild(item.element); // Append if dropped at the end
-                    }
+                // Identify the target row where the selected rows will be inserted
+                const targetRow = tableBody.children[dropIndex];
+
+                // Store the reference to where the selected elements will be inserted
+                let insertAfter = targetRow ? targetRow : tableBody.lastElementChild;
+
+                // Insert selected elements in their original order
+                selectedElements.forEach(item => {
+                    insertAfter.insertAdjacentElement('afterend', item.element);
+                    insertAfter = item.element; // Update reference to the last inserted element
                 });
 
-                selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
+                selectedElements.forEach(item => item.element.classList.add('dropped-highlight'));
 
-                console.log("Items moved and reinserted in original order.");
-
-                // Optional: Process server update
-                if (table.dataset.url) {
-                    let dataIds = getOrderedTasks();
-                    let resObj = { url: table.dataset.url };
-                    let dataIdString = JSON.stringify(dataIds);
-                    let params = { orderedTasks: dataIdString };
+                // Optional: Process server update if needed
+                if (tableBody.dataset.url) {
+                    const dataIds = getOrderedTasks();
+                    const resObj = { url: tableBody.dataset.url };
+                    const dataIdString = JSON.stringify(dataIds);
+                    const params = { orderedTasks: dataIdString };
 
                     console.log('DROP: ' + dataIdString);
                     getEfae().preventRequest = 0;
@@ -166,20 +162,14 @@ $(document).ready(function () {
             store: {
                 // Save the order of items to localStorage
                 set: function (sortable) {
-
-                    let order = sortable.toArray();
-                    let val = order.join('|');
-                    console.log('session set', val);
-
+                    const order = sortable.toArray();
+                    const val = order.join('|');
                     sessionStorage.setItem('sortableOrder', val);
                 },
 
                 // Get the order of items from localStorage
                 get: function (sortable) {
-
-                    let order = sessionStorage.getItem('sortableOrder');
-
-                    console.log('session get', order);
+                    const order = sessionStorage.getItem('sortableOrder');
                     return order ? order.split('|') : [];
                 }
             }

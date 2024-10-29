@@ -324,7 +324,7 @@ class planning_Tasks extends core_Master
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
         $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано,autoPrint=Генериране и Печат)', 'caption=Етикиране->Производ. №,tdClass=small-field nowrap,notNull,value=both,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
+        $this->FLD('timeStart', 'datetime(timegetAssetTaskOptionsSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
         $this->FLD('calcedCurrentDuration', 'time', 'caption=Целеви времена->Изчислена продължителност,input=none');
@@ -1028,7 +1028,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            if (in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
+            if (in_array($rec->state, array('active', 'wakeup', 'stopped')) && !$form->_cloneForm) {
                 if (empty($rec->timeDuration) && empty($rec->assetId)) {
                     $form->setError('timeDuration,assetId,indTime', "Продължителността/нормата и оборудването са задължителни при започната операция|*!");
                 }
@@ -1989,9 +1989,12 @@ class planning_Tasks extends core_Master
                 $assetTasks = planning_AssetResources::getAssetTaskOptions($rec->assetId, true);
                 unset($assetTasks[$rec->id]);
                 $taskOptions = array();
+
+                core_Debug::startTimer('GET_TASK_OPTIONS_TITLE');
                 foreach ($assetTasks as $tRec) {
                     $taskOptions[$tRec->id] = $mvc->getAlternativeTitle($tRec);
                 }
+                core_Debug::stopTimer('GET_TASK_OPTIONS_TITLE');
 
                 $form->setField('startAfter', 'input');
                 if (countR($taskOptions)) {
@@ -3579,7 +3582,6 @@ class planning_Tasks extends core_Master
                 }
             }
             core_Debug::stopTimer('REORDER_TASK_ASSET_SHUTDOWN');
-            $mvc->logDebug("END REORDER_TASK_ASSET_SHUTDOWN " . round(core_Debug::$timers["REORDER_TASK_ASSET_SHUTDOWN"]->workingTime, 6));
         }
 
         if (countR($mvc->recalcProducedDetailIndTime)) {
@@ -3590,15 +3592,12 @@ class planning_Tasks extends core_Master
         }
 
         if ($mvc->recalcTaskTimes) {
-
             core_Debug::startTimer('TASKS_AFTER_SESSION_RECALC_TIMES');
             cls::get('planning_AssetResources')->cron_RecalcTaskTimes();
             core_Debug::stopTimer('TASKS_AFTER_SESSION_RECALC_TIMES');
-            $mvc->logDebug("END TASKS_AFTER_SESSION_RECALC_TIMES " . round(core_Debug::$timers["TASKS_AFTER_SESSION_RECALC_TIMES"]->workingTime, 6));
         }
 
         core_Debug::stopTimer('AFTER_SESSION_TASKS');
-        $mvc->logDebug("END AFTER_SESSION_TASKS " . round(core_Debug::$timers["AFTER_SESSION_TASKS"]->workingTime, 6));
     }
 
 
@@ -3615,7 +3614,6 @@ class planning_Tasks extends core_Master
                 core_Statuses::newStatus('Преподредени са операциите в заданието|*!');
             }
             core_Debug::stopTimer('REORDER_BY_JOB');
-            $mvc->logDebug("END REORDER_BY_JOB " . round(core_Debug::$timers["REORDER_BY_JOB"]->workingTime, 6));
         }
 
         if (countR($mvc->cacheAssetDataOnShutdown)) {
@@ -3639,7 +3637,6 @@ class planning_Tasks extends core_Master
                 core_Cache::set('planning_Tasks',"reorderAsset{$assetId}", $cacheData, 60);
             }
             core_Debug::stopTimer('CACHE_ON_SHUTDOWN');
-            $mvc->logDebug("END CACHE_ON_SHUTDOWN " . round(core_Debug::$timers["CACHE_ON_SHUTDOWN"]->workingTime, 6));
         }
     }
 
@@ -4540,7 +4537,6 @@ class planning_Tasks extends core_Master
         planning_AssetResources::reOrderTasks($assetId, $tasks, true);
         unset($this->reorderTasksInAssetId[$assetId]);
         core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
-        $this->logDebug("END TASKS_LIVE_REORDER_TASKS " . round(core_Debug::$timers["TASKS_LIVE_REORDER_TASKS"]->workingTime, 6));
         planning_AssetResources::logWrite('Ръчни преподреждане на операциите', $assetId);
 
         $this->recalcTaskTimes = true;

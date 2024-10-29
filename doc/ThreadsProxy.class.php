@@ -19,6 +19,12 @@ class doc_ThreadsProxy extends core_Manager
 
 
     /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'admin';
+
+
+    /**
     /**
      * Описание на модела
      */

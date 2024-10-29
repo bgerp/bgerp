@@ -62,4 +62,28 @@ class doc_plg_TxtExportable extends core_Plugin
         $string = $startStr . $string;
         $text = $string;
     }
+
+
+    /**
+     * Връща текстово представяне на нишката на документите с интерфейс 'export_TxtExportIntf'
+     *
+     * @param int $threadId
+     * @return string $res
+     */
+    public static function getThreadTxt($threadId)
+    {
+        $res = "";
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
+        while($cRec = $cQuery->fetch()){
+            $Document = doc_Containers::getDocument($cRec->id);
+            if($Document->haveInterface('export_TxtExportIntf')){
+                $txtExportIntf = cls::getInterface('export_TxtExportIntf', $Document->getInstance());
+                $res .= !empty($res) ? ("\n" . '======================================================' . "\n") : '';
+                $res .= $txtExportIntf->getTxtContent($Document->that);
+            }
+        }
+
+        return $res;
+    }
 }

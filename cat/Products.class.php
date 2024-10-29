@@ -1560,18 +1560,25 @@ class cat_Products extends embed_Manager
         
         return $isPublic == 'yes';
     }
-    
-    
+
+
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_Shutdown($mvc)
+    public static function on_AfterSessionClose($mvc)
     {
         // Обновяваме дефиринциално групите
         if (countR($mvc->updateGroupsCount)) {
             cat_Groups::updateGroupsCnt($mvc->updateGroupsCount);
         }
-        
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_Shutdown($mvc)
+    {
         // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
         if (countR($mvc->createdProducts)) {
             foreach ($mvc->createdProducts as $rec) {
@@ -1782,6 +1789,7 @@ class cat_Products extends embed_Manager
         }
         $query->show($showFields);
 
+        core_Debug::startTimer('PRODUCT_GET_FETCH_ALL');
         if($defaultSearch){
 
             $alwaysIds = array();
@@ -1817,6 +1825,7 @@ class cat_Products extends embed_Manager
         } else {
             $foundRecs = $query->fetchAll();
         }
+        core_Debug::stopTimer('PRODUCT_GET_FETCH_ALL');
 
         foreach ($foundRecs as $rec) {
             $title = null;
@@ -1830,10 +1839,12 @@ class cat_Products extends embed_Manager
             }
 
             if(empty($title)){
+                core_Debug::startTimer('PRODUCT_GET_REC_TITLE');
                 $title = static::getRecTitle($rec, false);
                 if(!empty($rec->reff)){
                     $title = "[{$rec->reff}]  {$title}";
                 }
+                core_Debug::stopTimer('PRODUCT_GET_REC_TITLE');
 
                 // За стандартните артикули ще се показва и еденичната цена е указано да се показват и цени
                 $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');

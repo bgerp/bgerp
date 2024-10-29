@@ -1045,6 +1045,9 @@ class planning_Jobs extends core_Master
 
             if (isset($rec->oldJobId)) {
                 $row->oldJobId = planning_Jobs::getLink($rec->oldJobId, 0);
+
+                $oldJobProductId = planning_Jobs::fetchField($rec->oldJobId, 'productId');
+                $row->oldJobCaption = ($rec->productId != $oldJobProductId) ? tr('Подобно задание') : tr('Предходно задание');
             }
 
             foreach (array('sBomId' => array('salesBomIdOnActivation', 'sales'), 'iBomId' => array('instantBomIdOnActivation', 'instant'), 'pBomId' =>  array('productionBomIdOnActivation', 'production')) as $bomFld => $activationBomArr) {
