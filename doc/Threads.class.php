@@ -915,6 +915,12 @@ class doc_Threads extends core_Manager
                 $query->where("#folderId = {$filter->folderId}");
             } else {
                 $query->dontUseFts = true;
+                if ($filter->folderId) {
+                    $allThreadsCnt = doc_Folders::fetchField($filter->folderId, 'allThreadsCnt');
+                    if ($allThreadsCnt > 5000) {
+                        $query->dontUseFts = false;
+                    }
+                }
                 $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');
                 $query->where("#containerFolderId = {$filter->folderId}");
             }
