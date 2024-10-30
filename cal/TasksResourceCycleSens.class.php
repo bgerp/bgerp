@@ -82,8 +82,6 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $query->orderBy('expectationTimeEnd', 'ASC');
         $query->orderBy('id', "DESC");
 
-        $pWorkingInterval = planning_AssetResources::getWorkingInterval($config->resource);
-
         $endIn = null;
         $startIn = dt::addDays($maxDays, $now);
         while ($rec = $query->fetch()) {
@@ -125,10 +123,25 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
             }
         }
 
+        // Проверка за работно време по график за деня
+        $pWorkingInterval = planning_AssetResources::getWorkingInterval($config->resource);
+        try {
+            $fArr = $pWorkingInterval->getFrame(dt::mysql2timestamp(dt::now(false) . '00:00:00'), dt::mysql2timestamp(dt::now(false) . '23:59:59'));
+            if ($fArr) {
+                if ($fArr[0][0]) {
+                    $startIn = min($startIn, dt::timestamp2Mysql($fArr[0][0]));
+                }
+                if ($fArr[0][1]) {
+                    $endIn = max($endIn, dt::timestamp2Mysql($fArr[0][1]));
+                }
+            }
+        } catch (core_exception_Expect $e) {
+
+        }
+
         $resArr['startAfter'] = $resArr['lastClosed'] = $resArr['endAfter'] = 0;
         if (isset($endIn)) {
             $resArr['endAfter'] = ceil(dt::secsBetween($endIn, $now) / 60);
-
         } else {
             $resArr['startAfter'] = ceil(dt::secsBetween($startIn, $now) / 60);
         }
