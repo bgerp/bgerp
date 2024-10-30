@@ -546,14 +546,16 @@ class store_reports_Documents extends frame2_driver_TableData
      */
     public function getNextRefreshDates($rec)
     {
-        $date = new DateTime(dt::now());
-        $date->add(new DateInterval('P0DT0H5M0S'));
+        $date = new DateTime();
+        $date->add(new DateInterval('PT15M'));
         $d1 = $date->format('Y-m-d H:i:s');
-        $date->add(new DateInterval('P0DT0H5M0S'));
+
+        $date->add(new DateInterval('PT15M'));
         $d2 = $date->format('Y-m-d H:i:s');
-        $date->add(new DateInterval('P0DT0H5M0S'));
+
+        $date->add(new DateInterval('PT15M'));
         $d3 = $date->format('Y-m-d H:i:s');
-        
+
         return array($d1, $d2, $d3);
     }
 

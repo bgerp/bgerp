@@ -82,8 +82,6 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $query->orderBy('expectationTimeEnd', 'ASC');
         $query->orderBy('id', "DESC");
 
-        $pWorkingInterval = planning_AssetResources::getWorkingInterval($config->resource);
-
         $endIn = null;
         $startIn = dt::addDays($maxDays, $now);
         while ($rec = $query->fetch()) {
@@ -109,7 +107,11 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
             // Проверка за работно време по график
             $pWorkingInterval = planning_AssetResources::getWorkingInterval($config->resource, dt::now(), $rec->expectationTimeEnd);
             if ($pWorkingInterval) {
-                $frames = $pWorkingInterval->getFrame(dt::mysql2timestamp(dt::now()), dt::mysql2timestamp($rec->expectationTimeEnd));
+                try {
+                    $frames = $pWorkingInterval->getFrame(dt::mysql2timestamp(dt::now()), dt::mysql2timestamp($rec->expectationTimeEnd));
+                } catch (core_exception_Expect $e) {
+                    continue;
+                }
                 if ($frames) {
                     if ($frames[0][0]) {
                         $startIn = min($startIn, dt::timestamp2Mysql($frames[0][0]));
@@ -121,10 +123,25 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
             }
         }
 
+        // Проверка за работно време по график за деня
+        $pWorkingInterval = planning_AssetResources::getWorkingInterval($config->resource);
+        try {
+            $fArr = $pWorkingInterval->getFrame(dt::mysql2timestamp(dt::now(false) . '00:00:00'), dt::mysql2timestamp(dt::now(false) . '23:59:59'));
+            if ($fArr) {
+                if ($fArr[0][0]) {
+                    $startIn = min($startIn, dt::timestamp2Mysql($fArr[0][0]));
+                }
+                if ($fArr[0][1]) {
+                    $endIn = max($endIn, dt::timestamp2Mysql($fArr[0][1]));
+                }
+            }
+        } catch (core_exception_Expect $e) {
+
+        }
+
         $resArr['startAfter'] = $resArr['lastClosed'] = $resArr['endAfter'] = 0;
         if (isset($endIn)) {
             $resArr['endAfter'] = ceil(dt::secsBetween($endIn, $now) / 60);
-
         } else {
             $resArr['startAfter'] = ceil(dt::secsBetween($startIn, $now) / 60);
         }
@@ -151,6 +168,34 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
             }
 
             $resArr['lastClosed'] = ceil(dt::secsBetween($now, $cRec->expectationTimeEnd) / 60);
+        }
+
+        // Намираме задачите, които са в процес на изпълнение, но с време на край по-малко от текущото
+        $query = cal_Tasks::getQuery();
+        $query->where(array("#assetResourceId = '[#1#]'", $config->resource));
+        $query->where("#state = 'active' OR #state = 'pending' OR #state = 'waiting' OR #state = 'wakeup'");
+        $query->where(array("#expectationTimeEnd <= '[#1#]'", $now));
+        $query->where(array("#expectationTimeEnd != #expectationTimeStart", $now));
+        $query->orderBy('expectationTimeEnd', 'DESC');
+        $query->orderBy('expectationTimeStart', 'DESC');
+        $query->orderBy('id', "DESC");
+        $query->limit(1);
+        $cRec = $query->fetch();
+
+        // Времето на послено затваряне е времето на крайният срок на задачата
+        if ($cRec) {
+            if ($cRec->timeStart && !$cRec->timeEnd && $timeDeviation) {
+                $newTimeEnd = dt::addSecs($timeDeviation, $cRec->timeStart);
+                if ($newTimeEnd <= $now) {
+                    $cRec->expectationTimeEnd = $newTimeEnd;
+                }
+            }
+
+            $lastEnd = ceil(dt::secsBetween($now, $cRec->expectationTimeEnd) / 60);
+            if (!$lastEnd) {
+                $lastEnd = 0;
+            }
+            $resArr['lastClosed'] = min($resArr['lastClosed'], $lastEnd);
         }
 
         return $resArr;

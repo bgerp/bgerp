@@ -915,6 +915,12 @@ class doc_Threads extends core_Manager
                 $query->where("#folderId = {$filter->folderId}");
             } else {
                 $query->dontUseFts = true;
+                if ($filter->folderId) {
+                    $allThreadsCnt = doc_Folders::fetchField($filter->folderId, 'allThreadsCnt');
+                    if ($allThreadsCnt > 5000) {
+                        $query->dontUseFts = false;
+                    }
+                }
                 $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');
                 $query->where("#containerFolderId = {$filter->folderId}");
             }
@@ -3480,5 +3486,29 @@ class doc_Threads extends core_Manager
 
         // Връща се последната дата на която има създаден документ
         return $cQuery->fetch()->maxCreatedOn;
+    }
+
+
+    /**
+     * Връща текстотово представяне на нишката
+     *
+     * @param int $threadId - ид на нишка
+     * @return string $res  - текстовото представяне
+     */
+    public static function getAsText($threadId)
+    {
+        $res = "";
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
+        while($cRec = $cQuery->fetch()){
+            $Document = doc_Containers::getDocument($cRec->id);
+            if($Document->haveInterface('export_TxtExportIntf')){
+                $txtExportIntf = cls::getInterface('export_TxtExportIntf', $Document->getInstance());
+                $res .= !empty($res) ? ("\n" . '======================================================' . "\n") : '';
+                $res .= $txtExportIntf->getTxtContent($Document->that);
+            }
+        }
+
+        return $res;
     }
 }

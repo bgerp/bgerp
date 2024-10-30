@@ -1264,10 +1264,13 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
+        $rec = &$data->rec;
+        $row = &$data->row;
+
         // Подготвяме данните на историята за показване
-        $data->row->history = array();
-        if (is_array($data->rec->history)) {
-            foreach ($data->rec->history as $historyRec) {
+        $row->history = array();
+        if (is_array($rec->history)) {
+            foreach ($rec->history as $historyRec) {
                 $historyRec['action'] = tr($historyRec['action']);
                 
                 $historyRow = (object) array('date' => cls::get('type_DateTime')->toVerbal($historyRec['date']),
@@ -1278,24 +1281,48 @@ class planning_Jobs extends core_Master
                 if (isset($historyRec['reason'])) {
                     $historyRow->reason = cls::get('type_Text')->toVerbal($historyRec['reason']);
                 }
-                
-                $data->row->history[] = $historyRow;
+
+                $row->history[] = $historyRow;
             }
         }
-        
-        $data->row->history = array_reverse($data->row->history, true);
+
+        $row->history = array_reverse($row->history, true);
         $data->packagingData = new stdClass();
         $data->packagingData->masterMvc = cls::get('cat_Products');
-        $data->packagingData->masterId = $data->rec->productId;
+        $data->packagingData->masterId = $rec->productId;
         $data->packagingData->tpl = new core_ET('[#CONTENT#]');
-        $data->packagingData->retUrl = planning_Jobs::getSingleUrlArray($data->rec->id);
-        if ($data->rec->state == 'rejected') {
+        $data->packagingData->retUrl = planning_Jobs::getSingleUrlArray($rec->id);
+        if ($rec->state == 'rejected') {
             $data->packagingData->rejected = true;
         }
         cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
         
         $data->components = array();
-        cat_Products::prepareComponents($data->rec->productId, $data->components, 'job', $data->rec->quantity);
+        cat_Products::prepareComponents($rec->productId, $data->components, 'job', $rec->quantity);
+
+        if(isset($rec->oldJobId)) {
+            $oldJobRec = $mvc->fetch($rec->oldJobId);
+            $oldJobCacheDate = !empty($oldJobRec->productViewCacheDate) ? $oldJobRec->productViewCacheDate : $oldJobRec->modifiedOn;
+            $oldJobOrigin = cat_Products::getAutoProductDesc($oldJobRec->productId, $oldJobCacheDate, 'detailed', 'job', core_Lg::getCurrent());
+
+            if(md5(strip_tags(str::removeWhiteSpace($oldJobOrigin->getContent()))) != md5(strip_tags(str::removeWhiteSpace($row->origin)))){
+                $cUrl = getCurrentUrl();
+                if(Request::get('showDiff')){
+                    unset($cUrl['showDiff']);
+                    $changeIcon = "img/16/checked-green.png";
+                    $changeTitle = 'Скриване на разликите';
+                } else {
+                    $cUrl['showDiff'] = true;
+                    $changeIcon = "img/16/checked-not-green.png";
+                    $changeTitle = 'Показване на разликите';
+                }
+                $row->showDiffBtn = ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}");
+            }
+
+            if(Request::get('showDiff')){
+                $row->origin = lib_Diff::getDiff($oldJobOrigin, $row->origin);
+            }
+        }
     }
     
     

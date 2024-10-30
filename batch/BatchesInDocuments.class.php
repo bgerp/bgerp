@@ -923,8 +923,10 @@ class batch_BatchesInDocuments extends core_Manager
             
             return;
         }
-        $recInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
-        $recInfo->detailClassId = cls::get($detailClassId)->getClassId();
+
+        $Detail = cls::get($detailClassId);
+        $recInfo = $Detail->getRowInfo($detailRecId);
+        $recInfo->detailClassId = $Detail->getClassId();
         $recInfo->detailRecId = $detailRecId;
 
         // Подготвяне на редовете за обновяване
