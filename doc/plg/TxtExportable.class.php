@@ -18,15 +18,6 @@ class doc_plg_TxtExportable extends core_Plugin
 {
 
     /**
-     * Извиква се след описанието на модела
-     */
-    public static function on_AfterDescription(&$mvc)
-    {
-        $mvc->declareInterface('export_TxtExportIntf');
-    }
-
-
-    /**
      * Дефолтна имплементация на функцията `getTxtContent`
      *
      * @param core_Mvc $mvc

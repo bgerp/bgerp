@@ -93,7 +93,7 @@ class doc_Notes extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'doc_Wrapper, doc_SharablePlg,doc_plg_Prototype, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone, doc_plg_TxtExportable';
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin, plg_Clone';
     
     
     /**
