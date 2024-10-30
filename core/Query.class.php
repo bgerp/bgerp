@@ -332,13 +332,16 @@ class core_Query extends core_FieldSet
     /**
      * Преброява срещанията на всяко от изброените id-та в полето keylistName на редовете от заявката
      *
-     * @param string $keylistName името на keylist полето
-     * @param array  $ids         масив с id-та, които трябва да се изброят. Ако не се посочат - броят се всички от модела
+     * @param string $keylistName        - името на keylist полето
+     * @param array  $ids                - масив с id-та, които трябва да се изброят. Ако не се посочат - броят се всички от модела
+     * @param boolean $inSeparateQueries - дали с една заявка
      *
      * @return array масив $id => брой записи
      */
-    public function countKeylist($keylistName, $ids = null)
+    public function countKeylist($keylistName, $ids = null, $inSeparateQueries = true)
     {
+        $res = array();
+
         if ($ids === null) {
             $type = $this->getFieldType($keylistName);
             $kMvc = $type->params['mvc'];
@@ -348,19 +351,34 @@ class core_Query extends core_FieldSet
                 $ids[$kRec->id] = $kRec->id;
             }
         }
-        
+
         $mysqlKeylistName = $this->getMysqlField($keylistName);
+
+        // Ако е указано да се извличат с отделни заявки
+        if($inSeparateQueries){
+            foreach ($ids as $id) {
+
+                // Добавя се леко изчакване за да не се заключва цялата таблица за дълго
+                usleep(rand(100000, 200000));
+                $clone = clone $this;
+                $clone->XPR('gCount', 'int', "SUM(LOCATE('|" . $id . "|', ${mysqlKeylistName}) > 0)");
+                $clone->show('gCount');
+                $res[$id] = $clone->fetch()->gCount;
+            }
+
+            return $res;
+        }
+
+        // Иначе с една заявка
         foreach ($ids as $id) {
             $this->XPR($keylistName . '_cnt_' . $id, 'int', "SUM(LOCATE('|" . $id . "|', ${mysqlKeylistName}) > 0)");
         }
         $rec = $this->fetch();
-        
-        $res = array();
         foreach ($ids as $id) {
             $name = $keylistName . '_cnt_' . $id;
             $res[$id] = $rec->{$name};
         }
-        
+
         return $res;
     }
     
