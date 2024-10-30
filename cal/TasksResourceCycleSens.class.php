@@ -109,7 +109,11 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
             // Проверка за работно време по график
             $pWorkingInterval = planning_AssetResources::getWorkingInterval($config->resource, dt::now(), $rec->expectationTimeEnd);
             if ($pWorkingInterval) {
-                $frames = $pWorkingInterval->getFrame(dt::mysql2timestamp(dt::now()), dt::mysql2timestamp($rec->expectationTimeEnd));
+                try {
+                    $frames = $pWorkingInterval->getFrame(dt::mysql2timestamp(dt::now()), dt::mysql2timestamp($rec->expectationTimeEnd));
+                } catch (core_exception_Expect $e) {
+                    continue;
+                }
                 if ($frames) {
                     if ($frames[0][0]) {
                         $startIn = min($startIn, dt::timestamp2Mysql($frames[0][0]));
@@ -151,6 +155,33 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
             }
 
             $resArr['lastClosed'] = ceil(dt::secsBetween($now, $cRec->expectationTimeEnd) / 60);
+        }
+
+        // Намираме задачите, които са в процес на изпълнение, но с време на край по-малко от текущото
+        $query = cal_Tasks::getQuery();
+        $query->where(array("#assetResourceId = '[#1#]'", $config->resource));
+        $query->where("#state = 'active' OR #state = 'pending' OR #state = 'waiting' OR #state = 'wakeup'");
+        $query->orWhere(array("#expectationTimeEnd <= '[#1#]'", $now));
+        $query->orderBy('expectationTimeEnd', 'DESC');
+        $query->orderBy('expectationTimeStart', 'DESC');
+        $query->orderBy('id', "DESC");
+        $query->limit(1);
+
+        // Времето на послено затваряне е времето на крайният срок на задачата
+        if ($cRec) {
+            $cRec = $query->fetch();
+            if ($cRec->timeStart && !$cRec->timeEnd && $timeDeviation) {
+                $newTimeEnd = dt::addSecs($timeDeviation, $cRec->timeStart);
+                if ($newTimeEnd <= $now) {
+                    $cRec->expectationTimeEnd = $newTimeEnd;
+                }
+            }
+
+            $lastEnd = ceil(dt::secsBetween($now, $cRec->expectationTimeEnd) / 60);
+            if (!$lastEnd) {
+                $lastEnd = 0;
+            }
+            $resArr['lastClosed'] = min($resArr['lastClosed'], $lastEnd);
         }
 
         return $resArr;
