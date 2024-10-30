@@ -161,7 +161,8 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $query = cal_Tasks::getQuery();
         $query->where(array("#assetResourceId = '[#1#]'", $config->resource));
         $query->where("#state = 'active' OR #state = 'pending' OR #state = 'waiting' OR #state = 'wakeup'");
-        $query->orWhere(array("#expectationTimeEnd <= '[#1#]'", $now));
+        $query->where(array("#expectationTimeEnd <= '[#1#]'", $now));
+        $query->where(array("#expectationTimeEnd != #expectationTimeStart", $now));
         $query->orderBy('expectationTimeEnd', 'DESC');
         $query->orderBy('expectationTimeStart', 'DESC');
         $query->orderBy('id', "DESC");
@@ -170,7 +171,6 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
 
         // Времето на послено затваряне е времето на крайният срок на задачата
         if ($cRec) {
-            $cRec = $query->fetch();
             if ($cRec->timeStart && !$cRec->timeEnd && $timeDeviation) {
                 $newTimeEnd = dt::addSecs($timeDeviation, $cRec->timeStart);
                 if ($newTimeEnd <= $now) {
