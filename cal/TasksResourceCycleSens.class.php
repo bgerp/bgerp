@@ -166,6 +166,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $query->orderBy('expectationTimeStart', 'DESC');
         $query->orderBy('id', "DESC");
         $query->limit(1);
+        $cRec = $query->fetch();
 
         // Времето на послено затваряне е времето на крайният срок на задачата
         if ($cRec) {
