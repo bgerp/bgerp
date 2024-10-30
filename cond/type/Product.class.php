@@ -45,7 +45,7 @@ class cond_type_Product extends cond_type_Varchar
      */
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
-        $CType = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=50,forceAjax)');
+        $CType = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)');
         $CType->params['groups'] = $this->driverRec->productGroups;
         if(isset($this->driverRec->display) && $this->driverRec->display != 'name'){
             $CType->params['display'] = $this->driverRec->display;
