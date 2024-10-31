@@ -92,8 +92,13 @@ class rack_ZoneDetails extends core_Detail
      * Шаблон за реда в листовия изглед
      */
     public static $allocatedMovements = array();
-    
-    
+
+    /**
+     * Кой може да редактира детайла на документа
+     */
+    public $canEditdetailindocument = 'powerUser';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -205,11 +210,17 @@ class rack_ZoneDetails extends core_Detail
                 unset($data->rows[$id]);
             }
 
+            $row->status = new core_ET($row->status);
             if($rec->_quantityAll && round($rec->_quantityAll / $rec->quantityInPack, 2) < round($rec->documentQuantity / $rec->quantityInPack, 2)){
                 $quantityAllVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->_quantityAll / $rec->quantityInPack);
                 $row->status = ht::createHint($row->status, "Недостатъчно количество в склада! Генерираното движение е само за наличното|*: {$quantityAllVerbal}", 'warning', false);
                 $row->status->prepend("<span class='notEnoughQuantityForZone'>");
                 $row->status->append("</span>");
+            }
+
+            if($mvc->haveRightFor('editdetailindocument', $rec)){
+                $changeBtn = ht::createLink('', array($mvc, 'editdetailindocument', $rec->id, 'ret_url' => true), 'Наистина ли искате да промените количеството в реда на документа|*?', 'class=changeQuantityBtn,ef_icon=img/16/arrow_refresh.png,title=Задаване на това количество в реда на документа');
+                $row->status->append($changeBtn);
             }
         }
 
@@ -412,7 +423,7 @@ class rack_ZoneDetails extends core_Detail
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $filter);
         $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
         $allocated = is_array($allocated) ? $allocated : array();
-        
+
         list($productId, $packagingId, $batch) = array($rec->productId, $rec->packagingId, $rec->batch);
         $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch, $allocated){
             return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch && !array_key_exists($o->id, $allocated);
@@ -497,6 +508,24 @@ class rack_ZoneDetails extends core_Detail
                     if($overQuantity <= 0){
                         $requiredRoles = 'no_one';
                     }
+                }
+            }
+        }
+
+        // Кой може от зоната да редактира реда в детайла на документа
+        if($action == 'editdetailindocument' && isset($rec)){
+            $zoneRec = rack_Zones::fetch($rec->zoneId);
+            if(!$zoneRec->containerId){
+                $requiredRoles = 'no_one';
+            } elseif(empty($rec->movementQuantity)){
+                $requiredRoles = 'no_one';
+            } elseif($rec->movementQuantity >= $rec->documentQuantity){
+                $requiredRoles = 'no_one';
+            } else {
+                $Document = doc_Containers::getDocument($zoneRec->containerId);
+                $editDocumentRoles = $Document->getRequiredRoles('edit');
+                if(!haveRole($editDocumentRoles, $userId)){
+                    $requiredRoles = 'no_one';
                 }
             }
         }
@@ -748,5 +777,90 @@ class rack_ZoneDetails extends core_Detail
         $newRec->zones = $TableType->fromVerbal($zoneArr);
 
         return $newRec;
+    }
+
+
+    /**
+     * Автоматична редакция в документа към зоната
+     *
+     * @return void
+     * @throws core_exception_Expect
+     */
+    function act_editdetailindocument()
+    {
+        $this->requireRightFor('editdetailindocument');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('editdetailindocument', $rec);
+        $zoneRec = rack_Zones::fetch($rec->zoneId);
+
+        $Document = doc_Containers::getDocument($zoneRec->containerId);
+        $Detail = cls::get($Document->detailToPlaceInZones);
+
+        if(!empty($rec->batch)){
+            $bQuery = batch_BatchesInDocuments::getQuery();
+            $bQuery->where("#containerId = {$zoneRec->containerId} AND #detailClassId = {$Detail->getClassId()}");
+            $bQuery->where(array("#productId = {$rec->productId} AND #packagingId = {$rec->packagingId} AND #batch = '[#1#]'", $rec->batch));
+
+            if($bQuery->count() > 1){
+                followRetUrl(null, 'Не може да промените документа, защото комбинацията от арткул+опаковка+партида е на повече от един ред в документа|*!', 'warning');
+            }
+
+            $singleBatchRec = $bQuery->fetch();
+            $diff = $singleBatchRec->quantity - $rec->movementQuantity;
+            $singleBatchRec->quantity = $rec->movementQuantity;
+            batch_BatchesInDocuments::save($singleBatchRec, 'quantity');
+            $dRec = $Detail->fetch($singleBatchRec->detailRecId);
+
+            if ($Detail instanceof store_InternalDocumentDetail) {
+                $dRec->packQuantity -= $diff / $singleBatchRec->quantityInPack;
+            } else {
+                $dRec->quantity -= $diff;
+            }
+        } else {
+            $dQuery = $Detail->getQuery();
+            $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFld}");
+            $dQuery->where("#{$Detail->masterKey} = {$Document->that} AND #canStore = 'yes'");
+            $Detail->invoke('AfterGetZoneSummaryQuery', array($rec, &$dQuery));
+            $dQuery->where("#{$Detail->packagingFld} = {$rec->packagingId} AND #{$Detail->productFld} = {$rec->productId}");
+
+            if($dQuery->count() > 1) {
+                followRetUrl(null, 'Не може да промените документа, защото комбинацията от арткул+опаковка (без партида) е на повече от един ред в документа|*!', 'warning');
+            }
+
+            $dRec = $dQuery->fetch();
+            $bQuery = batch_BatchesInDocuments::getQuery();
+            $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id}");
+            $bQuery->XPR('sum', 'double', 'SUM(#quantity)');
+            $sum = $bQuery->fetch()->sum;
+            $finalQuantity = $sum + $rec->movementQuantity;
+            if ($Detail instanceof store_InternalDocumentDetail) {
+                $dRec->packQuantity = $finalQuantity / $dRec->quantityInPack;
+            } else {
+                $dRec->quantity = $finalQuantity;
+            }
+        }
+
+        $dRec->quantity = round($dRec->quantity, 5);
+        $Detail->save($dRec);
+        if ($Detail instanceof core_Detail) {
+            $Detail->Master->logWrite('Потвърдено к-во от палетния склад', $Document->that);
+        } else {
+            $Detail->logWrite('Потвърдено к-во от палетния склад', $Document->that);
+        }
+
+        // Изтриване на чакащите и запазените движения за този ред
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("LOCATE('|{$zoneRec->id}|', #zoneList)");
+        $mQuery->where("#productId = {$rec->productId} AND #packagingId = {$rec->packagingId} AND #batch = '{$rec->batch}' AND #state IN ('pending', 'waiting')");
+        $mQuery->show('id');
+        $deleteIds = arr::extractValuesFromArray($mQuery->fetchAll(), 'id');
+        if(countR($deleteIds)){
+            core_Statuses::newStatus('L:' . countR($deleteIds), 'warning');
+            $deleteIdStr = implode(',', $deleteIds);
+            rack_Movements::delete("#id IN ({$deleteIdStr})");
+        }
+
+        followRetUrl(null, "Успешно е променено количеството в|* #{$Document->getHandle()} ");
     }
 }
