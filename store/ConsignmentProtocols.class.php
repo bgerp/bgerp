@@ -996,6 +996,17 @@ class store_ConsignmentProtocols extends core_Master
                 unset($dRec->id, $dRec->createdOn, $dRec->createdBy);
                 $dRec->protocolId = $rec->id;
                 $DetailMvc->save($dRec);
+
+                // Прехвърлят се и партидите на клонирания детайл
+                if(core_Packs::isInstalled('batch')){
+                    $bQuery = batch_BatchesInDocuments::getQuery();
+                    $bQuery->where("#detailClassId = {$dRec->clonedFromDetailClass} AND #detailRecId = {$dRec->clonedFromDetailId}");
+                    $batches = array();
+                    while ($bRec = $bQuery->fetch()){
+                        $batches[$bRec->batch] = $bRec->quantity;
+                    }
+                    batch_BatchesInDocuments::saveBatches($DetailMvc, $dRec->id, $batches);
+                }
             }
         }
     }

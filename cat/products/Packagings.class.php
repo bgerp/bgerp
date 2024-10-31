@@ -573,7 +573,7 @@ class cat_products_Packagings extends core_Detail
 
                 $checkIfPackIsUsed = true;
                 if($productRec->isPublic == 'no'){
-                    $sRec = store_Products::getQuantities($rec->id);
+                    $sRec = store_Products::getQuantities($rec->productId);
                     if(empty($sRec->quantity)){
                        $checkIfPackIsUsed = false;
                     }

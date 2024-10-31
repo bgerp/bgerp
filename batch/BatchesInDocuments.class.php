@@ -461,6 +461,8 @@ class batch_BatchesInDocuments extends core_Manager
             }
         }
 
+        $haveMoreThenDisplayedBatches = false;
+        $middleCaption = '->';
 
         $Def = batch_Defs::getBatchDef($recInfo->productId);
         $suggestions = array();
@@ -522,14 +524,28 @@ class batch_BatchesInDocuments extends core_Manager
                 $i++;
             }
             Mode::pop('htmlEntity');
-
-            if ($batchesCount > batch_Setup::get('COUNT_IN_EDIT_WINDOW')) {
-                $tableRec = $exTableRec;
+            $displayBatches = batch_Setup::get('COUNT_IN_EDIT_WINDOW');
+            $displayBatches = max($displayBatches, countR($exTableRec['batch']));
+            // Ако всички партиди са над разрешените показваме първите N
+            if ($batchesCount > $displayBatches) {
+                $haveMoreThenDisplayedBatches = true;
+                $newTableRec = array();
+                $i = 0;
+                foreach ($tableRec['batch'] as $index => $b){
+                    if($i == $displayBatches) break;
+                    $newTableRec['batch'][$index] = $b;
+                    $newTableRec['quantity'][$index] = $tableRec['quantity'][$index];
+                    $i++;
+                }
+                $tableRec = $newTableRec;
+                $Int = core_Type::getByName('int');
+                $middleCaption = "->Показват се първите партиди|* <b>{$Int->toVerbal($displayBatches)}</b> |от общо|* <b>{$Int->toVerbal($batchesCount)}</b>->";
             }
         }
 
         // Добавяне на поле за нова партида
-        $btnoff = ($Detail->cantCreateNewBatch === true) ? 'btnOff' : '';
+        $btnoff = ($Detail->cantCreateNewBatch === true && !$haveMoreThenDisplayedBatches) ? 'btnOff' : '';
+
         $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
         $columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
         $captions = ($Def instanceof batch_definitions_Serial) ? 'Партида' : 'Партида|Количество';
@@ -537,8 +553,7 @@ class batch_BatchesInDocuments extends core_Manager
         $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
 
         if ($hideTable === false) {
-            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди->{$caption},placeholder={$Def->placeholder}");
-
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди{$middleCaption}{$caption},placeholder={$Def->placeholder}");
             if (is_array($bOptions)) {
                 $bOptions = array_combine(array_values($bOptions), array_values($bOptions));
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $bOptions));
@@ -551,7 +566,13 @@ class batch_BatchesInDocuments extends core_Manager
                 $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestions;
             }
 
-            $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
+            if($haveMoreThenDisplayedBatches && $Detail->cantCreateNewBatch){
+                $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
+                $form->setFieldTypeParams('newArray', array('batch_opt' => $suggestions));
+            } else {
+                $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
+            }
+
             $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
             $form->setDefault('newArray', $tableRec);
         } else {
@@ -902,8 +923,10 @@ class batch_BatchesInDocuments extends core_Manager
             
             return;
         }
-        $recInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
-        $recInfo->detailClassId = cls::get($detailClassId)->getClassId();
+
+        $Detail = cls::get($detailClassId);
+        $recInfo = $Detail->getRowInfo($detailRecId);
+        $recInfo->detailClassId = $Detail->getClassId();
         $recInfo->detailRecId = $detailRecId;
 
         // Подготвяне на редовете за обновяване

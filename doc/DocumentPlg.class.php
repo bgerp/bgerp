@@ -165,7 +165,10 @@ class doc_DocumentPlg extends core_Plugin
         if (!isset($plugins['tags_plg_Add'])) {
             $mvc->load('tags_plg_Add');
         }
-        
+
+        $mvc->load('doc_plg_TxtExportable');
+        $mvc->declareInterface('export_TxtExportIntf');
+
         if ($mvc->fetchFieldsBeforeDelete) {
             $mvc->fetchFieldsBeforeDelete .= ',';
         }

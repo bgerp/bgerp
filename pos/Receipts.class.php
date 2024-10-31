@@ -1240,14 +1240,16 @@ class pos_Receipts extends core_Master
      */
     public static function setContragent(&$rec, $contragentClassId, $contragentId, $locationId = null)
     {
+        core_Debug::startTimer("SET_RECEIPT_CONTRAGENT");
         $rec->contragentClass = $contragentClassId;
         $rec->contragentObjectId = $contragentId;
         $rec->contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
         $rec->contragentLocationId = $locationId;
         static::save($rec, 'contragentObjectId,contragentClass,contragentName,contragentLocationId');
         $isDefaultContragent = pos_Receipts::isForDefaultContragent($rec);
-
         static::recalcPricesInDetail($rec, $isDefaultContragent);
+
+        core_Debug::stopTimer("SET_RECEIPT_CONTRAGENT");
     }
 
 
@@ -1388,6 +1390,7 @@ class pos_Receipts extends core_Master
      */
     public function act_setcontragent()
     {
+        core_Debug::startTimer("SET_RECEIPT_CONTRAGENT");
         $this->requireRightFor('setcontragent');
         expect($id = Request::get('id'));
         expect($rec = $this->fetch($id));

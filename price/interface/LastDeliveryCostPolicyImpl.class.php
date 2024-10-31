@@ -155,7 +155,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
         $datetime = dt::addSecs(-1 * $cronPeriod, $datetime);
 
         // Афектираните артикули са тези с дебит в склада
-        $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit');
+        $affected = parent::getAffectedProductWithMovement($datetime, 'debit');
 
         // И тези с активирани/оттеглени покупки
         $affected1 = cls::get('price_interface_LastActiveDeliveryCostPolicyImpl')->getAffectedProducts($datetime);

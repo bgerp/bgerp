@@ -1466,9 +1466,7 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $tpl->append("<div class='clearfix21'></div>");
-
         core_Debug::stopTimer('RES_RENDER_PAYMENTS');
-        core_Debug::log("END RES_RENDER_PAYMENTS " . round(core_Debug::$timers["RES_RENDER_PAYMENTS"]->workingTime, 6));
 
         return $tpl;
     }
@@ -2124,12 +2122,10 @@ class pos_Terminal extends peripheral_Terminal
                 }
             }
             core_Debug::stopTimer('RES_RENDER_RESULT_FETCH_RECS');
-            core_Debug::log("END RES_RENDER_RESULT_FETCH_RECS " . round(core_Debug::$timers["RES_RENDER_RESULT_FETCH_RECS"]->workingTime, 6));
 
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
             $result = $this->prepareProductResultRows($sellable, $rec, $settings);
             core_Debug::stopTimer('RES_RENDER_RESULT_VERBAL');
-            core_Debug::log("END RES_RENDER_RESULT_VERBAL " . round(core_Debug::$timers["RES_RENDER_RESULT_VERBAL"]->workingTime, 6));
             core_Cache::set('pos_Terminal', $cacheKey, $result, 2);
         }
         
@@ -2497,7 +2493,6 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'tools-holder', 'html' => $toolsTpl->getContent(), 'replace' => true);
                 core_Debug::stopTimer('RES_RENDER_COMMAND_PANEL');
-                core_Debug::log("END RES_RENDER_COMMAND_PANEL " . round(core_Debug::$timers["RES_RENDER_COMMAND_PANEL"]->workingTime, 6));
 
                 $res[] = $resObj;
             }
@@ -2510,8 +2505,6 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
                 core_Debug::stopTimer('RES_RENDER_RECEIPT');
-                core_Debug::log("END RES_RENDER_RECEIPT " . round(core_Debug::$timers["RES_RENDER_RECEIPT"]->workingTime, 6));
-
                 $res[] = $resObj;
 
                 $resObj = new stdClass();
@@ -2532,7 +2525,6 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
                 core_Debug::stopTimer('RES_RENDER_RESULT');
-                core_Debug::log("END RES_RENDER_RESULT " . round(core_Debug::$timers["RES_RENDER_RESULT"]->workingTime, 6));
 
                 $res[] = $resObj;
             } else {

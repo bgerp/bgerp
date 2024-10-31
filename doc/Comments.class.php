@@ -183,8 +183,8 @@ class doc_Comments extends embed_Manager
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn';
-    
-    
+
+
     /**
      * Описание на модела
      */

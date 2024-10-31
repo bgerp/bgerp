@@ -203,7 +203,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $paymentType = $sRec->paymentType;
 
             //Банкова сметка
-            $bankAccount = $sRec->accountId;
+            $bankAccount = ($paymentType == 'bank') ? $sRec->accountId : null;
 
             $rec->dealType = self::getDealType($sRec);
             $rec->docType = self::getDocType($sRec);
@@ -311,8 +311,10 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $accItem = null;
             if ($pRec->bnavCode) {
 
+                //Проверяваме дали продулта е складируем или услуга
+                $const = ($pRec->canStore == 'yes') ? 'FSD_SALES' : 'FSD_SALES_SERVICES';
                 //todo
-                $accItem = core_Packs::getConfig('bnav')->FSD_SALES;
+                $accItem = core_Packs::getConfig('bnav')->$const;
 
                 $startPos = strpos($pRec->bnavCode, '[') + 1;
                 $endPos = strpos($pRec->bnavCode, ']');
@@ -507,6 +509,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $row->measure = $dRec->measure;
             $row->vat = $dRec->vat;
             $row->paymentType = $dRec->invoice->paymentType;
+            if (isset($dRec->invoice->accountId)) {
+                $row->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
+            }
             $row->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
         } else {
             
@@ -535,7 +540,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $row->measure = $dRec->measure;
             $row->vat = $dRec->vat;
             $row->paymentType = $dRec->paymentType;
-            $row->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
+            if (isset($dRec->invoice->accountId)) {
+                $row->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
+            }
         }
         
         return $row;
@@ -586,14 +593,17 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $res->measure = $dRec->measure;
             $res->vat = $dRec->vat;
             $res->paymentType = $dRec->invoice->paymentType;
-            $res->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
+            if (isset($dRec->invoice->accountId)) {
+                $res->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
+            }
         } else {
             //нулираме стойностите на анулираните фактури
             if ($dRec->state == 'rejected') {
                 $dRec->dealValue = $dRec->quantity = $dRec->price = $dRec->detAmount = $dRec->vat = 0;
             }
-
-            $res->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
+            if (isset($dRec->invoice->accountId)) {
+                $res->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
+            }
         }
     }
 

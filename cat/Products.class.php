@@ -1560,18 +1560,25 @@ class cat_Products extends embed_Manager
         
         return $isPublic == 'yes';
     }
-    
-    
+
+
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_Shutdown($mvc)
+    public static function on_AfterSessionClose($mvc)
     {
         // Обновяваме дефиринциално групите
         if (countR($mvc->updateGroupsCount)) {
             cat_Groups::updateGroupsCnt($mvc->updateGroupsCount);
         }
-        
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_Shutdown($mvc)
+    {
         // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
         if (countR($mvc->createdProducts)) {
             foreach ($mvc->createdProducts as $rec) {

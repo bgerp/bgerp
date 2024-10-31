@@ -94,7 +94,8 @@ class hclean_JSSanitizer extends core_Manager
      * Превръщаме HTML текста в JS текст, който да може да се използва в променлива
      */
     public static function htmlToJsText($html)
-    {
+    { 
+        $html = str_replace(array('<![if !supportLists]>', '<![endif]>'), '', $html);
         $jsHtml = preg_replace(array("/\r?\n/", "/\//", "/\r/"), array('\\n', "\/", ""), addslashes($html));
         
         return $jsHtml;

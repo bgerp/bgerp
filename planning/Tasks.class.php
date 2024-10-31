@@ -296,7 +296,7 @@ class planning_Tasks extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation|showadditionalUom|description,silent');
+        $this->FLD('productId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation|showadditionalUom|description,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Бруто,input=none');
         $this->FLD('totalNetWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Нето,input=none');
@@ -329,7 +329,7 @@ class planning_Tasks extends core_Master
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
         $this->FLD('calcedCurrentDuration', 'time', 'caption=Целеви времена->Изчислена продължителност,input=none');
         $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,formOrder=103');
-        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
+        $this->FLD('wasteProductId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
         $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък->Начален,autohide');
         $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък->Допустим,autohide');
         $this->FLD('expectedTimeStart', 'datetime', 'caption=Планирани времена->Начало,input=none,tdClass=leftCol');
@@ -1028,7 +1028,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            if (in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
+            if (in_array($rec->state, array('active', 'wakeup', 'stopped')) && !$form->_cloneForm) {
                 if (empty($rec->timeDuration) && empty($rec->assetId)) {
                     $form->setError('timeDuration,assetId,indTime', "Продължителността/нормата и оборудването са задължителни при започната операция|*!");
                 }
