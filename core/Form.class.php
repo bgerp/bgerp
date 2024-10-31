@@ -916,8 +916,9 @@ class core_Form extends core_FieldSet
                         }
                     }
 
+                    $maxRadio = $type->params['maxRadio'];
                     if (!isset($field->removeAndRefreshForm) && !isset($field->refreshForm)) {
-                        $maxRadio = $type->params['maxRadio'];
+
                         if(empty($maxRadio) && !$type->params['isHorizontal']){
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
                                 $maxRadio = 4;

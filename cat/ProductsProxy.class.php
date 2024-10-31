@@ -2,19 +2,19 @@
 
 
 /**
- * Прокси клас 'doc_Thread' - Теми в документната система
+ * Прокси клас 'cat_ProductsProxy' - За артикулите в каталога
  *
  *
  * @category  bgerp
- * @package   doc
+ * @package   cat
  *
- * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class doc_ThreadsProxy extends core_Manager
+class cat_ProductsProxy extends core_Manager
 {
 
 
@@ -25,11 +25,10 @@ class doc_ThreadsProxy extends core_Manager
 
 
     /**
-    /**
      * Описание на модела
      */
     public function description()
     {
-        $this->forceProxy('doc_Threads');
+        $this->forceProxy('cat_Products');
     }
 }

@@ -900,3 +900,47 @@ function getBGERPUniqId()
     
     return core_Setup::getBGERPUniqId();
 }
+
+
+/**
+ * Апроксимира стойност от масив според $x
+ * Масивът се образува от допълнителните аргументи на функцията
+ * Всеки на позиция 1, 3, и т.н. нечетна позиция е X
+ * Wseki na poziciq 2, 4, 6, ... и т.н. на нечетна позиция  е Y
+ */
+function aprox($x3, $mapInput = array())
+{
+    if (is_scalar($mapInput)) {
+        $n = func_num_args() - 1;
+        expect($n % 2 == 0);
+        expect($n >= 2);
+        for ($i = 1; $i <= $n; $i += 2) {
+            $map[func_get_arg($i)] = func_get_arg($i + 1);
+        }
+    } else {
+        $map = $mapInput;
+    }
+ 
+    foreach ($map as $x2 => $y2) {
+        if ($x2 == $x3) {
+            
+            return $y2;
+        }
+        if ($x2 > $x3) {
+            if ($y1 && true) {
+                $b = ($y1 - $y2) / ($x1 - $x2);
+                $a = $y1 - $x1 * $b;
+                
+                $y3 = $a + $b * $x3;
+                
+                return $y3;
+            }
+            
+            return $y2;
+        }
+        $x1 = $x2;
+        $y1 = $y2;
+    }
+     
+    return $y2;
+}

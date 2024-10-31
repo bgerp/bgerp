@@ -30,6 +30,8 @@ class cond_type_Product extends cond_type_Varchar
         $fieldset->FLD('orderBy', 'enum(idAsc=По артикул [нарастващ ред],idDesc=По артикул [намаляващ ред],codeAsc=По код [нарастващ ред],codeDesc=По код [намаляващ ред])', 'caption=Конкретизиране->Подредба,mandatory');
         $fieldset->FLD('maxRadio', 'int(min=0,max=50)', 'caption=Конкретизиране->Радио бутони до,mandatory', "unit= |опции (при повече - падащо меню)|*");
         $fieldset->FLD('columns', 'int(Min=0)', 'caption=Конкретизиране->Радио бутон (колони),placeholder=2');
+        $fieldset->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)', 'caption=Конкретизиране->Със свойства');
+        $fieldset->FLD('exceptMeta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)', 'caption=Конкретизиране->Без свойства');
     }
 
 
@@ -45,13 +47,19 @@ class cond_type_Product extends cond_type_Varchar
      */
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
-        $CType = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
+        $CType = core_Type::getByName('key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax)');
         $CType->params['groups'] = $this->driverRec->productGroups;
+        if(!empty($this->driverRec->meta)){
+            $CType->params['hasProperties'] = $this->driverRec->meta;
+        }
+        if(!empty($this->driverRec->exceptMeta)){
+            $CType->params['hasnotProperties'] = $this->driverRec->exceptMeta;
+        }
         if(isset($this->driverRec->display) && $this->driverRec->display != 'name'){
             $CType->params['display'] = $this->driverRec->display;
         }
 
-        $orderBy = isset($this->driverRec->orderBy) ? $this->driverRec->orderBy : 'idAsc';
+        $orderBy = $this->driverRec->orderBy ?? 'idAsc';
         $orderByField = ($orderBy == 'idAsc') ? 'id=ASC' : (($orderBy == 'idDesc') ? 'id=DESC' : (($orderBy == 'codeAsc') ? 'code=ASC' : 'code=DESC'));
         $CType->params['orderBy'] = $orderByField;
 
@@ -120,5 +128,19 @@ class cond_type_Product extends cond_type_Varchar
         }
 
         return $title;
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param cond_type_abstract_Proto $Driver
+     * @param embed_Manager     $Embedder
+     * @param stdClass          $data
+     */
+    protected static function on_AfterPrepareEditForm(cond_type_abstract_Proto $Driver, embed_Manager $Embedder, &$data)
+    {
+        $data->form->setDefault('display', 'name');
+        $data->form->setDefault('orderBy', 'idAsc');
     }
 }

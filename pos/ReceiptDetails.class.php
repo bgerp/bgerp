@@ -156,6 +156,17 @@ class pos_ReceiptDetails extends core_Detail
 
         if($success){
             try{
+                if(core_Packs::isInstalled('voucher')) {
+
+                    if (!isset($receiptRec->revertId)) {
+                        $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($receiptRec->id), 'productId');
+                        $errorStartStr = 'Не може да платите, докато има артикули изискващи препоръчител и няма такъв';
+                        if ($error = voucher_Cards::getErrorForVoucherAndProducts($receiptRec->voucherId, $productArr, $errorStartStr)) {
+                            expect(false, $error);
+                        }
+                    }
+                }
+
                 expect(!(abs($receiptRec->paid) >= abs($receiptRec->total) && $receiptRec->total != 0), 'Вече е платено достатъчно|*!');
 
                 if(!pos_Receipts::haveRightFor('pay', $receiptRec)){
@@ -588,7 +599,6 @@ class pos_ReceiptDetails extends core_Detail
             core_Debug::startTimer('ADD_PRODUCT_GET_PRODUCT_INFO');
             $this->getProductInfo($rec);
             core_Debug::stopTimer('ADD_PRODUCT_GET_PRODUCT_INFO');
-            core_Debug::log("END ADD_PRODUCT_GET_PRODUCT_INFO " . round(core_Debug::$timers["ADD_PRODUCT_GET_PRODUCT_INFO"]->workingTime, 6));
 
             if($rec->ean && empty($rec->productId)){
                 $operation = Mode::get("currentOperation{$rec->receiptId}");

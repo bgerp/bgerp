@@ -348,12 +348,12 @@ class acc_ProductPricePerPeriods extends core_Manager
      * Връща последните цени на артикулите към дата
      *
      * @param datetime $toDate
-     * @param int $productItemId
-     * @param int $otherItems
-     * @param string $type
+     * @param mixed $productItems
+     * @param mixed $otherItems
+     * @param string $types
      * @return array $res
      */
-    public static function getPricesToDate($toDate, $productItemId = null, $otherItems = null, $type = 'stores')
+    public static function getPricesToDate($toDate, $productItems = null, $otherItems = null, $types = 'stores')
     {
         $dateColName = str::phpToMysqlName('date');
         $storeColName = str::phpToMysqlName('otherItemId');
@@ -362,9 +362,13 @@ class acc_ProductPricePerPeriods extends core_Manager
         $typeColName = str::phpToMysqlName('type');
 
         $me = cls::get(get_called_class());
-        $otherWhere = array("`{$me->dbTableName}`.{$typeColName} = '{$type}'");
-        if (!empty($productItemId)) {
-            $otherWhere[] = "`{$me->dbTableName}`.{$productColName} = {$productItemId}";
+        $typesString = "'" . implode("','", explode(",", $types)) . "'";
+        $otherWhere = array("`{$me->dbTableName}`.{$typeColName} IN ({$typesString})");
+
+        if (!empty($productItems)) {
+            $productItemsArr = arr::make($productItems);
+            $productItemsArr = implode(',', $productItemsArr);
+            $otherWhere[] = "`{$me->dbTableName}`.{$productColName} IN ({$productItemsArr})";
         }
         if (!empty($otherItems)) {
             $otherItemsArr = arr::make($otherItems);

@@ -110,7 +110,7 @@ class cat_products_Params extends doc_Detail
     {
         $this->FLD('classId', 'class', 'input=hidden,silent');
         $this->FLD('productId', 'int', 'input=hidden,silent,tdClass=leftCol wrapText');
-        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen)', 'input,caption=Параметър,mandatory,silent');
+        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen,maxRadio=1)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'text', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
@@ -883,6 +883,17 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'paramId';
+        $data->listFilter->setFieldTypeParams('paramId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+        if($filter = $data->listFilter->rec){
+            if(isset($filter->paramId)){
+                $data->query->where("#paramId = {$filter->paramId}");
+            }
+        }
+
         $data->query->orderBy('id', 'DESC');
     }
 }

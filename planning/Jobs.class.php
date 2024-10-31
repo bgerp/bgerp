@@ -58,7 +58,7 @@ class planning_Jobs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'oldJobId,storeId,dueDate,packQuantity,notes,tolerance,inputStores,sharedUsers,allowSecondMeasure';
+    public $changableFields = 'oldJobId,storeId,dueDate,packQuantity,notes,tolerance,productionScrap,inputStores,sharedUsers,allowSecondMeasure';
     
     
     /**
@@ -253,7 +253,7 @@ class planning_Jobs extends core_Master
 
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
-        $this->FLD('productionScrap', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Произв.брак');
+        $this->FLD('productionScrap', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Технолог.брак');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('allowSecondMeasure', 'enum(no=Без,yes=Задължителна)', 'caption=Втора мярка,notNull,value=no,silent,removeAndRefreshForm=secondMeasureId');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,remember,mandatory');
@@ -524,23 +524,21 @@ class planning_Jobs extends core_Master
                     $form->setDefault('secondMeasureId', $secondMeasureId);
                 }
             }
-        }
 
-        if ($productionScrap = cat_Products::getParams($productId, 'productionScrap')) {
-            $form->setDefault('productionScrap', $productionScrap);
-        }
+            if ($productionScrap = cat_Products::getParams($productId, 'productionScrap')) {
+                $form->setDefault('productionScrap', $productionScrap);
+            }
 
-        $withProductionScrap = $rec->packQuantity * (1 + $rec->productionScrap);
-        $scrapHintDisplay = (empty($rec->packQuantity) || empty($rec->productionScrap)) ? 'none' : 'inline-block';
-        $form->setField('packQuantity', array('unit' => "|*<span style='display:{$scrapHintDisplay};'><span class='quiet'>|включен техн. брак|*:</span> <span class='withProductionScrap'>{$withProductionScrap}</span></span>"));
+            $roundPackagingId = cat_UoM::fetchField($rec->packagingId, 'round');
+            $form->setField('packQuantity', array('unit' => "|*<span class='scrapHint' style='display:none;'><span class='quiet'>|включен техн. брак|*:</span> <span class='withProductionScrap' data-packaging-round='{$roundPackagingId}'></span></span>"));
+        }
 
         if($data->action == 'clone'){
             $form->setReadOnly('department');
         }
 
         $form->layout = $form->renderLayout();
-        $jsTpl = new core_ET("console.log('test');");
-        $form->layout->appendOnce($jsTpl, 'SCRIPTS');
+        jquery_Jquery::run( $form->layout,'scrapCalculation();');
     }
 
 
@@ -1047,6 +1045,9 @@ class planning_Jobs extends core_Master
 
             if (isset($rec->oldJobId)) {
                 $row->oldJobId = planning_Jobs::getLink($rec->oldJobId, 0);
+
+                $oldJobProductId = planning_Jobs::fetchField($rec->oldJobId, 'productId');
+                $row->oldJobCaption = ($rec->productId != $oldJobProductId) ? tr('Подобно задание') : tr('Предходно задание');
             }
 
             foreach (array('sBomId' => array('salesBomIdOnActivation', 'sales'), 'iBomId' => array('instantBomIdOnActivation', 'instant'), 'pBomId' =>  array('productionBomIdOnActivation', 'production')) as $bomFld => $activationBomArr) {
@@ -1103,7 +1104,7 @@ class planning_Jobs extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $rec = static::fetchRec($rec);
-        $pTitle = cat_Products::getTitleById($rec->productId);
+        $pTitle = cat_Products::getTitleById($rec->productId, $escaped);
         
         return "Job{$rec->id} - {$pTitle}";
     }
@@ -1263,10 +1264,13 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
+        $rec = &$data->rec;
+        $row = &$data->row;
+
         // Подготвяме данните на историята за показване
-        $data->row->history = array();
-        if (is_array($data->rec->history)) {
-            foreach ($data->rec->history as $historyRec) {
+        $row->history = array();
+        if (is_array($rec->history)) {
+            foreach ($rec->history as $historyRec) {
                 $historyRec['action'] = tr($historyRec['action']);
                 
                 $historyRow = (object) array('date' => cls::get('type_DateTime')->toVerbal($historyRec['date']),
@@ -1277,24 +1281,48 @@ class planning_Jobs extends core_Master
                 if (isset($historyRec['reason'])) {
                     $historyRow->reason = cls::get('type_Text')->toVerbal($historyRec['reason']);
                 }
-                
-                $data->row->history[] = $historyRow;
+
+                $row->history[] = $historyRow;
             }
         }
-        
-        $data->row->history = array_reverse($data->row->history, true);
+
+        $row->history = array_reverse($row->history, true);
         $data->packagingData = new stdClass();
         $data->packagingData->masterMvc = cls::get('cat_Products');
-        $data->packagingData->masterId = $data->rec->productId;
+        $data->packagingData->masterId = $rec->productId;
         $data->packagingData->tpl = new core_ET('[#CONTENT#]');
-        $data->packagingData->retUrl = planning_Jobs::getSingleUrlArray($data->rec->id);
-        if ($data->rec->state == 'rejected') {
+        $data->packagingData->retUrl = planning_Jobs::getSingleUrlArray($rec->id);
+        if ($rec->state == 'rejected') {
             $data->packagingData->rejected = true;
         }
         cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
         
         $data->components = array();
-        cat_Products::prepareComponents($data->rec->productId, $data->components, 'job', $data->rec->quantity);
+        cat_Products::prepareComponents($rec->productId, $data->components, 'job', $rec->quantity);
+
+        if(isset($rec->oldJobId)) {
+            $oldJobRec = $mvc->fetch($rec->oldJobId);
+            $oldJobCacheDate = !empty($oldJobRec->productViewCacheDate) ? $oldJobRec->productViewCacheDate : $oldJobRec->modifiedOn;
+            $oldJobOrigin = cat_Products::getAutoProductDesc($oldJobRec->productId, $oldJobCacheDate, 'detailed', 'job', core_Lg::getCurrent());
+
+            if(md5(strip_tags(str::removeWhiteSpace($oldJobOrigin->getContent()))) != md5(strip_tags(str::removeWhiteSpace($row->origin)))){
+                $cUrl = getCurrentUrl();
+                if(Request::get('showDiff')){
+                    unset($cUrl['showDiff']);
+                    $changeIcon = "img/16/checked-green.png";
+                    $changeTitle = 'Скриване на разликите';
+                } else {
+                    $cUrl['showDiff'] = true;
+                    $changeIcon = "img/16/checked-not-green.png";
+                    $changeTitle = 'Показване на разликите';
+                }
+                $row->showDiffBtn = ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}");
+            }
+
+            if(Request::get('showDiff')){
+                $row->origin = lib_Diff::getDiff($oldJobOrigin, $row->origin);
+            }
+        }
     }
     
     

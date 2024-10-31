@@ -2,7 +2,7 @@
 
 
 /**
- * Дравей за работа с GPT 3.5 Turbo
+ * Дравей за работа с GPT 4
  *
  * @category  bgerp
  * @package   openai
@@ -12,14 +12,14 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     GPT 3.5 Turbo
+ * @title     GPT 4о-mini
  */
-class openai_GPT35Turbo extends openai_Api
+class openai_GPT4omini extends openai_GPT4
 {
 
 
     /**
-     * Праща заявка и връща резултата чрез gpt-3.5-turbo
+     * Праща заявка и връща резултата чрез gpt-4o-mini
      *
      * @param null|string $prompt - стойността, която се подава на `messages` => `content` с `role` => `user`
      * @param array $pArr
@@ -39,18 +39,8 @@ class openai_GPT35Turbo extends openai_Api
      */
     public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null, $timeout = 12)
     {
-        self::setDefaultParams($pArr);
-        setIfNot($pArr['__endpoint'], 'chat/completions');
-        setIfNot($pArr['model'], 'gpt-3.5-turbo');
+        setIfNot($pArr['model'], 'gpt-4o-mini');
 
-        if (isset($prompt)) {
-            $pArr['messages'] = array(array('role' => 'user', 'content' => $prompt));
-        }
-
-        expect($pArr['messages'], $pArr);
-
-        $resObj = self::execCurl($pArr, $useCache, $cKey, $timeout);
-
-        return $resObj->choices[$index]->message ? $resObj->choices[$index]->message->content : false;
+        return parent::getRes($prompt, $pArr, $useCache, $index, $cKey, $timeout);
     }
 }

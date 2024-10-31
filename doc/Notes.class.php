@@ -131,7 +131,7 @@ class doc_Notes extends core_Master
      */
     public $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
     
-    
+
     /**
      * Кой може да променя активирани записи
      */
@@ -171,8 +171,8 @@ class doc_Notes extends core_Master
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn,state';
-    
-    
+
+
     /**
      * Описание на модела
      */

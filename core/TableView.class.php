@@ -217,6 +217,10 @@ class core_TableView extends core_BaseClass
                             $header[$i][$last + 1]->rowspan = $rowspan;
                             $header[$i][$last + 1]->tdClass = $tdClass;
                         }
+
+                        if(!empty($this->mvc->fields[$place]->thAttr)){
+                            $header[$i][$last + 1]->thAttr = $this->mvc->fields[$place]->thAttr;
+                        }
                     }
                     
                     // Шаблон за реда
@@ -243,19 +247,20 @@ class core_TableView extends core_BaseClass
                 }
             }
         }
-        
-        
+
         $curTH = 0;
-        
+        $hr = array();
+
         if (countR($header)) {
             foreach ($header as $i => $headerRow) {
                 if ($i == countR($header) - 1) {
                     $lastRowStart = $curTH;     // Започва последният хедър
                     $lastRowFlag = true;
                 }
-                
+
                 $headerRowCnt = countR($headerRow);
                 $j = 0;
+
                 foreach ($headerRow as $h) {
                     $attr = array();
                     
@@ -272,8 +277,18 @@ class core_TableView extends core_BaseClass
                     if ($h->colspan > 1) {
                         $attr['colspan'] = $h->colspan;
                     }
+
+                    if (!empty($h->thAttr)) {
+                        $thAttr = arr::make($h->thAttr);
+                        foreach ($thAttr as $attrName => $attrValue) {
+                            $attr[$attrName] = trim(trim($attrValue, "'"), '"');
+                        }
+
+                        $attr['colspan'] = $h->colspan;
+                    }
+
                     $th = ht::createElement('th', $attr, $h->name);
-                    
+
                     $hr[$i] .= $th->getContent();
                     
                     $curTH++;

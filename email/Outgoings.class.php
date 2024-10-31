@@ -208,7 +208,7 @@ class email_Outgoings extends core_Master
      */
     public $backupDiffFields = 'modifiedOn,state,lastSendedOn';
 
-    
+
     /**
      * Описание на модела
      */

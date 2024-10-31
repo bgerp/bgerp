@@ -147,8 +147,14 @@ class price_Lists extends core_Master
      * Да се забрани ли кеширането на документа
      */
     public $preventCache = true;
-    
-    
+
+
+    /**
+     * Дали се очаква в документа да има файлове
+     */
+    public $expectFiles = false;
+
+
     /**
      * Описание на модела (таблицата)
      */

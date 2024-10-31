@@ -1142,4 +1142,41 @@ class core_DateTime
 
         return $res;
     }
+
+
+    /**
+     * Членуване на ден от месеца
+     *
+     * @param int $day
+     * @param null|string $lg
+     * @return string
+     */
+    public static function getDayWithSuffix($day, $lg = null)
+    {
+        $lg = $lg ?? core_Lg::getCurrent();
+
+        if ($lg == "bg") {
+            if (in_array($day, [1, 21, 31])) {
+                $suffix = "-ви";
+            } elseif (in_array($day, [2, 22])) {
+                $suffix = "-ри";
+            } elseif (in_array($day, [7, 8])) {
+                $suffix = "-ми";
+            } else {
+                $suffix = "-ти";
+            }
+        } else {
+            if (in_array($day, [1, 21, 31])) {
+                $suffix = "st";
+            } elseif (in_array($day, [2, 22])) {
+                $suffix = "nd";
+            } elseif (in_array($day, [3, 23])) {
+                $suffix = "rd";
+            } else {
+                $suffix = "th";
+            }
+        }
+
+        return  $day . $suffix;
+    }
 }

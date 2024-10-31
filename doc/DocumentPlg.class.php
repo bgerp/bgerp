@@ -165,7 +165,10 @@ class doc_DocumentPlg extends core_Plugin
         if (!isset($plugins['tags_plg_Add'])) {
             $mvc->load('tags_plg_Add');
         }
-        
+
+        $mvc->load('doc_plg_TxtExportable');
+        $mvc->declareInterface('export_TxtExportIntf');
+
         if ($mvc->fetchFieldsBeforeDelete) {
             $mvc->fetchFieldsBeforeDelete .= ',';
         }
@@ -826,6 +829,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterSessionClose($mvc)
     {
+        core_Debug::startTimer('DOCUMENT_SAVE_FILES');
         foreach ((array)$mvc->saveFileArr as $rec) {
             try {
                 // Опитваме се да запишем файловете от документа в модела
@@ -837,6 +841,8 @@ class doc_DocumentPlg extends core_Plugin
                 $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
             }
         }
+
+        core_Debug::stopTimer('DOCUMENT_SAVE_FILES');
     }
     
     

@@ -527,9 +527,9 @@ class cat_products_Packagings extends core_Detail
             $defaultSecondMeasureId = $Driver->getSecondMeasureId($rec->productId);
         }
 
+        $productRec = cat_Products::fetch($rec->productId, 'measureId,isPublic');
         if (isset($rec->packagingId)) {
-            $productMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $derivitiveMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
+            $derivitiveMeasures = cat_UoM::getSameTypeMeasures($productRec->measureId);
             $uomType = cat_UoM::fetchField($rec->packagingId, 'type');
             if ($uomType != 'uom') {
                 $form->setField('templateId', 'input');
@@ -570,9 +570,20 @@ class cat_products_Packagings extends core_Detail
         // Ако редактираме, но опаковката е използвана не може да се променя
         if (!haveRole('no_one')) {
             if (isset($rec->id)) {
-                if (self::isUsed($rec->productId, $rec->packagingId, true)) {
-                    $form->setReadOnly('packagingId');
-                    $form->setReadOnly('quantity');
+
+                $checkIfPackIsUsed = true;
+                if($productRec->isPublic == 'no'){
+                    $sRec = store_Products::getQuantities($rec->productId);
+                    if(empty($sRec->quantity)){
+                       $checkIfPackIsUsed = false;
+                    }
+                }
+
+                if($checkIfPackIsUsed){
+                    if (self::isUsed($rec->productId, $rec->packagingId, true)) {
+                        $form->setReadOnly('packagingId');
+                        $form->setReadOnly('quantity');
+                    }
                 }
             }
         }

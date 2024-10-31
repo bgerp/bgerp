@@ -1395,16 +1395,31 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div></div>"));
+        // Ако попирнцип бележката не може да се приключи - да не може да се и прехвърля
+        core_Debug::startTimer('RES_RENDER_PAYMENTS');
+        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><!--ET_BEGIN PAYMENT_ERROR--><div class='paymentErrorInfo'>[#PAYMENT_ERROR#]</div><!--ET_END PAYMENT_ERROR--><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div></div>"));
+
+        $rec->_disableAllPayments = false;
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
-        $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
-        
+        if(core_Packs::isInstalled('voucher')) {
+            if(!isset($rec->revertId)){
+                $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($rec->id), 'productId');
+                $errorStartStr = 'Не може да платите, докато има артикули изискващи препоръчител и няма такъв';
+                if ($error = voucher_Cards::getErrorForVoucherAndProducts($rec->voucherId, $productArr, $errorStartStr)) {
+                    $tpl->append(tr($error), 'PAYMENT_ERROR');
+                    $rec->_disableAllPayments = true;
+                }
+            }
+        }
+
+        $disClass = ($payUrl && !$rec->_disableAllPayments) ? 'navigable' : 'disabledBtn';
         $paymentArr = array();
         $paymentArr["payment-1"] = (object)array('body' => ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true), 'placeholder' => 'PAYMENTS');
         $payments = pos_Points::fetchSelected($rec->pointId);
 
         if(!isset($rec->revertId)){
             $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
+
             foreach ($payments as $paymentId => $paymentTitle){
                 $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl, 'title' => 'Избор на вид плащане');
                 $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
@@ -1417,6 +1432,7 @@ class pos_Terminal extends peripheral_Terminal
                 // Ако е плащане с карта и има периферия подменя се с връзка с касовия апарат
                 if($paymentId == $cardPaymentId){
                     $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+
                     if(is_object($deviceRec)){
                         $attr['id'] = 'card-payment';
                         $attr['data-onerror'] = tr('Неуспешно плащане с банковия терминал|*!');
@@ -1441,7 +1457,7 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на бутон за приключване на бележката
         cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
-        
+
         $deleteBtn = $this->renderDeleteRowBtn($rec, $selectedRec);
         $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
 
@@ -1450,7 +1466,8 @@ class pos_Terminal extends peripheral_Terminal
         }
         
         $tpl->append("<div class='clearfix21'></div>");
-        
+        core_Debug::stopTimer('RES_RENDER_PAYMENTS');
+
         return $tpl;
     }
     
@@ -1578,7 +1595,7 @@ class pos_Terminal extends peripheral_Terminal
     private function renderDeleteRowBtn($rec, $selectedRec)
     {
         $deleteAttr = array('id' => "delete{$selectedRec->id}", 'class' => "posBtns deleteRow", 'title' => 'Изтриване на реда');
-        if($selectedRec){
+        if($selectedRec && !$rec->_disableAllPayments){
             if(strpos($selectedRec->action, 'payment') !== false){
                 $deleteAttr['class'] .= (pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
             } else {
@@ -2105,12 +2122,10 @@ class pos_Terminal extends peripheral_Terminal
                 }
             }
             core_Debug::stopTimer('RES_RENDER_RESULT_FETCH_RECS');
-            core_Debug::log("END RES_RENDER_RESULT_FETCH_RECS " . round(core_Debug::$timers["RES_RENDER_RESULT_FETCH_RECS"]->workingTime, 6));
 
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
             $result = $this->prepareProductResultRows($sellable, $rec, $settings);
             core_Debug::stopTimer('RES_RENDER_RESULT_VERBAL');
-            core_Debug::log("END RES_RENDER_RESULT_VERBAL " . round(core_Debug::$timers["RES_RENDER_RESULT_VERBAL"]->workingTime, 6));
             core_Cache::set('pos_Terminal', $cacheKey, $result, 2);
         }
         
@@ -2478,7 +2493,6 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'tools-holder', 'html' => $toolsTpl->getContent(), 'replace' => true);
                 core_Debug::stopTimer('RES_RENDER_COMMAND_PANEL');
-                core_Debug::log("END RES_RENDER_COMMAND_PANEL " . round(core_Debug::$timers["RES_RENDER_COMMAND_PANEL"]->workingTime, 6));
 
                 $res[] = $resObj;
             }
@@ -2491,8 +2505,6 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
                 core_Debug::stopTimer('RES_RENDER_RECEIPT');
-                core_Debug::log("END RES_RENDER_RECEIPT " . round(core_Debug::$timers["RES_RENDER_RECEIPT"]->workingTime, 6));
-
                 $res[] = $resObj;
 
                 $resObj = new stdClass();
@@ -2513,7 +2525,6 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
                 core_Debug::stopTimer('RES_RENDER_RESULT');
-                core_Debug::log("END RES_RENDER_RESULT " . round(core_Debug::$timers["RES_RENDER_RESULT"]->workingTime, 6));
 
                 $res[] = $resObj;
             } else {

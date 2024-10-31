@@ -395,7 +395,7 @@ class sales_Quotations extends deals_QuotationMaster
             if (isset($rec->bankAccountId)) {
                 $ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
                 $row->bankAccountId = $ownAccount->iban;
-                if(!Mode::isReadOnly()){
+                if(!Mode::isReadOnly() && !Mode::is('text', 'plain')){
                     $row->bankAccountId = ht::createLink($ownAccount->iban, bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId));
                 }
             }

@@ -654,46 +654,47 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     unset($row->inputServicesFrom);
                 }
             }
+
+
+            if (isset($rec->inputStoreId)) {
+                $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
+            }
+
+            $productRec = cat_Products::fetch($rec->productId, 'measureId');
+            $shortUom = cat_UoM::getShortName($productRec->measureId);
+            $row->quantity .= " {$shortUom}";
+
+            if (isset($rec->debitAmount)) {
+                $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+                $row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
+            }
+
+            $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
+            $row->subTitle = tr($row->subTitle);
+
+            $quantityInPack = $rec->quantityInPack;
+            if(!empty($rec->additionalMeasureId)){
+
+                // Ако има втора мярка, показване на информацията за нея
+                $additionalMeasureType = cat_UoM::fetchField($rec->additionalMeasureId, 'type');
+                if($rec->additionalMeasureId == $productRec->measureId || $additionalMeasureType != 'uom'){
+                    if($additionalMeasureType != 'uom'){
+                        deals_Helper::getPackInfo($row->additionalMeasureId, $rec->productId, $rec->additionalMeasureId);
+                    }
+                    $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще се отчете в производството");
+                }
+
+                if($additionalQuantityWarning = $mvc->checkAdditionalMeasureQuantity($rec)){
+                    $row->additionalMeasureQuantity = ht::createHint($row->additionalMeasureQuantity, $additionalQuantityWarning, 'warning', false);
+                }
+            }
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
         } else {
             $row->productId = cat_Products::getShortHyperlink($rec->productId, null, 'short', 'internal');
         }
 
-        $productRec = cat_Products::fetch($rec->productId, 'measureId');
-        $shortUom = cat_UoM::getShortName($productRec->measureId);
-        $row->quantity .= " {$shortUom}";
-
-        if (isset($rec->debitAmount)) {
-            $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-            $row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
-        }
         if (isset($rec->expenseItemId)) {
             $row->expenseItemId = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
-        }
-
-        $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
-        $row->subTitle = tr($row->subTitle);
-
-        $quantityInPack = $rec->quantityInPack;
-        if(!empty($rec->additionalMeasureId)){
-
-            // Ако има втора мярка, показване на информацията за нея
-            $additionalMeasureType = cat_UoM::fetchField($rec->additionalMeasureId, 'type');
-            if($rec->additionalMeasureId == $productRec->measureId || $additionalMeasureType != 'uom'){
-                if($additionalMeasureType != 'uom'){
-                    deals_Helper::getPackInfo($row->additionalMeasureId, $rec->productId, $rec->additionalMeasureId);
-                }
-                $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще се отчете в производството");
-            }
-
-            if($additionalQuantityWarning = $mvc->checkAdditionalMeasureQuantity($rec)){
-                $row->additionalMeasureQuantity = ht::createHint($row->additionalMeasureQuantity, $additionalQuantityWarning, 'warning', false);
-            }
-        }
-
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
-
-        if (isset($rec->inputStoreId)) {
-            $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
         }
     }
 
@@ -1617,9 +1618,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = $this->fetchRec($rec);
 
         if($action == 'restore' && $rec->brState != 'active') return $errorMsg;
-        $jobRec = static::getJobRec($rec);
-
         $action = $action == 'conto' ? 'контирате' : 'възстановяване';
+
+        $jobRec = static::getJobRec($rec);
+        if($jobRec->state == 'closed'){
+            return "Не може да {$action} протокола, защото заданието вече е приключено|*!";
+        }
+
+        // Ако ПП е за междинен етап - няма проблем
+        if($jobRec->productId != $rec->productId) return $errorMsg;
+
         if ($jobRec->allowSecondMeasure == 'no' && !empty($rec->additionalMeasureId)) {
             $errorMsg = "Не може да {$action} протокола, защото е с втора мярка, а заданието вече не е избрана";
         } elseif ($jobRec->allowSecondMeasure == 'yes' && empty($rec->additionalMeasureId)) {

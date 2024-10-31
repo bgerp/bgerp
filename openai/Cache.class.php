@@ -169,12 +169,13 @@ class openai_Cache extends core_Manager
             $fRecClone = $mvc->fetch($fRecClone->id);
         }
 
-        $form->FLD('_pModel', 'class(interface=openai_GPTIntf,select=title)', 'caption=Параметри->Модел, removeAndRefreshForm=__prompt|__mContentRole|__mContentSystem|__mContentAssistant');
+        $form->FLD('_pModel', 'class(interface=openai_GPTIntf,select=title)', 'maxRadio=1, caption=Параметри->Модел, refreshForm, removeAndRefreshForms=__prompt|__mContentRole|__mContentSystem|__mContentAssistant');
         $form->FLD('__temperature', 'double', 'caption=Параметри->temperature');
         $form->FLD('__max_tokens', 'double', 'caption=Параметри->max_tokens');
         $form->FLD('__top_p', 'double', 'caption=Параметри->top_p');
         $form->FLD('__frequency_penalty', 'double', 'caption=Параметри->frequency_penalty');
         $form->FLD('__presence_penalty', 'double', 'caption=Параметри->presence_penalty');
+        $form->FLD('__timeout', 'int(min=0, max=100)', 'caption=Параметри->Време, unit=s');
 
         if (isset($rec->id)) {
 
@@ -202,7 +203,15 @@ class openai_Cache extends core_Manager
                             $isMessage = true;
                         }
 
-                        continue;
+                        if ($prompt == 'gpt-4o-mini') {
+                            $defModel = core_Classes::getId('openai_GPT4omini');
+                            $isMessage = true;
+                        }
+
+                        if ($prompt == 'gpt-4o') {
+                            $defModel = core_Classes::getId('openai_GPT4o');
+                            $isMessage = true;
+                        }
                     }
                 }
 
@@ -244,6 +253,7 @@ class openai_Cache extends core_Manager
             $form->setDefault('__top_p', openai_Setup::get('API_TOP_P'));
             $form->setDefault('__frequency_penalty', openai_Setup::get('API_FREQUENCY_PENALTY'));
             $form->setDefault('__presence_penalty', openai_Setup::get('API_PRESENCE_PENALTY'));
+            $form->setDefault('__timeout', 12);
         }
 
         $form->input('_pModel');
@@ -253,6 +263,8 @@ class openai_Cache extends core_Manager
 
             if (isset($fRecClone->promptParams['messages'][0]['content'])) {
                 $form->setDefault('__prompt', $fRecClone->promptParams['messages'][0]['content']);
+            } elseif ($prompt = Request::get('__mContentRole')) {
+                $form->setDefault('__prompt', $prompt);
             }
         } else {
             $form->FLD('__mContentRole', 'text', 'caption=Параметър USER (Въпросът|&#44; |*който задаваме)->Текст, mandatory');
@@ -261,6 +273,8 @@ class openai_Cache extends core_Manager
 
             if (isset($fRecClone->promptParams['prompt'])) {
                 $form->setDefault('__mContentRole', $fRecClone->promptParams['prompt']);
+            } elseif ($prompt = Request::get('__prompt')) {
+                $form->setDefault('__mContentRole', $prompt);
             }
         }
     }
@@ -308,7 +322,7 @@ class openai_Cache extends core_Manager
 
             try {
                 $pArr['__convertRes'] = true;
-                $res = cls::getInterface('openai_GPTIntf', $rec->_pModel )->getRes($prompt, $pArr, true, 0, $cKey);
+                $res = cls::getInterface('openai_GPTIntf', $rec->_pModel )->getRes($prompt, $pArr, true, 0, $cKey, $rec->__timeout);
 
                 if ($cKey) {
 

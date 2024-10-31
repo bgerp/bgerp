@@ -30,9 +30,10 @@ abstract class openai_Api
      * @param $useCache
      * @param $index
      * @param $cKey
+     * @param $timeout
      * @return mixed
      */
-    abstract public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null);
+    abstract public function getRes($prompt = null, $pArr = array(), $useCache = true, $index = 0, &$cKey = null, $timeout = 12);
 
 
     /**
@@ -92,10 +93,11 @@ abstract class openai_Api
      * @param array $params
      * @param boolean|string $useCache
      * @param null|string $cKey
+     * @param integer $timeout
      *
      * @return mixed
      */
-    public static function execCurl($params, $useCache, &$cKey = null)
+    public static function execCurl($params, $useCache, &$cKey = null, $timeout = 12)
     {
         setIfNot($params['__method'], 'POST');
         expect($params['__endpoint']);
@@ -134,7 +136,7 @@ abstract class openai_Api
                     curl_setopt($curl, CURLOPT_POSTFIELDS, @json_encode($params));
                 }
 
-                curl_setopt($curl, CURLOPT_TIMEOUT_MS, 12000);
+                curl_setopt($curl, CURLOPT_TIMEOUT_MS, $timeout * 1000);
 
                 core_Debug::startTimer('OPENAI_EXEC');
 

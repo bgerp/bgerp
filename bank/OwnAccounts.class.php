@@ -332,8 +332,8 @@ class bank_OwnAccounts extends core_Master
         $form->FNC('currencyId', 'key(mvc=currency_Currencies, select=code,allowEmpty)', 'caption=Валута,mandatory,after=iban,input');
         $form->FNC('bic', 'varchar(12)', 'caption=BIC,after=currencyId,input');
         $form->FNC('bank', 'varchar(64)', 'caption=Банка,after=bic,input');
-        $form->FNC('conditionSaleBg', 'text(rows=2)', 'caption=Допълнителни условия към Продажба->BG,autohide,input,after=comment');
-        $form->FNC('conditionSaleEn', 'text(rows=2)', 'caption=Допълнителни условия към Продажба->EN,autohide,input,after=conditionSaleBg');
+        $form->FNC('conditionSaleBg', 'richtext(rows=2)', 'caption=Допълнителни условия към Продажба->BG,autohide,input,after=comment');
+        $form->FNC('conditionSaleEn', 'richtext(rows=2)', 'caption=Допълнителни условия към Продажба->EN,autohide,input,after=conditionSaleBg');
         $form->FNC('fromOurCompany', 'int', 'input=hidden');
         if (Request::get('fromOurCompany', 'int')) {
             $form->rec->fromOurCompany = true;

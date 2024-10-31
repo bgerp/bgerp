@@ -261,9 +261,11 @@ class store_Receipts extends store_DocumentMaster
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        $rec = &$form->rec;
         $form->setField('locationId', 'caption=Обект от');
 
         $origin = static::getOrigin($form->rec);
+
         if ($origin->isInstanceOf('purchase_Purchases')) {
             if (!isset($rec->id) && empty($rec->fromContainerId)) {
                 $data->form->FNC('importProducts', 'enum(notshipped=Недоставени (Всички),notshippedstorable=Недоставени (Складируеми),notshippedservices=Недоставени (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
@@ -400,6 +402,20 @@ class store_Receipts extends store_DocumentMaster
                 $ignoreContainerId =  ($action != 'clonerec') ? $rec->containerId : null;
                 if(!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)){
                     $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        // Обратна СР ако не е към документ да може да се създава от потребители с по-високи права
+        if($action == 'add' && isset($rec->threadId)){
+            $fromSource = (isset($rec->fromContainerId) || isset($rec->reverseContainerId));
+
+            if(!$fromSource){
+                $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                if($firstDoc->isInstanceOf('sales_Sales')) {
+                    if(!haveRole('revertShipmentDocs,ceo')){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
