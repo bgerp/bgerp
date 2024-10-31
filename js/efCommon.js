@@ -5493,7 +5493,7 @@ function radioButtonActions() {
             const groupName = $(this).attr('name');
             const radiosInGroup = $(`input[name="${groupName}"]`);
 
-            if (!radiosInGroup.is(':checked').length) {
+            if (!radiosInGroup.filter(':checked').length) {
                 const firstRadio = radiosInGroup.first();
                 firstRadio.prop('checked', true);
                 firstRadio.data('wasChecked', true);
