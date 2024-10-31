@@ -652,11 +652,13 @@ class type_Key extends type_Int
             parent::setFieldWidth($attr);
 
             $maxRadio = $this->params['maxRadio'];
-            if(empty($maxRadio) && !$this->params['isHorizontal']){
-                if(arr::isOptionsTotalLenBellowAllowed($options)){
-                    $maxRadio = 4;
-                    $this->params['select2MinItems'] = 10000;
-                    $this->params['columns'] =  ($optionsCnt > 3) ?  4 : 3;
+            if (!$attr['_isRefresh']) {
+                if(empty($maxRadio) && !$this->params['isHorizontal']){
+                    if(arr::isOptionsTotalLenBellowAllowed($options)){
+                        $maxRadio = 4;
+                        $this->params['select2MinItems'] = 10000;
+                        $this->params['columns'] =  ($optionsCnt > 3) ?  4 : 3;
+                    }
                 }
             }
 
