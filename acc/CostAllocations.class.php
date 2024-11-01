@@ -376,8 +376,7 @@ class acc_CostAllocations extends core_Manager
             
             // Проверка дали ще се разпределя повече от допустимото количество
             $maxQuantity = $Detail->getMaxQuantity($rec->detailRecId);
-            
-            if ($allocatedQuantity > $maxQuantity) {
+            if (round($allocatedQuantity, 5) > round($maxQuantity, 5)) {
                 $maxQuantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($maxQuantity);
                 $shortUom = cat_UoM::getShortName($uomId);
                 $form->setError('quantity', "Разпределяне над допустимото количество от|* <b>{$maxQuantity}</b> {$shortUom}");
@@ -665,8 +664,6 @@ class acc_CostAllocations extends core_Manager
                 $allocatedByFar = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId);
                 if ($allocatedByFar >= $maxQuantity) {
                     $requiredRoles = 'no_one';
-                    
-                    return;
                 }
             }
         }
