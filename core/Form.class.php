@@ -900,6 +900,10 @@ class core_Form extends core_FieldSet
                     $attr['_isAllowEmpty'] = true;
                 }
 
+                if (isset($field->removeAndRefreshForm) || isset($field->refreshForm)) {
+                    $attr['_isRefresh'] = true;
+                }
+
                 if (($optionsCount > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     unset($attr['value']);
                     $input = new ET();
@@ -917,8 +921,7 @@ class core_Form extends core_FieldSet
                     }
 
                     $maxRadio = $type->params['maxRadio'];
-                    if (!isset($field->removeAndRefreshForm) && !isset($field->refreshForm)) {
-
+                    if (!$attr['_isRefresh']) {
                         if(empty($maxRadio) && !$type->params['isHorizontal']){
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
                                 $maxRadio = 4;
