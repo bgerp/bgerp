@@ -312,6 +312,12 @@ class cal_Tasks extends embed_Manager
 
 
     /**
+     * Позволява ли се да се създава документа с ориджин от различна от подадената папка
+     */
+    public $allowOriginFromDifferentFolder = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -379,7 +385,9 @@ class cal_Tasks extends embed_Manager
         
         // Точното време на затваряне
         $this->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворена на,input=none');
-        
+        $this->FLD('srcId', 'int', 'input=hidden, silent');
+        $this->FLD('srcClass', 'varchar', 'input=hidden, silent');
+
         $this->setDbIndex('state');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('createdOn');
@@ -430,15 +438,6 @@ class cal_Tasks extends embed_Manager
         }
 
         Request::setProtected(array('srcId', 'srcClass'));
-        $form->FNC('SrcId', 'int', 'input=hidden, silent');
-        $form->FNC('SrcClass', 'varchar', 'input=hidden, silent');
-        
-        if ($srcId = Request::get('srcId', 'int')) {
-            if ($srcClass = Request::get('srcClass')) {
-                $form->setDefault('SrcId', $srcId);
-                $form->setDefault('SrcClass', $srcClass);
-            }
-        }
 
         $form->setDefault('priority', 'normal');
         
@@ -494,6 +493,9 @@ class cal_Tasks extends embed_Manager
             if(!empty($unsortedFolderSteps) || isset($rec->stepId)) {
                 $unsortedFolderSteps = empty($unsortedFolderSteps) ? array() : $unsortedFolderSteps;
                 $availableStepOptions = doc_UnsortedFolderSteps::getOptionArr($unsortedFolderSteps, $rec->stepId);
+                if($Driver = $mvc->getDriver($rec)) {
+                    $Driver->invoke('AfterGetEditFormStepOptions', array($mvc, &$availableStepOptions, &$data));
+                }
                 $form->setOptions('stepId', array() + $availableStepOptions);
                 $form->setField('stepId', 'input');
             }
@@ -677,6 +679,17 @@ class cal_Tasks extends embed_Manager
         if(isset($rec->stepId)){
             $row->stepId = doc_UnsortedFolderSteps::getSaoFullName($rec->stepId);
             $row->stepId = ht::createLink($row->stepId, doc_UnsortedFolderSteps::getSingleUrlArray($rec->stepId));
+        }
+
+        if(isset($rec->srcId) && isset($rec->srcClass)) {
+            $Source = cls::get($rec->srcClass);
+            if(cls::haveInterface('doc_DocumentIntf', $Source)) {
+                $row->srcId = $Source->getLink($rec->srcId, 0);
+            } elseif($Source instanceof core_Master) {
+                $row->srcId = $Source->getHyperlink($rec->srcId, 0);
+            } else {
+                $row->srcId = $Source->getTitleById($rec->srcId);
+            }
         }
     }
     
@@ -1311,10 +1324,12 @@ class cal_Tasks extends embed_Manager
             }
         }
 
-        if ($action == 'add' && isset($rec->parentId)) {
-            $parentState = $mvc->fetchField($rec->parentId, 'state');
-            if(in_array($parentState, array('draft', 'rejected', 'closed'))){
-                $requiredRoles = 'no_one';
+        if ($action == 'add' && isset($rec)) {
+            if(isset($rec->parentId)) {
+                $parentState = $mvc->fetchField($rec->parentId, 'state');
+                if(in_array($parentState, array('draft', 'rejected', 'closed'))){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -3509,6 +3524,10 @@ class cal_Tasks extends embed_Manager
 
         if (isset($rec->parentId)) {
             $resArr['parentId'] = array('name' => tr('Подзадача на'), 'val' => '[#parentId#]');
+        }
+
+        if ($rec->srcId || $rec->srcCllass) {
+            $resArr['srcId'] = array('name' => tr('Източник'), 'val' => '[#srcId#]');
         }
     }
     

@@ -113,6 +113,12 @@
 			<td>[#planning_Steps_mandatoryDocuments#]</td>
 		</tr>
 		<!--ET_END planning_Steps_mandatoryDocuments-->
+		<!--ET_BEGIN planning_Steps_supportSystemFolderId-->
+		<tr>
+			<td class='quiet'>|Система за поддръжка|*:</td>
+			<td>[#planning_Steps_supportSystemFolderId#]</td>
+		</tr>
+		<!--ET_END planning_Steps_supportSystemFolderId-->
 	</table>
 <!--ET_END PLANNING-->
 <!--ET_BEGIN LABELS-->
