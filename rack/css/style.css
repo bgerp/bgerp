@@ -189,3 +189,7 @@
     display: inline-block;
 }
 
+.changeQuantityBtn {
+    margin-left:2px !important;
+}
+
