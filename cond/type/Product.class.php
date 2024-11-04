@@ -28,7 +28,8 @@ class cond_type_Product extends cond_type_Varchar
         $fieldset->FLD('show', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване,mandatory');
         $fieldset->FLD('display', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Избор,mandatory');
         $fieldset->FLD('orderBy', 'enum(idAsc=По артикул [нарастващ ред],idDesc=По артикул [намаляващ ред],codeAsc=По код [нарастващ ред],codeDesc=По код [намаляващ ред])', 'caption=Конкретизиране->Подредба,mandatory');
-        $fieldset->FLD('maxRadio', 'int(min=0,max=50)', 'caption=Конкретизиране->Радио бутони до,mandatory', "unit= |опции (при повече - падащо меню)|*");
+        $fieldset->FLD('maxSuggestions', 'int(Min=0)', 'caption=Конкретизиране->Макс. предложения,mandatory', "unit=при показване в комбобокс,placeholder=10");
+        $fieldset->FLD('maxRadio', 'int(min=0,max=50)', 'caption=Конкретизиране->Радио бутони до,mandatory', "unit=|опции (при повече - падащо меню)|*");
         $fieldset->FLD('columns', 'int(Min=0)', 'caption=Конкретизиране->Радио бутон (колони),placeholder=2');
         $fieldset->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)', 'caption=Конкретизиране->Със свойства');
         $fieldset->FLD('exceptMeta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)', 'caption=Конкретизиране->Без свойства');
@@ -47,7 +48,8 @@ class cond_type_Product extends cond_type_Varchar
      */
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
-        $CType = core_Type::getByName('key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax)');
+        $maxSuggestions = !empty($this->driverRec->maxSuggestions) ? $this->driverRec->maxSuggestions : 10;
+        $CType = core_Type::getByName("key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions={$maxSuggestions},forceAjax)");
         $CType->params['groups'] = $this->driverRec->productGroups;
         if(!empty($this->driverRec->meta)){
             $CType->params['hasProperties'] = $this->driverRec->meta;
