@@ -795,6 +795,7 @@ class cat_products_Packagings extends core_Detail
      */
     public static function updateFirstDocument($Master, $rec, $remove = false)
     {
+        $me = cls::get(get_called_class());
         $Master = cls::get($Master);
 
         $masterClassId = $Master->getClassId();
@@ -916,18 +917,18 @@ class cat_products_Packagings extends core_Detail
                     $pRec->firstClassId = null;
                     $pRec->firstDocId = null;
 
-                    self::save($pRec, $saveArr);
+                    $me->save_($pRec, $saveArr);
                 }
             }
 
             $dRecArr = array();
             self::isUsed($productId, $packagingId, false, array('active', 'closed'), $dRecArr, true);
 
-            if ($dRecArr) {
+            if ($dRecArr && ($dRecArr['classId'] != $pRec->firstClassId) && ($dRecArr['id'] != $pRec->firstDocId)) {
                 $pRec->firstClassId = $dRecArr['classId'];
                 $pRec->firstDocId = $dRecArr['id'];
 
-                self::save($pRec, $saveArr);
+                $me->save_($pRec, $saveArr);
             }
         }
     }
