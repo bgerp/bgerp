@@ -923,7 +923,7 @@ class cat_products_Packagings extends core_Detail
             $dRecArr = array();
             self::isUsed($productId, $packagingId, false, array('active', 'closed'), $dRecArr, true);
 
-            if ($dRecArr) {
+            if ($dRecArr && ($dRecArr['classId'] != $pRec->firstClassId) && ($dRecArr['id'] != $pRec->firstDocId)) {
                 $pRec->firstClassId = $dRecArr['classId'];
                 $pRec->firstDocId = $dRecArr['id'];
 
