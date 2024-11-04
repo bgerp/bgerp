@@ -73,7 +73,7 @@ class plg_LastUsedKeys extends core_Plugin
                         if ($rec->{$field} > 0) {
                             $usedRec->id = $rec->{$field};
                             $usedRec->lastUsedOn = dt::verbal2mysql();
-                            $usedClass->save($usedRec, 'lastUsedOn');
+                            $usedClass->save_($usedRec, 'lastUsedOn');
                         }
                     }
                 }
@@ -93,7 +93,7 @@ class plg_LastUsedKeys extends core_Plugin
                                 if ($key > 0) {
                                     $usedRec->id = $key;
                                     $usedRec->lastUsedOn = dt::verbal2mysql();
-                                    $usedClass->save($usedRec, 'lastUsedOn');
+                                    $usedClass->save_($usedRec, 'lastUsedOn');
                                 }
                             }
                         }
