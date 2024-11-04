@@ -273,7 +273,7 @@ class acc_CostAllocations extends core_Manager
         
         // Колко има още за разпределяне
         $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
-        $toAllocate = $maxQuantity - $allocatedQuantity;
+        $toAllocate = round($maxQuantity - $allocatedQuantity, 6);
         $form->setDefault('quantity', $toAllocate);
         
         // Показване на к-то
