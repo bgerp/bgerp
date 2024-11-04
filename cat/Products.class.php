@@ -1494,7 +1494,7 @@ class cat_Products extends embed_Manager
             $touchedGroups = keylist::diff($rec->_oldGroups, $rec->groups);
             $touchedGroups = keylist::merge($touchedGroups, keylist::diff($rec->groups, $rec->_oldGroups));
         } elseif($rec->_isCreated){
-            $touchedGroups += $rec->groups;
+            $touchedGroups = $rec->groups;
         }
 
         // Записване в перманентния кеш докоснатите групи
