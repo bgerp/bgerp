@@ -120,6 +120,7 @@ class acc_Lists extends core_Manager
         // Уникални индекси
         $this->setDbUnique('num');
         $this->setDbUnique('name');
+        $this->setDbIndex('systemId');
     }
     
     
@@ -254,8 +255,8 @@ class acc_Lists extends core_Manager
             $row->featureList = type_Varchar::escape(implode(', ', $rec->featureList));
         }
     }
-    
-    
+
+
     /**
      * Предизвиква обновяване на обобщената информация за
      * номенклатура с посоченото id
@@ -272,9 +273,10 @@ class acc_Lists extends core_Manager
         $rec->itemsCnt = $itemsQuery->count();
         
         // Намираме кога последно е използвано перо от номенклатурата
-        $itemsQuery->XPR('lastused', 'datetime', 'max(#lastUseOn)');
-        if ($lastuse = $itemsQuery->fetch()->lastused) {
-            $rec->lastUseOn = $lastuse;
+        $itemsQuery->XPR('max', 'datetime', 'max(#lastUseOn)');
+        $itemsQuery->show('max');
+        if ($maxLastUsed = $itemsQuery->fetch()->max) {
+            $rec->lastUseOn = $maxLastUsed;
         }
         
         // Обновяваме информацията за номенклатурата
