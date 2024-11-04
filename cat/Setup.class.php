@@ -309,7 +309,15 @@ class cat_Setup extends core_ProtoSetup
             'offset' => 1327,
             'timeLimit' => 20
         ),
-    
+        array(
+            'systemId' => 'Update Touched Groups Cnt',
+            'description' => 'Обновяване на брояча на последно използваните групи',
+            'controller' => 'cat_Groups',
+            'action' => 'UpdateTouchedGroupsCnt',
+            'period' => 60,
+            'offset' => 10,
+            'timeLimit' => 20
+        ),
     );
     
     

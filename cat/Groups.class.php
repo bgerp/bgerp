@@ -535,11 +535,38 @@ class cat_Groups extends core_Master
 
 
     /**
-     * Обновява броячите на групите по cron
+     * Обновява броячите на всички групите по cron
      */
     public function cron_UpdateGroupsCnt()
     {
         self::updateGroupsCnt();
+    }
+
+
+    /**
+     * Обновяване на засегнатите групи по разписание
+     * @return string|void
+     */
+    public function cron_UpdateTouchedGroupsCnt()
+    {
+        $cachedGroups = core_Permanent::getLikeKey('touchedGroups');
+        if(!countR($cachedGroups)){
+            core_Debug::log('НЯМА ПРОМЕНЕНИ ГРУПИ');
+            return;
+        }
+
+        $groupsArr = array();
+        foreach ($cachedGroups as $groupKeylist){
+            $groupsArr += keylist::toArray($groupKeylist);
+        }
+
+        core_Permanent::remove('touchedGroups', true);
+
+        if(countR($groupsArr)){
+            self::updateGroupsCnt($groupsArr);
+        }
+
+        return "Обновен брой групи: " . countR($groupsArr);
     }
 
 
