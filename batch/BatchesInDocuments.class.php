@@ -85,7 +85,9 @@ class batch_BatchesInDocuments extends core_Manager
         $this->setDbIndex('batch');
         $this->setDbIndex('detailClassId,detailRecId');
         $this->setDbIndex('productId');
+        $this->setDbIndex('productId,batch');
         $this->setDbIndex('detailClassId,detailRecId,productId,storeId');
+        $this->setDbIndex('containerId');
     }
 
 
@@ -528,16 +530,20 @@ class batch_BatchesInDocuments extends core_Manager
             $displayBatches = max($displayBatches, countR($exTableRec['batch']));
             // Ако всички партиди са над разрешените показваме първите N
             if ($batchesCount > $displayBatches) {
+                $finalTableRec = $tableRec;
+                $tableRec = $exTableRec;
                 $haveMoreThenDisplayedBatches = true;
-                $newTableRec = array();
-                $i = 0;
-                foreach ($tableRec['batch'] as $index => $b){
+                $i = countR($tableRec['batch']);
+
+                foreach ($finalTableRec['batch'] as $index => $b){
                     if($i == $displayBatches) break;
-                    $newTableRec['batch'][$index] = $b;
-                    $newTableRec['quantity'][$index] = $tableRec['quantity'][$index];
-                    $i++;
+                    if(!in_array($b, $tableRec['batch'])){
+                        $tableRec['batch'][] = $b;
+                        $tableRec['quantity'][] = null;
+                        $i++;
+                    }
                 }
-                $tableRec = $newTableRec;
+
                 $Int = core_Type::getByName('int');
                 $middleCaption = "->Показват се първите партиди|* <b>{$Int->toVerbal($displayBatches)}</b> |от общо|* <b>{$Int->toVerbal($batchesCount)}</b>->";
             }

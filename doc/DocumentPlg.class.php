@@ -2073,9 +2073,11 @@ class doc_DocumentPlg extends core_Plugin
                     doc_Threads::requireRightFor('single', $oRec->threadId);
                 }
             }
-            
-            $rec->threadId = $oRec->threadId;
-            $rec->folderId = $oRec->folderId;
+
+            if(!($mvc->allowOriginFromDifferentFolder === true && isset($rec->folderId))){
+                $rec->threadId = $oRec->threadId;
+                $rec->folderId = $oRec->folderId;
+            }
         }
         
         if ($rec->originId || $rec->foreignId) {

@@ -1309,7 +1309,7 @@ class planning_Jobs extends core_Master
                 $cUrl = getCurrentUrl();
                 if(Request::get('showDiff')){
                     unset($cUrl['showDiff']);
-                    $changeIcon = "img/16/checked-green.png";
+                    $changeIcon = "img/16/checked-red.png";
                     $changeTitle = 'Скриване на разликите';
                 } else {
                     $cUrl['showDiff'] = true;
