@@ -85,7 +85,9 @@ class batch_BatchesInDocuments extends core_Manager
         $this->setDbIndex('batch');
         $this->setDbIndex('detailClassId,detailRecId');
         $this->setDbIndex('productId');
+        $this->setDbIndex('productId,batch');
         $this->setDbIndex('detailClassId,detailRecId,productId,storeId');
+        $this->setDbIndex('containerId');
     }
 
 
