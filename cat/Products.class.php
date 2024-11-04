@@ -279,12 +279,6 @@ class cat_Products extends embed_Manager
     
     
     /**
-     * Групи, които са засегнати и трябва да им се опресни броя
-     */
-    public $updateGroupsCount = array();
-    
-    
-    /**
      * Кеширана информация за артикулите
      */
     protected static $productInfos = array();
@@ -1495,11 +1489,17 @@ class cat_Products extends embed_Manager
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        $touchedGroups = '';
         if(isset($rec->_oldGroups)){
-            $mvc->updateGroupsCount += keylist::toArray(keylist::diff($rec->_oldGroups, $rec->groups));
-            $mvc->updateGroupsCount += keylist::toArray(keylist::diff($rec->groups, $rec->_oldGroups));
+            $touchedGroups = keylist::diff($rec->_oldGroups, $rec->groups);
+            $touchedGroups = keylist::merge($touchedGroups, keylist::diff($rec->groups, $rec->_oldGroups));
         } elseif($rec->_isCreated){
-            $mvc->updateGroupsCount += keylist::toArray($rec->groups);
+            $touchedGroups += $rec->groups;
+        }
+
+        // Записване в перманентния кеш докоснатите групи
+        if(!empty($touchedGroups)){
+            core_Permanent::set("touchedGroups|{$touchedGroups}", $touchedGroups, 120);
         }
 
         if ($rec->groups) {
@@ -1559,18 +1559,6 @@ class cat_Products extends embed_Manager
         $isPublic = ($rec->isPublic) ? $rec->isPublic : $this->fetchField($rec->id, 'isPublic');
         
         return $isPublic == 'yes';
-    }
-
-
-    /**
-     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
-     */
-    public static function on_AfterSessionClose($mvc)
-    {
-        // Обновяваме дефиринциално групите
-        if (countR($mvc->updateGroupsCount)) {
-            cat_Groups::updateGroupsCnt($mvc->updateGroupsCount);
-        }
     }
 
 
