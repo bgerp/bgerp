@@ -1879,10 +1879,6 @@ class pos_Terminal extends peripheral_Terminal
     {
         $settings = pos_Points::getSettings($rec->pointId);
         $searchString = plg_Search::normalizeText($string);
-        $data = new stdClass();
-        $data->rec = $rec;
-        $data->searchString = $searchString;
-        $data->searchStringPure = $string;
         $rec->_selectedGroupId = Mode::get("currentSelectedGroup{$rec->id}");
         $rec->_selectedGroupId = (!empty($rec->_selectedGroupId)) ? $rec->_selectedGroupId : 'all';
         
