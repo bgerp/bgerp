@@ -163,15 +163,15 @@ class tags_Tags extends core_Manager
 
         $resArr['nameLink'] = ht::createLink($rec->name, $url);
 
-        $resArr['span'] = "<span class='tags tagType-{$rec->type}'";
-
+        $style = "";
+        $className = "tags tagType-{$rec->type} ";
         if ($rec->color) {
+            $className .= phpcolor_Adapter::checkColor($rec->color, 'dark') ? ' darkBg' : ' lightBg';
             $resArr['color'] = $rec->color;
-
-            $color = phpcolor_Adapter::checkColor($rec->color, 'dark') ? '#fff' : '#000';
-
-            $resArr['span'] .= " style='background-color: {$rec->color}; color: {$color}'";
+            $style = "background-color: {$rec->color};";
         }
+
+        $resArr['span'] = "<span class='{$className}' style='{$style}'";
 
         $name = $resArr['nameLink'];
 

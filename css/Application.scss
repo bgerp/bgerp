@@ -1895,6 +1895,13 @@ a.tUnsighted {
 	}
 }
 
+.tags.lightBg a{
+	color: #000 !important;
+}
+.tags.darkBg a{
+	color: #fff !important;
+}
+
 .doc_Threads .listTable .documentTags .tags{
 	font-size: 0.9em !important;
 	top: 0 !important
