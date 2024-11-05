@@ -202,7 +202,7 @@ class doc_Linked extends core_Manager
      */
     public static function getRecsForType($type, $id, $showRejecte = true, $limit = 100, $Pager = null)
     {
-        $query = self::getQuery();
+        $query = doc_LinkedProxy::getQuery();
         
         if (!$showRejecte) {
             $query->where("#state != 'rejected'");
@@ -964,7 +964,7 @@ class doc_Linked extends core_Manager
             }
         }
         
-        $query = self::getQuery();
+        $query = doc_LinkedProxy::getQuery();
         $query->where("#state = 'active'");
         $query->orderBy('createdOn', 'DESC');
         $query->limit($qLimit);
@@ -1078,7 +1078,7 @@ class doc_Linked extends core_Manager
                 }
             }
         }
-        
+
         return $actStr;
     }
     
