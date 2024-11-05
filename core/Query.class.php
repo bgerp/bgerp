@@ -314,22 +314,6 @@ class core_Query extends core_FieldSet
     
     
     /**
-     * Добавя с AND условие, посоченото поле да съдържа поне един от ключовете в keylist
-     * Алтернативна функция с Regexp
-     */
-    public function likeKeylist1($field, $keylist, $or = false)
-    {
-        $regExp = trim($keylist, '|');
-        
-        if ($regExp) {
-            $this->where("#{$field} REGEXP BINARY '\\\|({$regExp})\\\|'", $or);
-        }
-        
-        return $this;
-    }
-    
-    
-    /**
      * Преброява срещанията на всяко от изброените id-та в полето keylistName на редовете от заявката
      *
      * @param string $keylistName        - името на keylist полето
