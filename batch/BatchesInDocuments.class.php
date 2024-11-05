@@ -531,7 +531,7 @@ class batch_BatchesInDocuments extends core_Manager
             // Ако всички партиди са над разрешените показваме първите N
             if ($batchesCount > $displayBatches) {
                 $finalTableRec = $tableRec;
-                $tableRec = $exTableRec;
+                $tableRec = !empty($exTableRec) ? $exTableRec : array('batch' => array(), 'quantity' => array());
                 $haveMoreThenDisplayedBatches = true;
                 $i = countR($tableRec['batch']);
 
