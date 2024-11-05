@@ -30,6 +30,7 @@
            </td>
            <td class="taskSpecInfo">
                [#productDescription#]
+               <small>[#jobProductPackagings#]</small>
            </td>
        </tr>
     </table>
