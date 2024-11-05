@@ -970,19 +970,21 @@ class doc_Linked extends core_Manager
         $query->limit($qLimit);
         
         $query->where(array("#outType = '[#1#]'", $type));
-        
+
+        $actTypeStrArr = array();
+
         // Търсим само в наличните опции
-        $or = false;
         foreach ((array) $actTypeArrOpt as $aTypeStr => $aTypeVerb) {
             $aTypeStr = trim($aTypeStr);
             if (!$aTypeStr) {
                 continue;
             }
-            
-            $query->where(array("#actType = '[#1#]'", $aTypeStr), $or);
-            $or = true;
+            $actTypeStrArr[$aTypeStr] = $aTypeStr;
         }
-        
+        if (!empty($actTypeStrArr)) {
+            $query->in('actType', $actTypeStrArr);
+        }
+
         if ($type == 'doc') {
             
             // Подобен файл - от същия клас
