@@ -580,11 +580,11 @@ class eshop_Groups extends core_Master
                 
                 if ($rec->icon) {
                     $img = new thumb_Img($rec->icon, 600, 450, 'fileman');
-                    $tpl->replace(ht::createLink($img->createImg(), $rec->url), 'img');
+                    $tpl->replace(ht::createLink($img->createImg(), $rec->url, false, array('title' => $rec->seoTitle ? $rec->seoTitle : null)), 'img');
                 } else {
                     continue;
                 }
-                $name = ht::createLink($this->getVerbal($rec, 'name'), $rec->url);
+                $name = ht::createLink($this->getVerbal($rec, 'name', false, array('title' => $rec->seoTitle ? $rec->seoTitle : null)), $rec->url);
                 $tpl->replace($name, 'name');
                 $all->append($tpl);
             }
@@ -732,6 +732,10 @@ class eshop_Groups extends core_Master
             
             if ($this->haveRightFor('edit', $rec)) {
                 $l->editLink = ht::createLink($editImg, array('eshop_Groups', 'edit', $rec->id, 'ret_url' => true));
+            }
+
+            if(isset($rec->seoTitle)) {
+                $l->seoTitle = $rec->seoTitle;
             }
             
             $data->links[] = $l;
