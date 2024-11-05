@@ -577,10 +577,8 @@ class bgfisc_plg_Receipts extends core_Plugin
     {
         if (empty($rec->revertId)){
             $regRec = bgfisc_Register::createUrn($mvc, $rec->id, true);
-            core_Statuses::newStatus("Създаване на бележка с УНП|* <b>{$regRec->urn}<b>");
         } elseif($rec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT){
             $regRec = bgfisc_Register::createUrn($mvc, $rec->id, false);
-            core_Statuses::newStatus("Създаване УНП на стара бележка|* <b>{$regRec->urn}<b>");
         }
     }
     

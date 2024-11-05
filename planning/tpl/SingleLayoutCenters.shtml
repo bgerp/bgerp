@@ -72,6 +72,10 @@
                     <!--ET_BEGIN ShowDocumentsAsButtons-->
                     <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
                     <!--ET_END ShowDocumentsAsButtons-->
+
+					<!--ET_BEGIN supportSystemFolderId-->
+					<div>|Система за подаване на сигнали|*: [#supportSystemFolderId#]</div>
+					<!--ET_END supportSystemFolderId-->
 	            </div>
 	        </fieldset>
 	        [#Assets#]

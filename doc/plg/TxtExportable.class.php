@@ -18,15 +18,6 @@ class doc_plg_TxtExportable extends core_Plugin
 {
 
     /**
-     * Извиква се след описанието на модела
-     */
-    public static function on_AfterDescription(&$mvc)
-    {
-        $mvc->declareInterface('export_TxtExportIntf');
-    }
-
-
-    /**
      * Дефолтна имплементация на функцията `getTxtContent`
      *
      * @param core_Mvc $mvc
@@ -60,6 +51,31 @@ class doc_plg_TxtExportable extends core_Plugin
         $startStr .= " " . tr('в състояние') . " {$row->state}" . "\n";
 
         $string = $startStr . $string;
+
+        // Кои са прикачените файлове + текстовото им съдържание, ако имат
+        Mode::push('text', 'plain');
+        $linkedFiles = $mvc->getLinkedFiles($rec);
+        foreach ($linkedFiles as $fileHnd => $fileName){
+            $fileLen = fileman_Files::fetchByFh($fileHnd, 'fileLen');
+            $fileLenVerbal = core_Type::getByName('fileman_FileSize')->toVerbal($fileLen);
+
+            $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
+            if(empty($fileTxtContent)) continue;
+
+            $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
+            $string .= "\n" . tr("|*& Прикачен файл|*: {$fileName} ({$fileLenVerbal})") . "\n";
+            $string .= tr("Извлечен текст|*: ");
+            $strLen = mb_strlen($fileTxtContent);
+            if(mb_strlen($fileTxtContent) > 10000){
+                $rest = $strLen - 10000;
+                $string .= substr($fileTxtContent, 0, 10000);
+                $string .= tr("|* ( |още|* {$rest} |символа|* )") . "\n";
+            } else {
+                $string .= $fileTxtContent . "\n";
+            }
+        }
+        Mode::pop('text');
+
         $text = $string;
     }
 }

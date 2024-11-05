@@ -60,6 +60,13 @@
             [#description#]
         </fieldset>
         <!--ET_END description-->
+
+        <!--ET_BEGIN productSteps-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Произв. етапи|*</legend>
+            [#productSteps#]
+        </fieldset>
+        <!--ET_END productSteps-->
         [#DETAILS#]
     </div>
 </div>

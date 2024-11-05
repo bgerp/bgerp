@@ -32,7 +32,7 @@ class colab_Threads extends core_Manager
     /**
      * 10 секунди време за опресняване на нишката
      */
-    public $refreshRowsTime = 10000;
+    public $refreshRowsTime = 60000;
     
     
     /**
@@ -385,6 +385,12 @@ class colab_Threads extends core_Manager
         
         if(core_Users::isContractor() && !haveRole('powerPartner')){
             unset($data->listFields['partnerDocCnt']);
+        }
+
+
+        // Ако има търсене, рефрешването да е след по-дълго време
+        if (isset($data->listFilter->rec->search)) {
+            $this->refreshRowsTime = 600000; // 10 мин.
         }
     }
     

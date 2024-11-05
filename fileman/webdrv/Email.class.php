@@ -135,19 +135,40 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
                 'order' => 9,
             );
 
-        $parsedData = '';
-        if (openai_Setup::get('TOKEN')) {
+        try {
+            $clsArr = core_Classes::getOptionsByInterface('email_interfaces_ParseSourceDataIntf');
+        } catch (Exception $e) {
+            $clsArr = array();
+        }
+
+        if ($clsArr) {
+            $parsedData = '';
             $cTab = Request::get('currentTab');
             if ($cTab == 'emailData') {
-                try {
-                    $parsedData = openai_ExtractContactInfo::extractEmailDataFromEmlFile($source);
-                } catch (openai_Exception $e) {
-                    $parsedData = tr('Грешка при извличане');
-                    reportException($e);
+                foreach ($clsArr as $cls => $clsName) {
+                    if (!cls::load($clsName, true)) {
+                        continue;
+                    }
+
+                    $clsInst = cls::getInterface('email_interfaces_ParseSourceDataIntf', $cls);
+
+                    $parsedData = $clsInst->getSenderData($source);
+
+                    if ($parsedData) {
+
+                        break;
+                    }
                 }
             }
+
+            if ($parsedData === false) {
+                $parsedData = tr('Грешка при извличане');
+            }
+
             $parsedData = trim($parsedData);
-            $parsedData = str_replace("\n", '<br />', $parsedData);
+            if ($parsedData) {
+                $parsedData = str_replace("\n", '<br />', $parsedData);
+            }
 
             // Таб за данните
             $tabsArr['emailData'] = (object)
@@ -157,7 +178,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
                 'order' => 100,
             );
         }
-        
+
         return $tabsArr;
     }
     

@@ -85,7 +85,9 @@ class batch_BatchesInDocuments extends core_Manager
         $this->setDbIndex('batch');
         $this->setDbIndex('detailClassId,detailRecId');
         $this->setDbIndex('productId');
+        $this->setDbIndex('productId,batch');
         $this->setDbIndex('detailClassId,detailRecId,productId,storeId');
+        $this->setDbIndex('containerId');
     }
 
 
@@ -525,19 +527,23 @@ class batch_BatchesInDocuments extends core_Manager
             }
             Mode::pop('htmlEntity');
             $displayBatches = batch_Setup::get('COUNT_IN_EDIT_WINDOW');
-
+            $displayBatches = max($displayBatches, countR($exTableRec['batch']));
             // Ако всички партиди са над разрешените показваме първите N
             if ($batchesCount > $displayBatches) {
+                $finalTableRec = $tableRec;
+                $tableRec = $exTableRec;
                 $haveMoreThenDisplayedBatches = true;
-                $newTableRec = array();
-                $i = 0;
-                foreach ($tableRec['batch'] as $index => $b){
+                $i = countR($tableRec['batch']);
+
+                foreach ($finalTableRec['batch'] as $index => $b){
                     if($i == $displayBatches) break;
-                    $newTableRec['batch'][$index] = $b;
-                    $newTableRec['quantity'][$index] = $tableRec['quantity'][$index];
-                    $i++;
+                    if(!in_array($b, $tableRec['batch'])){
+                        $tableRec['batch'][] = $b;
+                        $tableRec['quantity'][] = null;
+                        $i++;
+                    }
                 }
-                $tableRec = $newTableRec;
+
                 $Int = core_Type::getByName('int');
                 $middleCaption = "->Показват се първите партиди|* <b>{$Int->toVerbal($displayBatches)}</b> |от общо|* <b>{$Int->toVerbal($batchesCount)}</b>->";
             }
@@ -567,6 +573,7 @@ class batch_BatchesInDocuments extends core_Manager
             }
 
             if($haveMoreThenDisplayedBatches && $Detail->cantCreateNewBatch){
+                $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $suggestions));
             } else {
                 $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
@@ -922,8 +929,10 @@ class batch_BatchesInDocuments extends core_Manager
             
             return;
         }
-        $recInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
-        $recInfo->detailClassId = cls::get($detailClassId)->getClassId();
+
+        $Detail = cls::get($detailClassId);
+        $recInfo = $Detail->getRowInfo($detailRecId);
+        $recInfo->detailClassId = $Detail->getClassId();
         $recInfo->detailRecId = $detailRecId;
 
         // Подготвяне на редовете за обновяване

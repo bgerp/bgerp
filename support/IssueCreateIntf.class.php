@@ -17,6 +17,12 @@
 class support_IssueCreateIntf
 {
     /**
+     * клас
+     */
+    public $class;
+
+
+    /**
      * Връща запис с подразбиращи се данни за сигнала
      *
      * @param int $id Кой е пораждащия обект
@@ -40,5 +46,17 @@ class support_IssueCreateIntf
     public function afterCreateIssue($id, $iRec)
     {
         return $this->class->afterCreateIssue($id, $iRec);
+    }
+
+
+    /**
+     * Връща папките на системите, в които може да се пусне сигнала
+     *
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getIssueSystemFolders($rec)
+    {
+        return $this->class->getIssueSystemFolders($rec);
     }
 }

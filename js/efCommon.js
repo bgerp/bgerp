@@ -2790,6 +2790,7 @@ function replaceFormData(frm, data)
 		}
 	}
 
+
 	if (getType(data) == 'array') {
 		var r1 = data[0];
 		if(r1['func'] == 'redirect') {
@@ -2851,6 +2852,7 @@ function replaceFormData(frm, data)
         }
 	});
 
+    radioButtonActions();
 	// Показваме нормален курсур
 	frm.css('cursor', 'default');
     frm.find('#save, #saveAndNew').prop( "disabled", false );
@@ -5474,47 +5476,49 @@ Experta.prototype.saveBodyId = function() {
 /*
     да може деселектира радио бутон, ако е allowEmpty
  */
-function deselectRadioButton() {
+function radioButtonActions() {
 
-    let lastChecked = null;
+    setTimeout(function (){
+        let lastChecked = null;
 
-    //отбелязваме всички чекнати радио бутони
-    $('input[type="radio"]').each(function() {
-        $(this).data('wasChecked', $(this).prop('checked')); // Начално състояние
-        if ($(this).prop('checked')) {
-            lastChecked = $(this); //задаване на последния избран бутон
-        }
-    });
+        //отбелязваме всички чекнати радио бутони
+        $('input[type="radio"]').each(function() {
+            $(this).data('wasChecked', $(this).prop('checked')); // Начално състояние
+            if ($(this).prop('checked')) {
+                lastChecked = $(this); //задаване на последния избран бутон
+            }
+        });
 
-     // Маркирай първия бутон, ако не е allowEmpty и няма маркиран в групата
-    $('.notAllowEmptyRadioHolder input[type="radio"]').each(function() {
-        const groupName = $(this).attr('name');
-        const radiosInGroup = $(`input[name="${groupName}"]`);
+        // Маркирай първия бутон, ако не е allowEmpty и няма маркиран в групата
+        $('.notAllowEmptyRadioHolder input[type="radio"]:visible').each(function() {
+            const groupName = $(this).attr('name');
+            const radiosInGroup = $(`input[name="${groupName}"]`);
 
-        if (!radiosInGroup.is(':checked')) {
-            const firstRadio = radiosInGroup.first();
-            firstRadio.prop('checked', true);
-            firstRadio.data('wasChecked', true);
-        }
-    });
+            if (!radiosInGroup.filter(':checked').length) {
+                const firstRadio = radiosInGroup.first();
+                firstRadio.prop('checked', true);
+                firstRadio.data('wasChecked', true);
+            }
+        });
 
-    $('.allowEmptyRadioHolder input[type="radio"]').click(function() {
-        let $this = $(this);
+        $('.allowEmptyRadioHolder input[type="radio"]').click(function() {
+            let $this = $(this);
 
-        // Ако е чекнат, се размаркирва
-        if ($this.data('wasChecked')) {
-            $this.prop('checked', false);
-            $this.data('wasChecked', false);
-            lastChecked = null;
-        } else {
-            // Маркираме го чекнат и го записваме като последен
-            $this.data('wasChecked', true);
-            lastChecked = $this;
-        }
+            // Ако е чекнат, се размаркирва
+            if ($this.data('wasChecked')) {
+                $this.prop('checked', false);
+                $this.data('wasChecked', false);
+                lastChecked = null;
+            } else {
+                // Маркираме го чекнат и го записваме като последен
+                $this.data('wasChecked', true);
+                lastChecked = $this;
+            }
 
-        // Махаме всички останали радио бутони
-        $('.allowEmptyRadioHolder input[type="radio"]').not($this).data('wasChecked', false);
-    });
+            // Махаме всички останали радио бутони
+            $('.allowEmptyRadioHolder input[type="radio"]').not($this).data('wasChecked', false);
+        });
+    },100 )
 }
 
 /**
@@ -6489,4 +6493,4 @@ runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
 runOnLoad(doubleClickOnLink);
-runOnLoad(deselectRadioButton);
+runOnLoad(radioButtonActions);

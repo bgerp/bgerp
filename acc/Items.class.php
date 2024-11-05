@@ -162,6 +162,9 @@ class acc_Items extends core_Manager
         
         $this->setDbUnique('objectId,classId');
         $this->setDbIndex('earliestUsedOn');
+        $this->setDbIndex('lastUseOn');
+        $this->setDbIndex('state');
+        $this->setDbIndex('closedOn');
     }
     
     

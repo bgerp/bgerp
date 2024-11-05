@@ -111,7 +111,27 @@ class doc_UnsortedFolderSteps extends core_Master
         $this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание');
+        $this->FLD('productSteps', 'keylist(mvc=cat_ProductsProxy,select=name)', 'caption=Допълнително->Произв. етапи');
+
         $this->setDbUnique('code');
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+
+        $stepOptions = array();
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("#state = 'active' && #innerClass=" . planning_interface_StepProductDriver::getClassId());
+        $pQuery->show('name,nameEn,isPublic,code');
+        while($pRec = $pQuery->fetch()){
+            $stepOptions[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+        }
+        $form->setSuggestions('productSteps', array('' => '') + $stepOptions);
     }
 
 
@@ -153,6 +173,15 @@ class doc_UnsortedFolderSteps extends core_Master
             if(isset($rec->saoParentId)){
                 $row->saoParentId = $mvc->getSaoFullName($rec->saoParentId);
                 $row->saoParentId = ht::createLink($row->saoParentId, $mvc->getSingleUrlArray($rec->saoParentId));
+            }
+
+            if(!empty($rec->productSteps)){
+                $productStepsArr = keylist::toArray($rec->productSteps);
+                $stepNames = array();
+                foreach ($productStepsArr as $pId){
+                    $stepNames[$pId] = cat_Products::getHyperlink($pId, true)->getContent() . "<br>";
+                }
+                $row->productSteps = implode('', $stepNames);
             }
         }
     }

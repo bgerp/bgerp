@@ -261,9 +261,11 @@ class store_Receipts extends store_DocumentMaster
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        $rec = &$form->rec;
         $form->setField('locationId', 'caption=Обект от');
 
         $origin = static::getOrigin($form->rec);
+
         if ($origin->isInstanceOf('purchase_Purchases')) {
             if (!isset($rec->id) && empty($rec->fromContainerId)) {
                 $data->form->FNC('importProducts', 'enum(notshipped=Недоставени (Всички),notshippedstorable=Недоставени (Складируеми),notshippedservices=Недоставени (Услуги),services=Услуги (Всички),all=Всички,none=Без)', 'caption=Артикули->Избор, input,before=detailOrderBy');
