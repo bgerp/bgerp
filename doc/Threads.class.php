@@ -3500,6 +3500,7 @@ class doc_Threads extends core_Manager
         $res = "";
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
+        $cQuery->orderBy('createdOn', 'ASC');
         while($cRec = $cQuery->fetch()){
             $Document = doc_Containers::getDocument($cRec->id);
             if($Document->haveInterface('export_TxtExportIntf')){
