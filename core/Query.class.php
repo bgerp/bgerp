@@ -338,7 +338,7 @@ class core_Query extends core_FieldSet
      *
      * @return array масив $id => брой записи
      */
-    public function countKeylist($keylistName, $ids = null, $inSeparateQueries = true)
+    public function countKeylist($keylistName, $ids = null, $inSeparateQueries = false)
     {
         $res = array();
 

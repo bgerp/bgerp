@@ -340,6 +340,12 @@ class cat_Products extends embed_Manager
 
 
     /**
+     * Прокси клас, който да се използва за търсенето в листа
+     */
+    public $listFilterProxyTable = 'cat_ProductsProxy';
+
+
+    /**
      * Описание на модела
      */
     public function description()

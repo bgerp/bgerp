@@ -841,12 +841,12 @@ class eshop_Products extends core_Master
         }
         $url = self::getUrl($rec);
 
-        $row->name = ht::createLink($row->name, $url);
+        $row->name = ht::createLink($row->name, $url, false, array('title' => $rec->seoTitle ? $rec->seoTitle : null));
         if($url['groupId'] < 0){
             unset($url['groupId']);
         }
 
-        $row->image = ht::createLink($row->image, $url, false, 'class=eshopLink');
+        $row->image = ht::createLink($row->image, $url, false, array('class' => 'eshopLink', 'title' => $rec->seoTitle ? $rec->seoTitle : null)); 
 
         $pTpl->placeObject($row);
         $pTpl->removeBlocksAndPlaces();
