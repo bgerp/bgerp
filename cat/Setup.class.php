@@ -316,7 +316,7 @@ class cat_Setup extends core_ProtoSetup
             'action' => 'UpdateTouchedGroupsCnt',
             'period' => 60,
             'offset' => 10,
-            'timeLimit' => 20
+            'timeLimit' => 300
         ),
     );
     
