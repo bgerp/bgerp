@@ -1451,11 +1451,12 @@ class acc_BalanceDetails extends core_Detail
         $accounts = arr::make($accs);
         
         if (countR($accounts) >= 1) {
-            foreach ($accounts as $sysId) {
-                $accId = acc_Accounts::fetchField("#systemId = '{$sysId}'", 'id');
-                
-                $query->orWhere("#accountId = {$accId}");
-            }
+
+            $aQuery = acc_Accounts::getQuery();
+            $aQuery->in("systemId", $accounts);
+            $aQuery->show('id');
+            $accIds = arr::extractValuesFromArray($aQuery->fetchAll(), 'id');
+            $query->in('accountId', $accIds);
         }
         
         // ... само детайлите от последния баланс
@@ -1484,19 +1485,11 @@ class acc_BalanceDetails extends core_Detail
             $var = ${"items{$i}"};
             
             // Ако е NULL продължаваме
-            if (!$var) {
-                continue;
-            }
+            if (!$var) continue;
             $varArr = arr::make($var);
             
             // За перата се изисква поне едно от тях да е на текущата позиция
-            $j = 0;
-            
-            foreach ($varArr as $itemId) {
-                $or = ($j == 0) ? false : true;
-                $query->where("#ent{$i}Id = {$itemId}", $or);
-                $j++;
-            }
+            $query->in("ent{$i}Id", $varArr);
         }
     }
     
