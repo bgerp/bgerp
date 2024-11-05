@@ -39,6 +39,11 @@ class plg_ExpandInput extends core_Plugin
 
         setIfNot($mvc->forceExpandInputFieldOnExport, true);
         setIfNot($mvc->useExpandInputTypeOnExport, false);
+
+        $expand36Name = $mvc->getExpandFieldName36();
+
+        $mvc->setDbIndex($expand36Name, null, 'FULLTEXT');            
+
     }
 
 
@@ -88,6 +93,9 @@ class plg_ExpandInput extends core_Plugin
                 $fieldset->FLD($inputFieldName, "treelist(mvc={$pMvc}, select={$select}, parentId={$mvc->expandParentFieldName})", $caption);
             }
 
+            $expand36Name = $mvc->getExpandFieldName36();
+            $fieldset->FLD($expand36Name, "text", 'input=none');
+         
             $fieldset->setFieldTypeParams($inputFieldName, $expandField->type->params);
 
         }
@@ -104,26 +112,46 @@ class plg_ExpandInput extends core_Plugin
      */
     public static function on_BeforeSave($mvc, &$id, &$rec, &$fields = null)
     {
+        $mustSave = true;
+        $expand36Name = $mvc->getExpandFieldName36();
         // Ако е подадено да се записва само едното поле, записваме и двете
         if (isset($fields)) {
             $fieldsArr = arr::make($fields, true);
-            
+            $mustSave = false;
             if ($fieldsArr[$mvc->expandFieldName] || $fieldsArr[$mvc->expandInputFieldName]) {
                 $fieldsArr[$mvc->expandFieldName] = $mvc->expandFieldName;
                 $fieldsArr[$mvc->expandInputFieldName] = $mvc->expandInputFieldName;
+                $fieldsArr[$expand36Name] = $expand36Name;
                 $fields = implode(',', $fieldsArr);
+                $mustSave = true;
             }
         }
         
-        // Вземаме всички въведени от потребителя стойност
-        $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
-        
-        // Намираме всички свъразани
-        $resArr = $mvc->expandInput($inputArr);
-        
-        // Добавяме го към полето, което няма да се показва на потребителите, но ще се извличат данните от това поле
-        $expandField = $mvc->getField($mvc->expandFieldName);
-        $rec->{$mvc->expandFieldName} = $expandField->type->fromArray($resArr);
+        if($mustSave) {
+
+            // Вземаме всички въведени от потребителя стойност
+            $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
+            
+            // Намираме всички свъразани
+            $resArr = $mvc->expandInput($inputArr);
+            
+            // Добавяме го към полето, което няма да се показва на потребителите, но ще се извличат данните от това поле
+            $expandField = $mvc->getField($mvc->expandFieldName);
+            $rec->{$mvc->expandFieldName} = $expandField->type->fromArray($resArr);
+            $rec->{$expand36Name} = $expandField->type->fromArray36($resArr);
+            
+        }
+    }
+
+
+    /**
+     * Връща името на полето, което съхранява разпънатия кейлист в 36 броичен формат
+     */
+    public static function on_BeforeGetExpandFieldName36($mvc, &$res)
+    {
+        $res = $mvc->expandFieldName . '36';
+
+        return true;
     }
     
     
