@@ -892,7 +892,7 @@ class type_Key extends type_Int
         $groupQuery->where("#{$sysIdField} = '{$this->params['group']}'");
         
         // Очакваме да има запис зад това sysId
-        expect($groupRec = $groupQuery->fetch(), 'Няма група с това sysId');
+        expect($groupRec = $groupQuery->fetch(), 'Няма група с това sysId = ' . $this->params['group']);
         
         // Модифицираме заявката като добавяме филтриране по група, която
         // е зададена с нейно Id - отговарящо на посоченото systemId

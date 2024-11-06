@@ -219,9 +219,13 @@ class core_Manager extends core_Mvc
         $data->action = 'list';
         
         $data->ListId = Request::get('id', 'int');
-        
-        // Създаваме заявката
-        $data->query = $this->getQuery();
+
+        // Ако има зададен прокси клас за листа - да се използва той
+        if(isset($this->listFilterProxyTable)){
+            $data->query = cls::get($this->listFilterProxyTable)->getQuery();
+        } else {
+            $data->query = $this->getQuery();
+        }
         
         // Подготвяме полетата за показване
         $this->prepareListFields($data);

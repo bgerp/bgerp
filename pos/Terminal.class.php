@@ -1879,10 +1879,6 @@ class pos_Terminal extends peripheral_Terminal
     {
         $settings = pos_Points::getSettings($rec->pointId);
         $searchString = plg_Search::normalizeText($string);
-        $data = new stdClass();
-        $data->rec = $rec;
-        $data->searchString = $searchString;
-        $data->searchStringPure = $string;
         $rec->_selectedGroupId = Mode::get("currentSelectedGroup{$rec->id}");
         $rec->_selectedGroupId = (!empty($rec->_selectedGroupId)) ? $rec->_selectedGroupId : 'all';
         
@@ -2149,11 +2145,8 @@ class pos_Terminal extends peripheral_Terminal
             
             return $res;
         }
-        
-        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
-        $defaultContragentClassId = crm_Persons::getClassId();
-        $productClassId = cat_Products::getClassId();
 
+        $productClassId = cat_Products::getClassId();
         $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
 
         if(!empty($rec->policyId)){
@@ -2164,26 +2157,40 @@ class pos_Terminal extends peripheral_Terminal
             $policy2 = pos_Receipts::isForDefaultContragent($rec) ? null : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
 
+        $packs = array();
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->in('productId', array_keys($products));
+        $packQuery->show('productId,packagingId,quantity,isBase');
+        while ($packRec = $packQuery->fetch()){
+            $packs[$packRec->productId][$packRec->packagingId] = $packRec;
+        }
+
         $now = dt::now();
+
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){
                 $packId = $pRec->packId;
             } else {
-                $packs = cat_Products::getPacks($id);
-                $packId = key($packs);
+                $productPacks = is_array($packs[$id]) ? $packs[$id] : array();
+                $foundBasePackArr = array_filter($productPacks, function($a) {return $a->isBase == 'yes';});
+                if(countR($foundBasePackArr)){
+                    $packId = key($foundBasePackArr);
+                } else {
+                    $packId = $pRec->measureId;
+                }
             }
-            
-            $packQuantity = cat_products_Packagings::getPack($id, $packId, 'quantity');
-            $perPack = (!empty($packQuantity)) ? $packQuantity : 1;
+            $perPack = isset($packs[$id][$packId]) ? $packs[$id][$packId]->quantity : 1;
+            core_Debug::startTimer('TERMINAL_RESULT_GET_LOWER_PRICE');
             $priceRes = pos_ReceiptDetails::getLowerPriceObj($policy1, $policy2, $id, $packId, 1, $now);
+            core_Debug::stopTimer('TERMINAL_RESULT_GET_LOWER_PRICE');
+            $productRec = (object)array('id' => $id, 'name' => $pRec->name, 'nameEn' => $pRec->nameEn, 'code' => $pRec->code);
 
             // Обръщаме реда във вербален вид
             $res[$id] = new stdClass();;
             $Double = core_Type::getByName('double(decimals=2)');
-            
             $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'packagingId' => $packId);
+
             if (empty($priceRes->price)){
-                wp("POS_NO_PRICE POL_ID:{$settings->policyId} | C_LIST:({$contragentPriceListId})| P_ID: {$id}| Date: '{$now}'");
                 $res[$id]->price = "<b class='red'>n/a</b>";
             } else {
                 if(!empty($priceRes->discount)){
@@ -2203,10 +2210,10 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);
             $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
             $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
-            $res[$id]->productId = mb_subStr(cat_Products::getVerbal($obj->productId, 'name'), 0, 80);
+            $res[$id]->productId = mb_subStr(cat_Products::getVerbal($productRec, 'name'), 0, 80);
 
             if($settings->showProductCode == 'yes'){
-                $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
+                $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($productRec, 'code') : "Art{$obj->productId}";
             }
 
             $res[$id]->photo = $this->getPosProductPreview($obj->productId, 140, 140, $settings);
@@ -2217,7 +2224,7 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local') : null;
             $res[$id]->DATA_ENLARGE_OBJECT_ID = $id;
             $res[$id]->DATA_ENLARGE_CLASS_ID = $productClassId;
-            $res[$id]->DATA_MODAL_TITLE = cat_Products::getTitleById($id);
+            $res[$id]->DATA_MODAL_TITLE = cat_Products::getRecTitle($productRec);
             $res[$id]->id = $id;
             $res[$id]->receiptId = $rec->id;
             if($pRec->canSell != 'yes'){
