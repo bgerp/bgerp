@@ -841,8 +841,8 @@ class acc_BalanceDetails extends core_Detail
         
         $listName = acc_Lists::getVerbal($listRec, 'name');
         $form->fieldsLayout->replace($listName, "caption{$i}");
-        $form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title)', "silent,caption={$listName},width=330px,input,class=balance-grouping");
-        $form->FNC("feat{$i}", 'varchar', "silent,caption={$listName}->Свойства,width=330px,input,class=balance-feat");
+        $form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title,maxRadio=1)', "silent,caption={$listName},width=330px,input,class=balance-grouping");
+        $form->FNC("feat{$i}", 'varchar', "maxRadio=1,silent,caption={$listName}->Свойства,width=330px,input,class=balance-feat");
         if (countR($options)) {
             $form->setOptions("grouping{$i}", $options);
         } else {
