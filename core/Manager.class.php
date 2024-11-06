@@ -146,8 +146,9 @@ class core_Manager extends core_Mvc
         if (defined('SEARCH_DB_HOST')) {
             $error = core_App::isReplicationOK();
             if (!empty($error)) {
-                if (rand(1, 100)%99 == 0) {
+                if (false === core_Cache::get($this->title, 'Report_Replica')) {
                     $this->logNotice($error);
+                    core_Cache::set($this->title, 'Report_Replica', $error, 10);
                     // todo: да праща signal msg на админа
                 }
             } else {
