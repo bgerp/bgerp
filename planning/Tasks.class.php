@@ -685,7 +685,7 @@ class planning_Tasks extends core_Master
 
                     // Преброяване на уникалните произв. номера
                     $dQuery = planning_ProductionTaskDetails::getQuery();
-                    $checkProductId = ($rec->isFinal == 'yes') ? $jobProductId : $rec->productId;
+                    $checkProductId = ($rec->isFinal == 'yes') ? $jobRec->productId : $rec->productId;
                     $dQuery->where("#taskId = {$rec->id} AND #productId = {$checkProductId} AND #type = 'production' AND #state != 'rejected'");
                     $dQuery->XPR('countSerials', 'int', 'COUNT(DISTINCT(#serial))');
                     $producedCountVerbal = core_Type::getByName('int')->toVerbal($dQuery->fetch()->countSerials);
@@ -729,7 +729,7 @@ class planning_Tasks extends core_Master
 
             if ($rec->isFinal == 'yes') {
                 $compareMeasureId = cat_Products::fetchField($jobRec->productId, 'measureId');
-                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobProductId, $rec->measureId)->quantity;
+                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobRec->productId, $rec->measureId)->quantity;
             } else {
                 $compareMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
                 $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($rec->productId, $rec->measureId)->quantity;
