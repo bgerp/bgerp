@@ -1014,11 +1014,11 @@ class cat_Products extends embed_Manager
                 $data->query->where("#folderId = {$filterRec->folder}");
             }
 
-            static::applyAdditionalListFilters($filtersArr, $data->query);
-
             if (!empty($filterRec->groupId)) {
-                plg_ExpandInput::applyField36Search($mvc, $data->query, $filterRec->groupId);
+                $data->query->where("LOCATE('|{$filterRec->groupId}|', #groups)");
             }
+
+            static::applyAdditionalListFilters($filtersArr, $data->query);
         }
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');

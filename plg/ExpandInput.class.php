@@ -350,7 +350,6 @@ class plg_ExpandInput extends core_Plugin
 
     public static function applyField36Search($mvc, &$query, $value)
     {
-        $mvc = cls::get($mvc);
         $valueArr = is_array($value) ? $value : (keylist::isKeylist($value) ? keylist::toArray($value) : arr::make($value, true));
 
         $field36 = $mvc->getExpandFieldName36();
