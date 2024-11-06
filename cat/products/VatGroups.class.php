@@ -273,7 +273,7 @@ class cat_products_VatGroups extends core_Detail
         $query->where("#exceptionId = '{$exceptionId}' OR #exceptionId IS NULL");
         $query->orderBy('#validFrom,orderExceptionId', 'DESC');
         $query->limit(1);
-bp($query->buildQuery());
+
         $value = false;
         if ($rec = $query->fetch()) {
             $value = acc_VatGroups::fetch($rec->vatGroup);
