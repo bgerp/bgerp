@@ -2199,7 +2199,9 @@ class pos_Terminal extends peripheral_Terminal
 
                 $price = $priceRes->price * $perPack;
                 if($settings->chargeVat == 'yes'){
+                    core_Debug::startTimer('RES_RENDER_RESULT_VAT_GROUPS');
                     $vat = cat_Products::getVat($id, null, $settings->vatExceptionId);
+                    core_Debug::stopTimer('RES_RENDER_RESULT_VAT_GROUPS');
                     $price *= 1 + $vat;
                 }
 
@@ -2230,8 +2232,10 @@ class pos_Terminal extends peripheral_Terminal
             if($pRec->canSell != 'yes'){
                 $res[$id]->CLASS .= ' notSellable';
             }
-            
+
+            core_Debug::startTimer('RES_RENDER_RESULT_BIGGEST_QUANTITY');
             $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId) : null;
+            core_Debug::stopTimer('RES_RENDER_RESULT_BIGGEST_QUANTITY');
             if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, null,2));
             }
@@ -2247,8 +2251,10 @@ class pos_Terminal extends peripheral_Terminal
                     $res[$id]->measureId = "<span class='notInStock'>0 {$measureId}</span>";
                 }
             }
-            
+
+            core_Debug::startTimer('RES_RENDER_RESULT_GROUPS');
             $res[$id]->_groups = cat_Products::fetchField($id, 'groups');
+            core_Debug::stopTimer('RES_RENDER_RESULT_GROUPS');
         }
 
         return $res;
