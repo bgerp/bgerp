@@ -2157,6 +2157,7 @@ class pos_Terminal extends peripheral_Terminal
             $policy2 = pos_Receipts::isForDefaultContragent($rec) ? null : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
 
+        core_Debug::startTimer('TERMINAL_RESULT_PACK_FETCH');
         $packs = array();
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->in('productId', array_keys($products));
@@ -2164,6 +2165,7 @@ class pos_Terminal extends peripheral_Terminal
         while ($packRec = $packQuery->fetch()){
             $packs[$packRec->productId][$packRec->packagingId] = $packRec;
         }
+        core_Debug::stopTimer('TERMINAL_RESULT_PACK_FETCH');
 
         $now = dt::now();
 
@@ -2223,10 +2225,14 @@ class pos_Terminal extends peripheral_Terminal
             if($settings->productBtnTpl == 'pictureAndText' && !$res[$id]->photo){
                 $res[$id]->CLASS .= " noPhoto";
             }
+            core_Debug::startTimer('RES_RENDER_RESULT_ADD_PRODUCT_RIGHTS');
             $res[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local') : null;
+            core_Debug::stopTimer('RES_RENDER_RESULT_ADD_PRODUCT_RIGHTS');
             $res[$id]->DATA_ENLARGE_OBJECT_ID = $id;
             $res[$id]->DATA_ENLARGE_CLASS_ID = $productClassId;
+            core_Debug::startTimer('RES_RENDER_RESULT_PRODUCT_TITLE');
             $res[$id]->DATA_MODAL_TITLE = cat_Products::getRecTitle($productRec);
+            core_Debug::stopTimer('RES_RENDER_RESULT_PRODUCT_TITLE');
             $res[$id]->id = $id;
             $res[$id]->receiptId = $rec->id;
             if($pRec->canSell != 'yes'){
