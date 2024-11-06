@@ -27,7 +27,7 @@
                                         </table>
                                         <!--ET_END zoneReadiness-->
                                     </td>
-                                    <td class="cell custom-header-bg"><b>|Произведено|*</b></td>
+                                    <td class="cell custom-header-bg" style='padding-top:7px'><b>|Произведено|*</b><small> (|заприходено|*) </small><b>|в склад|*:</b>  <b style='font-size:18px;'>[#storeId#]</b></td>
                                 </tr>
                                 <tr>
                                     <td class="cell">
@@ -74,13 +74,6 @@
                                 <tr>
                                     <td class="topCell first vtop" style='width:50%;'>
                                         <table>
-                                            <!--ET_BEGIN storeId-->
-                                            <tr>
-                                                <td class='quiet nowrap aright'>|В склад|*:</td>
-                                                <td>[#storeId#]</td>
-                                            </tr>
-                                            <!--ET_END storeId-->
-
                                             <!--ET_BEGIN inputStoreId-->
                                             <tr>
                                                 <td class='quiet nowrap aright'>|Влагане от|*:</td>
@@ -115,12 +108,11 @@
                                                 <td>[#expenses#]</td>
                                             </tr>
                                             <!--ET_END expenses-->
-                                            <!--ET_BEGIN note-->
-                                            <tr>
-                                                <td colspan="2">[#note#]</td>
-                                            </tr>
-                                            <!--ET_END note-->
                                         </table>
+                                        <!--ET_BEGIN note-->
+                                       	<hr>
+                                        [#note#]
+                                        <!--ET_END note-->
                                     </td>
                                     <td>
                                         <table class='centered special-borders' style='width:100%;'>

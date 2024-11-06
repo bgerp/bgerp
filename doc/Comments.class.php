@@ -318,7 +318,7 @@ class doc_Comments extends embed_Manager
     {
         if (Mode::is('text', 'plain')) {
             //Ако сме в текстов режим, използваме txt файла
-            $tpl = new ET('|*' . getFileContent('doc/tpl/SingleLayoutComments.txt'));
+            $tpl = getTplFromFile('doc/tpl/SingleLayoutComments.txt');
         }
     }
     

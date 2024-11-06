@@ -303,7 +303,19 @@ class log_Mysql extends core_Manager {
     {
         requireRole('debug');
  
-        $query = "SELECT  object_name, index_name FROM performance_schema.table_io_waits_summary_by_index_usage WHERE index_name IS NOT NULL AND count_star = 0 AND `OBJECT_SCHEMA` = '{$this->db->dbName}' ORDER BY object_schema, object_name, index_name";
+        $query =   "SELECT
+                      ps.object_name AS object_name,
+                      ps.index_name AS index_name
+                    FROM performance_schema.table_io_waits_summary_by_index_usage AS ps
+                    JOIN information_schema.STATISTICS AS stats
+                      ON ps.object_schema = stats.TABLE_SCHEMA
+                      AND ps.object_name = stats.TABLE_NAME
+                      AND ps.index_name = stats.INDEX_NAME
+                    WHERE ps.index_name IS NOT NULL
+                      AND ps.count_star = 0
+                      AND ps.OBJECT_SCHEMA = '{$this->db->dbName}'
+                      AND stats.INDEX_TYPE != 'FULLTEXT'
+                    ORDER BY ps.object_schema, ps.object_name, ps.index_name;";
         
         $dbRes = $this->db->query($query);
 
