@@ -214,6 +214,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_PackParams',
         'cat_ParamFormulaVersions',
         'migrate::repairSearchKeywords2434',
+        'migrate::calcExpand36Field2445',
     );
     
     
@@ -442,5 +443,16 @@ class cat_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'cat_Products', $callOn);
+    }
+
+
+    /**
+     * Рекалкулиране на групите във вид за лесно търсене
+     */
+    public static function calcExpand36Field2445()
+    {
+        $newData = (object)array('mvc' => 'cat_Products', 'lastId' => null);
+        $callOn = dt::addSecs(60);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
     }
 }

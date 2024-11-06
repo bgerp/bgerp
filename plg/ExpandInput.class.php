@@ -298,4 +298,56 @@ class plg_ExpandInput extends core_Plugin
         $mvc = cls::get($mvc);
         $mvc->recalcExpandedInput();
     }
+
+
+    /**
+     * Преизчисляване на полето за улеснено двоично търсене
+     *
+     * @param $mvc
+     * @return void
+     */
+    public static function callback_recalcExpand36Input($data)
+    {
+        $res = array();
+        $mvc = cls::get($data->mvc);
+        $expand36Name = $mvc->getExpandFieldName36();
+        core_App::setTimeLimit('300');
+
+        $query = $mvc->getQuery();
+        $query->where("#{$mvc->expandFieldName} IS NOT NULL");
+        $query->orderBy('id', 'ASC');
+        $query->limit('50000');
+        if(isset($data->lastId)){
+            $query->where("#id > {$data->lastId}");
+        }
+
+        $lastId = null;
+        $expandType = $mvc->getFieldType($mvc->expandFieldName);
+        while($rec = $query->fetch()){
+            $inputArr = type_Keylist::toArray($rec->{$mvc->expandFieldName});
+            $rec->{$expand36Name} = $expandType->fromArray36($inputArr);
+            $res[$rec->id] = (object)array('id' => $rec->id, $expand36Name => $rec->{$expand36Name});
+            $lastId = $rec->id;
+        }
+
+        if(countR($res)){
+            $mvc->saveArray($res, "id,{$expand36Name}");
+        }
+
+        if(!empty($lastId)){
+            $callOn = dt::addSecs(60);
+            $newData = (object)array('mvc' => $data->mvc, 'lastId' => $lastId);
+            core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+        }
+    }
+
+
+    public static function applyField36Search($mvc, &$query, $value)
+    {
+        $valueArr = is_array($value) ? $value : (keylist::isKeylist($value) ? keylist::toArray($value) : arr::make($value, true));
+
+        $field36 = $mvc->getExpandFieldName36();
+        $values = core_Type::getByName('type_Keylist')->fromArray36($valueArr);
+        $query->where("MATCH($field36) AGAINST('{$values}' IN BOOLEAN MODE) ");
+    }
 }
