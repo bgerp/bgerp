@@ -909,7 +909,7 @@ function getBGERPUniqId()
  * Wseki na poziciq 2, 4, 6, ... и т.н. на нечетна позиция  е Y
  */
 function aprox($x3, $mapInput = array())
-{
+{ 
     if (is_scalar($mapInput)) {
         $n = func_num_args() - 1;
         expect($n % 2 == 0);
@@ -920,14 +920,14 @@ function aprox($x3, $mapInput = array())
     } else {
         $map = $mapInput;
     }
- 
+
     foreach ($map as $x2 => $y2) {
         if ($x2 == $x3) {
             
             return $y2;
         }
         if ($x2 > $x3) {
-            if ($y1 && true) {
+            if (isset($y1)) {
                 $b = ($y1 - $y2) / ($x1 - $x2);
                 $a = $y1 - $x1 * $b;
                 
