@@ -348,12 +348,22 @@ class plg_ExpandInput extends core_Plugin
     }
 
 
-    public static function applyField36Search($mvc, &$query, $value)
+    /**
+     * Помощна ф-я за по-бързо търсене в разширените полета
+     *
+     * @param mixed $mvc                  - модел
+     * @param core_Query $query           - заявка, която да се модифицира
+     * @param mixed $value                - стойности за търсене масив/кейлист/ид
+     * @param string|null $field36Alias   - какъв е прякора на полето (ако не е зададено е стандартното)
+     * @return void
+     */
+    public static function applyField36Search($mvc, &$query, $value, $field36Alias = null)
     {
+        $mvc = cls::get($mvc);
         $valueArr = is_array($value) ? $value : (keylist::isKeylist($value) ? keylist::toArray($value) : arr::make($value, true));
 
-        $field36 = $mvc->getExpandFieldName36();
+        $field36 = $field36Alias ?? $mvc->getExpandFieldName36();
         $values = core_Type::getByName('type_Keylist')->fromArray36($valueArr);
-        $query->where("MATCH($field36) AGAINST('{$values}' IN BOOLEAN MODE) ");
+        $query->where("MATCH(#{$field36}) AGAINST('{$values}' IN BOOLEAN MODE) ");
     }
 }
