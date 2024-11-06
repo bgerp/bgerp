@@ -321,6 +321,12 @@ class plg_ExpandInput extends core_Plugin
             $query->where("#id > {$data->lastId}");
         }
 
+        $count = $query->count();
+        if(empty($count)){
+            $mvc->logDebug('Приключи миграцията на разширените полета за двоично търсене');
+            return;
+        }
+
         $lastId = null;
         $expandType = $mvc->getFieldType($mvc->expandFieldName);
         while($rec = $query->fetch()){
