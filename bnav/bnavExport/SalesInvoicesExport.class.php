@@ -316,8 +316,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 //todo
                 $accItem = core_Packs::getConfig('bnav')->$const;
 
-
-
                 $startPos = strpos($pRec->bnavCode, '[') + 1;
                 $endPos = strpos($pRec->bnavCode, ']');
                 $subAccItem = substr($pRec->bnavCode, $startPos, $endPos - $startPos);
