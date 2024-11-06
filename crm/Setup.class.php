@@ -162,6 +162,7 @@ class crm_Setup extends core_ProtoSetup
         'migrate::updateGroupsCountry2123',
         'migrate::fixCountryGroupsInput21233',
         'migrate::updateGroups2524',
+        'migrate::calcExpand36Field2445',
     );
     
     
@@ -327,5 +328,20 @@ class crm_Setup extends core_ProtoSetup
         $sysIdColName = str::phpToMysqlName('sysId');
         $query = "UPDATE {$Groups->dbTableName} SET {$sysIdColName} = 'quotationsClients' WHERE ({$sysIdColName} = 'quotationsClient')";
         $Groups->db->query($query);
+    }
+
+
+    /**
+     * Рекалкулиране на групите във вид за лесно търсене
+     */
+    public static function calcExpand36Field2445()
+    {
+        $newData = (object)array('mvc' => 'crm_Companies', 'lastId' => null);
+        $callOn = dt::addSecs(60);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+
+        $newData = (object)array('mvc' => 'crm_Persons', 'lastId' => null);
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
     }
 }
