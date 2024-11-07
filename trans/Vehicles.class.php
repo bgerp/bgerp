@@ -129,16 +129,16 @@ class trans_Vehicles extends core_Master
      */
     public static function getDriverOptions()
     {
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        $employeeGroupId = crm_Groups::getIdFromSysId('employees');
         $vehicleDriverGroupId = crm_Groups::getIdFromSysId('vehicleDrivers');
-        $keylist = keylist::addKey('', $emplGroupId);
+        $keylist = keylist::addKey('', $employeeGroupId);
         $keylist = keylist::addKey($keylist, $vehicleDriverGroupId);
         
         $options = array();
         $query = crm_Persons::getQuery();
         $query->where("#state = 'active'");
-        
-        $query->likeKeylist('groupList', $keylist);
+        plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $keylist);
+
         $query->show('name');
         while ($dRec = $query->fetch()){
             $options[$dRec->id] = "{$dRec->name} ({$dRec->id})";

@@ -1056,7 +1056,9 @@ class core_Query extends core_FieldSet
     {
         // Ако нямаме зададени полета, слагаме всички от модела,
         // без виртуалните и чуждестранните
-        if (!countR($this->show) || isset($this->show['*'])) {
+        if (isset($this->show['*'])) {
+            $this->show = $this->selectFields('');
+        } else if (!countR($this->show)) {
             $this->show = $this->selectFields('!#dbAutoselectExcluded');
         }
         

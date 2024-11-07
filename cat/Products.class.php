@@ -1679,14 +1679,12 @@ class cat_Products extends embed_Manager
             }
 
             self::filterQueryByMeta($query, $params['hasProperties'], $params['hasnotProperties'], $params['orHasProperties']);
-
             if (isset($params['groups'])) {
-                $groups = (keylist::isKeylist($params['groups'])) ? $params['groups'] : keylist::fromArray(arr::make($params['groups'], true));
-                $query->likeKeylist('groups', $groups);
+               plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $params['groups']);
             }
 
             if (isset($params['notInGroups'])) {
-                $query->notLikeKeylist('groups', $params['notInGroups']);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $params['notInGroups'], null, true);
             }
 
             // Филтър само за артикули, които могат да бъдат Производствени етапи
