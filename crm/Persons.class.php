@@ -480,7 +480,7 @@ class crm_Persons extends core_Master
         }
         
         if (!empty($data->listFilter->rec->groupId)) {
-            $data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groupList)");
+            plg_ExpandInput::applyExtendedInputSearch($mvc, $data->query, $data->listFilter->rec->groupId);
         }
     }
     
