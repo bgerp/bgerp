@@ -127,7 +127,6 @@ class price_ListRules extends core_Detail
         $this->setDbIndex('listId,productId');
         $this->setDbIndex('priority');
         $this->setDbIndex('validFrom');
-        $this->setDbIndex('validUntil');
         $this->setDbIndex('productId');
         $this->setDbIndex('groupId');
     }
@@ -339,10 +338,8 @@ class price_ListRules extends core_Detail
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
 
             $query = self::getQuery();
-            $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}'");
+            $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");
-            $query->setUnion("#validUntil IS NULL");
-            $query->setUnion("#validUntil >= '{$datetime}'");
 
             if ($listId != price_ListRules::PRICE_LIST_COST) {
                 $groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));

@@ -1390,7 +1390,6 @@ class pos_Receipts extends core_Master
      */
     public function act_setcontragent()
     {
-        core_Debug::startTimer("SET_RECEIPT_CONTRAGENT");
         $this->requireRightFor('setcontragent');
         expect($id = Request::get('id'));
         expect($rec = $this->fetch($id));
