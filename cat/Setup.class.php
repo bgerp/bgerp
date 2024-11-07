@@ -214,7 +214,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_PackParams',
         'cat_ParamFormulaVersions',
         'migrate::repairSearchKeywords2434',
-        'migrate::repairSearchKeywords2434v2',
+        'migrate::calcExpand36Field2445v2',
     );
     
     
@@ -439,7 +439,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Миграция за регенериране на ключовите думи
      */
-    public static function repairSearchKeywords2434v2()
+    public static function repairSearchKeywords2434()
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'cat_Products', $callOn);
@@ -449,7 +449,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Рекалкулиране на групите във вид за лесно търсене
      */
-    public static function calcExpand36Field2445()
+    public static function calcExpand36Field2445v2()
     {
         $newData = (object)array('mvc' => 'cat_Products', 'lastId' => null);
         $callOn = dt::addSecs(60);
