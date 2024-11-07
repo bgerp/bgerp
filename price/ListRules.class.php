@@ -343,8 +343,10 @@ class price_ListRules extends core_Detail
         }
 
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
+
             $query = self::getQuery();
-            $query->where("#listId = {$listId} AND #productId = {$productId} AND #validFrom <= '{$datetime}' AND #validUntil >= '{$datetime}'");
+            $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND #validUntil >= '{$datetime}'");
+            $query->where("#productId = {$productId}");
 
             if ($listId != price_ListRules::PRICE_LIST_COST) {
                 $groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
