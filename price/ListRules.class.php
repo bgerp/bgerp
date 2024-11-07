@@ -18,12 +18,6 @@
 class price_ListRules extends core_Detail
 {
     /**
-     * Ид на политика "Каталог"
-     */
-    const END_OF_TIME_DATE = '9999-12-31 23:59:59';
-
-
-    /**
      * Ид на политика "Себестойност"
      */
     const PRICE_LIST_COST = 1;
@@ -128,7 +122,7 @@ class price_ListRules extends core_Detail
         $this->FLD('priority', 'enum(1,2,3)', 'caption=Приоритет,input=hidden,silent');
         
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
-        $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', "caption=В сила->До,remember");
+        $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', 'caption=В сила->До,remember');
 
         $this->setDbIndex('listId,productId');
         $this->setDbIndex('priority');
@@ -345,7 +339,7 @@ class price_ListRules extends core_Detail
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
 
             $query = self::getQuery();
-            $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND #validUntil >= '{$datetime}'");
+            $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");
 
             if ($listId != price_ListRules::PRICE_LIST_COST) {
@@ -354,8 +348,10 @@ class price_ListRules extends core_Detail
                     $query->in('groupId', $groups, false, true);
                 }
             }
+            
             $query->orderBy('#priority', 'ASC');
             $query->orderBy('#validFrom,#id', 'DESC');
+            $query->limit(1);
 
             $rec = $query->fetch();
             $listRec = price_Lists::fetch($listId, 'title,parent,vat,vatExceptionId,defaultSurcharge,significantDigits,minDecimals,currency');
@@ -540,10 +536,6 @@ class price_ListRules extends core_Detail
             if($defaultUntil > $rec->validFrom){
                 $rec->validUntil = $defaultUntil;
             }
-        } else {
-            if($rec->validUntil == static::END_OF_TIME_DATE){
-                $rec->validUntil = null;
-            }
         }
     }
     
@@ -633,25 +625,15 @@ class price_ListRules extends core_Detail
             }
         }
     }
-
-
-    /**
-     * Изпълнява се преди запис
-     */
-    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
-    {
-        if(empty($rec->validUntil)) {
-            $rec->validUntil = static::END_OF_TIME_DATE;
-        }
-    }
-
-
+    
+    
     /**
      * Премахва кеша за интервалите от време
      */
     protected static function on_AfterSave($mvc, &$id, &$rec, $fields = null)
     {
         if ($rec->listId) {
+
             if ($rec->validFrom <= dt::now() || empty($rec->validFrom)) {
                 $mvc->invalidateListsOnShutdown[$rec->listId] = $rec->listId;
             } else {
@@ -725,10 +707,7 @@ class price_ListRules extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $now = dt::verbal2mysql();
-        if($rec->validUntil == static::END_OF_TIME_DATE) {
-            unset($row->validUntil);
-        }
-
+        
         if ($rec->validFrom > $now) {
             $state = 'draft';
         } else {
@@ -1100,13 +1079,5 @@ class price_ListRules extends core_Detail
                 }
             }
         }
-    }
-
-
-    function act_Test()
-    {
-        requireRole('debug');
-
-        cls::get('price_Setup')->migrateValidUntil2445();
     }
 }
