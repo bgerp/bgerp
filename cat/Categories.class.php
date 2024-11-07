@@ -482,7 +482,7 @@ class cat_Categories extends core_Master
                 
                 // Намираме ид-та на артикулите от тези групи
                 $catQuery = cat_Products::getQuery();
-                $catQuery->likeKeylist('groups', $keylist);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $catQuery, $keylist);
                 $catQuery->show('id');
 
                 $productIds = arr::extractValuesFromArray($catQuery->fetchAll(), 'id');

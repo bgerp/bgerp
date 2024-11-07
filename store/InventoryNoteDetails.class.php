@@ -444,7 +444,7 @@ class store_InventoryNoteDetails extends doc_Detail
             $inArr = arr::extractValuesFromArray($inArr, 'productId');
             
             $query = cat_Products::getQuery();
-            $query->likeKeylist('groups', $rec->group);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group);
             if (countR($inArr)) {
                 $query->notIn('id', $inArr);
             }
