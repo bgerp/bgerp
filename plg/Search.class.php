@@ -805,9 +805,9 @@ class plg_Search extends core_Plugin
 
         $Containers = cls::get('doc_Containers');
 
+        $query->show('*');
         try {
             while ($rec = $query->fetch()) {
-                
                 if (dt::now() >= $maxTime) {
                     break;
                 }
