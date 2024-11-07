@@ -38,7 +38,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_Prototype, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
+    public $loadList = 'doc_plg_Prototype, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, support_plg_IssueSource, bgerp_plg_Blank';
 
 
     /**
@@ -643,8 +643,16 @@ class planning_Tasks extends core_Master
                 $row->productDescriptionStyle = 'display: none;';
             }
 
-            $jobProductId = planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId');
-            $row->productDescription = cat_Products::getAutoProductDesc($jobProductId, null, 'detailed', 'job');
+            $jobRec = planning_Jobs::fetch("#containerId = {$rec->originId}");
+            $row->productDescription = cat_Products::getAutoProductDesc($jobRec->productId, null, 'detailed', 'job');
+            Mode::push('text', 'xhtml');
+            $packagingData = planning_Jobs::getJobProductPackagingData($jobRec);
+            unset($packagingData->listFields['user']);
+            unset($packagingData->listFields['eanCode']);
+            $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($packagingData);
+            $row->jobProductPackagings = $packagingTpl;
+            Mode::pop('text', 'xhtml');
+
             $row->tId = $rec->id;
 
             if (core_Packs::isInstalled('batch')) {
@@ -677,7 +685,7 @@ class planning_Tasks extends core_Master
 
                     // Преброяване на уникалните произв. номера
                     $dQuery = planning_ProductionTaskDetails::getQuery();
-                    $checkProductId = ($rec->isFinal == 'yes') ? $jobProductId : $rec->productId;
+                    $checkProductId = ($rec->isFinal == 'yes') ? $jobRec->productId : $rec->productId;
                     $dQuery->where("#taskId = {$rec->id} AND #productId = {$checkProductId} AND #type = 'production' AND #state != 'rejected'");
                     $dQuery->XPR('countSerials', 'int', 'COUNT(DISTINCT(#serial))');
                     $producedCountVerbal = core_Type::getByName('int')->toVerbal($dQuery->fetch()->countSerials);
@@ -720,8 +728,8 @@ class planning_Tasks extends core_Master
             }
 
             if ($rec->isFinal == 'yes') {
-                $compareMeasureId = cat_Products::fetchField($jobProductId, 'measureId');
-                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobProductId, $rec->measureId)->quantity;
+                $compareMeasureId = cat_Products::fetchField($jobRec->productId, 'measureId');
+                $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($jobRec->productId, $rec->measureId)->quantity;
             } else {
                 $compareMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
                 $expectedMeasureQuantityInPack = ($rec->measureId == $compareMeasureId) ? 1 : cat_products_Packagings::getPack($rec->productId, $rec->measureId)->quantity;
@@ -4630,5 +4638,39 @@ class planning_Tasks extends core_Master
         $resObj->arg = array('id' => "editWatchHolder", 'html' => $otherEditorsHtml, 'replace' => true);
 
         return array($resObj);
+    }
+
+
+    /**
+     * Връща папките на системите, в които може да се пусне сигнала
+     *
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getIssueSystemFolders_($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        if ($Driver = cat_Products::getDriver($rec->productId)) {
+            $pData = $Driver->getProductionData($rec->productId);
+
+            return isset($pData['supportSystemFolderId']) ? array($pData['supportSystemFolderId']) : array();
+        }
+
+        return array();
+    }
+
+
+    /**
+     * Връща запис с подразбиращи се данни за сигнала
+     *
+     * @param int $id Кой е пораждащия комит
+     * @return stdClass за cal_Tasks
+     * @see support_IssueCreateIntf
+     */
+    public function getDefaultIssueRec_($id)
+    {
+        $rec = $this->fetchRec($id);
+
+        return (object)array('title' => tr('Към|*: ') . doc_Containers::getDocument($rec->originId)->getTitleById());
     }
 }

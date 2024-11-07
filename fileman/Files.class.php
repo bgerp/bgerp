@@ -3199,4 +3199,25 @@ class fileman_Files extends core_Master
         
         return $rec->path;
     }
+
+
+    /**
+     * Дали е подаден файл на изображение
+     *
+     * @param string $string - файл хендлър или име на файла
+     * @return bool          - дали е изображение или не
+     */
+    public static function isImage($string)
+    {
+        $fileName = $string;
+        if(static::isFileHnd($string)) {
+            $fRec = static::fetchByFh($string);
+            $fileName = $fRec->name;
+        }
+
+        $fileExt = fileman_Files::getExt($fileName);
+        $pattern = '/^(jpg|jpeg|png|gif|bmp|tiff|tif|webp)$/i';
+
+        return preg_match($pattern, $fileExt) === 1;
+    }
 }

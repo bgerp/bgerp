@@ -652,11 +652,13 @@ class type_Key extends type_Int
             parent::setFieldWidth($attr);
 
             $maxRadio = $this->params['maxRadio'];
-            if(empty($maxRadio) && !$this->params['isHorizontal']){
-                if(arr::isOptionsTotalLenBellowAllowed($options)){
-                    $maxRadio = 4;
-                    $this->params['select2MinItems'] = 10000;
-                    $this->params['columns'] =  ($optionsCnt > 3) ?  4 : 3;
+            if (!$attr['_isRefresh']) {
+                if(empty($maxRadio) && !$this->params['isHorizontal']){
+                    if(arr::isOptionsTotalLenBellowAllowed($options)){
+                        $maxRadio = 4;
+                        $this->params['select2MinItems'] = 10000;
+                        $this->params['columns'] =  ($optionsCnt > 3) ?  4 : 3;
+                    }
                 }
             }
 
@@ -890,7 +892,7 @@ class type_Key extends type_Int
         $groupQuery->where("#{$sysIdField} = '{$this->params['group']}'");
         
         // Очакваме да има запис зад това sysId
-        expect($groupRec = $groupQuery->fetch(), 'Няма група с това sysId');
+        expect($groupRec = $groupQuery->fetch(), 'Няма група с това sysId = ' . $this->params['group']);
         
         // Модифицираме заявката като добавяме филтриране по група, която
         // е зададена с нейно Id - отговарящо на посоченото systemId

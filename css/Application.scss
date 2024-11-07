@@ -1895,6 +1895,13 @@ a.tUnsighted {
 	}
 }
 
+.tags.lightBg a{
+	color: #000 !important;
+}
+.tags.darkBg a{
+	color: #fff !important;
+}
+
 .doc_Threads .listTable .documentTags .tags{
 	font-size: 0.9em !important;
 	top: 0 !important
@@ -2552,7 +2559,10 @@ width: 50%;
 .narrow .largeNarrowCell {
 min-width: 300px;
 }
-
+.narrow .doc_Search .listTable .nowrap {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 .horizonCol {
 position: relative;
 top: 2px;

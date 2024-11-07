@@ -72,8 +72,10 @@ class export_Txt extends core_Mvc
     public function makeExport($form, $clsId, $objId)
     {
         $Cls = cls::get($clsId);
+
+        $params = array('addAttachedTextFiles' => ($form->rec->addAttachedTextFiles == 'yes'));
         $Impl = cls::getInterface('export_TxtExportIntf', $Cls);
-        $txtContent = $Impl->getTxtContent($objId);
+        $txtContent = $Impl->getTxtContent($objId, $params);
 
         $fileHnd = null;
         if (!empty($txtContent)) {
@@ -123,5 +125,7 @@ class export_Txt extends core_Mvc
      */
     public function addParamFields($form, $clsId, $objId)
     {
+        $form->FLD('addAttachedTextFiles', 'enum(no=Не,yes=Да)', 'caption=Да се експортират и прикачените текстови файлове?->Избор,autohide');
+        $form->setDefault('addAttachedTextFiles', 'no');
     }
 }

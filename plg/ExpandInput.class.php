@@ -39,6 +39,11 @@ class plg_ExpandInput extends core_Plugin
 
         setIfNot($mvc->forceExpandInputFieldOnExport, true);
         setIfNot($mvc->useExpandInputTypeOnExport, false);
+
+        $expand36Name = $mvc->getExpandFieldName36();
+
+        $mvc->setDbIndex($expand36Name, null, 'FULLTEXT');            
+
     }
 
 
@@ -88,6 +93,9 @@ class plg_ExpandInput extends core_Plugin
                 $fieldset->FLD($inputFieldName, "treelist(mvc={$pMvc}, select={$select}, parentId={$mvc->expandParentFieldName})", $caption);
             }
 
+            $expand36Name = $mvc->getExpandFieldName36();
+            $fieldset->FLD($expand36Name, "text", 'input=none');
+         
             $fieldset->setFieldTypeParams($inputFieldName, $expandField->type->params);
 
         }
@@ -104,26 +112,46 @@ class plg_ExpandInput extends core_Plugin
      */
     public static function on_BeforeSave($mvc, &$id, &$rec, &$fields = null)
     {
+        $mustSave = true;
+        $expand36Name = $mvc->getExpandFieldName36();
         // Ако е подадено да се записва само едното поле, записваме и двете
         if (isset($fields)) {
             $fieldsArr = arr::make($fields, true);
-            
+            $mustSave = false;
             if ($fieldsArr[$mvc->expandFieldName] || $fieldsArr[$mvc->expandInputFieldName]) {
                 $fieldsArr[$mvc->expandFieldName] = $mvc->expandFieldName;
                 $fieldsArr[$mvc->expandInputFieldName] = $mvc->expandInputFieldName;
+                $fieldsArr[$expand36Name] = $expand36Name;
                 $fields = implode(',', $fieldsArr);
+                $mustSave = true;
             }
         }
         
-        // Вземаме всички въведени от потребителя стойност
-        $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
-        
-        // Намираме всички свъразани
-        $resArr = $mvc->expandInput($inputArr);
-        
-        // Добавяме го към полето, което няма да се показва на потребителите, но ще се извличат данните от това поле
-        $expandField = $mvc->getField($mvc->expandFieldName);
-        $rec->{$mvc->expandFieldName} = $expandField->type->fromArray($resArr);
+        if($mustSave) {
+
+            // Вземаме всички въведени от потребителя стойност
+            $inputArr = type_Keylist::toArray($rec->{$mvc->expandInputFieldName});
+            
+            // Намираме всички свъразани
+            $resArr = $mvc->expandInput($inputArr);
+            
+            // Добавяме го към полето, което няма да се показва на потребителите, но ще се извличат данните от това поле
+            $expandField = $mvc->getField($mvc->expandFieldName);
+            $rec->{$mvc->expandFieldName} = $expandField->type->fromArray($resArr);
+            $rec->{$expand36Name} = $expandField->type->fromArray36($resArr);
+            
+        }
+    }
+
+
+    /**
+     * Връща името на полето, което съхранява разпънатия кейлист в 36 броичен формат
+     */
+    public static function on_BeforeGetExpandFieldName36($mvc, &$res)
+    {
+        $res = $mvc->expandFieldName . '36';
+
+        return true;
     }
     
     
@@ -269,5 +297,73 @@ class plg_ExpandInput extends core_Plugin
     {
         $mvc = cls::get($mvc);
         $mvc->recalcExpandedInput();
+    }
+
+
+    /**
+     * Преизчисляване на полето за улеснено двоично търсене
+     *
+     * @param $mvc
+     * @return void
+     */
+    public static function callback_recalcExpand36Input($data)
+    {
+        $res = array();
+        $mvc = cls::get($data->mvc);
+        $expand36Name = $mvc->getExpandFieldName36();
+        core_App::setTimeLimit('300');
+
+        $query = $mvc->getQuery();
+        $query->where("#{$mvc->expandFieldName} IS NOT NULL");
+        $query->orderBy('id', 'ASC');
+        $query->limit('50000');
+        if(isset($data->lastId)){
+            $query->where("#id > {$data->lastId}");
+        }
+
+        $count = $query->count();
+        if(empty($count)){
+            $mvc->logDebug('Приключи миграцията на разширените полета за двоично търсене');
+            return;
+        }
+
+        $lastId = null;
+        $expandType = $mvc->getFieldType($mvc->expandFieldName);
+        while($rec = $query->fetch()){
+            $inputArr = type_Keylist::toArray($rec->{$mvc->expandFieldName});
+            $rec->{$expand36Name} = $expandType->fromArray36($inputArr);
+            $res[$rec->id] = (object)array('id' => $rec->id, $expand36Name => $rec->{$expand36Name});
+            $lastId = $rec->id;
+        }
+
+        if(countR($res)){
+            $mvc->saveArray($res, "id,{$expand36Name}");
+        }
+
+        if(!empty($lastId)){
+            $callOn = dt::addSecs(60);
+            $newData = (object)array('mvc' => $data->mvc, 'lastId' => $lastId);
+            core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+        }
+    }
+
+
+    /**
+     * Помощна ф-я за по-бързо търсене в разширените полета
+     *
+     * @param mixed $mvc                  - модел
+     * @param core_Query $query           - заявка, която да се модифицира
+     * @param mixed $value                - стойности за търсене масив/кейлист/ид
+     * @param string|null $field36Alias   - какъв е прякора на полето (ако не е зададено е стандартното)
+     * @return void
+     */
+    public static function applyField36Search($mvc, &$query, $value, $field36Alias = null)
+    {
+        $mvc = cls::get($mvc);
+        $valueArr = is_array($value) ? $value : (keylist::isKeylist($value) ? keylist::toArray($value) : arr::make($value, true));
+
+        $field36 = $field36Alias ?? $mvc->getExpandFieldName36();
+        $values = core_Type::getByName('type_Keylist')->fromArray36($valueArr);
+        $query->where("MATCH(#{$field36}) AGAINST('{$values}' IN BOOLEAN MODE) ");
     }
 }

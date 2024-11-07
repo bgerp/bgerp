@@ -169,9 +169,8 @@ class auto_Calls extends core_Manager
         
         // Ако процеса е заключен не се изпълнява
         $lockKey = 'DoAutomations';
-        if (!core_Locks::get($lockKey, 60, 1)) {
-            $this->logWarning('Извършването на автоматизации е заключено от друг процес');
-            
+        if (!core_Locks::get($lockKey, 60, 2)) {
+
             return;
         }
         

@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent,mandatoryDocuments';
+    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent,mandatoryDocuments,supportSystemFolderId';
 
 
     /**
@@ -107,7 +107,7 @@ class planning_Steps extends core_Extender
         $this->FLD('isFinal', 'enum(no=Междинен етап,yes=Финален етап)', 'caption=Използване в производството->Вид,notNull,value=no');
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,no=Скриване,yes=Показване)', 'caption=Използване в производството->Предходно задание,notNull,value=no');
         $this->FLD('calcWeightMode', 'enum(auto=Автоматично,no=Изключено,yes=Включено)', 'caption=Използване в производството->Въвеждане на тегло,notNull,value=auto');
-
+        $this->FLD('supportSystemFolderId', 'key2(mvc=doc_Folders,select=title,coverClasses=support_Systems,allowEmpty)', 'caption=Използване в производството->Система за сигнали,placeholder=Автоматично');
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Складове->Складируем,notNull,value=yes,silent');
         $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Складове->Влагане ОТ');
         $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Произвеждане В');
@@ -126,6 +126,7 @@ class planning_Steps extends core_Extender
         $this->FLD('wasteProductId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,silent,class=w100');
         $this->FLD('wasteStart', 'double(min=0,smartRound)', 'caption=Отпадък в производствена операция->Начален');
         $this->FLD('wastePercent', 'percent(min=0)', 'caption=Отпадък в производствена операция->Допустим');
+
 
         $this->setDbIndex('state');
     }
@@ -496,6 +497,14 @@ class planning_Steps extends core_Extender
 
             if(empty($rec->labelPackagingId)){
                 unset($row->labelTransferQuantityInPack);
+            }
+
+            $systemFolderId = $rec->supportSystemFolderId ?? planning_Centers::fetchField($rec->centerId, 'supportSystemFolderId');
+            if(isset($systemFolderId)){
+                $row->supportSystemFolderId = doc_Folders::recToVerbal($systemFolderId)->title;
+                if(!$rec->supportSystemFolderId) {
+                    $row->supportSystemFolderId = ht::createHint($row->supportSystemFolderId, 'По подразбиране от центъра на дейност', 'notice', false);
+                }
             }
         }
     }
