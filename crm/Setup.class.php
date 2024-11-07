@@ -162,7 +162,7 @@ class crm_Setup extends core_ProtoSetup
         'migrate::updateGroupsCountry2123',
         'migrate::fixCountryGroupsInput21233',
         'migrate::updateGroups2524',
-        'migrate::calcExpand36Field2445',
+        'migrate::calcExpand36Field2445v3',
     );
     
     
@@ -334,7 +334,7 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Рекалкулиране на групите във вид за лесно търсене
      */
-    public static function calcExpand36Field2445()
+    public static function calcExpand36Field2445v3()
     {
         $newData = (object)array('mvc' => 'crm_Companies', 'lastId' => null);
         $callOn = dt::addSecs(60);

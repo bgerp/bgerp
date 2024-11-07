@@ -214,7 +214,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_PackParams',
         'cat_ParamFormulaVersions',
         'migrate::repairSearchKeywords2434',
-        'migrate::calcExpand36Field2445',
+        'migrate::repairSearchKeywords2434v2',
     );
     
     
@@ -439,7 +439,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Миграция за регенериране на ключовите думи
      */
-    public static function repairSearchKeywords2434()
+    public static function repairSearchKeywords2434v2()
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'cat_Products', $callOn);
