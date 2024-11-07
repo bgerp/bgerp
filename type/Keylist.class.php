@@ -860,7 +860,7 @@ class type_Keylist extends core_Type
             expect(is_array($value), 'Value must be array or string', $value);
 
             foreach ($value as $key) {
-                $id = (int) base_convert($key, 36, 10);
+                $id = (int) base_convert(rtrim($key, 'z'), 35, 10);
                 $result[$id] = $id;
             }
         }
@@ -877,7 +877,7 @@ class type_Keylist extends core_Type
         $result = [];
         foreach ($value as $key) {
             $key = (string)$key;
-            $result[$key] = str_pad(base_convert($key, 10, 36), $minLen, '0', STR_PAD_LEFT);
+            $result[$key] = str_pad(base_convert($key, 10, 35), $minLen - 1, '0', STR_PAD_LEFT) . 'z';
         }
         asort($result);
 
