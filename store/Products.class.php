@@ -342,7 +342,7 @@ class store_Products extends core_Detail
             
             // Филтър по групи на артикула
             if (!empty($rec->groupId)) {
-                $data->query->where("LOCATE('|{$rec->groupId}|', #groups)");
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $data->query, $rec->groupId, 'productId');
             }
 
             $filterCaption = isset($data->masterMvc) ? '' : 'Филтрирай';

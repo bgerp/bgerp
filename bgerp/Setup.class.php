@@ -98,6 +98,12 @@ defIfNot('BGERP_VERTICAL_FORM_DEFAULT_MAX_RADIO_LENGTH', 42);
 
 
 /**
+ * Изпозлване на пълнотекстово търсене на полета, в които се записват групи
+ */
+defIfNot('BGERP_USE_FULLTEXT_GROUP_SEARCH', 'no');
+
+
+/**
  * Клавиши за бързо избиране на бутони
  */
 defIfNot(
@@ -199,6 +205,8 @@ class bgerp_Setup extends core_ProtoSetup
         'BGERP_ALTERNATE_PEOPLE_NOTIFICATIONS' => array('enum(all=Всички,share=Само споделените,open=Само "Отворени теми",shareOpen=Споделени и "Отворени теми",noOpen=Без "Отворени теми",stop=Спиране)', 'caption=Известията|*&#44; |които да получават заместниците->Избор, customizeBy=powerUser'),
 
         'BGERP_LAST_SEEN_DOC_BY_USER_CACHE_LIFETIME' => array('time', 'caption=До колко време назад да се пазят записите в последно видяните документи от потребител->По стари от'),
+
+        'BGERP_USE_FULLTEXT_GROUP_SEARCH' => array('enum(no=Изключено,yes=Включено)', 'caption=Използване на пълнотекстов индекс при търсене по групи на Артикули / Фирми / Лица->Избор'),
     );
     
     

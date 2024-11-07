@@ -329,7 +329,7 @@ class price_Updates extends core_Manager
 
             // Ако е правило за група, обновява се само на артикулите от нея, отговарящи на условията
             $pQuery = cat_Products::getQuery();
-            $pQuery->where("LOCATE('|{$rec->objectId}|', #groups)");
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->objectId);
             $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
             $pQuery->show('id');
             while ($pRec = $pQuery->fetch()) {
