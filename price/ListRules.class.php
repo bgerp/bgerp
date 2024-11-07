@@ -1048,7 +1048,7 @@ class price_ListRules extends core_Detail
             
             // Ако има подадени групи се филтрира по тях
             if (!empty($params['groups'])) {
-                $pQuery->likeKeylist('groups', $params['groups']);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $params['groups']);
             }
         }
 

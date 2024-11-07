@@ -214,7 +214,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_PackParams',
         'cat_ParamFormulaVersions',
         'migrate::repairSearchKeywords2434',
-        'migrate::calcExpand36Field2445',
+        'migrate::calcExpand36Field2445v2',
     );
     
     
@@ -449,7 +449,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Рекалкулиране на групите във вид за лесно търсене
      */
-    public static function calcExpand36Field2445()
+    public static function calcExpand36Field2445v2()
     {
         $newData = (object)array('mvc' => 'cat_Products', 'lastId' => null);
         $callOn = dt::addSecs(60);

@@ -957,14 +957,11 @@ class blast_ListDetails extends doc_Detail
         $cQuery = $class::getQuery();
         if ($groupId) {
             $groupId = self::expandTree($groupId);
-
-            $cQuery->likeKeylist('groupList', $groupId);
+            plg_ExpandInput::applyExtendedInputSearch($class, $cQuery, $groupId);
         }
 
         $cQuery->groupBy('country');
-        
         $cQuery->orderBy('country', 'ASC');
-        
         $cQuery->show('country');
         
         $cRecArr = array();
@@ -1181,7 +1178,7 @@ class blast_ListDetails extends doc_Detail
                 // Филтрираме по група
                 if ($groupIds) {
                     $query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-                    $query->likeKeylist('groups', $groupIds);
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $groupIds, 'productId');
                 }
 
                 // Филтрираме по вид контрагент
@@ -1485,7 +1482,7 @@ class blast_ListDetails extends doc_Detail
         $cQuery = $mvc->getQuery();
         if ($groupId) {
             $groupId = self::expandTree($groupId);
-            $cQuery->likeKeylist('groupList', $groupId);
+            plg_ExpandInput::applyExtendedInputSearch($mvc, $cQuery, $groupId);
         }
         $cQuery->where("#state != 'rejected'");
 
