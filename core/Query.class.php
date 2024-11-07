@@ -1057,7 +1057,7 @@ class core_Query extends core_FieldSet
         // Ако нямаме зададени полета, слагаме всички от модела,
         // без виртуалните и чуждестранните
         if (!countR($this->show) || isset($this->show['*'])) {
-            $this->show = $this->selectFields('');
+            $this->show = $this->selectFields('!#dbAutoselectExcluded');
         }
         
         // Добавяме използваните полета - изрази
@@ -1099,7 +1099,7 @@ class core_Query extends core_FieldSet
             $f = $this->getField($name);
             
             $this->realFields[] = $name;
-            
+
             $fields .= $fields ? ",\n   " : "\n   ";
             
             switch ($f->kind) {

@@ -183,11 +183,12 @@ class planning_WorkInProgress extends core_Manager
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
 
         // Подготвяме в заявката да може да се търси по полета от друга таблица
+        $field36groups = cls::get('cat_Products')->getExpandFieldName36();
         $data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
         $data->query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $data->query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $data->query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-        $data->query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $data->query->EXT('groups', 'cat_Products', "externalName=groups,externalKey=productId");
         $data->query->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
         $data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
         $data->query->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
@@ -224,7 +225,7 @@ class planning_WorkInProgress extends core_Manager
 
             // Филтър по групи на артикула
             if (!empty($rec->groupId)) {
-                $data->query->where("LOCATE('|{$rec->groupId}|', #groups)");
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $data->query, $rec->groupId, 'productId');
             }
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         }

@@ -2008,7 +2008,7 @@ class pos_Terminal extends peripheral_Terminal
                         $pQuery->where("1=2");
                     }
                 } elseif(is_numeric($rec->_selectedGroupId)){
-                    $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->_selectedGroupId, 'productId');
                 } else {
                     $groupsTable = type_Table::toArray($settings->productGroups);
                     $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
@@ -2048,7 +2048,7 @@ class pos_Terminal extends peripheral_Terminal
                             $pQuery->where("1=2");
                         }
                     } elseif(is_numeric($rec->_selectedGroupId)){
-                        $cloneQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $cloneQuery, $rec->_selectedGroupId, 'productId');
                     }
                     
                     if($productRec = $cloneQuery->fetch()){
@@ -2075,7 +2075,7 @@ class pos_Terminal extends peripheral_Terminal
                         $pQuery1->where("1=2");
                     }
                 } elseif(is_numeric($rec->_selectedGroupId)){
-                    $pQuery1->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery1, $rec->_selectedGroupId, 'productId');
                 }
                 $pQuery1->limit($settings->maxSearchProducts);
                 
@@ -2097,7 +2097,7 @@ class pos_Terminal extends peripheral_Terminal
                             $pQuery2->where("1=2");
                         }
                     } elseif(is_numeric($rec->_selectedGroupId)){
-                        $pQuery2->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery2, $rec->_selectedGroupId, 'productId');
                     }
                     
                     if(empty($searchStringPure)){
@@ -2230,8 +2230,10 @@ class pos_Terminal extends peripheral_Terminal
             if($pRec->canSell != 'yes'){
                 $res[$id]->CLASS .= ' notSellable';
             }
-            
+
+            core_Debug::startTimer('RES_RENDER_RESULT_BIGGEST_QUANTITY');
             $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId) : null;
+            core_Debug::stopTimer('RES_RENDER_RESULT_BIGGEST_QUANTITY');
             if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, null,2));
             }
@@ -2247,8 +2249,7 @@ class pos_Terminal extends peripheral_Terminal
                     $res[$id]->measureId = "<span class='notInStock'>0 {$measureId}</span>";
                 }
             }
-            
-            $res[$id]->_groups = cat_Products::fetchField($id, 'groups');
+            $res[$id]->_groups = $pRec->groups;
         }
 
         return $res;

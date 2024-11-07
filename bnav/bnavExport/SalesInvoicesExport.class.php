@@ -320,7 +320,14 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 $endPos = strpos($pRec->bnavCode, ']');
                 $subAccItem = substr($pRec->bnavCode, $startPos, $endPos - $startPos);
 
-                $accItem .= $subAccItem;
+                $charToFind = '&';
+
+                $position = strpos($subAccItem, $charToFind);
+                if ($position !== false) {
+                    $accItem .= substr($subAccItem, $position + 1);
+                }else{
+                    $accItem .= $subAccItem;
+                }
 
                 $prodCode = substr($pRec->bnavCode, $endPos + 1);  // +1, за да пропуснем самата скоба
 

@@ -2217,6 +2217,10 @@ td.rowtools-column {
 .narrow .largeNarrowCell {
   min-width: 300px; }
 
+.narrow .doc_Search .listTable .nowrap {
+  overflow: hidden;
+  text-overflow: ellipsis; }
+
 .horizonCol {
   position: relative;
   top: 2px;
