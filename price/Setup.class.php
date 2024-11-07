@@ -189,4 +189,20 @@ class price_Setup extends core_ProtoSetup
             price_Lists::save($rec, 'parent');
         }
     }
+
+
+    /**
+     * Миграция на датата на валидност
+     */
+    public function migrateValidUntil2445()
+    {
+        $Rules = cls::get('price_ListRules');
+        $Rules->setupMvc();
+        $tableName = $Rules->dbTableName;
+        $validUntilColName = str::phpToMysqlName('validUntil');
+        $futureDate = price_ListRules::END_OF_TIME_DATE;
+
+        $query = "UPDATE {$tableName} SET {$validUntilColName} = '{$futureDate}' WHERE (({$validUntilColName} IS NULL) OR ({$validUntilColName} = '0000-00-00 00:00:00'))";
+        $Rules->db->query($query);
+    }
 }
