@@ -1459,7 +1459,11 @@ class cat_Products extends embed_Manager
         return $res;
     }
     
-    
+    function act_love()
+    {
+        static::getVat(5);
+    }
+
     /**
      * Връща ДДС на даден продукт
      *
@@ -1470,7 +1474,7 @@ class cat_Products extends embed_Manager
      */
     public static function getVat($productId, $date = null, $exceptionId = null)
     {
-        expect(static::fetchField($productId), 'Няма такъв артикул');
+        expect($productId, 'Няма артикул');
         if (!$date) {
             $date = dt::today();
         }

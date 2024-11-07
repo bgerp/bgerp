@@ -90,6 +90,7 @@ class cat_products_VatGroups extends core_Detail
         $this->FLD('validFrom', 'date', 'caption=В сила от');
 
         $this->setDbIndex('productId');
+        $this->setDbIndex('productId,validFrom');
     }
     
     
