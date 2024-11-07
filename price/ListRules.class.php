@@ -356,6 +356,7 @@ class price_ListRules extends core_Detail
             }
             $query->orderBy('#priority', 'ASC');
             $query->orderBy('#validFrom,#id', 'DESC');
+            $query->limit(1);
 
             $rec = $query->fetch();
             $listRec = price_Lists::fetch($listId, 'title,parent,vat,vatExceptionId,defaultSurcharge,significantDigits,minDecimals,currency');
