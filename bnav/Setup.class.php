@@ -142,6 +142,11 @@ defIfNot('FSD_SALES', '');
 defIfNot('FSD_SALES_SERVICES', '');
 
 /**
+ * Сметка  продажби аванси
+ */
+defIfNot('FSD_ADVANCE', '');
+
+/**
  * Сметка покупки
  */
 defIfNot('FSD_PURCHASE', '');
@@ -217,6 +222,7 @@ class bnav_Setup extends core_ProtoSetup
         'FSD_DP_CONTRAGENTS_NON_BG_ACCOUNT' => array('varchar', 'caption=Експорт сметки->Клиенти по аванси в чужбина'),
         'FSD_FUTURE_INCOME_ACCOUNT' => array('varchar', 'caption=Експорт сметки->Приходи за бъдещи периоди'),
         'FSD_SALES' => array('varchar', 'caption=Експорт сметки->Продажби: складируеми'),
+        'FSD_ADVANCE' => array('varchar', 'caption=Експорт сметки->Продажби: аванси'),
         'FSD_SALES_SERVICES' => array('varchar', 'caption=Експорт сметки->Продажби: услуги'),
         'FSD_PURCHASE' => array('varchar', 'caption=Експорт сметки->Покупки'),
         'FSD_VAT_ACCOUNT' => array('varchar', 'caption=Експорт сметки->Начислен ДДС за проджби'),
