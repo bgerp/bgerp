@@ -2052,7 +2052,7 @@ class pos_Terminal extends peripheral_Terminal
                     }
                     
                     if($productRec = $cloneQuery->fetch()){
-                        $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'code' => $productRec->code, 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
+                        $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null);
                         $count++;
                     }
                 }
@@ -2080,7 +2080,7 @@ class pos_Terminal extends peripheral_Terminal
                 $pQuery1->limit($settings->maxSearchProducts);
                 
                 while($pRec1 = $pQuery1->fetch()){
-                    $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId);
+                    $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn);
                     $count++;
                     if($count == $settings->maxSearchProducts) break;
                 }
