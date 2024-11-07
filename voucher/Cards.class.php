@@ -616,7 +616,9 @@ class voucher_Cards extends core_Detail
         $personIds = array(null => null);
         if(!empty($typeRec->groupId)){
             $personQuery = crm_Persons::getQuery();
-            $personQuery->where("#state != 'rejected' AND LOCATE('|{$typeRec->groupId}|', #groupList)");
+            $personQuery->where("#state != 'rejected'");
+            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $personQuery, $typeRec->groupId);
+
             $personQuery->show('id');
             $personIds = arr::extractValuesFromArray($personQuery->fetchAll(), 'id');
         }

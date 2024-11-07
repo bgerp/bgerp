@@ -351,19 +351,33 @@ class plg_ExpandInput extends core_Plugin
     /**
      * Помощна ф-я за по-бързо търсене в разширените полета
      *
-     * @param mixed $mvc                  - модел
-     * @param core_Query $query           - заявка, която да се модифицира
-     * @param mixed $value                - стойности за търсене масив/кейлист/ид
-     * @param string|null $field36Alias   - какъв е прякора на полето (ако не е зададено е стандартното)
+     * @param mixed $mvc                 - модел
+     * @param core_Query $query          - заявка, която да се модифицира
+     * @param mixed $value               - стойности за търсене масив/кейлист/ид
+     * @param string|null $externalKey   - поле на външния ключ, ако разширеното поле го няма в заявката
      * @return void
      */
-    public static function applyField36Search($mvc, &$query, $value, $field36Alias = null)
+    public static function applyExtendedInputSearch($mvc, &$query, $value, $externalKey = null)
     {
         $mvc = cls::get($mvc);
         $valueArr = is_array($value) ? $value : (keylist::isKeylist($value) ? keylist::toArray($value) : arr::make($value, true));
+        $useFullTextSearch = bgerp_Setup::get('USE_FULLTEXT_GROUP_SEARCH');
+        if($useFullTextSearch == 'no'){
+            if(!isset($query->fields[$mvc->expandFieldName])){
+                expect($externalKey);
+                $query->EXT($mvc->expandFieldName, $mvc->className, "externalName={$mvc->expandFieldName},externalKey={$externalKey}");
+            }
+            $query->likeKeylist($mvc->expandFieldName, keylist::fromArray($valueArr));
+            return;
+        }
 
-        $field36 = $field36Alias ?? $mvc->getExpandFieldName36();
+        $field36 = $mvc->getExpandFieldName36();
+        if(!isset($query->fields[$field36])){
+            expect($externalKey);
+            $query->EXT($field36, $mvc->className, "externalName={$field36},externalKey={$externalKey}");
+        }
+
         $values = core_Type::getByName('type_Keylist')->fromArray36($valueArr);
-        $query->where("MATCH(#{$field36}) AGAINST('{$values}' IN BOOLEAN MODE) ");
+        $query->where("MATCH(#{$field36}) AGAINST('{$values}' IN BOOLEAN MODE)");
     }
 }

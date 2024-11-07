@@ -195,7 +195,7 @@ class crm_Setup extends core_ProtoSetup
         $companyOptions = array();
         $companyQuery = crm_Companies::getQuery();
         $groupId = crm_Groups::getIdFromSysId('related');
-        $companyQuery->where("LOCATE('|{$groupId}|', #groupList)");
+        plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $companyQuery, $groupId);
         while($cRec = $companyQuery->fetch()){
             $companyOptions[$cRec->id] = crm_Companies::getRecTitle($cRec, false);
         }

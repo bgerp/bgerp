@@ -1015,7 +1015,7 @@ class cat_Products extends embed_Manager
             }
 
             if (!empty($filterRec->groupId)) {
-                $data->query->where("LOCATE('|{$filterRec->groupId}|', #groups)");
+                plg_ExpandInput::applyExtendedInputSearch($mvc, $data->query, $filterRec->groupId);
             }
 
             static::applyAdditionalListFilters($filtersArr, $data->query);
