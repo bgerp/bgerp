@@ -230,7 +230,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                         'contragentName' => $contragentName,
                         'paymentType' => $paymentType,
                         'accountId' => $bankAccount,
-                        'accItem' => '',
+                        'accItem' => core_Packs::getConfig('bnav')->FSD_ADVANCE,
                         'currencyId' => $sRec->currencyId,
                         'rate' => $sRec->rate,
                         'dealValue' => $dealValue / $currencyType,
@@ -277,6 +277,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         if (empty($invArr)) {
             return $recs;
         }
+
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->in('invoiceId', $invArr);
 
@@ -324,8 +325,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
                 $position = strpos($subAccItem, $charToFind);
                 if ($position !== false) {
-                    $accItem .= substr($subAccItem, $position + 1);
-                }else{
+                    $accItem = substr($subAccItem, $position + 1);
+                } else {
                     $accItem .= $subAccItem;
                 }
 
@@ -337,6 +338,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
             //Ако има авансово приспадане на суми
             if ($invoices[$dRec->invoiceId]->dpOperation == 'deducted') {
+
+                $accItem = core_Packs::getConfig('bnav')->FSD_ADVANCE;
+
                 $id = $invoices[$dRec->invoiceId]->number;
 
                 if ($rec->currencyType == 'yes') {
