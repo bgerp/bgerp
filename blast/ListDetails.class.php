@@ -1181,7 +1181,7 @@ class blast_ListDetails extends doc_Detail
                 // Филтрираме по група
                 if ($groupIds) {
                     $query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-                    $query->likeKeylist('groups', $groupIds);
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $groupIds, 'productId');
                 }
 
                 // Филтрираме по вид контрагент

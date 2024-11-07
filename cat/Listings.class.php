@@ -495,9 +495,8 @@ class cat_Listings extends core_Master
             // Ограничаване по групи, ако има
             $groupList = cat_Setup::get('AUTO_LIST_ALLOWED_GROUPS');
             if (!empty($groupList)) {
-                $dQuery->likeKeylist('groups', $groupList);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $dQuery, $groupList, 'productId');
             }
-            
             $dQuery->groupBy('productId,packagingId');
             $dQuery->show('productId,packagingId,code,count');
             $dQuery->orderBy('count,saleId', 'DESC');
