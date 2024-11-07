@@ -190,6 +190,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         // Изваждаме всички задания за периода без оттеглените и черновите
         $jobQuery = planning_Jobs::getQuery();
+        $jobQuery ->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
 
         $jobQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
         $jobQuery->in('state', 'rejected, draft', true);
@@ -200,19 +201,13 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $jobQuery->in('createdBy', $dealersArr);
         }
 
+        //Филтър по група артикули
+        if (isset($rec->groups)) {
+
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $jobQuery, $rec->groups, 'productId');
+        }
+
         while ($jobRec = $jobQuery->fetch()) {
-
-            //Филтър по група артикули
-            if (isset($rec->groups)) {
-
-                $prodRec = cat_Products::fetch($jobRec->productId);
-
-                $grArr = keylist::toArray($rec->groups);
-                if(!keylist::isIn($grArr, $prodRec->groups) || !$prodRec->groups){
-                   continue;
-                }
-
-            }
 
             //задания активирани в този период
             $jobsArr[$jobRec->containerId] = $jobRec;
