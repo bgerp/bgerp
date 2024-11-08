@@ -229,9 +229,19 @@ class pos_Terminal extends peripheral_Terminal
         $logoLink = ht::createLink($logoTpl, array('bgerp_Portal', 'show'));
         
         $tpl->append($logoLink, 'APP_NAME');
-        $tpl->placeObject($headerData);        
+        $tpl->placeObject($headerData);
+
+        if (isDebug()) {
+            if (log_Debug::haveRightFor('list') && defined('DEBUG_FATAL_ERRORS_FILE')) {
+                $fileName = pathinfo(DEBUG_FATAL_ERRORS_FILE, PATHINFO_FILENAME) . '_x';
+                $fileName = log_Debug::getDebugLogFile('2x', $fileName, false, false);
+                $debugLink = ht::createLink('Debug', array('log_Debug', 'Default', 'debugFile' => $fileName), false, array('title' => 'Показване на debug информация', 'target' => '_blank'));
+                $tpl->append($debugLink, 'DEBUG_LINK');
+            }
+        }
+
         $Receipts->invoke('AfterRenderTerminalHeader', array(&$tpl, $rec));
-        
+
         return $tpl;
     }
     

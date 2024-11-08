@@ -6,7 +6,9 @@
     <!--ET_END contragentId-->
 </div>
 <div class="fright">
-
+    <!--ET_BEGIN DEBUG_LINK-->
+    <span class='specialLink debugLink'>[#DEBUG_LINK#]</span>
+    <!--ET_END DEBUG_LINK-->
     <span class='headerAppName specialLink'>[#img#][#APP_NAME#]</span>
     <span class='headerUserNick'>[#userId#]</span>
     <span class='specialLink pointId'>[#pointId#]</span>
