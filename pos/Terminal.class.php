@@ -1975,6 +1975,144 @@ class pos_Terminal extends peripheral_Terminal
     {
         $priceCache = core_Permanent::get("priceListHash");
         $settings = pos_Points::getSettings($rec->pointId);
+        $similarProducts = $this->getSuggestedProductIds($rec, $selectedRec);
+
+        $count = 0;
+        $sellable = array();
+        $searchStringPure = plg_Search::normalizeText($searchString);
+        core_Debug::startTimer('RES_RENDER_PREPARE_RECS');
+
+        // Заявка към продаваемите артикули с цени
+        $pQuery = pos_SellableProductsCache::getQuery();
+        $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $pQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
+        $pQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
+        $pQuery->EXT('canSell', 'cat_Products', 'externalName=canSell,externalKey=productId');
+        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $pQuery->EXT('nameEn', 'cat_Products', 'externalName=nameEn,externalKey=productId');
+        $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        $pQuery->where("#priceListId = {$settings->policyId}");
+        $pQuery->limit($settings->maxSearchProducts);
+
+        // Ако не е посочен стринг се показват най-продаваните артикули
+        if(empty($searchString)){
+            $defaultOrder = true;
+            if($rec->_selectedGroupId == 'similar'){
+                if(countR($similarProducts)){
+                    $pQuery->in('productId', $similarProducts);
+                } else {
+                    $pQuery->where("1=2");
+                }
+            } elseif(is_numeric($rec->_selectedGroupId)){
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->_selectedGroupId, 'productId');
+            } else {
+                $groupsTable = type_Table::toArray($settings->productGroups);
+                $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
+                if(countR($groups)){
+                    $i = 1;
+                    $orderByGroup = "(CASE ";
+                    foreach ($groups as $groupId){
+                        $orderByGroup .= " WHEN LOCATE('|$groupId|', #groups) THEN {$i}";
+                        $i++;
+                    }
+                    $orderByGroup .= " ELSE {$i} END)";
+                    $pQuery->XPR('orderByGroup', 'int', $orderByGroup);
+                    $defaultOrder = false;
+                    $pQuery->orderBy('orderByGroup=ASC,code=ASC');
+                }
+            }
+
+            if($defaultOrder){
+                $pQuery->orderBy('code', 'ASC');
+            }
+
+            // Добавят се към резултатите
+            while ($pRec = $pQuery->fetch()){
+                $sellable[$pRec->productId] = $pRec;
+            }
+        } else {
+            // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
+            $foundRec = cat_Products::getByCode($searchString);
+            if(isset($foundRec->productId)){
+                $cloneQuery = clone $pQuery;
+                $cloneQuery->where("#productId = {$foundRec->productId}");
+
+                if($rec->_selectedGroupId == 'similar'){
+                    if(countR($cloneQuery)){
+                        $pQuery->in('productId', $similarProducts);
+                    } else {
+                        $pQuery->where("1=2");
+                    }
+                } elseif(is_numeric($rec->_selectedGroupId)){
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $cloneQuery, $rec->_selectedGroupId, 'productId');
+                }
+
+                if($productRec = $cloneQuery->fetch()){
+                    $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null);
+                    $count++;
+                }
+            }
+
+            // След това се добавят артикулите, които съдържат стринга в името и/или кода си
+            $pQuery1 = clone $pQuery;
+            $pQuery1->orderBy('code,name', 'ASC');
+            if(isset($foundRec->productId)){
+                $pQuery1->where("#productId != {$foundRec->productId}");
+            }
+
+            $searchString = plg_Search::normalizeText($searchString);
+            $pQuery1->where("LOCATE (' {$searchString}', #string)");
+            plg_Search::applySearch($searchString, $pQuery1);
+
+            if($rec->_selectedGroupId == 'similar'){
+                if(countR($similarProducts)){
+                    $pQuery1->in('productId', $similarProducts);
+                } else {
+                    $pQuery1->where("1=2");
+                }
+            } elseif(is_numeric($rec->_selectedGroupId)){
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery1, $rec->_selectedGroupId, 'productId');
+            }
+            $pQuery1->limit($settings->maxSearchProducts);
+
+            while($pRec1 = $pQuery1->fetch()){
+                $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn);
+                $count++;
+                if($count == $settings->maxSearchProducts) break;
+            }
+
+            // Ако не е достигнат лимита, се добавят и артикулите с търсене в ключовите думи
+            if($count < $settings->maxSearchProducts){
+                $notInKeys = array_keys($sellable);
+                $pQuery2 = clone $pQuery;
+                $pQuery2->limit($settings->maxSearchProducts);
+                if($rec->_selectedGroupId == 'similar'){
+                    if(countR($similarProducts)){
+                        $pQuery2->in('productId', $similarProducts);
+                    } else {
+                        $pQuery2->where("1=2");
+                    }
+                } elseif(is_numeric($rec->_selectedGroupId)){
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery2, $rec->_selectedGroupId, 'productId');
+                }
+
+                if(empty($searchStringPure)){
+                    $pQuery2->where("1=2");
+                } else {
+                    plg_Search::applySearch($searchString, $pQuery2);
+                }
+
+                if(countR($notInKeys)){
+                    $pQuery2->notIn('productId', $notInKeys);
+                }
+
+                while($pRec2 = $pQuery2->fetch()){
+                    $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
+                    $count++;
+                    if($count == $settings->maxSearchProducts) break;
+                }
+            }
+        }
 
         if(!empty($rec->policyId)){
             $rec->_policy1 = $rec->policyId;
@@ -1983,158 +2121,25 @@ class pos_Terminal extends peripheral_Terminal
             $rec->_policy1 = $settings->policyId;
             $rec->_policy2 = pos_Receipts::isForDefaultContragent($rec) ? null : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
+        core_Debug::stopTimer('RES_RENDER_PREPARE_RECS');
 
-        $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$rec->_selectedGroupId}_{$priceCache}";
-        $result = core_Cache::get('pos_Terminal', $cacheKey);
-        
+        $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$priceCache}";
+        $result = null;core_Cache::get('pos_Terminal', $cacheKey);
         if(!is_array($result)){
-            if(haveRole('debug')){
-                core_Statuses::newStatus("DEBUG: {$cacheKey}");
-            }
-            $similarProducts = $this->getSuggestedProductIds($rec, $selectedRec);
-            
-            $count = 0;
-            $sellable = array();
-            $searchStringPure = plg_Search::normalizeText($searchString);
-            
-            // Заявка към продаваемите артикули с цени
-            $pQuery = pos_SellableProductsCache::getQuery();
-            $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-            $pQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
-            $pQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
-            $pQuery->EXT('canSell', 'cat_Products', 'externalName=canSell,externalKey=productId');
-            $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-            $pQuery->EXT('nameEn', 'cat_Products', 'externalName=nameEn,externalKey=productId');
-            $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-            $pQuery->where("#priceListId = {$settings->policyId}");
-            $pQuery->limit($settings->maxSearchProducts);
-
-            // Ако не е посочен стринг се показват най-продаваните артикули
-            if(empty($searchString)){
-                $defaultOrder = true;
-                if($rec->_selectedGroupId == 'similar'){
-                    if(countR($similarProducts)){
-                        $pQuery->in('productId', $similarProducts);
-                    } else {
-                        $pQuery->where("1=2");
-                    }
-                } elseif(is_numeric($rec->_selectedGroupId)){
-                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->_selectedGroupId, 'productId');
-                } else {
-                    $groupsTable = type_Table::toArray($settings->productGroups);
-                    $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
-                    if(countR($groups)){
-                        $i = 1;
-                        $orderByGroup = "(CASE ";
-                        foreach ($groups as $groupId){
-                            $orderByGroup .= " WHEN LOCATE('|$groupId|', #groups) THEN {$i}";
-                            $i++;
-                        }
-                        $orderByGroup .= " ELSE {$i} END)";
-                        $pQuery->XPR('orderByGroup', 'int', $orderByGroup);
-                        $defaultOrder = false;
-                        $pQuery->orderBy('orderByGroup=ASC,code=ASC');
-                    }
-                }
-
-                if($defaultOrder){
-                    $pQuery->orderBy('code', 'ASC');
-                }
-
-                // Добавят се към резултатите
-                while ($pRec = $pQuery->fetch()){
-                    $sellable[$pRec->productId] = $pRec;
-                }
-            } else {
-                // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
-                $foundRec = cat_Products::getByCode($searchString);
-                if(isset($foundRec->productId)){
-                    $cloneQuery = clone $pQuery;
-                    $cloneQuery->where("#productId = {$foundRec->productId}");
-                    
-                    if($rec->_selectedGroupId == 'similar'){
-                        if(countR($cloneQuery)){
-                            $pQuery->in('productId', $similarProducts);
-                        } else {
-                            $pQuery->where("1=2");
-                        }
-                    } elseif(is_numeric($rec->_selectedGroupId)){
-                        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $cloneQuery, $rec->_selectedGroupId, 'productId');
-                    }
-                    
-                    if($productRec = $cloneQuery->fetch()){
-                        $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null);
-                        $count++;
-                    }
-                }
-
-                // След това се добавят артикулите, които съдържат стринга в името и/или кода си
-                $pQuery1 = clone $pQuery;
-                $pQuery1->orderBy('code,name', 'ASC');
-                if(isset($foundRec->productId)){
-                    $pQuery1->where("#productId != {$foundRec->productId}");
-                }
-
-                $searchString = plg_Search::normalizeText($searchString);
-                $pQuery1->where("LOCATE (' {$searchString}', #string)");
-                plg_Search::applySearch($searchString, $pQuery1);
-
-                if($rec->_selectedGroupId == 'similar'){
-                    if(countR($similarProducts)){
-                        $pQuery1->in('productId', $similarProducts);
-                    } else {
-                        $pQuery1->where("1=2");
-                    }
-                } elseif(is_numeric($rec->_selectedGroupId)){
-                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery1, $rec->_selectedGroupId, 'productId');
-                }
-                $pQuery1->limit($settings->maxSearchProducts);
-                
-                while($pRec1 = $pQuery1->fetch()){
-                    $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn);
-                    $count++;
-                    if($count == $settings->maxSearchProducts) break;
-                }
-
-                // Ако не е достигнат лимита, се добавят и артикулите с търсене в ключовите думи
-                if($count < $settings->maxSearchProducts){
-                    $notInKeys = array_keys($sellable);
-                    $pQuery2 = clone $pQuery;
-                    $pQuery2->limit($settings->maxSearchProducts);
-                    if($rec->_selectedGroupId == 'similar'){
-                        if(countR($similarProducts)){
-                            $pQuery2->in('productId', $similarProducts);
-                        } else {
-                            $pQuery2->where("1=2");
-                        }
-                    } elseif(is_numeric($rec->_selectedGroupId)){
-                        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery2, $rec->_selectedGroupId, 'productId');
-                    }
-                    
-                    if(empty($searchStringPure)){
-                        $pQuery2->where("1=2");
-                    } else {
-                        plg_Search::applySearch($searchString, $pQuery2);
-                    }
-                    
-                    if(countR($notInKeys)){
-                        $pQuery2->notIn('productId', $notInKeys);
-                    }
-
-                    while($pRec2 = $pQuery2->fetch()){
-                        $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
-                        $count++;
-                        if($count == $settings->maxSearchProducts) break;
-                    }
-                }
-            }
-
+            core_Statuses::newStatus("N {$cacheKey}");
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
             $result = $this->prepareProductResultRows($sellable, $rec, $settings);
             core_Debug::stopTimer('RES_RENDER_RESULT_VERBAL');
             core_Cache::set('pos_Terminal', $cacheKey, $result, 180);
+        } else {
+            core_Statuses::newStatus("GET {$cacheKey}");
         }
-        
+
+        foreach ($result as &$row){
+            $row->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', (object)array('receiptId' => $rec->id))) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local') : null;
+            $row->receiptId = $rec->id;
+        }
+
         return $result;
     }
 
@@ -2220,12 +2225,10 @@ class pos_Terminal extends peripheral_Terminal
             if($settings->productBtnTpl == 'pictureAndText' && !$res[$id]->photo){
                 $res[$id]->CLASS .= " noPhoto";
             }
-            $res[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local') : null;
             $res[$id]->DATA_ENLARGE_OBJECT_ID = $id;
             $res[$id]->DATA_ENLARGE_CLASS_ID = $productClassId;
             $res[$id]->DATA_MODAL_TITLE = cat_Products::getRecTitle($productRec);
             $res[$id]->id = $id;
-            $res[$id]->receiptId = $rec->id;
             if($pRec->canSell != 'yes'){
                 $res[$id]->CLASS .= ' notSellable';
             }
