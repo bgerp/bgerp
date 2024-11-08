@@ -219,7 +219,7 @@ class sens2_Scripts extends core_Master
         // Вземаме контекста
         $context = self::getContext($scriptId);
         
-        if (($expr = str::prepareMathExpr($expr, $context)) === false) {
+        if ((str::prepareMathExpr($expr, $context)) === false) {
             $res = self::CALC_ERROR;
         } else {
             $res = str::calcMathExpr($expr, $success, $error);
