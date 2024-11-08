@@ -3202,8 +3202,7 @@ class crm_Persons extends core_Master
         if ($params['group']) {
             $gId = crm_Groups::getIdFromSysId($params['group']);
             expect($gId);
-
-            $query->likeKeylist('groupList', $gId);
+            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $gId);
         }
 
         // Ако е посочена фирма на която е представител - филтър по нея (ако тя има поне един представител)

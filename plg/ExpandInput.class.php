@@ -349,35 +349,54 @@ class plg_ExpandInput extends core_Plugin
 
 
     /**
-     * Помощна ф-я за по-бързо търсене в разширените полета
+     * Помощна ф-я за по-бързо търсене в разширените полета на модела
+     * взависимост избраната константа се търси или пълнотекстовото или с LOCATE
      *
      * @param mixed $mvc                 - модел
      * @param core_Query $query          - заявка, която да се модифицира
      * @param mixed $value               - стойности за търсене масив/кейлист/ид
      * @param string|null $externalKey   - поле на външния ключ, ако разширеното поле го няма в заявката
+     * @param boolean $not               - дали да е отрицателна заявката
      * @return void
      */
-    public static function applyExtendedInputSearch($mvc, &$query, $value, $externalKey = null)
+    public static function applyExtendedInputSearch($mvc, &$query, $value, $externalKey = null, $not = false)
     {
         $mvc = cls::get($mvc);
+
+        // Обръщане на стойностите в масив
         $valueArr = is_array($value) ? $value : (keylist::isKeylist($value) ? keylist::toArray($value) : arr::make($value, true));
         $useFullTextSearch = bgerp_Setup::get('USE_FULLTEXT_GROUP_SEARCH');
+
+        // Ако е избрано обикновенното търсене, то става с LOCATE в полето $mvc->expandFieldName
         if($useFullTextSearch == 'no'){
+
+            // Ако в заявката го няма полето, то се очаква да има външен ключ и се добавя към заявката
             if(!isset($query->fields[$mvc->expandFieldName])){
                 expect($externalKey);
                 $query->EXT($mvc->expandFieldName, $mvc->className, "externalName={$mvc->expandFieldName},externalKey={$externalKey}");
             }
-            $query->likeKeylist($mvc->expandFieldName, keylist::fromArray($valueArr));
+
+            // Избор на ф-я за търсене взависимост дали се търси положителна или отрицателна заявка
+            $functionName = ($not) ? 'notLikeKeylist' : 'likeKeylist';
+            $query->{$functionName}($mvc->expandFieldName, keylist::fromArray($valueArr));
             return;
         }
 
+        // Ако е избрано пълнотекстовото търсене, то се взима изчислимото поле
         $field36 = $mvc->getExpandFieldName36();
+
+        // Ако го няма в заявката, се добавя служебно
         if(!isset($query->fields[$field36])){
             expect($externalKey);
             $query->EXT($field36, $mvc->className, "externalName={$field36},externalKey={$externalKey}");
         }
 
+        // Стойностите се обръщат в 35-чна бройна система и се търси с MATCH в булеан режим
         $values = core_Type::getByName('type_Keylist')->fromArray36($valueArr);
-        $query->where("MATCH(#{$field36}) AGAINST('{$values}' IN BOOLEAN MODE)");
+        if($not){
+            $query->where("NOT MATCH(#{$field36}) AGAINST('{$values}' IN BOOLEAN MODE)");
+        } else {
+            $query->where("MATCH(#{$field36}) AGAINST('{$values}' IN BOOLEAN MODE)");
+        }
     }
 }

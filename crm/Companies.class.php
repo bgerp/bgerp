@@ -1376,8 +1376,7 @@ class crm_Companies extends core_Master
         if ($params['group']) {
             $gId = crm_Groups::getIdFromSysId($params['group']);
             expect($gId);
-
-            $query->likeKeylist('groupList', $gId);
+            plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $query, $gId);
         }
 
         $res = array();

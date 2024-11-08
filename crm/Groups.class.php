@@ -804,8 +804,7 @@ class crm_Groups extends core_Master
         // Вземаме всички записи за класовете и ги добавяме в съответните полета
         foreach ($allClass as $class => $fArr) {
             $query = $class::getQuery();
-            $query->likeKeylist('groupList', $id);
-            
+            plg_ExpandInput::applyExtendedInputSearch($class, $query, $id);
             if ($limit) {
                 $query->limit($limit);
             }
@@ -1132,7 +1131,7 @@ class crm_Groups extends core_Master
         $classes = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf');
         foreach ($classes as $className){
             $query = $className::getQuery();
-            $query->likeKeylist('groupList', $keylist);
+            plg_ExpandInput::applyExtendedInputSearch($className, $query, $keylist);
             $query->where("#folderId IS NOT NULL AND #state != 'rejected'");
             $query->show('folderId');
             $res += arr::extractValuesFromArray($query->fetchAll(), 'folderId');

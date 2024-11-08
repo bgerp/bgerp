@@ -165,7 +165,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
         //Филтър по групи артикули
         if ($rec->groups) {
-            $pQuery->likeKeylist('groups', $rec->groups);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->groups, 'productId');
         }
 
 

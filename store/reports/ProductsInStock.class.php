@@ -394,7 +394,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             //Филтър по групи артикули
             if (isset($rec->group)) {
-                $prodQuery->likeKeylist('groups', $rec->group);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $prodQuery, $rec->group, 'productId');
             }
 
             //Филтър по склад

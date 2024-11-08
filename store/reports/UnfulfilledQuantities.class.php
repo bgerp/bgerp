@@ -242,7 +242,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         //Филтър по групи артикули
         if (isset($rec->group)) {
             $queryShipmentOrderDetails->where('#groups IS NOT NULL');
-            $queryShipmentOrderDetails->likeKeylist('groups', $rec->group);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryShipmentOrderDetails, $rec->group, 'productId');
         }
 
         $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn,shipmentOrderActivatedOn');

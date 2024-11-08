@@ -483,7 +483,7 @@ class cat_ListingDetails extends doc_Detail
         
         // Извличане на всички активни, продаваеми артикули от дадената група и нейните подгрупи
         $query = cat_Products::getQuery();
-        $query->likeKeylist('groups', $cDescendants);
+        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $cDescendants);
         
         if (is_array($alreadyIn)) {
             $query->notIn('id', $alreadyIn);
