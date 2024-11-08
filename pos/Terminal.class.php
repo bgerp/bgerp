@@ -1973,12 +1973,24 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable($rec, $searchString, $selectedRec)
     {
-        $cMin = date('i');
-        $cacheKey = "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}_{$cMin}_{$rec->voucherId}";
+        $priceCache = core_Permanent::get("priceListHash");
+        $settings = pos_Points::getSettings($rec->pointId);
+
+        if(!empty($rec->policyId)){
+            $rec->_policy1 = $rec->policyId;
+            $rec->_policy2 = pos_Receipts::isForDefaultContragent($rec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+        } else {
+            $rec->_policy1 = $settings->policyId;
+            $rec->_policy2 = pos_Receipts::isForDefaultContragent($rec) ? null : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+        }
+
+        $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$rec->_selectedGroupId}_{$priceCache}";
         $result = core_Cache::get('pos_Terminal', $cacheKey);
         
-        $settings = pos_Points::getSettings($rec->pointId);
         if(!is_array($result)){
+            if(haveRole('debug')){
+                core_Statuses::newStatus("DEBUG: {$cacheKey}");
+            }
             core_Debug::startTimer('RES_RENDER_RESULT_FETCH_RECS');
             $similarProducts = $this->getSuggestedProductIds($rec, $selectedRec);
             
@@ -2052,7 +2064,7 @@ class pos_Terminal extends peripheral_Terminal
                     }
                     
                     if($productRec = $cloneQuery->fetch()){
-                        $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'code' => $productRec->code, 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
+                        $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null);
                         $count++;
                     }
                 }
@@ -2080,7 +2092,7 @@ class pos_Terminal extends peripheral_Terminal
                 $pQuery1->limit($settings->maxSearchProducts);
                 
                 while($pRec1 = $pQuery1->fetch()){
-                    $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId);
+                    $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn);
                     $count++;
                     if($count == $settings->maxSearchProducts) break;
                 }
@@ -2122,7 +2134,7 @@ class pos_Terminal extends peripheral_Terminal
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
             $result = $this->prepareProductResultRows($sellable, $rec, $settings);
             core_Debug::stopTimer('RES_RENDER_RESULT_VERBAL');
-            core_Cache::set('pos_Terminal', $cacheKey, $result, 2);
+            core_Cache::set('pos_Terminal', $cacheKey, $result, 180);
         }
         
         return $result;
@@ -2141,21 +2153,10 @@ class pos_Terminal extends peripheral_Terminal
     private function prepareProductResultRows($products, $rec, $settings)
     {
         $res = array();
-        if(!countR($products)) {
-            
-            return $res;
-        }
+        if(!countR($products)) return $res;
 
         $productClassId = cat_Products::getClassId();
         $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
-
-        if(!empty($rec->policyId)){
-            $policy1 = $rec->policyId;
-            $policy2 = pos_Receipts::isForDefaultContragent($rec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
-        } else {
-            $policy1 = $settings->policyId;
-            $policy2 = pos_Receipts::isForDefaultContragent($rec) ? null : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
-        }
 
         $packs = array();
         $packQuery = cat_products_Packagings::getQuery();
@@ -2181,7 +2182,7 @@ class pos_Terminal extends peripheral_Terminal
             }
             $perPack = isset($packs[$id][$packId]) ? $packs[$id][$packId]->quantity : 1;
             core_Debug::startTimer('TERMINAL_RESULT_GET_LOWER_PRICE');
-            $priceRes = pos_ReceiptDetails::getLowerPriceObj($policy1, $policy2, $id, $packId, 1, $now);
+            $priceRes = pos_ReceiptDetails::getLowerPriceObj($rec->_policy1, $rec->_policy2, $id, $packId, 1, $now);
             core_Debug::stopTimer('TERMINAL_RESULT_GET_LOWER_PRICE');
             $productRec = (object)array('id' => $id, 'name' => $pRec->name, 'nameEn' => $pRec->nameEn, 'code' => $pRec->code);
 
