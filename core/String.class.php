@@ -880,9 +880,11 @@ class core_String
      * Изчислява аритметичен израз от стринг
      * Предварително израза трябва да се подготви
      */
-    public static function calcMathExpr($expr, &$success = null, &$error = null)
-    {
-        $expr = self::prepareMathExpr($expr);
+    public static function calcMathExpr($expr, &$success = null, &$error = null, $doNotPrepare = false)
+    { 
+        if(!$doNotPrepare) {
+            $expr = self::prepareMathExpr($expr);
+        }
        
         if (strlen($expr)) {
             set_error_handler(function ($errno, $errstr) {
