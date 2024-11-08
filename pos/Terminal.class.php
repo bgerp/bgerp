@@ -1991,7 +1991,6 @@ class pos_Terminal extends peripheral_Terminal
             if(haveRole('debug')){
                 core_Statuses::newStatus("DEBUG: {$cacheKey}");
             }
-            core_Debug::startTimer('RES_RENDER_RESULT_FETCH_RECS');
             $similarProducts = $this->getSuggestedProductIds($rec, $selectedRec);
             
             $count = 0;
@@ -2129,7 +2128,6 @@ class pos_Terminal extends peripheral_Terminal
                     }
                 }
             }
-            core_Debug::stopTimer('RES_RENDER_RESULT_FETCH_RECS');
 
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
             $result = $this->prepareProductResultRows($sellable, $rec, $settings);
@@ -2232,9 +2230,7 @@ class pos_Terminal extends peripheral_Terminal
                 $res[$id]->CLASS .= ' notSellable';
             }
 
-            core_Debug::startTimer('RES_RENDER_RESULT_BIGGEST_QUANTITY');
             $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId) : null;
-            core_Debug::stopTimer('RES_RENDER_RESULT_BIGGEST_QUANTITY');
             if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, null,2));
             }
@@ -2268,9 +2264,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function getPosProductPreview($productId, $width, $height, $settings = array())
     {
-        core_Debug::startTimer('RENDER_RESULT_GET_PREVIEW_PARAM');
         $photo = cat_Products::getParams($productId, 'preview');
-        core_Debug::stopTimer('RENDER_RESULT_GET_PREVIEW_PARAM');
         if($settings->productBtnTpl == 'pictureAndText' && empty($photo)) return;
 
         $arr = array();
