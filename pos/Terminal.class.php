@@ -2126,13 +2126,10 @@ class pos_Terminal extends peripheral_Terminal
         $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$priceCache}";
         $result = core_Cache::get('pos_Terminal', $cacheKey);
         if(!is_array($result)){
-            core_Statuses::newStatus("N {$cacheKey}");
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
             $result = $this->prepareProductResultRows($sellable, $rec, $settings);
             core_Debug::stopTimer('RES_RENDER_RESULT_VERBAL');
             core_Cache::set('pos_Terminal', $cacheKey, $result, 180);
-        } else {
-            core_Statuses::newStatus("GET {$cacheKey}");
         }
 
         foreach ($result as &$row){
