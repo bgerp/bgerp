@@ -715,6 +715,7 @@ class acc_Items extends core_Manager
             $items = keylist::toArray($form->rec->objects);
             if (countR($items)) {
                 foreach ($items as $id) {
+                    $Class->logWrite('Ръчен импорт като счетоводно перо', $id);
                     acc_Lists::addItem($listId, $Class->className, $id);
                     $count++;
                 }
@@ -728,7 +729,7 @@ class acc_Items extends core_Manager
                 
                 $this->logWrite('Добавяне на обекти, като пера', $rec->id);
                 
-                return followRetUrl(null, "|Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
+                followRetUrl(null, "|Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
             }
         }
         
