@@ -216,7 +216,7 @@ class sens2_Scripts extends core_Master
         if (($expr = str::prepareMathExpr($expr, $context)) === false) {
             $res = self::CALC_ERROR;
         } else {
-            $res = str::calcMathExpr($expr, $success, $error);
+            $res = str::calcMathExpr($expr, $success, $error, true);
             
             if ($success === false) {
                 $res = self::CALC_ERROR;
