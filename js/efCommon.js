@@ -550,6 +550,9 @@ function toggleFormGroup(id)
 	$('.fs-toggle' + id).find('.btns-icon').fadeToggle();
 	$('.fs-toggle' + id).toggleClass('openToggleRow');
     setRicheditWidth();
+    setTimeout(function(){
+        $('.autosize').autosize({maxHeight:$(window).height() - 150});
+    }, 1000);
 }
 
 
@@ -2853,6 +2856,8 @@ function replaceFormData(frm, data)
 	});
 
     radioButtonActions();
+    $('.autosize').autosize({maxHeight:$(window).height() - 150});
+
 	// Показваме нормален курсур
 	frm.css('cursor', 'default');
     frm.find('#save, #saveAndNew').prop( "disabled", false );
