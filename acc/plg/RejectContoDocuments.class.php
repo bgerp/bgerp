@@ -86,12 +86,14 @@ class acc_plg_RejectContoDocuments extends core_Plugin
             
             // Ако документа е използван в контировката на документ от друг тред, показваме съобщение и връщаме FALSE
             if (countR($mvc->usedIn)) {
-                foreach ($mvc->usedIn as $itemId => $used) {
-                    $itemName = acc_Items::getVerbal($itemId, 'title');
-                    $msg = tr("|Документът|* \"{$itemName}\" |не може да бъде оттеглен/възстановен докато е контиран от следните документи извън нишката|*:");
-                    
-                    foreach ($used as $doc) {
-                        $msg .= '#' . $doc . ', ';
+                if($action != 'conto'){
+                    foreach ($mvc->usedIn as $itemId => $used) {
+                        $itemName = acc_Items::getVerbal($itemId, 'title');
+                        $msg = tr("|Документът|* \"{$itemName}\" |не може да бъде оттеглен/възстановен докато е контиран от следните документи извън нишката|*:");
+
+                        foreach ($used as $doc) {
+                            $msg .= '#' . $doc . ', ';
+                        }
                     }
                 }
                 
