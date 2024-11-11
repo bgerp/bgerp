@@ -95,13 +95,15 @@ class acc_plg_RejectContoDocuments extends core_Plugin
                             $msg .= '#' . $doc . ', ';
                         }
                     }
+
+                    $msg = trim($msg, ', ');
+                    core_Statuses::newStatus($msg, 'error');
                 }
-                
-                $msg = trim($msg, ', ');
-                core_Statuses::newStatus($msg, 'error');
             }
-            
-            $res = false;
+
+            if(!empty($msg)){
+                $res = false;
+            }
         } else {
             $res = true;
         }

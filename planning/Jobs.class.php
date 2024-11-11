@@ -1237,12 +1237,17 @@ class planning_Jobs extends core_Master
         // След активиране на заданието, ако е към продажба, форсираме я като разходно перо
         if (isset($rec->saleId)) {
             if (cat_Products::fetchField($rec->productId, 'canStore') == 'no') {
-                if (!acc_Items::isItemInList('sales_Sales', $rec->saleId, 'costObjects')) {
-                    $listId = acc_Lists::fetchBySystemId('costObjects')->id;
-                    acc_Items::force('sales_Sales', $rec->saleId, $listId);
 
-                    $costObj = (object) array('containerId' => sales_Sales::fetchField($rec->saleId, 'containerId'));
-                    doc_ExpensesSummary::save($costObj);
+                $saleRec = sales_Sales::fetch($rec->saleId, 'id,containerId,state');
+                if(in_array($saleRec->state, array('active', 'closed'))) {
+                    if (!acc_Items::isItemInList('sales_Sales', $saleRec->id, 'costObjects')) {
+                        $listId = acc_Lists::fetchBySystemId('costObjects')->id;
+                        acc_Items::force('sales_Sales', $saleRec->id, $listId);
+                        sales_Sales::logWrite('Става разходно перо, след активиране на задание', $saleRec->id);
+
+                        $costObj = (object) array('containerId' => $saleRec->containerId);
+                        doc_ExpensesSummary::save($costObj);
+                    }
                 }
             }
         }
