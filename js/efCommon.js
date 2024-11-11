@@ -2856,7 +2856,6 @@ function replaceFormData(frm, data)
 	});
 
     radioButtonActions();
-    $('.autosize').autosize({maxHeight:$(window).height() - 150});
 
 	// Показваме нормален курсур
 	frm.css('cursor', 'default');
