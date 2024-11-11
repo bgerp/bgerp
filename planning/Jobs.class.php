@@ -1319,7 +1319,7 @@ class planning_Jobs extends core_Master
             }
 
             if(Request::get('showDiff')){
-                $row->origin = lib_Diff::getDiff(str_replace('&nbsp;', ' ', $oldJobOrigin->getContent()), str_replace('&nbsp;', ' ', $row->origin, ));
+                $row->origin = lib_Diff::getDiff(str_replace('&nbsp;', ' ', $oldJobOrigin->getContent()), str_replace('&nbsp;', ' ', $row->origin));
             }
         }
     }
