@@ -188,6 +188,8 @@ class planning_Centers extends core_Master
         $this->FLD('autoCreateTaskState', 'enum(auto=Автоматично,pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние,value=auto,notNull');
         $this->FLD('supportSystemFolderId', 'key2(mvc=doc_Folders,select=title,coverClasses=support_Systems,allowEmpty)', 'caption=Система за подаване на сигнали->Система');
 
+        $powerUserId = core_Roles::fetchByName('powerUser');
+        $this->FLD('supportUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Система за подаване на сигнали->Отговорници');
         $this->setDbUnique('name');
     }
 
