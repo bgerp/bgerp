@@ -4526,34 +4526,44 @@ class planning_Tasks extends core_Master
      */
     public function act_savereordertasks()
     {
-        $this->requireRightFor('savereordertasks');
-        $assetId = Request::get('assetId', 'int');
-        expect($hash = Request::get('hash'));
-        expect(str::checkHash($hash, 6, 'RO'));
-
-        $inOrderTasks = Request::get('orderedTasks', 'varchar');
-        $inOrderTasks = json_decode($inOrderTasks);
-
-        $tasks = array();
-        $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
-        foreach ($inOrderTasks as $i => $taskId){
-            $tasks[$taskId] = $cachedData['tasks'][$taskId];
+        $success = true;
+        try{
+            $this->requireRightFor('savereordertasks');
+            $assetId = Request::get('assetId', 'int');
+            expect($hash = Request::get('hash'));
+            expect(str::checkHash($hash, 6, 'RO'));
+        } catch (Exception $e){
+            reportException($e);
+            $success = false;
         }
 
-        core_Debug::startTimer('TASKS_LIVE_REORDER_TASKS');
-        planning_AssetResources::reOrderTasks($assetId, $tasks, true);
-        unset($this->reorderTasksInAssetId[$assetId]);
-        core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
-        planning_AssetResources::logWrite('Ръчни преподреждане на операциите', $assetId);
+        if($success){
+            $inOrderTasks = Request::get('orderedTasks', 'varchar');
+            $inOrderTasks = json_decode($inOrderTasks);
 
-        $this->recalcTaskTimes = true;
-        $count = countR($tasks);
-        core_Statuses::newStatus("Преподредени са|* {$count} |на|* " . planning_AssetResources::getTitleById($assetId));
-        core_Cache::remove('planning_Tasks', "reorderAsset{$assetId}");
+            $tasks = array();
+            $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
+            foreach ($inOrderTasks as $i => $taskId){
+                $tasks[$taskId] = $cachedData['tasks'][$taskId];
+            }
 
-        $cu = core_Users::getCurrent();
-        core_Permanent::remove("folderFilter{$this->className}|{$cu}");
-        core_Permanent::remove("isReorderingTasks|{$assetId}|{$cu}");
+            core_Debug::startTimer('TASKS_LIVE_REORDER_TASKS');
+            planning_AssetResources::reOrderTasks($assetId, $tasks, true);
+            unset($this->reorderTasksInAssetId[$assetId]);
+            core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
+            planning_AssetResources::logWrite('Ръчни преподреждане на операциите', $assetId);
+
+            $this->recalcTaskTimes = true;
+            $count = countR($tasks);
+            core_Statuses::newStatus("Преподредени са|* {$count} |на|* " . planning_AssetResources::getTitleById($assetId));
+            core_Cache::remove('planning_Tasks', "reorderAsset{$assetId}");
+
+            $cu = core_Users::getCurrent();
+            core_Permanent::remove("folderFilter{$this->className}|{$cu}");
+            core_Permanent::remove("isReorderingTasks|{$assetId}|{$cu}");
+        } else {
+            core_Statuses::newStatus("Нямате права за преподреждане|*!", 'error');
+        }
 
         $res = array();
         $resObj = new stdClass();
