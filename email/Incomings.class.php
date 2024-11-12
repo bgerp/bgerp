@@ -3664,7 +3664,7 @@ class email_Incomings extends core_Master
      */
     public function getLinkedFiles($rec)
     {
-        $onlyAttached = Request::get('ONLY_ATTACHED_FILES');
+        $onlyAttached = Mode::is('ONLY_ATTACHED_FILES');
 
         // Ако не е обект
         if (!is_object($rec)) {
