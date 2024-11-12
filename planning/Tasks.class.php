@@ -112,11 +112,10 @@ class planning_Tasks extends core_Master
      */
     public $canList = 'ceo, taskSee';
 
-
     /**
      * Кой може да записва преподредените задачи?
      */
-    public $canSavereorderedtasks = 'ceo, taskSee';
+    public $canSavereordertasks = 'ceo, taskSee';
 
 
     /**
