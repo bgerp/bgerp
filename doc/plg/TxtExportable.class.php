@@ -46,9 +46,9 @@ class doc_plg_TxtExportable extends core_Plugin
         Mode::pop('text');
 
         // Допълване с антетката на документа
-        $createdName = core_Users::fetchField($rec->createdBy, 'names');
+        $createdName = core_Lg::transliterate(core_Users::fetchField($rec->createdBy, 'names'));
         $singleTitle = tr($mvc->singleTitle);
-        $startStr = tr('ДОКУМЕНТ') . ": {$singleTitle} {$mvc->getHandle($id)}";
+        $startStr = tr('Документ') . ": {$singleTitle} {$mvc->getHandle($id)}";
         $startStr .= " " . tr('създаден от||created by') . " {$row->createdBy} ({$createdName})";
         $startStr .= " " . tr('в състояние') . " {$row->state}" . "\n";
 
@@ -65,15 +65,15 @@ class doc_plg_TxtExportable extends core_Plugin
 
                 $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
                 if(empty($fileTxtContent)) continue;
-//                bp($linkedFiles, $fileName, $fileTxtContent);
+
                 $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
-                $string .= "\n" . tr("|*& Прикачен файл|*: {$fileName} ({$fileLenVerbal})") . "\n";
+                $string .= "\n" . tr("|*& |Прикачен файл|*: {$fileName} ({$fileLenVerbal})") . "\n";
                 $string .= tr("Извлечен текст|*: ");
                 $strLen = mb_strlen($fileTxtContent);
                 if(mb_strlen($fileTxtContent) > 10000){
                     $rest = $strLen - 10000;
                     $string .= substr($fileTxtContent, 0, 10000);
-                    $string .= tr("|* ( |още|* {$rest} |символа|* )") . "\n";
+                    $string .= tr("|* (+{$rest} |още символа|* )") . "\n";
                 } else {
                     $string .= $fileTxtContent . "\n";
                 }
