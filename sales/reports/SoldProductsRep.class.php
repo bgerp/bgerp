@@ -388,7 +388,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
 
-            $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+            //$posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
 
             $posDetQuery->where('#productId IS NOT NULL');
 

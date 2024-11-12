@@ -30,6 +30,7 @@ class doc_plg_TxtExportable extends core_Plugin
     {
         if(!empty($text)) return '';
         $rec = $mvc->fetchRec($id);
+        Mode::set('ONLY_ATTACHED_FILES', true);
 
         // Рендиране на цялото представяне на документа в текстов вид
         $docHtml = $mvc->getInlineDocumentBody($id, 'plain');
@@ -57,13 +58,14 @@ class doc_plg_TxtExportable extends core_Plugin
         if($params['addAttachedTextFiles']){
             Mode::push('text', 'plain');
             $linkedFiles = $mvc->getLinkedFiles($rec);
+            ;
             foreach ($linkedFiles as $fileHnd => $fileName){
                 $fileLen = fileman_Files::fetchByFh($fileHnd, 'fileLen');
                 $fileLenVerbal = core_Type::getByName('fileman_FileSize')->toVerbal($fileLen);
 
                 $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
                 if(empty($fileTxtContent)) continue;
-
+//                bp($linkedFiles, $fileName, $fileTxtContent);
                 $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
                 $string .= "\n" . tr("|*& Прикачен файл|*: {$fileName} ({$fileLenVerbal})") . "\n";
                 $string .= tr("Извлечен текст|*: ");

@@ -271,12 +271,24 @@ class support_TaskType extends core_Mvc
      */
     public static function on_AfterGetDefaultAssignUsers($Driver, $mvc, &$res, $rec)
     {
-        $res = null;
+        // Ако избрания етап има отговорници - няма да се добавят тези от ЦД
+        if(!empty($rec->stepId)){
+            $stepUsers = doc_UnsortedFolderSteps::fetchField($rec->stepId, 'supportUsers');
+            if(!empty($stepUsers)) return;
+        }
 
-        if ($rec->assetResourceId) {
-            $systemUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
-            if ($systemUsers) {
-                $res = keylist::merge($systemUsers, $rec->assing);
+        // Ако има източник и той е ПО - взимат се отговорниците за системата от центъра на дейност
+        if(isset($rec->srcClass) && isset($rec->srcId)){
+            $Source = cls::get($rec->srcClass);
+            if($Source instanceof planning_Tasks){
+                $sourceFolderId = $Source->fetchField($rec->srcId, 'folderId');
+                $SourceFolderCover = doc_Folders::getCover($sourceFolderId);
+                if($SourceFolderCover->isInstanceOf('planning_Centers')){
+                    $supportUsers = $SourceFolderCover->fetchField('supportUsers');
+                    if(!empty($supportUsers)){
+                        $res = keylist::merge($supportUsers, $rec->assing);
+                    }
+                }
             }
         }
     }

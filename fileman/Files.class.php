@@ -1345,12 +1345,12 @@ class fileman_Files extends core_Master
         if (($dotPos = mb_strrpos($fileName, '.')) !== false) {
             
             // Файл за mime типове
-            include(dirname(__FILE__) . '/data/mimes.inc.php');
+            include(dirname(__FILE__) . '/data/ext2mime.inc.php');
             
             // Разширение на файла
             $ext = mb_substr($fileName, $dotPos + 1);
-            
-            return $mimetypes["{$ext}"];
+
+            return $ext2mime["{$ext}"];
         }
     }
     

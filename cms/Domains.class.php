@@ -789,7 +789,7 @@ class cms_Domains extends core_Embedder
     
     
     /**
-     * Връща SEO залгавието за текущия домейн
+     * Връща SEO заглавието за текущия домейн
      */
     public static function getSeoTitle()
     {

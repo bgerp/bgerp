@@ -1300,7 +1300,11 @@ class planning_Jobs extends core_Master
             $oldJobCacheDate = !empty($oldJobRec->productViewCacheDate) ? $oldJobRec->productViewCacheDate : $oldJobRec->modifiedOn;
             $oldJobOrigin = cat_Products::getAutoProductDesc($oldJobRec->productId, $oldJobCacheDate, 'detailed', 'job', core_Lg::getCurrent());
 
-            if(md5(strip_tags(str::removeWhiteSpace($oldJobOrigin->getContent()))) != md5(strip_tags(str::removeWhiteSpace($row->origin)))){
+            $newOriginHtml = str_replace('&nbsp;', '', strip_tags(str::removeWhiteSpace($oldJobOrigin->getContent())));
+            $oldOriginHtml = str_replace('&nbsp;', '', strip_tags(str::removeWhiteSpace($row->origin)));
+
+
+            if(md5($newOriginHtml) != md5($oldOriginHtml)){
                 $cUrl = getCurrentUrl();
                 if(Request::get('showDiff')){
                     unset($cUrl['showDiff']);
@@ -1315,7 +1319,7 @@ class planning_Jobs extends core_Master
             }
 
             if(Request::get('showDiff')){
-                $row->origin = lib_Diff::getDiff($oldJobOrigin, $row->origin);
+                $row->origin = lib_Diff::getDiff(str_replace('&nbsp;', ' ', $oldJobOrigin->getContent()), str_replace('&nbsp;', ' ', $row->origin));
             }
         }
     }

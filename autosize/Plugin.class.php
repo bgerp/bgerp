@@ -35,6 +35,6 @@ class autosize_Plugin extends core_Plugin
         
         $tpl->push('autosize/' . $conf->AUTOSIZE_VERSION . '/jquery.autosize.min.js', 'JS');
         
-        jquery_Jquery::run($tpl, "$('.autosize').autosize({maxHeight:$(window).height() - 150});");
+        jquery_Jquery::run($tpl, "$('.autosize:visible').autosize({maxHeight:$(window).height() - 150});");
     }
 }
