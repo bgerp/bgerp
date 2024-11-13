@@ -1130,7 +1130,7 @@ class core_Form extends core_FieldSet
                        $mandatoryClass = ($field->mandatory) ? 'mandatoryNoCaptionField' : '';
                        $tdHtml = "<td class='formFieldCaption'>{$caption}</td><td class='formElement[#{$field->name}_INLINETO_CLASS#] noCaptionElement {$mandatoryClass}'>[#{$field->name}#]{$unit}</td>";
                     } else {
-                       $tdHtml = "<td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td>"; 
+                       $tdHtml = "<td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td>";
                     }
                     $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}>{$tdHtml}</tr>");
                 }
