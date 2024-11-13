@@ -7956,3 +7956,39 @@ table.bomProductionStepTable td {
   padding-left: 5px;
   padding-right: 5px; }
 
+.aiPromptBlock {
+  background-color: #357abd;
+    /*
+   * Син фон
+   */
+  color: white;
+    /*
+   * Бял цвят на текста
+   */
+  border-radius: 8px;
+    /*
+   * Заоблени ъгли
+   */
+  padding: 5px;
+    /*
+   * Намален падинг
+   */
+  margin: 5px 0;
+    /*
+   * Намален маргин
+   */
+  font-size: 0.9em;
+    /*
+   * Намален размер на текста
+   */ }
+
+/*
+ * Стил за заглавието на блока
+ */
+.aiLastPromptCaption {
+  font-weight: bold;
+  font-size: 1em;
+    /*
+   * Намален размер за заглавието
+   */ }
+
