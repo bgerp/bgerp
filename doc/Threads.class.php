@@ -3509,7 +3509,12 @@ class doc_Threads extends core_Manager
             if($Document->haveInterface('export_TxtExportIntf')){
                 $txtExportIntf = cls::getInterface('export_TxtExportIntf', $Document->getInstance());
                 $res .= !empty($res) ? ("\n" . '======================================================' . "\n") : '';
-                $res .= $txtExportIntf->getTxtContent($Document->that, $params);
+
+                // Генериране на текстовото представяне и нотифициране на документа за експорта
+                $exportedText = $txtExportIntf->getTxtContent($Document->that, $params);
+                $Document->invoke('AfterGetTxtExport', array(&$exportedText, $Document->fetch()));
+
+                $res .= $exportedText;
             }
         }
 
