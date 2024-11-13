@@ -125,6 +125,8 @@ class export_Txt extends core_Mvc
      */
     public function addParamFields($form, $clsId, $objId)
     {
+        if($form->isSubmitted()) return;
+
         $form->FLD('addAttachedTextFiles', 'enum(no=Не,yes=Да)', 'caption=Да се експортират и прикачените текстови файлове?->Избор,autohide');
         $form->setDefault('addAttachedTextFiles', 'no');
     }
