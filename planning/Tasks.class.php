@@ -3658,7 +3658,7 @@ class planning_Tasks extends core_Master
 
                 $hash = str::addHash($assetId, 6, 'RO');
                 $saveBtnAttr = array('id' => 'saveBtn');
-                if ($mvc->haveRightFor('savereorderedtasks', (object)array('assetId' => $assetId))) {
+                if ($mvc->haveRightFor('savereordertasks', (object)array('assetId' => $assetId))) {
                     $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
                 }
                 $headerTpl->append(ht::createFnBtn('Запази промените', '', false, $saveBtnAttr), 'saveBtn');
