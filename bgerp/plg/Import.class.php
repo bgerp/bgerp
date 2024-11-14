@@ -156,15 +156,15 @@ class bgerp_plg_Import extends core_Plugin
                     $msg = $Driver->import($rows, $fields);
                     Mode::pop('importing');
                     Mode::pop('onExist');
+                    $mvc->_haveImportedRecs = true;
 
                     if($mvc instanceof core_Detail){
                         $masterId = Request::get($mvc->masterKey, 'int');
-                        redirect(array($mvc->Master, 'single', $masterId), false, $msg);
+                        redirect(array($mvc->Master, 'single', $masterId), false, $msg, 'warning');
                     } else {
                         // Редирект кум лист изгледа на мениджъра в който се импортира
-                        redirect(array($mvc, 'list'), false, $msg);
+                        redirect(array($mvc, 'list'), false, $msg, 'warning');
                     }
-
                 }
             }
             
