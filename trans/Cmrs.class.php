@@ -317,8 +317,8 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         }
 
         // Информация за получателя и изпращача
-        $consigneeData = $this->getDefaultContragentData($sRec->contragentClassId, $sRec->contragentId, false);
-        $senderData = $this->getDefaultContragentData('crm_Companies', $ownCompanyId, true, $hideOurEori);
+        $consigneeData = $this->getDefaultContragentData($sRec->contragentClassId, $sRec->contragentId);
+        $senderData = $this->getDefaultContragentData('crm_Companies', $ownCompanyId, $hideOurEori);
 
         // Място на товарене / Разтоварване
         $loadingPlace = $lData['fromPCode'] . ' ' .  transliterate($lData['fromPlace']) . ', ' . $lData['fromCountry'];
@@ -364,7 +364,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
             $lineRec = trans_Lines::fetch($sRec->lineId);
             if (isset($lineRec->forwarderId)) {
                 core_Lg::push('en');
-                $carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId, true, true);
+                $carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId, true);
                 core_Lg::pop();
 
 
@@ -392,23 +392,22 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
      *
      * @param mixed $contragentClassId - клас на контрагента
      * @param int   $contragentId      - контрагент ид
-     * @param bool  $translate         - превод на името на контрагента
      * @param bool  $hideEori          - дали да се скрие ЕОРИ номера на контрагента
      *
      * @return string - информация за контрагента
      */
-    private function getDefaultContragentData($contragentClassId, $contragentId, $translate = true, $hideEori = false)
+    private function getDefaultContragentData($contragentClassId, $contragentId, $hideEori = false)
     {
         $Contragent = cls::get($contragentClassId);
-        $verbal = $Contragent->fetch($contragentId, 'pCode,place,address');
+        $verbal = $Contragent->fetch($contragentId);
         $contragentAddress = ($verbal->address) ? (transliterate(tr($verbal->address)) . "\n") : '';
         $contragentAddress .= ($verbal->pCode) ? $verbal->pCode : '';
         $contragentAddress .= ($verbal->place) ? (' ' . transliterate(tr($verbal->place))) : '';
 
-        $contragentCountry = $Contragent->getVerbal($contragentId, 'country');
-        $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->fetchField($contragentId, 'name');
-        $cData = cls::get($contragentClassId)->getContragentData($contragentId);
+        $contragentCountry = $Contragent->getVerbal($verbal, 'country');
+        $contragentName = $Contragent->getVerbal($verbal, 'name');
         $contragentName = str_replace(array('&lt;', '&amp;'), array('<', '&'), $contragentName);
+        $cData = cls::get($contragentClassId)->getContragentData($contragentId);
 
         $contragentNumbers = '';
         if(!$hideEori && !empty($cData->eori)){
