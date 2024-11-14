@@ -352,7 +352,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
         // Подготовка на пейджъра
         $itemsPerPage = null;
-        if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || isset($customTpl))) {
+        if (!(Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('text', 'plain') || Mode::is('pdf') || isset($customTpl))) {
             setIfNot($itemsPerPage, $rec->listItemsPerPage, $this->listItemsPerPage);
             $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $itemsPerPage));
             $data->Pager->setPageVar('frame2_Reports', $rec->id);
