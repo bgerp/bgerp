@@ -408,6 +408,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         $contragentCountry = $Contragent->getVerbal($contragentId, 'country');
         $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->fetchField($contragentId, 'name');
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
+        $contragentName = str_replace(array('&lt;', '&amp;'), array('<', '&'), $contragentName);
 
         $contragentNumbers = '';
         if(!$hideEori && !empty($cData->eori)){
