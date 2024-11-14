@@ -4710,4 +4710,16 @@ class cat_Products extends embed_Manager
 
         return self::getDisplayName($rec);
     }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_AfterSessionClose($mvc)
+    {
+        // Ако има импортирани артикули - да се изпълни веднага крон процеса за засегнатите групи
+        if(isset($mvc->_haveImportedRecs)){
+            cls::get('cat_Groups')->cron_UpdateTouchedGroupsCnt();
+        }
+    }
 }
