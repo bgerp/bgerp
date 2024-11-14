@@ -206,7 +206,7 @@ class core_Users extends core_Manager
         
         $this->FLD(
             'state',
-            'enum(active=Активен,draft=Непотвърден,blocked=Блокиран,closed=Затворен,rejected=Заличен)',
+            'enum(active=Активен,draft=Непотвърден,blocked=Блокиран,closed=Затворен,rejected=Оттеглен)',
             'caption=Състояние,notNull,default=draft'
         );
         

@@ -127,8 +127,14 @@ class crm_Profiles extends core_Master
     
     
     public $canDelete = 'no_one';
-    
-    
+
+
+    /**
+     * Кой ще може да закрива/активира състоянието на профила на лицето
+     */
+    public $canCloseprofile = 'ceo,admin,hrMaster';
+
+
     /**
      * Помощен масив за типовете дни
      */
@@ -1471,6 +1477,24 @@ class crm_Profiles extends core_Master
                 }
             }
         }
+
+        // Кой може да затваря профила от визитката
+        if($action == 'closeprofile' && isset($rec)){
+            $userState = core_Users::fetchField($rec->userId, 'state');
+            if(!in_array($userState, array('active', 'closed'))){
+                $requiredRoles = 'no_one';
+            } elseif(!core_Users::haveRightFor('edit', $rec->userId)){
+                if(!crm_Persons::haveRightFor('edit', $rec->personId)){
+                    $requiredRoles = 'no_one';
+                } else {
+                    $employeeGroupId = crm_Groups::getIdFromSysId('employees');
+                    $personGroups = crm_Persons::fetchField($rec->personId, 'groupList');
+                    if(!keylist::isIn($employeeGroupId, $personGroups)){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -1750,5 +1774,28 @@ class crm_Profiles extends core_Master
             
             return $rec->personId;
         }
+    }
+
+
+    /**
+     * Екшън за откриване/закриване на профил
+     */
+    public function act_Closeprofile()
+    {
+        $this->requireRightFor('closeprofile');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('closeprofile', $rec);
+
+        $userRec = core_Users::fetch($rec->userId);
+        $userRec->exState = $userRec->state;
+        $userRec->state = ($userRec->state == 'closed') ? 'active' : 'closed';
+        $msg = ($userRec->state == 'closed') ? 'Профилът е закрит|*!' : 'Профилът е открит|*!';
+        $logMsg = ($userRec->state == 'closed') ? 'Профилът е закрит от визитката' : 'Профилът е открит от визитката';
+        core_Users::save($userRec, 'state,exState');
+        crm_Persons::logWrite($logMsg, $rec->personId);
+        core_Users::logWrite($logMsg, $rec->userId);
+
+        followRetUrl(null, $msg);
     }
 }

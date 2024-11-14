@@ -2647,7 +2647,8 @@ class crm_Persons extends core_Master
     public function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         // Ако има профил
-        if ($profileRec = crm_Profiles::fetch("#personId = '{$data->rec->id}'")) {
+        $rec = $data->rec;
+        if ($profileRec = crm_Profiles::fetch("#personId = '{$rec->id}'")) {
             
             // Ако има права за single на профила
             if (crm_Profiles::haveRightFor('single', $profileRec)) {
@@ -2656,21 +2657,28 @@ class crm_Persons extends core_Master
                 $profileUrl = crm_Profiles::getUrl($profileRec->userId);
                 
                 // Добавяме бутон към профилите
-                $data->toolbar->addBtn(tr('Профил'), $profileUrl, 'id=btnProfile', 'ef_icon = img/16/user-profile.png');
+                $data->toolbar->addBtn('Профил', $profileUrl, 'id=btnProfile', 'ef_icon = img/16/user-profile.png,title=Към профила на лицето');
+            }
+
+            // Бутон за бързо закриване/откриване на потребителя
+            if(crm_Profiles::haveRightFor('closeprofile', $profileRec)) {
+                $profileBtnCaption = ($profileRec->state == 'closed') ? 'Профил (Откриване)' : 'Профил (Закриване)';
+                $icon = ($profileRec->state == 'closed') ? 'img/16/lock_unlock.png' : 'img/16/gray-close.png';
+                $data->toolbar->addBtn($profileBtnCaption, array('crm_Profiles', 'closeprofile', $profileRec->id, 'ret_url' => true), 'id=btnCloseProfile', "ef_icon={$icon},title=Промяна на състоянието на профила на лицето");
             }
         } else {
             
             // Ако има запис и имаме права admin
-            if ($data->rec->id && haveRole('admin') && $data->rec->state != 'rejected') {
+            if ($rec->id && haveRole('admin') && $rec->state != 'rejected') {
                 
                 // sysId на групата
                 $crmId = crm_Groups::getIdFromSysId('users');
                 
                 // Ако е в групата на потребители
-                if (keylist::isIn($crmId, $data->rec->groupList)) {
+                if (keylist::isIn($crmId, $rec->groupList)) {
                     
                     // URL за създаване на потребител
-                    $personUrl = array('core_Users', 'add', 'personId' => $data->rec->id, 'ret_url' => true);
+                    $personUrl = array('core_Users', 'add', 'personId' => $rec->id, 'ret_url' => true);
                     
                     // Добавяме бутона
                     $data->toolbar->addBtn(tr('Потребител'), $personUrl, 'id=btnUser', 'ef_icon = img/16/user_add.png');
