@@ -3493,14 +3493,13 @@ class doc_Threads extends core_Manager
      * Връща текстотово представяне на нишката
      *
      * @param int $threadId - ид на нишка
-     * @param bool $exportAttachedTextFiles - дали да се експортират и прикачените текстови файлове
+     * @param array $params - допълнителни параметри
      * @return string $res  - текстовото представяне
      */
-    public static function getAsText($threadId, $exportAttachedTextFiles = false)
+    public static function getAsText($threadId, $params = array())
     {
         $res = "";
 
-        $params = array('addAttachedTextFiles' => $exportAttachedTextFiles);
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
         $cQuery->orderBy('createdOn', 'ASC');
@@ -3510,11 +3509,8 @@ class doc_Threads extends core_Manager
                 $txtExportIntf = cls::getInterface('export_TxtExportIntf', $Document->getInstance());
                 $res .= !empty($res) ? ("\n" . '======================================================' . "\n") : '';
 
-                // Генериране на текстовото представяне и нотифициране на документа за експорта
-                $exportedText = $txtExportIntf->getTxtContent($Document->that, $params);
-                $Document->invoke('AfterGetTxtExport', array(&$exportedText, $Document->fetch()));
-
-                $res .= $exportedText;
+                // Генериране на текстовото представяне
+                $res .= $txtExportIntf->getTxtContent($Document->that, $params);
             }
         }
 
