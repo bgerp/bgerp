@@ -40,7 +40,7 @@
     /*
    * IE10+
    */
-  background: linear-gradient(to bottom, #2085ca 0%, #2274af 30%, #1e405e 100%);
+  background: linear-gradient(to bottom, var(--themeColor) 0%, var(--themeColorD 30) 30%, var(--themeColorD 100) 100%);
     /*
    * W3C
    */
@@ -508,7 +508,7 @@ body {
   font-size: 0.9em; }
 
 #fav-panel {
-  background: #666666;
+  background: #333333;
   box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.4); }
 
 .inner-fav-panel {
@@ -728,7 +728,7 @@ body {
   padding: 3px;
   width: 20px;
   height: 20px;
-  border: 1px solid #888888;
+  border: solid 1px var(--theme-color);
   padding: 4px;
   border-radius: 6px;
   cursor: pointer;
@@ -759,7 +759,7 @@ body {
   border-radius: 5px;
   cursor: pointer;
   position: relative;
-  border: 1px solid #888888;
+  border: solid 1px var(--theme-color);
   z-index: 11;
   padding: 0px 15px 0px 1px;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
