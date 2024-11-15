@@ -329,7 +329,7 @@ class eshop_Groups extends core_Master
         cms_Content::setCurrent($data->menuId);
 
         $layout = $this->getLayout();
-        
+       
         if (($q = Request::get('q')) && $menuId > 0) {
             $layout->replace(cms_Content::renderSearchResults($menuId, $q), 'PAGE_CONTENT');
             
@@ -341,7 +341,7 @@ class eshop_Groups extends core_Master
             $this->prepareNavigation($data);
             $this->prepareAllGroups($data);
 
-            if(countR($data->links) == 1){
+            if(countR($data->links) == 1 && !strlen($q)){
                 redirect($data->links[0]->url);
             }
 
@@ -848,6 +848,17 @@ class eshop_Groups extends core_Master
         
         $query->where("#menuId = {$menuId} AND #state = 'active'");
         
+        
+        $queryG = clone($query);
+        plg_Search::applySearch($q, $query, null, 5, 64);
+        while($r = $queryG->fetch()) {
+            $title = tr("Група") . ' "' . self::getVerbal($r, 'name') . '"';
+            $url = self::getUrl($r);
+            $url['q'] = $q;
+            $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+        }
+       
+        $recs = array();
         $groups = array();
         while ($rec = $query->fetch()) {
             $groups[$rec->id] = $rec->id;
@@ -863,7 +874,6 @@ class eshop_Groups extends core_Master
             $queryM->orderBy('rating,createdOn', 'DESC');
             $queryM->limit($maxResults);
             
-            $recs = array();
             $query = clone($queryM);
             plg_Search::applySearch($q, $query, null, 5, 64);
             $recs += $query->fetchAll();
