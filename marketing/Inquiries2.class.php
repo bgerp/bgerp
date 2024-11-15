@@ -63,12 +63,12 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public $singleTitle = 'Запитване';
     
-    
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, drdata_PhonePlg';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, drdata_PhonePlg, plg_HideRows';
     
     
     /**
@@ -276,6 +276,19 @@ class marketing_Inquiries2 extends embed_Manager
         $this->setDbIndex('proto');
         $this->setDbIndex('createdOn');
         $this->setDbIndex('sourceClassId,sourceId');
+    }
+    /**
+     *
+     * @param doc_Files $mvc
+     * @param stdClass  $row
+     * @param stdClass  $rec
+     */
+    public static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = null)
+    {
+        if ($fields['-list']) {
+            $mvc->setFieldTypeParams('email', array('maskVerbal' => true));
+            $mvc->setFieldTypeParams('tel', array('maskVerbal' => true));
+        }
     }
     
     

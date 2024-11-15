@@ -896,7 +896,11 @@ abstract class deals_Helper
                         $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
                         $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
                     } else {
-                        $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                        if($stRec->quantity >= $quantity) {
+                            $hint = "Наличността в склада е достатъчна за изпълнение / контиране на документа, но разполагаемата наличност е недостатъчна за изпълнението на всички чакащи документи!";
+                        } else {
+                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                        }
                     }
                 }
 
@@ -907,7 +911,7 @@ abstract class deals_Helper
         if(!$firstCheck){
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                     $class = 'doc-negative-quantity';
                     $makeLink = false;
                 }
