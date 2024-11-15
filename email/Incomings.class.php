@@ -156,9 +156,17 @@ class email_Incomings extends core_Master
      */
     public $loadList = 'email_Wrapper, doc_DocumentPlg, 
     				plg_RowTools2, plg_Printing, email_plg_Document, 
-    				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank';
-    
-    
+    				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank, plg_HideRows';
+
+
+    /**
+     * Кои полета да се скриват
+     *
+     * @see plg_HideRows
+     */
+    public $hideRows = 'fromIp=debug';
+
+
     /**
      * Сортиране по подразбиране по низходяща дата
      */

@@ -128,20 +128,24 @@
             <!--ET_END deliveryAdress-->
         </table>
     </div>
-    <!--ET_BEGIN brid-->
+
     <div class='scrolling-holder'>
         <table class='styled-table'>
             <tr>
                 <th colspan='2' style='padding:7px 0px'>|Системни данни|*</th>
             </tr>
+            <!--ET_BEGIN ip-->
             <tr>
                 <td>Ip</td>
                 <td>[#ip#]</td>
             </tr>
+            <!--ET_END ip-->
+            <!--ET_BEGIN brid-->
             <tr>
                 <td>|Браузър|*</td>
                 <td>[#brid#]</td>
             </tr>
+            <!--ET_END brid-->
             <tr>
                 <td>|Създаване|*</td>
                 <td>[#time#]</td>
@@ -155,6 +159,6 @@
             <!--ET_END sourceId-->
         </table>
     </div>
-    <!--ET_END brid-->
+
 
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
