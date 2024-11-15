@@ -845,12 +845,10 @@ class eshop_Groups extends core_Master
     {
         $res = array();
         $query = self::getQuery();
-        
         $query->where("#menuId = {$menuId} AND #state = 'active'");
-        
-        
+
         $queryG = clone($query);
-        plg_Search::applySearch($q, $query, null, 5, 64);
+        plg_Search::applySearch($q, $queryG, null, 5, 64);
         while($r = $queryG->fetch()) {
             $title = tr("Група") . ' "' . self::getVerbal($r, 'name') . '"';
             $url = self::getUrl($r);
