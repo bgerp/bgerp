@@ -64,17 +64,22 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
         
         $themeColor = '#777';
-        $dRec = cms_Domains::fetch(cms_Domains::getCurrent());
-        if(isset($dRec->form->headerColor)) {
+        $dId = cms_Domains::getCurrent('id', false);
+        $dRec = false;
+        if ($dId) {
+            $dRec = cms_Domains::fetch($dId);
+        }
+
+        if($dRec && isset($dRec->form->headerColor)) {
             $themeColor = $dRec->form->headerColor;
         }
- 
+
         $this->appendOnce("\n<meta  name=\"theme-color\" content=\"{$themeColor}\">", 'HEAD');
  
         $themeColorD30 = '#' . phpcolor_Adapter::changeColor($themeColor, 'darken', 5);
         $themeColorD100 = '#' . phpcolor_Adapter::changeColor( $themeColor , 'darken', 15);
  
-        $css .= "\n #main-container > .tab-control > .tab-row  {   background: linear-gradient(to bottom,  {$themeColor} 0%, {$themeColorD30}  30%, {$themeColorD100} 100%) !important; }";
+        $css = "\n #main-container > .tab-control > .tab-row  {   background: linear-gradient(to bottom,  {$themeColor} 0%, {$themeColorD30}  30%, {$themeColorD100} 100%) !important; }";
         $css .= "\n .inner-framecontentTop { background-color: {$themeColor} !important; }";
         $css .= "\n :root {--theme-color: {$themeColor};}";
 
