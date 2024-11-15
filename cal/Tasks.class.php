@@ -325,7 +325,7 @@ class cal_Tasks extends embed_Manager
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
         $this->FLD('parentId', 'key2(mvc=cal_Tasks,select=title,allowEmpty)', 'caption=Подзадача на,width=100%,changable,silent,remember');
         $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=shortName,allowEmpty, minimumResultsForSearch=5)', 'caption=Ресурс, removeAndRefreshForm=assign, silent, after=typeId, changable');
-        $this->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,input=none,allowEmpty)', 'caption=Етап,input=none');
+        $this->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,input=none,allowEmpty)', 'caption=Етап, removeAndRefreshForm=assign, silent,input=none');
         $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
 
         // Споделяне
@@ -959,11 +959,18 @@ class cal_Tasks extends embed_Manager
      */
     public static function on_AfterGetDefaultAssignUsers($mvc, &$res, $rec)
     {
-        if ($rec->assetResourceId) {
-            $systemUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
-            if ($systemUsers) {
-                $assign = keylist::merge($systemUsers, $rec->assing);
-                $res = keylist::merge($res, $assign);
+        $res = keylist::merge('', $rec->assing);
+        if (isset($rec->assetResourceId)) {
+            $assetUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
+            if ($assetUsers) {
+                $res = keylist::merge($res, $assetUsers);
+            }
+        }
+
+        if ($rec->stepId) {
+            $stepUsers = doc_UnsortedFolderSteps::fetchField($rec->stepId, 'supportUsers');
+            if ($stepUsers) {
+                $res = keylist::merge($res, $stepUsers);
             }
         }
     }

@@ -109,7 +109,7 @@ class export_Xml extends core_Mvc
     public function getExternalExportLink($clsId, $objId, $mid)
     {
         Request::setProtected(array('objId', 'clsId', 'mid', 'typeCls'));
-        $link = ht::createLink('XML', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/xml.png'));
+        $link = ht::createLink('XML', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/xml.png', 'title' => 'Сваляне на документа като|* XML|* файл'));
 
         return $link;
     }

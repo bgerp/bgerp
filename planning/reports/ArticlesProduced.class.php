@@ -178,7 +178,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         //Произведени артикули
         $planningQuery = planning_DirectProductionNote::getQuery();
 
-        $planningQuery->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $planningQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $planningQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $planningQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
 
@@ -192,7 +192,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         //Филтър по групи артикули
         if ($rec->groups) {
 
-            $planningQuery->likeKeylist('groupMat', $rec->groups);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $planningQuery, $rec->groups, 'productId');
 
         }
 
@@ -456,7 +456,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
 
                     'monthQuantity' => $monthQuantityArr[$planningRec->productId],
-                    'group' => $planningRec->groupMat,                               // В кои групи е включен артикула
+                    'group' => $planningRec->groups,                               // В кои групи е включен артикула
                     'month' => '',                                                   // месец на производство
                     'consumedType' => 'prod'
 

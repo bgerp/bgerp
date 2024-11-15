@@ -154,7 +154,7 @@ class planning_reports_ProposalRequest extends frame2_driver_TableData
      *
      * @param stdClass $rec
      * @param stdClass $data
-     *
+     *isset($rec->catGroup
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
@@ -216,7 +216,7 @@ class planning_reports_ProposalRequest extends frame2_driver_TableData
             
             //Филтър по група артикули
             if (isset($rec->groups)) {
-                $pQuery->likeKeylist('groups', $rec->groups);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->groups, 'productId');
             }
             
             // Синхронизира таймлимита с броя записи

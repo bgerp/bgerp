@@ -1015,7 +1015,7 @@ class cat_Products extends embed_Manager
             }
 
             if (!empty($filterRec->groupId)) {
-                $data->query->where("LOCATE('|{$filterRec->groupId}|', #groups)");
+                plg_ExpandInput::applyExtendedInputSearch($mvc, $data->query, $filterRec->groupId);
             }
 
             static::applyAdditionalListFilters($filtersArr, $data->query);
@@ -1459,7 +1459,11 @@ class cat_Products extends embed_Manager
         return $res;
     }
     
-    
+    function act_love()
+    {
+        static::getVat(5);
+    }
+
     /**
      * Връща ДДС на даден продукт
      *
@@ -1470,7 +1474,7 @@ class cat_Products extends embed_Manager
      */
     public static function getVat($productId, $date = null, $exceptionId = null)
     {
-        expect(static::fetchField($productId), 'Няма такъв артикул');
+        expect($productId, 'Няма артикул');
         if (!$date) {
             $date = dt::today();
         }
@@ -1675,14 +1679,12 @@ class cat_Products extends embed_Manager
             }
 
             self::filterQueryByMeta($query, $params['hasProperties'], $params['hasnotProperties'], $params['orHasProperties']);
-
             if (isset($params['groups'])) {
-                $groups = (keylist::isKeylist($params['groups'])) ? $params['groups'] : keylist::fromArray(arr::make($params['groups'], true));
-                $query->likeKeylist('groups', $groups);
+               plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $params['groups']);
             }
 
             if (isset($params['notInGroups'])) {
-                $query->notLikeKeylist('groups', $params['notInGroups']);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $params['notInGroups'], null, true);
             }
 
             // Филтър само за артикули, които могат да бъдат Производствени етапи

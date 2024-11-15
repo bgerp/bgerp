@@ -489,9 +489,11 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
 
         //Филтър по групи артикули
         if (isset($rec->group)) {
-            $receiptsDetQuery->likeKeylist('groups', $rec->group);
-            $fastPurchasesDetQuery->likeKeylist('groups', $rec->group);
-            $shipmentOrdersDetQuery->likeKeylist('groups', $rec->group);
+
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $receiptsDetQuery, $rec->group, 'productId');
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $fastPurchasesDetQuery, $rec->group, 'productId');
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $shipmentOrdersDetQuery, $rec->group, 'productId');
+
         }
 
         //Филтър по тип артикул СТАНДАРТНИ / НЕСТАНДАРТНИ

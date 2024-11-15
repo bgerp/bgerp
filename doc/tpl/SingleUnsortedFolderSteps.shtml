@@ -32,6 +32,16 @@
                     <td>[#saoParentId#]</td>
                 </tr>
                 <!--ET_END saoParentId-->
+
+                <!--ET_BEGIN supportUsers-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Отговорници|*:
+                    </td>
+                    <td>[#supportUsers#]</td>
+                </tr>
+                <!--ET_END supportUsers-->
+
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |Създаване|*:

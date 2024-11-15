@@ -55,7 +55,7 @@ class doc_UnsortedFolderSteps extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code,name=Етап,saoOrder=Ред,state,lastUsedOn=Последно,modifiedOn,modifiedBy,createdOn=Създаване->На,createdBy=Създаване->От';
+    public $listFields = 'code,name=Етап,saoOrder=Ред,supportUsers=Отговорници,state,lastUsedOn=Последно,modifiedOn,modifiedBy,createdOn=Създаване->На,createdBy=Създаване->От';
 
 
     /**
@@ -112,6 +112,9 @@ class doc_UnsortedFolderSteps extends core_Master
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание');
         $this->FLD('productSteps', 'keylist(mvc=cat_ProductsProxy,select=name)', 'caption=Допълнително->Произв. етапи');
+
+        $powerUserId = core_Roles::fetchByName('powerUser');
+        $this->FLD('supportUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Допълнително->Отговорници');
 
         $this->setDbUnique('code');
     }

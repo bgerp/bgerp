@@ -185,7 +185,7 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
 
             // Рецептите, чиито артикулни групи са в категория с правило
             if(countR($updateGroupIds)){
-                $bQuery->likeKeylist('groups', $updateGroupIds, true);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $bQuery, $updateGroupIds, 'productId');
             }
 
             $affectedProducts = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');

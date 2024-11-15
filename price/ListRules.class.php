@@ -127,6 +127,7 @@ class price_ListRules extends core_Detail
         $this->setDbIndex('listId,productId');
         $this->setDbIndex('priority');
         $this->setDbIndex('validFrom');
+        $this->setDbIndex('validUntil');
         $this->setDbIndex('productId');
         $this->setDbIndex('groupId');
     }
@@ -1048,7 +1049,7 @@ class price_ListRules extends core_Detail
             
             // Ако има подадени групи се филтрира по тях
             if (!empty($params['groups'])) {
-                $pQuery->likeKeylist('groups', $params['groups']);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $params['groups']);
             }
         }
 

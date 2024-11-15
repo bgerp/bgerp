@@ -2559,7 +2559,10 @@ width: 50%;
 .narrow .largeNarrowCell {
 min-width: 300px;
 }
-
+.narrow .doc_Search .listTable .nowrap {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 .horizonCol {
 position: relative;
 top: 2px;
@@ -9077,4 +9080,19 @@ table.bomProductionStepTable td{
 	border:1px solid #bcbcbc;
 	padding-left:5px;
 	padding-right:5px;
+}
+
+.aiPromptBlock {
+	background-color: #357ABD; /* Син фон */
+	color: white; /* Бял цвят на текста */
+	border-radius: 8px; /* Заоблени ъгли */
+	padding: 5px; /* Намален падинг */
+	margin: 5px 0; /* Намален маргин */
+	font-size: 0.9em; /* Намален размер на текста */
+}
+
+/* Стил за заглавието на блока */
+.aiLastPromptCaption {
+	font-weight: bold;
+	font-size: 1em; /* Намален размер за заглавието */
 }

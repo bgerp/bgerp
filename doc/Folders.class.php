@@ -947,7 +947,10 @@ class doc_Folders extends core_Master
      */
     public static function updateByCover($id)
     {
-        $rec = doc_Folders::fetch($id);
+        $q = doc_Folders::getQuery();
+        $q->show('*');
+        $q->limit(1);
+        $rec = $q->fetch($id);
         
         if (!$rec) {
             

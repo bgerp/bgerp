@@ -76,6 +76,9 @@
 					<!--ET_BEGIN supportSystemFolderId-->
 					<div>|Система за подаване на сигнали|*: [#supportSystemFolderId#]</div>
 					<!--ET_END supportSystemFolderId-->
+					<!--ET_BEGIN supportUsers-->
+					<div>|Отговорници при подаване на сигнали|*: [#supportUsers#]</div>
+					<!--ET_END supportUsers-->
 	            </div>
 	        </fieldset>
 	        [#Assets#]

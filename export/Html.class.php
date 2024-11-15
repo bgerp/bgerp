@@ -127,7 +127,7 @@ class export_Html extends core_Mvc
     {
         Request::setProtected(array('objId', 'clsId', 'mid', 'typeCls'));
         
-        $link = ht::createLink('HTML', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/html.png'));
+        $link = ht::createLink('HTML', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/html.png', 'title' => 'Сваляне на документа като|* HTML|* файл'));
         
         return $link;
     }

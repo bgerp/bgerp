@@ -181,12 +181,21 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         }
 
         $receiptQuery = pos_ReceiptDetails::getQuery();
+       // $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
 
+        $receiptQuery ->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $receiptQuery->EXT('waitingOn', 'pos_Receipts', 'externalName=waitingOn,externalKey=receiptId');
+        $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+        $receiptQuery->EXT('contragentClass', 'pos_Receipts', 'externalName=contragentClass,externalKey=receiptId');
+        $receiptQuery->EXT('contragentObjectId', 'pos_Receipts', 'externalName=contragentObjectId,externalKey=receiptId');
         $receiptQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
         $receiptQuery->where("#waitingOn IS NOT NULL");
         $receiptQuery->where("#autoDiscount IS NOT NULL");
 
+        //Филтър по състояние
+        $receiptQuery->in("state", array('waiting', 'closed'));
+
+        //Филтър по период
         if ($rec->to < substr(($rec->to), 0, 10) . ' 00:00:01') {
             $end = substr(($rec->to), 0, 10) . ' 23:59:59';
         } else {
@@ -195,28 +204,22 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
         $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->from, $end));
 
+        //Филтър по група артикули
+        if (isset($rec->catGroup)) {
+               plg_ExpandInput::applyExtendedInputSearch('cat_Products', $receiptQuery, $rec->catGroup, 'productId');
+        }
+
         $allCompanyDiscount = array();
 
         while ($receiptDetailRec = $receiptQuery->fetch()) {
-
             $autoDiscount = $amount = 0;
 
-            $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
-
-            //Филтър по състояние
-            if (in_array($receiptRec->state, array('rejected', 'draft', 'active'))) continue;
-
-            $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);
+            $contragentRec = cls::get($receiptDetailRec->contragentClass)->fetch($receiptDetailRec->contragentObjectId);
             $folderId = $contragentRec->folderId;
 
             //Филтър по група клиенти
             if (isset($rec->crmGroup)) {
                 if (!in_array($rec->crmGroup, keylist::toArray($contragentRec->groupList))) continue;
-            }
-
-            //Филтър по група артикули
-            if (isset($rec->catGroup)) {
-                if (!in_array($rec->catGroup, keylist::toArray(cat_Products::fetchField($receiptDetailRec->productId, 'groups')))) continue;
             }
 
             $vagExeptionId = pos_Points::fetch($receiptDetailRec->pointId)->vatExceptionId;

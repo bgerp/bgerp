@@ -108,7 +108,7 @@ class export_Txt extends core_Mvc
     public function getExternalExportLink($clsId, $objId, $mid)
     {
         Request::setProtected(array('objId', 'clsId', 'mid', 'typeCls'));
-        $link = ht::createLink('TXT', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/xml.png'));
+        $link = ht::createLink('TXT', array('export_Export', 'exportInExternal', 'objId' => $objId, 'clsId' => $clsId, 'mid' => $mid, 'typeCls' => get_called_class(), 'ret_url' => true), null, array('class' => 'hideLink inlineLinks',  'ef_icon' => 'fileman/icons/16/txt.png', 'title' => 'Сваляне на документа като|* TXT|* файл'));
 
         return $link;
     }
@@ -125,6 +125,8 @@ class export_Txt extends core_Mvc
      */
     public function addParamFields($form, $clsId, $objId)
     {
+        if($form->isSubmitted()) return;
+
         $form->FLD('addAttachedTextFiles', 'enum(no=Не,yes=Да)', 'caption=Да се експортират и прикачените текстови файлове?->Избор,autohide');
         $form->setDefault('addAttachedTextFiles', 'no');
     }
