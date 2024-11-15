@@ -2434,6 +2434,8 @@ class planning_Jobs extends core_Master
         $Tasks = cls::get('planning_Tasks');
 
         $res = $Tasks->reorderTasksInJob($rec->containerId);
+        $this->logWrite('Ръчно преподреждане на ПО', $rec->id);
+
         bp($res['debug'], $res['updated']);
     }
 
