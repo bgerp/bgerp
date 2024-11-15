@@ -126,47 +126,4 @@ class epay_plg_CheckForPayments extends core_Plugin
         
         return $res;
     }
-    
-    
-    /**
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     *
-     * @return bool|null
-     */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-        //@TODO да се премахне като е готово
-        if(haveRole('debug') && haveRole('admin')){
-            $data->toolbar->addBtn('Проверка', array($mvc, 'checkIncoming', 'id' => $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
-        }
-    }
-    
-    
-    /**
-     * Извиква се преди изпълняването на екшън
-     *
-     * @param core_Mvc $mvc
-     * @param mixed    $res
-     * @param string   $action
-     */
-    public static function on_BeforeAction($mvc, &$res, $action)
-    {
-        if (strtolower($action) == strtolower('checkIncoming')) {
-            requireRole('debug');
-            requireRole('admin');
-            
-            $id = Request::get('id', 'int');
-            $rec = $mvc->fetch($id);
-            self::checkEmail($rec, $explained);
-            
-            Mode::set('wrapper', 'page_Empty');
-            
-            $res = ht::wrapMixedToHtml(ht::mixedToHtml($explained, 4));
-            
-            return false;
-        }
-    }
 }
