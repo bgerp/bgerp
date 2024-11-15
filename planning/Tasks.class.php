@@ -2452,9 +2452,10 @@ class planning_Tasks extends core_Master
      * @param boolean $verbal - вербални или записи
      * @param boolean $skipTasksWithClosedParams - да се пропуснат ли операциите с деактивирани параметри
      * @param null|bool $isFinal                 - дали да са само финалните или не
+     * @param bool $skipWithClosedSteps          -
      * @return array $res      - масив с намерените задачи
      */
-    public static function getTasksByJob($jobs, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null)
+    public static function getTasksByJob($jobs, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null, $skipWithClosedSteps = false)
     {
         $res = array();
 
@@ -2469,6 +2470,7 @@ class planning_Tasks extends core_Master
 
         $states = arr::make($states, true);
         $query->in("state", $states);
+        $query->EXT('productState', 'cat_Products', 'externalName=state,externalKey=productId');
         $query->orderBy("saoOrder", 'ASC');
         if(isset($isFinal)){
             $isFinalVal = $isFinal ? 'yes' : 'no';
@@ -2477,6 +2479,9 @@ class planning_Tasks extends core_Master
 
         $taskClassId = planning_Tasks::getClassId();
         while ($rec = $query->fetch()) {
+            if($skipWithClosedSteps){
+                if($rec->productState != 'active') continue;
+            }
             if($skipTasksWithClosedParams){
 
                 // Ако е посочено че се търсят само ПО с незакрити параметри оставят се само те
