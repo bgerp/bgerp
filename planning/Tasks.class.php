@@ -98,7 +98,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,expectedTimeEnd=Край,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,expectedTimeEnd=Край,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,notes=Забележка,saleId=Ср. на доставка,originId=@';
 
 
     /**
@@ -112,11 +112,10 @@ class planning_Tasks extends core_Master
      */
     public $canList = 'ceo, taskSee';
 
-
     /**
      * Кой може да записва преподредените задачи?
      */
-    public $canSavereorderedtasks = 'ceo, taskSee';
+    public $canSavereordertasks = 'ceo, taskSee';
 
 
     /**
@@ -2454,9 +2453,10 @@ class planning_Tasks extends core_Master
      * @param boolean $verbal - вербални или записи
      * @param boolean $skipTasksWithClosedParams - да се пропуснат ли операциите с деактивирани параметри
      * @param null|bool $isFinal                 - дали да са само финалните или не
+     * @param bool $skipWithClosedSteps          -
      * @return array $res      - масив с намерените задачи
      */
-    public static function getTasksByJob($jobs, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null)
+    public static function getTasksByJob($jobs, $states, $verbal = true, $skipTasksWithClosedParams = false, $isFinal = null, $skipWithClosedSteps = false)
     {
         $res = array();
 
@@ -2471,6 +2471,7 @@ class planning_Tasks extends core_Master
 
         $states = arr::make($states, true);
         $query->in("state", $states);
+        $query->EXT('productState', 'cat_Products', 'externalName=state,externalKey=productId');
         $query->orderBy("saoOrder", 'ASC');
         if(isset($isFinal)){
             $isFinalVal = $isFinal ? 'yes' : 'no';
@@ -2479,6 +2480,9 @@ class planning_Tasks extends core_Master
 
         $taskClassId = planning_Tasks::getClassId();
         while ($rec = $query->fetch()) {
+            if($skipWithClosedSteps){
+                if($rec->productState != 'active') continue;
+            }
             if($skipTasksWithClosedParams){
 
                 // Ако е посочено че се търсят само ПО с незакрити параметри оставят се само те
@@ -3089,7 +3093,7 @@ class planning_Tasks extends core_Master
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
-        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId');
+        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId', 'notes');
 
         // Кои ще са планиращите параметри
         $plannedParams = array();
@@ -3668,7 +3672,7 @@ class planning_Tasks extends core_Master
 
                 $hash = str::addHash($assetId, 6, 'RO');
                 $saveBtnAttr = array('id' => 'saveBtn');
-                if ($mvc->haveRightFor('savereorderedtasks', (object)array('assetId' => $assetId))) {
+                if ($mvc->haveRightFor('savereordertasks', (object)array('assetId' => $assetId))) {
                     $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
                 }
                 $headerTpl->append(ht::createFnBtn('Запази промените', '', false, $saveBtnAttr), 'saveBtn');
@@ -4527,34 +4531,44 @@ class planning_Tasks extends core_Master
      */
     public function act_savereordertasks()
     {
-        $this->requireRightFor('savereordertasks');
-        $assetId = Request::get('assetId', 'int');
-        expect($hash = Request::get('hash'));
-        expect(str::checkHash($hash, 6, 'RO'));
-
-        $inOrderTasks = Request::get('orderedTasks', 'varchar');
-        $inOrderTasks = json_decode($inOrderTasks);
-
-        $tasks = array();
-        $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
-        foreach ($inOrderTasks as $i => $taskId){
-            $tasks[$taskId] = $cachedData['tasks'][$taskId];
+        $success = true;
+        try{
+            $this->requireRightFor('savereordertasks');
+            $assetId = Request::get('assetId', 'int');
+            expect($hash = Request::get('hash'));
+            expect(str::checkHash($hash, 6, 'RO'));
+        } catch (Exception $e){
+            reportException($e);
+            $success = false;
         }
 
-        core_Debug::startTimer('TASKS_LIVE_REORDER_TASKS');
-        planning_AssetResources::reOrderTasks($assetId, $tasks, true);
-        unset($this->reorderTasksInAssetId[$assetId]);
-        core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
-        planning_AssetResources::logWrite('Ръчни преподреждане на операциите', $assetId);
+        if($success){
+            $inOrderTasks = Request::get('orderedTasks', 'varchar');
+            $inOrderTasks = json_decode($inOrderTasks);
 
-        $this->recalcTaskTimes = true;
-        $count = countR($tasks);
-        core_Statuses::newStatus("Преподредени са|* {$count} |на|* " . planning_AssetResources::getTitleById($assetId));
-        core_Cache::remove('planning_Tasks', "reorderAsset{$assetId}");
+            $tasks = array();
+            $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
+            foreach ($inOrderTasks as $i => $taskId){
+                $tasks[$taskId] = $cachedData['tasks'][$taskId];
+            }
 
-        $cu = core_Users::getCurrent();
-        core_Permanent::remove("folderFilter{$this->className}|{$cu}");
-        core_Permanent::remove("isReorderingTasks|{$assetId}|{$cu}");
+            core_Debug::startTimer('TASKS_LIVE_REORDER_TASKS');
+            planning_AssetResources::reOrderTasks($assetId, $tasks, true);
+            unset($this->reorderTasksInAssetId[$assetId]);
+            core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
+            planning_AssetResources::logWrite('Ръчни преподреждане на операциите', $assetId);
+
+            $this->recalcTaskTimes = true;
+            $count = countR($tasks);
+            core_Statuses::newStatus("Преподредени са|* {$count} |на|* " . planning_AssetResources::getTitleById($assetId));
+            core_Cache::remove('planning_Tasks', "reorderAsset{$assetId}");
+
+            $cu = core_Users::getCurrent();
+            core_Permanent::remove("folderFilter{$this->className}|{$cu}");
+            core_Permanent::remove("isReorderingTasks|{$assetId}|{$cu}");
+        } else {
+            core_Statuses::newStatus("Нямате права за преподреждане|*!", 'error');
+        }
 
         $res = array();
         $resObj = new stdClass();

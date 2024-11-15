@@ -156,15 +156,15 @@ class bgerp_plg_Import extends core_Plugin
                     $msg = $Driver->import($rows, $fields);
                     Mode::pop('importing');
                     Mode::pop('onExist');
+                    $mvc->_haveImportedRecs = true;
 
                     if($mvc instanceof core_Detail){
                         $masterId = Request::get($mvc->masterKey, 'int');
-                        redirect(array($mvc->Master, 'single', $masterId), false, $msg);
+                        redirect(array($mvc->Master, 'single', $masterId), false, $msg, 'warning');
                     } else {
                         // Редирект кум лист изгледа на мениджъра в който се импортира
-                        redirect(array($mvc, 'list'), false, $msg);
+                        redirect(array($mvc, 'list'), false, $msg, 'warning');
                     }
-
                 }
             }
             
@@ -274,7 +274,7 @@ class bgerp_plg_Import extends core_Plugin
             // Поставяне на възможност да се направи мачване на
             // полетата от модела и полетата от csv-то
             foreach ($fieldsArr as $name => $fld) {
-                $type = ($fld['type']) ? $fld['type'] : 'int';
+                $type = ($fld['type']) ? $fld['type'] : 'int(maxRadio=1)';
                 $exp->DEF("#col{$name}={$fld['caption']}", $type, "{$fld['mandatory']}");
                 if (!isset($fld['notColumn'])) {
                     $exp->OPTIONS("#col{$name}", 'getCsvColNames(#csvData,#delimiter,#enclosure,TRUE)');

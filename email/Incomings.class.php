@@ -3664,6 +3664,8 @@ class email_Incomings extends core_Master
      */
     public function getLinkedFiles($rec)
     {
+        $onlyAttached = Mode::is('ONLY_ATTACHED_FILES');
+
         // Ако не е обект
         if (!is_object($rec)) {
             
@@ -3683,11 +3685,17 @@ class email_Incomings extends core_Master
         // Ако има HTML файл, добавяме го към файловете
         if ($cRec->htmlFile) {
             $filesArr[$cRec->htmlFile] = $cRec->htmlFile;
+            if ($onlyAttached) {
+                unset($filesArr[$cRec->htmlFile]);
+            }
         }
         
         // Ако има, добавяме EML файла, към файловете
         if ($cRec->emlFile) {
             $filesArr[$cRec->emlFile] = $cRec->emlFile;
+            if ($onlyAttached) {
+                unset($filesArr[$cRec->emlFile]);
+            }
         }
         
         $fhArr = array();

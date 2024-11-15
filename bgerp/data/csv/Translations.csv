@@ -651,8 +651,8 @@ en,Записи на камера,Records from cam
 en,Записи от сензорите,Records from sensors
 en,Записи,Recordings
 en,Запитване за поръчков продукт,Custom product inquiry
-en,Запитване за,inquiry about
-en,Запитване,inquiry
+en,Запитване за,Inquiry about
+en,Запитване,Inquiry
 en,Запитване->Драйвер,Inquiry->Driver
 en,Запитване->МКП,Inquiry->MOQ
 en,Запитване->Параметри,Inquiry->Parameters
@@ -3066,3 +3066,16 @@ en,УНП,USN
 en,Ваучер,Voucher
 en,"Обърнете внимание, че цените в тази оферта са","Please note that the prices in this quotation are"
 en,"В договора ДДС ще е на отделен ред","In the contract, VAT will be on a separate line"
+en,в състояние,in state of
+en,още символа,more symbols
+en,Клонирано от,Cloned from
+en,Куриерско API,Courier API
+en,Еднократно експедиране,One time delivery
+en,Очакван транспорт,Expected transport
+en,Скрит транспорт,Hidden transport
+en,Явен транспорт,Explicit transport
+en,Генериран от,Generated from
+en,Изходяща оферта,Quotation
+en,Изключен,Turned off
+en,Извлечен текст,Extracted text
+en,"Възникна проблем при изготвяне на офертата и не можем да гарантираме коректността на изчислените/показаните цени! Моля, свържете се с нас!","A problem occurred while preparing the quotation, and we cannot guarantee the accuracy of the calculated/displayed prices! Please contact us!"

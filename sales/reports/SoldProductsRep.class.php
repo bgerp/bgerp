@@ -381,7 +381,32 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
         if (!is_array($posReceiptIdArr)) {
-            $posReceiptIdArr = array();
+            //от POS
+            $posDetQuery = pos_ReceiptDetails::getQuery();
+
+            $posDetQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+
+            $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
+
+            //$posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+
+            $posDetQuery->where('#productId IS NOT NULL');
+
+            $posDetStateArr = array('active', 'closed', 'waiting');
+
+            $posDetQuery->in('state', $posDetStateArr);
+
+            $posDetQuery->show('productId, receiptId');
+
+            $posProdsArr = $posReceiptIdArr = array();
+
+            foreach ($posDetQuery->fetchAll() as $det) {
+
+                $posProdsArr[$det->productId] = $det->productId;
+                $posReceiptIdArr[$det->receiptId] = $det->receiptId;
+
+            }
+
         }
 
         // Да се заредят контрагентите от POS  бележките

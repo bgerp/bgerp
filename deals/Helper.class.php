@@ -833,7 +833,7 @@ abstract class deals_Helper
             return;
         }
 
-        $date = isset($date) ? $date : null;
+        $date = $date ?? null;
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
         $stRec = store_Products::getQuantities($productId, $storeId, $date);
 
@@ -851,7 +851,7 @@ abstract class deals_Helper
                     }
                 }
 
-                if($skip != true){
+                if(!$skip){
                     $iQuery = store_StockPlanning::getQuery();
                     $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that} AND #storeId IS NOT NULL");
                     $iQuery->show('quantityIn,quantityOut');

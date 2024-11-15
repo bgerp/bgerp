@@ -282,6 +282,7 @@ class cash_NonCashPaymentDetails extends core_Manager
     public static function getCardPaymentRec($pkoId)
     {
         $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
+        if(empty($cardPaymentId)) return;
 
         return cash_NonCashPaymentDetails::fetch("#paymentId = {$cardPaymentId} AND #documentId = {$pkoId}");
     }

@@ -1008,10 +1008,11 @@ class fileman_Indexes extends core_Manager
     /**
      *
      * @param string $fh
+     * @param boolean $convertToUtf8
      *
      * @return FALSE|string
      */
-    public static function getTextForIndex($fh)
+    public static function getTextForIndex($fh, $convertToUtf8 = true)
     {
         $text = fileman_Indexes::getInfoContentByFh($fh, 'text');
         $textOcr = fileman_Indexes::getInfoContentByFh($fh, 'textOcr');
@@ -1025,7 +1026,11 @@ class fileman_Indexes extends core_Manager
         if ($textOcr !== false && is_string($textOcr)) {
             $content = $textOcr;
         }
-        
+
+        if ($convertToUtf8) {
+            $content = i18n_Charset::convertToUtf8($content);
+        }
+
         return $content;
     }
     
