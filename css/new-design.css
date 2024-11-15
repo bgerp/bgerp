@@ -40,7 +40,7 @@
     /*
    * IE10+
    */
-  background: linear-gradient(to bottom, #999999 0%, #555555 100%);
+  background: linear-gradient(to bottom, #2085ca 0%, #2274af 30%, #1e405e 100%);
     /*
    * W3C
    */
@@ -61,7 +61,7 @@
   z-index: 1000; }
 
 .wide .sidemenu-left {
-  overflow-y: scroll; }
+  overflow-y: auto; }
 
 .wide .sidemenu-right {
   overflow-y: auto; }
@@ -169,7 +169,7 @@ body {
 
 .inner-framecontentTop {
   padding: 8px 7px;
-  background-color: #dddddd;
+  background-color: #2085ca;
   position: relative;
   z-index: 1000;
   -webkit-user-select: none;
@@ -455,7 +455,6 @@ body {
  * позиция на табовете
  */
 #main-container > .tab-control > .tab-row {
-  border-bottom: 1px solid #bbbbbb;
   overflow: hidden;
   position: fixed;
   left: 0;
@@ -488,7 +487,7 @@ body {
   display: inline-block; }
 
 .logoText a {
-  color: #111111 !important; }
+  color: white !important; }
 
 .center-block {
   color: #444444;
@@ -509,7 +508,7 @@ body {
   font-size: 0.9em; }
 
 #fav-panel {
-  background: #363d55;
+  background: #666666;
   box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.4); }
 
 .inner-fav-panel {
@@ -866,7 +865,7 @@ body {
   display: inline-block;
   height: 18px;
   margin: 0;
-  padding: 5px 5px 4px 5px !important;
+  padding: 5px 6px 4px 6px !important;
   float: left;
   position: relative;
   z-index: 11;
@@ -875,12 +874,12 @@ body {
   position: relative;
   line-height: normal;
   border-top: none;
-  border-radius: 0;
+  border-radius: 5px 5px 0 0;
   background-color: rgba(0, 0, 0, 0) !important;
-  border-bottom: none;
+  border: none !important;
   border-left: none; }
   #main-container > div.tab-control > div.tab-row > .row-holder .tab.selected {
-    background-color: #dddddd !important; }
+    background-color: white !important; }
     #main-container > div.tab-control > div.tab-row > .row-holder .tab.selected a {
       color: #333333 !important; }
   #main-container > div.tab-control > div.tab-row > .row-holder .tab a {
@@ -1225,21 +1224,22 @@ div.tab-control.alphabet div.tab-row .tab {
   min-width: 12px;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
-  border-bottom: 1px solid #0066ff;
+  border: 0px !important;
   border-radius: 0px;
-  border-top-right-radius: 5px;
-  border-top-left-radius: 5px;
+  border-top-right-radius: 0px;
+  border-top-left-radius: 0px;
   margin: 0px -1px 0px 0;
   text-shadow: white 1px 1px 0;
   -moz-box-shadow: 1px 1px rgba(0, 0, 0, 0.2);
   -webkit-box-shadow: 1px 1px rgba(0, 0, 0, 0.2);
   box-shadow: 0px 0px rgba(0, 0, 0, 0.2); }
   div.tab-control.alphabet div.tab-row .tab.selected {
-    box-shadow: 0 -4px 0 #0066ff !important;
-    border-left: 1px solid #0066ff !important;
-    border-right: 1px solid #0066ff !important;
-    border-bottom: none !important;
-    font-size: 0.8em !important; }
+    box-shadow: 0 0px 0 #666666 !important;
+    border-left: 0px solid #666666 !important;
+    border-right: 0px solid #666666 !important;
+    border-bottom: 1px solid black !important;
+    font-size: 0.8em !important;
+    top: 0px !important; }
   div.tab-control.alphabet div.tab-row .tab:hover a {
     color: #111111 !important; }
   div.tab-control.alphabet div.tab-row .tab img {
