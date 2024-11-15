@@ -25,7 +25,7 @@
 	background: -webkit-linear-gradient(top,  #999 0%,#555555 100%); /* Chrome10+,Safari5.1+ */
 	background: -o-linear-gradient(top,  #999 0%,#555555 100%); /* Opera 11.10+ */
 	background: -ms-linear-gradient(top,  #999 0%,#555555 100%); /* IE10+ */
-	background: linear-gradient(to bottom,  #2085CA 0%, #2274af 30%, #1e405e 100%); /* W3C */
+	background: linear-gradient(to bottom,  #2085CA 0%, #2274af  30%, #1e405e 100%); /* W3C */
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#666666', endColorstr='#555555',GradientType=0 ); /* IE6-9 */
 
 }
@@ -561,7 +561,7 @@ body {
 }
 
 #fav-panel {
-    background: #666;
+    background: #333;
     box-shadow: inset 0px 0px 20px rgba(0,0,0,0.4);
 }
 
