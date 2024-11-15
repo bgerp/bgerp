@@ -98,7 +98,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,expectedTimeEnd=Край,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,expectedTimeEnd=Край,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,notes=Забележка,saleId=Ср. на доставка,originId=@';
 
 
     /**
@@ -3092,7 +3092,7 @@ class planning_Tasks extends core_Master
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
-        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId');
+        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId', 'notes');
 
         // Кои ще са планиращите параметри
         $plannedParams = array();
