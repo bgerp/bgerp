@@ -509,6 +509,8 @@ class pos_ReceiptDetails extends core_Detail
             if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
                 $redirectToNotEmptyReceiptResponse = $this->getRedirectToNotEmptyReceiptAjaxResponse($receiptRec, $cardInfo['contragentClassId'], $cardInfo['contragentId']);
                 if(is_array($redirectToNotEmptyReceiptResponse)) return $redirectToNotEmptyReceiptResponse;
+
+                $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $receiptId, 'ajax_mode' =>1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
             } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
                 core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
             }
