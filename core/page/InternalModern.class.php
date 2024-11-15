@@ -63,7 +63,7 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
         $this->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
         
-        $themeColor = '666';
+        $themeColor = '#777';
         $dRec = cms_Domains::fetch(cms_Domains::getCurrent());
         if(isset($dRec->form->headerColor)) {
             $themeColor = $dRec->form->headerColor;
