@@ -1620,13 +1620,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         if($action == 'restore' && $rec->brState != 'active') return $errorMsg;
         $action = $action == 'conto' ? 'контирате' : 'възстановяване';
 
+
+        // Ако ПП е артикул различен от този в заданието - няма проблем да се контира
         $jobRec = static::getJobRec($rec);
+        if($jobRec->productId != $rec->productId) return $errorMsg;
+
         if($jobRec->state == 'closed'){
             return "Не може да {$action} протокола, защото заданието вече е приключено|*!";
         }
-
-        // Ако ПП е за междинен етап - няма проблем
-        if($jobRec->productId != $rec->productId) return $errorMsg;
 
         if ($jobRec->allowSecondMeasure == 'no' && !empty($rec->additionalMeasureId)) {
             $errorMsg = "Не може да {$action} протокола, защото е с втора мярка, а заданието вече не е избрана";
