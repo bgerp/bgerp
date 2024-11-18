@@ -1202,7 +1202,7 @@ class rack_Zones extends core_Master
                 if(!array_key_exists($pRec->productId, static::$cache)){
                     $packQuery = cat_products_Packagings::getQuery();
                     $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-                    $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging'");
+                    $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging' AND #state != 'closed'");
                     $packQuery->show('quantity,packagingId');
                     $packagings = array();
                     while($packRec = $packQuery->fetch()) {
