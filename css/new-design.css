@@ -1239,7 +1239,9 @@ div.tab-control.alphabet div.tab-row .tab {
     border-right: 1px solid #0066ff !important;
     border-bottom: none !important;
     font-size: 0.8em !important;
-    top: 0 !important; }
+    top: 0 !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important; }
   div.tab-control.alphabet div.tab-row .tab:hover a {
     color: #111111 !important; }
   div.tab-control.alphabet div.tab-row .tab img {
