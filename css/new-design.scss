@@ -1175,8 +1175,12 @@ select, input, textarea , .chzn-container-single .chzn-single, .chzn-container-a
 }
 
 
-.formTitle, .formGroup, .narrow .vertical .formTitle{
-	@extend .gradient-light;
+.formTitle, .formGroup, .narrow .vertical .formTitle {
+	background: var(--theme-color) !important;
+}
+
+.formTitle a, .formGroup a {
+	color:white !important;
 }
 
 .wide .vertical .formTable {
