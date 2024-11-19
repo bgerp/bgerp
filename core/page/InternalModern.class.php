@@ -62,16 +62,19 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $this->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
         $this->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
-        
-        $themeColor = '#777';
+
         $dId = cms_Domains::getCurrent('id', false);
         $dRec = false;
         if ($dId) {
             $dRec = cms_Domains::fetch($dId);
         }
 
-        if($dRec && isset($dRec->form->headerColor)) {
+        if($dRec && isset($dRec->form->innerColor)) {
+            $themeColor = $dRec->form->innerColor;
+        } elseif (isset($dRec->form->headerColor)) {
             $themeColor = $dRec->form->headerColor;
+        } else {
+            $themeColor = '#777';
         }
 
         $this->appendOnce("\n<meta  name=\"theme-color\" content=\"{$themeColor}\">", 'HEAD');
@@ -84,7 +87,8 @@ class core_page_InternalModern extends core_page_Active
         $css .= "\n :root {--theme-color: {$themeColor};}";
 
         if(phpcolor_Adapter::checkColor($themeColor)) {
-            $css .= "\n .logoText a, #main-container>div.tab-control>div.tab-row>.row-holder .tab a { color: #444 !important;} ";
+            $css .= "\n .logoText a, .formGroup, #main-container>div.tab-control>div.tab-row>.row-holder .tab a { color: #444 !important;} ";
+            $css .= "\n .formTitle { color: #444 !important; border-color: #aaa !important} ";
         }
 
         $this->append($css, 'STYLES');

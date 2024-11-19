@@ -59,12 +59,15 @@ class cms_DefaultTheme extends core_ProtoInner
         $form->FLD('titleColor', 'color_Type', 'caption=Заглавие на сайта->Цвят');
         
         // Фон на хедъра
-        $form->FLD('headerColor', 'color_Type', 'caption=Цветове за темата->Цвят на хедъра');
+        $form->FLD('headerColor', 'color_Type', 'caption=Цветове за външната част->Цвят на хедъра');
         
         // Фон на менюто
-        $form->FLD('baseColor', 'color_Type', 'caption=Цветове за темата->Базов цвят');
-        $form->FLD('activeColor', 'color_Type', 'caption=Цветове за темата->Активен цвят');
-        $form->FLD('bgColor', 'color_Type', 'caption=Цветове за темата->Фон на страницата');
+        $form->FLD('baseColor', 'color_Type', 'caption=Цветове за външната част->Базов цвят');
+        $form->FLD('activeColor', 'color_Type', 'caption=Цветове за външната част->Активен цвят');
+        $form->FLD('bgColor', 'color_Type', 'caption=Цветове за външната част->Фон на страницата');
+
+        // // Цвят за хедъра и менютата във вътрешната част
+        $form->FLD('innerColor', 'color_Type', 'caption=Цветове за вътрешната част->Основен цвят');
     }
     
     
