@@ -185,7 +185,7 @@ class doc_Threads extends core_Manager
         $this->FLD('partnerDocLast', 'datetime(format=smartTime)', 'caption=За партньори->Последен, input=none');
         
         // Индекс за по-бързо избиране по папка
-        $this->setDbIndex('folderId');
+        $this->setDbIndex('folderId,last');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('state');
         $this->setDbIndex('last, id');

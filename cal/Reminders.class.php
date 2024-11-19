@@ -291,6 +291,7 @@ class cal_Reminders extends core_Master
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
 
         $this->setDbIndex('calcTimeStart');
+        $this->setDbIndex('state');
     }
 
 

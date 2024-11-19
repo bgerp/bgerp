@@ -235,6 +235,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->FLD('equalizePrimeCost', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Изравняване на сб-ст,notNull,value=yes,after=deadline,autohide=any');
 
         $this->setDbIndex('productId');
+        $this->setDbIndex('state');
     }
 
 
