@@ -62,26 +62,34 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $this->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
         $this->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
-        
-        $themeColor = '#777';
+
         $dId = cms_Domains::getCurrent('id', false);
         $dRec = false;
         if ($dId) {
             $dRec = cms_Domains::fetch($dId);
         }
 
-        if($dRec && isset($dRec->form->headerColor)) {
+        if($dRec && isset($dRec->form->innerColor)) {
+            $themeColor = $dRec->form->innerColor;
+        } elseif (isset($dRec->form->headerColor)) {
             $themeColor = $dRec->form->headerColor;
+        } else {
+            $themeColor = '#777';
         }
 
         $this->appendOnce("\n<meta  name=\"theme-color\" content=\"{$themeColor}\">", 'HEAD');
  
         $themeColorD30 = '#' . phpcolor_Adapter::changeColor($themeColor, 'darken', 5);
         $themeColorD100 = '#' . phpcolor_Adapter::changeColor( $themeColor , 'darken', 15);
- 
+
         $css = "\n #main-container > .tab-control > .tab-row  {   background: linear-gradient(to bottom,  {$themeColor} 0%, {$themeColorD30}  30%, {$themeColorD100} 100%) !important; }";
         $css .= "\n .inner-framecontentTop { background-color: {$themeColor} !important; }";
         $css .= "\n :root {--theme-color: {$themeColor};}";
+
+        if(phpcolor_Adapter::checkColor($themeColor)) {
+            $css .= "\n .logoText a, .formGroup, #main-container>div.tab-control>div.tab-row>.row-holder .tab a { color: #444 !important;} ";
+            $css .= "\n .formTitle { color: #444 !important; border-color: #aaa !important} ";
+        }
 
         $this->append($css, 'STYLES');
 
@@ -173,7 +181,7 @@ class core_page_InternalModern extends core_page_Active
             
             $pinImg = str_replace('&#91;', '[', "${pinImg}");
             $pinnedImg = str_replace('&#91;', '[', "${pinnedImg}");
-            
+
             // Задаваме лейаута на страницата
             $header = "<div style='position: relative'>
                                 <a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body [#openLeftBtn#]'>". $menuImg ."</a>

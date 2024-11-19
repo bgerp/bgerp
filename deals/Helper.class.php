@@ -1096,7 +1096,9 @@ abstract class deals_Helper
             $ownCompanyData2 =  crm_Companies::fetchOwnCompany($ownCompanyId);
             $warningMyCompanyArr =  static::getContragentDataCompareString($ownCompanyData, $ownCompanyData2);
             if(!empty($warningMyCompanyArr)) {
-                $res['MyCompany'] = ht::createHint($res['MyCompany'], 'Следните данни на моята фирма във визитката се различават от тези към вальора на документа|*: ' . implode(', ', $warningMyCompanyArr), 'warning');
+                if(core_Users::isPowerUser()) {
+                    $res['MyCompany'] = ht::createHint($res['MyCompany'], 'Следните данни на моята фирма във визитката се различават от тези към вальора на документа|*: ' . implode(', ', $warningMyCompanyArr), 'warning');
+                }
             }
         }
 
@@ -1128,10 +1130,14 @@ abstract class deals_Helper
                 $currentContragentData = $ContragentClass->getContragentData($contragentId);
                 $warningMsgArr = static::getContragentDataCompareString($cData, $currentContragentData);
                 if(!empty($warningMsgArr)) {
-                    $res['contragentName'] = ht::createHint($res['contragentName'], "Следните полета във визитката се различават от тези към вальора на документа|*: " . implode(', ', $warningMsgArr), 'warning');
+                    if(core_Users::isPowerUser()){
+                        $res['contragentName'] = ht::createHint($res['contragentName'], "Следните полета във визитката се различават от тези към вальора на документа|*: " . implode(', ', $warningMsgArr), 'warning');
+                    }
                 }
             } elseif($res['contragentName'] != $cName){
-                $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
+                if(core_Users::isPowerUser()){
+                    $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
+                }
             }
         } elseif (isset($contragentName)) {
             $res['contragentName'] = $contragentName;

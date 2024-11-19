@@ -109,7 +109,9 @@ class bgfisc_plg_Sales extends core_Plugin
         if($urn = bgfisc_Register::getRec($mvc, $rec->id)->urn){
             $row->cashRegNum = bgfisc_Register::getUrlLink($urn);
         } else {
-            $row->cashRegNum = ht::createHint('Стара продажба', 'Стара продажба, ще се генерира УНП, при издаване на фискален бон', 'warning', false);
+            if(core_Users::isPowerUser()){
+                $row->cashRegNum = ht::createHint('Стара продажба', 'Стара продажба, ще се генерира УНП, при издаване на фискален бон', 'warning', false);
+            }
         }
     }
     
