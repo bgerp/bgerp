@@ -116,11 +116,18 @@ class speedy_BillOfLadings extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->FLD('date', 'date', 'caption=Дата');
+        $data->listFilter->showFields = 'date,search';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-
+        $data->listFilter->input();
         $data->query->orderBy('createdOn', "DESC");
+
+        if($filter = $data->listFilter->rec){
+            if(!empty($filter->date)){
+                $data->query->where("#takingDate >= '{$filter->date}'");
+            }
+        }
     }
 
 
