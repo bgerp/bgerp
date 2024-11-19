@@ -2212,7 +2212,7 @@ class eshop_Carts extends core_Master
         $data->form->setAction($this, 'order');
 
         $form = &$data->form;
-        $form->title = 'Данни за поръчка';
+        $form->title = 'Данни за поръчката';
         $form->countries = $countries;
         cms_Domains::addMandatoryText2Form($form);
         self::prepareOrderForm($form);

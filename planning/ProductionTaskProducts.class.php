@@ -140,7 +140,6 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо тегло,input=none');
 
         $this->setDbUnique('taskId,productId');
-        $this->setDbIndex('taskId');
         $this->setDbIndex('productId');
     }
     
