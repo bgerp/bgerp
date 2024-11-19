@@ -615,7 +615,7 @@ class sales_Invoices extends deals_InvoiceMaster
                     core_Lg::pop();
                     $row->bic = $Varchar->toVerbal($ownAcc->bic);
 
-                    if(!Mode::isReadOnly()){
+                    if(!Mode::isReadOnly() && core_Users::isPowerUser()){
                         $accountInfo = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
                         if($accountInfo->currencyId != currency_Currencies::getIdByCode($rec->currencyId)){
                             $row->accountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->accountId}</span>";
