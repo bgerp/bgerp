@@ -722,6 +722,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 // Ако е разпечатана записва се в помощния модел
                 $bolRec = (object)array('containerId' => $documentRec->containerId, 'number' => $parcelIds[0], 'takingDate' => $res->pickupDate, 'data' => $preparedBolParams);
                 $bolRec->file = $fh;
+                $bolRec->state = 'pending';
                 speedy_BillOfLadings::save($bolRec);
 
                 // Кеш на избраните полета от формата

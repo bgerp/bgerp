@@ -99,6 +99,8 @@ class cms_GalleryImages extends core_Manager
         $this->FLD('groupId', 'key(mvc=cms_GalleryGroups,select=title)', 'caption=Група,mandatory, width=100%');
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, width=100%');
         $this->FLD('style', 'varchar(128)', 'caption=Стил, width=100%');
+
+        $this->setDbIndex('title');
     }
     
     

@@ -1581,8 +1581,10 @@ class sales_Sales extends deals_DealMaster
                 $errorStr = (!empty($errorStr) ? "{$errorStr} " : "") . '|Банковата сметка е в различна валута от тази на сделката|*!';
             }
             if(!empty($errorStr) && $rec->paymentType != 'cash'){
-                $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
-                $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
+                if(core_Users::isPowerUser()){
+                    $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
+                    $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
+                }
             }
         }
 

@@ -152,6 +152,7 @@ class doc_Folders extends core_Master
         $this->setDbUnique('coverId,coverClass');
 
         $this->setDbIndex('last');
+        $this->setDbIndex('createdOn');
     }
     
     

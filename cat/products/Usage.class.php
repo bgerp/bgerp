@@ -137,7 +137,6 @@ class cat_products_Usage extends core_Manager
         $dQuery = $Detail->getQuery();
         $dQuery->EXT('stateMaster', $Document, "externalName=state,externalKey={$Detail->masterKey}");
         $dQuery->where("#productId = {$data->masterId} AND #stateMaster != 'rejected'");
-        $dQuery->groupBy($Detail->masterKey);
         $dQuery->show($Detail->masterKey);
 
         $ids = arr::extractValuesFromArray($dQuery->fetchAll(), $Detail->masterKey);
