@@ -84,7 +84,8 @@ class core_page_InternalModern extends core_page_Active
         $css .= "\n :root {--theme-color: {$themeColor};}";
 
         if(phpcolor_Adapter::checkColor($themeColor)) {
-            $css .= "\n .logoText a, #main-container>div.tab-control>div.tab-row>.row-holder .tab a { color: #444 !important;} ";
+            $css .= "\n .logoText a, .formGroup, #main-container>div.tab-control>div.tab-row>.row-holder .tab a { color: #444 !important;} ";
+            $css .= "\n .formTitle { color: #444 !important; border-color: #aaa !important} ";
         }
 
         $this->append($css, 'STYLES');
