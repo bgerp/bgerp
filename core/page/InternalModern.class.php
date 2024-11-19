@@ -78,10 +78,14 @@ class core_page_InternalModern extends core_page_Active
  
         $themeColorD30 = '#' . phpcolor_Adapter::changeColor($themeColor, 'darken', 5);
         $themeColorD100 = '#' . phpcolor_Adapter::changeColor( $themeColor , 'darken', 15);
- 
+
         $css = "\n #main-container > .tab-control > .tab-row  {   background: linear-gradient(to bottom,  {$themeColor} 0%, {$themeColorD30}  30%, {$themeColorD100} 100%) !important; }";
         $css .= "\n .inner-framecontentTop { background-color: {$themeColor} !important; }";
         $css .= "\n :root {--theme-color: {$themeColor};}";
+
+        if(phpcolor_Adapter::checkColor($themeColor)) {
+            $css .= "\n .logoText a, #main-container>div.tab-control>div.tab-row>.row-holder .tab a { color: #444 !important;} ";
+        }
 
         $this->append($css, 'STYLES');
 
@@ -173,7 +177,7 @@ class core_page_InternalModern extends core_page_Active
             
             $pinImg = str_replace('&#91;', '[', "${pinImg}");
             $pinnedImg = str_replace('&#91;', '[', "${pinnedImg}");
-            
+
             // Задаваме лейаута на страницата
             $header = "<div style='position: relative'>
                                 <a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body [#openLeftBtn#]'>". $menuImg ."</a>
@@ -191,7 +195,7 @@ class core_page_InternalModern extends core_page_Active
                                 <a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body [#openRightBtn#]'>". $pinImg . $pinnedImg . "</a>
                                 <div class='fright'>
                                         <div class='menu-options user-options'>
-                                             [#avatar#]
+                                             <span class='aaaa'>[#avatar#]</span>
                                              <div class='menu-holder'>
                                                 [#USERLINK#]
                                                 [#CHANGE_MODE#]
@@ -225,7 +229,7 @@ class core_page_InternalModern extends core_page_Active
             $Browser = cls::get('log_Browsers');
             $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
             
-            core_Cache::set($key, 'page', $tpl, 10000);
+         //   core_Cache::set($key, 'page', $tpl, 10000);
         }
         
         if (isDebug() && !log_Debug::haveRightFor('list')) {
