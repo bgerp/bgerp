@@ -299,7 +299,6 @@ class price_ListRules extends core_Detail
         $data->listFilter->input(null, 'silent');
         
         $data->listFilter->input();
-        
         $data->query->orderBy('#validFrom,#id', 'DESC');
         
         if ($rec = $data->listFilter->rec) {
@@ -878,11 +877,33 @@ class price_ListRules extends core_Detail
             // Извличаме записите само с този приоритет
             $query = clone $data->query;
             $query->where("#priority = {$priority}");
-            $pager->setLimit($query);
-            
+            $recs = $query->fetchAll();
+            $pager->itemsCount = countR($recs);
+
+            if($priority != 1) {
+                $groups = array();
+                $gQuery = cat_Groups::getQuery();
+                $gQuery->in('id', arr::extractValuesFromArray($recs, 'groupId'));
+                while($gRec = $gQuery->fetch()) {
+                    $groups[$gRec->id] = cat_Groups::getVerbal($gRec, 'name');
+                }
+                foreach ($recs as $r1) {
+                    $r1->_title = $groups[$r1->groupId];
+                }
+
+                usort($recs, function ($a, $b) {
+                    if ($a->_title === $b->_title) {
+                        return ($a->validFrom > $b->validFrom) ? -1 : 1;
+                    }
+                    return strnatcasecmp($a->_title, $b->_title);
+                });
+            }
+
             // Вербализираме ги
-            while ($rec = $query->fetch()) {
+           foreach($recs as $rec) {
                 $data->{"recs{$priority}"}[$rec->id] = $rec;
+                if (!$pager->isOnPage())  continue;
+
                 $data->{"rows{$priority}"}[$rec->id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
                 if (is_object($data->{"rows{$priority}"}[$rec->id]->_rowTools)) {
                     $data->{"rows{$priority}"}[$rec->id]->_rowTools = $data->{"rows{$priority}"}[$rec->id]->_rowTools->renderHtml();
@@ -916,7 +937,7 @@ class price_ListRules extends core_Detail
             $img = ht::createElement('img', array('src' => sbf('img/16/tools.png', '')));
             $data->listFields = arr::combine(array('_rowTools' => '|*' . $img->getContent()), arr::make($data->listFields, true));
         }
-        
+
         $tpl->append($this->renderListFilter($data), 'ListFilter');
         $retUrl = getRetUrl();
 
@@ -993,7 +1014,6 @@ class price_ListRules extends core_Detail
             // Рендираме тулбара
             $block->append($toolbar->renderHtml(), 'TABLE_TOOLBAR');
             $block->removeBlocks();
-            
             $tpl->append($block, 'TABLES');
         }
         
