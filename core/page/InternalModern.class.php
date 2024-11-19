@@ -195,7 +195,7 @@ class core_page_InternalModern extends core_page_Active
                                 <a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body [#openRightBtn#]'>". $pinImg . $pinnedImg . "</a>
                                 <div class='fright'>
                                         <div class='menu-options user-options'>
-                                             <span class='aaaa'>[#avatar#]</span>
+                                             [#avatar#]
                                              <div class='menu-holder'>
                                                 [#USERLINK#]
                                                 [#CHANGE_MODE#]
@@ -229,7 +229,7 @@ class core_page_InternalModern extends core_page_Active
             $Browser = cls::get('log_Browsers');
             $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
             
-         //   core_Cache::set($key, 'page', $tpl, 10000);
+            core_Cache::set($key, 'page', $tpl, 10000);
         }
         
         if (isDebug() && !log_Debug::haveRightFor('list')) {
