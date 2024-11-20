@@ -263,12 +263,14 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $taskDetQuery = planning_ProductionTaskDetails::getQuery();
         $taskDetQuery->in('taskId', $tasksArr);
         $taskDetQuery->where("#type = 'scrap'");
+
         while ($taskDetRec = $taskDetQuery->fetch()) {
 
-            $taskDetRecArr[$taskDetRec->taskId] = $taskDetRec;
+            $taskDetRecArr[] = $taskDetRec;
         }
 
         $wasteQuantity = null;
+
         while ($taskRec = $taskQuery->fetch()) {
 
             $tasksArr[ $taskRec->id] = $taskRec->id;
@@ -329,7 +331,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             $scrappedWeight = 0;
             foreach ($taskDetRecArr as $key => $val) {
-                if($taskRec->id != $key) continue;
+                if($taskRec->id != $val->taskId) continue;
 
                 if($val->netWeight > 0){
                     $scrappedWeight += $val->netWeight;
@@ -337,6 +339,10 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                     $scrappedWeight += $val->weight;
                 }
             }
+
+//            if($val->netWeight && $val->weight){
+//                $scrappedWeight += $val->quantity;
+//            }
 
             if ($rec->type == 'job') {
                 $id = $jobsArr[$taskRec->originId]->id;
@@ -450,7 +456,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $row->wasteWeight = '?';
         }
 
-        if (isset($dRec->$dRec->scrappedWeight)) {
+        if (isset($dRec->scrappedWeight)) {
             $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeight);
 
         } else {

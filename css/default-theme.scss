@@ -99,31 +99,6 @@ a.pager{
     }
 }
 
-//табове
-div.tab-control div.tab-row .tab {
-	background: #ddd;
-    border-left: 1px solid #bbb;
-    border-right: 1px solid #bbb;
-    border-top: 2px solid #048;
-    &.selected {
-        background: #ffffff;
-        border-left: 1px solid #bbb;
-        border-right: 1px solid #bbb;
-        border-top: 2px solid #048;
-    }
-}
-
-div.tab-control.alphabet div.tab-row .tab {
-
-    &.selected {
-        background: #ffffcc !important;
-        border: 1px solid #aaa;
-    }
-    &:hover {
-        background-color: #ffffcc;
-    }
-}
-
 div.tab-control div.tab-page {
     border: 1px solid #bbb;
     background: #ffffff;
