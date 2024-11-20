@@ -114,12 +114,7 @@ div.tab-control div.tab-row .tab {
 }
 
 div.tab-control.alphabet div.tab-row .tab {
-	background: #ddd;
-	border: 1px solid #aaa ;
-	
-    &:hover a {
-        color: red !important;
-    }
+
     &.selected {
         background: #ffffcc !important;
         border: 1px solid #aaa;
