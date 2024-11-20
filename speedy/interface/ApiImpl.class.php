@@ -136,7 +136,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('returnShipmentParcelCount', 'int(min=0)', 'caption=Заявка за обратна пратка->Брой пакети,autohide');
         $form->FLD('returnShipmentAmountInsurance', 'double(min=0)', 'caption=Заявка за обратна пратка->Обявена стойност,autohide,unit=BGN');
         $form->FLD('returnShipmentIsFragile', 'enum(no=Не,yes=Да)', 'caption=Заявка за обратна пратка->Чупливост,autohide,maxRadio=2');
-        $form->FLD('pdfPrinterType', 'enum(A4=A4, A6=A6, A4_4xA6=A4_4xA6)', 'caption=Печат на PDF->Принтер,autohide');
+        $form->FLD('pdfPrinterType', 'enum(A4=A4, A6=A6, A4_4xA6=A4_4xA6)', 'mandatory,caption=Печат на PDF->Принтер,autohide');
 
         $dateOptions = array();
         $cDate = dt::today();
@@ -312,6 +312,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         $form->setDefault('pdfPrinterType', $cacheArr['pdfPrinterType']);
+        $form->setDefault('pdfPrinterType', 'A4');
 
         if(countR($serviceOptions)){
             $form->setOptions('service', $serviceOptions);

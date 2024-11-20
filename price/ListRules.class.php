@@ -881,22 +881,26 @@ class price_ListRules extends core_Detail
             $pager->itemsCount = countR($recs);
 
             if($priority != 1) {
-                $groups = array();
-                $gQuery = cat_Groups::getQuery();
-                $gQuery->in('id', arr::extractValuesFromArray($recs, 'groupId'));
-                while($gRec = $gQuery->fetch()) {
-                    $groups[$gRec->id] = cat_Groups::getVerbal($gRec, 'name');
-                }
-                foreach ($recs as $r1) {
-                    $r1->_title = $groups[$r1->groupId];
-                }
-
-                usort($recs, function ($a, $b) {
-                    if ($a->_title === $b->_title) {
-                        return ($a->validFrom > $b->validFrom) ? -1 : 1;
+                if($data->masterData->rec->orderGroupRules == 'validFrom') {
+                    arr::sortObjects($recs, 'validFrom', 'DESC');
+                } else {
+                    $groups = array();
+                    $gQuery = cat_Groups::getQuery();
+                    $gQuery->in('id', arr::extractValuesFromArray($recs, 'groupId'));
+                    while($gRec = $gQuery->fetch()) {
+                        $groups[$gRec->id] = cat_Groups::getVerbal($gRec, 'name');
                     }
-                    return strnatcasecmp($a->_title, $b->_title);
-                });
+                    foreach ($recs as $r1) {
+                        $r1->_title = $groups[$r1->groupId];
+                    }
+
+                    usort($recs, function ($a, $b) {
+                        if ($a->_title === $b->_title) {
+                            return ($a->validFrom > $b->validFrom) ? -1 : 1;
+                        }
+                        return strnatcasecmp($a->_title, $b->_title);
+                    });
+                }
             }
 
             // Вербализираме ги
