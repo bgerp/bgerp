@@ -451,7 +451,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $row->wasteWeight = '?';
         }
 
-        if (isset($dRec->$dRec->scrappedWeight)) {
+        if (isset($dRec->scrappedWeight)) {
             $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeight);
 
         } else {
