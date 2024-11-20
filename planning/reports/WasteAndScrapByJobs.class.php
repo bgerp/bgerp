@@ -263,13 +263,14 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $taskDetQuery = planning_ProductionTaskDetails::getQuery();
         $taskDetQuery->in('taskId', $tasksArr);
         $taskDetQuery->where("#type = 'scrap'");
+
         while ($taskDetRec = $taskDetQuery->fetch()) {
 
-            $taskDetRecArr[$taskDetRec->taskId] = $taskDetRec;
+            $taskDetRecArr[] = $taskDetRec;
         }
 
         $wasteQuantity = null;
-        $scrappedWeight = 0;
+
         while ($taskRec = $taskQuery->fetch()) {
 
             $tasksArr[ $taskRec->id] = $taskRec->id;
@@ -328,9 +329,9 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             // Намиране на брака
 
-
+            $scrappedWeight = 0;
             foreach ($taskDetRecArr as $key => $val) {
-                if($taskRec->id != $key) continue;
+                if($taskRec->id != $val->taskId) continue;
 
                 if($val->netWeight > 0){
                     $scrappedWeight += $val->netWeight;
