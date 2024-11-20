@@ -723,7 +723,7 @@ abstract class deals_DealBase extends core_Master
      */
     public function prepareDealTabs_(&$data)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab', 'urlParam' => 'dealTab'));
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab alphabet', 'urlParam' => 'dealTab'));
         $url = getCurrentUrl();
         unset($url['export']);
         
