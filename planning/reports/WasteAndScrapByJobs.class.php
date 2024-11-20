@@ -340,6 +340,10 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                 }
             }
 
+//            if($val->netWeight && $val->weight){
+//                $scrappedWeight += $val->quantity;
+//            }
+
             if ($rec->type == 'job') {
                 $id = $jobsArr[$taskRec->originId]->id;
 
