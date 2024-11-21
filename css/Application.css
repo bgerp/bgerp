@@ -7972,3 +7972,6 @@ table.bomProductionStepTable td {
   font-weight: bold;
   font-size: 1em; }
 
+.dialogHolder .result .dump {
+  white-space: normal; }
+
