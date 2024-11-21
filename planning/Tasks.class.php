@@ -2328,7 +2328,7 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
+        $data->listFilter->setFieldTypeParams('folder', array('coverClasses' => 'planning_Centers'));
         $data->listFilter->setField('folder', 'silent');
         $orderByField = 'orderByDate';
 
