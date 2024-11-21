@@ -2219,7 +2219,7 @@ class doc_Folders extends core_Master
             $exceptCoverClasses = explode('|', $params['coverClasses']);
             if (is_array($exceptCoverClasses)) {
                 foreach ($exceptCoverClasses as $cName) {
-                    $skipCoverClasses[] = $cName::getClassId();
+                    $skipCoverClasses[] = cls::get($cName)->getClassId();
                 }
             }
             
