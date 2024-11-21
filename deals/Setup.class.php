@@ -265,12 +265,13 @@ class deals_Setup extends core_ProtoSetup
                      *
                      * ако $expectedDate е неработен ден (уикенд или официален празник)
                      * тогава добавяме разликата $nextWorkingDay - $expectedDate към $overdueDate
+                     * ако е по-голяма от периода дни в константата
                      */
                     $overdueDate = dt::addDays($days, $expectedDate, false);
                     if(cal_Calendar::isHoliday($expectedDate)){
                         $nextWorkingDay = cal_Calendar::nextWorkingDay($expectedDate);
                         $dayDiff = dt::daysBetween($nextWorkingDay, $expectedDate);
-                        if($dayDiff > 0){
+                        if($dayDiff > $days){
                             $overdueDate = dt::addDays($dayDiff, $expectedDate, false);
                         }
                     }
