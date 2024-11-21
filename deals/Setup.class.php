@@ -239,6 +239,7 @@ class deals_Setup extends core_ProtoSetup
     public function cron_CheckPendingPaymentDocuments()
     {
         $today = dt::today();
+
         $paymentClassesArr = array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments');
         foreach ($paymentClassesArr as $className){
             $Class = cls::get($className);
@@ -248,44 +249,62 @@ class deals_Setup extends core_ProtoSetup
             $dQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
             $dQuery->where("#state = 'pending'");
             $dQuery->show("{$Class->termDateFld},modifiedOn,createdBy,inCharge,contragentId,contragentClassId,amount,currencyId, threadId");
-            
             while($dRec = $dQuery->fetch()){
-                
-                // На коя дата се очаква да има направено плащане, ако не е посочена е 1 месец от създаването
+
+                // На коя дата се очаква да има направено плащане, ако не е посочена е 1 месец от промяната на документа
                 $expectedDate = empty($dRec->{$Class->termDateFld}) ? dt::addMonths(1, $dRec->modifiedOn, false) : dt::verbal2mysql($dRec->{$Class->termDateFld}, false);
-                
+
                 // Изпращане на първо/второ или трето напомняне
                 foreach (array('1' => 'първо', '2' => 'второ', '3' => 'трето') as $i => $iVerbal){
                     $days = static::get("OVERDUE_PENDING_DAYS_{$i}");
+
+                    /**
+                     * $expectedDate е срока (датата) на плащане - крайния срок за плащане
+                     * $overdueDate е датата на която трябва да се бие нотификацията
+                     * $nextWorkingDay е първия работен ден след $expectedDate (ако тя е неработна)
+                     *
+                     * ако $expectedDate е неработен ден (уикенд или официален празник)
+                     * тогава добавяме разликата $nextWorkingDay - $expectedDate към $overdueDate
+                     */
                     $overdueDate = dt::addDays($days, $expectedDate, false);
-                    if($overdueDate == $today){
-                        
-                        // Подготовка на текста на нотификацията
-                        $amountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($dRec->amount);
-                        Mode::push('text', 'plain');
-                        $amountVerbal = currency_Currencies::decorate($amountVerbal, $dRec->currencyId);
-                        Mode::pop('text');
-                        $amountVerbal = str_replace('&nbsp;', ' ', $amountVerbal);
-                        $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
-                        $msg = "|Просрочен документ|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
-                        if($i != '1'){
-                            $msg .= " (|{$iVerbal} напомняне|*)";
+                    if(cal_Calendar::isHoliday($expectedDate)){
+                        $nextWorkingDay = cal_Calendar::nextWorkingDay($expectedDate);
+                        $dayDiff = dt::daysBetween($nextWorkingDay, $expectedDate);
+                        if($dayDiff > 0){
+                            $overdueDate = dt::addDays($dayDiff, $expectedDate, false);
                         }
-                       
-                        // Нотифицира се създателя на документа, дилъра на сделката и отговорника на папката
-                        $usersToNotify = array($dRec->createdBy => $dRec->createdBy);
-                        $usersToNotify[$dRec->inCharge] = $dRec->inCharge;
-                        $firstDoc = doc_Threads::getFirstDocument($dRec->threadId);
+                    }
+
+                    // Ако е настанала датата за нотификация
+                    if($overdueDate != $today) continue;
+
+                    // Подготовка на текста на нотификацията
+                    $amountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($dRec->amount);
+                    Mode::push('text', 'plain');
+                    $amountVerbal = currency_Currencies::decorate($amountVerbal, $dRec->currencyId);
+                    Mode::pop('text');
+                    $amountVerbal = str_replace('&nbsp;', ' ', $amountVerbal);
+                    $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
+                    $msg = "|Просрочен документ|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
+                    if($i != '1'){
+                        $msg .= " (|{$iVerbal} напомняне|*)";
+                    }
+
+                    // Нотифицира се създателя на документа, дилъра на сделката и отговорника на папката
+                    $usersToNotify = array($dRec->createdBy => $dRec->createdBy);
+                    $usersToNotify[$dRec->inCharge] = $dRec->inCharge;
+                    $firstDoc = doc_Threads::getFirstDocument($dRec->threadId);
+                    if(is_object($firstDoc) && $firstDoc->isInstanceOf('deals_DealMaster')){
                         if($dealerId = $firstDoc->fetchField('dealerId')){
                             $usersToNotify[$dealerId] = $dealerId;
                         }
-                        
-                        foreach ($usersToNotify as $userId){
-                            bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $userId);
-                        }
-                        
-                        break;
                     }
+
+                    foreach ($usersToNotify as $userId){
+                        bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $userId);
+                    }
+
+                    break;
                 }
             }
         }
