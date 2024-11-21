@@ -51,8 +51,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var string
      */
-    protected $newFieldsToCheck;
-
+    protected $newFieldsToCheck = 'quantity,primeCost';
 
     /**
      * По-кое поле да се групират листовите данни
@@ -2216,6 +2215,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     public function canSendNotificationOnRefresh($rec)
     {
-        return true;
+     //   return true;
     }
 }
