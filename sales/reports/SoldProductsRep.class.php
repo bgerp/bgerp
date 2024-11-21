@@ -229,6 +229,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setDefault('from', $from);
         $form->setDefault('to', $today);
 
+
+
         $periodStart = $rec->from;
         $periodEnd = $rec->to;
 
@@ -328,6 +330,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
 
+
             $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
 
             $posDetQuery->where('#productId IS NOT NULL');
@@ -388,7 +391,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
 
-            //$posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+            $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
 
             $posDetQuery->where('#productId IS NOT NULL');
 
