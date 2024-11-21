@@ -2206,4 +2206,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         return $singleProductWeight;
     }
+
+    /**
+     * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    public function canSendNotificationOnRefresh($rec)
+    {
+        return true;
+    }
 }
