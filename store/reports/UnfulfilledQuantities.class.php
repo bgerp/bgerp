@@ -173,7 +173,8 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $querySaleDetails->where("#closeWith IS NULL");
 
-        $querySaleDetails->like('contoActions', 'ship', false);
+        //$querySaleDetails->like('contoActions', 'ship', false);
+        $querySaleDetails->where("FIND_IN_SET('ship', REPLACE(#contoActions, ' ', '')) > 0");
 
         if (!is_null($rec->contragent)) {
             $checkedContragents = keylist::toArray($rec->contragent);
