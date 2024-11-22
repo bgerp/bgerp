@@ -73,7 +73,6 @@ form[method="post"] input[type="submit"] {
 .vertical .formTitle { 
 	color: white;
     background-color: #9999ff;
-    border: solid 1px #88e;
 }
 
 .vertical .formGroup {
@@ -95,36 +94,6 @@ a.pager{
     }
     &.pagerSelected { 
         border: solid 1px #aaa;
-        background-color: #ffffcc;
-    }
-}
-
-//табове
-div.tab-control div.tab-row .tab {
-	background: #ddd;
-    border-left: 1px solid #bbb;
-    border-right: 1px solid #bbb;
-    border-top: 2px solid #048;
-    &.selected {
-        background: #ffffff;
-        border-left: 1px solid #bbb;
-        border-right: 1px solid #bbb;
-        border-top: 2px solid #048;
-    }
-}
-
-div.tab-control.alphabet div.tab-row .tab {
-	background: #ddd;
-	border: 1px solid #aaa ;
-	
-    &:hover a {
-        color: red !important;
-    }
-    &.selected {
-        background: #ffffcc !important;
-        border: 1px solid #aaa;
-    }
-    &:hover {
         background-color: #ffffcc;
     }
 }

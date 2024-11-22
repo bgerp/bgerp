@@ -535,7 +535,7 @@ en,Договори за пр_491bd,Sales contracts
 en,Документ тип,Document type
 en,Документ,Document
 en,Създадени документи,Created documents
-en,Документи в ни_b50a6,Documents into the threads
+en,Документи в ни_b50a6,Documents in threads
 en,Документи за п_120a1,Documents to complete the sales
 en,Документи за п_c1496,Documents to complete the purchases
 en,Документи,Documents
@@ -2844,7 +2844,7 @@ en,"Безплатна доставка на територията на","Free 
 en,за да спечелите,to win
 en,Добавете артикули на обща стойност,Add items with total value of
 en,Невалиден VAT номер,Invalid VAT ID
-en,Игнорирай предупреждението,Ignore the warning
+en,Игнорирай предупреждението,Ignore warning
 en,Редактиране на данните за поръчка,Edit order details
 en,кутия,box
 en,бандерол,banderole
@@ -3079,3 +3079,51 @@ en,Изходяща оферта,Quotation
 en,Изключен,Turned off
 en,Извлечен текст,Extracted text
 en,"Възникна проблем при изготвяне на офертата и не можем да гарантираме коректността на изчислените/показаните цени! Моля, свържете се с нас!","A problem occurred while preparing the quotation, and we cannot guarantee the accuracy of the calculated/displayed prices! Please contact us!"
+en,ДДС изключение,Vat exception
+en,Срок дни,In days
+en,Подреждане по,Order by
+en,Ред на създаване,Creation order
+en,Разходен обект,Cost object
+en,Особености,Features
+en,Нова фактура,New invoice
+en,Хоризонти,Horizons
+en,ВОД,ICD
+en,Данъчни параметри,Tax parameters
+en,Складова разписка,Stock receipt
+en,складова разписка,stock receipt
+en,Броил,Counted
+en,От сметка,From account
+en,Ваучери,Vouchers
+en,Вальорът ще бъде записан при контиране,The value date will be recorded upon posting
+en,Пояснение,Comment
+en,Центрове на дейност,Activity centers
+en,Центрове,Centers
+en,Етапи,Steps
+en,етап,step
+en,Производствени операции,Manufacturing Operations
+en,падеж,due date
+en,к-во,q-ty
+en,Производствен етап,Production step
+en,задание за производство,production job
+en,Толеранс,Tolerance
+en,Технолог.брак,Technological scrap
+en,Ц-р дейност,Act. center
+en,Ц-р на дейност,Act. center
+en,Произвеждане в,Manufacturing in
+en,Влагане от,Materials from
+en,От папката,From the folder
+en,Задание за производство,Production job
+en,Втора мярка,Second measure
+en,Ед. тегло,Unit weight
+en,Очаквано още,Expected remaining
+en,Размери,Size
+en,Подробно,Detailed
+en,Интелигентен асистент,Intelligent Assistant
+en,Инструкция,Instruction
+en,Изписване от,Issuance from
+en,заприходено,recorded
+en,Отпадъци,Wastes
+en,Отпадък,waste
+en,Реж. разходи,Overhead costs
+en,Производство на услуга,Service production
+en,Вложени артикули,Input items

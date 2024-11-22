@@ -7958,37 +7958,17 @@ table.bomProductionStepTable td {
 
 .aiPromptBlock {
   background-color: #357abd;
-    /*
-   * Син фон
-   */
   color: white;
-    /*
-   * Бял цвят на текста
-   */
-  border-radius: 8px;
-    /*
-   * Заоблени ъгли
-   */
-  padding: 5px;
-    /*
-   * Намален падинг
-   */
-  margin: 5px 0;
-    /*
-   * Намален маргин
-   */
+  border-radius: 3px;
+  padding: 4px 7px;
+  margin: 0 0 10px;
   font-size: 0.9em;
-    /*
-   * Намален размер на текста
-   */ }
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
 
 /*
  * Стил за заглавието на блока
  */
 .aiLastPromptCaption {
   font-weight: bold;
-  font-size: 1em;
-    /*
-   * Намален размер за заглавието
-   */ }
+  font-size: 1em; }
 

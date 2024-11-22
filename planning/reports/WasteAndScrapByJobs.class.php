@@ -263,6 +263,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $taskDetQuery = planning_ProductionTaskDetails::getQuery();
         $taskDetQuery->in('taskId', $tasksArr);
         $taskDetQuery->where("#type = 'scrap'");
+        $taskDetQuery->where("#state = 'active'");
 
         while ($taskDetRec = $taskDetQuery->fetch()) {
 

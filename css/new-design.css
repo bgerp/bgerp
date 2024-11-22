@@ -1,7 +1,4 @@
 .gradient-light,
-.formTitle,
-.formGroup,
-.narrow .vertical .formTitle,
 .accordian li.btns-title {
   background: #4a4a4a;
   background: -moz-linear-gradient(top, #999999 0%, #888888 100%);
@@ -1068,6 +1065,22 @@ input:focus[type=button] {
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.08), 0 0 8px rgba(102, 175, 233, 0.5);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.08), 0 0 8px rgba(102, 175, 233, 0.5); }
 
+.formTitle,
+.formGroup,
+.narrow .vertical .formTitle {
+  background: var(--theme-color) !important; }
+
+@supports (background: color-mix(in srgb,
+black,
+white)) {
+  .formTitle,
+  .formGroup,
+  .narrow .vertical .formTitle {
+    background: color-mix(in srgb, var(--theme-color) 20%, #666666 80%) !important; } }
+
+.formTitle a,
+.formGroup a {
+  color: white !important; }
 
 .wide .vertical .formTable {
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); }
@@ -1218,9 +1231,8 @@ input[type="button"].more-btn {
   padding-right: 0.1em !important; }
 
 div.tab-control.alphabet div.tab-row .tab {
-  float: left;
   background: whitesmoke;
-  padding: 6px 8px;
+  padding: 6px 8px !important;
   min-width: 12px;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
@@ -1232,14 +1244,20 @@ div.tab-control.alphabet div.tab-row .tab {
   text-shadow: white 1px 1px 0;
   -moz-box-shadow: 1px 1px rgba(0, 0, 0, 0.2);
   -webkit-box-shadow: 1px 1px rgba(0, 0, 0, 0.2);
-  box-shadow: 0px 0px rgba(0, 0, 0, 0.2); }
+  box-shadow: 0px 0px rgba(0, 0, 0, 0.2);
+  display: block;
+  margin-right: 0 !important; }
   div.tab-control.alphabet div.tab-row .tab.selected {
-    box-shadow: 0 -4px 0 #0066ff !important;
-    border-left: 1px solid #0066ff !important;
-    border-right: 1px solid #0066ff !important;
-    border-bottom: none !important;
-    font-size: 0.8em !important;
-    top: 0 !important; }
+    box-shadow: 0 0px 0 #666666 !important;
+    border-left: 0px solid #666666 !important;
+    border-right: 0px solid #666666 !important;
+    border-bottom: 1px solid black !important;
+    top: 1px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    padding-bottom: 5px !important;
+    padding-top: 5px !important;
+    background: #ffffcc; }
   div.tab-control.alphabet div.tab-row .tab:hover a {
     color: #111111 !important; }
   div.tab-control.alphabet div.tab-row .tab img {

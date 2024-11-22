@@ -152,6 +152,7 @@ class doc_Folders extends core_Master
         $this->setDbUnique('coverId,coverClass');
 
         $this->setDbIndex('last');
+        $this->setDbIndex('createdOn');
     }
     
     
@@ -2217,7 +2218,7 @@ class doc_Folders extends core_Master
             $exceptCoverClasses = explode('|', $params['coverClasses']);
             if (is_array($exceptCoverClasses)) {
                 foreach ($exceptCoverClasses as $cName) {
-                    $skipCoverClasses[] = $cName::getClassId();
+                    $skipCoverClasses[] = cls::get($cName)->getClassId();
                 }
             }
             

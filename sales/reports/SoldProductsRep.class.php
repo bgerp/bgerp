@@ -51,8 +51,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var string
      */
-    protected $newFieldsToCheck;
-
+    protected $newFieldsToCheck = 'quantity,primeCost';
 
     /**
      * По-кое поле да се групират листовите данни
@@ -179,15 +178,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
     }
 
-    /**
-     * Преди подготвяне на едит формата
-     */
-    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
-    {
-
-
-    }
-
 
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -199,6 +189,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = $data->form;
+
+        if (date('d') < 10) {
+            $form->setDefault('selectPeriod', 'last_month');
+        } else {
+            $form->setDefault('selectPeriod', 'cur_month');
+        }
+
         $rec = $form->rec;
         $suggestions = $prodSuggestions = $prodSalesArr = $posProdsArr = $prodArr = array();
 
@@ -223,11 +220,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('category', 'input=hidden');
             $form->setField('group', 'input=hidden');
         }
-
-        $today = dt::today();
-        $from = dt::addMonths(-1, $today);
-        $form->setDefault('from', $from);
-        $form->setDefault('to', $today);
 
         $periodStart = $rec->from;
         $periodEnd = $rec->to;
@@ -328,6 +320,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
 
+
             $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
 
             $posDetQuery->where('#productId IS NOT NULL');
@@ -388,7 +381,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
 
-            //$posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+            $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
 
             $posDetQuery->where('#productId IS NOT NULL');
 
@@ -2202,5 +2195,17 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $singleProductWeight = $singleProductWeight ? $singleProductWeight : 'n.a.';
 
         return $singleProductWeight;
+    }
+
+    /**
+     * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    public function canSendNotificationOnRefresh($rec)
+    {
+     //   return true;
     }
 }

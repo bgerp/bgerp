@@ -146,9 +146,8 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('customUrlId', 'bigint', 'caption=URL номера от обект, input=none,column=none,single=none');
         
         $this->setDbUnique('url, userId');
-        $this->setDbIndex('userId');
+        $this->setDbIndex('userId,activatedOn,modifiedOn,id');
         
-        $this->setDbIndex('urlId');
         $this->setDbIndex('customUrlId');
         
         $this->setDbIndex('state');

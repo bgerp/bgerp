@@ -165,6 +165,7 @@ class acc_Items extends core_Manager
         $this->setDbIndex('lastUseOn');
         $this->setDbIndex('state');
         $this->setDbIndex('closedOn');
+        $this->setDbIndex('title');
     }
     
     

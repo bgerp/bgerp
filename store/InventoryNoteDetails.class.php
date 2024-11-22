@@ -133,6 +133,8 @@ class store_InventoryNoteDetails extends doc_Detail
         $this->FNC('editQuantity', 'double', 'input=hidden,silent');
         $this->FNC('editSummary', 'double', 'input=hidden,silent');
         $this->FNC('editBatch', 'varchar(nullIfEmpty)', 'input=hidden,silent');
+
+        $this->setDbIndex('productId');
     }
     
     
