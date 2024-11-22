@@ -211,7 +211,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
            // bp($saleArt);
             $saleKey = $saleArt->threadId . '|' . $saleArt->productId;
 
-            // добавяме в масива
+            // добавяме в масива на артикулите от договорите през избрания период(филтрирани)
             if (!array_key_exists($saleKey, $saleDetRecs)) {
                 $saleDetRecs[$saleKey] = (object)array(
 
@@ -230,9 +230,10 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             }
         }
 
+        //Масив с нишките в които се намират продажбите за проследяване: затворени през този период, не бързи, за стандартни артикули
         $salesThreadsIdArr = (arr::extractValuesFromArray($saleDetRecs, 'threadId'));
 
-        //Експедиционни нареждания
+        //Детайли от Експедиционни нареждания , които са в нишките на избраните продажби
         $queryShipmentOrderDetails = store_ShipmentOrderDetails::getQuery();
 
         $queryShipmentOrderDetails->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
@@ -247,6 +248,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $queryShipmentOrderDetails->where("#state = 'active'");
 
+        //Филтрираме само тези, които са от нишките на избраните артикули
         $queryShipmentOrderDetails->in('threadId', $salesThreadsIdArr);
 
         //филтър по склад
@@ -258,19 +260,18 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         if (isset($rec->group)) {
             $queryShipmentOrderDetails->where('#groups IS NOT NULL');
 
-            $queryShipmentOrderDetails->likeKeylist('groups', $rec->group);
-           // plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryShipmentOrderDetails, $rec->group, 'productId');
+            //$queryShipmentOrderDetails->likeKeylist('groups', $rec->group);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryShipmentOrderDetails, $rec->group, 'productId');
 
         }
 
-        $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn,shipmentOrderActivatedOn');
+        $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn,shipmentOrderActivatedOn,groups');
 
         while ($shipmentDet = $queryShipmentOrderDetails->fetch()) {
-            $threadId = $shipmentDet->threadId;
 
-            $saleIdShip = doc_Threads::getFirstDocument($threadId)->that;
+            $saleIdShip = doc_Threads::getFirstDocument($shipmentDet->threadId)->that;
 
-            $firstDocumentName = doc_Threads::getFirstDocument($threadId)->className;
+            $firstDocumentName = doc_Threads::getFirstDocument($shipmentDet->threadId)->className;
 
             if ($firstDocumentName != 'sales_Sales') {
                 continue;
@@ -278,7 +279,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
             $shipKey = $shipmentDet->threadId . '|' . $shipmentDet->productId;
 
-            // добавяме в масива
+            // добавяме в масива от артикули експедирани в този период, и от нишките на избраните продажби
             if (!array_key_exists($shipKey, $shipDetRecs)) {
                 $shipDetRecs[$shipKey] = (object)array(
 
@@ -297,9 +298,6 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             }
         }
 
-      //  return $recs = $shipDetRecs;
-
-//bp(countR($shipDetRecs),$shipDetRecs);
         //Добавяме артикули, от които няма нищо експедирано но ги има в договорите
         $shipDetKeysArr = array_keys($shipDetRecs);       //Масив с ключове на масива на детайлите по експедиционните
 
@@ -324,7 +322,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
             }
         }
-  //      bp(countR($shipDetRecs),$shipDetRecs);
+
         foreach ($saleDetRecs as $saleKey => $sale) {
             foreach ($shipDetRecs as $shipKey => $ship) {
                 expect($ship->firstDocumentName == 'sales_Sales');
