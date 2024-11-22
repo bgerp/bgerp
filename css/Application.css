@@ -7965,9 +7965,6 @@ table.bomProductionStepTable td {
   font-size: 0.9em;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
 
-/*
- * Стил за заглавието на блока
- */
 .aiLastPromptCaption {
   font-weight: bold;
   font-size: 1em; }
