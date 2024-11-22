@@ -523,5 +523,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         if (isset($dRec->measure)) {
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
+
+         $res->quantity = $Double->toVerbal($dRec->requestQuantity - $dRec->shipedQuantity);
     }
 }
