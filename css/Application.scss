@@ -9093,8 +9093,11 @@ table.bomProductionStepTable td{
 
 }
 
-/* Стил за заглавието на блока */
 .aiLastPromptCaption {
 	font-weight: bold;
 	font-size: 1em;
+}
+
+.dialogHolder .result .dump {
+	white-space: normal;
 }

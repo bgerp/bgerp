@@ -241,10 +241,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 }
             }
         }
-        
+
         //Складови разписки
         $receiptsDetQuery = store_ReceiptDetails::getQuery();
-        
+
         $receiptsDetQuery->EXT('threadId', 'store_Receipts', 'externalName=threadId,externalKey=receiptId');
         
         $receiptsDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
@@ -260,10 +260,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $receiptsDetQuery->EXT('valior', 'store_Receipts', 'externalName=valior,externalKey=receiptId');
 
         $receiptsDetQuery->EXT('storeId', 'store_Receipts', 'externalName=storeId,externalKey=receiptId');
-        
+
         //Експедиционни нареждания за връщане на стока
         $shipmentOrdersDetQuery = store_ShipmentOrderDetails::getQuery();
-        
+
         $shipmentOrdersDetQuery->EXT('threadId', 'store_ShipmentOrders', 'externalName=threadId,externalKey=shipmentId');
         
         $shipmentOrdersDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
@@ -282,7 +282,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         
         //Бързи продажби
         $fastPurchasesDetQuery = purchase_PurchasesDetails::getQuery();
-        
+
         $fastPurchasesDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         
         $fastPurchasesDetQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threadId,externalKey=requestId');
@@ -298,8 +298,24 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fastPurchasesDetQuery->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
 
         $fastPurchasesDetQuery->EXT('storeId', 'purchase_Purchases', 'externalName=shipmentStoreId,externalKey=requestId');
-        
-        
+
+        //От приемателни протоколи за услуги
+        $purchasesServicesDetQuery = purchase_ServicesDetails::getQuery();
+
+        $purchasesServicesDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+
+        $purchasesServicesDetQuery->EXT('threadId', 'purchase_Services', 'externalName=threadId,externalKey=shipmentId');
+
+        $purchasesServicesDetQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+
+        $purchasesServicesDetQuery->EXT('state', 'purchase_Services', 'externalName=state,externalKey=shipmentId');
+
+        $purchasesServicesDetQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+
+        $purchasesServicesDetQuery->EXT('valior', 'purchase_Services', 'externalName=valior,externalKey=shipmentId');
+
+       // $purchasesServicesDetQuery->EXT('storeId', 'purchase_Services', 'externalName=storeId,externalKey=shipmentId');
+
         //Продължителност на периода за показване
         $durationStr = cls::get('type_Time')->toVerbal($rec->duration);
         
@@ -332,6 +348,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $fastPurchasesDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
             
             $shipmentOrdersDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
+
+            $purchasesServicesDetQuery->where("#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}'");
         }
         
         // сравнение с ПРЕДХОДЕН ПЕРИОД
@@ -360,6 +378,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
             
             $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
+
+            $purchasesServicesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
         }
         
         // сравнение с ПРЕДХОДНА ГОДИНА
@@ -372,6 +392,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
             
             $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
+
+            $purchasesServicesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
         }
         
         // сравнение с ИЗБРАН ПЕРИОД
@@ -398,6 +420,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $fastPurchasesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
             
             $shipmentOrdersDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
+
+            $purchasesServicesDetQuery->where("(#valior >= '{$rec->from}' AND #valior <= '{$dateEnd}') OR (#valior >= '{$rec->compareStart}' AND #valior <= '{$toChecked}')");
         }
         
         core_Lg::pop();
@@ -407,6 +431,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fastPurchasesDetQuery->where("#state != 'rejected'");
         
         $shipmentOrdersDetQuery->where("#state != 'rejected'");
+
+        $purchasesServicesDetQuery->where("#state != 'rejected'");
         
         
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
@@ -424,6 +450,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $shipmentOrdersDetQuery->EXT('contragentId', 'purchase_Purchases', 'externalName=contragentId,externalKey=shipmentId');
             $shipmentOrdersDetQuery->EXT('contragentClassId', 'purchase_Purchases', 'externalName=contragentClassId,externalKey=shipmentId');
             $shipmentOrdersDetQuery->EXT('folderId', 'purchase_Purchases', 'externalName=folderId,externalKey=shipmentId');
+
+            $purchasesServicesDetQuery->EXT('contragentId', 'purchase_Services', 'externalName=contragentId,externalKey=shipmentId');
+            $purchasesServicesDetQuery->EXT('contragentClassId', 'purchase_Services', 'externalName=contragentClassId,externalKey=shipmentId');
+            $purchasesServicesDetQuery->EXT('folderId', 'purchase_Services', 'externalName=folderId,externalKey=shipmentId');
             
             if (!$rec->crmGroup && $rec->contragent) {
                 $contragentsArr = keylist::toArray($rec->contragent);
@@ -441,6 +471,9 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 
                 $shipmentOrdersDetQuery->in('contragentId', $contragentCoversId);
                 $shipmentOrdersDetQuery->in('contragentClassId', $contragentCoverClasses);
+
+                $purchasesServicesDetQuery->in('contragentId', $contragentCoversId);
+                $purchasesServicesDetQuery->in('contragentClassId', $contragentCoverClasses);
             }
             
             if ($rec->crmGroup && !$rec->contragent) {
@@ -451,6 +484,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $fastPurchasesDetQuery->in('folderId', $foldersInGroups);
                 
                 $shipmentOrdersDetQuery->in('folderId', $foldersInGroups);
+
+                $purchasesServicesDetQuery->in('folderId', $foldersInGroups);
             }
             
             if ($rec->crmGroup && $rec->contragent) {
@@ -470,12 +505,16 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 
                 $shipmentOrdersDetQuery->in('contragentId', $contragentCoversId);
                 $shipmentOrdersDetQuery->in('contragentClassId', $contragentCoverClasses);
+
+                $purchasesServicesDetQuery->in('contragentId', $contragentCoversId);
+                $purchasesServicesDetQuery->in('contragentClassId', $contragentCoverClasses);
                 
                 $foldersInGroups = self::getFoldersInGroups($rec);
                 
                 $receiptsDetQuery->in('folderId', $foldersInGroups);
                 $fastPurchasesDetQuery->in('folderId', $foldersInGroups);
                 $shipmentOrdersDetQuery->in('folderId', $foldersInGroups);
+                $purchasesServicesDetQuery->in('folderId', $foldersInGroups);
             }
         }
 
@@ -485,6 +524,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $receiptsDetQuery->in('storeId', $storesArr);
             $fastPurchasesDetQuery->in('storeId', $storesArr);
             $shipmentOrdersDetQuery->in('storeId', $storesArr);
+           // $purchasesServicesDetQuery->in('storeId', $storesArr);
         }
 
         //Филтър по групи артикули
@@ -493,6 +533,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             plg_ExpandInput::applyExtendedInputSearch('cat_Products', $receiptsDetQuery, $rec->group, 'productId');
             plg_ExpandInput::applyExtendedInputSearch('cat_Products', $fastPurchasesDetQuery, $rec->group, 'productId');
             plg_ExpandInput::applyExtendedInputSearch('cat_Products', $shipmentOrdersDetQuery, $rec->group, 'productId');
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $purchasesServicesDetQuery, $rec->group, 'productId');
 
         }
 
@@ -501,6 +542,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $receiptsDetQuery->where("#isPublic = '{$rec->articleType}'");
             $fastPurchasesDetQuery->where("#isPublic = '{$rec->articleType}'");
             $shipmentOrdersDetQuery->where("#isPublic = '{$rec->articleType}'");
+            $purchasesServicesDetQuery->where("#isPublic = '{$rec->articleType}'");
         }
         
         // Синхронизира таймлимита с броя записи //
@@ -517,10 +559,11 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             $dealers = keylist::toArray($rec->dealers);
         }
         
-        $recsArr = array($receiptsDetQuery, $fastPurchasesDetQuery, $shipmentOrdersDetQuery);
-        
+        $recsArr = array($receiptsDetQuery, $fastPurchasesDetQuery, $shipmentOrdersDetQuery, $purchasesServicesDetQuery);
+
         foreach ($recsArr as $details) {
             while ($detRec = $details->fetch()) {
+
                 $revCoef = 1; //коефициента става -1 при връщане на стока към доставчик със ЕН в Покупка
                 
                 $class = cls::get($details->mvc);
@@ -645,7 +688,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 }
             }
         }
-        
+
         //Изчисляване на промяната в стойността на продажбите и делтите за артикул
         foreach ($recs as $v) {
             
@@ -835,7 +878,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 arr::sortObjects($recs, $orderBy, 'DESC', $typeOrder);
             }
         }
-        
+
         //Добавям ред за ОБЩИТЕ суми
         $totalArr['total'] = (object) array(
             'totalValue' => $totalValue,
