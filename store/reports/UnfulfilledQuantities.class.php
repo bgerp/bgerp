@@ -146,10 +146,13 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $salesThreadsIdArr = array();
         $recs = array();
 
-        //Продажби
+        // Записи на детайли на продажби затворени през този период,
+        // които не са бързи продажби и не са затворени чрез обединяване
         $querySaleDetails = sales_SalesDetails::getQuery();
 
         $querySaleDetails->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+
+        $querySaleDetails->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
 
         $querySaleDetails->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
 
@@ -173,18 +176,29 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $querySaleDetails->where("#closeWith IS NULL");
 
-        //$querySaleDetails->like('contoActions', 'ship', false);
-        $querySaleDetails->where("FIND_IN_SET('ship', REPLACE(#contoActions, ' ', '')) > 0");
+        //Филтър по групи артикули
+        if (isset($rec->group)) {
+            $querySaleDetails->where('#groups IS NOT NULL');
 
+            $querySaleDetails->likeKeylist('groups', $rec->group);
+            // plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryShipmentOrderDetails, $rec->group, 'productId');
+
+        }
+
+          //$querySaleDetails->like('contoActions', 'ship', false);
+        $querySaleDetails->where("FIND_IN_SET('ship', REPLACE(#contoActions, ' ', '')) = 0");
+
+        //Филтър по контрагент на масива на продажбите
         if (!is_null($rec->contragent)) {
             $checkedContragents = keylist::toArray($rec->contragent);
 
             $querySaleDetails->in('folderId', $checkedContragents);
         }
 
+        //Филтър за нестандартни артикули. В справката влизат САМО СТАНДАРТНИ
         $querySaleDetails->where("#isPublic = 'yes'");
 
-        $querySaleDetails->show('id,saleId,contragentClassId,contragentId,productId,threadId,folderId,quantity,createdOn');
+        $querySaleDetails->show('id,saleId,contragentClassId,contragentId,productId,threadId,folderId,quantity,createdOn,groups');
 
         // Синхронизира таймлимита с броя записи
         $timeLimit = $querySaleDetails->count() * 0.2;
@@ -194,7 +208,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         }
 
         while ($saleArt = $querySaleDetails->fetch()) {
-            $saleThreadsIds[] = $saleArt->threadId;
+           // bp($saleArt);
             $saleKey = $saleArt->threadId . '|' . $saleArt->productId;
 
             // добавяме в масива
@@ -243,7 +257,10 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         //Филтър по групи артикули
         if (isset($rec->group)) {
             $queryShipmentOrderDetails->where('#groups IS NOT NULL');
-            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryShipmentOrderDetails, $rec->group, 'productId');
+
+            $queryShipmentOrderDetails->likeKeylist('groups', $rec->group);
+           // plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryShipmentOrderDetails, $rec->group, 'productId');
+
         }
 
         $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn,shipmentOrderActivatedOn');
@@ -280,6 +297,9 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             }
         }
 
+      //  return $recs = $shipDetRecs;
+
+//bp(countR($shipDetRecs),$shipDetRecs);
         //Добавяме артикули, от които няма нищо експедирано но ги има в договорите
         $shipDetKeysArr = array_keys($shipDetRecs);       //Масив с ключове на масива на детайлите по експедиционните
 
@@ -304,7 +324,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
             }
         }
-
+  //      bp(countR($shipDetRecs),$shipDetRecs);
         foreach ($saleDetRecs as $saleKey => $sale) {
             foreach ($shipDetRecs as $shipKey => $ship) {
                 expect($ship->firstDocumentName == 'sales_Sales');
