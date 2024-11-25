@@ -2203,6 +2203,14 @@ class planning_Tasks extends core_Master
             }
 
             $row->title = ht::createElement("span", array('id' => planning_Tasks::getHandle($rec->id)), $row->title);
+
+            // Показване и колонка с % отпадък
+            $taskWastePercent = null;
+            planning_ProductionTaskProducts::getTotalWasteArr($rec->threadId, $taskWastePercent);
+            if(isset($taskWastePercent)){
+                $row->taskWastePercent = core_Type::getByName('percent')->toVerbal($taskWastePercent);
+            }
+
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
@@ -2291,14 +2299,15 @@ class planning_Tasks extends core_Master
         $listTableMvc = clone $this;
         $listTableMvc->FNC('costsCount', 'int');
         $listTableMvc->FNC('notConvertedQuantity', 'int');
+        $listTableMvc->FNC('taskWastePercent', 'int');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи, assetId=Оборудв.,info=@info');
+        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи,taskWastePercent=Отп., assetId=Оборудв.,info=@info');
         if ($data->masterMvc instanceof planning_AssetResources) {
             unset($fields['assetId']);
         }
 
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount,notConvertedQuantity');
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount,taskWastePercent,notConvertedQuantity');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $contentTpl = $table->get($data->rows, $data->listFields);
         if (isset($data->pager)) {

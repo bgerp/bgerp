@@ -709,15 +709,20 @@ class pos_Receipts extends core_Master
 
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
-
-            if (empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || $rec->state != 'draft') {
+            if (empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || !in_array($rec->state, array('draft', 'closed', 'waiting'))) {
                 $res = 'no_one';
             }
         }
 
         if (in_array($action, array('setcontragent', 'setvoucher')) && isset($rec)) {
-            if (!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn) || $rec->state != 'draft') {
+            if (!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn)) {
                 $res = 'no_one';
+            }
+
+            if(isset($action) == 'setcontragent'){
+                if($rec->state == 'closed' && !pos_Receipts::isForDefaultContragent($rec)){
+                    $res = 'no_one';
+                }
             }
         }
 
@@ -1426,7 +1431,8 @@ class pos_Receipts extends core_Master
         static::setContragent($rec, $contragentClassId, $contragentId, $locationId);
         $this->logWrite('Избор на контрагент в бележка', $id);
 
-        Mode::setPermanent("currentOperation{$rec->id}", 'add');
+        $currentOperation = $rec->state == 'closed' ? 'contragent' : 'add';
+        Mode::setPermanent("currentOperation{$rec->id}", $currentOperation);
         Mode::setPermanent("currentSearchString{$rec->id}", null);
 
         if (Request::get('ajax_mode')) {
