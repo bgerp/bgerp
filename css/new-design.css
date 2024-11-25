@@ -1257,7 +1257,7 @@ div.tab-control.alphabet div.tab-row .tab {
     padding-right: 8px !important;
     padding-bottom: 5px !important;
     padding-top: 6px !important;
-    background: #ffffcc; }
+    background: #ffffcc !important; }
   div.tab-control.alphabet div.tab-row .tab:hover a {
     color: #111111 !important; }
   div.tab-control.alphabet div.tab-row .tab img {
