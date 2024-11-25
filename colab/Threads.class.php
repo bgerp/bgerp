@@ -120,6 +120,8 @@ class colab_Threads extends core_Manager
      */
     public function act_Single()
     {
+        $this->forceProxy($this->className);
+
         expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
         
         if (core_Users::isPowerUser()) {
@@ -240,6 +242,8 @@ class colab_Threads extends core_Manager
      */
     public function act_List()
     {
+        $this->forceProxy($this->className);
+
         $folderId = Request::get('folderId', 'int');
         
         if (core_Users::isPowerUser()) {
