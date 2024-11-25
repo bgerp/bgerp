@@ -1788,7 +1788,7 @@ class eshop_Carts extends core_Master
         // Показване на сумата на минималната поръчка ако има
         if(!empty($settings->minOrderAmount)){
             $minOrderAmount = currency_Currencies::decorate($settings->minOrderAmount, $settings->currencyId);
-            $tpl->append(tr("Приемат се поръчки за минимално|* <b>{$minOrderAmount}</b>"), 'CART_TOOLBAR_RIGHT_FOOTER');
+            $tpl->append(tr("Приемат се поръчки за минимално|* <b style='color:#0c0987;font-size:1.1em'>{$minOrderAmount}</b>"), 'CART_TOOLBAR_RIGHT_FOOTER');
         }
 
         if (empty($rec->personNames)) {
