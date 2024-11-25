@@ -488,7 +488,7 @@ class trans_LineDetails extends doc_Detail
     protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         if(!Mode::is('printing') && !Mode::is('xhtml')){
-            $tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab', 'urlParam' => 'lineTab'));
+            $tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab alphabet', 'urlParam' => 'lineTab'));
 
             // Подготовка на табовете
             $url = getCurrentUrl();
