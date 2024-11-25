@@ -1252,11 +1252,11 @@ div.tab-control.alphabet div.tab-row .tab {
     border-left: 0px solid #666666 !important;
     border-right: 0px solid #666666 !important;
     border-bottom: 1px solid black !important;
-    top: 1px !important;
+    top: 0px !important;
     padding-left: 8px !important;
     padding-right: 8px !important;
     padding-bottom: 5px !important;
-    padding-top: 5px !important;
+    padding-top: 6px !important;
     background: #ffffcc; }
   div.tab-control.alphabet div.tab-row .tab:hover a {
     color: #111111 !important; }

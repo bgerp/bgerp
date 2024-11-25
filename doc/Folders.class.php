@@ -957,7 +957,7 @@ class doc_Folders extends core_Master
             
             return;
         }
-        
+
         $coverMvc = cls::get($rec->coverClass);
         
         if (!$rec->coverId) {
@@ -969,12 +969,10 @@ class doc_Folders extends core_Master
         }
         
         $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, false);
-        
         $isRevert = ($rec->state == 'rejected' && $coverRec->state != 'rejected');
         $isReject = ($rec->state != 'rejected' && $coverRec->state == 'rejected');
         $isClosed = ($rec->state != 'closed' && $coverRec->state == 'closed');
-        $isActivated = ($rec->state == 'closed' && $coverRec->state == 'active');
-        
+        $isActivated = ($rec->state == 'closed' && in_array($coverRec->state, array('active', 'draft')));
         $fields = 'title,inCharge,access,shared';
         
         foreach (arr::make($fields) as $field) {
