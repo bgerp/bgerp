@@ -272,7 +272,7 @@ class deals_Setup extends core_ProtoSetup
                         $nextWorkingDay = cal_Calendar::nextWorkingDay($expectedDate);
                         $dayDiff = dt::daysBetween($nextWorkingDay, $expectedDate);
                         if($dayDiff >= $days){
-                            $overdueDate = dt::addDays($dayDiff, $expectedDate, false);
+                            $overdueDate = dt::addDays($dayDiff, $overdueDate, false);
                         }
                     }
 
