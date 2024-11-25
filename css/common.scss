@@ -2518,7 +2518,6 @@ div.tab-control div.tab-row .tab {
 	position: relative;
 	line-height: normal;
 	@include border-radius4(5px, 5px, 0, 0);
-	border-top: 2px solid $blue;
 	&.selected {
 		z-index: 3;
 		padding: 4px 5px 6px 5px;
