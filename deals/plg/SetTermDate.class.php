@@ -39,7 +39,8 @@ class deals_plg_SetTermDate extends core_Plugin
 
         if(in_array($rec->state, array('pending', 'draft'))){
             if(!empty($rec->{$mvc->termDateFld}) && $rec->{$mvc->termDateFld} < dt::today()){
-                $row->{$mvc->termDateFld} = ht::createHint($row->{$mvc->termDateFld}, 'Датата е в миналото', 'warning', false);
+                $row->{$mvc->termDateFld} = "<span class='red'>{$row->{$mvc->termDateFld}}</span>";
+                $row->{$mvc->termDateFld} = ht::createHint($row->{$mvc->termDateFld}, 'Датата е в миналото', 'noicon', false);
             }
         }
     }
