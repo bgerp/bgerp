@@ -3145,7 +3145,7 @@ en,Вложими материали,Convertable materials
 en,Е-маг артикули,E-shop items
 en,Вариации,Variations
 en,Вариация,Variation
-en,Ценови политики,All policies
+en,Ценови политики,Price policies
 en,Клиентски политики,Client policies
 en,ценова политика,price policy
 en,Автоматични отстъпки,Automatic discounts
@@ -3174,3 +3174,16 @@ en,Реконтиране,Reposting
 en,Транзакция,Transaction
 en,Очаквано на,Expected on
 en,В,In
+en,ДДС изключения,VAT exceptions
+en,Диапазони,Ranges
+en,Изключение,Exception
+en,Всички политики,All policies
+en,Периферия,Periphery
+en,Клиентски карти,Client cards
+en,Незавършено производство,Work in Progress
+en,Филтри,Filters
+en,Пред.,Prev.
+en,Текуща,Current
+en,След. начало,Next start
+en,Следв.,Next
+en,Пред. край,Prev. end
