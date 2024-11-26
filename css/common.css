@@ -2310,15 +2310,7 @@ div.tab-control div.tab-row .tab {
   z-index: 1;
   white-space: nowrap;
   position: relative;
-  line-height: normal;
-  -moz-border-radius: 5px 5px 0 0;
-  -webkit-border-radius: 5px 5px 0 0;
-  border-radius: 5px 5px 0 0; }
-  div.tab-control div.tab-row .tab.selected {
-    z-index: 3;
-    padding: 4px 5px 6px 5px;
-    margin: 1px -16px -3px 18px;
-    top: 0; }
+  line-height: normal; }
 
 .narrow div.tab-control div.tab-row .tab.selected {
   padding: 4px 5px 6px 5px; }
