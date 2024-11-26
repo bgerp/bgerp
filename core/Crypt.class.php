@@ -409,6 +409,8 @@ class core_Crypt extends core_BaseClass
         // Step 1: Convert the decimal number to binary data
         $binary_data = '';
 
+        expect(preg_match('/^[0-9a-z]+$/i', $base36_number), 'Невалиден base36 номер: ' . $base36_number);
+
         $decimal_number = base_convert($base36_number, 36, 10);
         while ($decimal_number > 0) {
             $byte = $decimal_number & 0xFF; // Get the last 8 bits (1 byte)
