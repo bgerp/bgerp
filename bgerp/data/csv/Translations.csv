@@ -3187,3 +3187,30 @@ en,Текуща,Current
 en,След. начало,Next start
 en,Следв.,Next
 en,Пред. край,Prev. end
+en,Избор на текущ,Select current
+en,Настройка,Setting
+en,Хоризонт,Horizon
+en,Сделка,Deal
+en,финансова сделка,finance Deal
+en,Втори контрагент,Second contragent
+en,Начин на плащане,Payment type
+en,Контирана,Posted
+en,Оферти от доставчици,Supplier Quotations
+en,оферта от доставчик,supplier quotations
+en,Само,Only
+en,Налично,In stock
+en,Запаз.,Res.
+en,Очакв.,Exp.
+en,Разпол.,Avail.
+en,Минимално,Minimum
+en,Основна опаковка,Main packaging
+en,Поръч.,Ord.
+en,Дост.,Del.
+en,Плат.,Paid
+en,Факт.,Inv.
+en,Остав.,Rem.
+en,Факт.,Inv.
+en,Поръчано (без ДДС),Ordered (excl. VAT)
+en,Доставено (без ДДС),Delivered (excl. VAT)
+en,Платено (без ДДС),Paid (excl. VAT)
+en,Фактурирано (без ДДС),Invoiced (excl. VAT)
