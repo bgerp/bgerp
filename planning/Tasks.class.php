@@ -2298,10 +2298,11 @@ class planning_Tasks extends core_Master
         $listTableMvc = clone $this;
         $listTableMvc->FNC('costsCount', 'int');
         $listTableMvc->FNC('notConvertedQuantity', 'int');
-        $listTableMvc->FNC('taskWastePercent', 'int');
+        $listTableMvc->FNC('taskWastePercent', 'int', 'tdClass=small quiet');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи,taskWastePercent=Отп., assetId=Оборудв.,info=@info');
+        $fields['taskWastePercent'] = "|*<small class='quiet'>|Отп.|*</small>";
         if ($data->masterMvc instanceof planning_AssetResources) {
             unset($fields['assetId']);
         }

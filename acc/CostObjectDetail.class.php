@@ -315,7 +315,7 @@ class acc_CostObjectDetail extends core_Manager
         $taskClassId = cal_Tasks::getClassId();
         foreach ($data->costItemData->rows as $classId => $rows){
             $Class = cls::get($classId);
-            $classTitle = cls::getTitle($Class);
+            $classTitle = tr(cls::getTitle($Class));
             $count = countR($rows);
             $countVerbal = core_Type::getByName('int')->toVerbal($count);
             $tpl->append("<tr class='costObjectCoverClassRow'><td colspan='6'class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #666; color: #fff'>{$classTitle} ({$countVerbal})</td></tr>", 'ROWS');
