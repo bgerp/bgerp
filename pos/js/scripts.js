@@ -868,6 +868,7 @@ function enter(){
 		}
 	}
 	console.log('enter');
+	localStorage.setItem("resultScroll", $('#result-holder.fixedPosition .withTabs').scrollTop());
 	submitInputString();
 }
 
@@ -1270,6 +1271,10 @@ function setInputPlaceholder() {
 		if(defaultPayment){
 			placeholder = defaultPayment;
 		}
+	}
+	var scroll = localStorage.getItem("resultScroll");
+	if(scroll) {
+		$('#result-holder.fixedPosition .withTabs').scrollTop(scroll)
 	}
 	$("input[name=ean]").attr("placeholder", placeholder);	
 }
