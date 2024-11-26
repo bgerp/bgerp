@@ -830,6 +830,8 @@ class pos_Receipts extends core_Master
             $saleRec->isContable = 'activate';
             sales_Sales::save($saleRec);
             sales_Sales::conto($saleRec->id);
+            $saleRec->contoActions = 'activate,pay,ship';
+            cls::get('sales_Sales')->save($saleRec, 'contoActions');
             Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->updateMaster($saleRec->id);
             Mode::pop('calcAutoDiscounts');

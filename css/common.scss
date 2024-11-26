@@ -2517,13 +2517,6 @@ div.tab-control div.tab-row .tab {
 	white-space: nowrap;
 	position: relative;
 	line-height: normal;
-	@include border-radius4(5px, 5px, 0, 0);
-	&.selected {
-		z-index: 3;
-		padding: 4px 5px 6px 5px;
-		margin: 1px -16px -3px 18px;
-		top: 0;
-	}
 }
 
 .narrow div.tab-control div.tab-row .tab.selected {
