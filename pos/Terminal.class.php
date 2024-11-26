@@ -2274,9 +2274,7 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function getPosProductPreview($productId, $width, $height, $settings = array())
     {
-        core_Debug::startTimer('RENDER_RESULT_GET_PREVIEW_PARAM');
         $photo = cat_Products::getParams($productId, 'preview');
-        core_Debug::stopTimer('RENDER_RESULT_GET_PREVIEW_PARAM');
         if($settings->productBtnTpl == 'pictureAndText' && empty($photo)) return;
 
         $arr = array();
