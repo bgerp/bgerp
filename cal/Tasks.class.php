@@ -4001,17 +4001,6 @@ class cal_Tasks extends embed_Manager
 
 
     /**
-     * Подготовка на бутоните на формата за добавяне/редактиране
-     */
-    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
-    {
-        if ($data->form->toolbar->buttons['save']) {
-            $data->form->toolbar->buttons['save']->order = min($data->form->toolbar->buttons['save']->order, 9);
-        }
-    }
-
-
-    /**
      * Извличане на задачите с техните подзадачи
      *
      * @param array $arr
