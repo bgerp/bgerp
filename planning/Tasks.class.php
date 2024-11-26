@@ -2208,7 +2208,7 @@ class planning_Tasks extends core_Master
             $taskWastePercent = null;
             planning_ProductionTaskProducts::getTotalWasteArr($rec->threadId, $taskWastePercent);
             if(isset($taskWastePercent)){
-                $row->taskWastePercent = core_Type::getByName('percent')->toVerbal($taskWastePercent);
+                $row->taskWastePercent = core_Type::getByName('percent(smartRound)')->toVerbal($taskWastePercent);
             }
 
             $row->plannedQuantity .= " " . $row->measureId;
