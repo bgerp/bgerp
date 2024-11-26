@@ -36,7 +36,7 @@ class doc_plg_TransferDoc extends core_Plugin
             expect(cls::haveInterface('doc_FolderIntf', $typeMvc));
         }
 
-        setIfNot($mvc->allwaysAddCurrentUser, false);
+        setIfNot($mvc->allwaysAddCurrentUser, true);
     }
     
     
