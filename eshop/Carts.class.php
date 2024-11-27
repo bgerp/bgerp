@@ -1193,6 +1193,14 @@ class eshop_Carts extends core_Master
         $body->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
         $body->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
 
+        if(!empty($settings->emailBodyContactTel)){
+            $body->replace(new core_ET($settings->emailBodyContactTel), 'CONTACT_TEL');
+        }
+
+        if(!empty($settings->emailBodyContactEmail)){
+            $body->replace(new core_ET($settings->emailBodyContactEmail), 'CONTACT_EMAIL');
+        }
+
         if ($rec->deliveryNoVat < 0) {
             $body->replace(tr('Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите|*!'), 'PROBLEM_WITH_DELIVERY');
         }
@@ -1270,11 +1278,12 @@ class eshop_Carts extends core_Master
         }
         
         $Cover = doc_Folders::getCover($saleRec->folderId);
-        if ($threadCount == 1) {
+        //if ($threadCount == 1) {
             $url = core_Forwards::getUrl('colab_FolderToPartners', 'Createnewcontractor', array('companyId' => (int) $Cover->that, 'email' => $rec->email, 'rand' => str::getRand(), 'className' => $Cover->className, 'userNames' => $rec->personNames, 'onlyPartner' => 'yes'), 604800);
             $url = "[link={$url}]" . tr('връзка||link') . '[/link]';
             $body->replace($url, 'REGISTER_LINK');
-        }
+            $body->replace(' ', 'REGISTER_BONUS');
+       // }
         
         if($expectedDeliveryText = self::getExpectedDeliveryText($rec, $settings)){
             $body->replace($expectedDeliveryText, 'EXPECTED_DELIVERY');
@@ -1304,9 +1313,9 @@ class eshop_Carts extends core_Master
         }
         
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
-        
+
         // Подготовка на имейла
-        $emailRec = (object) array('subject' => tr('Онлайн поръчка') . " #{$rec->id}",
+        $emailRec = (object) array('subject' => tr('Онлайн поръчка') . " #{$rec->id}" . " - " . tr('Благодарим Ви за доверието') . "!",
             'body' => $body,
             'folderId' => $saleRec->folderId,
             'originId' => $saleRec->containerId,
