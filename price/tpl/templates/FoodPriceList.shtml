@@ -62,7 +62,7 @@
         </div>
     </fieldset>
     <!--ET_END MASTER_BLOCK-->
-    [#currentDate#]
+    <h2 style="padding: 10px 5px; background: #fff; margin-top: 5px;line-height: 120%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); text-align: center">Меню за [#currentDate#]</h2>
     <!--ET_BEGIN DETAIL_BLOCK-->
     <div class="elementHolder priceListHolder">
         [#DETAIL_BLOCK#]
