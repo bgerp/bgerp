@@ -1,6 +1,6 @@
 👋 Hello, <b>[#NAME#]</b><br><br>
-You have an incomplete order from <b>[#DATE#]</b> in our online store.<br>
-🛒 You can easily complete your purchase by following this link: [#LINK#].<br>
-⚠ Important: If you don’t complete your order, it will be deleted after <b>[#DELETE_TIME#]</b>.<br>
-🔥 Don’t miss out – complete your order today!<br><br>
+You have an incomplete order from <b>[#DATE#]</b> in our online store.<br><br>
+🛒 You can easily complete your purchase by following this link: [#LINK#].<br><br>
+⚠ Important: If you don’t complete your order, it will be deleted after <b>[#DELETE_TIME#]</b>.<br><br>
+🔥 Don’t miss out – complete your order today!<br><br><br>
 [#FOOTER#]
