@@ -1,4 +1,6 @@
-<p>[#INTRODUCTION#]</p>
-<p>You have unfinished order from [#DATE#] in our online store. You can buy the chosen products if you follow our link: [#LINK#]. </p>
-<p>If you don't complete your order, it will be deleted in [#DELETE_TIME#]. </p>
-<p>[#FOOTER#]</p>
+Hello, <b>[#NAME#]</b><br><br>
+We noticed you have an unfinished order from <b>[#DATE#]</b> in our online store.<br>
+Don’t miss out! You can complete your purchase of the selected items by following this link: [#LINK#].<br>
+Please note, if you do not complete your order, it will be automatically deleted after <b>[#DELETE_TIME#]</b>.<br><br>
+Take action now to secure your items!<br><br>
+[#FOOTER#]
