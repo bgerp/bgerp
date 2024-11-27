@@ -123,6 +123,7 @@ function posActions() {
 		// при double click да изпраща веднъж
 		// или при touch устройства
 		if(timeOffset > 400 || isTouchDevice()) {
+			localStorage.setItem("resultScroll", $('#result-holder.fixedPosition .withTabs').scrollTop());
 			pressNavigable(this);
 			e.preventDefault();
 		}
