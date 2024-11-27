@@ -814,24 +814,32 @@ class pos_Receipts extends core_Master
 
         // Отбелязване къде е прехвърлена бележката
         $rec->transferredIn = $sId;
-        $isBeingClosed = ($rec->state != 'closed');
+        $exState = $rec->state;
         $rec->state = 'closed';
 
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
-        if ($isBeingClosed) {
+        if ($exState == 'draft') {
             Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->flushUpdateQueue($sId);
             Mode::pop('calcAutoDiscounts');
         } else {
             // Продажбата се активира, ако ПОС бележката е приключена
             $saleRec = sales_Sales::fetchRec($sId);
-            $saleRec->contoActions = 'activate';
+            if($exState == 'waiting'){
+                $saleRec->contoActions = 'activate,pay,ship';
+            } else {
+                $saleRec->contoActions = 'activate';
+            }
+
             $saleRec->isContable = 'activate';
             sales_Sales::save($saleRec);
             sales_Sales::conto($saleRec->id);
-            $saleRec->contoActions = 'activate,pay,ship';
-            cls::get('sales_Sales')->save($saleRec, 'contoActions');
+            if($exState == 'closed'){
+                $saleRec->contoActions = 'activate,pay,ship';
+                cls::get('sales_Sales')->save($saleRec, 'contoActions');
+            }
+
             Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->updateMaster($saleRec->id);
             Mode::pop('calcAutoDiscounts');
@@ -1433,7 +1441,7 @@ class pos_Receipts extends core_Master
         static::setContragent($rec, $contragentClassId, $contragentId, $locationId);
         $this->logWrite('Избор на контрагент в бележка', $id);
 
-        $currentOperation = $rec->state == 'closed' ? 'contragent' : 'add';
+        $currentOperation = in_array($rec->state, array('waiting', 'closed')) ? 'contragent' : 'add';
         Mode::setPermanent("currentOperation{$rec->id}", $currentOperation);
         Mode::setPermanent("currentSearchString{$rec->id}", null);
 
