@@ -14,15 +14,15 @@
 [#invoiceCountry#], <!--ET_END invoiceCountry--><!--ET_BEGIN invoicePCode-->[#invoicePCode#] <!--ET_END invoicePCode--><!--ET_BEGIN invoicePlace-->[#invoicePlace#], <!--ET_END invoicePlace--><!--ET_BEGIN invoiceAddress-->[#invoiceAddress#]<!--ET_END invoiceAddress-->.<!--ET_BEGIN REGISTER_LINK-->
 
 🎉 [b]Специално за Вас![/b]
-За по-бързо и удобно пазаруване в бъдеще, регистрирайте се в нашия магазин, като използвате тази [#REGISTER_LINK#], [b]следващите 7 дни[/b]<!--ET_END REGISTER_LINK--><!--ET_BEGIN EXPECTED_DELIVERY-->
-[#EXPECTED_DELIVERY#]<!--ET_END EXPECTED_DELIVERY--><!--ET_BEGIN CONTACT_INFO-->[#CONTACT_INFO#]
+За по-бързо и удобно пазаруване в бъдеще, регистрирайте се в нашия магазин, като използвате тази [#REGISTER_LINK#], [b]следващите 7 дни[/b]
 
-💬 [b]Имате въпроси или нужда от помощ?[/b]
-<!--ET_BEGIN CONTACT_TEL-->Свържете се с нас на телефон [b][#CONTACT_TEL#][/b]<!--ET_END CONTACT_TEL--><!--ET_BEGIN CONTACT_EMAIL--> или по имейл на [#CONTACT_EMAIL#]<!--ET_END CONTACT_EMAIL--> – нашият екип е готов да Ви помогне във всеки работен ден!<!--ET_END CONTACT_INFO--><!--ET_BEGIN REGISTER_BONUS-->
-[#REGISTER_BONUS#]
 С регистрацията ще получите:
 - Лесен достъп до историята на Вашите поръчки.
 - Бързо попълване на данни при нови покупки.
-- Ексклузивни оферти и промоции!<!--ET_END REGISTER_BONUS-->
+- Ексклузивни оферти и промоции!<!--ET_END REGISTER_LINK--><!--ET_BEGIN EXPECTED_DELIVERY-->
+[#EXPECTED_DELIVERY#]<!--ET_END EXPECTED_DELIVERY--><!--ET_BEGIN CONTACT_INFO-->[#CONTACT_INFO#]
+
+💬 [b]Имате въпроси или нужда от помощ?[/b]
+<!--ET_BEGIN CONTACT_TEL-->Свържете се с нас на телефон [b][#CONTACT_TEL#][/b]<!--ET_END CONTACT_TEL--><!--ET_BEGIN CONTACT_EMAIL--> или по имейл на [#CONTACT_EMAIL#]<!--ET_END CONTACT_EMAIL--> – нашият екип е готов да Ви помогне във всеки работен ден!<!--ET_END CONTACT_INFO-->
 
 [#FOOTER#]
