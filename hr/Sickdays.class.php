@@ -94,7 +94,7 @@ class hr_Sickdays extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, hrMaster, hrSickdays';
+    public $canEdit = 'powerUser';
     
     
     /**
