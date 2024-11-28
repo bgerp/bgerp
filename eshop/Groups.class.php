@@ -475,6 +475,9 @@ class eshop_Groups extends core_Master
      */
     public static function setOrder($query, $menuId)
     {
+        if(empty($menuId)){
+            wp($query, getCurrentUrl());
+        }
         $query->XPR('orderCalc', 'double', "IF(#menuId = {$menuId}, #saoOrder, IF(#order > 0, #order, #id+1000))");
         $query->orderBy('orderCalc');
     }

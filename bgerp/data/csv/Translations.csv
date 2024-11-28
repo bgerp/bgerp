@@ -3145,7 +3145,7 @@ en,Вложими материали,Convertable materials
 en,Е-маг артикули,E-shop items
 en,Вариации,Variations
 en,Вариация,Variation
-en,Ценови политики,All policies
+en,Ценови политики,Price policies
 en,Клиентски политики,Client policies
 en,ценова политика,price policy
 en,Автоматични отстъпки,Automatic discounts
@@ -3174,3 +3174,59 @@ en,Реконтиране,Reposting
 en,Транзакция,Transaction
 en,Очаквано на,Expected on
 en,В,In
+en,ДДС изключения,VAT exceptions
+en,Диапазони,Ranges
+en,Изключение,Exception
+en,Всички политики,All policies
+en,Периферия,Periphery
+en,Клиентски карти,Client cards
+en,Незавършено производство,Work in Progress
+en,Филтри,Filters
+en,Пред.,Prev.
+en,Текуща,Current
+en,След. начало,Next start
+en,Следв.,Next
+en,Пред. край,Prev. end
+en,Избор на текущ,Select current
+en,Настройка,Setting
+en,Хоризонт,Horizon
+en,Сделка,Deal
+en,финансова сделка,finance Deal
+en,Втори контрагент,Second contragent
+en,Начин на плащане,Payment type
+en,Контирана,Posted
+en,Оферти от доставчици,Supplier Quotations
+en,оферта от доставчик,supplier quotations
+en,Само,Only
+en,Налично,In stock
+en,Запаз.,Res.
+en,Очакв.,Exp.
+en,Разпол.,Avail.
+en,Минимално,Minimum
+en,Основна опаковка,Main packaging
+en,Поръч.,Ord.
+en,Дост.,Del.
+en,Плат.,Paid
+en,Факт.,Inv.
+en,Остав.,Rem.
+en,Факт.,Inv.
+en,Поръчано (без ДДС),Ordered (excl. VAT)
+en,Доставено (без ДДС),Delivered (excl. VAT)
+en,Платено (без ДДС),Paid (excl. VAT)
+en,Фактурирано (без ДДС),Invoiced (excl. VAT)
+en,Имате,You have
+en,нови известия,new notifications
+en,Най-новото,Newest
+en,Помощ,help
+en,Баркод,Barcode
+en,Тагнати от мен,Tagged by me
+en,Споделени с мен,Shared with me
+en,Liked by me,Харесани от мен
+en,Затворени,Closed
+en,Избор на текущ и използване в документи,Select for use in documents
+en,Контиране на документи,Posting of documents
+en,Екипи,Teams
+en,Operation,
+en,Тагове,Tags
+en,Данъци и такси,Taxes and fees
+en,Инвентаризация,Inventory

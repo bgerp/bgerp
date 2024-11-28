@@ -1231,7 +1231,7 @@ input[type="button"].more-btn {
   padding-right: 0.1em !important; }
 
 div.tab-control.alphabet div.tab-row .tab {
-  background: whitesmoke;
+  background: rgba(0, 0, 0, 0.05);
   padding: 6px 8px !important;
   min-width: 12px;
   -moz-border-radius: 10px;
