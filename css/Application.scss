@@ -7179,6 +7179,10 @@ body.narrow {
 	@include cmrColor(#0082c8);
 }
 
+.row-subProduct {
+	background-color:#ece2ff;
+}
+
 @media handheld , only screen and (min-width: 1240px) {
 	.background-holder {
 	    padding: 10px 0;

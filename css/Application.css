@@ -6270,6 +6270,9 @@ body.narrow {
     .cmr-blue td.border-top {
       border-top: 1px solid #0082c8; }
 
+.row-subProduct {
+  background-color: #ece2ff; }
+
 @media handheld,
 only screen and (min-width: 1240px) {
   .background-holder {
