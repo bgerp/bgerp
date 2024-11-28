@@ -81,8 +81,12 @@ function initElements() {
 		setCookie('menuInfo', currentMenuInfo);
 	});
 
-	var scrollLeft =  parseInt($('.narrow .alphabet .tab-row .row-holder .tab.selected').offset().left) - 30;
-	$('.narrow .alphabet .tab-row .row-holder').scrollLeft( scrollLeft);
+	if($('.narrow .alphabet .tab-row .row-holder .tab.selected').length) {
+		var scrollLeft =  parseInt($('.narrow .alphabet .tab-row .row-holder .tab.selected').offset().left) - 30;
+		if(scrollLeft) {
+			$('.narrow .alphabet .tab-row .row-holder').scrollLeft( scrollLeft);
+		}
+	}
 }
 
 
