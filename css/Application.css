@@ -4901,9 +4901,6 @@ iframe.autoHeight {
 .filesContainer .top-table {
   margin-bottom: 15px; }
 
-  .filesContainer div.tab-control.alphabet div.tab-row .tab.selected {
-    padding-bottom: 6px !important; }
-
 .webdrv-preview {
   margin-top: 5px; }
   .webdrv-preview:first-child {
