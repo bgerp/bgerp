@@ -4803,6 +4803,16 @@ table .eshop-btn {
 /*
  * край на grid
  */
+.narrow .row-holder {
+  overflow: auto; }
+
+.narrow .row-holder > div {
+  display: flex;
+  flex-wrap: nowrap; }
+
+.narrow div.tab-control.alphabet div.tab-row .tab {
+  min-width: auto; }
+
 /*
  * стилове за fileman
  */
