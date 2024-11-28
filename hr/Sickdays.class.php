@@ -58,7 +58,13 @@ class hr_Sickdays extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     //public $searchFields = 'description';
-    
+	
+	
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'startDate,toDate,fitNoteFile,fitNoteNum,fitNoteDate,paidByEmployer,paidByHI,note';
+
     
     /**
      * За плъгина acc_plg_DocumentSummary
@@ -122,7 +128,7 @@ class hr_Sickdays extends core_Master
     
     
     /**
-     * Кой има право да прави начисления
+     * Кой има право да променя активиран болничен
      */
     public $canChangerec = 'ceo, hrMaster, hrSickdays';
     
@@ -186,8 +192,8 @@ class hr_Sickdays extends core_Master
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,mandatory');
         $this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
         $this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
-        $this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година, input=none, changable');
-        $this->FLD('fitNoteDate', 'date', 'caption=Болничен лист->Издаден на, input=none, changable');
+        $this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година, changable');
+        $this->FLD('fitNoteDate', 'date', 'caption=Болничен лист->Издаден на, changable');
         $this->FLD('fitNoteFile', 'fileman_FileType(bucket=humanResources)', 'caption=Болничен лист->Файл');
         $this->FLD('reason', 'enum(1=Майчинство до 15 дни,
 				   2=Майчинство до 410 дни,
@@ -286,11 +292,11 @@ class hr_Sickdays extends core_Master
         
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
-            if ($form->rec->startDate > $now) {
-                
-                // Добавяме съобщение за грешка
-                $form->setError('startDate', "Началната дата трябва да е преди|* <b>{$now}</b>");
-            }
+        //  if ($form->rec->startDate > $now) {
+        //       
+                // Добавяме съобщение за грешка  (закоментирано - за да може да се въвеждат предварително планувани болнични)
+        //      $form->setError('startDate', "Началната дата трябва да е преди|* <b>{$now}</b>");
+        //  }
             
             if ($form->rec->toDate < $form->rec->startDate) {
                 $form->setError('toDate', "Крайната дата трябва да е след|*  <b>{$form->rec->startDate}</b>");
