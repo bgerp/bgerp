@@ -43,12 +43,13 @@ class sens2_script_ActionAssign
         $form->FLD('cond', 'text(rows=2,maxOptionsShowCount=20)', 'caption=Условие за да се присвои->Израз,width=100%');
         
         $vars = sens2_script_DefinedVars::getContex($form->rec->scriptId);
+        $opt = array();
         foreach ($vars as $i => $v) {
             $opt[$i] = $i;
         }
         
         if (!countR($opt)) {
-            redirect(array('sens2_Scripts', 'single', $vars), false, '|Моля, дефинирайте поне една променлива');
+            redirect(array('sens2_Scripts', 'single', $form->rec->scriptId), false, '|Моля, дефинирайте поне една променлива');
         }
         $form->setOptions('varId', $opt);
         
