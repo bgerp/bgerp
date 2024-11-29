@@ -43,6 +43,7 @@ class label_plg_Print extends core_Plugin
             
             // Ако има бутон за печат на бърз етикет, показва се
             if($mvc->haveRightFor('printperipherallabel', $rec)){
+
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $lUrl = toUrl(array($mvc, 'printperipherallabel', $rec->id), 'local');
                 $lUrl = urlencode($lUrl);
@@ -103,7 +104,7 @@ class label_plg_Print extends core_Plugin
             // Прави се опит за печат от периферията
             $interface = core_Cls::getInterface('peripheral_BrowserPrinterIntf', $deviceRec->driverClass);
 
-            $responseUrl = array($mvc, 'printfastlabelresponse', $rec->id, 'ret_url' => getRetUrl(), 'hash' => $hash);
+            $responseUrl = array($mvc, 'printfastlabelresponse', $rec->id, 'ret_url' => getRetUrl(), 'hash' => $hash, 'deviceId' => $deviceRec->id);
             $refreshUrl = Request::get('refreshUrl');
             if ($refreshUrl) {
                 $responseUrl['refreshUrl'] = $refreshUrl;
@@ -137,6 +138,8 @@ class label_plg_Print extends core_Plugin
             expect(str::checkHash($hash, 4));
             expect($id = Request::get('id', 'int'));
             expect($rec = $mvc->fetch($id));
+            $deviceId = Request::get('deviceId', 'int');
+
             $mvc->requireRightFor('printperipherallabel', $rec);
             expect($res = Request::get('res', 'varchar'));
             $logMvc = ($mvc instanceof core_Detail) ? $mvc->Master : $mvc;
@@ -147,7 +150,7 @@ class label_plg_Print extends core_Plugin
                 doc_ThreadRefreshPlg::checkHash($lRec->threadId, array(), true);
             }
 
-            $msg = tr("Етикетът е разпечатан успешно|*!");
+            $msg = tr("Етикетът е разпечатан успешно|*! ({$deviceId})");
             $type = Request::get('type', 'varchar');
 
             $statusData = array();
@@ -160,8 +163,8 @@ class label_plg_Print extends core_Plugin
             $cacheSuccess = true;
             if($type == 'error'){
                 $msg = $res;
-                $logMvc->logDebug($msg, $logId);
-                $msg = haveRole('debug') ? $msg : tr('Проблем при разпечатването|*!');
+                $logMvc->logWarning($msg, $logId);
+                $msg = haveRole('debug') ? $msg . " ({$deviceId})" : tr("Проблем при разпечатването|*! ({$deviceId})");
                 $statusData['type'] = 'error';
                 $statusData['isSticky'] = 1;
                 $cacheSuccess = false;
@@ -334,6 +337,7 @@ class label_plg_Print extends core_Plugin
         
         if($action == 'printperipherallabel' && isset($rec)){
             $deviceRec = peripheral_Devices::getDevice('peripheral_BrowserPrinterIntf');
+
             if(!$deviceRec){
                 $requiredRoles = 'no_one';
             } else {
