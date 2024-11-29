@@ -1144,16 +1144,33 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         if ($form->isSubmitted()) {
             $amount = $form->rec->debitPrice * $rec->quantity;
 
-            // Ъпдейъваме подадената себестойност
+            // Ъпдейъване на подадената себестойност
             $rec->debitAmount = $amount;
-            $this->save($rec, 'debitAmount');
-            $this->logWrite('Задаване на себестойност', $rec->id);
 
-            $contoUrl = $this->getContoUrl($id);
-            $contoUrl['ret_url'] = $this->getSingleUrlArray($rec->id);
+            $subtractAmount = 0;
+            $dQuery = planning_DirectProductNoteDetails::getQuery();
+            $dQuery->where("#noteId = {$rec->id} AND #type IN ('waste', 'subProduct')");
+            while($dRec = $dQuery->fetch()){
+                $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec->productId, null, $rec->valior);
+                $primeCost *= $dRec->quantity;
+                $subtractAmount += $primeCost;
+            }
 
-            // Редирект към екшъна за контиране
-            redirect($contoUrl);
+            if(round($rec->debitAmount, 2) < round($subtractAmount, 2)){
+                $subProductAmountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($subtractAmount);
+                $form->setWarning('debitAmount', "Въведената сб-ст е по-малка от сумата на сб-стите на отпадъците и субпродуктите|*: <b>{$subProductAmountVerbal}</b>");
+            }
+
+            if(!$form->gotErrors()){
+                $this->save($rec, 'debitAmount');
+                $this->logWrite('Задаване на себестойност', $rec->id);
+
+                $contoUrl = $this->getContoUrl($id);
+                $contoUrl['ret_url'] = $this->getSingleUrlArray($rec->id);
+
+                // Редирект към екшъна за контиране
+                redirect($contoUrl);
+            }
         }
 
         $form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
