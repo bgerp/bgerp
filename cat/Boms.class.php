@@ -768,6 +768,7 @@ class cat_Boms extends core_Master
                         if(isset($overheadCost) && !empty($rec->primeCost)){
                             $rec->primeCostWithOverheadCost = $rec->primeCost * (1 + $overheadCost);
                             $row->primeCostWithOverheadCost = $Double->toVerbal($rec->primeCostWithOverheadCost);
+                            $row->primeCostWithOverheadCost = ht::styleNumber($row->primeCostWithOverheadCost, $rec->primeCostWithOverheadCost);
                         }
                     }
 
@@ -914,7 +915,7 @@ class cat_Boms extends core_Master
                 expect($d->resourceId);
                 expect(cat_Products::fetch($d->resourceId));
                 $d->type = ($d->type) ? $d->type : 'input';
-                expect(in_array($d->type, array('input', 'pop')));
+                expect(in_array($d->type, array('input', 'pop', 'subProduct')));
                 
                 $d->baseQuantity = $Double->fromVerbal($d->baseQuantity);
                 $d->propQuantity = $Double->fromVerbal($d->propQuantity);
@@ -999,7 +1000,7 @@ class cat_Boms extends core_Master
                     $nRec->baseQuantity = $matRec->baseQuantity;
                     $nRec->propQuantity = $matRec->propQuantity;
                     $nRec->quantityInPack = 1;
-                    $nRec->type = ($matRec->waste) ? 'pop' : 'input';
+                    $nRec->type = ($matRec->waste) ? 'pop' : (($matRec->isSubProduct) ? 'subProduct' : 'input');
                     $nRec->packagingId = cat_Products::fetchField($prod->productId, 'measureId');
                     if (isset($prod->packagingId)) {
                         $nRec->packagingId = $prod->packagingId;
@@ -1428,9 +1429,9 @@ class cat_Boms extends core_Master
         
         // Ако реда не е етап а е материал или отпадък
         if ($rec->type != 'stage') {
-            if ($rec->type == 'pop') {
+            if (in_array($rec->type, array('pop', 'subProduct'))) {
                 
-                // Ако е отпадък търсим твърдо мениджърската себестойност
+                // Ако е отпадък или субпродукт търсим твърдо мениджърската себестойност
                 $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId, $rec->packagingId, $date);
                 if (!isset($price)) {
                     $price = false;
@@ -1545,7 +1546,7 @@ class cat_Boms extends core_Master
         }
         
         // Ако реда е отпадък то ще извадим цената му от себестойността
-        if ($rec->type == 'pop' && $price !== false) {
+        if (in_array($rec->type, array('pop', 'subProduct')) && $price !== false) {
             $price *= -1;
         }
         
