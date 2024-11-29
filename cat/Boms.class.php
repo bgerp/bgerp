@@ -1821,7 +1821,7 @@ class cat_Boms extends core_Master
 
             // Добавяме директните наследници на етапа като материали за влагане/отпадък
             $query2 = cat_BomDetails::getQuery();
-            $query2->where("#parentId = {$dRec->id}");
+            $query2->where("#parentId = {$dRec->id} AND #type != 'subProduct'");
             $query2->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
             $stageChildren = $query2->fetchAll();
 
