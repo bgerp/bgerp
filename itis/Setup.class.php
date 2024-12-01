@@ -92,6 +92,8 @@ class itis_Setup extends core_ProtoSetup
      */
     public function install()
     {
+        $html .= parent::install();
+
         $rec = new stdClass();
         $rec->systemId = 'itis_DeleteOldRecords';
         $rec->description = 'Изтрива остарелите записи за IT устройства';
