@@ -1308,6 +1308,9 @@ class core_Mvc extends core_FieldSet
                             }
                         }
                         
+                        // Ако има дефинирана константа и в нея този индекс се съдържа - скупваме го
+                        if(defined('BGERP_PREVENT_INDEXES') && isset(BGERP_PREVENT_INDEXES[$this->dbTableName][$name])) continue;
+          
                         // За да не бъде премахнат този индекс по-нататък
                         unset($indexes[$name]);
                         
