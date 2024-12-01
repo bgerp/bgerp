@@ -802,7 +802,6 @@ class price_reports_PriceList extends frame2_driver_TableData
             $tpl->append("{$cDayWithSuffix} {$cMonth}", 'currentDate');
 
             $counter = 0;
-            ksort($data->rows);
             foreach ($data->rows as $row){
                 if(!empty($row->photo) && !($row instanceof core_ET) && $counter < 16){
                     $counter++;

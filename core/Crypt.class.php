@@ -356,6 +356,11 @@ class core_Crypt extends core_BaseClass
             $idCrypt = self::base36ToBase64($idCrypt);
         }
 
+        if ($idCrypt === false) {
+
+            return null;
+        }
+
         $len = (int) ceil(strlen($idCrypt) / 4) * 4;
         $idCrypt = base64_decode(str_pad($idCrypt, $len, '=', STR_PAD_RIGHT));
         $idHash = substr($idCrypt, 0, $hashLen);
@@ -408,6 +413,11 @@ class core_Crypt extends core_BaseClass
     {
         // Step 1: Convert the decimal number to binary data
         $binary_data = '';
+
+        if (!preg_match('/^[0-9a-z]+$/i', $base36_number)) {
+
+            return false;
+        }
 
         $decimal_number = base_convert($base36_number, 36, 10);
         while ($decimal_number > 0) {

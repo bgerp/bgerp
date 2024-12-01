@@ -5535,8 +5535,17 @@ table .eshop-btn {
 	}
 }
 /*край на grid*/
+.narrow .row-holder {
+	overflow: auto;
+}
+.narrow .row-holder > div {
+	display: flex;
+	flex-wrap: nowrap;
 
-
+}
+.narrow div.tab-control.alphabet div.tab-row .tab {
+	min-width: auto;
+}
 /*стилове за fileman*/
 .webdrvTabBody {
 	min-width: 800px;
@@ -5645,12 +5654,7 @@ iframe.autoHeight {
 .filesContainer .top-table {
 	margin-bottom: 15px;
 }
-.filesContainer {
-	div.tab-control.alphabet div.tab-row .tab.selected {
-		background: #fff !important;
-		padding-bottom: 6px !important;
-	}
- }
+
 .webdrv-preview {
 	margin-top: 5px;
 	&:first-child {
@@ -7183,6 +7187,10 @@ body.narrow {
 
 .cmr-blue {
 	@include cmrColor(#0082c8);
+}
+
+.row-subProduct {
+	background-color:#ece2ff;
 }
 
 @media handheld , only screen and (min-width: 1240px) {
@@ -9083,16 +9091,21 @@ table.bomProductionStepTable td{
 }
 
 .aiPromptBlock {
-	background-color: #357ABD; /* Син фон */
-	color: white; /* Бял цвят на текста */
-	border-radius: 8px; /* Заоблени ъгли */
-	padding: 5px; /* Намален падинг */
-	margin: 5px 0; /* Намален маргин */
-	font-size: 0.9em; /* Намален размер на текста */
+	background-color: #357ABD;
+	color: white;
+	border-radius: 3px;
+	padding: 4px 7px;
+	margin:0 0 10px;
+	font-size: 0.9em;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
 }
 
-/* Стил за заглавието на блока */
 .aiLastPromptCaption {
 	font-weight: bold;
-	font-size: 1em; /* Намален размер за заглавието */
+	font-size: 1em;
+}
+
+.dialogHolder .result .dump {
+	white-space: normal;
 }

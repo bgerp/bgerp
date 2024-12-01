@@ -70,23 +70,28 @@ class thumb_FastImageSize
     public function getType()
     {
         $this->strpos = 0;
-        
+
         if (!$this->type) {
+
             switch ($this->getChars(2)) {
                 case 'BM':
-                    
+
                     return $this->type = 'bmp';
                 case 'GI':
-                    
+
                     return $this->type = 'gif';
+                case 'RI':
+//                    (substr($chars, 0, 4) !== 'RIFF' || substr($chars, 8, 4) !== 'WEBP')
+
+                    return $this->type = 'webp';
                 case chr(0xFF).chr(0xd8):
-                    
+
                     return $this->type = 'jpeg';
                 case chr(0x89).'P':
-                    
+
                     return $this->type = 'png';
                 default:
-                    
+
                     return false;
             }
         }
@@ -112,6 +117,9 @@ class thumb_FastImageSize
             case 'jpeg':
                 
                 return $this->parseSizeForJPEG();
+            case 'webp':
+
+                return $this->parseSizeForWEBP();
         }
     }
     
@@ -122,7 +130,42 @@ class thumb_FastImageSize
         
         return unpack('N*', substr($chars, 16, 8));
     }
-    
+
+
+    private function parseSizeForWEBP()
+    {
+        // Прочитаме първите 30 байта от файла
+        $chars = $this->getChars(30);
+
+        // Проверяваме дали файлът е валиден WebP файл с "RIFF" и "WEBP" идентификатори
+        if (substr($chars, 0, 4) !== 'RIFF' || substr($chars, 8, 4) !== 'WEBP') {
+
+            return false;
+        }
+
+        // Идентифицираме типа на WebP файла
+        $type = substr($chars, 12, 4);
+        if ($type === 'VP8 ') {
+            // VP8 формат
+            // Размерите се намират на позиции 26-27 (ширина) и 28-29 (височина)
+
+            return array( unpack('v', substr($chars, 26, 2))[1], unpack('v', substr($chars, 28, 2))[1] ); }
+        elseif ($type === 'VP8L') {
+            // VP8L формат
+            // Размерите са част от 14-ия байт
+            $b = unpack('C', substr($chars, 21, 1))[1]; $width = 1 + (($b & 0x3F) | ((unpack('C', substr($chars, 22, 1))[1] & 0xFF) << 6) | ((unpack('C', substr($chars, 23, 1))[1] & 0xFF) << 14)); $height = 1 + (((unpack('C', substr($chars, 23, 1))[1] & 0xF0) >> 4) | ((unpack('C', substr($chars, 24, 1))[1] & 0xFF) << 4) | ((unpack('C', substr($chars, 25, 1))[1] & 0xFF) << 12));
+
+            return array($width, $height);
+        } elseif ($type === 'VP8X') {
+            // VP8X формат
+            // Размерите се намират на позиции 24-25 (ширина) и 26-27 (височина)
+
+            return array( unpack('V', substr($chars, 24, 3) . "\0")[1] + 1, unpack('V', substr($chars, 27, 3) . "\0")[1] + 1 );
+        }
+
+        return false;
+    }
+
     
     private function parseSizeForGIF()
     {

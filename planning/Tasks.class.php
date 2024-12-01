@@ -2203,6 +2203,14 @@ class planning_Tasks extends core_Master
             }
 
             $row->title = ht::createElement("span", array('id' => planning_Tasks::getHandle($rec->id)), $row->title);
+
+            // Показване и колонка с % отпадък
+            $taskWastePercent = null;
+            planning_ProductionTaskProducts::getTotalWasteArr($rec->threadId, $taskWastePercent);
+            if(isset($taskWastePercent)){
+                $row->taskWastePercent = core_Type::getByName('percent(smartRound)')->toVerbal($taskWastePercent);
+            }
+
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
@@ -2291,14 +2299,16 @@ class planning_Tasks extends core_Master
         $listTableMvc = clone $this;
         $listTableMvc->FNC('costsCount', 'int');
         $listTableMvc->FNC('notConvertedQuantity', 'int');
+        $listTableMvc->FNC('taskWastePercent', 'int', 'tdClass=small quiet');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи, assetId=Оборудв.,info=@info');
+        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи,taskWastePercent=Отп., assetId=Оборудв.,info=@info');
+        $fields['taskWastePercent'] = "|*<small class='quiet'>|Отп.|*</small>";
         if ($data->masterMvc instanceof planning_AssetResources) {
             unset($fields['assetId']);
         }
 
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount,notConvertedQuantity');
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount,taskWastePercent,notConvertedQuantity');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $contentTpl = $table->get($data->rows, $data->listFields);
         if (isset($data->pager)) {
@@ -2328,7 +2338,7 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
+        $data->listFilter->setFieldTypeParams('folder', array('coverClasses' => 'planning_Centers'));
         $data->listFilter->setField('folder', 'silent');
         $orderByField = 'orderByDate';
 
@@ -3675,8 +3685,8 @@ class planning_Tasks extends core_Master
                 if ($mvc->haveRightFor('savereordertasks', (object)array('assetId' => $assetId))) {
                     $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
                 }
-                $headerTpl->append(ht::createFnBtn('Запази промените', '', false, $saveBtnAttr), 'saveBtn');
-                $headerTpl->append(ht::createFnBtn('Отмени', '', false, array('id' => 'backBtn', 'data-url' => $backUrl)), 'assetId');
+                $headerTpl->append(ht::createFnBtn('Запис', '', false, $saveBtnAttr), 'saveBtn');
+                $headerTpl->append(ht::createFnBtn('Отказ', '', false, array('id' => 'backBtn', 'data-url' => $backUrl)), 'assetId');
                 $tpl->prepend($headerTpl);
 
                 core_Ajax::subscribe($tpl, array($mvc, 'reorderTaskWatch', 'assetId' => $assetId, 'isReorder' => true), 'editWatchTasks', 5000);
@@ -4521,7 +4531,7 @@ class planning_Tasks extends core_Master
         $data->listFields = array('dependantProgress' => 'Пред.',
                                   'prevExpectedTimeEnd' => 'Пред. край',
                                   'expectedTimeStart' => 'Тек. начало',
-                                  'title' => 'Тек. №', 'expectedTimeEnd' => 'Тек. край', 'nextExpectedTimeStart' => 'След. начало', 'nextId' => 'Следв', 'dueDate' => 'Падеж', 'originId' => 'Задание')
+                                  'title' => 'Текуща', 'expectedTimeEnd' => 'Тек. край', 'nextExpectedTimeStart' => 'След. начало', 'nextId' => 'Следв.', 'dueDate' => 'Падеж', 'originId' => 'Задание')
          + $data->listFields;
     }
 

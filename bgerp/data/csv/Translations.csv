@@ -3091,3 +3091,142 @@ en,ВОД,ICD
 en,Данъчни параметри,Tax parameters
 en,Складова разписка,Stock receipt
 en,складова разписка,stock receipt
+en,Броил,Counted
+en,От сметка,From account
+en,Ваучери,Vouchers
+en,Вальорът ще бъде записан при контиране,The value date will be recorded upon posting
+en,Пояснение,Comment
+en,Центрове на дейност,Activity centers
+en,Центрове,Centers
+en,Етапи,Steps
+en,етап,step
+en,Производствени операции,Manufacturing Operations
+en,падеж,due date
+en,к-во,q-ty
+en,Производствен етап,Production step
+en,задание за производство,production job
+en,Толеранс,Tolerance
+en,Технолог.брак,Technological scrap
+en,Ц-р дейност,Act. center
+en,Ц-р на дейност,Act. center
+en,Произвеждане в,Manufacturing in
+en,Влагане от,Materials from
+en,От папката,From the folder
+en,Задание за производство,Production job
+en,Втора мярка,Second measure
+en,Ед. тегло,Unit weight
+en,Очаквано още,Expected remaining
+en,Размери,Size
+en,Подробно,Detailed
+en,Интелигентен асистент,Intelligent Assistant
+en,Инструкция,Instruction
+en,Изписване от,Issuance from
+en,заприходено,recorded
+en,Отпадъци,Wastes
+en,Отпадък,waste
+en,Реж. разходи,Overhead costs
+en,Производство на услуга,Service production
+en,Вложени артикули,Input items
+en,Данни от,Data from
+en,Разход,Expense
+en,Разходни обекти,Cost objects
+en,Видове ресурси в папката,Type of resources in folders
+en,Етап,Step
+en,Листване на артикули,Item listings
+en,Листвания на артикули,Item listings
+en,Листвания,Listings
+en,Обновяване и известяване,Update and notification
+en,Други настройки,Other settings
+en,справка,report
+en,С рецепта,With BOM
+en,Без рецепта,Without BOM
+en,Вложими услуги,Convertable services
+en,Вложими материали,Convertable materials
+en,Е-маг артикули,E-shop items
+en,Вариации,Variations
+en,Вариация,Variation
+en,Ценови политики,Price policies
+en,Клиентски политики,Client policies
+en,ценова политика,price policy
+en,Автоматични отстъпки,Automatic discounts
+en,Надценка / Отстъпка по подразбиране,Default Surcharge / Discount
+en,Десетични знаци,Decimal digits
+en,Показване на отстъпка в документите,Show discount in documents
+en,Ако е над,"If it's above"
+en,Отписване,Unsubscription
+en,Възможност за отписване,Allow to unsubscribe
+en,en,циркулярен имейл,circular email
+en,Валиден до,Valid until
+en,Собственик,Owner
+en,Употреба,Usage
+en,Къде,Where
+en,Препоръчител,Referrer
+en,Брой ваучери,Voucher counts
+en,Държави,Countries
+en,Друг контрагент,Other contragent
+en,Дата на ДС,Tax date
+en,Диапазон,Range
+en,Аванс,Advance
+en,Начисляване,Accrual
+en,Приспадане,Deduction
+en,ДДС група,VAT group
+en,Реконтиране,Reposting
+en,Транзакция,Transaction
+en,Очаквано на,Expected on
+en,В,In
+en,ДДС изключения,VAT exceptions
+en,Диапазони,Ranges
+en,Изключение,Exception
+en,Всички политики,All policies
+en,Периферия,Periphery
+en,Клиентски карти,Client cards
+en,Незавършено производство,Work in Progress
+en,Филтри,Filters
+en,Пред.,Prev.
+en,Текуща,Current
+en,След. начало,Next start
+en,Следв.,Next
+en,Пред. край,Prev. end
+en,Избор на текущ,Select current
+en,Настройка,Setting
+en,Хоризонт,Horizon
+en,Сделка,Deal
+en,финансова сделка,finance Deal
+en,Втори контрагент,Second contragent
+en,Начин на плащане,Payment type
+en,Контирана,Posted
+en,Оферти от доставчици,Supplier Quotations
+en,оферта от доставчик,supplier quotations
+en,Само,Only
+en,Налично,In stock
+en,Запаз.,Res.
+en,Очакв.,Exp.
+en,Разпол.,Avail.
+en,Минимално,Minimum
+en,Основна опаковка,Main packaging
+en,Поръч.,Ord.
+en,Дост.,Del.
+en,Плат.,Paid
+en,Факт.,Inv.
+en,Остав.,Rem.
+en,Факт.,Inv.
+en,Поръчано (без ДДС),Ordered (excl. VAT)
+en,Доставено (без ДДС),Delivered (excl. VAT)
+en,Платено (без ДДС),Paid (excl. VAT)
+en,Фактурирано (без ДДС),Invoiced (excl. VAT)
+en,Имате,You have
+en,нови известия,new notifications
+en,Най-новото,Newest
+en,Помощ,help
+en,Баркод,Barcode
+en,Тагнати от мен,Tagged by me
+en,Споделени с мен,Shared with me
+en,Liked by me,Харесани от мен
+en,Затворени,Closed
+en,Избор на текущ и използване в документи,Select for use in documents
+en,Контиране на документи,Posting of documents
+en,Екипи,Teams
+en,Operation,
+en,Тагове,Tags
+en,Данъци и такси,Taxes and fees
+en,Инвентаризация,Inventory

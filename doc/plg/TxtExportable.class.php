@@ -34,8 +34,11 @@ class doc_plg_TxtExportable extends core_Plugin
 
             // Рендиране на цялото представяне на документа в текстов вид
             $docHtml = $mvc->getInlineDocumentBody($id, 'plain');
-            $string = strip_tags($docHtml->getContent());
+            $content = $docHtml->getContent();
+            $content = str_replace(array('</td>', '</th>'), ' | ', $content);
+            $string = strip_tags($content);
             $string = preg_replace("/\s*[\r\n]+\s*/", "\n", $string);
+
             $string = str_replace('&nbsp;', ' ', $string);
             $string = trim($string);
 
@@ -58,26 +61,7 @@ class doc_plg_TxtExportable extends core_Plugin
             if($params['addAttachedTextFiles']){
                 Mode::push('text', 'plain');
                 $linkedFiles = $mvc->getLinkedFiles($rec);
-
-                foreach ($linkedFiles as $fileHnd => $fileName){
-                    $fileLen = fileman_Files::fetchByFh($fileHnd, 'fileLen');
-                    $fileLenVerbal = core_Type::getByName('fileman_FileSize')->toVerbal($fileLen);
-
-                    $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
-                    if(empty($fileTxtContent)) continue;
-
-                    $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
-                    $string .= "\n" . tr("|*& |Прикачен файл|*: {$fileName} ({$fileLenVerbal})") . "\n";
-                    $string .= tr("Извлечен текст|*: ");
-                    $strLen = mb_strlen($fileTxtContent);
-                    if(mb_strlen($fileTxtContent) > 10000){
-                        $rest = $strLen - 10000;
-                        $string .= substr($fileTxtContent, 0, 10000);
-                        $string .= tr("|* (+{$rest} |още символа|* )") . "\n";
-                    } else {
-                        $string .= $fileTxtContent . "\n";
-                    }
-                }
+                $string .= fileman_Indexes::getShortTextSummary($linkedFiles);
                 Mode::pop('text');
             }
 

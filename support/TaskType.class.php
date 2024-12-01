@@ -290,6 +290,20 @@ class support_TaskType extends core_Mvc
                     }
                 }
             }
+        } else {
+
+            // Ако няма източник и няма етап се взимат всички отговорници от ЦД където е избрана системата
+            $cQuery = planning_Centers::getQuery();
+            $cQuery->where("#supportSystemFolderId = {$rec->folderId}");
+            $cQuery->show('supportUsers');
+
+            $assignedUsers = '';
+            while($cRec = $cQuery->fetch()){
+                $assignedUsers = keylist::merge($assignedUsers, $cRec->supportUsers);
+            }
+            if(!empty($assignedUsers)){
+                $res = $assignedUsers;
+            }
         }
     }
 
@@ -321,9 +335,9 @@ class support_TaskType extends core_Mvc
         $form = &$data->form;
         $rec = &$form->rec;
         $form->setField('assetResourceId', 'after=typeId,removeAndRefreshForm=issueTemplateId');
-
-        $form->input(null, 'silent');
         $form->setField('title', array('mandatory' => false));
+        $form->input(null, 'silent');
+
         $form->setField('parentId', 'changable=no');
         $systemId = Request::get('systemId', 'key(mvc=support_Systems, select=name)');
         

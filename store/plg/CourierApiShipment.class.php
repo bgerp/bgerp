@@ -173,7 +173,7 @@ class store_plg_CourierApiShipment extends core_Plugin
     {
         $rec = $data->rec;
         if($mvc->lineFieldName){
-            if(!empty($rec->courierApiPrice)){
+            if(!empty($rec->courierApiPrice) && !Mode::isReadOnly()){
                 $courierApiPrice = currency_Currencies::decorate($rec->courierApiPrice);
                 $data->row->{$mvc->lineFieldName} .= " {$courierApiPrice}";
             }

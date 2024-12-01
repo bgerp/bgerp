@@ -50,7 +50,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             
             return;
         }
-        
+
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
             
             return;
