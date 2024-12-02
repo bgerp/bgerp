@@ -159,8 +159,14 @@ class cms_Domains extends core_Embedder
      * Възможна ли е смяната на вече избран драйвер?
      */
     public $allowDriverChange = true;
-    
-    
+
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    public $singleLayoutFile = 'cms/tpl/SingleLayoutDomain.shtml';
+
+
     /**
      * Описание на модела
      */
@@ -495,14 +501,6 @@ class cms_Domains extends core_Embedder
                 $form->setError('domain', 'Невалидно име на домейн');
             }
         }
-    }
-    
-    
-    /**
-     *  Обработки по вербалното представяне на данните
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
     }
     
     
