@@ -258,8 +258,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 
                 // Ако добавяме отпадък, искаме да има себестойност
                 if (in_array($rec->type, array('pop', 'subProduct'))) {
+                    if($noteRec->productId == $rec->productId){
+                        $form->setError('productId', "Избраният артикул не може да е същия, като този който се произвежда с протокола");
+                    }
+
                     $selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
-                    
                     if (!isset($selfValue)) {
                         $error = $rec->type == 'pop' ? 'Отпадъкът няма себестойност' : 'Субпродуктът няма себестойност';
                         $form->setError('productId', $error);
