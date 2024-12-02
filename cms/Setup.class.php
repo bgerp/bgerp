@@ -121,6 +121,7 @@ class cms_Setup extends core_ProtoSetup
         'cms_GalleryImages',
         'cms_Library',
         'migrate::domainFiles',
+        'migrate::updateDomainState2449'
     );
     
     
@@ -247,5 +248,17 @@ class cms_Setup extends core_ProtoSetup
         while ($dRec = $dQuery->fetch()) {
             cms_Domains::save($dRec);
         }
+    }
+
+
+    /**
+     * Миграция на състоянието
+     */
+    function updateDomainState2449()
+    {
+        $Domain = cls::get('cms_Domains');
+        $stateColName = str::phpToMysqlName('state');
+        $query = "UPDATE {$Domain->dbTableName} SET {$stateColName} = 'active' WHERE {$stateColName} IS NULL OR {$stateColName} = ''";
+        $Domain->db->query($query);
     }
 }
