@@ -13,7 +13,7 @@ defIfNot('RESTORE_MAX_THREAD', 10);
 /**
  * Максимална дължина на експортираните данни (ориентировъчно)
  */
-defIfNot('BACKUP_MAX_CHUNK_SIZE', 30_000_000);
+defIfNot('BACKUP_MAX_CHUNK_SIZE', 30000000);
 
 /**
  * Клас 'core_Backup' - добавя бекъп възможности към ядрото
