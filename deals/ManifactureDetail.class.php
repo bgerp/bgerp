@@ -21,8 +21,16 @@ abstract class deals_ManifactureDetail extends doc_Detail
      * @var enum(canManifacture=Производими,canConvert=Вложими)
      */
     protected $defaultMeta;
-    
-    
+
+
+    /**
+     * Какви продукти не могат да се избират в детайла
+     *
+     * @var enum(canManifacture=Производими,canConvert=Вложими)
+     */
+    protected $defaultNotHaveMeta;
+
+
     /**
      * Полета, които при клониране да не са попълнени
      *
@@ -105,13 +113,18 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         $form = &$data->form;
         setIfNot($data->defaultMeta, $mvc->defaultMeta);
-        
-        if (!$data->defaultMeta) {
-            
-            return;
+        setIfNot($data->defaultNotHaveMeta, $mvc->defaultNotHaveMeta);
+
+        if (!$data->defaultMeta && !$data->defaultNotHaveMeta) return;
+
+        $params = array();
+        if(isset($data->defaultMeta)){
+            $params['hasProperties'] = $data->defaultMeta;
         }
-        
-        $form->setFieldTypeParams('productId', array('hasProperties' => $data->defaultMeta));
+        if(isset($data->defaultNotHaveMeta)){
+            $params['hasnotProperties'] = $data->defaultNotHaveMeta;
+        }
+        $form->setFieldTypeParams('productId', $params);
         
         if (isset($form->rec->id) && $data->action != 'replaceproduct') {
             $data->form->setReadOnly('productId');

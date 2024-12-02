@@ -48,7 +48,7 @@ class sens2_script_ActionAssign
         }
         
         if (!countR($opt)) {
-            redirect(array('sens2_Scripts', 'single', $vars), false, '|Моля, дефинирайте поне една променлива');
+            redirect(array('sens2_Scripts', 'single', $form->rec->scriptId), false, '|Моля, дефинирайте поне една променлива');
         }
         $form->setOptions('varId', $opt);
         
@@ -116,7 +116,12 @@ class sens2_script_ActionAssign
         
         // Задаваме го на изхода
         $res = sens2_script_DefinedVars::setValue($rec->scriptId, $rec->varId, $value);
-        
+
+        // Ако има един акектиран запис, то логваме промяната
+        if($res > 0) {
+            sens2_script_Logs::add('setVar', $rec->scriptId, $rec->id, $rec->varId, $value);
+        }
+
         if ($res !== false) {
             
             return 'active';

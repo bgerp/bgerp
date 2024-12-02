@@ -225,6 +225,7 @@ class sens2_script_Actions extends core_Detail
             if(isset($rec->data->cond) && self::extractButton($rec->data->cond) !== null) {
                 $rec->data->cond = '1 != 1';
             }
+            $rec->data->id = $rec->id;
             $rec->state = $action->run($rec->data);
             if ($rec->state != $exState) {
                 self::save($rec, 'state');

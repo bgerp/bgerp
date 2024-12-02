@@ -712,4 +712,26 @@ class sens2_Controllers extends core_Master
         
         core_App::shutdown();
     }
+
+
+    /**
+     * Извиква се от крона. Премахва изтеклите връзки
+     */
+    public function cron_RemoveExpiredRecords()
+    {
+        // Датата към момента от когато на сетне пазим индикаторите
+        $dateToKeepIndicators = dt::addSecs(-sens2_Setup::get('TIME_TO_KEEP_INDICATORS'));
+        
+        // Изтриваме всички изтекли записи на индикаторите
+        $delInd = sens2_DataLogs::delete("#time < '{$dateToKeepIndicators}'");
+
+        // Датата към момента от която пазим логовете
+        $dateToKeepLogs = dt::addSecs(-sens2_Setup::get('TIME_TO_KEEP_LOGS'));
+
+        // Изтриваме всички изтекли записи на индикаторите
+        $delLog = sens2_script_Logs::delete("#createdOn < '{$dateToKeepLogs}'");
+
+        
+        return "Бяха изтрити {$delInd} записа на индикатори и {$delLog} записа в логовете на sens2";
+    }
 }

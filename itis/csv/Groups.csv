@@ -1,0 +1,12 @@
+lindesk,Desktop/Linux,itis/img/LinuxDesktop.jpg
+windesk,Desktop/Windows,itis/img/WindowsDesktop.jpg
+appdesk,Desktop/Apple,itis/img/AppleDesktop.jpg
+winlap,Laptop/Windows,itis/img/WindowsLaptop.jpg
+linlap,Laptop/Linux,itis/img/LinuxLaptop.jpg
+macbook,MacBook,itis/img/MacBook.jpg
+linserv,Server/Linux,itis/img/LinuxServer.jpg
+winserv,Server/Windows,itis/img/WindowsServer.jpg
+modbus,Modbus Gateway,itis/img/ModbusGateway.jpg
+rout,Router,itis/img/Router.jpg
+wrout,WiFi Router,itis/img/RouterWifi.jpg
+switch,Switch,itis/img/Switch.jpg
