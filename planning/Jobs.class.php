@@ -727,8 +727,7 @@ class planning_Jobs extends core_Master
                 $clone->append2master();
             }
         }
-        
-        $data->packagingData->listFields['packagingId'] = 'Опаковка';
+
         $packagingTpl = cls::get('cat_products_Packagings')->renderPackagings($data->packagingData);
         $tpl->replace($packagingTpl, 'PACKAGINGS');
         
@@ -1292,16 +1291,7 @@ class planning_Jobs extends core_Master
         }
 
         $row->history = array_reverse($row->history, true);
-        $data->packagingData = new stdClass();
-        $data->packagingData->masterMvc = cls::get('cat_Products');
-        $data->packagingData->masterId = $rec->productId;
-        $data->packagingData->tpl = new core_ET('[#CONTENT#]');
-        $data->packagingData->retUrl = planning_Jobs::getSingleUrlArray($rec->id);
-        if ($rec->state == 'rejected') {
-            $data->packagingData->rejected = true;
-        }
-        cls::get('cat_products_Packagings')->preparePackagings($data->packagingData);
-        
+        $data->packagingData = static::getJobProductPackagingData($rec);
         $data->components = array();
         cat_Products::prepareComponents($rec->productId, $data->components, 'job', $rec->quantity);
 
@@ -1310,11 +1300,15 @@ class planning_Jobs extends core_Master
             $oldJobCacheDate = !empty($oldJobRec->productViewCacheDate) ? $oldJobRec->productViewCacheDate : $oldJobRec->modifiedOn;
             $oldJobOrigin = cat_Products::getAutoProductDesc($oldJobRec->productId, $oldJobCacheDate, 'detailed', 'job', core_Lg::getCurrent());
 
-            if(md5(strip_tags(str::removeWhiteSpace($oldJobOrigin->getContent()))) != md5(strip_tags(str::removeWhiteSpace($row->origin)))){
+            $newOriginHtml = str_replace('&nbsp;', '', strip_tags(str::removeWhiteSpace($oldJobOrigin->getContent())));
+            $oldOriginHtml = str_replace('&nbsp;', '', strip_tags(str::removeWhiteSpace($row->origin)));
+
+
+            if(md5($newOriginHtml) != md5($oldOriginHtml)){
                 $cUrl = getCurrentUrl();
                 if(Request::get('showDiff')){
                     unset($cUrl['showDiff']);
-                    $changeIcon = "img/16/checked-green.png";
+                    $changeIcon = "img/16/checked-red.png";
                     $changeTitle = 'Скриване на разликите';
                 } else {
                     $cUrl['showDiff'] = true;
@@ -1325,12 +1319,35 @@ class planning_Jobs extends core_Master
             }
 
             if(Request::get('showDiff')){
-                $row->origin = lib_Diff::getDiff($oldJobOrigin, $row->origin);
+                $row->origin = lib_Diff::getDiff(str_replace('&nbsp;', ' ', $oldJobOrigin->getContent()), str_replace('&nbsp;', ' ', $row->origin));
             }
         }
     }
-    
-    
+
+
+    /**
+     * Подготвя информацията за опаковките на заданието
+     *
+     * @param stdClass $rec
+     * @return stdClass $packagingData
+     */
+    public static function getJobProductPackagingData($rec)
+    {
+        $packagingData = new stdClass();
+        $packagingData->masterMvc = cls::get('cat_Products');
+        $packagingData->masterId = $rec->productId;
+        $packagingData->tpl = new core_ET('[#CONTENT#]');
+        $packagingData->retUrl = planning_Jobs::getSingleUrlArray($rec->id);
+        if ($rec->state == 'rejected') {
+            $packagingData->rejected = true;
+        }
+        cls::get('cat_products_Packagings')->preparePackagings($packagingData);
+        $packagingData->listFields['packagingId'] = 'Опаковка';
+
+        return $packagingData;
+    }
+
+
     /**
      * След промяна на състоянието
      */
@@ -1514,7 +1531,7 @@ class planning_Jobs extends core_Master
 
         // Показване на наличните опции за клониране на операция от предходно задание
         if (isset($jobRec->oldJobId)) {
-            $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), true, true);
+            $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed', 'pending'), true, true, null, true);
             $urlCloneAll = null;
 
             if (countR($oldTasks)) {
@@ -2417,6 +2434,8 @@ class planning_Jobs extends core_Master
         $Tasks = cls::get('planning_Tasks');
 
         $res = $Tasks->reorderTasksInJob($rec->containerId);
+        $this->logWrite('Ръчно преподреждане на ПО', $rec->id);
+
         bp($res['debug'], $res['updated']);
     }
 

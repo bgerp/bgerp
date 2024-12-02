@@ -79,19 +79,19 @@ class eshop_Settings extends core_Master
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_INTRODUCTION_BG = 'Здравейте [#NAME#],';
+    const DEFAULT_EMAIL_INTRODUCTION_BG = 'Здравейте, [b][#NAME#][/b],';
     
     
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_INTRODUCTION_EN = 'Hello [#NAME#],';
+    const DEFAULT_EMAIL_INTRODUCTION_EN = 'Hello [b][#NAME#][/b],';
     
     
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_FOOTER_BG = "Сърдечни поздрави,\nЕкипът на [#COMPANY_NAME#]";
+    const DEFAULT_EMAIL_FOOTER_BG = "С уважение,\nЕкипът на [#COMPANY_NAME#]";
     
     
     /**
@@ -272,8 +272,10 @@ class eshop_Settings extends core_Master
         $this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
         $this->FLD('inboxId', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Кутия от която да се изпраща имейл->Кутия');
         $this->FLD('state', 'enum(active=Активно,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
-        $this->FLD('emailBodyIntroduction', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Увод,oldFieldName=emailBody');
-        $this->FLD('emailBodyFooter', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Футър,oldFieldName=emailRegistrationText');
+        $this->FLD('emailBodyIntroduction', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Увод');
+        $this->FLD('emailBodyFooter', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Футър');
+        $this->FLD('emailBodyContactTel', 'drdata_PhoneType', 'caption=Текст на имейл за направена поръчка->Телефон за контакт');
+        $this->FLD('emailBodyContactEmail', 'email', 'caption=Текст на имейл за направена поръчка->Имейл за контакт');
         $this->FLD('lifetimeForEmptyDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->Празни');
         $this->FLD('lifetimeForNoUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На анонимни');
         $this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');

@@ -304,7 +304,7 @@ class doc_SharablePlg extends core_Plugin
         $form->fields['sharedUsers']->type->userOtherGroup = array();
 
         if (!empty($shareUsersArr)) {
-            $title = "От папката";
+            $title = tr("От папката");
             $form->fields['sharedUsers']->type->userOtherGroup[-1] = (object) array('suggName' => 'doc', 'title' => $title, 'attr' => array('class' => 'team'), 'group' => true, 'autoOpen' => true, 'suggArr' => $shareUsersArr);
         }
 

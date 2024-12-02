@@ -312,6 +312,12 @@ class cal_Tasks extends embed_Manager
 
 
     /**
+     * Позволява ли се да се създава документа с ориджин от различна от подадената папка
+     */
+    public $allowOriginFromDifferentFolder = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -319,7 +325,7 @@ class cal_Tasks extends embed_Manager
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
         $this->FLD('parentId', 'key2(mvc=cal_Tasks,select=title,allowEmpty)', 'caption=Подзадача на,width=100%,changable,silent,remember');
         $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=shortName,allowEmpty, minimumResultsForSearch=5)', 'caption=Ресурс, removeAndRefreshForm=assign, silent, after=typeId, changable');
-        $this->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,input=none,allowEmpty)', 'caption=Етап,input=none');
+        $this->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,input=none,allowEmpty)', 'caption=Относно, removeAndRefreshForm=assign, silent,input=none');
         $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
 
         // Споделяне
@@ -379,12 +385,15 @@ class cal_Tasks extends embed_Manager
         
         // Точното време на затваряне
         $this->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворена на,input=none');
-        
+        $this->FLD('srcId', 'int', 'input=hidden, silent');
+        $this->FLD('srcClass', 'varchar', 'input=hidden, silent');
+
         $this->setDbIndex('state');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('createdOn');
         $this->setDbIndex('createdBy');
         $this->setDbIndex('parentId');
+        $this->setDbIndex('expectationTimeStart');
     }
     
     
@@ -430,15 +439,6 @@ class cal_Tasks extends embed_Manager
         }
 
         Request::setProtected(array('srcId', 'srcClass'));
-        $form->FNC('SrcId', 'int', 'input=hidden, silent');
-        $form->FNC('SrcClass', 'varchar', 'input=hidden, silent');
-        
-        if ($srcId = Request::get('srcId', 'int')) {
-            if ($srcClass = Request::get('srcClass')) {
-                $form->setDefault('SrcId', $srcId);
-                $form->setDefault('SrcClass', $srcClass);
-            }
-        }
 
         $form->setDefault('priority', 'normal');
         
@@ -494,6 +494,9 @@ class cal_Tasks extends embed_Manager
             if(!empty($unsortedFolderSteps) || isset($rec->stepId)) {
                 $unsortedFolderSteps = empty($unsortedFolderSteps) ? array() : $unsortedFolderSteps;
                 $availableStepOptions = doc_UnsortedFolderSteps::getOptionArr($unsortedFolderSteps, $rec->stepId);
+                if($Driver = $mvc->getDriver($rec)) {
+                    $Driver->invoke('AfterGetEditFormStepOptions', array($mvc, &$availableStepOptions, &$data));
+                }
                 $form->setOptions('stepId', array() + $availableStepOptions);
                 $form->setField('stepId', 'input');
             }
@@ -677,6 +680,17 @@ class cal_Tasks extends embed_Manager
         if(isset($rec->stepId)){
             $row->stepId = doc_UnsortedFolderSteps::getSaoFullName($rec->stepId);
             $row->stepId = ht::createLink($row->stepId, doc_UnsortedFolderSteps::getSingleUrlArray($rec->stepId));
+        }
+
+        if(isset($rec->srcId) && isset($rec->srcClass)) {
+            $Source = cls::get($rec->srcClass);
+            if(cls::haveInterface('doc_DocumentIntf', $Source)) {
+                $row->srcId = $Source->getLink($rec->srcId, 0);
+            } elseif($Source instanceof core_Master) {
+                $row->srcId = $Source->getHyperlink($rec->srcId, 0);
+            } else {
+                $row->srcId = $Source->getTitleById($rec->srcId);
+            }
         }
     }
     
@@ -945,11 +959,18 @@ class cal_Tasks extends embed_Manager
      */
     public static function on_AfterGetDefaultAssignUsers($mvc, &$res, $rec)
     {
-        if ($rec->assetResourceId) {
-            $systemUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
-            if ($systemUsers) {
-                $assign = keylist::merge($systemUsers, $rec->assing);
-                $res = keylist::merge($res, $assign);
+        $res = keylist::merge('', $rec->assing);
+        if (isset($rec->assetResourceId)) {
+            $assetUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
+            if ($assetUsers) {
+                $res = keylist::merge($res, $assetUsers);
+            }
+        }
+
+        if ($rec->stepId) {
+            $stepUsers = doc_UnsortedFolderSteps::fetchField($rec->stepId, 'supportUsers');
+            if ($stepUsers) {
+                $res = keylist::merge($res, $stepUsers);
             }
         }
     }
@@ -1311,10 +1332,12 @@ class cal_Tasks extends embed_Manager
             }
         }
 
-        if ($action == 'add' && isset($rec->parentId)) {
-            $parentState = $mvc->fetchField($rec->parentId, 'state');
-            if(in_array($parentState, array('draft', 'rejected', 'closed'))){
-                $requiredRoles = 'no_one';
+        if ($action == 'add' && isset($rec)) {
+            if(isset($rec->parentId)) {
+                $parentState = $mvc->fetchField($rec->parentId, 'state');
+                if(in_array($parentState, array('draft', 'rejected', 'closed'))){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -3510,6 +3533,10 @@ class cal_Tasks extends embed_Manager
         if (isset($rec->parentId)) {
             $resArr['parentId'] = array('name' => tr('Подзадача на'), 'val' => '[#parentId#]');
         }
+
+        if ($rec->srcId || $rec->srcCllass) {
+            $resArr['srcId'] = array('name' => tr('Източник'), 'val' => '[#srcId#]');
+        }
     }
     
     
@@ -3970,17 +3997,6 @@ class cal_Tasks extends embed_Manager
         }
 
         return $res;
-    }
-
-
-    /**
-     * Подготовка на бутоните на формата за добавяне/редактиране
-     */
-    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
-    {
-        if ($data->form->toolbar->buttons['save']) {
-            $data->form->toolbar->buttons['save']->order = min($data->form->toolbar->buttons['save']->order, 9);
-        }
     }
 
 

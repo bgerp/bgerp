@@ -146,10 +146,13 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $salesThreadsIdArr = array();
         $recs = array();
 
-        //Продажби
+        // Записи на детайли на продажби затворени през този период,
+        // които не са бързи продажби и не са затворени чрез обединяване
         $querySaleDetails = sales_SalesDetails::getQuery();
 
         $querySaleDetails->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+
+        $querySaleDetails->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
 
         $querySaleDetails->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
 
@@ -173,17 +176,29 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $querySaleDetails->where("#closeWith IS NULL");
 
-        $querySaleDetails->like('contoActions', 'ship', false);
+        //Филтър по групи артикули
+        if (isset($rec->group)) {
+            $querySaleDetails->where('#groups IS NOT NULL');
 
+            $querySaleDetails->likeKeylist('groups', $rec->group);
+            // plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryShipmentOrderDetails, $rec->group, 'productId');
+
+        }
+
+          //$querySaleDetails->like('contoActions', 'ship', false);
+        $querySaleDetails->where("FIND_IN_SET('ship', REPLACE(#contoActions, ' ', '')) = 0");
+
+        //Филтър по контрагент на масива на продажбите
         if (!is_null($rec->contragent)) {
             $checkedContragents = keylist::toArray($rec->contragent);
 
             $querySaleDetails->in('folderId', $checkedContragents);
         }
 
+        //Филтър за нестандартни артикули. В справката влизат САМО СТАНДАРТНИ
         $querySaleDetails->where("#isPublic = 'yes'");
 
-        $querySaleDetails->show('id,saleId,contragentClassId,contragentId,productId,threadId,folderId,quantity,createdOn');
+        $querySaleDetails->show('id,saleId,contragentClassId,contragentId,productId,threadId,folderId,quantity,createdOn,groups');
 
         // Синхронизира таймлимита с броя записи
         $timeLimit = $querySaleDetails->count() * 0.2;
@@ -193,10 +208,10 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         }
 
         while ($saleArt = $querySaleDetails->fetch()) {
-            $saleThreadsIds[] = $saleArt->threadId;
+           // bp($saleArt);
             $saleKey = $saleArt->threadId . '|' . $saleArt->productId;
 
-            // добавяме в масива
+            // добавяме в масива на артикулите от договорите през избрания период(филтрирани)
             if (!array_key_exists($saleKey, $saleDetRecs)) {
                 $saleDetRecs[$saleKey] = (object)array(
 
@@ -215,9 +230,10 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             }
         }
 
+        //Масив с нишките в които се намират продажбите за проследяване: затворени през този период, не бързи, за стандартни артикули
         $salesThreadsIdArr = (arr::extractValuesFromArray($saleDetRecs, 'threadId'));
 
-        //Експедиционни нареждания
+        //Детайли от Експедиционни нареждания , които са в нишките на избраните продажби
         $queryShipmentOrderDetails = store_ShipmentOrderDetails::getQuery();
 
         $queryShipmentOrderDetails->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
@@ -232,6 +248,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $queryShipmentOrderDetails->where("#state = 'active'");
 
+        //Филтрираме само тези, които са от нишките на избраните артикули
         $queryShipmentOrderDetails->in('threadId', $salesThreadsIdArr);
 
         //филтър по склад
@@ -242,17 +259,19 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         //Филтър по групи артикули
         if (isset($rec->group)) {
             $queryShipmentOrderDetails->where('#groups IS NOT NULL');
-            $queryShipmentOrderDetails->likeKeylist('groups', $rec->group);
+
+            //$queryShipmentOrderDetails->likeKeylist('groups', $rec->group);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryShipmentOrderDetails, $rec->group, 'productId');
+
         }
 
-        $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn,shipmentOrderActivatedOn');
+        $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn,shipmentOrderActivatedOn,groups');
 
         while ($shipmentDet = $queryShipmentOrderDetails->fetch()) {
-            $threadId = $shipmentDet->threadId;
 
-            $saleIdShip = doc_Threads::getFirstDocument($threadId)->that;
+            $saleIdShip = doc_Threads::getFirstDocument($shipmentDet->threadId)->that;
 
-            $firstDocumentName = doc_Threads::getFirstDocument($threadId)->className;
+            $firstDocumentName = doc_Threads::getFirstDocument($shipmentDet->threadId)->className;
 
             if ($firstDocumentName != 'sales_Sales') {
                 continue;
@@ -260,7 +279,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
             $shipKey = $shipmentDet->threadId . '|' . $shipmentDet->productId;
 
-            // добавяме в масива
+            // добавяме в масива от артикули експедирани в този период, и от нишките на избраните продажби
             if (!array_key_exists($shipKey, $shipDetRecs)) {
                 $shipDetRecs[$shipKey] = (object)array(
 
@@ -504,5 +523,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         if (isset($dRec->measure)) {
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
+
+         $res->quantity = $Double->toVerbal($dRec->requestQuantity - $dRec->shipedQuantity);
     }
 }

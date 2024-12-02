@@ -94,9 +94,8 @@ class bgerp_Recently extends core_Manager
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка, input=none');
         
-        $this->setDbUnique('type, objectId, userId');
-        $this->setDbIndex('userId');
-        $this->setDbIndex('last');
+        $this->setDbUnique('userId, objectId, type');
+        $this->setDbIndex('userId,last');
         $this->setDbIndex('threadId, userId');
     }
     
@@ -130,7 +129,7 @@ class bgerp_Recently extends core_Manager
             $rec->threadId = doc_Containers::fetchField($objectId, 'threadId');
         }
         
-        $rec->id = bgerp_Recently::fetchField("#type = '{$type}'  AND #objectId = {$objectId} AND #userId = {$rec->userId}");
+        $rec->id = bgerp_Recently::fetchField("#type = '{$type}' AND #objectId = {$objectId} AND #userId = {$rec->userId}");
         
         bgerp_Recently::save($rec);
     }

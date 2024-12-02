@@ -614,4 +614,19 @@ class speedy_Adapter extends core_BaseClass
 
         return $res;
     }
+
+
+    /**
+     * Подаване на заявка за куриер
+     *
+     * @param @param $params (@see https://api.speedy.bg/web-api.html#href-pickup-req)
+     * @return bool|mixed|string
+     * @throws core_exception_Expect
+     */
+    public static function pickUp($params)
+    {
+        $res = speedy_Adapter::call('pickup/', $params);
+
+        return $res;
+    }
 }

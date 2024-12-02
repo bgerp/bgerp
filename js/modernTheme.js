@@ -80,6 +80,13 @@ function initElements() {
 	$(window).focus(function() {
 		setCookie('menuInfo', currentMenuInfo);
 	});
+
+	if($('.narrow .alphabet .tab-row .row-holder .tab.selected').length) {
+		var scrollLeft =  parseInt($('.narrow .alphabet .tab-row .row-holder .tab.selected').offset().left) - 30;
+		if(scrollLeft) {
+			$('.narrow .alphabet .tab-row .row-holder').scrollLeft( scrollLeft);
+		}
+	}
 }
 
 
@@ -318,6 +325,7 @@ function sidebarBookmarkActions() {
  */
 function openNewCurrentTab(lastNotifyTime){
 	if(!$('body').hasClass('modern-theme') || $('body').hasClass('wide')) return;
+
 	var current;
 	// взимаме данните за портала в бисквитката
 	var portalTabs = getCookie('newPortalTabs');
@@ -337,6 +345,8 @@ function openNewCurrentTab(lastNotifyTime){
 
 	var id = $(current).attr('id');
 	setCookie('newPortalTabs', id);
+
+
 
 	prepareTabs(current, lastNotifyTime);
 }

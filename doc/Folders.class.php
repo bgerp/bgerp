@@ -152,6 +152,7 @@ class doc_Folders extends core_Master
         $this->setDbUnique('coverId,coverClass');
 
         $this->setDbIndex('last');
+        $this->setDbIndex('createdOn');
     }
     
     
@@ -947,13 +948,16 @@ class doc_Folders extends core_Master
      */
     public static function updateByCover($id)
     {
-        $rec = doc_Folders::fetch($id);
+        $q = doc_Folders::getQuery();
+        $q->show('*');
+        $q->limit(1);
+        $rec = $q->fetch($id);
         
         if (!$rec) {
             
             return;
         }
-        
+
         $coverMvc = cls::get($rec->coverClass);
         
         if (!$rec->coverId) {
@@ -965,12 +969,10 @@ class doc_Folders extends core_Master
         }
         
         $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, false);
-        
         $isRevert = ($rec->state == 'rejected' && $coverRec->state != 'rejected');
         $isReject = ($rec->state != 'rejected' && $coverRec->state == 'rejected');
         $isClosed = ($rec->state != 'closed' && $coverRec->state == 'closed');
-        $isActivated = ($rec->state == 'closed' && $coverRec->state == 'active');
-        
+        $isActivated = ($rec->state == 'closed' && in_array($coverRec->state, array('active', 'draft')));
         $fields = 'title,inCharge,access,shared';
         
         foreach (arr::make($fields) as $field) {
@@ -2214,7 +2216,7 @@ class doc_Folders extends core_Master
             $exceptCoverClasses = explode('|', $params['coverClasses']);
             if (is_array($exceptCoverClasses)) {
                 foreach ($exceptCoverClasses as $cName) {
-                    $skipCoverClasses[] = $cName::getClassId();
+                    $skipCoverClasses[] = cls::get($cName)->getClassId();
                 }
             }
             

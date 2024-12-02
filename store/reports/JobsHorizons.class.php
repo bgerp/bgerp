@@ -148,7 +148,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
 
         //Филтър по групи артикули
-        $sQuery->likeKeylist('groups', $rec->groups);
+        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $sQuery, $rec->groups, 'productId');
+
 
         if ($rec->stores) {
             $storesArr = keylist::toArray($rec->stores);

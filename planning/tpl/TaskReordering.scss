@@ -145,9 +145,6 @@ tr:hover td {
 #backBtn {
   text-shadow: 0 1px 0 #f1f1f1;
 }
-.dataTables_wrapper {
-  padding-top: 37px;
-}
 .overflow-scroll {
   overflow-x: auto;
 }
@@ -164,4 +161,15 @@ tr:hover td {
 }
 .notesCol:hover {
   cursor: text !important;
+}
+
+.dataTable {
+  margin-bottom: 0 !important;
+}
+
+.overflow-scroll {
+  overflow: auto;
+  margin-top: 38px;
+  box-sizing: border-box;
+  height:  unquote("calc(100vh - 40px)");
 }

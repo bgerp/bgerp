@@ -156,9 +156,17 @@ class email_Incomings extends core_Master
      */
     public $loadList = 'email_Wrapper, doc_DocumentPlg, 
     				plg_RowTools2, plg_Printing, email_plg_Document, 
-    				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank';
-    
-    
+    				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank, plg_HideRows';
+
+
+    /**
+     * Кои полета да се скриват
+     *
+     * @see plg_HideRows
+     */
+    public $hideRows = 'fromIp=debug';
+
+
     /**
      * Сортиране по подразбиране по низходяща дата
      */
@@ -3664,6 +3672,8 @@ class email_Incomings extends core_Master
      */
     public function getLinkedFiles($rec)
     {
+        $onlyAttached = Mode::is('ONLY_ATTACHED_FILES');
+
         // Ако не е обект
         if (!is_object($rec)) {
             
@@ -3683,11 +3693,17 @@ class email_Incomings extends core_Master
         // Ако има HTML файл, добавяме го към файловете
         if ($cRec->htmlFile) {
             $filesArr[$cRec->htmlFile] = $cRec->htmlFile;
+            if ($onlyAttached) {
+                unset($filesArr[$cRec->htmlFile]);
+            }
         }
         
         // Ако има, добавяме EML файла, към файловете
         if ($cRec->emlFile) {
             $filesArr[$cRec->emlFile] = $cRec->emlFile;
+            if ($onlyAttached) {
+                unset($filesArr[$cRec->emlFile]);
+            }
         }
         
         $fhArr = array();

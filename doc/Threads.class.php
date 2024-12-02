@@ -185,7 +185,7 @@ class doc_Threads extends core_Manager
         $this->FLD('partnerDocLast', 'datetime(format=smartTime)', 'caption=За партньори->Последен, input=none');
         
         // Индекс за по-бързо избиране по папка
-        $this->setDbIndex('folderId');
+        $this->setDbIndex('folderId,last');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('state');
         $this->setDbIndex('last, id');
@@ -3500,21 +3500,28 @@ class doc_Threads extends core_Manager
      * Връща текстотово представяне на нишката
      *
      * @param int $threadId - ид на нишка
+     * @param array $params - допълнителни параметри
      * @return string $res  - текстовото представяне
      */
-    public static function getAsText($threadId)
+    public static function getAsText($threadId, $params = array())
     {
-        $res = "";
+        $res = '======================================================' . "\n";
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
+        $cQuery->orderBy('createdOn', 'ASC');
+
         while($cRec = $cQuery->fetch()){
+
+            // Генериране на текстовото представяне
             $Document = doc_Containers::getDocument($cRec->id);
             if($Document->haveInterface('export_TxtExportIntf')){
                 $txtExportIntf = cls::getInterface('export_TxtExportIntf', $Document->getInstance());
-                $res .= !empty($res) ? ("\n" . '======================================================' . "\n") : '';
-                $res .= $txtExportIntf->getTxtContent($Document->that);
+                $res .= $txtExportIntf->getTxtContent($Document->that, $params);
+                $res .= "\n" . '======================================================' . "\n";
             }
         }
+
+        $res = rtrim($res, "\n");
 
         return $res;
     }

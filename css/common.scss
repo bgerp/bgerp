@@ -2517,14 +2517,6 @@ div.tab-control div.tab-row .tab {
 	white-space: nowrap;
 	position: relative;
 	line-height: normal;
-	@include border-radius4(5px, 5px, 0, 0);
-	border-top: 2px solid $blue;
-	&.selected {
-		z-index: 3;
-		padding: 4px 5px 6px 5px;
-		margin: 1px -16px -3px 18px;
-		top: 0;
-	}
 }
 
 .narrow div.tab-control div.tab-row .tab.selected {
@@ -2825,118 +2817,6 @@ div.alphabet.twoRows {
     }	
 }
 
-
-/*табове за поддетайли на документ*/
-div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet {
-    .tab-page {
-       border: none;
-       padding: 0;
-    }
-    .tab-row {
-        float: left;
-        margin-bottom: 10px;
-        .tab {
-            display: inline-block;
-            line-height: 1.1em;
-            padding: 4px;
-            font-size: 0.7em;
-            text-align: center;
-            margin: 0 3px 0 0;
-            @include border-radius(7px);
-            background-color: #ccc !important;
-            border: 1px solid #aaa;
-            a {
-                text-shadow: none;
-				cursor: pointer;
-            }
-            &:hover , &.selected {
-                padding: 4px;
-				top: 0 !important;
-				margin: 0 3px 0 0;
-                border: 1px solid #bbb;
-                background-color: #ffffcc !important;
-                a {
-                    color: #333;
-                }
-            }
-        }
-    }
-}
-
-
-.wide .single-thread .document .tab-top div.alphabet  .tab-row {
-    margin-bottom: 5px;
- 	.tab {
-	    font-size: 0.7em;
-	    padding: 6px 8px;
-		margin: 0 -1px 0 0;
-		cursor: pointer;
-		
-		border-top: 1px solid #bbb;
-		border-left: 1px solid #bbb;
-		border-right: 1px solid #bbb;
-		border-bottom: 1px solid #0066ff;
-		
-		font-size: 0.7em;
-		text-decoration: none;
-		white-space: nowrap;
-		color: #555 !important;
-		background-color: #ddd !important;
-		background-image: linear-gradient(top, rgba(255,255,255,1),
-						rgba(255,255,255,0)),
-		url(data:image/png;base64,iVBORw0KGg[...]QmCC) !important;
-		transition: background-color .2s ease-out !important;
-		background-clip: padding-box; /* Fix bleeding */
-		border-radius: 0px !important;
-		border-top-right-radius: 5px !important;
-		border-top-left-radius: 5px !important;
-		box-shadow: 0 0px 0 rgba(0, 0, 0, .3),
-		0 1px 0 rgba(255, 255, 255, .3) inset !important;
-		text-shadow: 0 1px 0 rgba(255,255,255, .9);
-		a {
-			color: #333 !important;
-		}
-	    &:hover {
-			background: #ffffe9 !important;
-			a {
-				color: #444 !important;
-			}
-	    }
-		&.selected {
-			box-shadow: 0 -4px 0 #0066ff !important;
-	    	border-left: 1px solid #0066ff !important;
-			border-right: 1px solid #0066ff !important;
-			border-bottom: none !important;
-			font-size: 0.8em !important;
-			
-			background: #ffffe9 !important;
-			padding: 5px 8px !important;
-			a {
-				color: #444 !important;
-			}
-		}
-	 }
-}
-
-.narrow div.tab-control.deal-history-tab, .narrow .single-thread .document .tab-top div.alphabet{
-	.tab-row {
-        float: none;
-        margin: 0px 5px;
-        clear: both;
-
-    }
-    div.tab-row {
-        .tab, .tab.selected {
-			margin: 1px 0px 1px 3px !important;
-			padding: 4px 3px 2px !important;
-			font-size: 0.65em;
-	    }
-    }
-    div.tab-page {
-        background: none;
-        padding: 5px;
-    }
-}
 
 .badge {
 	@include border-radius(9px);

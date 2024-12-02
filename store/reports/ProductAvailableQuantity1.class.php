@@ -236,7 +236,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $sQuery->in('catProdState', array('rejected', 'draft', 'closed'), true);
 
         //Филтър по групи артикули
-        $sQuery->likeKeylist('groups', $rec->groups);
+        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $sQuery, $rec->groups, 'productId');
 
         // Филтриране по склад, ако е зададено
         if (isset($rec->storeId)) {

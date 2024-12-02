@@ -93,7 +93,7 @@ class doc_LinkedTemplates extends core_Master
         $enumInst->options = $actTypeArr;
         $this->FLD('formAct', $enumInst, 'caption=Настройки на формата->Действие, class=w50, mandatory, removeAndRefreshForm=formFolder');
         $this->FLD('formDocType', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Настройки на формата->Вид документ, class=w100, removeAndRefreshForm=formFolder');
-        $this->FLD('formFolder', 'key2(forceAjax, mvc=doc_Folders, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, showWithDocs)', 'caption=Настройки на формата->Папка, class=w100');
+        $this->FLD('formFolder', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, showWithDocs)', 'caption=Настройки на формата->Папка, class=w100');
         $this->FLD('formComment', 'varchar', 'caption=Настройки на формата->Пояснения');
     }
     

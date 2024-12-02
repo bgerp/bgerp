@@ -292,34 +292,14 @@ class doc_Comments extends embed_Manager
             $res['subject'] = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
         }
     }
-    
-    
+
+
     /**
      * Подготвя иконата за единичния изглед
      */
     public static function on_AfterPrepareSingle($mvc, &$data)
     {
-        if (Mode::is('text', 'plain')) {
-            // Форматиране на данните в $data->row за показване в plain text режим
-            $width = 80;
-            $row = $data->row;
-            $row->body = type_Text::formatTextBlock($row->body, $width, 0);
-        }
-        
         $data->row->headerType = tr('Коментар');
-    }
-    
-    
-    /**
-     * След рендиране на singleLayout заместваме плейсхолдера
-     * с шаблона за тялото на съобщение в документната система
-     */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
-    {
-        if (Mode::is('text', 'plain')) {
-            //Ако сме в текстов режим, използваме txt файла
-            $tpl = new ET('|*' . getFileContent('doc/tpl/SingleLayoutComments.txt'));
-        }
     }
     
     

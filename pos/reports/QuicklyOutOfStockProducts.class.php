@@ -176,6 +176,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $recs = array();
 
         $receiptQuery = pos_ReceiptDetails::getQuery();
+        $receiptQuery ->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $receiptQuery->EXT('waitingOn', 'pos_Receipts', 'externalName=waitingOn,externalKey=receiptId');
         $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
         $receiptQuery->where("#waitingOn IS NOT NULL");
@@ -192,6 +193,11 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
         $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->from, $end));
 
+        //Филтър по група артикули
+        if (isset($rec->catGroup)) {
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $receiptQuery, $rec->catGroup, 'productId');
+        }
+
         $prodInbeginArr = $prodInEndArr = array();
 
         while ($receiptDetailRec = $receiptQuery->fetch()) {
@@ -199,11 +205,6 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
             //Филтър по POS
             if (isset($rec->pos) && (!in_array($receiptRec->pointId, keylist::toArray($rec->pos)))) continue;
-
-            //Филтър по група артикули
-            if (isset($rec->catGroup)) {
-                if (!in_array($rec->catGroup, keylist::toArray(cat_Products::fetchField($receiptDetailRec->productId, 'groups')))) continue;
-            }
 
             //Време на продажбата
             $sellDT = DateTime::createFromFormat("Y-m-d H:i:s", "$receiptRec->waitingOn");

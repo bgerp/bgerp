@@ -314,22 +314,6 @@ class core_Query extends core_FieldSet
     
     
     /**
-     * Добавя с AND условие, посоченото поле да съдържа поне един от ключовете в keylist
-     * Алтернативна функция с Regexp
-     */
-    public function likeKeylist1($field, $keylist, $or = false)
-    {
-        $regExp = trim($keylist, '|');
-        
-        if ($regExp) {
-            $this->where("#{$field} REGEXP BINARY '\\\|({$regExp})\\\|'", $or);
-        }
-        
-        return $this;
-    }
-    
-    
-    /**
      * Преброява срещанията на всяко от изброените id-та в полето keylistName на редовете от заявката
      *
      * @param string $keylistName        - името на keylist полето
@@ -338,7 +322,7 @@ class core_Query extends core_FieldSet
      *
      * @return array масив $id => брой записи
      */
-    public function countKeylist($keylistName, $ids = null, $inSeparateQueries = true)
+    public function countKeylist($keylistName, $ids = null, $inSeparateQueries = false)
     {
         $res = array();
 
@@ -1072,8 +1056,10 @@ class core_Query extends core_FieldSet
     {
         // Ако нямаме зададени полета, слагаме всички от модела,
         // без виртуалните и чуждестранните
-        if (!countR($this->show) || isset($this->show['*'])) {
+        if (isset($this->show['*'])) {
             $this->show = $this->selectFields('');
+        } else if (!countR($this->show)) {
+            $this->show = $this->selectFields('!#dbAutoselectExcluded');
         }
         
         // Добавяме използваните полета - изрази
@@ -1115,7 +1101,7 @@ class core_Query extends core_FieldSet
             $f = $this->getField($name);
             
             $this->realFields[] = $name;
-            
+
             $fields .= $fields ? ",\n   " : "\n   ";
             
             switch ($f->kind) {

@@ -317,7 +317,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             //Филтър по група артикули
             if (isset($rec->groups)) {
-                $pQuery->likeKeylist('groups', $rec->groups);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->groups, 'productId');
             }
 
             // Синхронизира таймлимита с броя записи

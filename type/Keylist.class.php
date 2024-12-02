@@ -843,6 +843,47 @@ class type_Keylist extends core_Type
         
         return false;
     }
+
+
+    /**
+     * Convert string of base 36 numbers to array of keys
+     *
+     * @throws \ErrorException
+     */
+    public static function toArray36($value, $separator = ' ')
+    {
+        $result = [];
+
+        if (isset($value)) {
+            $value = explode($separator, $value);
+
+            expect(is_array($value), 'Value must be array or string', $value);
+
+            foreach ($value as $key) {
+                $id = (int) base_convert(rtrim($key, 'z'), 35, 10);
+                $result[$id] = $id;
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Convert an array of keys to string of base 36 numbers, padded to minimum four digits
+     */
+    public function fromArray36($value, $separator = ' ', $minLen = 4)
+    {
+        $result = [];
+        foreach ($value as $key) {
+            $key = (string)$key;
+            $result[$key] = str_pad(base_convert($key, 10, 35), $minLen - 1, '0', STR_PAD_LEFT) . 'z';
+        }
+        asort($result);
+
+        return implode($separator, $result);
+    }
+
     
     
     /**

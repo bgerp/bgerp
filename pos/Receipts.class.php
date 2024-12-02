@@ -709,15 +709,20 @@ class pos_Receipts extends core_Master
 
         // Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
         if ($action == 'transfer' && isset($rec)) {
-
-            if (empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || $rec->state != 'draft') {
+            if (empty($rec->id) || isset($rec->transferredIn) || ($rec->state == 'draft' && round($rec->paid, 2) > 0) || !in_array($rec->state, array('draft', 'closed', 'waiting'))) {
                 $res = 'no_one';
             }
         }
 
         if (in_array($action, array('setcontragent', 'setvoucher')) && isset($rec)) {
-            if (!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn) || $rec->state != 'draft') {
+            if (!$mvc->haveRightFor('terminal', $rec) || isset($rec->transferredIn)) {
                 $res = 'no_one';
+            }
+
+            if(isset($action) == 'setcontragent'){
+                if($rec->state == 'closed' && !pos_Receipts::isForDefaultContragent($rec)){
+                    $res = 'no_one';
+                }
             }
         }
 
@@ -809,22 +814,32 @@ class pos_Receipts extends core_Master
 
         // Отбелязване къде е прехвърлена бележката
         $rec->transferredIn = $sId;
-        $isBeingClosed = ($rec->state != 'closed');
+        $exState = $rec->state;
         $rec->state = 'closed';
 
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
-        if ($isBeingClosed) {
+        if ($exState == 'draft') {
             Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->flushUpdateQueue($sId);
             Mode::pop('calcAutoDiscounts');
         } else {
             // Продажбата се активира, ако ПОС бележката е приключена
             $saleRec = sales_Sales::fetchRec($sId);
-            $saleRec->contoActions = 'activate';
+            if($exState == 'waiting'){
+                $saleRec->contoActions = 'activate,pay,ship';
+            } else {
+                $saleRec->contoActions = 'activate';
+            }
+
             $saleRec->isContable = 'activate';
             sales_Sales::save($saleRec);
             sales_Sales::conto($saleRec->id);
+            if($exState == 'closed'){
+                $saleRec->contoActions = 'activate,pay,ship';
+                cls::get('sales_Sales')->save($saleRec, 'contoActions');
+            }
+
             Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->updateMaster($saleRec->id);
             Mode::pop('calcAutoDiscounts');
@@ -1390,7 +1405,6 @@ class pos_Receipts extends core_Master
      */
     public function act_setcontragent()
     {
-        core_Debug::startTimer("SET_RECEIPT_CONTRAGENT");
         $this->requireRightFor('setcontragent');
         expect($id = Request::get('id'));
         expect($rec = $this->fetch($id));
@@ -1427,7 +1441,8 @@ class pos_Receipts extends core_Master
         static::setContragent($rec, $contragentClassId, $contragentId, $locationId);
         $this->logWrite('Избор на контрагент в бележка', $id);
 
-        Mode::setPermanent("currentOperation{$rec->id}", 'add');
+        $currentOperation = in_array($rec->state, array('waiting', 'closed')) ? 'contragent' : 'add';
+        Mode::setPermanent("currentOperation{$rec->id}", $currentOperation);
         Mode::setPermanent("currentSearchString{$rec->id}", null);
 
         if (Request::get('ajax_mode')) {

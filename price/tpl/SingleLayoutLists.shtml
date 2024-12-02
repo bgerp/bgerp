@@ -116,7 +116,14 @@
         </tr>
         <!--ET_END significantDigits-->
     <!--ET_END roundingPrecisionTable-->
-    
+
+        <!--ET_BEGIN orderGroupRules-->
+        <tr>
+            <td class="title-style">|Подредба на груповите правила|*</td>
+            <td>[#orderGroupRules#]</td>
+        </tr>
+        <!--ET_END orderGroupRules-->
+
      <!--ET_BEGIN connectedClients-->
         <tr>
             <td class="title-style" style='vertical-align:top'>|Свързани клиенти|*</td>

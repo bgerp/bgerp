@@ -1644,6 +1644,12 @@ a.tUnsighted {
   .documentTags .tags.tagType-personal {
     border-radius: 5px; }
 
+.tags.lightBg a {
+  color: black !important; }
+
+.tags.darkBg a {
+  color: white !important; }
+
 .doc_Threads .listTable .documentTags .tags {
   font-size: 0.9em !important;
   top: 0 !important; }
@@ -2210,6 +2216,10 @@ td.rowtools-column {
 
 .narrow .largeNarrowCell {
   min-width: 300px; }
+
+.narrow .doc_Search .listTable .nowrap {
+  overflow: hidden;
+  text-overflow: ellipsis; }
 
 .horizonCol {
   position: relative;
@@ -4793,6 +4803,16 @@ table .eshop-btn {
 /*
  * край на grid
  */
+.narrow .row-holder {
+  overflow: auto; }
+
+.narrow .row-holder > div {
+  display: flex;
+  flex-wrap: nowrap; }
+
+.narrow div.tab-control.alphabet div.tab-row .tab {
+  min-width: auto; }
+
 /*
  * стилове за fileman
  */
@@ -4890,10 +4910,6 @@ iframe.autoHeight {
 
 .filesContainer .top-table {
   margin-bottom: 15px; }
-
-  .filesContainer div.tab-control.alphabet div.tab-row .tab.selected {
-    background: white !important;
-    padding-bottom: 6px !important; }
 
 .webdrv-preview {
   margin-top: 5px; }
@@ -6263,6 +6279,9 @@ body.narrow {
     border-right: 1px solid #0082c8; }
     .cmr-blue td.border-top {
       border-top: 1px solid #0082c8; }
+
+.row-subProduct {
+  background-color: #ece2ff; }
 
 @media handheld,
 only screen and (min-width: 1240px) {
@@ -7945,4 +7964,20 @@ table.bomProductionStepTable td {
   border: 1px solid #bcbcbc;
   padding-left: 5px;
   padding-right: 5px; }
+
+.aiPromptBlock {
+  background-color: #357abd;
+  color: white;
+  border-radius: 3px;
+  padding: 4px 7px;
+  margin: 0 0 10px;
+  font-size: 0.9em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+
+.aiLastPromptCaption {
+  font-weight: bold;
+  font-size: 1em; }
+
+.dialogHolder .result .dump {
+  white-space: normal; }
 

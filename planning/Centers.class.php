@@ -186,7 +186,10 @@ class planning_Centers extends core_Master
         $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Мярка,input=hidden', "unit= (|каква е мярката на избрания параметър|*)");
         $this->FLD('showMaxPreviousTasksInATask', 'int', 'caption=За колко от предходните Операции да се визуализира готовността->До');
         $this->FLD('autoCreateTaskState', 'enum(auto=Автоматично,pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние,value=auto,notNull');
+        $this->FLD('supportSystemFolderId', 'key2(mvc=doc_Folders,select=title,coverClasses=support_Systems,allowEmpty)', 'caption=Система за подаване на сигнали->Система');
 
+        $powerUserId = core_Roles::fetchByName('powerUser');
+        $this->FLD('supportUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Система за подаване на сигнали->Отговорници');
         $this->setDbUnique('name');
     }
 
@@ -340,6 +343,10 @@ class planning_Centers extends core_Master
 
         if(isset($rec->paramExpectedNetWeight) && isset($row->paramExpectedNetMeasureId)){
             $row->paramExpectedNetWeight = ht::createHint($row->paramExpectedNetWeight, $row->paramExpectedNetMeasureId);
+        }
+
+        if(isset($rec->supportSystemFolderId)){
+            $row->supportSystemFolderId = doc_Folders::recToVerbal($rec->supportSystemFolderId)->title;
         }
     }
     

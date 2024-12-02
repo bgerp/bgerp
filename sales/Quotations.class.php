@@ -399,6 +399,13 @@ class sales_Quotations extends deals_QuotationMaster
                     $row->bankAccountId = ht::createLink($ownAccount->iban, bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId));
                 }
             }
+
+            if(empty($row->deliveryError)){
+                $errorFeeCount = sales_TransportValues::count("#docClassId = {$mvc->getClassId()} AND #docId = {$rec->id} AND #fee < 0");
+                if($errorFeeCount){
+                    $row->deliveryError = tr('Възникна проблем при изготвяне на офертата и не можем да гарантираме коректността на изчислените/показаните цени! Моля, свържете се с нас!');
+                }
+            }
         }
         
         return $row;

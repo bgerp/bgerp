@@ -1345,12 +1345,12 @@ class fileman_Files extends core_Master
         if (($dotPos = mb_strrpos($fileName, '.')) !== false) {
             
             // Файл за mime типове
-            include(dirname(__FILE__) . '/data/mimes.inc.php');
+            include(dirname(__FILE__) . '/data/ext2mime.inc.php');
             
             // Разширение на файла
             $ext = mb_substr($fileName, $dotPos + 1);
-            
-            return $mimetypes["{$ext}"];
+
+            return $ext2mime["{$ext}"];
         }
     }
     
@@ -3198,5 +3198,26 @@ class fileman_Files extends core_Master
         $rec = $Data->fetch($rec->dataId);
         
         return $rec->path;
+    }
+
+
+    /**
+     * Дали е подаден файл на изображение
+     *
+     * @param string $string - файл хендлър или име на файла
+     * @return bool          - дали е изображение или не
+     */
+    public static function isImage($string)
+    {
+        $fileName = $string;
+        if(static::isFileHnd($string)) {
+            $fRec = static::fetchByFh($string);
+            $fileName = $fRec->name;
+        }
+
+        $fileExt = fileman_Files::getExt($fileName);
+        $pattern = '/^(jpg|jpeg|png|gif|bmp|tiff|tif|webp)$/i';
+
+        return preg_match($pattern, $fileExt) === 1;
     }
 }

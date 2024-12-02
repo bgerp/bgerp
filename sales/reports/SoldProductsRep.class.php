@@ -51,8 +51,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var string
      */
-    protected $newFieldsToCheck;
-
+    protected $newFieldsToCheck = 'quantity,primeCost';
 
     /**
      * По-кое поле да се групират листовите данни
@@ -102,7 +101,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Покаване на резултата
         $fieldset->FLD('grouping', 'enum(yes=По групи, no=По артикули)', 'caption=Показване->Вид,removeAndRefreshForm,after=quantityType');
         $fieldset->FLD('currency', 'key(mvc=currency_Currencies,select=code,allowEmpty)', 'caption=Показване->Валута,removeAndRefreshForm,single=none,after=grouping,placeholder=Основна');
-        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->По контрагенти,after=currency,removeAndRefreshForm,single=none,silent');
+        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->По контрагенти,after=currency,single=none,silent');
         $fieldset->FLD('seeCategory', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи категория,after=seeByContragent,single=none,silent');
 
         $fieldset->FLD('engName', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Име EN,after=seeByContragent,single=none');
@@ -179,15 +178,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
     }
 
-    /**
-     * Преди подготвяне на едит формата
-     */
-    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
-    {
-
-
-    }
-
 
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -199,6 +189,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = $data->form;
+
+        if (date('d') < 10) {
+            $form->setDefault('selectPeriod', 'last_month');
+        } else {
+            $form->setDefault('selectPeriod', 'cur_month');
+        }
+
         $rec = $form->rec;
         $suggestions = $prodSuggestions = $prodSalesArr = $posProdsArr = $prodArr = array();
 
@@ -223,11 +220,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('category', 'input=hidden');
             $form->setField('group', 'input=hidden');
         }
-
-        $today = dt::today();
-        $from = dt::addMonths(-1, $today);
-        $form->setDefault('from', $from);
-        $form->setDefault('to', $today);
 
         $periodStart = $rec->from;
         $periodEnd = $rec->to;
@@ -328,6 +320,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
 
+
             $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
 
             $posDetQuery->where('#productId IS NOT NULL');
@@ -380,8 +373,33 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
         }
 
-        if(!is_array($posReceiptIdArr)){
-            $posReceiptIdArr = array();
+        if (!is_array($posReceiptIdArr)) {
+            //от POS
+            $posDetQuery = pos_ReceiptDetails::getQuery();
+
+            $posDetQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+
+            $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
+
+            $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+
+            $posDetQuery->where('#productId IS NOT NULL');
+
+            $posDetStateArr = array('active', 'closed', 'waiting');
+
+            $posDetQuery->in('state', $posDetStateArr);
+
+            $posDetQuery->show('productId, receiptId');
+
+            $posProdsArr = $posReceiptIdArr = array();
+
+            foreach ($posDetQuery->fetchAll() as $det) {
+
+                $posProdsArr[$det->productId] = $det->productId;
+                $posReceiptIdArr[$det->receiptId] = $det->receiptId;
+
+            }
+
         }
 
         // Да се заредят контрагентите от POS  бележките
@@ -592,14 +610,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             foreach (keylist::toArray($rec->contragent) as $contragent) {
 
                 $Cover = doc_Folders::getCover($contragent);
-                $contragentsArr[] =[$Cover->getClassId(),$Cover->that];
+                $contragentsArr[] = [$Cover->getClassId(), $Cover->that];
 
             }
 
             if (!$rec->crmGroup && $rec->contragent) {
 
                 // Генерираме частта от заявката, която съдържа IN условието
-                $in_clause = implode(", ", array_map(function($pair) {
+                $in_clause = implode(", ", array_map(function ($pair) {
                     return "('" . $pair[0] . "', '" . $pair[1] . "')";
                 }, $contragentsArr));
 
@@ -614,12 +632,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 foreach ($contragentsInGroupFoldersArr as $contragent) {
 
                     $Cover = doc_Folders::getCover($contragent);
-                    $contragentsArr[] =[$Cover->getClassId(),$Cover->that];
+                    $contragentsArr[] = [$Cover->getClassId(), $Cover->that];
 
                 }
 
                 // Генерираме частта от заявката, която съдържа IN условието
-                $in_clause = implode(", ", array_map(function($pair) {
+                $in_clause = implode(", ", array_map(function ($pair) {
                     return "('" . $pair[0] . "', '" . $pair[1] . "')";
                 }, $contragentsArr));
 
@@ -634,7 +652,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 foreach ($contragentsInGroupFoldersArr as $contragent) {
 
                     $Cover = doc_Folders::getCover($contragent);
-                    $contragentsInGroup[] =[$Cover->getClassId(),$Cover->that];
+                    $contragentsInGroup[] = [$Cover->getClassId(), $Cover->that];
 
                     // $contragentsIdArr[$Cover->getClassId()][$Cover->that] = $Cover->that;
                 }
@@ -652,7 +670,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $contragentsArr = array_values($unique);
 
                 // Генерираме частта от заявката, която съдържа IN условието
-                $in_clause = implode(", ", array_map(function($pair) {
+                $in_clause = implode(", ", array_map(function ($pair) {
                     return "('" . $pair[0] . "', '" . $pair[1] . "')";
                 }, $contragentsArr));
 
@@ -1882,7 +1900,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                         <!--ET_BEGIN art--><div>|Артикули|*: [#art#]</div><!--ET_END art-->
                                         <!--ET_BEGIN compare--><div>|Сравнение|*: [#compare#]</div><!--ET_END compare-->
                                         <!--ET_BEGIN currency--><div>|Валута|*: [#currency#]</div><!--ET_END currency-->
-                                        <!--ET_BEGIN minDelta--><div>|Мин. делта|*: [#minDelta#]</div><!--ET_END minDelta-->
+                                        <!--ET_BEGIN minDelta--><div>|Мин. делта[%]|*: [#minDelta#]</div><!--ET_END minDelta-->
                                         <!--ET_BEGIN grFilter--><div>|Филтър по група |*: [#grFilter#]</div><!--ET_END grFilter-->
                                         <!--ET_BEGIN button--><div>|Филтри |*: [#button#]</div><!--ET_END button-->
                                     </div>
@@ -2007,8 +2025,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         if ($data->rec->primeCostType == 'dealerPrimeCost') {
             $coefDelta = core_Packs::getConfig('sales')->SALES_DELTA_MIN_PERCENT;
-            $fieldTpl->append('<b>' . $coefDelta * 100 . '%' . '</b>', 'minDelta');
-
+            $coefSee = ($coefDelta != '') ? $coefDelta * 100 : 'Не е посочен ';
+            $fieldTpl->append('<b>' . $coefSee . '</b>', 'minDelta');
         }
 
         //Филтър по група
@@ -2049,7 +2067,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
 
-        if($dRec->productId){
+        if ($dRec->productId) {
             $prodRec = cat_Products::fetch($dRec->productId);
         }
 
@@ -2177,5 +2195,17 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $singleProductWeight = $singleProductWeight ? $singleProductWeight : 'n.a.';
 
         return $singleProductWeight;
+    }
+
+    /**
+     * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
+     *
+     * @param stdClass $rec
+     *
+     * @return bool
+     */
+    public function canSendNotificationOnRefresh($rec)
+    {
+     //   return true;
     }
 }

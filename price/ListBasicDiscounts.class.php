@@ -396,7 +396,8 @@ class price_ListBasicDiscounts extends core_Detail
         $dQuery = sales_PrimeCostByDocument::getQuery();
         $dQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $dQuery->where("#isPublic = 'yes' AND #state IN ('active', 'closed') AND #sellCost IS NOT NULL AND #contragentClassId = {$contragentClassId} AND #contragentId = {$contragentId} AND #detailClassId != {$posReportClassId}");
-        $dQuery->likeKeylist('groups', $groupKeylist);
+        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $dQuery, $groupKeylist, 'productId');
+
         $dQuery->show('groups,quantity,sellCost,valior,productId,sellCostWithOriginalDiscount,autoDiscountAmount,threadId,activatedOn');
         if($listRec->discountClassPeriod == 'monthly'){
             $firstDay = date('Y-m-01');
@@ -446,7 +447,8 @@ class price_ListBasicDiscounts extends core_Detail
         $pQuery->where("#action = 'sale|code' AND (#state = 'waiting' OR (#state = 'closed' AND #transferredIn IS NULL))");
         $pQuery->where("#contragentClass = {$contragentClassId} AND #contragentObjectId = {$contragentId}");
         $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-        $pQuery->likeKeylist('groups', $groupKeylist);
+        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $groupKeylist, 'productId');
+
         if($listRec->discountClassPeriod == 'monthly'){
             $firstDay = date('Y-m-01');
             $lastDay = dt::getLastDayOfMonth(dt::today());

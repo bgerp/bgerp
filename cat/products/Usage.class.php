@@ -136,10 +136,9 @@ class cat_products_Usage extends core_Manager
         // Извличане на документите в чиито детайл се среща
         $dQuery = $Detail->getQuery();
         $dQuery->EXT('stateMaster', $Document, "externalName=state,externalKey={$Detail->masterKey}");
-        $dQuery->where("#productId = {$data->masterId} AND #productId != 'rejected'");
-        $dQuery->groupBy($Detail->masterKey);
+        $dQuery->where("#productId = {$data->masterId} AND #stateMaster != 'rejected'");
         $dQuery->show($Detail->masterKey);
-        
+
         $ids = arr::extractValuesFromArray($dQuery->fetchAll(), $Detail->masterKey);
 
         if($data->_useMasterField){

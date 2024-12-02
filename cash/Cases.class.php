@@ -236,7 +236,7 @@ class cash_Cases extends core_Master
      */
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
-        $data->listFields['blAmount'] .= ', ' . acc_Periods::getBaseCurrencyCode();
+        $data->listFields['blAmount'] .= '|*, ' . acc_Periods::getBaseCurrencyCode();
     }
     
     

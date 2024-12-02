@@ -214,18 +214,15 @@ class sens2_Scripts extends core_Master
     /**
      * Изчислкяване на числов израз. Могат да участват индикаторите и променливите от даден скрипт
      */
-    public static function calcExpr($expr, $scriptId)
+    public static function calcExpr($expr, $scriptId, &$error = null)
     {
         // Вземаме контекста
         $context = self::getContext($scriptId);
         
-        // Заместваме променливите и индикаторите
-        $expr = strtr($expr, $context);
-        
-        if (str::prepareMathExpr($expr) === false) {
+        if (($expr = str::prepareMathExpr($expr, $context)) === false) {
             $res = self::CALC_ERROR;
         } else {
-            $res = str::calcMathExpr($expr, $success);
+            $res = str::calcMathExpr($expr, $success, $error, true);
             
             if ($success === false) {
                 $res = self::CALC_ERROR;
@@ -263,7 +260,7 @@ class sens2_Scripts extends core_Master
             }
         }
         
-        $value = self::calcExpr($expr, $scriptId);
+        $value = self::calcExpr($expr, $scriptId, $error);
         
         if ($value === self::CALC_ERROR) {
             $style = 'border-bottom:dashed 1px red;';
@@ -272,7 +269,11 @@ class sens2_Scripts extends core_Master
         }
         
         $expr = strtr($expr, $opts[$scriptId]);
-        
+
+        if($error) {
+            $value .= ' ' . $error;
+        }
+
         $expr = "<span style='{$style}' title='{$value}'>{$expr}</span>";
         
         return $expr;

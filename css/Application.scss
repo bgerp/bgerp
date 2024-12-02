@@ -1895,6 +1895,13 @@ a.tUnsighted {
 	}
 }
 
+.tags.lightBg a{
+	color: #000 !important;
+}
+.tags.darkBg a{
+	color: #fff !important;
+}
+
 .doc_Threads .listTable .documentTags .tags{
 	font-size: 0.9em !important;
 	top: 0 !important
@@ -2552,7 +2559,10 @@ width: 50%;
 .narrow .largeNarrowCell {
 min-width: 300px;
 }
-
+.narrow .doc_Search .listTable .nowrap {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 .horizonCol {
 position: relative;
 top: 2px;
@@ -5525,8 +5535,17 @@ table .eshop-btn {
 	}
 }
 /*край на grid*/
+.narrow .row-holder {
+	overflow: auto;
+}
+.narrow .row-holder > div {
+	display: flex;
+	flex-wrap: nowrap;
 
-
+}
+.narrow div.tab-control.alphabet div.tab-row .tab {
+	min-width: auto;
+}
 /*стилове за fileman*/
 .webdrvTabBody {
 	min-width: 800px;
@@ -5635,12 +5654,7 @@ iframe.autoHeight {
 .filesContainer .top-table {
 	margin-bottom: 15px;
 }
-.filesContainer {
-	div.tab-control.alphabet div.tab-row .tab.selected {
-		background: #fff !important;
-		padding-bottom: 6px !important;
-	}
- }
+
 .webdrv-preview {
 	margin-top: 5px;
 	&:first-child {
@@ -7173,6 +7187,10 @@ body.narrow {
 
 .cmr-blue {
 	@include cmrColor(#0082c8);
+}
+
+.row-subProduct {
+	background-color:#ece2ff;
 }
 
 @media handheld , only screen and (min-width: 1240px) {
@@ -9070,4 +9088,24 @@ table.bomProductionStepTable td{
 	border:1px solid #bcbcbc;
 	padding-left:5px;
 	padding-right:5px;
+}
+
+.aiPromptBlock {
+	background-color: #357ABD;
+	color: white;
+	border-radius: 3px;
+	padding: 4px 7px;
+	margin:0 0 10px;
+	font-size: 0.9em;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+}
+
+.aiLastPromptCaption {
+	font-weight: bold;
+	font-size: 1em;
+}
+
+.dialogHolder .result .dump {
+	white-space: normal;
 }

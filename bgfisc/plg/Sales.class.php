@@ -77,7 +77,6 @@ class bgfisc_plg_Sales extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
         $regRec = bgfisc_Register::createUrn($mvc, $rec->id, true);
-        core_Statuses::newStatus("Създаване на продажба с УНП|*: '<b>{$regRec->urn}<b>'");
         
         // Добавяне на УНП-то в ключовите думи
         $rec->searchKeywords .= ' ' . plg_Search::normalizeText($regRec->urn);
@@ -110,7 +109,9 @@ class bgfisc_plg_Sales extends core_Plugin
         if($urn = bgfisc_Register::getRec($mvc, $rec->id)->urn){
             $row->cashRegNum = bgfisc_Register::getUrlLink($urn);
         } else {
-            $row->cashRegNum = ht::createHint('Стара продажба', 'Стара продажба, ще се генерира УНП, при издаване на фискален бон', 'warning', false);
+            if(core_Users::isPowerUser()){
+                $row->cashRegNum = ht::createHint('Стара продажба', 'Стара продажба, ще се генерира УНП, при издаване на фискален бон', 'warning', false);
+            }
         }
     }
     

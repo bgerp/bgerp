@@ -833,7 +833,7 @@ abstract class deals_Helper
             return;
         }
 
-        $date = isset($date) ? $date : null;
+        $date = $date ?? null;
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
         $stRec = store_Products::getQuantities($productId, $storeId, $date);
 
@@ -851,7 +851,7 @@ abstract class deals_Helper
                     }
                 }
 
-                if($skip != true){
+                if(!$skip){
                     $iQuery = store_StockPlanning::getQuery();
                     $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that} AND #storeId IS NOT NULL");
                     $iQuery->show('quantityIn,quantityOut');
@@ -896,7 +896,11 @@ abstract class deals_Helper
                         $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
                         $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
                     } else {
-                        $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                        if($stRec->quantity >= $quantity) {
+                            $hint = "Наличността в склада е достатъчна за изпълнение / контиране на документа, но разполагаемата наличност е недостатъчна за изпълнението на всички чакащи документи!";
+                        } else {
+                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                        }
                     }
                 }
 
@@ -907,7 +911,7 @@ abstract class deals_Helper
         if(!$firstCheck){
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                     $class = 'doc-negative-quantity';
                     $makeLink = false;
                 }
@@ -1092,7 +1096,9 @@ abstract class deals_Helper
             $ownCompanyData2 =  crm_Companies::fetchOwnCompany($ownCompanyId);
             $warningMyCompanyArr =  static::getContragentDataCompareString($ownCompanyData, $ownCompanyData2);
             if(!empty($warningMyCompanyArr)) {
-                $res['MyCompany'] = ht::createHint($res['MyCompany'], 'Следните данни на моята фирма във визитката се различават от тези към вальора на документа|*: ' . implode(', ', $warningMyCompanyArr), 'warning');
+                if(core_Users::isPowerUser()) {
+                    $res['MyCompany'] = ht::createHint($res['MyCompany'], 'Следните данни на моята фирма във визитката се различават от тези към вальора на документа|*: ' . implode(', ', $warningMyCompanyArr), 'warning');
+                }
             }
         }
 
@@ -1124,10 +1130,14 @@ abstract class deals_Helper
                 $currentContragentData = $ContragentClass->getContragentData($contragentId);
                 $warningMsgArr = static::getContragentDataCompareString($cData, $currentContragentData);
                 if(!empty($warningMsgArr)) {
-                    $res['contragentName'] = ht::createHint($res['contragentName'], "Следните полета във визитката се различават от тези към вальора на документа|*: " . implode(', ', $warningMsgArr), 'warning');
+                    if(core_Users::isPowerUser()){
+                        $res['contragentName'] = ht::createHint($res['contragentName'], "Следните полета във визитката се различават от тези към вальора на документа|*: " . implode(', ', $warningMsgArr), 'warning');
+                    }
                 }
             } elseif($res['contragentName'] != $cName){
-                $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
+                if(core_Users::isPowerUser()){
+                    $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
+                }
             }
         } elseif (isset($contragentName)) {
             $res['contragentName'] = $contragentName;

@@ -509,6 +509,8 @@ class pos_ReceiptDetails extends core_Detail
             if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
                 $redirectToNotEmptyReceiptResponse = $this->getRedirectToNotEmptyReceiptAjaxResponse($receiptRec, $cardInfo['contragentClassId'], $cardInfo['contragentId']);
                 if(is_array($redirectToNotEmptyReceiptResponse)) return $redirectToNotEmptyReceiptResponse;
+
+                $forwardUrl = array('Ctr' =>'pos_Receipts', 'Act' => 'setcontragent', 'id' => $receiptId, 'ajax_mode' =>1,'contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'autoSelect' => true);
             } if($cardInfo['status'] == crm_ext_Cards::STATUS_NOT_ACTIVE){
                 core_Statuses::newStatus("Клиентската карта е неактивна|*!", 'warning');
             }
@@ -1462,10 +1464,12 @@ class pos_ReceiptDetails extends core_Detail
         $Policy = cls::get('price_ListToCustomers');
         $contragentPrice = (object)array('price' => null, 'discount' => null);
 
+        core_Debug::startTimer('TERMINAL_RESULT_GET_LOWER_PRICE_FETCH');
         $price = $Policy->getPriceByList($policy1, $productId, $packagingId, $quantity, $date, 1, 'no', $discountPolicyId);
         if(isset($policy2)){
             $contragentPrice = $Policy->getPriceByList($policy2, $productId, $packagingId, $quantity, $date, 1, 'no', $discountPolicyId);
         }
+        core_Debug::stopTimer('TERMINAL_RESULT_GET_LOWER_PRICE_FETCH');
 
         // Ще се взима по-малката крайна цена от тази на клиента и на пос-а
         if(!empty($price->price) && !empty($contragentPrice->price)){

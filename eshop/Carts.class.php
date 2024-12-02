@@ -199,7 +199,7 @@ class eshop_Carts extends core_Master
         $this->FLD('personNames', 'varchar(255,autocomplete=off)', 'caption=Имена,class=contactData,hint=Име и фамилия||Name and surname,mandatory,silent');
         $this->FLD('email', 'email(valid=drdata_Emails->validate,autocomplete=off)', 'caption=Имейл,hint=Вашият имейл||Your email,mandatory');
         $this->FLD('tel', 'drdata_PhoneType(type=tel,nullIfEmpty,unrecognized=warning,autocomplete=off)', 'caption=Телефон,hint=Вашият телефон,mandatory');
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Държава,mandatory');
         
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Начин,autocomplete=off,removeAndRefreshForm=deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|deliveryData|locationId,silent,mandatory');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title)', 'caption=Доставка->Локация,input=none,silent,removeAndRefreshForm=deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress,after=termId');
@@ -1193,6 +1193,14 @@ class eshop_Carts extends core_Master
         $body->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
         $body->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
 
+        if(!empty($settings->emailBodyContactTel)){
+            $body->replace(new core_ET($settings->emailBodyContactTel), 'CONTACT_TEL');
+        }
+
+        if(!empty($settings->emailBodyContactEmail)){
+            $body->replace(new core_ET($settings->emailBodyContactEmail), 'CONTACT_EMAIL');
+        }
+
         if ($rec->deliveryNoVat < 0) {
             $body->replace(tr('Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите|*!'), 'PROBLEM_WITH_DELIVERY');
         }
@@ -1304,9 +1312,9 @@ class eshop_Carts extends core_Master
         }
         
         $body = core_Type::getByName('richtext')->fromVerbal($body->getContent());
-        
+
         // Подготовка на имейла
-        $emailRec = (object) array('subject' => tr('Онлайн поръчка') . " #{$rec->id}",
+        $emailRec = (object) array('subject' => tr('Онлайн поръчка') . " #{$rec->id}" . " - " . tr('Благодарим Ви за доверието') . "!",
             'body' => $body,
             'folderId' => $saleRec->folderId,
             'originId' => $saleRec->containerId,
@@ -1788,7 +1796,7 @@ class eshop_Carts extends core_Master
         // Показване на сумата на минималната поръчка ако има
         if(!empty($settings->minOrderAmount)){
             $minOrderAmount = currency_Currencies::decorate($settings->minOrderAmount, $settings->currencyId);
-            $tpl->append(tr("Приемат се поръчки за минимално|* <b>{$minOrderAmount}</b>"), 'CART_TOOLBAR_RIGHT_FOOTER');
+            $tpl->append(tr("Приемат се поръчки за минимално|* <b style='color:#0c0987;font-size:1.1em'>{$minOrderAmount}</b>"), 'CART_TOOLBAR_RIGHT_FOOTER');
         }
 
         if (empty($rec->personNames)) {
@@ -2212,7 +2220,7 @@ class eshop_Carts extends core_Master
         $data->form->setAction($this, 'order');
 
         $form = &$data->form;
-        $form->title = 'Данни за поръчка';
+        $form->title = 'Данни за поръчката';
         $form->countries = $countries;
         cms_Domains::addMandatoryText2Form($form);
         self::prepareOrderForm($form);
@@ -2699,19 +2707,19 @@ class eshop_Carts extends core_Master
         $now = dt::now();
         $query = self::getQuery();
         $query->where("#state = 'draft' OR #state = '' OR #state IS NULL");
-        
+
         // За всяка
         while ($rec = $query->fetch()) {
             $settings = cms_Domains::getSettings($rec->domainId);
             $endOfLife = self::getDeletionTime($rec);
             $timeToNotifyBeforeDeletion = dt::addSecs(-1 * $settings->timeBeforeDelete, $endOfLife);
-            
+
             $isDeleted = false;
             if ($endOfLife <= $now) {
                 self::delete($rec->id);
                 $isDeleted = true;
             } elseif (!empty($rec->email) && $timeToNotifyBeforeDeletion <= $now && $rec->productCount != 0) {
-                
+
                 // Ако не е изпращан нотифициращ имейл за забравена поръчка, изпраща се
                 $isNotified = core_Permanent::get("eshopCartsNotify{$rec->id}");
                 if ($isNotified !== 'y') {
@@ -2819,11 +2827,8 @@ class eshop_Carts extends core_Master
     {
         // Има ли настройки за изпращане на имейл
         $settings = cms_Domains::getSettings($rec->domainId);
-        if (empty($rec->email) || empty($settings->inboxId)) {
-            
-            return;
-        }
-        
+        if (empty($rec->email) || empty($settings->inboxId)) return;
+
         $domainName = '';
         cms_Domains::getAbsoluteUrl($rec->domainId, $domainName);
         $cartUrl = self::getGrantAccessUrl($rec->id);
@@ -2844,11 +2849,9 @@ class eshop_Carts extends core_Master
             
             $file = ($var == 'html') ? $file : $fileTxt;
             $tpl = getTplFromFile($file);
-            $tpl->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
             if($var == 'html'){
                 $settings->emailBodyFooter = str_replace("\n", '<br>', $settings->emailBodyFooter);
             }
-            
             $tpl->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
             $body->{$var} = $tpl;
             
@@ -2867,14 +2870,14 @@ class eshop_Carts extends core_Master
             
             $body->{$var} = $body->{$var}->getContent();
         }
-        
+
         $options = array('encoding' => 'utf-8', 'no_thread_hnd' => true, 'no_return_path' => 'no_return_path', 'no_return_receipt' => 'no_return_receipt');
-        $subject = tr('Незавършена поръчка в') . " {$domainName}";
-        
+        $subject = tr('Не пропускайте: Завършете поръчката си в ') . " {$domainName}";
+
         // Опит за изпращане на имейл-а
         $error = null;
         $isSended = email_Sent::sendOne($settings->inboxId, $rec->email, $subject, $body, $options, null, $error);
-        
+
         if ($isSended) {
             eshop_Carts::logWrite('АВТОМАТИЧНО изпращане на имейл за забравена поръчка', $rec->id);
         } else {

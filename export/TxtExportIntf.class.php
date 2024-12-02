@@ -28,10 +28,11 @@ class export_TxtExportIntf
      *
      * @see export_Xml
      * @param mixed $id
+     * @param array $params
      * @return string $tpl
      */
-    public function getTxtContent($id)
+    public function getTxtContent($id, $params = array())
     {
-        return $this->class->getTxtContent($id);
+        return $this->class->getTxtContent($id, $params);
     }
 }
