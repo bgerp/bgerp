@@ -132,8 +132,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $rec = &$form->rec;
         $data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : (($rec->type == 'input') ? 'материал' : (($rec->type == 'subProduct') ? 'субпродукт' : 'отнесен разход'));
         $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : (($rec->type == 'input') ? 'canConvert' : ($rec->type == 'subProduct' ? 'canManifacture,canStore' : null));
-        $data->defaultNotHaveMeta = ($rec->type == 'subProduct') ? 'generic' : null;
-
         if(empty($rec->id)){
             $form->setFieldType('packQuantity', 'double(Min=0)');
         }

@@ -242,10 +242,9 @@ class cat_BomDetails extends doc_Detail
         // Добавяме всички вложими артикули за избор
         $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : ($rec->type == 'input' ? 'canConvert' : 'canManifacture,canStore');
         $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
-        $hasNotProperties = ($rec->type == 'subProduct') ? 'generic' : null;
 
         $onlyProductionStages = ($rec->type != 'stage') ? null : true;
-        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'hasnotProperties' => $hasNotProperties, 'groups' => $groups, 'onlyProductionStages' => $onlyProductionStages));
+        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups, 'onlyProductionStages' => $onlyProductionStages));
         
         $form->setDefault('type', 'input');
         $quantity = $data->masterRec->quantity;
