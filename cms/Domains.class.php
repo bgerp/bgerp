@@ -582,10 +582,14 @@ class cms_Domains extends core_Embedder
         
         if ($action == 'select') {
             if(isset($rec)) {
-                if(!keylist::isIn($userId, $rec->shared)) {
+                if($rec->state == 'closed'){
+                    $requiredRoles = 'no_one';
+                } elseif(!keylist::isIn($userId, $rec->shared)) {
                     $requiredRoles = 'ceo,admin';
                 }
             }
+
+
         }
     }
     
