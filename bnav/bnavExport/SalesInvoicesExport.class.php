@@ -304,7 +304,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         }
 
         foreach ($details as $dRec) {
-bp($dRec,sales_Invoices::fetch($dRec->invoiceId));
             //река на артикула от детайла
             $pRec = cat_Products::fetch($dRec->productId);
 
