@@ -87,6 +87,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 
                 // Всеки дефолтен параметър го добавяме към формата
                 $paramRec = cat_Params::fetch($id);
+                if(in_array($paramRec->state, array('rejected', 'closed'))) continue;
+
                 $name = cat_Params::getVerbal($paramRec, 'name');
                 if (!empty($paramRec->group)) {
                     $group = cat_Params::getVerbal($paramRec, 'group');
