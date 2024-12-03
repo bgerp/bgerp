@@ -304,7 +304,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         }
 
         foreach ($details as $dRec) {
-
+bp($dRec,sales_Invoices::fetch($dRec->invoiceId));
             //река на артикула от детайла
             $pRec = cat_Products::fetch($dRec->productId);
 
@@ -400,7 +400,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             }
             // $erpCode = $pRec->code ? $pRec->code : 'Art' . $pRec->id;
             //   $prodCode = $pRec->bnavCode ? $pRec->bnavCode : $erpCode;
-            $measure = cat_UoM::getShortName($pRec->measureId);
+            $measure = cat_UoM::getShortName($dRec->packagingId);
             $detAmount = $dRec->amount;
 
             // Запис в масива
