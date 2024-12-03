@@ -403,7 +403,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $detAmount = $dRec->amount;
 
             // Запис в масива
-
             if (!array_key_exists($id, $recs)) {
 
 
@@ -414,7 +413,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'prodCode' => $prodCode,
                     'group' => $group,
                     'quantity' => $dRec->quantity,
-                    'price' => $dRec->price / $currencyType,
+                    'price' => ($dRec->price * $dRec->quantityInPack) / $currencyType,
                     'detAmount' => $detAmount / $currencyType,
                     'vatAmount' => '',
                     'measure' => $measure,
