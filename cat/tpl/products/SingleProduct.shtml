@@ -7,6 +7,9 @@
 <fieldset class="detail-info">
     <legend class="groupTitle">|Описание|*</legend>
     <div class="scrolling-holder">
+        <!--ET_BEGIN bnavCode-->
+        <div class="groupList" style='margin-bottom:5px'><span class='quiet'>|Код БН|*:</span> [#bnavCode#]</div>
+        <!--ET_END bnavCode-->
         [#innerState#]
         [#COMPONENTS#]
     </div>
