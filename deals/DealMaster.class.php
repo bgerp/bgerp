@@ -337,7 +337,10 @@ abstract class deals_DealMaster extends deals_DealBase
             $Detail = $mvc->mainDetail;
             if ($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$rec->id}")) {
                 foreach (array('chargeVat', 'currencyId', 'deliveryTermId', 'vatExceptionId') as $fld) {
-                    $form->setReadOnly($fld, $rec->{$fld} ?? $mvc->fetchField($rec->id, $fld));
+                    $readOnlyVal = $rec->{$fld} ?? $mvc->fetchField($rec->id, $fld);
+                    if($data->action == 'clone' && !isset($readOnlyVal)) continue;
+
+                    $form->setReadOnly($fld, $rec->{$fld} ?? $readOnlyVal);
                 }
             }
         } else {
