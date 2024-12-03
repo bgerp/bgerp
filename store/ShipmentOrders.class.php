@@ -314,7 +314,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             if ($rec->state != 'pending') {
                 unset($row->storeReadiness);
             } else {
-                $row->storeReadiness = isset($row->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
+                $row->storeReadiness = $row->storeReadiness ?? "<b class='quiet'>N/A</b>";
             }
 
             if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
@@ -347,6 +347,15 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $row->operationSysId = $mvc->isDocForReturnFromDocument($rec) ? tr('Връщане на артикули') : tr('Експедиране на артикули');
                 if(isset($rec->reverseContainerId)){
                     $row->operationSysId .= tr("|* |от|* ") . doc_Containers::getDocument($rec->reverseContainerId)->getLink(0, array('ef_icon' => false));
+                }
+            }
+
+            // Ако ще се печата в изглед за ДН - да се показва уебсайта на клиента ако има такъв
+            if(Request::get('asClient')){
+                $webSite = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'website');
+                $websiteUrls = type_Urls::toArray($webSite);
+                if(countR($websiteUrls)){
+                    $row->asClientQrCodeString = $websiteUrls[0];
                 }
             }
         }

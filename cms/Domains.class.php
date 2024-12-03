@@ -588,8 +588,6 @@ class cms_Domains extends core_Embedder
                     $requiredRoles = 'ceo,admin';
                 }
             }
-
-
         }
     }
     
