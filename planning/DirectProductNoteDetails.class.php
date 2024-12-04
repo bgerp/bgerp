@@ -166,7 +166,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $form->rec->_isStorable = true;
                 $form->setField('storeId', 'input');
                 if (empty($rec->id) && isset($data->masterRec->inputStoreId)) {
-                    $form->setDefault('storeId', $data->masterRec->inputStoreId);
+                    $field = $rec->type == 'subProduct' ? 'storeId' : 'inputStoreId';
+                    $form->setDefault('storeId', $data->masterRec->{$field});
                 }
 
                 $Cover = doc_Folders::getCover($prodRec->folderId);
