@@ -417,10 +417,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         // Рендираме таблицата с вложените материали
         $data->listFields['productId'] = 'Вложени артикули|* ';
         $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
-        if($firstDoc->isInstanceOf('planning_Tasks')){
-            $firstDocRec = $firstDoc->fetch('isFinal,productId');
-            if($firstDocRec->isFinal == 'no') return new $tpl;
-        }
+        if($firstDoc->isInstanceOf('planning_Tasks')) return $tpl;
 
         $fieldset = clone $this;
         $fieldset->FNC('num', 'int');
