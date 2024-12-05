@@ -636,13 +636,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+        $row->quantity = ht::styleNumber($row->quantity, $dRec->quantity);
 
         $row->labelMeasure = ($dRec->type == 'input') ? 'бр.' : cat_UoM::getShortName($dRec->labelMeasure);
         $row->labelQuantity = $Double->toVerbal($dRec->labelQuantity);
 
         $row->scrap = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->scrap);
+        $row->scrap = ht::styleNumber($row->scrap, $dRec->scrap);
         $row->weight = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->weight);
-
+        $row->weight = ht::styleNumber($row->weight, $dRec->weight);
 
         if ($rec->typeOfReport == 'short' && isset($dRec->employees)) {
             $row->employees = crm_Persons::getTitleById(($dRec->employees)) . ' - ' . planning_Hr::getCodeLink($dRec->employees);
@@ -668,7 +670,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $row->assetResources = '';
         }
 
-        $row->min = $Double->toVerbal($dRec->indTimeSum / 60);
+        $inMin = $dRec->indTimeSum / 60;
+        $row->min = $Double->toVerbal($inMin);
+        $row->min = ht::styleNumber($row->min, $inMin);
+
         return $row;
     }
 
