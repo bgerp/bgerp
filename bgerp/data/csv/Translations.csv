@@ -3123,7 +3123,7 @@ en,Инструкция,Instruction
 en,Изписване от,Issuance from
 en,заприходено,recorded
 en,Отпадъци,Wastes
-en,Отпадък,waste
+en,Отпадък,Waste
 en,Реж. разходи,Overhead costs
 en,Производство на услуга,Service production
 en,Вложени артикули,Input items
@@ -3250,3 +3250,17 @@ en,"Машини, съоръжения, сгради","Machines, equipment, buil
 en,Нематериални,Intangible
 en,Основен,Main
 en,Чакаща,Waiting
+en,Задължителна,Mandatory
+en,протокол за производство,production note,
+en,Субпродукт,By-product
+en,субпродукт,By-product
+en,Субпродукти,By-products
+en,в склад,in store
+en,Засклаждане на продукт,Product storage
+en,срок до,date to
+en,Етапи в производството,Production steps
+en,Етап в производството,Production step
+en,Транспортна услуга,Transport service
+en,Закрити,Closed
+en,Шаблонни,Templates
+en,Основни,Main
