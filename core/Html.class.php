@@ -1508,4 +1508,65 @@ class core_Html
         
         return self::styleIfNegative($verbal, $notVerbal);
     }
+
+
+    /**
+     * Рендира видео таг за пускане на виде (Само в новите браузъри)
+     *
+     * @param string $fileHnd    - файл хендлър
+     * @param array $params      - параметри за видеото
+     *     bool 'controls' - контрол над видеото
+     *     bool 'autoplay' - автоматично стартиране
+     *     bool 'loop',    - повтаряне
+     *     bool 'muted'    - дали да е без звук
+     *     string 'poster' - постер
+     *     string 'preload' - auto, metadata, none
+     *     int  'width'     - ширина (в пиксели)
+     *     int  'height'    - височина (в пиксели)
+     *     string 'class'   - CSS класове
+     * @param string $sourceType - тип на видеото
+     *
+     * @return core_ET
+     * @throws core_exception_Expect
+     */
+    public static function createVideo($fileHnd, $params = array(), $sourceType = 'video/mp4')
+    {
+        // Получаваме URL на видеото
+        $src = fileman_Download::getDownloadUrl($fileHnd);
+        expect($src);
+
+        // Стартираме видео тага
+        $videoTag = '<video';
+
+        // Разрешени параметри за видео тага
+        $allowedParams = array('controls', 'autoplay',  'loop', 'muted', 'poster', 'preload', 'width', 'height', 'class');
+
+        // Обработваме зададените параметри
+        foreach ($allowedParams as $key) {
+            if (isset($params[$key])) {
+                $value = $params[$key];
+                if ($key === 'class') {
+                    $videoTag .= ' class="' . htmlspecialchars($value) . '"';
+                } elseif ($value === true) {
+                    $videoTag .= ' ' . $key;
+                } elseif (!is_bool($value)) {
+                    $videoTag .= ' ' . $key . '="' . htmlspecialchars($value) . '"';
+                }
+            }
+        }
+
+        // Затваряме началния таг
+        $videoTag .= '>';
+
+        // Добавяме source таг с подадения тип
+        $videoTag .= '<source src="' . htmlspecialchars($src) . '" type="' . htmlspecialchars($sourceType) . '">';
+
+        // Добавяме fallback текст
+        $videoTag .= 'Your browser does not support the video tag.';
+
+        // Затваряме видео тага
+        $videoTag .= '</video>';
+
+        return new core_ET($videoTag);
+    }
 }
