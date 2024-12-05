@@ -1535,13 +1535,13 @@ class core_Html
         $src = fileman_Download::getDownloadUrl($fileHnd);
         expect($src);
 
-        // Стартираме видео тага
+        // Стартиране на видео тага
         $videoTag = '<video';
 
         // Разрешени параметри за видео тага
         $allowedParams = array('controls', 'autoplay',  'loop', 'muted', 'poster', 'preload', 'width', 'height', 'class');
 
-        // Обработваме зададените параметри
+        // Обработване на зададените параметри
         foreach ($allowedParams as $key) {
             if (isset($params[$key])) {
                 $value = $params[$key];
@@ -1554,17 +1554,13 @@ class core_Html
                 }
             }
         }
-
-        // Затваряме началния таг
         $videoTag .= '>';
 
-        // Добавяме source таг с подадения тип
+        // Добавяне на source таг с подадения тип
         $videoTag .= '<source src="' . htmlspecialchars($src) . '" type="' . htmlspecialchars($sourceType) . '">';
 
-        // Добавяме fallback текст
-        $videoTag .= 'Your browser does not support the video tag.';
-
-        // Затваряме видео тага
+        // Добавяне на fallback текст
+        $videoTag .= tr('Браузърът не поддържа видео тага');
         $videoTag .= '</video>';
 
         return new core_ET($videoTag);
