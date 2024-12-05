@@ -164,19 +164,27 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $query->where("#state != 'rejected' ");
 
-        // Ако е посочена начална дата на период
-        if ($rec->start) {
-            $query->where("(#date IS NOT NULL AND #date >= '$rec->start') OR (#date IS NULL AND #createdOn >= '$rec->start')");
+        $dateWhere = "";
+        $createdOnWhere = (!empty($rec->start) || !empty($rec->to)) ? "#date IS NULL" : "";
+        if(!empty($rec->start)){
+            $dateWhere = "#date >= '{$rec->start}'";
+            $createdOnWhere .= (!empty($createdOnWhere) ? " AND " : "") . "#createdOn >= '{$rec->start}'";
         }
 
-        //Крайна дата / 'към дата'
-        $date = strtotime($rec->to);
-        if ($rec->to && date('H:i:s', $date) == '00:00:00') {
-            $date = date('Y:m:d 23:59:59', $date);
+        if(!empty($rec->to)){
+            $dateWhere .= (!empty($dateWhere) ? " AND " : "") . "#date <= '{$rec->to}'";
+            $date = str_replace('00:00:00', '23:59:59', $rec->to);
+            $createdOnWhere .= (!empty($createdOnWhere) ? " AND " : "") . "#createdOn <= '{$date}'";
+        }
 
-            $query->where("(#date IS NOT NULL AND #date <= '$date')OR (#date IS NULL AND #createdOn <= '$date')");
-        } else {
-            $query->where("(#date IS NOT NULL AND #date <= '$rec->to')OR (#date IS NULL AND #createdOn <= '$rec->to')");
+        if(!empty($createdOnWhere) && !empty($dateWhere)){
+            $query->useUnionAll = true;
+            $query->setUnion($dateWhere);
+            $query->setUnion($createdOnWhere);
+        } elseif(!empty($createdOnWhere)){
+            $query->where($createdOnWhere);
+        } elseif(!empty($dateWhere)){
+            $query->where($dateWhere);
         }
 
         //Филтър по център на дейност
@@ -203,7 +211,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $indTimeSumArr = array();
         $typesQuantities = (object)array(
-
             'total' => 'total',
             'production' => 0,
             'input' => 0,
@@ -211,7 +218,19 @@ class planning_reports_Workflows extends frame2_driver_TableData
             'quantitiesByMeasure' => array(),
         );
 
-        while ($tRec = $query->fetch()) {
+
+        $taskDetails = $query->fetchAll();
+        $taskIds = arr::extractValuesFromArray($taskDetails, 'taskId');
+
+        $taskArr = array();
+        if(countR($taskIds)){
+            $taskQuery = planning_Tasks::getQuery();
+            $taskQuery->in('id', $taskIds);
+            $taskQuery->show("id,containerId,saoOrder,measureId,folderId,quantityInPack,indTimeAllocation,labelPackagingId,indTime,indPackagingId,totalQuantity,originId");
+            $taskArr = $taskQuery->fetchAll();
+        }
+
+        foreach ($taskDetails as $tRec) {
             $id = self::breakdownBy($tRec, $rec);
 
             $labelQuantity = 1;
@@ -224,10 +243,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
 
             foreach ($counter as $val) {
-
-                $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
-
-                $iRec = $Task->fetch('id,containerId,saoOrder,measureId,folderId,quantityInPack,indTimeAllocation,labelPackagingId,indTime,indPackagingId,totalQuantity,originId');
+                $iRec = $taskArr[$tRec->taskId];
 
                 $quantity = $tRec->quantity;
                 $weight = round($tRec->weight, 3);
@@ -338,14 +354,11 @@ class planning_reports_Workflows extends frame2_driver_TableData
             if ($rec->resultsOn == 'users') {
                 $this->subGroupFieldOrder = 'taskId';
                 $this->groupByField = 'employees';
-
             }
 
             if ($rec->resultsOn == 'usersMachines') {
-
                 $this->subGroupFieldOrder = 'assetResources';
                 $this->groupByField = 'employees';
-
             }
 
             //Разпределяне по работници,или по машини
