@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,7 +38,7 @@ class cms_Domains extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, cms_Wrapper, plg_Created, plg_Current';
+    public $loadList = 'plg_RowTools2, cms_Wrapper, plg_Created, plg_Current, plg_State2';
     
     
     /**
@@ -104,7 +104,7 @@ class cms_Domains extends core_Embedder
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canChangestate = 'ceo, cms, admin';
+    public $canChangestate = 'admin';
     
     
     /**
@@ -140,7 +140,7 @@ class cms_Domains extends core_Embedder
     /**
      * Как се казва полето за записване на вътрешните данни
      */
-    public $innerStateField = 'state';
+    public $innerStateField = 'innerState';
     
     
     /**
@@ -159,8 +159,14 @@ class cms_Domains extends core_Embedder
      * Възможна ли е смяната на вече избран драйвер?
      */
     public $allowDriverChange = true;
-    
-    
+
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    public $singleLayoutFile = 'cms/tpl/SingleLayoutDomain.shtml';
+
+
     /**
      * Описание на модела
      */
@@ -182,8 +188,8 @@ class cms_Domains extends core_Embedder
         $this->FLD('form', 'blob(1000000, serialize, compress)', 'caption=Филтър,input=none,single=none,column=none');
         
         // Извлечените данни за отчета. "Снимка" на състоянието на източника.
-        $this->FLD('state', 'blob(1000000, serialize, compress)', 'caption=Данни,input=none,single=none,column=none');
-        
+        $this->FLD('innerState', 'blob(1000000, serialize, compress)', 'caption=Данни,input=none,single=none,column=none');
+
         // Споделяне
         $this->FLD('shared', 'userList(roles=cms|admin|ceo)', 'caption=Споделяне');
         
@@ -499,14 +505,6 @@ class cms_Domains extends core_Embedder
     
     
     /**
-     *  Обработки по вербалното представяне на данните
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-    }
-    
-    
-    /**
      * Функция, която се извиква след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)
@@ -584,7 +582,9 @@ class cms_Domains extends core_Embedder
         
         if ($action == 'select') {
             if(isset($rec)) {
-                if(!keylist::isIn($userId, $rec->shared)) {
+                if($rec->state == 'closed'){
+                    $requiredRoles = 'no_one';
+                } elseif(!keylist::isIn($userId, $rec->shared)) {
                     $requiredRoles = 'ceo,admin';
                 }
             }

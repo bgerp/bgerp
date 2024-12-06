@@ -623,6 +623,8 @@ class sales_Invoices extends deals_InvoiceMaster
                         }
                     }
                 }
+            } else {
+                unset($row->BANK_BLOCK_CLASS);
             }
 
             $displayRange = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));

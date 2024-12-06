@@ -2302,7 +2302,7 @@ class planning_Tasks extends core_Master
         $listTableMvc->FNC('taskWastePercent', 'int', 'tdClass=small quiet');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи,taskWastePercent=Отп., assetId=Оборудв.,info=@info');
+        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План.,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи,taskWastePercent=Отп., assetId=Оборудв.,info=@info');
         $fields['taskWastePercent'] = "|*<small class='quiet'>|Отп.|*</small>";
         if ($data->masterMvc instanceof planning_AssetResources) {
             unset($fields['assetId']);
@@ -3196,6 +3196,8 @@ class planning_Tasks extends core_Master
             $data->listTableMvc->FNC('dependantProgress', 'datetime');
             $data->listTableMvc->FNC('nextId', 'datetime');
             $data->listTableMvc->FNC('saleId', 'varchar');
+            $data->listTableMvc->FNC('jobQuantity', 'double', 'smartCenter');
+
             $data->listTableMvc->setField('notes', 'tdClass=notesCol');
             foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId') as $fld) {
                 $data->listTableMvc->setField($fld, "tdClass=reorderSmallCol");
@@ -3373,6 +3375,7 @@ class planning_Tasks extends core_Master
                 $jobTitle = planning_Jobs::getTitleById($jobRecs[$rec->originId]);
                 $singleJobUrl = toUrl(planning_Jobs::getSingleUrlArray($jobRecs[$rec->originId]));
                 $row->originId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleJobUrl, 'title' => $jobTitle), $jobTitle, true);
+                $row->jobQuantity = $quantityStr;
             } else {
                 $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
                 $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> ") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
@@ -4528,10 +4531,11 @@ class planning_Tasks extends core_Master
         unset($data->listFields['title']);
         unset($data->listFields['expectedTimeStart']);
         unset($data->listFields['expectedTimeEnd']);
+        unset($data->listFields['progress']);
         $data->listFields = array('dependantProgress' => 'Пред.',
                                   'prevExpectedTimeEnd' => 'Пред. край',
                                   'expectedTimeStart' => 'Тек. начало',
-                                  'title' => 'Текуща', 'expectedTimeEnd' => 'Тек. край', 'nextExpectedTimeStart' => 'След. начало', 'nextId' => 'Следв.', 'dueDate' => 'Падеж', 'originId' => 'Задание')
+                                  'title' => 'Текуща', 'progress' => 'Прогрес', 'expectedTimeEnd' => 'Тек. край', 'nextExpectedTimeStart' => 'След. начало', 'nextId' => 'Следв.', 'dueDate' => 'Падеж', 'originId' => 'Задание', 'jobQuantity' => tr('Тираж'))
          + $data->listFields;
     }
 

@@ -52,7 +52,8 @@ class core_Query extends core_FieldSet
      */
     private $usedFields = array();
     
-    
+
+
     /**
      * Масив, където съхраняваме WHERE и HAVE условията
      */
@@ -69,8 +70,14 @@ class core_Query extends core_FieldSet
      * Масив, където съхраняваме ORDER BY условията
      */
     public $orderBy = array();
-    
-    
+
+
+    /**
+     * Дали да се използва UNION ALL, вместо UNION, ако има заявки с UNION
+     */
+    public $useUnionAll = false;
+
+
     /**
      * Число, което показва колко най-много резултата да извлечем
      */
@@ -663,9 +670,10 @@ class core_Query extends core_FieldSet
                 $q->limit = null;
                 $q->start = null;
                 $q->where($cond);
-                
+
+                $unionStr = !$this->useUnionAll ? 'UNION' : "UNION ALL";
                 $string = ($count > 1) ? '(' . $q->buildQuery() . ')' : $q->buildQuery();
-                $query .= ($query ? "\nUNION\n" : '') . $string;
+                $query .= ($query ? "\n{$unionStr}\n" : '') . $string;
             }
             
             $query .= $this->getOrderBy(true);

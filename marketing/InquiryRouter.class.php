@@ -84,7 +84,7 @@ class marketing_InquiryRouter extends core_Manager
             if(!empty($value)){
                 $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Persons', $inCharge);
                 if ($folderId) {
-                    $explained = "Рутиране на лице по " . strtoupper($field);
+                    $explained = "Рутиране: лице по " . strtoupper($field);
 
                     return $folderId;
                 }
@@ -94,7 +94,7 @@ class marketing_InquiryRouter extends core_Manager
         // Ако има папка на лице с този имейл
         $folderId = marketing_Router::routeByPersonEmail($email, $uicId, $inCharge);
         if ($folderId) {
-            $explained = 'Рутиране на лице по личен имейл';
+            $explained = 'Рутиране: лице по личен имейл';
 
             return $folderId;
         }
@@ -102,7 +102,7 @@ class marketing_InquiryRouter extends core_Manager
         if(!empty($tel)){
             $folderId = marketing_Router::routeByPersonTel($tel, $uicId, true);
             if ($folderId) {
-                $explained = "Рутиране на лице по мобилен телефон";
+                $explained = "Рутиране: лице по мобилен телефон";
 
                 return $folderId;
             }
@@ -111,7 +111,7 @@ class marketing_InquiryRouter extends core_Manager
         // Опит за рутиране по БРИД
         $folderId = marketing_Router::routeByBrid($brid, 'crm_Persons', $vatId, $uicId);
         if ($folderId) {
-            $explained = "Рутиране на лице по БРИД в папка на лице";
+            $explained = "Рутиране: лице по БРИД в папка на лице";
 
             return $folderId;
         }
@@ -119,7 +119,7 @@ class marketing_InquiryRouter extends core_Manager
         // Форсиране на папка и запис във визитника на лице с посочените данни
         $folderId = marketing_Router::forcePersonFolder($personNames, $email, $countryId, $tel, $pCode, $place, $address, $vatId, $uicId, $inCharge);
         colab_FolderToPartners::force($folderId);
-        $explained = "Рутиране на лице към нова папка на лице";
+        $explained = "Рутиране: лице към нова папка на лице";
         
         return $folderId;
     }
@@ -165,7 +165,7 @@ class marketing_InquiryRouter extends core_Manager
                 if(!empty($value)){
                     $folderId = marketing_Router::routeByUniqueId($value, $field, 'crm_Companies', $inCharge);
                     if ($folderId) {
-                        $explained = "Рутиране на фирма по {$field}";
+                        $explained = "Рутиране: фирма по {$field}";
 
                         return $folderId;
                     }
@@ -175,7 +175,7 @@ class marketing_InquiryRouter extends core_Manager
             // Ако няма, създава се нова фирма с този уникален номер
             $folderId = marketing_Router::forceCompanyFolder($company, $email, $countryId, $tel, $pCode, $place, $address, $vatId, $uicId, $inCharge);
             colab_FolderToPartners::force($folderId);
-            $explained = 'Рутиране към нова папка на фирма според уникален номер';
+            $explained = 'Рутиране: нова папка на фирма според уникален номер';
 
             return $folderId;
         }
@@ -183,7 +183,7 @@ class marketing_InquiryRouter extends core_Manager
         // Намираме папка на компания с този имейл
         $folderId = marketing_Router::routeByCompanyEmail($email, $inCharge);
         if ($folderId) {
-            $explained = 'Рутиране на фирма по фирмен имейл';
+            $explained = 'Рутиране: фирма по фирмен имейл';
 
             return $folderId;
         }
@@ -191,7 +191,7 @@ class marketing_InquiryRouter extends core_Manager
         // Рутиране според имейла, взимаме папката ако корицата и е фирма
         $folderId = marketing_Router::routeByEmail($email, 'company');
         if ($folderId) {
-            $explained = 'Рутиране на фирма по имейл на фирма';
+            $explained = 'Рутиране: фирма по имейл на фирма';
 
             return $folderId;
         }
@@ -199,7 +199,7 @@ class marketing_InquiryRouter extends core_Manager
         // Рутираме в папка на фирма със същото име от същата държава
         $folderId = marketing_Router::routeByCompanyName($company, $countryId, $inCharge);
         if ($folderId) {
-            $explained = 'Рутиране на фирма по име на фирма';
+            $explained = 'Рутиране: фирма по име';
 
             return $folderId;
         }
@@ -207,7 +207,7 @@ class marketing_InquiryRouter extends core_Manager
         // Опит за рутиране по БРИД
         $folderId = marketing_Router::routeByBrid($brid, 'crm_Companies', $vatId, $uicId);
         if ($folderId) {
-            $explained = 'Рутиране на фирма по БРИД';
+            $explained = 'Рутиране: фирма по БРИД';
 
             return $folderId;
         }
@@ -215,7 +215,7 @@ class marketing_InquiryRouter extends core_Manager
         // Форсиране на папка и визитка на фирма с въведените данни
         $folderId = marketing_Router::forceCompanyFolder($company, $email, $countryId, $tel, $pCode, $place, $address, $vatId, $uicId, $inCharge);
         colab_FolderToPartners::force($folderId);
-        $explained = 'Рутиране на фирма към нова папка на фирма';
+        $explained = 'Рутиране: фирма към нова папка на фирма';
         
         return $folderId;
     }

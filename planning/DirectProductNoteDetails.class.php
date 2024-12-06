@@ -132,8 +132,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $rec = &$form->rec;
         $data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : (($rec->type == 'input') ? 'материал' : (($rec->type == 'subProduct') ? 'субпродукт' : 'отнесен разход'));
         $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : (($rec->type == 'input') ? 'canConvert' : ($rec->type == 'subProduct' ? 'canManifacture,canStore' : null));
-        $data->defaultNotHaveMeta = ($rec->type == 'subProduct') ? 'generic' : null;
-
         if(empty($rec->id)){
             $form->setFieldType('packQuantity', 'double(Min=0)');
         }
@@ -168,7 +166,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $form->rec->_isStorable = true;
                 $form->setField('storeId', 'input');
                 if (empty($rec->id) && isset($data->masterRec->inputStoreId)) {
-                    $form->setDefault('storeId', $data->masterRec->inputStoreId);
+                    $field = $rec->type == 'subProduct' ? 'storeId' : 'inputStoreId';
+                    $form->setDefault('storeId', $data->masterRec->{$field});
                 }
 
                 $Cover = doc_Folders::getCover($prodRec->folderId);
@@ -218,7 +217,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
         } elseif ($rec->type == 'subProduct') {
             $form->setDefault('storeId', $data->masterRec->storeId);
-            $form->setField('storeId', 'caption=Засклаждане в,mandatory,placeholder=Изборете склад');
+            $form->setField('storeId', 'caption=Засклаждане в,mandatory,placeholder=Изберете склад');
         }
     }
     
@@ -258,8 +257,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 
                 // Ако добавяме отпадък, искаме да има себестойност
                 if (in_array($rec->type, array('pop', 'subProduct'))) {
+                    if($noteRec->productId == $rec->productId){
+                        $form->setError('productId', "Избраният артикул не може да е същия, като този който се произвежда с протокола");
+                    }
+
                     $selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
-                    
                     if (!isset($selfValue)) {
                         $error = $rec->type == 'pop' ? 'Отпадъкът няма себестойност' : 'Субпродуктът няма себестойност';
                         $form->setError('productId', $error);
@@ -415,10 +417,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         // Рендираме таблицата с вложените материали
         $data->listFields['productId'] = 'Вложени артикули|* ';
         $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
-        if($firstDoc->isInstanceOf('planning_Tasks')){
-            $firstDocRec = $firstDoc->fetch('isFinal,productId');
-            if($firstDocRec->isFinal == 'no') return new $tpl;
-        }
+        if($firstDoc->isInstanceOf('planning_Tasks')) return $tpl;
 
         $fieldset = clone $this;
         $fieldset->FNC('num', 'int');
@@ -447,18 +446,18 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
         $this->modifyRows($iData);
         $detailsInput = $table->get($iData->rows, $iData->listFields);
-        $tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
+        $tpl->append($detailsInput, 'INPUTED_PRODUCTS_TABLE');
         
         // Добавяне на бутон за нов материал
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
-            $tpl->append(ht::createBtn('Влагане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+            $tpl->append(ht::createBtn('Влагане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'INPUTED_PRODUCTS_TABLE');
         }
         if ($this->haveRightFor('import', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
-            $tpl->append(ht::createBtn('Импортиране', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+            $tpl->append(ht::createBtn('Импортиране', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Добавяне на нов материал')), 'INPUTED_PRODUCTS_TABLE');
         }
 
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'allocated'))) {
-            $tpl->append(ht::createBtn('Разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/money.png', 'title' => 'Влагане на отнесен разход')), 'planning_DirectProductNoteDetails');
+            $tpl->append(ht::createBtn('Разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/money.png', 'title' => 'Влагане на отнесен разход')), 'INPUTED_PRODUCTS_TABLE');
         }
 
         if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'pop', '_filterFldNot' => true))){
@@ -496,13 +495,14 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
                 $popTable = $table->get($pData->rows, $pData->listFields);
                 $detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);
-                $tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
+                $placeholder = $type == 'subProduct' ? 'SUB_PRODUCTS_TABLE' : 'WASTE_PRODUCTS_TABLE';
+                $tpl->append($detailsPop, $placeholder);
 
                 // Добавяне на бутон за нов отпадък
                 if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'pop'))) {
                     $btnTitle = ($type == 'pop') ? 'Отпадък' : 'Субпродукт';
                     $icon = ($type == 'pop') ? 'recycle.png' : 'door_in.png';
-                    $tpl->append(ht::createBtn($btnTitle, array($this, 'add', 'noteId' => $data->masterId, 'type' => $type, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => "img/16/{$icon}", 'title' => "Добавяне на нов " . mb_strtolower($btnTitle))), 'planning_DirectProductNoteDetails');
+                    $tpl->append(ht::createBtn($btnTitle, array($this, 'add', 'noteId' => $data->masterId, 'type' => $type, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => "img/16/{$icon}", 'title' => "Добавяне на нов " . mb_strtolower($btnTitle))), $placeholder);
                 }
             }
         }

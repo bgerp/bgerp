@@ -62,7 +62,7 @@ class acc_plg_Registry extends core_Plugin
                         if (acc_Items::force($mvc->getClassId(), $rec->id, $listId)) {
                             $added = true;
                             if($mvc->addToListOnActivation == 'costObjects'){
-
+                                $mvc->logWrite("Автоматично става разходен обект", $rec->id);
                                 $mvc->invoke('AfterForceAsExpenseItem', array($rec));
                             }
                         }

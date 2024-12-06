@@ -41,7 +41,7 @@ class plg_Current extends core_Plugin
             $rec = null;
             $query = $mvc->getQuery();
             if($mvc->getField('state', false)){
-                $query->where("#state != 'rejected' || #state != 'closed' || #state IS NULL");
+                $query->where("#state NOT IN ('closed', 'rejected')");
             }
 
             $query->limit(2);

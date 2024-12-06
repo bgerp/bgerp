@@ -2484,48 +2484,10 @@ div.alphabet.twoRows {
         border-right: 1px solid #bbbbbb; }
   .single-thread .document .docStatistic div.alphabet .detail-info {
     border: none !important; }
-  .single-thread .document .docStatistic div.alphabet div.tab-row .tab {
-    font-size: 0.8em;
-    font-family: arial;
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
-    box-shadow: none;
-    display: inline;
-    margin: 1px -11px -1px 10px;
-    float: left;
-    background: #dddddd;
-    border: 1px solid #bbbbbb;
-    border-bottom: 1px solid #0066ff;
-    color: #999999;
-    z-index: 1;
-    white-space: nowrap;
+  .single-thread .document .docStatistic div.alphabet div.tab-row {
+    padding-left: 10px;
     position: relative;
-    padding: 0 !important;
-    -moz-border-radius: 5px 5px 0 0;
-    -webkit-border-radius: 5px 5px 0 0;
-    border-radius: 5px 5px 0 0; }
-    .single-thread .document .docStatistic div.alphabet div.tab-row .tab a {
-      display: inline-block;
-      color: #004488;
-      padding: 4px 5px 4px 5px !important;
-      -moz-border-radius: 5px 5px 0 0;
-      -webkit-border-radius: 5px 5px 0 0;
-      border-radius: 5px 5px 0 0; }
-    .single-thread .document .docStatistic div.alphabet div.tab-row .tab span {
-      display: inline-block;
-      padding: 4px 5px 4px 5px !important; }
-    .single-thread .document .docStatistic div.alphabet div.tab-row .tab:hover a {
-      background-color: #ffffcc !important;
-      color: #004488 !important; }
-    .single-thread .document .docStatistic div.alphabet div.tab-row .tab:hover span {
-      background-color: #dddddd !important; }
-    .single-thread .document .docStatistic div.alphabet div.tab-row .tab.selected {
-      margin: 1px -11px -1px 10px;
-      background: #fefec2 !important;
-      z-index: 3;
-      padding: 0 0 1px !important;
-      top: 0;
-      font-weight: bold; }
+    top: 1px; }
 
 .thread-opened div.alphabet .tab.selected {
   background-color: #e0ffe0 !important; }

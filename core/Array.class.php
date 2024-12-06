@@ -761,6 +761,11 @@ class core_Array
      */
     public static function isOptionsTotalLenBellowAllowed($options, $allowedLen = null)
     {
+        if (!isset($options)) {
+
+            return false;
+        }
+
         $allowedLen = $allowed ?? bgerp_Setup::get('VERTICAL_FORM_DEFAULT_MAX_RADIO_LENGTH');
 
         $count = $totalLen = 0;

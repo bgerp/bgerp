@@ -1096,7 +1096,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->_groupedDate = dt::mysql2verbal($rec->_groupedDate, 'd/m/y l');
         if(empty($taskRec->prevAssetId)){
             unset($row->fixedAsset);
-        } else {
+        } elseif(!empty($rec->fixedAsset)) {
             $row->fixedAsset = planning_AssetResources::getShortName($rec->fixedAsset, !Mode::isReadOnly());
         }
 
