@@ -81,7 +81,15 @@ class itis_Devices extends core_Master
      */
     public $backupMaxRows = 500000;
     
+
+    /**
+     * Дефолтен шаблон за единичен изглед
+     */
+    public $singleLayoutStr = "\n<div class='singleView'>[#SingleToolbar#]<br><div class='{{class}}'><h2>[#SingleTitle#]</h2>" .
+            "<div><div style='float:right;margin-left:20px;'>[#picture#]</div>\n<table class='listTable' style='border:none;'>{{fieldsHtml}}\n</table>\n</div>" .
+            '<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div></div>';
     
+
     /**
      * Кои полета да определят рзличността при backup
      */
@@ -234,6 +242,12 @@ class itis_Devices extends core_Master
                 $title = 'Премахни филтъра';
             }
             $row->{$name} .= " <a href='{$url}' title='{$title}' style='font-size:0.9em;'>{$sign}</a>";
+        }
+
+        if($rec->groupId) {
+            $gRec = itis_Groups::fetch($rec->groupId);
+            $img = new thumb_Img($gRec->image, 450, 450, 'fileman');
+            $row->picture = $img->createImg();
         }
     }
 
