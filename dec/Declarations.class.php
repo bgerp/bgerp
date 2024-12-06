@@ -427,8 +427,12 @@ class dec_Declarations extends core_Master
             if ($addressContragent && !empty($recOrigin->contragentAddress)) {
                 $addressContragent .= ', ' . $recOrigin->contragentAddress;
             }
-            $row->contragentCompany = cls::get($recOrigin->contragentClassId)->getTitleById($recOrigin->contragentId);
-            $row->contragentCompany = transliterate(tr($row->contragentCompany));
+
+            if(isset($recOrigin->displayContragentClassId) && isset($recOrigin->displayContragentId)){
+                $row->contragentCompany = cls::get($recOrigin->displayContragentClassId)->getTitleById($recOrigin->displayContragentId);
+            } else {
+                $row->contragentCompany = cls::get($recOrigin->contragentClassId)->getTitleById($recOrigin->contragentId);
+            }
 
             $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
             $row->contragentCountry = drdata_Countries::getVerbal($recOrigin->contragentCountryId, $fld);
