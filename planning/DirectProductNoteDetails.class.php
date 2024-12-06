@@ -217,7 +217,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
         } elseif ($rec->type == 'subProduct') {
             $form->setDefault('storeId', $data->masterRec->storeId);
-            $form->setField('storeId', 'caption=Засклаждане в,mandatory,placeholder=Изборете склад');
+            $form->setField('storeId', 'caption=Засклаждане в,mandatory,placeholder=Изберете склад');
         }
     }
     
