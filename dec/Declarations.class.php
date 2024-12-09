@@ -276,7 +276,12 @@ class dec_Declarations extends core_Master
             $form->setDefault('statements', $defaultStatements);
             $form->setDefault('inv', $rec->id);
 
-            $locationOptions = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+            if(isset($rec->displayContragentClassId) && isset($rec->displayContragentId)){
+                $locationOptions = crm_Locations::getContragentOptions($rec->displayContragentClassId, $rec->displayContragentId);
+            } else {
+                $locationOptions = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+            }
+
             if(countR($locationOptions)){
                 $form->setOptions('locationId', $locationOptions);
                 $form->setDefault('locationId', $rec->deliveryPlaceId);
