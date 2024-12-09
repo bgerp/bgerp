@@ -524,7 +524,7 @@ class acc_Items extends core_Manager
     /**
      * Помощен метод за извличане на перо със зададени регистър и ключ в регистъра
      *
-     * @param int  $class
+     * @param mixed  $class
      * @param int  $objectId
      */
     public static function fetchItem($class, $objectId)
