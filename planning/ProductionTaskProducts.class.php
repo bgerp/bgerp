@@ -852,7 +852,8 @@ class planning_ProductionTaskProducts extends core_Detail
             $totalWastePercent = ($producedNetWeight) ? round($totalKg / $producedNetWeight, 2) : 1;
             $percentVerbal = core_Type::getByName('percent')->toVerbal($totalWastePercent);
             $percentVerbal = ($totalWastePercent >= 0.2) ? "<b class='red'>{$percentVerbal}</b>" : ($totalWastePercent >= 0.1 ? "<b style='color:darkorange'>{$percentVerbal}</b>" : $percentVerbal);
-            $res['total'] = (object)array('class' => 'wasteWeightPercent', 'productLink' => tr('Общ отпадък'), 'quantityVerbal' => $percentVerbal);
+П            $obj = (object)array('class' => 'wasteWeightPercent', 'productLink' => tr('Общ отпадък'), 'quantityVerbal' => $percentVerbal);
+            $res = array('total' => $obj) + $res;
         }
 
         return $res;

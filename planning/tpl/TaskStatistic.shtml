@@ -27,7 +27,7 @@
               <td class = 'nowrap'>[#totalQuantity#]</td>
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
               <td class = 'nowrap'>[#producedQuantity#]</td>
-              <td rowspan = '4' class='vtop' style='font-size:0.8em;text-align:left'>
+              <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
                   <div style='font-size: 1em;width:99%' class="state-[#jobState#] document-handler">
                       <div><span style='font-weight:normal'>|Задание|*</span>: [#originId#]</div>
                       <!--ET_BEGIN batch-->
@@ -53,9 +53,11 @@
     			</td>
            </tr>
            <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
-           <!--ET_BEGIN SUB_PRODUCT_BLOCK-->
+           <!--ET_BEGIN ADDITIONAL_BLOCK-->
+           [#ADDITIONAL_BLOCK#]
            <tr>
                <td colspan='4' style="padding: 1px 0px 0px 0px;">
+                   <!--ET_BEGIN SUB_PRODUCT_BLOCK-->
                    [#SUB_PRODUCT_BLOCK#]
                    <table class="wasteBlockInThread state-active">
                        <tr class="[#wasteClass#]">
@@ -70,12 +72,11 @@
                        </tr>
                        <!--ET_END SUB_PRODUCT_BLOCK_ROW-->
                    </table>
+
+                   <!--ET_END SUB_PRODUCT_BLOCK-->
                </td>
-           </tr>
-           <!--ET_END SUB_PRODUCT_BLOCK-->
-           <!--ET_BEGIN WASTE_BLOCK-->
-           <tr>
-               <td colspan='4' style="padding: 2px 0px 0px 0px;">
+               <td colspan="4" style="padding: 1px 0px 0px 0px;vertical-align: top !important;">
+                   <!--ET_BEGIN WASTE_BLOCK-->
                    [#WASTE_BLOCK#]
                    <table class="wasteBlockInThread">
                        [#WASTE_BLOCK_TABLE_ROW#]
@@ -83,12 +84,12 @@
                        [#WASTE_BLOCK_ROW#]
                        <tr class="[#wasteClass#] row-removed">
                            <td class="leftCol">[#wasteProducedProductId#]</td><td class="rightCol">[#wasteQuantity#]</td>
-                       </tr>
-                       <!--ET_END WASTE_BLOCK_ROW-->
+                           <!--ET_END WASTE_BLOCK_ROW-->
                    </table>
+                    <!--ET_END WASTE_BLOCK-->
                </td>
            </tr>
-           <!--ET_END WASTE_BLOCK-->
+           <!--ET_END ADDITIONAL_BLOCK-->
        </table>
     </div>
 </div>
