@@ -341,6 +341,7 @@ class acc_CostObjectDetail extends core_Manager
                     $newRows[$row1->stepId]['blAmount'] = $stepAmount;
                 }
 
+                $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
                 foreach ($newRows as $stepId => $stepData){
                     $stepName = $stepId ? ht::createLinkRef(doc_UnsortedFolderSteps::getSaoFullName($stepId), doc_UnsortedFolderSteps::getSingleUrlArray($stepId)) : 'Без етап';
                     $extraBtnTpl = new core_ET( " <a id='toggleCostBtn" . $stepId. "' href=\"javascript:toggleClass('collapse{$stepId}', 'toggleCostBtn{$stepId}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn" title="'. tr('Скриване/показване на подетапите') .'"> </div>');
@@ -349,8 +350,11 @@ class acc_CostObjectDetail extends core_Manager
                     foreach ($parents as $pId){
                         $class .= " collapse{$pId}";
                     }
-                    $stepBlAmount = core_Type::getByName('double(decimals=2)')->toVerbal( $stepData['blAmount']);
-                    $tpl->append("<tr class='costObjectCoverClassRow {$class}'><td colspan='6'class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #6e7894; color: #fff;'>{$stepName} <span>{$stepBlAmount}</span><div style='display:inline-block;float:right'>{$extraBtnTpl->getContent()}</div></td></tr>", 'ROWS');
+                    if(!empty($stepData['blAmount'])){
+                        $stepBlAmount = core_Type::getByName('double(decimals=2)')->toVerbal($stepData['blAmount']);
+                        $stepBlAmount = ": " . currency_Currencies::decorate($stepBlAmount, $baseCurrencyCode);
+                    }
+                    $tpl->append("<tr class='costObjectCoverClassRow {$class}'><td colspan='6' class='leftCol' style='padding:5px 10px;font-weight: bold; background-color: #6e7894; color: #fff;'>{$stepName}<span>{$stepBlAmount}</span><div style='display:inline-block;float:right'>{$extraBtnTpl->getContent()}</div></td></tr>", 'ROWS');
 
                     foreach ($stepData['rows'] as $row){
                         $row->ROW_CLASS = (empty($row->blAmount)) ? 'state-waiting' : 'state-active';
