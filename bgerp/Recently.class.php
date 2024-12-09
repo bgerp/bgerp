@@ -94,7 +94,7 @@ class bgerp_Recently extends core_Manager
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка, input=none');
         
-        $this->setDbUnique('userId, objectId, type');
+        $this->setDbUnique('objectId, userId, type');
         $this->setDbIndex('userId,last');
         $this->setDbIndex('threadId, userId');
     }
