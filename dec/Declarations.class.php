@@ -162,8 +162,10 @@ class dec_Declarations extends core_Master
         $this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory,remember');
         
         // допълнителен текст
-        $this->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки->Допълнения');
-        
+        $this->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележка');
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Допълнително->Локация');
+
+
         // поле събирателно за плейсхолдерите
         $this->FLD('formatParams', 'blob(serialize, compress)', 'caption=Параметри, title=Параметри за конвертиране на шаблона, input=none');
     }
@@ -273,6 +275,14 @@ class dec_Declarations extends core_Master
             $form->setSuggestions('productId', $productName);
             $form->setDefault('statements', $defaultStatements);
             $form->setDefault('inv', $rec->id);
+
+            $locationOptions = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+            if(countR($locationOptions)){
+                $form->setOptions('locationId', $locationOptions);
+                $form->setDefault('locationId', $rec->deliveryPlaceId);
+            } else {
+                $form->setReadOnly('locationId');
+            }
         }
 
         // слагаме Управители
