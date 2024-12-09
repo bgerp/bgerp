@@ -442,6 +442,17 @@ class planning_Tasks extends core_Master
                 $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
             }
         }
+
+        $subProductArr = planning_ProductionTaskProducts::getSubProductsArr($data->rec->threadId);
+        if(countR($subProductArr)){
+            foreach ($subProductArr as $subRow){
+                $cloneTpl = clone $tpl->getBlock('SUB_PRODUCT_BLOCK_ROW');
+                $cloneTpl->replace($subRow->productLink, 'subProductId');
+                $cloneTpl->replace($subRow->quantityVerbal, 'subProductQuantity');
+                $cloneTpl->removeBlocksAndPlaces();
+                $tpl->append($cloneTpl, 'SUB_BLOCK_TABLE_ROW');
+            }
+        }
     }
 
 
@@ -1624,7 +1635,8 @@ class planning_Tasks extends core_Master
                         $nRec->quantityInPack = $bRec->quantityInPack;
                         $nRec->plannedQuantity = $quantityP * $rec->plannedQuantity;
                         $nRec->productId = $bRec->resourceId;
-                        $nRec->type = ($bRec->type == 'pop') ? 'pop' : 'input';
+                        $nRec->type = ($bRec->type == 'pop') ? 'waste' : (($bRec->type == 'subProduct' ? 'production': 'input'));
+
                         $saveProducts[] = $nRec;
                     }
                 }

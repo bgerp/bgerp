@@ -309,15 +309,29 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
             //Извличане на счетоводна сметка и код на артикула
             $accItem = null;
+
+
             if ($pRec->bnavCode) {
+
+                $bnavCodeMarker = null;
 
                 //Проверяваме дали продулта е складируем или услуга
                 $const = ($pRec->canStore == 'yes') ? 'FSD_SALES' : 'FSD_SALES_SERVICES';
                 //todo
                 $accItem = core_Packs::getConfig('bnav')->$const;
-
+                $startPos = $endPos = false;
                 $startPos = strpos($pRec->bnavCode, '[') + 1;
                 $endPos = strpos($pRec->bnavCode, ']');
+
+                if (strpos($pRec->bnavCode, '[') === false && $endPos === false ){
+
+                    cat_Products::logErr("Некоректен bnavcode за артикул: $pRec->name");
+                    $url = toUrl(array('cat_Products', 'single', $pRec->id));
+                    $link = ht::createLink($pRec->name, $url);
+                    followRetUrl($url, "Некоректен bnavcode за артикул $link", 'error');
+                    $bnavCodeMarker = 1;
+                }
+
                 $subAccItem = substr($pRec->bnavCode, $startPos, $endPos - $startPos);
 
                 $charToFind = '&';
@@ -365,6 +379,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'state' => $invoices[$dRec->invoiceId]->state,
                     'brState' => $invoices[$dRec->invoiceId]->brState,
                     'detAmount' => $invoices[$dRec->invoiceId]->dpAmount / $currencyType,
+                    'bnavCodeMarker' => $bnavCodeMarker,
 
                 );
                 $id = $dRec->id;
@@ -405,7 +420,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
 
-
                 $recs[$id] = (object)array(
                     'invoice' => $invoices[$dRec->invoiceId],
                     'number' => $invoices[$dRec->invoiceId]->number,
@@ -419,6 +433,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'measure' => $measure,
                     'vat' => cat_Products::getVat($pRec->id, $invoices[$dRec->invoiceId]->date, $invoices[$dRec->invoiceId]->threadId) * 100,
                     'accText' => '',
+                    'bnavCodeMarker' => $bnavCodeMarker,
                 );
 
             }

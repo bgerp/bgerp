@@ -338,6 +338,10 @@ class planning_ProductionTaskProducts extends core_Detail
         }
 
         $row->modified = $mvc->getVerbal($rec, 'modifiedOn') . " " . tr('от') . " "  . crm_Profiles::createLink($rec->modifiedBy);
+        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if($rec->type == 'production' && $canStore == 'yes'){
+            $row->type = tr('Субпродукт');
+        }
     }
     
     
@@ -745,6 +749,43 @@ class planning_ProductionTaskProducts extends core_Detail
 
 
     /**
+     * Извлича информация за субпродуктите отчетени в нишката
+     *
+     * @param int $threadId               - ид на нишка
+     * @return array $res                 - масив с резултат за отпадъка
+     */
+    public static function getSubProductsArr($threadId)
+    {
+        $res = $tasks = array();
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if($firstDoc->isInstanceOf('planning_Jobs')){
+            $tasks = array_keys(planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped'));
+        } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
+            $tasks = array($firstDoc->that);
+        }
+        if(!countR($tasks)) return $res;
+
+        $dQuery = static::getQuery();
+        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+        $dQuery->where("#type = 'production' AND #plannedQuantity IS NOT NULL AND #canStore = 'yes'");
+        $dQuery->in('taskId', $tasks);
+        while($dRec = $dQuery->fetch()){
+            $key = "{$dRec->productId}|{$dRec->packagingId}";
+            if(!array_key_exists($key, $res)){
+                $res[$key] = (object)array('packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'productId' => $dRec->productId, 'productLink' => cat_Products::getHyperlink($dRec->productId));
+            }
+            $res[$key]->quantity += $dRec->totalQuantity;
+        }
+
+        foreach ($res as &$rec){
+            $rec->quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantity) . " " . cat_UoM::getSmartName($rec->packagingId, $rec->quantity);
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Извлича информация за отпадъка отчетен в нишката
      *
      * @param int $threadId               - ид на нишка
@@ -811,7 +852,8 @@ class planning_ProductionTaskProducts extends core_Detail
             $totalWastePercent = ($producedNetWeight) ? round($totalKg / $producedNetWeight, 2) : 1;
             $percentVerbal = core_Type::getByName('percent')->toVerbal($totalWastePercent);
             $percentVerbal = ($totalWastePercent >= 0.2) ? "<b class='red'>{$percentVerbal}</b>" : ($totalWastePercent >= 0.1 ? "<b style='color:darkorange'>{$percentVerbal}</b>" : $percentVerbal);
-            $res['total'] = (object)array('class' => 'wasteWeightPercent', 'productLink' => tr('Общ отпадък'), 'quantityVerbal' => $percentVerbal);
+П            $obj = (object)array('class' => 'wasteWeightPercent', 'productLink' => tr('Общ отпадък'), 'quantityVerbal' => $percentVerbal);
+            $res = array('total' => $obj) + $res;
         }
 
         return $res;
