@@ -304,21 +304,34 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         }
 
         foreach ($details as $dRec) {
-
             //река на артикула от детайла
             $pRec = cat_Products::fetch($dRec->productId);
 
             //Извличане на счетоводна сметка и код на артикула
             $accItem = null;
+
+
             if ($pRec->bnavCode) {
+
+                $bnavCodeMarker = null;
 
                 //Проверяваме дали продулта е складируем или услуга
                 $const = ($pRec->canStore == 'yes') ? 'FSD_SALES' : 'FSD_SALES_SERVICES';
                 //todo
                 $accItem = core_Packs::getConfig('bnav')->$const;
-
+                $startPos = $endPos = false;
                 $startPos = strpos($pRec->bnavCode, '[') + 1;
                 $endPos = strpos($pRec->bnavCode, ']');
+
+                if (strpos($pRec->bnavCode, '[') === false && $endPos === false ){
+
+                    cat_Products::logErr("Некоректен bnavcode за артикул: $pRec->name");
+                    $url = toUrl(array('cat_Products', 'single', $pRec->id));
+                    $link = ht::createLink($pRec->name, $url);
+                    followRetUrl($url, "Некоректен bnavcode за артикул $link", 'error');
+                    $bnavCodeMarker = 1;
+                }
+
                 $subAccItem = substr($pRec->bnavCode, $startPos, $endPos - $startPos);
 
                 $charToFind = '&';
@@ -366,6 +379,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'state' => $invoices[$dRec->invoiceId]->state,
                     'brState' => $invoices[$dRec->invoiceId]->brState,
                     'detAmount' => $invoices[$dRec->invoiceId]->dpAmount / $currencyType,
+                    'bnavCodeMarker' => $bnavCodeMarker,
 
                 );
                 $id = $dRec->id;
@@ -400,13 +414,11 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             }
             // $erpCode = $pRec->code ? $pRec->code : 'Art' . $pRec->id;
             //   $prodCode = $pRec->bnavCode ? $pRec->bnavCode : $erpCode;
-            $measure = cat_UoM::getShortName($pRec->measureId);
+            $measure = cat_UoM::getShortName($dRec->packagingId);
             $detAmount = $dRec->amount;
 
             // Запис в масива
-
             if (!array_key_exists($id, $recs)) {
-
 
                 $recs[$id] = (object)array(
                     'invoice' => $invoices[$dRec->invoiceId],
@@ -415,12 +427,13 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'prodCode' => $prodCode,
                     'group' => $group,
                     'quantity' => $dRec->quantity,
-                    'price' => $dRec->price / $currencyType,
+                    'price' => ($dRec->price * $dRec->quantityInPack) / $currencyType,
                     'detAmount' => $detAmount / $currencyType,
                     'vatAmount' => '',
                     'measure' => $measure,
                     'vat' => cat_Products::getVat($pRec->id, $invoices[$dRec->invoiceId]->date, $invoices[$dRec->invoiceId]->threadId) * 100,
                     'accText' => '',
+                    'bnavCodeMarker' => $bnavCodeMarker,
                 );
 
             }

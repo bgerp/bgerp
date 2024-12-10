@@ -223,12 +223,10 @@ class colab_Folders extends core_Manager
         $sharedQuery->EXT('state', 'doc_Folders', 'externalName=state,externalKey=folderId');
         $sharedQuery->EXT('title', 'doc_Folders', 'externalName=title,externalKey=folderId');
         $sharedQuery->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
-        
         $sharedQuery->where("#contractorId = {$cu}");
         $sharedQuery->where("#state != 'rejected'");
         $sharedQuery->show('folderId,title,coverClass');
-        $sharedQuery->groupBy('folderId');
-        
+
         // Подготовка на споделените папки
         while ($fRec = $sharedQuery->fetch()) {
             if (isset($interface) && !cls::haveInterface($interface, $fRec->coverClass)) continue;

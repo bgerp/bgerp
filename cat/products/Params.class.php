@@ -430,8 +430,9 @@ class cat_products_Params extends doc_Detail
         $query = self::getQuery();
         $query->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
         $query->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
+        $query->EXT('state', 'cat_Params', 'externalName=state,externalKey=paramId');
         $query->XPR('orderEx', 'varchar', 'COALESCE(#order, 999999)');
-        $query->where("#productId = {$data->masterId} AND #classId = {$data->masterClassId}");
+        $query->where("#productId = {$data->masterId} AND #classId = {$data->masterClassId} AND #state != 'rejected'");
         $query->orderBy('group,orderEx,id', 'ASC');
 
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
@@ -746,6 +747,8 @@ class cat_products_Params extends doc_Detail
             }
 
             $paramRec = cat_Params::fetch($pId);
+            if(in_array($paramRec->state, array('rejected', 'closed'))) continue;
+
             $name = cat_Params::getVerbal($paramRec, 'name');
             if(!empty($paramRec->group)){
                 $groupName = cat_Params::getVerbal($paramRec, 'group');

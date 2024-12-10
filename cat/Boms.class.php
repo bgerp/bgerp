@@ -1810,7 +1810,7 @@ class cat_Boms extends core_Master
                                   'wasteProductId' => ($dRec->wasteProductId) ? $dRec->wasteProductId : $pRec->planning_Steps_wasteProductId,
                                   'wasteStart' => ($dRec->wasteStart) ? $dRec->wasteStart : $pRec->planning_Steps_wasteStart,
                                   'wastePercent' => ($dRec->wastePercent) ? $dRec->wastePercent : $pRec->planning_Steps_wastePercent,
-                                  'products' => array('input' => array(), 'waste' => array()));
+                                  'products' => array('input' => array(), 'waste' => array(), 'production' => array()));
 
             $pQuery = cat_products_Params::getQuery();
             $pQuery->where("#classId = '{$Details->getClassId()}' AND #productId = {$dRec->id}");
@@ -1821,7 +1821,7 @@ class cat_Boms extends core_Master
 
             // Добавяме директните наследници на етапа като материали за влагане/отпадък
             $query2 = cat_BomDetails::getQuery();
-            $query2->where("#parentId = {$dRec->id} AND #type != 'subProduct'");
+            $query2->where("#parentId = {$dRec->id}");
             $query2->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
             $stageChildren = $query2->fetchAll();
 
@@ -1832,7 +1832,7 @@ class cat_Boms extends core_Master
                         $quantityS = 0;
                     }
 
-                    $place = ($cRec->type == 'pop') ? 'waste' : 'input';
+                    $place = ($cRec->type == 'pop') ? 'waste' : ($cRec->type == 'subProduct' ? 'production': 'input');
                     $obj->products[$place][] = array('productName' => cat_Products::getTitleById($cRec->resourceId), 'productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
                 }
             }

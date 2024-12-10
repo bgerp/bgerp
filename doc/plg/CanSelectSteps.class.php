@@ -112,29 +112,13 @@ class doc_plg_CanSelectSteps extends core_Plugin
 
 
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * Изпълнява се след закачане на детайлите
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterAttachDetails(core_Mvc $mvc, &$res, $details)
     {
-        if($fields['-single']){
-            if(isset($rec->steps)){
-
-                // Хубаво показване на вложените етапи
-                $verbalStepArr = array();
-                $stepArr = keylist::toArray($rec->steps);
-                foreach ($stepArr as $stepId){
-                    $verbalStepArr[$stepId] = cls::get('doc_UnsortedFolderSteps')->getSaoFullName($stepId);
-                    if(doc_UnsortedFolderSteps::haveRightFor('single', $stepId)){
-                        $verbalStepArr[$stepId] = ht::createLink($verbalStepArr[$stepId], doc_UnsortedFolderSteps::getSingleUrlArray($stepId));
-                    }
-                }
-                $row->steps = implode('<br> ', $verbalStepArr);
-            }
-        }
+        $details = arr::make($mvc->details);
+        $details['Steps'] = 'doc_UnsortedFolderSteps';
+        $mvc->details = $details;
     }
 
 
@@ -172,5 +156,14 @@ class doc_plg_CanSelectSteps extends core_Plugin
                 $threadQuery->where("1=2");
             }
         }
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        unset($row->steps);
     }
 }

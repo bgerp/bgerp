@@ -33,10 +33,16 @@ class itis_Changelog extends core_Detail
 
 
     /**
+     * Права за редактиране
+     */
+    public $canEdit = 'no_one';
+
+
+    /**
      * Права за запис
      */
-    public $canWrite = 'ceo,itis,admin';
-    
+    public $canDelete = 'no_one';
+
     
     /**
      * Права за четене

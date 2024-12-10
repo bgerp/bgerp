@@ -45,6 +45,14 @@ class core_Master extends core_Manager
      * Клас на горния таб
      */
     public $tabTopClass;
+
+    
+    /**
+     * Дефолтен шаблон за единичен изглед
+     */
+    public $singleLayoutStr = "\n<div class='singleView'>[#SingleToolbar#]<br><div class='{{class}}'><h2>[#SingleTitle#]</h2>" .
+            "\n<table class='listTable' style='border:none;'>{{fieldsHtml}}\n</table>\n" .
+            '<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div></div>';
     
     
     /**
@@ -584,9 +592,7 @@ class core_Master extends core_Manager
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
             
-            $layoutText = "\n<div class='singleView'>[#SingleToolbar#]<br><div class='{$class}'><h2>[#SingleTitle#]</h2>" .
-            "\n<table class='listTable' style='border:none;'>{$fieldsHtml}\n</table>\n" .
-            '<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div></div>';
+            $layoutText = str_replace(array('{{class}}', '{{fieldsHtml}}'), array($class, $fieldsHtml), $this->singleLayoutStr);
         }
         
         if (is_string($layoutText)) {
