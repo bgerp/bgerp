@@ -83,10 +83,8 @@ class batch_BatchesInDocuments extends core_Manager
         $this->FLD('isInstant', 'enum(no=Не,yes=Да)', 'caption=Моментно?,notNull,value=no');
 
         $this->setDbIndex('batch');
-        $this->setDbIndex('detailClassId,detailRecId');
-        $this->setDbIndex('productId');
         $this->setDbIndex('productId,batch');
-        $this->setDbIndex('detailClassId,detailRecId,productId,storeId');
+        $this->setDbIndex('detailRecId,detailClassId,productId,storeId');
         $this->setDbIndex('containerId');
     }
 

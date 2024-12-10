@@ -149,6 +149,8 @@ class acc_Balances extends core_Master
         $this->FLD('lastAlternationDocId', 'int', 'input=none,column=none,caption=Последно изменение->Документ ID');
         $this->FLD('lastCalculate', 'datetime(format=smartTime, defaultTime)', 'input=none,caption=Последно->Изчисляване');
         $this->FLD('lastCalculateChange', 'enum(yes,no)', 'input=none,caption=Последно->Нови ст-ти');
+        $this->setDbIndex('fromDate');
+        $this->setDbIndex('toDate');
     }
 
 

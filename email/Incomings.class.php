@@ -1299,6 +1299,11 @@ class email_Incomings extends core_Master
             return 'text';
         }
 
+        if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || Mode::is('text', 'plain')) {
+
+            return 'text';
+        }
+
         if ($showType = email_IncomingsShowTypes::getCurrentState($rec->id)) {
 
             return $showType;

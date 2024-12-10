@@ -95,7 +95,7 @@ class hclean_JSSanitizer extends core_Manager
      */
     public static function htmlToJsText($html)
     { 
-        $html = str_replace(array('<![if !supportLists]>', '<![endif]>'), '', $html);
+        $html = str_replace(array('<![if [0-9a-z\\!]>', '<![endif]>'), '', $html);
         $jsHtml = preg_replace(array("/\r?\n/", "/\//", "/\r/"), array('\\n', "\/", ""), addslashes($html));
         
         return $jsHtml;

@@ -68,11 +68,10 @@ class sens2_script_DefinedVars extends core_Detail
      * Ключ към матера
      */
     public $masterKey = 'scriptId';
-    
-    
-    public $currentTab = 'Променливи';
+
     
     public $listFields = '№,name,scope,value,modifiedOn=Модифициране';
+
     
     public $rowToolsField = '№';
     
@@ -208,7 +207,7 @@ class sens2_script_DefinedVars extends core_Detail
         
         $table = $me->dbTableName;
         
-        $query = "UPDATE `{$table}` SET `value` = {$value}, `modified_on` = '{$now}' WHERE `name` = '{$var}' AND";
+        $query = "UPDATE `{$table}` SET `value` = {$value}, `modified_on` = '{$now}' WHERE `name` = '{$var}' AND `value` <> {$value} AND";
         
         if ($rec->scope == 'global') {
             $query .= " `scope` = 'global'";

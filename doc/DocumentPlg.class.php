@@ -1435,7 +1435,7 @@ class doc_DocumentPlg extends core_Plugin
             acc_Items::force($mvc->getClassId(), $rec->id, $listId);
             
             // Създаване на празен запис в кеш таблицата за разходите
-            $mvc->logInAct('Документа става разходно перо', $rec);
+            $mvc->logInAct('Ръчно става разходен обект', $rec);
             $mvc->invoke('AfterForceAsExpenseItem', array($rec));
 
             if (!$res = getRetUrl()) {

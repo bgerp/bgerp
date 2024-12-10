@@ -133,6 +133,8 @@ class sens2_script_ActionSignal
         
         if (is_array($res)) {
             
+            sens2_script_Logs::add('setOut', $rec->scriptId, $rec->id, $rec->output, $value);
+
             return 'active';
         }
         
