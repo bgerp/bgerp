@@ -327,9 +327,9 @@ class accda_Da extends core_Master
                 }
             }
 
-            if ($rec->assetCode) {
+            if ($rec->assetCode && empty($rec->__isBeingChanged)) {
                 if (planning_AssetResources::fetch(array("#code = '[#1#]'", $rec->assetCode))) {
-                    $form->setError('assetCode', 'Вече съществува запис със същите данни');
+                    $form->setError('assetCode', 'Вече ресурс с този код');
                 }
             }
         }
