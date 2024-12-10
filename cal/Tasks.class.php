@@ -1432,8 +1432,10 @@ class cal_Tasks extends embed_Manager
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent,autoFilter');
-        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи,closed=Приключени)', 'caption=Състояние,input,silent,autoFilter');
-        
+        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи+Събудени+Спрени+Заявка,closed=Приключени)', 'caption=Състояние,input,silent,autoFilter');
+        $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,silent,autoFilter,input');
+        $data->listFilter->setOptions('stepId', doc_UnsortedFolderSteps::getOptionArr());
+        $data->listFilter->input('folder', 'silent');
         $options = array();
         
         // Подготовка на полето за подредба
@@ -1445,9 +1447,10 @@ class cal_Tasks extends embed_Manager
         $options = array('' => '') + $options;
         
         $orderType->options = $options;
-        
         $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent', array('removeAndRefreshForm' => 'from|to|selectedUsers|Chart|View|stateTask'));
-        
+        $data->listFilter->FNC('resourceId', 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи,closed=Приключени)', 'caption=Състояние,input,silent,autoFilter');
+
+
         $data->listFilter->view = 'vertical';
         $data->listFilter->title = 'Задачи';
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
@@ -1477,7 +1480,7 @@ class cal_Tasks extends embed_Manager
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         if ($data->action === 'list') {
-            $data->listFilter->showFields .= ' ,search, from, to, selectedUsers, order, stateTask, ' . $mvc->driverClassField;
+            $data->listFilter->showFields .= ' ,search, from, to, selectedUsers, order, stateTask,assetResourceId,stepId,folder, ' . $mvc->driverClassField;
         } else {
             $data->listFilter->showFields = 'selectedUsers';
         }
@@ -1486,6 +1489,18 @@ class cal_Tasks extends embed_Manager
         // размяна на датите във филтъра
         $dateRange = array();
         $useDateRange = true;
+
+        if ($data->listFilter->rec->stepId) {
+            $data->query->where("#stepId = {$data->listFilter->rec->stepId}");
+        }
+
+        if ($data->listFilter->rec->assetResourceId) {
+            $data->query->where("#assetResourceId = {$data->listFilter->rec->assetResourceId}");
+        }
+
+        if ($data->listFilter->rec->folder) {
+            $data->query->where("#folderId = {$data->listFilter->rec->folder}");
+        }
 
         if ($data->listFilter->rec->from) {
             $dateRange[0] = $data->listFilter->rec->from;
