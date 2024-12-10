@@ -322,7 +322,7 @@ class accda_Da extends core_Master
         
         if ($form->isSubmitted()) {
             if ($rec->syncWithAsset == 'new') {
-                if(empty($rec->assetGroupId) || empty($rec->assetCode)) {
+                if(empty($rec->assetGroupId)) {
                     $form->setError('assetGroupId, assetCode', 'Непопълнено задължително поле');
                 }
             }
