@@ -196,10 +196,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         if(countR($textArr)){
             $fiscalArr['END_TEXT'] = implode(', ', $textArr);
         }
-
-        if($mvc instanceof cash_Pko){
-            wp('ПКО БЕЛЕЖКА', $fiscalArr, $registerRec, $rec, $Driver);
-        }
+        
         $Driver = cls::get($registerRec->driverClass);
         if (cls::haveInterface('peripheral_FiscPrinterWeb', $Driver)) {
             $interface = core_Cls::getInterface('peripheral_FiscPrinterWeb', $registerRec->driverClass);
