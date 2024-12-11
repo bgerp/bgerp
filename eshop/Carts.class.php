@@ -1305,12 +1305,12 @@ class eshop_Carts extends core_Master
             Mode::push('text', 'plain');
             $body->replace(self::getVerbal($rec, 'invoiceNames'), 'invoiceNames');
             if(!empty($rec->invoiceVatNo)){
-                $body->replace("[b]" . tr('ДДС №|*[/b]: ') . self::getVerbal($rec, 'invoiceVatNo'), 'invoiceVatNo');
+                $body->replace("[b]" . tr('ДДС №|*[/b]: [i]') . self::getVerbal($rec, 'invoiceVatNo') . "[/i]", 'invoiceVatNo');
             }
             
             if(!empty($rec->invoiceUicNo)){
                 $prefix = ($rec->makeInvoice == 'person') ? ("[b]" . tr('ЕГН|*[/b]: ')) : ("[b]" . tr('ЕИК|*[/b]: '));
-                $body->replace($prefix . self::getVerbal($rec, 'invoiceUicNo'), 'invoiceUicNo');
+                $body->replace($prefix . "[i]" . self::getVerbal($rec, 'invoiceUicNo') . "[/i]", 'invoiceUicNo');
             }
             
             $body->replace(self::getVerbal($rec, 'invoiceCountry'), 'invoiceCountry');

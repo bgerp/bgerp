@@ -10,11 +10,11 @@
 ● [b]Уточнения[/b]: [#INSTRUCTIONS#].<!--ET_END INSTRUCTIONS--><!--ET_BEGIN NO_INVOICE-->
 ● [b][#NO_INVOICE#][/b]<!--ET_END NO_INVOICE--><!--ET_BEGIN INVOICE_DATA-->
 [#INVOICE_DATA#]
-[b]Данни за фактуриране[/b]<!--ET_BEGIN invoiceNames-->
-● [b][#typeCaption#][/b]: [#invoiceNames#]<!--ET_END invoiceNames--><!--ET_BEGIN invoiceVatNo-->
-● [#invoiceVatNo#]<!--ET_END invoiceVatNo--><!--ET_BEGIN invoiceUicNo-->
-● [#invoiceUicNo#]<!--ET_END invoiceUicNo--><!--ET_BEGIN invoiceCountry-->
-● [b]Адрес[/b]: [#invoiceCountry#], <!--ET_END invoiceCountry--><!--ET_BEGIN invoicePCode-->[#invoicePCode#] <!--ET_END invoicePCode--><!--ET_BEGIN invoicePlace-->[#invoicePlace#], <!--ET_END invoicePlace--><!--ET_BEGIN invoiceAddress-->[#invoiceAddress#]<!--ET_END invoiceAddress-->.<!--ET_BEGIN REGISTER_LINK--><!--ET_END INVOICE_DATA-->
+[b]Данни за фактуриране[/b]:<!--ET_BEGIN invoiceNames-->
+● [b][#typeCaption#][/b]: [#invoiceNames#].<!--ET_END invoiceNames--><!--ET_BEGIN invoiceVatNo-->
+● [#invoiceVatNo#].<!--ET_END invoiceVatNo--><!--ET_BEGIN invoiceUicNo-->
+● [#invoiceUicNo#].<!--ET_END invoiceUicNo--><!--ET_BEGIN invoiceCountry-->
+● [b]Адрес[/b]: [#invoiceCountry#], <!--ET_END invoiceCountry--><!--ET_BEGIN invoicePCode-->[#invoicePCode#] <!--ET_END invoicePCode--><!--ET_BEGIN invoicePlace-->[#invoicePlace#], <!--ET_END invoicePlace--><!--ET_BEGIN invoiceAddress-->[#invoiceAddress#]<!--ET_END invoiceAddress-->.<!--ET_END INVOICE_DATA--><!--ET_BEGIN REGISTER_LINK-->
 
 🎉 [b]Специално за Вас![/b]
 За по-бързо и удобно пазаруване в бъдеще, регистрирайте се в нашия магазин, като използвате тази [#REGISTER_LINK#], [b]следващите 7 дни[/b].
