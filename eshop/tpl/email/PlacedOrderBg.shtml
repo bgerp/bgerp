@@ -10,7 +10,7 @@
 ● [b]Уточнения[/b]: [#INSTRUCTIONS#].<!--ET_END INSTRUCTIONS--><!--ET_BEGIN NO_INVOICE-->
 ● [b][#NO_INVOICE#][/b]<!--ET_END NO_INVOICE--><!--ET_BEGIN INVOICE_DATA-->
 [#INVOICE_DATA#]
-[b]Данни за фактуриране[/b]:<!--ET_BEGIN invoiceNames-->
+🏢 [b]Данни за фактуриране[/b]:<!--ET_BEGIN invoiceNames-->
 ● [b][#typeCaption#][/b]: [#invoiceNames#].<!--ET_END invoiceNames--><!--ET_BEGIN invoiceVatNo-->
 ● [#invoiceVatNo#].<!--ET_END invoiceVatNo--><!--ET_BEGIN invoiceUicNo-->
 ● [#invoiceUicNo#].<!--ET_END invoiceUicNo--><!--ET_BEGIN invoiceCountry-->
