@@ -285,14 +285,6 @@ class doc_UnsortedFolderSteps extends core_Master
         }
 
         $stepArr = array_keys(static::getOptionArr($steps));
-        $data->TabCaption = tr('Етапи') . "|* (" . countR($stepArr) . ")";
-
-        $Tab = Request::get('Tab');
-        if(!empty($Tab) && $Tab != 'Steps'){
-            $data->hide = true;
-            return;
-        }
-
         $driverClassId = ($data->masterMvc instanceof support_Systems) ? support_TaskType::getClassId() : cal_TaskType::getClassId();
         $icon = ($data->masterMvc instanceof support_Systems) ? 'img/16/support.png' : 'img/16/task-normal.png';
         $addHint = ($data->masterMvc instanceof support_Systems) ? 'Създаване на нов сигнал за етапа' : 'Създаване на нова задача за етапа';
@@ -303,9 +295,20 @@ class doc_UnsortedFolderSteps extends core_Master
         $tQuery->where(array("#state IN ('pending', 'active', 'waiting', 'wakeup', 'stopped') AND #folderId = '[#1#]'", $masterRec->folderId));
         $tQuery->where("#stepId IS NOT NULL AND #driverClass = {$driverClassId}");
         $tQuery->in('stepId', $stepArr);
-
+        $count = $tQuery->count();
         while($tRec = $tQuery->fetch()){
             $taskArr[$tRec->stepId][$tRec->id] = $tRec->id;
+        }
+
+        $data->TabCaption = tr('Етапи');
+        if($count){
+            $data->TabCaption .= "|* <span class='systemFlag normal_priority'>{$count}</span>";
+        }
+
+        $Tab = Request::get('Tab');
+        if(!empty($Tab) && $Tab != 'Steps'){
+            $data->hide = true;
+            return;
         }
 
         foreach ($stepArr as $stepId){
