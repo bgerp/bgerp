@@ -564,6 +564,17 @@ abstract class deals_ClosedDeals extends core_Master
                 $res = 'no_one';
             }
         }
+
+        // Ако приключващия документ е неактивна сделка - да не може да се оттегля/възстановява
+        if (in_array($action, array('reject', 'restore')) && isset($rec)) {
+            if(!empty($rec->closeWith)){
+                $Doc = cls::get($rec->docClassId);
+                $closedWithDocumentState = $Doc->fetchField($rec->closeWith, 'state');
+                if($closedWithDocumentState != 'active'){
+                    $res = 'no_one';
+                }
+            }
+        }
     }
     
     
