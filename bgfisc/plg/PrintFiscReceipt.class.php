@@ -283,7 +283,10 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             $vatClass = $Driver->getVatGroupCode(acc_VatGroups::getIdBySysId($vatSysId), $registerRec);
             
             $amount = round($amount, 2);
-            $arr = array('PLU_NAME' => cat_Products::getVerbal($dRec->productId, 'name'), 'QTY' => 1, 'PRICE' => $amount, 'VAT_CLASS' => $vatClass);
+            $name = cat_Products::getVerbal($dRec->productId, 'name');
+            $name = str_replace(array('&lt;', '&amp;'), array('<', '&'), $name);
+
+            $arr = array('PLU_NAME' => $name, 'QTY' => 1, 'PRICE' => $amount, 'VAT_CLASS' => $vatClass);
             $price = round($amount / $dRec->packQuantity, bgfisc_Setup::get('PRICE_FU_ROUND'));
             $arr['BEFORE_PLU_TEXT'] = "{$dRec->packQuantity} x {$price}лв";
             if (!empty($dRec->discount)) {
