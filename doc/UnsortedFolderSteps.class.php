@@ -300,7 +300,11 @@ class doc_UnsortedFolderSteps extends core_Master
             $taskArr[$tRec->stepId][$tRec->id] = $tRec->id;
         }
 
-        $data->TabCaption = tr('Етапи') . "|* <span class='systemFlag normal_priority'>{$count}</span>";
+        $data->TabCaption = tr('Етапи');
+        if($count){
+            $data->TabCaption .= "|* <span class='systemFlag normal_priority'>{$count}</span>";
+        }
+
         $Tab = Request::get('Tab');
         if(!empty($Tab) && $Tab != 'Steps'){
             $data->hide = true;
