@@ -1,10 +1,10 @@
 <div style="width: 100%;" class="flexBox">
-        <div class='blankImage'>
+        <div class='blankImage flexChild'>
             <!--ET_BEGIN blankImage-->
             [#blankImage#]
             <!--ET_END blankImage-->
         </div>
-        <div class='qrcode' style="padding-left: 3px;">
+        <div class='qrcode flexChild' style="padding-left: 3px;">
             <!--ET_BEGIN blankQr-->
             [#blankQr#]
             <!--ET_END blankQr-->
