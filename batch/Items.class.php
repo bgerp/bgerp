@@ -655,7 +655,7 @@ class batch_Items extends core_Master
         $query->EXT('bQuantity', 'batch_Items', 'externalName=quantity,externalKey=itemId');
     //    if(!$showMovementsWithClosedBatches){
             $query->where("#state = 'active' OR (#state = 'closed' AND #bQuantity != 0)");
-        }
+    //    }
         $query->show('batch,quantity,operation,date,docType,docId,productId');
         if(isset($productId)){
             $query->where("#productId = {$productId}");
