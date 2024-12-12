@@ -169,7 +169,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime,input=hidden,silent');
         $mvc->FLD('displayRate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime');
         $mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
-        $mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
+        $mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
         $mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
