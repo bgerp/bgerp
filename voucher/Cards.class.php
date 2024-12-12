@@ -169,7 +169,11 @@ class voucher_Cards extends core_Detail
 
         if($fields['-detail']){
             $row->_rowTools->removeBtn("del{$rec->id}");
-       }
+        }
+
+        if(empty($rec->validTo)){
+            $row->validTo = "<i class='quiet'>" . tr('Без срок'). "</i>";
+        }
     }
 
 

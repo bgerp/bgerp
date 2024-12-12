@@ -297,7 +297,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
         }
 
-        $allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior, null, array('store_InventoryNotes', $noteId), true, null, false, true);
+        $allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior, null, array('store_InventoryNotes', $noteId), true, null, false, 186);
         if(!countR($allBatches) && !countR($batchesInDetail)) return false;
         $allBatches[''] = $expectedQuantity - array_sum($allBatches);
 

@@ -483,7 +483,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if ($firstDoc->isInstanceOf('sales_Sales')) {
 
-            return $firstDoc->getContragentData($firstDoc->that);
+            return $firstDoc->getContragentData($date);
         }
     }
 

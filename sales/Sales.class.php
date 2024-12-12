@@ -2135,7 +2135,7 @@ class sales_Sales extends deals_DealMaster
      * @param datetime|int $id
      * @return object
      *
-     * @see doc_ContragentDataIntf
+     * @see doc_ContragentDataIntfstatic function getContragentData(
      */
     public static function getContragentData($id, $date = null)
     {
@@ -2147,7 +2147,7 @@ class sales_Sales extends deals_DealMaster
                     $Cover = doc_Folders::getCover($rec->folderId);
                     
                     if ($Cover->haveInterface('doc_ContragentDataIntf')) {
-                        $cData = $Cover->getContragentData($Cover->that);
+                        $cData = $Cover->getContragentData($date);
                         
                         if ($cData->company) {
                             $contrData->company = $cData->company;
