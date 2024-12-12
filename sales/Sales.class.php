@@ -352,7 +352,7 @@ class sales_Sales extends deals_DealMaster
     public function description()
     {
         parent::setDealFields($this);
-        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
+        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty,maxRadio=1)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Артикули->Цени,before=detailOrderBy,notChangeableByContractor');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId,silent');

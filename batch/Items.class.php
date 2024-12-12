@@ -641,12 +641,11 @@ class batch_Items extends core_Master
      * @param int|NULL      $limit     - лимит на резултатите
      * @param array         $except    - кой документ да се игнорира
      * @param string|null   $batch     - конкретна партида
-     * @param int|false $showClosedBatchesInLastDays - дали да се извличат движенията на заторените партиди занулени след подаденото време
-     *
+     * @param bool          $showMovementsWithClosedBatches - дали да са текущо активн
      * @return array $res - масив с партидите и к-та
      *               ['productId']['batch'] => ['quantity']
      */
-    public static function getProductsWithMovement($storeId = null, $productId = null, $date = null, $limit = null, $except = array(), $batch = null, $showClosedBatchesInLastDays = false)
+    public static function getProductsWithMovement($storeId = null, $productId = null, $date = null, $limit = null, $except = array(), $batch = null, $showMovementsWithClosedBatches = false)
     {
         // Намират се всички движения в посочения интервал за дадения артикул в подадения склад
         $query = batch_Movements::getQuery();
@@ -654,14 +653,10 @@ class batch_Items extends core_Master
         $query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
         $query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
         $query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
-        $query->EXT('nullifiedDate', 'batch_Items', 'externalName=nullifiedDate,externalKey=itemId');
-        if(is_numeric($showClosedBatchesInLastDays)){
-            $nullifiedAfter = dt::addDays(-1 * $showClosedBatchesInLastDays, $date);
-            $query->where("#state = 'active' OR (#state = 'closed' && #nullifiedDate >= '{$nullifiedAfter}')");
-        } else {
-            $query->where("#state != 'closed'");
+        $query->EXT('bQuantity', 'batch_Items', 'externalName=quantity,externalKey=itemId');
+        if(!$showMovementsWithClosedBatches){
+            $query->where("#state = 'active' OR (#state = 'closed' AND #bQuantity != 0)");
         }
-
         $query->show('batch,quantity,operation,date,docType,docId,productId');
         if(isset($productId)){
             $query->where("#productId = {$productId}");
@@ -722,19 +717,19 @@ class batch_Items extends core_Master
      * @param boolean       $onlyActiveBatches - дали да са само текущо активните партиди
      * @param string|null   $batch     - ид на склад
      * @param boolean       $onlyPositiveBatches - дали да са само положителните наличности
-     * @param int|false     $showClosedBatchesInLastDays - дали да се извличат движенията на заторените партиди занулени след подаденото време
+     * @param boolean       $showMovementsWithClosedBatches - дали да се извличат движенията на заторените партиди
      *
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false, $batch = null, $onlyPositiveBatches = false, $showClosedBatchesInLastDays = false)
+    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false, $batch = null, $onlyPositiveBatches = false, $showMovementsWithClosedBatches = false)
     {
         $res = array();
         $date = (isset($date)) ? $date : dt::today();
         $def = batch_Defs::getBatchDef($productId);
         if (!$def) return $res;
 
-        $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except, $batch, $showClosedBatchesInLastDays);
+        $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except, $batch, $showMovementsWithClosedBatches);
         $res = is_array($found[$productId]) ? $found[$productId] : array();
 
         // Добавяне и на партидите от активни документи в черновата на журнала
