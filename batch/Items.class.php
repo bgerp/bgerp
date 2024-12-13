@@ -654,8 +654,9 @@ class batch_Items extends core_Master
         $query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
         $query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
         $query->EXT('bQuantity', 'batch_Items', 'externalName=quantity,externalKey=itemId');
+        $query->XPR('bQuantityRounded', 'double', 'ROUND(#bQuantity, 3)');
         if($showMovementsWithClosedBatches){
-            $query->where("#state = 'active' OR (#state = 'closed' AND #bQuantity != 0)");
+            $query->where("#state = 'active' OR (#state = 'closed' AND #bQuantityRounded != 0)");
         } else {
             $query->where("#state != 'closed'");
         }
