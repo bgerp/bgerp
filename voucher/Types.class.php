@@ -68,7 +68,7 @@ class voucher_Types extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Група,count=Карти,referrer,priceListId,validTo=Валидност,state,createdOn,createdBy';
+    public $listFields = 'name=Група,count=Карти,referrer,priceListId,validTime=Валидност,state,createdOn,createdBy';
 
 
     /**
@@ -111,7 +111,7 @@ class voucher_Types extends core_Master
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика');
         $this->FLD('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Генериране на ваучери->За всяко лице в,input=hidden');
         $this->FNC('count', 'int', 'single=none');
-        $this->FLD('validTo', 'date', 'caption=Генериране на ваучери->Валидни до,input=none');
+        $this->FLD('validTime', 'time', 'caption=Генериране на ваучери->Валидност,input=none,unit=след активиране');
 
         $this->setdbUnique('name');
     }
@@ -134,7 +134,7 @@ class voucher_Types extends core_Master
         if(empty($rec->id)){
             $form->FLD('createCount', 'int(min=1)', 'caption=Генериране на ваучери->Брой,mandatory,after=priceListId');
             $form->setField('groupId', 'input');
-            $form->setField('validTo', 'input');
+            $form->setField('validTime', 'input');
         } else {
             if(voucher_Cards::count("#typeId = {$rec->id}")){
                 $form->setReadOnly('referrer');
@@ -150,12 +150,6 @@ class voucher_Types extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-
-            if(isset($rec->validTo)){
-                if($rec->validTo <= dt::today()){
-                    $form->setError('validTo', 'Трябва да е с бъдеща дата');
-                }
-            }
 
             if(!empty($rec->groupId) && !empty($rec->createCount)){
                 $personCount = crm_Persons::count("#state != 'rejected' AND LOCATE('|{$rec->groupId}|', #groupList)");
