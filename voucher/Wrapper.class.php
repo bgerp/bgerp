@@ -21,7 +21,7 @@ class voucher_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('voucher_Cards', 'Карти', 'ceo, voucher');
-        $this->TAB('voucher_Types', 'Типове', 'ceo, voucher');
+        $this->TAB('voucher_Cards', 'Ваучери', 'ceo, voucher');
+        $this->TAB('voucher_Types', 'Групи', 'ceo, voucher');
     }
 }
