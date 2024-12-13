@@ -1298,6 +1298,8 @@ class label_Prints extends core_Master
         
         // Премахваме незаместените плейсхолдери
         $allTpl->removePlaces();
+
+        $allTpl->push('label/css/Default.css', 'CSS');
         
         return $allTpl;
     }
