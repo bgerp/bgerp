@@ -86,7 +86,7 @@ class ibex_Sensor extends sens2_ProtoDriver
             if($iRec->kind == '00-24') continue;
             $prices[(int) $iRec->kind] = (float) $iRec->price;
         }
-$h = '04-05';
+
         asort($prices);
         $prices = array_keys($prices);
 
