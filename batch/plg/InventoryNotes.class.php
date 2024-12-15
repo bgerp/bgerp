@@ -58,7 +58,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $valior = dt::addDays(-1, $masterRec->valior);
             $valior = dt::verbal2mysql($valior, false);
             
-            $quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $valior, null, array(), true);
+            $quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $valior, null, array(), true, null, false, true);
             $selected = $Def->makeArray($rec->batch);
             if (!empty($rec->batch) && !array_key_exists($rec->batch, $quantities)) {
                 foreach ($selected as $k => $b) {
@@ -69,7 +69,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
 
             // Добавяне на поле за избор на съществуваща партида
-            $form->FNC('batchEx', 'varchar', 'caption=Партида');
+            $form->FNC('batchEx', 'varchar', 'caption=Партида,maxRadio=1');
             $autohide = countR($quantities) ? 'autohide' : '';
             $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
             $form->FNC('batchNew', 'varchar', "caption=Установена нова партида->{$caption},input,placeholder={$Def->placeholder}");

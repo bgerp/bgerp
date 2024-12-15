@@ -267,4 +267,116 @@ class doc_UnsortedFolderSteps extends core_Master
     {
         $res .= ' ' . plg_Search::normalizeText($mvc->getSaoFullName($rec));
     }
+
+
+    /**
+     * Поготовка на проектите като детайл на етапите
+     *
+     * @param stdClass $data
+     */
+    public function prepareSteps(&$data)
+    {
+        $data->recs = $data->rows = array();
+        $masterRec = $data->masterData->rec;
+        $steps = $masterRec->steps;
+        if(empty($steps)){
+            $data->hide = true;
+            return;
+        }
+
+        $stepArr = array_keys(static::getOptionArr($steps));
+        $driverClassId = ($data->masterMvc instanceof support_Systems) ? support_TaskType::getClassId() : cal_TaskType::getClassId();
+        $icon = ($data->masterMvc instanceof support_Systems) ? 'img/16/support.png' : 'img/16/task-normal.png';
+        $addHint = ($data->masterMvc instanceof support_Systems) ? 'Създаване на нов сигнал за етапа' : 'Създаване на нова задача за етапа';
+        $countHint = ($data->masterMvc instanceof support_Systems) ? 'Филтър на създадените сигнали' : 'Филтър на създадените задачи';
+
+        $taskArr = array();
+        $tQuery = cal_Tasks::getQuery();
+        $tQuery->where(array("#state IN ('pending', 'active', 'waiting', 'wakeup', 'stopped') AND #folderId = '[#1#]'", $masterRec->folderId));
+        $tQuery->where("#stepId IS NOT NULL AND #driverClass = {$driverClassId}");
+        $tQuery->in('stepId', $stepArr);
+        $count = $tQuery->count();
+        while($tRec = $tQuery->fetch()){
+            $taskArr[$tRec->stepId][$tRec->id] = $tRec->id;
+        }
+
+        $data->TabCaption = tr('Етапи');
+        if($count){
+            $data->TabCaption .= "|* <span class='systemFlag normal_priority'>{$count}</span>";
+        }
+
+        $Tab = Request::get('Tab');
+        if(!empty($Tab) && $Tab != 'Steps'){
+            $data->hide = true;
+            return;
+        }
+
+        foreach ($stepArr as $stepId){
+            $data->recs[$stepId] = (object)array('stepId' => $stepId, 'tasksCount' => null);
+            $row = (object)array('stepId' => $this->getSaoFullName($stepId), 'tasksCount' => null);
+            $row->ROW_ATTR['class'] = 'state-active';
+
+            if(doc_UnsortedFolderSteps::haveRightFor('single', $stepId)){
+                $row->stepId = ht::createLink($row->stepId, doc_UnsortedFolderSteps::getSingleUrlArray($stepId));
+            }
+            $countTasks = countR($taskArr[$stepId]);
+
+            // Бутон за създаване на нова задача
+            $addTaskBtn = '';
+            if (cal_Tasks::haveRightFor('add', array('folderId' => $masterRec->folderId, 'driverClass' => $driverClassId))) {
+                $addUrl = array('cal_Tasks', 'add', 'driverClass' => $driverClassId, 'folderId' => $masterRec->folderId, 'stepId' => $stepId);
+                $addTaskBtn = ht::createLink('', $addUrl, false, "ef_icon={$icon},title={$addHint}")->getContent();
+            }
+
+            // Бутон за линк към създадените операции
+            if($countTasks){
+                $row->tasksCount = core_Type::getByName('varchar')->toVerbal($countTasks);
+                if (cal_Tasks::haveRightFor('list')) {
+                    $listUrl = array('cal_Tasks', 'list', 'driverClass' => $driverClassId, 'stateTask' => 'actPend', 'folder' => $masterRec->folderId, 'stepId' => $stepId, 'selectPeriod' => 'gr0');
+                    $row->tasksCount = ht::createLink($row->tasksCount, $listUrl, false, "title={$countHint}");
+                }
+                $row->tasksCount = "<span class='systemFlag normal_priority'>{$row->tasksCount}</span>";
+            }
+
+            $row->tasksCount = $addTaskBtn . $row->tasksCount;
+            $data->rows[$stepId] = $row;
+        }
+
+        return $data;
+    }
+
+
+    /**
+     * Рендиране на проектите като детайл на етапите
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderSteps(&$data)
+    {
+        if($data->hide) return;
+
+        $tpl = new core_ET('');
+
+        // Рендиране на таблицата с оборудването
+        $taskCaption = ($data->masterMvc instanceof support_Systems) ? 'Сигнали' : 'Задачи';
+        $data->listFields = arr::make("stepId=Етап,tasksCount={$taskCaption}");
+
+        $listTableMvc = clone $this;
+        $listTableMvc->FNC('stepId', 'varchar','tdClass=leftCol');
+        $listTableMvc->FNC('tasksCount', 'varchar','tdClass=leftCol');
+        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
+        $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+
+        $tpl->append($table->get($data->rows, $data->listFields));
+        if ($data->Pager) {
+            $tpl->append($data->Pager->getHtml());
+        }
+
+        $resTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $resTpl->append($tpl, 'content');
+        $resTpl->append(tr("Етапи"), 'title');
+
+        return $resTpl;
+    }
 }

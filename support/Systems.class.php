@@ -557,14 +557,14 @@ class support_Systems extends core_Master
             $nameLink = ht::createLink($nameLink, $urlArr, null, array('ef_icon' => $detailInst->getIcon($id)));
 
             $row->name = '';
-
+            $row->btns = '';
             if (!$mvc->haveRightFor('single', $data->masterData->rec)) {
                 continue;
             }
 
             // Бутон за нов сигнал към съответния ресурс
             if (cal_Tasks::haveRightFor('add')) {
-                $row->name .= ht::createLink('', array($Tasks, 'add', $taskField => $supportTaskId, 'folderId' => $folderId, 'assetResourceId' => $id, 'ret_url' => true), $false, array('ef_icon' => 'img/16/support.png', 'title' => 'Създаване на сигнал'));
+                $row->btns .= ht::createLink('', array($Tasks, 'add', $taskField => $supportTaskId, 'folderId' => $folderId, 'assetResourceId' => $id, 'ret_url' => true), $false, array('ef_icon' => 'img/16/support.png', 'title' => 'Създаване на сигнал'));
             }
 
             if (support_Tasks::haveRightFor('list')) {
@@ -581,28 +581,27 @@ class support_Systems extends core_Master
             if ($assertResourceArr[$id] && $assertResourceArr[$id]['openedCnt']) {
                 $class = $assertResourceArr[$id]['priority'] . '_priority';
                 $opendCntLink = ht::createLink($assertResourceArr[$id]['openedCnt'], $listUrl, $false, array('title' => 'Разглеждане на сигналите'));
-                $row->name .= "<span class='systemFlag {$class}'>{$opendCntLink}</span>";
+                $row->btns .= "<span class='systemFlag {$class}'>{$opendCntLink}</span>";
             } else {
-                $row->name .= ht::createLink('', $listUrl, $false, array('ef_icon' => 'img/16/page_white_text.png', 'title' => 'Разглеждане на сигналите'));
+                $row->btns .= ht::createLink('', $listUrl, $false, array('ef_icon' => 'img/16/page_white_text.png', 'title' => 'Разглеждане на сигналите'));
             }
 
             // Времето на последната промяна
             if ($assertResourceArr[$id]['modifiedOn']) {
                 $row->modified = dt::mysql2verbal($assertResourceArr[$id]['modifiedOn'], 'smartTime');
-
                 $row->modified .= ' ' . tr('от') . ' ' . crm_Profiles::createLink($assertResourceArr[$id]['modifiedBy']);
             }
 
             $row->_modifiedOnOrder = $assertResourceArr[$id]['modifiedOn'];
-
             $row->name .= $nameLink;
         }
 
         core_Array::sortObjects($data->rows, '_modifiedOnOrder', 'desc');
-
         $data->listFields = arr::make($data->listFields);
         unset($data->listFields['code']);
         unset($data->listFields['created']);
         $data->listFields['modified'] = 'Последно';
+        $data->listTableMvc->FNC('btns', 'varchar', 'tdClass=leftCol');
+        arr::placeInAssocArray($data->listFields, array('btns' => 'Сигнали'), null, 'groupId');
     }
 }

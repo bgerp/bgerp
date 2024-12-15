@@ -78,7 +78,7 @@ class voucher_Cards extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'number,typeId,usedOn,objectId,referrer,createdOn,createdBy,state,validTo';
+    public $listFields = 'number,typeId,usedOn,objectId,referrer,createdOn,createdBy,activatedOn,state,validTo';
 
 
     /**
@@ -130,7 +130,8 @@ class voucher_Cards extends core_Detail
         $this->FLD('classId', 'class', 'caption=Обект,input=none');
         $this->FLD('objectId', 'int', 'caption=Употреба->Къде,input=none,tdClass=leftCol');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено,pending=Чакащо)', 'caption=Състояние,input=none');
-        $this->FLD('validTo', 'date', 'caption=Валиден до');
+        $this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated,input=none');
+        $this->FLD('validTo', 'datetime', 'caption=Валиден до');
 
         $this->setDbUnique('number');
         $this->setDbIndex('referrer');
@@ -169,7 +170,19 @@ class voucher_Cards extends core_Detail
 
         if($fields['-detail']){
             $row->_rowTools->removeBtn("del{$rec->id}");
-       }
+        }
+
+        if(empty($rec->validTo)){
+            $typeTime = voucher_Types::fetchField($rec->typeId, 'validTime');
+            if(empty($typeTime)){
+                $row->validTo = "<i class='quiet'>" . tr('Без срок'). "</i>";
+            } else {
+                if($rec->state == 'pending'){
+                    $timeVerbal = core_Type::getByName('time')->toVerbal($typeTime);
+                    $row->validTo = tr("|*<i class='quiet'>{$timeVerbal} |след акт.|*</i>");
+                }
+            }
+        }
     }
 
 
@@ -254,7 +267,7 @@ class voucher_Cards extends core_Detail
         }
 
         if($action == 'changestate' && isset($rec)) {
-            if(!empty($rec->validTo) && $rec->validTo <= dt::today()){
+            if(!empty($rec->validTo) && $rec->validTo <= dt::now()){
                 $requiredRoles = 'no_one';
             }
         }
@@ -274,7 +287,11 @@ class voucher_Cards extends core_Detail
         $typeRec = voucher_Types::fetch($rec->typeId);
         $rec->referrer = null;
         $rec->state = ($typeRec->referrer == 'yes') ? 'pending' : 'active';
-        static::save($rec, 'referrer,state');
+        if($rec->state == 'pending'){
+            unset($rec->activatedOn);
+            unset($rec->validTo);
+        }
+        static::save($rec, 'referrer,state,validTo,activatedOn');
 
         followRetUrl(null, 'Ваучерът е отвързан от собственика|*!');
     }
@@ -304,6 +321,7 @@ class voucher_Cards extends core_Detail
             $errors = $okVouchers = array();
             $valueArr = preg_split('/[^0-9]+/', $rec->text);
 
+            $now = dt::now();
             foreach ($valueArr as $v){
                 $res = static::getByNumber($v);
 
@@ -319,7 +337,10 @@ class voucher_Cards extends core_Detail
                         } elseif($res['referrer']) {
                             $errors[] = "Ваучерът е вече свързан|*: <b>{$v}</b>";
                         } else {
-                            $updateRec = (object)array('id' => $res['id'], 'referrer' => $referrerRec->id, 'state' => 'active');
+                            $updateRec = (object)array('id' => $res['id'], 'referrer' => $referrerRec->id, 'state' => 'active', 'activatedOn' => $now);
+                            if(!empty($res['validTime'])){
+                                $updateRec->validTo = dt::addSecs($res['validTime'], $updateRec->activatedOn);
+                            }
                             $okVouchers[$res['id']] = $updateRec;
                         }
                     }
@@ -333,7 +354,7 @@ class voucher_Cards extends core_Detail
 
             if(!$form->gotErrors()){
                 $count = countR($okVouchers);
-                $this->saveArray($okVouchers, 'id,referrer,state');
+                $this->saveArray($okVouchers, 'id,referrer,state,validTo,activatedOn');
 
                 followRetUrl(null, "Свързани ваучери|*: {$count}");
             }
@@ -367,8 +388,8 @@ class voucher_Cards extends core_Detail
 
         if(is_object($rec)){
             $res['id'] = $rec->id;
-            $res['lifetime'] = $rec->lifetime;
             $res['typeId'] = $rec->typeId;
+            $res['validTime'] = voucher_Types::fetchField($rec->typeId, 'validTime');
             $res['referrer'] = $rec->referrer;
             if($rec->state == 'pending'){
                 $res['error'] = 'Ваучерът още не е активиран|*!';
@@ -445,7 +466,7 @@ class voucher_Cards extends core_Detail
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 10));
 
         $query = $this->getQuery();
-        $data->listFields = arr::make('number=Номер,typeId=Вид,usedOn=Употреба,state=Състояние', true);
+        $data->listFields = arr::make('number=Номер,typeId=Вид,activatedOn=Активиране,usedOn=Употреба,state=Състояние', true);
         $query->where("#referrer = '{$masterRec->id}'");
         $query->EXT('haveReferrer', 'voucher_Types', "externalName=referrer,externalKey=typeId");
 
@@ -623,6 +644,7 @@ class voucher_Cards extends core_Detail
             $personIds = arr::extractValuesFromArray($personQuery->fetchAll(), 'id');
         }
 
+        $now = dt::now();
         foreach ($personIds as $personId){
 
             // Генериране на уникални номера за ваучерите
@@ -635,7 +657,12 @@ class voucher_Cards extends core_Detail
                     $c->number = self::getNumber();
                 }
                 $c->state = !empty($c->referrer) ? 'active' : ($typeRec->referrer == 'yes' ? 'pending' : 'active');
-                $c->validTo = $typeRec->validTo;
+                if($c->state == 'active'){
+                    $c->activatedOn = $now;
+                    if(!empty($typeRec->validTime)){
+                        $c->validTo = dt::addSecs($typeRec->validTime, $c->activatedOn);
+                    }
+                }
 
                 self::save($c);
             }
@@ -679,11 +706,11 @@ class voucher_Cards extends core_Detail
      */
     function cron_CloseExpiredVoucher()
     {
-        $today = dt::today();
+        $now = dt::now();
 
         $save = array();
         $query = static::getQuery();
-        $query->where("#validTo IS NOT NULL AND #validTo <= '{$today}'");
+        $query->where("#validTo IS NOT NULL AND #validTo <= '{$now}'");
         while($rec = $query->fetch()){
             $rec->state = 'closed';
             $save[$rec->id] = $rec;

@@ -274,7 +274,7 @@ class doc_ExpensesSummary extends core_Manager
      * @param mixed $itemRec     - запис или ид на перото
      * @param bool  $saveCount   - да се записвали бройката в модела
      *
-     * @return void
+     * @return array
      */
     public static function updateSummary($containerId, $itemRec, $saveCount = false)
     {
@@ -286,93 +286,107 @@ class doc_ExpensesSummary extends core_Manager
             $rec = (object) array('containerId' => $containerId);
             self::save($rec);
         }
-        
-        $res = $recs = $allocated = array();
-        
-        // Извличаме от журнала направените записи за разхода
+
+        $recs = $allocated = array();
+
+        // Извличане от журнала направените записи за разхода
         $entries = acc_Journal::getEntries($itemRec);
         $accId = acc_Accounts::getRecBySystemId('60201')->id;
-        
+
+        // Взимане ID-тата на системните сметки
         $sysIds = array('701', '703', '321', '60201');
         foreach ($sysIds as &$sysId) {
             $sysId = acc_Accounts::fetchField("#systemId = {$sysId}");
         }
-        
+
         if (is_array($entries)) {
             foreach ($entries as $ent) {
                 $add = false;
-                
+                $side = '';
+                $type = '';
+
+                // Проверка дали записът е дебитен и към правилната сметка
                 if ($ent->debitItem1 == $itemRec->id && $ent->debitAccId == $accId) {
                     $add = true;
-                    $arr = &$recs;
                     $type = 'allocated';
                     $side = 'debit';
-                } elseif ($ent->creditItem1 == $itemRec->id && $ent->creditAccId == $accId) {
-                    $add = true;
-                    $arr = &$allocated;
-                    $side = 'credit';
-                    $type = 'corrected';
-                    if (!in_array($ent->debitAccId, $sysIds)) {
-                        continue;
+                }
+
+                // Проверка дали записът е кредитен и към правилната сметка
+                elseif ($ent->creditItem1 == $itemRec->id && $ent->creditAccId == $accId) {
+
+                    // Проверяване дали дебитната страна е от системните
+                    if (in_array($ent->debitAccId, $sysIds)) {
+                        $add = true;
+                        $type = 'corrected';
+                        $side = 'credit';
                     }
                 }
-                
-                // Извличане на нужните записи
-                if ($add === true) {
+
+                if ($add) {
+                    // Формиране индекс
                     $index = $ent->docType . '|' . $ent->docId . '|' . $ent->{"{$side}AccId"} . '|' . $ent->{"{$side}Item1"} . '|' . $ent->{"{$side}Item2"} . '|' . $ent->{"{$side}Item3"};
-                    $r = (object) array('docType' => $ent->docType,
+                    $quantityField = ($type == 'corrected') ? 'creditQuantity' : 'debitQuantity';
+
+                    $r = (object) array(
+                        'docType' => $ent->docType,
                         'docId' => $ent->docId,
-                        'accId' => $ent->{'debitAccId'},
-                        'item1Id' => $ent->{'debitItem1'},
-                        'item2Id' => $ent->{'debitItem2'},
-                        'item3Id' => $ent->{'debitItem3'},
+                        'accId' => $ent->{"{$side}AccId"},
+                        'item1Id' => $ent->{"{$side}Item1"},
+                        'item2Id' => $ent->{"{$side}Item2"},
+                        'item3Id' => $ent->{"{$side}Item3"},
                         'index' => $index,
                         'valior' => $ent->valior,
-                        'quantity' => ($type == 'corrected') ? $ent->{'creditQuantity'} : $ent->{'debitQuantity'},
+                        'quantity' => $ent->{$quantityField},
                         'type' => $type,
-                        'amount' => $ent->amount,);
-                    
-                    if (is_null($r->amount)) {
-                        $r->amount = 0;
+                        'amount' => $ent->amount ?? 0
+                    );
+
+                    // Записване според типа
+                    if ($type == 'allocated') {
+                        $recs[$index] = $r;
+                    } else {
+                        $allocated[$index] = $r;
                     }
-                    
-                    $arr[] = $r;
                 }
             }
         }
 
+        // Сортиране отнесените записи по 'valior'
         arr::sortObjects($recs, 'valior', 'ASC');
 
-        $rec->count =0;
         $notDistributed = $allocated;
+        $res = array();
+        $rec->count = 0;
 
-        // За всички отнесени разходи
-        foreach ($recs as $rec1) {
-            $index = $rec1->index;
+        foreach ($recs as $idx => $rec1) {
             $res[] = $rec1;
-            
-            // Отделяне на тези записи, които съдържат текущия маркер
-            $foundArr = array_filter($allocated, function ($e) use ($index) {
-                
-                return $e->index == $index;
-            });
 
-            // Ако има и коригиращи записи, добавят се след тях
-            if (countR($foundArr)) {
-                $foundClone = array();
-                // Преразпределяне на сумата спрямо тази, която е разпределена (не искаме усреднената сума)
-                foreach ($foundArr as &$f1) {
-                    $f2 = clone $f1;
-                    $f2->amount = ($rec1->quantity) ? $rec1->amount * $f1->quantity / $rec1->quantity : $rec1->amount * $f1->quantity;
-                    $foundClone[] = $f2;
+            // Проверяване дали има коригиращи записи за този индекс
+            if (isset($allocated[$idx])) {
+                // Има коригиращ запис със същия индекс
+                $f1 = clone $allocated[$idx];
+                // Предотвратяване делене на 0
+                if ($rec1->quantity != 0) {
+                    $f1->amount = $rec1->amount * $f1->quantity / $rec1->quantity;
+                } else {
+                    $f1->amount = 0;
                 }
-                
-                $notDistributed = array_diff_key($notDistributed, $foundClone);
-                $res = array_merge($res, $foundClone);
+
+                // Добавяне на коригиращия запис след отнесения
+                $res[] = $f1;
+
+                // Премахване от неразпределените
+                unset($notDistributed[$idx]);
+            }
+
+            // Преброяване на allocated
+            if ($rec1->type == 'allocated') {
+                $rec->count += ($rec1->quantity < 0) ? -1 : 1;
             }
         }
 
-        // Ако има останали неразпределени добавят се най-отдолу
+        // Ако има останали неразпределени записи
         if (countR($notDistributed)) {
             $res[] = (object) array('type' => 'allocated');
             foreach ($notDistributed as &$nRec) {
@@ -380,13 +394,6 @@ class doc_ExpensesSummary extends core_Manager
             }
             $res = array_merge($res, $notDistributed);
         }
-
-        $rec->count = 0;
-        array_walk($recs, function($r) use (&$rec) {
-            if($r->type == 'allocated'){
-                $rec->count += ($r->quantity < 0) ? -1 : 1;
-            }
-        });
 
         if ($saveCount === true) {
             

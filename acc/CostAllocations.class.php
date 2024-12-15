@@ -317,10 +317,13 @@ class acc_CostAllocations extends core_Manager
      * Проверява има ли проблем с избраното перо на разходния обект
      *
      * @param int $expenseItemId
-     * @param null|string $error
+     * @param string $allocationFilter
+     * @param mixed $mvc
+     * @param int $id
+     * @param string|null $error
      * @return bool
      */
-    public static function checkSelectedExpenseItem($expenseItemId, &$error)
+    public static function checkSelectedExpenseItem($expenseItemId, $allocationFilter, $mvc, $id, &$error)
     {
         $itemRec = acc_Items::fetch($expenseItemId);
         $Source = cls::get($itemRec->classId);
@@ -329,6 +332,23 @@ class acc_CostAllocations extends core_Manager
                 if($closedWithItemId = acc_Items::fetchItem($Source, $closedWithId)){
                     $newItemId = acc_Items::getVerbal($closedWithItemId, 'titleLink');
                     $error = "Сделката е затворена и е обединена с:|* {$newItemId}";
+
+                    return false;
+                }
+            }
+        }
+
+        if($allocationFilter == 'all' && isset($id)){
+            $mvc = cls::get($mvc);
+            if($mvc instanceof core_Detail){
+                $documentItemRec = acc_Items::fetchItem($mvc->Master, $mvc->fetchField($id, $mvc->masterKey));
+            } else {
+                $documentItemRec = acc_Items::fetchItem($mvc, $id);
+            }
+
+            if(isset($documentItemRec)){
+                if($documentItemRec->id == $expenseItemId){
+                    $error = "Ако с документа се разпределя разход върху същия документ, то не може да е върху всички артикули|*!";
 
                     return false;
                 }
@@ -352,7 +372,7 @@ class acc_CostAllocations extends core_Manager
 
         if (isset($rec->expenseItemId)) {
             $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
-            
+
             if (cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)) {
                 if (isset($rec->allocationBy) && !in_array($rec->allocationBy, array('auto', 'no'))) {
                     $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
@@ -360,12 +380,11 @@ class acc_CostAllocations extends core_Manager
                     acc_ValueCorrections::addProductsFromOriginToForm($form, $origin, $Detail->Master);
                 }
             }
-
         }
         
         if ($form->isSubmitted()) {
             $expenseItemError = null;
-            if(!static::checkSelectedExpenseItem($rec->expenseItemId, $expenseItemError)){
+            if(!static::checkSelectedExpenseItem($rec->expenseItemId, $rec->allocationFilter, $rec->detailClassId, $rec->detailRecId,$expenseItemError)){
                 $form->setError('expenseItemId', $expenseItemError);
             }
 
