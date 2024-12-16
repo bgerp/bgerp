@@ -656,8 +656,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     // $contragentsIdArr[$Cover->getClassId()][$Cover->that] = $Cover->that;
                 }
-
-                $contragentsArr = array_merge($contragentsArr, $contragentsInGroup);
+                if (is_array($contragentsInGroup) && is_array($contragentsArr)) {
+                    $contragentsArr = array_merge($contragentsArr, $contragentsInGroup);
+                }
 
                 // Премахване на дублиращите се двойки
                 $unique = [];
@@ -2206,6 +2207,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     public function canSendNotificationOnRefresh($rec)
     {
-     //   return true;
+        //   return true;
     }
 }
