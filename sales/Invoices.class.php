@@ -616,8 +616,12 @@ class sales_Invoices extends deals_InvoiceMaster
                     $row->bic = $Varchar->toVerbal($ownAcc->bic);
 
                     if(!Mode::isReadOnly() && core_Users::isPowerUser()){
-                        $accountInfo = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
-                        if($accountInfo->currencyId != currency_Currencies::getIdByCode($rec->currencyId)){
+                        $ownAccountId = bank_OwnAccounts::fetchField("#bankAccountId = {$ownAcc->id}");
+                        $ownAccountLink = bank_OwnAccounts::getSingleUrlArray($ownAccountId);
+                        if(countR($ownAccountLink)){
+                            $row->accountId = ht::createLink($row->accountId, $ownAccountLink);
+                        }
+                        if($ownAcc->currencyId != currency_Currencies::getIdByCode($rec->currencyId)){
                             $row->accountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->accountId}</span>";
                             $row->accountId = ht::createHint($row->accountId, 'Банковата сметка е във валута различна от тази на сделката|*!', 'warning');
                         }
