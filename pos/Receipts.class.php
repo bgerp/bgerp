@@ -727,7 +727,7 @@ class pos_Receipts extends core_Master
         }
 
         if ($action == 'setvoucher') {
-            if (!core_Packs::isInstalled('voucher')) {
+            if (!core_Packs::isInstalled('voucher') || (isset($rec) && $rec->state != 'draft')) {
                 $res = 'no_one';
             }
         }

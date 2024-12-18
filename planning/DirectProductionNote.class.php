@@ -1149,7 +1149,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $subtractAmount = 0;
             $dQuery = planning_DirectProductNoteDetails::getQuery();
-            $dQuery->where("#noteId = {$rec->id} AND #type IN ('waste', 'subProduct')");
+            $dQuery->where("#noteId = {$rec->id} AND #type IN ('pop', 'subProduct')");
             while($dRec = $dQuery->fetch()){
                 $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec->productId, null, $rec->valior);
                 $primeCost *= $dRec->quantity;

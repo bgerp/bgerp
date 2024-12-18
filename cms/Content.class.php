@@ -256,12 +256,6 @@ class cms_Content extends core_Manager
         
         if (is_array($data->items)) {
             foreach ($data->items as $rec) {
-                list($f, $s) = explode(' ', $rec->menu, 2);
-                
-                if (is_Numeric($f)) {
-                    $rec->menu = $s;
-                }
-                
                 $attr = array();
                 if (($cMenuId == $rec->id)) {
                     $attr['class'] = 'selected';

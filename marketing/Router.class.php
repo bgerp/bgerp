@@ -187,11 +187,12 @@ class marketing_Router extends core_Manager
      */
     public static function routeByEmail($email, $allowedCover)
     {
-        $folderId = email_Router::getEmailFolder($email);
-        if (empty($folderId)) {
-            
-            return;
+        $folderId = email_Router::route($email, null, email_Router::RuleFromTo);
+        if(empty($folderId)){
+            $folderId = email_Router::route($email, null, email_Router::RuleDomain);
         }
+
+        if (empty($folderId)) return;
         
         $coverClassId = doc_Folders::fetchCoverClassId($folderId);
         $personsClassId = crm_Persons::getClassId();

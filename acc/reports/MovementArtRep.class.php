@@ -141,7 +141,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $query->show('id,measureId,code,groups');
 
         if (isset($rec->group)) {
-            $query->likeKeylist('groups', $rec->group);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
         }
 
         $productArr = $query->fetchAll();

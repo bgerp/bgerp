@@ -166,7 +166,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $form->rec->_isStorable = true;
                 $form->setField('storeId', 'input');
                 if (empty($rec->id) && isset($data->masterRec->inputStoreId)) {
-                    $form->setDefault('storeId', $data->masterRec->inputStoreId);
+                    $field = $rec->type == 'subProduct' ? 'storeId' : 'inputStoreId';
+                    $form->setDefault('storeId', $data->masterRec->{$field});
                 }
 
                 $Cover = doc_Folders::getCover($prodRec->folderId);
@@ -216,7 +217,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
         } elseif ($rec->type == 'subProduct') {
             $form->setDefault('storeId', $data->masterRec->storeId);
-            $form->setField('storeId', 'caption=Засклаждане в,mandatory,placeholder=Изборете склад');
+            $form->setField('storeId', 'caption=Засклаждане в,mandatory,placeholder=Изберете склад');
         }
     }
     
@@ -416,10 +417,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         // Рендираме таблицата с вложените материали
         $data->listFields['productId'] = 'Вложени артикули|* ';
         $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
-        if($firstDoc->isInstanceOf('planning_Tasks')){
-            $firstDocRec = $firstDoc->fetch('isFinal,productId');
-            if($firstDocRec->isFinal == 'no') return new $tpl;
-        }
+        if($firstDoc->isInstanceOf('planning_Tasks')) return $tpl;
 
         $fieldset = clone $this;
         $fieldset->FNC('num', 'int');

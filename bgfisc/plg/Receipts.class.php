@@ -193,6 +193,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         while ($dRec = $query->fetch()) {
             $name = cat_Products::getVerbal($dRec->productId, 'name');
+            $name = str_replace(array('&lt;', '&amp;'), array('<', '&'), $name);
             if($settings->chargeVat == 'yes'){
                 $price = $dRec->price * (1 + $dRec->param);
             } else {

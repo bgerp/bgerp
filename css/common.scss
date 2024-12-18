@@ -2718,47 +2718,10 @@ div.alphabet.twoRows {
 	.detail-info {
 			border: none !important;
 	}
-	div.tab-row .tab {
-		font-size: 0.8em;
-		font-family: arial;
-		@include no-shadow();
-		display: inline;
-		margin: 1px -11px -1px 10px;
-		float: left;
-		background: $gray3;
-		border: 1px solid $gray4;
-		border-bottom: 1px solid #0066ff;
-		color: #999;
-		z-index: 1;
-		white-space: nowrap;
+	div.tab-row {
+		padding-left: 10px;
 		position: relative;
-		padding:0 !important;
-		@include border-radius4(5px, 5px, 0, 0);
-		a {
-			display: inline-block;
-			color: #048;
-			padding: 4px 5px 4px 5px !important;
-			@include border-radius4(5px, 5px, 0, 0);
-		}
-		span {
-			display: inline-block;
-			padding: 4px 5px 4px 5px !important;
-		}
-		&:hover a {
-			background-color: $beige !important;
-			color: #048 !important;
-		}
-		&:hover span {
-			background-color: $gray3 !important;
-		}
-		&.selected {
-			margin: 1px -11px -1px 10px;
-			background: $history-bg !important;
-			z-index: 3;
-			padding: 0 0 1px !important;
-			top: 0;
-			font-weight: bold;
-		}	
+		top: 1px;
 	}
 }
 

@@ -444,9 +444,11 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     if($dRec1->type == 'subProduct' && !empty($dRec1->storeId)){
                         $entry['debit'] = array('321', array('store_Stores', $dRec1->storeId), array('cat_Products', $dRec1->productId), 'quantity' => $dRec1->quantity);
                         $entry['reason'] = 'Засклаждане на субпродукт';
+                        $reason2 = 'Приспадане себестойността на субпродукт от произведен артикул';
                     } else {
                         $entry['debit'] = array('61101', array('cat_Products', $dRec1->productId), 'quantity' => $dRec1->quantity);
                         $entry['reason'] = 'Заприхождаване на отпадък в незавършеното производство';
+                        $reason2 = 'Приспадане себестойността на отпадък от произведен артикул';
                     }
                     $entry['credit'] = array('484');
 
@@ -464,7 +466,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         
                     $entry2['credit'] = array('484');
                         
-                    $entry2['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
+                    $entry2['reason'] = $reason2;
                     $entries[] = $entry2;
                 }
                     

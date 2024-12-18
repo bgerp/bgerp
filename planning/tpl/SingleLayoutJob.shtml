@@ -22,12 +22,6 @@
                     [#captionNotStored#] ([#measureId2#])
                 </td>
                 <!--ET_END captionNotStored-->
-                <!--ET_BEGIN captionWastes-->
-                <td class = 'sum-th'>
-                    [#captionWastes#]
-                    |Отпадък в операциите|*<!--ET_BEGIN WASTE_BLOCK_TOTAL_PERCENT-->: [#WASTE_BLOCK_TOTAL_PERCENT#]<!--ET_END WASTE_BLOCK_TOTAL_PERCENT-->
-                </td>
-                <!--ET_END captionWastes-->
             </tr>
             <tr>
                 <td class = 'nowrap'>
@@ -44,10 +38,18 @@
                 <!--ET_BEGIN quantityNotStored-->
                 <td class = 'nowrap'>[#quantityNotStored#]</td>
                 <!--ET_END quantityNotStored-->
-                <!--ET_BEGIN WASTES-->
-                <td class = 'nowrap'>
-                    [#WASTES#]
+            </tr>
+        </table>
+        <!--ET_BEGIN MISC-->
+        [#MISC#]
+        <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
+            <tr>
+                <td style="width:50%;padding:0px;vertical-align:top !important;">
                     <table class="wasteBlockInThread">
+                        <tr style="background-color:#e0e0e0;">
+                            <td class="leftCol" colspan="2">|Отпадъци|*</td>
+                        </tr>
+                        <!--ET_BEGIN WASTE_BLOCK_TABLE_ROW-->
                         [#WASTE_BLOCK_TABLE_ROW#]
                         <!--ET_BEGIN WASTE_BLOCK_ROW-->
                         [#WASTE_BLOCK_ROW#]
@@ -55,11 +57,28 @@
                             <td class="leftCol">[#wasteProducedProductId#]:</td><td class="rightCol">[#wasteQuantity#]</td>
                         </tr>
                         <!--ET_END WASTE_BLOCK_ROW-->
+                        <!--ET_END WASTE_BLOCK_TABLE_ROW-->
                     </table>
                 </td>
-                <!--ET_END WASTES-->
+                <td style="width:50%;padding:0px;vertical-align:top !important;">
+                    <table class="wasteBlockInThread">
+                        <tr style="background-color:#e0e0e0">
+                            <td class="leftCol" colspan="2">|Субпродукти|*</td>
+                        </tr>
+                        <!--ET_BEGIN SUB_BLOCK_TABLE_ROW-->
+                        [#SUB_BLOCK_TABLE_ROW#]
+                        <!--ET_BEGIN SUB_PRODUCT_BLOCK_ROW-->
+                        [#SUB_PRODUCT_BLOCK_ROW#]
+                        <tr>
+                            <td class="leftCol">[#subProductId#]:</td><td class="rightCol">[#subProductQuantity#]</td>
+                        </tr>
+                        <!--ET_END SUB_PRODUCT_BLOCK_ROW-->
+                        <!--ET_END SUB_BLOCK_TABLE_ROW-->
+                    </table>
+                </td>
             </tr>
         </table>
+        <!--ET_END MISC-->
     </div>
 </div>
 <div class='scrolling-holder'>

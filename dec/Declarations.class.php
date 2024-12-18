@@ -276,7 +276,12 @@ class dec_Declarations extends core_Master
             $form->setDefault('statements', $defaultStatements);
             $form->setDefault('inv', $rec->id);
 
-            $locationOptions = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+            if(isset($rec->displayContragentClassId) && isset($rec->displayContragentId)){
+                $locationOptions = crm_Locations::getContragentOptions($rec->displayContragentClassId, $rec->displayContragentId);
+            } else {
+                $locationOptions = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+            }
+
             if(countR($locationOptions)){
                 $form->setOptions('locationId', $locationOptions);
                 $form->setDefault('locationId', $rec->deliveryPlaceId);
@@ -437,8 +442,12 @@ class dec_Declarations extends core_Master
             if ($addressContragent && !empty($recOrigin->contragentAddress)) {
                 $addressContragent .= ', ' . $recOrigin->contragentAddress;
             }
-            $row->contragentCompany = cls::get($recOrigin->contragentClassId)->getTitleById($recOrigin->contragentId);
-            $row->contragentCompany = transliterate(tr($row->contragentCompany));
+
+            if(isset($recOrigin->displayContragentClassId) && isset($recOrigin->displayContragentId)){
+                $row->contragentCompany = cls::get($recOrigin->displayContragentClassId)->getTitleById($recOrigin->displayContragentId);
+            } else {
+                $row->contragentCompany = cls::get($recOrigin->contragentClassId)->getTitleById($recOrigin->contragentId);
+            }
 
             $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
             $row->contragentCountry = drdata_Countries::getVerbal($recOrigin->contragentCountryId, $fld);
