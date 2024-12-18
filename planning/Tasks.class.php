@@ -3399,7 +3399,7 @@ class planning_Tasks extends core_Master
             if($rec->_stopReorder) return;
 
             // Ако не е минато през формата
-            if(!$rec->_fromForm && !$rec->_isDragAndDrop){
+            if(!$rec->_fromForm){
 
                 // Ако няма начало изчислява се да започне след последната
                 if($rec->state == 'active' && $rec->brState == 'pending'){
