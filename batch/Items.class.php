@@ -658,7 +658,8 @@ class batch_Items extends core_Master
         $query->EXT('bQuantity', 'batch_Items', 'externalName=quantity,externalKey=itemId');
         $query->XPR('bQuantityRounded', 'double', 'ROUND(#bQuantity, 3)');
         if($showMovementsWithClosedBatches){
-            $query->where("#state = 'active' OR (#state = 'closed' AND #bQuantityRounded != 0) OR #nullifiedDate >= '{$date}'");
+            $nullifiedAfter = strlen($date) == 10 ? "{$date} 00:00:00" : $date;
+            $query->where("#state = 'active' OR (#state = 'closed' AND #bQuantityRounded != 0) OR #nullifiedDate >= '{$nullifiedAfter}'");
         } else {
             $query->where("#state != 'closed'");
         }
