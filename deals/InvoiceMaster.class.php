@@ -940,6 +940,26 @@ abstract class deals_InvoiceMaster extends core_Master
                 $form->setDefault('importProducts', 'fromSource');
             }
         }
+
+        if($data->action == 'changefields'){
+            // При промяна да се показва поле за редакция на кешираните допълнителни условия от банковата сметка
+            if($mvc->cacheAdditionalConditions){
+                $exRec = $mvc->fetch($rec->id, 'additionalConditions,accountId', false);
+                $defaultCondition = $exRec->additionalConditions[0];
+                if($rec->accountId != $exRec->accountId){
+                    if($rec->accountId){
+                        $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                        $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
+                        $defaultCondition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $lang);
+                    } else {
+                        $defaultCondition = null;
+                    }
+                }
+
+                $form->FLD('additionalConditionsInput', "text(rows=3)", 'caption=Допълнително->Условия,input,changable,after=additionalInfo');
+                $form->setDefault('additionalConditionsInput', $defaultCondition);
+            }
+        }
     }
     
     
@@ -1151,7 +1171,7 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Преди запис в модела
      */
-    protected static function beforeInvoiceSave($rec)
+    protected static function beforeInvoiceSave($mvc, $rec)
     {
         if (!empty($rec->folderId)) {
             if (empty($rec->contragentClassId)) {
@@ -1199,6 +1219,12 @@ abstract class deals_InvoiceMaster extends core_Master
 
                 $rec->displayContragentClassId = 'crm_Companies';
                 $rec->displayContragentId = $cRec->id;
+            }
+        }
+
+        if($mvc->cacheAdditionalConditions){
+            if($rec->__isBeingChanged){
+                $rec->additionalConditions[0] = $rec->additionalConditionsInput;
             }
         }
     }
@@ -1974,7 +2000,6 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = $mvc->fetchRec($rec);
 
-        $saveFields = array();
         if($mvc->cacheAdditionalConditions){
             if (empty($rec->additionalConditions)) {
                 if(!empty($rec->accountId)) {

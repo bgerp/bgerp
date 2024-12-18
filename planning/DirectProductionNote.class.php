@@ -204,6 +204,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
+     * Поле за подредбата на детайла
+     */
+    public $fieldsNotToClone = 'debitAmount';
+
+
+    /**
      * Описание на модела
      */
     public function description()

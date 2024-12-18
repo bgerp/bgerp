@@ -236,7 +236,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         parent::setInvoiceFields($this);
 
-        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
+        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable,silent,removeAndRefreshForm=additionalConditionsInput');
         $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Допълнително->Диапазон, after=template,input=hidden,notNull,default=1');
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
@@ -525,7 +525,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-        parent::beforeInvoiceSave($rec);
+        parent::beforeInvoiceSave($mvc, $rec);
     }
 
 
@@ -616,8 +616,12 @@ class sales_Invoices extends deals_InvoiceMaster
                     $row->bic = $Varchar->toVerbal($ownAcc->bic);
 
                     if(!Mode::isReadOnly() && core_Users::isPowerUser()){
-                        $accountInfo = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
-                        if($accountInfo->currencyId != currency_Currencies::getIdByCode($rec->currencyId)){
+                        $ownAccountId = bank_OwnAccounts::fetchField("#bankAccountId = {$ownAcc->id}");
+                        $ownAccountLink = bank_OwnAccounts::getSingleUrlArray($ownAccountId);
+                        if(countR($ownAccountLink)){
+                            $row->accountId = ht::createLink($row->accountId, $ownAccountLink);
+                        }
+                        if($ownAcc->currencyId != currency_Currencies::getIdByCode($rec->currencyId)){
                             $row->accountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->accountId}</span>";
                             $row->accountId = ht::createHint($row->accountId, 'Банковата сметка е във валута различна от тази на сделката|*!', 'warning');
                         }

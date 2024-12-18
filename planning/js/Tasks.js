@@ -77,7 +77,7 @@ $(document).ready(function () {
     const rows = document.querySelectorAll("#dragTable tbody tr");
 
 // Check if there are multiple rows
-    if (rows.length > 1) {
+
         let sortable = new Sortable(document.querySelector("#dragTable tbody"), {
             animation: 150,
             handle: "tr",
@@ -85,7 +85,6 @@ $(document).ready(function () {
             selectedClass: "selected",
             filter: "tr[data-dragging='false']",
             preventOnFilter: false,
-
             onChoose: function (evt) {
                 // Remove highlight from all rows
                 document.querySelectorAll("#dragTable tbody tr").forEach(row => {
@@ -97,11 +96,14 @@ $(document).ready(function () {
                     evt.item.classList.add('dragging');
                 }
 
+                saveSelection();
                 console.log('CHOOSE');
             },
 
             onUnchoose: function (evt) {
                 evt.item.classList.remove('dragging');
+                saveSelection();
+                console.log('UN CHOOSE');
             },
 
             onStart: function (evt) {
@@ -192,9 +194,6 @@ $(document).ready(function () {
                 isScrolling = true; // Set scrolling flag
             }
         });
-    } else {
-        console.log("Not enough rows to enable sorting.");
-    }
 
 
 // Touch event handlers
@@ -285,13 +284,36 @@ $(document).ready(function () {
             cell.data('touchTimer', false); // Clear the timer
         }, 300); // Duration for detecting double touch
 
-        // If the timer was already set, we are in a double touch scenario
+        // If the timer was already set, we are.remove('selected') in a double touch scenario
         if (cell.data('touchTimer') === false) {
             clearTimeout(touchTimer); // Clear the timeout for the double touch
             handleEditing(cell); // Trigger edit on double touch
         } else {
             cell.data('touchTimer', true); // Indicate that the first touch happened
         }
+    });
+
+    $('#changeBtn').on('click', function(e) {
+        restoreSelectionFromLocalStorage();
+
+        let url = $(this).attr("data-url");
+
+        let selectedIds = JSON.parse(sessionStorage.getItem("selectedRows")) || [];
+        let count = selectedIds.length;
+        sessionStorage.removeItem("selectedRows");
+
+        if(!count){
+            let error = $(this).attr("data-error");
+            render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+
+            return;
+        }
+
+        let params = new URLSearchParams();
+        params.append("selectedIds", JSON.stringify(selectedIds)); // Преобразуваме масива в JSON
+
+        // Добавяме параметрите към URL-то
+        window.location.href = `${url}&${params.toString()}`;
     });
 })
 
@@ -395,4 +417,22 @@ function compareDateSpan(elementOne, elementTwo, groupStr)
             }
         }
     }
+}
+
+function saveSelection() {
+    let selectedIds = Array.from(document.querySelectorAll("#dragTable tbody tr.selected"))
+        .map(row => row.getAttribute("data-id"));
+
+    sessionStorage.setItem("selectedRows", JSON.stringify(selectedIds));
+}
+
+function restoreSelectionFromLocalStorage() {
+    const selectedIds = JSON.parse(sessionStorage.getItem("selectedRows")) || [];
+    document.querySelectorAll("#dragTable tbody tr").forEach(row => {
+        if (selectedIds.includes(row.getAttribute("data-id"))) {
+            row.classList.add("selected");
+        } else {
+            row.classList.remove("selected");
+        }
+    });
 }

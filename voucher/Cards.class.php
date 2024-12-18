@@ -466,7 +466,7 @@ class voucher_Cards extends core_Detail
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 10));
 
         $query = $this->getQuery();
-        $data->listFields = arr::make('number=Номер,typeId=Вид,usedOn=Употреба,state=Състояние', true);
+        $data->listFields = arr::make('number=Номер,typeId=Вид,activatedOn=Активиране,usedOn=Употреба,state=Състояние', true);
         $query->where("#referrer = '{$masterRec->id}'");
         $query->EXT('haveReferrer', 'voucher_Types', "externalName=referrer,externalKey=typeId");
 

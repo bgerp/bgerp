@@ -69,7 +69,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
 
             // Добавяне на поле за избор на съществуваща партида
-            $form->FNC('batchEx', 'varchar', 'caption=Партида,maxRadio=1');
+            $form->FNC('batchEx', 'varchar', 'caption=Партида,maxRadio=1,placeholder=Без партида');
             $autohide = countR($quantities) ? 'autohide' : '';
             $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
             $form->FNC('batchNew', 'varchar', "caption=Установена нова партида->{$caption},input,placeholder={$Def->placeholder}");
@@ -169,7 +169,11 @@ class batch_plg_InventoryNotes extends core_Plugin
                     $form->setError('batchNew', $msg);
                 }
             }
-            
+
+            if(!strlen($rec->batchEx) && !strlen($rec->batchNew)){
+                $form->setWarning('batchEx', 'Въведеното количество ще се отнесе към "Без партида"');
+            }
+
             if (!$form->gotErrors()) {
                 $rec->batch = (!empty($rec->batchEx)) ? $rec->batchEx : $rec->batchNew;
                 if ($rec->batch === '') {

@@ -2533,9 +2533,10 @@ abstract class deals_Helper
                     if ($diff > $toleranceDiff) {
                         $obj = array();
 
+                        $startMsg = !empty($discount) ? 'Цената (с приспадната отстъпка)' : 'Цената';
                         if($i == 0 && $percent >= 0){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
-                            $obj['hint'] ='Цената е под минималната за клиента';
+                            $obj['hint'] = "{$startMsg} е под минималната за клиента";
                             $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = 'error';
                             
@@ -2544,7 +2545,7 @@ abstract class deals_Helper
                         
                         if($i == 1){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
-                            $obj['hint'] = ($percent < 0) ? 'Цената е над очакваната за клиента' : 'Цената е под очакваната за клиента';
+                            $obj['hint'] = ($percent < 0) ? "{$startMsg} е над очакваната за клиента" : "{$startMsg} е под очакваната за клиента";
                             $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
                         
