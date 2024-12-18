@@ -767,7 +767,7 @@ class planning_ProductionTaskProducts extends core_Detail
 
         $dQuery = static::getQuery();
         $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
-        $dQuery->where("#type = 'production' AND #plannedQuantity IS NOT NULL AND #canStore = 'yes'");
+        $dQuery->where("#type = 'production' AND #plannedQuantity != 0 AND #canStore = 'yes'");
         $dQuery->in('taskId', $tasks);
         while($dRec = $dQuery->fetch()){
             $key = "{$dRec->productId}|{$dRec->packagingId}";
