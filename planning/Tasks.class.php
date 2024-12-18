@@ -1487,24 +1487,6 @@ class planning_Tasks extends core_Master
             }
         }
 
-        if ($action == 'reordertask') {
-            // Който може да редактира ПО може и да я преподрежда
-            $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
-
-            if (isset($rec->id)) {
-                if (empty($rec->assetId)) {
-                    $requiredRoles = 'no_one';
-                } elseif (!in_array($rec->state, array('active', 'wakeup', 'pending', 'stopped'))) {
-                    $requiredRoles = 'no_one';
-                } elseif (!empty($rec->startAfter)) {
-                    $startAfterTask = $mvc->fetch($rec->startAfter, 'state,assetId');
-                    if (!in_array($startAfterTask->state, array('stopped', 'pending', 'active', 'wakeup')) || $rec->assetId != $startAfterTask->assetId) {
-                        $requiredRoles = 'no_one';
-                    }
-                }
-            }
-        }
-
         if($action == 'editprevioustask'){
             $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
             if(isset($rec)){
