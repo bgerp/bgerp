@@ -279,12 +279,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Работен кеш
-     */
-    public $changedAssets = array();
-
-
-    /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
@@ -3696,8 +3690,8 @@ class planning_Tasks extends core_Master
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
         if(in_array($rec->state, array('waiting', 'pending'))) {
+
             // Определяне на сътоянието при запис
-            $rec->state == 'pending';
             if(empty($rec->brState)){
                 $rec->brState = 'draft';
             }
