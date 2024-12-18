@@ -170,7 +170,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 }
             }
 
-            if(!strlen($rec->batchEx)){
+            if(!strlen($rec->batchEx) && !strlen($rec->batchNew)){
                 $form->setWarning('batchEx', 'Въведеното количество ще се отнесе към "Без партида"');
             }
 
