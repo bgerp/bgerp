@@ -3656,7 +3656,7 @@ class planning_Tasks extends core_Master
 
                 $headerTpl->append(ht::createFnBtn('Запис', '', false, $saveBtnAttr), 'saveBtn');
                 $headerTpl->append(ht::createFnBtn('Отказ', '', false, array('id' => 'backBtn', 'data-url' => $backUrl)), 'assetId');
-                $headerTpl->append(ht::createFnBtn('Смяна машина', '', false, $changeBtnArr), 'changeAssetBtn');
+                $headerTpl->append(ht::createFnBtn('Смяна оборудване', '', false, $changeBtnArr), 'changeAssetBtn');
                 $tpl->prepend($headerTpl);
 
                 core_Ajax::subscribe($tpl, array($mvc, 'reorderTaskWatch', 'assetId' => $assetId, 'isReorder' => true), 'editWatchTasks', 5000);
