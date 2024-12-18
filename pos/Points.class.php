@@ -532,7 +532,7 @@ class pos_Points extends core_Master
     {
         if($state == 'closed'){
             if(pos_Receipts::count("#pointId = {$rec->id} AND #state IN ('draft', 'waiting', 'active')")){
-                followRetUrl(null, 'Не може да затворите точката на продажба, докато има неприключени бележки в нея', 'error');
+                followRetUrl(null, 'Не може да затворите точката на продажба, докато има неприключени бележки в нея|*!', 'error');
             }
         }
     }
