@@ -236,7 +236,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         parent::setInvoiceFields($this);
 
-        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
+        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable,silent,removeAndRefreshForm=additionalConditionsInput');
         $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Допълнително->Диапазон, after=template,input=hidden,notNull,default=1');
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
@@ -525,7 +525,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-        parent::beforeInvoiceSave($rec);
+        parent::beforeInvoiceSave($mvc, $rec);
     }
 
 

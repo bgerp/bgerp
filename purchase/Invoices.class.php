@@ -409,7 +409,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-        parent::beforeInvoiceSave($rec);
+        parent::beforeInvoiceSave($mvc, $rec);
 
         if(!empty($rec->number)){
             $number = $mvc->getVerbal($rec, 'number');
