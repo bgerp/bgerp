@@ -3643,19 +3643,19 @@ class planning_Tasks extends core_Master
                 $backUrl = toUrl(getRetUrl());
 
                 $hash = str::addHash($assetId, 6, 'RO');
-                $saveBtnAttr = array('id' => 'saveBtn');
+                $saveBtnAttr = array('id' => 'saveBtn', 'title' => 'Запис на направените промени');
                 if ($mvc->haveRightFor('savereordertasks', (object)array('assetId' => $assetId))) {
                     $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
                 }
 
-                $changeBtnArr = array('id' => 'changeBtn', 'data-error' => tr('Не са селектирани редове|*!'));
+                $changeBtnArr = array('id' => 'changeBtn', 'title' => 'Преместване на операции на друга машина', 'data-error' => tr('Не са селектирани редове|*!'));
                 if ($mvc->haveRightFor('savereordertasks', (object)array('assetId' => $assetId))) {
                     $hash = str::addHash($assetId, 6, 'PT');
                     $changeBtnArr['data-url'] = toUrl(array($mvc, 'changeAsset', 'assetId' => $assetId, 'hash' => $hash, 'ret_url' => true));
                 }
 
                 $headerTpl->append(ht::createFnBtn('Запис', '', false, $saveBtnAttr), 'saveBtn');
-                $headerTpl->append(ht::createFnBtn('Отказ', '', false, array('id' => 'backBtn', 'data-url' => $backUrl)), 'assetId');
+                $headerTpl->append(ht::createFnBtn('Отказ', '', false, array('id' => 'backBtn', 'data-url' => $backUrl, 'title' => 'Връщане назад')), 'assetId');
                 $headerTpl->append(ht::createFnBtn('Смяна оборудване', '', false, $changeBtnArr), 'changeAssetBtn');
                 $tpl->prepend($headerTpl);
 
