@@ -1031,6 +1031,8 @@ class fileman_webdrv_Generic extends core_Manager
                 
                 return new Redirect($archiveAddPassUrl, '|Добавете парола за отклюяване на архива', 'warning');
             } else {
+                wp('Грешка при качване на файла от архива', $e->getMessage(), $fRec, $index, $e);
+
                 return new Redirect(array('fileman_Files', 'single', $fileHnd), '|' . $e->getMessage());
             }
         }
@@ -1165,7 +1167,7 @@ class fileman_webdrv_Generic extends core_Manager
         $fh = fileman::absorbStr($fileContent, 'archive', $name);
         
         // Очакваме да няма грешка при добавянето
-        expect($fh, 'Възникна грешка при обработката на файла');
+        expect($fh, 'Възникна грешка при обработката на файла', $name);
         
         return $fh;
     }
