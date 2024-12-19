@@ -118,17 +118,18 @@ abstract class deals_DealMaster extends deals_DealBase
         if (empty($mvc->fields['contoActions'])) {
             $mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
         }
+        $mvc->FLD('overdueOn', 'datetime', 'input=none');
     }
-    
-    
+
+
     /**
      * Какво е платежното състояние на сделката
      *
-     * @param mixed $rec - ид или запис
+     * @param stdClass $rec - ид или запис
      * @param null|bgerp_iface_DealAggregator $aggregator
      * @return string
      */
-    public function getPaymentState($rec, $aggregator = null)
+    public function getPaymentState(&$rec, $aggregator = null)
     {
         $rec = $this->fetchRec($rec);
         $notInvoicedAmount = core_Math::roundNumber($rec->amountDelivered) - core_Math::roundNumber($rec->amountInvoiced);
@@ -151,12 +152,15 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Намираме непадежиралите фактури, тези с вальор >= на днес
             $sum = 0;
-            array_walk($invoices, function ($v, $k) use ($today, &$sum) {
+            $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
+
+            array_walk($invoices, function ($v, $k) use ($today, &$sum, $overdueAddDays) {
                 $Doc = doc_Containers::getDocument($k);
                 $iRec = $Doc->fetch('dealValue,vatAmount,discountAmount,type,date,dueDate');
                 $total = $iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount;
                 $total = ($iRec->type == 'credit_note') ? -1 * $total : $total;
                 $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
+                $dueDate = dt::addDays($overdueAddDays, $dueDate, false);
                 if ($dueDate >= $today && $total > 0) {
                     $sum += $total;
                 }
@@ -176,6 +180,9 @@ abstract class deals_DealMaster extends deals_DealBase
             $difference = $balance - $valueToCompare;
 
             if ($balance > $valueToCompare && ($difference < -5 || $difference > 5)) {
+                if($rec->paymentState != 'overdue'){
+                    $rec->overdueOn = dt::now();
+                }
 
                 return 'overdue';
             }
@@ -195,6 +202,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
                 if (abs($diff) > abs($tolerance)) {
                     if (cond_PaymentMethods::isOverdue($plan, $diff)) {
+                        if($rec->paymentState != 'overdue'){
+                            $rec->overdueOn = dt::now();
+                        }
 
                         return 'overdue';
                     }
@@ -208,6 +218,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Правим проверка дали е платена сделката
+        $rec->overdueOn = null;
         if ($this instanceof sales_Sales) {
             if ($amountBl <= 0) {
                 
@@ -1186,8 +1197,12 @@ abstract class deals_DealMaster extends deals_DealBase
         // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
         $row->paymentState = $mvc->getVerbal($rec, 'paymentState');
         
-        if ($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid') {
+        if ($rec->paymentState == 'overdue') {
             $row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . '</span>';
+            if(!empty($rec->overdueOn)){
+                $overdueOnHint = "Просрочено на:|* " . core_Type::getByName('datetime(format=smartTime)')->toVerbal($rec->overdueOn);
+                $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'noicon', false);
+            }
             $row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
         }
         
@@ -1909,10 +1924,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $query->where("#state = 'active'");
         $query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
 
+
         while ($rec = $query->fetch()) {
             try {
-                $rec->paymentState = $Class->getPaymentState($rec->id);
-                $Class->save_($rec, 'paymentState');
+                $rec->paymentState = $Class->getPaymentState($rec);
+                $Class->save_($rec, 'paymentState,overdueOn');
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 continue;

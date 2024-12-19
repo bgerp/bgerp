@@ -68,6 +68,12 @@ defIfNot('DEALS_MAX_WARNING_DISCOUNT', '0.3');
 
 
 /**
+ * Колко дни толеранс има след просрочване преди да се приеме че сделката е просрочена
+ */
+defIfNot('DEALS_ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE', '0');
+
+
+/**
  * class deals_Setup
  *
  *
@@ -130,6 +136,7 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_TEST_VAT_CALC' => array('enum(no=Не,yes=Да)', 'caption=Дебъг->Тестово закръгляне,autohide=any'),
         'DEALS_CLOSE_UNDELIVERED_OVER' => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
         'DEALS_MAX_WARNING_DISCOUNT' => array('percent(min=0)', 'caption=При отстъпка над колко да показва се показва предупреждение в документите->Процент'),
+        'DEALS_ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE' => array('int(Min=0)', 'caption=Колко дни толеранс да има преди да се счита за просрочена сделката->Дни'),
     );
     
     
