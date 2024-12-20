@@ -367,9 +367,6 @@ class crm_Setup extends core_ProtoSetup
      */
     public static function forceGatherCron2451v2()
     {
-        $ExtClass = cls::get('crm_ext_ContragentInfo');
-        $ExtClass->truncate();
-
         $callOn = dt::addSecs(360);
         core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'Gather_contragent_info', $callOn);
     }
