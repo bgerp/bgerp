@@ -115,6 +115,8 @@
                 <legend class="groupTitle">|Друга информация|*</legend>
                 <div class="groupList">
                     [#info#]
+                    <!--ET_BEGIN CONTRAGENT_INFO_BLOCK-->
+                    [#CONTRAGENT_INFO_BLOCK#]
                     <div style="margin: 10px 0 3px; border: 1px solid #ccc; padding: 3px 5px;border-radius: 3px;">
                         [#crm/tpl/ContragentInfoBlock.shtml#]
                         <!--ET_BEGIN CloseTime-->
@@ -124,9 +126,8 @@
                         <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
                         <!--ET_END ShowDocumentsAsButtons-->
                     </div>
+                    <!--ET_END CONTRAGENT_INFO_BLOCK-->
                 </div>
-
-
             </fieldset>
             <!--ET_END info-->
             <div class="clearfix21"></div>
