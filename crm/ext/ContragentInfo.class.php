@@ -337,14 +337,15 @@ class crm_ext_ContragentInfo extends core_manager
         
         $uArr = array(core_Users::ANONYMOUS_USER, core_Users::SYSTEM_USER);
         $contragentClasses = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf', 'id');
-        
+
         // За всички контрагенти
+        $res = "Събиране на контрагентски данни";
         foreach ($contragentClasses as $classId) {
-            $saveArray = array();
-            $exRecs = (array_key_exists($classId, $existing)) ? $existing[$classId] : array();
-            
+            $exRecs = (array_key_exists($classId, $existing)) ? array_values($existing[$classId]) : array();
+
             // За всички неоттеглени контрагенти
             $ContragentClass = cls::get($classId);
+
             $cQuery = $ContragentClass::getQuery();
             $cQuery->where('#folderId IS NOT NULL');
             $cQuery->where("#state != 'rejected'");
@@ -359,13 +360,9 @@ class crm_ext_ContragentInfo extends core_manager
             $dealData = self::getDealData($classId);
 
             // За всеки
+            $newRecs = array();
             while ($cRec = $cQuery->fetch()) {
-                if (array_key_exists($cRec->id, $exRecs)) {
-                    $r = $exRecs[$cRec->id];
-                } else {
-                    $r = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
-                }
-
+                $r = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
                 $total = is_array($dealData['sales'][$cRec->id]['total']) ? $dealData['sales'][$cRec->id]['total'] : array();
                 $overDues = is_array($dealData['sales'][$cRec->id]['overdue']) ? $dealData['sales'][$cRec->id]['overdue'] : array();
                 $active = is_array($dealData['sales'][$cRec->id]['active']) ? $dealData['sales'][$cRec->id]['active'] : array();
@@ -409,16 +406,45 @@ class crm_ext_ContragentInfo extends core_manager
                 }
                 
                 $r->supplierSince = array_key_exists($cRec->id, $datesArr['purchases']) ? $datesArr['purchases'][$cRec->id] : null;
-                if (isset($r->overdueSales) || isset($r->customerSince) || isset($r->id) || isset($r->supplierSince)) {
-                    $saveArray[$cRec->id] = $r;
+
+                $save = false;
+                $fields = arr::make('customerSince,supplierSince,totalSalesCount,totalSalesAmount,totalPurchaseCount,totalPurchaseAmount', true);
+                foreach ($fields as $fld){
+                    if(isset($r->{$fld})){
+                        $save = true;
+                        break;
+                    }
+                }
+
+                if($save){
+                    $newRecs[] = $r;
                 }
             }
 
+            $sync = arr::syncArrays($newRecs, $exRecs, 'contragentClassId,contragentId', 'customerSince,supplierSince,haveOverdueSales,activeSalesCount,activeSalesAmount,totalSalesCount,totalSalesAmount,overdueSalesCount,overdueSalesAmount,overdueSalesThreshold,overdueSalesThresholdParam,totalPurchaseCount,totalPurchaseAmount');
+            $i = countR($sync['insert']);
+            $u = countR($sync['update']);
+            $d = countR($sync['delete']);
+
             // Запис на новите данни
-            if (countR($saveArray)) {
-                $this->saveArray($saveArray);
+            if ($i) {
+                $this->saveArray($sync['insert']);
             }
+
+            if ($u) {
+                $this->saveArray($sync['update'], 'id,customerSince,supplierSince,haveOverdueSales,activeSalesCount,activeSalesAmount,totalSalesCount,totalSalesAmount,overdueSalesCount,overdueSalesAmount,overdueSalesThreshold,overdueSalesThresholdParam,totalPurchaseCount,totalPurchaseAmount');
+            }
+
+            if ($d) {
+                $str = implode(',', $sync['delete']);
+                $this->delete("id IN ({$str})");
+            }
+
+
+            $res .= "<br>{$ContragentClass->className}- I:{$i} / U: {$u} / D: {$d}";
         }
+
+        return $res;
     }
     
     

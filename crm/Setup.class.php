@@ -163,7 +163,7 @@ class crm_Setup extends core_ProtoSetup
         'migrate::fixCountryGroupsInput21233',
         'migrate::updateGroups2524',
         'migrate::calcExpand36Field2445v3',
-        'migrate::forceGatherCron2451',
+        'migrate::forceGatherCron2451v2',
     );
     
     
@@ -365,8 +365,11 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Рекалкулиране на групите във вид за лесно търсене
      */
-    public static function forceGatherCron2451()
+    public static function forceGatherCron2451v2()
     {
+        $ExtClass = cls::get('crm_ext_ContragentInfo');
+        $ExtClass->truncate();
+
         $callOn = dt::addSecs(360);
         core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'Gather_contragent_info', $callOn);
     }
