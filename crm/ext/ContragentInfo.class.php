@@ -341,7 +341,7 @@ class crm_ext_ContragentInfo extends core_manager
         // За всички контрагенти
         $res = "Събиране на контрагентски данни";
         foreach ($contragentClasses as $classId) {
-            $exRecs = (array_key_exists($classId, $existing)) ? array_values($existing[$classId]) : array();
+            $exRecs = (array_key_exists($classId, $existing)) ? $existing[$classId] : array();
 
             // За всички неоттеглени контрагенти
             $ContragentClass = cls::get($classId);
@@ -372,7 +372,7 @@ class crm_ext_ContragentInfo extends core_manager
                 $r->overdueSalesCount = $r->overdueSalesAmount = $r->overdueSalesThreshold = $r->overdueSalesThresholdParam =  null;
                 if(countR($overDues)){
                     $r->overdueSalesCount = $overDues['count'];
-                    $r->overdueSalesAmount = $overDues['amount'];
+                    $r->overdueSalesAmount = round($overDues['amount'], 2);
                     $r->overdueSalesThreshold = $overDues['threshold'];
                     $r->overdueSalesThresholdParam = $overDues['thresholdParamValue'];
                     if(round($overDues['threshold'], 2) > round($overDues['thresholdParamValue'], 2)){
@@ -383,30 +383,33 @@ class crm_ext_ContragentInfo extends core_manager
                 $r->activeSalesCount = $r->activeSalesAmount = null;
                 if(countR($active)){
                     $r->activeSalesCount = $active['count'];
-                    $r->activeSalesAmount = $active['amount'];
+                    $r->activeSalesAmount = round($active['amount'], 2);
                 }
 
                 $r->totalSalesCount = $r->totalSalesAmount = null;
                 if(countR($total)){
                     $r->totalSalesCount = $total['count'];
-                    $r->totalSalesAmount = $total['amount'];
+                    $r->totalSalesAmount = round($total['amount'], 2);
                 }
 
                 $r->totalPurchaseCount = $r->totalPurchaseAmount = null;
                 if(countR($purchasesTotal)){
                     $r->totalPurchaseCount = $purchasesTotal['count'];
-                    $r->totalPurchaseAmount = $purchasesTotal['amount'];
+                    $r->totalPurchaseAmount = round($purchasesTotal['amount'], 2);
                 }
 
                 //..и е стар запис създаден от системата
                 if (array_key_exists($cRec->id, $exRecs)) {
                     if (in_array($exRecs[$cRec->id]->createdBy, $uArr)) {
                         $r->customerSince = array_key_exists($cRec->id, $datesArr['sales']) ? $datesArr['sales'][$cRec->id] : null;
+                    } else {
+                        $r->customerSince = $exRecs[$cRec->id]->customerSince;
                     }
+                } else {
+                    $r->customerSince = array_key_exists($cRec->id, $datesArr['sales']) ? $datesArr['sales'][$cRec->id] : null;
                 }
                 
                 $r->supplierSince = array_key_exists($cRec->id, $datesArr['purchases']) ? $datesArr['purchases'][$cRec->id] : null;
-
                 $save = false;
                 $fields = arr::make('customerSince,supplierSince,totalSalesCount,totalSalesAmount,totalPurchaseCount,totalPurchaseAmount', true);
                 foreach ($fields as $fld){
@@ -417,14 +420,14 @@ class crm_ext_ContragentInfo extends core_manager
                 }
 
                 if($save){
-                    $newRecs[] = $r;
+                    $newRecs[$r->contragentId] = $r;
                 }
             }
 
             $sync = arr::syncArrays($newRecs, $exRecs, 'contragentClassId,contragentId', 'customerSince,supplierSince,haveOverdueSales,activeSalesCount,activeSalesAmount,totalSalesCount,totalSalesAmount,overdueSalesCount,overdueSalesAmount,overdueSalesThreshold,overdueSalesThresholdParam,totalPurchaseCount,totalPurchaseAmount');
+
             $i = countR($sync['insert']);
             $u = countR($sync['update']);
-            $d = countR($sync['delete']);
 
             // Запис на новите данни
             if ($i) {
@@ -435,13 +438,7 @@ class crm_ext_ContragentInfo extends core_manager
                 $this->saveArray($sync['update'], 'id,customerSince,supplierSince,haveOverdueSales,activeSalesCount,activeSalesAmount,totalSalesCount,totalSalesAmount,overdueSalesCount,overdueSalesAmount,overdueSalesThreshold,overdueSalesThresholdParam,totalPurchaseCount,totalPurchaseAmount');
             }
 
-            if ($d) {
-                $str = implode(',', $sync['delete']);
-                $this->delete("id IN ({$str})");
-            }
-
-
-            $res .= "<br>{$ContragentClass->className}- I:{$i} / U: {$u} / D: {$d}";
+            $res .= "<br>{$ContragentClass->className}- I:{$i} / U: {$u}";
         }
 
         return $res;
