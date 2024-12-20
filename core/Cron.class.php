@@ -965,4 +965,20 @@ class core_Cron extends core_Manager
         $this->logInfo('Излиза, защото не може да вземе лок');
         core_App::shutdown(false);
     }
+
+
+    /**
+     * Извиква се от core_CallOnTime, ръчно стартиране на крон процес
+     *
+     * @see core_CallOnTime
+     * @param string $systemId
+     */
+    public static function callback_forceProcess($systemId)
+    {
+        $rec = static::getRecForSystemId($systemId);
+        if(!$rec) return;
+
+        $url = toUrl(array('Act' => 'ProcessRun','id' => str::addHash($rec->id)), 'absolute-force');
+        core_Url::start($url);
+    }
 }
