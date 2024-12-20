@@ -2577,6 +2577,7 @@ class crm_Companies extends core_Master
         $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
     }
 
+
     /**
      * Метод по подразбиране
      * Връща иконата на документа
@@ -2602,7 +2603,7 @@ class crm_Companies extends core_Master
         }
         
         if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
+            if ($extRec->haveOverdueSales == 'yes') {
                 $res = "<span class='dangerTitle'>{$res}</span>";
             }
         }
