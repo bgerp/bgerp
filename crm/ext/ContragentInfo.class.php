@@ -501,4 +501,41 @@ class crm_ext_ContragentInfo extends core_manager
 
         return $icon;
     }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент');
+        $data->listFilter->FLD('type', 'enum(all=Всички,overdue=Просрочия,empty=Празни,havePurchase=С покупки,haveSales=С продажби)', 'caption=Вид');
+
+        $data->listFilter->showFields = 'folder,type';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input();
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        if($rec = $data->listFilter->rec){
+            if(!empty($rec->folder)){
+                $Cover = doc_Folders::getCover($rec->folder);
+                $data->query->where("#contragentClassId = {$Cover->getClassId()} AND #contragentId = {$Cover->that}");
+            }
+
+            if($rec->type != 'all'){
+                if($rec->type == 'haveSale'){
+                    $data->query->where("#totalSalesCount > 0");
+                } elseif($rec->type == 'havePurchase'){
+                    $data->query->where("#totalPurchaseCount > 0");
+                } elseif($rec->type == 'overdue'){
+                    $data->query->where("#haveOverdueSales = 'yes'");
+                } elseif($rec->type == 'empty'){
+                    $data->query->where("#totalSalesCount IS NULL AND #totalPurchaseCount IS NULL");
+                }
+            }
+        }
+    }
 }
