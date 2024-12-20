@@ -663,7 +663,8 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         if (!Request::get('Rejected', 'int')) {
             $fType = cls::get('type_Enum', array('options' => $mvc->getListFilterTypeOptions($data)));
-            $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm');
+            $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm,silent');
+            $data->listFilter->input('type', 'silent');
             $data->listFilter->setFieldType('type', $fType);
             $data->listFilter->setDefault('type', 'notClosedWith');
             $data->listFilter->showFields .= ',type';
