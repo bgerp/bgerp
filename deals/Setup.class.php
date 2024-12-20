@@ -317,33 +317,29 @@ class deals_Setup extends core_ProtoSetup
             }
         }
     }
-    
-    
+
+
     /**
      * Мигрира с коя сделка е приключено
-     * 
+     * @todo да се махне след рилийз
+     *
      * @param mixed $mvc
-     * @param mixed $ClosedDocumentMvc
      */
-    public function updateClosedWith($mvc, $ClosedDocumentMvc)
+    public function callback_updateOverdueOn($mvc)
     {
-        $mvc = cls::get($mvc);
-        $mvc->setupMvc();
-        
-        if(!$mvc->count()) return;
-        
-        $ClosedDocumentMvc = cls::get($ClosedDocumentMvc);
-        $ClosedDocumentMvc->setupMvc();
-        
-        if(!$ClosedDocumentMvc->count()) return;
-        
-        $docIdColName = str::phpToMysqlName('docId');
-        $closeWithColName = str::phpToMysqlName('closeWith');
-        $classIdColName = str::phpToMysqlName('docClassId');
+        $Deal = cls::get($mvc);
+        $Deal->setupMvc();
+
+        $count = $Deal->count("#paymentState = 'overdue' AND #state = 'active'");
+        core_App::setTimeLimit($count * 0.12, false, 200);
+
+        $overdueOnColName = str::phpToMysqlName('overdueOn');
+        $modifiedOnColName = str::phpToMysqlName('modifiedOn');
+        $paymentStateColName = str::phpToMysqlName('paymentState');
         $stateColName = str::phpToMysqlName('state');
-        
-        $query = "UPDATE {$mvc->dbTableName},{$ClosedDocumentMvc->dbTableName} SET {$mvc->dbTableName}.{$closeWithColName} = {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} WHERE {$ClosedDocumentMvc->dbTableName}.{$docIdColName} = {$mvc->dbTableName}.id AND {$ClosedDocumentMvc->dbTableName}.{$classIdColName} = {$mvc->getClassId()} AND {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} IS NOT NULL AND {$ClosedDocumentMvc->dbTableName}.{$stateColName} = 'active'";
-        $mvc->db->query($query);
+        $query = "UPDATE {$Deal->dbTableName} SET {$overdueOnColName} = {$modifiedOnColName} WHERE {$paymentStateColName} = 'overdue' AND {$stateColName} = 'active'";
+
+        $Deal->db->query($query);
     }
 
 

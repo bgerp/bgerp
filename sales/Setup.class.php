@@ -474,7 +474,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_LastSaleByContragents',
         'migrate::updateProformasWithoutDate2624',
         'migrate::migrateDeltas3024v2',
-        'migrate::updateOverdueOn2451',
+        'migrate::updateOverdueOn2451v2',
     );
     
     
@@ -690,16 +690,9 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Миграция на кога е станала просрочена сделката
      */
-    public function updateOverdueOn2451()
+    public function updateOverdueOn2451v2()
     {
-        $Sales = cls::get('sales_Sales');
-        $Sales->setupMvc();
-        $overdueOnColName = str::phpToMysqlName('overdueOn');
-        $modifiedOnColName = str::phpToMysqlName('modifiedOn');
-        $paymentStateColName = str::phpToMysqlName('paymentState');
-        $stateColName = str::phpToMysqlName('state');
-        $query = "UPDATE {$Sales->dbTableName} SET {$overdueOnColName} = {$modifiedOnColName} WHERE {$paymentStateColName} = 'overdue' AND {$stateColName} = 'active'";
-
-        $Sales->db->query($query);
+        $callOn = dt::addSecs(60);
+        core_CallOnTime::setCall('deals_Setup', 'updateOverdueOn', 'sales_Sales', $callOn);
     }
 }

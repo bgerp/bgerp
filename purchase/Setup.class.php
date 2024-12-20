@@ -146,7 +146,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_Quotations',
         'purchase_QuotationDetails',
         'migrate::fixInvoices2824',
-        'migrate::updateOverdueOn2451',
+        'migrate::updateOverdueOn2451v2',
     );
     
     
@@ -264,16 +264,9 @@ class purchase_Setup extends core_ProtoSetup
     /**
      * Миграция на кога е станала просрочена сделката
      */
-    public function updateOverdueOn2451()
+    public function updateOverdueOn2451v2()
     {
-        $Purchase = cls::get('purchase_Purchases');
-        $Purchase->setupMvc();
-        $overdueOnColName = str::phpToMysqlName('overdueOn');
-        $modifiedOnColName = str::phpToMysqlName('modifiedOn');
-        $paymentStateColName = str::phpToMysqlName('paymentState');
-        $stateColName = str::phpToMysqlName('state');
-        $query = "UPDATE {$Purchase->dbTableName} SET {$overdueOnColName} = {$modifiedOnColName} WHERE {$paymentStateColName} = 'overdue' AND {$stateColName} = 'active'";
-
-        $Purchase->db->query($query);
+        $callOn = dt::addSecs(60);
+        core_CallOnTime::setCall('deals_Setup', 'updateOverdueOn', 'purchase_Purchases', $callOn);
     }
 }

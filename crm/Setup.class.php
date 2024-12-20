@@ -361,12 +361,13 @@ class crm_Setup extends core_ProtoSetup
         core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
     }
 
+
     /**
      * Рекалкулиране на групите във вид за лесно търсене
      */
     public static function forceGatherCron2451()
     {
-        $callOn = dt::addSecs(120);
+        $callOn = dt::addSecs(360);
         core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'Gather_contragent_info', $callOn);
     }
 }
