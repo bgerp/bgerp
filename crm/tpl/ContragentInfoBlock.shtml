@@ -1,3 +1,7 @@
+<!--ET_BEGIN overdueSalesBlock-->
+[#overdueSalesBlock#]
+<div class="overdueSalesContragentBlock">|Просрочени продажби|*: [#overdueSalesCount#] |за|* <b style="font-style:italic;">[#overdueSalesAmount#]</b></div>
+<!--ET_END overdueSalesBlock-->
 <!--ET_BEGIN customerSince-->
 <div>
 |Клиент от|*: <b>[#customerSince#]</b>
@@ -11,10 +15,6 @@
 [#activeDealsBlock#]
 <div>|Активни продажби|*: [#activeSalesCount#] |за|* <i>[#activeSalesAmount#]</i></div>
 <!--ET_END activeDealsBlock-->
-<!--ET_BEGIN overdueSalesBlock-->
-[#overdueSalesBlock#]
-<div class="overdueSalesContragentBlock">|Просрочени продажби|*: [#overdueSalesCount#] |за|* <b style="font-style:italic;">[#overdueSalesAmount#]</b></div>
-<!--ET_END overdueSalesBlock-->
 <!--ET_BEGIN supplierSince-->
 <div>
 |Доставчик от|*: <b>[#supplierSince#]</b>
