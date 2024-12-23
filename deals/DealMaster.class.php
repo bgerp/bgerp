@@ -182,8 +182,10 @@ abstract class deals_DealMaster extends deals_DealBase
             $difference = $balance - $valueToCompare;
 
             if ($balance > $valueToCompare && ($difference < -5 || $difference > 5)) {
-                if(empty($rec->overdueOn)){
+                if($rec->paymentState != 'overdue'){
                     $rec->overdueOn = dt::now();
+                } elseif(empty($rec->paymentState)) {
+                    $rec->overdueOn = $rec->modifiedOn;
                 }
                 $rec->overdueAmount = abs($difference);
 
@@ -204,8 +206,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
                 if (abs($diff) > abs($tolerance)) {
                     if (cond_PaymentMethods::isOverdue($plan, $diff)) {
-                        if(empty($rec->overdueOn)){
+                        if($rec->paymentState != 'overdue'){
                             $rec->overdueOn = dt::now();
+                        } elseif(empty($rec->paymentState)) {
+                            $rec->overdueOn = $rec->modifiedOn;
                         }
                         $rec->overdueAmount = abs($diff);
 
