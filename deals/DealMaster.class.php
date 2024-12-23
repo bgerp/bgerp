@@ -119,6 +119,8 @@ abstract class deals_DealMaster extends deals_DealBase
             $mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
         }
         $mvc->FLD('overdueOn', 'datetime', 'input=none');
+        $mvc->FLD('overdueAmount', 'double', 'input=none');
+
     }
 
 
@@ -183,11 +185,11 @@ abstract class deals_DealMaster extends deals_DealBase
                 if($rec->paymentState != 'overdue'){
                     $rec->overdueOn = dt::now();
                 }
+                $rec->overdueAmount = abs($difference);
 
                 return 'overdue';
             }
         } else {
-
 
             // Ако няма фактури, гледаме имали платежен план
             $aggregateDealInfo = !isset($aggregator) ? $this->getAggregateDealInfo($rec->id) : $aggregator;
@@ -205,6 +207,7 @@ abstract class deals_DealMaster extends deals_DealBase
                         if($rec->paymentState != 'overdue'){
                             $rec->overdueOn = dt::now();
                         }
+                        $rec->overdueAmount = abs($diff);
 
                         return 'overdue';
                     }
@@ -218,7 +221,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Правим проверка дали е платена сделката
-        $rec->overdueOn = null;
+        $rec->overdueOn = $rec->overdueAmount = null;
         if ($this instanceof sales_Sales) {
             if ($amountBl <= 0) {
                 
@@ -301,7 +304,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 'caption=Статус, input=none'
         );
         
-        $mvc->FLD('paymentState', 'enum(pending=Има||Yes,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Плащане->чакащо, input=none,notNull,value=paid');
+        $mvc->FLD('paymentState', 'enum(pending=Очакава се||Expected,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Плащане->чакащо, input=none,notNull,value=paid');
         $mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
 
         $mvc->setDbIndex('state');
@@ -1197,11 +1200,20 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
         $row->paymentState = $mvc->getVerbal($rec, 'paymentState');
-        
+
+        $row->paymentStateCaption = tr('Чакащо плащане');
         if ($rec->paymentState == 'overdue') {
             $row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . '</span>';
-            if(!empty($rec->overdueOn)){
+            if(isset($rec->overdueAmount)){
                 $overdueOnHint = "Просрочено на:|* " . core_Type::getByName('datetime(format=smartTime)')->toVerbal($rec->overdueOn);
+                $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($rec->overdueAmount / $rec->currencyRate);
+                $row->paymentState = $overdueAmount;
+                $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
+                if($fields['-list']){
+                    $row->paymentState = tr('Проср.') . " <b>{$row->paymentState}</b>";
+                } else {
+                    $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
+                }
                 $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'noicon', false);
             }
             $row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
@@ -1929,7 +1941,7 @@ abstract class deals_DealMaster extends deals_DealBase
         while ($rec = $query->fetch()) {
             try {
                 $rec->paymentState = $Class->getPaymentState($rec);
-                $Class->save_($rec, 'paymentState,overdueOn');
+                $Class->save_($rec, 'paymentState,overdueOn,overdueAmount');
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 continue;

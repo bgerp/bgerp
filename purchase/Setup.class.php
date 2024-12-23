@@ -146,7 +146,8 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_Quotations',
         'purchase_QuotationDetails',
         'migrate::fixInvoices2824',
-        'migrate::updateOverdueOn2451v2',
+        'migrate::updateOverdueOn2451v3',
+        'migrate::forceIsPurchaseOverdue2451',
     );
     
     
@@ -264,9 +265,19 @@ class purchase_Setup extends core_ProtoSetup
     /**
      * Миграция на кога е станала просрочена сделката
      */
-    public function updateOverdueOn2451v2()
+    public function updateOverdueOn2451v3()
     {
         $callOn = dt::addSecs(60);
         core_CallOnTime::setCall('deals_Setup', 'updateOverdueOn', 'purchase_Purchases', $callOn);
+    }
+
+
+    /**
+     * Рекалкулиране на просроченото плащане
+     */
+    public static function forceIsPurchaseOverdue2451()
+    {
+        $callOn = dt::addSecs(200);
+        core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'IsPurchaseOverdue', $callOn);
     }
 }

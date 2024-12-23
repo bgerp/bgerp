@@ -474,7 +474,8 @@ class sales_Setup extends core_ProtoSetup
         'sales_LastSaleByContragents',
         'migrate::updateProformasWithoutDate2624',
         'migrate::migrateDeltas3024v2',
-        'migrate::updateOverdueOn2451v2',
+        'migrate::updateOverdueOn2451v3',
+        'migrate::forceIsSaleOverdue2451',
     );
     
     
@@ -690,9 +691,19 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Миграция на кога е станала просрочена сделката
      */
-    public function updateOverdueOn2451v2()
+    public function updateOverdueOn2451v3()
     {
         $callOn = dt::addSecs(60);
         core_CallOnTime::setCall('deals_Setup', 'updateOverdueOn', 'sales_Sales', $callOn);
+    }
+
+
+    /**
+     * Рекалкулиране на просроченото плащане
+     */
+    public static function forceIsSaleOverdue2451()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'IsSaleOverdue', $callOn);
     }
 }
