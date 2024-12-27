@@ -326,7 +326,7 @@ class crm_Companies extends core_Master
      */
     public $icons = array('noDeals' => 'img/16/office-building-gray.png',
                           'activeDeals' => 'img/16/office-building-green.png',
-                          'overdueSales' => 'img/16/stop-sign.png',
+                          'overdueSales' => 'img/16/office-building-red.png',
                           'standart' => 'img/16/office-building.png');
 
 

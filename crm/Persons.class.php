@@ -307,7 +307,7 @@ class crm_Persons extends core_Master
      */
     public $icons = array('noDeals' => 'img/16/vcard-gray.png',
                           'activeDeals' => 'img/16/vcard-green.png',
-                          'overdueSales' => 'img/16/stop-sign.png',
+                          'overdueSales' => 'img/16/red-vcard.png',
                           'standart' => 'img/16/vcard.png');
 
 
