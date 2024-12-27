@@ -1030,7 +1030,15 @@ class cal_Tasks extends embed_Manager
             $data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
 
-        $btnRow = $data->rec->assetResourceId ? 1 : 2;
+        $btnRow = 2;
+        if(isset($data->rec->assetResourceId)) {
+            $assetRec = planning_AssetResources::fetch($data->rec->assetResourceId);
+            $assetType = planning_AssetGroups::fetchField($assetRec->groupId, 'type');
+            if($assetType == 'material') {
+                $btnRow = 1;
+            }
+        }
+
         if(planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
             $data->toolbar->addBtn('Влагане', array('planning_ConsumptionNotes', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), "ef_icon=img/16/produce_in.png,title=Създаване на протокол за влагане към сигнала,row={$btnRow}");
         }
