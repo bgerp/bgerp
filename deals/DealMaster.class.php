@@ -1204,7 +1204,6 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
         $row->paymentState = $mvc->getVerbal($rec, 'paymentState');
-
         $row->paymentStateCaption = tr('Чакащо плащане');
         if ($rec->paymentState == 'overdue') {
             $row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . '</span>';
@@ -1213,14 +1212,17 @@ abstract class deals_DealMaster extends deals_DealBase
                 $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($rec->overdueAmount / $rec->currencyRate);
                 $row->paymentState = $overdueAmount;
                 $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
-                if($fields['-list']){
-                    $row->paymentState = tr('Проср.') . " <b>{$row->paymentState}</b>";
-                } else {
+                if(!$fields['-list']){
                     $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
                 }
                 $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'noicon', false);
             }
             $row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
+        } elseif($rec->paymentState == 'pending') {
+            $row->paymentState = $row->amountToPay;
+            if(!$fields['-list']){
+                $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
+            }
         }
         
         if (isset($rec->dealerId)) {
