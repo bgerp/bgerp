@@ -615,6 +615,10 @@ abstract class deals_InvoiceMaster extends core_Master
             doc_DocumentCache::threadCacheInvalidation($rec->threadId);
         }
 
+        if($rec->_changedCondition){
+            $mvc->logWrite('Променено условие от сметка', $rec->id);
+        }
+
         $Source = $mvc->getSourceOrigin($rec);
         if (!$Source) {
             return;
@@ -1222,8 +1226,12 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
+        // Ако е променено условието от банковата сметка - записва се
         if($mvc->cacheAdditionalConditions){
             if($rec->__isBeingChanged){
+                if(md5(str::removeWhiteSpace($rec->additionalConditions[0])) != md5(str::removeWhiteSpace($rec->additionalConditionsInput))){
+                    $rec->_changedCondition = true;
+                }
                 $rec->additionalConditions[0] = $rec->additionalConditionsInput;
             }
         }

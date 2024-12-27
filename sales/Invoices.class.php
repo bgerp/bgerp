@@ -508,10 +508,10 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public function on_ValidateNumber(core_Mvc $mvc, $rec, core_Form $form)
     {
-        if (empty($rec->number)) {
+        if (empty($rec->number)) return;
 
-            return;
-        }
+        $action = Request::get('Act');
+        if($action == 'changefields') return;
 
         $prevNumber = intval($rec->number) - 1;
         if (!$mvc->fetchField("#number = {$prevNumber}")) {

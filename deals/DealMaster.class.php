@@ -156,15 +156,20 @@ abstract class deals_DealMaster extends deals_DealBase
             $sum = 0;
             $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
 
-            array_walk($invoices, function ($v, $k) use ($today, &$sum, $overdueAddDays) {
+            $overdueDates = array();
+            array_walk($invoices, function ($v, $k) use ($today, &$sum, $overdueAddDays, &$overdueDates) {
                 $Doc = doc_Containers::getDocument($k);
                 $iRec = $Doc->fetch('dealValue,vatAmount,discountAmount,type,date,dueDate');
                 $total = $iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount;
                 $total = ($iRec->type == 'credit_note') ? -1 * $total : $total;
                 $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
                 $dueDate = dt::addDays($overdueAddDays, $dueDate, false);
-                if ($dueDate >= $today && $total > 0) {
-                    $sum += $total;
+                if ($dueDate >= $today) {
+                    if($total > 0){
+                        $sum += $total;
+                    }
+                } else {
+                    $overdueDates[$dueDate] = $dueDate;
                 }
             });
 
@@ -185,7 +190,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 if($rec->paymentState != 'overdue'){
                     $rec->overdueOn = dt::now();
                 } elseif(empty($rec->overdueOn)) {
-                    $rec->overdueOn = $rec->modifiedOn;
+                    $minDate = min($overdueDates);
+                    $rec->overdueOn = !empty($minDate) ? $minDate : $rec->modifiedOn;
                 }
                 $rec->overdueAmount = abs($difference);
 
@@ -205,11 +211,12 @@ abstract class deals_DealMaster extends deals_DealBase
                 // Проверяваме дали сделката е просрочена по платежния си план
                 $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
                 if (abs($diff) > abs($tolerance)) {
-                    if (cond_PaymentMethods::isOverdue($plan, $diff)) {
+                    $overdueOn = null;
+                    if (cond_PaymentMethods::isOverdue($plan, $diff, $overdueOn)) {
                         if($rec->paymentState != 'overdue'){
                             $rec->overdueOn = dt::now();
                         } elseif(empty($rec->overdueOn)) {
-                            $rec->overdueOn = $rec->modifiedOn;
+                            $rec->overdueOn = $overdueOn;
                         }
                         $rec->overdueAmount = abs($diff);
 
@@ -308,7 +315,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 'caption=Статус, input=none'
         );
         
-        $mvc->FLD('paymentState', 'enum(pending=Очакава се||Expected,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Плащане->чакащо, input=none,notNull,value=paid');
+        $mvc->FLD('paymentState', 'enum(pending=Очакава се||Expected,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Плащане->Чакащо, input=none,notNull,value=paid');
         $mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
 
         $mvc->setDbIndex('state');
@@ -1215,7 +1222,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 if(!$fields['-list']){
                     $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
                 }
-                $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'noicon', false);
+                $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'warning', false);
             }
             $row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
         } elseif($rec->paymentState == 'pending') {
