@@ -3313,7 +3313,8 @@ class crm_Persons extends core_Master
         
         if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
             if ($extRec->haveOverdueSales == 'yes') {
-                $res = "<span class='dangerTitle'>{$res}</span>";
+                $title = tr('Има просрочени продажби');
+                $res = "<span class='dangerTitle' title = '{$title}'>{$res}</span>";
             }
         }
     }
