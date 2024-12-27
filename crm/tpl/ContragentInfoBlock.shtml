@@ -1,26 +1,32 @@
-<!--ET_BEGIN overdueSalesBlock-->
-[#overdueSalesBlock#]
-<div class="overdueSalesContragentBlock">|Просрочени продажби|*: [#overdueSalesCount#] |за|* <b style="font-style:italic;">[#overdueSalesAmount#]</b></div>
-<!--ET_END overdueSalesBlock-->
-<!--ET_BEGIN customerSince-->
-<div>
-|Клиент от|*: <b>[#customerSince#]</b>
+<!--ET_BEGIN overdueSalesBlock--> [#overdueSalesBlock#] <div class="contragentStatisticBlock overdue">|Просрочени продажби|*: [#overdueSalesCount#] |с|* <b style="font-style:italic;">[#overdueSalesAmount#]</b>
 </div>
-<!--ET_END customerSince-->
-<!--ET_BEGIN totalSales-->
-[#totalSales#]
-<div>|Общо продажби|*: [#totalSalesCount#] |за|* <i>[#totalSalesAmount#]</i></div>
-<!--ET_END totalSales-->
-<!--ET_BEGIN activeDealsBlock-->
-[#activeDealsBlock#]
-<div>|Активни продажби|*: [#activeSalesCount#] |за|* <i>[#activeSalesAmount#]</i></div>
-<!--ET_END activeDealsBlock-->
+<!--ET_END overdueSalesBlock-->
+<!--ET_BEGIN SALES_BLOCK-->
+<div class="contragentStatisticBlock sales">[#SALES_BLOCK#]
+    <!--ET_BEGIN customerSince-->
+    <div> |Клиент от|*: <b>[#customerSince#]</b>
+    </div>
+    <!--ET_END customerSince-->
+    <!--ET_BEGIN totalSales--> [#totalSales#] <div>|Общо продажби|*: [#totalSalesCount#] |за|* <i>[#totalSalesAmount#]</i>
+    </div>
+    <!--ET_END totalSales-->
+    <!--ET_BEGIN activeDealsBlock--> [#activeDealsBlock#] <div>|Активни продажби|*: [#activeSalesCount#] |за|* <i>[#activeSalesAmount#]</i>
+    </div>
+    <!--ET_END activeDealsBlock-->
+</div>
+<!--ET_END SALES_BLOCK-->
+
+<!--ET_BEGIN PURCHASE_BLOCK-->
+[#PURCHASE_BLOCK#]
+<div class="contragentStatisticBlock purchases">[#SALES_BLOCK#]
 <!--ET_BEGIN supplierSince-->
-<div>
-|Доставчик от|*: <b>[#supplierSince#]</b>
+<div> |Доставчик от|*: <b>[#supplierSince#]</b>
 </div>
 <!--ET_END supplierSince-->
-<!--ET_BEGIN totalPurchasesBlock-->
-[#totalPurchasesBlock#]
-<div>|Общо покупки|*: [#totalPurchaseCount#] |за|* <i>[#totalPurchaseAmount#]</i></div>
-<!--ET_END totalPurchasesBlock-->
+<!--ET_BEGIN activePurchaseBlock--> [#activePurchaseBlock#] <div>|Активни покупки|*: [#activePurchaseCount#] |за|* <i>[#activePurchaseAmount#]</i>
+</div>
+<!--ET_END activePurchaseBlock-->
+<!--ET_BEGIN totalPurchasesBlock--> [#totalPurchasesBlock#] <div>|Общо покупки|*: [#totalPurchaseCount#] |за|* <i>[#totalPurchaseAmount#]</i>
+</div>
+</div>
+<!--ET_END PURCHASE_BLOCK-->
