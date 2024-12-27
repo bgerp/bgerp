@@ -1351,7 +1351,7 @@ abstract class deals_QuotationMaster extends core_Master
         $this->logWrite("Създаване на {$dealSingleTitle} от оферта", $id);
 
         // Редирект към новата сделка
-        return new Redirect(array($DealClass, 'single', $sId), "|Успешно е създадена {$dealSingleTitle} от офертата");
+        return new Redirect(array($DealClass, 'single', $sId), "|Успешно е създадена {$dealSingleTitle} от офертата|*!");
     }
 
 

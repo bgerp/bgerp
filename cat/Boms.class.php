@@ -740,7 +740,7 @@ class cat_Boms extends core_Master
                 }
 
                 $overheadCost = $rec->expenses;
-                if (empty($rec->expenses)) {
+                if (!isset($rec->expenses)) {
                     $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
                     if (!empty($defaultOverheadCost)) {
                         $overheadCost = $defaultOverheadCost['overheadCost'];

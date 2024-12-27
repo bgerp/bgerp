@@ -35,3 +35,4 @@
 Политика за служители,cond_type_PriceList,employeesList,Продажба,,,,
 Сума в общо по МТК,cond_type_YesOrNo,totalInPackListWithTariffCode,"Packing list за митница",,,,
 Тара в общо по МТК,cond_type_YesOrNo,tareInPackListWithTariffCode,"Packing list за митница",,,,
+Праг на просрочие,cond_type_Double,saleOverdueAmount,Продажба,"дни × сума",,,

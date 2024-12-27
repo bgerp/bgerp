@@ -31,7 +31,7 @@ class cat_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject, core_UserTranslatePlg';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject, core_UserTranslatePlg, plg_SaveAndNew';
 
 
     /**
@@ -162,6 +162,7 @@ class cat_Groups extends core_Master
                                 fixedAsset=Дълготрайни активи,
         						canManifacture=Производими,generic=Генерични)', 'caption=Настройки->Свойства,columns=2,input=none');
         $this->FLD('notes', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
+
         $this->setDbUnique('sysId');
         $this->setDbIndex('parentId');
     }
@@ -174,9 +175,10 @@ class cat_Groups extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
-        $form->setField('parentId', 'caption=Настройки->В състава на');
+        $form->setField('parentId', 'caption=Настройки->В състава на,remember');
         $form->setField('orderProductBy', 'caption=Настройки->Сортиране по');
         $form->setField('parentId', 'silent,removeAndRefreshForm=defaultOverheadCostsPercent');
+        $form->FLD('addProducts', 'text(rows=2)', 'caption=Допълнително->Добави артикули,input');
 
         // На системните групи само определени полета може да се променят
         if (isset($rec->sysId)) {
@@ -228,6 +230,25 @@ class cat_Groups extends core_Master
                     }
                 }
             }
+
+            if(!empty($rec->addProducts)){
+                $errorCodes = $rec->_addProductsArr = array();
+                $addProducts = cond_type_Text::text2options($rec->addProducts);
+                foreach ($addProducts as $string){
+                    $productRec = cat_Products::getByCode($string);
+                    if(is_object($productRec)){
+                        $rec->_addProductsArr[$productRec->productId] = $productRec->productId;
+                    } else {
+                        $errorCodes[] = "<b>{$string}</b>";
+                    }
+                }
+
+                if(countR($errorCodes)){
+                    $msg = "Не са открити артикули с кодове|*: " . implode(', ', $errorCodes);
+                    $form->setError('addProducts', $msg);
+                }
+            }
+
         }
     }
 
@@ -672,5 +693,24 @@ class cat_Groups extends core_Master
             $callOn = dt::addSecs(30);
             core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpandInput', 'cat_Products', $callOn);
         }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if(empty($rec->_addProductsArr)) return;
+
+        $count =  countR($rec->_addProductsArr);
+        foreach ($rec->_addProductsArr as $productId){
+            $pRec = cat_Products::fetch($productId);
+            $pRec->groupsInput = keylist::addKey($pRec->groupsInput, $rec->id);
+            cat_Products::save($pRec);
+        }
+
+        $mvc->cron_UpdateTouchedGroupsCnt();
+        core_Statuses::newStatus("Добавени артикули в групата|*: {$count}");
     }
 }

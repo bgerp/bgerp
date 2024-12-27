@@ -1232,7 +1232,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         cat_Boms::logWrite('Създаване на рецепта от протокол за производство', $newId);
 
         // Редирект
-        return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта');
+        return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта|*!');
     }
 
 

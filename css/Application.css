@@ -7981,3 +7981,19 @@ table.bomProductionStepTable td {
 .dialogHolder .result .dump {
   white-space: normal; }
 
+.contragentStatisticBlock {
+  margin: 3px 0;
+  padding: 3px 5px;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6; }
+  .contragentStatisticBlock.overdue {
+    box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.1);
+    color: white;
+    background-color: #ff4d4d; }
+  .contragentStatisticBlock.sales {
+    border: 1px solid rgba(204, 204, 204, 0.5); }
+  .contragentStatisticBlock.purchases {
+    border: 1px solid rgba(204, 204, 204, 0.5); }
+

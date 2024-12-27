@@ -376,9 +376,12 @@ class cond_PaymentMethods extends embed_Manager
             
             return false;
         }
-        
+
+        $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
+        $dueDate = dt::addDays($overdueAddDays, $payment['deadlineForBalancePayment'], false);
+
         // Ако текущата дата след крайния срок за плащане, документа е просрочен
-        return ($today > $payment['deadlineForBalancePayment']);
+        return ($today > $dueDate);
     }
     
     

@@ -50,7 +50,7 @@ class crm_ext_ContragentInfo extends core_manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'contragentId=Контрагент,customerSince=Първо задание,overdueSales=Просрочени сделки,totalDealsCount=Продажби->Брой,totalDealsAmount=Продажби->Сума,overdueDealsCount=Просрочени продажби->Брой,overdueDealsAmount=Просрочени продажби->Сума,supplierSince=Доставчик от,totalPurchaseCount=Покупки->Брой,totalPurchaseAmount=Покупки->Сума,createdBy';
+    public $listFields = 'contragentId=Контрагент,customerSince=Клиент от,supplierSince=Доставчик от,haveOverdueSales=Просрочия,activeSalesCount,activeSalesAmount,totalSalesCount,totalSalesAmount,overdueSalesCount,overdueSalesAmount,overdueSalesThreshold,overdueSalesThresholdParam,activePurchaseCount,activePurchaseAmount,totalPurchaseCount,totalPurchaseAmount,createdBy';
     
     
     /**
@@ -61,12 +61,21 @@ class crm_ext_ContragentInfo extends core_manager
         $this->FLD('contragentClassId', 'int');
         $this->FLD('contragentId', 'int', 'tdClass=leftCol wrapText');
         $this->FLD('customerSince', 'date');
-        $this->FLD('overdueSales', 'enum(yes=Да)');
-        $this->FLD('totalDeals', 'blob(serialize, compress)', 'caption=Продажби->Общо');
-        $this->FLD('overdueDeals', 'blob(serialize, compress)', 'caption=Продажби->Просрочени');
         $this->FLD('supplierSince', 'date');
-        $this->FLD('purchasesTotal', 'blob(serialize, compress)');
-        
+        $this->FLD('haveOverdueSales', 'enum(yes=Да,no=Не)');
+        $this->FLD('activeSalesCount', 'int', 'caption=Продажби (Активни)->Брой');
+        $this->FLD('activeSalesAmount', 'double', 'caption=Продажби (Активни)->Сума');
+        $this->FLD('totalSalesCount', 'int', 'caption=Продажби (Всички)->Брой');
+        $this->FLD('totalSalesAmount', 'double', 'caption=Продажби (Всички)->Сума');
+        $this->FLD('overdueSalesCount', 'int', 'caption=Продажби (Просрочени)->Брой');
+        $this->FLD('overdueSalesAmount', 'double', 'caption=Продажби (Просрочени)->Сума');
+        $this->FLD('overdueSalesThreshold', 'double', 'caption=Продажби (Просрочени)->дни × сума');
+        $this->FLD('overdueSalesThresholdParam', 'double', 'caption=Продажби (Просрочени)->Праг');
+        $this->FLD('activePurchaseCount', 'int', 'caption=Покупки (Активни)->Брой');
+        $this->FLD('activePurchaseAmount', 'double', 'caption=Покупки (Активни)->Сума');
+        $this->FLD('totalPurchaseCount', 'int', 'caption=Покупки (Всички)->Брой');
+        $this->FLD('totalPurchaseAmount', 'double', 'caption=Покупки (Всички)->Сума');
+
         $this->setDbIndex('contragentClassId');
         $this->setDbUnique('contragentClassId,contragentId');
     }
@@ -98,10 +107,10 @@ class crm_ext_ContragentInfo extends core_manager
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $data->listTableMvc->FNC('totalDealsCount', 'int');
-        $data->listTableMvc->FNC('totalDealsAmount', 'int');
-        $data->listTableMvc->FNC('overdueDealsCount', 'int');
-        $data->listTableMvc->FNC('overdueDealsAmount', 'int');
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+        foreach (array('activeSalesAmount', 'totalSalesAmount', 'overdueSalesAmount', 'overdueSalesThreshold', 'activePurchaseAmount', 'totalPurchaseAmount') as $fld){
+            $data->listFields[$fld] .= "|* <small style='font-weight:normal'>({$baseCurrencyCode})</small>";
+        }
     }
     
     
@@ -164,11 +173,13 @@ class crm_ext_ContragentInfo extends core_manager
      * @param core_Mvc $mvc
      * @param stdClass $row
      * @param stdClass $rec
+     * @param array $fields
      *
      * @return void
      */
-    public static function extendRow($mvc, &$row, $rec)
+    public static function extendRow($mvc, &$row, $rec, $fields = array())
     {
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         $customerSince = crm_ext_ContragentInfo::getCustomerSince($mvc->getClassId(), $rec->id);
         if (!empty($customerSince)) {
             $row->customerSince = core_Type::getByName('date')->toVerbal($customerSince);
@@ -180,35 +191,29 @@ class crm_ext_ContragentInfo extends core_manager
         }
         
         if ($cInfo = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $rec->id)) {
-            $currencyId = acc_Periods::getBaseCurrencyCode();
-            
-            if (isset($cInfo->purchasesTotal)) {
-                $row->totalPurchaseCount = core_Type::getByName('int')->toVerbal($cInfo->purchasesTotal['count']);
-                $row->totalPurchaseAmount = core_Type::getByName('double(decimals=2)')->toVerbal($cInfo->purchasesTotal['amount']) . " {$currencyId}";
-            }
-            
-            if (isset($cInfo->totalDeals)) {
-                $row->totalDealsCount = core_Type::getByName('int')->toVerbal($cInfo->totalDeals['count']);
-                $row->totalDealsAmount = core_Type::getByName('double(decimals=2)')->toVerbal($cInfo->totalDeals['amount']) . " {$currencyId}";
-            }
-            
-            if (isset($cInfo->overdueDeals)) {
-                $row->overdueDealsCount = core_Type::getByName('int')->toVerbal($cInfo->overdueDeals['count']);
-                $row->overdueDealsAmount = core_Type::getByName('double(decimals=2)')->toVerbal($cInfo->overdueDeals['amount']) . " {$currencyId}";
-            }
-        }
+            foreach (array('activeSalesCount', 'totalSalesCount', 'overdueSalesCount', 'activePurchaseCount', 'totalPurchaseCount') as $countFld) {
+                if (isset($cInfo->{$countFld})) {
+                    $row->{$countFld} = core_Type::getByName('int')->toVerbal($cInfo->{$countFld});
+                    $Cls = in_array($countFld, array('totalPurchaseCount', 'activePurchaseCount')) ? 'purchase_Purchases' : 'sales_Sales';
 
-        if(!haveRole('ceo,seePriceSale')){
-            foreach (array('totalDeals' => 'totalDealsAmount', 'overdueDeals' => 'overdueDealsAmount') as $k => $v){
-                if (isset($cInfo->{$k})) {
-                    $row->{$v} = doc_plg_HidePrices::getBuriedElement();
+                    $type = ($countFld == 'overdueSalesCount') ? 'overdue' : ($countFld == 'activeSalesCount' ? 'active' : 'clAndAct');
+                    if ($Cls::haveRightFor('list')) {
+                        $row->{$countFld} = ht::createLink($row->{$countFld}, array($Cls, 'list', 'type' => $type, 'folder' => $rec->folderId, 'selectPeriod' => 'gr0'));
+                    }
                 }
             }
-        }
 
-        if(!haveRole('ceo,seePricePurchase')){
-            if (isset($cInfo->purchasesTotal)) {
-                $row->totalPurchaseAmount = doc_plg_HidePrices::getBuriedElement();
+            foreach (array('activeSalesAmount', 'totalSalesAmount', 'overdueSalesAmount', 'activePurchaseAmount', 'totalPurchaseAmount', 'overdueSalesThreshold', 'overdueSalesThresholdParam') as $amountFld) {
+                if (isset($cInfo->{$amountFld})) {
+                    $row->{$amountFld} = core_Type::getByName('double(decimals=2)')->toVerbal($cInfo->{$amountFld});
+                    if ($fields['-single']) {
+                        $row->{$amountFld} = currency_Currencies::decorate($row->{$amountFld}, $baseCurrencyCode);
+                    }
+
+                    if(!haveRole('ceo,seePriceSale') || haveRole('noPrice')){
+                         $row->{$amountFld} = doc_plg_HidePrices::getBuriedElement();
+                    }
+                }
             }
         }
     }
@@ -334,63 +339,118 @@ class crm_ext_ContragentInfo extends core_manager
         
         $uArr = array(core_Users::ANONYMOUS_USER, core_Users::SYSTEM_USER);
         $contragentClasses = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf', 'id');
-        
+
         // За всички контрагенти
+        $res = "Събиране на контрагентски данни";
         foreach ($contragentClasses as $classId) {
-            $saveArray = array();
             $exRecs = (array_key_exists($classId, $existing)) ? $existing[$classId] : array();
-            
+
             // За всички неоттеглени контрагенти
             $ContragentClass = cls::get($classId);
+
             $cQuery = $ContragentClass::getQuery();
             $cQuery->where('#folderId IS NOT NULL');
             $cQuery->where("#state != 'rejected'");
             $cQuery->show('folderId,id');
             
             // Дигане на тайм лимита за всеки случай
-            $count = $cQuery->count() * 0.032;
+            $count = $cQuery->count() * 0.048;
             core_App::setTimeLimit($count, false, 300);
             
             // От кога са клиенти
             $datesArr = self::getFirstDates($classId);
             $dealData = self::getDealData($classId);
-            
+
             // За всеки
+            $newRecs = array();
             while ($cRec = $cQuery->fetch()) {
-                if (array_key_exists($cRec->id, $exRecs)) {
-                    $r = $exRecs[$cRec->id];
-                } else {
-                    $r = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
-                }
-                
+                $r = self::prepareNewRec($classId, $cRec->id, array('createdOn' => $now));
                 $total = is_array($dealData['sales'][$cRec->id]['total']) ? $dealData['sales'][$cRec->id]['total'] : array();
-                $overdues = is_array($dealData['sales'][$cRec->id]['overdue']) ? $dealData['sales'][$cRec->id]['overdue'] : array();
+                $overDues = is_array($dealData['sales'][$cRec->id]['overdue']) ? $dealData['sales'][$cRec->id]['overdue'] : array();
+                $active = is_array($dealData['sales'][$cRec->id]['active']) ? $dealData['sales'][$cRec->id]['active'] : array();
                 $purchasesTotal = is_array($dealData['purchases'][$cRec->id]['total']) ? $dealData['purchases'][$cRec->id]['total'] : array();
-                
-                $r->purchasesTotal = countR($purchasesTotal) ? $purchasesTotal : null;
-                $r->overdueSales = countR($overdues) ? 'yes' : null;
-                $r->totalDeals = countR($total) ? $total : null;
-                $r->overdueDeals = countR($overdues) ? $overdues : null;
-                
+                $purchasesActive = is_array($dealData['purchases'][$cRec->id]['active']) ? $dealData['purchases'][$cRec->id]['active'] : array();
+
+                $r->haveOverdueSales = 'no';
+                $r->overdueSalesCount = $r->overdueSalesAmount = $r->overdueSalesThreshold = $r->overdueSalesThresholdParam =  null;
+                if(countR($overDues)){
+                    $r->overdueSalesCount = $overDues['count'];
+                    $r->overdueSalesAmount = round($overDues['amount'], 2);
+                    $r->overdueSalesThreshold = $overDues['threshold'];
+                    $r->overdueSalesThresholdParam = $overDues['thresholdParamValue'];
+                    if(round($overDues['threshold'], 2) > round($overDues['thresholdParamValue'], 2)){
+                        $r->haveOverdueSales = 'yes';
+                    }
+                }
+
+                $r->activeSalesCount = $r->activeSalesAmount = null;
+                if(countR($active)){
+                    $r->activeSalesCount = $active['count'];
+                    $r->activeSalesAmount = round($active['amount'], 2);
+                }
+
+                $r->totalSalesCount = $r->totalSalesAmount = null;
+                if(countR($total)){
+                    $r->totalSalesCount = $total['count'];
+                    $r->totalSalesAmount = round($total['amount'], 2);
+                }
+
+                $r->totalPurchaseCount = $r->totalPurchaseAmount = null;
+                if(countR($purchasesTotal)){
+                    $r->totalPurchaseCount = $purchasesTotal['count'];
+                    $r->totalPurchaseAmount = round($purchasesTotal['amount'], 2);
+                }
+
+                $r->activePurchaseCount = $r->activePurchaseAmount = null;
+                if(countR($purchasesActive)){
+                    $r->activePurchaseCount = $purchasesActive['count'];
+                    $r->activePurchaseAmount = round($purchasesActive['amount'], 2);
+                }
+
                 //..и е стар запис създаден от системата
                 if (array_key_exists($cRec->id, $exRecs)) {
                     if (in_array($exRecs[$cRec->id]->createdBy, $uArr)) {
                         $r->customerSince = array_key_exists($cRec->id, $datesArr['sales']) ? $datesArr['sales'][$cRec->id] : null;
+                    } else {
+                        $r->customerSince = $exRecs[$cRec->id]->customerSince;
                     }
+                } else {
+                    $r->customerSince = array_key_exists($cRec->id, $datesArr['sales']) ? $datesArr['sales'][$cRec->id] : null;
                 }
                 
                 $r->supplierSince = array_key_exists($cRec->id, $datesArr['purchases']) ? $datesArr['purchases'][$cRec->id] : null;
-                
-                if (isset($r->overdueSales) || isset($r->customerSince) || isset($r->id) || isset($r->supplierSince)) {
-                    $saveArray[$cRec->id] = $r;
+                $save = false;
+                $fields = arr::make('customerSince,supplierSince,totalSalesCount,totalSalesAmount,totalPurchaseCount,totalPurchaseAmount,activePurchaseCount,activePurchaseAmount', true);
+                foreach ($fields as $fld){
+                    if(isset($r->{$fld})){
+                        $save = true;
+                        break;
+                    }
+                }
+
+                if($save){
+                    $newRecs[$r->contragentId] = $r;
                 }
             }
-            
+
+            $sync = arr::syncArrays($newRecs, $exRecs, 'contragentClassId,contragentId', 'customerSince,supplierSince,haveOverdueSales,activeSalesCount,activeSalesAmount,totalSalesCount,totalSalesAmount,overdueSalesCount,overdueSalesAmount,overdueSalesThreshold,overdueSalesThresholdParam,totalPurchaseCount,totalPurchaseAmount,activePurchaseCount,activePurchaseAmount');
+
+            $i = countR($sync['insert']);
+            $u = countR($sync['update']);
+
             // Запис на новите данни
-            if (countR($saveArray)) {
-                $this->saveArray($saveArray);
+            if ($i) {
+                $this->saveArray($sync['insert']);
             }
+
+            if ($u) {
+                $this->saveArray($sync['update'], 'id,customerSince,supplierSince,haveOverdueSales,activeSalesCount,activeSalesAmount,totalSalesCount,totalSalesAmount,overdueSalesCount,overdueSalesAmount,overdueSalesThreshold,overdueSalesThresholdParam,totalPurchaseCount,totalPurchaseAmount,activePurchaseCount,activePurchaseAmount');
+            }
+
+            $res .= "<br>{$ContragentClass->className}- I:{$i} / U: {$u}";
         }
+
+        return $res;
     }
     
     
@@ -398,43 +458,119 @@ class crm_ext_ContragentInfo extends core_manager
      * Всички просрочени продажби
      *
      * @param int $contragentClassId
-     *
      * @return array $res
      */
     private static function getDealData($contragentClassId)
     {
+        $now = dt::now();
         $res = array();
-       
+
+        $baseCurrencyId = acc_Periods::getBaseCurrencyCode();
         foreach (array('sales' => 'sales_Sales', 'purchases' => 'purchase_Purchases') as $key => $Cls){
             
             // Сумиране и преброяване на всички сделки на контрагента
             $dQuery = $Cls::getQuery();
-            $dQuery->XPR('count', 'int', 'COUNT(#id)');
-            $dQuery->XPR('amount', 'int', 'SUM(COALESCE(#amountDeal, 0))');
             $dQuery->where("#contragentClassId = {$contragentClassId}");
-            $dQuery->where("#state = 'active' OR #state = 'closed'");
-            $dQuery->show('id,count,amount,contragentId');
-            $dQuery->groupBy('contragentId');
-            
+            $dQuery->where("#state IN ('active', 'closed')");
+            $dQuery->show('amountDeal,overdueOn,contragentId,paymentState,contragentClassId,currencyId,state,overdueAmount');
+
+            $paramCache = array();
             while ($sRec = $dQuery->fetch()) {
-                $res[$key][$sRec->contragentId]['total']['count'] = $sRec->count;
-                $res[$key][$sRec->contragentId]['total']['amount'] = $sRec->amount;
-            }
-            
-            // Сумиране и преброяване на всички просрочени сделки на контрагента
-            $dQuery2 = $Cls::getQuery();
-            $dQuery2->XPR('count', 'int', 'COUNT(#id)');
-            $dQuery2->XPR('amount', 'int', 'SUM(COALESCE(#amountBl, 0))');
-            $dQuery2->where("#contragentClassId = {$contragentClassId}");
-            $dQuery2->where("#state = 'active' AND #paymentState = 'overdue'");
-            $dQuery2->show('count,amount,contragentId');
-            $dQuery2->groupBy('contragentId');
-            while ($sRec2 = $dQuery2->fetch()) {
-                $res[$key][$sRec2->contragentId]['overdue']['count'] = $sRec2->count;
-                $res[$key][$sRec2->contragentId]['overdue']['amount'] = $sRec2->amount;
+                $amountInCurrentBaseCurrency = currency_CurrencyRates::convertAmount($sRec->amountDeal, null, $sRec->currencyId, $baseCurrencyId);
+
+                $res[$key][$sRec->contragentId]['total']['count'] += 1;
+                $res[$key][$sRec->contragentId]['total']['amount'] += $amountInCurrentBaseCurrency;
+
+                if($sRec->state == 'active'){
+                    $res[$key][$sRec->contragentId]['active']['count'] += 1;
+                    $res[$key][$sRec->contragentId]['active']['amount'] += $amountInCurrentBaseCurrency;
+                    if($key == 'sales'){
+
+                        // Ако са продажби ще се смятат отделно активните и просрочените
+                        if($sRec->paymentState == 'overdue'){
+                            $amountInCurrentBaseCurrency = currency_CurrencyRates::convertAmount($sRec->overdueAmount, null, $sRec->currencyId, $baseCurrencyId);
+                            $res[$key][$sRec->contragentId]['overdue']['count'] += 1;
+                            $res[$key][$sRec->contragentId]['overdue']['amount'] += $amountInCurrentBaseCurrency;
+
+                            // Колко леводни е просрочието
+                            $daysBetween = dt::daysBetween($now, $sRec->overdueOn);
+                            $res[$key][$sRec->contragentId]['overdue']['threshold'] += $amountInCurrentBaseCurrency * $daysBetween;
+                            if(!array_key_exists($sRec->contragentId, $paramCache)){
+                                $paramCache[$sRec->contragentId] = cond_Parameters::getParameter($sRec->contragentClassId, $sRec->contragentId, 'saleOverdueAmount');
+                            }
+                            $res[$key][$sRec->contragentId]['overdue']['thresholdParamValue'] = $paramCache[$sRec->contragentId];
+                        }
+                    }
+                }
             }
         }
-        
+
         return $res;
+    }
+
+
+    /**
+     * Връща подходящата иконка за контрагента, спрямо състоянието на сделките
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @return string $icon
+     */
+    public static function getContragentIcon($mvc, $id)
+    {
+        if (core_Users::isContractor() || !haveRole('user')) return;
+
+        $icon = $mvc->icons['noDeals'];
+        if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
+            $total = $extRec->totalSalesCount + $extRec->totalPurchaseCount;
+            if($extRec->haveOverdueSales == 'yes') {
+                $icon = $mvc->icons['overdueSales'];
+            } elseif($extRec->activeSalesCount || $extRec->activePurchaseCount) {
+                $icon = $mvc->icons['activeDeals'];
+            } elseif($total) {
+                $icon = $mvc->icons['standart'];
+            }
+        }
+
+        return $icon;
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('folder', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент');
+        $data->listFilter->FLD('type', 'enum(all=Всички,overdue=Просрочия,empty=Празни,withoutActive=Без активни,havePurchase=С покупки,haveSales=С продажби)', 'caption=Вид');
+
+        $data->listFilter->showFields = 'folder,type';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input();
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        if($rec = $data->listFilter->rec){
+            if(!empty($rec->folder)){
+                $Cover = doc_Folders::getCover($rec->folder);
+                $data->query->where("#contragentClassId = {$Cover->getClassId()} AND #contragentId = {$Cover->that}");
+            }
+
+            if($rec->type != 'all'){
+                if($rec->type == 'haveSale'){
+                    $data->query->where("#totalSalesCount > 0");
+                } elseif($rec->type == 'havePurchase'){
+                    $data->query->where("#totalPurchaseCount > 0");
+                } elseif($rec->type == 'overdue'){
+                    $data->query->where("#haveOverdueSales = 'yes'");
+                } elseif($rec->type == 'empty'){
+                    $data->query->where("#totalSalesCount IS NULL AND #totalPurchaseCount IS NULL");
+                } elseif($rec->type == 'withoutActive'){
+                    $data->query->where("#activeSalesCount IS NULL");
+                }
+            }
+        }
     }
 }

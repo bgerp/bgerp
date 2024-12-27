@@ -279,12 +279,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Работен кеш
-     */
-    public $changedAssets = array();
-
-
-    /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
@@ -1482,24 +1476,6 @@ class planning_Tasks extends core_Master
                                 }
                             }
                         }
-                    }
-                }
-            }
-        }
-
-        if ($action == 'reordertask') {
-            // Който може да редактира ПО може и да я преподрежда
-            $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
-
-            if (isset($rec->id)) {
-                if (empty($rec->assetId)) {
-                    $requiredRoles = 'no_one';
-                } elseif (!in_array($rec->state, array('active', 'wakeup', 'pending', 'stopped'))) {
-                    $requiredRoles = 'no_one';
-                } elseif (!empty($rec->startAfter)) {
-                    $startAfterTask = $mvc->fetch($rec->startAfter, 'state,assetId');
-                    if (!in_array($startAfterTask->state, array('stopped', 'pending', 'active', 'wakeup')) || $rec->assetId != $startAfterTask->assetId) {
-                        $requiredRoles = 'no_one';
                     }
                 }
             }
@@ -3417,7 +3393,7 @@ class planning_Tasks extends core_Master
             if($rec->_stopReorder) return;
 
             // Ако не е минато през формата
-            if(!$rec->_fromForm && !$rec->_isDragAndDrop){
+            if(!$rec->_fromForm){
 
                 // Ако няма начало изчислява се да започне след последната
                 if($rec->state == 'active' && $rec->brState == 'pending'){
@@ -3643,19 +3619,19 @@ class planning_Tasks extends core_Master
                 $backUrl = toUrl(getRetUrl());
 
                 $hash = str::addHash($assetId, 6, 'RO');
-                $saveBtnAttr = array('id' => 'saveBtn');
+                $saveBtnAttr = array('id' => 'saveBtn', 'title' => 'Запис на направените промени');
                 if ($mvc->haveRightFor('savereordertasks', (object)array('assetId' => $assetId))) {
                     $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
                 }
 
-                $changeBtnArr = array('id' => 'changeBtn', 'data-error' => tr('Не са селектирани редове|*!'));
+                $changeBtnArr = array('id' => 'changeBtn', 'title' => 'Преместване на операции на друга машина', 'data-error' => tr('Не са селектирани редове|*!'));
                 if ($mvc->haveRightFor('savereordertasks', (object)array('assetId' => $assetId))) {
                     $hash = str::addHash($assetId, 6, 'PT');
                     $changeBtnArr['data-url'] = toUrl(array($mvc, 'changeAsset', 'assetId' => $assetId, 'hash' => $hash, 'ret_url' => true));
                 }
 
                 $headerTpl->append(ht::createFnBtn('Запис', '', false, $saveBtnAttr), 'saveBtn');
-                $headerTpl->append(ht::createFnBtn('Отказ', '', false, array('id' => 'backBtn', 'data-url' => $backUrl)), 'assetId');
+                $headerTpl->append(ht::createFnBtn('Отказ', '', false, array('id' => 'backBtn', 'data-url' => $backUrl, 'title' => 'Връщане назад')), 'assetId');
                 $headerTpl->append(ht::createFnBtn('Смяна оборудване', '', false, $changeBtnArr), 'changeAssetBtn');
                 $tpl->prepend($headerTpl);
 
@@ -3714,8 +3690,8 @@ class planning_Tasks extends core_Master
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
         if(in_array($rec->state, array('waiting', 'pending'))) {
+
             // Определяне на сътоянието при запис
-            $rec->state == 'pending';
             if(empty($rec->brState)){
                 $rec->brState = 'draft';
             }
