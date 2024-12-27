@@ -315,7 +315,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 'caption=Статус, input=none'
         );
         
-        $mvc->FLD('paymentState', 'enum(pending=Очакава се||Expected,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Плащане->чакащо, input=none,notNull,value=paid');
+        $mvc->FLD('paymentState', 'enum(pending=Очакава се||Expected,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Плащане->Чакащо, input=none,notNull,value=paid');
         $mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
 
         $mvc->setDbIndex('state');
@@ -1222,7 +1222,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 if(!$fields['-list']){
                     $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
                 }
-                $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'noicon', false);
+                $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'warning', false);
             }
             $row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
         } elseif($rec->paymentState == 'pending') {
