@@ -403,9 +403,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
         // Да се заредят контрагентите от POS  бележките
-        array_merge($suggestionContragents,$posContragents);
+        $suggestionContragents = $posContragents;
 
-        asort($suggestionContragents);
+        asort($suggestions);
 
         $form->setSuggestions('contragent', $suggestions);
     }
