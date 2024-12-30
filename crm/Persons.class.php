@@ -303,6 +303,15 @@ class crm_Persons extends core_Master
 
 
     /**
+     * Икони на контрагента спрямо състоянието на сделките в него
+     */
+    public $icons = array('noDeals' => 'img/16/vcard-gray.png',
+                          'activeDeals' => 'img/16/vcard-green.png',
+                          'overdueSales' => 'img/16/red-vcard.png',
+                          'standart' => 'img/16/vcard.png');
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -688,7 +697,7 @@ class crm_Persons extends core_Master
             }
             
             // Разширяване на $row
-            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec, $fields);
         }
         
         static $ownCompany;
@@ -3263,8 +3272,8 @@ class crm_Persons extends core_Master
         
         return false;
     }
-    
-    
+
+
     /**
      * След взимане на иконката за единичния изглед
      *
@@ -3274,19 +3283,20 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
-        if (core_Users::isContractor()) {
-            
-            return;
-        }
-        
-        if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
-                $res = 'img/16/stop-sign.png';
-            }
-        }
+        $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
     }
-    
-    
+
+
+    /**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     */
+    public function on_AfterGetIcon($mvc, &$res, $id = null)
+    {
+        $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
+    }
+
+
     /**
      * След взимане на заглавието за единичния изглед
      *
@@ -3302,8 +3312,9 @@ class crm_Persons extends core_Master
         }
         
         if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
-                $res = "<span class='dangerTitle'>{$res}</span>";
+            if ($extRec->haveOverdueSales == 'yes') {
+                $title = tr('Има просрочени продажби');
+                $res = "<span class='dangerTitle' title = '{$title}'>{$res}</span>";
             }
         }
     }

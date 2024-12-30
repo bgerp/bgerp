@@ -25,81 +25,81 @@ class pos_Points extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Settings, plg_Rejected, doc_FolderPlg, pos_Wrapper, plg_Current, plg_State, plg_Created';
-    
-    
+    public $loadList = 'plg_RowTools2, plg_Settings, plg_Rejected, doc_FolderPlg, doc_plg_Close, pos_Wrapper, plg_Current, plg_State, plg_Created';
+
+
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'POS';
-    
-    
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'name, caseId, storeId, prototypeId, cashiers=Оператори';
-    
-    
+
+
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
-    
-    
+
+
     /**
      * Да се създаде папка при създаване на нов запис
      */
     public $autoCreateFolder = 'instant';
-    
-    
+
+
     /**
      * Кой може да променя?
      */
     public $canWrite = 'ceo, posMaster, admin';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, pos, admin';
-    
-    
+
+
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo, pos, admin';
-    
-    
+
+
     /**
      * Икона за единичен изглед
      */
     public $singleIcon = 'img/16/cash-register.png';
-    
-    
+
+
     /**
      * Кой може да го отхвърли?
      */
     public $canReject = 'ceo, posMaster, admin';
-    
-    
+
+
     /**
      * Файл с шаблон за единичен изглед
      */
     public $singleLayoutFile = 'pos/tpl/SinglePointLayout.shtml';
-    
-    
+
+
     /**
      * Кой може да селектира?
      */
     public $canSelect = 'ceo, pos';
-    
-    
+
+
     /**
      * Кой може да селектира всички записи
      */
     public $canSelectAll = 'ceo, posMaster';
-    
-    
+
+
     /**
      * Детайли на бележката
      */
@@ -108,25 +108,25 @@ class pos_Points extends core_Master
 
     /**
      * Полета за настройки
-     * 
+     *
      * @see plg_Settings
      */
     public $settingFields = 'policyId,payments,theme,cashiers,setPrices,payments,chargeVat,setDiscounts,productBtnTpl,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups,showProductCode,discountPolicyId,vatExceptionId';
-      
-    
+
+
     /**
      * Полета за съответветствие с константите
      */
-    private static $fieldMap = array('maxSearchContragentStart' => 'TERMINAL_MAX_SEARCH_CONTRAGENTS', 
-                                     'maxSearchContragent' => 'TERMINAL_MAX_SEARCH_CONTRAGENTS', 
-                                     'maxSearchProducts' => 'TERMINAL_MAX_SEARCH_PRODUCTS', 
+    private static $fieldMap = array('maxSearchContragentStart' => 'TERMINAL_MAX_SEARCH_CONTRAGENTS',
+                                     'maxSearchContragent' => 'TERMINAL_MAX_SEARCH_CONTRAGENTS',
+                                     'maxSearchProducts' => 'TERMINAL_MAX_SEARCH_PRODUCTS',
                                      'maxSearchProductRelations' => 'TERMINAL_MAX_SEARCH_PRODUCT_RELATIONS',
                                      'maxSearchProductInLastSales' => 'TERMINAL_MAX_SEARCH_PRODUCT_LAST_SALE',
                                      'searchDelayTerminal' => 'TERMINAL_SEARCH_SECONDS',
                                      'discountPolicyId' => 'SHOW_DISCOUNT_COMPARED_TO_LIST_ID',
                                      'maxSearchReceipts' => 'TERMINAL_MAX_SEARCH_RECEIPTS');
-    
-    
+
+
     /**
      * Описание на модела
      */
@@ -148,7 +148,7 @@ class pos_Points extends core_Master
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts,discount_class=leftCell)', 'caption=Ръчно задаване->Използвани отстъпки');
-        
+
         $this->FLD('maxSearchProducts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Артикули');
         $this->FLD('maxSearchProductRelations', 'int(min=0)', 'caption=Максимален брой резултати в "Избор"->Свързани артикули');
         $this->FLD('maxSearchProductInLastSales', 'int(min=0)', 'caption=Максимален брой резултати в "Избор"->Последни продажби');
@@ -159,9 +159,9 @@ class pos_Points extends core_Master
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Складове->Основен, mandatory');
         $this->FLD('otherStores', 'keylist(mvc=store_Stores, select=name)', 'caption=Складове->Допълнителни');
     }
-    
-    
-    
+
+
+
     /**
      * Валидиране на групите с артикули
      *
@@ -173,7 +173,7 @@ class pos_Points extends core_Master
     public static function validateGroups($tableData, $Type)
     {
         $res = $error = $groups = $errorFields = array();
-        
+
         foreach ($tableData['groupId'] as $k1 => $groupId) {
             if (array_key_exists($groupId, $groups)) {
                 $error[] = 'Повтаряща се група';
@@ -182,23 +182,23 @@ class pos_Points extends core_Master
                 $groups[$groupId] = $groupId;
             }
         }
-        
+
         if (countR($error)) {
             $error = implode('<li>', $error);
             $res['error'] = $error;
         }
-        
+
         if (countR($errorFields)) {
             $res['errorFields'] = $errorFields;
         }
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Валидиране на отстъпките
-     * 
+     *
      * @param array     $tableData
      * @param core_Type $Type
      *
@@ -208,7 +208,7 @@ class pos_Points extends core_Master
     {
         $res = array();
         $discounts = $tableData['discount'];
-        
+
         $error = $errorFields = array();
         $Discount = core_Type::getByName('percent(min=0,max=1)');
         foreach ($discounts as $k1 => $q1) {
@@ -221,33 +221,33 @@ class pos_Points extends core_Master
                 $errorFields['discount'][$k1] = 'Отстъпката трябва да е между 0 и 100%|*';
             }
         }
-        
+
         if (countR($error)) {
             $error = implode('<li>', $error);
             $res['error'] = $error;
         }
-        
+
         if (countR($errorFields)) {
             $res['errorFields'] = $errorFields;
         }
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Връща списъка с операторите
-     * 
+     *
      * @return array $users
      */
     public static function getCashiers()
     {
         $users = core_Users::getUsersByRoles('pos,ceo');
-        
+
         return $users;
     }
-    
-    
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -263,8 +263,8 @@ class pos_Points extends core_Master
             }
         }
     }
-     
-     
+
+
     /**
      * Разрешените начини за плащане на ПОС-а
      *
@@ -286,11 +286,11 @@ class pos_Points extends core_Master
         while ($paymentRec = $paymentQuery->fetch()) {
             $payments[$paymentRec->id] = tr($paymentRec->title);
         }
-        
+
         return $payments;
     }
-    
-    
+
+
     /**
      * Създава дефолт контрагент за обекта, ако той вече няма създаден
      */
@@ -300,14 +300,14 @@ class pos_Points extends core_Master
             $defaultContragent = new stdClass();
             $defaultContragent->name = 'POS:' . $rec->id . '-Анонимен Клиент';
             $defaultContragent->country = crm_Companies::fetchOurCompany()->country;
-            
+
             crm_Persons::save($defaultContragent);
         }
-        
+
         cls::get('pos_SellableProductsCache')->cron_CacheSellablePosProducts();
     }
-    
-    
+
+
     /**
      * Подготовка на формата за добавяне
      */
@@ -334,12 +334,12 @@ class pos_Points extends core_Master
                 $form->setField($field, "placeholder={$defaultValue}");
             }
         }
-        
+
         $productGroupOptions = array('' => '') + cls::get('cat_Groups')->makeArray4Select('name');
         $form->setFieldTypeParams('productGroups', array('groupId_opt' => $productGroupOptions));
     }
-    
-    
+
+
     /**
      * Намира кой е дефолт контрагента на Точката на продажба
      *
@@ -353,37 +353,37 @@ class pos_Points extends core_Master
         $query = crm_Persons::getQuery();
         $query->where("#name LIKE '%POS:{$pos}%'");
         if ($rec = $query->fetch()) {
-            
+
             return $rec->id;
         }
-        
+
         return false;
     }
-    
-    
+
+
     /**
      * След подготовка на тулбара на единичен изглед.
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        
+
         if ($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')) {
             $urlArr = array('pos_Receipts', 'new', "pointId" => $rec->id, 'force' => true);
             $data->toolbar->addBtn('Отвори', $urlArr, null, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
         }
-        
+
         $reportUrl = array();
         if (pos_Reports::haveRightFor('add', (object) array('pointId' => $rec->id)) && pos_Reports::canMakeReport($rec->id)) {
             $reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'ret_url' => true);
         }
-        
+
         $title = (countR($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
-        
+
         $data->toolbar->addBtn('Отчет', $reportUrl, null, "title={$title},ef_icon=img/16/report.png");
     }
-    
-    
+
+
     /**
      * Обработка по вербалното представяне на данните
      */
@@ -418,11 +418,6 @@ class pos_Points extends core_Master
         }
         
         if ($fields['-single']) {
-            if($rec->state != 'rejected'){
-                $currentId = $mvc->getCurrent('id', false);
-                $row->STATE_CLASS = ($rec->id == $currentId) ? 'state-active' : 'state-closed';
-            }
-            
             $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
             if(!empty($rec->discountPolicyId)){
                 $row->discountPolicyId = price_Lists::getHyperlink($rec->discountPolicyId, true);
@@ -448,7 +443,9 @@ class pos_Points extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'select' && isset($rec)) {
-            if(!haveRole('ceo', $userId)){
+            if($rec->state == 'closed'){
+                $requiredRoles = 'no_one';
+            } elseif(!haveRole('ceo', $userId)){
                 $cashiers = pos_Points::getSettings($rec, 'cashiers');
                 if(!keylist::isIn($userId, $cashiers)){
                     $requiredRoles = 'no_one';
@@ -528,8 +525,27 @@ class pos_Points extends core_Master
     }
 
 
-    function act_Test()
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    protected static function on_BeforeChangeState($mvc, &$rec, $state)
     {
-        cls::get('pos_Setup')->updateNonCashPayments3024();
+        if($state == 'closed'){
+            if(pos_Receipts::count("#pointId = {$rec->id} AND #state IN ('draft', 'waiting', 'active')")){
+                followRetUrl(null, 'Не може да затворите точката на продажба, докато има неприключени бележки в нея|*!', 'error');
+            }
+        }
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('state,id', 'ASC');
     }
 }

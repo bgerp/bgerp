@@ -1378,6 +1378,7 @@ class doc_Linked extends core_Manager
             $fArr = core_Permanent::get($pKey, $minCreatedOn);
 
             if (!isset($fArr) || !is_array($fArr)) {
+                $docTypeInst->forceProxy($docTypeInst->className);
                 $dQuery = $docTypeInst->getQuery();
                 
                 $dQuery->where("#state != 'rejected'");

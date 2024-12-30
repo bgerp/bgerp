@@ -663,7 +663,7 @@ class blast_ListDetails extends doc_Detail
         $exp->rule('#priority', '"data"', $listRec->contactsCnt ? '0' : '1');
         
         $exp->question('#priority', tr('Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето') . " <span class=\"green\">'" . $fieldsArr[$listRec->keyField] . "'</span> ?", true, 'title=' . tr('Приоритет на данните'));
-        
+
         $exp->question($qFields, tr('Въведете съответстващите полета') . ':', true, 'title=' . tr('Съответствие между полетата на източника и списъка'));
         
         $res = $exp->solve("#source,#csvData,#delimiter,#enclosure,#priority,{$qFields}");
@@ -906,7 +906,7 @@ class blast_ListDetails extends doc_Detail
     {
         $resArr = array();
         
-        foreach (array('sales_Sales', 'sales_Quotations', 'marketing_Inquiries2', 'purchase_Purchases') as $cName) {
+        foreach (array('sales_Sales', 'sales_Quotations', 'marketing_Inquiries2', 'purchase_Purchases', 'pos_Receipts') as $cName) {
             $inst = cls::get($cName);
             $cId = $inst->getClassId();
             $resArr[$cId] = tr($inst->singleTitle);
@@ -925,7 +925,7 @@ class blast_ListDetails extends doc_Detail
     {
         $resArr = array();
         
-        foreach (array('sales_Sales', 'sales_Quotations', 'marketing_Inquiries2') as $cName) {
+        foreach (array('sales_Sales', 'sales_Quotations', 'marketing_Inquiries2', 'pos_Receipts') as $cName) {
             $inst = cls::get($cName);
             $cId = $inst->getClassId();
             $resArr[$cId] = $cId;
@@ -1054,7 +1054,7 @@ class blast_ListDetails extends doc_Detail
             $resArr = arr::combine(array(null => ''), $rowArr);
             array_unshift($resArr, '');
             unset($resArr[0]);
-            
+
             return $resArr;
         }
     }
@@ -1095,7 +1095,7 @@ class blast_ListDetails extends doc_Detail
         if (!empty($documentTypeArr)) {
             $csvArr[] = tr('Имейл') . ',' . tr('Име') . ',' . tr('Държава');
         }
-        
+
         $allEmailArr = array();
         
         $allFoldersArr = false;
@@ -1308,10 +1308,8 @@ class blast_ListDetails extends doc_Detail
 
                     $csvArr[] = csv_Lib::getCsvLine(array($email, $name, $countryName), ',', '"');
                 }
-            } else {
-                
+            } elseif ($docType == 'marketing_Inquiries2') {
                 // Ако е запитване
-                
                 $query = marketing_Inquiries2::getQuery();
                 
                 if ($allFoldersArr !== false) {
@@ -1341,36 +1339,8 @@ class blast_ListDetails extends doc_Detail
                 }
                 
                 // Ако има зададена група, извличаме всичките и филтрираме по тях
-                $prodArr = false;
-                if ($groupIds) {
-                    $groupIdsArr = type_Keylist::toArray($groupIds);
-                    if (!empty($groupIdsArr)) {
-                        
-                        $prodArr = array();
+                $prodArr = self::getProductsArr($groupIds);
 
-                        $catGroupsWhere = '';
-
-                        foreach ($groupIdsArr as $gId) {
-                            $catGroupsWhere .= ($catGroupsWhere ? ' OR ' : '') . "LOCATE('|{$gId}|', #groups)";
-                        }
-                        
-                        $prodQuery = cat_Products::getQuery();
-                        $prodQuery->where($catGroupsWhere);
-                        $prodQuery->where("#state != 'rejected'");
-                        $prodQuery->where("#originId IS NOT NULL");
-                        
-                        $prodQuery->show('originId');
-                        
-                        while ($prodRec = $prodQuery->fetch()) {
-                            if (!$prodRec->originId) {
-                                continue;
-                            }
-                            
-                            $prodArr[$prodRec->originId] = $prodRec->originId;
-                        }
-                    }
-                }
-                
                 while ($rec = $query->fetch()) {
 
                     $email = trim($rec->email);
@@ -1423,12 +1393,186 @@ class blast_ListDetails extends doc_Detail
 
                     $csvArr[] = csv_Lib::getCsvLine(array($email, $name, $countryName), ',', '"');
                 }
+            } elseif ($docType == 'pos_Receipts') {
+                // Ако е ПОС продажба
+                $query = pos_Receipts::getQuery();
+                $query->where("#state != 'rejected'");
+                $query->where("#state != 'draft'");
+
+                // Ако се филтрира по дата
+                if ($docFrom || $docTo) {
+                    if ($docFrom) {
+                        $query->where(array("#createdOn >= '[#1#]'", $docFrom . ' 00:00:00'));
+                    }
+
+                    if ($docTo) {
+                        $query->where(array("#createdOn <= '[#1#]'", $docTo . ' 23:59:59'));
+                    }
+                }
+
+                // Ако се филтрира по типа на контрагента
+                if ($contragentType) {
+                    $query->where(array("#contragentClass = '[#1#]'", $contragentType::getClassId()));
+                }
+
+                $gArr = type_Keylist::toArray($groupIds);
+
+                while ($rec = $query->fetch()) {
+
+                    // Ако няма конграгент, а се използва дефолтният
+                    if (pos_Receipts::isForDefaultContragent($rec)) {
+
+                        continue;
+                    }
+
+                    if (!$rec->contragentClass) {
+
+                        continue;
+                    }
+                    $contragentCls = cls::get($rec->contragentClass);
+                    $cRec = $contragentCls->fetch($rec->contragentObjectId);
+
+                    // Ако не е в сътоветната държава
+                    if ($allFoldersArr !== false) {
+                        if (!$allFoldersArr[$cRec->folderId]) {
+
+                            continue;
+                        }
+                    }
+
+                    // Ако няма нито един артикул от групата или не отговаря на цената, този имейл се прескача
+                    if (!empty($gArr)) {
+                        $pDetQuery = pos_ReceiptDetails::getQuery();
+                        $pDetQuery->where(array("#receiptId = '[#1#]'", $rec->id));
+                        $pDetQuery->EXT('pGroups', 'cat_Products', "externalName=groups,externalKey=productId");
+                        $pDetQuery->likeKeylist('pGroups', $gArr);
+                        if ($amountFrom || $amountTo) {
+                            if ($amountFrom) {
+                                $query->where(array("#amount >= '[#1#]'", $amountFrom));
+                            }
+                            if ($amountTo) {
+                                $query->where(array("#amount <= '[#1#]'", $amountTo));
+                            }
+                        }
+                        $pDetQuery->limit(1);
+                        if (!$pDetQuery->fetch()) {
+
+                            continue;
+                        }
+                    }
+
+                    $email = trim($cRec->email);
+                    $buzEmail = trim($cRec->buzEmail);
+                    if ($buzEmail) {
+                        $email = $email ? $email . ',' . $buzEmail : $buzEmail;
+                    }
+                    $eArr = type_Emails::toArray($email);
+
+                    if (empty($eArr)) {
+
+                        continue;
+                    }
+
+                    $email = '';
+                    // Първият имейл, който не е блокиран
+                    foreach ((array) $eArr as $eStr) {
+                        if (email_AddressesInfo::isBlocked($eStr)) {
+
+                            continue;
+                        }
+
+                        $email = trim($eStr);
+                    }
+
+                    if (!$email) {
+
+                        continue ;
+                    }
+
+                    if ($allEmailArr[$email]) {
+                        continue;
+                    }
+
+                    $countryName = '';
+                    try {
+                        $cover = doc_Folders::getCover($cRec->folderId);
+
+                        $countryName = $cover->getVerbal('country');
+                    } catch (core_exception_Expect $e) {
+                        reportException($e);
+
+                        if ($cRec->country) {
+                            $countryName = $docType::getVerbal($cRec, 'country');
+                        }
+                    }
+
+                    $allEmailArr[$email] = $email;
+
+                    if (!self::isContragentEmailHaveRightAccess($contragentAccess, $email)) {
+
+                        continue;
+                    }
+
+                    $name = $cRec->name;
+
+                    $csvArr[] = csv_Lib::getCsvLine(array($email, $name, $countryName), ',', '"');
+                }
             }
         }
         
         core_Lg::pop();
         
         return $csvArr;
+    }
+
+
+    /**
+     * Помощна функция за вземане на контейнерите на всички продукти от групите
+     *
+     * @param $groupIds
+     * @return array|false
+     */
+    protected static function getProductsArr($groupIds)
+    {
+        static $prodArrRes = array();
+
+        setIfNot($prodArrRes[$groupIds], false);
+
+        if ($prodArrRes[$groupIds] !== false) {
+
+            return $prodArrRes[$groupIds];
+        }
+
+        if ($groupIds) {
+            $groupIdsArr = type_Keylist::toArray($groupIds);
+            if (!empty($groupIdsArr)) {
+
+                $prodArrRes[$groupIds] = array();
+
+                $catGroupsWhere = '';
+
+                foreach ($groupIdsArr as $gId) {
+                    $catGroupsWhere .= ($catGroupsWhere ? ' OR ' : '') . "LOCATE('|{$gId}|', #groups)";
+                }
+
+                $prodQuery = cat_Products::getQuery();
+                $prodQuery->where($catGroupsWhere);
+                $prodQuery->where("#state != 'rejected'");
+                $prodQuery->where("#originId IS NOT NULL");
+
+                $prodQuery->show('originId');
+
+                while ($prodRec = $prodQuery->fetch()) {
+                    if (!$prodRec->originId) {
+                        continue;
+                    }
+
+                    $prodArrRes[$groupIds][$prodRec->originId] = $prodRec->originId;
+                }
+            }
+        }
+
+        return $prodArrRes[$groupIds];
     }
 
 

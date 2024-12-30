@@ -76,17 +76,17 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
         //Филтри
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтър по->Групи артикули,after=accProd,removeAndRefreshForm,placeholder=Всички,silent,single=none');
-        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Филтър по->Центрове,placeholder=Всички,after=groups,single=none');
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Филтър по->Склад,placeholder=Всички,after=centre,single=none');
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Филтър по->Центрове,placeholder=Всички,after=groups');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Филтър по->Склад,placeholder=Всички,after=centre');
 
         //Групиране на резултата
-        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=storeId');
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=storeId,single=none');
 
 
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
+        $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy,single=none');
 
-        $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Вложени материали->Показване,removeAndRefreshForm,after=orderBy,silent');
+        $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Вложени материали->Показване,removeAndRefreshForm,after=orderBy,silent,single=none');
         $fieldset->FLD('consumedFrom', 'enum(protocols= протоколи, boms= рецепти)', 'caption=Вложени материали->Вложени по,removeAndRefreshForm,after=consumed,input=hidden,silent,single=none');
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
@@ -232,16 +232,16 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $departmentId = $className::fetch($Document->that)->department;
 
             //Филтър по център на дейност
-            if(isset($rec->centre) && !is_null($departmentId) ) {
-                if(!in_array($departmentId, keylist::toArray($rec->centre))) continue;
+            if (isset($rec->centre) && !is_null($departmentId)) {
+                if (!in_array($departmentId, keylist::toArray($rec->centre))) continue;
             }
 
             //Склад на заприхождаване
             $storeId = $planningRec->storeId;
 
             //Филтър по склад
-            if(isset($rec->storeId) && !is_null($storeId) ) {
-                if(!in_array($storeId, keylist::toArray($rec->storeId))) continue;
+            if (isset($rec->storeId) && !is_null($storeId)) {
+                if (!in_array($storeId, keylist::toArray($rec->storeId))) continue;
             }
 
             //Вложени материали

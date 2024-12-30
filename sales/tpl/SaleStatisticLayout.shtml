@@ -35,7 +35,7 @@
               
               <td class = 'nowrap vtop' style='font-size:0.8em;text-align:left' rowspan='3'>
                   <!--ET_BEGIN paymentState-->
-                  <span style='font-weight:normal'>|Чакащо плащане|*</span>: [#paymentState#]<br>
+                  <span style='font-weight:normal'>[#paymentStateCaption#]</span>: [#paymentState#]<br>
                   <!--ET_END paymentState-->
                   <span style='font-weight:normal'>|Еднократно експедиране|*</span>: [#oneTimeDelivery#]<br>
                   <!--ET_BEGIN initiatorId-->

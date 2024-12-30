@@ -242,8 +242,11 @@ class cond_type_Formula extends cond_type_Text
                 if(isset($this->driverRec->round)){
                     $calced = round($calced, $this->driverRec->round);
                 }
-                $calced = "<span style='color:blue'>{$calced}</span>";
-                $verbal = ht::createHint($calced, "Формула|*: {$exprDisplay}", 'notice', false);
+
+                if(core_Users::isPowerUser()){
+                    $calced = "<span style='color:blue'>{$calced}</span>";
+                    $verbal = ht::createHint($calced, "Формула|*: {$exprDisplay}", 'notice', false);
+                }
             }
         }
 
