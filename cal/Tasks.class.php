@@ -4218,6 +4218,7 @@ class cal_Tasks extends embed_Manager
 
         $this->unloadPlugin('cal_Wrapper');
         $this->load("support_Wrapper");
+        $this->listAddBtn = false;
 
         Mode::set('pageMenu', 'Обслужване');
         Mode::set('pageSubMenu', 'Поддръжка');
