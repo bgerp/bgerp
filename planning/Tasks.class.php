@@ -3901,7 +3901,7 @@ class planning_Tasks extends core_Master
      * Преподреждане на операциите в едно задание
      *
      * @param int $containerId
-     * @return void
+     * @return null|array
      */
     public function reorderTasksInJob($containerId)
     {
