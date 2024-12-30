@@ -1737,8 +1737,9 @@ class cal_Tasks extends embed_Manager
             $chartType = Request::get('Chart');
             
             $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
-            
-            $currUrl['Act'] = 'list';
+            $act = Mode::is('supportList') ? 'Listsupporttasks' : 'list';
+
+            $currUrl['Act'] = $act;
             $currUrl['Chart'] = 'List';
             $tabs->TAB('List', 'Таблица', $currUrl);
             
@@ -1751,7 +1752,7 @@ class cal_Tasks extends embed_Manager
                 $ganttType = self::getGanttTimeType($data);
                 
                 // и ще имаме активен бутон за него
-                $currUrl['Act'] = 'list';
+                $currUrl['Act'] = $act;
                 $currUrl['Chart'] = 'Gantt';
                 $currUrl['View'] = $ganttType;
                 $tabs->TAB('Gantt', 'Гант', $currUrl);
