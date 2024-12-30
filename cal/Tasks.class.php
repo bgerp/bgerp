@@ -325,6 +325,12 @@ class cal_Tasks extends embed_Manager
 
 
     /**
+     * Кой може да филтрира на всички потребители
+     */
+    public $filterRolesForAll = 'ceo';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1474,7 +1480,7 @@ class cal_Tasks extends embed_Manager
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От');
         $data->listFilter->FNC('to', 'date', 'caption=До');
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,autoFilter');
+        $data->listFilter->FNC('selectedUsers', "users(rolesForAll={$mvc->filterRolesForAll})", 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent,autoFilter');
         $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,waiting=Чакащи,pending=Заявка,actPend=Активни+Чакащи+Събудени+Спрени+Заявка,closed=Приключени)', 'caption=Състояние,input,silent,autoFilter');
@@ -4190,8 +4196,10 @@ class cal_Tasks extends embed_Manager
      */
     public function act_Listsupporttasks()
     {
+        // Екшъна е прокси към лист изгледа, с допълнителнения за сигналите
         $this->requireRightFor('listsupporttasks');
         Mode::push('supportList', true);
+        $this->filterRolesForAll = 'ceo,supportMaster';
 
         $forwardUrl = array('Ctr' => $this->className, 'Act' => 'list');
         $forwardUrl[$this->driverClassField] = support_TaskType::getClassId();
@@ -4199,7 +4207,9 @@ class cal_Tasks extends embed_Manager
             $forwardUrl['selectPeriod'] = 'gr0';
         }
         if(!Request::get('selectedUsers')) {
-            $forwardUrl['selectedUsers'] = 'all_users';
+            if(haveRole($this->filterRolesForAll)) {
+                $forwardUrl['selectedUsers'] = 'all_users';
+            }
         }
         if(!Request::get('order')) {
             $forwardUrl['order'] = 'firstActive';
