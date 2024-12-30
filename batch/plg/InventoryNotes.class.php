@@ -292,7 +292,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $batchesInDetail[$k]->quantity += $quantity;
             }
         }
-        
+
         // Засичане на очакваните колчества с въведените
         if ($alwaysShowBatches !== true) {
             if (!countR($batchesInDetail)) {
@@ -303,6 +303,8 @@ class batch_plg_InventoryNotes extends core_Plugin
 
         $allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior, null, array('store_InventoryNotes', $noteId), true, null, false, true);
         if(!countR($allBatches) && !countR($batchesInDetail)) return false;
+
+
         $allBatches[''] = $expectedQuantity - array_sum($allBatches);
 
         $summary = array();
@@ -327,6 +329,9 @@ class batch_plg_InventoryNotes extends core_Plugin
             unset($summary['']);
             $summary[''] = $noBatch;
         }
+        //bp($expected, $summary, $expectedQuantity, $combinedKeys);
+
+
 
         return $summary;
     }
@@ -351,8 +356,6 @@ class batch_plg_InventoryNotes extends core_Plugin
 
         $r = array();
         $recs = array();
-
-
 
         foreach ($summaryRows as $id => $sRow) {
             $sRec = $summaryRecs[$id];
@@ -394,7 +397,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $r[$k] = $clone;
             }
         }
-
+       // bp($recs);
         $summaryRecs = $recs;
         $summaryRows = $r;
     }
@@ -509,7 +512,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         $valior = dt::addDays(-1, $masterRec->valior);
         $valior = dt::verbal2mysql($valior, false);
 
-        $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $masterRec->storeId, $valior, null, array(), true);
+        $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $masterRec->storeId, $valior, null, array(), true, null, false, true);
         $notInputed = array_diff_key($batchQuantities, $explicitBatchQuantities);
         array_walk($notInputed, function($a) use (&$calcedQuantity) {$calcedQuantity += $a;});
         $expectedBatchQuantities = array_sum($batchQuantities);

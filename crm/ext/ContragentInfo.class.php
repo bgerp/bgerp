@@ -518,7 +518,7 @@ class crm_ext_ContragentInfo extends core_manager
      */
     public static function getContragentIcon($mvc, $id)
     {
-        if (core_Users::isContractor() || !haveRole('user')) return;
+        if (core_Users::isContractor()) return $mvc->icons['standart'];
 
         $icon = $mvc->icons['noDeals'];
         if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
