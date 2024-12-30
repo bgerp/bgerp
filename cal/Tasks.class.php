@@ -1535,20 +1535,23 @@ class cal_Tasks extends embed_Manager
         $data->listFilter->setDefault('to', date('Y-m-d', strtotime('+1 week', dt::mysql2timestamp(dt::now()))));
         $data->listFilter->setDefault('selectPeriod', 'one_week_next_before');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
+
         // Показваме само това поле. Иначе и другите полета на модела ще се появят
+        $inputSilent = arr::make('selectedUsers,Chart,View,stateTask,order, ' . $mvc->driverClassField, true);
         if ($data->action === 'list') {
-            $showFields = $data->listFilter->showFields . ' ,search, from, to, selectedUsers, order, stateTask,assetResourceId,stepId,folder, ' . $mvc->driverClassField;
+            $showFields = $data->listFilter->showFields . ' ,search, from, to, selectedUsers, order, stateTask,assetResourceId,stepId,folder,progress, ' . $mvc->driverClassField;
             $showFields = arr::make($showFields, true);
             if(Mode::is('supportList')) {
+                $inputSilent['progress'] = 'progress';
                 unset($showFields[$mvc->driverClassField]);
+                $progressSuggestions = support_TaskType::getProgressSuggestions();
+                $data->listFilter->setSuggestions('progress', $progressSuggestions);
             }
-
             $data->listFilter->showFields = implode(',', $showFields);
         } else {
             $data->listFilter->showFields = 'selectedUsers';
         }
-        $data->listFilter->input('selectedUsers, Chart, View, stateTask, order, ' . $mvc->driverClassField, 'silent');
+        $data->listFilter->input(implode(',', $inputSilent), 'silent');
 
         // размяна на датите във филтъра
         $dateRange = array();
@@ -1596,6 +1599,10 @@ class cal_Tasks extends embed_Manager
             $data->query->orderBy('#state, #priority=DESC, #relativeDate=DESC, #createdOn=DESC');
         }
 
+        if(isset($filterRec->progress)) {
+            $data->query->where("#progress >= '{$filterRec->progress}'");
+        }
+
         if ($data->action === 'list') {
             $chart = Request::get('Chart');
             
@@ -1604,8 +1611,7 @@ class cal_Tasks extends embed_Manager
                 $data->listFilter->showFields .= 'search, from, to, selectedUsers, order, stateTask';
                 $data->listFilter->input('from, to', 'silent');
             }
-            
-            
+
             if (($filterRec->selectedUsers != 'all_users') && (strpos($filterRec->selectedUsers, '|-1|') === false)) {
                 $data->query->where("'{$filterRec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
                 $data->query->orLikeKeylist('sharedUsers', $filterRec->selectedUsers);
