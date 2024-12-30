@@ -46,7 +46,7 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
      */
     public static function convertVideo($fRec, $force = false, $asynch = false)
     {
-        expect(defined('BGERP_FFMPEG_CONVERTER_PATH'), 'Не е дефиниран пътя до конвертора на видео файлове - BGERP_FFMPEG_CONVERTER_PATH');
+        expect(defined('FILEMAN_FFMPEG_CONVERTER_PATH'), 'Не е дефиниран пътя до конвертора на видео файлове - FILEMAN_FFMPEG_CONVERTER_PATH');
 
         self::startVideoConverting($fRec, $asynch, $force);
 
@@ -98,7 +98,7 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
         $prevLink = $resArray['prevLink'];
         $nextLink = $resArray['nextLink'];
 
-        if (defined('BGERP_FFMPEG_CONVERTER_PATH')) {
+        if (defined('FILEMAN_FFMPEG_CONVERTER_PATH')) {
             $previewUrl = toUrl(array(get_called_class(), 'preview', $fRec->fileHnd));
             $previewHtml = "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink} <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe' id='imgIframe'></iframe></div></div>";
         } else {
@@ -278,7 +278,7 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
      */
     public static function startVideoConverting($fRec, $asynch = true, $force = false)
     {
-        if (!defined('BGERP_FFMPEG_CONVERTER_PATH')) {
+        if (!defined('FILEMAN_FFMPEG_CONVERTER_PATH')) {
 
             return ;
         }
@@ -319,14 +319,14 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
      */
     public static function startVideConverting($fRec, $params)
     {
-        if (!defined('BGERP_FFMPEG_CONVERTER_PATH')) {
+        if (!defined('FILEMAN_FFMPEG_CONVERTER_PATH')) {
 
             return ;
         }
 
         // Инстанция на класа
         $Script = cls::get('fconv_Script');
-        $Script->setParam('FFMPEG_CONVERTER', BGERP_FFMPEG_CONVERTER_PATH);
+        $Script->setParam('FFMPEG_CONVERTER', FILEMAN_FFMPEG_CONVERTER_PATH);
 
         $nameExtArr = fileman::getNameAndExt($fRec->name);
         $toExt = static::$toExt ? static::$toExt : $nameExtArr['ext'];
@@ -353,7 +353,7 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fRec->fileHnd;
 
-        $Script->setCheckProgramsArr(BGERP_FFMPEG_CONVERTER_PATH);
+        $Script->setCheckProgramsArr(FILEMAN_FFMPEG_CONVERTER_PATH);
 
         // Ако е подаден параметър за стартиране синхронно
         if ($Script->run($params['asynch']) === false) {
