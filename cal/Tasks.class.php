@@ -127,7 +127,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, timeStart, timeEnd, timeDuration, progress, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени,assignedOn';
+    public $listFields = 'id, title,assets=Ресурс/Етап, progress, times=Времена,timeStart,timeEnd,timeDuration, assign=Потребители->Възложени, sharedUsers=Потребители->Споделени,assignedOn,folderId';
     
     
     /**
@@ -158,8 +158,14 @@ class cal_Tasks extends embed_Manager
      * Кой има право да го чете?
      */
     public $canRead = 'powerUser';
-    
-    
+
+
+    /**
+     * Кой има право разглежда специлизирания изглед на сигналите?
+     */
+    public $canListsupporttasks = 'support, admin, ceo';
+
+
     /**
      * Кой има право да го променя?
      */
@@ -285,6 +291,7 @@ class cal_Tasks extends embed_Manager
         'onStart' => array('По началото', 'timeStart=По началото'),
         'onEnd' => array('По края', 'timeEnd=По края'),
         'noStartEnd' => array('Без начало и край', 'noStartEnd=Без начало и край'),
+        'firstActive' => array('Първо активни, после останалите'),
     );
     
     
@@ -692,9 +699,41 @@ class cal_Tasks extends embed_Manager
                 $row->srcId = $Source->getTitleById($rec->srcId);
             }
         }
+
+        if($fields['-list']) {
+            $times = $assets = array();
+            foreach (array('timeStart' => 'Начало', 'timeEnd' => 'Край', 'timeDuration' => 'Прод.') as $timeFld => $timeCaption) {
+                if(!empty($rec->{$timeFld})) {
+                    $times[] = tr("|*<small class='nowrap'>|{$timeCaption}|*:") . $row->{$timeFld} . "</small>";
+                }
+            }
+
+            if(countR($times)) {
+                $row->times = implode('<br>',  $times);
+            }
+
+            if(!empty($rec->assetResourceId)) {
+                $assets[] = tr("|*<small>|Рес.|*") . $row->assetResourceId . "</small>";
+            }
+            if(!empty($rec->stepId)) {
+                $assets[] = tr("|*<small>|Етап|*: ") . $row->stepId . "</small>";
+            }
+            if(countR($assets)) {
+                $row->assets = implode('<br>',  $assets);
+            }
+        }
     }
-    
-    
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+       unset($data->listFields['timeStart'], $data->listFields['timeEnd'], $data->listFields['timeDuration']);
+    }
+
+
     /**
      * Показване на задачите в портала
      *
@@ -863,24 +902,6 @@ class cal_Tasks extends embed_Manager
             $mvc->fields['description']->type->params['hndToLink'] = 'no';
             $mvc->fields['description']->type->params['nickToLink'] = 'no';
             $mvc->fields['description']->type->params['oembed'] = 'none';
-        }
-    }
-
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    protected static function on_AfterPrepareListRows($mvc, &$res, $data)
-    {
-        foreach ($data->rows as $id => $row) {
-            $row->subTitle = $mvc->getDocumentRow($id)->subTitle;
-            $row->subTitleDiv = "<div class='threadSubTitle'>{$row->subTitle}</div>";
-
-            if ($row->title instanceof core_ET) {
-                $row->title->append($row->subTitleDiv);
-            } else {
-                $row->title .= $row->subTitleDiv;
-            }
         }
     }
     
@@ -1422,8 +1443,25 @@ class cal_Tasks extends embed_Manager
             $mvc->listItemsPerPage = 1000000;
         }
     }
-    
-    
+
+    /**
+     * Игнорираме pager-а
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListPager($mvc, &$res, $data)
+    {
+        // Ако екшъна е за показване на сигнали, да се подмени урл-то на пейджъра
+        if(Mode::is('supportList')) {
+            $cUrl = getCurrentUrl();
+            $cUrl['Act'] = 'listsupporttasks';
+            $data->pager->url = toUrl($cUrl);
+        }
+    }
+
+
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
@@ -1461,33 +1499,38 @@ class cal_Tasks extends embed_Manager
         $data->listFilter->view = 'vertical';
         $data->listFilter->title = 'Задачи';
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-        
+        $filterRec = $data->listFilter->rec;
+
         // по подразбиране е текущия потребител
-        if (!$data->listFilter->rec->selectedUsers) {
-            $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), true));
+        if (!$filterRec->selectedUsers) {
+            $filterRec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), true));
         }
         
         // задачи с всякакъв статус
-        if (!$data->listFilter->rec->stateTask) {
-            $data->listFilter->rec->stateTask = 'all';
+        if (!$filterRec->stateTask) {
+            $filterRec->stateTask = 'all';
         }
         
         // по критерий "Всички"
-        if (!$data->listFilter->rec->order) {
-            $data->listFilter->rec->order = '';
+        if (!$filterRec->order) {
+            $filterRec->order = '';
         }
         
         // филтъра по дата е -1/+1 месец от днещната дата
         $data->listFilter->setDefault('from', date('Y-m-d', strtotime('-1 week', dt::mysql2timestamp(dt::now()))));
         $data->listFilter->setDefault('to', date('Y-m-d', strtotime('+1 week', dt::mysql2timestamp(dt::now()))));
         $data->listFilter->setDefault('selectPeriod', 'one_week_next_before');
-
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета
-        // на модела ще се появят
+        // Показваме само това поле. Иначе и другите полета на модела ще се появят
         if ($data->action === 'list') {
-            $data->listFilter->showFields .= ' ,search, from, to, selectedUsers, order, stateTask,assetResourceId,stepId,folder, ' . $mvc->driverClassField;
+            $showFields = $data->listFilter->showFields . ' ,search, from, to, selectedUsers, order, stateTask,assetResourceId,stepId,folder, ' . $mvc->driverClassField;
+            $showFields = arr::make($showFields, true);
+            if(Mode::is('supportList')) {
+                unset($showFields[$mvc->driverClassField]);
+            }
+
+            $data->listFilter->showFields = implode(',', $showFields);
         } else {
             $data->listFilter->showFields = 'selectedUsers';
         }
@@ -1497,24 +1540,24 @@ class cal_Tasks extends embed_Manager
         $dateRange = array();
         $useDateRange = true;
 
-        if ($data->listFilter->rec->stepId) {
-            $data->query->where("#stepId = {$data->listFilter->rec->stepId}");
+        if ($filterRec->stepId) {
+            $data->query->where("#stepId = {$filterRec->stepId}");
         }
 
-        if ($data->listFilter->rec->assetResourceId) {
-            $data->query->where("#assetResourceId = {$data->listFilter->rec->assetResourceId}");
+        if ($filterRec->assetResourceId) {
+            $data->query->where("#assetResourceId = {$filterRec->assetResourceId}");
         }
 
-        if ($data->listFilter->rec->folder) {
-            $data->query->where("#folderId = {$data->listFilter->rec->folder}");
+        if ($filterRec->folder) {
+            $data->query->where("#folderId = {$filterRec->folder}");
         }
 
-        if ($data->listFilter->rec->from) {
-            $dateRange[0] = $data->listFilter->rec->from;
+        if ($filterRec->from) {
+            $dateRange[0] = $filterRec->from;
         }
         
-        if ($data->listFilter->rec->to) {
-            $dateRange[1] = $data->listFilter->rec->to;
+        if ($filterRec->to) {
+            $dateRange[1] = $filterRec->to;
         }
         
         if (countR($dateRange) == 2) {
@@ -1528,37 +1571,40 @@ class cal_Tasks extends embed_Manager
         $data->query->XPR('relativeDate', 'datetime', "if(#expectationTimeStart, #expectationTimeStart, '{$now}')");
         
         // възможност за подредба "най-нови->стари"
-        if ($data->listFilter->rec->order == 'endStart') {
+        if ($filterRec->order == 'endStart') {
             $data->query->orderBy('#state, #priority=DESC, #relativeDate=ASC, #createdOn=DESC');
         
         // възможност за подредба "стари->най-нови"
+        } elseif($filterRec->order == 'firstActive'){
+            $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2  WHEN 'pending' THEN 2 WHEN 'closed' THEN 4  WHEN 'closed' THEN 4 ELSE 3 END)");
+            $data->query->orderBy('orderByState');
         } else {
             $data->query->orderBy('#state, #priority=DESC, #relativeDate=DESC, #createdOn=DESC');
         }
-        
+
         if ($data->action === 'list') {
             $chart = Request::get('Chart');
             
             // ако ще подреждаме по "начало" или "край" на задачата ще показваме и филтъра за дата
-            if ($data->listFilter->rec->order == 'onStart' || $data->listFilter->rec->order == 'onEnd') {
+            if ($filterRec->order == 'onStart' || $filterRec->order == 'onEnd') {
                 $data->listFilter->showFields .= 'search, from, to, selectedUsers, order, stateTask';
                 $data->listFilter->input('from, to', 'silent');
             }
             
             
-            if (($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === false)) {
-                $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
-                $data->query->orLikeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
-                $data->query->orLikeKeylist('assign', $data->listFilter->rec->selectedUsers);
+            if (($filterRec->selectedUsers != 'all_users') && (strpos($filterRec->selectedUsers, '|-1|') === false)) {
+                $data->query->where("'{$filterRec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
+                $data->query->orLikeKeylist('sharedUsers', $filterRec->selectedUsers);
+                $data->query->orLikeKeylist('assign', $filterRec->selectedUsers);
             }
             
-            if ($data->listFilter->rec->stateTask != 'all' && $data->listFilter->rec->stateTask != 'actPend') {
-                $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->stateTask));
-            } elseif ($data->listFilter->rec->stateTask == 'actPend') {
+            if ($filterRec->stateTask != 'all' && $filterRec->stateTask != 'actPend') {
+                $data->query->where(array("#state = '[#1#]'", $filterRec->stateTask));
+            } elseif ($filterRec->stateTask == 'actPend') {
                 $data->query->where("#state = 'active' OR #state = 'waiting'");
             }
             
-            if ($data->listFilter->rec->order == 'onStart') {
+            if ($filterRec->order == 'onStart') {
                 if (isset($dateRange[1])) {
                     $data->query->where(array("(#timeStart IS NOT NULL AND #timeStart <= '[#1#]')", $dateRange[1]));
                 }
@@ -1569,11 +1615,11 @@ class cal_Tasks extends embed_Manager
                 $useDateRange = false;
             }
             
-            if ($data->listFilter->rec->order == 'noStartEnd') {
+            if ($filterRec->order == 'noStartEnd') {
                 $data->query->where('(#timeStart IS NULL AND #timeDuration IS NULL AND #timeEnd IS NULL)');
             }
             
-            if ($data->listFilter->rec->order == 'onEnd') {
+            if ($filterRec->order == 'onEnd') {
 
                 $qStr = '(#timeEnd IS NOT NULL';
                 if (isset($dateRange[1])) {
@@ -1596,25 +1642,27 @@ class cal_Tasks extends embed_Manager
                 $data->query->orderBy('#state=DESC,#timeEnd=ASC');
                 $useDateRange = false;
             }
-            
-            if ($data->listFilter->rec->order == 'onStart') {
-                $data->title = 'Търсене на задачи по начало на задачата в периода |*<span class="green">"' .
-                    $data->listFilter->getFieldType('from')->toVerbal($data->listFilter->rec->from) . ' -
-    			' . $data->listFilter->getFieldType('to')->toVerbal($data->listFilter->rec->to) . '"</span>';
-            } elseif ($data->listFilter->rec->order == 'onEnd') {
+
+            $driverId = $filterRec->{$mvc->driverClassField};
+            $taskType = ($driverId == support_TaskType::getClassId()) ? 'сигнали' : 'задачи';
+
+            if ($filterRec->order == 'onStart') {
+                $data->title = 'Търсене на ' . $taskType . ' по начало на задачата в периода |*<span class="green">"' .
+                    $data->listFilter->getFieldType('from')->toVerbal($filterRec->from) . ' -
+    			' . $data->listFilter->getFieldType('to')->toVerbal($filterRec->to) . '"</span>';
+            } elseif ($filterRec->order == 'onEnd') {
                 $data->title = 'Търсене на задачи по края на задачата в периода |*<span class="green">"' .
-                    $data->listFilter->getFieldType('from')->toVerbal($data->listFilter->rec->from) . ' -
-    			' . $data->listFilter->getFieldType('to')->toVerbal($data->listFilter->rec->to) . '"</span>';
-            } elseif ($data->listFilter->rec->order == 'noStartEnd') {
-                $data->title = 'Търсене на задачи |*<span class="green">"' .
+                    $data->listFilter->getFieldType('from')->toVerbal($filterRec->from) . ' -
+    			' . $data->listFilter->getFieldType('to')->toVerbal($filterRec->to) . '"</span>';
+            } elseif ($filterRec->order == 'noStartEnd') {
+                $data->title = 'Търсене на ' . $taskType . ' |*<span class="green">"' .
                     'без начало и край"</span>';
-            } elseif ($data->listFilter->rec->search) {
-                $data->title = 'Търсене на задачи отговарящи на |*<span class="green">"' .
-                    $data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
+            } elseif ($filterRec->search) {
+                $data->title = 'Търсене на ' . $taskType . ' отговарящи на |*<span class="green">"' .
+                    $data->listFilter->getFieldType('search')->toVerbal($filterRec->search) . '"</span>';
             } else {
-                //$data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #sharedUsers, '|%')");
-                $data->title = 'Задачите на |*<span class="green">' .
-                    $data->listFilter->getFieldType('selectedUsers')->toVerbal($data->listFilter->rec->selectedUsers) . '</span>';
+                $data->title = str::mbUcfirst($taskType) . ' на |*<span class="green">' .
+                    $data->listFilter->getFieldType('selectedUsers')->toVerbal($filterRec->selectedUsers) . '</span>';
             }
             
             if ($chart == 'Gantt') {
@@ -1655,8 +1703,13 @@ class cal_Tasks extends embed_Manager
             }
             
             // Да може да се филтрира по вида на документа
-            if ($data->listFilter->rec && $data->listFilter->rec->{$mvc->driverClassField}) {
-                $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $data->listFilter->rec->{$mvc->driverClassField}));
+            if ($filterRec && $filterRec->{$mvc->driverClassField}) {
+                $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $filterRec->{$mvc->driverClassField}));
+            }
+
+            if ($filterRec->folder) {
+                unset($data->listFields['folderId']);
+                $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $filterRec->{$mvc->driverClassField}));
             }
         }
     }
@@ -1708,8 +1761,12 @@ class cal_Tasks extends embed_Manager
             }
             
             $tpl = $tabs->renderHtml($tpl, $chartType);
-            
-            $mvc->currentTab = 'Задачи';
+
+            if(Mode::is('supportList')){
+                $mvc->currentTab = 'Сигнали';
+            } else {
+                $mvc->currentTab = 'Задачи';
+            }
         }
     }
     
@@ -4125,5 +4182,38 @@ class cal_Tasks extends embed_Manager
         $resTpl->append(tr("Задачи|* ({$data->count})"), 'title');
 
         return $resTpl;
+    }
+
+
+    /**
+     * Екшън за листване на само сигналите
+     */
+    public function act_Listsupporttasks()
+    {
+        $this->requireRightFor('listsupporttasks');
+        Mode::push('supportList', true);
+
+        $forwardUrl = array('Ctr' => $this->className, 'Act' => 'list');
+        $forwardUrl[$this->driverClassField] = support_TaskType::getClassId();
+        if(!Request::get('selectPeriod')) {
+            $forwardUrl['selectPeriod'] = 'gr0';
+        }
+        if(!Request::get('selectedUsers')) {
+            $forwardUrl['selectedUsers'] = 'all_users';
+        }
+        if(!Request::get('order')) {
+            $forwardUrl['order'] = 'firstActive';
+        }
+
+        $this->unloadPlugin('cal_Wrapper');
+        $this->load("support_Wrapper");
+
+        Mode::set('pageMenu', 'Обслужване');
+        Mode::set('pageSubMenu', 'Поддръжка');
+
+        $tpl = core_Request::forward($forwardUrl);
+        Mode::pop('supportList');
+
+        return $tpl;
     }
 }
