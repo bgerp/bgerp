@@ -30,7 +30,7 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
      *
      * @var string
      */
-    public static $toExt = '';
+    public static $toExt = 'mp4';
 
 
     /**

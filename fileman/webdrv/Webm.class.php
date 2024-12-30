@@ -16,11 +16,4 @@
 class fileman_webdrv_Webm extends fileman_webdrv_Video
 {
 
-
-    /**
-     * Към кое разширение да се конвертира
-     *
-     * @var string
-     */
-    public static $toExt = 'mp4';
 }
