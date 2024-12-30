@@ -331,8 +331,8 @@ class doc_UnsortedFolderSteps extends core_Master
             // Бутон за линк към създадените операции
             if($countTasks){
                 $row->tasksCount = core_Type::getByName('varchar')->toVerbal($countTasks);
-                if (cal_Tasks::haveRightFor('list')) {
-                    $listUrl = array('cal_Tasks', 'list', 'driverClass' => $driverClassId, 'stateTask' => 'actPend', 'folder' => $masterRec->folderId, 'stepId' => $stepId, 'selectPeriod' => 'gr0');
+                if (cal_Tasks::haveRightFor('listsupporttasks')) {
+                    $listUrl = array('cal_Tasks', 'listsupporttasks', 'folder' => $masterRec->folderId, 'stepId' => $stepId);
                     $row->tasksCount = ht::createLink($row->tasksCount, $listUrl, false, "title={$countHint}");
                 }
                 $row->tasksCount = "<span class='systemFlag normal_priority'>{$row->tasksCount}</span>";

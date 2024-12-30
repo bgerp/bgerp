@@ -52,7 +52,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, support_plg_IssueSource, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_SaveAndNew';
     
     
     /**
@@ -746,7 +746,8 @@ class planning_Jobs extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = &$data->rec;
-        
+        $issueBtnRow = $rec->state == 'closed' ? 1 : 2;
+        $data->toolbar->setBtnAttr("issueBtn{$rec->containerId}", 'row', $issueBtnRow);
         if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
             $data->toolbar->addBtn('Рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), 'ef_icon = img/16/add.png,title=Създаване на нова работна рецепта,row=2');
         }
@@ -2530,5 +2531,33 @@ class planning_Jobs extends core_Master
             $rec->secondMeasureId = null;
             $mvc->save_($rec, 'secondMeasureId');
         }
+    }
+
+
+    /**
+     * Връща папките на системите, в които може да се пусне сигнала
+     *
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getIssueSystemFolders_($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $systemFolderId = planning_Centers::fetchField("#folderId = {$rec->folderId}", 'supportSystemFolderId');
+
+        return isset($systemFolderId) ? array($systemFolderId) : array();
+    }
+
+
+    /**
+     * Връща запис с подразбиращи се данни за сигнала
+     *
+     * @param int $id Кой е пораждащия комит
+     * @return stdClass за cal_Tasks
+     * @see support_IssueCreateIntf
+     */
+    public function getDefaultIssueRec_($id)
+    {
+        return (object)array('title' => tr('Към|*: ') . $this->getTitleById($id));
     }
 }

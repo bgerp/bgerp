@@ -380,15 +380,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
 
+        $salesQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+
         $salesQuery->groupBy('folderId');
 
         $salesQuery->show('folderId, contragentId, folderTitle');
 
+        $suggestionContragents = array();
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
                 $suggestionContragents[$contragent->folderId] = $contragent->folderTitle;
             }
         }
+
 
         if (empty($posContragents)) {
 
@@ -406,7 +410,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         // Да се заредят контрагентите от POS  бележките
         //$suggestionContragents = $posContragents;
-        array_merge($suggestionContragents,$posContragents);
+
+
+        $suggestionContragents = array_merge($suggestionContragents,$posContragents);
 
         asort($suggestionContragents);
 
