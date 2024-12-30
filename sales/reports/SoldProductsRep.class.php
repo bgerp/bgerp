@@ -273,50 +273,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('dealers', 'input=none');
         }
 
-        // POS продажби
-        //Подготвям масиви с артикули, и контрагенти
-        $posProdsArr = $posContragents = array();
-
-        $posDetQuery = pos_ReceiptDetails::getQuery();
-
-        $posDetQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
-
-        $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
-
-        $posDetQuery->EXT('contragentClass', 'pos_Receipts', 'externalName=contragentClass,externalKey=receiptId');
-
-        $posDetQuery->EXT('contragentObjectId', 'pos_Receipts', 'externalName=contragentObjectId,externalKey=receiptId');
-
-        $posDetQuery->EXT('contragentName', 'pos_Receipts', 'externalName=contragentName,externalKey=receiptId');
-
-        $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
-
-        $posDetQuery->where('#productId IS NOT NULL');
-
-        $posDetStateArr = array('active', 'closed', 'waiting');
-
-        $posDetQuery->in('state', $posDetStateArr);
-
-        $posDetQuery->show('productId,receiptId,contragentObjectId,contragentClass,contragentName');
-
-        foreach ($posDetQuery->fetchAll() as $det) {
-
-            $posProdsArr[$det->productId] = $det->productId;
-
-            $posContragentClassName = core_Classes::fetch($det->contragentClass)->name;
-
-            $posContragentFolder = $posContragentClassName::fetch($det->contragentObjectId)->folderId;
-
-            $posContragents[$posContragentFolder] = $det->contragentName;
-
-        }
-
-        //Ако имаме разбивка по контрагенти
         if ($rec->seeByContragent == 'yes') {
             $form->setField('products', 'input');
 
-            //Подготовка на масива за зареждане на полето 'АРТИКУЛИ'
-            //Полето 'АРТИКУЛИ' е активно само в комбинация с полето 'ПО КОНТРАГЕНТИ'
+            //Подготовка на масива за зареждане на полето 'артикули'
 
             //от експедиционни
             $shipmentdetQuery = store_ShipmentOrderDetails::getQuery();
@@ -351,14 +311,36 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             $prodSalesArr = arr::extractValuesFromArray($salesDetQuery->fetchAll(), 'productId');
 
-            //Добавяме артикулите от бързите продажби
-            if(!empty($prodSalesArr)) {
-                $prodArr = array_unique(array_merge($prodArr, $prodSalesArr));
+            $prodArr = array_unique(array_merge($prodArr, $prodSalesArr));
+
+            //от POS
+            $posDetQuery = pos_ReceiptDetails::getQuery();
+
+            $posDetQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+
+            $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
+
+
+            $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+
+            $posDetQuery->where('#productId IS NOT NULL');
+
+            $posDetStateArr = array('active', 'closed', 'waiting');
+
+            $posDetQuery->in('state', $posDetStateArr);
+
+            $posDetQuery->show('productId, receiptId');
+
+            $posProdsArr = $posReceiptIdArr = array();
+
+            foreach ($posDetQuery->fetchAll() as $det) {
+
+                $posProdsArr[$det->productId] = $det->productId;
+                $posReceiptIdArr[$det->receiptId] = $det->receiptId;
+
             }
-            //Добавяме артикулите от POS продажбите
-            if(!empty($posProdsArr)){
-                $prodArr = array_unique(array_merge($prodArr, $posProdsArr));
-            }
+
+            $prodArr = array_unique(array_merge($prodArr, $posProdsArr));
 
             if (!empty($prodArr)) {
                 foreach ($prodArr as $val) {
@@ -374,7 +356,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $form->setSuggestions('products', $prodSuggestions);
 
-        //Масив с предложения за избор на КОНТРАГЕНТ $suggestionContragents[]
+        //Масив с предложения за избор на контрагент $suggestions[]
+
         // Да се заредят контрагентите от продажбите
         $salesQuery = sales_Sales::getQuery();
 
@@ -386,30 +369,55 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
-                $suggestionContragents[$contragent->folderId] = $contragent->folderTitle;
+                $suggestions[$contragent->folderId] = $contragent->folderTitle;
             }
         }
 
-        if (empty($posContragents)) {
+        if (!is_array($posReceiptIdArr)) {
+            //от POS
+            $posDetQuery = pos_ReceiptDetails::getQuery();
 
-            // контрагенти от POS
+            $posDetQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+
+            $posDetQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
+
+            $posDetQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+
+            $posDetQuery->where('#productId IS NOT NULL');
+
+            $posDetStateArr = array('active', 'closed', 'waiting');
+
+            $posDetQuery->in('state', $posDetStateArr);
+
+            $posDetQuery->show('productId, receiptId');
+
+            $posProdsArr = $posReceiptIdArr = array();
+
             foreach ($posDetQuery->fetchAll() as $det) {
 
-                $posContragentClassName = core_Classes::fetch($det->contragentClass)->name;
-
-                $posContragentFolder = $posContragentClassName::fetch($det->contragentObjectId)->folderId;
-
-                $posContragents[$posContragentFolder] = $det->contragentName;
+                $posProdsArr[$det->productId] = $det->productId;
+                $posReceiptIdArr[$det->receiptId] = $det->receiptId;
 
             }
 
         }
+
         // Да се заредят контрагентите от POS  бележките
-        $suggestionContragents = $posContragents;
+        foreach ($posReceiptIdArr as $recept) {
+
+            $recptRec = pos_Receipts::fetch($recept);
+            $posContragentClassName = core_Classes::fetch($recptRec->contragentClass)->name;
+            $posContragentFolder = $posContragentClassName::fetch($recptRec->contragentObjectId)->folderId;
+
+            if (!in_array($posContragentFolder, array_keys($suggestions))) {
+                $suggestions[$posContragentFolder] = $recptRec->contragentName;
+            }
+
+        }
 
         asort($suggestions);
 
-        $form->setSuggestions('contragent', $suggestionContragents);
+        $form->setSuggestions('contragent', $suggestions);
     }
 
 
