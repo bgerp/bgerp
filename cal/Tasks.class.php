@@ -291,7 +291,7 @@ class cal_Tasks extends embed_Manager
         'onStart' => array('По началото', 'timeStart=По началото'),
         'onEnd' => array('По края', 'timeEnd=По края'),
         'noStartEnd' => array('Без начало и край', 'noStartEnd=Без начало и край'),
-        'firstActive' => array('Първо активни, после останалите'),
+        'firstActive' => array('Първо активни (после останалите)'),
     );
     
     
@@ -736,7 +736,15 @@ class cal_Tasks extends embed_Manager
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-       unset($data->listFields['timeStart'], $data->listFields['timeEnd'], $data->listFields['timeDuration']);
+        if(Mode::is('supportList')) {
+            $printUrl = $data->toolbar->getBtnUrl('btnPrint');
+            if(countR($printUrl)) {
+                $printUrl['Act'] = 'Listsupporttasks';
+                $data->toolbar->changeBtnUrl('btnPrint', $printUrl);
+            }
+        }
+
+        unset($data->listFields['timeStart'], $data->listFields['timeEnd'], $data->listFields['timeDuration']);
     }
 
 
