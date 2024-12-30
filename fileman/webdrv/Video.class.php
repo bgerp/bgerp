@@ -304,7 +304,7 @@ class fileman_webdrv_Video extends fileman_webdrv_Media
         }
 
         // Заключваме процеса за определено време
-        if ($force || core_Locks::get($params['lockId'], 100, 0, false)) {
+        if ($force || core_Locks::get($params['lockId'], 300, 0, false)) {
             // Конвертираме видеото
             static::startVideConverting($fRec, $params);
         }
