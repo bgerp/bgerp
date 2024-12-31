@@ -1065,13 +1065,23 @@ class cal_Tasks extends embed_Manager
             $data->toolbar->addBtn('Условие', array('cal_TaskConditions', 'add', 'baseId' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/task-option.png, row=2', 'title=Добавяне на зависимост между задачите');
         }
 
-        $btnRow = 2;
-        if(isset($data->rec->assetResourceId)) {
-            $assetRec = planning_AssetResources::fetch($data->rec->assetResourceId);
-            $assetType = planning_AssetGroups::fetchField($assetRec->groupId, 'type');
-            if($assetType == 'material') {
-                $btnRow = 1;
+        // На кой ред да се показват бутоните за показване/скриване
+        $consumptionBtnsRow = 'auto';
+        $Cover = doc_Folders::getCover($data->rec->folderId);
+        if($Cover->isInstanceOf('support_Systems')) {
+            $consumptionBtnsRow = $Cover->fetchField('showConsumptionBtnsInSupportTask');
+        }
+        if($consumptionBtnsRow == 'auto') {
+            $btnRow = 2;
+            if(isset($data->rec->assetResourceId)) {
+                $assetRec = planning_AssetResources::fetch($data->rec->assetResourceId);
+                $assetType = planning_AssetGroups::fetchField($assetRec->groupId, 'type');
+                if($assetType == 'material') {
+                    $btnRow = 1;
+                }
             }
+        } else {
+            $btnRow = $consumptionBtnsRow == 'firstRow' ? 1 : 2;
         }
 
         if(planning_ConsumptionNotes::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){

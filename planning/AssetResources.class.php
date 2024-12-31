@@ -827,14 +827,14 @@ class planning_AssetResources extends core_Master
     /**
      * Връща опциите за избор на операциите от обордуването
      *
-     * @param int $assetId      - ид на оборудване
-     * @param boolean $onlyIds  - опции или само масив с ид-та
-     * @param string $order     - подредба
-     * @return array $res       - желания масив
+     * @param int $assetId                - ид на оборудване
+     * @param boolean $onlyIds            - опции или само масив с ид-та
+     * @param string $order               - подредба
+     * @param string $useAlternativeTitle - дали да се показва алтернативното заглавие
+     * @return array $res                 - желания масив
      */
-    public static function getAssetTaskOptions($assetId, $onlyIds = false, $order = 'ASC')
+    public static function getAssetTaskOptions($assetId, $onlyIds = false, $order = 'ASC', $useAlternativeTitle = false)
     {
-        core_Debug::startTimer('GET_TASK_OPTIONS');
         $res = array();
         $tQuery = planning_Tasks::getQuery();
         $tQuery->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
@@ -847,10 +847,9 @@ class planning_AssetResources extends core_Master
             $res = $taskRecs;
         } else {
             foreach ($taskRecs as $tRec){
-                $res[$tRec->id] = planning_Tasks::getTitleById($tRec->id, false);
+                $res[$tRec->id] = $useAlternativeTitle ? cls::get('planning_Tasks')->getAlternativeTitle($tRec) : planning_Tasks::getTitleById($tRec->id, false);
             }
         }
-        core_Debug::stopTimer('GET_TASK_OPTIONS');
 
         return $res;
     }

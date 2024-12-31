@@ -1942,15 +1942,8 @@ class planning_Tasks extends core_Master
             $assetSimultaneity = planning_AssetResources::fetchField($rec->assetId, 'simultaneity');
             $form->setField('simultaneity', "input,placeholder={$assetSimultaneity}");
             if ($data->action != 'clone') {
-                $assetTasks = planning_AssetResources::getAssetTaskOptions($rec->assetId, true);
-                unset($assetTasks[$rec->id]);
-                $taskOptions = array();
-
-                core_Debug::startTimer('GET_TASK_OPTIONS_TITLE');
-                foreach ($assetTasks as $tRec) {
-                    $taskOptions[$tRec->id] = $mvc->getAlternativeTitle($tRec);
-                }
-                core_Debug::stopTimer('GET_TASK_OPTIONS_TITLE');
+                $taskOptions = planning_AssetResources::getAssetTaskOptions($rec->assetId, false, "ASC",true);
+                unset($taskOptions[$rec->id]);
 
                 $form->setField('startAfter', 'input');
                 if (countR($taskOptions)) {
@@ -1991,7 +1984,7 @@ class planning_Tasks extends core_Master
      * @param bool $isShort
      * @return string
      */
-    private function getAlternativeTitle($taskId, $isShort = false)
+    public function getAlternativeTitle($taskId, $isShort = false)
     {
         $taskRec = static::fetchRec($taskId);
         $job = doc_Containers::getDocument($taskRec->originId);
@@ -4477,27 +4470,36 @@ class planning_Tasks extends core_Master
         $form->title = "Преместване на избрани операции от|* " . cls::get('planning_AssetResources')->getFormTitleLink($assetId);
         $form->info = "<div class='formCustomInfo'>" . tr('Преместване на') . ":<br>";
         foreach ($selectedIds as $selectId){
-            $form->info .= planning_Tasks::getHyperlink($selectId, true) . "<br>";
+            $selectedTaskTitle = $this->getAlternativeTitle($selectId);
+            $selectedTaskSingleUrl = $this->getSingleUrlArray($selectId);
+            $form->info .= (countR($selectedTaskSingleUrl) ? ht::createLink($selectedTaskTitle, $selectedTaskSingleUrl, false, "ef_icon={$this->getSingleIcon($selectId)}") : $selectedTaskTitle) . "<br>";
         }
         $form->info .= "</div>";
         $form->FLD('newAssetId', 'key(mvc=planning_AssetResources,select=shortName, allowEmpty)', 'caption=Към,mandatory,silent,removeAndRefreshForm=afterId');
         $form->FLD('after', 'int', 'caption=След,placeholder=Първа за оборудването,input=hidden,maxRadio=1');
 
         // В кои центрове участва избраното оборудване
+        $assetClassId = planning_AssetResources::getClassId();
         $aQuery = planning_AssetResourceFolders::getQuery();
-        $aQuery->where("#objectId = {$assetId} AND #classId=" . planning_AssetResources::getClassId());
+        $aQuery->where("#objectId = {$assetId} AND #classId = {$assetClassId}");
         $aQuery->show('folderId');
         $folderIds = arr::extractValuesFromArray($aQuery->fetchAll(), 'folderId');
 
         // Извличане на другите оборудвания към същите центрове на дейност
         $aQuery1 = planning_AssetResourceFolders::getQuery();
-        $aQuery1->where("#classId=" . planning_AssetResources::getClassId());
-        $aQuery1->in('folderId', $folderIds);
+        $aQuery1->where("#classId = {$assetClassId} AND #coverClass = " . planning_Centers::getClassId());
+        $aQuery1->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
         $aQuery1->show('objectId');
-        $assetsInSameFolder = arr::extractValuesFromArray($aQuery1->fetchAll(), 'objectId');
+        if(countR($folderIds)){
+            $aQuery1->in('folderId', $folderIds);
+        } else {
+            $aQuery1->where("1=2");
+        }
 
         // Групиране на оборудванията в секции от същите или от други центрове на дейност
-        $allAssets = planning_AssetResources::getByFolderId();
+        $assetsInSameFolder = arr::extractValuesFromArray($aQuery1->fetchAll(), 'objectId');
+        $allAssets = planning_AssetResources::getByFolderId(null, null, 'planning_Tasks', true);
+
         $sameCenterAssets = array_intersect_key($allAssets, $assetsInSameFolder);
         unset($sameCenterAssets[$assetId]);
         $otherCenterAssets = array_diff_key($allAssets, $assetsInSameFolder);
@@ -4511,7 +4513,7 @@ class planning_Tasks extends core_Master
         $rec = $form->rec;
         if(isset($rec->newAssetId)){
             $form->setField('after', 'input');
-            $tasksInAssetArr = planning_AssetResources::getAssetTaskOptions($rec->newAssetId);
+            $tasksInAssetArr = planning_AssetResources::getAssetTaskOptions($rec->newAssetId, false, 'ASC',true);
             $form->setOptions('after', array('' => '') + $tasksInAssetArr);
         }
 

@@ -150,6 +150,7 @@ class support_Systems extends core_Master
         $this->FLD('addFromEveryOne', 'enum(no=Не,yes=Да)', 'caption=Добавяне от външната част->Избор, removeAndRefreshForm=defaultTitle|addContragentValues');
         $this->FLD('defaultTitle', 'varchar', 'caption=Заглавие на формата->Заглавие, input=none');
         $this->FLD('addContragentValues', 'enum(mandatory=Задължително, yes=Да, no=Не)', 'caption=Попълване на контрагент данни от нерегистрирани->Избор, input=none');
+        $this->FLD('showConsumptionBtnsInSupportTask', 'enum(auto=Автоматично,firstRow=На първи ред,secondRow=На втори ред,no=Скриване)', 'caption=Бутони за влагане/връщане в сигналите->Избор,notNull,value=auto');
 
         $this->setDbUnique('name');
     }
