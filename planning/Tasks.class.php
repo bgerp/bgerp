@@ -1942,15 +1942,8 @@ class planning_Tasks extends core_Master
             $assetSimultaneity = planning_AssetResources::fetchField($rec->assetId, 'simultaneity');
             $form->setField('simultaneity', "input,placeholder={$assetSimultaneity}");
             if ($data->action != 'clone') {
-                $assetTasks = planning_AssetResources::getAssetTaskOptions($rec->assetId, true);
-                unset($assetTasks[$rec->id]);
-                $taskOptions = array();
-
-                core_Debug::startTimer('GET_TASK_OPTIONS_TITLE');
-                foreach ($assetTasks as $tRec) {
-                    $taskOptions[$tRec->id] = $mvc->getAlternativeTitle($tRec);
-                }
-                core_Debug::stopTimer('GET_TASK_OPTIONS_TITLE');
+                $taskOptions = planning_AssetResources::getAssetTaskOptions($rec->assetId, false, "ASC",true);
+                unset($taskOptions[$rec->id]);
 
                 $form->setField('startAfter', 'input');
                 if (countR($taskOptions)) {
@@ -1991,7 +1984,7 @@ class planning_Tasks extends core_Master
      * @param bool $isShort
      * @return string
      */
-    private function getAlternativeTitle($taskId, $isShort = false)
+    public function getAlternativeTitle($taskId, $isShort = false)
     {
         $taskRec = static::fetchRec($taskId);
         $job = doc_Containers::getDocument($taskRec->originId);
@@ -4494,13 +4487,17 @@ class planning_Tasks extends core_Master
         $aQuery1->where("#classId=" . planning_AssetResources::getClassId());
         $aQuery1->in('folderId', $folderIds);
         $aQuery1->show('objectId');
+
         $assetsInSameFolder = arr::extractValuesFromArray($aQuery1->fetchAll(), 'objectId');
 
         // Групиране на оборудванията в секции от същите или от други центрове на дейност
-        $allAssets = planning_AssetResources::getByFolderId();
+        $allAssets = planning_AssetResources::getByFolderId(null, null, 'planning_Tasks', true);
+
         $sameCenterAssets = array_intersect_key($allAssets, $assetsInSameFolder);
         unset($sameCenterAssets[$assetId]);
         $otherCenterAssets = array_diff_key($allAssets, $assetsInSameFolder);
+
+        wp($folderIds, $assetsInSameFolder, $otherCenterAssets, $allAssets);
 
         $options = countR($sameCenterAssets) ? array("s" => (object) array('group' => true, 'title' => tr('От същия център'))) + $sameCenterAssets : array();
         $options += countR($otherCenterAssets) ? array("o" => (object) array('group' => true, 'title' => tr('От други центрове'))) + $otherCenterAssets : array();
@@ -4511,7 +4508,7 @@ class planning_Tasks extends core_Master
         $rec = $form->rec;
         if(isset($rec->newAssetId)){
             $form->setField('after', 'input');
-            $tasksInAssetArr = planning_AssetResources::getAssetTaskOptions($rec->newAssetId);
+            $tasksInAssetArr = planning_AssetResources::getAssetTaskOptions($rec->newAssetId, false, 'ASC',true);
             $form->setOptions('after', array('' => '') + $tasksInAssetArr);
         }
 
