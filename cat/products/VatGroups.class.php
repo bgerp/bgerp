@@ -271,7 +271,7 @@ class cat_products_VatGroups extends core_Detail
         $query->XPR('orderExceptionId', 'int', "COALESCE(#exceptionId, '')");
         $query->where("#productId = {$productId} AND #validFrom <= '{$date}'");
         $query->where("#exceptionId = '{$exceptionId}' OR #exceptionId IS NULL");
-        $query->orderBy('#validFrom,orderExceptionId', 'DESC');
+        $query->orderBy('orderExceptionId,#validFrom', 'DESC');
         $query->limit(1);
 
         $value = false;
