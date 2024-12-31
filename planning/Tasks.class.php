@@ -4470,7 +4470,9 @@ class planning_Tasks extends core_Master
         $form->title = "Преместване на избрани операции от|* " . cls::get('planning_AssetResources')->getFormTitleLink($assetId);
         $form->info = "<div class='formCustomInfo'>" . tr('Преместване на') . ":<br>";
         foreach ($selectedIds as $selectId){
-            $form->info .= planning_Tasks::getHyperlink($selectId, true) . "<br>";
+            $selectedTaskTitle = $this->getAlternativeTitle($selectId);
+            $selectedTaskSingleUrl = $this->getSingleUrlArray($selectId);
+            $form->info .= (countR($selectedTaskSingleUrl) ? ht::createLink($selectedTaskTitle, $selectedTaskSingleUrl, false, "ef_icon={$this->getSingleIcon($selectId)}") : $selectedTaskTitle) . "<br>";
         }
         $form->info .= "</div>";
         $form->FLD('newAssetId', 'key(mvc=planning_AssetResources,select=shortName, allowEmpty)', 'caption=Към,mandatory,silent,removeAndRefreshForm=afterId');
