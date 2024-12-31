@@ -3066,6 +3066,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
             }
         }
+
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Плащания', array($mvc, 'showDebugPayments', 'threadId' => $rec->threadId), 'ef_icon=img/16/bug.png,title=Дебъг плащания по фактурите,row=2');
+        }
     }
 
 
@@ -3136,5 +3140,18 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         return false;
+    }
+
+
+    /**
+     * Дебъг екшън показващ разпределени плащанията по фактури
+     */
+    public static function act_showDebugPayments()
+    {
+        requireRole('debug');
+        $threadId = Request::get('threadId', 'int');
+        $payments = deals_Helper::getInvoicePayments($threadId);
+
+        bp($payments);
     }
 }
