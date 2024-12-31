@@ -4477,27 +4477,30 @@ class planning_Tasks extends core_Master
         $form->FLD('after', 'int', 'caption=След,placeholder=Първа за оборудването,input=hidden,maxRadio=1');
 
         // В кои центрове участва избраното оборудване
+        $assetClassId = planning_AssetResources::getClassId();
         $aQuery = planning_AssetResourceFolders::getQuery();
-        $aQuery->where("#objectId = {$assetId} AND #classId=" . planning_AssetResources::getClassId());
+        $aQuery->where("#objectId = {$assetId} AND #classId = {$assetClassId}");
         $aQuery->show('folderId');
         $folderIds = arr::extractValuesFromArray($aQuery->fetchAll(), 'folderId');
 
         // Извличане на другите оборудвания към същите центрове на дейност
         $aQuery1 = planning_AssetResourceFolders::getQuery();
-        $aQuery1->where("#classId=" . planning_AssetResources::getClassId());
-        $aQuery1->in('folderId', $folderIds);
+        $aQuery1->where("#classId = {$assetClassId} AND #coverClass = " . planning_Centers::getClassId());
+        $aQuery1->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
         $aQuery1->show('objectId');
-
-        $assetsInSameFolder = arr::extractValuesFromArray($aQuery1->fetchAll(), 'objectId');
+        if(countR($folderIds)){
+            $aQuery1->in('folderId', $folderIds);
+        } else {
+            $aQuery1->where("1=2");
+        }
 
         // Групиране на оборудванията в секции от същите или от други центрове на дейност
+        $assetsInSameFolder = arr::extractValuesFromArray($aQuery1->fetchAll(), 'objectId');
         $allAssets = planning_AssetResources::getByFolderId(null, null, 'planning_Tasks', true);
 
         $sameCenterAssets = array_intersect_key($allAssets, $assetsInSameFolder);
         unset($sameCenterAssets[$assetId]);
         $otherCenterAssets = array_diff_key($allAssets, $assetsInSameFolder);
-
-        wp($folderIds, $assetsInSameFolder, $otherCenterAssets, $allAssets);
 
         $options = countR($sameCenterAssets) ? array("s" => (object) array('group' => true, 'title' => tr('От същия център'))) + $sameCenterAssets : array();
         $options += countR($otherCenterAssets) ? array("o" => (object) array('group' => true, 'title' => tr('От други центрове'))) + $otherCenterAssets : array();
