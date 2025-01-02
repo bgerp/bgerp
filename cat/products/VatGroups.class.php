@@ -82,7 +82,7 @@ class cat_products_VatGroups extends core_Detail
     /**
      * Временен кеш
      */
-    public static $tempCache = array();
+    protected static $tempCache = array();
 
 
     /**
