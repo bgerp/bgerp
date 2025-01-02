@@ -279,24 +279,35 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
+        $rec = $form->rec;
         if ($form->isSubmitted()) {
-            if (!$form->rec->assetFolders && $form->rec->assetUsers) {
-                $form->setError('assetFolders', 'Не е избран център на дейност, но са избрани отговорници|*!');
+            if (!empty($rec->assetFolders)) {
+                if($rec->assetUsers){
+                    $form->setError('assetFolders', 'Не е избран център на дейност, но са избрани отговорници|*!');
+                }
+
+                $resourceType = planning_AssetGroups::fetchField($rec->groupId, 'type');
+                if($resourceType == 'material'){
+                    $selectedCenterCounts = countR(keylist::toArray($rec->assetFolders));
+                    if($selectedCenterCounts > 1){
+                        $form->setError('assetFolders', 'Материалните ресурси може да са споделени в повече от един център|*!');
+                    }
+                }
             }
             
-            if (!$form->rec->systemFolderId && $form->rec->systemUsers) {
+            if (!$rec->systemFolderId && $rec->systemUsers) {
                 $form->setError('systemFolderId', 'Не е избрана система за поддръжка, но са избрани отговорници|*!');
             }
 
-            if (!$form->rec->unsortedFolders && $form->rec->unsortedUsers) {
+            if (!$rec->unsortedFolders && $rec->unsortedUsers) {
                 $form->setError('unsortedFolders', 'Не е избран проект, но са избрани отговорници|*!');
             }
 
-            if(empty($form->rec->simultaneity) && $form->rec->assetFolders){
+            if(empty($rec->simultaneity) && $rec->assetFolders){
                 $form->setWarning('simultaneity', "Ако изберете '0' ресурсът няма да може да бъде избиран в производствени операции|*!");
             }
 
-            if (!$form->rec->assetFolders && $form->rec->simultaneity) {
+            if (!$rec->assetFolders && $rec->simultaneity) {
                 $form->setWarning('assetFolders,simultaneity', "Избрана е едновременност, но не е избран център на дейност - ресурсът няма да може да бъде избиран в производствени операции|*!");
             }
         }
@@ -1255,5 +1266,28 @@ class planning_AssetResources extends core_Master
         }
 
         return $name;
+    }
+
+
+    /**
+     * Може ли материалното оборудването да се добави в посочената папка
+     *
+     * @param int $assetId
+     * @param int $folderId
+     * @return bool
+     */
+    public static function canAssetBeAddedToFolder($assetId, $folderId)
+    {
+        $resourceType = planning_AssetGroups::fetchField(planning_AssetResources::fetchField($assetId, 'groupId'), 'type');
+        if ($resourceType == 'material') {
+            $assetClassId = planning_AssetResources::getClassId();
+            $query = planning_AssetResourceFolders::getQuery();
+            $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
+            $query->where("#classId = {$assetClassId} AND #objectId = {$assetId} AND #folderId != '{$folderId}' AND #coverClass = " . planning_Centers::getClassId());
+
+            if ($query->count() > 0) return false;
+        }
+
+        return true;
     }
 }

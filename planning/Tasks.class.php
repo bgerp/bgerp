@@ -4497,15 +4497,11 @@ class planning_Tasks extends core_Master
         }
 
         // Групиране на оборудванията в секции от същите или от други центрове на дейност
+        $options = array();
         $assetsInSameFolder = arr::extractValuesFromArray($aQuery1->fetchAll(), 'objectId');
-        $allAssets = planning_AssetResources::getByFolderId(null, null, 'planning_Tasks', true);
-
-        $sameCenterAssets = array_intersect_key($allAssets, $assetsInSameFolder);
-        unset($sameCenterAssets[$assetId]);
-        $otherCenterAssets = array_diff_key($allAssets, $assetsInSameFolder);
-
-        $options = countR($sameCenterAssets) ? array("s" => (object) array('group' => true, 'title' => tr('От същия център'))) + $sameCenterAssets : array();
-        $options += countR($otherCenterAssets) ? array("o" => (object) array('group' => true, 'title' => tr('От други центрове'))) + $otherCenterAssets : array();
+        foreach($assetsInSameFolder as $aId){
+            $options[$aId] = planning_AssetResources::getTitleById($aId);
+        }
         $form->setOptions('newAssetId', array('' => '') + $options);
         $form->input(null, 'silent');
         $form->input();

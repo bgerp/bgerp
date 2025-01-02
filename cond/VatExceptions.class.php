@@ -93,7 +93,7 @@ class cond_VatExceptions extends core_Manager
             }
 
             if($rec->state == 'active') {
-                if ($rec->validTo && $rec->validTo <= dt::now()) {
+                if ($rec->validTo && $rec->validTo <= dt::today()) {
                     $form->setWarning('validTo', "Въведен е срок на валидност в миналото, изключението ще се деактивира|*!");
                 }
             }

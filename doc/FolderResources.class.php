@@ -278,33 +278,51 @@ class doc_FolderResources extends core_Manager
             $Folders = cls::get('planning_AssetResourceFolders');
             
             // Избраните се обновява департамента им
+            $toSave = $error = array();
             foreach ($selected as $id => $name) {
                 $r = (object) array('classId' => $classId, 'objectId' => $id, 'folderId' => $folderId);
                 if ($type != 'asset') {
                     $hId = planning_Hr::fetchField("#personId = {$id}");
                     if (empty($hId)) {
-                        $hId = planning_Hr::save((object) array('personId' => $id, 'code' => planning_Hr::getDefaultCode($id)));
+                        $hrRec = (object) array('personId' => $id, 'code' => planning_Hr::getDefaultCode($id));
+                        $hId = planning_Hr::save($hrRec);
                     }
                     $r->objectId = $hId;
+                } else {
+                    if(!planning_AssetResources::canAssetBeAddedToFolder($id, $folderId)){
+                        $error[] = "<b>" . planning_AssetResources::getTitleById($id) . "</b>";
+                    }
                 }
-                
-                if ($Folders->isUnique($r, $fields)) {
-                    $Folders->save($r);
+
+                $toSave[] = $r;
+            }
+
+            if(countR($error)){
+                $form->setError('select', "Следните материални оборудвания не може да са в повече от един център|*: " . implode(', ', $error));
+            } else {
+                foreach ($toSave as $sRec){
+                    $fields = array();
+                    if ($Folders->isUnique($sRec, $fields)) {
+                        $Folders->save($sRec);
+                    }
                 }
             }
-            
-            // Махане на съществуващите
-            $removeArr = array_diff_key($default, $selected);
-            foreach ($removeArr as $rId => $rName) {
-                $delId = $rId;
-                if ($type != 'asset') {
-                    $delId = planning_Hr::fetchField("#personId = {$rId}");
+
+            if(!$form->gotErrors()){
+
+                // Махане на съществуващите
+                $removeArr = array_diff_key($default, $selected);
+                foreach ($removeArr as $rId => $rName) {
+                    $delId = $rId;
+                    if ($type != 'asset') {
+                        $delId = planning_Hr::fetchField("#personId = {$rId}");
+                    }
+
+                    planning_AssetResourceFolders::delete("#classId = {$classId} AND #objectId = {$delId} AND #folderId = {$folderId}");
                 }
-                
-                planning_AssetResourceFolders::delete("#classId = {$classId} AND #objectId = {$delId} AND #folderId = {$folderId}");
+
+                followRetUrl(null, '|Информацията е обновена успешно');
             }
-            
-            followRetUrl(null, '|Информацията е обновена успешно');
         }
         
         // Бутони

@@ -2058,7 +2058,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
 
                 if($productRec = $cloneQuery->fetch()){
-                    $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null);
+                    $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $productRec->name, 'nameEn' => $productRec->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null);
                     $count++;
                 }
             }
@@ -2135,6 +2135,7 @@ class pos_Terminal extends peripheral_Terminal
 
         $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$priceCache}_{$rec->_selectedGroupId}_{$searchString}";
         $result = core_Cache::get('pos_Terminal', $cacheKey);
+
         if(!is_array($result)){
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
             $result = $this->prepareProductResultRows($sellable, $rec, $settings);

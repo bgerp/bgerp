@@ -879,8 +879,10 @@ class pos_ReceiptDetails extends core_Detail
             case 'sale':
                 $mvc->renderSale($rec, $row, $receiptRec, $fields);
                 if ($fields['-list']) {
-                    $row->quantity = ($rec->value) ? $row->quantity : $row->quantity;
+                    $row->productId = cat_Products::getHyperlink($rec->productId, true);
                 }
+
+
                 break;
             case 'payment':
                 $row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
