@@ -285,7 +285,9 @@ class cat_products_VatGroups extends core_Detail
         // Кои са валидните ДДС изключения към датата
         if(!array_key_exists($date, static::$tempCache)){
             $exQuery = cond_VatExceptions::getQuery();
-            $exQuery->where("#validTo IS NULL OR #validTo >= '{$date}'");
+            $exQuery->XPR('from', 'date', 'COALESCE(#validFrom, "0000-00-00")');
+            $exQuery->XPR('to', 'date', 'COALESCE(#validTo, "9999-99-90")');
+            $exQuery->where("'{$date}' BETWEEN #from AND #to");
             $exQuery->show('id');
             $exceptionIds = arr::extractValuesFromArray($exQuery->fetchAll(), 'id');
             static::$tempCache[$date] = countR($exceptionIds) ? implode(',', $exceptionIds) : '-1';

@@ -8,7 +8,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -48,7 +48,7 @@ class cond_VatExceptions extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title,validTo,lastUsedOn,createdOn,createdBy,state';
+    public $listFields = 'title,validFrom,validTo,lastUsedOn,createdOn,createdBy,state';
 
 
     /**
@@ -70,7 +70,9 @@ class cond_VatExceptions extends core_Manager
     {
         $this->FLD('title', 'varchar', 'caption=Изключение');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последно,input=none,column=none');
+        $this->FLD('validFrom', 'date', 'caption=Валидно от');
         $this->FLD('validTo', 'date', 'caption=Валидно до');
+        $this->FLD('state', 'enum(draft=Чернова,active=Активен,closed=Затворен)', 'caption=Състояние,input=none');
 
         $this->setDbUnique('title');
     }
@@ -82,16 +84,45 @@ class cond_VatExceptions extends core_Manager
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
-        if($rec->state == 'active') {
-            if ($rec->validTo && $rec->validTo <= dt::now()) {
-                $rec->state = 'closed';
-                $form->setWarning('validTo', "Въведен е срок на валидност в миналото, изключението ще се деактивира|*!");
+
+        if($form->isSubmitted()) {
+            if(!empty($rec->validTo) && !empty($rec->validFrom)){
+                if($rec->validTo < $rec->validFrom){
+                    $form->setWarning('validTo,validFrom', "Краят е преди началото|*!");
+                }
             }
-        } else {
-            $exValidTo = $mvc->fetchField($rec->id, 'validTo', false);
-            if($exValidTo != $rec->validTo){
-                $rec->state = 'active';
+
+            if($rec->state == 'active') {
+                if ($rec->validTo && $rec->validTo <= dt::now()) {
+                    $form->setWarning('validTo', "Въведен е срок на валидност в миналото, изключението ще се деактивира|*!");
+                }
             }
+        }
+    }
+
+
+    /**
+     * Синхронизиране на състоянието на записа
+     *
+     * @param stdClass $rec
+     * @return void
+     */
+    private function syncState($rec)
+    {
+        $today = dt::today();
+        $oldState = $rec->state;
+
+        $rec->state = 'active';
+        $from = !empty($rec->validFrom) ? $rec->validFrom : '0000-00-00';
+        $to = !empty($rec->validTo) ? $rec->validTo : '9999-12-31';
+        if($today <= $from){
+            $rec->state = 'draft';
+        } elseif($to <= $today){
+            $rec->state = 'closed';
+        }
+
+        if($oldState != $rec->state){
+            $this->save_($rec, 'state');
         }
     }
 
@@ -144,12 +175,21 @@ class cond_VatExceptions extends core_Manager
      */
     public function cron_CloseExceptions()
     {
-        $today = dt::today();
         $query = $this->getQuery();
-        $query->where("#state = 'active' AND #validTo IS NOT NULL AND #validTo <= '{$today}'");
         while($rec = $query->fetch()){
-            $rec->state = 'closed';
-            $this->save($rec, 'state');
+            $this->save($rec);
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // Ако не е ръчно сменено състоянието
+        if(!$rec->_manualStateChange){
+            $mvc->syncState($rec);
         }
     }
 }
