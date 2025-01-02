@@ -320,30 +320,6 @@ class deals_Setup extends core_ProtoSetup
 
 
     /**
-     * Мигрира с коя сделка е приключено
-     * @todo да се махне след рилийз
-     *
-     * @param mixed $mvc
-     */
-    public function callback_updateOverdueOn($mvc)
-    {
-        $Deal = cls::get($mvc);
-        $Deal->setupMvc();
-
-        $count = $Deal->count("#paymentState = 'overdue' AND #state = 'active'");
-        core_App::setTimeLimit($count * 0.12, false, 200);
-
-        $overdueOnColName = str::phpToMysqlName('overdueOn');
-        $modifiedOnColName = str::phpToMysqlName('modifiedOn');
-        $paymentStateColName = str::phpToMysqlName('paymentState');
-        $stateColName = str::phpToMysqlName('state');
-        $query = "UPDATE {$Deal->dbTableName} SET {$overdueOnColName} = {$modifiedOnColName} WHERE {$paymentStateColName} = 'overdue' AND {$stateColName} = 'active'";
-
-        $Deal->db->query($query);
-    }
-
-
-    /**
      * Помощна ф-я за реконтиране на платежните документи
      */
     public static function fixDocumentsWithMoreThanNDigits($documents, $digitCount = 2)
