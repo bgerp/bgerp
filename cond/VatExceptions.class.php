@@ -48,7 +48,7 @@ class cond_VatExceptions extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title,lastUsedOn,createdOn,createdBy,state';
+    public $listFields = 'title,validTo,lastUsedOn,createdOn,createdBy,state';
 
 
     /**
@@ -70,8 +70,29 @@ class cond_VatExceptions extends core_Manager
     {
         $this->FLD('title', 'varchar', 'caption=Изключение');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последно,input=none,column=none');
+        $this->FLD('validTo', 'date', 'caption=Валидно до');
 
         $this->setDbUnique('title');
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if($rec->state == 'active') {
+            if ($rec->validTo && $rec->validTo <= dt::now()) {
+                $rec->state = 'closed';
+                $form->setWarning('validTo', "Въведен е срок на валидност в миналото, изключението ще се деактивира|*!");
+            }
+        } else {
+            $exValidTo = $mvc->fetchField($rec->id, 'validTo', false);
+            if($exValidTo != $rec->validTo){
+                $rec->state = 'active';
+            }
+        }
     }
 
 
@@ -92,8 +113,21 @@ class cond_VatExceptions extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
+
+        if($action == 'changestate' && isset($rec)){
+            if(!empty($rec->validTo) && $rec->validTo <= dt::now()){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 
+
+    /**
+     * Какво е ДДС изключението за документите в нишката
+     *
+     * @param int $threadId
+     * @return null|int
+     */
     public static function getFromThreadId($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
@@ -102,5 +136,20 @@ class cond_VatExceptions extends core_Manager
         }
 
         return null;
+    }
+
+
+    /**
+     * Крон процес за затваряне на ДДС изключенията
+     */
+    public function cron_CloseExceptions()
+    {
+        $today = dt::today();
+        $query = $this->getQuery();
+        $query->where("#state = 'active' AND #validTo IS NOT NULL AND #validTo <= '{$today}'");
+        while($rec = $query->fetch()){
+            $rec->state = 'closed';
+            $this->save($rec, 'state');
+        }
     }
 }

@@ -80,6 +80,12 @@ class cat_products_VatGroups extends core_Detail
 
 
     /**
+     * Временен кеш
+     */
+    public static $tempCache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -199,6 +205,16 @@ class cat_products_VatGroups extends core_Detail
                 } else {
                     $row->ROW_ATTR['class'] = 'state-closed';
                 }
+
+                // Показване докога е валидно изключението
+                if(isset($rec->exceptionId)){
+                    $exceptionValidTo = cond_VatExceptions::fetchField($rec->exceptionId, 'validTo');
+                    if(!empty($exceptionValidTo) && $exceptionValidTo <= $today){
+                        $exceptionValidToVerbal = dt::mysql2verbal($exceptionValidTo, 'd.m.Y');
+                        $row->validFrom = tr("|*{$row->validFrom} ( |до|* {$exceptionValidToVerbal} )");
+                        $row->ROW_ATTR['class'] = 'state-closed';
+                    }
+                }
             }
         }
         
@@ -266,11 +282,20 @@ class cat_products_VatGroups extends core_Detail
     {
         $date = (!empty($date)) ? dt::verbal2mysql($date, false) : dt::today();
 
+        // Кои са валидните ДДС изключения към датата
+        if(!array_key_exists($date, static::$tempCache)){
+            $exQuery = cond_VatExceptions::getQuery();
+            $exQuery->where("#validTo IS NULL OR #validTo >= '{$date}'");
+            $exQuery->show('id');
+            $exceptionIds = arr::extractValuesFromArray($exQuery->fetchAll(), 'id');
+            static::$tempCache[$date] = countR($exceptionIds) ? implode(',', $exceptionIds) : '-1';
+        }
+
         // Извличат се активните записи (ако има ддс изключение - само за него, ако няма това без изключения)
         $query = cat_products_VatGroups::getQuery();
         $query->XPR('orderExceptionId', 'int', "COALESCE(#exceptionId, '')");
         $query->where("#productId = {$productId} AND #validFrom <= '{$date}'");
-        $query->where("#exceptionId = '{$exceptionId}' OR #exceptionId IS NULL");
+        $query->where("#exceptionId IN (" . static::$tempCache[$date] . ") OR #exceptionId IS NULL");
         $query->orderBy('orderExceptionId,#validFrom', 'DESC');
         $query->limit(1);
 
