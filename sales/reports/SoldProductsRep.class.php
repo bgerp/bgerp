@@ -407,8 +407,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         // Да се заредят контрагентите от POS  бележките
         //$suggestionContragents = $posContragents;
 
-
-        $suggestionContragents = array_merge($suggestionContragents,$posContragents);
+        $suggestionContragents = $suggestionContragents+$posContragents;
 
         asort($suggestionContragents);
 
@@ -600,7 +599,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
         if ($rec->contragent || $rec->crmGroup) {
 
-            $contragentsArr = [];
+            $contragentsArr = array();
 
             foreach (keylist::toArray($rec->contragent) as $contragent) {
 
@@ -609,7 +608,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             }
 
-            if (!$rec->crmGroup && $rec->contragent) {
+            if (!$rec->crmGroup && $rec->contragent) {//bp($rec->contragent,$contragentsArr,$query->fetchAll());
 
                 // Генерираме частта от заявката, която съдържа IN условието
                 $in_clause = implode(", ", array_map(function ($pair) {
