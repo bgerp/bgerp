@@ -48,7 +48,7 @@ class cond_VatExceptions extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title,validFrom,validTo,lastUsedOn,createdOn,createdBy,state';
+    public $listFields = 'id,title,validFrom,validTo,lastUsedOn,createdOn,createdBy,state';
 
 
     /**
