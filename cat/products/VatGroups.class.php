@@ -294,15 +294,17 @@ class cat_products_VatGroups extends core_Detail
             $exQuery->XPR('to', 'date', 'COALESCE(#validTo, "9999-99-90")');
             $exQuery->where("'{$date}' BETWEEN #from AND #to");
             $exQuery->show('id');
-            $exceptionIds = arr::extractValuesFromArray($exQuery->fetchAll(), 'id');
-            static::$tempCache[$date] = countR($exceptionIds) ? implode(',', $exceptionIds) : '-1';
+            static::$tempCache[$date] = arr::extractValuesFromArray($exQuery->fetchAll(), 'id');
         }
+
+        // Ако има изключение и то е активно, първо ще се търси правило за него, ако няма за "без изключение"
+        $useExceptionId = isset($exceptionId) ? (array_key_exists($exceptionId, static::$tempCache[$date]) ? $exceptionId : null) : null;
 
         // Извличат се активните записи (ако има ддс изключение - само за него, ако няма това без изключения)
         $query = cat_products_VatGroups::getQuery();
         $query->XPR('orderExceptionId', 'int', "COALESCE(#exceptionId, '')");
         $query->where("#productId = {$productId} AND #validFrom <= '{$date}'");
-        $query->where("#exceptionId IN (" . static::$tempCache[$date] . ") OR #exceptionId IS NULL");
+        $query->where("#exceptionId = '{$useExceptionId}' OR #exceptionId IS NULL");
         $query->orderBy('orderExceptionId,#validFrom', 'DESC');
         $query->limit(1);
 
