@@ -208,11 +208,16 @@ class cat_products_VatGroups extends core_Detail
 
                 // Показване докога е валидно изключението
                 if(isset($rec->exceptionId)){
-                    $exceptionValidTo = cond_VatExceptions::fetchField($rec->exceptionId, 'validTo');
-                    if(!empty($exceptionValidTo) && $exceptionValidTo <= $today){
-                        $exceptionValidToVerbal = dt::mysql2verbal($exceptionValidTo, 'd.m.Y');
+                    $exceptionRec = cond_VatExceptions::fetch($rec->exceptionId);
+                    if(!empty($exceptionRec->validTo) && $exceptionRec->validTo <= $today){
+                        $exceptionValidToVerbal = dt::mysql2verbal($exceptionRec->validTo, 'd.m.Y');
                         $row->validFrom = tr("|*{$row->validFrom} ( |до|* {$exceptionValidToVerbal} )");
                         $row->ROW_ATTR['class'] = 'state-closed';
+                    } elseif(!empty($exceptionRec->validFrom) && $exceptionRec->validFrom > $today) {
+                        $validFrom = min($exceptionRec->validFrom, $rec->validFrom);
+                        $exceptionValidToVerbal = dt::mysql2verbal($validFrom, 'd.m.Y');
+                        $row->validFrom = ht::createHint($exceptionValidToVerbal, 'Изключението ще влезе в сила след|*: ' . dt::mysql2verbal($exceptionRec->validFrom, 'd.m.Y'));
+                        $row->ROW_ATTR['class'] = 'state-draft';
                     }
                 }
             }
