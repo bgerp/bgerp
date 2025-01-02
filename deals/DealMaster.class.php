@@ -141,6 +141,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $amountBl = round($rec->amountBl, 4);
         $tolerance = $rec->amountDelivered * $tolerancePercent;
         $today = dt::today();
+        $todayTimestamp = strtotime($today);
 
         // Ако имаме фактури към сделката
         $invoices = deals_Helper::getInvoicePayments($rec->threadId);
@@ -153,7 +154,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $dueDate = dt::addDays($overdueAddDays, $invRec->dueDate, false);
 
                 // Ако крайния им срок е в миналото и има НЕПЛАТЕНО
-                if($dueDate < $today){
+                if(strtotime($dueDate) < $todayTimestamp){
                     $diff = round($invRec->amount - $invRec->payout, 2);
                     if($diff > 0){
 
@@ -185,6 +186,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
                 // Проверяваме дали сделката е просрочена по платежния си план
                 $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
+
                 if (abs($diff) > abs($tolerance)) {
                     if (cond_PaymentMethods::isOverdue($plan, $diff, $overdueOn)) {
                         $rec->overdueAmount = abs($diff);

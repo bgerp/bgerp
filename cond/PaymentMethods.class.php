@@ -374,7 +374,8 @@ class cond_PaymentMethods extends embed_Manager
 
         $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
         $calcedDueDate = dt::addDays($overdueAddDays, $payment['deadlineForBalancePayment'], false);
-        if($today > $dueDate){
+
+        if(strtotime($today) > strtotime($calcedDueDate)){
             $dueDate = $calcedDueDate;
 
             return true;
