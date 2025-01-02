@@ -1830,7 +1830,7 @@ abstract class deals_Helper
      *
      * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
      * @param datetime|NULL $valior            - към коя дата
-     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
+     * @param bool          $onlyExactPfayments - дали да са всички плащания или само конкретните към всяка ф-ра
      *
      * @return array $paid      - масив с разпределените плащания
      */
@@ -1844,20 +1844,23 @@ abstract class deals_Helper
         $invoicesArr = self::getInvoicesInThread($threads, $valior, true, true, true);
         if (!countR($invoicesArr)) return array();
 
+        core_Debug::startTimer("CALC_INVOICE_PAYMENTS");
         $newInvoiceArr = $invMap = $payArr = array();
         foreach ($invoicesArr as $containerId => $handler) {
             $Document = doc_Containers::getDocument($containerId);
-            $iRec = $Document->fetch('dealValue,discountAmount,vatAmount,rate,type,originId,containerId');
-            
+            $iRec = $Document->fetch('dealValue,discountAmount,vatAmount,rate,type,originId,containerId,dueDate');
+            $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
+
             $amount = round((($iRec->dealValue - $iRec->discountAmount) + $iRec->vatAmount) / $iRec->rate, 2);
             $key = ($iRec->type != 'dc_note') ? $containerId : $iRec->originId;
             $invMap[$containerId] = $key;
             
             if (!array_key_exists($key, $newInvoiceArr)) {
-                $newInvoiceArr[$key] = (object) array('containerId' => $key, 'amount' => $amount, 'payout' => 0, 'payments' => array());
+                $newInvoiceArr[$key] = (object) array('containerId' => $key, 'amount' => $amount, 'payout' => 0, 'payments' => array(), 'dueDate' => $dueDate);
             } else {
                 $newInvoiceArr[$key]->amount += $amount;
             }
+            $newInvoiceArr[$key]->dueDate = min($newInvoiceArr[$key]->dueDate, $dueDate);
         }
 
         foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay) {
@@ -1909,7 +1912,7 @@ abstract class deals_Helper
             $DealDoc = cls::get($dealDoc);
             $dQuery = $DealDoc->getQuery();
             $dQuery->in('threadId', $threads);
-            $dQuery->where("#state = 'active' || #state = 'closed'");
+            $dQuery->where("#state IN ('state', 'closed')");
             $dQuery->where(array("#contoActions LIKE '%pay%'"));
             if (isset($valior)) {
                 $dQuery->where("#valior <= '{$valior}'");
@@ -1928,7 +1931,9 @@ abstract class deals_Helper
             $payArr = array_filter($payArr, function ($a) {return isset($a->to);});
         }
 
+
         self::allocationOfPayments($newInvoiceArr, $payArr);
+        core_Debug::stopTimer("CALC_INVOICE_PAYMENTS");
 
         return $newInvoiceArr;
     }
