@@ -250,9 +250,12 @@ class cat_BomDetails extends doc_Detail
         $quantity = $data->masterRec->quantity;
         $originInfo = cat_Products::getProductInfo($data->masterRec->productId);
         $shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
-        
-        $propCaption = "Количество->|За|* |{$quantity}|* {$shortUom}";
-        $form->setField('propQuantity', "caption={$propCaption}");
+
+        if(!empty($rec->parentId)){
+            $form->setField('propQuantity', "caption=Количество->|За 1 от етапа");
+        } else {
+            $form->setField('propQuantity', "caption=Количество->|За|* |{$quantity}|* {$shortUom}");
+        }
         
         // Възможните етапи са етапите от текущата рецепта
         $stepOptions = static::getParentOptions($rec->bomId, $rec->id);
