@@ -278,6 +278,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
             unset($productOptions[$jobRec->productId]);
+            $form->setField('inputStoreId', 'input=none');
+            $form->setField('inputServicesFrom', 'input=none');
+            $form->setField('detailOrderBy', 'input=none');
         } else {
             $defaultOriginPackField = 'packagingId';
             $jobRec = $originDoc->fetch();
