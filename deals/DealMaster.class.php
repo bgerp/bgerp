@@ -118,9 +118,8 @@ abstract class deals_DealMaster extends deals_DealBase
         if (empty($mvc->fields['contoActions'])) {
             $mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
         }
-        $mvc->FLD('overdueOn', 'datetime', 'input=none');
+        $mvc->FLD('overdueAmountPerDays', 'double(decimals=2)', 'input=none');
         $mvc->FLD('overdueAmount', 'double', 'input=none');
-
     }
 
 
@@ -134,66 +133,41 @@ abstract class deals_DealMaster extends deals_DealBase
     public function getPaymentState(&$rec, $aggregator = null)
     {
         $rec = $this->fetchRec($rec);
-        $notInvoicedAmount = core_Math::roundNumber($rec->amountDelivered) - core_Math::roundNumber($rec->amountInvoiced);
-        
-        // Добавне на 0 за да елиминираме -0 ако се получи при изчислението
-        $notInvoicedAmount += 0;
 
-        // Кои са фактурите в сделката
-        $threads = deals_Helper::getCombinedThreads($rec->threadId);
-        $invoices = deals_Helper::getInvoicesInThread($threads);
-        $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
 
         // Ако имаме доставено или платено
         $amountBl = round($rec->amountBl, 4);
-        $tolerance = $rec->amountDelivered * $tolerancePercent;
+        $today = dt::today();
+        $todayTimestamp = strtotime($today);
+        $overdueToleranceAmount = deals_Setup::get('OVERDUE_TOLERANCE_AMOUNT');
 
         // Ако имаме фактури към сделката
+        $invoices = deals_Helper::getInvoicePayments($rec->threadId);
         if (countR($invoices)) {
-            $today = dt::today();
-
-            // Намираме непадежиралите фактури, тези с вальор >= на днес
-            $sum = 0;
+            $overdueAmount = $overdueAmountPerDays = 0;
             $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
 
-            $overdueDates = array();
-            array_walk($invoices, function ($v, $k) use ($today, &$sum, $overdueAddDays, &$overdueDates) {
-                $Doc = doc_Containers::getDocument($k);
-                $iRec = $Doc->fetch('dealValue,vatAmount,discountAmount,type,date,dueDate');
-                $total = $iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount;
-                $total = ($iRec->type == 'credit_note') ? -1 * $total : $total;
-                $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
-                $dueDate = dt::addDays($overdueAddDays, $dueDate, false);
-                if ($dueDate >= $today) {
-                    if($total > 0){
-                        $sum += $total;
+            // Всички ф-ри с отнесените плащания към тях
+            foreach ($invoices as $invRec){
+                $dueDate = dt::addDays($overdueAddDays, $invRec->dueDate, false);
+
+                // Ако крайния им срок е в миналото и има НЕПЛАТЕНО
+                if(strtotime($dueDate) < $todayTimestamp){
+                    $diff = round($invRec->amount - $invRec->payout, 2);
+                    if($diff > 0){
+
+                        // Сумира се неплатеното на всички ф-ри и се смятат леводните просрочие
+                        $overdueAmount += $diff;
+                        $overdueAmountPerDays += $diff * dt::daysBetween($today, $dueDate);
                     }
-                } else {
-                    $overdueDates[$dueDate] = $dueDate;
                 }
-            });
-
-            // Ще сравняваме салдото със сумата на непадежиралите фактури + нефактурираното
-            $valueToCompare = $sum + $notInvoicedAmount;
-
-            // За покупката гледаме баланса с обратен знак
-            $balance = $rec->amountBl;
-            if ($this instanceof purchase_Purchases) {
-                $balance = -1 * $balance;
             }
-            
-            $balance = round($balance, 4);
-            $valueToCompare = round($valueToCompare, 4);
-            $difference = $balance - $valueToCompare;
 
-            if ($balance > $valueToCompare && ($difference < -5 || $difference > 5)) {
-                if($rec->paymentState != 'overdue'){
-                    $rec->overdueOn = dt::now();
-                } elseif(empty($rec->overdueOn)) {
-                    $minDate = min($overdueDates);
-                    $rec->overdueOn = !empty($minDate) ? $minDate : $rec->modifiedOn;
-                }
-                $rec->overdueAmount = abs($difference);
+            // Ако има просрочена сума и тя е извън допустимия толеранс - значи е просрочена
+            $overdueAmount = round($overdueAmount, 2);
+            if (!empty($overdueAmount) && (abs($overdueAmount) > $overdueToleranceAmount)) {
+                $rec->overdueAmountPerDays = $overdueAmountPerDays;
+                $rec->overdueAmount = $overdueAmount;
 
                 return 'overdue';
             }
@@ -210,15 +184,10 @@ abstract class deals_DealMaster extends deals_DealBase
 
                 // Проверяваме дали сделката е просрочена по платежния си план
                 $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
-                if (abs($diff) > abs($tolerance)) {
-                    $overdueOn = null;
+                if (abs($diff) > abs($overdueToleranceAmount)) {
                     if (cond_PaymentMethods::isOverdue($plan, $diff, $overdueOn)) {
-                        if($rec->paymentState != 'overdue'){
-                            $rec->overdueOn = dt::now();
-                        } elseif(empty($rec->overdueOn)) {
-                            $rec->overdueOn = $overdueOn;
-                        }
                         $rec->overdueAmount = abs($diff);
+                        $rec->overdueAmountPerDays = $rec->overdueAmount * dt::daysBetween($today, $overdueOn);
 
                         return 'overdue';
                     }
@@ -227,12 +196,14 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Ако салдото е в рамките на толеранса приемаме че е 0
+        $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
+        $tolerance = $rec->amountDelivered * $tolerancePercent;
         if (abs($amountBl) <= abs($tolerance)) {
             $amountBl = 0;
         }
         
         // Правим проверка дали е платена сделката
-        $rec->overdueOn = $rec->overdueAmount = null;
+        $rec->overdueAmount = $rec->overdueAmountPerDays = null;
         if ($this instanceof sales_Sales) {
             if ($amountBl <= 0) {
                 
@@ -1218,7 +1189,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($rec->paymentState == 'overdue') {
             $row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . '</span>';
             if(isset($rec->overdueAmount)){
-                $overdueOnHint = "Просрочено на:|* " . core_Type::getByName('datetime(format=smartTime)')->toVerbal($rec->overdueOn);
+                $overdueOnHint = "Просрочено с:|* " . $mvc->getFieldType('overdueAmountPerDays')->toVerbal($rec->overdueAmountPerDays) . " дни × сума";
                 $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($rec->overdueAmount / $rec->currencyRate);
                 $row->paymentState = $overdueAmount;
                 $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
@@ -1952,16 +1923,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $query = $Class->getQuery();
         $query->where("#state = 'active'");
         $query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
-
-
         while ($rec = $query->fetch()) {
             try {
                 $rec->paymentState = $Class->getPaymentState($rec);
-                $Class->save_($rec, 'paymentState,overdueOn,overdueAmount');
+                $Class->save_($rec, 'paymentState,overdueAmountPerDays,overdueAmount');
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 continue;
-            }
+           }
         }
     }
     
@@ -3152,6 +3121,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $threadId = Request::get('threadId', 'int');
         $payments = deals_Helper::getInvoicePayments($threadId);
 
-        bp($payments);
+        $payments1 = deals_Helper::getInvoicePayments($threadId, null, false, false);
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $pRec = $firstDoc->fetch();
+        $firstDoc->getInstance()->getPaymentState($pRec);
+
+        bp($payments, $payments1, $pRec);
     }
 }
