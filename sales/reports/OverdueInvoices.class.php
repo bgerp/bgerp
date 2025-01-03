@@ -54,10 +54,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $fieldset->FLD('typeGrupping', 'enum(contragent=Контрагент,overduePeriod=Период на просрочие)', 'caption=Групиране,maxRadio=2,columns=2,after=additional');
         $fieldset->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Филтри->Търговец,placeholder=Всички,single=none,after=typeGrupping,input');
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Филтри->Контрагент,placeholder=Всички,single=none,after=dealer');
-        $fieldset->FLD(
-            'countryGroup',
-            'key(mvc=drdata_CountryGroups,select=name)',
-            'caption=Филтри->Група държави,single=none,mandatory,after=contragent'
+        $fieldset->FLD('countryGroup', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Филтри->Група държави,single=none,placeholder=Всички,after=contragent'
         );
 
         //Праг за минимална просрочена сума за показване
