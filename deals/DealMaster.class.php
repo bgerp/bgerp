@@ -134,7 +134,6 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $rec = $this->fetchRec($rec);
 
-
         // Ако имаме доставено или платено
         $amountBl = round($rec->amountBl, 4);
         $today = dt::today();
@@ -153,9 +152,8 @@ abstract class deals_DealMaster extends deals_DealBase
 
                 // Ако крайния им срок е в миналото и има НЕПЛАТЕНО
                 if(strtotime($dueDate) < $todayTimestamp){
-                    $diff = round(($invRec->amount - $invRec->payout) * $invRec->rate, 2);
-                    if($diff > 0){
-
+                    $diff = ($invRec->amount - $invRec->payout) * $invRec->rate;
+                    if(round($diff, 2) > 0){
                         // Сумира се неплатеното на всички ф-ри и се смятат леводните просрочие
                         $overdueAmount += $diff;
                         $overdueAmountPerDays += $diff * dt::daysBetween($today, $dueDate);
@@ -165,7 +163,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Ако има просрочена сума и тя е извън допустимия толеранс - значи е просрочена
             $overdueAmount = round($overdueAmount, 2);
-            if (!empty($overdueAmount) && (abs($overdueAmount) > $overdueToleranceAmount)) {
+            if ((abs($overdueAmount) > $overdueToleranceAmount)) {
                 $rec->overdueAmountPerDays = $overdueAmountPerDays;
                 $rec->overdueAmount = $overdueAmount;
 
@@ -183,10 +181,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
 
                 // Проверяваме дали сделката е просрочена по платежния си план
-                $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
-                if (abs($diff) > abs($overdueToleranceAmount)) {
+                $diff = $rec->amountDelivered - $rec->amountPaid;
+                if (abs(round($diff, 2)) > abs($overdueToleranceAmount)) {
                     if (cond_PaymentMethods::isOverdue($plan, $diff, $overdueOn)) {
-                        $rec->overdueAmount = abs($diff);
+                        $rec->overdueAmount = $diff;
                         $rec->overdueAmountPerDays = $rec->overdueAmount * dt::daysBetween($today, $overdueOn);
 
                         return 'overdue';

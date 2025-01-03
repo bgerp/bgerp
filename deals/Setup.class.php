@@ -131,7 +131,7 @@ class deals_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Сделката да не се показва като просрочена при салдо (неплатено)->Под,unit= от доставеното'),
+        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Сделката да се показва като платена при салдо->Под'),
         'DEALS_ISSUER_USER' => array('user(roles=ceo|sales,allowEmpty)', 'caption=Съставител на бизнес документи->Конкретен потребител,customizeBy=ceo|sales|purchase|invoicer'),
         'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Или,customizeBy=ceo|sales|purchase|invoicer'),
         'DEALS_OVERDUE_PENDING_DAYS_1' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Първо след,unit=дни'),
