@@ -134,14 +134,12 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $rec = $this->fetchRec($rec);
 
-        // Кои са фактурите в сделката
-        $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
 
         // Ако имаме доставено или платено
         $amountBl = round($rec->amountBl, 4);
-        $tolerance = $rec->amountDelivered * $tolerancePercent;
         $today = dt::today();
         $todayTimestamp = strtotime($today);
+        $overdueToleranceAmount = deals_Setup::get('OVERDUE_TOLERANCE_AMOUNT');
 
         // Ако имаме фактури към сделката
         $invoices = deals_Helper::getInvoicePayments($rec->threadId);
@@ -167,7 +165,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Ако има просрочена сума и тя е извън допустимия толеранс - значи е просрочена
             $overdueAmount = round($overdueAmount, 2);
-            if (!empty($overdueAmount) && ($overdueAmount < -5 || $overdueAmount > 5)) {
+            if (!empty($overdueAmount) && (abs($overdueAmount) > $overdueToleranceAmount)) {
                 $rec->overdueAmountPerDays = $overdueAmountPerDays;
                 $rec->overdueAmount = $overdueAmount;
 
@@ -186,8 +184,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
                 // Проверяваме дали сделката е просрочена по платежния си план
                 $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
-
-                if (abs($diff) > abs($tolerance)) {
+                if (abs($diff) > abs($overdueToleranceAmount)) {
                     if (cond_PaymentMethods::isOverdue($plan, $diff, $overdueOn)) {
                         $rec->overdueAmount = abs($diff);
                         $rec->overdueAmountPerDays = $rec->overdueAmount * dt::daysBetween($today, $overdueOn);
@@ -199,6 +196,8 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Ако салдото е в рамките на толеранса приемаме че е 0
+        $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
+        $tolerance = $rec->amountDelivered * $tolerancePercent;
         if (abs($amountBl) <= abs($tolerance)) {
             $amountBl = 0;
         }
