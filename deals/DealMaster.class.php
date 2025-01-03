@@ -3122,10 +3122,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $threadId = Request::get('threadId', 'int');
         $payments = deals_Helper::getInvoicePayments($threadId);
 
+        $payments1 = deals_Helper::getInvoicePayments($threadId, null, false, false);
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $pRec = $firstDoc->fetch();
         $firstDoc->getInstance()->getPaymentState($pRec);
 
-        bp($payments, $pRec );
+        bp($payments, $payments1, $pRec);
     }
 }

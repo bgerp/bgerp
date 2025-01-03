@@ -1828,13 +1828,14 @@ abstract class deals_Helper
     /**
      * Помощен метод връщащ разпределението на плащанията по фактури
      *
-     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
-     * @param datetime|NULL $valior            - към коя дата
-     * @param bool          $onlyExactPfayments - дали да са всички плащания или само конкретните към всяка ф-ра
+     * @param int            $threadId               - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
+     * @param datetime|NULL  $valior                 - към коя дата
+     * @param boolean        $onlyExactPayments      - дали да са всички плащания или само конкретните към всяка ф-ра
+     * @param boolean        $applyNotesToTheInvoice - дали да наслагва известията към фактурата
      *
-     * @return array $paid      - масив с разпределените плащания
+     * @return array         $paid - масив с разпределените плащания
      */
-    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
+    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false, $applyNotesToTheInvoice = true)
     {
         // Всички ф-ри в посочената нишка/нишки
         $threads = static::getCombinedThreads($threadId);
@@ -1852,7 +1853,8 @@ abstract class deals_Helper
             $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
 
             $amount = round((($iRec->dealValue - $iRec->discountAmount) + $iRec->vatAmount) / $iRec->rate, 2);
-            $key = ($iRec->type != 'dc_note') ? $containerId : $iRec->originId;
+
+            $key = $applyNotesToTheInvoice ? ($iRec->type != 'dc_note' ? $containerId : $iRec->originId) : $containerId;
             $invMap[$containerId] = $key;
             
             if (!array_key_exists($key, $newInvoiceArr)) {
