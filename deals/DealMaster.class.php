@@ -1187,8 +1187,9 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($rec->paymentState == 'overdue') {
             $row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . '</span>';
             if(isset($rec->overdueAmount)){
-                $overdueOnHint = "Просрочено с:|* " . $mvc->getFieldType('overdueAmountPerDays')->toVerbal($rec->overdueAmountPerDays / $rec->currencyRate) . " дни × сума";
-                $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($rec->overdueAmount / $rec->currencyRate);
+                $overdueAmountInCurrency = $rec->overdueAmount / $rec->currencyRate;
+                $overdueOnHint = "Просрочено средно с:|* " . core_Type::getByName('int')->toVerbal($rec->overdueAmountPerDays / $overdueAmountInCurrency) . " |дни|*";
+                $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($overdueAmountInCurrency);
                 $row->paymentState = $overdueAmount;
                 $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
                 if(!$fields['-list']){
