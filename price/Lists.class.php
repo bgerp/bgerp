@@ -887,6 +887,16 @@ class price_Lists extends core_Master
         $query->show('maxModifiedOn');
         $keys[] = $query->fetch()->maxModifiedOn;
 
+        $query = cond_VatExceptions::getQuery();
+        $query->XPR('maxModifiedOn', 'datetime', 'MAX(#modifiedOn)');
+        $query->show('maxModifiedOn');
+        $keys[] = $query->fetch()->maxModifiedOn;
+
+        $query = cat_products_VatGroups::getQuery();
+        $query->XPR('maxCreatedOn', 'datetime', 'MAX(#createdOn)');
+        $query->show('maxCreatedOn');
+        $keys[] = $query->fetch()->maxCreatedOn;
+
         $hash = md5(implode('|', $keys));
         $pricelistHash = core_Permanent::get("priceListHash");
 
