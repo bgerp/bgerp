@@ -1858,7 +1858,7 @@ abstract class deals_Helper
             $invMap[$containerId] = $key;
             
             if (!array_key_exists($key, $newInvoiceArr)) {
-                $newInvoiceArr[$key] = (object) array('containerId' => $key, 'amount' => $amount, 'payout' => 0, 'payments' => array(), 'dueDate' => $dueDate);
+                $newInvoiceArr[$key] = (object) array('containerId' => $key, 'amount' => $amount, 'payout' => 0, 'payments' => array(), 'dueDate' => $dueDate, 'rate' => $iRec->rate);
             } else {
                 $newInvoiceArr[$key]->amount += $amount;
             }
