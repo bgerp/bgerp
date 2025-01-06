@@ -219,12 +219,8 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $arr['DISC_ADD_V'] = -1 * round($discountPercent * $amount, 2);
             }
 
-            if($settings->chargeVat == 'yes'){
-                $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId, null, $settings->vatExceptionId)->sysId;
-                $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
-            } else {
-                $arr['VAT_CLASS'] = $vatClasses['A'];
-            }
+            $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId, null, $settings->vatExceptionId)->sysId;
+            $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
 
             $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
             $price = round($amount / $dRec->quantity, $fiscFuRound);
