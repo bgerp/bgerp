@@ -402,13 +402,23 @@ class store_ShipmentOrders extends store_DocumentMaster
             // Ако има ф-ри към ЕН-то да излизат линкнати
             $selectedInvoices = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
             $selectedInvoicesCount = countR($selectedInvoices);
+
+            // Ако ЕН-то е обвързано с ф-ри - ще се показват те, ако не но има само една ф-ра в нишката - нея
+            $handles = array();
             if($selectedInvoicesCount){
-                $handles = array();
-                $caption = ($selectedInvoicesCount == 1) ? 'приложената фактура' : 'приложените фактури';
                 foreach ($selectedInvoices as $invoiceRec){
                     $handles[] = "#" . doc_Containers::getDocument($invoiceRec->containerId)->getHandle();
                 }
+            } else {
+                $invoicesInThread = deals_Helper::getInvoicesInThread($rec->threadId);
+                if(countR($invoicesInThread) == 1){
+                    $handles[] = "#" . doc_Containers::getDocument($invoicesInThread[key($invoicesInThread)])->getHandle();
+                }
+            }
 
+            $countInvoices = countR($handles);
+            if($countInvoices){
+                $caption = ($countInvoices == 1) ? 'приложената фактура' : 'приложените фактури';
                 $iTpl = new ET(tr("|*\n|Моля, запознайте се с {$caption}|*") . ': [#handles#]');
                 $iTpl->replace(implode(', ', $handles), 'handles');
                 $tpl->append($iTpl);
