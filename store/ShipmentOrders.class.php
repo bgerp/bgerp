@@ -409,7 +409,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                 foreach ($selectedInvoices as $invoiceRec){
                     $handles[] = "#" . doc_Containers::getDocument($invoiceRec->containerId)->getHandle();
                 }
-            } else {
+            } elseif($this->count("#threadId = {$rec->threadId} AND #state = 'active'") == 1){
                 $invoicesInThread = deals_Helper::getInvoicesInThread($rec->threadId);
                 if(countR($invoicesInThread) == 1){
                     $handles[] = "#" . doc_Containers::getDocument($invoicesInThread[key($invoicesInThread)])->getHandle();
