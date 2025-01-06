@@ -2117,7 +2117,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
 
                 while($pRec2 = $pQuery2->fetch()){
-                    $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
+                    $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId, 'name' => $pRec2->name, 'nameEn' => $pRec2->nameEn);
                     $count++;
                     if($count == $settings->maxSearchProducts) break;
                 }
