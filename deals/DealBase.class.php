@@ -72,6 +72,12 @@ abstract class deals_DealBase extends core_Master
 
 
     /**
+     * Кеш на нишките, чиито плащания по фактури да станат на шътдаун
+     */
+    protected $updateInvoiceThreadsOnShutdown = array();
+
+
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -1167,5 +1173,31 @@ abstract class deals_DealBase extends core_Master
             acc_Items::notifyObject($itemRec);
         }
         $Items->flushTouched();
+    }
+
+
+    /**
+     * Задава нишка която да се обновява на шътдаун
+     *
+     * @param int $threadId
+     * @return void
+     */
+    public function setUpdateInvoicePaymentsInThread($threadId)
+    {
+        $this->updateInvoicePaymentsInThread[$threadId] = $threadId;
+    }
+
+
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if (countR($mvc->updateInvoicePaymentsInThread)) {
+            foreach ($mvc->updateInvoicePaymentsInThread as $threadId) {
+                deals_Helper::updateInvoicePaymentsInThread($threadId);
+                core_Statuses::newStatus("UPDATE " . $threadId, 'warning');
+            }
+        }
     }
 }

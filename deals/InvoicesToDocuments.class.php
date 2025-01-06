@@ -230,7 +230,8 @@ class deals_InvoicesToDocuments extends core_Manager
                 plg_Search::forceUpdateKeywords($Document, $rec);
 
                 if ($Document instanceof deals_PaymentDocument) {
-                    deals_Helper::updateAutoPaymentTypeInThread($rec->threadId);
+                    $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                    $firstDoc->getInstance()->setUpdateInvoicePaymentsInThread($rec->threadId);
                     doc_DocumentCache::cacheInvalidation($rec->containerId);
                 }
 

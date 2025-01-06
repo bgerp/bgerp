@@ -3118,13 +3118,24 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         requireRole('debug');
         $threadId = Request::get('threadId', 'int');
-        $payments = deals_Helper::getInvoicePayments($threadId);
 
-        $payments1 = deals_Helper::getInvoicePayments($threadId, null, false, false);
+        $payments = deals_Helper::getInvoicePayments($threadId, null, false, false);
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $pRec = $firstDoc->fetch();
         $firstDoc->getInstance()->getPaymentState($pRec);
 
-        bp($payments, $payments1, $pRec);
+        deals_Helper::updateInvoicePaymentsInThread($threadId);
+        $invoices = deals_Helper::getInvoicesInThread($threadId);
+
+        $iRecs = array();
+        if(countR($invoices)){
+            $cQuery = doc_Containers::getQuery();
+            $cQuery->in('id', array_keys($invoices));
+            while($cRec = $cQuery->fetch()) {
+                $iRecs[] = doc_Containers::getDocument($cRec->id)->fetch();
+            }
+        }
+
+        bp($invoices, $payments, $iRecs, $pRec);
     }
 }

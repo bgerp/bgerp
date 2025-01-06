@@ -36,7 +36,8 @@ abstract class deals_PaymentDocument extends core_Master
     {
         // Обновяваме автоматично изчисления метод на плащане на всички фактури в нишката на документа
         $threadId = ($rec->threadId) ? $rec->threadId : $mvc->fetchField($rec->id, 'threadId');
-        deals_Helper::updateAutoPaymentTypeInThread($threadId);
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $firstDoc->getInstance()->setUpdateInvoicePaymentsInThread($threadId);
     }
     
     
@@ -50,7 +51,8 @@ abstract class deals_PaymentDocument extends core_Master
             
             // Обновяваме автоматично изчисления метод на плащане на всички фактури в нишката на документа
             $threadId = ($rec->threadId) ? $rec->threadId : $mvc->fetchField($id, 'threadId');
-            deals_Helper::updateAutoPaymentTypeInThread($threadId);
+            $firstDoc = doc_Threads::getFirstDocument($threadId);
+            $firstDoc->getInstance()->setUpdateInvoicePaymentsInThread($threadId);
         }
     }
     

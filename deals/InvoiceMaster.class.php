@@ -200,6 +200,11 @@ abstract class deals_InvoiceMaster extends core_Master
         if($mvc->cacheAdditionalConditions){
             $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
         }
+
+        if(!($mvc instanceof sales_Proformas)){
+            $mvc->FLD('paidAmount', 'double', 'input=none');
+            $mvc->FLD('paymentData', 'blob(serialize, compress)', 'input=none');
+        }
     }
 
 
@@ -1208,11 +1213,6 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
         }
-        
-        // Първоначално изчислен начин на плащане
-        if (empty($rec->id)) {
-            $rec->autoPaymentType = cls::get(get_called_class())->getAutoPaymentType($rec, false);
-        }
 
         // Форсиране на нова фирма, ако е указано
         if ($rec->state == 'draft') {
@@ -1248,31 +1248,24 @@ abstract class deals_InvoiceMaster extends core_Master
      * каквото е било плащането в предишната фактура на същия контрагент
      * ако по никакъв начин не може да се определи
      *
-     * @param stdClass $rec - запис
-     *
+     * @param stdClass $rec              - запис
+     * @param stdClass|null $paymentData - масив с данните за плащане за фактурата
      * @return string - дефолтния начин за плащане в брой, по банка, с прихващане
      *                или NULL ако не може да бъде намерено
      */
-    public function getAutoPaymentType($rec, $fromCache = true)
+    public function getAutoPaymentType($rec, $paymentData = null)
     {
-        if ($this instanceof sales_Proformas) {
-            return;
-        }
+        if ($this instanceof sales_Proformas) return;
         
         $rec = $this->fetchRec($rec);
-        if ($fromCache === true) {
-            $invoicePayments = core_Cache::get('threadInvoices1', "t{$rec->threadId}");
-            if ($invoicePayments === false) {
-                $invoicePayments = deals_Helper::getInvoicePayments($rec->threadId);
-            }
+
+        if(is_object($paymentData)){
+            $payments = $paymentData->payments;
         } else {
-            $invoicePayments = deals_Helper::getInvoicePayments($rec->threadId);
+            $invoicePayments = deals_Helper::getInvoicePayments($rec->threadId, null, false, false);
+            $payments = $invoicePayments[$rec->containerId]->payments;
         }
-        
-        $containerId = ($rec->type != 'dc_note') ? $rec->containerId : $rec->originId;
-        
-        $payments = $invoicePayments[$containerId]->payments;
-        
+
         if (countR($payments) && isset($payments)) {
             $hasCash = array_key_exists('cash', $payments);
             $hasBank = array_key_exists('bank', $payments);
@@ -2108,6 +2101,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $Detail->saveArray($saveDetails, "id,{$updateFields}");
             }
         }
+
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $firstDoc->getInstance()->setUpdateInvoicePaymentsInThread($rec->threadId);
     }
 
 

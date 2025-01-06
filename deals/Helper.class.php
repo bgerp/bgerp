@@ -1933,7 +1933,6 @@ abstract class deals_Helper
             $payArr = array_filter($payArr, function ($a) {return isset($a->to);});
         }
 
-
         self::allocationOfPayments($newInvoiceArr, $payArr);
         core_Debug::stopTimer("CALC_INVOICE_PAYMENTS");
 
@@ -1948,25 +1947,27 @@ abstract class deals_Helper
      *
      * @return void
      */
-    public static function updateAutoPaymentTypeInThread($threadId)
+    public static function updateInvoicePaymentsInThread($threadId)
     {
         // Разпределените начини на плащане
-        core_Cache::remove('threadInvoices1', "t{$threadId}");
-        $invoicePayments = deals_Helper::getInvoicePayments($threadId);
-        core_Cache::set('threadInvoices1', "t{$threadId}", $invoicePayments, 1440);
-        
-        // Всички ф-ри в нишката
-        $invoices = self::getInvoicesInThread($threadId);
-        if (!countR($invoices)) {
-            return;
-        }
-        
-        foreach ($invoices as $containerId => $hnd) {
+        $invoicePayments = deals_Helper::getInvoicePayments($threadId, null, false, false);
+        if (!countR($invoicePayments)) return;
+
+        foreach ($invoicePayments as $containerId => $paymentData) {
             $Doc = doc_Containers::getDocument($containerId);
             $rec = $Doc->fetch();
-            $rec->autoPaymentType = $Doc->getAutoPaymentType();
-            
-            $Doc->getInstance()->save_($rec, 'autoPaymentType');
+            $rec->autoPaymentType = $Doc->getAutoPaymentType($paymentData);
+            $rec->paidAmount = $paymentData->payout * $rec->rate;
+            $rec->paymentData = null;
+            if(countR($paymentData->used)) {
+                $pData = array();
+                foreach ($paymentData->used as $usedRec) {
+                    $pData[] = (object) array('containerId' => $usedRec->containerId, 'amount' => $usedRec->amount * $rec->rate);
+                }
+                $rec->paymentData = $pData;
+            }
+
+            $Doc->getInstance()->save_($rec, 'autoPaymentType,paidAmount,paymentData');
             doc_DocumentCache::cacheInvalidation($rec->containerId);
         }
     }
@@ -2024,10 +2025,10 @@ abstract class deals_Helper
                 $invArr[$pay->to]->payout += $pay->available;
                 $pay->available = 0;
                 $invArr[$pay->to]->used[$i] = $pay;
-                self::pushPaymentType($invArr[$pay->to]->payments, $pay);
+                self::pushPaymentType($invArr[$pay->to]->payments, $pay, true);
             }
         }
-        
+
         $revInvArr = array_reverse($invArr, true);
         
         // Разпределяме всички остатъци от плащания
@@ -2109,7 +2110,7 @@ abstract class deals_Helper
                 break;
             }
         }
-        
+
         // Обикаляме по фактурите и надплатените ги разнасяме към следващите
         $cInvArr = $invArr;
         foreach ($invArr as $inv) {
@@ -2136,13 +2137,15 @@ abstract class deals_Helper
     /**
      * Помощна ф-я за добавяне на платежния метод
      */
-    private static function pushPaymentType(&$payments, $pay)
+    private static function pushPaymentType(&$payments, $pay, $applyReverse = false)
     {
-        if ($pay->paymentType == 'cash' && $pay->isReverse !== true) {
+        if(!$applyReverse && $pay->isReverse === true) return;
+
+        if ($pay->paymentType == 'cash') {
             $payments['cash'] = 'cash';
-        } elseif ($pay->paymentType == 'intercept' && $pay->isReverse !== true) {
+        } elseif ($pay->paymentType == 'intercept') {
             $payments['intercept'] = 'intercept';
-        } elseif ($pay->paymentType == 'bank' && $pay->isReverse !== true) {
+        } elseif ($pay->paymentType == 'bank') {
             $payments['bank'] = 'bank';
         }
     }
