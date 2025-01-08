@@ -311,8 +311,13 @@ abstract class deals_DealMaster extends deals_DealBase
             $form->rec->chargeVat = 'no';
             $form->setReadOnly('chargeVat');
         }
-        
-        $form->setDefault('makeInvoice', 'yes');
+
+        $defaultMakeInvoice = 'yes';
+        $ContragentClass = cls::get($rec->contragentClassId);
+        if($ContragentClass instanceof crm_Persons){
+            $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId) ? 'yes' : 'no';
+        }
+        $form->setDefault('makeInvoice', $defaultMakeInvoice);
         
         // Поле за избор на локация - само локациите на контрагента по сделката
         if (!$form->getFieldTypeParam('deliveryLocationId', 'isReadOnly')) {
