@@ -246,7 +246,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
     public function import($masterId, $row)
     {
         $Master = $this->Master;
-        
+
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
         $meta = cat_Products::fetch($pRec->productId, $this->metaProducts);
@@ -272,8 +272,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $productInfo = cat_Products::getProductInfo($pRec->productId);
         $quantityInPack = ($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
         $packQuantity = $row->quantity;
-        
-        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack);
+
+        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack, false, null, false, $row->batch);
     }
 
 
