@@ -179,4 +179,17 @@ class batch_CategoryDefinitions extends embed_Manager
         
         return $tpl;
     }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $form->setField('driverClass', 'caption=Тип');
+    }
 }
