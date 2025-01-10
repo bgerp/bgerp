@@ -72,40 +72,14 @@ class doc_plg_CanSelectSteps extends core_Plugin
 
         if ($form->isSubmitted()) {
 
-            // Проверка дали са премахнати етапи, които вече са избрани в задачи в проекта
-            $cQuery = cal_Tasks::getQuery();
-            $cQuery->where("#folderId = '{$rec->folderId}' AND #stepId IS NOT NULL");
-            $stepsInTasks = arr::extractValuesFromArray($cQuery->fetchAll(), 'stepId');
-            $selectTaskDescendants = array();
-            if(!empty($rec->steps)) {
-                $stepsArr = keylist::toArray($rec->steps);
-                foreach ($stepsArr as $stepId) {
-                    $selectTaskDescendants += array($stepId => $stepId) + doc_UnsortedFolderSteps::getParentsArr($stepId);
+            // Ако има етапи и е избрано добавяне на децата - да се добавят
+            if(!empty($rec->steps) && $rec->addSubSteps == 'yes') {
+                $expandedSteps = array();
+                $steps = keylist::toArray($rec->steps);
+                foreach ($steps as $stepId) {
+                    $expandedSteps += array($stepId => $stepId) + doc_UnsortedFolderSteps::getDescendantsArr($stepId);
                 }
-            }
-
-            $stepTaskError = array();
-            foreach ($stepsInTasks as $stepInTask) {
-                if(!array_key_exists($stepInTask, $selectTaskDescendants)) {
-                    $stepTaskError[] = "<b>" . doc_UnsortedFolderSteps::getSaoFullName($stepInTask) . "</b>";
-                }
-            }
-
-            if(countR($stepTaskError)) {
-                $form->setError('steps', "Следните етапи вече са избрани в задачи в проекта|*: " . implode(',', $stepTaskError));
-            }
-
-            if(!$form->gotErrors()) {
-
-                // Ако има етапи и е избрано добавяне на децата - да се добавят
-                if(!empty($rec->steps) && $rec->addSubSteps == 'yes') {
-                    $expandedSteps = array();
-                    $steps = keylist::toArray($rec->steps);
-                    foreach ($steps as $stepId) {
-                        $expandedSteps += array($stepId => $stepId) + doc_UnsortedFolderSteps::getDescendantsArr($stepId);
-                    }
-                    $rec->steps = keylist::fromArray($expandedSteps);
-                }
+                $rec->steps = keylist::fromArray($expandedSteps);
             }
         }
     }
@@ -132,12 +106,15 @@ class doc_plg_CanSelectSteps extends core_Plugin
      */
     protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery, &$listFilterAddedFields)
     {
-        $Cover = doc_Folders::getCover($threadFilter->rec->folderId);
-        $coverStepArr = keylist::toArray($Cover->fetchField('steps'));
-        if(!countR($coverStepArr)) return;
+        $cQuery = cal_Tasks::getQuery();
+        $cQuery->where("#folderId = '{$threadFilter->rec->folderId}' AND #stepId IS NOT NULL");
+        $stepsInTasks = arr::extractValuesFromArray($cQuery->fetchAll(), 'stepId');
+        if(!countR($stepsInTasks)) return;
 
-        $filterOptions = doc_UnsortedFolderSteps::getOptionArr($coverStepArr);
-        if(!countR($filterOptions)) return;
+        $stepOptions = array();
+        foreach ($stepsInTasks as $stepInTask) {
+            $stepOptions[$stepInTask] = doc_UnsortedFolderSteps::getSaoFullName($stepInTask);
+        }
 
         // Добавяме поле за избор на етапи
         $listFilterAddedFields['stepId'] = 'stepId';
@@ -145,7 +122,7 @@ class doc_plg_CanSelectSteps extends core_Plugin
         $threadFilter->showFields .= ',stepId';
         $threadFilter->input('stepId', 'silent');
         $threadFilter->input('stepId');
-        $threadFilter->setOptions('stepId', array('' => '') + $filterOptions);
+        $threadFilter->setOptions('stepId', array('' => '') + $stepOptions);
 
         // Ако търсим по група
         if ($stepId = $threadFilter->rec->stepId) {
