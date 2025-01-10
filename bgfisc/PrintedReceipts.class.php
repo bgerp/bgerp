@@ -322,7 +322,8 @@ class bgfisc_PrintedReceipts extends core_Manager
         } else {
             $Class->logInfo("Фискален бон: {$res}", $docId);
         }
-        
+        core_Locks::release("lock_{$Class->className}_{$docId}");
+
         followRetUrl(array($Class, 'single', $docId));
     }
     

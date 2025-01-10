@@ -10,19 +10,13 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class batch_CategoryDefinitions extends embed_Manager
+class batch_CategoryDefinitions extends core_Manager
 {
-    /**
-     * Свойство, което указва интерфейса на вътрешните обекти
-     */
-    public $driverInterface = 'batch_BatchTypeIntf';
-    
-    
     /**
      * Заглавие
      */
@@ -38,25 +32,19 @@ class batch_CategoryDefinitions extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2,cat_Wrapper';
-    
-    
-    /**
-     * Активен таб
-     */
-    public $currentTab = 'Категории';
+    public $loadList = 'plg_RowTools2,batch_Wrapper';
     
     
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'categoryId, classId';
+    public $listFields = 'categoryId, templateId';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'batch,ceo';
+    public $canList = 'batchMaster,ceo';
     
     
     /**
@@ -77,7 +65,8 @@ class batch_CategoryDefinitions extends embed_Manager
     public function description()
     {
         $this->FLD('categoryId', 'key(mvc=cat_Categories, select=name)', 'caption=Категория,silent,mandatory,input=hidden');
-        $this->setDbIndex('categoryId');
+        $this->FLD('templateId', 'key(mvc=batch_Templates, select=name,allowEmpty)', 'caption=Партидност,mandatory');
+        $this->setDbUnique('categoryId,templateId');
     }
     
     
@@ -102,81 +91,14 @@ class batch_CategoryDefinitions extends embed_Manager
             }
         }
     }
-    
-    
+
+
     /**
-     * Подготовка на наличните партиди за един артикул
-     *
-     * @param stdClass $data
-     *
-     * @return void
+     * След преобразуване на записа в четим за хора вид
      */
-    public function prepareDefinitions(&$data)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        // Име на таба
-        $data->TabCaption = 'Партидност';
-        $data->Order = 20;
-        
-        $query = $this->getQuery();
-        $query->where("#categoryId = '{$data->masterId}'");
-        
-        if ($rec = $query->fetch()) {
-            $data->rec = $rec;
-            $data->row = $this->recToVerbal($rec);
-        }
-        
-        if ($this->haveRightFor('add', (object) array('categoryId' => $data->masterId))) {
-            $data->addUrl = array($this, 'add', 'categoryId' => $data->masterId, 'ret_url' => true);
-        }
-        
-        if (isset($data->rec)) {
-            if ($this->haveRightFor('edit', $data->rec)) {
-                $data->editUrl = array($this, 'edit', $data->rec->id, 'ret_url' => true);
-            }
-            
-            if ($this->haveRightFor('delete', $data->rec)) {
-                $data->deleteUrl = array($this, 'delete', $data->rec->id, 'ret_url' => true);
-            }
-        }
-    }
-    
-    
-    /**
-     * Рендиране на дефинициите за партида
-     *
-     * @param stdClass $data
-     *
-     * @return core_ET $tpl
-     */
-    public function renderDefinitions($data)
-    {
-        $tpl = getTplFromFile('batch/tpl/CategoryDefinitionDetail.shtml');
-        $title = tr('Партидност на артикулите');
-        
-        if (is_object($data->row)) {
-            $tpl->placeObject($data->row);
-        } else {
-            $tpl->replace(tr('Няма запис'), 'CONTENT');
-        }
-        
-        $tpl->append($title, 'title');
-        if (isset($data->addUrl)) {
-            $addBtn = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,select=Добавяне на нова дефиниция');
-            $tpl->append($addBtn, 'title');
-        }
-        
-        if (isset($data->editUrl)) {
-            $editBtn = ht::createLink('', $data->editUrl, false, 'ef_icon=img/16/edit.png,select=Редактиране на дефиниция');
-            $tpl->append($editBtn, 'title');
-        }
-        
-        if (isset($data->deleteUrl)) {
-            $delBtn = ht::createLink('', $data->deleteUrl, 'Наистина ли искате да зитриете дефиницията|*?', 'ef_icon=img/16/delete.png,select=Изтриване на дефиниция');
-            $tpl->append($delBtn, 'title');
-        }
-        
-        $tpl->removeBlocks();
-        
-        return $tpl;
+        $row->categoryId = cat_Categories::getHyperlink($rec->categoryId, true);
+        $row->templateId = batch_Templates::getHyperlink($rec->templateId, true);
     }
 }

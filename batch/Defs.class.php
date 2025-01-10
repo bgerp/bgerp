@@ -309,10 +309,8 @@ class batch_Defs extends core_Manager
             $folderClassName = doc_Folders::fetchCoverClassName($productRec->folderId);
             if ($folderClassName == 'cat_Categories') {
                 $folderObjectId = doc_Folders::fetchCoverId($productRec->folderId);
-                if ($categoryDefRec = batch_CategoryDefinitions::fetch("#categoryId = {$folderObjectId}")) {
-                    $o = array('driverClass' => $categoryDefRec->driverClass) + (array) $categoryDefRec->driverRec;
-                    $templateId = batch_Templates::force($o);
-                    $nRec = (object) array('productId' => $productRec->id, 'templateId' => $templateId);
+                if ($categoryTemplateId = batch_CategoryDefinitions::fetchField("#categoryId = {$folderObjectId}", 'templateId')) {
+                    $nRec = (object) array('productId' => $productRec->id, 'templateId' => $categoryTemplateId);
                 }
             }
         }
