@@ -25,9 +25,9 @@ class cond_type_Product extends cond_type_Varchar
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Конкретизиране->Групи,mandatory');
-        $fieldset->FLD('show', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване в ПО,mandatory');
-        $fieldset->FLD('showList', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване в лист,mandatory');
-        $fieldset->FLD('display', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Избор по,mandatory');
+        $fieldset->FLD('show', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване,mandatory');
+        $fieldset->FLD('showList', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване лист,mandatory');
+        $fieldset->FLD('display', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Избор,mandatory');
         $fieldset->FLD('orderBy', 'enum(idAsc=По артикул [нарастващ ред],idDesc=По артикул [намаляващ ред],codeAsc=По код [нарастващ ред],codeDesc=По код [намаляващ ред])', 'caption=Конкретизиране->Подредба,mandatory');
         $fieldset->FLD('maxSuggestions', 'int(Min=0)', 'caption=Конкретизиране->Макс. предложения,mandatory', "unit=при показване в комбобокс,placeholder=10");
         $fieldset->FLD('maxRadio', 'int(min=0,max=50)', 'caption=Конкретизиране->Радио бутони до,mandatory', "unit=|опции (при повече - падащо меню)|*");
