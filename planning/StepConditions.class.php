@@ -207,6 +207,7 @@ class planning_StepConditions extends core_Detail
 
         // Цикли се по всички Задания и след това по всяка ПО от едно задание. Вземаме ПЕ за текущата операция
         $tasksEarliestTime = array();
+        bp($jobArr);
         foreach ($jobArr as $jobTasks) {
             foreach ($jobTasks as $taskId => $taskRec) {
                 if (!array_key_exists($taskId, $tasksEarliestTime)) {
