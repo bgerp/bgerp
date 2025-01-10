@@ -265,8 +265,6 @@ class planning_StepConditions extends core_Detail
             }
         }
 
-
-        bp($toUpdate, $tasksEarliestTime, $jobArr, $stepArr);
         // Ако има записи за обновяване - обновяват се
         if (countR($toUpdate)) {
             $Tasks = cls::get('planning_Tasks');
