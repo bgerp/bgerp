@@ -194,7 +194,6 @@ class planning_StepConditions extends core_Detail
         $tQuery = planning_Tasks::getQuery();
         $tQuery->in("productId", array_keys($stepArr));
         $tQuery->in("state", array('wakeup', 'stopped', 'active', 'pending'));
-        $tQuery->where("#timeClosed IS NULL");
         $tQuery->show('expectedTimeStart,expectedTimeEnd,originId,productId,prevErrId,nextErrId');
 
         while ($tRec = $tQuery->fetch()) {
