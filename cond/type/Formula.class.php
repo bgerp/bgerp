@@ -232,7 +232,7 @@ class cond_type_Formula extends cond_type_Text
         $params = static::getParamsFromDomain($domainClass, $domainId);
         $paramMap = cat_Params::getFormulaParamMap($params, $idToNameArr);
         $calced = cat_BomDetails::calcExpr($value, $paramMap);
-        bp($value, $idToNameArr);
+
         $verbal = $calced;
         if(!Mode::is('text', 'plain') && !Mode::is('isReorder')){
             $exprDisplay = strtr($value, $idToNameArr);
