@@ -132,13 +132,20 @@ class doc_plg_CanSelectSteps extends core_Plugin
      */
     protected static function on_AfterPrepareThreadFilter($mvc, core_Form &$threadFilter, core_Query &$threadQuery, &$listFilterAddedFields)
     {
+        $Cover = doc_Folders::getCover($threadFilter->rec->folderId);
+        $coverStepArr = keylist::toArray($Cover->fetchField('steps'));
+        if(!countR($coverStepArr)) return;
+
+        $filterOptions = doc_UnsortedFolderSteps::getOptionArr($coverStepArr);
+        if(!countR($filterOptions)) return;
+
         // Добавяме поле за избор на етапи
         $listFilterAddedFields['stepId'] = 'stepId';
         $threadFilter->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,allowEmpty)', 'caption=Етап,silent');
         $threadFilter->showFields .= ',stepId';
         $threadFilter->input('stepId', 'silent');
         $threadFilter->input('stepId');
-        $threadFilter->setOptions('stepId', array('' => '') + doc_UnsortedFolderSteps::getOptionArr());
+        $threadFilter->setOptions('stepId', array('' => '') + $filterOptions);
 
         // Ако търсим по група
         if ($stepId = $threadFilter->rec->stepId) {
