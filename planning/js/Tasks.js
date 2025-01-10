@@ -26,6 +26,7 @@ $(document).ready(function () {
         gripInnerHtml: '<div style="width:10px;"></div>',
         gripClass: 'grip',
         postbackSafe: true,
+        resizeMode:'overflow',
         hoverCursor: 'col-resize',
         minWidth: 50,
         onResize: function() {
