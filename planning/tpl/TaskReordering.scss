@@ -4,7 +4,13 @@ body {
   background: #fff !important;
 }
 
-
+table th {
+  position: sticky;
+  top: -1px; /* Винаги залепен към горната част */
+  background-color: #f8f8f8; /* Фон за по-добър контраст */
+  z-index: 1; /* За да е над другите елементи */
+  white-space: nowrap;
+}
 
 .dragging {
   opacity: 0.5;
