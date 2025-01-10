@@ -98,7 +98,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,expectedTimeEnd=Край,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,notes=Забележка,saleId=Ср. на доставка,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,expectedTimeEnd=Край,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,notes=Забележка,originId=@';
 
 
     /**
@@ -3124,7 +3124,6 @@ class planning_Tasks extends core_Master
         }
 
         if (Mode::is('isReorder')){
-            $data->listFields['notes'] = 'Забележка';
             $data->listTableMvc->tableRowTpl = "[#ROW#]";
 
             unset($data->listFields['folderId']);
