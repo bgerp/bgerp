@@ -136,6 +136,12 @@
                 <td>[#show#]</td>
             </tr>
             <!--ET_END show-->
+            <!--ET_BEGIN show-->
+            <tr>
+                <td class="title-style">|Показване лист|*</td>
+                <td>[#showList#]</td>
+            </tr>
+            <!--ET_END show-->
             <!--ET_BEGIN orderBy-->
             <tr>
                 <td class="title-style">|Подредба|*</td>
