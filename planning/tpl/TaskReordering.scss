@@ -6,9 +6,8 @@ body {
 
 table th {
   position: sticky;
-  top: -1px; /* Винаги залепен към горната част */
-  background-color: #f8f8f8; /* Фон за по-добър контраст */
-  z-index: 1; /* За да е над другите елементи */
+  top: -1px;
+  z-index: 1;
   white-space: nowrap;
 }
 
