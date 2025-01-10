@@ -3158,7 +3158,9 @@ class planning_Tasks extends core_Master
             $taskParamQuery->in('productId', array_keys($data->recs));
             $taskParamQuery->in('paramId', $data->listFieldsParams);
             while ($taskParamRec = $taskParamQuery->fetch()) {
+                Mode::push('taskListMode', true);
                 $taskParamVal = cat_Params::toVerbal($paramCache[$taskParamRec->paramId], $mvc->getClassId(), $taskParamRec->productId, $taskParamRec->paramValue);
+                Mode::pop('taskListMode');
                 $taskSpecificParams[$taskParamRec->productId][$taskParamRec->paramId] = $taskParamVal;
             }
             core_Debug::stopTimer('RENDER_VERBAL_PARAM_HEADER');
