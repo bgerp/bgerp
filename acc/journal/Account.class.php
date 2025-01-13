@@ -119,6 +119,7 @@ class acc_journal_Account
                             $interfaceName
                         ),
                         (array) $items,
+                        array('redirect' => array('acc_Accounts', 'list'))
                     );
                 }
             }
