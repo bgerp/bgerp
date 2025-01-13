@@ -50,8 +50,8 @@ class ibex_Sensor extends sens2_ProtoDriver
      */
     public function prepareConfigForm($form)
     {
-        $form->FLD('minIndex', 'int', 'caption=Индекс на часа->Евтин,value=6');
-        $form->FLD('maxIndex', 'int', 'caption=Индекс на часа->Скъп,value=18');
+        $form->FLD('minIndex', 'int', 'caption=Индекс на часа->Евтин,value=6,placeholder=6');
+        $form->FLD('maxIndex', 'int', 'caption=Индекс на часа->Скъп,value=6,placeholder=6');
     }
     
     
@@ -96,9 +96,9 @@ class ibex_Sensor extends sens2_ProtoDriver
         
         $h = (int) $h;
 
-        if($pos < 6) {
+        if($pos < $minIndex) {
             $res['TYPE'] = -1;
-        } elseif($pos >= 18) {
+        } elseif($pos >= (24 - $maxIndex)) {
             $res['TYPE'] = 1;
         } else {
             $res['TYPE'] = 0;
