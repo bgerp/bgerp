@@ -42,13 +42,13 @@ class cond_VatExceptions extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2,cond_Wrapper,plg_Created,plg_State2';
+    public $loadList = 'plg_RowTools2,cond_Wrapper,plg_Created,plg_State2,plg_Modified';
 
 
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,title,validFrom,validTo,lastUsedOn,createdOn,createdBy,state';
+    public $listFields = 'id,title,validFrom,validTo,lastUsedOn,createdOn,createdBy,modifiedOn,modifiedBy,state';
 
 
     /**

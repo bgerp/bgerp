@@ -134,7 +134,6 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $rec = $this->fetchRec($rec);
 
-
         // Ако имаме доставено или платено
         $amountBl = round($rec->amountBl, 4);
         $today = dt::today();
@@ -153,9 +152,8 @@ abstract class deals_DealMaster extends deals_DealBase
 
                 // Ако крайния им срок е в миналото и има НЕПЛАТЕНО
                 if(strtotime($dueDate) < $todayTimestamp){
-                    $diff = round(($invRec->amount - $invRec->payout) * $invRec->rate, 2);
-                    if($diff > 0){
-
+                    $diff = ($invRec->amount - $invRec->payout) * $invRec->rate;
+                    if(round($diff, 2) > 0){
                         // Сумира се неплатеното на всички ф-ри и се смятат леводните просрочие
                         $overdueAmount += $diff;
                         $overdueAmountPerDays += $diff * dt::daysBetween($today, $dueDate);
@@ -165,7 +163,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Ако има просрочена сума и тя е извън допустимия толеранс - значи е просрочена
             $overdueAmount = round($overdueAmount, 2);
-            if (!empty($overdueAmount) && (abs($overdueAmount) > $overdueToleranceAmount)) {
+            if ((abs($overdueAmount) > $overdueToleranceAmount)) {
                 $rec->overdueAmountPerDays = $overdueAmountPerDays;
                 $rec->overdueAmount = $overdueAmount;
 
@@ -183,10 +181,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
 
                 // Проверяваме дали сделката е просрочена по платежния си план
-                $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
-                if (abs($diff) > abs($overdueToleranceAmount)) {
+                $diff = $rec->amountDelivered - $rec->amountPaid;
+                if (abs(round($diff, 2)) > abs($overdueToleranceAmount)) {
                     if (cond_PaymentMethods::isOverdue($plan, $diff, $overdueOn)) {
-                        $rec->overdueAmount = abs($diff);
+                        $rec->overdueAmount = $diff;
                         $rec->overdueAmountPerDays = $rec->overdueAmount * dt::daysBetween($today, $overdueOn);
 
                         return 'overdue';
@@ -313,8 +311,13 @@ abstract class deals_DealMaster extends deals_DealBase
             $form->rec->chargeVat = 'no';
             $form->setReadOnly('chargeVat');
         }
-        
-        $form->setDefault('makeInvoice', 'yes');
+
+        $defaultMakeInvoice = 'yes';
+        $ContragentClass = cls::get($rec->contragentClassId);
+        if($ContragentClass instanceof crm_Persons){
+            $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId) ? 'yes' : 'no';
+        }
+        $form->setDefault('makeInvoice', $defaultMakeInvoice);
         
         // Поле за избор на локация - само локациите на контрагента по сделката
         if (!$form->getFieldTypeParam('deliveryLocationId', 'isReadOnly')) {
@@ -1189,8 +1192,9 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($rec->paymentState == 'overdue') {
             $row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . '</span>';
             if(isset($rec->overdueAmount)){
-                $overdueOnHint = "Просрочено с:|* " . $mvc->getFieldType('overdueAmountPerDays')->toVerbal($rec->overdueAmountPerDays / $rec->currencyRate) . " дни × сума";
-                $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($rec->overdueAmount / $rec->currencyRate);
+                $overdueAmountInCurrency = $rec->overdueAmount / $rec->currencyRate;
+                $overdueOnHint = "Просрочено средно с:|* " . core_Type::getByName('int')->toVerbal($rec->overdueAmountPerDays / $overdueAmountInCurrency) . " |дни|*";
+                $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($overdueAmountInCurrency);
                 $row->paymentState = $overdueAmount;
                 $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
                 if(!$fields['-list']){

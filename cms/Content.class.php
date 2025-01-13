@@ -108,6 +108,8 @@ class cms_Content extends core_Manager
         $this->FLD('layout', 'html', 'caption=Лейаут,input=none');
         
         $this->FLD('sharedDomains', 'keylist(mvc=cms_Domains, select=titleExt)', 'caption=Споделяне с,autoFilter');
+
+        $this->FLD('menuWallpaper', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение,hint=Примерни размери 1920×650px');
         
         $this->setDbUnique('menu,domainId');
     }

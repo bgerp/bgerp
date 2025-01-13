@@ -824,14 +824,10 @@ abstract class deals_Helper
      */
     public static function getQuantityHint(&$html, $mvc, $productId, $storeId, $quantity, $state, $date = null, $ignoreFirstDocumentPlannedInThread = null)
     {
-        if (!in_array($state, array('draft', 'pending'))) {
-            return;
-        }
+        if (!in_array($state, array('draft', 'pending'))) return;
 
-        $canStore = cat_Products::fetchField($productId, 'canStore');
-        if ($canStore != 'yes') {
-            return;
-        }
+        $pRec = cat_Products::fetch($productId, 'canStore,isPublic');
+        if ($pRec->canStore != 'yes') return;
 
         $date = $date ?? null;
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
@@ -883,7 +879,7 @@ abstract class deals_Helper
         $showNegativeWarning = $makeLink = true;
 
         if($mvc instanceof sales_SalesDetails){
-            $showNegativeWarning = cat_Products::fetchField($productId, 'isPublic') == 'yes';
+            $showNegativeWarning = $pRec->isPublic == 'yes';
         }
 
         // Проверка дали има минимално разполагаемо
@@ -941,6 +937,12 @@ abstract class deals_Helper
             // Линк към наличното в склада ако има права
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
                 $html = ht::createLinkRef($html, $url);
+            }
+        }
+
+        if($pRec->isPublic == 'no') {
+            if($futureQuantity > 0) {
+                $html = ht::createHint($html, "Наличността в склада е по-голяма|*: {$inStockVerbal} {$measureName}", 'notice', false, null, "class=doc-positive-quantity");
             }
         }
     }

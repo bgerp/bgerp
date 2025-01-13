@@ -844,7 +844,7 @@ class sales_Invoices extends deals_InvoiceMaster
             $res = strip_tags($error);
         } elseif($rec->type == 'invoice') {
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
-            if($rec->contragentCountryId != $bgId && drdata_Countries::isEu($bgId)){
+            if($rec->contragentCountryId != $bgId && drdata_Countries::isEu($rec->contragentCountryId)){
                 $vatCheckArr = cls::get('drdata_Vats')->check($rec->contragentVatNo);
                 if($vatCheckArr[0] == 'invalid'){
                     $res = "Невалиден ДДС № на клиент от чужбина - ЕС|*!";
