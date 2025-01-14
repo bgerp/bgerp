@@ -155,6 +155,12 @@ abstract class bank_Document extends deals_PaymentDocument
 
 
     /**
+     * За коя номенклатура да не се сетва грешка при контиране ако няма стойност
+     */
+    public $ignoreListCheckOnNullWhenConto = 'bank_OwnAccRegIntf';
+
+
+    /**
      * Добавяне на дефолтни полета
      *
      * @param core_Mvc $mvc
@@ -507,7 +513,7 @@ abstract class bank_Document extends deals_PaymentDocument
     {
         $rec = $data->rec;
 
-        // Ако не е избрана сметка, показваме бутона за контиране но с грешка
+        // Ако не е избрана сметка, показва се бутона за контиране но с грешка
         if (($rec->state == 'draft' || $rec->state == 'pending') && !isset($rec->ownAccount) && $mvc->haveRightFor('conto')) {
             $data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документът не може да бъде контиран, докато няма посочена банкова сметка|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
