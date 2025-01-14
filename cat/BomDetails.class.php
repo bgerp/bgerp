@@ -162,7 +162,7 @@ class cat_BomDetails extends doc_Detail
 
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
         $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Произвеждане В,input=none');
-        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Материали,input=none');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Материали ОТ,input=none');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване,input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори,input=none');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма,input=none');

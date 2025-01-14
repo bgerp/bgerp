@@ -275,6 +275,19 @@ abstract class cat_ProductDriver extends core_BaseClass
     public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $nTpl = $Driver->renderProductDescription($data);
+        $rec = $data->rec;
+
+        // Ако режима е за показване на сравнения при клониране
+        if($data->_showDiff){
+
+            // Подготвя се изгледа на оригиналния артикул и се показват разликите спрямо него
+            $clonedRec = $Embedder->fetch($rec->clonedFromId);
+            $cloneData = (object)array('rec' => $clonedRec);
+            $Embedder->prepareSingle($cloneData);
+            $cTpl = $Driver->renderProductDescription($cloneData);
+            $nTpl = lib_Diff::getDiff($cTpl->getContent(), $nTpl->getContent());
+        }
+
         $tpl->append($nTpl, 'innerState');
     }
     
@@ -1077,5 +1090,40 @@ abstract class cat_ProductDriver extends core_BaseClass
     protected static function on_AfterDocumentInWhichIsUsedHasChangedState(cat_ProductDriver $Driver, embed_Manager $Embedder, $id, $masterMvc, $masterId, $DetailMvc, $detailId, $action)
     {
 
+    }
+
+
+    /**
+     * Преди рендиране на сингъла
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param $tpl
+     * @param $data
+     * @return void
+     * @throws core_exception_Break
+     */
+    protected static function on_BeforeRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, &$data)
+    {
+        $rec = &$data->rec;
+        $row = &$data->row;
+
+        // Ако артикулът е клониран да се показва бутон за сравнение на промените
+        if(isset($rec->clonedFromId) && !Mode::isReadOnly()) {
+            $cUrl = getCurrentUrl();
+            $showDiff = Request::get("cloneDiff{$rec->containerId}");
+            if($showDiff){
+                $data->_showDiff = true;
+                unset($cUrl["cloneDiff{$rec->containerId}"]);
+                $changeIcon = "img/16/checked-green.png";
+                $changeTitle = 'Скриване на разликите с оригинала';
+            } else {
+                unset($data->_showDiff);
+                $cUrl["cloneDiff{$rec->containerId}"] = true;
+                $changeIcon = "img/16/checked-not-green.png";
+                $changeTitle = 'Показване на разликите с оригинала';
+            }
+            $row->clonedFromId .= ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}")->getContent();
+        }
     }
 }

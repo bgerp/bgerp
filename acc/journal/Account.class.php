@@ -107,17 +107,21 @@ class acc_journal_Account
             $listInterfaceId = acc_Lists::fetchField($listId, 'regInterfaceId');
             
             if (!empty($listInterfaceId)) {
-                acc_journal_Exception::expect(
-                    $item->implementsInterface($listInterfaceId),
-                    sprintf(
-                        "{$this->rec->systemId}: перо #%d(%s) не поддържа интерфейс %s",
-                        $nn,
-                        $item->className(),
-                        core_Interfaces::fetchField($listInterfaceId, 'name')
-                    ),
-                    (array) $items,
-                    array('redirect' => array('acc_Accounts', 'list'))
-                );
+                $interfaceName = core_Interfaces::fetchField($listInterfaceId, 'name');
+                $checkMode = Mode::get('ignoreListCheckOnNullWhenConto');
+                if($checkMode != $interfaceName) {
+                    acc_journal_Exception::expect(
+                        $item->implementsInterface($listInterfaceId),
+                        sprintf(
+                            "{$this->rec->systemId}: перо #%d(%s) не поддържа интерфейс %s",
+                            $nn,
+                            $item->className(),
+                            $interfaceName
+                        ),
+                        (array) $items,
+                        array('redirect' => array('acc_Accounts', 'list'))
+                    );
+                }
             }
         }
         

@@ -212,10 +212,12 @@ class batch_BatchesInDocuments extends core_Manager
             $batch1 = $batch;
             $batch = implode(', ', $batch);
 
+            $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
+            $q = $rec->quantity / $quantityInPack;
+
             // Вербализацията на к-то ако е нужно
             if (countR($batch1) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
-                $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
-                $q = $rec->quantity / $quantityInPack;
+
                 $quantity = core_Type::getByName('double(smartRound)')->toVerbal($q);
                 if ($rInfo->operation['out'] && in_array($rInfo->state, array('draft', 'pending'))) {
                     $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
@@ -240,6 +242,12 @@ class batch_BatchesInDocuments extends core_Manager
                     if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, 1, $rec->batch, $rInfo->containerId)) {
                         $batch = $palletImgLink . $batch;
                     }
+                }
+
+                $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
+                if ($rec->quantity > $batchQuantityInStore) {
+                    $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
+                    $batch = ht::createHint($batch, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning');
                 }
 
                 $label = ($count == 0) ? "{$label} " : '';
