@@ -193,6 +193,8 @@ class crm_Setup extends core_ProtoSetup
      */
     public function manageConfigDescriptionForm(&$configForm)
     {
+        if(!$configForm->getField('CRM_CONNECTED_COMPANIES', false)) return;
+
         $companyOptions = array();
         $companyQuery = crm_Companies::getQuery();
         $groupId = crm_Groups::getIdFromSysId('related');

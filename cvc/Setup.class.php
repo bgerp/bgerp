@@ -137,6 +137,8 @@ class cvc_Setup extends core_ProtoSetup
     public function manageConfigDescriptionForm(&$configForm)
     {
         // Задаване на опциите за избор на изпращача
+        if(!$configForm->getField('CVC_SENDER_ID', false)) return;
+
         $senderOptions = cvc_Adapter::getSenderOptions();
         if(countR($senderOptions)){
             $configForm->setOptions('CVC_SENDER_ID', $senderOptions);
