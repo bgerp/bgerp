@@ -1400,8 +1400,7 @@ class crm_Persons extends core_Master
     
     /**
      * Дали на лицето се начислява ДДС:
-     * Начисляваме винаги ако е в ЕУ
-     * Ако няма държава начисляваме ДДС
+     * Начисляваме винаги ако е в ЕУ (ако е регистриран по ДДС)
      *
      * @param int $id - id' то на записа
      * @param int|null $ownCompanyId - ид на "Моята фирма"
@@ -1410,11 +1409,13 @@ class crm_Persons extends core_Master
      */
     public static function shouldChargeVat($id, $ownCompanyId = null)
     {
+        // Ако моята фирма не е регистрирана по ДДС или лицето няма ДДС номер - не се начислява
         $rec = static::fetch($id);
-        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;
+        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId) || empty($rec->vatId)) return false;
 
+        // Ако няма държава или е в ЕС ще се начислява
         if (!$rec->country) return true;
-        
+
         return drdata_Countries::isEu($rec->country);
     }
 

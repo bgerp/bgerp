@@ -125,7 +125,11 @@ html {
     position: absolute;
     bottom: -40px;
 }
-
+@media handheld, only screen and (min-width: 1800px) {
+    .centerContent {
+        width: 1400px !important;
+    }
+}
 @media handheld, only screen and (max-width: 1200px) {
     .wide .app-name {
         font-size: 4.1em;

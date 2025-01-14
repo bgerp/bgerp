@@ -70,6 +70,13 @@
                                 <td>[#addContragentValues#]</td>
                             </tr>
                             <!--ET_END addContragentValues-->
+
+                            <!--ET_BEGIN showConsumptionBtnsInSupportTask-->
+                            <tr>
+                                <td class='dt'>|Бутони за влагане/връщане в сигналите|*:</td>
+                                <td>[#showConsumptionBtnsInSupportTask#]</td>
+                            </tr>
+                            <!--ET_END showConsumptionBtnsInSupportTask-->
                         </table>
                     </div>
                 </fieldset>

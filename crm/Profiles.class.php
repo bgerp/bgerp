@@ -1619,8 +1619,9 @@ class crm_Profiles extends core_Master
             core_ObjectConfiguration::$stopInvoke = true;
             
             $packConf = core_Packs::getConfig($rec->name);
-            
+
             // Обхождаме всички полета за конфигуриране
+            $haveCustomizable = false;
             foreach ((array) $clsInst->getConfigDescription() as $field => $arguments) {
                 
                 // Коя стойност да се използва за полето
@@ -1636,7 +1637,9 @@ class crm_Profiles extends core_Master
                 if (!$params['customizeBy'] || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {
                     continue;
                 }
-                
+
+                $haveCustomizable = true;
+
                 // Ако не е зададено, заглавието на полето е неговото име
                 setIfNot($params['caption'], '|*' . $field);
                 
@@ -1694,10 +1697,18 @@ class crm_Profiles extends core_Master
                 }
                 
                 $form->setDefault($field, $fieldVal);
-                
                 $form->__defaultRec->$field = $fieldVal;
             }
-            
+
+            // Ако от пакета има поне една персонализируема константа, ще се извиква метода от сетъпа за модифициране на формата
+            if($haveCustomizable){
+                try{
+                    $clsInst->manageConfigDescriptionForm($form);
+                } catch(core_exception_Expect $e){
+                    reportException($e);
+                }
+            }
+
             core_ObjectConfiguration::$stopInvoke = $savedStopInvoke;
         }
     }

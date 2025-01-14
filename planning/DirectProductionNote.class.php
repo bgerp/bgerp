@@ -278,6 +278,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
             unset($productOptions[$jobRec->productId]);
+            $form->setField('inputStoreId', 'input=none');
+            $form->setField('inputServicesFrom', 'input=none');
+            $form->setField('detailOrderBy', 'input=none');
         } else {
             $defaultOriginPackField = 'packagingId';
             $jobRec = $originDoc->fetch();
@@ -1407,9 +1410,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * @param bool     $isWaste        - дали е отпадък или не
      * @param int|NULL $storeId        - ид на склад, или NULL ако е от незавършеното производство
      * @param bool     $isSubProduct   - дали е субпродукт
+     * @param bool     $batch          - партида
      * @return void
      */
-    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null, $isSubProduct = false)
+    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null, $isSubProduct = false, $batch = null)
     {
         // Проверки на параметрите
         expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
@@ -1449,12 +1453,27 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             'quantityInPack' => $quantityInPack,
             'quantity' => $quantity,
         );
+        if($rec->type == 'input'){
+            if($productRec->canStore == 'yes'){
+                $rec->storeId = $noteRec->inputStoreId;
+            } elseif($noteRec->inputServicesFrom == 'all') {
+                $rec->fromAccId = '61102';
+            }
+        }
 
-        if (isset($storeId)) {
-            $rec->storeId = $storeId;
+        setIfNot($rec->storeId, $storeId);
+
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            $rec->autoAllocate = false;
+            $rec->_clonedWithBatches = true;
         }
 
         planning_DirectProductNoteDetails::save($rec);
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $rec->id, array($batch => $rec->quantity), true);
+        }
+
+        return $rec->id;
     }
 
 

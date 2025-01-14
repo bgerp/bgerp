@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за работа с .ogv файлове.
+ * Драйвер за работа с .3gp файлове.
  *
  * @category  vendors
  * @package   fileman
@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  */
-class fileman_webdrv_Ogv extends fileman_webdrv_Video
+class fileman_webdrv_3gp extends fileman_webdrv_Video
 {
 
 }

@@ -255,7 +255,7 @@ class purchase_Invoices extends deals_InvoiceMaster
 
         if ($data->aggregateInfo) {
             if ($data->aggregateInfo->get('bankAccountId')) {
-                $form->rec->accountId = $data->aggregateInfo->get('bankAccountId');
+                $form->setDefault('accountId', $data->aggregateInfo->get('bankAccountId'));
             }
         }
         

@@ -99,6 +99,21 @@ class cond_Setup extends core_ProtoSetup
 
 
     /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'CloseExceptions',
+            'description' => 'Затваряне на невалидни изключения',
+            'controller' => 'cond_VatExceptions',
+            'action' => 'CloseExceptions',
+            'period' => 1440,
+            'offset' => 60,
+        ),
+    );
+
+
+    /**
      * Инсталиране на пакета
      *
      * @TODO Да се премахне след като кода се разнесе до всички бранчове
