@@ -783,4 +783,34 @@ class core_Array
 
         return $res < $allowedLen;
     }
+
+
+    /**
+     * Подредба на масив по ключовете му спрямо подредбата в друг масив
+     * Първо се подреждат ключовете в реда от втория масив, а после останалите
+     * в оригиналния си ред
+     *
+     * @param array $arr
+     * @param array $orderedKeys
+     * @return array $res
+     */
+    public static function reorderArrayByOrderedKeys($arr, $orderedKeys)
+    {
+        // Добавяме елементите от оригиналния масив, чиито ключове са в $keysOrder
+        $res = array();
+        foreach ($orderedKeys as $key) {
+            if (array_key_exists($key, $orderedKeys)) {
+                $res[$key] = $arr[$key];
+            }
+        }
+
+        // Добавяме останалите елементи, които не са в $keysOrder, в техния оригинален ред
+        foreach ($arr as $key => $value) {
+            if (!in_array($key, $arr)) {
+                $res[$key] = $value;
+            }
+        }
+
+        return $res;
+    }
 }

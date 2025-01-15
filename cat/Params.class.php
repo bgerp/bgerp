@@ -369,6 +369,14 @@ class cat_Params extends bgerp_ProtoParam
 
         if (is_array($params)) {
             foreach ($params as $paramId => $value) {
+                // Ако ключа е не е ид, но е лайв параметър - взима се такъв
+                if(!is_numeric($paramId)){
+                    if(strpos($paramId, '$') !== false){
+                        $strings[$paramId] = $value;
+                    }
+                    continue;
+                }
+
                 if(cat_Params::haveDriver($paramId, 'cond_type_YesOrNo')){
                     $value = ($value == 'yes') ? 1 : 0;
                 }

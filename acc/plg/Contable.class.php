@@ -41,7 +41,8 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->canViewpsingle, 'powerUser');
         setIfNot($mvc->moveDocToFolder, false);
         setIfNot($mvc->autoHideDoc, false); // @see doc_HiddenContainers - да не се скрива автоматично
-        
+        setIfNot($mvc->ignoreListCheckOnNullWhenConto, null);
+
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
         
@@ -157,7 +158,7 @@ class acc_plg_Contable extends core_Plugin
             
             return;
         }
-        
+
         try {
             // Подсигуряваме се че записа е пълен
             $tRec = clone $rec;
@@ -168,8 +169,11 @@ class acc_plg_Contable extends core_Plugin
             
             // Дали документа може да се активира
             $canActivate = $mvc->canActivate($tRec);
+
+            Mode::push('ignoreListCheckOnNullWhenConto', $mvc->ignoreListCheckOnNullWhenConto);
             $transaction = $mvc->getValidatedTransaction($tRec);
-            
+            Mode::pop('ignoreListCheckOnNullWhenConto');
+
             // Ако има валидна транзакция
             if ($transaction !== false) {
                 

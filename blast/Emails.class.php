@@ -1696,17 +1696,22 @@ class blast_Emails extends core_Master
             }
         }
         
-        $lists = array('' => '');
+        $lists = array();
         
         // Обхождаме откритите резултати
         while ($rec = $query->fetch()) {
-            
             // Добавяме в масива
             $lists[$rec->id] = blast_Lists::getVerbal($rec, 'title');
         }
-        
-        // Показваме всички списъци
-        $form->setSuggestions('negativeList', $lists, $form->rec->id);
+
+        if (empty($lists)) {
+            $data->form->setField('negativeList', 'input=none');
+        } else {
+            $lists = array('' => '') + $lists;
+
+            // Показваме всички списъци
+            $form->setSuggestions('negativeList', $lists, $form->rec->id);
+        }
     }
     
     

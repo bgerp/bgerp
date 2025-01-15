@@ -163,6 +163,7 @@ class crm_Setup extends core_ProtoSetup
         'migrate::fixCountryGroupsInput21233',
         'migrate::updateGroups2524',
         'migrate::calcExpand36Field2445v3',
+        'migrate::forceGatherCron2451v3',
     );
     
     
@@ -192,6 +193,8 @@ class crm_Setup extends core_ProtoSetup
      */
     public function manageConfigDescriptionForm(&$configForm)
     {
+        if(!$configForm->getField('CRM_CONNECTED_COMPANIES', false)) return;
+
         $companyOptions = array();
         $companyQuery = crm_Companies::getQuery();
         $groupId = crm_Groups::getIdFromSysId('related');
@@ -343,5 +346,30 @@ class crm_Setup extends core_ProtoSetup
         $newData = (object)array('mvc' => 'crm_Persons', 'lastId' => null);
         $callOn = dt::addSecs(120);
         core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+    }
+
+
+    /**
+     * Рекалкулиране на групите във вид за лесно търсене
+     */
+    public static function calcExpand36Field2445v2223()
+    {
+        $newData = (object)array('mvc' => 'crm_Companies', 'lastId' => null);
+        $callOn = dt::addSecs(60);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+
+        $newData = (object)array('mvc' => 'crm_Persons', 'lastId' => null);
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+    }
+
+
+    /**
+     * Рекалкулиране на групите във вид за лесно търсене
+     */
+    public static function forceGatherCron2451v3()
+    {
+        $callOn = dt::addSecs(480);
+        core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'Gather_contragent_info', $callOn);
     }
 }

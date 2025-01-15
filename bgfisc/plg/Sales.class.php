@@ -63,9 +63,10 @@ class bgfisc_plg_Sales extends core_Plugin
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         if(empty($rec->id) && ($rec->_onlineSale === true || isset($rec->originId))){
-            if(!bgfisc_Register::getFiscDevice($rec->caseId, $rec->bankAccountId)){
-                
-                throw new core_exception_Expect('Не може да се генерира УНП, защото не може да се определи ФУ', 'Несъответствие');
+            if(bgfisc_Register::doRequireFiscForConto($mvc, $rec)){
+                if(!bgfisc_Register::getFiscDevice($rec->caseId)){
+                    throw new core_exception_Expect('Не може да се генерира УНП, защото не може да се определи ФУ', 'Несъответствие');
+                }
             }
         }
     }

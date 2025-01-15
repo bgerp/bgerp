@@ -882,9 +882,13 @@ class callcenter_SMS extends core_Master
      */
     public function act_blastSms()
     {
+        $this->requireRightFor('send');
+
+        core_App::setTimeLimit(200);
+
         Request::setProtected(array('perSrcClassId', 'perSrcObjectId'));
         
-        $objId = Request::get('perSrcObjectId', 'int');
+        $objId = Request::get('perSrcObjectId');
         $clsId = Request::get('perSrcClassId', 'int');
         
         expect($objId && $clsId);
@@ -892,12 +896,6 @@ class callcenter_SMS extends core_Master
         $clsInst = cls::get($clsId);
         
         expect($clsInst->canUsePersonalization($objId));
-        
-        $objRec = $clsInst->fetch($objId);
-        
-        expect($objRec);
-        
-        callcenter_SMS::requireRightFor('send');
         
         $groupChoiceArr = $clsInst->getPersonalizationOptionsForId($objId);
         expect($groupChoiceArr);
@@ -910,11 +908,12 @@ class callcenter_SMS extends core_Master
         $form->title = 'Изпращане на циркулярни SMS-и';
         
         $form->FNC('service', 'class(interface=callcenter_SentSMSIntf, select=title)', 'caption=Услуга, mandatory,silent,input=input');
-        $form->FNC('type', 'enum()', 'caption=Към,mandatory,silent,input=input');
+        if (!$objId) {
+            $form->FNC('type', 'enum()', 'caption=Към,mandatory,silent,input=input');
+            $form->setOptions('type', $groupChoiceArr);
+        }
         $form->FNC('message', 'text', 'caption=Съобщение,mandatory,silent,input=input');
-        
-        $form->setOptions('type', $groupChoiceArr);
-        
+
         $service = self::getDefaultService();
         if ($service) {
             $form->setDefault('service', $service);
@@ -925,7 +924,7 @@ class callcenter_SMS extends core_Master
         
         $form->input();
         
-        $retUrl = getRetUrl($retUrl);
+        $retUrl = getRetUrl();
         
         if (empty($retUrl)) {
             $retUrl = array($clsInst, 'single', $objId);
@@ -933,12 +932,16 @@ class callcenter_SMS extends core_Master
         
         $pArr = array();
         if ($form->isSubmitted()) {
-            $pArr = $clsInst->getPresonalizationArr($form->rec->type);
+            if ($objId) {
+                $pArr = $clsInst->getPresonalizationArr($objId);
+            } else {
+                $pArr = $clsInst->getPresonalizationArr($form->rec->type);
+            }
             if (empty($pArr)) {
                 $form->setError('type', 'Няма данни за изпращане');
             }
         }
-        
+
         // Проверка дали всички плейсхолдери са коректни и дали няма да има проблем с дължината
         if ($form->isSubmitted()) {
             $fKey = key($pArr);
@@ -972,9 +975,13 @@ class callcenter_SMS extends core_Master
             $sendCnt = $errCnt = $notMobileCnt = 0;
             
             $sendArr = array();
-            
-            $type = $groupChoiceArr[$form->rec->type];
-            
+
+            if (!$objId) {
+                $type = $groupChoiceArr[$form->rec->type];
+            } else {
+                $type = $objId;
+            }
+
             $paramsArr = array();
             if ($sParams['utf8'] != 'yes') {
                 $paramsArr['encoding'] = 'ascii';

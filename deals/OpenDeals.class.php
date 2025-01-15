@@ -172,8 +172,9 @@ class deals_OpenDeals extends core_Manager
             'docId' => $rec->id,
             'id' => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
         );
-        
-        static::save((object) $new);
+        $saveRec = (object) $new;
+
+        static::save($saveRec);
     }
     
     

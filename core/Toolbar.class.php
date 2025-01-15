@@ -443,9 +443,24 @@ class core_Toolbar extends core_BaseClass
      */
     public function getBtnUrl($id)
     {
-        return $this->buttons[$id]->url;
+        return $this->buttons[$id]->url ?? null;
     }
-    
+
+
+    /**
+     * Подмяна на урл-то на бутона
+     *
+     * @param string $id   - ид на бутон
+     * @return mixed $url  - урл на бутона
+     */
+    public function changeBtnUrl($id, $url)
+    {
+        if($this->buttons[$id]){
+            $this->buttons[$id]->url = $url;
+        }
+    }
+
+
     /**
      * Проверява дали даден бутон е ERROR
      *

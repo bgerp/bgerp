@@ -65,7 +65,7 @@ class support_TaskType extends core_Mvc
      *
      * @return array
      */
-    public static function getProgressSuggestions($tRec)
+    public static function getProgressSuggestions($tRec = null)
     {
         static $progressArr = array();
         

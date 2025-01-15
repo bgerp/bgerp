@@ -65,6 +65,10 @@
 				<!--ET_BEGIN params-->
 					<div class="groupList"><span class='quiet'>|Параметри|*</span>: [#params#]</div>
 				<!--ET_END params-->
+
+                <!--ET_BEGIN templateId-->
+                <div class="groupList"><span class='quiet'>|Партидност|*</span>: [#templateId#]</div>
+                <!--ET_END templateId-->
 			</fieldset>
 			<!--ET_END SETTINGS-->
             <!--ET_BEGIN info-->

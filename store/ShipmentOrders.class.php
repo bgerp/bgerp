@@ -399,34 +399,29 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         if ($rec->isReverse == 'no') {
 
-            // Кои са фактурите в нишката
-            $invoiceArr = deals_Helper::getInvoicesInThread($rec->threadId);
-            if (countR($invoiceArr)) {
-                $dQuery = store_ShipmentOrderDetails::getQuery();
-                $dQuery->where("#shipmentId = {$rec->id}");
-                $dQuery->show('productId');
-                $products = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+            // Ако има ф-ри към ЕН-то да излизат линкнати
+            $selectedInvoices = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+            $selectedInvoicesCount = countR($selectedInvoices);
 
-                $invoiceArr = array_keys($invoiceArr);
-                foreach ($invoiceArr as $invoiceContainerId) {
-                    $InvoiceRef = doc_Containers::getDocument($invoiceContainerId);
-                    $InvoiceDetail = cls::get($InvoiceRef->mainDetail);
-                    $iQuery = $InvoiceDetail->getQuery();
-                    $iQuery->where("#{$InvoiceDetail->masterKey} = {$InvoiceRef->that}");
-                    $iQuery->show('productId');
-                    $invoiceProducts = arr::extractValuesFromArray($iQuery->fetchAll(), 'productId');
-
-                    // Ако има фактура със същите артикули, като ЕН-то ще се покаже към имейла
-                    $diff1 = countR(array_diff_key($products, $invoiceProducts));
-                    $diff2 = countR(array_diff_key($invoiceProducts, $products));
-
-                    if (empty($diff1) && empty($diff2)) {
-                        $iTpl = new ET(tr("|*\n|Моля, запознайте се с приложената фактура") . ': #[#handle#]');
-                        $iTpl->replace($InvoiceRef->getHandle(), 'handle');
-                        $tpl->append($iTpl);
-                        break;
-                    }
+            // Ако ЕН-то е обвързано с ф-ри - ще се показват те, ако не но има само една ф-ра в нишката - нея
+            $handles = array();
+            if($selectedInvoicesCount){
+                foreach ($selectedInvoices as $invoiceRec){
+                    $handles[] = "#" . doc_Containers::getDocument($invoiceRec->containerId)->getHandle();
                 }
+            } elseif($this->count("#threadId = {$rec->threadId} AND #state = 'active'") == 1){
+                $invoicesInThread = deals_Helper::getInvoicesInThread($rec->threadId);
+                if(countR($invoicesInThread) == 1){
+                    $handles[] = "#" . doc_Containers::getDocument(key($invoicesInThread))->getHandle();
+                }
+            }
+
+            $countInvoices = countR($handles);
+            if($countInvoices){
+                $caption = ($countInvoices == 1) ? 'приложената фактура' : 'приложените фактури';
+                $iTpl = new ET(tr("|*\n|Моля, запознайте се с {$caption}|*") . ': [#handles#]');
+                $iTpl->replace(implode(', ', $handles), 'handles');
+                $tpl->append($iTpl);
             }
         }
 

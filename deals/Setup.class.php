@@ -68,6 +68,18 @@ defIfNot('DEALS_MAX_WARNING_DISCOUNT', '0.3');
 
 
 /**
+ * Колко дни толеранс има след просрочване преди да се приеме че сделката е просрочена
+ */
+defIfNot('DEALS_ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE', '0');
+
+
+/**
+ * Каква сума на просрочване да се приема, че сделката е просрочена
+ */
+defIfNot('DEALS_OVERDUE_TOLERANCE_AMOUNT', '5');
+
+
+/**
  * class deals_Setup
  *
  *
@@ -119,7 +131,6 @@ class deals_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Сделката да не се показва като просрочена при салдо (неплатено)->Под,unit= от доставеното'),
         'DEALS_ISSUER_USER' => array('user(roles=ceo|sales,allowEmpty)', 'caption=Съставител на бизнес документи->Конкретен потребител,customizeBy=ceo|sales|purchase|invoicer'),
         'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Или,customizeBy=ceo|sales|purchase|invoicer'),
         'DEALS_OVERDUE_PENDING_DAYS_1' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Първо след,unit=дни'),
@@ -130,6 +141,9 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_TEST_VAT_CALC' => array('enum(no=Не,yes=Да)', 'caption=Дебъг->Тестово закръгляне,autohide=any'),
         'DEALS_CLOSE_UNDELIVERED_OVER' => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
         'DEALS_MAX_WARNING_DISCOUNT' => array('percent(min=0)', 'caption=При отстъпка над колко да показва се показва предупреждение в документите->Процент'),
+        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Сделката да се показва като платена при салдо->Под'),
+        'DEALS_ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE' => array('int(min=0)', 'caption=Толеранс за просрочване на сделките->Дни'),
+        'DEALS_OVERDUE_TOLERANCE_AMOUNT' => array('int(min=0)', 'caption=Толеранс за просрочване на сделките->Сума'),
     );
     
     
@@ -309,34 +323,6 @@ class deals_Setup extends core_ProtoSetup
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Мигрира с коя сделка е приключено
-     * 
-     * @param mixed $mvc
-     * @param mixed $ClosedDocumentMvc
-     */
-    public function updateClosedWith($mvc, $ClosedDocumentMvc)
-    {
-        $mvc = cls::get($mvc);
-        $mvc->setupMvc();
-        
-        if(!$mvc->count()) return;
-        
-        $ClosedDocumentMvc = cls::get($ClosedDocumentMvc);
-        $ClosedDocumentMvc->setupMvc();
-        
-        if(!$ClosedDocumentMvc->count()) return;
-        
-        $docIdColName = str::phpToMysqlName('docId');
-        $closeWithColName = str::phpToMysqlName('closeWith');
-        $classIdColName = str::phpToMysqlName('docClassId');
-        $stateColName = str::phpToMysqlName('state');
-        
-        $query = "UPDATE {$mvc->dbTableName},{$ClosedDocumentMvc->dbTableName} SET {$mvc->dbTableName}.{$closeWithColName} = {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} WHERE {$ClosedDocumentMvc->dbTableName}.{$docIdColName} = {$mvc->dbTableName}.id AND {$ClosedDocumentMvc->dbTableName}.{$classIdColName} = {$mvc->getClassId()} AND {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} IS NOT NULL AND {$ClosedDocumentMvc->dbTableName}.{$stateColName} = 'active'";
-        $mvc->db->query($query);
     }
 
 

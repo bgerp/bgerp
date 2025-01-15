@@ -1191,6 +1191,8 @@ class rack_Pallets extends core_Manager
      */
     public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null, $containerId = null)
     {
+        if(!$storeId) return;
+
         if(!store_Stores::haveRightFor('select', $storeId) || core_Mode::isReadOnly()) return false;
         if (!rack_Movements::haveRightFor('add', (object) array('productId' => $productId))) return false;
         if(!rack_Racks::count("#storeId={$storeId}")) return false;

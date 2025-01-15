@@ -322,6 +322,15 @@ class crm_Companies extends core_Master
 
 
     /**
+     * Икони на контрагента спрямо състоянието на сделките в него
+     */
+    public $icons = array('noDeals' => 'img/16/office-building-gray.png',
+                          'activeDeals' => 'img/16/office-building-green.png',
+                          'overdueSales' => 'img/16/office-building-red.png',
+                          'standart' => 'img/16/office-building.png');
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -927,7 +936,7 @@ class crm_Companies extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
-        
+
         if ($fields['-single']) {
             // Fancy ефект за картинката
             $Fancybox = cls::get('fancybox_Fancybox');
@@ -950,9 +959,9 @@ class crm_Companies extends core_Master
             if ($rec->folderName) {
                 $row->title = $row->name;
             }
-            
+
             // Разширяване на $row
-            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec, $fields);
         }
         
         // Дали има права single' а на тазу фирма
@@ -2565,19 +2574,20 @@ class crm_Companies extends core_Master
      */
     public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
-        if (core_Users::isContractor() || !haveRole('user')) {
-            
-            return ;
-        }
-        
-        if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
-                $res = 'img/16/stop-sign.png';
-            }
-        }
+        $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
     }
-    
-    
+
+
+    /**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     */
+    public function on_AfterGetIcon($mvc, &$res, $id = null)
+    {
+        $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
+    }
+
+
     /**
      * След взимане на заглавието за единичния изглед
      *
@@ -2593,8 +2603,9 @@ class crm_Companies extends core_Master
         }
         
         if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
-                $res = "<span class='dangerTitle'>{$res}</span>";
+            if ($extRec->haveOverdueSales == 'yes') {
+                $title = tr('Има просрочени продажби');
+                $res = "<span class='dangerTitle' title='{$title}'>{$res}</span>";
             }
         }
     }

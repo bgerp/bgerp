@@ -392,7 +392,12 @@ class bulmar_Setup extends core_ProtoSetup
     public function manageConfigDescriptionForm(&$configForm)
     {
         $ownAccounts = array('' => '') + cls::get('bank_OwnAccounts')->makeArray4Select('title');
-        $configForm->setFieldTypeParams('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', array('ownAccountId_opt' => $ownAccounts));
-        $configForm->setSuggestions('BULMAR_SELECTED_ACCOUNTS', $ownAccounts);
+        if($configForm->getField('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', false)){
+            $configForm->setFieldTypeParams('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', array('ownAccountId_opt' => $ownAccounts));
+        }
+
+        if($configForm->getField('BULMAR_SELECTED_ACCOUNTS', false)){
+            $configForm->setSuggestions('BULMAR_SELECTED_ACCOUNTS', $ownAccounts);
+        }
     }
 }

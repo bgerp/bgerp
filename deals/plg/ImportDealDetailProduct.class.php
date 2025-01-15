@@ -427,7 +427,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     {
         $added = $failed = 0;
         foreach ($rows as $row) {
-         
+
             // Опитваме се да импортираме записа
             try {
                 if ($mvc->import($masterId, $row)) {

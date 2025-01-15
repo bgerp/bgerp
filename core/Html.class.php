@@ -435,9 +435,17 @@ class core_Html
             )));
 
         } elseif ($optionsCnt <= $maxRadio) {
+            $keyListClass = '';
             if ($optionsCnt < 4) {
-                $keyListClass .= ' shrinked';
+                $keyListClass = ' shrinked';
             }
+
+            // Ако има празна опция, да може да се изчиства и да не се показва тази опция
+            if (isset($options['']) && !isset($attr['_isAllowEmpty'])) {
+                unset($options['']);
+                $attr['_isAllowEmpty'] = true;
+            }
+
             // Когато броя на опциите са по-малко
             
             // Определяме броя на колоните, ако не са зададени.
@@ -465,7 +473,7 @@ class core_Html
             }
             
             $i = 0;
-            
+
             foreach ($options as $id => $opt) {
                 $input = new ET();
                 

@@ -75,7 +75,7 @@ class plg_Printing extends core_Plugin
         if (Mode::is('forceShowPrint') || !($data->rec->state == 'draft' ||
             ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') ||
             ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === false))) {
-            if ($mvc->haveRightFor('single', $data->rec)) {
+            if (($mvc instanceof core_Manager) && $mvc->haveRightFor('single', $data->rec)) {
                 // Текущото URL
                 $currUrl = getCurrentUrl();
                 

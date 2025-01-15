@@ -354,31 +354,35 @@ class cond_PaymentMethods extends embed_Manager
     /**
      * Дали платежния план е просрочен
      *
-     * @param array $payment    - платежния план (@see static::getPaymentPlan)
-     * @param float $restAmount - оставаща сума за плащане
+     * @param array $payment       - платежния план (@see static::getPaymentPlan)
+     * @param float $restAmount    - оставаща сума за плащане
+     * @param datetime|null $dueDate - на коя дата е трябвало да стане плащането
      *
      * @return bool
      */
-    public static function isOverdue($payment, $restAmount)
+    public static function isOverdue($payment, $restAmount, &$dueDate = null)
     {
         expect(is_array($payment) && isset($restAmount));
         $today = dt::today();
         $restAmount = round($restAmount, 4);
         
         // Ако остатъка за плащане е 0 или по-малко
-        if ($restAmount <= 0) {
-            
-            return false;
-        }
+        if ($restAmount <= 0) return false;
         
         // Ако няма крайна дата на плащане, не е просрочена
-        if (!$payment['deadlineForBalancePayment']) {
-            
-            return false;
+        if (!$payment['deadlineForBalancePayment']) return false;
+
+        $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
+        $calcedDueDate = dt::addDays($overdueAddDays, $payment['deadlineForBalancePayment'], false);
+
+        if(strtotime($today) > strtotime($calcedDueDate)){
+            $dueDate = $calcedDueDate;
+
+            return true;
         }
-        
+
         // Ако текущата дата след крайния срок за плащане, документа е просрочен
-        return ($today > $payment['deadlineForBalancePayment']);
+        return false;
     }
     
     

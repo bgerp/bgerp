@@ -4,7 +4,12 @@ body {
   background: #fff !important;
 }
 
-
+table th {
+  position: sticky;
+  top: -1px;
+  z-index: 1;
+  white-space: nowrap;
+}
 
 .dragging {
   opacity: 0.5;

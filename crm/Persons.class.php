@@ -303,6 +303,15 @@ class crm_Persons extends core_Master
 
 
     /**
+     * Икони на контрагента спрямо състоянието на сделките в него
+     */
+    public $icons = array('noDeals' => 'img/16/vcard-gray.png',
+                          'activeDeals' => 'img/16/vcard-green.png',
+                          'overdueSales' => 'img/16/red-vcard.png',
+                          'standart' => 'img/16/vcard.png');
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -688,7 +697,7 @@ class crm_Persons extends core_Master
             }
             
             // Разширяване на $row
-            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec, $fields);
         }
         
         static $ownCompany;
@@ -1391,8 +1400,7 @@ class crm_Persons extends core_Master
     
     /**
      * Дали на лицето се начислява ДДС:
-     * Начисляваме винаги ако е в ЕУ
-     * Ако няма държава начисляваме ДДС
+     * Начисляваме винаги ако е в ЕУ (ако е регистриран по ДДС)
      *
      * @param int $id - id' то на записа
      * @param int|null $ownCompanyId - ид на "Моята фирма"
@@ -1401,11 +1409,13 @@ class crm_Persons extends core_Master
      */
     public static function shouldChargeVat($id, $ownCompanyId = null)
     {
+        // Ако моята фирма не е регистрирана по ДДС или лицето няма ДДС номер - не се начислява
         $rec = static::fetch($id);
-        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;
+        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId) || empty($rec->vatId)) return false;
 
+        // Ако няма държава или е в ЕС ще се начислява
         if (!$rec->country) return true;
-        
+
         return drdata_Countries::isEu($rec->country);
     }
 
@@ -3263,8 +3273,8 @@ class crm_Persons extends core_Master
         
         return false;
     }
-    
-    
+
+
     /**
      * След взимане на иконката за единичния изглед
      *
@@ -3274,19 +3284,20 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
-        if (core_Users::isContractor()) {
-            
-            return;
-        }
-        
-        if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
-                $res = 'img/16/stop-sign.png';
-            }
-        }
+        $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
     }
-    
-    
+
+
+    /**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     */
+    public function on_AfterGetIcon($mvc, &$res, $id = null)
+    {
+        $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
+    }
+
+
     /**
      * След взимане на заглавието за единичния изглед
      *
@@ -3302,8 +3313,9 @@ class crm_Persons extends core_Master
         }
         
         if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
-                $res = "<span class='dangerTitle'>{$res}</span>";
+            if ($extRec->haveOverdueSales == 'yes') {
+                $title = tr('Има просрочени продажби');
+                $res = "<span class='dangerTitle' title = '{$title}'>{$res}</span>";
             }
         }
     }

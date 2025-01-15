@@ -26,6 +26,7 @@ $(document).ready(function () {
         gripInnerHtml: '<div style="width:10px;"></div>',
         gripClass: 'grip',
         postbackSafe: true,
+        resizeMode:'overflow',
         hoverCursor: 'col-resize',
         minWidth: 50,
         onResize: function() {
@@ -77,7 +78,7 @@ $(document).ready(function () {
     const rows = document.querySelectorAll("#dragTable tbody tr");
 
 // Check if there are multiple rows
-    if (rows.length > 1) {
+
         let sortable = new Sortable(document.querySelector("#dragTable tbody"), {
             animation: 150,
             handle: "tr",
@@ -85,7 +86,6 @@ $(document).ready(function () {
             selectedClass: "selected",
             filter: "tr[data-dragging='false']",
             preventOnFilter: false,
-
             onChoose: function (evt) {
                 // Remove highlight from all rows
                 document.querySelectorAll("#dragTable tbody tr").forEach(row => {
@@ -97,11 +97,14 @@ $(document).ready(function () {
                     evt.item.classList.add('dragging');
                 }
 
+                saveSelection();
                 console.log('CHOOSE');
             },
 
             onUnchoose: function (evt) {
                 evt.item.classList.remove('dragging');
+                saveSelection();
+                console.log('UN CHOOSE');
             },
 
             onStart: function (evt) {
@@ -122,32 +125,38 @@ $(document).ready(function () {
             onEnd: function (evt) {
                 console.log("END");
 
-                // Clear previously selected rows after dropping
-                selectedElements.forEach(item => item.element.classList.remove('selected'));
+                if (selectedElements.length === 0) {
+                    selectedElements.push({
+                        element: evt.item,
+                        originalIndex: evt.oldIndex
+                    });
+                }
 
-                const tableBody = document.querySelector("#dragTable tbody");
+                selectedElements.forEach((item) => item.element.classList.remove('selected'));
+
+                let table = document.querySelector("#dragTable");
                 const dropIndex = evt.newIndex; // Index where the item is dropped
+                const rows = Array.from(table.querySelectorAll("tbody tr")); // Get all rows
 
-                // Identify the target row where the selected rows will be inserted
-                const targetRow = tableBody.children[dropIndex];
-
-                // Store the reference to where the selected elements will be inserted
-                let insertAfter = targetRow ? targetRow : tableBody.lastElementChild;
-
-                // Insert selected elements in their original order
-                selectedElements.forEach(item => {
-                    insertAfter.insertAdjacentElement('afterend', item.element);
-                    insertAfter = item.element; // Update reference to the last inserted element
+                // Reinsert the selected elements in their original order, relative to the new drop position
+                selectedElements.forEach((item, index) => {
+                    const targetIndex = dropIndex + index; // Adjust to drop at the correct place
+                    const targetRow = rows[targetIndex] || null; // Handle appending at the end
+                    if (targetRow) {
+                        targetRow.insertAdjacentElement('beforebegin', item.element);
+                    } else {
+                        table.querySelector('tbody').appendChild(item.element); // Append if dropped at the end
+                    }
                 });
 
-                selectedElements.forEach(item => item.element.classList.add('dropped-highlight'));
+                selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
 
-                // Optional: Process server update if needed
-                if (tableBody.dataset.url) {
-                    const dataIds = getOrderedTasks();
-                    const resObj = { url: tableBody.dataset.url };
-                    const dataIdString = JSON.stringify(dataIds);
-                    const params = { orderedTasks: dataIdString };
+                // Optional: Process server update
+                if (table.dataset.url) {
+                    let dataIds = getOrderedTasks();
+                    let resObj = { url: table.dataset.url };
+                    let dataIdString = JSON.stringify(dataIds);
+                    let params = { orderedTasks: dataIdString };
 
                     console.log('DROP: ' + dataIdString);
                     getEfae().preventRequest = 0;
@@ -162,14 +171,19 @@ $(document).ready(function () {
             store: {
                 // Save the order of items to localStorage
                 set: function (sortable) {
-                    const order = sortable.toArray();
-                    const val = order.join('|');
+
+                    let order = sortable.toArray();
+                    let val = order.join('|');
+                    //console.log('session set', val);
+
                     sessionStorage.setItem('sortableOrder', val);
                 },
 
                 // Get the order of items from localStorage
                 get: function (sortable) {
-                    const order = sessionStorage.getItem('sortableOrder');
+                    let order = sessionStorage.getItem('sortableOrder');
+
+                    //console.log('session get', order);
                     return order ? order.split('|') : [];
                 }
             }
@@ -192,9 +206,6 @@ $(document).ready(function () {
                 isScrolling = true; // Set scrolling flag
             }
         });
-    } else {
-        console.log("Not enough rows to enable sorting.");
-    }
 
 
 // Touch event handlers
@@ -285,13 +296,36 @@ $(document).ready(function () {
             cell.data('touchTimer', false); // Clear the timer
         }, 300); // Duration for detecting double touch
 
-        // If the timer was already set, we are in a double touch scenario
+        // If the timer was already set, we are.remove('selected') in a double touch scenario
         if (cell.data('touchTimer') === false) {
             clearTimeout(touchTimer); // Clear the timeout for the double touch
             handleEditing(cell); // Trigger edit on double touch
         } else {
             cell.data('touchTimer', true); // Indicate that the first touch happened
         }
+    });
+
+    $('#changeBtn').on('click', function(e) {
+        restoreSelectionFromLocalStorage();
+
+        let url = $(this).attr("data-url");
+
+        let selectedIds = JSON.parse(sessionStorage.getItem("selectedRows")) || [];
+        let count = selectedIds.length;
+        sessionStorage.removeItem("selectedRows");
+
+        if(!count){
+            let error = $(this).attr("data-error");
+            render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+
+            return;
+        }
+
+        let params = new URLSearchParams();
+        params.append("selectedIds", JSON.stringify(selectedIds)); // Преобразуваме масива в JSON
+
+        // Добавяме параметрите към URL-то
+        window.location.href = `${url}&${params.toString()}`;
     });
 })
 
@@ -395,4 +429,22 @@ function compareDateSpan(elementOne, elementTwo, groupStr)
             }
         }
     }
+}
+
+function saveSelection() {
+    let selectedIds = Array.from(document.querySelectorAll("#dragTable tbody tr.selected"))
+        .map(row => row.getAttribute("data-id"));
+
+    sessionStorage.setItem("selectedRows", JSON.stringify(selectedIds));
+}
+
+function restoreSelectionFromLocalStorage() {
+    const selectedIds = JSON.parse(sessionStorage.getItem("selectedRows")) || [];
+    document.querySelectorAll("#dragTable tbody tr").forEach(row => {
+        if (selectedIds.includes(row.getAttribute("data-id"))) {
+            row.classList.add("selected");
+        } else {
+            row.classList.remove("selected");
+        }
+    });
 }

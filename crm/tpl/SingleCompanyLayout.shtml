@@ -88,15 +88,18 @@
                     <!--ET_BEGIN info-->
                     <div class="groupList">
                         [#info#]
-                        <div style="margin: 10px 0 3px; border: 1px solid #ccc; padding: 3px 5px;border-radius: 3px;">
-                            [#crm/tpl/ContragentInfoBlock.shtml#]
+                        <!--ET_BEGIN CONTRAGENT_INFO_BLOCK-->
+                        [#CONTRAGENT_INFO_BLOCK#]
+                        <div>
                             <!--ET_BEGIN CloseTime-->
                             <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
                             <!--ET_END CloseTime-->
                             <!--ET_BEGIN ShowDocumentsAsButtons-->
                             <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
                             <!--ET_END ShowDocumentsAsButtons-->
+                            [#crm/tpl/ContragentInfoBlock.shtml#]
                         </div>
+                        <!--ET_END CONTRAGENT_INFO_BLOCK-->
                     </div>
                     <!--ET_END info-->
                 </fieldset>

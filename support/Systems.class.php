@@ -150,6 +150,7 @@ class support_Systems extends core_Master
         $this->FLD('addFromEveryOne', 'enum(no=Не,yes=Да)', 'caption=Добавяне от външната част->Избор, removeAndRefreshForm=defaultTitle|addContragentValues');
         $this->FLD('defaultTitle', 'varchar', 'caption=Заглавие на формата->Заглавие, input=none');
         $this->FLD('addContragentValues', 'enum(mandatory=Задължително, yes=Да, no=Не)', 'caption=Попълване на контрагент данни от нерегистрирани->Избор, input=none');
+        $this->FLD('showConsumptionBtnsInSupportTask', 'enum(auto=Автоматично,firstRow=На първи ред,secondRow=На втори ред,no=Скриване)', 'caption=Бутони за влагане/връщане в сигналите->Избор,notNull,value=auto');
 
         $this->setDbUnique('name');
     }
@@ -567,14 +568,15 @@ class support_Systems extends core_Master
                 $row->btns .= ht::createLink('', array($Tasks, 'add', $taskField => $supportTaskId, 'folderId' => $folderId, 'assetResourceId' => $id, 'ret_url' => true), $false, array('ef_icon' => 'img/16/support.png', 'title' => 'Създаване на сигнал'));
             }
 
-            if (support_Tasks::haveRightFor('list')) {
+            if (cal_Tasks::haveRightFor('listsupporttasks')) {
                 if ($id) {
                     $search = $data->recs[$id]->code . ' ' . $data->recs[$id]->name;
                 } else {
                     $search = cls::get('cal_Tasks')->withoutResStr;
                 }
 
-                $listUrl = array('support_Tasks', 'list', 'systemId' => $data->masterData->rec->id, 'assetResourceId' => $id);
+                $folderId = $data->masterMvc->fetchField($data->masterData->rec->id, 'folderId');
+                $listUrl = array('cal_Tasks', 'listsupporttasks', 'folder' => $folderId, 'assetResourceId' => $id);
             }
 
             // Бутон към филтриране на изгледа и броя на отворените нишки

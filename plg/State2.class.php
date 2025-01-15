@@ -276,7 +276,7 @@ class plg_State2 extends core_Plugin
             if ($actState) {
                 $mvc->invoke('BeforeChangeState', array($rec, $actState));
             }
-            
+            $rec->_manualStateChange = true;
             $mvc->save($rec, $updateFields);
             
             if ($actState) {

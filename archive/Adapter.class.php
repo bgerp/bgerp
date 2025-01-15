@@ -187,7 +187,7 @@ class archive_Adapter
         $fh = $this->absorbFile($path);
         
         // Очакваме да има манипулатор
-        expect($fh, 'Не може да се вземе файла');
+        expect($fh, 'Не може да се вземе файла', $path, $size, $entry);
         
         return $fh;
     }
