@@ -2225,6 +2225,10 @@ td.keylist-group {
 .inner-keylist .hiddenElement {
   display: none; }
 
+.filed-sharedUsers label span {
+  filter: grayscale(100%);
+  font-size: 0.8em; }
+
 /*
  * край на стилове за показване на формите
  */
