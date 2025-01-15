@@ -98,7 +98,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,expectedTimeEnd=Край,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,notes=Забележка,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,expectedTimeEnd=Край,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Доставка,originId=@,notes=Забележка';
 
 
     /**
@@ -3096,6 +3096,8 @@ class planning_Tasks extends core_Master
         }
 
         // Ако има намерени планиращи параметри - показват се в таблицата
+        $firstColumnsIfNotSelected = array_keys($data->listFields);
+        $plannedParams = array();
         if (countR($plannedParams)) {
             $pQuery = cat_Params::getQuery();
             $pQuery->in('id', $plannedParams);
@@ -3120,7 +3122,7 @@ class planning_Tasks extends core_Master
             }
             $data->listTableMvc->setField("assetId", 'tdClass=small');
             $fieldsToFilterIfEmpty = array_merge($paramFields, $fieldsToFilterIfEmpty);
-            arr::placeInAssocArray($data->listFields, $paramFields, null, 'saleId');
+            $data->listFields += $paramFields;
         }
 
         if (Mode::is('isReorder')){
@@ -3213,7 +3215,6 @@ class planning_Tasks extends core_Master
             }
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
-
 
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');
@@ -3329,7 +3330,17 @@ class planning_Tasks extends core_Master
             core_Debug::stopTimer('RENDER_ROW');
         }
 
+        $displayColumns = planning_Setup::get('ORDER_TASK_PARAMS_IN_LIST_DISPLAY');
+        $selectedParams = array();
+        $orderedParamByUser = type_Table::toArray(planning_Setup::get('ORDER_TASK_PARAMS_IN_LIST'));
+        array_walk($orderedParamByUser, function($a) use (&$selectedParams){ $selectedParams[$a->paramId] = $a->paramId;});
+        if($displayColumns == 'yes'){
+            $data->listFields = arr::reorderArrayByOrderedKeys($data->listFields, $selectedParams, $firstColumnsIfNotSelected);
+        } else {
+            $data->listFields = array_diff_key($data->listFields, $selectedParams);
+        }
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, $fieldsToFilterIfEmpty);
+
         core_Debug::stopTimer('RENDER_TABLE');
     }
 
