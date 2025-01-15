@@ -517,11 +517,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'edit' || $action == 'delete' || $action == 'import') && isset($rec->{$mvc->masterKey})) {
-            $hasType = $mvc->Master->getField('type', false);
-            
-            if (empty($hasType) || (isset($hasType) && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'invoice')) {
-                $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-                
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+            $invoiceType = $mvc->Master->getField('type', false) ? $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') : null;
+
+            if (empty($invoiceType) || $invoiceType == 'invoice') {
+
                 if ($masterRec->state != 'draft') {
                     $res = 'no_one';
                     
@@ -539,10 +539,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         $res = 'no_one';
                     }
                 }
-            } elseif (isset($hasType) && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'dc_note') {
-                
+            } elseif ($invoiceType == 'dc_note') {
                 // На ДИ и КИ не можем да изтриваме и добавяме
-                if ($action == 'add' || $action == 'delete') {
+                if (in_array($action, array('add', 'delete', 'edit'))) {
                     $res = 'no_one';
                 }
             }
