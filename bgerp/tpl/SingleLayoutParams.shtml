@@ -136,12 +136,12 @@
                 <td>[#show#]</td>
             </tr>
             <!--ET_END show-->
-            <!--ET_BEGIN show-->
+            <!--ET_BEGIN showList-->
             <tr>
                 <td class="title-style">|Показване лист|*</td>
                 <td>[#showList#]</td>
             </tr>
-            <!--ET_END show-->
+            <!--ET_END showList-->
             <!--ET_BEGIN orderBy-->
             <tr>
                 <td class="title-style">|Подредба|*</td>
@@ -198,25 +198,26 @@
                 <td>[#default#]</td>
             </tr>
             <!--ET_END default-->
+            <tr>
+                <th colspan="2" style='padding-top: 20px;'>|Допълнително|*</th>
+            </tr>
             <!--ET_END groupParams-->
             <tr>
-                <th colspan="2" style='padding-top: 20px;'>|Счетоводен признак за групиране|*</th>
-            </tr>
-            <tr>
-                <td class="title-style">|Използване|*</td>
+                <td class="title-style">|Сч. признак за групиране|*</td>
                 <td>[#isFeature#]</td>
             </tr>
-            
             <!--ET_BEGIN showInPublicDocuments-->
             <tr>
-                <th colspan="2" style='padding-top: 20px;'>|Показване във външни документи|*</th>
-            </tr>
-            <tr>
-                <td class="title-style">|Показване|*</td>
+                <td class="title-style">|Външни документи|*: |Показване|*</td>
                 <td>[#showInPublicDocuments#]</td>
             </tr>
             <!--ET_END showInPublicDocuments-->
-            
+            <!--ET_BEGIN showInTasks-->
+            <tr>
+                <td class="title-style">|Произв. операции|*: |Показване|*</td>
+                <td>[#showInTasks#]</td>
+            </tr>
+            <!--ET_END showInTasks-->
             <!--ET_BEGIN editInLabel-->
             <tr>
                 <td class="title-style">|Редакция за показване в етикет|*</td>
