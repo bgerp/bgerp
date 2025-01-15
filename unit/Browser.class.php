@@ -87,13 +87,18 @@ class unit_Browser
     /**
      * Емулира клик върху линк
      */
-    public function click($link)
+    public function click($link = null)
     {
+        if (!$link) {
+            wp('Няма параметър за click');
+        }
         $this->prepareNode();
         $link = $this->node->findLink($link);
         if ($link) {
             $link->click();
             $this->node = null;
+        } else {
+            wp('Линкът не е намерен', $link);
         }
     }
     
