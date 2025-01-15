@@ -1,0 +1,75 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
+<!--ET_BEGIN activatedBy-->
+<div style="position: relative">
+    <div class="stamp approved">
+        <div style="font-size: 26px;font-style: italic" class="centered">ОДОБРЕНО</div>
+        <div style="margin-top: 5px;">
+            <span class="fleft">[#activatedOn#]</span>
+            <span class="fright" style="margin-left: 10px;">[#activatedBy#]</span>
+        </div>
+    </div>
+</div>
+
+<!--ET_END activatedBy-->
+
+<!--ET_BEGIN decline-->
+<div style="position: relative">
+    <div class="stamp approved">
+        <div style="font-size: 26px;font-style: italic" class="centered">ОТКАЗАНО</div>
+        <div style="margin-top: 5px;">
+            <span class="fleft">[#modifiedOn#]</span>
+            <span class="fright" style="margin-left: 10px;">[#modifiedBy#]</span>
+        </div>
+    </div>
+</div>
+
+<!--ET_END decline-->
+<table class="no-border-table" style="margin-top: 5px;">
+    <tr>
+        <td class="fright">|От|*:</td>
+        <td><b>[#personId#]</b></td>
+    </tr>
+    <tr>
+        <td class="fright">|Относно|*:</td>
+        <td ><b>|Заявка за работа от вкъщи|*</b></td>
+    </tr>
+    <tr>
+        <td class="fright">|До|*:</td>
+        <td><b>|Управителя на|* [#myCompany#]</b></td>
+    </tr>
+</table>
+<br>
+
+<h3 class="centered" style="font-size:16pt">|М О Л Б А|* </h3>
+
+<p class="centered">№ [#id#] / <!--ET_BEGIN createdDate-->[#createdDate#]<!--ET_END createdDate--> |г|*.</p>
+
+
+<br><br>
+
+<p class="indent">|Моля, да ми бъде разрешено да работя от вкъщи|*<!--ET_BEGIN useDaysFromYear--> |за|* [#leaveDays#] |дни|*<!--ET_END useDaysFromYear-->, |считано от|* <b>[#startDate#] |г|*.<!--ET_BEGIN fromHour--> [#fromHour#]|ч|*.<!--ET_END fromHour--></b> |до|* <b>[#toDate#] |г|*.<!--ET_BEGIN toHour--> [#toHour#] |ч.|*<!--ET_END toHour--></b>| включително|*.</p>
+
+<p>|По време на отсъствието ми от офиса|*:</p>
+<ul class='custom-ul'>
+    <li>|ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
+    <li>|ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
+    <!--ET_BEGIN alternatePersons-->
+    <li>|ще ме замества|*: <b>[#alternatePersons#]</b></li>
+    <!--ET_END alternatePersons-->
+</ul>
+<!--ET_BEGIN note-->
+<div class="richtext-holder indent" style="margin-bottom: 10px;">|Бележки|*: [#note#] </div>
+<!--ET_END note-->
+<br><br>
+
+<table style='width:100%;'>
+    <tr>
+        <!--ET_BEGIN createdDateFooter-->
+        <td>|Дата|*: [#createdDate#] |г|*.</td>
+        <!--ET_END createdDateFooter-->
+        <td> </td>
+        <td class='aright'>|Подпис|*: ............................</td>
+    </tr>
+</table>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
