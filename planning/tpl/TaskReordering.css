@@ -43,11 +43,8 @@ td {
   box-sizing: content-box; }
 
 .wrongDates {
-  background1: red;
-  color: red; }
-
-td:has(.wrongDates) {
-  background1: red !important; }
+  color: red;
+  font-weight: bold; }
 
 .state-pending,
 .state-pending:hover {
