@@ -114,11 +114,11 @@ class cond_type_Product extends cond_type_Varchar
             if($lg != 'bg'){
                 $valueRec = cat_Products::fetch($value);
                 if(!empty($valueRec->infoInt)){
-                    $title = core_Type::getByName('richtext')->toVerbal($valueRec->infoInt);
+                    $title = core_Type::getByName('richtext')->toVerbal(trim($valueRec->infoInt));
                 }
             }
             if(empty($title)){
-                $title = cat_Products::getVerbal($value, 'info');
+                $title = trim(cat_Products::getVerbal($value, 'info'));
             }
             Mode::pop('text');
         }

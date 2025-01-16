@@ -1285,6 +1285,11 @@ a.profile {
 	text-decoration: underline !important;
 	text-decoration-style: dotted !important;
 }
+
+.profile-state-access {
+	text-decoration: underline !important;
+	text-decoration-style: dashed !important;
+}
 /*край на хипервръзки към профилите на потребители*/
 
 /*състояния*/
@@ -2437,6 +2442,11 @@ td.keylist-group{
 
 .inner-keylist .hiddenElement {
    display: none;
+}
+
+.filed-sharedUsers label span {
+	filter: unquote('grayscale(100%)');
+	font-size: 0.8em;
 }
 /*край на стилове за показване на формите */
  

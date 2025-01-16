@@ -87,6 +87,12 @@ class doc_Search extends core_Manager
 
         $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички, silent');
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
+
+        unset($data->listFilter->getField('state')->type->options['opened'],
+            $data->listFilter->getField('state')->type->options['hidden'],
+            $data->listFilter->getField('state')->type->options['free']
+            );
+        $data->listFilter->setField('state', 'minimumResultsForSearch=20');
         $data->listFilter->setField('search', 'caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
         
