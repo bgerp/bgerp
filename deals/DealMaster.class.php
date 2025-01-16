@@ -173,11 +173,43 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Ако няма фактури, гледаме имали платежен план
             $aggregateDealInfo = !isset($aggregator) ? $this->getAggregateDealInfo($rec->id) : $aggregator;
+
+            $proformaValior = null;
             $methodId = $aggregateDealInfo->get('paymentMethodId');
+            $invoiceDate = $aggregateDealInfo->get('invoicedValior');
+            $shippedValior = $aggregateDealInfo->get('shippedValior');
+            $agreedValior = $aggregateDealInfo->get('agreedValior');
+
+            // Извличане на най-малката дата на проформата (ако няма дата на ф-не или дата на доставка)
+            if($this instanceof sales_Sales){
+                if(empty($invoiceDate) && empty($shippedValior)){
+                    $proformaDates = array();
+                    $pQuery = sales_Proformas::getQuery();
+                    $pQuery->where("#threadId = {$rec->threadId}");
+                    $pQuery->show('date,dueDate');
+                    while($pRec = $pQuery->fetch()){
+                        $proformaDates[] = !empty($pRec->dueDate) ? $pRec->dueDate : $pRec->date;
+                    }
+                    $proformaValior = min($proformaDates);
+                }
+            }
+
+            setIfNot($date, $invoiceDate, $shippedValior, $proformaValior, $agreedValior);
+
+            // Ако няма дефолтен начин на плащане се търси такъв
+            if(empty($methodId)){
+                $condSysId = ($this instanceof sales_Sales) ? 'paymentMethodSale' : 'paymentMethodPurchase';
+                $methodId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $condSysId);
+            }
+
+            if(empty($methodId)) {
+                $methodId = deals_Setup::get('OVERDUE_DEFAULT_PAYMENT_METHOD');
+            }
+
             if (!empty($methodId)) {
+
                 // За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
                 $date = null;
-                setIfNot($date, $aggregateDealInfo->get('invoicedValior'), $aggregateDealInfo->get('shippedValior'), $aggregateDealInfo->get('agreedValior'));
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
 
                 // Проверяваме дали сделката е просрочена по платежния си план
