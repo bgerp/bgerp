@@ -3097,7 +3097,7 @@ class planning_Tasks extends core_Master
 
         // Ако има намерени планиращи параметри - показват се в таблицата
         $firstColumnsIfNotSelected = array_keys($data->listFields);
-        $plannedParams = array();
+
         if (countR($plannedParams)) {
             $pQuery = cat_Params::getQuery();
             $pQuery->in('id', $plannedParams);
@@ -3330,8 +3330,8 @@ class planning_Tasks extends core_Master
             core_Debug::stopTimer('RENDER_ROW');
         }
 
-        $displayColumns = planning_Setup::get('ORDER_TASK_PARAMS_IN_LIST_DISPLAY');
         $selectedParams = array();
+        $displayColumns = planning_Setup::get('ORDER_TASK_PARAMS_IN_LIST_DISPLAY');
         $orderedParamByUser = type_Table::toArray(planning_Setup::get('ORDER_TASK_PARAMS_IN_LIST'));
         array_walk($orderedParamByUser, function($a) use (&$selectedParams){ $selectedParams[$a->paramId] = $a->paramId;});
         if($displayColumns == 'yes'){
