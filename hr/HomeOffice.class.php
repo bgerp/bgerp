@@ -447,7 +447,7 @@ class hr_HomeOffice extends core_Master
                     $mvc,
                     'Decline',
                     'id' => $data->rec->id,
-                    'ret_url' => array('hr_Leaves', 'single', $data->rec->id)
+                    'ret_url' => array('hr_HomeOffice', 'single', $data->rec->id)
                 ),
                 array('ef_icon' => 'img/16/cancel16.png',
                     'title' => 'Отказ на молбата'
@@ -671,7 +671,7 @@ class hr_HomeOffice extends core_Master
                 $calRec->state = $rec->state;
 
                 // Url на задачата
-                $calRec->url = array('hr_Trips', 'Single', $id);
+                $calRec->url = array('hr_HomeOffice', 'Single', $id);
 
                 $events[] = $calRec;
             }
