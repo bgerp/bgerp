@@ -246,7 +246,9 @@ class drdata_Countries extends core_Manager
             $country = drdata_Countries::fetch(array("#letterCode2 = '[#1#]'", $mix))->{$field};
         } elseif(strlen($mix) == 3) {
             $country = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix))->{$field};
-        } else {
+        } 
+        
+        if(!$country) {
             $cId = drdata_Countries::getIdByName($mix);
             if($cId) {
                 $country = drdata_Countries::fetch($cId)->{$field};

@@ -138,7 +138,7 @@ class crm_Profiles extends core_Master
     /**
      * Помощен масив за типовете дни
      */
-    public static $map = array('missing' => 'Отсъстващи','sickDay' => 'Болничен','leaveDay' => 'Отпуск', 'tripDay' => 'Командировка');
+    public static $map = array('missing' => 'Отсъстващи','sickDay' => 'Болничен','leaveDay' => 'Отпуск', 'tripDay' => 'Командировка', 'homeOffice' => 'Работа от вкъщи');
     
     
     /**
@@ -1405,7 +1405,7 @@ class crm_Profiles extends core_Master
     {
         $rec = $data->listFilter->rec;
         
-        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуск,tripDay=Командировка)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
+        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуск,tripDay=Командировка,homeOffice=Работа от вкъщи)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
         
         $data->listFilter->view = 'horizontal';
         
@@ -1422,7 +1422,7 @@ class crm_Profiles extends core_Master
             
             case 'missing':
                 
-                $data->query->where("(#stateInfo = 'sickDay') OR (#stateInfo = 'leaveDay') OR (#stateInfo = 'tripDay')");
+                $data->query->where("(#stateInfo = 'sickDay') OR (#stateInfo = 'leaveDay') OR (#stateInfo = 'tripDay')OR (#stateInfo = 'homeOffice')");
                 break;
             case 'sickDay':
                 
@@ -1437,6 +1437,11 @@ class crm_Profiles extends core_Master
             case 'tripDay':
                 
                 $data->query->where("#stateInfo = 'tripDay'");
+                break;
+                
+            case 'homeOffice':
+                
+                $data->query->where("#stateInfo = 'homeOffice'");
                 break;
         }
     }

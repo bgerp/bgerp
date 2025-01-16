@@ -44,7 +44,11 @@ class type_Url extends type_Varchar
             
             return;
         }
-        
+
+        if(stripos($value, '://') === false) {
+            $value = 'http://' . $value;
+        }
+
         if (!Mode::is('text', 'plain')) {
             $attr = array();
             $attr['target'] = '_blank';

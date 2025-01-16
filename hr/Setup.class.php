@@ -23,6 +23,11 @@ defIfNot('HR_EMAIL_TO_PERSON', '');
  */
 defIfNot('HR_COMPANIES_IP', '');
 
+/**
+ * разрешените дни за работа от вкъщи
+ */
+defIfNot('HR_DAYS_IN_HOMEOFFICE', '');
+
 
 /**
  * class hr_Setup
@@ -79,6 +84,7 @@ class hr_Setup extends core_ProtoSetup
         'HR_EC_MAX' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
         'HR_EMAIL_TO_PERSON' => array('key(mvc=crm_Persons,select=name, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Изпращане на имейл към->Лице'),
         'HR_COMPANIES_IP' => array('varchar', 'caption=Ip-та на фирмата'),
+        'HR_DAYS_IN_HOMEOFFICE' => array('int(min=0)', 'caption=Разрешените дни за работа от вкъщи'),
         );
     
     
@@ -96,6 +102,7 @@ class hr_Setup extends core_ProtoSetup
         'hr_Leaves',
         'hr_Sickdays',
         'hr_Trips',
+        'hr_HomeOffice',
         'hr_Bonuses',
         'hr_Deductions',
         'hr_FormCv',
