@@ -182,7 +182,8 @@ class cat_products_Params extends doc_Detail
                 if($rec->classId == cat_BomDetails::getClassId()){
                     $warningMsg = 'Няма повече планиращи параметри';
                 }
-                return followRetUrl(null, $warningMsg, 'warning');
+
+                followRetUrl(null, $warningMsg, 'warning');
             }
             
             $form->setOptions('paramId', array('' => '') + $options);
@@ -401,7 +402,7 @@ class cat_products_Params extends doc_Detail
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 if ($data->noChange !== true && !Mode::isReadOnly()) {
-                    $minRowToolbar = isset($data->minRowToolbar) ? $data->minRowToolbar : null;
+                    $minRowToolbar = $data->minRowToolbar ?? null;
                     $row->tools = $row->_rowTools->renderHtml($minRowToolbar);
                 } else {
                     unset($row->tools);
@@ -465,6 +466,8 @@ class cat_products_Params extends doc_Detail
                     $requiredRoles = 'task,ceo';
                 } elseif ($rec->classId == marketing_Inquiries2::getClassId()) {
                     $requiredRoles = 'marketing,ceo';
+                } elseif($rec->classId == planning_AssetResources::getClassId()){
+                    $requiredRoles = 'ceo, planningMaster';
                 } elseif ($rec->classId == cat_Products::getClassId()) {
                     $requiredRoles = 'cat,ceo,catEdit,sales,purchase';
                     $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
@@ -578,7 +581,14 @@ class cat_products_Params extends doc_Detail
 
         $Class->logWrite($logMsg, $rec->productId);
         $Class->logDebug("{$logMsg}: {$paramName}", $rec->productId);
-        $Class->touchRec($rec->productId);
+        if(cls::haveInterface('doc_DocumentIntf', $Class)){
+            $Class->touchRec($rec->productId);
+        } else {
+            $cRec = $Class->fetch($rec->productId);
+            $cRec->modifiedOn = dt::now();
+            $cRec->modifiedBy = core_Users::getCurrent();
+            $Class->save_($cRec, 'modifiedOn,modifiedBy');
+        }
     }
     
     

@@ -321,7 +321,6 @@ class planning_AssetResources extends core_Master
     
     /**
      * След преобразуване на записа в четим за хора вид
-     * planning_Centers::getUndefinedFolderId()
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
@@ -935,6 +934,31 @@ class planning_AssetResources extends core_Master
 
         if ($mvc->haveRightFor('recalctime', (object)array('id' => $data->rec->id, 'isDebug' => 1))) {
             $data->toolbar->addBtn('Подреждане (Дебъг)', array($mvc, 'recalcTimes', $data->rec->id, 'isDebug' => 1, 'ret_url' => true), 'ef_icon=img/16/bug.png,title=Дебъг преизчисляване на времената');
+        }
+    }
+
+
+    /**
+     * Подготовка за рендиране на единичния изглед
+     *
+     * @param core_Master $mvc
+     * @param object      $res
+     * @param object      $data
+     */
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        $data->paramData = cat_products_Params::prepareClassObjectParams($mvc, $data->rec);
+    }
+
+
+    /**
+     * След рендиране на единичния изглед
+     */
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        if (isset($data->paramData)) {
+            $paramTpl = cat_products_Params::renderParams($data->paramData);
+            $tpl->append($paramTpl, 'PARAMS');
         }
     }
 

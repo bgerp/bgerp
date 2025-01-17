@@ -3227,7 +3227,7 @@ class planning_Tasks extends core_Master
             // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
 
-            if($haveDiffProductIds){
+            if($haveDiffProductIds || isset($data->masterMvc)){
                 $stepTitle = str::limitLen($mvc->getStepTitle($rec->productId), 32);
                 if (!empty($rec->subTitle)) {
                     $stepTitle .= "|{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
