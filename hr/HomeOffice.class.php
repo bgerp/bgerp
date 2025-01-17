@@ -142,7 +142,7 @@ class hr_HomeOffice extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Hmoff';
+    public $abbr = 'Hmo';
     
     
     /**
@@ -178,14 +178,14 @@ class hr_HomeOffice extends core_Master
         $this->FLD('startDate', 'datetime', 'caption=Считано->От, mandatory');
         $this->FLD('toDate', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
         $this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-        $this->FLD('emoji', 'enum(е1=🏠, е2=💻, е3=☕, е4=🪟)', 'caption=Информация->Икона за ника, maxRadio=4,columns=4,notNull,value=е2');
-        $this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');
+        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefis('h'))), 'caption=Информация->Икона за ника, maxRadio=10,columns=10,notNull,value=h2');
+        $this->FLD('note', 'richtext(rows=5, bucket=Notes)', 'caption=Информация->Бележки');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на работата от вкъщи->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на работата от вкъщи->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на работата от вкъщи->Заместник, oldFieldName=alternatePerson');
         $this->FNC('title', 'varchar', 'column=none');
         
-        $this->FLD('sharedUsers', 'userList(roles=hrTrips|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(roles=hrHomeOffice|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
     
     
@@ -396,7 +396,7 @@ class hr_HomeOffice extends core_Master
             
             if ($action == 'order') {
                 // и нямаме нужните права
-                if (!Users::haveRole('ceo') || !Users::haveRole('hrLeaves')) {
+                if (!Users::haveRole('ceo') || !Users::haveRole('hrHomeOffice')) {
                     // то не може да я направим
                     $requiredRoles = 'no_one';
                 }
@@ -424,7 +424,7 @@ class hr_HomeOffice extends core_Master
                     //$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
                     
                     if ($inCharge != $userId) {
-                        if (!Users::haveRole('ceo') && !Users::haveRole('hrLeaves')) {
+                        if (!Users::haveRole('ceo') && !Users::haveRole('hrHomeOffice')) {
                             // то не може да я направим
                             $requiredRoles = 'no_one';
                         }
@@ -754,7 +754,7 @@ class hr_HomeOffice extends core_Master
         
         if ($Cover->className == 'doc_UnsortedFolders') {
             $cu = core_Users::getCurrent();
-            if (!haveRole('ceo,hrTrips', $cu)) {
+            if (!haveRole('ceo,hrHomeOffice', $cu)) {
                 
                 return false;
             }
