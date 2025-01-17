@@ -403,6 +403,13 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+
+        if(isset($data->rec->assetId)){
+            $Assets = cls::get('planning_AssetResources');
+            Mode::push('text', 'xhtml');
+            $data->assetData = cat_products_Params::prepareClassObjectParams($Assets, $Assets->fetch($data->rec->assetId));
+            Mode::pop('text', 'xhtml');
+        }
     }
 
 
@@ -427,6 +434,14 @@ class planning_Tasks extends core_Master
         if (isset($data->paramData)) {
             $paramTpl = cat_products_Params::renderParams($data->paramData);
             $tpl->append($paramTpl, 'PARAMS');
+        }
+
+        if(isset($data->assetData)){
+            Mode::push('text', 'xhtml');
+            $data->assetData->paramCaption = 'От обордуването';
+            $assetTpl = cat_products_Params::renderParams($data->assetData);
+            $tpl->append($assetTpl, 'ASSET_PARAMS');
+            Mode::pop('text');
         }
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
 

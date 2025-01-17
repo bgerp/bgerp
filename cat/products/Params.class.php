@@ -409,8 +409,10 @@ class cat_products_Params extends doc_Detail
                 }
             }
         }
-        
-        $tpl = cat_Params::renderParamBlock($data->params);
+
+        $paramCaption = $data->paramCaption ?? null;
+
+        $tpl = cat_Params::renderParamBlock($data->params, $paramCaption);
         $tpl->replace(get_called_class(), 'DetailName');
         
         if ($data->noChange !== true) {
@@ -882,7 +884,7 @@ class cat_products_Params extends doc_Detail
             if(!in_array($objectRec->state, array('draft', 'active'))){
                 $d->noChange = true;
             }
-        }elseif ($objectRec->state == 'closed' || $objectRec->state == 'stopped' || $objectRec->state == 'rejected') {
+        } elseif ($objectRec->state == 'closed' || $objectRec->state == 'stopped' || $objectRec->state == 'rejected') {
             $d->noChange = true;
         }
         cat_products_Params::prepareParams($d);
