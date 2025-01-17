@@ -436,7 +436,7 @@ class planning_Tasks extends core_Master
             $tpl->append($paramTpl, 'PARAMS');
         }
 
-        if(isset($data->assetData)){
+        if(isset($data->assetData) && countR($data->assetData->params)){
             Mode::push('text', 'xhtml');
             $data->assetData->paramCaption = 'От обордуването';
             $assetTpl = cat_products_Params::renderParams($data->assetData);
