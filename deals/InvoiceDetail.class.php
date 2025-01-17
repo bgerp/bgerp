@@ -111,6 +111,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
             foreach (array('packagingId', 'notes', 'discount') as $fld) {
                 $data->form->setField($fld, 'input=none');
             }
+            if ($masterRec->state != 'draft'){
+                $data->form->setField('notes', 'input');
+            }
         }
         $data->form->setFieldTypeParams('quantity', array('min' => 0));
         $data->form->setFieldTypeParams('packPrice', array('min' => 0));
@@ -120,10 +123,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         if ($masterRec->state != 'draft' and !haveRole('no_one')) {
+
             $fields = $data->form->selectFields("#name != 'notes' AND #name != 'productId' AND #name != 'id' AND #name != 'invoiceId'");
             $data->singleTitle = 'забележка';
             $data->form->editActive = true;
-            
             foreach ($fields as $name => $fld) {
                 $data->form->setField($name, 'input=none');
             }
