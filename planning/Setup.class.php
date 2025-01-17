@@ -309,7 +309,7 @@ class planning_Setup extends core_ProtoSetup
             $options[$fld] =  'Списък->' . tr($caption);
         }
 
-        $configForm->setFieldTypeParams('PLANNING_ORDER_TASK_PARAMS_IN_LIST', array('paramId_opt' => array('' => '') + $options + array('_rest_' => 'Списък->Останалите')));
+        $configForm->setFieldTypeParams('PLANNING_ORDER_TASK_PARAMS_IN_LIST', array('paramId_opt' => array('' => '') + $options + array('_rest_' => 'Списък->Всички')));
         $configForm->setFieldTypeParams('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', array('paramId_opt' => array('' => '') + $options));
     }
 
