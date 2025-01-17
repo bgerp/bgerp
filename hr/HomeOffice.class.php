@@ -291,7 +291,7 @@ class hr_HomeOffice extends core_Master
                 $form->setError('toDate', "Крайната дата трябва да е преди {$after1yearVerbal}г.", $ignorable);
             }
             
-            // Изисляване на брой дни отпуска
+            // Изисляване на брой дни хоум офис
             if ($form->rec->startDate && $form->rec->toDate) {
                 $scheduleId = planning_Hr::getSchedule($form->rec->personId);
                 $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId, $form->rec->startDate, $form->rec->toDate);
@@ -401,6 +401,16 @@ class hr_HomeOffice extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
+            
+            if($action == 'activate') {
+                
+                $homeDays = hr_Setup::get('DAYS_IN_HOMEOFFICE');
+                $lDays = self::getHomeDayForMonth();
+                
+                if($lDays > $homeDays){
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
         
         if ($action == 'add' || $action == 'reject' || $action == 'decline') {
@@ -439,8 +449,7 @@ class hr_HomeOffice extends core_Master
             // Премахваме бутона за коментар
             $data->toolbar->removeBtn('Коментар');
         }
-        
-        
+
         if ($mvc->haveRightFor('decline', $data->rec) && $data->rec->state != 'closed') {
             $data->toolbar->addBtn(
                 'Отказ',
@@ -765,5 +774,90 @@ class hr_HomeOffice extends core_Master
         $title = tr('Заявка за работа от вкъщи  №|*'. $rec->id . ' на|* ') . $me->getVerbal($rec, 'personId');
         
         return $title;
+    }
+    
+    
+    /**
+     * Връща броя дни използвани за хоум офис
+     * @return number
+     */
+    public static function getHomeDayForMonth()
+    {
+        // Текущото време 
+        $today = dt::now($full = FALSE);
+        $today = explode("-", $today);
+        
+        // Таймстамп на първия ден на текущия месеца
+        $firstDayTms = mktime(0, 0, 0, $today[1], 1, $today[0]);
+        
+        // Броя на дните в текущия месеца
+        $lastDay = date('t', $firstDayTms);
+        
+        //календарна дата на първи и последен ден от текущия месец
+        $fromDate = "$today[0]-$today[1]-01";
+        $toDate = "$today[0]-$today[1]-$lastDay";
+        
+        // Предишния месец
+        $pm = $today[1]-1;
+        if($pm == 0) {
+            $pm = 12;
+            $py = $today[0]-1;
+        } else {
+            $py = $today[0];
+        }
+    
+        $firstDayTmsPrevMonth = mktime(0, 0, 0, $pm, 1, $py);
+        $lastDayPrevMonth = date('t', $firstDayTmsPrevMonth);
+        //календарна дата на последния ден от предишния месец
+        $prevMonth = "$py-$pm-$lastDayPrevMonth";
+
+        // Следващият месец
+        $nm = $today[1]+1;
+        if($nm == 13) {
+            $nm = 1;
+            $ny = $today[0]+1;
+        } else {
+            $ny = $today[0];
+        }
+        //календарна датана първият ден на следващия месец
+        $nextMonth = "$ny-$nm-01";
+
+        $cUser = core_Users::getCurrent();
+
+        // Създаваме обекта $data
+        $data = new stdClass();
+        
+        // Създаваме заявката
+        $data->query = self::getQuery();
+        
+        // Искаме само активираните документи
+        $data->query->where("#state = 'active' AND ((#startDate >= '{$fromDate}' AND #toDate <= '{$toDate}')
+                                               OR (#startDate <= '{$prevMonth}') OR (#toDate >= '{$nextMonth}'))");
+        // търсим всички заявки за хоум офис, които са за текущия потребител
+        $data->query->where("#personId='{$cUser}'");
+        
+        $data->recs = $data->query->fetchAll();
+       
+        $lDay = 0;
+
+        foreach($data->recs as $id=>$rec){
+            if($rec->startDate <= $prevMonth && $rec->toDate <= $toDate) { 
+                $scheduleId = planning_Hr::getSchedule($cUser);
+                $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId,  dt::verbal2mysql($fromDate, false), dt::verbal2mysql($rec->toDate, false));
+
+                $lDay += $days->workDays;
+            } elseif($rec->toDate >= $toDate){
+                //$rec->toDate >= $nextMonth && $rec->startDate <= $toDate
+                $scheduleId = planning_Hr::getSchedule($cUser);
+                $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId, dt::verbal2mysql($rec->startDate, false), dt::verbal2mysql($nextMonth, false));
+               
+                $lDay += $days->workDays;
+            } elseif($rec->startDate >= $fromDate && $rec->toDate <= $toDate) {
+  
+                $lDay += $rec->leaveDays;
+            }
+        }
+
+        return $lDay;
     }
 }
