@@ -541,7 +541,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
             } elseif ($invoiceType == 'dc_note') {
                 // На ДИ и КИ не можем да изтриваме и добавяме
-                if (in_array($action, array('add', 'delete', 'edit'))) {
+                if (in_array($action, array('add', 'delete'))) {
                     $res = 'no_one';
                 }
             }
