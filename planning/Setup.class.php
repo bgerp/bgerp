@@ -194,15 +194,15 @@ defIfNot('PLANNING_AUTO_CREATE_TASK_STATE', 'pending');
 
 
 /**
- * Подредба на параметри в листа на операциите->Падредба
+ * Подредба на колонки в листа на операциите->Падредба
  */
 defIfNot('PLANNING_ORDER_TASK_PARAMS_IN_LIST', '');
 
 
 /**
- * Подредба на параметри в листа на операциите->Избор
+ * Подредба на колонки в листа на операциите->Скриване
  */
-defIfNot('PLANNING_ORDER_TASK_PARAMS_IN_LIST_DISPLAY', 'yes');
+defIfNot('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', '');
 
 
 /**
@@ -285,8 +285,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_SENDER_AND_RECEIVER_SETTINGS' => array('enum(no=Скриване,yes=Показване,yesDefault=Показване с дефолт)', 'caption=Полета за получил/предал в Протоколите за влагане/връщане->Избор'),
         'PLANNING_SPARE_PARTS_HORIZON_IN_LIST' => array('int(Min=0)', 'caption=Планирани наличности на резервните части->Месеци напред'),
         'PLANNING_AUTO_CREATE_TASK_STATE' => array('enum(pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние'),
-        'PLANNING_ORDER_TASK_PARAMS_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на параметри в листа на операциите->Падредба,customizeBy=taskSee|ceo'),
-        'PLANNING_ORDER_TASK_PARAMS_IN_LIST_DISPLAY' => array('enum(yes=Подредба,no=Скриване)', 'caption=Подредба на параметри в листа на операциите->Избор,customizeBy=taskSee|ceo'),
+        'PLANNING_ORDER_TASK_PARAMS_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Показване в ред,customizeBy=taskSee|ceo'),
+        'PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Скриване,customizeBy=taskSee|ceo'),
     );
 
 
@@ -304,12 +304,13 @@ class planning_Setup extends core_ProtoSetup
             $options["param_{$paramId}"] = $name;
         }
 
-        $additionalFields = arr::make('dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж,notes=Забележка', true);
+        $additionalFields = arr::make('dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),notes=Забележка,folderId=Папка', true);
         foreach ($additionalFields as $fld => $caption){
             $options[$fld] =  'Списък->' . tr($caption);
         }
 
-        $configForm->setFieldTypeParams('PLANNING_ORDER_TASK_PARAMS_IN_LIST', array('paramId_opt' => array('' => '') + $options));
+        $configForm->setFieldTypeParams('PLANNING_ORDER_TASK_PARAMS_IN_LIST', array('paramId_opt' => array('' => '') + $options + array('_rest_' => 'Списък->Останалите')));
+        $configForm->setFieldTypeParams('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', array('paramId_opt' => array('' => '') + $options));
     }
 
 
