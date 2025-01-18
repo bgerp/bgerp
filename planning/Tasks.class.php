@@ -94,11 +94,10 @@ class planning_Tasks extends core_Master
      */
     public $preventCache = true;
 
-
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,expectedTimeEnd=Край,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Ср. на доставка,notes=Забележка,originId=@';
+    public $listFields = 'dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка';
 
 
     /**
@@ -404,6 +403,13 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+
+        if(isset($data->rec->assetId)){
+            $Assets = cls::get('planning_AssetResources');
+            Mode::push('text', 'xhtml');
+            $data->assetData = cat_products_Params::prepareClassObjectParams($Assets, $Assets->fetch($data->rec->assetId));
+            Mode::pop('text', 'xhtml');
+        }
     }
 
 
@@ -428,6 +434,14 @@ class planning_Tasks extends core_Master
         if (isset($data->paramData)) {
             $paramTpl = cat_products_Params::renderParams($data->paramData);
             $tpl->append($paramTpl, 'PARAMS');
+        }
+
+        if(isset($data->assetData) && countR($data->assetData->params)){
+            Mode::push('text', 'xhtml');
+            $data->assetData->paramCaption = 'От обордуването';
+            $assetTpl = cat_products_Params::renderParams($data->assetData);
+            $tpl->append($assetTpl, 'ASSET_PARAMS');
+            Mode::pop('text');
         }
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
 
@@ -502,18 +516,6 @@ class planning_Tasks extends core_Master
         $row->productId = $mvc->getStepTitle($rec->productId);
         if (!empty($rec->subTitle)) {
             $row->productId .= " <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
-        }
-
-        $row->title = "{$rec->id}|{$row->productId}";
-        $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
-        $singleUrl = static::getSingleUrlArray($rec->id);
-        if(Mode::is('isReorder')){
-            $row->title = "{$rec->id}| " . str::limitLen($row->productId, 42);
-            $titleAttr['data-doubleclick-url'] = toUrl($singleUrl);
-            $titleAttr['class'] = 'doubleclicklink';
-            $row->title = ht::createElement("span", $titleAttr, $row->title, true);
-        } else {
-            $row->title = ht::createLink($row->title, $singleUrl, false, $titleAttr);
         }
 
         if (!Mode::isReadOnly()) {
@@ -607,7 +609,7 @@ class planning_Tasks extends core_Master
         }
 
         $calcedDurationUom = ($rec->calcedDuration < 60) ? 'seconds' : (($rec->calcedDuration < 3600) ? 'minutes' : 'hours');
-        $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
+        $row->calcedDuration = core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
         if(isset($rec->assetId)){
             if(isset($fields['-single'])) {
                 $row->assetId = new core_ET(planning_AssetResources::getTitleById($rec->assetId));
@@ -904,7 +906,7 @@ class planning_Tasks extends core_Master
      *
      * @param stdClass|int $rec
      * @param int|null $limit
-     * @return int|null
+     * @return array
      */
     private function getPreviousTaskIds($rec, $limit = null)
     {
@@ -3035,17 +3037,10 @@ class planning_Tasks extends core_Master
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
-        if (Mode::is('printing')) {
-            $uniqueFolders = arr::extractValuesFromArray($data->recs, 'folderId');
-            if (countR($uniqueFolders) == 1) {
-                unset($data->listFields['folderId']);
-            }
-        }
-
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
-        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId', 'notes');
+        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId', 'prevExpectedTimeEnd', 'notes');
 
         // Кои ще са планиращите параметри
         $plannedParams = array();
@@ -3070,7 +3065,9 @@ class planning_Tasks extends core_Master
             $plannedParams += keylist::toArray($groupParams);
             unset($data->listFields['assetId']);
         }
-
+        if (isset($data->listFilter->rec->folder)) {
+            unset($data->listFields['folderId']);
+        }
         if (Mode::is('isReorder')) {
             $data->stopListRefresh = true;
             unset($data->listFields['_rowTools']);
@@ -3096,6 +3093,8 @@ class planning_Tasks extends core_Master
         }
 
         // Ако има намерени планиращи параметри - показват се в таблицата
+        $firstColumnsIfNotSelected = arr::make(array_keys($data->listFields), true);
+
         if (countR($plannedParams)) {
             $pQuery = cat_Params::getQuery();
             $pQuery->in('id', $plannedParams);
@@ -3120,16 +3119,15 @@ class planning_Tasks extends core_Master
             }
             $data->listTableMvc->setField("assetId", 'tdClass=small');
             $fieldsToFilterIfEmpty = array_merge($paramFields, $fieldsToFilterIfEmpty);
-            arr::placeInAssocArray($data->listFields, $paramFields, null, 'saleId');
+            $data->listFields += $paramFields;
         }
 
         if (Mode::is('isReorder')){
             $data->listTableMvc->tableRowTpl = "[#ROW#]";
-
             unset($data->listFields['folderId']);
             $data->listTableMvc->FNC('prevExpectedTimeEnd', 'datetime');
             $data->listTableMvc->FNC('nextExpectedTimeStart', 'datetime');
-            $data->listTableMvc->FNC('dueDate', 'datetime');
+            $data->listTableMvc->FNC('dueDate', 'date');
             $data->listTableMvc->FNC('dependantProgress', 'datetime');
             $data->listTableMvc->FNC('nextId', 'datetime');
             $data->listTableMvc->FNC('saleId', 'varchar');
@@ -3214,6 +3212,17 @@ class planning_Tasks extends core_Master
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
 
+        // Дали заданията и операциите са всичките с една мярка
+        $jobPacks = arr::extractValuesFromArray($jobRecs, 'packagingId');
+        $haveDiffJobPacks = countR($jobPacks) > 1;
+
+        $measuresArr = $productIds = array();
+        foreach ($data->recs as $r1){
+            $measuresArr[$r1->measureId] = $r1->measureId;
+            $productIds[$r1->productId] = $r1->productId;
+        }
+        $haveDiffMeasure = countR($measuresArr) > 1;
+        $haveDiffProductIds = countR($productIds) > 1;
 
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');
@@ -3224,11 +3233,7 @@ class planning_Tasks extends core_Master
 
             // Ако има планирани предходни операции - да се показват с техните прогреси
             if (!empty($dependantTaskArr[$rec->id]['previous'])) {
-                if(Mode::is('isReorder')){
-                    $dependantTaskBlocks = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['previous'], 'reorderBlocks');
-                } else {
-                    $dependantTaskBlocks = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['previous'], 'smallBar');
-                }
+                $dependantTaskBlocks = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['previous'], 'reorderBlocks', null, !Mode::is('isReorder'));
                 if(countR($dependantTaskBlocks)){
                     $row->dependantProgress = implode("", $dependantTaskBlocks);
                 }
@@ -3236,19 +3241,38 @@ class planning_Tasks extends core_Master
 
             // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
+
+            if($haveDiffProductIds || isset($data->masterMvc)){
+                $stepTitle = str::limitLen($mvc->getStepTitle($rec->productId), 32);
+                if (!empty($rec->subTitle)) {
+                    $stepTitle .= "|{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
+                }
+                $row->title = "{$rec->id}|{$stepTitle}";
+            } else {
+                $row->title = $rec->id;
+                if(!empty($rec->subTitle)){
+                    $row->title .= "|" . $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle);
+                }
+            }
+
+            $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
+            $singleUrl = static::getSingleUrlArray($rec->id);
+
             if(Mode::get('isReorder')){
+                $titleAttr['data-doubleclick-url'] = toUrl($singleUrl);
+                $titleAttr['class'] = 'doubleclicklink';
+                $row->title = ht::createElement("span", $titleAttr, $row->title, true);
+
                 $rowNoteAttr = array('class' => 'notesHolder', 'id' => "notesHolder{$rec->id}", 'data-prompt-text' => tr('Забележка на|*: ') . $mvc->getRecTitle($rec));
                 $rowNoteAttr['data-url'] = $mvc->haveRightFor('edit', $rec) ? toUrl(array($mvc, 'editnotes', $rec->id), 'local') : null;
-                if(!empty($rec->notes)) {
-                    $row->notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
-                }
                 $row->notes = ht::createElement("span", $rowNoteAttr, $row->notes, true);
-
                 if (!$mvc->haveRightFor('edit', $rec)) {
                     $row->ROW_ATTR['data-dragging'] = "false";
                     $row->ROW_ATTR['class'] .= " state-forbidden";
                     $row->ROW_ATTR['style'] = 'opacity:0.2';
                 }
+            } else {
+                $row->title = ht::createLink($row->title, $singleUrl, false, $titleAttr);
             }
 
             if ($displayPlanningParamsCount) {
@@ -3279,57 +3303,78 @@ class planning_Tasks extends core_Master
             // Допълнителна обработка на показването на заданието в списъка на ПО
             $row->dueDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($jobRecs[$rec->originId]->dueDate);
             $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
-            $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity);
+            $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . ($haveDiffJobPacks ? "<span class='small'>" . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity) . "</span>" : '');
 
-            if(Mode::is('isReorder')){
-                if($dependantTaskArr[$rec->id]['previous'][0]){
-                    $rec->prevExpectedTimeEnd = $dependantTaskArr[$rec->id]['previous'][0]->expectedTimeEnd;
+            if($dependantTaskArr[$rec->id]['previous'][0]){
+                $rec->prevExpectedTimeEnd = $dependantTaskArr[$rec->id]['previous'][0]->expectedTimeEnd;
+            }
+
+            if(!empty($dependantTaskArr[$rec->id]['next'][0])){
+                $rec->nextExpectedTimeStart = $dependantTaskArr[$rec->id]['next'][0]->expectedTimeStart;
+            } else {
+                $rec->nextExpectedTimeStart = $jobRecs[$rec->originId]->dueDate;
+            }
+
+            foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart') as $fld) {
+                if(!empty($rec->{$fld})){
+                    $datePure = strlen($rec->{$fld}) == 10 ? "{$rec->{$fld}} 00:00:00" : $rec->{$fld};
+                    $row->{$fld} = Mode::is('isReorder') ? dt::mysql2verbal($datePure, 'd.m.y H:i') : core_Type::getByName('datetime(format=smartTime)')->toVerbal($datePure);
+                    $row->{$fld} = Mode::is('isReorder') ? ht::createElement("span", array('data-date' => "{$datePure}", 'class' => "{$fld}Col"), $row->{$fld}, true)->getContent() : $row->{$fld};
                 }
 
-                if(!empty($dependantTaskArr[$rec->id]['next'][0])){
-                    $rec->nextExpectedTimeStart = $dependantTaskArr[$rec->id]['next'][0]->expectedTimeStart;
-                } else {
-                    $rec->nextExpectedTimeStart = $jobRecs[$rec->originId]->dueDate;
-                }
-
-                foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart') as $fld) {
-                    if(!empty($rec->{$fld})){
-                        $datePure = strlen($rec->{$fld}) == 10 ? "{$rec->{$fld}} 00:00:00" : $rec->{$fld};
-                        $row->{$fld} = dt::mysql2verbal($datePure, 'd.m.y H:i');
-                        $row->{$fld} = ht::createElement("span", array('data-date' => "{$datePure}", 'class' => "{$fld}Col"), $row->{$fld}, true)->getContent();
-                    }
+                if(Mode::is('isReorder')){
                     $row->{$fld} = ht::createElement("span", array('id' => "{$fld}{$rec->id}"), $row->{$fld}, true)->getContent();
                 }
+            }
 
-                if(!empty($dependantTaskArr[$rec->id]['next'])){
-                    $nextArr = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['next'], 'reorderBlocks', 1);
-                    $row->nextId = $nextArr[key($nextArr)];
-                }
+            if(!empty($dependantTaskArr[$rec->id]['next'])){
+                $nextArr = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['next'], 'reorderBlocks', 1, !Mode::is('isReorder'));
+                $row->nextId = $nextArr[key($nextArr)];
+            }
 
-                if(!empty($rec->dueDate)){
-                    $row->dueDate = dt::mysql2verbal($rec->dueDate, 'd.m.y 00:00');
-                    $row->dueDate = ht::createElement("span", array('data-date' => "{$rec->dueDate} 00:00:00", 'class' => "dueDateCol"), $row->dueDate, true)->getContent();
-                }
+            if(!empty($rec->dueDate)){
+                $row->dueDate = dt::mysql2verbal($rec->dueDate, 'd.m.y');
+                $row->dueDate = ht::createElement("span", array('data-date' => "{$rec->dueDate} 00:00:00", 'class' => "dueDateCol"), $row->dueDate, true)->getContent();
+            }
 
+            if(Mode::get('isReorder')){
                 $jobTitle = planning_Jobs::getTitleById($jobRecs[$rec->originId]);
                 $singleJobUrl = toUrl(planning_Jobs::getSingleUrlArray($jobRecs[$rec->originId]));
-                $row->originId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleJobUrl, 'title' => $jobTitle), $jobTitle, true);
-                $row->jobQuantity = $quantityStr;
+                $row->originId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleJobUrl, 'title' => $jobTitle, 'onmouseUp' => 'selectInnerText(this);'), $jobTitle, true);
             } else {
-                $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
-                $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> ") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
-                if(array_key_exists($rec->containerId, $inlineTags)){
-                    $row->title->append($inlineTags[$rec->containerId]);
-                }
-                if(array_key_exists($rec->originId, $inlineTags)){
-                    $row->originId .= $inlineTags[$rec->containerId];
-                }
+                $row->originId = planning_Jobs::getHyperlink($jobRecs[$rec->originId], true);
             }
+
+            $row->jobQuantity = $quantityStr;
+            $row->plannedQuantity = $row->plannedQuantity . ($haveDiffMeasure ? " <span class='small'>" . cat_UoM::getSmartName($rec->measureId, $rec->plannedQUantity) . "</span>" : '');
 
             core_Debug::stopTimer('RENDER_ROW');
         }
 
+        // Преподреждане на колонките
+        $orderedParamByUser = type_Table::toArray(planning_Setup::get('ORDER_TASK_PARAMS_IN_LIST'));
+        if(countR($orderedParamByUser)){
+            $selectedParams = arr::extractValuesFromArray($orderedParamByUser, 'paramId');
+
+            if(isset($selectedParams['_rest_'])){
+                foreach ($firstColumnsIfNotSelected as $oField){
+                    if($oField != '_rowTools'){
+                        $selectedParams[$oField] = $oField;
+                    }
+                }
+            }
+
+            $data->listFields = arr::reorderArrayByOrderedKeys($data->listFields, $selectedParams, $firstColumnsIfNotSelected);
+        }
+
+        // Скриване на колонките
+        $hideColumns = type_Table::toArray(planning_Setup::get('ORDER_TASK_PARAMS_HIDE_IN_LIST'));
+        if(countR($hideColumns)) {
+            $hideColumns = arr::extractValuesFromArray($hideColumns, 'paramId');
+            $data->listFields = array_diff_key($data->listFields, $hideColumns);
+        }
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, $fieldsToFilterIfEmpty);
+
         core_Debug::stopTimer('RENDER_TABLE');
     }
 
@@ -4277,15 +4322,6 @@ class planning_Tasks extends core_Master
         if(!Mode::is('isReorder')) return;
 
         $data->sortableTable = false;
-        unset($data->listFields['title']);
-        unset($data->listFields['expectedTimeStart']);
-        unset($data->listFields['expectedTimeEnd']);
-        unset($data->listFields['progress']);
-        $data->listFields = array('dependantProgress' => 'Пред.',
-                                  'prevExpectedTimeEnd' => 'Пред. край',
-                                  'expectedTimeStart' => 'Тек. начало',
-                                  'title' => 'Текуща', 'progress' => 'Прогрес', 'expectedTimeEnd' => 'Тек. край', 'nextExpectedTimeStart' => 'След. начало', 'nextId' => 'Следв.', 'dueDate' => 'Падеж', 'originId' => 'Задание', 'jobQuantity' => tr('Тираж'))
-         + $data->listFields;
     }
 
 

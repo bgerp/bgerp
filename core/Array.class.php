@@ -792,21 +792,30 @@ class core_Array
      *
      * @param array $arr
      * @param array $orderedKeys
+     * @param array $priorityKeysIfNotGiven
      * @return array $res
      */
-    public static function reorderArrayByOrderedKeys($arr, $orderedKeys)
+    public static function reorderArrayByOrderedKeys($arr, $orderedKeys, $priorityKeysIfNotGiven = array())
     {
-        // Добавяме елементите от оригиналния масив, чиито ключове са в $keysOrder
         $res = array();
-        foreach ($orderedKeys as $key) {
-            if (array_key_exists($key, $orderedKeys)) {
+
+        // Добавяме елементите от $priorityKeysIfNotGiven, които присъстват в $arr, но не са в $orderedKeys
+        foreach ($priorityKeysIfNotGiven as $key) {
+            if (array_key_exists($key, $arr) && !in_array($key, $orderedKeys)) {
                 $res[$key] = $arr[$key];
             }
         }
 
-        // Добавяме останалите елементи, които не са в $keysOrder, в техния оригинален ред
+        // Добавяме елементите от $orderedKeys, които присъстват в $arr
+        foreach ($orderedKeys as $key) {
+            if (array_key_exists($key, $arr)) {
+                $res[$key] = $arr[$key];
+            }
+        }
+
+        // Добавяме останалите елементи, които не са нито в $priorityKeysIfNotGiven, нито в $orderedKeys, в оригиналния ред
         foreach ($arr as $key => $value) {
-            if (!in_array($key, $arr)) {
+            if (!in_array($key, $priorityKeysIfNotGiven) && !in_array($key, $orderedKeys)) {
                 $res[$key] = $value;
             }
         }

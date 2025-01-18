@@ -378,9 +378,10 @@ class planning_StepConditions extends core_Detail
      * @param array $taskArr
      * @param string $type
      * @param int|null $limit
+     * @param bool $normalLink
      * @return array $res
      */
-    public static function renderTaskBlock($taskArr, $type, $limit = null)
+    public static function renderTaskBlock($taskArr, $type, $limit = null, $normalLink = false)
     {
         $res = array();
         $count = countR($taskArr);
@@ -405,8 +406,13 @@ class planning_StepConditions extends core_Detail
                     $prevProgressVerbal = "<span class='readyPercent'>{$prevProgressVerbal}</span>";
                 }
                 $prevId = "<span class='state-{$taskRec->state} document-handler'>{$prevProgressVerbal}</span>";
-                $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($taskRec->id));
-                $prevElement = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => planning_Tasks::getrecTitle($taskRec)), $prevId, true);
+                if($normalLink){
+                    $prevElement = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($taskRec->id));
+                } else {
+                    $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($taskRec->id));
+                    $prevElement = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => planning_Tasks::getrecTitle($taskRec)), $prevId, true);
+                }
+
                 $res[] = $prevElement->getContent();
                 $count++;
             }

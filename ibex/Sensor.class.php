@@ -81,7 +81,8 @@ class ibex_Sensor extends sens2_ProtoDriver
         $res['HOUR'] = ibex_Register::fetchField("#date = '{$date}' AND #kind = '{$h}'", 'price');
 
         $iQuery = ibex_Register::getQuery();
-
+        
+        $prices = [];
         while($iRec = $iQuery->fetch("#date = '{$date}'")) {
             if($iRec->kind == '00-24') continue;
             $prices[(int) $iRec->kind] = (float) $iRec->price;

@@ -33,6 +33,7 @@ class hr_Wrapper extends plg_ProtoWrapper
         $this->TAB('hr_Leaves', 'Документи->Отпуски', 'ceo, hr, hrMaster, admin');
         $this->TAB('hr_Sickdays', 'Документи->Болнични', 'ceo,hrMaster');
         $this->TAB('hr_Trips', 'Документи->Командировки', 'ceo,hrMaster');
+        $this->TAB('hr_HomeOffice', 'Документи->Работа от вкъщи', 'ceo,hrMaster');
         $this->TAB('hr_Bonuses', 'Документи->Премии', 'ceo,hrMaster');
         $this->TAB('hr_Deductions', 'Документи->Удръжки', 'ceo,hrMaster');
         

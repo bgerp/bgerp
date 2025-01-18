@@ -80,6 +80,12 @@ defIfNot('DEALS_OVERDUE_TOLERANCE_AMOUNT', '5');
 
 
 /**
+ * Дефолтен метод за срок на плащане при проверка за просрочията
+ */
+defIfNot('DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD', '');
+
+
+/**
  * class deals_Setup
  *
  *
@@ -109,7 +115,7 @@ class deals_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'drdata=0.1';
+    public $depends = 'drdata=0.1,cond=0.1';
     
     
     /**
@@ -144,6 +150,7 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Сделката да се показва като платена при салдо->Под'),
         'DEALS_ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE' => array('int(min=0)', 'caption=Толеранс за просрочване на сделките->Дни'),
         'DEALS_OVERDUE_TOLERANCE_AMOUNT' => array('int(min=0)', 'caption=Толеранс за просрочване на сделките->Сума'),
+        'DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD' => array('key(mvc=cond_PaymentMethods,select=title)', 'caption=Толеранс за просрочване на сделките->Дефолтен метод'),
     );
     
     
@@ -181,6 +188,23 @@ class deals_Setup extends core_ProtoSetup
             'offset' => 120
         ),
     );
+
+
+    /**
+     * Зареждане на данните
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        $defaultPaymentMethod = core_Packs::getConfigValue('deals', 'DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD');
+        if (strlen($defaultPaymentMethod) === 0) {
+            $defMethod = cond_PaymentMethods::fetchField("#sysId = 'Net3'");
+            core_Packs::setConfig('deals', array('DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD' => $defMethod));
+        }
+
+        return $res;
+    }
 
 
     /**

@@ -47,8 +47,17 @@ class hr_Leaves extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,personId, leaveFrom, leaveTo, leaveDays, note, paid';
-    
-    
+
+
+    /**
+     * @var array
+     */
+    protected static $emojiList = array('s1' => '🏥', 's2' => '🤒', 's3' => '💊', 's4' => '🛌',
+                                    'l1' => '🎿', 'l2' => '❄️', 'l3' => '⛷️', 'l4' => '🏖️', 'l5' => '🌴',
+                                    't1' => '✈️', 't2' => '🌍', 't3' => '🧳', 't4' => '🚗',
+                                    'h1' => '🏠', 'h2' => '💻', 'h3' => '☕', 'h4' => '🪟');
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -210,6 +219,7 @@ class hr_Leaves extends core_Master
         $this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
         $this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
         $this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
+        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefis('l'))), 'caption=Информация->Икона за ника, maxRadio=10,columns=10,notNull,value=l5');
         $this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
         $this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
         $this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');
@@ -280,7 +290,46 @@ class hr_Leaves extends core_Master
             $data->query->where("#personId = '{$data->listFilter->rec->employeeId}'");
         }
     }
-    
+
+
+    /**
+     * Функция, която връща иконата за съответния емотикон
+     *
+     * @param string $emoji
+     *
+     * @return string
+     */
+    public static function getEmoji($emoji)
+    {
+
+        return self::$emojiList[$emoji] ? self::$emojiList[$emoji] : '';
+    }
+
+
+    /**
+     * Функция, която връща масив с емотиконите
+     *
+     * @param string|null $pref
+     *
+     * @return array
+     */
+    public static function getEmojiesWithPrefis($pref = null)
+    {
+        if (!isset($pref)) {
+
+            return self::$emojiList;
+        }
+
+        $emojies = array();
+        foreach (self::$emojiList as $key => $emoji) {
+            if (strpos($key, $pref) === 0) {
+                $emojies[$key] = $emoji;
+            }
+        }
+
+        return $emojies;
+    }
+
     
     /**
      * Подготовка на формата за добавяне/редактиране

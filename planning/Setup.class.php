@@ -194,6 +194,18 @@ defIfNot('PLANNING_AUTO_CREATE_TASK_STATE', 'pending');
 
 
 /**
+ * Подредба на колонки в листа на операциите->Падредба
+ */
+defIfNot('PLANNING_ORDER_TASK_PARAMS_IN_LIST', '');
+
+
+/**
+ * Подредба на колонки в листа на операциите->Скриване
+ */
+defIfNot('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', '');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -201,7 +213,7 @@ defIfNot('PLANNING_AUTO_CREATE_TASK_STATE', 'pending');
  * @package   planning
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -273,7 +285,33 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_SENDER_AND_RECEIVER_SETTINGS' => array('enum(no=Скриване,yes=Показване,yesDefault=Показване с дефолт)', 'caption=Полета за получил/предал в Протоколите за влагане/връщане->Избор'),
         'PLANNING_SPARE_PARTS_HORIZON_IN_LIST' => array('int(Min=0)', 'caption=Планирани наличности на резервните части->Месеци напред'),
         'PLANNING_AUTO_CREATE_TASK_STATE' => array('enum(pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние'),
+        'PLANNING_ORDER_TASK_PARAMS_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Показване в ред,customizeBy=taskSee|ceo'),
+        'PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Скриване,customizeBy=taskSee|ceo'),
     );
+
+
+    /**
+     * Менижиране на формата формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        $options = array();
+        $params = cat_Params::getTaskParamOptions();
+        foreach ($params as $paramId => $name){
+            $options["param_{$paramId}"] = $name;
+        }
+
+        $additionalFields = arr::make('dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),notes=Забележка,folderId=Папка', true);
+        foreach ($additionalFields as $fld => $caption){
+            $options[$fld] =  'Списък->' . tr($caption);
+        }
+
+        $configForm->setFieldTypeParams('PLANNING_ORDER_TASK_PARAMS_IN_LIST', array('paramId_opt' => array('' => '') + $options + array('_rest_' => 'Списък->Всички')));
+        $configForm->setFieldTypeParams('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', array('paramId_opt' => array('' => '') + $options));
+    }
 
 
     /**

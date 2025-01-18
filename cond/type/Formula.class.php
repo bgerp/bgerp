@@ -36,6 +36,18 @@ class cond_type_Formula extends cond_type_Text
 
 
     /**
+     * Лайв параметър за бракувано от операцията
+     */
+    const TASK_QUANTITY_SCRAP = '$прогрес_Бракувано';
+
+
+    /**
+     * Лайв параметър за произведено от операцията
+     */
+    const TASK_QUANTITY_PRODUCED = '$прогрес_Произведено';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -77,6 +89,8 @@ class cond_type_Formula extends cond_type_Text
         $res = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
         $res[self::JOB_QUANTITY_PARAM] = self::JOB_QUANTITY_PARAM;
         $res[self::TASK_QUANTITY_PARAM] = self::TASK_QUANTITY_PARAM;
+        $res[self::TASK_QUANTITY_SCRAP] = self::TASK_QUANTITY_SCRAP;
+        $res[self::TASK_QUANTITY_PRODUCED] = self::TASK_QUANTITY_PRODUCED;
 
         return $res;
     }
@@ -91,8 +105,8 @@ class cond_type_Formula extends cond_type_Text
      */
     private static function getParamsFromDomain($domainClass, $domainId)
     {
-        $params = array();
-        $taskQuantity = $jobQuantity = null;
+        $params = $assetParams = array();
+        $taskQuantity = $jobQuantity = $scrapQuantity = $producedQuantity = null;
         if (isset($domainClass)) {
             $Domain = cls::get($domainClass);
             $key = "{$Domain->getClassId()}|{$domainId}";
@@ -106,11 +120,26 @@ class cond_type_Formula extends cond_type_Text
             } elseif (($Domain instanceof planning_Tasks) || ($Domain instanceof cat_BomDetails)) {
                 if (isset($domainId)) {
                     if ($Domain instanceof planning_Tasks) {
-                        $tRec = $Domain->fetch($domainId, 'originId,productId,plannedQuantity');
+                        $tRec = $Domain->fetch($domainId, 'originId,productId,assetId,plannedQuantity,scrappedQuantity,progress');
                         $jobRec = planning_Jobs::fetch("#containerId = {$tRec->originId}", 'productId,quantity');
                         $productId = $jobRec->productId;
                         $taskQuantity = $tRec->plannedQuantity;
                         $jobQuantity = $jobRec->quantity;
+                        $scrapQuantity = $tRec->scrappedQuantity;
+                        $producedQuantity = round($tRec->plannedQuantity * $tRec->progress, 4);
+
+                        if(isset($tRec->assetId)){
+                            $assetClassId = planning_AssetResources::getClassId();
+
+                            $aQuery = cat_products_Params::getQuery();
+                            $aQuery->where("#classId = {$assetClassId} AND #productId = {$tRec->assetId}");
+                            $aQuery->show('paramId,paramValue');
+                            while ($aRec = $aQuery->fetch()) {
+                                $normParamName = cat_Params::getNormalizedName($aRec->paramId);
+                                $assetParamName = "$" . "машина_{$normParamName}";
+                                $assetParams[$assetParamName] = $aRec->paramValue;
+                            }
+                        }
                     } else {
                         $bomId = $Domain->fetchField($domainId, 'bomId');
                         $productId = cat_Boms::fetchField($bomId, 'productId');
@@ -135,6 +164,9 @@ class cond_type_Formula extends cond_type_Text
 
         $params[self::JOB_QUANTITY_PARAM] = $jobQuantity;
         $params[self::TASK_QUANTITY_PARAM] = $taskQuantity;
+        $params[self::TASK_QUANTITY_SCRAP] = $scrapQuantity;
+        $params[self::TASK_QUANTITY_PRODUCED] = $producedQuantity;
+        $params += $assetParams;
 
         return $params;
     }
