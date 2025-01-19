@@ -12,7 +12,7 @@
  * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  */
-class itis_Ports extends core_Manager
+class itis_Process extends core_Manager
 {
     /**
      * Плъгини за зареждане
@@ -23,7 +23,7 @@ class itis_Ports extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Стандартни портове';
+    public $title = 'Рънтайм процеси';
     
     
     /**
@@ -48,12 +48,13 @@ class itis_Ports extends core_Manager
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,admin,itis';
-    
-    
+
+
     /**
      * Кой може да редактира системните данни
      */
     public $canEditsysdata = 'ceo,admin,itis';
+    
     
     /**
      * Брой записи на страница
@@ -64,7 +65,7 @@ class itis_Ports extends core_Manager
     /**
      * Полета за еденичен изглед
      */
-    public $listFields = 'port,info,status';
+    public $listFields = 'process,info,status';
     
 
     /**
@@ -84,11 +85,11 @@ class itis_Ports extends core_Manager
      */
     public function description()
     {
-        $this->FLD('port', 'int', 'caption=TCP/IP порт,smartCenter');
+        $this->FLD('process', 'varchar(ci)', 'caption=Процес,smartCenter');
         $this->FLD('status', 'enum(ok,warning,alert)', 'caption=Статус,value=ok,notNull,smartCenter');
         $this->FLD('info', 'varchar(255)', 'caption=Информация,smartCenter');
 
-        $this->setDbUnique('port');
+        $this->setDbUnique('process');
     }
     
     
@@ -97,8 +98,8 @@ class itis_Ports extends core_Manager
      */
     public function loadSetupData()
     {
-        $file = 'itis/csv/Ports.csv';
-        $fields = array(0 => 'port', 1 => 'info');
+        $file = 'itis/csv/Process.csv';
+        $fields = array(0 => 'process', 1 => 'info');
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
@@ -113,9 +114,8 @@ class itis_Ports extends core_Manager
     {
         $form = $data->form;
 
-        $form->setReadonly('port');
+        $form->setReadonly('process');
     }
-
 
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -126,9 +126,8 @@ class itis_Ports extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->port = "<a href='https://www.google.com/search?q=what+service+is+using+{$rec->port}+port' style='color:#0c0' target=_blank>{$row->port}</a>";
+        $row->process = "<a href='https://www.google.com/search?q=what+is+the+process+{$rec->process}' style='color:#0c0' target=_blank>{$row->process}</a>";
         $style = itis_Devices::getStyleByStatus($rec->status);
         $row->status = "<span {$style}>" . $row->status . "</span>";
     }
-
 }

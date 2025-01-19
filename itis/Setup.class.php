@@ -68,9 +68,11 @@ class itis_Setup extends core_ProtoSetup
     public $managers = array(
         'itis_Devices',
         'itis_Ports',
+        'itis_Process',
         'itis_Groups',
         'itis_Changelog',
         'itis_Values',
+        'itis_Deployments',
     );
     
     
