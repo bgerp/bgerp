@@ -3135,7 +3135,8 @@ class planning_Tasks extends core_Master
 
             $data->listTableMvc->setField('notes', 'tdClass=notesCol');
             foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId') as $fld) {
-                $data->listTableMvc->setField($fld, "tdClass=reorderSmallCol");
+                $dateClass = in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? "reorderSmallCol openModal" : "reorderSmallCol";
+                $data->listTableMvc->setField($fld, "tdClass={$dateClass}");
             }
             $data->listTableMvc->setField('dependantProgress', "tdClass=reorderSmallCol dependantProgress");
         }
@@ -3319,12 +3320,23 @@ class planning_Tasks extends core_Master
                 if(!empty($rec->{$fld})){
                     $datePure = strlen($rec->{$fld}) == 10 ? "{$rec->{$fld}} 00:00:00" : $rec->{$fld};
                     $row->{$fld} = Mode::is('isReorder') ? dt::mysql2verbal($datePure, 'd.m.y H:i') : core_Type::getByName('datetime(format=smartTime)')->toVerbal($datePure);
+
+                    if($fld == 'expectedTimeStart' && !empty($rec->timeStart)){
+                        $row->{$fld} .= " " . ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent();
+                    } elseif($fld == 'expectedTimeEnd' && !empty($rec->timeEnd)){
+                        $row->{$fld} .= " " . ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent();
+                    }
+
                     $row->{$fld} = Mode::is('isReorder') ? ht::createElement("span", array('data-date' => "{$datePure}", 'class' => "{$fld}Col"), $row->{$fld}, true)->getContent() : $row->{$fld};
                 }
 
                 if(Mode::is('isReorder')){
                     $row->{$fld} = ht::createElement("span", array('id' => "{$fld}{$rec->id}"), $row->{$fld}, true)->getContent();
                 }
+            }
+
+            if(Mode::is('isReorder')){
+
             }
 
             if(!empty($dependantTaskArr[$rec->id]['next'])){
