@@ -296,13 +296,18 @@ class hr_Leaves extends core_Master
      * Функция, която връща иконата за съответния емотикон
      *
      * @param string $emoji
+     * @param string $class
      *
      * @return string
      */
-    public static function getEmoji($emoji)
+    public static function getEmoji($emoji, $class = 'statusIcon')
     {
+        $emoji =  self::$emojiList[$emoji] ? self::$emojiList[$emoji] : '';
+        if ($class) {
+            $emoji = "<span class='{$class}'>{$emoji}</span>";
+        }
 
-        return self::$emojiList[$emoji] ? self::$emojiList[$emoji] : '';
+        return $emoji;
     }
 
 

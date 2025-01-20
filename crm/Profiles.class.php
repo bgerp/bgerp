@@ -1192,7 +1192,7 @@ class crm_Profiles extends core_Master
                 $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo, (boolean) ($profRec->stateAnswerGSM == 'yes'));
             }
 
-            $e = ($profRec->stateEmoji) ? "<span class='statusIcon'>" . hr_Leaves::getEmoji($profRec->stateEmoji) . "</span>" : '';
+            $e = ($profRec->stateEmoji) ? hr_Leaves::getEmoji($profRec->stateEmoji) : '';
 
             $profileId = self::getProfileId($userId);
             
