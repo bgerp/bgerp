@@ -815,22 +815,33 @@ class planning_AssetResources extends core_Master
      * @param int $assetId
      * @return void
      */
-    public static function reOrderTasks($assetId, $orderedTaskRecs = null, $alwaysReorder = false)
+    public static function reOrderTasks($assetId, $orderedTaskRecs = null, $alwaysReorder = false, $manualTimes = array())
     {
         $assetTasks = is_array($orderedTaskRecs) ? $orderedTaskRecs : static::getAssetTaskOptions($assetId, true);
 
         $i = 1;
         $tasksToUpdate = array();
+        $Tasks = cls::get('planning_Tasks');
         foreach ($assetTasks as &$t) {
             if ($t->orderByAssetId != $i || $alwaysReorder) {
                 $t->orderByAssetId = $i;
                 $tasksToUpdate[$t->id] = $t;
             }
+
+            if(is_array($manualTimes['expectedTimeStart']) && array_key_exists($t->id, $manualTimes['expectedTimeStart'])){
+                $t->timeStart = $manualTimes['expectedTimeStart'][$t->id];
+                $Tasks->logWrite('Промяна на целево начало', $t->id);
+            }
+
+            if(is_array($manualTimes['expectedTimeEnd']) && array_key_exists($t->id, $manualTimes['expectedTimeEnd'])){
+                $t->timeEnd = $manualTimes['expectedTimeEnd'][$t->id];
+                $Tasks->logWrite('Промяна на целеви край', $t->id);
+            }
             $i++;
         }
 
         if(countR($tasksToUpdate)){
-            cls::get('planning_Tasks')->saveArray($tasksToUpdate, 'id,orderByAssetId');
+            cls::get('planning_Tasks')->saveArray($tasksToUpdate, 'id,orderByAssetId,timeStart,timeEnd');
         }
 
         $rec = static::fetchRec($assetId);
@@ -1244,10 +1255,9 @@ class planning_AssetResources extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
         $tQuery->where('#assetId IS NOT NULL');
-        $tQuery->show('assetId,id,progress,orderByAssetId,indTime,indPackagingId,plannedQuantity,state,timeStart,timeDuration,simultaneity');
         $assetArr = array();
         while($tRec = $tQuery->fetch()){
-            $key = "{$tRec->plannedQuantity}|{$tRec->state}|{$tRec->indTime}|{$tRec->indPackagingId}|{$tRec->timeStart}|{$tRec->timeDuration}|{$tRec->simultaneity}";
+            $key = "{$tRec->plannedQuantity}|{$tRec->state}|{$tRec->indTime}|{$tRec->indPackagingId}|{$tRec->timeStart}|{$tRec->timeEnd}|{$tRec->timeDuration}|{$tRec->simultaneity}";
             $assetArr[$tRec->assetId][$tRec->orderByAssetId] = array('key' => $key, 'id' => $tRec->id);
         }
 
