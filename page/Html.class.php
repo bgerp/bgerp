@@ -94,7 +94,7 @@ class page_Html extends core_ET
                 font-style: italic;
                 font-display: swap;
             }
-            body, .richtext { font-family: '{$systemFont}' !important;  }</style>";
+            body.modern-theme, .modern-theme .richtext { font-family: '{$systemFont}' !important;}</style>";
 
         $this->appendOnce($style, 'HEAD');
         }
