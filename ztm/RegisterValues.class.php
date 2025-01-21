@@ -495,7 +495,7 @@ class ztm_RegisterValues extends core_Manager
 
         $registers = Request::get('registers');
 
-        ztm_Devices::logDebug('Registers from device: ' . $registers, $deviceRec);
+//        ztm_Devices::logDebug('Registers from device: ' . $registers, $deviceRec);
         
         ztm_Devices::updateSyncTime($token);
         
@@ -551,7 +551,7 @@ class ztm_RegisterValues extends core_Manager
         }
 
         if ((array) $result) {
-            ztm_Devices::logDebug('Result registers: ' . serialize($result), $deviceRec);
+//            ztm_Devices::logDebug('Result registers: ' . serialize($result), $deviceRec);
         }
 
         $srvRegName = 'sys.srv.last_sync';
