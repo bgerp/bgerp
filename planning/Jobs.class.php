@@ -2080,40 +2080,6 @@ class planning_Jobs extends core_Master
         $pQuery1->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $pQuery1->where("#state = 'active' AND #productId != {$rec->productId}");
         $pQuery1->in('threadId', $threadsArr);
-        $pNoteClassId = planning_DirectProductionNote::getClassId();
-
-        /*
-         * while($pRec = $pQuery1->fetch()){
-
-            $aArray = array('' => $pRec->quantity);
-
-            if(core_Packs::isInstalled('batch')){
-                $bQuery = batch_BatchesInDocuments::getQuery();
-                $bQuery->where("#detailClassId = {$pNoteClassId} AND #detailRecId = {$pRec->id}");
-                while($dRec1 = $bQuery->fetch()){
-                    $aArray["{$dRec1->batch}"] = $dRec1->quantity;
-                    $aArray[""] -= $dRec1->quantity;
-                }
-                if(empty($aArray[""])){
-                    unset($aArray[""]);
-                }
-            }
-
-            $fromAccId = ($pRec->canStore != 'yes') ? '61102' : '';
-            foreach ($aArray as $batch => $q){
-                // Те ще се влагат от склада в който са произведени
-                $key = "{$pRec->productId}|{$pRec->packagingId}||{$fromAccId}|{$pRec->storeId}|{$batch}";
-                if(!array_key_exists($key, $convertedArr)){
-                    $batch = !empty($batch) ? $batch : null;
-                    $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
-                    $convertedArr[$key] = (object)array('productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'quantityInPack' => $pRec->quantityInPack, 'measureId' => $measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => null, 'type' => 'input', 'storeId' => $pRec->storeId, 'batch' => $batch, 'fromAccId' => $fromAccId);
-                    $consumable[$pRec->productId] = $pRec->productId;
-                }
-
-                $convertedArr[$key]->quantityExpected += $q;
-            }
-        }
-         */
 
         // Всички протоколи за влагане/връщане на услуги се реконтират - за да се смени правилно разходния обект
         foreach (array('planning_ConsumptionNoteDetails' => 'planning_ConsumptionNotes', 'planning_ReturnNoteDetails' => 'planning_ReturnNotes') as $detailName => $masterName){
