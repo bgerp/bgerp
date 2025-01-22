@@ -362,7 +362,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::renameResourceFields2624v2',
         'migrate::removeCachedAssetModified4124v2',
         'migrate::repairSearchKeywords2442',
-        'migrate::calcTaskLastProgress2504',
+        'migrate::calcTaskLastProgress2504v2',
     );
 
 
@@ -530,8 +530,8 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Миграция на последните прогреси
      */
-    public function calcTaskLastProgress2504()
+    public function calcTaskLastProgress2504v2()
     {
-        planning_Tasks::recalcTaskLastProgress(null, 'active,wakeup,stopped');
+        planning_Tasks::recalcTaskLastProgress(null, 'active,wakeup,stopped', 90);
     }
 }

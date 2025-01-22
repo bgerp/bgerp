@@ -97,7 +97,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка';
+    public $listFields = 'firstProgress=Начало,lastProgressProduction=Край,dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка';
 
 
     /**
@@ -2343,11 +2343,12 @@ class planning_Tasks extends core_Master
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif ($filter->state != 'all') {
                     $data->query->where("#state = '{$filter->state}' OR #state = 'rejected'");
-
                     if ($filter->state == 'closed') {
                         $orderByField = 'orderByDate';
                         $orderByDir = 'DESC';
                         $orderByDateCoalesce = 'COALESCE(#timeClosed, 0)';
+
+                        //$data->listFields['']
                     }
                 }
 
@@ -2687,15 +2688,17 @@ class planning_Tasks extends core_Master
     /**
      * Рекалкулиране на прогресите на операцията
      *
-     * @param int|null $taskId
-     * @param array|null $states
+     * @param int|null $taskId            - ид на операция, null ако е за всички
+     * @param array|null $states          - операциите в кои състояние
+     * @param null|int $closedInLastDays  - приключвните в последните колко
      * @return void
      */
-    public static function recalcTaskLastProgress($taskId = null, $states = null)
+    public static function recalcTaskLastProgress($taskId = null, $states = null, $closedInLastDays = null)
     {
         $Tasks = cls::get('planning_Tasks');
         $tQuery = planning_ProductionTaskDetails::getQuery();
         $tQuery->EXT('taskState', 'planning_Tasks', "externalName=state,externalKey=taskId");
+        $tQuery->EXT('timeClosed', 'planning_Tasks', "externalName=timeClosed,externalKey=taskId");
         $tQuery->XPR('lastProgress', 'datetime', 'MAX(COALESCE(#date, #createdOn))');
         $tQuery->XPR('firstProgress', 'datetime', 'MIN(COALESCE(#date, #createdOn))');
         $tQuery->XPR('lastProgressProduction', 'datetime', "MAX(CASE #type WHEN 'production' THEN COALESCE(#date, #createdOn) ELSE NULL END)");
@@ -2708,6 +2711,15 @@ class planning_Tasks extends core_Master
         if(isset($states)){
             $states = arr::make($states, true);
             $tQuery->in("taskState", $states);
+            if(isset($closedInLastDays)){
+                $beforeTime = dt::addDays(-1 * $closedInLastDays);
+                $tQuery->orWhere("#taskState = 'closed' AND #timeClosed >= '{$beforeTime}'");
+            }
+        } else {
+            if(isset($closedInLastDays)) {
+                $beforeTime = dt::addDays(-1 * $closedInLastDays);
+                $tQuery->where("(#taskState = 'closed' AND #timeClosed >= '{$beforeTime}') OR #timeClosed IS NULL");
+            }
         }
 
         $taskArr = array();
@@ -3117,6 +3129,9 @@ class planning_Tasks extends core_Master
         if (isset($data->listFilter->rec->folder)) {
             unset($data->listFields['folderId']);
         }
+        //unset($data->listFields['firstProgress']);
+       // unset($data->listFields['lastProgressProduction']);
+
         if (Mode::is('isReorder')) {
             $data->stopListRefresh = true;
             unset($data->listFields['_rowTools']);
@@ -3419,6 +3434,27 @@ class planning_Tasks extends core_Master
             $data->listFields = array_diff_key($data->listFields, $hideColumns);
         }
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, $fieldsToFilterIfEmpty);
+
+        // При показване на приключените да се подмени колонката за датата
+        if ($data->listFilter->rec->state == 'closed') {
+            $modifiedData = array();
+            $firstProgressCaption = $data->listFields['firstProgress'];
+            $lastProgressProductionCaption = $data->listFields['lastProgressProduction'];
+            unset($data->listFields['firstProgress'], $data->listFields['lastProgressProduction']);
+
+            foreach ($data->listFields as $key => $value) {
+                if ($key == "expectedTimeStart") {
+                    $modifiedData["firstProgress"] = $firstProgressCaption;
+                }elseif ($key === "expectedTimeEnd") {
+                    $modifiedData["lastProgressProduction"] = $lastProgressProductionCaption;
+                } else {
+                    $modifiedData[$key] = $value;
+                }
+            }
+            $data->listFields = $modifiedData;
+        } else {
+            unset($data->listFields['firstProgress'], $data->listFields['lastProgressProduction']);
+        }
 
         core_Debug::stopTimer('RENDER_TABLE');
     }
@@ -3778,9 +3814,7 @@ class planning_Tasks extends core_Master
                 $modalTpl = getTplFromFile('planning/tpl/DatePickerModal.shtml');
                 $timeTpl = core_Type::getByName('hour')->renderInput('timePicker', null, array('class' => 'pickerSelect'));
                 $modalTpl->replace($timeTpl, 'TIME_PICKER');
-
                 $tpl->append($modalTpl);
-
             } else{
                 jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
             }
