@@ -815,22 +815,33 @@ class planning_AssetResources extends core_Master
      * @param int $assetId
      * @return void
      */
-    public static function reOrderTasks($assetId, $orderedTaskRecs = null, $alwaysReorder = false)
+    public static function reOrderTasks($assetId, $orderedTaskRecs = null, $alwaysReorder = false, $manualTimes = array())
     {
         $assetTasks = is_array($orderedTaskRecs) ? $orderedTaskRecs : static::getAssetTaskOptions($assetId, true);
 
         $i = 1;
         $tasksToUpdate = array();
+        $Tasks = cls::get('planning_Tasks');
         foreach ($assetTasks as &$t) {
             if ($t->orderByAssetId != $i || $alwaysReorder) {
                 $t->orderByAssetId = $i;
                 $tasksToUpdate[$t->id] = $t;
             }
+
+            if(is_array($manualTimes['expectedTimeStart']) && array_key_exists($t->id, $manualTimes['expectedTimeStart'])){
+                $t->timeStart = $manualTimes['expectedTimeStart'][$t->id];
+                $Tasks->logWrite('Промяна на целево начало', $t->id);
+            }
+
+            if(is_array($manualTimes['expectedTimeEnd']) && array_key_exists($t->id, $manualTimes['expectedTimeEnd'])){
+                $t->timeEnd = $manualTimes['expectedTimeEnd'][$t->id];
+                $Tasks->logWrite('Промяна на целеви край', $t->id);
+            }
             $i++;
         }
 
         if(countR($tasksToUpdate)){
-            cls::get('planning_Tasks')->saveArray($tasksToUpdate, 'id,orderByAssetId');
+            cls::get('planning_Tasks')->saveArray($tasksToUpdate, 'id,orderByAssetId,timeStart,timeEnd');
         }
 
         $rec = static::fetchRec($assetId);
@@ -1070,8 +1081,51 @@ class planning_AssetResources extends core_Master
 
         // Разделяне на ПО на такива с ръчно зададени времена и без
         $tasksWithManualBegin = $tasksWithoutManualBegin = array();
-        array_filter($tasks, function ($t) use (&$tasksWithManualBegin, &$tasksWithoutManualBegin) {
-            if(!empty($t->timeStart)) {
+        array_filter($tasks, function ($t) use (&$tasksWithManualBegin, &$tasksWithoutManualBegin, $minDuration, $normsByTask, $rec) {
+
+            // Ако има ръчна продължителност взема се тя
+            $duration = $t->timeDuration;
+            if(empty($duration)){
+
+                // Ако няма изчислявам от нормата за планираното количество
+                if($t->indPackagingId == $t->measureId){
+                    $calcedPlannedQuantity = $t->plannedQuantity;
+                } else {
+                    $indProductIdKey = ($t->isFinal == 'yes') ? $t->jobProductId : $t->productId;
+
+                    // Ако мярката за нормиране е същата като тази от етикета - взема се неговото к-во
+                    if($t->indPackagingId == $t->labelPackagingId && $t->labelQuantityInPack){
+                        $indQuantityInPack = $t->labelQuantityInPack;
+                    } else {
+                        $indQuantityInPack = isset($pPacks["{$indProductIdKey}|{$t->indPackagingId}"]) ? $pPacks["{$indProductIdKey}|{$t->indPackagingId}"] : 1;
+                    }
+
+                    $quantityInPack = isset($pPacks["{$indProductIdKey}|{$t->measureId}"]) ? $pPacks["{$indProductIdKey}|{$t->measureId}"] : 1;
+                    $calcedPlannedQuantity = round(($t->plannedQuantity * $quantityInPack) / $indQuantityInPack);
+                }
+
+                $indTime = planning_type_ProductionRate::getInSecsByQuantity($t->indTime, $calcedPlannedQuantity);
+                $simultaneity = $t->simultaneity ?? $rec->simultaneity;
+                $duration = round($indTime / $simultaneity);
+            }
+
+            // От продължителността, се приспада произведеното досега
+            $nettDuration = $duration;
+            $duration = round((1 - $t->progress) * $duration);
+
+            // Ако мин прогреса е под 100%, то се използва мин. продължителността, иначе за мин. прод. се използва 0
+            $minDuration = ($t->progress >= 1) ? 1 : $minDuration;
+            $duration = max($duration, $minDuration);
+
+            // Към така изчислената продължителност се добавя тази от действията към машината
+            if(array_key_exists($t->id, $normsByTask)){
+                $duration += array_sum($normsByTask[$t->id]);
+                $nettDuration += array_sum($normsByTask[$t->id]);
+                $t->actionNorms = $normsByTask[$t->id];
+            }
+            $t->calcedDuration = $nettDuration;
+            $t->calcedCurrentDuration = $duration;
+            if(!empty($t->timeStart) || !empty($t->timeEnd)) {
                 $tasksWithManualBegin[$t->id] = $t;
             } else {
                 $tasksWithoutManualBegin[$t->id] = $t;
@@ -1084,7 +1138,7 @@ class planning_AssetResources extends core_Master
         foreach (array('tasksWithManualBegin', 'tasksWithoutManualBegin') as $varName){
             $arr = ${"{$varName}"};
             foreach($arr as $taskRec){
-                $updateRecs[$taskRec->id] = static::calcTaskPlannedTime($taskRec, $rec,$Interval, $minDuration, $normsByTask, $interruptionArr, $pPacks);
+                $updateRecs[$taskRec->id] = static::calcTaskPlannedTime($taskRec, $Interval, $interruptionArr);
             }
         }
 
@@ -1133,60 +1187,20 @@ class planning_AssetResources extends core_Master
      * Помощна ф-я за изчисляване на планираното време на една операция
      *
      * @param stdClass $taskRec
-     * @param stdClass $assetRec
      * @param core_Intervals $Interval
-     * @param int $minDuration
-     * @param array $normsByTask
      * @param array $interruptionArr
-     * @param array $pPacks
      * @return object $res
      */
-    private static function calcTaskPlannedTime($taskRec, $assetRec, core_Intervals &$Interval, $minDuration, $normsByTask, $interruptionArr, $pPacks)
+    private static function calcTaskPlannedTime($taskRec, core_Intervals &$Interval, $interruptionArr)
     {
-        $res = (object)array('id' => $taskRec->id, 'expectedTimeStart' => null, 'expectedTimeEnd' => null, 'progress' => $taskRec->progress, 'indTime' => $taskRec->indTime, 'indPackagingId' => $taskRec->indPackagingId, 'plannedQuantity' => $taskRec->plannedQuantity, 'duration' => $taskRec->timeDuration, 'timeStart' => $taskRec->timeStart, 'orderByAssetId' => $taskRec->orderByAssetId);
-
-        // Ако има ръчна продължителност взема се тя
-        $duration = $taskRec->timeDuration;
-        if(empty($duration)){
-
-            // Ако няма изчислявам от нормата за планираното количество
-            if($taskRec->indPackagingId == $taskRec->measureId){
-                $calcedPlannedQuantity = $taskRec->plannedQuantity;
-            } else {
-                $indProductIdKey = ($taskRec->isFinal == 'yes') ? $taskRec->jobProductId : $taskRec->productId;
-
-                // Ако мярката за нормиране е същата като тази от етикета - взема се неговото к-во
-                if($taskRec->indPackagingId == $taskRec->labelPackagingId && $taskRec->labelQuantityInPack){
-                    $indQuantityInPack = $taskRec->labelQuantityInPack;
-                } else {
-                    $indQuantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"] : 1;
-                }
-
-                $quantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->measureId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->measureId}"] : 1;
-                $calcedPlannedQuantity = round(($taskRec->plannedQuantity * $quantityInPack) / $indQuantityInPack);
-            }
-
-            $indTime = planning_type_ProductionRate::getInSecsByQuantity($taskRec->indTime, $calcedPlannedQuantity);
-            $simultaneity = isset($taskRec->simultaneity) ? $taskRec->simultaneity : $assetRec->simultaneity;
-            $duration = round($indTime / $simultaneity);
-        }
-
-        // От продължителността, се приспада произведеното досега
-        $nettDuration = $duration;
-        $duration = round((1 - $taskRec->progress) * $duration);
-
-        // Ако мин прогреса е под 100%, то се използва мин. продължителността, иначе за мин. прод. се използва 0
-        $minDuration = ($taskRec->progress >= 1) ? 1 : $minDuration;
-        $duration = max($duration, $minDuration);
-
-        // Към така изчислената продължителност се добавя тази от действията към машината
-        $res->durationCalced = $duration;
-        if(array_key_exists($taskRec->id, $normsByTask)){
-            $duration += array_sum($normsByTask[$taskRec->id]);
-            $nettDuration += array_sum($normsByTask[$taskRec->id]);
-            $res->actionNorms = $normsByTask[$taskRec->id];
-        }
-        $res->calcedDuration = $nettDuration;
+        $res = (object)array('id' => $taskRec->id,
+                             'expectedTimeStart' => null,
+                             'expectedTimeEnd' => null, 'progress' => $taskRec->progress, 'actionNorms' => $taskRec->actionNorms, 'calcedDuration' => $taskRec->calcedDuration, 'calcedCurrentDuration' => $taskRec->calcedCurrentDuration,
+                             'indTime' => $taskRec->indTime,
+                             'indPackagingId' => $taskRec->indPackagingId,
+                             'plannedQuantity' => $taskRec->plannedQuantity,
+                             'duration' => $taskRec->timeDuration,
+                             'timeStart' => $taskRec->timeStart, 'orderByAssetId' => $taskRec->orderByAssetId);
 
         // Колко ще е отместването при прекъсване
         $interruptOffset = array_key_exists($taskRec->productId, $interruptionArr) ? $interruptionArr[$taskRec->productId] : null;
@@ -1195,12 +1209,14 @@ class planning_AssetResources extends core_Master
         $now = dt::now();
         $begin = null;
         if(!empty($taskRec->timeStart)){
-            $begin = max($taskRec->timeStart, $now);
-            $begin = strtotime($begin);
+            $begin = $taskRec->timeStart;
+        } elseif(!empty($taskRec->timeEnd)){
+            $begin = dt::addSecs(-1 * $taskRec->calcedCurrentDuration, $taskRec->timeEnd);
         }
 
-        $res->calcedCurrentDuration = $duration;
-        $timeArr = $Interval->consume($duration, $begin, null, $interruptOffset);
+        $begin = max($begin, $now);
+        $begin = strtotime($begin);
+        $timeArr = $Interval->consume($taskRec->calcedCurrentDuration, $begin, null, $interruptOffset);
 
         // Ако е успешно записват се началото и края
         if(is_array($timeArr)){
@@ -1239,10 +1255,9 @@ class planning_AssetResources extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
         $tQuery->where('#assetId IS NOT NULL');
-        $tQuery->show('assetId,id,progress,orderByAssetId,indTime,indPackagingId,plannedQuantity,state,timeStart,timeDuration,simultaneity');
         $assetArr = array();
         while($tRec = $tQuery->fetch()){
-            $key = "{$tRec->plannedQuantity}|{$tRec->state}|{$tRec->indTime}|{$tRec->indPackagingId}|{$tRec->timeStart}|{$tRec->timeDuration}|{$tRec->simultaneity}";
+            $key = "{$tRec->plannedQuantity}|{$tRec->state}|{$tRec->indTime}|{$tRec->indPackagingId}|{$tRec->timeStart}|{$tRec->timeEnd}|{$tRec->timeDuration}|{$tRec->simultaneity}";
             $assetArr[$tRec->assetId][$tRec->orderByAssetId] = array('key' => $key, 'id' => $tRec->id);
         }
 

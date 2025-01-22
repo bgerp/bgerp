@@ -406,11 +406,12 @@ class planning_StepConditions extends core_Detail
                     $prevProgressVerbal = "<span class='readyPercent'>{$prevProgressVerbal}</span>";
                 }
                 $prevId = "<span class='state-{$taskRec->state} document-handler'>{$prevProgressVerbal}</span>";
+                $titleHint = planning_Tasks::getrecTitle($taskRec);
                 if($normalLink){
-                    $prevElement = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($taskRec->id));
+                    $prevElement = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($taskRec->id), false, array('target' => "_blank", 'title' => $titleHint));
                 } else {
                     $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($taskRec->id));
-                    $prevElement = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => planning_Tasks::getrecTitle($taskRec)), $prevId, true);
+                    $prevElement = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => $titleHint), $prevId, true);
                 }
 
                 $res[] = $prevElement->getContent();

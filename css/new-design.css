@@ -498,6 +498,9 @@ body {
   line-height: normal;
   height: 30px; }
 
+.narrow .center-block {
+  top: 0; }
+
 #nav-panel {
   background-color: #333333 !important; }
 

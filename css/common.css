@@ -2225,7 +2225,7 @@ td.keylist-group {
 .inner-keylist .hiddenElement {
   display: none; }
 
-.filed-sharedUsers label span {
+.filed-sharedUsers label span.statusIcon {
   filter: grayscale(100%);
   font-size: 0.8em; }
 
