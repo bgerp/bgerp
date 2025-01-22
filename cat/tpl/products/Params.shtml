@@ -1,5 +1,5 @@
 <!--ET_BEGIN addParamBtn-->
-<div class='groupList'><span class='quiet'>|Параметри|*</span> [#addParamBtn#]</div>
+<div class='groupList'><span class='quiet'>[#PARAM_CAPTION#]</span> [#addParamBtn#]</div>
 <!--ET_END addParamBtn-->
   <div class='groupList'>
     [#NO_ROWS#]

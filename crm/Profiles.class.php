@@ -159,6 +159,8 @@ class crm_Profiles extends core_Master
         $this->FLD('stateDateFrom', 'datetime(format=smartTime, defaultTime=00:00:00)', 'caption=Статус->От,input=none');
         $this->FLD('stateDateTo', 'datetime(format=smartTime, defaultTime=23:59:59)', 'caption=Статус->До,input=none');
         $this->FLD('stateAlternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees)', 'caption=Статус->Заместници,input=none');
+        $this->FLD('stateAnswerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=Статус->Отговаря на моб. телефон, input=none');
+        $this->FLD('stateEmoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefis())), 'caption=Статус->Икона за ника, input=none');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
@@ -633,7 +635,7 @@ class crm_Profiles extends core_Master
         list($today, $hoursToday) = explode(' ', dt::verbal2mysql());
         list($yesterday, $hoursYesterday) = explode(' ', dt::addDays(-1));
         list($tomorrow, $hoursTomorrow) = explode(' ', dt::addDays(1));
-        
+
         $status = tr(static::$map[$type]) . ' ';
         
         if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
@@ -1185,11 +1187,13 @@ class crm_Profiles extends core_Master
             $profRec = self::fetch("#userId = {$userId}");
             
             $attr['class'] .= ' profile';
-            
+
             if ($profRec && $profRec->stateDateFrom) {
-                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo);
+                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo, (boolean) ($profRec->stateAnswerGSM == 'yes'));
             }
-            
+
+            $e = ($profRec->stateEmoji) ? hr_Leaves::getEmoji($profRec->stateEmoji) : '';
+
             $profileId = self::getProfileId($userId);
             
             if ($profileId) {
@@ -1232,10 +1236,10 @@ class crm_Profiles extends core_Master
 
                 $attr['title'] = '|*' . $userRec->names;
                 
-                $link = ht::createLink($title, $url, $warning, $attr);
+                $link = ht::createLink($title . $e, $url, $warning, $attr);
             } else {
                 $attr['style'] .= ';color:#999 !important;';
-                $link = ht::createLink($userRec->nick, null, null, $attr);
+                $link = ht::createLink($userRec->nick . $e, null, null, $attr);
             }
             
             $cacheArr[$key] = $link;
@@ -1248,7 +1252,7 @@ class crm_Profiles extends core_Master
     /**
      * Връща клас за ника, според началото на отсъствието и края му
      */
-    public static function getAbsenceClass($from, $to)
+    public static function getAbsenceClass($from, $to, $haveAccess = true)
     {
         list($dateFrom, ) = explode(' ', $from);
         list($dateTo, ) = explode(' ', $to);
@@ -1256,13 +1260,13 @@ class crm_Profiles extends core_Master
         $today = dt::now(false);
         
         $res = '';
-        
+
         if ($dateFrom <= $today && $today <= $dateTo) {
-            $res = 'profile-state';
+            $res = $haveAccess ? 'profile-state-access' : 'profile-state';
         } elseif ($dateFrom <= $nextWorkingDay && $nextWorkingDay <= $dateTo) {
             $res = 'profile-state-tomorrow';
         }
-        
+
         return $res;
     }
     

@@ -791,9 +791,12 @@ class hr_EmployeeContracts extends core_Master
         $querySick = hr_Sickdays::getQuery();
         $querySick->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #startDate <= '{$next2weeks}')) AND #state = 'active'");
         
+        $queryHomeOffice = hr_HomeOffice::getQuery();
+        $queryHomeOffice->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #startDate <= '{$next2weeks}')) AND #state = 'active'");
+
         $queryTrip = hr_Trips::getQuery();
         $queryTrip->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #startDate <= '{$next2weeks}')) AND #state = 'active'");
-        
+
         $queryLeave = hr_Leaves::getQuery();
         $queryLeave->where("((#leaveFrom <= '{$now}' AND #leaveTo >= '{$now}') OR (#leaveFrom >= '{$now}' AND #leaveFrom <= '{$next2weeks}')) AND #state = 'active'");
         
@@ -809,6 +812,26 @@ class hr_EmployeeContracts extends core_Master
                     'stateDateFrom' => $recSick->startDate,
                     'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recSick->toDate, crm_Profiles::getUserByPerson($id))),
                     'stateAlternatePersons' => $recSick->alternatePersons,
+                    'stateAnswerGSM' => $recSick->answerGSM,
+                    'stateEmoji' => $recSick->emoji,
+                );
+            }
+        }
+
+        // добавяме болничните
+        while ($recHome = $queryHomeOffice->fetch()) {
+
+            // ключ за масива ще е ид-то на всеки потребител в системата
+            $id = $recHome->personId;
+
+            // масив за проверка
+            if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recHome->startDate) {
+                $persons[$id] = (object) array('stateInfo' => 'homeOffice',
+                    'stateDateFrom' => $recHome->startDate,
+                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recHome->toDate, crm_Profiles::getUserByPerson($id))),
+                    'stateAlternatePersons' => $recHome->alternatePersons,
+                    'stateAnswerGSM' => $recHome->answerGSM,
+                    'stateEmoji' => $recHome->emoji,
                 );
             }
         }
@@ -823,6 +846,8 @@ class hr_EmployeeContracts extends core_Master
                     'stateDateFrom' => $recTrip->startDate,
                     'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recTrip->toDate, crm_Profiles::getUserByPerson($id))),
                     'stateAlternatePersons' => $recTrip->alternatePersons,
+                    'stateAnswerGSM' => $recTrip->answerGSM,
+                    'stateEmoji' => $recTrip->emoji,
                 );
             }
         }
@@ -837,10 +862,12 @@ class hr_EmployeeContracts extends core_Master
                 $persons[$id] = (object) array('stateInfo' => 'leaveDay',
                                                'stateDateFrom' => $recLeave->leaveFrom,
                                                 'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))),
-                                                'stateAlternatePersons' => $recLeave->alternatePersons,);
+                                                'stateAlternatePersons' => $recLeave->alternatePersons,
+                                                'stateAnswerGSM' => $recLeave->answerGSM,
+                                                'stateEmoji' => $recLeave->emoji,);
             }
         }
-        
+
         // взимаме всички профили
         $query = crm_Profiles::getQuery();
         
@@ -854,6 +881,7 @@ class hr_EmployeeContracts extends core_Master
             if ($rec->stateInfo == $persons[$rec->personId]->stateInfo &&
                 $rec->stateDateFrom == $persons[$rec->personId]->stateDateFrom &&
                 $rec->stateDateTo == $persons[$rec->personId]->stateDateTo) {
+
                 continue;
             }
             
@@ -868,10 +896,14 @@ class hr_EmployeeContracts extends core_Master
 
             $rec->stateAlternatePersons = $persons[$rec->personId]->stateAlternatePersons;
 
+            $rec->stateAnswerGSM = $persons[$rec->personId]->stateAnswerGSM;
+
+            $rec->stateEmoji = $persons[$rec->personId]->stateEmoji;
+
             $res[] = $rec;
 
             // и ги записваме на съответния профил
-            crm_Profiles::save($rec, 'stateInfo,stateDateFrom,stateDateTo,stateAlternatePersons');
+            crm_Profiles::save($rec, 'stateInfo,stateDateFrom,stateDateTo,stateAlternatePersons,stateAnswerGSM,stateEmoji');
         }
     }
 

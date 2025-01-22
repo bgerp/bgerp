@@ -385,7 +385,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         }
 
         if(countR($warnings)){
-            $blockTpl = new core_ET("<div class='invoiceNoteWarning' style='margin-top: 10px;'>[#warnings#]<br>[#btnTransfer#]</div>");
+            $blockTpl = new core_ET("<div class='invoiceNoteWarning' style='margin-bottom: 5px;margin-bottom: 5px;'>[#warnings#]<br>[#btnTransfer#]</div>");
             $blockTpl->append(implode('<br>', $warnings), 'warnings');
 
             if($detail->Master->haveRightFor('changeline', $data->masterId)){
@@ -394,7 +394,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $blockTpl->append($btnTransfer, 'btnTransfer');
             }
 
-            $tpl->append($blockTpl);
+            $tpl->prepend($blockTpl);
         }
     }
 }

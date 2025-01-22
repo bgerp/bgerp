@@ -138,6 +138,15 @@
                     <!--ET_BEGIN lastChangeStateOn-->
                     <span style='font-weight:normal'>|Променено състояние|*</span>: [#lastChangeStateOn#] |от|* [#lastChangeStateBy#]<br>
                     <!--ET_END lastChangeStateOn-->
+                    <!--ET_BEGIN firstProgress-->
+                    <span style='font-weight:normal'>|Първи прогрес|*</span>: [#firstProgress#]<br>
+                    <!--ET_END firstProgress-->
+                    <!--ET_BEGIN lastProgress-->
+                    <span style='font-weight:normal'>|Последен прогрес|*</span>: [#lastProgress#]<br>
+                    <!--ET_END lastProgress-->
+                    <!--ET_BEGIN lastProgressProduction-->
+                    <span style='font-weight:normal'>|Последен прогрес (Произв.)|*</span>: [#lastProgressProduction#]<br>
+                    <!--ET_END lastProgressProduction-->
                 </td>
             </tr>
         </table>

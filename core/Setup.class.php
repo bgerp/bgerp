@@ -230,6 +230,12 @@ defIfNot('CORE_BACKUP_ENABLED', 'no');
 
 
 /**
+ * Дефолтен шрифт на системата
+ */
+defIfNot('CORE_FONTS', 'roboto');
+
+
+/**
  * Включена ли е бекъп функционалността?
  */
 defIfNot('CORE_BACKUP_MAX_CNT', 2);
@@ -356,6 +362,8 @@ class core_Setup extends core_ProtoSetup
         'CORE_SYSTEM_NAME' => array('varchar(16)', 'caption=Системен потребител->Име'),
         
         'CORE_FIRST_ADMIN' => array('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
+
+        'CORE_FONTS' =>  array('enum(arial=Arial, roboto=Roboto, sofiaSans=Sofia Sans, openSans=Open Sans)', 'caption=Вътрешен изглед->Шрифт, customizeBy=powerUser, placeholder=Arial'),
         
         'CORE_LOGIN_INFO' => array('varchar', 'caption=Информация във формата за логване->Текст, customizeBy=admin'),
         

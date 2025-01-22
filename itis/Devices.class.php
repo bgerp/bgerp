@@ -124,6 +124,8 @@ class itis_Devices extends core_Master
         // Репортвани параметри
         $this->FLD('uniqueID', 'varchar(255)', 'caption=Операционна система->Идентификатор,input=none,column=none');
         $this->FLD('name', 'varchar(255)', 'caption=Операционна система->Име на компютъра,report,input=none,column=none');
+        $this->FLD('agent', 'key(mvc=itis_Deployments,select=name)', 'caption=Операционна система->Агент,report,input=none,column=none,single=none');
+
         $this->FLD('osVer', 'varchar(255)', 'caption=Операционна система->Версия,report,input=none,column=none');
         $this->FLD('lastBootTime', 'datetime', 'caption=Операционна система->Рестартиране,report,input=none,column=none');
         $this->FLD('freeMem', 'int', 'caption=Свободна памет->RAM,report,input=none,column=none');
@@ -152,6 +154,29 @@ class itis_Devices extends core_Master
      */
     public function act_Log()
     {
+        $instance = Request::get('instance');
+        
+        if(!$instance) {
+            echo "Missing instance ID";
+            log_System::add('itis_Devices', "Missing instance ID", null, 'err');
+            exit();
+        }
+
+        $dId = str::checkHash($instance, 8, 'AGENT');
+        
+        if(!$dId) {
+            echo "Wrong checksum for instance ID";
+            log_System::add('itis_Devices', "Wrong checksum for instance ID", null, 'err');
+            exit();
+        }
+
+        $dRec = itis_Deployments::fetch($dId);
+        if(!$dRec) {
+            echo "Missing record for instance ID";
+            log_System::add('itis_Devices', "Missing record for instance ID", null, 'err');
+            exit();
+        }
+
         $uid = Request::get('uniqueID');
  
         $rec = self::fetch(array("#uniqueID = '[#1#]'", $uid));
@@ -162,8 +187,30 @@ class itis_Devices extends core_Master
             $rec->id = $this->save_($rec);
         }
 
+        if(!($rec->name)) {
+            $rec->name = $dRec->name;
+        }
+
         $newData = $this->getDataFromRequest();
         $newData['agentIp'] = core_Users::getRealIpAddr();
+        
+        $process = explode('|', $newData['topProcess']);
+        sort($process);
+        foreach($process as $p) {
+            if(!itis_Process::fetch(array("#process = '[#1#]'", $p))) {
+                $pRec = (object) array('process' => $p, 'status' => 'warning', 'info' => 'Unknown process');
+                itis_Process::save($pRec);
+            }
+        }
+        $newData['topProcess'] = implode('|', $process);
+
+        $ports = explode('|', $newData['openPorts']);
+        foreach($ports as $p) {
+            if(!itis_Ports::fetch(array("#port = '[#1#]'", $p))) {
+                $pRec = (object) array('port' => $p, 'status' => 'warning', 'info' => 'Unknown port');
+                itis_Ports::save($pRec);
+            }
+        }
 
         $rec = itis_Changelog::updateDeviceData($rec, $newData);
         
@@ -218,13 +265,16 @@ class itis_Devices extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         static $fields;
+        
+        $row->openPorts = self::getVerbalOpenPorts($rec->openPorts);
 
-        $row->openPorts = str_replace('|', ', ', $row->openPorts);
-        $row->topProcess = str_replace('|', ', ', $row->topProcess);
+        $row->topProcess = self::getVerbalTopProcess($rec->topProcess);
 
-        $row->freeMem = round($rec->freeMem / 102.4, 2) . ' GB';
-        $row->freeDiskC = round($rec->freeDiskC / 102.4, 2) . ' GB';
-        $row->freeDiskD = round($rec->freeDiskD / 102.4, 2) . ' GB';
+        $row->freeMem = self::getVerbalFreeMem($rec->freeMem);
+
+        $row->freeDiskC = self::getVerbalFreeMem($rec->freeDiskC);
+
+        $row->freeDiskD = self::getVerbalFreeMem($rec->freeDiskD);
         
         if(!$fields) {
             $fields = $mvc->selectFields("#report == 'report'");
@@ -267,5 +317,89 @@ class itis_Devices extends core_Master
     {
         $res->append('.string-value .rightCol { white-space:wrap; text-align:left !important}', 'STYLES');
     }
-    
+
+    /**
+     * Връща оцветяване на порт или процес в зависимост от статуса
+     */
+    static function getStyleByStatus($status)
+    {
+        $style = '';
+        if($status == 'warning') {
+            $style = ' style="color:#b50" ';
+        } elseif($status == 'alert') {
+            $style = ' style="color:#f00" ';
+        }
+
+        return $style;
+    }
+
+
+    // Конвертори за вербални стойности
+
+
+    public static function getVerbalOpenPorts($value)
+    {
+        if($value = trim($value)) {
+            $ports = explode('|', $value);
+            foreach($ports as &$p) {
+                $portInfo = itis_Ports::fetch(array("#port = '[#1#]'", (int) $p));
+                if($portInfo) {
+                    $url = toUrl(array('itis_Ports', 'list', $portInfo->id));
+                    $style = self::getStyleByStatus($portInfo->status);
+                    $p = "<a href='{$url}' title='{$portInfo->info}'{$style}>{$p}</a>";
+                } else {
+                    $p = "<a href='https://www.google.com/search?q=what+service+is+using+{$p}+port' style='color:#0c0' target=_blank>{$p}</a>";
+                }
+            }
+            $value = implode(', ', $ports);
+        }
+        
+        return $value;
+    }
+
+
+    public static function getVerbalTopProcess($value)
+    {
+        if($value = trim($value)) {
+            $procs = explode('|', $value);
+            foreach($procs as &$p) {
+                $procInfo = itis_Process::fetch(array("#process = '[#1#]'",  $p));
+                if($procInfo) {
+                    $url = toUrl(array('itis_Process', 'list', $procInfo->id));
+                    $style = self::getStyleByStatus($procInfo->status);
+                    $p = "<a href='{$url}' title='{$procInfo->info}'{$style}>{$p}</a>";
+                } else {
+                    $p = "<a href='https://www.google.com/search?q=what+is+the+process+{$p}' style='color:#0c0' target=_blank>{$p}</a>";
+                }
+            }
+            $value = implode(', ', $procs);
+        }
+        
+        return $value;
+    }
+
+
+    public static function getVerbalFreeMem($value)
+    {
+        $value = round($value / 102.4, 2) . ' GB';
+
+        return $value;
+    }
+
+
+    public static function getVerbalDiskC($value)
+    {
+        $value = round($value / 102.4, 2) . ' GB';
+
+        return $value;
+    }
+
+
+    public static function getVerbalfreeDiskD($value)
+    {
+        $value = round($value / 102.4, 2) . ' GB';
+
+        return $value;
+    }
+
 }

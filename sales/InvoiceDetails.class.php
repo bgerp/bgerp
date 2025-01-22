@@ -64,8 +64,14 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
      * Кой може да пише?
      */
     public $canWrite = 'powerUser';
-    
-    
+
+
+    /**
+     * Кой може да пише?
+     */
+    public $canEdit = 'powerUser';
+
+
     /**
      * Кой таб да бъде отворен
      */

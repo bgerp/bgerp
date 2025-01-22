@@ -150,16 +150,20 @@ class itis_Changelog extends core_Detail
  
         if(isset($fields[$rec->param])) {
             $type = $Devices->getFieldType($rec->param);
-            if(!is_a($type, 'type_Int') && !is_a($type, 'type_Time')) {
-                $row->oldValue = $type->toVerbal(itis_Values::getValue($rec->oldValue));
-                $row->newValue = $type->toVerbal(itis_Values::getValue($rec->newValue));
+            if(!is_a($type, 'type_Int') && !is_a($type, 'type_Key') && !is_a($type, 'type_Time')) {
+                $rec->oldValue = itis_Values::getValue($rec->oldValue);
+                $rec->newValue = itis_Values::getValue($rec->newValue);
+            } 
+            $method = 'getVerbal' . $rec->param;
+            
+            if(Cls::existsMethod('itis_Devices', $method)) {
+                $row->oldValue = itis_Devices::{$method}($rec->oldValue);
+                $row->newValue = itis_Devices::{$method}($rec->newValue);
             } else {
                 $row->oldValue = $type->toVerbal($rec->oldValue);
                 $row->newValue = $type->toVerbal($rec->newValue);
             }
             if((is_a($type, 'type_Varchar') || is_a($type, 'type_Text')) && !is_a($type, 'type_Time')) {
-                $row->oldValue = $row->oldValue = str_replace('|', ', ', $row->oldValue);
-                $row->newValue = $row->newValue = str_replace('|', ', ', $row->newValue);
                 $row->ROW_ATTR = array('class' => 'string-value'); 
             }
         }

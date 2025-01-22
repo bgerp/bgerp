@@ -300,6 +300,7 @@ class drdata_Countries extends core_Manager
                 'bilgium' => 'belgium',
                 'blagaria' => 'bulgaria',
                 'bosna i hercigovina' => 'bosnia and herzegovina',
+                'bosnia and hercegowina' => 'bosnia and herzegovina',
                 'brasil' => 'brazil',
                 'bugaria' => 'bulgaria',
                 'bul' => 'bulgaria',

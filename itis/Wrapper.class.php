@@ -24,10 +24,12 @@ class itis_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('itis_Devices', 'Устройства', 'itis, ceo, admin');
-        $this->TAB('itis_Changelog', 'Промени', 'itis, ceo, admin');
-        $this->TAB('itis_Groups', 'Групи', 'itis, ceo, admin');
-        $this->TAB('itis_Ports', 'Портове', 'itis, ceo, admin');
-        $this->TAB('itis_Values', 'Стойности', 'itis, ceo, admin');
+        $this->TAB('itis_Devices', 'Устройства', 'itis, admin');
+        $this->TAB('itis_Changelog', 'Промени', 'itis, admin');
+        $this->TAB('itis_Deployments', 'Агенти', 'itis, admin');
+        $this->TAB('itis_Groups', 'Групи', 'itis, admin');
+        $this->TAB('itis_Ports', 'Портове', 'itis, admin');
+        $this->TAB('itis_Process', 'Процеси', 'itis, admin');
+        $this->TAB('itis_Values', 'Стойности', 'itis, admin');
     }
 }
