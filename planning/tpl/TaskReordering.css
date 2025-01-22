@@ -25,6 +25,25 @@ table th {
 .taskParamCol {
   text-align: right; }
 
+.modal-content input {
+  font-size: 20px; }
+
+.comboTime {
+  display: inline-block !important;
+  position: relative;
+  top: 2px;
+  margin-right: 5px; }
+  .comboTime input,
+  .comboTime select {
+    background: white;
+    border-radius: 3px !important;
+    -webkit-appearance: none;
+    border: solid 1px #bbbbbb;
+    margin-top: 0;
+    font-size: 19px;
+    -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset; }
+
 table {
   width: 100%;
   border-collapse: collapse; }
