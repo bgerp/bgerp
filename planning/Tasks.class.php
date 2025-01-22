@@ -3775,7 +3775,12 @@ class planning_Tasks extends core_Master
                 $tpl->push('planning/tpl/TaskReordering.css', 'CSS');
 
                 jqueryui_Ui::enable($tpl);
-                $tpl->append(getTplFromFile('planning/tpl/DatePickerModal.shtml'));
+                $modalTpl = getTplFromFile('planning/tpl/DatePickerModal.shtml');
+                $timeTpl = core_Type::getByName('hour')->renderInput('timePicker', null, array('class' => 'pickerSelect'));
+                $modalTpl->replace($timeTpl, 'TIME_PICKER');
+
+                $tpl->append($modalTpl);
+
             } else{
                 jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
             }

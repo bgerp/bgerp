@@ -333,146 +333,140 @@ $(document).ready(function () {
     });
 
 
-    const $modal = $("#modal");
-    const $modalTitle = $("#modalTitle");
-    const $datepicker = $("#datepicker");
-    const $timepicker = $("#timepicker");
-    const $modalSave = $("#modalSave");
-    const $modalClear = $("#modalClear"); // Бутон за изчистване
+    $(document).ready(function () {
+        const $modal = $("#modal");
+        const $modalTitle = $("#modalTitle");
+        const $datepicker = $("#datepicker");
+        const $timepicker = $("#timepicker"); // Полето за ръчно въвеждане (ако все още се използва)
+        const $timeSelect = $(".pickerSelect"); // Новото поле <select>
+        const $modalSave = $("#modalSave");
+        const $modalClear = $("#modalClear");
 
-    let selectedTaskId = null;
-    let selectedTaskField = null;
+        let selectedTaskId = null;
+        let selectedTaskField = null;
 
-    // Активиране на DatePicker (показва в DD.MM.YYYY)
-    $datepicker.datepicker({
-        dateFormat: "dd.mm.yy",
-        changeMonth: true,
-        changeYear: true,
-        yearRange: "2020:2030",
-        minDate: 0 // Позволява само бъдещи дати
-    });
-
-    // Позволява изтриване на датата чрез клавиатурата
-    $datepicker.on("keydown", function (e) {
-        if (e.key === "Backspace" || e.key === "Delete") {
-            $(this).val("");
+        // ✅ Функция за синхронизиране на селекта и input-а (ако все още има ръчно въвеждане)
+        function syncTimeInputs(value) {
+            $timeSelect.val(value); // Задаваме стойността в <select>
+            $timepicker.val(value); // Синхронизираме и input-а, ако все още се използва
         }
-    });
 
-    // Позволява изтриване на часа чрез клавиатурата
-    $timepicker.on("keydown", function (e) {
-        if (e.key === "Backspace" || e.key === "Delete") {
-            $(this).val("");
-        }
-    });
+        // 📅 Активиране на DatePicker (формат: DD.MM.YYYY)
+        $datepicker.datepicker({
+            dateFormat: "dd.mm.yy",
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "2020:2030",
+            minDate: 0
+        });
 
-    // Показване на модала само при двоен клик
-    $(".openModal").on("dblclick", function () {
-        const $span = $(this).closest("td").find("span.modalDateCol");
+        // 🏗️ Показване на модала при двоен клик
+        $(".openModal").on("dblclick", function () {
+            const $span = $(this).closest("td").find("span.modalDateCol");
 
-        if ($span.length > 0) {
-            const modalCaption = $span.data("modal-caption");
-            selectedTaskId = $span.data("task-id");
-            selectedTaskField = $span.data("task-field");
+            if ($span.length > 0) {
+                const modalCaption = $span.data("modal-caption");
+                selectedTaskId = $span.data("task-id");
+                selectedTaskField = $span.data("task-field");
 
-            // Вземаме data-manual-date, ако го има, иначе оставяме празно
-            const currentDateTime = $span.data("manual-date") || "";
+                // ✅ Вземаме `data-manual-date` или `data-date`
+                const currentDateTime = $span.data("manual-date") || $span.data("date") || "";
 
-            $modalTitle.text(modalCaption);
+                $modalTitle.text(modalCaption);
 
-            // ✅ НУЛИРАМЕ СТАРИТЕ СТОЙНОСТИ
+                // ✅ Нулираме предишните стойности
+                $datepicker.val("").datepicker("refresh");
+                syncTimeInputs("");
+
+                // 🕒 Ако има `data-manual-date`, попълваме го
+                if (currentDateTime) {
+                    const [date, time] = currentDateTime.split(" ");
+                    const [year, month, day] = date.split("-");
+                    const formattedDate = `${day}.${month}.${year}`;
+                    const formattedTime = time.substring(0, 5);
+
+                    $datepicker.val(formattedDate).datepicker("refresh");
+                    syncTimeInputs(formattedTime);
+                }
+            }
+
+            if (!$modal.hasClass("show")) {
+                $modal.addClass("show");
+            }
+        });
+
+        // 🕒 Когато потребителят избере от `<select>`, попълваме в `<input>`
+        $timeSelect.on("change", function () {
+            syncTimeInputs($(this).val());
+        });
+
+        // 📝 Когато потребителят пише ръчно в `<input>`, синхронизираме select-а
+        $timepicker.on("input", function () {
+            let typedValue = $(this).val();
+            if ($timeSelect.find(`option[value="${typedValue}"]`).length > 0) {
+                $timeSelect.val(typedValue);
+            } else {
+                $timeSelect.val(""); // Ако стойността не е валидна, нулираме select-а
+            }
+        });
+
+        // 🔄 Изчистване на стойностите
+        $modalClear.on("click", function () {
             $datepicker.val("").datepicker("refresh");
-            $timepicker.val("");
+            syncTimeInputs("");
+        });
 
-            // Ако има `data-manual-date`, попълваме стойностите
-            if (currentDateTime) {
-                const [date, time] = currentDateTime.split(" ");
-                const [year, month, day] = date.split("-");
-                const formattedDate = `${day}.${month}.${year}`;
-                const formattedTime = time.substring(0, 5);
-
-                $datepicker.val(formattedDate).datepicker("refresh");
-                $timepicker.val(formattedTime);
-            }
-        }
-
-        if (!$modal.hasClass("show")) {
-            $modal.addClass("show");
-        }
-    });
-
-    // Изчистване на датата и часа
-    $modalClear.on("click", function () {
-        $datepicker.val("").datepicker("refresh");
-        $timepicker.val("");
-    });
-
-    // Затваряне на модала
-    $(".close, #modalSave").on("click", function () {
-        $modal.removeClass("show");
-    });
-
-    // Затваряне при клик извън съдържанието
-    $(window).on("click", function (e) {
-        if ($(e.target).is("#modal")) {
+        // ❌ Затваряне на модала
+        $(".close, #modalSave").on("click", function () {
             $modal.removeClass("show");
-        }
-    });
+        });
 
-    // Действие при натискане на "Запази"
-    $modalSave.on("click", function () {
+        // 📝 Запазване на въведената стойност в sessionStorage
+        $modalSave.on("click", function () {
+            if (selectedTaskId !== null && selectedTaskField !== null) {
+                const selectedDate = $datepicker.val();
+                let selectedTime = $timeSelect.val(); // Взимаме времето от `.pickerSelect`
+                selectedTime = !selectedTime ? '00:00' : selectedTime;
 
-        if (selectedTaskId !== null && selectedTaskField !== null) {
-            const selectedDate = $datepicker.val();
-            let selectedTime = $timepicker.val();
-            selectedTime = !selectedTime ? '00:00' : selectedTime;
+                let formattedDateTime = null;
+                if (selectedDate && selectedTime) {
+                    const [day, month, year] = selectedDate.split(".");
+                    formattedDateTime = `${year}-${month}-${day} ${selectedTime}:00`;
+                }
 
-            // ✅ Ако полетата са празни, записваме `null`
-            let formattedDateTime = null;
+                let storedData = sessionStorage.getItem('manualTimes');
+                storedData = storedData ? JSON.parse(storedData) : {
+                    expectedTimeStart: {},
+                    expectedTimeEnd: {}
+                };
 
-            if (selectedDate && selectedTime) {
-                // Преобразуване обратно в MySQL формат: DD.MM.YYYY HH:MM → YYYY-MM-DD HH:MM:SS
-                const [day, month, year] = selectedDate.split(".");
-                formattedDateTime = `${year}-${month}-${day} ${selectedTime}:00`;
+                storedData[selectedTaskField][selectedTaskId] = formattedDateTime;
+
+                sessionStorage.setItem('manualTimes', JSON.stringify(storedData));
+
+                // Optional: Process server update
+                let table = document.querySelector("#dragTable");
+                if (table.dataset.url) {
+                    let dataIds = getOrderedTasks();
+                    let resObj = { url: table.dataset.url };
+                    let dataIdString = JSON.stringify(dataIds);
+
+                    let manualTimes = sessionStorage.getItem('manualTimes');
+
+                    let params = {orderedTasks: dataIdString, manualTimes: manualTimes, forceReorder: 1};
+
+                    console.log(params.orderedTasks);
+                    console.log(params.manualTimes);
+
+                    getEfae().preventRequest = 0;
+                    getEfae().process(resObj, params);
+                }
+            } else {
+                alert("Грешка: Липсва task ID или task field!");
             }
 
-            // Извличане на съществуващите данни от sessionStorage
-            let storedData = sessionStorage.getItem('manualTimes');
-            storedData = storedData ? JSON.parse(storedData) : {
-                expectedTimeStart: {},
-                expectedTimeEnd: {}
-            };
-
-            storedData[selectedTaskField][selectedTaskId] = formattedDateTime;
-
-            // Съхраняване обратно в sessionStorage
-            sessionStorage.setItem('manualTimes', JSON.stringify(storedData));
-
-            // Optional: Process server update
-            let table = document.querySelector("#dragTable");
-            if (table.dataset.url) {
-                let dataIds = getOrderedTasks();
-                let resObj = { url: table.dataset.url };
-                let dataIdString = JSON.stringify(dataIds);
-
-                let manualTimes = sessionStorage.getItem('manualTimes');
-
-                let params = {orderedTasks: dataIdString, manualTimes: manualTimes, forceReorder: 1};
-
-                console.log(params.orderedTasks);
-                console.log(params.manualTimes);
-
-               getEfae().preventRequest = 0;
-               getEfae().process(resObj, params);
-            }
-
-
-            //console.log(sessionStorage.getItem(selectedTaskField));
-        } else {
-            alert("Грешка: Липсва task ID или task field!");
-        }
-
-        $modal.removeClass("show");
+            $modal.removeClass("show");
+        });
     });
 })
 
