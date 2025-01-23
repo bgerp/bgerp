@@ -244,29 +244,29 @@ class drdata_Eori extends core_Manager
             $res = self::statusSyntax;
         }
 
-        $curl = curl_init('https://api.service.hmrc.gov.uk/customs/eori/lookup/check-multiple-eori');
-
-        $params = new stdClass();
-        $params->eoris = array();
-        $params->eoris[] = $eori;
-
-        // Да не се проверява сертификата
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Accept: application/json"));
-
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
-
-        curl_setopt($curl, CURLOPT_POSTFIELDS, @json_encode($params));
-
-        core_Debug::startTimer('drdata_Eori_check');
-        $responseJson = @curl_exec($curl);
-        core_Debug::stopTimer('drdata_Eori_check');
-
         if (!$res) {
+            $curl = curl_init('https://api.service.hmrc.gov.uk/customs/eori/lookup/check-multiple-eori');
+
+            $params = new stdClass();
+            $params->eoris = array();
+            $params->eoris[] = $eori;
+
+            // Да не се проверява сертификата
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: application/json", "Accept: application/json"));
+
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+
+            curl_setopt($curl, CURLOPT_POSTFIELDS, @json_encode($params));
+
+            core_Debug::startTimer('drdata_Eori_check');
+            $responseJson = @curl_exec($curl);
+            core_Debug::stopTimer('drdata_Eori_check');
+
             if (!$responseJson) {
                 $res = self::statusInvalid;
             } else {
@@ -290,6 +290,32 @@ class drdata_Eori extends core_Manager
                     } else {
                         $res = self::statusInvalid;
                     }
+                }
+            }
+
+            if ($res == self::statusInvalid) {
+                // URL на WSDL услугата
+                $wsdl = "https://ec.europa.eu/taxation_customs/dds2/eos/validation/services/validation?wsdl";
+
+                try {
+                    // Създаване на SOAP клиент
+                    $client = new SoapClient($wsdl);
+
+                    // Подгответе входните данни (заменете с реален ЕОРИ номер)
+                    $params = array (
+                        'eori' => $eori, // Примерен ЕОРИ номер
+                    );
+
+                    // Извикване на SOAP метода
+                    $response = @$client->__soapCall("validateEORI", array($params));
+
+                    if ($response && $response->return->result->statusDescr == 'Valid') {
+                        $res = self::statusValid;
+                    } else {
+                        $res = self::statusInvalid;
+                    }
+                } catch (Exception $e) {
+                    $res = self::statusInvalid;
                 }
             }
         }

@@ -138,7 +138,7 @@ class planning_Jobs extends core_Master
     /**
      * Поле за дата по което ще филтрираме
      */
-    public $filterDateField = 'createdOn,dueDate,deliveryDate,modifiedOn,lastChangeStateOn,activatedOn';
+    public $filterDateField = 'createdOn,dueDate,expectedDueDate,deliveryDate,modifiedOn,lastChangeStateOn,activatedOn';
     
     
     /**
@@ -242,7 +242,8 @@ class planning_Jobs extends core_Master
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|productionScrap|quantity|oldJobId');
         $this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none,class=w100');
         $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory,remember');
-        
+        $this->FLD('expectedDueDate', 'date(smartTime)', 'caption=Очакван падеж,input=none');
+
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,mandatory,input=hidden,before=packQuantity,silent,removeAndRefreshForm');
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -609,7 +610,7 @@ class planning_Jobs extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('view', 'enum(all=Всички,progress=Според изпълнението,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
+            $data->listFilter->FNC('view', 'enum(all=Всички,progress=Според изпълнението,overdue=Просрочен падеж,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
             $data->listFilter->input('view', 'silent');
             $data->listFilter->setDefault('view', 'all');
             $data->listFilter->showFields .= ',view';
@@ -668,6 +669,10 @@ class planning_Jobs extends core_Master
                         arr::placeInAssocArray($data->listFields, array('deliveryDate' => 'Дата за доставка'), 'modifiedOn');
                         $data->query->orderBy('deliveryDate', 'ASC');
                         break;
+                    case 'expectedDueDate':
+                        arr::placeInAssocArray($data->listFields, array('expectedDueDate' => 'Очак. падеж'), null, 'dueDate');
+                        $data->query->orderBy('expectedDueDate', 'ASC');
+                        break;
                 }
             }
 
@@ -683,6 +688,8 @@ class planning_Jobs extends core_Master
                         break;
                     case 'all':
                         break;
+                    case 'overdue':
+                        $data->query->where("#dueDate < #expectedDueDate");
                     case 'progress':
                         $data->query->XPR('progress', 'double', 'ROUND(#quantity / COALESCE(#quantityProduced, 0), 2)');
                         $data->query->where("#state = 'active'");
@@ -867,6 +874,17 @@ class planning_Jobs extends core_Master
         if ($rec->isEdited === true && isset($rec->id) && $rec->_isClone !== true && empty($rec->_activateAfterCreation)) {
             self::addToHistory($rec->history, 'edited', $rec->modifiedOn, $rec->modifiedBy);
         }
+
+        if(isset($rec->id)){
+            if($rec->isEdited){
+                $exDueDate = $mvc->fetchField($rec->id, 'dueDate', false);
+                if($exDueDate != $rec->dueDate){
+                    $rec->_dueDateChanged = true;
+                }
+            }
+        } else {
+            $rec->_dueDateChanged = true;
+        }
     }
     
     
@@ -1033,7 +1051,13 @@ class planning_Jobs extends core_Master
                 $row->{$fld} = "<b class='quiet'>{$row->{$fld}}</b>";
             }
         }
-        
+
+        if($rec->expectedDueDate > $rec->dueDate){
+            $row->dueDate = "<b style='color:#cc0000'>{$row->dueDate}</b>";
+            $expectedDueDateVerbal = dt::mysql2verbal($rec->expectedDueDate, 'd.m.Y');
+            $row->dueDate = ht::createHint($row->dueDate, "Зададеният падеж е преди очаквания|*: {$expectedDueDateVerbal}", 'warning');
+        }
+
         if (isset($fields['-single'])) {
             $canStore = cat_Products::fetchField($rec->productId, 'canStore');
             $row->captionProduced = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
@@ -2080,40 +2104,6 @@ class planning_Jobs extends core_Master
         $pQuery1->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $pQuery1->where("#state = 'active' AND #productId != {$rec->productId}");
         $pQuery1->in('threadId', $threadsArr);
-        $pNoteClassId = planning_DirectProductionNote::getClassId();
-
-        /*
-         * while($pRec = $pQuery1->fetch()){
-
-            $aArray = array('' => $pRec->quantity);
-
-            if(core_Packs::isInstalled('batch')){
-                $bQuery = batch_BatchesInDocuments::getQuery();
-                $bQuery->where("#detailClassId = {$pNoteClassId} AND #detailRecId = {$pRec->id}");
-                while($dRec1 = $bQuery->fetch()){
-                    $aArray["{$dRec1->batch}"] = $dRec1->quantity;
-                    $aArray[""] -= $dRec1->quantity;
-                }
-                if(empty($aArray[""])){
-                    unset($aArray[""]);
-                }
-            }
-
-            $fromAccId = ($pRec->canStore != 'yes') ? '61102' : '';
-            foreach ($aArray as $batch => $q){
-                // Те ще се влагат от склада в който са произведени
-                $key = "{$pRec->productId}|{$pRec->packagingId}||{$fromAccId}|{$pRec->storeId}|{$batch}";
-                if(!array_key_exists($key, $convertedArr)){
-                    $batch = !empty($batch) ? $batch : null;
-                    $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
-                    $convertedArr[$key] = (object)array('productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'quantityInPack' => $pRec->quantityInPack, 'measureId' => $measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => null, 'type' => 'input', 'storeId' => $pRec->storeId, 'batch' => $batch, 'fromAccId' => $fromAccId);
-                    $consumable[$pRec->productId] = $pRec->productId;
-                }
-
-                $convertedArr[$key]->quantityExpected += $q;
-            }
-        }
-         */
 
         // Всички протоколи за влагане/връщане на услуги се реконтират - за да се смени правилно разходния обект
         foreach (array('planning_ConsumptionNoteDetails' => 'planning_ConsumptionNotes', 'planning_ReturnNoteDetails' => 'planning_ReturnNotes') as $detailName => $masterName){
@@ -2531,6 +2521,10 @@ class planning_Jobs extends core_Master
             $rec->secondMeasureId = null;
             $mvc->save_($rec, 'secondMeasureId');
         }
+
+        if($rec->_dueDateChanged){
+            static::recalcExpectedDueDates($rec->containerId);
+        }
     }
 
 
@@ -2559,5 +2553,45 @@ class planning_Jobs extends core_Master
     public function getDefaultIssueRec_($id)
     {
         return (object)array('title' => tr('Към|*: ') . $this->getTitleById($id));
+    }
+
+
+    /**
+     * Рекалкулиране на очаквания падеж
+     *
+     * @param mixed $containerIds - масив от контейнери или null ако ще е само за активните
+     * @return void
+     */
+    public static function recalcExpectedDueDates($containerIds = null)
+    {
+        // Всички задания отговарящи на условията
+        $containerIds = isset($containerIds) ? arr::make($containerIds, true) : array();
+        $jobArr = array();
+        $jQuery = planning_Jobs::getQuery();
+        if(countR($containerIds)){
+            $jQuery->in('containerId', $containerIds);
+        } else {
+            $jQuery->in('state', array('active', 'stopped', 'wakeup'));
+        }
+
+        $jQuery->show('id,containerId,dueDate');
+        while ($jRec = $jQuery->fetch()){
+            $jobArr[$jRec->containerId] = (object)array('id' => $jRec->id, 'expectedDueDate' => $jRec->dueDate, 'dueDate' => $jRec->dueDate);
+        }
+
+        if(!countR($jobArr)) return;
+
+        // Взима се най-голямото от очаквания край на техните операции или тяхното задание
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#state IN ('active', 'wakeup', 'pending', 'stopped', 'closed')");
+        $tQuery->XPR('maxTimeEnd', 'date', 'DATE(MAX(#expectedTimeEnd))');
+        $tQuery->in("originId", array_keys($jobArr));
+        $tQuery->groupBy('originId');
+        $tQuery->show('originId,maxTimeEnd');
+        while ($tRec = $tQuery->fetch()){
+            $jobArr[$tRec->originId]->expectedDueDate = max($tRec->maxTimeEnd, $jobArr[$tRec->originId]->expectedDueDate);
+        }
+
+        cls::get('planning_Jobs')->saveArray($jobArr, 'id,expectedDueDate');
     }
 }

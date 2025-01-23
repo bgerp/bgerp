@@ -98,6 +98,12 @@
                         <td class='quiet' style='text-align: left'>|Падеж|*:</td>
                         <td>[#dueDate#]</td>
                     </tr>
+                    <!--ET_BEGIN expectedDueDate-->
+                    <tr>
+                        <td class='quiet' style='text-align: left'>|Очакван падеж|*:</td>
+                        <td>[#expectedDueDate#]</td>
+                    </tr>
+                    <!--ET_END expectedDueDate-->
                     <!--ET_BEGIN storeId-->
                     <tr>
                         <td class='quiet' style='text-align: left'>|Произвеждане в|*:</td>

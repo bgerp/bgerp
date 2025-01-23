@@ -362,6 +362,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::renameResourceFields2624v2',
         'migrate::removeCachedAssetModified4124v2',
         'migrate::repairSearchKeywords2442',
+        'migrate::calcTaskLastProgress2504v2',
     );
 
 
@@ -523,5 +524,14 @@ class planning_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_Steps', $callOn);
+    }
+
+
+    /**
+     * Миграция на последните прогреси
+     */
+    public function calcTaskLastProgress2504v2()
+    {
+        planning_Tasks::recalcTaskLastProgress(null, 'active,wakeup,stopped', 90);
     }
 }

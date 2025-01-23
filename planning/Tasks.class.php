@@ -97,7 +97,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка';
+    public $listFields = 'firstProgress=Начало,lastProgressProduction=Край,dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка';
 
 
     /**
@@ -193,7 +193,7 @@ class planning_Tasks extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn,dueDate,lastChangeStateOn,timeClosed';
+    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn,dueDate,lastChangeStateOn,timeClosed,firstProgress,lastProgress,lastProgressProduction';
 
 
     /**
@@ -323,7 +323,7 @@ class planning_Tasks extends core_Master
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
         $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано,autoPrint=Генериране и Печат)', 'caption=Етикиране->Производ. №,tdClass=small-field nowrap,notNull,value=both,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('timeStart', 'datetime(timegetAssetTaskOptionsSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
         $this->FLD('calcedCurrentDuration', 'time', 'caption=Целеви времена->Изчислена продължителност,input=none');
@@ -354,6 +354,10 @@ class planning_Tasks extends core_Master
         $this->FLD('prevErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Предишна грешка');
         $this->FLD('nextErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Следваща грешка');
         $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
+
+        $this->FLD('firstProgress', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Първи Прогрес (всички),changable, tdClass=leftColImportant,input=none');
+        $this->FLD('lastProgress', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Последен Прогрес (всички),changable, tdClass=leftColImportant,input=none');
+        $this->FLD('lastProgressProduction', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Последен Прогрес (произвеждане),changable, tdClass=leftColImportant,input=none');
 
         $this->setDbIndex('labelPackagingId');
         $this->setDbIndex('productId');
@@ -1212,7 +1216,7 @@ class planning_Tasks extends core_Master
         core_Debug::startTimer('UPDATE_TASK_MASTER');
         $rec = $this->fetch($id);
         $originalProgress = $rec->progress;
-        $updateFields = 'totalQuantity,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy,prevAssetId,assetId';
+        $updateFields = 'totalQuantity,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy,prevAssetId,assetId,lastProgress,lastProgressProduction,firstProgress';
 
         // Ако е записано в сесията, че е подменена машината да се подмени и в операцията
         if ($newAssetId = Mode::get("newAsset{$rec->id}")) {
@@ -1231,23 +1235,40 @@ class planning_Tasks extends core_Master
         // Колко е общото к-во досега
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
-        $dQuery->where("#taskId = {$rec->id} AND #productId = {$productId} AND (#type = 'production' OR #type = 'scrap') AND #state != 'rejected'");
+        $dQuery->where("#taskId = {$rec->id} AND #state != 'rejected'");
 
+        $rec->lastProgressProduction = $rec->lastProgress = $rec->firstProgress = null;
         $rec->totalWeight = $rec->totalQuantity = $rec->scrappedQuantity = $rec->totalNetWeight = 0;
         while ($dRec = $dQuery->fetch()) {
-            if ($dRec->type == 'production') {
-                $quantity = $dRec->quantity / $rec->quantityInPack;
-                $rec->totalQuantity += $quantity;
-                $rec->totalWeight += $dRec->weight;
-                if (isset($dRec->netWeight)) {
-                    $rec->totalNetWeight += $dRec->netWeight;
+            if($dRec->productId == $productId && in_array($dRec->type, array('production', 'scrap'))){
+                if ($dRec->type == 'production') {
+                    $quantity = $dRec->quantity / $rec->quantityInPack;
+                    $rec->totalQuantity += $quantity;
+                    $rec->totalWeight += $dRec->weight;
+                    if (isset($dRec->netWeight)) {
+                        $rec->totalNetWeight += $dRec->netWeight;
+                    }
+                } else {
+                    $rec->scrappedQuantity += $dRec->quantity / $rec->quantityInPack;
+                    $rec->totalWeight -= $dRec->weight;
+                    if (isset($dRec->netWeight)) {
+                        $rec->totalNetWeight -= $dRec->netWeight;
+                    }
                 }
-            } else {
-                $rec->scrappedQuantity += $dRec->quantity / $rec->quantityInPack;
-                $rec->totalWeight -= $dRec->weight;
-                if (isset($dRec->netWeight)) {
-                    $rec->totalNetWeight -= $dRec->netWeight;
+            }
+
+            // Преизчисляване на последните/първите прогреси
+            $progressDate = $dRec->date ?? $dRec->createdOn;
+            if(in_array($dRec->type, array('production', 'scrap'))){
+                if($progressDate > $rec->lastProgressProduction){
+                    $rec->lastProgressProduction = $progressDate;
                 }
+            }
+            if($progressDate > $rec->lastProgress){
+                $rec->lastProgress = $progressDate;
+            }
+            if(is_null($rec->firstProgress) || $progressDate < $rec->firstProgress){
+                $rec->firstProgress = $progressDate;
             }
         }
 
@@ -2322,11 +2343,12 @@ class planning_Tasks extends core_Master
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif ($filter->state != 'all') {
                     $data->query->where("#state = '{$filter->state}' OR #state = 'rejected'");
-
                     if ($filter->state == 'closed') {
                         $orderByField = 'orderByDate';
                         $orderByDir = 'DESC';
                         $orderByDateCoalesce = 'COALESCE(#timeClosed, 0)';
+
+                        //$data->listFields['']
                     }
                 }
 
@@ -2654,6 +2676,59 @@ class planning_Tasks extends core_Master
             if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state IN ('pending', 'draft')")){
                 core_Statuses::newStatus('В операцията има документ/и на "Заявка/Чернова"!', 'warning');
             }
+        }
+
+        // При промяна на състоянието да се преизчислят последните/първите времена
+        if(in_array($rec->state, array('active', 'stopped', 'wakeup', 'closed'))){
+            static::recalcTaskLastProgress($rec->id);
+        }
+    }
+
+
+    /**
+     * Рекалкулиране на прогресите на операцията
+     *
+     * @param int|null $taskId            - ид на операция, null ако е за всички
+     * @param array|null $states          - операциите в кои състояние
+     * @param null|int $closedInLastDays  - приключвните в последните колко
+     * @return void
+     */
+    public static function recalcTaskLastProgress($taskId = null, $states = null, $closedInLastDays = null)
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $tQuery = planning_ProductionTaskDetails::getQuery();
+        $tQuery->EXT('taskState', 'planning_Tasks', "externalName=state,externalKey=taskId");
+        $tQuery->EXT('timeClosed', 'planning_Tasks', "externalName=timeClosed,externalKey=taskId");
+        $tQuery->XPR('lastProgress', 'datetime', 'MAX(COALESCE(#date, #createdOn))');
+        $tQuery->XPR('firstProgress', 'datetime', 'MIN(COALESCE(#date, #createdOn))');
+        $tQuery->XPR('lastProgressProduction', 'datetime', "MAX(CASE #type WHEN 'production' THEN COALESCE(#date, #createdOn) ELSE NULL END)");
+        $tQuery->where("#state != 'rejected'");
+        $tQuery->show('taskId,lastProgress,firstProgress,lastProgressProduction');
+        $tQuery->groupBy('taskId');
+        if(isset($taskId)){
+            $tQuery->where("#taskId = $taskId");
+        }
+        if(isset($states)){
+            $states = arr::make($states, true);
+            $tQuery->in("taskState", $states);
+            if(isset($closedInLastDays)){
+                $beforeTime = dt::addDays(-1 * $closedInLastDays);
+                $tQuery->orWhere("#taskState = 'closed' AND #timeClosed >= '{$beforeTime}'");
+            }
+        } else {
+            if(isset($closedInLastDays)) {
+                $beforeTime = dt::addDays(-1 * $closedInLastDays);
+                $tQuery->where("(#taskState = 'closed' AND #timeClosed >= '{$beforeTime}') OR #timeClosed IS NULL");
+            }
+        }
+
+        $taskArr = array();
+        while($tRec = $tQuery->fetch()){
+            $taskArr[$tRec->taskId] = (object)array('id' => $tRec->taskId, 'lastProgress' => $tRec->lastProgress, 'firstProgress' => $tRec->firstProgress, 'lastProgressProduction' => $tRec->lastProgressProduction);
+        }
+
+        if(countR($taskArr)){
+            $Tasks->saveArray($taskArr, 'id,lastProgress,firstProgress,lastProgressProduction');
         }
     }
 
@@ -3054,6 +3129,9 @@ class planning_Tasks extends core_Master
         if (isset($data->listFilter->rec->folder)) {
             unset($data->listFields['folderId']);
         }
+        //unset($data->listFields['firstProgress']);
+       // unset($data->listFields['lastProgressProduction']);
+
         if (Mode::is('isReorder')) {
             $data->stopListRefresh = true;
             unset($data->listFields['_rowTools']);
@@ -3356,6 +3434,27 @@ class planning_Tasks extends core_Master
             $data->listFields = array_diff_key($data->listFields, $hideColumns);
         }
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, $fieldsToFilterIfEmpty);
+
+        // При показване на приключените да се подмени колонката за датата
+        if ($data->listFilter->rec->state == 'closed') {
+            $modifiedData = array();
+            $firstProgressCaption = $data->listFields['firstProgress'];
+            $lastProgressProductionCaption = $data->listFields['lastProgressProduction'];
+            unset($data->listFields['firstProgress'], $data->listFields['lastProgressProduction']);
+
+            foreach ($data->listFields as $key => $value) {
+                if ($key == "expectedTimeStart") {
+                    $modifiedData["firstProgress"] = $firstProgressCaption;
+                }elseif ($key === "expectedTimeEnd") {
+                    $modifiedData["lastProgressProduction"] = $lastProgressProductionCaption;
+                } else {
+                    $modifiedData[$key] = $value;
+                }
+            }
+            $data->listFields = $modifiedData;
+        } else {
+            unset($data->listFields['firstProgress'], $data->listFields['lastProgressProduction']);
+        }
 
         core_Debug::stopTimer('RENDER_TABLE');
     }
@@ -3712,7 +3811,10 @@ class planning_Tasks extends core_Master
                 $tpl->push('planning/tpl/TaskReordering.css', 'CSS');
 
                 jqueryui_Ui::enable($tpl);
-                $tpl->append(getTplFromFile('planning/tpl/DatePickerModal.shtml'));
+                $modalTpl = getTplFromFile('planning/tpl/DatePickerModal.shtml');
+                $timeTpl = core_Type::getByName('hour')->renderInput('timePicker', null, array('class' => 'pickerSelect'));
+                $modalTpl->replace($timeTpl, 'TIME_PICKER');
+                $tpl->append($modalTpl);
             } else{
                 jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
             }
