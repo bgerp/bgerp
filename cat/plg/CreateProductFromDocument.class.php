@@ -390,7 +390,17 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                         }
                     }
                 }
-                
+
+                if(!($mvc instanceof store_InternalDocumentDetail)){
+                    // Сетване на предупреждение ако реда се дублира
+                    $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
+                    if($setWarning == 'yes'){
+                        if(deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes, $rec->quantity)){
+                            $form->setWarning('productId,packagingId,packPrice,discount,notes,packQuantity', 'Вече има запис със същите данни');
+                        }
+                    }
+                }
+
                 if (!$form->gotErrors()) {
                     // Създаване на нов артикул само при нужда
                     if (!empty($productId) && $mvc instanceof sales_QuotationsDetails) {

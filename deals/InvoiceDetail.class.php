@@ -687,6 +687,17 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             $rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
 
+            // Ако има такъв запис, сетваме грешка
+            $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
+            if($setWarning == 'yes'){
+                $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, null, null, null, null, $rec->notes);
+                if ($exRec) {
+                    if($masterRec->type != 'dc_note'){
+                        $form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
+                        unset($rec->packPrice, $rec->price, $rec->quantityInPack);
+                    }
+                }
+            }
 
             if(!$form->gotErrors()){
                 // Записваме основната мярка на продукта
