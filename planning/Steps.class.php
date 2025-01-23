@@ -743,12 +743,4 @@ class planning_Steps extends core_Extender
     {
         $res = ' ' . cls::get($rec->classId)::fetchField($rec->objectId, 'searchKeywords');
     }
-
-
-    function act_Test()
-    {
-       // bp();
-        planning_Jobs::recalcExpectedDueDates(303082);
-
-    }
 }
