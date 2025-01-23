@@ -455,7 +455,10 @@ class batch_Items extends core_Master
         $form = cls::get('core_Form');
         $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $form->FLD("state{$data->masterId}", 'enum(active=Активни,closed=Затворени,inStock=Налични,notInStock=Без наличност,all=Всички)', 'caption=Състояние,silent');
+        $form->FLD("filter{$data->masterId}", 'enum(asc=Подредба (Възх.),desc=Подредба (Низх.))', 'caption=Подредба,silent');
+
         $form->setDefault("state{$data->masterId}", 'active');
+        $form->setDefault("filter{$data->masterId}", 'asc');
 
         $form->input(null, 'silent');
         $form->view = 'horizontal';
@@ -476,34 +479,47 @@ class batch_Items extends core_Master
             $data->storeId = $data->form->rec->{"storeId{$data->masterId}"};
             $query->where("#storeId = {$data->storeId}");
         }
-        
-        $filterState = $data->form->rec->{"state{$data->masterId}"};
+
+        $filterRec = $data->form->rec;
+        $filterState = $filterRec->{"state{$data->masterId}"};
         if ($filterState != 'all') {
             if($filterState == 'inStock'){
                 $query->where("#quantity > 0");
             } elseif($filterState == 'notInStock'){
                 $query->where("#quantity <= 0");
             } else {
-                $query->where("#state = '{$data->form->rec->{"state{$data->masterId}"}}'");
+                $query->where("#state = '{$filterRec->{"state{$data->masterId}"}}'");
             }
         }
+        $orderBy = $filterRec->{"filter{$data->masterId}"};
 
         $data->recs = $query->fetchAll();
 
         // Добавяне на наличните к-ва без партида
         $storeQuery = store_Products::getQuery();
         $storeQuery->where("#productId = {$data->masterId} AND #quantity != 0");
+        $storeQuery->orderBy('storeId', 'ASC');
         if(isset($data->storeId)){
             $storeQuery->where("#storeId = {$data->storeId}");
         }
+
+        $newRecs = array();
         while ($storeRec = $storeQuery->fetch()){
             $onBatches = $count = 0;
-            array_walk($data->recs, function($a) use(&$onBatches, &$count, $storeRec) {
-                if(!empty($a->batch) && $a->storeId == $storeRec->storeId) {$onBatches += $a->quantity; $count++;}
+            $filtered = array_filter($data->recs, function($a) use(&$onBatches, &$count, $storeRec) {
+                if($a->storeId == $storeRec->storeId){
+                    if(!empty($a->batch)) {
+                        $onBatches += $a->quantity; $count++;
+                    }
+                    return true;
+                }
+
+                return false;
             });
+            arr::sortObjects($filtered, 'batch', $filterRec->{"filter{$data->masterId}"}, 'natural');
 
             if($count > 1){
-                $data->recs["-{$storeRec->storeId}batches"] = (object)array('storeId' => $storeRec->storeId,
+                $filtered["-{$storeRec->storeId}batches"] = (object)array('storeId' => $storeRec->storeId,
                                                                      'productId' => $data->masterId,
                                                                      'quantity' => $onBatches,
                                                                      'state' => 'active',
@@ -512,15 +528,16 @@ class batch_Items extends core_Master
 
             $withoutBatch = round($storeRec->quantity - $onBatches, 4);
             if(!empty($withoutBatch)){
-                $data->recs["-{$storeRec->storeId}nobatch"] = (object)array('storeId' => $storeRec->storeId,
+                $filtered["-{$storeRec->storeId}nobatch"] = (object)array('storeId' => $storeRec->storeId,
                                                                             'productId' => $data->masterId,
                                                                             'quantity' => $withoutBatch,
                                                                             'state' => 'active',
                                                                             'batch' => -2);
             }
-        }
 
-        arr::sortObjects($data->recs, 'storeId', 'ASC');
+            $newRecs += $filtered;
+        }
+        $data->recs = $newRecs;
 
         // Подготвяме страницирането
         $url = getCurrentUrl();
