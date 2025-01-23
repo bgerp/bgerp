@@ -294,7 +294,7 @@ class planning_Tasks extends core_Master
      */
     public function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden,tdClass=small');
         $this->FLD('productId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation|showadditionalUom|description,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Бруто,input=none');
@@ -880,11 +880,6 @@ class planning_Tasks extends core_Master
         $plannedQuantityVerbal = $mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId);
         Mode::pop('text');
         $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
-        if(Mode::is('isReorder')){
-            $row->progress = ht::createElement("span", array('title' => "Планирано|*: {$plannedQuantityVerbal}"), $row->progress, true);
-        } elseif(isset($fields['-list']) && empty($rec->progress)) {
-            $row->progress = "<i>{$plannedQuantityVerbal}</i>";
-        }
         core_Debug::stopTimer('RENDER_VERBAL');
 
         return $row;
@@ -3186,24 +3181,26 @@ class planning_Tasks extends core_Master
             $data->listFields += $paramFields;
         }
 
+        $tableClass = 'small';
+        $data->listTableMvc->FNC('prevExpectedTimeEnd', 'datetime');
+        $data->listTableMvc->FNC('nextExpectedTimeStart', 'datetime');
+        $data->listTableMvc->FNC('dueDate', 'date');
+        $data->listTableMvc->FNC('dependantProgress', 'datetime');
+        $data->listTableMvc->FNC('nextId', 'datetime');
+        $data->listTableMvc->FNC('saleId', 'varchar');
+        $data->listTableMvc->FNC('jobQuantity', 'double', 'smartCenter');
         if (Mode::is('isReorder')){
             $data->listTableMvc->tableRowTpl = "[#ROW#]";
             unset($data->listFields['folderId']);
-            $data->listTableMvc->FNC('prevExpectedTimeEnd', 'datetime');
-            $data->listTableMvc->FNC('nextExpectedTimeStart', 'datetime');
-            $data->listTableMvc->FNC('dueDate', 'date');
-            $data->listTableMvc->FNC('dependantProgress', 'datetime');
-            $data->listTableMvc->FNC('nextId', 'datetime');
-            $data->listTableMvc->FNC('saleId', 'varchar');
-            $data->listTableMvc->FNC('jobQuantity', 'double', 'smartCenter');
-
-            $data->listTableMvc->setField('notes', 'tdClass=notesCol');
-            foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId') as $fld) {
-                $dateClass = in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? "reorderSmallCol openModal" : "reorderSmallCol";
-                $data->listTableMvc->setField($fld, "tdClass={$dateClass}");
-            }
-            $data->listTableMvc->setField('dependantProgress', "tdClass=reorderSmallCol dependantProgress");
+            $tableClass = 'reorderSmallCol';
         }
+
+        $data->listTableMvc->setField('notes', 'tdClass=notesCol');
+        foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId') as $fld) {
+            $dateClass = in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? "{$tableClass} openModal" : $tableClass;
+            $data->listTableMvc->setField($fld, "tdClass={$dateClass}");
+        }
+        $data->listTableMvc->setField('dependantProgress', "tdClass={$tableClass} dependantProgress");
 
         core_Debug::stopTimer('RENDER_HEADER');
         $showSaleInList = planning_Setup::get('SHOW_SALE_IN_TASK_LIST');
@@ -3483,10 +3480,10 @@ class planning_Tasks extends core_Master
             $attr['data-task-id'] = $rec->id;
             $attr['data-task-field'] = $fld;
             if(!empty($rec->timeStart)){
-                $res .= " " . ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent();
+                $res = ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent() . " " . $res;
                 $attr['data-manual-date'] = "{$datePure}";
             } elseif(!empty($rec->timeEnd)){
-                $res .= " " . ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent();
+                $res = ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent() . " " . $res;
                 $attr['data-manual-date'] = "{$datePure}";
             }
             $attr['data-modal-caption'] = ($fld == 'expectedTimeStart') ? tr('Ново целево начало за') : tr('Нов целеви край за');
