@@ -363,6 +363,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::removeCachedAssetModified4124v2',
         'migrate::repairSearchKeywords2442',
         'migrate::calcTaskLastProgress2504v2',
+        'migrate::syncOperatorsWithGroups2504',
     );
 
 
