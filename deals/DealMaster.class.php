@@ -190,7 +190,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     while($pRec = $pQuery->fetch()){
                         $proformaDates[] = !empty($pRec->dueDate) ? $pRec->dueDate : $pRec->date;
                     }
-                    $proformaValior = min($proformaDates);
+                    $proformaValior = countR($proformaDates) ? min($proformaDates) : null;
                 }
             }
 
