@@ -742,7 +742,7 @@ class type_Keylist extends core_Type
      * Съединяваме два keylist стринга
      *
      * @param type_Keylist $klist1
-     * @param type_Keylist $klist2
+     * @param type_Keylist|array $klist2
      *
      * @return type_Keylist $newKlist
      */
