@@ -1288,6 +1288,9 @@ class planning_AssetResources extends core_Master
 
         // Проверява зависимостите между операциите
         planning_StepConditions::checkTaskConditions();
+
+        // Преизчисляване на очаквания падеж на заданията
+        planning_Jobs::recalcExpectedDueDates();
     }
 
 
