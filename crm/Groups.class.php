@@ -225,10 +225,10 @@ class crm_Groups extends core_Master
             
             return ;
         }
-        
+
         $query = $clsName::getQuery();
         $gCntArr = $query->countKeylist('groupList');
-        
+
         if (!empty($gCntArr)) {
             ksort($gCntArr);
         }
@@ -496,6 +496,10 @@ class crm_Groups extends core_Master
         if ($flagChange) {
             $res .= "<li class='debug-new'>Обновени са {$nUpdated} групи.</li>";
         }
+
+        $employeesGroupId = crm_Groups::getIdFromSysId('employees');
+        $groupRec = (object)array('name' => 'Центрове на дейност', 'sysId' => 'activityCenters', 'parentId' => $employeesGroupId);
+        crm_Groups::forceGroup($groupRec);
     }
 
 

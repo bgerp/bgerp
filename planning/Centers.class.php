@@ -305,6 +305,8 @@ class planning_Centers extends core_Master
             $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
         }
 
+        $row->hrGroupId = crm_Groups::getHyperlink(static::getEmployeesGroupId($rec));
+
         if($rec->mandatoryOperatorsInTasks == 'auto'){
             $row->mandatoryOperatorsInTasks = $mvc->getFieldType('mandatoryOperatorsInTasks')->toVerbal(planning_Setup::get('TASK_PROGRESS_OPERATOR'));
             $row->mandatoryOperatorsInTasks = ht::createHint("<span style='color:blue'>{$row->mandatoryOperatorsInTasks}</span>", 'По подразбиране', 'notice', false);
@@ -585,5 +587,45 @@ class planning_Centers extends core_Master
         }
 
         redirect(array('bgerp_Portal', 'show'), false, 'Нямате достъп до таб от менюто', 'warning');
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // Синхронизиране на системата група за оператори спрямо името на центъра
+        static::syncCrmGroup($rec->id);
+    }
+
+
+    /**
+     * В коя системна група ще бъдат служителите от центъра
+     *
+     * @param int $id
+     * @return mixed
+     */
+    public static function getEmployeesGroupId($id)
+    {
+        $rec = static::fetchRec($id);
+
+        return crm_Groups::getIdFromSysId("planningCenter{$rec->id}");
+    }
+
+
+    /**
+     * Синхронизира системната група за операторите на центъра на дейност
+     *
+     * @param int $id
+     * @return int
+     */
+    public static function syncCrmGroup($id)
+    {
+        $rec = static::fetchRec($id);
+        $centerGroupId = crm_Groups::getIdFromSysId('activityCenters');
+        $groupRec = (object)array('name' => $rec->name, 'sysId' => "planningCenter{$rec->id}", 'parentId' => $centerGroupId);
+
+        return crm_Groups::forceGroup($groupRec);
     }
 }
