@@ -2242,12 +2242,12 @@ class planning_Tasks extends core_Master
         }
 
         // Рендиране на таблицата с намерените задачи
-        $listTableMvc = clone $this;
-        $listTableMvc->FNC('costsCount', 'int');
-        $listTableMvc->FNC('notConvertedQuantity', 'int');
-        $listTableMvc->FNC('taskWastePercent', 'int', 'tdClass=small quiet');
+        $data->listTableMvc = clone $this;
+        $data->listTableMvc->FNC('costsCount', 'int');
+        $data->listTableMvc->FNC('notConvertedQuantity', 'int');
+        $data->listTableMvc->FNC('taskWastePercent', 'int', 'tdClass=small quiet');
 
-        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
+        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc));
         $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План.,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи,taskWastePercent=Отп., assetId=Оборудв.,info=@info');
         $fields['taskWastePercent'] = "|*<small class='quiet'>|Отп.|*</small>";
         if ($data->masterMvc instanceof planning_AssetResources) {
@@ -3307,9 +3307,9 @@ class planning_Tasks extends core_Master
             if($haveDiffProductIds || isset($data->masterMvc)){
                 $stepTitle = str::limitLen($mvc->getStepTitle($rec->productId), 32);
                 if (!empty($rec->subTitle)) {
-                    $stepTitle .= "|{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
+                    $stepTitle .= " - {$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
                 }
-                $row->title = "{$rec->id}|{$stepTitle}";
+                $row->title = "{$rec->id} - {$stepTitle}";
             } else {
                 $row->title = $rec->id;
                 if(!empty($rec->subTitle)){
