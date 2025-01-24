@@ -460,8 +460,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $tpl->append(ht::createBtn('Разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/money.png', 'title' => 'Влагане на отнесен разход')), 'INPUTED_PRODUCTS_TABLE');
         }
 
-        if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'pop', '_filterFldNot' => true))){
-            $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', "noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'pop', '_filterFldNot' => true, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Форма за избор на редове за изтриване', 'class' => 'selectDeleteRowsBtn')), 'planning_DirectProductNoteDetails');
+        if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input'))){
+            $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', "noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Форма за избор на редове за изтриване', 'class' => 'selectDeleteRowsBtn')), 'INPUTED_PRODUCTS_TABLE');
         }
 
         // Рендиране на таблицата с отпадъците
@@ -497,12 +497,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);
                 $placeholder = $type == 'subProduct' ? 'SUB_PRODUCTS_TABLE' : 'WASTE_PRODUCTS_TABLE';
                 $tpl->append($detailsPop, $placeholder);
+                $btnTitle = ($type == 'pop') ? 'Отпадък' : 'Субпродукт';
 
                 // Добавяне на бутон за нов отпадък
                 if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'pop'))) {
-                    $btnTitle = ($type == 'pop') ? 'Отпадък' : 'Субпродукт';
                     $icon = ($type == 'pop') ? 'recycle.png' : 'door_in.png';
                     $tpl->append(ht::createBtn($btnTitle, array($this, 'add', 'noteId' => $data->masterId, 'type' => $type, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => "img/16/{$icon}", 'title' => "Добавяне на нов " . mb_strtolower($btnTitle))), $placeholder);
+                }
+
+                if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => $type))){
+                    $tpl->append(ht::createBtn("Изтриване", array($this, 'selectRowsToDelete', "noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => $type, 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => "Форма групово изтриване на|* " . mb_strtolower($btnTitle), 'class' => 'selectDeleteRowsBtn')), $placeholder);
                 }
             }
         }
