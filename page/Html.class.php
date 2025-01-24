@@ -55,8 +55,51 @@ class page_Html extends core_ET
             "\n</body>" .
             "\n</html>"
         );
+
+        // Шрифт на системата
+        $conf = core_Packs::getConfig('core');
+        $systemFont = $conf->CORE_FONTS;
+        if ($systemFont != 'arial') {
+            $woff2 = sbf("/fonts/{$systemFont}-Regular.woff2", "");
+            $woff = sbf("/fonts/{$systemFont}-Regular.woff", "");
+
+            $woff2Bold = sbf("/fonts/{$systemFont}-Bold.woff2", "");
+            $woffBold = sbf("/fonts/{$systemFont}-Bold.woff", "");
+
+            $woff2Italic = sbf("/fonts/{$systemFont}-Italic.woff2", "");
+            $woffItalic = sbf("/fonts/{$systemFont}-Italic.woff", "");
+            $style = "<style>@font-face {
+                font-family: '{$systemFont}';
+                src: url('{$woff2}') format('woff2'),
+                    url('{$woff}') format('woff');
+                font-weight: ;
+                font-style: normal;
+                font-display: swap;
+            }
+            
+            @font-face {
+                font-family: '{$systemFont}';
+                src: url('{$woff2Bold}') format('woff2'),
+                    url('{$woffBold}') format('woff');
+                font-weight: bold;
+                font-style: normal;
+                font-display: swap;
+            }
+            
+            @font-face {
+                font-family: '{$systemFont}';
+                src: url('{$woff2Italic}') format('woff2'),
+                    url('{$woffItalic}') format('woff');
+                font-weight: normal;
+                font-style: italic;
+                font-display: swap;
+            }
+            body.modern-theme, .modern-theme .richtext { font-family: '{$systemFont}' !important;}</style>";
+
+        $this->appendOnce($style, 'HEAD');
+        }
     }
-    
+
     
     /**
      * Прихваща събитието 'output' на ЕТ, за да добави стиловете и javascripts

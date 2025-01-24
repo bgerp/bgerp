@@ -26,7 +26,7 @@ defIfNot('HR_COMPANIES_IP', '');
 /**
  * разрешените дни за работа от вкъщи
  */
-defIfNot('HR_DAYS_IN_HOMEOFFICE', '');
+defIfNot('HR_DAYS_IN_HOMEOFFICE', '10');
 
 
 /**
@@ -83,8 +83,8 @@ class hr_Setup extends core_ProtoSetup
         'HR_EC_MIN' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Долна граница'),
         'HR_EC_MAX' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
         'HR_EMAIL_TO_PERSON' => array('key(mvc=crm_Persons,select=name, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Изпращане на имейл към->Лице'),
-        'HR_COMPANIES_IP' => array('varchar', 'caption=Ip-та на фирмата'),
-        'HR_DAYS_IN_HOMEOFFICE' => array('int(min=0)', 'caption=Разрешените дни за работа от вкъщи'),
+        'HR_COMPANIES_IP' => array('varchar', 'caption=Ip-та на фирмата->IP'),
+        'HR_DAYS_IN_HOMEOFFICE' => array('int(min=0)', 'caption=Разрешените дни за работа от вкъщи->Дни,unit=&nbsp;|(за един месец)|*,customizeBy=hrMaster|ceo'),
         );
     
     
@@ -122,7 +122,8 @@ class hr_Setup extends core_ProtoSetup
         array('hrSickdays'),
         array('hrLeaves'),
         array('hrTrips'),
-        array('hr', 'hrSickdays, hrLeaves, hrTrips'),
+        array('hrHomeOffice'),
+        array('hr', 'hrSickdays, hrLeaves, hrTrips, hrHomeOffice'),
         array('hrMaster', 'hr'),
         array('hrAll'),
         array('hrAllGlobal', 'hrAll'),

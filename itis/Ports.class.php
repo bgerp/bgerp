@@ -17,7 +17,7 @@ class itis_Ports extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, itis_Wrapper, plg_Sorting, plg_Created';
+    public $loadList = 'itis_Wrapper, plg_Sorting, plg_Created, plg_RowTools2';
     
     
     /**
@@ -51,6 +51,11 @@ class itis_Ports extends core_Manager
     
     
     /**
+     * Кой може да редактира системните данни
+     */
+    public $canEditsysdata = 'ceo,admin,itis';
+    
+    /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 50;
@@ -59,7 +64,7 @@ class itis_Ports extends core_Manager
     /**
      * Полета за еденичен изглед
      */
-    // public $listFields = 'id,indicatorId, value, time';
+    public $listFields = 'port,info,status';
     
 
     /**
@@ -79,9 +84,9 @@ class itis_Ports extends core_Manager
      */
     public function description()
     {
-        $this->FLD('port', 'int', 'caption=TCP/IP порт');
-        $this->FLD('status', 'enum(ok,warning,alert)', 'caption=Статус,value=ok,notNull');
-        $this->FLD('info', 'varchar(255)', 'caption=Информация');
+        $this->FLD('port', 'int', 'caption=TCP/IP порт,smartCenter');
+        $this->FLD('status', 'enum(ok,warning,alert)', 'caption=Статус,value=ok,notNull,smartCenter');
+        $this->FLD('info', 'varchar(255)', 'caption=Информация,smartCenter');
 
         $this->setDbUnique('port');
     }
@@ -99,6 +104,31 @@ class itis_Ports extends core_Manager
         $res = $cntObj->html;
         
         return $res;
+    }
+
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = $data->form;
+
+        $form->setReadonly('port');
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $row->port = "<a href='https://www.google.com/search?q=what+service+is+using+{$rec->port}+port' style='color:#0c0' target=_blank>{$row->port}</a>";
+        $style = itis_Devices::getStyleByStatus($rec->status);
+        $row->status = "<span {$style}>" . $row->status . "</span>";
     }
 
 }

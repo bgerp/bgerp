@@ -12,6 +12,13 @@
        <tr>
            <td>
                [#PARAMS#]
+               <!--ET_BEGIN ASSET_PARAMS-->
+               <hr />
+               <div>
+                   [#ASSET_PARAMS#]
+               </div>
+               <hr />
+               <!--ET_END ASSET_PARAMS-->
                <!--ET_BEGIN ADDITIONAL-->
                [#ADDITIONAL#]
                <div>

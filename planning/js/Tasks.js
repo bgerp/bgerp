@@ -1,10 +1,15 @@
 $(document).ready(function () {
     compareDates();
 
+    sessionStorage.removeItem('sortableOrder');
+
+
+
     $('#backBtn').on('click', function(e) {
         let url = $(this).attr("data-url");
 
         sessionStorage.removeItem('sortableOrder');
+        sessionStorage.removeItem('manualTimes');
 
         // Redirect to the new page using the provided URL
         if(url){
@@ -53,17 +58,18 @@ $(document).ready(function () {
 
             let dataIds = getOrderedTasks();
             let dataIdString = JSON.stringify(dataIds);
-            let params = { orderedTasks: dataIdString };
+
+            let manualTimes = sessionStorage.getItem('manualTimes');
+            let params = { orderedTasks: dataIdString, manualTimes: manualTimes};
 
             console.log(url);
-            console.log(dataIdString);
+            console.log(params);
             sessionStorage.removeItem('sortableOrder');
+            sessionStorage.removeItem('manualTimes');
 
             //return;
             let resObj = {};
             resObj['url'] = url;
-
-
 
             getEfae().preventRequest = 0;
             getEfae().process(resObj, params);
@@ -98,13 +104,11 @@ $(document).ready(function () {
                 }
 
                 saveSelection();
-                console.log('CHOOSE');
             },
 
             onUnchoose: function (evt) {
                 evt.item.classList.remove('dragging');
                 saveSelection();
-                console.log('UN CHOOSE');
             },
 
             onStart: function (evt) {
@@ -158,7 +162,7 @@ $(document).ready(function () {
                     let dataIdString = JSON.stringify(dataIds);
                     let params = { orderedTasks: dataIdString };
 
-                    console.log('DROP: ' + dataIdString);
+                    console.log('DROP: orderedTasks=' + dataIdString);
                     getEfae().preventRequest = 0;
                     getEfae().process(resObj, params);
                 }
@@ -327,6 +331,143 @@ $(document).ready(function () {
         // Добавяме параметрите към URL-то
         window.location.href = `${url}&${params.toString()}`;
     });
+
+
+    $(document).ready(function () {
+        const $modal = $("#modal");
+        const $modalTitle = $("#modalTitle");
+        const $datepicker = $("#datepicker");
+        const $timepicker = $("#timepicker"); // Полето за ръчно въвеждане (ако все още се използва)
+        const $timeSelect = $(".pickerSelect"); // Новото поле <select>
+        const $modalSave = $("#modalSave");
+        const $modalClear = $("#modalClear");
+
+        let selectedTaskId = null;
+        let selectedTaskField = null;
+
+        // ✅ Функция за синхронизиране на селекта и input-а (ако все още има ръчно въвеждане)
+        function syncTimeInputs(value) {
+            $timeSelect.val(value); // Задаваме стойността в <select>
+            $timepicker.val(value); // Синхронизираме и input-а, ако все още се използва
+        }
+
+        // 📅 Активиране на DatePicker (формат: DD.MM.YYYY)
+        $datepicker.datepicker({
+            dateFormat: "dd.mm.yy",
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "2020:2030",
+            minDate: 0
+        });
+
+        // 🏗️ Показване на модала при двоен клик
+        $(".openModal").on("dblclick", function () {
+            const $span = $(this).closest("td").find("span.modalDateCol");
+
+            if ($span.length > 0) {
+                const modalCaption = $span.data("modal-caption");
+                selectedTaskId = $span.data("task-id");
+                selectedTaskField = $span.data("task-field");
+
+                // ✅ Вземаме `data-manual-date` или `data-date`
+                const currentDateTime = $span.data("manual-date") || $span.data("date") || "";
+
+                $modalTitle.text(modalCaption);
+
+                // ✅ Нулираме предишните стойности
+                $datepicker.val("").datepicker("refresh");
+                syncTimeInputs("");
+
+                // 🕒 Ако има `data-manual-date`, попълваме го
+                if (currentDateTime) {
+                    const [date, time] = currentDateTime.split(" ");
+                    const [year, month, day] = date.split("-");
+                    const formattedDate = `${day}.${month}.${year}`;
+                    const formattedTime = time.substring(0, 5);
+
+                    $datepicker.val(formattedDate).datepicker("refresh");
+                    syncTimeInputs(formattedTime);
+                }
+            }
+
+            if (!$modal.hasClass("show")) {
+                $modal.addClass("show");
+            }
+        });
+
+        // 🕒 Когато потребителят избере от `<select>`, попълваме в `<input>`
+        $timeSelect.on("change", function () {
+            syncTimeInputs($(this).val());
+        });
+
+        // 📝 Когато потребителят пише ръчно в `<input>`, синхронизираме select-а
+        $timepicker.on("input", function () {
+            let typedValue = $(this).val();
+            if ($timeSelect.find(`option[value="${typedValue}"]`).length > 0) {
+                $timeSelect.val(typedValue);
+            } else {
+                $timeSelect.val(""); // Ако стойността не е валидна, нулираме select-а
+            }
+        });
+
+        // 🔄 Изчистване на стойностите
+        $modalClear.on("click", function () {
+            $datepicker.val("").datepicker("refresh");
+            syncTimeInputs("");
+        });
+
+        // ❌ Затваряне на модала
+        $(".close, #modalSave").on("click", function () {
+            $modal.removeClass("show");
+        });
+
+        // 📝 Запазване на въведената стойност в sessionStorage
+        $modalSave.on("click", function () {
+            if (selectedTaskId !== null && selectedTaskField !== null) {
+                const selectedDate = $datepicker.val();
+                let selectedTime = $timeSelect.val(); // Взимаме времето от `.pickerSelect`
+                selectedTime = !selectedTime ? '00:00' : selectedTime;
+
+                let formattedDateTime = null;
+                if (selectedDate && selectedTime) {
+                    const [day, month, year] = selectedDate.split(".");
+                    formattedDateTime = `${year}-${month}-${day} ${selectedTime}:00`;
+                }
+
+                let storedData = sessionStorage.getItem('manualTimes');
+                storedData = storedData ? JSON.parse(storedData) : {
+                    expectedTimeStart: {},
+                    expectedTimeEnd: {}
+                };
+
+                storedData[selectedTaskField][selectedTaskId] = formattedDateTime;
+
+                sessionStorage.setItem('manualTimes', JSON.stringify(storedData));
+
+                // Optional: Process server update
+                let table = document.querySelector("#dragTable");
+                if (table.dataset.url) {
+                    let dataIds = getOrderedTasks();
+                    let resObj = { url: table.dataset.url };
+                    let dataIdString = JSON.stringify(dataIds);
+
+                    let manualTimes = sessionStorage.getItem('manualTimes');
+
+                    let params = {orderedTasks: dataIdString, manualTimes: manualTimes, forceReorder: 1};
+
+                    console.log(params.orderedTasks);
+                    console.log(params.manualTimes);
+
+                    getEfae().preventRequest = 0;
+                    getEfae().process(resObj, params);
+                }
+            } else {
+                alert("Грешка: Липсва task ID или task field!");
+            }
+
+            $modal.removeClass("show");
+        });
+    });
 })
 
 function getOrderedTasks()
@@ -347,6 +488,19 @@ function getOrderedTasks()
 function render_compareDates()
 {
     compareDates();
+}
+
+function render_forceSort(data)
+{
+    let sortable = new Sortable(document.querySelector("#dragTable tbody"), {
+        dataIdAttr: 'data-id' // Указва, че ще сортираме по атрибут data-id
+    });
+    sortable.sort(data.inOrder);
+
+    let order = sortable.toArray();
+    let val = order.join('|');
+
+    sessionStorage.setItem('sortableOrder', val);
 }
 
 

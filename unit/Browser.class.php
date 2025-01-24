@@ -118,6 +118,8 @@ class unit_Browser
                 $link->click();
                 $this->node = null;
             }
+        } else {
+            wp('Бутонът не е намерен', $link, $button);
         }
         
         expect($this->node === null, $this->node, $link, $button, $this->page->getText(), $this->session->getCurrentUrl());

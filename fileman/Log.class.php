@@ -369,6 +369,11 @@ class fileman_Log extends core_Manager
         if ($search = trim($form->rec->search)) {
             $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
             plg_Search::applySearch($search, $data->query, 'searchKeywords');
+        } else {
+            // Ако няма търсене, скриваме html и eml файловете
+            foreach (array('html', 'eml') as $ext) {
+                $query->where(array("LOWER(#fileName) NOT LIKE '%.[#1#]'", $ext));
+            }
         }
     }
     

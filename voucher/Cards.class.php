@@ -64,6 +64,12 @@ class voucher_Cards extends core_Detail
 
 
     /**
+     * Кой може да го освободи?
+     */
+    public $canRelease = 'ceo, voucher';
+
+
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, voucher';
@@ -165,7 +171,12 @@ class voucher_Cards extends core_Detail
         core_RowToolbar::createIfNotExists($row->_rowTools);
         if ($mvc->haveRightFor('unlink', $rec)) {
             $url = array($mvc, 'unlink', 'id' => $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Освобождаване', $url, array('ef_icon' => 'img/16/link_break.png', 'title' => 'Освобождаване от препоръчителя'));
+            $row->_rowTools->addLink('Отвързване', $url, array('ef_icon' => 'img/16/link_break.png', 'title' => 'Отвързване от препоръчителя'));
+        }
+
+        if ($mvc->haveRightFor('release', $rec)) {
+            $url = array($mvc, 'release', 'id' => $rec->id, 'ret_url' => true);
+            $row->_rowTools->addLink('Освобождаване', $url, array('ef_icon' => 'img/16/lightning.png', 'warning' => 'Наистина ли желаете да ПРЕМАХНЕТЕ използването на ваучера, така че да може да се използва отново на друго място|*?', 'title' => 'Ваучерът да може да се използва отново'));
         }
 
         if($fields['-detail']){
@@ -271,6 +282,12 @@ class voucher_Cards extends core_Detail
                 $requiredRoles = 'no_one';
             }
         }
+
+        if($action == 'release' && isset($rec)) {
+            if(empty($rec->usedOn)){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 
 
@@ -294,6 +311,23 @@ class voucher_Cards extends core_Detail
         static::save($rec, 'referrer,state,validTo,activatedOn');
 
         followRetUrl(null, 'Ваучерът е отвързан от собственика|*!');
+    }
+
+
+    /**
+     * Създаване на ваучери
+     */
+    public function act_Release()
+    {
+        $this->requireRightFor('release');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('release', $rec);
+
+        voucher_Cards::mark($id, false);
+        cls::get($rec->classId)->logWrite('Ръчно освобождаване на използван ваучер|*!', $rec->objectId);
+
+        followRetUrl(null, 'Ваучерът е освободен');
     }
 
 

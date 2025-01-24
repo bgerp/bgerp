@@ -225,11 +225,13 @@ class cat_Params extends bgerp_ProtoParam
      * @param array $paramArr
      * @return core_ET $tpl
      */
-    public static function renderParamBlock($paramArr)
+    public static function renderParamBlock($paramArr, $paramCaption = null)
     {
         $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
         $lastGroupId = null;
-        
+        $paramCaption = $paramCaption ?? tr('Параметри');
+
+        $tpl->replace($paramCaption, 'PARAM_CAPTION');
         if (is_array($paramArr)) {
             foreach ($paramArr as &$row2) {
                 $block = clone $tpl->getBlock('PARAM_GROUP_ROW');

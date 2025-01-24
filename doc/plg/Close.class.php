@@ -54,7 +54,7 @@ class doc_plg_Close extends core_Plugin
 
             if ($data->rec->state == 'closed') {
                 $warning = $mvc->getChangeStateWarning($data->rec, $data->rec->brState);
-                $data->toolbar->addBtn('Откриване', array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "order=39,id={$openBtnId},row=2,ef_icon = img/16/lock_unlock.png,title=Откриване на {$singleTitle}");
+                $data->toolbar->addBtn('Активиране', array($mvc, 'changeState', $data->rec->id, 'ret_url' => true), "order=39,id={$openBtnId},row=2,ef_icon = img/16/lock_unlock.png,title=Активиране на {$singleTitle}");
                 $data->toolbar->setWarning($openBtnId, $warning);
             } elseif (in_array($data->rec->state, array('active', 'pending', 'template', 'draft'))) {
                 $warning = $mvc->getChangeStateWarning($data->rec, 'closed');
@@ -76,9 +76,9 @@ class doc_plg_Close extends core_Plugin
 
             if ($rec->state == 'closed') {
                 if($firstContainerId == $rec->containerId){
-                    $res = ($mvc->hasPlugin('doc_FolderPlg')) ? 'Сигурни ли сте, че искате да откриете тази папка и да може да се добавят документи в нея|*?' : 'Сигурни ли сте, че искате да откриете тази нишка и да може да се добавят документи в нея|*?';
+                    $res = ($mvc->hasPlugin('doc_FolderPlg')) ? 'Сигурни ли сте, че искате да активирате тази папка и да може да се добавят документи в нея|*?' : 'Сигурни ли сте, че искате да активирате тази нишка и да може да се добавят документи в нея|*?';
                 } else {
-                    $res = 'Сигурни ли сте, че искате да откриете този документ|*?';
+                    $res = 'Сигурни ли сте, че искате да активирате този документ|*?';
                 }
             } elseif (in_array($rec->state, array('active', 'pending', 'template', 'draft'))) {
                 if($firstContainerId == $rec->containerId){
@@ -150,7 +150,7 @@ class doc_plg_Close extends core_Plugin
         $mvc->requireRightFor('close', $rec);
         
         $state = ($rec->state == 'closed') ? (($rec->brState) ? $rec->brState : (($rec->exState) ? $rec->exState : 'active')) : 'closed';
-        $action = ($state == 'closed') ? 'Приключване' : 'Откриване';
+        $action = ($state == 'closed') ? 'Приключване' : 'Активиране';
         
         if ($mvc->invoke('BeforeChangeState', array(&$rec, &$state))) {
             $rec->brState = $rec->state;

@@ -460,9 +460,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $jobRec = static::getJobRec($rec);
         $threadId = $rec->threadId ?? doc_Containers::fetchField($rec->originId, 'threadId');
         if(!planning_ConsumptionNotes::existActivatedInThread($threadId)){
-            $selectableStore = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $jobRec->inputStores);
-            if(countR($selectableStore) == 1){
-                $form->setDefault('inputStoreId', key($selectableStore));
+            if($form->cmd != 'refresh'){
+                $selectableStore = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $jobRec->inputStores);
+                if(countR($selectableStore) == 1){
+                    $form->setDefault('inputStoreId', key($selectableStore));
+                }
             }
         }
 

@@ -94,11 +94,10 @@ class planning_Tasks extends core_Master
      */
     public $preventCache = true;
 
-
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,expectedTimeEnd=Край,title=Операция,progress,dependantProgress=Предх.Оп.,folderId,assetId,saleId=Доставка,originId=@,notes=Забележка';
+    public $listFields = 'firstProgress=Начало,lastProgressProduction=Край,dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка';
 
 
     /**
@@ -194,7 +193,7 @@ class planning_Tasks extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn,dueDate,lastChangeStateOn,timeClosed';
+    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn,dueDate,lastChangeStateOn,timeClosed,firstProgress,lastProgress,lastProgressProduction';
 
 
     /**
@@ -324,7 +323,7 @@ class planning_Tasks extends core_Master
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
         $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано,autoPrint=Генериране и Печат)', 'caption=Етикиране->Производ. №,tdClass=small-field nowrap,notNull,value=both,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
-        $this->FLD('timeStart', 'datetime(timegetAssetTaskOptionsSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
         $this->FLD('calcedCurrentDuration', 'time', 'caption=Целеви времена->Изчислена продължителност,input=none');
@@ -355,6 +354,10 @@ class planning_Tasks extends core_Master
         $this->FLD('prevErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Предишна грешка');
         $this->FLD('nextErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Следваща грешка');
         $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
+
+        $this->FLD('firstProgress', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Първи Прогрес (всички),changable, tdClass=leftColImportant,input=none');
+        $this->FLD('lastProgress', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Последен Прогрес (всички),changable, tdClass=leftColImportant,input=none');
+        $this->FLD('lastProgressProduction', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Последен Прогрес (произвеждане),changable, tdClass=leftColImportant,input=none');
 
         $this->setDbIndex('labelPackagingId');
         $this->setDbIndex('productId');
@@ -404,6 +407,13 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+
+        if(isset($data->rec->assetId)){
+            $Assets = cls::get('planning_AssetResources');
+            Mode::push('text', 'xhtml');
+            $data->assetData = cat_products_Params::prepareClassObjectParams($Assets, $Assets->fetch($data->rec->assetId));
+            Mode::pop('text', 'xhtml');
+        }
     }
 
 
@@ -428,6 +438,14 @@ class planning_Tasks extends core_Master
         if (isset($data->paramData)) {
             $paramTpl = cat_products_Params::renderParams($data->paramData);
             $tpl->append($paramTpl, 'PARAMS');
+        }
+
+        if(isset($data->assetData) && countR($data->assetData->params)){
+            Mode::push('text', 'xhtml');
+            $data->assetData->paramCaption = 'От обордуването';
+            $assetTpl = cat_products_Params::renderParams($data->assetData);
+            $tpl->append($assetTpl, 'ASSET_PARAMS');
+            Mode::pop('text');
         }
         $tpl->append('no-border', 'LETTER_HEAD_TABLE_CLASS');
 
@@ -504,18 +522,6 @@ class planning_Tasks extends core_Master
             $row->productId .= " <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
         }
 
-        $row->title = "{$rec->id}|{$row->productId}";
-        $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
-        $singleUrl = static::getSingleUrlArray($rec->id);
-        if(Mode::is('isReorder')){
-            $row->title = "{$rec->id}| " . str::limitLen($row->productId, 42);
-            $titleAttr['data-doubleclick-url'] = toUrl($singleUrl);
-            $titleAttr['class'] = 'doubleclicklink';
-            $row->title = ht::createElement("span", $titleAttr, $row->title, true);
-        } else {
-            $row->title = ht::createLink($row->title, $singleUrl, false, $titleAttr);
-        }
-
         if (!Mode::isReadOnly()) {
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
         }
@@ -564,23 +570,9 @@ class planning_Tasks extends core_Master
                     $row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
                 }
 
-                $hint = null;
                 if (!empty($rec->{$timeField})) {
                     $hint = "Зададено|*: {$row->{$timeField}}";
-
-                    if (!empty($rec->{$eTimeField})) {
-                        // Колко е разликата в минути между тях?
-                        $diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
-                        if ($diff != 0) {
-                            $diffVerbal = cls::get('type_Time')->toVerbal($diff);
-                            $diffVerbal = ($diff > 0) ? "+{$diffVerbal}" : $diffVerbal;
-                            $hint .= " ({$diffVerbal})";
-                        }
-                    }
-                }
-
-                if (isset($hint)) {
-                    $row->{$eTimeField} = ht::createHint($row->{$eTimeField}, $hint, 'notice', true, array('height' => '12', 'width' => '12'));
+                    $row->{$eTimeField} = ht::createHint($row->{$eTimeField}, $hint, 'img/16/pin.png', false, array('height' => '12', 'width' => '12'));
                 }
             }
 
@@ -607,7 +599,7 @@ class planning_Tasks extends core_Master
         }
 
         $calcedDurationUom = ($rec->calcedDuration < 60) ? 'seconds' : (($rec->calcedDuration < 3600) ? 'minutes' : 'hours');
-        $row->calcedDuration = empty($calcedDurationUom) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
+        $row->calcedDuration = core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
         if(isset($rec->assetId)){
             if(isset($fields['-single'])) {
                 $row->assetId = new core_ET(planning_AssetResources::getTitleById($rec->assetId));
@@ -904,7 +896,7 @@ class planning_Tasks extends core_Master
      *
      * @param stdClass|int $rec
      * @param int|null $limit
-     * @return int|null
+     * @return array
      */
     private function getPreviousTaskIds($rec, $limit = null)
     {
@@ -1224,7 +1216,7 @@ class planning_Tasks extends core_Master
         core_Debug::startTimer('UPDATE_TASK_MASTER');
         $rec = $this->fetch($id);
         $originalProgress = $rec->progress;
-        $updateFields = 'totalQuantity,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy,prevAssetId,assetId';
+        $updateFields = 'totalQuantity,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy,prevAssetId,assetId,lastProgress,lastProgressProduction,firstProgress';
 
         // Ако е записано в сесията, че е подменена машината да се подмени и в операцията
         if ($newAssetId = Mode::get("newAsset{$rec->id}")) {
@@ -1243,23 +1235,40 @@ class planning_Tasks extends core_Master
         // Колко е общото к-во досега
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
-        $dQuery->where("#taskId = {$rec->id} AND #productId = {$productId} AND (#type = 'production' OR #type = 'scrap') AND #state != 'rejected'");
+        $dQuery->where("#taskId = {$rec->id} AND #state != 'rejected'");
 
+        $rec->lastProgressProduction = $rec->lastProgress = $rec->firstProgress = null;
         $rec->totalWeight = $rec->totalQuantity = $rec->scrappedQuantity = $rec->totalNetWeight = 0;
         while ($dRec = $dQuery->fetch()) {
-            if ($dRec->type == 'production') {
-                $quantity = $dRec->quantity / $rec->quantityInPack;
-                $rec->totalQuantity += $quantity;
-                $rec->totalWeight += $dRec->weight;
-                if (isset($dRec->netWeight)) {
-                    $rec->totalNetWeight += $dRec->netWeight;
+            if($dRec->productId == $productId && in_array($dRec->type, array('production', 'scrap'))){
+                if ($dRec->type == 'production') {
+                    $quantity = $dRec->quantity / $rec->quantityInPack;
+                    $rec->totalQuantity += $quantity;
+                    $rec->totalWeight += $dRec->weight;
+                    if (isset($dRec->netWeight)) {
+                        $rec->totalNetWeight += $dRec->netWeight;
+                    }
+                } else {
+                    $rec->scrappedQuantity += $dRec->quantity / $rec->quantityInPack;
+                    $rec->totalWeight -= $dRec->weight;
+                    if (isset($dRec->netWeight)) {
+                        $rec->totalNetWeight -= $dRec->netWeight;
+                    }
                 }
-            } else {
-                $rec->scrappedQuantity += $dRec->quantity / $rec->quantityInPack;
-                $rec->totalWeight -= $dRec->weight;
-                if (isset($dRec->netWeight)) {
-                    $rec->totalNetWeight -= $dRec->netWeight;
+            }
+
+            // Преизчисляване на последните/първите прогреси
+            $progressDate = $dRec->date ?? $dRec->createdOn;
+            if(in_array($dRec->type, array('production', 'scrap'))){
+                if($progressDate > $rec->lastProgressProduction){
+                    $rec->lastProgressProduction = $progressDate;
                 }
+            }
+            if($progressDate > $rec->lastProgress){
+                $rec->lastProgress = $progressDate;
+            }
+            if(is_null($rec->firstProgress) || $progressDate < $rec->firstProgress){
+                $rec->firstProgress = $progressDate;
             }
         }
 
@@ -2333,11 +2342,12 @@ class planning_Tasks extends core_Master
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif ($filter->state != 'all') {
                     $data->query->where("#state = '{$filter->state}' OR #state = 'rejected'");
-
                     if ($filter->state == 'closed') {
                         $orderByField = 'orderByDate';
                         $orderByDir = 'DESC';
                         $orderByDateCoalesce = 'COALESCE(#timeClosed, 0)';
+
+                        //$data->listFields['']
                     }
                 }
 
@@ -2665,6 +2675,59 @@ class planning_Tasks extends core_Master
             if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state IN ('pending', 'draft')")){
                 core_Statuses::newStatus('В операцията има документ/и на "Заявка/Чернова"!', 'warning');
             }
+        }
+
+        // При промяна на състоянието да се преизчислят последните/първите времена
+        if(in_array($rec->state, array('active', 'stopped', 'wakeup', 'closed'))){
+            static::recalcTaskLastProgress($rec->id);
+        }
+    }
+
+
+    /**
+     * Рекалкулиране на прогресите на операцията
+     *
+     * @param int|null $taskId            - ид на операция, null ако е за всички
+     * @param array|null $states          - операциите в кои състояние
+     * @param null|int $closedInLastDays  - приключвните в последните колко
+     * @return void
+     */
+    public static function recalcTaskLastProgress($taskId = null, $states = null, $closedInLastDays = null)
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $tQuery = planning_ProductionTaskDetails::getQuery();
+        $tQuery->EXT('taskState', 'planning_Tasks', "externalName=state,externalKey=taskId");
+        $tQuery->EXT('timeClosed', 'planning_Tasks', "externalName=timeClosed,externalKey=taskId");
+        $tQuery->XPR('lastProgress', 'datetime', 'MAX(COALESCE(#date, #createdOn))');
+        $tQuery->XPR('firstProgress', 'datetime', 'MIN(COALESCE(#date, #createdOn))');
+        $tQuery->XPR('lastProgressProduction', 'datetime', "MAX(CASE #type WHEN 'production' THEN COALESCE(#date, #createdOn) ELSE NULL END)");
+        $tQuery->where("#state != 'rejected'");
+        $tQuery->show('taskId,lastProgress,firstProgress,lastProgressProduction');
+        $tQuery->groupBy('taskId');
+        if(isset($taskId)){
+            $tQuery->where("#taskId = $taskId");
+        }
+        if(isset($states)){
+            $states = arr::make($states, true);
+            $tQuery->in("taskState", $states);
+            if(isset($closedInLastDays)){
+                $beforeTime = dt::addDays(-1 * $closedInLastDays);
+                $tQuery->orWhere("#taskState = 'closed' AND #timeClosed >= '{$beforeTime}'");
+            }
+        } else {
+            if(isset($closedInLastDays)) {
+                $beforeTime = dt::addDays(-1 * $closedInLastDays);
+                $tQuery->where("(#taskState = 'closed' AND #timeClosed >= '{$beforeTime}') OR #timeClosed IS NULL");
+            }
+        }
+
+        $taskArr = array();
+        while($tRec = $tQuery->fetch()){
+            $taskArr[$tRec->taskId] = (object)array('id' => $tRec->taskId, 'lastProgress' => $tRec->lastProgress, 'firstProgress' => $tRec->firstProgress, 'lastProgressProduction' => $tRec->lastProgressProduction);
+        }
+
+        if(countR($taskArr)){
+            $Tasks->saveArray($taskArr, 'id,lastProgress,firstProgress,lastProgressProduction');
         }
     }
 
@@ -3034,17 +3097,10 @@ class planning_Tasks extends core_Master
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
-        if (Mode::is('printing')) {
-            $uniqueFolders = arr::extractValuesFromArray($data->recs, 'folderId');
-            if (countR($uniqueFolders) == 1) {
-                unset($data->listFields['folderId']);
-            }
-        }
-
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
-        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId', 'notes');
+        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId', 'prevExpectedTimeEnd', 'notes');
 
         // Кои ще са планиращите параметри
         $plannedParams = array();
@@ -3069,6 +3125,11 @@ class planning_Tasks extends core_Master
             $plannedParams += keylist::toArray($groupParams);
             unset($data->listFields['assetId']);
         }
+        if (isset($data->listFilter->rec->folder)) {
+            unset($data->listFields['folderId']);
+        }
+        //unset($data->listFields['firstProgress']);
+       // unset($data->listFields['lastProgressProduction']);
 
         if (Mode::is('isReorder')) {
             $data->stopListRefresh = true;
@@ -3095,7 +3156,7 @@ class planning_Tasks extends core_Master
         }
 
         // Ако има намерени планиращи параметри - показват се в таблицата
-        $firstColumnsIfNotSelected = array_keys($data->listFields);
+        $firstColumnsIfNotSelected = arr::make(array_keys($data->listFields), true);
 
         if (countR($plannedParams)) {
             $pQuery = cat_Params::getQuery();
@@ -3126,11 +3187,10 @@ class planning_Tasks extends core_Master
 
         if (Mode::is('isReorder')){
             $data->listTableMvc->tableRowTpl = "[#ROW#]";
-
             unset($data->listFields['folderId']);
             $data->listTableMvc->FNC('prevExpectedTimeEnd', 'datetime');
             $data->listTableMvc->FNC('nextExpectedTimeStart', 'datetime');
-            $data->listTableMvc->FNC('dueDate', 'datetime');
+            $data->listTableMvc->FNC('dueDate', 'date');
             $data->listTableMvc->FNC('dependantProgress', 'datetime');
             $data->listTableMvc->FNC('nextId', 'datetime');
             $data->listTableMvc->FNC('saleId', 'varchar');
@@ -3138,7 +3198,8 @@ class planning_Tasks extends core_Master
 
             $data->listTableMvc->setField('notes', 'tdClass=notesCol');
             foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId') as $fld) {
-                $data->listTableMvc->setField($fld, "tdClass=reorderSmallCol");
+                $dateClass = in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? "reorderSmallCol openModal" : "reorderSmallCol";
+                $data->listTableMvc->setField($fld, "tdClass={$dateClass}");
             }
             $data->listTableMvc->setField('dependantProgress', "tdClass=reorderSmallCol dependantProgress");
         }
@@ -3215,6 +3276,18 @@ class planning_Tasks extends core_Master
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
 
+        // Дали заданията и операциите са всичките с една мярка
+        $jobPacks = arr::extractValuesFromArray($jobRecs, 'packagingId');
+        $haveDiffJobPacks = countR($jobPacks) > 1;
+
+        $measuresArr = $productIds = array();
+        foreach ($data->recs as $r1){
+            $measuresArr[$r1->measureId] = $r1->measureId;
+            $productIds[$r1->productId] = $r1->productId;
+        }
+        $haveDiffMeasure = countR($measuresArr) > 1;
+        $haveDiffProductIds = countR($productIds) > 1;
+
         foreach ($rows as $id => $row) {
             core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
@@ -3224,11 +3297,7 @@ class planning_Tasks extends core_Master
 
             // Ако има планирани предходни операции - да се показват с техните прогреси
             if (!empty($dependantTaskArr[$rec->id]['previous'])) {
-                if(Mode::is('isReorder')){
-                    $dependantTaskBlocks = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['previous'], 'reorderBlocks');
-                } else {
-                    $dependantTaskBlocks = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['previous'], 'smallBar');
-                }
+                $dependantTaskBlocks = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['previous'], 'reorderBlocks', null, !Mode::is('isReorder'));
                 if(countR($dependantTaskBlocks)){
                     $row->dependantProgress = implode("", $dependantTaskBlocks);
                 }
@@ -3236,19 +3305,38 @@ class planning_Tasks extends core_Master
 
             // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
+
+            if($haveDiffProductIds || isset($data->masterMvc)){
+                $stepTitle = str::limitLen($mvc->getStepTitle($rec->productId), 32);
+                if (!empty($rec->subTitle)) {
+                    $stepTitle .= "|{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
+                }
+                $row->title = "{$rec->id}|{$stepTitle}";
+            } else {
+                $row->title = $rec->id;
+                if(!empty($rec->subTitle)){
+                    $row->title .= "|" . $mvc->getFieldType('subTitle')->toVerbal($rec->subTitle);
+                }
+            }
+
+            $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
+            $singleUrl = static::getSingleUrlArray($rec->id);
+
             if(Mode::get('isReorder')){
+                $titleAttr['data-doubleclick-url'] = toUrl($singleUrl);
+                $titleAttr['class'] = 'doubleclicklink';
+                $row->title = ht::createElement("span", $titleAttr, $row->title, true);
+
                 $rowNoteAttr = array('class' => 'notesHolder', 'id' => "notesHolder{$rec->id}", 'data-prompt-text' => tr('Забележка на|*: ') . $mvc->getRecTitle($rec));
                 $rowNoteAttr['data-url'] = $mvc->haveRightFor('edit', $rec) ? toUrl(array($mvc, 'editnotes', $rec->id), 'local') : null;
-                if(!empty($rec->notes)) {
-                    $row->notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
-                }
                 $row->notes = ht::createElement("span", $rowNoteAttr, $row->notes, true);
-
                 if (!$mvc->haveRightFor('edit', $rec)) {
                     $row->ROW_ATTR['data-dragging'] = "false";
                     $row->ROW_ATTR['class'] .= " state-forbidden";
                     $row->ROW_ATTR['style'] = 'opacity:0.2';
                 }
+            } else {
+                $row->title = ht::createLink($row->title, $singleUrl, false, $titleAttr);
             }
 
             if ($displayPlanningParamsCount) {
@@ -3279,68 +3367,134 @@ class planning_Tasks extends core_Master
             // Допълнителна обработка на показването на заданието в списъка на ПО
             $row->dueDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($jobRecs[$rec->originId]->dueDate);
             $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
-            $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity);
+            $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . ($haveDiffJobPacks ? "<span class='small'>" . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity) . "</span>" : '');
 
-            if(Mode::is('isReorder')){
-                if($dependantTaskArr[$rec->id]['previous'][0]){
-                    $rec->prevExpectedTimeEnd = $dependantTaskArr[$rec->id]['previous'][0]->expectedTimeEnd;
-                }
+            if($dependantTaskArr[$rec->id]['previous'][0]){
+                $rec->prevExpectedTimeEnd = $dependantTaskArr[$rec->id]['previous'][0]->expectedTimeEnd;
+            }
 
-                if(!empty($dependantTaskArr[$rec->id]['next'][0])){
-                    $rec->nextExpectedTimeStart = $dependantTaskArr[$rec->id]['next'][0]->expectedTimeStart;
-                } else {
-                    $rec->nextExpectedTimeStart = $jobRecs[$rec->originId]->dueDate;
-                }
+            if(!empty($dependantTaskArr[$rec->id]['next'][0])){
+                $rec->nextExpectedTimeStart = $dependantTaskArr[$rec->id]['next'][0]->expectedTimeStart;
+            } else {
+                $rec->nextExpectedTimeStart = $jobRecs[$rec->originId]->dueDate;
+            }
 
-                foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart') as $fld) {
-                    if(!empty($rec->{$fld})){
-                        $datePure = strlen($rec->{$fld}) == 10 ? "{$rec->{$fld}} 00:00:00" : $rec->{$fld};
-                        $row->{$fld} = dt::mysql2verbal($datePure, 'd.m.y H:i');
-                        $row->{$fld} = ht::createElement("span", array('data-date' => "{$datePure}", 'class' => "{$fld}Col"), $row->{$fld}, true)->getContent();
-                    }
+            foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart') as $fld) {
+                $row->{$fld} = $mvc->getDateFieldVerbal($rec, $fld, Mode::is('isReorder'));
+                if(Mode::is('isReorder')){
                     $row->{$fld} = ht::createElement("span", array('id' => "{$fld}{$rec->id}"), $row->{$fld}, true)->getContent();
                 }
+            }
 
-                if(!empty($dependantTaskArr[$rec->id]['next'])){
-                    $nextArr = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['next'], 'reorderBlocks', 1);
-                    $row->nextId = $nextArr[key($nextArr)];
-                }
+            if(!empty($dependantTaskArr[$rec->id]['next'])){
+                $nextArr = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['next'], 'reorderBlocks', 1, !Mode::is('isReorder'));
+                $row->nextId = $nextArr[key($nextArr)];
+            }
 
-                if(!empty($rec->dueDate)){
-                    $row->dueDate = dt::mysql2verbal($rec->dueDate, 'd.m.y 00:00');
-                    $row->dueDate = ht::createElement("span", array('data-date' => "{$rec->dueDate} 00:00:00", 'class' => "dueDateCol"), $row->dueDate, true)->getContent();
-                }
+            if(!empty($rec->dueDate)){
+                $row->dueDate = dt::mysql2verbal($rec->dueDate, 'd.m.y');
+                $row->dueDate = ht::createElement("span", array('data-date' => "{$rec->dueDate} 00:00:00", 'class' => "dueDateCol"), $row->dueDate, true)->getContent();
+            }
 
+            if(Mode::get('isReorder')){
                 $jobTitle = planning_Jobs::getTitleById($jobRecs[$rec->originId]);
                 $singleJobUrl = toUrl(planning_Jobs::getSingleUrlArray($jobRecs[$rec->originId]));
-                $row->originId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleJobUrl, 'title' => $jobTitle), $jobTitle, true);
-                $row->jobQuantity = $quantityStr;
+                $row->originId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleJobUrl, 'title' => $jobTitle, 'onmouseUp' => 'selectInnerText(this);'), $jobTitle, true);
             } else {
-                $jobLink = planning_Jobs::getShortHyperlink($jobRecs[$rec->originId]);
-                $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$row->dueDate} <span class='quiet'>|по|*</span> ") . $jobLink . tr("|*, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
-                if(array_key_exists($rec->containerId, $inlineTags)){
-                    $row->title->append($inlineTags[$rec->containerId]);
-                }
-                if(array_key_exists($rec->originId, $inlineTags)){
-                    $row->originId .= $inlineTags[$rec->containerId];
-                }
+                $row->originId = planning_Jobs::getHyperlink($jobRecs[$rec->originId], true);
             }
+
+            $row->jobQuantity = $quantityStr;
+            $row->plannedQuantity = $row->plannedQuantity . ($haveDiffMeasure ? " <span class='small'>" . cat_UoM::getSmartName($rec->measureId, $rec->plannedQUantity) . "</span>" : '');
 
             core_Debug::stopTimer('RENDER_ROW');
         }
 
-        $selectedParams = array();
-        $displayColumns = planning_Setup::get('ORDER_TASK_PARAMS_IN_LIST_DISPLAY');
+        // Преподреждане на колонките
         $orderedParamByUser = type_Table::toArray(planning_Setup::get('ORDER_TASK_PARAMS_IN_LIST'));
-        array_walk($orderedParamByUser, function($a) use (&$selectedParams){ $selectedParams[$a->paramId] = $a->paramId;});
-        if($displayColumns == 'yes'){
+        if(countR($orderedParamByUser)){
+            $selectedParams = arr::extractValuesFromArray($orderedParamByUser, 'paramId');
+
+            if(isset($selectedParams['_rest_'])){
+                foreach ($firstColumnsIfNotSelected as $oField){
+                    if($oField != '_rowTools'){
+                        $selectedParams[$oField] = $oField;
+                    }
+                }
+            }
+
             $data->listFields = arr::reorderArrayByOrderedKeys($data->listFields, $selectedParams, $firstColumnsIfNotSelected);
-        } else {
-            $data->listFields = array_diff_key($data->listFields, $selectedParams);
+        }
+
+        // Скриване на колонките
+        $hideColumns = type_Table::toArray(planning_Setup::get('ORDER_TASK_PARAMS_HIDE_IN_LIST'));
+        if(countR($hideColumns)) {
+            $hideColumns = arr::extractValuesFromArray($hideColumns, 'paramId');
+            $data->listFields = array_diff_key($data->listFields, $hideColumns);
         }
         $data->listFields = core_TableView::filterEmptyColumns($rows, $data->listFields, $fieldsToFilterIfEmpty);
 
+        // При показване на приключените да се подмени колонката за датата
+        if ($data->listFilter->rec->state == 'closed') {
+            $modifiedData = array();
+            $firstProgressCaption = $data->listFields['firstProgress'];
+            $lastProgressProductionCaption = $data->listFields['lastProgressProduction'];
+            unset($data->listFields['firstProgress'], $data->listFields['lastProgressProduction']);
+
+            foreach ($data->listFields as $key => $value) {
+                if ($key == "expectedTimeStart") {
+                    $modifiedData["firstProgress"] = $firstProgressCaption;
+                }elseif ($key === "expectedTimeEnd") {
+                    $modifiedData["lastProgressProduction"] = $lastProgressProductionCaption;
+                } else {
+                    $modifiedData[$key] = $value;
+                }
+            }
+            $data->listFields = $modifiedData;
+        } else {
+            unset($data->listFields['firstProgress'], $data->listFields['lastProgressProduction']);
+        }
+
         core_Debug::stopTimer('RENDER_TABLE');
+    }
+
+
+    /**
+     * Вербално представяне на полето
+     *
+     * @param stdClass $rec
+     * @param string $fld
+     * @param boolean $isReorder
+     * @return $res
+     */
+    private function getDateFieldVerbal($rec, $fld, $isReorder = false)
+    {
+        $res = $datePure = null;
+
+        if(!empty($rec->{$fld})) {
+            $datePure = strlen($rec->{$fld}) == 10 ? "{$rec->{$fld}} 00:00:00" : $rec->{$fld};
+            $res =  $isReorder ? dt::mysql2verbal($datePure, 'd.m.y H:i') : core_Type::getByName('datetime(format=smartTime)')->toVerbal($datePure);
+        }
+
+        $attr = array('data-date' => "{$datePure}", 'class' => "{$fld}Col");
+        if(in_array($fld, array('expectedTimeStart', 'expectedTimeEnd'))){
+            $attr['class'] .= " modalDateCol";
+            $attr['data-task-id'] = $rec->id;
+            $attr['data-task-field'] = $fld;
+            if(!empty($rec->timeStart)){
+                $res .= " " . ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent();
+                $attr['data-manual-date'] = "{$datePure}";
+            } elseif(!empty($rec->timeEnd)){
+                $res .= " " . ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent();
+                $attr['data-manual-date'] = "{$datePure}";
+            }
+            $attr['data-modal-caption'] = ($fld == 'expectedTimeStart') ? tr('Ново целево начало за') : tr('Нов целеви край за');
+            $attr['data-modal-caption'] .= ": #" . $this->getTitleById($rec->id);
+        }
+
+        $res = $isReorder ? ht::createElement("span", $attr, $res, true)->getContent() : $res;
+
+        return $res;
     }
 
 
@@ -3654,6 +3808,12 @@ class planning_Tasks extends core_Master
 
                 $tpl->push('planning/js/Tasks.js', 'JS');
                 $tpl->push('planning/tpl/TaskReordering.css', 'CSS');
+
+                jqueryui_Ui::enable($tpl);
+                $modalTpl = getTplFromFile('planning/tpl/DatePickerModal.shtml');
+                $timeTpl = core_Type::getByName('hour')->renderInput('timePicker', null, array('class' => 'pickerSelect'));
+                $modalTpl->replace($timeTpl, 'TIME_PICKER');
+                $tpl->append($modalTpl);
             } else{
                 jquery_Jquery::runAfterAjax($tpl, 'makeTooltipFromTitle');
             }
@@ -4157,8 +4317,12 @@ class planning_Tasks extends core_Master
         self::requireRightFor('list');
         $assetId = Request::get('assetId', 'int');
         $inOrderTasks = Request::get('orderedTasks', 'varchar');
+        $manualTimes = Request::get('manualTimes', 'varchar');
+        $forceReorder = Request::get('forceReorder', 'int');
 
         $inOrderTasks = json_decode($inOrderTasks);
+        $manualTimes = json_decode($manualTimes, true);
+        $manualTimes = is_array($manualTimes) ? $manualTimes : array('expectedTimeStart' => array(), 'expectedTimeEnd' => array());
         $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
 
         // Коя задача след коя се намира
@@ -4184,13 +4348,20 @@ class planning_Tasks extends core_Master
         // Разделяне на задачите на такива с целево време и без
         $Interval = planning_AssetResources::getWorkingInterval($cachedData['assetId'], $minDate);
         $tasksWithManualBegin = $tasksWithoutManualBegin = array();
-        array_filter($cachedTasks, function ($t) use (&$tasksWithManualBegin, &$tasksWithoutManualBegin) {
+        array_filter($cachedTasks, function ($t) use (&$tasksWithManualBegin, &$tasksWithoutManualBegin, $manualTimes) {
+            $t->timeStart = array_key_exists($t->id, $manualTimes['expectedTimeStart']) ? $manualTimes['expectedTimeStart'][$t->id] : $t->timeStart;
+            $t->timeEnd = array_key_exists($t->id, $manualTimes['expectedTimeEnd']) ? $manualTimes['expectedTimeEnd'][$t->id] : $t->timeEnd;
+
             if(!empty($t->timeStart)) {
+                $tasksWithManualBegin[$t->id] = $t;
+            } elseif(!empty($t->timeEnd)) {
+                $t->timeStart = dt::addSecs(-1 * $t->calcedCurrentDuration, $t->timeEnd);
                 $tasksWithManualBegin[$t->id] = $t;
             } else {
                 $tasksWithoutManualBegin[$t->id] = $t;
             }
         });
+
         $interruptionArr = planning_Steps::getInterruptionArr($cachedData['tasks']);
 
         // Захранване на графика с продължителноста на задачите
@@ -4208,14 +4379,19 @@ class planning_Tasks extends core_Master
                 }
 
                 // Ще се върне резултата за новата продължителност на задачите
-                $new[$taskRec->id] = array('expectedTimeStart' => null, 'expectedTimeEnd' => null);
+                $new[$taskRec->id] = array('expectedTimeStart' => null, 'expectedTimeEnd' => null, 'orderByAssetId' => $taskRec->orderByAssetId);
+
                 $timeArr = $Interval->consume($taskRec->calcedCurrentDuration, $begin, null, $interruptionArr);
                 if (is_array($timeArr)) {
                     $startDate = date('Y-m-d H:i', $timeArr[0]);
-                    $new[$taskRec->id]['expectedTimeStart'] = ht::createElement("span", array('data-date' => "{$startDate}", 'class' => "expectedTimeStartCol"), dt::mysql2verbal($startDate), true)->getContent();
-
                     $endDate = date('Y-m-d H:i', $timeArr[1]);
-                    $new[$taskRec->id]['expectedTimeEnd'] = ht::createElement("span", array('data-date' => "{$endDate}", 'class' => "expectedTimeEndCol"), dt::mysql2verbal($endDate), true)->getContent();
+                    $taskRec->expectedTimeStart = "$startDate";
+                    $taskRec->expectedTimeEnd = "$endDate";
+
+                    $new[$taskRec->id]['expectedTimeStartPure'] = $startDate;
+                    $new[$taskRec->id]['expectedTimeEndPure'] = $endDate;
+                    $new[$taskRec->id]['expectedTimeStart'] = $this->getDateFieldVerbal($taskRec, 'expectedTimeStart', true);
+                    $new[$taskRec->id]['expectedTimeEnd'] = $this->getDateFieldVerbal($taskRec, 'expectedTimeEnd', true);
                 } else{
                     $new[$taskRec->id]['expectedTimeStart'] = ' ';
                     $new[$taskRec->id]['expectedTimeEnd'] = ' ';
@@ -4248,21 +4424,47 @@ class planning_Tasks extends core_Master
             $nextOrder = $currentKey + 1;
             if(isset($jobTasks[$prevOrder])){
                 if(array_key_exists($jobTasks[$prevOrder]->id, $new)){
+                    $prevEnd = $new[$jobTasks[$prevOrder]->id]['expectedTimeEndPure'];
+                    $prevStartHtml = ht::createElement("span", array('data-date' => "{$prevEnd}", 'class' => "prevExpectedTimeEndCol"), dt::mysql2verbal($prevEnd), true)->getContent();
+
                     $resObj = new stdClass();
                     $resObj->func = 'html';
-                    $resObj->arg = array('id' => "prevExpectedTimeEnd{$taskId}", 'html' => $new[$jobTasks[$prevOrder]->id]['expectedTimeEnd'], 'replace' => true);
+                    $resObj->arg = array('id' => "prevExpectedTimeEnd{$taskId}", 'html' => $prevStartHtml, 'replace' => true);
                     $res[] = $resObj;
                 }
             }
 
             if(isset($jobTasks[$nextOrder])){
                 if(array_key_exists($jobTasks[$nextOrder]->id, $new)){
+                    $nextStart = $new[$jobTasks[$nextOrder]->id]['expectedTimeStartPure'];
+                    $nextStartHtml = ht::createElement("span", array('data-date' => "{$nextStart}", 'class' => "nextExpectedTimeStartCol"), dt::mysql2verbal($nextStart), true)->getContent();
+
                     $resObj = new stdClass();
                     $resObj->func = 'html';
-                    $resObj->arg = array('id' => "nextExpectedTimeStart{$taskId}", 'html' => $new[$jobTasks[$nextOrder]->id]['expectedTimeStart'], 'replace' => true);
+                    $resObj->arg = array('id' => "nextExpectedTimeStart{$taskId}", 'html' => $nextStartHtml, 'replace' => true);
                     $res[] = $resObj;
                 }
             }
+        }
+
+        if($forceReorder){
+            uasort($new, function ($a, $b) {
+                // Ако няма дата, задаваме максимална стойност
+                $timeLeft = empty($a['expectedTimeStartPure']) ? PHP_INT_MAX : strtotime($a['expectedTimeStartPure']);
+                $timeRight = empty($b['expectedTimeStartPure']) ? PHP_INT_MAX : strtotime($b['expectedTimeStartPure']);
+
+                // Сортиране по време (възходящ ред)
+                if ($timeLeft !== $timeRight) return $timeLeft - $timeRight;
+
+                // Ако датите са еднакви, сортираме по orderByAssetId (като число)
+                return intval($a['orderByAssetId']) - intval($b['orderByAssetId']);
+            });
+
+            $resObj = new stdClass();
+            $resObj->func = 'forceSort';
+            $resObj->arg = array('inOrder' => array_keys($new));
+
+            $res[] = $resObj;
         }
 
         $resObj = new stdClass();
@@ -4287,15 +4489,6 @@ class planning_Tasks extends core_Master
         if(!Mode::is('isReorder')) return;
 
         $data->sortableTable = false;
-        unset($data->listFields['title']);
-        unset($data->listFields['expectedTimeStart']);
-        unset($data->listFields['expectedTimeEnd']);
-        unset($data->listFields['progress']);
-        $data->listFields = array('dependantProgress' => 'Пред.',
-                                  'prevExpectedTimeEnd' => 'Пред. край',
-                                  'expectedTimeStart' => 'Тек. начало',
-                                  'title' => 'Текуща', 'progress' => 'Прогрес', 'expectedTimeEnd' => 'Тек. край', 'nextExpectedTimeStart' => 'След. начало', 'nextId' => 'Следв.', 'dueDate' => 'Падеж', 'originId' => 'Задание', 'jobQuantity' => tr('Тираж'))
-         + $data->listFields;
     }
 
 
@@ -4319,6 +4512,10 @@ class planning_Tasks extends core_Master
             $inOrderTasks = Request::get('orderedTasks', 'varchar');
             $inOrderTasks = json_decode($inOrderTasks);
 
+            $manualTimes = Request::get('manualTimes', 'varchar');
+            $manualTimes = json_decode($manualTimes, true);
+            $manualTimes = is_array($manualTimes) ? $manualTimes : array('expectedTimeStart' => array(), 'expectedTimeEnd' => array());
+
             $tasks = array();
             $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
             foreach ($inOrderTasks as $i => $taskId){
@@ -4326,7 +4523,7 @@ class planning_Tasks extends core_Master
             }
 
             core_Debug::startTimer('TASKS_LIVE_REORDER_TASKS');
-            planning_AssetResources::reOrderTasks($assetId, $tasks, true);
+            planning_AssetResources::reOrderTasks($assetId, $tasks, true, $manualTimes);
             unset($this->reorderTasksInAssetId[$assetId]);
             core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
             planning_AssetResources::logWrite('Ръчни преподреждане на операциите', $assetId);

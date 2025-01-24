@@ -101,6 +101,10 @@ DEFINE('EF_APP_TITLE', 'bgERP');
 // Игнориране на затварянето на модул "Help"
  # DEFINE('BGERP_DEMO_MODE', false);
 
+/**
+ * Път до скрипта за конвертиране на mp4
+ */
+DEFINE('FILEMAN_FFMPEG_CONVERTER_PATH', EF_ROOT_PATH . '/FFMpeg.sh');
 
 /**
  * URL за отдалечено репортване на грешки
