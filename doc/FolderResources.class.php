@@ -272,11 +272,12 @@ class doc_FolderResources extends core_Manager
         
         // При събмит на формата
         if ($form->isSubmitted()) {
+            $Cover = doc_Folders::getCover($folderId);
+            $crmGroupId = $Cover->isInstanceOf('planning_Centers') ? $Cover->syncCrmGroup() : null;
             $selected = keylist::toArray($form->rec->select);
-            $removeArr = array_diff_key($default, $selected);
-            
             $Folders = cls::get('planning_AssetResourceFolders');
-            
+            $hrSyncPersons = array();
+
             // Избраните се обновява департамента им
             $toSave = $error = array();
             foreach ($selected as $id => $name) {
@@ -288,6 +289,14 @@ class doc_FolderResources extends core_Manager
                         $hId = planning_Hr::save($hrRec);
                     }
                     $r->objectId = $hId;
+
+                    // Ако има група за добавяне на визитката - ще се добави в нея
+                    if(isset($crmGroupId)){
+                        if(!keylist::isIn($crmGroupId, $hrSyncPersons[$id]->groupListInput)){
+                            $hrSyncPersons[$id] = crm_Persons::fetch($id);
+                            $hrSyncPersons[$id]->groupListInput = keylist::addKey($hrSyncPersons[$id]->groupListInput, $crmGroupId);
+                        }
+                    }
                 } else {
                     if(!planning_AssetResources::canAssetBeAddedToFolder($id, $folderId)){
                         $error[] = "<b>" . planning_AssetResources::getTitleById($id) . "</b>";
@@ -316,9 +325,17 @@ class doc_FolderResources extends core_Manager
                     $delId = $rId;
                     if ($type != 'asset') {
                         $delId = planning_Hr::fetchField("#personId = {$rId}");
+                        $hrSyncPersons[$rId] = crm_Persons::fetch($rId);
+                        $hrSyncPersons[$rId]->groupListInput = keylist::removeKey($hrSyncPersons[$rId]->groupListInput, $crmGroupId);
                     }
 
                     planning_AssetResourceFolders::delete("#classId = {$classId} AND #objectId = {$delId} AND #folderId = {$folderId}");
+                }
+
+                // Обновяване на групите на лицата
+                $Persons = cls::get('crm_Persons');
+                foreach ($hrSyncPersons as $personRec){
+                    $Persons->save($personRec, 'groupListInput,groupList');
                 }
 
                 followRetUrl(null, '|Информацията е обновена успешно');

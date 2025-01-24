@@ -91,7 +91,10 @@ $orange: #f90; /*оранжево като при ховър на менюто*/
 .groupList table {
 	td{
 		vertical-align: top;
-		line-height: 1.2em;
+		line-height: 1.5em;
+		&:first-child {
+			white-space:nowrap;
+		}
 	}
 	.dt {
 	  	width: 21.5%;

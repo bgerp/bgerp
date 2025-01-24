@@ -363,6 +363,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::removeCachedAssetModified4124v2',
         'migrate::repairSearchKeywords2442',
         'migrate::calcTaskLastProgress2504v2',
+        'migrate::syncOperatorsWithGroups2504',
     );
 
 
@@ -533,5 +534,50 @@ class planning_Setup extends core_ProtoSetup
     public function calcTaskLastProgress2504v2()
     {
         planning_Tasks::recalcTaskLastProgress(null, 'active,wakeup,stopped', 90);
+    }
+
+
+    /**
+     * Миграция групите на операторите в центрове на дейност
+     */
+    public function syncOperatorsWithGroups2504()
+    {
+        $employeesGroupId = crm_Groups::getIdFromSysId('employees');
+        $groupRec = (object)array('name' => 'Центрове на дейност', 'sysId' => 'activityCenters', 'parentId' => $employeesGroupId);
+        crm_Groups::forceGroup($groupRec);
+
+        $centerGroups = array();
+        $query = planning_Centers::getQuery();
+        while($rec = $query->fetch()){
+            $centerGroups[$rec->folderId] = planning_Centers::syncCrmGroup($rec);
+        }
+
+        $personArr = array();
+        $hrClassId = planning_Hr::getClassId();
+        $folderQuery = planning_AssetResourceFolders::getQuery();
+        $folderQuery->EXT('personId', "planning_Hr", "externalName=personId,externalKey=objectId");
+        $folderQuery->where("#classId = {$hrClassId}");
+        $folderQuery->in('folderId', array_keys($centerGroups));
+        while ($fRec = $folderQuery->fetch()){
+            $personArr[$fRec->personId][$fRec->folderId] = $fRec->folderId;
+        }
+
+        $personCount  = count($personArr);
+        if(!$personCount) return;
+
+        core_App::setTimeLimit(0.3 * $personCount, false, 200);
+        $personQuery = crm_Persons::getQuery();
+        $personQuery->in('id', array_keys($personArr));
+
+        $Persons = cls::get('crm_Persons');
+        while ($pRec = $personQuery->fetch()){
+            $centers = $personArr[$pRec->id];
+            $addGroups = array_intersect_key($centerGroups, $centers);
+            $addGroups = array_combine($addGroups, $addGroups);
+            $pRec->groupListInput = keylist::merge($pRec->groupListInput, $addGroups);
+            $Persons->save($pRec, 'groupListInput,groupList');
+        }
+
+        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
     }
 }

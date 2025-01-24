@@ -14,6 +14,7 @@
 	                <!--ET_BEGIN departmentId-->
 	                <div>|В състава на|*: <b>[#departmentId#]</b></div>
 	                <!--ET_END departmentId-->
+					<div>|Група на операторите|*: <b>[#hrGroupId#]</b></div>
 					<!--ET_BEGIN scheduleId-->
 					<div>|График|*: <b>[#scheduleId#]</b></div>
 					<!--ET_END scheduleId-->

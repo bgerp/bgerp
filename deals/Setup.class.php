@@ -86,6 +86,12 @@ defIfNot('DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD', '');
 
 
 /**
+ * Да се показва ли предупреждение при повтаряне на артикул в бизнес документ
+ */
+defIfNot('DEALS_WARNING_ON_DUPLICATED_ROWS', 'no');
+
+
+/**
  * class deals_Setup
  *
  *
@@ -137,7 +143,7 @@ class deals_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'DEALS_ISSUER_USER' => array('user(roles=ceo|sales,allowEmpty)', 'caption=Съставител на бизнес документи->Конкретен потребител,customizeBy=ceo|sales|purchase|invoicer'),
+        'DEALS_ISSUER_USER' => array('user(roles=ceo|sales|saleAll,allowEmpty)', 'caption=Съставител на бизнес документи->Конкретен потребител,customizeBy=ceo|sales|purchase|invoicer'),
         'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Или,customizeBy=ceo|sales|purchase|invoicer'),
         'DEALS_OVERDUE_PENDING_DAYS_1' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Първо след,unit=дни'),
         'DEALS_OVERDUE_PENDING_DAYS_2' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Второ след,unit=дни'),
@@ -151,6 +157,7 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE' => array('int(min=0)', 'caption=Толеранс за просрочване на сделките->Дни'),
         'DEALS_OVERDUE_TOLERANCE_AMOUNT' => array('int(min=0)', 'caption=Толеранс за просрочване на сделките->Сума'),
         'DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD' => array('key(mvc=cond_PaymentMethods,select=title)', 'caption=Толеранс за просрочване на сделките->Дефолтен метод'),
+        'DEALS_WARNING_ON_DUPLICATED_ROWS' => array('enum(no=Не,yes=Да)', 'caption=Предупреждение при дублиране на ред в бизнес документи->Избор'),
     );
     
     

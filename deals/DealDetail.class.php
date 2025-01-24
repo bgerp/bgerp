@@ -386,6 +386,19 @@ abstract class deals_DealDetail extends doc_Detail
             $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
             $rec->price = $price;
 
+            if (Request::get('Act') != 'CreateProduct') {
+
+                // Сетване на предупреждение ако реда се дублира
+                $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
+                if($setWarning == 'yes'){
+                    $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, $rec->tolerance, $rec->term, $rec->batch, null, $rec->notes);
+                    if ($exRec) {
+                        $form->setWarning('productId,packagingId,packPrice,discount,tolerance,term,notes', 'Вече съществува запис със същите данни');
+                        unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
+                    }
+                }
+            }
+
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if ($rec->id) {
                 $oldRec = $mvc->fetch($rec->id);

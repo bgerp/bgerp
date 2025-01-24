@@ -222,6 +222,16 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             
             $rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 
+            // Ако има такъв запис, сетваме грешка
+            $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
+            if($setWarning == 'yes'){
+                $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, null, null, $rec->batch, $rec->expenseItemId, $rec->notes);
+                if ($exRec) {
+                    $form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
+                    unset($rec->packPrice, $rec->price, $rec->quantity, $rec->quantityInPack);
+                }
+            }
+
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if ($rec->id) {
                 $oldRec = $mvc->fetch($rec->id);
