@@ -367,6 +367,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
 
         $masterRec = $data->masterData->rec;
+        $workInProgressRecs = array();
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
             if (empty($rec->storeId)) {
@@ -376,6 +377,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                     $emptyPlaceholder = tr('Незавършено производство');
                     if(!empty($rec->fromAccId)){
                         $emptyPlaceholder = tr('Разходи за услуги (без влагане)');
+                    } elseif($rec->type == 'input') {
+                        $workInProgressRecs[$rec->id] = $rec;
                     }
 
                     $row->storeId = "<span class='quiet'>{$emptyPlaceholder}</span>";
@@ -395,6 +398,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $rec->quantityExpected /= $rec->quantityInPack;
                 $row->quantityExpected = $this->getFieldType('quantityExpected')->fromVerbal($rec->quantityExpected);
             }
+        }
+
+        // Проверка дали ще има проблем с количествата в незавършеното производство
+        if(countR($workInProgressRecs)){
+            planning_WorkInProgress::applyQuantityHintIfNegative($data->rows, $workInProgressRecs);
         }
     }
 

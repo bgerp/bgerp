@@ -92,6 +92,18 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         acc_journal_RejectRedirect::expect(false, $warning);
                     }
                 }
+
+                // Проверка за неналичните артикули в незавършеното производство
+                $inputedRecsWorkInProgress = array();
+                array_walk($rec->_details, function($a) use (&$inputedRecsWorkInProgress) {
+                    if($a->type == 'input' && empty($a->storeId) && empty($a->fromAccId)){
+                        $inputedRecsWorkInProgress[$a->productId] += $a->quantity;
+                    }
+                });
+
+                if ($error = planning_WorkInProgress::getContoRedirectError($inputedRecsWorkInProgress)){
+                    acc_journal_RejectRedirect::expect(false, $error);
+                }
             }
         }
         
