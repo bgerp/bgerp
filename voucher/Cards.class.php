@@ -236,9 +236,12 @@ class voucher_Cards extends core_Detail
                 $data->query->where("#state = 'pending'");
             } elseif($filter->filter == 'closed'){
                 $data->query->where("#state = 'closed'");
-            } elseif($filter->filter != 'all'){
-                $where = $filter->filter == 'used' ? "#usedOn IS NOT NULL" : "#usedOn IS NULL";
-                $data->query->where($where);
+            } elseif($filter->filter == 'used'){
+                $data->query->where("#usedOn IS NOT NULL");
+                $data->query->orderBy("usedOn", 'DESC');
+            } elseif($filter->filter == 'unUsed'){
+                $data->query->where("#usedOn IS NULL");
+                $data->query->orderBy("createdOn", 'DESC');
             }
         }
     }
