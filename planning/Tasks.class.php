@@ -327,7 +327,7 @@ class planning_Tasks extends core_Master
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
         $this->FLD('calcedCurrentDuration', 'time', 'caption=Целеви времена->Изчислена продължителност,input=none');
-        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,formOrder=103');
+        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,input=none');
         $this->FLD('wasteProductId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
         $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък->Начален,autohide');
         $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък->Допустим,autohide');
@@ -355,9 +355,10 @@ class planning_Tasks extends core_Master
         $this->FLD('nextErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Следваща грешка');
         $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
 
-        $this->FLD('firstProgress', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Първи Прогрес (всички),changable, tdClass=leftColImportant,input=none');
-        $this->FLD('lastProgress', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Последен Прогрес (всички),changable, tdClass=leftColImportant,input=none');
-        $this->FLD('lastProgressProduction', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Последен Прогрес (произвеждане),changable, tdClass=leftColImportant,input=none');
+        $this->FLD('actualStart', 'datetime(format=smartTime)', 'caption=Фактическо начало, tdClass=leftColImportant,input=none');
+        $this->FLD('firstProgress', 'datetime(format=smartTime)', 'caption=Първи Прогрес (всички), tdClass=leftColImportant,input=none');
+        $this->FLD('lastProgress', 'datetime(format=smartTime)', 'caption=Последен Прогрес (всички), tdClass=leftColImportant,input=none');
+        $this->FLD('lastProgressProduction', 'datetime(format=smartTime)', 'caption=Последен Прогрес (произвеждане), tdClass=leftColImportant,input=none');
 
         $this->setDbIndex('labelPackagingId');
         $this->setDbIndex('productId');
@@ -1033,11 +1034,6 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $whenToUnsetStartAfter = ((empty($rec->id) || $rec->state == 'draft') && !empty($rec->startAfter) && $form->cmd == 'save');
-            if ($whenToUnsetStartAfter) {
-                $form->setWarning('startAfter', "Операцията е чернова. Автоматично ще се добави последна към избраното оборудване|*!");
-            }
-
             if (!$form->rec->_editActive) {
                 if (isset($rec->wasteProductId)) {
                     $wasteRec = cat_Products::fetch($rec->wasteProductId, 'measureId,generic');
@@ -1069,10 +1065,6 @@ class planning_Tasks extends core_Master
                             }
                         }
                     }
-                }
-
-                if ($whenToUnsetStartAfter) {
-                    $rec->startAfter = null;
                 }
 
                 if(empty($rec->timeDuration)){
@@ -1945,21 +1937,8 @@ class planning_Tasks extends core_Master
         if (isset($rec->assetId)) {
             $assetSimultaneity = planning_AssetResources::fetchField($rec->assetId, 'simultaneity');
             $form->setField('simultaneity', "input,placeholder={$assetSimultaneity}");
-            if ($data->action != 'clone') {
-                $taskOptions = planning_AssetResources::getAssetTaskOptions($rec->assetId, false, "ASC",true);
-                unset($taskOptions[$rec->id]);
-
-                $form->setField('startAfter', 'input');
-                if (countR($taskOptions)) {
-                    $form->setOptions('startAfter', array('' => '') + $taskOptions);
-                    $form->setDefault('startAfter', $mvc->getPrevOrNextTask($rec));
-                } else {
-                    $form->setReadOnly('startAfter');
-                }
-            }
         } else {
             $form->setField('simultaneity', 'input=none');
-            $form->setField('startAfter', 'input=none');
         }
 
         if (isset($rec->id)) {
@@ -2662,6 +2641,11 @@ class planning_Tasks extends core_Master
     protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
         // При затваряне се попълва очаквания край, ако не може да се изчисли
+        if (in_array($action, array('active', 'wakeup'))) {
+            $rec->actualStart = dt::now();
+            $mvc->save_($rec, 'actualStart');
+        }
+
         if ($action == 'closed') {
             if(empty($rec->timeEnd) && !isset($rec->timeStart, $rec->timeDuration)){
                 $rec->timeEnd = dt::now();

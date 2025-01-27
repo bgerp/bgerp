@@ -138,6 +138,9 @@
                     <!--ET_BEGIN lastChangeStateOn-->
                     <span style='font-weight:normal'>|Променено състояние|*</span>: [#lastChangeStateOn#] |от|* [#lastChangeStateBy#]<br>
                     <!--ET_END lastChangeStateOn-->
+                    <!--ET_BEGIN actualStart-->
+                    <span style='font-weight:normal'>|Фактическо начало|*</span>: [#actualStart#]<br>
+                    <!--ET_END actualStart-->
                     <!--ET_BEGIN firstProgress-->
                     <span style='font-weight:normal'>|Първи прогрес|*</span>: [#firstProgress#]<br>
                     <!--ET_END firstProgress-->
