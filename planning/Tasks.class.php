@@ -307,14 +307,12 @@ class planning_Tasks extends core_Master
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,silent');
-        $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа,class=w100');
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено)', 'caption=Отчитане на тегло,notNull,value=yes,autohide,class=w100');
         if (core_Packs::isInstalled('batch')) {
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Партида,input=none');
         }
 
-        $this->FLD('manualPreviousTask', 'key(mvc=planning_Tasks,select=title)', 'caption=Предходна операция,input=none');
-
+        $this->FLD('previousTask', 'key(mvc=planning_Tasks,select=title)', 'caption=Предходна операция,input=none,oldFieldName=manualPreviousTask');
         $this->FLD('mandatoryDocuments', 'classes(select=title)', 'caption=Задължителни,hint=Задължително изискуеми документи (поне един от всеки избран тип) за да може да бъде приключена операцията');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,class=w25,caption=Нормиране->Мярка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=individual');
@@ -803,25 +801,25 @@ class planning_Tasks extends core_Master
             }
 
             $prevTaskHint = false;
-            $prevTaskId = $rec->manualPreviousTask;
-            if(empty($row->manualPreviousTask)){
+            $prevTaskId = $rec->previousTask;
+            if(empty($row->previousTask)){
                 $prevTaskId = key($mvc->getPreviousTaskIds($rec, 1));
                 $prevTaskHint = true;
             }
             if(!empty($prevTaskId)){
-                $row->manualPreviousTask = $mvc->getHyperlink($prevTaskId);
+                $row->previousTask = $mvc->getHyperlink($prevTaskId);
                 if($prevTaskHint){
-                    $row->manualPreviousTask = ht::createHint($row->manualPreviousTask, 'Автоматично определена', 'notice', false);
+                    $row->previousTask = ht::createHint($row->previousTask, 'Автоматично определена', 'notice', false);
                 }
             }
 
             if(!Mode::isReadOnly()){
                 if($mvc->haveRightFor('editprevioustask', $rec)){
                     $rec->_hasManualPreviousTask = true;
-                    if(empty($row->manualPreviousTask)){
-                        $row->manualPreviousTask = tr('Няма');
+                    if(empty($row->previousTask)){
+                        $row->previousTask = tr('Няма');
                     }
-                    $row->manualPreviousTask .= ht::createLink('', array($mvc, 'editprevioustask', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Задаване/промяна на предходен етап|*!');
+                    $row->previousTask .= ht::createLink('', array($mvc, 'editprevioustask', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Задаване/промяна на предходен етап|*!');
                 }
             }
 
@@ -842,7 +840,7 @@ class planning_Tasks extends core_Master
                 $row->notConvertedFromPreviousTasks = implode('<br>', $notConvertedFromPreviousTasks);
                 $row->notConvertedFromPreviousTasks = "<b class='red'>{$row->notConvertedFromPreviousTasks}</b>";
             } else {
-                if(!empty($row->manualPreviousTask)){
+                if(!empty($row->previousTask)){
                     $row->notConvertedFromPreviousTasks = tr("Няма");
                 }
             }
@@ -1346,6 +1344,7 @@ class planning_Tasks extends core_Master
 
         $res = $this->save_($rec, $updateFields);
         plg_Search::forceUpdateKeywords($this, $rec);
+        planning_TaskConstraints::sync($rec);
 
         core_Debug::stopTimer('UPDATE_TASK_MASTER');
         core_Debug::log('END UPDATE_TASK_MASTER: ' . round(core_Debug::$timers['UPDATE_TASK_MASTER']->workingTime, 2));
@@ -3528,31 +3527,13 @@ class planning_Tasks extends core_Master
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        if(in_array($rec->state, array('active', 'stopped', 'wakeup', 'pending'))){
+            planning_TaskConstraints::sync($rec->id);
+        }
+
         // Ако има избрано оборудване, задачата се поставя на правилното място и се преподреждат задачите на машината
         if(isset($rec->assetId)){
             if($rec->_stopReorder) return;
-
-            // Ако не е минато през формата
-            if(!$rec->_fromForm){
-
-                // Ако няма начало изчислява се да започне след последната
-                if($rec->state == 'active' && $rec->brState == 'pending'){
-                    // При активиране от чернова - намърдва се най-накрая
-                    $rec->startAfter = $mvc->getPrevOrNextTask($rec);
-                } elseif($rec->state == 'rejected' || ($rec->state == 'closed' && in_array($rec->brState, array('stopped', 'active', 'wakeup')))){
-
-                    // При оттегляне изчезва от номерацията
-                    $rec->orderByAssetId = $rec->startAfter = null;
-                } elseif(in_array($rec->state, array('pending', 'active', 'wakeup')) && in_array($rec->brState, array('rejected', 'closed'))){
-
-                    // При възстановяване в намърдва се най-накрая
-                    $rec->startAfter = $mvc->getPrevOrNextTask($rec);
-                } elseif($rec->state == 'pending' && in_array($rec->brState, array('draft', 'waiting'))) {
-
-                    // Ако става на заявка от чакащо/чернова
-                    $rec->startAfter = $mvc->getPrevOrNextTask($rec);
-                }
-            }
 
             if(!empty($rec->startAfter)){
                 // Ако има посочена след коя е - намъква се след нея
@@ -4067,7 +4048,7 @@ class planning_Tasks extends core_Master
 
         $res = array();
         foreach ($allTasks as $tRec){
-            $debugRes[$tRec->id] = array('manualPreviousTask' => $tRec->manualPreviousTask);
+            $debugRes[$tRec->id] = array('previousTask' => $tRec->previousTask);
 
             // За всяка операция се търсят от останалите операции, които са за нейни предходни етапи
             $cProductId = $tRec->productId;
@@ -4088,7 +4069,7 @@ class planning_Tasks extends core_Master
 
             $previousTasks = $prevTaskArr + $foundArr;
             $prevTaskArr = arr::extractValuesFromArray($previousTasks, 'id');
-            $prevTaskCalc = isset($tRec->manualPreviousTask) ? array($tRec->manualPreviousTask => $tRec->manualPreviousTask) : $prevTaskArr;
+            $prevTaskCalc = isset($tRec->previousTask) ? array($tRec->previousTask => $tRec->previousTask) : $prevTaskArr;
             $res[$tRec->id] = $prevTaskCalc;
 
             $debugRes[$tRec->id]['previousTasks'] = $prevTaskArr;
@@ -4126,7 +4107,7 @@ class planning_Tasks extends core_Master
 
         $form = cls::get('core_Form');
         $form->title = 'Избор на предходна операция|* <b>' . planning_Tasks::getHyperlink($id, true) . '</b>';
-        $form->FLD('manualPreviousTask', 'key(mvc=planning_Tasks,select=name,allowEmpty)', 'caption=Пр. операция');
+        $form->FLD('previousTask', 'key(mvc=planning_Tasks,select=name,allowEmpty)', 'caption=Пр. операция');
 
         $options = array();
         $tQuery = planning_Tasks::getQuery();
@@ -4135,23 +4116,23 @@ class planning_Tasks extends core_Master
         while($tRec = $tQuery->fetch()){
             $options[$tRec->id] = $this->getTitleById($tRec->id, false);
         }
-        $form->setOptions('manualPreviousTask', array('' => '') + $options);
-        $form->setDefault('manualPreviousTask', $rec->manualPreviousTask);
+        $form->setOptions('previousTask', array('' => '') + $options);
+        $form->setDefault('previousTask', $rec->previousTask);
         $autoPreviousTaskId = key($this->getPreviousTaskIds($rec, 1));
-        $form->setDefault('manualPreviousTask', $autoPreviousTaskId);
+        $form->setDefault('previousTask', $autoPreviousTaskId);
 
         $form->input();
         if ($form->isSubmitted()) {
             $msg = null;
             $fRec = $form->rec;
 
-            if (empty($fRec->manualPreviousTask) || ($fRec->manualPreviousTask != $rec->manualPreviousTask && $autoPreviousTaskId != $fRec->manualPreviousTask)) {
-                if(empty($fRec->manualPreviousTask)){
+            if (empty($fRec->previousTask) || ($fRec->previousTask != $rec->previousTask && $autoPreviousTaskId != $fRec->previousTask)) {
+                if(empty($fRec->previousTask)){
                     $sRec = (object) array('id' => $id, 'saoOrder' => 0.5);
                     $this->save_($sRec, 'saoOrder');
                 } else {
-                    $sRec = (object) array('id' => $id, 'manualPreviousTask' => $fRec->manualPreviousTask);
-                    $this->save_($sRec, 'manualPreviousTask');
+                    $sRec = (object) array('id' => $id, 'previousTask' => $fRec->previousTask);
+                    $this->save_($sRec, 'previousTask');
                 }
 
                 $this->logInAct('Ръчно избиране на предходна операция', $rec);

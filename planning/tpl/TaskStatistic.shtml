@@ -103,7 +103,7 @@
                 <td class='sum-th'>|Невложено от предходни операции|*</td>
             </tr>
             <tr>
-                <td style='font-weight:normal;font-size: 0.8em;'>[#dependantProgress#] [#manualPreviousTask#]</td>
+                <td style='font-weight:normal;font-size: 0.8em;'>[#dependantProgress#] [#previousTask#]</td>
                 <td style='font-weight:normal;font-size: 0.8em;'>[#notConvertedFromPreviousTasks#]</td>
             </tr>
         </table>
