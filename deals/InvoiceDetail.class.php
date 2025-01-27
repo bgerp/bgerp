@@ -690,10 +690,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // Ако има такъв запис, сетваме грешка
             $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
             if($setWarning == 'yes'){
-                $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, null, null, null, null, $rec->notes);
-                if ($exRec) {
+                $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
+                if ($countSameProduct) {
                     if($masterRec->type != 'dc_note'){
-                        $form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
+                        $form->setError('productId', 'Артикулът вече присъства на друг ред в документа');
                         unset($rec->packPrice, $rec->price, $rec->quantityInPack);
                     }
                 }

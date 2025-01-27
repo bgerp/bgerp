@@ -90,7 +90,7 @@ class planning_Jobs extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, jobSee';
+    public $canList = 'ceo, jobSee, planningAll';
     
     
     /**

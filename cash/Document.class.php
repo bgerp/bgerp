@@ -53,7 +53,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, cash';
+    public $canList = 'ceo, cash, cashAll';
 
 
     /**
