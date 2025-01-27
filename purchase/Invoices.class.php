@@ -81,7 +81,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,purchase,acc';
+    public $canList = 'ceo,purchase,acc,invoiceAll';
     
     
     /**

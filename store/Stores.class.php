@@ -62,7 +62,7 @@ class store_Stores extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,storeWorker';
+    public $canList = 'ceo,storeWorker,storeAll';
     
     
     /**

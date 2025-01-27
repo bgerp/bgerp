@@ -48,7 +48,7 @@ class planning_Centers extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning, jobSee';
+    public $canList = 'ceo, planning, jobSee, planningAll';
     
     
     /**

@@ -109,7 +109,7 @@ class planning_Tasks extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, taskSee';
+    public $canList = 'ceo, taskSee, planningAll';
 
 
     /**

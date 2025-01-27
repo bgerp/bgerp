@@ -61,7 +61,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,consumption,store';
+    public $canList = 'ceo,consumption,store, planningAll';
     
     
     /**

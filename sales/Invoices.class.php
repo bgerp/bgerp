@@ -93,7 +93,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,sales,acc';
+    public $canList = 'ceo,sales,acc,invoiceAll';
 
 
     /**
