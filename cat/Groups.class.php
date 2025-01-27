@@ -178,7 +178,7 @@ class cat_Groups extends core_Master
         $form->setField('parentId', 'caption=Настройки->В състава на,remember');
         $form->setField('orderProductBy', 'caption=Настройки->Сортиране по');
         $form->setField('parentId', 'silent,removeAndRefreshForm=defaultOverheadCostsPercent');
-        $form->FLD('addProducts', 'text(rows=2)', 'caption=Допълнително->Добави артикули,input');
+        $form->FLD('addProducts', 'text(rows=2)', 'caption=Допълнително->Добави артикули,input,hint=Кодовете на артикулите трябва да са на нов ред');
 
         // На системните групи само определени полета може да се променят
         if (isset($rec->sysId)) {
