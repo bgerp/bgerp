@@ -65,7 +65,7 @@ abstract class bank_Document extends deals_PaymentDocument
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'bank, ceo';
+    public $canList = 'bank, ceo, bankAll';
 
 
     /**

@@ -140,4 +140,18 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
             $data->form->setFieldTypeParams('productId', array('hasProperties' => 'canConvert', 'hasnotProperties' => 'canStore'));
         }
     }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $recs = &$data->recs;
+        if (!countR($recs)) return;
+        if($data->masterData->rec->useResourceAccounts != 'yes') return;
+        if (!in_array($data->masterData->rec->state, array('draft', 'pending'))) return;
+
+        planning_WorkInProgress::applyQuantityHintIfNegative($data->rows, $data->recs);
+    }
 }

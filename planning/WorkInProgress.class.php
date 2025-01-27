@@ -87,6 +87,12 @@ class planning_WorkInProgress extends core_Manager
 
 
     /**
+     * Работен кеш за наличното к-во в незавършеното производство
+     */
+    protected static $inStockCacheHint = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -243,5 +249,92 @@ class planning_WorkInProgress extends core_Manager
     {
         $productState = cat_Products::fetchField($rec->productId, 'state');
         $row->ROW_ATTR['class'] = "state-{$productState}";
+    }
+
+
+    /**
+     * Връща наличностите на посочените артикули
+     *
+     * @param array $productIds
+     * @return array $res
+     */
+    public static function getQuantities($productIds)
+    {
+        $productIds = arr::make($productIds, true);
+        $res = array();
+        if(!$productIds) return $res;
+
+        $query = static::getQuery();
+        $query->in('productId', $productIds);
+        $query->show('productId,quantity');
+        while($rec = $query->fetch()) {
+            $res[$rec->productId] = $rec->quantity;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Дали да се сетне грешка при контиране, ако ще се доведе до отрицателна наличност
+     *
+     * @param array $quantities  - масив с ид на артикул => количество
+     * @param bool $subtract     - да се прибави или извади количеството
+     * @return false|string|null - текст на грешка или null ако няма
+     */
+    public static function getContoRedirectError($quantities, $subtract = true)
+    {
+        if(!countR($quantities)) return null;
+        $inStock = static::getQuantities(array_keys($quantities));
+
+        // Гледа се какво количество ще остане в незавършеното производство след излизане на тези количества
+        $errorProducts = array();
+        foreach ($quantities as $productId => $q) {
+            $inStockQuantity = array_key_exists($productId, $inStock) ? $inStock[$productId] : 0;
+            if($subtract){
+                $afterQuantity = round($inStockQuantity - $q, 2);
+            } else {
+                $afterQuantity = round($inStockQuantity + $q, 2);
+            }
+
+            // Ако количеството ще е отрицателно ще се покаже грешка
+            if($afterQuantity < 0){
+                $errorProducts[$productId] = "<b>" . cat_Products::getTitleById($productId) . "</b>";
+            }
+        }
+
+        $string = ($subtract) ? 'Контирането' : 'Оттеглянето';
+        $res = countR($errorProducts) ? "{$string} на документа ще доведе до отрицателни количества в незавършеното производство на|*: " . implode(', ', $errorProducts) : false;
+
+        return $res;
+    }
+
+
+    /**
+     * Добавя хинт дали контирането на документа ще доведе до отрицателна наличност
+     *
+     * @param array $rows            - вербални записи
+     * @param array $recs            - записи
+     * @param string $productFldName - продуктово поле
+     * @param string $quantityFld    - поле за количество
+     * @param string $hintFld        - поле, което да стане хинт
+     * @return void
+     */
+    public static function applyQuantityHintIfNegative(&$rows, $recs, $productFldName = 'productId', $quantityFld = 'quantity', $hintFld = 'packQuantity')
+    {
+        $totalQuantities = array();
+        array_walk($recs, function (&$a) use (&$totalQuantities, $productFldName, $quantityFld) {$totalQuantities[$a->{$productFldName}] += $a->{$quantityFld};});
+        $inStock = planning_WorkInProgress::getQuantities(arr::extractValuesFromArray($recs, 'productId'));
+
+        foreach ($recs as $i => &$rec) {
+            $row = $rows[$i];
+            if(round($inStock[$rec->{$productFldName}] - $totalQuantities[$rec->{$productFldName}], 1) < 0){
+                $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($inStock[$rec->{$productFldName}]);
+                $measureName = cat_UoM::getShortName(cat_Products::fetchField($rec->{$productFldName}, 'measureId'));
+
+                $hint = "Недостатъчна наличност в незавършеното производство|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|*!";
+                $row->{$hintFld} = ht::createHint($row->{$hintFld}, $hint, 'warning', false, null, "class=doc-negative-quantity");
+            }
+        }
     }
 }

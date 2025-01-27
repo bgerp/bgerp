@@ -363,7 +363,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $r[$id] = $sRow;
 
             $summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior, $alwaysShowBatches);
-
+            //bp($sRec, $summary);
             if(!$summary) continue;
             $Def = batch_Defs::getBatchDef($sRec->productId);
 
@@ -493,10 +493,11 @@ class batch_plg_InventoryNotes extends core_Plugin
     {
         $explicitBatchQuantities = array();
         $dQuery = store_InventoryNoteDetails::getQuery();
-        $dQuery->where("#batch IS NOT NULL AND #productId = {$summaryRec->productId} AND #noteId = {$summaryRec->noteId}");
+        $dQuery->where("#productId = {$summaryRec->productId} AND #noteId = {$summaryRec->noteId}");
         $dQuery->XPR('totalQ', 'double', 'SUM(#quantity)');
         $dQuery->groupBy('batch');
         $dQuery->show('batch, totalQ');
+
         $calcedQuantity = 0;
         while($dRec = $dQuery->fetch()){
             $calcedQuantity += $dRec->totalQ;
