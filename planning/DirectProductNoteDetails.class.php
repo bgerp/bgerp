@@ -402,8 +402,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
         // Проверка дали ще има проблем с количествата в незавършеното производство
         if(countR($workInProgressRecs)){
-            //in_
-            planning_WorkInProgress::applyQuantityHintIfNegative($data->rows, $workInProgressRecs);
+            if(in_array($data->masterData->rec->state, array('pending', 'draft'))){
+                planning_WorkInProgress::applyQuantityHintIfNegative($data->rows, $workInProgressRecs);
+            }
         }
     }
 
