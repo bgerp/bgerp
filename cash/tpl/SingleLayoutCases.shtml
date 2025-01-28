@@ -61,7 +61,7 @@
             <!--ET_BEGIN SELECT_FIELD-->
             [#SELECT_FIELD#]
             <fieldset class="detail-info">
-                <legend class="groupTitle">|Кой може да избира касата в документи|*</legend>
+                <legend class="groupTitle">|Кой може да избира касата в документи и филтри|*</legend>
                 <div class="groupList">
                     <table>
                     	<!--ET_BEGIN selectUsers-->
