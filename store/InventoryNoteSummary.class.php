@@ -754,7 +754,7 @@ class store_InventoryNoteSummary extends doc_Detail
                }
             }
         }
-        
+
         // Правилна подредба
         uasort($ordered, function ($a, $b) use ($codeFld, $nameFld, $orderByField) {
              if ($a->groupName == $b->groupName) {
@@ -771,14 +771,12 @@ class store_InventoryNoteSummary extends doc_Detail
         // В $recs трябва да са останали несортираните
         $rest = $recs;
         if (countR($rest) && is_array($rest)) {
-            
             // Ще ги показваме в маркер 'Други'
+            $field = ($orderByField == 'code') ? $codeFld : $nameFld;
             foreach ($rest as &$r1) {
                 $r1->groupName = tr('Други');
             }
-            
-            // Подреждаме ги по код
-            arr::sortObjects($rest, $codeFld);
+            arr::sortObjects($rest, $field);
             
             // Добавяме ги най-накрая
             $ordered += $rest;

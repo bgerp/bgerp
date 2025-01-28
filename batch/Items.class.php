@@ -488,6 +488,7 @@ class batch_Items extends core_Master
                 $query->where("#quantity <= 0");
             } else {
                 $query->where("#state = '{$filterRec->{"state{$data->masterId}"}}'");
+                $query->orderBy('id', 'desc');
             }
         }
         $orderBy = $filterRec->{"filter{$data->masterId}"};
@@ -542,6 +543,7 @@ class batch_Items extends core_Master
         $url = getCurrentUrl();
         $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"};
         $url["state{$data->masterId}"] = $form->rec->{"state{$data->masterId}"};
+        $url["filter{$data->masterId}"] = $form->rec->{"filter{$data->masterId}"};
         $url["#"] = "batchBlock{$data->masterId}";
 
         $pager = cls::get('core_Pager', array('itemsPerPage' => 20, 'url' => toUrl($url)));
