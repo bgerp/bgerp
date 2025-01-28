@@ -402,6 +402,10 @@ class crm_Locations extends core_Master
                 $row->ROW_ATTR['class'] .= ' state-rejected';
             }
         }
+
+        if ($rec->type) {
+            $row->type = tr($rec->type);
+        }
     }
     
     

@@ -206,7 +206,7 @@ class hr_Sickdays extends core_Master
 				   9=Бащинство до 410 дни,
 				   10=Гледа дете до 18 години,
 				   12=Карантина)', 'caption=Информация->Причина');
-        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefis('s'))), 'caption=Информация->Икона за ника, maxRadio=10,columns=10,notNull,value=s2');
+        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('s'))), 'caption=Информация->Икона за ника, maxRadio=10,columns=10,notNull,value=s2');
         $this->FLD('note', 'richtext(rows=5,bucket=Notes)', 'caption=Информация->Бележки');
         $this->FLD('icdCode', 'varchar(5)', 'caption=Информация->MKB код, hint=Международна класификация на болестите');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
@@ -447,8 +447,8 @@ class hr_Sickdays extends core_Master
 
             return ;
         }
-        
-        while ($curDate < $rec->toDate) {
+  
+        while ($curDate <= $rec->toDate) {
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
                 $calRec = new stdClass();
@@ -484,11 +484,11 @@ class hr_Sickdays extends core_Master
                 
                 $events[] = $calRec;
             }
-            $curDate = dt::addDays(1, $curDate);
+            $curDate = strstr(dt::addDays(1, $curDate),' ',true);
         }
 
         $onlyDel = $rec->state == 'rejected' ? true : false;
-        
+       
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
     }
     

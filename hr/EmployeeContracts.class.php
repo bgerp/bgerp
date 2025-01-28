@@ -784,22 +784,24 @@ class hr_EmployeeContracts extends core_Master
         
         $persons = array();
         
-        //масив за проверка с всички данни
-        $chekArr = array();
         $next2weeks = dt::addDays(14, dt::today());
-        
+
         $querySick = hr_Sickdays::getQuery();
         $querySick->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #startDate <= '{$next2weeks}')) AND #state = 'active'");
+        $querySick->orderBy('#startDate', 'DESC');
         
         $queryHomeOffice = hr_HomeOffice::getQuery();
         $queryHomeOffice->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #startDate <= '{$next2weeks}')) AND #state = 'active'");
+        $queryHomeOffice->orderBy('#startDate', 'DESC');
 
         $queryTrip = hr_Trips::getQuery();
         $queryTrip->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #startDate <= '{$next2weeks}')) AND #state = 'active'");
+        $queryTrip->orderBy('#startDate', 'DESC');
 
         $queryLeave = hr_Leaves::getQuery();
         $queryLeave->where("((#leaveFrom <= '{$now}' AND #leaveTo >= '{$now}') OR (#leaveFrom >= '{$now}' AND #leaveFrom <= '{$next2weeks}')) AND #state = 'active'");
-        
+        $queryLeave->orderBy('#leaveFrom', 'DESC');
+
         // добавяме болничните
         while ($recSick = $querySick->fetch()) {
             
@@ -815,6 +817,22 @@ class hr_EmployeeContracts extends core_Master
                     'stateAnswerGSM' => $recSick->answerGSM,
                     'stateEmoji' => $recSick->emoji,
                 );
+            }
+        }
+
+        // добавяме и отпуските
+        while ($recLeave = $queryLeave->fetch()) {
+
+            // ключ за масива ще е ид-то на всеки потребител в системата
+            $id = $recLeave->personId;
+
+            if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recLeave->leaveFrom) {
+                $persons[$id] = (object) array('stateInfo' => 'leaveDay',
+                    'stateDateFrom' => $recLeave->leaveFrom,
+                    'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))),
+                    'stateAlternatePersons' => $recLeave->alternatePersons,
+                    'stateAnswerGSM' => $recLeave->answerGSM,
+                    'stateEmoji' => $recLeave->emoji,);
             }
         }
 
@@ -835,7 +853,7 @@ class hr_EmployeeContracts extends core_Master
                 );
             }
         }
-        
+
         // добавяме командировките
         while ($recTrip = $queryTrip->fetch()) {
             // ключ за масива ще е ид-то на всеки потребител в системата
@@ -849,22 +867,6 @@ class hr_EmployeeContracts extends core_Master
                     'stateAnswerGSM' => $recTrip->answerGSM,
                     'stateEmoji' => $recTrip->emoji,
                 );
-            }
-        }
-        
-        // добавяме и отпуските
-        while ($recLeave = $queryLeave->fetch()) {
-
-            // ключ за масива ще е ид-то на всеки потребител в системата
-            $id = $recLeave->personId;
-            
-            if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recLeave->leaveFrom) {
-                $persons[$id] = (object) array('stateInfo' => 'leaveDay',
-                                               'stateDateFrom' => $recLeave->leaveFrom,
-                                                'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))),
-                                                'stateAlternatePersons' => $recLeave->alternatePersons,
-                                                'stateAnswerGSM' => $recLeave->answerGSM,
-                                                'stateEmoji' => $recLeave->emoji,);
             }
         }
 
