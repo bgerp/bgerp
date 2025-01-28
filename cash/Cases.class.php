@@ -86,7 +86,7 @@ class cash_Cases extends core_Master
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canReports = 'ceo,cash,acc';
+    public $canReports = 'ceo,cash,acc,cashAll';
     
     
     /**
