@@ -143,9 +143,18 @@ class planning_TaskConstraints extends core_Master
         if (haveRole('debug')) {
             $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране');
             $data->toolbar->addBtn('Изпразни', array($mvc, 'truncate', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Изпразване');
+            $data->toolbar->addBtn('Преизч. продължителност', array($mvc, 'recalcDuration', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на продължителност');
         }
     }
 
+
+    function act_recalcDuration()
+    {
+        requireRole('debug');
+        $this->calcTaskDuration();
+
+        followRetUrl(null, 'Синхронизиране');
+    }
 
     /**
      * Екшън за синхронизиране на записите
@@ -159,6 +168,25 @@ class planning_TaskConstraints extends core_Master
     }
 
 
+    private static function getDefaultArr($tasks)
+    {
+        $arr = arr::make($tasks, true);
+        if(!countR($arr)){
+            $tQuery = planning_Tasks::getQuery();
+            $tQuery->in('state', array('active', 'wakeup', 'stopped', 'pending'));
+            $tasks = $tQuery->fetchAll();
+        } else {
+            $tasks = array();
+            foreach ($arr as $id) {
+                $taskId = is_numeric($id) ? $id : $id->id;
+                $tasks[$taskId] = planning_Tasks::fetch($taskId);
+            }
+        }
+
+        return $tasks;
+    }
+
+
     /**
      * Синхронизиране на записи на посочени операции (null за аквитните+събудените+спрените+заявка)
      *
@@ -167,21 +195,7 @@ class planning_TaskConstraints extends core_Master
      */
     public static function sync($tasks = array())
     {
-        $arr = arr::make($tasks, true);
-        if(!countR($arr)){
-            $tQuery = planning_Tasks::getQuery();
-            $tQuery->in('state', array('active', 'wakeup', 'stopped', 'pending'));
-            $tQuery->show('timeStart,previousTask,productId,originId');
-            $tasks = $tQuery->fetchAll();
-        } else {
-            $tasks = array();
-            foreach ($arr as $id) {
-                $taskId = is_numeric($id) ? $id : $id->id;
-                $tasks[$taskId] = planning_Tasks::fetch($taskId, 'timeStart,previousTask,productId,originId');
-            }
-
-            core_Statuses::newStatus("SYNC: " . implode('-', array_keys($tasks)));
-        }
+        $tasks = self::getDefaultArr($tasks);
 
         $prevSteps = $tasksByJobs = array();
         $stepIds = arr::extractValuesFromArray($tasks, 'productId');
@@ -227,7 +241,7 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
-        if(countR($arr) && !countR($res)) return;
+        if(countR($tasks) && !countR($res)) return;
 
         $taskIds = arr::extractValuesFromArray($res, 'taskId');
         $exQuery = static::getQuery();
@@ -259,5 +273,142 @@ class planning_TaskConstraints extends core_Master
         $this->truncate();
 
         followRetUrl(null, 'Записите са изтрити');
+    }
+
+    public static function calcTaskDuration($tasks = array())
+    {
+        $tasks = self::getDefaultArr($tasks);
+        if(!count($tasks)) return;
+
+        $taskIds = $productIds = $assetIds = $stepsData = $normsByTask = $jobProductIds = array();
+        foreach ($tasks as $taskRec){
+
+            $taskIds[$taskRec->id] = $taskRec->id;
+            $productIds[$taskRec->productId] = $taskRec->productId;
+            if(!array_key_exists($taskRec->originId, $jobProductIds)){
+                $jobProductIds[$taskRec->originId] = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
+            }
+
+
+            if(isset($taskRec->assetId)){
+                if(!array_key_exists($taskRec->assetId, $assetIds)){
+                    $assetIds[$taskRec->assetId] = planning_AssetResources::fetch($taskRec->assetId);
+                }
+            }
+
+            // За всяка ПО се извличат планиращите ѝ действия
+            if(!array_key_exists($taskRec->productId, $stepsData)){
+                if($Driver = cat_Products::getDriver($taskRec->productId)){
+                    $stepsData[$taskRec->productId] = $Driver->getProductionData($taskRec->productId);
+                }
+            }
+
+            if(is_array($stepsData[$taskRec->productId]['actions'])){
+                foreach ($stepsData[$taskRec->productId]['actions'] as $actionProductId){
+                    $normsByTask[$taskRec->id][$actionProductId] = 0;
+                }
+            }
+        }
+
+        $productIds += $jobProductIds;
+
+        // Еднократно кеширане на продуктовите опаковки
+        $pPacks = array();
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->in('productId', $productIds);
+        $packQuery->show('quantity,productId,packagingId');
+        while($pRec = $packQuery->fetch()){
+            $pPacks["{$pRec->productId}|{$pRec->packagingId}"] = $pRec->quantity;
+        }
+
+        // Изчисляват се времената на планираните операции за задачата
+        $pQuery = planning_ProductionTaskProducts::getQuery();
+        $pQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+        $pQuery->where("#type = 'input' AND #canStore != 'yes'");
+        $pQuery->in('taskId', $taskIds);
+        $pQuery->show('productId,taskId,plannedQuantity,indTime');
+        while($pRec = $pQuery->fetch()){
+
+            // Ако планираното влагане е от планиращите операции на артикула
+            if(isset($normsByTask[$pRec->taskId][$pRec->productId])){
+                $normsByTask[$pRec->taskId][$pRec->productId] = planning_type_ProductionRate::getInSecsByQuantity($pRec->indTime, $pRec->plannedQuantity);
+            }
+        }
+
+        // Изчисляват се реално изпълнените операции
+        $detailsAssetNorms = array();
+        $dQuery = planning_ProductionTaskDetails::getQuery();
+        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+        $dQuery->where("#type = 'input' AND #state != 'rejected' AND #canStore != 'yes'");
+        $dQuery->in('taskId', $taskIds);
+
+        // Ако изпълненото влагане е от планиращите операции на артикула
+        while($dRec = $dQuery->fetch()){
+            if(isset($normsByTask[$dRec->taskId][$dRec->productId])){
+                $calced = cls::get('planning_ProductionTaskDetails')->calcNormByRec($dRec, $tasks[$dRec->taskId]);
+                $detailsAssetNorms[$dRec->taskId][$dRec->productId] += $calced;
+            }
+        }
+
+        // Измежду планираните и реално изпълнените операции се взима това с по-голямата норма
+        foreach ($normsByTask as $tId => $actions){
+            foreach ($actions as $actionId => $value){
+                if(isset($detailsAssetNorms[$tId][$actionId])){
+                    $normsByTask[$tId][$actionId] = max($value, $detailsAssetNorms[$tId][$actionId]);
+                }
+            }
+        }
+
+        // За всяка операция
+        $minDuration = planning_Setup::get('MIN_TASK_DURATION');
+        foreach ($tasks as $t){
+            // Ако има зададена продължителност - това е
+            $duration = $t->timeDuration;
+
+
+            // Ако няма изчислява се от нормата за планираното количество
+            if(empty($duration)){
+                if($t->indPackagingId == $t->measureId){
+                    $calcedPlannedQuantity = $t->plannedQuantity;
+                } else {
+
+                    // Ако мярката за нормиране е същата като тази от етикета - взема се неговото к-во
+                    $indProductIdKey = ($t->isFinal == 'yes') ? $t->jobProductId : $t->productId;
+                    if($t->indPackagingId == $t->labelPackagingId && $t->labelQuantityInPack){
+                        $indQuantityInPack = $t->labelQuantityInPack;
+                    } else {
+                        $indQuantityInPack = $pPacks["{$indProductIdKey}|{$t->indPackagingId}"] ?? 1;
+                    }
+
+                    $quantityInPack = $pPacks["{$indProductIdKey}|{$t->measureId}"] ?? 1;
+                    $calcedPlannedQuantity = round(($t->plannedQuantity * $quantityInPack) / $indQuantityInPack);
+                }
+
+                $indTime = planning_type_ProductionRate::getInSecsByQuantity($t->indTime, $calcedPlannedQuantity);
+                $simultaneity = $t->simultaneity ?? $assetIds[$t->assetId]->simultaneity;
+                $duration = round($indTime / $simultaneity);
+            }
+
+            // От продължителността, се приспада произведеното досега
+            $nettDuration = $duration;
+            $duration = round((1 - $t->progress) * $duration);
+
+            // Ако мин прогреса е под 100%, то се използва мин. продължителността, иначе за мин. прод. се използва 0
+            $minDuration = ($t->progress >= 1) ? 1 : $minDuration;
+            $duration = max($duration, $minDuration);
+
+            // Към така изчислената продължителност се добавя тази от действията към машината
+            if(array_key_exists($t->id, $normsByTask)){
+                $duration += array_sum($normsByTask[$t->id]);
+                $nettDuration += array_sum($normsByTask[$t->id]);
+            }
+            $t->calcedDuration = $nettDuration;
+            $t->calcedCurrentDuration = $duration;
+        }
+
+        core_Statuses::newStatus("RECALC_TIMES-" . countR($tasks), 'warning');
+
+        // Кешира се нетната продължителност
+        cls::get('planning_Tasks')->saveArray($tasks, 'id,calcedDuration,calcedCurrentDuration');
     }
 }

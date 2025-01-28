@@ -1319,6 +1319,8 @@ class planning_Tasks extends core_Master
         $res = $this->save_($rec, $updateFields);
         plg_Search::forceUpdateKeywords($this, $rec);
 
+        planning_TaskConstraints::calcTaskDuration($rec->id);
+
         core_Debug::stopTimer('UPDATE_TASK_MASTER');
         core_Debug::log('END UPDATE_TASK_MASTER: ' . round(core_Debug::$timers['UPDATE_TASK_MASTER']->workingTime, 2));
 
