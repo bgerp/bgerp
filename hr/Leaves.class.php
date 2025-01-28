@@ -297,12 +297,38 @@ class hr_Leaves extends core_Master
      *
      * @param string $emoji
      * @param string $class
+     * @param null|string $from
+     * @param null|string $to
      *
      * @return string
      */
-    public static function getEmoji($emoji, $class = 'statusIcon')
+    public static function getEmoji($emojiType, $class = 'statusIcon', $from = null, $to = null)
     {
-        $emoji =  self::$emojiList[$emoji] ? self::$emojiList[$emoji] : '';
+        $emoji = '';
+        if (!$emojiType) {
+
+            return $emoji;
+        }
+
+        $today = dt::now(false);
+
+        if (isset($from)) {
+            list($dateFrom, ) = explode(' ', $from);
+            if ($dateFrom < $today) {
+
+                return $emoji;
+            }
+        }
+
+        if (isset($to)) {
+            list($dateTo, ) = explode(' ', $to);
+            if ($dateTo > $today) {
+
+                return $emoji;
+            }
+        }
+
+        $emoji =  self::$emojiList[$emojiType] ? self::$emojiList[$emojiType] : '';
         if ($class) {
             $emoji = "<span class='{$class}'>{$emoji}</span>";
         }

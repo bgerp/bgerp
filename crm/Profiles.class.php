@@ -1188,11 +1188,12 @@ class crm_Profiles extends core_Master
             
             $attr['class'] .= ' profile';
 
+            $e = '';
             if ($profRec && $profRec->stateDateFrom) {
                 $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo, (boolean) ($profRec->stateAnswerGSM == 'yes'));
+                $e = hr_Leaves::getEmoji($profRec->stateEmoji, 'statusIcon', $profRec->stateDateFrom, $profRec->stateDateTo);
             }
 
-            $e = ($profRec->stateEmoji) ? hr_Leaves::getEmoji($profRec->stateEmoji) : '';
 
             $profileId = self::getProfileId($userId);
             
