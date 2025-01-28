@@ -110,7 +110,7 @@ class cash_Cases extends core_Master
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,cash';
+    public $canSingle = 'ceo, cash, cashAll';
     
     
     /**
