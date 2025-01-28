@@ -447,7 +447,7 @@ class hr_Sickdays extends core_Master
 
             return ;
         }
-        
+  
         while ($curDate < $rec->toDate) {
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
@@ -484,11 +484,11 @@ class hr_Sickdays extends core_Master
                 
                 $events[] = $calRec;
             }
-            $curDate = dt::addDays(1, $curDate);
+            $curDate = strstr(dt::addDays(1, $curDate),' ',true);
         }
 
         $onlyDel = $rec->state == 'rejected' ? true : false;
-        
+       
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
     }
     
