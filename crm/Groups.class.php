@@ -498,7 +498,7 @@ class crm_Groups extends core_Master
         }
 
         $employeesGroupId = crm_Groups::getIdFromSysId('employees');
-        $groupRec = (object)array('name' => 'Центрове на дейност', 'sysId' => 'activityCenters', 'parentId' => $employeesGroupId);
+        $groupRec = (object)array('name' => 'Център на дейност', 'sysId' => 'activityCenters', 'parentId' => $employeesGroupId);
         crm_Groups::forceGroup($groupRec);
     }
 
