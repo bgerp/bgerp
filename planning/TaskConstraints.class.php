@@ -29,7 +29,7 @@ class planning_TaskConstraints extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'planning_Wrapper, plg_RowTools2';
+    public $loadList = 'planning_Wrapper, plg_Sorting';
 
 
     /**
@@ -41,7 +41,7 @@ class planning_TaskConstraints extends core_Master
     /**
      * Кой има право да го променя?
      */
-    public $canDelete = 'debug';
+    public $canDelete = 'no_one';
 
 
     /**
@@ -59,7 +59,7 @@ class planning_TaskConstraints extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $listFields = 'taskId,type,previousTaskId=Предходна,earliestTimeStart=Най-рано,waitingTime=Изчакване';
+    public $listFields = 'taskId,type,previousTaskId=Предходна,earliestTimeStart=Най-рано,waitingTime=Изчакване,updatedOn';
 
 
     /**
@@ -72,6 +72,10 @@ class planning_TaskConstraints extends core_Master
         $this->FLD('previousTaskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Предходна');
         $this->FLD('waitingTime', 'time', 'caption=Време за изчакване');
         $this->FLD('earliestTimeStart', 'datetime', 'caption=Най-ранно започване');
+        $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновяване');
+
+        $this->setDbIndex('taskId');
+        $this->setDbIndex('previousTaskId');
     }
 
 
@@ -85,35 +89,82 @@ class planning_TaskConstraints extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
+        $taskState = planning_Tasks::fetchField($rec->taskId, 'state');
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
+        $row->taskId = ht::createElement("div", array('class' => "state-{$taskState} document-handler"), $row->taskId);
+
         if(isset($rec->previousTaskId)){
+            $taskState = planning_Tasks::fetchField($rec->previousTaskId, 'state');
             $row->previousTaskId = planning_Tasks::getLink($rec->previousTaskId, 0);
+            $row->previousTaskId = ht::createElement("div", array('class' => "state-{$taskState} document-handler"), $row->previousTaskId);
         }
     }
 
 
-    private static function calc($taskId, &$alreadyCalced = array())
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $res = array();
-        $taskRec = static::fetchRec($taskId);
-        $alreadyCalced[$taskRec->id] = $taskRec->id;
+        $data->listFilter->FLD('documentId', 'varchar', 'caption=Операция, silent');
+        $data->listFilter->setFieldType('type', 'enum(all=Всички,prevId=Предходна операция,earliest=Най-рано)');
+        $data->listFilter->showFields = 'documentId,type';
+        $data->listFilter->input(null, 'silent');
 
-        $timeStart = $taskRec->timeStart ?? (in_array($taskRec->state, array('active', 'wakeup')) ? dt::now() : null);
-        if(!empty($timeStart)){
-            $res[] = (object)array('taskId' => $taskRec->id, 'earliestTimeStart' => $timeStart, 'type' => 'earliest');
+        $data->listFilter->setDefault('type', 'all');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input();
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->query->orderBy('id', 'DESC');
+
+        if($filter = $data->listFilter->rec){
+            if($filter->type != 'all'){
+                $data->query->where("#type = '{$filter->type}'");
+            }
+
+            if(!empty($filter->documentId)){
+                $data->query->where("#taskId = '{$filter->documentId}' || #previousTaskId = '{$filter->documentId}'");
+            }
         }
-
-      //  bp($taskRec->productId);
-       // $notCalced = array_diff_key($previousTaskIds, $alreadyCalced);
-        foreach ($notCalced as $prevTaskId) {
-            $res[] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'previousTaskId' => $prevTaskId);
-            $calcedPrev = static::calc($prevTaskId, $alreadyCalced);
-            $res = array_merge($res, $calcedPrev);
-        }
-
-        return $res;
     }
 
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Синхронизиране', array($mvc, 'sync', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Ресинхронизиране');
+            $data->toolbar->addBtn('Изпразни', array($mvc, 'truncate', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Изпразване');
+        }
+    }
+
+
+    /**
+     * Екшън за синхронизиране на записите
+     */
+    function act_Sync()
+    {
+        requireRole('debug');
+        $this->sync();
+
+        followRetUrl(null, 'Синхронизиране');
+    }
+
+
+    /**
+     * Синхронизиране на записи на посочени операции (null за аквитните+събудените+спрените+заявка)
+     *
+     * @param mixed $tasks
+     * @return void
+     */
     public static function sync($tasks = array())
     {
         $arr = arr::make($tasks, true);
@@ -128,6 +179,8 @@ class planning_TaskConstraints extends core_Master
                 $taskId = is_numeric($id) ? $id : $id->id;
                 $tasks[$taskId] = planning_Tasks::fetch($taskId, 'timeStart,previousTask,productId,originId');
             }
+
+            core_Statuses::newStatus("SYNC: " . implode('-', array_keys($tasks)));
         }
 
         $prevSteps = $tasksByJobs = array();
@@ -149,18 +202,16 @@ class planning_TaskConstraints extends core_Master
             $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id);
         }
 
+        $res = array();
         $now = dt::now();
         foreach ($tasks as $taskRec){
-
-
-
             if(!empty($taskRec->timeStart)){
                 $timeStart = max($taskRec->timeStart, $now);
-                $res[] = (object)array('taskId' => $taskRec->id, 'earliestTimeStart' => $timeStart, 'type' => 'earliest', 'timeStart'=>$taskRec->timeStart);
+                $res["time|{$taskRec->id}"] = (object)array('taskId' => $taskRec->id, 'type' => 'earliest', 'earliestTimeStart' => $timeStart, 'waitingTime' => null, 'previousTaskId' => null, 'updatedOn' => $now);
             }
 
             if(isset($taskRec->previousTask)){
-                $res[] = (object)array('taskId' => $taskRec->id, 'previousTaskId' => $taskRec->previousTask, 'type' => 'prevId');
+                $res["prev|{$taskRec->id}"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => null,  'previousTaskId' => $taskRec->previousTask, 'updatedOn' => $now);
             } else {
                 $prevTaskIds = array();
                 $prevStepsArr = array_key_exists($taskRec->productId, $prevSteps) ? $prevSteps[$taskRec->productId] : array();
@@ -171,25 +222,25 @@ class planning_TaskConstraints extends core_Master
                 });
 
                 foreach ($prevTaskIds as $prevTaskId){
-                    $res[] = (object)array('taskId' => $taskRec->id, 'previousTaskId' => $prevTaskId, 'type' => 'prevId');
+                    $res["prev|{$taskRec->id}|$prevTaskId"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => null, 'previousTaskId' => $prevTaskId, 'updatedOn' => $now);
                 }
             }
         }
 
-        $taskIds = arr::extractValuesFromArray($res, 'taskId');
+        if(countR($arr) && !countR($res)) return;
 
+        $taskIds = arr::extractValuesFromArray($res, 'taskId');
         $exQuery = static::getQuery();
         $exQuery->in("taskId", $taskIds);
-
         $exRecs = $exQuery->fetchAll();
         $me = cls::get(get_called_class());
-        $synced = arr::syncArrays($res, $exRecs, 'taskId,type', 'type,previousTaskId,waitingTime,earliestTimeStart');
+        $synced = arr::syncArrays($res, $exRecs, 'taskId,type,previousTaskId', 'taskId,type,earliestTimeStart,waitingTime,previousTaskId');
 
         if(countR($synced['insert'])){
             $me->saveArray($synced['insert']);
         }
         if(countR($synced['update'])){
-            $me->saveArray($synced['update'], 'id,previousTaskId,waitingTime,earliestTimeStart');
+            $me->saveArray($synced['update'], 'id,previousTaskId,waitingTime,earliestTimeStart,updatedOn');
         }
 
         if(countR($synced['delete'])){
@@ -198,27 +249,15 @@ class planning_TaskConstraints extends core_Master
         }
     }
 
-    function act_Sync()
-    {
-        requireRole('debug');
 
-        $this->sync();
-        $this->truncate();
-    }
-
+    /**
+     * Екшън за изчистване на таблицата
+     */
     function act_Truncate()
     {
         requireRole('debug');
         $this->truncate();
+
+        followRetUrl(null, 'Записите са изтрити');
     }
-
-
-    function act_Test()
-    {
-        requireRole('debug');
-        $r = static::sync();
-        bp($r);
-    }
-
-
 }

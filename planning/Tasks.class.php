@@ -221,7 +221,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeEnd,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,prevErrId,nextErrId,timeClosed,lastProgressProduction,lastProgress,firstProgress';
+    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,prevErrId,nextErrId,timeClosed,lastProgressProduction,lastProgress,firstProgress';
 
 
     /**
@@ -325,7 +325,6 @@ class planning_Tasks extends core_Master
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
         $this->FLD('calcedCurrentDuration', 'time', 'caption=Целеви времена->Изчислена продължителност,input=none');
-        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,input=none');
         $this->FLD('wasteProductId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
         $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък->Начален,autohide');
         $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък->Допустим,autohide');
@@ -548,7 +547,7 @@ class planning_Tasks extends core_Master
             $row->expectedTimeEnd = "<i class = 'quiet'>{$row->state}</i>";
         } elseif(!Mode::is('isReorder')) {
             // Проверяване на времената
-            foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField) {
+            foreach (array('expectedTimeStart', 'expectedTimeEnd') as $eTimeField) {
 
                 // Вербализиране на времената
                 $DateTime = core_Type::getByName('datetime(format=smartTime)');
@@ -563,15 +562,6 @@ class planning_Tasks extends core_Master
                             }
                         }
                     }
-                }
-
-                if ($rec->{$timeField}) {
-                    $row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
-                }
-
-                if (!empty($rec->{$timeField})) {
-                    $hint = "Зададено|*: {$row->{$timeField}}";
-                    $row->{$eTimeField} = ht::createHint($row->{$eTimeField}, $hint, 'img/16/pin.png', false, array('height' => '12', 'width' => '12'));
                 }
             }
 
@@ -1011,24 +1001,14 @@ class planning_Tasks extends core_Master
             planning_Centers::checkDeviationPercents($form);
 
             if (in_array($form->cmd, array('save_pending', 'save_pending_new'))) {
-                if (empty($rec->indTime) && empty($rec->timeDuration) && (empty($rec->timeStart) || empty($rec->timeEnd))) {
-                    $form->setError('timeDuration,indTime,timeStart,timeEnd', "Необходими са данни за да се изчисли продължителността на операцията|*!");
+                if (empty($rec->indTime) && empty($rec->timeDuration) && empty($rec->timeStart)) {
+                    $form->setError('timeDuration,indTime,timeStart', "Необходими са данни за да се изчисли продължителността на операцията|*!");
                 }
             }
 
             if (in_array($rec->state, array('active', 'wakeup', 'stopped')) && !$form->_cloneForm) {
                 if (empty($rec->timeDuration) && empty($rec->assetId)) {
                     $form->setError('timeDuration,assetId,indTime', "Продължителността/нормата и оборудването са задължителни при започната операция|*!");
-                }
-            }
-
-            if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
-                $form->setError('timeEnd', 'Крайният срок трябва да е след началото на операцията');
-            }
-
-            if (!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)) {
-                if (strtotime(dt::addSecs($rec->timeDuration, $rec->timeStart)) != strtotime($rec->timeEnd)) {
-                    $form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителността не отговарят на въведената крайната дата');
                 }
             }
 
@@ -1062,12 +1042,6 @@ class planning_Tasks extends core_Master
                                 $rec->timeStart = str_replace(' 00:00:00', " {$startTimes[$timeStartDate]}", $rec->timeStart);
                             }
                         }
-                    }
-                }
-
-                if(empty($rec->timeDuration)){
-                    if(!empty($rec->timeStart) && !empty($rec->timeEnd)){
-                        $rec->timeDuration = dt::secsBetween($rec->timeEnd, $rec->timeStart);
                     }
                 }
             }
@@ -1344,7 +1318,6 @@ class planning_Tasks extends core_Master
 
         $res = $this->save_($rec, $updateFields);
         plg_Search::forceUpdateKeywords($this, $rec);
-        planning_TaskConstraints::sync($rec);
 
         core_Debug::stopTimer('UPDATE_TASK_MASTER');
         core_Debug::log('END UPDATE_TASK_MASTER: ' . round(core_Debug::$timers['UPDATE_TASK_MASTER']->workingTime, 2));
@@ -2628,6 +2601,11 @@ class planning_Tasks extends core_Master
             $data->toolbar->addBtn('Преизч. заработки', array($mvc, 'recalcindtimes', $rec->id, 'ret_url' => true), 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на заработките към операцията,row=2,warning=Наистина ли желаете да преизчислите заработките в прогреса|*?');
         }
 
+        // Бутон за добавяне на документ за производство
+        if (planning_TaskConstraints::haveRightFor('list')) {
+            $data->toolbar->addBtn('Огр.', array('planning_TaskConstraints', 'list', 'documentId' => $rec->id), 'ef_icon = img/16/bug.png,title=Показване на ограниченията на операцията');
+        }
+
         if ($data->toolbar->haveButton('btnActivate')) {
             $data->toolbar->renameBtn('btnActivate', 'Стартиране');
         }
@@ -2646,11 +2624,6 @@ class planning_Tasks extends core_Master
         }
 
         if ($action == 'closed') {
-            if(empty($rec->timeEnd) && !isset($rec->timeStart, $rec->timeDuration)){
-                $rec->timeEnd = dt::now();
-                $mvc->save_($rec, 'timeEnd');
-            }
-
             if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state IN ('pending', 'draft')")){
                 core_Statuses::newStatus('В операцията има документ/и на "Заявка/Чернова"!', 'warning');
             }
@@ -3529,22 +3502,18 @@ class planning_Tasks extends core_Master
     {
         if(in_array($rec->state, array('active', 'stopped', 'wakeup', 'pending'))){
             planning_TaskConstraints::sync($rec->id);
+        } elseif(in_array($rec->state, array('closed', 'rejected')) || ($rec->state == 'waiting' && $rec->brState == 'pending')) {
+            planning_TaskConstraints::delete("#taskId = {$rec->id} OR #previousTaskId = {$rec->id}");
         }
 
         // Ако има избрано оборудване, задачата се поставя на правилното място и се преподреждат задачите на машината
         if(isset($rec->assetId)){
             if($rec->_stopReorder) return;
 
-            if(!empty($rec->startAfter)){
-                // Ако има посочена след коя е - намъква се след нея
-                $orderByAssetId = $mvc->fetchField($rec->startAfter, 'orderByAssetId');
-                $rec->orderByAssetId = $orderByAssetId + 0.5;
-            } else {
-                if(in_array($rec->state, array('pending', 'active', 'wakeup'))){
-                    $firstTaskId = key(planning_AssetResources::getAssetTaskOptions($rec->assetId));
-                    $orderByAssetId = ($firstTaskId) ? $mvc->fetchField($firstTaskId, 'orderByAssetId') : 1;
-                    $rec->orderByAssetId = $orderByAssetId - 0.5;
-                }
+            if(in_array($rec->state, array('pending', 'active', 'wakeup'))){
+                $firstTaskId = key(planning_AssetResources::getAssetTaskOptions($rec->assetId));
+                $orderByAssetId = ($firstTaskId) ? $mvc->fetchField($firstTaskId, 'orderByAssetId') : 1;
+                $rec->orderByAssetId = $orderByAssetId - 0.5;
             }
 
             if($rec->orderByAssetId != $rec->_exAssetId){
