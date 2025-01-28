@@ -240,7 +240,7 @@ class cat_BomDetails extends doc_Detail
         $form->setField('resourceId', "caption={$matCaption}");
         
         // Добавяме всички вложими артикули за избор
-        $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : ($rec->type == 'input' ? 'canConvert' : 'canManifacture,canStore');
+        $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : ($rec->type == 'input' ? 'canConvert' : 'canManifacture');
         $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
 
         $onlyProductionStages = ($rec->type != 'stage') ? null : true;

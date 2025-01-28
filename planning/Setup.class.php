@@ -543,7 +543,7 @@ class planning_Setup extends core_ProtoSetup
     public function syncOperatorsWithGroups2504()
     {
         $employeesGroupId = crm_Groups::getIdFromSysId('employees');
-        $groupRec = (object)array('name' => 'Центрове на дейност', 'sysId' => 'activityCenters', 'parentId' => $employeesGroupId);
+        $groupRec = (object)array('name' => 'Център на дейност', 'sysId' => 'activityCenters', 'parentId' => $employeesGroupId);
         crm_Groups::forceGroup($groupRec);
 
         $centerGroups = array();

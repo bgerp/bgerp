@@ -572,17 +572,17 @@ class planning_Centers extends core_Master
      */
     function act_dispatch()
     {
-        requireRole('ceo,planning,production,jobSee');
+        requireRole('powerUser');
 
-        if(haveRole('production') || haveRole('ceo')){
+        if(planning_DirectProductionNote::haveRightFor('list')){
             redirect(array('planning_DirectProductionNote', 'list'));
-        } elseif(haveRole('consumption')){
+        } elseif(planning_ConsumptionNotes::haveRightFor('list')){
             redirect(array('planning_ConsumptionNotes', 'list'));
-        } elseif(haveRole('jobSee')){
+        } elseif(planning_Jobs::haveRightFor('list')){
             redirect(array('planning_Jobs', 'list'));
-        } elseif(haveRole('task')){
+        } elseif(planning_Tasks::haveRightFor('list')){
             redirect(array('planning_Tasks', 'list'));
-        } elseif(haveRole('planning')) {
+        } elseif(planning_Centers::haveRightFor('list')) {
             redirect(array('planning_Centers', 'list'));
         }
 
