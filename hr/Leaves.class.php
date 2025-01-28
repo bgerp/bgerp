@@ -219,7 +219,7 @@ class hr_Leaves extends core_Master
         $this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
         $this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
         $this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefis('l'))), 'caption=Информация->Икона за ника, maxRadio=10,columns=10,notNull,value=l5');
+        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('l'))), 'caption=Информация->Икона за ника, maxRadio=10,columns=10,notNull,value=l5');
         $this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
         $this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
         $this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');
@@ -344,7 +344,7 @@ class hr_Leaves extends core_Master
      *
      * @return array
      */
-    public static function getEmojiesWithPrefis($pref = null)
+    public static function getEmojiesWithPrefix($pref = null)
     {
         if (!isset($pref)) {
 
