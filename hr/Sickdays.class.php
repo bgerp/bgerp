@@ -448,7 +448,7 @@ class hr_Sickdays extends core_Master
             return ;
         }
   
-        while ($curDate < $rec->toDate) {
+        while ($curDate <= $rec->toDate) {
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
                 $calRec = new stdClass();
