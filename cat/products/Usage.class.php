@@ -199,7 +199,7 @@ class cat_products_Usage extends core_Manager
         $data->listFields = arr::make("title={$data->Document->singleTitle},folderId=Папка,created=Създадено");
         $dateArr = ($data->Document instanceof sales_Quotations) ? array('date' => 'Дата') : array('valior' => 'Вальор');
         arr::placeInAssocArray($data->listFields, $dateArr, null, 'title');
-        
+        $data->listTableMvc = clone $data->Document;
         $data->Document->invoke('BeforeRenderListTable', array($tpl, &$data));
         $data->Document->setFieldType('title', 'varchar');
         $data->Document->setField('title', array('tdClass' => 'leftCell'));

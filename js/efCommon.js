@@ -5828,6 +5828,8 @@ function addBugReportInput(form, nameInput, value)
 
 /**
  * При хоризонтален скрол на страницата, да създадем watch point
+ *
+ * @deprecated
  */
 function detectScrollAndWp() {
     if($('#packWrapper').outerWidth() > $(window).width() ) {
