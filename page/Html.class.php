@@ -173,10 +173,6 @@ class page_Html extends core_ET
         $url = json_encode(toUrl(array('bgerp_A', 'wp'), 'local'));
         $tpl->appendOnce("var wpUrl = {$url};", 'SCRIPTS');
         
-        if (Mode::is('screenMode', 'narrow')) {
-            jquery_Jquery::run($tpl, 'detectScrollAndWp();');
-        }
-        
         return $tpl;
     }
     
