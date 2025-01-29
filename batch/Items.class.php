@@ -491,8 +491,6 @@ class batch_Items extends core_Master
                 $query->orderBy('id', 'desc');
             }
         }
-        $orderBy = $filterRec->{"filter{$data->masterId}"};
-
         $data->recs = $query->fetchAll();
 
         // Добавяне на наличните к-ва без партида
@@ -516,7 +514,9 @@ class batch_Items extends core_Master
 
                 return false;
             });
-            arr::sortObjects($filtered, 'batch', $filterRec->{"filter{$data->masterId}"}, 'natural');
+
+            $orderBy = !empty($filterRec->{"filter{$data->masterId}"}) ? $filterRec->{"filter{$data->masterId}"} : 'asc';
+            arr::sortObjects($filtered, 'batch', $orderBy, 'natural');
 
             if($count > 1){
                 $filtered["-{$storeRec->storeId}batches"] = (object)array('storeId' => $storeRec->storeId,
