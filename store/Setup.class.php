@@ -113,6 +113,7 @@ class store_Setup extends core_ProtoSetup
         'store_StockPlanning',
         'store_ShipmentOrderTariffCodeSummary',
         'migrate::repairSearchKeywords2505',
+        'migrate::repairSearchKeywordsNotes2505',
     );
     
     
@@ -302,11 +303,21 @@ class store_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция за регенериране на ключовите думи
+     * Миграция за регенериране на ключовите думи на ПОП
      */
     public static function repairSearchKeywords2505()
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'store_ConsignmentProtocols', $callOn);
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи на инвентаризацията
+     */
+    public static function repairSearchKeywordsNotes2505()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'store_InventoryNotes', $callOn);
     }
 }

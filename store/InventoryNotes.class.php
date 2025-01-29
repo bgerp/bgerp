@@ -1104,4 +1104,32 @@ class store_InventoryNotes extends core_Master
          
         return $title;
     }
+
+
+    /**
+     * Добавя ключовио думи за държавата и на bg и на en
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        if(isset($rec->id)){
+            $detailKeywords = array();
+            $dQuery = store_InventoryNoteDetails::getQuery();
+            $dQuery->where("#noteId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                if(!array_key_exists($dRec->productId, $detailKeywords)){
+                    $detailKeywords[$dRec->productId] = array();
+                }
+
+                // Добавят се ключовите думи от експлицитно въведените детайли
+                $currentKeywords = explode(' ', $dRec->searchKeywords);
+                $currentKeywords = array_combine($currentKeywords, $currentKeywords);
+                $detailKeywords[$dRec->productId] += array_diff_key($currentKeywords, $detailKeywords[$dRec->productId]);
+            }
+
+            foreach ($detailKeywords as $keywordArr){
+                $keywords = implode(' ', $keywordArr);
+                $res .= ' ' . $keywords;
+            }
+        }
+    }
 }
