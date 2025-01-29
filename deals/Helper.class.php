@@ -1916,7 +1916,7 @@ abstract class deals_Helper
             $DealDoc = cls::get($dealDoc);
             $dQuery = $DealDoc->getQuery();
             $dQuery->in('threadId', $threads);
-            $dQuery->where("#state IN ('state', 'closed')");
+            $dQuery->where("#state IN ('active', 'closed')");
             $dQuery->where(array("#contoActions LIKE '%pay%'"));
             if (isset($valior)) {
                 $dQuery->where("#valior <= '{$valior}'");
