@@ -349,6 +349,15 @@ class planning_Setup extends core_ProtoSetup
             'period' => 30,
             'timeLimit' => 60,
         ),
+
+        array(
+            'systemId' => 'Recalc Task Constraints',
+            'description' => 'Преизчисляване на ограниченията на производствените операции',
+            'controller' => 'planning_TaskConstraints',
+            'action' => 'RecalcTaskConstraints',
+            'period' => 5,
+            'timeLimit' => 60,
+        ),
     );
 
 

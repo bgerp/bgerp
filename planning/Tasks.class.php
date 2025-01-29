@@ -3504,6 +3504,9 @@ class planning_Tasks extends core_Master
     {
         if(in_array($rec->state, array('active', 'stopped', 'wakeup', 'pending'))){
             planning_TaskConstraints::sync($rec->id);
+            if(haveRole('debug')){
+                core_Statuses::newStatus("SYNC {$rec->id}", 'warning');
+            }
         } elseif(in_array($rec->state, array('closed', 'rejected')) || ($rec->state == 'waiting' && $rec->brState == 'pending')) {
             planning_TaskConstraints::delete("#taskId = {$rec->id} OR #previousTaskId = {$rec->id}");
         }
@@ -4112,6 +4115,7 @@ class planning_Tasks extends core_Master
                 $this->logInAct('Ръчно избиране на предходна операция', $rec);
                 $this->reorderTasksInJob($rec->originId);
                 $msg = 'Предходната операция е избрана успешно|*!';
+                planning_TaskConstraints::sync($rec->id);
             }
 
             return followRetUrl(null, $msg);
