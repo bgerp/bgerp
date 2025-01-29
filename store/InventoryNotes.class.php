@@ -776,13 +776,14 @@ class store_InventoryNotes extends core_Master
     /**
      * Връща ключа за кеширане на данните
      *
-     * @param stdClass $rec - запис
+     * @param stdClass|int $rec - запис
      *
      * @return string $key  - уникален ключ
      */
     public static function getCacheKey($rec)
     {
         // Подготвяме ключа за кеширане
+        $rec = static::fetchRec($rec);
         $cu = core_Users::getCurrent();
         $lg = core_Lg::getCurrent();
         $isNarrow = (Mode::is('screenMode', 'narrow')) ? true : false;
