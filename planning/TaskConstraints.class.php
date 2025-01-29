@@ -289,7 +289,6 @@ class planning_TaskConstraints extends core_Master
                 $jobProductIds[$taskRec->originId] = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
             }
 
-
             if(isset($taskRec->assetId)){
                 if(!array_key_exists($taskRec->assetId, $assetIds)){
                     $assetIds[$taskRec->assetId] = planning_AssetResources::fetch($taskRec->assetId);
@@ -326,36 +325,14 @@ class planning_TaskConstraints extends core_Master
         $pQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
         $pQuery->where("#type = 'input' AND #canStore != 'yes'");
         $pQuery->in('taskId', $taskIds);
-        $pQuery->show('productId,taskId,plannedQuantity,indTime');
+        $pQuery->show('productId,taskId,plannedQuantity,indTime,totalTime');
         while($pRec = $pQuery->fetch()){
 
             // Ако планираното влагане е от планиращите операции на артикула
             if(isset($normsByTask[$pRec->taskId][$pRec->productId])){
-                $normsByTask[$pRec->taskId][$pRec->productId] = planning_type_ProductionRate::getInSecsByQuantity($pRec->indTime, $pRec->plannedQuantity);
-            }
-        }
-
-        // Изчисляват се реално изпълнените операции
-        $detailsAssetNorms = array();
-        $dQuery = planning_ProductionTaskDetails::getQuery();
-        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
-        $dQuery->where("#type = 'input' AND #state != 'rejected' AND #canStore != 'yes'");
-        $dQuery->in('taskId', $taskIds);
-
-        // Ако изпълненото влагане е от планиращите операции на артикула
-        while($dRec = $dQuery->fetch()){
-            if(isset($normsByTask[$dRec->taskId][$dRec->productId])){
-                $calced = cls::get('planning_ProductionTaskDetails')->calcNormByRec($dRec, $tasks[$dRec->taskId]);
-                $detailsAssetNorms[$dRec->taskId][$dRec->productId] += $calced;
-            }
-        }
-
-        // Измежду планираните и реално изпълнените операции се взима това с по-голямата норма
-        foreach ($normsByTask as $tId => $actions){
-            foreach ($actions as $actionId => $value){
-                if(isset($detailsAssetNorms[$tId][$actionId])){
-                    $normsByTask[$tId][$actionId] = max($value, $detailsAssetNorms[$tId][$actionId]);
-                }
+                $indTimeNorm = planning_type_ProductionRate::getInSecsByQuantity($pRec->indTime, $pRec->plannedQuantity);
+                $totalTimeNorm = planning_type_ProductionRate::getInSecsByQuantity($pRec->totalTime, $pRec->plannedQuantity);
+                $normsByTask[$pRec->taskId][$pRec->productId] = max($indTimeNorm, $totalTimeNorm);
             }
         }
 
@@ -364,7 +341,6 @@ class planning_TaskConstraints extends core_Master
         foreach ($tasks as $t){
             // Ако има зададена продължителност - това е
             $duration = $t->timeDuration;
-
 
             // Ако няма изчислява се от нормата за планираното количество
             if(empty($duration)){
