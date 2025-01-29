@@ -206,6 +206,18 @@ defIfNot('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', '');
 
 
 /**
+ * Колко да е изчакването между предходни операции->В една локация
+ */
+defIfNot('PLANNING_TASK_OFFSET_IN_SAME_LOCATION', '0');
+
+
+/**
+ * Колко да е изчакването между предходни операции->В различна локация
+ */
+defIfNot('PLANNING_TASK_OFFSET_IN_OTHER_LOCATION', '0');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -287,6 +299,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_AUTO_CREATE_TASK_STATE' => array('enum(pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние'),
         'PLANNING_ORDER_TASK_PARAMS_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Показване в ред,customizeBy=taskSee|ceo'),
         'PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Скриване,customizeBy=taskSee|ceo'),
+        'PLANNING_TASK_OFFSET_IN_SAME_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В една локация'),
+        'PLANNING_TASK_OFFSET_IN_OTHER_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В различна локация'),
     );
 
 

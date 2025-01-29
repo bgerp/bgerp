@@ -464,10 +464,18 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         foreach ($recs as $key => $val) {
 
             //Себестойност на артикула
-            if ($rec->selfPrice == 'manager') {
-                $val->selfPrice = cat_Products::getPrimeCost($key, null, $val->blQuantity, $date);
-            } else {
-                $val->selfPrice = $val->blQuantity ? $val->blAmount / $val->blQuantity : null;
+
+            //ako количеството закръглено до минималната заначеща стойност на мярката е 0,
+            // то себестойността е 0
+            $mround = cat_UoM::fetch($val->measureId)->round;
+            if(round($val->blQuantity,$mround ) == 0) {
+                $val->selfPrice = 0;
+            }else{
+                if ($rec->selfPrice == 'manager') {
+                    $val->selfPrice = cat_Products::getPrimeCost($key, null, $val->blQuantity, $date);
+                } else {
+                    $val->selfPrice = $val->blQuantity ? $val->blAmount / $val->blQuantity : null;
+                }
             }
 
             if ($val->blQuantity > 0) {

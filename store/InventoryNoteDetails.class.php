@@ -480,7 +480,11 @@ class store_InventoryNoteDetails extends doc_Detail
                     store_InventoryNoteSummary::force($noteId, $pId);
                     $count++;
                 }
-                
+
+                // След импорт се изтрива кеша, да се покажат новите данни
+                $key = store_InventoryNotes::getCacheKey($noteId);
+                core_Cache::remove("{$this->Master->className}_{$noteId}", $key);
+
                 followRetUrl(null, "Импортирани са|* '{$count}' |артикула|*");
             }
         }
@@ -492,16 +496,5 @@ class store_InventoryNoteDetails extends doc_Detail
         core_Form::preventDoubleSubmission($tpl, $form);
         
         return $tpl;
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-        $code = cat_Products::fetchField($rec->productId, 'code');
-        $code = (!empty($code)) ? $code : "Art{$rec->productId}";
-        $res .= ' ' . plg_Search::normalizeText($code);
     }
 }

@@ -215,7 +215,9 @@ class ztm_RegisterValues extends core_Manager
 
         if ($dRec->profileId) {
             $pArr = type_Keylist::toArray($rRec->profileIds);
-            expect($pArr[$dRec->profileId], 'Няма такъв регистър в профила на устройството');
+
+            return ;
+//            expect($pArr[$dRec->profileId], 'Няма такъв регистър в профила на устройството');
         }
 
         if ($checkState) {

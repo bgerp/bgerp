@@ -477,14 +477,16 @@ class store_InventoryNoteSummary extends doc_Detail
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search';
 
-        // При активен протокол не се показват непроменяните редове
-        if($data->masterData->rec->state == 'active') {
-            $tab = Request::get($data->masterData->tabTopParam, 'varchar');
+        $tab = Request::get($data->masterData->tabTopParam, 'varchar');
 
-            if ($tab == '' || $tab == get_called_class()) {
+        if ($tab == '' || $tab == get_called_class()) {
+            $countWithChange = $mvc->count("#noteId = {$data->masterId} && #quantity IS NOT NULL");
+            $countWithoutChange = $mvc->count("#noteId = {$data->masterId}");
+            if($countWithChange != $countWithoutChange){
                 $data->listFilter->showFields .= ',filterBy';
                 $data->listFilter->FLD('filterBy', 'enum(diff=С промяна,all=Всички)');
-                $data->listFilter->setDefault('filterBy', 'diff');
+                $filterByVal = $data->masterData->rec->state == 'active' ? 'diff' : 'all';
+                $data->listFilter->setDefault('filterBy', $filterByVal);
             }
         }
 
@@ -898,6 +900,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
         cls::get('store_InventoryNoteDetails')->invoke('AfterRecalcSummary', array(&$rec));
         cls::get('store_InventoryNoteSummary')->save($rec, 'quantity,quantityHasAddedValues');
+        plg_Search::forceUpdateKeywords('store_InventoryNotes', $rec->noteId);
     }
     
     

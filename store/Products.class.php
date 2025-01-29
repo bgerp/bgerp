@@ -977,7 +977,6 @@ class store_Products extends core_Detail
     function remote_getStocks($authorizationId, $args)
     {
         expect(remote_Authorizations::fetchRec($authorizationId));
-        expect(store_Stores::fetchRec($authorizationId));
 
         // Кои са стандартните артикули в посочените складове
         $res = $measureSysIds = array();
