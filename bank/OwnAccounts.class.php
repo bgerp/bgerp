@@ -156,7 +156,7 @@ class bank_OwnAccounts extends core_Master
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canReports = 'ceo,bank,acc';
+    public $canReports = 'ceo,bank,acc,bankAll';
     
     
     /**
