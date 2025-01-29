@@ -197,7 +197,7 @@ class planning_plg_ReplaceProducts extends core_Plugin
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
-            $isGeneric = cat_Products::fetchField($rec->productId, 'generic') == 'yes';
+            $isGeneric = cat_Products::fetchField($rec->{$mvc->replaceProductFieldName}, 'generic') == 'yes';
             if($isGeneric){
                 $row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът е генеричен|*! Трябва да бъде заместен или премахнат, за да се контира документа|*!', 'img/16/warning-gray.png', false);
             }
