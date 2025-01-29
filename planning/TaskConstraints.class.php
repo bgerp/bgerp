@@ -220,8 +220,9 @@ class planning_TaskConstraints extends core_Master
         $now = dt::now();
         foreach ($tasks as $taskRec){
             if(!empty($taskRec->timeStart)){
-                $timeStart = max($taskRec->timeStart, $now);
-                $res["time|{$taskRec->id}"] = (object)array('taskId' => $taskRec->id, 'type' => 'earliest', 'earliestTimeStart' => $timeStart, 'waitingTime' => null, 'previousTaskId' => null, 'updatedOn' => $now);
+                if($taskRec->timeStart > $now){
+                    $res["time|{$taskRec->id}"] = (object)array('taskId' => $taskRec->id, 'type' => 'earliest', 'earliestTimeStart' => $taskRec->timeStart, 'waitingTime' => null, 'previousTaskId' => null, 'updatedOn' => $now);
+                }
             }
 
             if(isset($taskRec->previousTask)){
@@ -326,6 +327,7 @@ class planning_TaskConstraints extends core_Master
         $pQuery->where("#type = 'input' AND #canStore != 'yes'");
         $pQuery->in('taskId', $taskIds);
         $pQuery->show('productId,taskId,plannedQuantity,indTime,totalTime');
+
         while($pRec = $pQuery->fetch()){
 
             // Ако планираното влагане е от планиращите операции на артикула
@@ -386,5 +388,14 @@ class planning_TaskConstraints extends core_Master
 
         // Кешира се нетната продължителност
         cls::get('planning_Tasks')->saveArray($tasks, 'id,calcedDuration,calcedCurrentDuration');
+    }
+
+
+    /**
+     * Преизчисляване на продължителноста на операциите по разписание
+     */
+    public function cron_RecalcTaskDuration()
+    {
+        self::calcTaskDuration();
     }
 }

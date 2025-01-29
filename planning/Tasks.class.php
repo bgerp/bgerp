@@ -3508,6 +3508,11 @@ class planning_Tasks extends core_Master
             planning_TaskConstraints::delete("#taskId = {$rec->id} OR #previousTaskId = {$rec->id}");
         }
 
+        // Преизчисляване на продължителноста след промяна
+        if($rec->_fromForm){
+            planning_TaskConstraints::calcTaskDuration($rec->id);
+        }
+
         // Ако има избрано оборудване, задачата се поставя на правилното място и се преподреждат задачите на машината
         if(isset($rec->assetId)){
             if($rec->_stopReorder) return;
@@ -3728,8 +3733,6 @@ class planning_Tasks extends core_Master
                 $tpl->prepend($headerTpl);
 
                 core_Ajax::subscribe($tpl, array($mvc, 'reorderTaskWatch', 'assetId' => $assetId, 'isReorder' => true), 'editWatchTasks', 5000);
-                $dataUrl = toUrl(array($mvc, 'livereorder', 'assetId' => $assetId), 'local');
-                $tpl->append("data-url={$dataUrl}", 'TABLE_ATTR');
 
                 $scriptUrl = "https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js";
                 $tpl->push($scriptUrl, 'JS');
@@ -4240,178 +4243,6 @@ class planning_Tasks extends core_Master
                 }
             }
         }
-    }
-
-
-    /**
-     * Екшън за преподребдане
-     */
-    public function act_Livereorder()
-    {
-        self::requireRightFor('list');
-        $assetId = Request::get('assetId', 'int');
-        $inOrderTasks = Request::get('orderedTasks', 'varchar');
-        $manualTimes = Request::get('manualTimes', 'varchar');
-        $forceReorder = Request::get('forceReorder', 'int');
-
-        $inOrderTasks = json_decode($inOrderTasks);
-        $manualTimes = json_decode($manualTimes, true);
-        $manualTimes = is_array($manualTimes) ? $manualTimes : array('expectedTimeStart' => array(), 'expectedTimeEnd' => array());
-        $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
-
-        // Коя задача след коя се намира
-        $reference = array();
-        foreach ($inOrderTasks as $k => $v){
-            $reference[$v] = array('id' => $v);
-            if($k){
-                $reference[$v]['after'] = $inOrderTasks[$k-1];
-            }
-        }
-        $cachedTasks = $cachedData['tasks'];
-        foreach ($reference as $id => $refRec){
-            if($refRec['after']){
-                $cachedTasks[$id]->orderByAssetIdCalc = $cachedTasks[$reference[$id]['after']]->orderByAssetIdCalc + 0.5;
-            }
-        }
-
-        arr::sortObjects($cachedTasks, 'orderByAssetIdCalc');
-        $dates = arr::extractValuesFromArray($cachedData['tasks'], 'expectedTimeStart');
-        unset($dates['']);
-        $minDate = min($dates);
-
-        // Разделяне на задачите на такива с целево време и без
-        $Interval = planning_AssetResources::getWorkingInterval($cachedData['assetId'], $minDate);
-        $tasksWithManualBegin = $tasksWithoutManualBegin = array();
-        array_filter($cachedTasks, function ($t) use (&$tasksWithManualBegin, &$tasksWithoutManualBegin, $manualTimes) {
-            $t->timeStart = array_key_exists($t->id, $manualTimes['expectedTimeStart']) ? $manualTimes['expectedTimeStart'][$t->id] : $t->timeStart;
-            $t->timeEnd = array_key_exists($t->id, $manualTimes['expectedTimeEnd']) ? $manualTimes['expectedTimeEnd'][$t->id] : $t->timeEnd;
-
-            if(!empty($t->timeStart)) {
-                $tasksWithManualBegin[$t->id] = $t;
-            } elseif(!empty($t->timeEnd)) {
-                $t->timeStart = dt::addSecs(-1 * $t->calcedCurrentDuration, $t->timeEnd);
-                $tasksWithManualBegin[$t->id] = $t;
-            } else {
-                $tasksWithoutManualBegin[$t->id] = $t;
-            }
-        });
-
-        $interruptionArr = planning_Steps::getInterruptionArr($cachedData['tasks']);
-
-        // Захранване на графика с продължителноста на задачите
-        $new = $new2 = array();
-        foreach (array('tasksWithManualBegin', 'tasksWithoutManualBegin') as $varName) {
-            $arr = ${"{$varName}"};
-            foreach ($arr as $taskRec) {
-                $new2[$taskRec->id] = array('expectedTimeStart' => $taskRec->expectedTimeStart,
-                    'expectedTimeEnd' => $taskRec->expectedTimeEnd,
-                    'calcedDuration' => $taskRec->calcedDuration);
-
-                $begin = null;
-                if (!empty($taskRec->timeStart)) {
-                    $begin = strtotime($taskRec->timeStart);
-                }
-
-                // Ще се върне резултата за новата продължителност на задачите
-                $new[$taskRec->id] = array('expectedTimeStart' => null, 'expectedTimeEnd' => null, 'orderByAssetId' => $taskRec->orderByAssetId);
-
-                $timeArr = $Interval->consume($taskRec->calcedCurrentDuration, $begin, null, $interruptionArr);
-                if (is_array($timeArr)) {
-                    $startDate = date('Y-m-d H:i', $timeArr[0]);
-                    $endDate = date('Y-m-d H:i', $timeArr[1]);
-                    $taskRec->expectedTimeStart = "$startDate";
-                    $taskRec->expectedTimeEnd = "$endDate";
-
-                    $new[$taskRec->id]['expectedTimeStartPure'] = $startDate;
-                    $new[$taskRec->id]['expectedTimeEndPure'] = $endDate;
-                    $new[$taskRec->id]['expectedTimeStart'] = $this->getDateFieldVerbal($taskRec, 'expectedTimeStart', true);
-                    $new[$taskRec->id]['expectedTimeEnd'] = $this->getDateFieldVerbal($taskRec, 'expectedTimeEnd', true);
-                } else{
-                    $new[$taskRec->id]['expectedTimeStart'] = ' ';
-                    $new[$taskRec->id]['expectedTimeEnd'] = ' ';
-                }
-            }
-        }
-
-        $res = array();
-        foreach ($new as $taskId => $taskArr){
-            if(!in_array($taskId, $inOrderTasks)) continue;
-
-            // Ще се върнат новите начала на подредените задачи
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => "expectedTimeStart{$taskId}", 'html' => $taskArr['expectedTimeStart'], 'replace' => true);
-            $res[] = $resObj;
-
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => "expectedTimeEnd{$taskId}", 'html' => $taskArr['expectedTimeEnd'], 'replace' => true);
-            $res[] = $resObj;
-
-            $taskRec = $cachedData['tasks'][$taskId];
-            $jobTasks = $cachedData['jobs'][$taskRec->originId]['tasks'];
-            $filteredKeys = array_keys(array_filter($jobTasks, function($o) use ($taskRec) { return $o->id == $taskRec->id;}));
-
-            // Ако началата на предходните и следващите задачи са преподредени ще се заместят и те в зависимите задачи
-            $currentKey = $filteredKeys[0];
-            $prevOrder = $currentKey - 1;
-            $nextOrder = $currentKey + 1;
-            if(isset($jobTasks[$prevOrder])){
-                if(array_key_exists($jobTasks[$prevOrder]->id, $new)){
-                    $prevEnd = $new[$jobTasks[$prevOrder]->id]['expectedTimeEndPure'];
-                    $prevStartHtml = ht::createElement("span", array('data-date' => "{$prevEnd}", 'class' => "prevExpectedTimeEndCol"), dt::mysql2verbal($prevEnd), true)->getContent();
-
-                    $resObj = new stdClass();
-                    $resObj->func = 'html';
-                    $resObj->arg = array('id' => "prevExpectedTimeEnd{$taskId}", 'html' => $prevStartHtml, 'replace' => true);
-                    $res[] = $resObj;
-                }
-            }
-
-            if(isset($jobTasks[$nextOrder])){
-                if(array_key_exists($jobTasks[$nextOrder]->id, $new)){
-                    $nextStart = $new[$jobTasks[$nextOrder]->id]['expectedTimeStartPure'];
-                    $nextStartHtml = ht::createElement("span", array('data-date' => "{$nextStart}", 'class' => "nextExpectedTimeStartCol"), dt::mysql2verbal($nextStart), true)->getContent();
-
-                    $resObj = new stdClass();
-                    $resObj->func = 'html';
-                    $resObj->arg = array('id' => "nextExpectedTimeStart{$taskId}", 'html' => $nextStartHtml, 'replace' => true);
-                    $res[] = $resObj;
-                }
-            }
-        }
-
-        if($forceReorder){
-            uasort($new, function ($a, $b) {
-                // Ако няма дата, задаваме максимална стойност
-                $timeLeft = empty($a['expectedTimeStartPure']) ? PHP_INT_MAX : strtotime($a['expectedTimeStartPure']);
-                $timeRight = empty($b['expectedTimeStartPure']) ? PHP_INT_MAX : strtotime($b['expectedTimeStartPure']);
-
-                // Сортиране по време (възходящ ред)
-                if ($timeLeft !== $timeRight) return $timeLeft - $timeRight;
-
-                // Ако датите са еднакви, сортираме по orderByAssetId (като число)
-                return intval($a['orderByAssetId']) - intval($b['orderByAssetId']);
-            });
-
-            $resObj = new stdClass();
-            $resObj->func = 'forceSort';
-            $resObj->arg = array('inOrder' => array_keys($new));
-
-            $res[] = $resObj;
-        }
-
-        $resObj = new stdClass();
-        $resObj->func = 'compareDates';
-        $res[] = $resObj;
-
-        // Показване на статусите веднага
-        $hitTime = Request::get('hitTime', 'int');
-        $idleTime = Request::get('idleTime', 'int');
-        $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
-        $res = array_merge($res, (array) $statusData);
-
-        return $res;
     }
 
 
