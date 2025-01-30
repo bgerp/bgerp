@@ -347,34 +347,42 @@ class planning_TaskConstraints extends core_Master
         $taskCount = countR($tasks);
         core_App::setTimeLimit($taskCount * 0.3, false, 60);
 
-        $taskIds = $productIds = $assetIds = $stepsData = $normsByTask = $jobProductIds = array();
+        $taskIds = $assetInTasks = $stepsData = $normsByTask = $jobContainers = array();
+        $productIds = arr::extractValuesFromArray($tasks, 'productId');
+
+        // Еднократно извличане на планиращите действия
+        $stepQuery = planning_Steps::getQuery();
+        $stepQuery->where("#classId = " . cat_Products::getClassId());
+        $stepQuery->in("objectId", $productIds);
+        $stepQuery->show('objectId,planningActions');
+        while($stepRec = $stepQuery->fetch()){
+            $stepsData[$stepRec->objectId] = keylist::toArray($stepRec->planningActions);
+        }
+
         foreach ($tasks as $taskRec) {
             $taskIds[$taskRec->id] = $taskRec->id;
-            $productIds[$taskRec->productId] = $taskRec->productId;
-            if (!array_key_exists($taskRec->originId, $jobProductIds)) {
-                $jobProductIds[$taskRec->originId] = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
-            }
-
+            $jobContainers[$taskRec->originId] = $taskRec->originId;
             if (isset($taskRec->assetId)) {
-                if (!array_key_exists($taskRec->assetId, $assetIds)) {
-                    $assetIds[$taskRec->assetId] = planning_AssetResources::fetch($taskRec->assetId);
-                }
+                $assetInTasks[$taskRec->assetId] = $taskRec->assetId;
             }
-
-            // За всяка ПО се извличат планиращите ѝ действия
-            if (!array_key_exists($taskRec->productId, $stepsData)) {
-                if ($Driver = cat_Products::getDriver($taskRec->productId)) {
-                    $stepsData[$taskRec->productId] = $Driver->getProductionData($taskRec->productId);
-                }
-            }
-
-            if (is_array($stepsData[$taskRec->productId]['actions'])) {
-                foreach ($stepsData[$taskRec->productId]['actions'] as $actionProductId) {
+            if (is_array($stepsData[$taskRec->productId])) {
+                foreach ($stepsData[$taskRec->productId] as $actionProductId) {
                     $normsByTask[$taskRec->id][$actionProductId] = 0;
                 }
             }
         }
 
+        // Еднократно извличане на оборудванията
+        $aQuery = planning_AssetResources::getQuery();
+        $aQuery->in('id', $assetInTasks);
+        $assetIds = $aQuery->fetchAll();
+
+        // Еднократно извличане на артикулите от заданията
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->in('containerId', $jobContainers);
+        $jQuery->show('productId');
+        $jQuery->groupBy('productId');
+        $jobProductIds = arr::extractValuesFromArray($jQuery->fetchAll(), 'productId');
         $productIds += $jobProductIds;
 
         // Еднократно кеширане на продуктовите опаковки
