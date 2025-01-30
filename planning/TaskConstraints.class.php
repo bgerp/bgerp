@@ -174,8 +174,11 @@ class planning_TaskConstraints extends core_Master
     {
         $arr = arr::make($tasks, true);
         if (!countR($arr)) {
+            $stepClassId = planning_interface_StepProductDriver::getClassId();
             $tQuery = planning_Tasks::getQuery();
             $tQuery->in('state', array('active', 'wakeup', 'stopped', 'pending'));
+            $tQuery->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=productId");
+            $tQuery->where("#innerClass = {$stepClassId} AND #assetId IS NOT NULL");
             $tasks = $tQuery->fetchAll();
         } else {
             $tasks = array();
@@ -424,10 +427,7 @@ class planning_TaskConstraints extends core_Master
                 }
 
                 $indTime = planning_type_ProductionRate::getInSecsByQuantity($t->indTime, $calcedPlannedQuantity);
-                $simultaneity = $t->simultaneity ?? $assetIds[$t->assetId]->simultaneity;
-                if(empty($simultaneity)){
-                    bp($t, $t->assetId, planning_AssetResources::getTitleById($t->assetId), $assetIds);
-                }
+                $simultaneity = $t->simultaneity ?? ($assetIds[$t->assetId]->simultaneity ?? 1);
                 $duration = round($indTime / $simultaneity);
             }
 
