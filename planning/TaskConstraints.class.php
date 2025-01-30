@@ -277,10 +277,12 @@ class planning_TaskConstraints extends core_Master
                 });
             }
 
-            // За всяка предходна ще се добави че операцията е зависима от нея
             if(countR($prevTaskIds)){
+
+                // За всяка предходна ще се добави че операцията е зависима от нея
                 $thisTaskLocationId = $folderLocations[$tasks[$taskRec->id]->folderId];
                 foreach ($prevTaskIds as $prevTaskId) {
+
                     // Гледа се дали текущата и предходната са в една локация или са в различни
                     $prevTaskLocationId = $folderLocations[$tasks[$prevTaskId]->folderId];
                     $locationOffset = ($thisTaskLocationId == $prevTaskLocationId) ? $offsetSameLocation : $offsetOtherLocation;
@@ -300,7 +302,6 @@ class planning_TaskConstraints extends core_Master
         $me = cls::get(get_called_class());
 
         // Синхронизират се
-        $i = $u = $d = 0;
         $synced = arr::syncArrays($res, $exRecs, 'taskId,type,previousTaskId', 'taskId,type,earliestTimeStart,waitingTime,previousTaskId');
 
         $i = countR($synced['insert']);
@@ -339,6 +340,7 @@ class planning_TaskConstraints extends core_Master
 
     public static function calcTaskDuration($tasks = array())
     {
+        core_Debug::startTimer('SYNC_TASK_DURATIONS');
         $tasks = self::getDefaultArr($tasks);
         if (!count($tasks)) return;
 
@@ -347,7 +349,6 @@ class planning_TaskConstraints extends core_Master
 
         $taskIds = $productIds = $assetIds = $stepsData = $normsByTask = $jobProductIds = array();
         foreach ($tasks as $taskRec) {
-
             $taskIds[$taskRec->id] = $taskRec->id;
             $productIds[$taskRec->productId] = $taskRec->productId;
             if (!array_key_exists($taskRec->originId, $jobProductIds)) {
@@ -391,7 +392,6 @@ class planning_TaskConstraints extends core_Master
         $pQuery->where("#type = 'input' AND #canStore != 'yes'");
         $pQuery->in('taskId', $taskIds);
         $pQuery->show('productId,taskId,plannedQuantity,indTime,totalTime');
-
         while ($pRec = $pQuery->fetch()) {
 
             // Ако планираното влагане е от планиращите операции на артикула
@@ -454,6 +454,9 @@ class planning_TaskConstraints extends core_Master
 
         // Кешира се нетната продължителност
         cls::get('planning_Tasks')->saveArray($tasks, 'id,calcedDuration,calcedCurrentDuration');
+
+        core_Debug::stopTimer('SYNC_TASK_DURATIONS');
+        core_Debug::log("SYNC_TASK_DURATIONS " . round(core_Debug::$timers["SYNC_TASK_DURATIONS"]->workingTime, 6));
     }
 
 
