@@ -415,7 +415,10 @@ class acc_Articles extends core_Master
         );
         
         $journalDetailsQuery = acc_JournalDetails::getQuery();
-        $entries = $journalDetailsQuery->fetchAll("#journalId = {$journlRec->id}");
+        $journalDetailsQuery->where("#journalId = {$journlRec->id}");
+        $journalDetailsQuery->orderBy('id', 'ASC');
+
+        $entries = $journalDetailsQuery->fetchAll();
         
         if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
             $mvcRec = $mvc->fetch($journlRec->docId);
@@ -435,7 +438,7 @@ class acc_Articles extends core_Master
         // Попълваме детайлите само ако са под допустимата стойност
         if (countR($entries) <= static::$maxDefaultEntriesForReverseArticle) {
             foreach ($entries as $entry) {
-                $articleDetailRec = array(
+                $articleDetailRec = (object)array(
                     'articleId' => $articleId,
                     'debitAccId' => $entry->debitAccId,
                     'debitEnt1' => $entry->debitItem1,
@@ -451,8 +454,17 @@ class acc_Articles extends core_Master
                     'creditPrice' => $entry->creditPrice,
                     'amount' => isset($entry->amount) ? -$entry->amount : $entry->amount,
                 );
-                
-                if (!$bSuccess = acc_ArticleDetails::save((object) $articleDetailRec)) {
+
+                // Ако в редовете може да се добавят само к-ва няма да се клонриат сумите и цените
+                $accs = array('debit' => acc_Accounts::getAccountInfo($entry->debitAccId), 'credit' => acc_Accounts::getAccountInfo($entry->creditAccId),);
+                $quantityOnly = ($accs['debit']->rec->type == 'passive' && $accs['debit']->rec->strategy) || ($accs['credit']->rec->type == 'active' && $accs['credit']->rec->strategy);
+                if($quantityOnly){
+                    unset($articleDetailRec->debitPrice);
+                    unset($articleDetailRec->creditPrice);
+                    unset($articleDetailRec->amount);
+                }
+
+                if (!$bSuccess = acc_ArticleDetails::save($articleDetailRec)) {
                     break;
                 }
             }
@@ -480,10 +492,12 @@ class acc_Articles extends core_Master
         // Всички детайли на МО
         $dQuery = acc_ArticleDetails::getQuery();
         $dQuery->where("#articleId = {$id}");
-        
+        $dQuery->orderBy('id', 'ASC');
+
         // Всички детайли на променения журнал
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->where("#journalId = {$journalId}");
+        $jQuery->orderBy('id', 'ASC');
         $jRecs = $jQuery->fetchAll();
         
         $count = 0;

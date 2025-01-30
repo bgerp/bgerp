@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -153,13 +153,15 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          string      ['mandatoryDocuments']    - задължителни документи
      *          text        ['description']           - описание на операцията
      *          int         ['supportSystemFolderId'] - папка за поддръжка
+     *          int         ['offsetAfter']           - изчакване след
+     *
      */
     public function getProductionData($productId)
     {
         $rec = planning_Steps::getRec('cat_Products', $productId);
         $productRec = cat_Products::fetch($productId, 'measureId,info');
 
-        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent, 'mandatoryDocuments' => $rec->mandatoryDocuments);
+        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent, 'mandatoryDocuments' => $rec->mandatoryDocuments, 'offsetAfter' => $rec->offsetAfter);
         if(!empty($productRec->info)){
             $res['description'] = $productRec->info;
         }

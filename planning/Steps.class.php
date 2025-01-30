@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent,mandatoryDocuments,supportSystemFolderId';
+    protected $extenderFields = 'centerId,name,canStore,norm,offsetAfter,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent,mandatoryDocuments,supportSystemFolderId';
 
 
     /**
@@ -115,6 +115,7 @@ class planning_Steps extends core_Extender
         $this->FLD('planningActions', 'keylist(mvc=cat_Products,select=name,makeLink)', 'caption=Планиране на производството->Действия');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Планиране на производството->Норма');
         $this->FLD('interruptOffset', 'time', 'caption=Планиране на производството->Отместване,hint=Отместване при прекъсване в графика на оборудването');
+        $this->FLD('offsetAfter', 'time', 'caption=Планиране на производството->Изчакване след,hint=Колко време да се изчака след изпълнение на операцията за етапа');
         $this->FLD('mandatoryDocuments', 'classes(select=title)', 'caption=Планиране на производството->Задължителни,hint=Задължително изискуеми документи (поне един от всеки избран тип) за да може да бъде приключена операцията');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
