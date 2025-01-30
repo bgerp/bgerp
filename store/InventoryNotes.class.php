@@ -198,6 +198,8 @@ class store_InventoryNotes extends core_Master
     public function description()
     {
         $this->FLD('valior', 'date', 'caption=Вальор');
+        $this->FLD('instockTo', 'enum(dayBefore=Вальора - 1 ден,valior=Вальора)', 'caption=Наличности към, notNull, value=dayBefore');
+
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
         $this->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Подгрупи,columns=2,single=none,notNull,value=no');
@@ -279,12 +281,22 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
+        $rec = $form->rec;
+
         $form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
         $form->setReadOnly('storeId');
         $form->setDefault('hideOthers', 'no');
         $form->setDefault('expandGroups', 'no');
-        
+
+        // Ако ПИ е за днес и преди края на работния ден да не се може избира наличностите да са точно към вальора
+        if(empty($rec->valior) || $rec->valior == dt::today()) {
+            $time = !empty($rec->createdOn) ? $rec->createdOn : dt::now();
+            $endWorkingTime = trans_Setup::get('END_WORK_TIME');
+            if(dt::mysql2verbal($time, 'H:i') < $endWorkingTime){
+                $form->setReadOnly('instockTo', 'dayBefore');
+            }
+        }
+
         if (isset($form->rec->id)) {
             $form->setReadOnly('storeId');
         }
@@ -470,10 +482,12 @@ class store_InventoryNotes extends core_Master
         $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, null, null);
         $row = (object) ((array) $row + (array) $headerInfo);
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-        
-        $toDate = dt::addDays(-1, $rec->valior);
-        $toDate = dt::verbal2mysql($toDate, false);
-        $row->toDate = $mvc->getFieldType('valior')->toVerbal($toDate);
+
+        if($rec->instockTo == 'dayBefore'){
+            $toDate = dt::addDays(-1, $rec->valior);
+            $toDate = dt::verbal2mysql($toDate, false);
+            $row->toDate = $mvc->getFieldType('valior')->toVerbal($toDate);
+        }
         
         if ($storeLocationId = store_Stores::fetchField($data->rec->storeId, 'locationId')) {
             $row->storeAddress = crm_Locations::getAddress($storeLocationId);
@@ -575,12 +589,11 @@ class store_InventoryNotes extends core_Master
         $Summary = cls::get('store_InventoryNoteSummary');
         
         // Търсим артикулите от два месеца назад
-        $to = dt::addDays(-1, $rec->valior);
+        $to = $rec->instockTo == 'valior' ? $rec->valior : dt::addDays(-1, $rec->valior);
         $to = dt::verbal2mysql($to, false);
-        
         $from = dt::addMonths(-2, $to);
         $from = dt::verbal2mysql($from, false);
-        
+
         $now = dt::now();
         
         // Изчисляваме баланс за подадения период за склада
