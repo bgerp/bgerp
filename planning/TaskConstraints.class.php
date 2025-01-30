@@ -75,6 +75,7 @@ class planning_TaskConstraints extends core_Master
         $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновяване');
 
         $this->setDbIndex('taskId');
+        $this->setDbIndex('taskId,type');
         $this->setDbIndex('previousTaskId');
     }
 
@@ -192,17 +193,32 @@ class planning_TaskConstraints extends core_Master
      * Синхронизиране на записи на посочени операции (null за аквитните+събудените+спрените+заявка)
      *
      * @param mixed $tasks
-     * @return void
+     * @return string
      */
     public static function sync($tasks = array())
     {
+        core_Debug::startTimer('SYNC_TASK_CONSTRAINTS');
+
         $tasks = self::getDefaultArr($tasks);
         $taskCount = countR($tasks);
         core_App::setTimeLimit($taskCount * 0.3, false, 60);
 
-        $prevSteps = $tasksByJobs = array();
-        $stepIds = arr::extractValuesFromArray($tasks, 'productId');
-        $jobIds = arr::extractValuesFromArray($tasks, 'originId');
+        $res = $prevSteps = $tasksByJobs = $stepIds = $jobIds = $folderIds = $folderLocations = $offsetArr = array();
+        foreach ($tasks as $tRec) {
+            $stepIds[$tRec->productId] = $tRec->productId;
+            $jobIds[$tRec->originId] = $tRec->originId;
+            $folderIds[$tRec->folderId] = $tRec->folderId;
+        }
+
+        // Извличане на локациите на които са центровете на дейност на етапа
+        $cQuery = planning_Centers::getQuery();
+        $cQuery->EXT('locationId', 'hr_Departments', 'externalName=locationId,externalKey=departmentId');
+        $cQuery->in('folderId', $folderIds);
+        while ($cRec = $cQuery->fetch()) {
+            $folderLocations[$cRec->folderId] = $cRec->locationId ?? '-';
+        }
+
+        // Извличане на всички етапи, които са посочени като предишни
         $cQuery = planning_StepConditions::getQuery();
         $cQuery->in("stepId", $stepIds);
         $cQuery->show('stepId,prevStepId');
@@ -210,61 +226,99 @@ class planning_TaskConstraints extends core_Master
             $prevSteps[$cRec->stepId][$cRec->prevStepId] = $cRec->prevStepId;
         }
 
-        // Всички текущи ПО към заданието за посочените етапи
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#state IN ('active', 'stopped', 'wakeup', 'closed', 'pending')");
-        $tQuery->in('originId', $jobIds);
-        $tQuery->show('id,originId,productId');
-        while ($tRec = $tQuery->fetch()) {
-            $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id);
+        // Извличане на всички изчаквания след на всеки етап
+        $productClassId = cat_Products::getClassId();
+        $sQuery = planning_Steps::getQuery();
+        $sQuery->where("#classId = {$productClassId}");
+        $sQuery->show('objectId,offsetAfter');
+        $sQuery->in("objectId", $stepIds);
+        while ($sRec = $sQuery->fetch()) {
+            $offsetArr[$sRec->objectId] = $sRec->offsetAfter ?? 0;
         }
 
-        $res = array();
+        // Всички текущи ПО към заданието за посочените етапи
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#state IN ('active', 'stopped', 'wakeup', 'pending')");
+        $tQuery->in('originId', $jobIds);
+        $tQuery->show('id,originId,productId,folderId');
+        while ($tRec = $tQuery->fetch()) {
+            $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id, 'folderId' => $tRec->folderId);
+        }
+
+        $offsetSameLocation = planning_Setup::get('TASK_OFFSET_IN_SAME_LOCATION');
+        $offsetOtherLocation = planning_Setup::get('TASK_OFFSET_IN_OTHER_LOCATION');
+
         $now = dt::now();
         foreach ($tasks as $taskRec) {
+
+            // Ако има посочено най-ранно начало и то е в бъдещето - записва се
             if (!empty($taskRec->timeStart)) {
                 if ($taskRec->timeStart > $now) {
                     $res["time|{$taskRec->id}"] = (object)array('taskId' => $taskRec->id, 'type' => 'earliest', 'earliestTimeStart' => $taskRec->timeStart, 'waitingTime' => null, 'previousTaskId' => null, 'updatedOn' => $now);
                 }
             }
 
+            // Ако има ръчно посочена предходна - нея, иначе се търсят всички предходни от заданието
+            $prevTaskIds = array();
             if (isset($taskRec->previousTask)) {
-                $res["prev|{$taskRec->id}"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => null, 'previousTaskId' => $taskRec->previousTask, 'updatedOn' => $now);
+                if(isset($tasks[$taskRec->previousTask])){
+                    $prevTaskIds[$taskRec->previousTask] = $taskRec->previousTask;
+                }
             } else {
-                $prevTaskIds = array();
                 $prevStepsArr = array_key_exists($taskRec->productId, $prevSteps) ? $prevSteps[$taskRec->productId] : array();
                 array_walk($tasksByJobs[$taskRec->originId], function ($a) use (&$prevTaskIds, $prevStepsArr) {
                     if (in_array($a->productId, $prevStepsArr)) {
                         $prevTaskIds[$a->id] = $a->id;
                     }
                 });
+            }
 
+            // За всяка предходна ще се добави че операцията е зависима от нея
+            if(countR($prevTaskIds)){
+                $thisTaskLocationId = $folderLocations[$tasks[$taskRec->id]->folderId];
                 foreach ($prevTaskIds as $prevTaskId) {
-                    $res["prev|{$taskRec->id}|$prevTaskId"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => null, 'previousTaskId' => $prevTaskId, 'updatedOn' => $now);
+                    // Гледа се дали текущата и предходната са в една локация или са в различни
+                    $prevTaskLocationId = $folderLocations[$tasks[$prevTaskId]->folderId];
+                    $locationOffset = ($thisTaskLocationId == $prevTaskLocationId) ? $offsetSameLocation : $offsetOtherLocation;
+
+                    // Времето за изчакване е по-голямото от това за локацията и зададеното в етапа време на изчакване
+                    $waitingTime = max($locationOffset,  $offsetArr[$tasks[$prevTaskId]->productId]);
+                    $res["prev|{$taskRec->id}|$prevTaskId"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => $waitingTime, 'previousTaskId' => $prevTaskId, 'updatedOn' => $now);
                 }
             }
         }
 
-        if (countR($tasks) && !countR($res)) return;
-
+        // Извличат се записите за посочените операции
         $taskIds = arr::extractValuesFromArray($res, 'taskId');
         $exQuery = static::getQuery();
         $exQuery->in("taskId", $taskIds);
         $exRecs = $exQuery->fetchAll();
         $me = cls::get(get_called_class());
+
+        // Синхронизират се
+        $i = $u = $d = 0;
         $synced = arr::syncArrays($res, $exRecs, 'taskId,type,previousTaskId', 'taskId,type,earliestTimeStart,waitingTime,previousTaskId');
 
-        if (countR($synced['insert'])) {
+        $i = countR($synced['insert']);
+        if ($i) {
             $me->saveArray($synced['insert']);
         }
-        if (countR($synced['update'])) {
+
+        $u = countR($synced['update']);
+        if ($u) {
             $me->saveArray($synced['update'], 'id,previousTaskId,waitingTime,earliestTimeStart,updatedOn');
         }
 
-        if (countR($synced['delete'])) {
+        $d = countR($synced['delete']);
+        if ($d) {
             $deleteIds = implode(',', $synced['delete']);
             $me->delete("#id IN ({$deleteIds})");
         }
+
+        core_Debug::stopTimer('SYNC_TASK_CONSTRAINTS');
+        core_Debug::log("SYNC_TASK_CONSTRAINTS " . round(core_Debug::$timers["SYNC_TASK_CONSTRAINTS"]->workingTime, 6));
+
+        return "Синхронизирани ограничения I:{$i} / U: {$u} / O: {$d}";
     }
 
 
