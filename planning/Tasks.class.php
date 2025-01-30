@@ -589,6 +589,10 @@ class planning_Tasks extends core_Master
 
         $calcedDurationUom = ($rec->calcedDuration < 60) ? 'seconds' : (($rec->calcedDuration < 3600) ? 'minutes' : 'hours');
         $row->calcedDuration = core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
+        if(haveRole('debug')){
+            $row->calcedDuration = ht::createHint($row->calcedDuration, "Текуща|* (debug): " . core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedCurrentDuration));
+        }
+
         if(isset($rec->assetId)){
             if(isset($fields['-single'])) {
                 $row->assetId = new core_ET(planning_AssetResources::getTitleById($rec->assetId));

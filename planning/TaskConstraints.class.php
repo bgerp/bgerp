@@ -322,7 +322,7 @@ class planning_TaskConstraints extends core_Master
         core_Debug::stopTimer('SYNC_TASK_CONSTRAINTS');
         core_Debug::log("SYNC_TASK_CONSTRAINTS " . round(core_Debug::$timers["SYNC_TASK_CONSTRAINTS"]->workingTime, 6));
 
-        return "Синхронизирани ограничения I:{$i} / U: {$u} / O: {$d}";
+        return "Синхронизирани ограничения I:{$i} / U: {$u} / D: {$d}";
     }
 
 
