@@ -214,6 +214,7 @@ class planning_TaskConstraints extends core_Master
         $cQuery = planning_Centers::getQuery();
         $cQuery->EXT('locationId', 'hr_Departments', 'externalName=locationId,externalKey=departmentId');
         $cQuery->in('folderId', $folderIds);
+        $cQuery->show('locationId,folderId');
         while ($cRec = $cQuery->fetch()) {
             $folderLocations[$cRec->folderId] = $cRec->locationId ?? '-';
         }
@@ -424,6 +425,9 @@ class planning_TaskConstraints extends core_Master
 
                 $indTime = planning_type_ProductionRate::getInSecsByQuantity($t->indTime, $calcedPlannedQuantity);
                 $simultaneity = $t->simultaneity ?? $assetIds[$t->assetId]->simultaneity;
+                if(empty($simultaneity)){
+                    bp($t, $t->assetId, planning_AssetResources::getTitleById($t->assetId), $assetIds);
+                }
                 $duration = round($indTime / $simultaneity);
             }
 
