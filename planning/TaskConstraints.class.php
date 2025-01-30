@@ -462,7 +462,7 @@ class planning_TaskConstraints extends core_Master
      */
     public function cron_RecalcTaskConstraints()
     {
-        self::sync();
+        return self::sync();
     }
 
 
