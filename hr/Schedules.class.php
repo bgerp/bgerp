@@ -119,7 +119,7 @@ class hr_Schedules extends core_Master
 
         if(isset($cache[$key]) && $doCache) {
 
-           return $cache[$key];
+           return clone $cache[$key];
         }
 
         $res = core_Cache::get('work_schedule', $key);
@@ -127,7 +127,7 @@ class hr_Schedules extends core_Master
 
             $cache[$key] = $res;
             
-            return $res;
+            return clone $res;
         }
 
         $from   = dt::addTimeIfNot($from);
@@ -142,7 +142,7 @@ class hr_Schedules extends core_Master
         
         // Ако имаме родителски график, вземаме го него за база
         if(isset($rec->parentId)) {
-            $ints = self::getWorkingIntervals($rec->parentId, $from, $to);
+            $ints = clone self::getWorkingIntervals($rec->parentId, $from, $to);
         } else {
             $ints = new core_Intervals();
         }
