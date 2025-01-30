@@ -435,6 +435,6 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
-        bp(countR($intervals));
+        bp($intervals);
     }
 }
