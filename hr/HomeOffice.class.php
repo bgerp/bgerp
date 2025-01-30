@@ -75,7 +75,7 @@ class hr_HomeOffice extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canActivate = 'ceo, hrMaster';
+    public $canActivate = 'powerUser';
     
     
     /**
@@ -175,7 +175,7 @@ class hr_HomeOffice extends core_Master
     public function description()
     {
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
-        $this->FLD('startDate', 'datetime', 'caption=Считано->От, mandatory');
+        $this->FLD('startDate', 'datetime(defaultTime=00:00:00)', 'caption=Считано->От, mandatory');
         $this->FLD('toDate', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
         $this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
         $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('h'))), 'caption=Информация->Икона за ника, maxRadio=10,columns=10,notNull,value=h2');
@@ -392,7 +392,12 @@ class hr_HomeOffice extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
+        $homeDays = hr_Setup::get('DAYS_IN_HOMEOFFICE');
+        $lDays = self::getHomeDayForMonth();
+        
+        
         if ($rec->id) {
+            
             
             if ($action == 'order') {
                 // и нямаме нужните права
@@ -401,18 +406,15 @@ class hr_HomeOffice extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
-            
-            if($action == 'activate') {
-                
-                $homeDays = hr_Setup::get('DAYS_IN_HOMEOFFICE');
-                $lDays = self::getHomeDayForMonth();
-                
+          
+            if($action == 'activate') { 
+
                 if($lDays > $homeDays){
                     $requiredRoles = 'no_one';
                 }
             }
         }
-        
+
         if ($action == 'add' || $action == 'reject' || $action == 'decline') {
             if ($rec->folderId) {
                 $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
@@ -839,25 +841,80 @@ class hr_HomeOffice extends core_Master
         $data->recs = $data->query->fetchAll();
        
         $lDay = 0;
-
+      
         foreach($data->recs as $id=>$rec){
+       
             if($rec->startDate <= $prevMonth && $rec->toDate <= $toDate) { 
                 $scheduleId = planning_Hr::getSchedule($cUser);
                 $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId,  dt::verbal2mysql($fromDate, false), dt::verbal2mysql($rec->toDate, false));
 
                 $lDay += $days->workDays;
             } elseif($rec->toDate >= $toDate){
-                //$rec->toDate >= $nextMonth && $rec->startDate <= $toDate
+       
                 $scheduleId = planning_Hr::getSchedule($cUser);
                 $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId, dt::verbal2mysql($rec->startDate, false), dt::verbal2mysql($nextMonth, false));
-               
-                $lDay += $days->workDays;
-            } elseif($rec->startDate >= $fromDate && $rec->toDate <= $toDate) {
-  
+              
+                $lDay += $days->workDays; 
+            } elseif($rec->startDate >= $fromDate && $rec->toDate <= $toDate) { 
+
                 $lDay += $rec->leaveDays;
             }
         }
 
         return $lDay;
+    }
+    
+    
+    
+    /**
+     * Метод за отказване на заявка за работа от вкъщи
+     */
+    public static function act_Decline()
+    {
+        //Очакваме да има такъв запис
+        expect($id = Request::get('id', 'int'));
+        
+        expect($rec = hr_HomeOffice::fetch($id));
+        
+        // Очакваме да има права за записа
+        hr_HomeOffice::requireRightFor('decline', $rec);
+        
+        //Очакваме потребителя да има права за спиране
+        hr_HomeOffice::haveRightFor('decline', $rec);
+        
+        $link = array('hr_HomeOffice', 'single', $rec->id);
+        
+        //Променяме статуса на затворено
+        $rec->brState = $rec->state;
+        $rec->state = 'closed';
+        hr_HomeOffice::save($rec);
+        
+        $subscribedArr = keylist::toArray($rec->sharedUsers);
+        $subscribedArr[$rec->createdBy] = $rec->createdBy;
+        
+        if (isset($rec->alternatePersons)) {
+            foreach (type_Keylist::toArray($rec->alternatePersons) as $aPerson) {
+                $alternatePersonId = crm_Profiles::fetchField(array("#personId = '[#1#]'", $aPerson), 'userId');
+                if ($alternatePersonId) {
+                    $subscribedArr[$alternatePersonId] = $alternatePersonId;
+                }
+            }
+        }
+        
+        if (countR($subscribedArr)) {
+            foreach ($subscribedArr as $userId) {
+                if ($userId > 0 && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                    $rec->message = '|Отказана е |* "' . self::getRecTitle($rec) . '"';
+                    $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                    $rec->customUrl = array(get_called_class(), 'single',  $rec->id);
+                    $rec->priority = 0;
+                    
+                    bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+                }
+            }
+        }
+        
+        // Редиректваме
+        return new Redirect($link, '|Успешно отказахте заявка за работа от вкъщи');
     }
 }
