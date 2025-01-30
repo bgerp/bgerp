@@ -109,8 +109,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 }
                 
                 if (isset($rec->id)) {
-                    $batch = batch_BatchesInDocuments::fetchField("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}", 'batch');
-                    $form->setDefault('batch', $batch);
+                    $bQuery = batch_BatchesInDocuments::getQuery();
+                    $bQuery->where("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}", 'batch');
+                    $batches = arr::extractValuesFromArray($bQuery->fetchAll(), 'batch');
+                    if(countR($batches) == 1){
+                        $form->setDefault('batch', key($batches));
+                    }
                 }
             }
         }

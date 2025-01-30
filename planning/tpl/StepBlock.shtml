@@ -107,6 +107,13 @@
 		</tr>
 		<!--ET_END planning_Steps_interruptOffset-->
 
+		<!--ET_BEGIN planning_Steps_offsetAfter-->
+		<tr>
+			<td class='quiet'>|Изчакване след изпълнение|*:</td>
+			<td>[#planning_Steps_offsetAfter#]</td>
+		</tr>
+		<!--ET_END planning_Steps_offsetAfter-->
+
 		<!--ET_BEGIN planning_Steps_mandatoryDocuments-->
 		<tr>
 			<td class='quiet'>|Задължителни документи|*:</td>

@@ -900,6 +900,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
         cls::get('store_InventoryNoteDetails')->invoke('AfterRecalcSummary', array(&$rec));
         cls::get('store_InventoryNoteSummary')->save($rec, 'quantity,quantityHasAddedValues');
+        plg_Search::forceUpdateKeywords('store_InventoryNotes', $rec->noteId);
     }
     
     

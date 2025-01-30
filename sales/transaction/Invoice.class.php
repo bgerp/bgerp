@@ -138,8 +138,11 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
                 
                 return $result;
             }
+
+            Mode::push('text', 'plain');
             $result->reason = "{$type} към фактура №" . $origin->getVerbal('number');
-            
+            Mode::pop('text');
+
             // Намираме оридиджана на фактурата върху която е ДИ или КИ
             $origin = $origin->getOrigin();
             
