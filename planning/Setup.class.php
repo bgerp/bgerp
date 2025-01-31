@@ -581,6 +581,7 @@ class planning_Setup extends core_ProtoSetup
 
         $centerGroups = array();
         $query = planning_Centers::getQuery();
+        $query->where("#state != 'rejected'");
         while($rec = $query->fetch()){
             $centerGroups[$rec->folderId] = planning_Centers::syncCrmGroup($rec);
         }
