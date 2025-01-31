@@ -314,7 +314,7 @@ class store_InventoryNotes extends core_Master
                 $endWorkingTime = trans_Setup::get('END_WORK_TIME');
                 $endOfWorkingDayOfValior = "{$valior} {$endWorkingTime}";
                 if($endOfWorkingDayOfValior > dt::now()){
-                    $form->setError('instockTo', "Опцията за наличност към вальора е допустима за всеки вальор в миналото, а при вальор \"днес\" - след края на работния ден|*: <b>{$endWorkingTime}</b>");
+                    $form->setError('instockTo', "Опцията \"Наличност към вальора\" е допустима за всеки вальор в миналото, а при вальор \"днес\" - само след|* <b>{$endWorkingTime}</b> |часа (края на работния ден от пакета|* <b>trans</b>)!");
                 }
             }
 
