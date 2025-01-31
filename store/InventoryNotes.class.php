@@ -288,15 +288,6 @@ class store_InventoryNotes extends core_Master
         $form->setDefault('hideOthers', 'no');
         $form->setDefault('expandGroups', 'no');
 
-        // Ако ПИ е за днес и преди края на работния ден да не се може избира наличностите да са точно към вальора
-        if(empty($rec->valior) || $rec->valior == dt::today()) {
-            $time = !empty($rec->createdOn) ? $rec->createdOn : dt::now();
-            $endWorkingTime = trans_Setup::get('END_WORK_TIME');
-            if(dt::mysql2verbal($time, 'H:i') < $endWorkingTime){
-                $form->setReadOnly('instockTo', 'dayBefore');
-            }
-        }
-
         if (isset($form->rec->id)) {
             $form->setReadOnly('storeId');
         }
@@ -317,7 +308,16 @@ class store_InventoryNotes extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
+            if($rec->instockTo == 'valior'){
+                $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+                $endWorkingTime = trans_Setup::get('END_WORK_TIME');
+                $endOfWorkingDayOfValior = "{$valior} {$endWorkingTime}";
+                if($endOfWorkingDayOfValior > dt::now()){
+                    $form->setError('instockTo', "Опцията за наличност към вальора е допустима за всеки вальор в миналото, а при вальор \"днес\" - след края на работния ден|*: <b>{$endWorkingTime}</b>");
+                }
+            }
+
             // Проверка имали избрани вложени групи
             if (cat_Groups::checkForNestedGroups($rec->groups)) {
                 $form->setError('groups', 'Избрани са вложени групи');
