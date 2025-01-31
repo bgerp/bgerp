@@ -155,18 +155,6 @@ $(document).ready(function () {
 
                 selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
 
-                // Optional: Process server update
-                if (table.dataset.url) {
-                    let dataIds = getOrderedTasks();
-                    let resObj = { url: table.dataset.url };
-                    let dataIdString = JSON.stringify(dataIds);
-                    let params = { orderedTasks: dataIdString };
-
-                    console.log('DROP: orderedTasks=' + dataIdString);
-                    getEfae().preventRequest = 0;
-                    getEfae().process(resObj, params);
-                }
-
                 // Clear selectedElements after the operation
                 selectedElements = [];
                 isScrolling = false; // Reset scrolling state
@@ -458,8 +446,8 @@ $(document).ready(function () {
                     console.log(params.orderedTasks);
                     console.log(params.manualTimes);
 
-                    getEfae().preventRequest = 0;
-                    getEfae().process(resObj, params);
+                    //getEfae().preventRequest = 0;
+                    //getEfae().process(resObj, params);
                 }
             } else {
                 alert("Грешка: Липсва task ID или task field!");

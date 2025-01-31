@@ -4109,8 +4109,8 @@ class planning_Tasks extends core_Master
 
             if (empty($fRec->previousTask) || ($fRec->previousTask != $rec->previousTask && $autoPreviousTaskId != $fRec->previousTask)) {
                 if(empty($fRec->previousTask)){
-                    $sRec = (object) array('id' => $id, 'saoOrder' => 0.5);
-                    $this->save_($sRec, 'saoOrder');
+                    $sRec = (object) array('id' => $id, 'saoOrder' => 0.5, 'previousTask' => null);
+                    $this->save_($sRec, 'saoOrder,previousTask');
                 } else {
                     $sRec = (object) array('id' => $id, 'previousTask' => $fRec->previousTask);
                     $this->save_($sRec, 'previousTask');

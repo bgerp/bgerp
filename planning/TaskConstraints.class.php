@@ -170,7 +170,7 @@ class planning_TaskConstraints extends core_Master
     }
 
 
-    private static function getDefaultArr($tasks = array())
+    private static function getDefaultArr($tasks = array(), $fields = null)
     {
         $arr = arr::make($tasks, true);
         if (!countR($arr)) {
@@ -178,13 +178,19 @@ class planning_TaskConstraints extends core_Master
             $tQuery = planning_Tasks::getQuery();
             $tQuery->in('state', array('active', 'wakeup', 'stopped', 'pending'));
             $tQuery->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=productId");
+            $tQuery->EXT('dueDate', 'planning_Jobs', 'externalName=dueDate,remoteKey=containerId,externalFieldName=originId,caption=Задание->Падеж');
             $tQuery->where("#innerClass = {$stepClassId} AND #assetId IS NOT NULL");
+            if(isset($fields)){
+                $fields = arr::make($fields, true);
+                $tQuery->show(implode(',', $fields));
+            }
             $tasks = $tQuery->fetchAll();
         } else {
             $tasks = array();
             foreach ($arr as $id) {
+                $fields = $fields ? arr::make($fields, true) : '*';
                 $taskId = is_numeric($id) ? $id : $id->id;
-                $tasks[$taskId] = planning_Tasks::fetch($taskId);
+                $tasks[$taskId] = planning_Tasks::fetch($taskId, $fields);
             }
         }
 
@@ -412,6 +418,7 @@ class planning_TaskConstraints extends core_Master
 
         // За всяка операция
         $minDuration = planning_Setup::get('MIN_TASK_DURATION');
+
         foreach ($tasks as $t) {
             // Ако има зададена продължителност - това е
             $duration = $t->timeDuration;
@@ -439,13 +446,14 @@ class planning_TaskConstraints extends core_Master
                 $duration = round($indTime / $simultaneity);
             }
 
+
             // От продължителността, се приспада произведеното досега
             $nettDuration = $duration;
             $duration = round((1 - $t->progress) * $duration);
 
             // Ако мин прогреса е под 100%, то се използва мин. продължителността, иначе за мин. прод. се използва 0
-            $minDuration = ($t->progress >= 1) ? 1 : $minDuration;
-            $duration = max($duration, $minDuration);
+            $cMinDuration = ($t->progress >= 1) ? 1 : $minDuration;
+            $duration = max($duration, $cMinDuration);
 
             // Към така изчислената продължителност се добавя тази от действията към машината
             if (array_key_exists($t->id, $normsByTask)) {
@@ -490,12 +498,28 @@ class planning_TaskConstraints extends core_Master
     {
         requireRole('debug');
 
-        $tasks = self::getDefaultArr();
+        // Извличане на всички ПО годни за планиране
+        $tasks = self::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate');
 
-
+        // Еднократно извличане на всички ограничения
         $query = static::getQuery();
         $constraintsArr = $query->fetchAll();
 
+        // Разделяне на ограниченията на ПО-та
+        $earliestTimeStart = $previousTasks = array();
+        foreach ($constraintsArr as $cRec){
+            if($cRec->type == 'earliest'){
+                if(!empty($cRec->earliestTimeStart)){
+                    $earliestTimeStart[$cRec->taskId] = $cRec->earliestTimeStart;
+                }
+            } elseif($cRec->type == 'prevId') {
+                if(!empty($cRec->previousTaskId)){
+                    $previousTasks[$cRec->taskId][$cRec->previousTaskId] = (object)array('previousTaskId' => $cRec->previousTaskId, 'waitingTime' => $cRec->waitingTime);
+                }
+            }
+        }
+
+        // Извличат се графиците на всички ПО с интервали за планиране
         $assetIds = arr::extractValuesFromArray($tasks, 'assetId');
         $intervals = array();
         foreach ($assetIds as $assetId) {
@@ -504,6 +528,195 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
+        // От операциите остават само тези, които са на машини с закачени графици
+        // Попринцип не би трябвало да има машина без график, но за всеки случай
+        $tasksWithActualStart = $tasksWithoutActualStartByAssetId = array();
+        $assetsWithIntervals = array_keys($intervals);
+        $allTasks = array();
+        array_walk($tasks, function ($task) use ($assetsWithIntervals, &$allTasks, &$tasksWithActualStart, &$tasksWithoutActualStartByAssetId) {
+            if(in_array($task->assetId, $assetsWithIntervals)) {
+                $allTasks[$task->id] = $task;
+                if(!empty($task->actualStart)){
+                    $tasksWithActualStart[$task->id] = $task;
+                } else {
+                    $tasksWithoutActualStartByAssetId[$task->assetId][$task->id] = $task;
+                }
+            }
+        });
+
+        // Тези с фактическо начало се сортират по възходящ ред
+        $interruptionArr = planning_Steps::getInterruptionArr($tasks);
+        arr::sortObjects($tasksWithActualStart, 'actualStart', 'ASC');
+
+        // Първо ще се наместят в графика тези с фактическо начало
+
+
+        $debugArr = array();
+        $planned = array();
+        $notFoundDate = '9999-12-31 23:59:59';
+        $now = dt::now();
+        foreach ($tasksWithActualStart as $taskRec1){
+            $begin = max($taskRec1->actualStart, $now);
+            if($Interval = $intervals[$taskRec1->assetId]){
+                $offset = isset($interruptionArr[$taskRec1->productId]) ?? null;
+                $begin = strtotime($begin);
+                $timeArr = $Interval->consume($taskRec1->calcedCurrentDuration, $begin, null, $offset);
+
+                // Опит за смятане на очакваното начало/край. Ако не може значи е `9999-12-31 23:59:59`
+                $planned[$taskRec1->id] = (object)array('assetId' => $taskRec1->assetId, 'calcedCurrentDuration' => $taskRec1->calcedCurrentDuration, 'expectedTimeStart' => $notFoundDate, 'expectedTimeEnd' => $notFoundDate);
+                if(is_array($timeArr)){
+                    $planned[$taskRec1->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
+                    $planned[$taskRec1->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
+                }
+
+                $debugArr[$taskRec1->assetId][$taskRec1->id] = $planned[$taskRec1->id]->expectedTimeStart;
+            }
+        }
+
+        foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
+            $Interval = $intervals[$assetId];
+
+            //@todo потребителската подредба
+
+            // Подредба по падеж във възходящ ред
+            arr::sortObjects($assetTasks, 'dueDate', 'ASC');
+
+            // След това тези с желано начало се преместват най-отпред
+            $withStart = $withoutStart =array();
+            foreach ($assetTasks as $t1){
+                if(!empty($t1->timeStart)){
+                    $withStart[$t1->id] = $t1;
+                } else {
+                    $withoutStart[$t1->id] = $t1;
+                }
+            }
+            $sortedArr = $withStart + $withoutStart;
+
+            foreach ($sortedArr as $task){
+
+                $isPlannable = true;
+                if(!array_key_exists($task->id, $previousTasks)){
+                    $startTime = max($now, $task->timeStart);
+                } else {
+                    $calcedTimes = array();
+                    foreach ($previousTasks[$task->id] as $prevId => $prevTask){
+                        $plannedPrevTime = $planned[$prevId]->expectedTimeStart;
+                        if(empty($plannedPrevTime)) {
+                            $isPlannable = false;
+                        } else {
+                            $plannedPrevTime = dt::addSecs($prevTask->waitingTime, $plannedPrevTime);
+                            $calcedTimes[$plannedPrevTime] = $plannedPrevTime;
+                        }
+                    }
+
+                    if(!$isPlannable) continue;
+
+                    $calcedTimes[$now] = $now;
+                    $calcedTimes[$task->timeStart] = $task->timeStart;
+                    $startTime = max($calcedTimes);
+                }
+
+                $offset = isset($interruptionArr[$task->productId]) ?? null;
+                $begin = strtotime($startTime);
+
+                $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $offset);
+                $planned[$task->id] = (object)array('assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => $notFoundDate, 'expectedTimeEnd' => $notFoundDate);
+                if(is_array($timeArr)){
+                    $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
+                    $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
+                }
+                $debugArr[$assetId][$task->id] = $planned[$task->id]->expectedTimeStart;
+                unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
+            }
+        }
+
+
+        bp($debugArr, $tasksWithoutActualStartByAssetId);
+        bp($tasksWithoutActualStartByAssetId);
+
+
+        /*
+         *3. Прави се един голям подреден масив (Подредба) със всички подредени от потребителя ПО,
+         * като подредбата по машини няма? значение. Той се допълва в края от ПО, които не са включени в масива
+         * по реда на падежите на техните задания. От целия масив най-напред се изнасят ПО, които имат забити
+         *  от потребителя "Най-ранно започване"
+         * 4. Цикли се по всички операции, които нямат "Планирано начало". Ако за операцията няма записи
+         *  в таблицата с ограниченията, то тя получава поле "Планиране след" - текущото време.
+         * Ако има записи за ограничения, то изчисляваме всяко едно ограничение. Ако има ограничение
+         * , което не може да се изчисли, защото предходната операция няма планирано начало, то тази ПО се пропуска. От всички изчисления за най-голямо време се определя полето "Планиране след".
+         * 5. След като се извлекат всички операции, за които е изчислено "Планиране след",
+         * те се подреждат първо по "Планиране след" и след това по реда в който се срещат в "Подредба".
+         *  В получената последователност те хранят графиците на машините и получават времена "Планирано начало"
+         *  и "Планиран край"
+         * 6. Ако в т. 5 е определено планираното начало/край на поне една ПО, то се връщаме на т. 4.
+         * 7. След последната итерация, при която няма планирана нито една нова операция,
+         * то се записват на всички операции в модела ПО новите времена "Планирано начало" и "Планиран край"
+         */
+
+
+
+
+
+
+       // foreach ($tas)
+
+
+
+        bp($planned);
+
+
+        $res = array();
+
+
+        bp($tasksWithActualStart, $tasksWithoutActualStart);
+
+        /*
+         * $res = (object)array('id' => $taskRec->id,
+                             'expectedTimeStart' => null,
+                             'expectedTimeEnd' => null, 'progress' => $taskRec->progress, 'actionNorms' => $taskRec->actionNorms, 'calcedDuration' => $taskRec->calcedDuration, 'calcedCurrentDuration' => $taskRec->calcedCurrentDuration,
+                             'indTime' => $taskRec->indTime,
+                             'indPackagingId' => $taskRec->indPackagingId,
+                             'plannedQuantity' => $taskRec->plannedQuantity,
+                             'duration' => $taskRec->timeDuration,
+                             'timeStart' => $taskRec->timeStart, 'orderByAssetId' => $taskRec->orderByAssetId);
+
+        // Колко ще е отместването при прекъсване
+        $interruptOffset = array_key_exists($taskRec->productId, $interruptionArr) ? $interruptionArr[$taskRec->productId] : null;
+
+        // Прави се опит за добавяне на операцията в графика
+        $now = dt::now();
+        $begin = null;
+        if(!empty($taskRec->timeStart)){
+            $begin = $taskRec->timeStart;
+        } elseif(!empty($taskRec->timeEnd)){
+            $begin = dt::addSecs(-1 * $taskRec->calcedCurrentDuration, $taskRec->timeEnd);
+        }
+
+        $begin = max($begin, $now);
+        $begin = strtotime($begin);
+        $timeArr = $Interval->consume($taskRec->calcedCurrentDuration, $begin, null, $interruptOffset);
+
+        // Ако е успешно записват се началото и края
+        if(is_array($timeArr)){
+            $res->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
+            $res->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
+        }
+
+        return $res;
+         */
+
+
+
+
+
+
+
         bp($intervals);
+    }
+
+
+    function act_Test()
+    {
+        cls::get('planning_Setup')->migrateTaskActualTime2505();
     }
 }

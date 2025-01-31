@@ -391,12 +391,14 @@ class planning_Setup extends core_ProtoSetup
         'planning_AssetGroupIssueTemplates',
         'planning_AssetSparePartsDetail',
         'planning_TaskConstraints',
+        'planning_TaskManualOrderPerAssets',
         'migrate::repairSearchKeywords2524',
         'migrate::renameResourceFields2624v2',
         'migrate::removeCachedAssetModified4124v2',
         'migrate::repairSearchKeywords2442',
         'migrate::calcTaskLastProgress2504v2',
         'migrate::syncOperatorsWithGroups2504v2',
+        'migrate::migrateTaskActualTime2505',
     );
 
 
@@ -615,5 +617,29 @@ class planning_Setup extends core_ProtoSetup
         }
 
         crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+    }
+
+
+    /**
+     * Миграция на фактическото начало на операциите
+     */
+    public function migrateTaskActualTime2505()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+
+        $save = array();
+        $query = planning_Tasks::getQuery();
+        $query->where("#state IN ('active', 'wakeup', 'stopped')");
+        $query->where("#actualStart IS NULL");
+        $query->show('state,lastChangeStateOn,activatedOn');
+        while($sRec = $query->fetch()){
+            $sRec->actualStart = ($sRec->state == 'wakeup') ? $sRec->lastChangeStateOn : $sRec->activatedOn;
+            $save[$sRec->id] = $sRec;
+        }
+
+        if(countR($save)){
+            $Tasks->saveArray($save, 'id,actualStart');
+        }
     }
 }
