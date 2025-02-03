@@ -552,7 +552,11 @@ class planning_TaskConstraints extends core_Master
         arr::sortObjects($tasksWithActualStart, 'actualStart', 'ASC');
 
         // Първо ще се наместят в графика тези с фактическо начало
-        $debugRes = "1. Разполагане на тези с ФАКТИЧЕСКО начало <b>" . countR($tasksWithActualStart) . "</b> <hr />";
+        $debugRes = "ВСИЧКИ " . countR($tasks);
+        $debugRes .= "<hr />1. Разполагане на тези с ФАКТИЧЕСКО начало <b>" . countR($tasksWithActualStart) . "</b> <hr />";
+
+
+        core_Debug::startTimer('START_CYCLE');
 
         $debugArr = array();
         $planned = array();
@@ -584,12 +588,11 @@ class planning_TaskConstraints extends core_Master
         }
 
         $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
-        $debugRes .= " <hr />2. Разполагане на тези с БЕЗ начало <b>{$countWithoutActualStart}</b><hr />";
+        $debugRes .= " <hr />2. Разполагане на тези с БЕЗ начало <b>{$countWithoutActualStart}</b>";
 
         $i = 1;
-
         do {
-            $debugRes .= "2.{$i} ИТЕРАЦИЯ <b>{$i}</b> <hr />";
+            $debugRes .= "<hr />2.{$i}ИТЕРАЦИЯ НАЧАЛО <b>{$i}</b> <hr />";
             $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
 
             foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
@@ -666,9 +669,12 @@ class planning_TaskConstraints extends core_Master
             }
 
             $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
-            $debugRes .= "ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
+            $debugRes .= "<hr />ИТЕРАЦИЯ КРАЙ <b>{$i}</b>->ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
             $i++;
         } while($countWithoutActualStart);
+
+        core_Debug::stopTimer('START_CYCLE');
+        core_Debug::log("END START_CYCLE " . round(core_Debug::$timers["START_CYCLE"]->workingTime, 6));
 
         echo $debugRes;
         bp($debugArr, $tasksWithoutActualStartByAssetId);
