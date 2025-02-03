@@ -552,7 +552,7 @@ class planning_TaskConstraints extends core_Master
         arr::sortObjects($tasksWithActualStart, 'actualStart', 'ASC');
 
         // Първо ще се наместят в графика тези с фактическо начало
-        $debugRes = "Разполагане на тези с ФАКТИЧЕСКО начало <hr />";
+        $debugRes = "Разполагане на тези с ФАКТИЧЕСКО начало <b>" . countR($tasksWithActualStart) . "</b> <hr />";
 
         $debugArr = array();
         $planned = array();
@@ -583,7 +583,8 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
-        $debugRes .= " <hr />Разполагане на тези с БЕЗ начало <hr />";
+        $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
+        $debugRes .= " <hr />Разполагане на тези с БЕЗ начало <b>{$countWithoutActualStart}</b><hr />";
 
         foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
             $debugRes .= " Слагане на задачи на <b>{$assets[$assetId]}</b><br />";
@@ -658,6 +659,9 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
+        $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
+
+        $debugRes .= "ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
         echo $debugRes;
         bp($debugArr, $tasksWithoutActualStartByAssetId);
 
