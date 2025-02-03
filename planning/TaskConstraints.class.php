@@ -62,6 +62,9 @@ class planning_TaskConstraints extends core_Master
     public $listFields = 'taskId,type,previousTaskId=Предходна,earliestTimeStart=Най-рано,waitingTime=Изчакване,updatedOn';
 
 
+    const NOT_FOUND_DATE = '9999-12-31 23:59:59';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -545,7 +548,7 @@ class planning_TaskConstraints extends core_Master
         core_Debug::startTimer('START_CYCLE');
 
         $planned = $plannedByAssets = array();
-        $notFoundDate = '9999-12-31 23:59:59';
+        $notFoundDate = self::NOT_FOUND_DATE;
         $now = dt::now();
 
         foreach ($tasksWithActualStart as $taskRec1){
@@ -579,8 +582,7 @@ class planning_TaskConstraints extends core_Master
 
         $i = 1;
         do {
-            $debugRes .= "<hr />2.{$i}ИТЕРАЦИЯ НАЧАЛО <b>{$i}</b> <hr />";
-            $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
+            $debugRes .= "<hr />2.{$i} ИТЕРАЦИЯ НАЧАЛО <b>{$i}</b> <hr />";
 
             foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
                 if(!countR($assetTasks)) continue;
@@ -588,10 +590,6 @@ class planning_TaskConstraints extends core_Master
 
                 $Interval = $intervals[$assetId];
 
-                //@todo потребителската подредба
-
-                // Подредба по падеж във възходящ ред
-                arr::sortObjects($assetTasks, 'dueDate', 'ASC');
 
                 // След това тези с желано начало се преместват най-отпред
                 $withStart = $withoutStart =array();
@@ -637,6 +635,9 @@ class planning_TaskConstraints extends core_Master
                         $startTime = max($calcedTimes);
                     }
 
+
+
+
                     $offset = isset($interruptionArr[$task->productId]) ?? null;
                     $begin = strtotime($startTime);
 
@@ -655,6 +656,23 @@ class planning_TaskConstraints extends core_Master
 
                     $debugRes .= "<hr />";
                 }
+
+                // От планируемите ги групирам по седмици, във всяка седмица ги подреждам
+                // първо по потребителя после по падежа на заданието
+                // тогава храня графика
+
+
+                //@todo потребителската подредба
+                // подреждам първо тези с потребителска
+                // след това тези по-падежа на заданието
+
+
+                // Подредба по падеж във възходящ ред
+                arr::sortObjects($assetTasks, 'dueDate', 'ASC');
+                // квантувам ги по седмица (от оборудването) и във всяка седмица подреждане базирано
+                // на потребителската подредба, след това по тази на заданието
+
+
             }
 
             $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));

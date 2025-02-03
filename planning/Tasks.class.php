@@ -221,7 +221,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,prevErrId,nextErrId,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart';
+    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart';
 
 
     /**
@@ -303,7 +303,7 @@ class planning_Tasks extends core_Master
         $this->FLD('isFinal', 'enum(yes=Да,no=Не)', 'input=hidden,caption=Финална,silent');
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=К-во в мярка,input=none');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none');
-        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|freeTimeAfter|simultaneity');
+        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|simultaneity');
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,silent');
@@ -347,10 +347,6 @@ class planning_Tasks extends core_Master
         $this->FLD('notes', 'varchar(255)', 'caption=Допълнително->Забележка');
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
         $this->FLD('saoOrder', 'double(smartRound)', 'caption=Структура и подредба->Подредба,input=none,column=none,order=100000');
-
-        $this->FLD('prevErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Предишна грешка');
-        $this->FLD('nextErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Следваща грешка');
-        $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
 
         $this->FLD('actualStart', 'datetime(format=smartTime)', 'caption=Фактическо начало, tdClass=leftColImportant,input=none');
         $this->FLD('firstProgress', 'datetime(format=smartTime)', 'caption=Първи Прогрес (всички), tdClass=leftColImportant,input=none');
@@ -563,18 +559,6 @@ class planning_Tasks extends core_Master
                         }
                     }
                 }
-            }
-
-            if (!empty($rec->prevErrId)) {
-                $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходната операция|* #{$mvc->getHandle($rec->prevErrId)}", 'img/16/red-warning.png', false);
-            }
-
-            if (!empty($rec->nextErrId)) {
-                $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следващата операция|* #{$mvc->getHandle($rec->nextErrId)}", 'img/16/red-warning.png');
-            }
-
-            if ($rec->freeTimeAfter == 'yes') {
-                $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има свободно време между края на тази операция и началото на следващата|*!", 'warning');
             }
 
             if (!empty($rec->expectedTimeEnd) && $rec->expectedTimeEnd >= ("{$origin->fetchField('dueDate')} 23:59:59")) {
@@ -3742,8 +3726,6 @@ class planning_Tasks extends core_Master
 
             $rec->state =  (empty($rec->timeDuration) && empty($rec->assetId)) ? 'waiting' : 'pending';
         }
-
-        $rec->freeTimeAfter = 'no';
 
         // Запомняне на предишните стойностти на определени полета
         if(isset($rec->id)){
