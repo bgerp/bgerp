@@ -552,7 +552,7 @@ class planning_TaskConstraints extends core_Master
         arr::sortObjects($tasksWithActualStart, 'actualStart', 'ASC');
 
         // Първо ще се наместят в графика тези с фактическо начало
-        $debugRes = "Разполагане на тези с ФАКТИЧЕСКО начало <b>" . countR($tasksWithActualStart) . "</b> <hr />";
+        $debugRes = "1. Разполагане на тези с ФАКТИЧЕСКО начало <b>" . countR($tasksWithActualStart) . "</b> <hr />";
 
         $debugArr = array();
         $planned = array();
@@ -584,84 +584,92 @@ class planning_TaskConstraints extends core_Master
         }
 
         $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
-        $debugRes .= " <hr />Разполагане на тези с БЕЗ начало <b>{$countWithoutActualStart}</b><hr />";
+        $debugRes .= " <hr />2. Разполагане на тези с БЕЗ начало <b>{$countWithoutActualStart}</b><hr />";
 
-        foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
-            $debugRes .= " Слагане на задачи на <b>{$assets[$assetId]}</b><br />";
+        $i = 1;
 
-            $Interval = $intervals[$assetId];
+        do {
+            $debugRes .= "2.{$i} ИТЕРАЦИЯ <b>{$i}</b> <hr />";
+            $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
 
-            //@todo потребителската подредба
+            foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
+                $debugRes .= " Слагане на задачи на <b>{$assets[$assetId]}</b><br />";
 
-            // Подредба по падеж във възходящ ред
-            arr::sortObjects($assetTasks, 'dueDate', 'ASC');
+                $Interval = $intervals[$assetId];
 
-            // След това тези с желано начало се преместват най-отпред
-            $withStart = $withoutStart =array();
-            foreach ($assetTasks as $t1){
-                if(!empty($t1->timeStart)){
-                    $withStart[$t1->id] = $t1;
-                } else {
-                    $withoutStart[$t1->id] = $t1;
+                //@todo потребителската подредба
+
+                // Подредба по падеж във възходящ ред
+                arr::sortObjects($assetTasks, 'dueDate', 'ASC');
+
+                // След това тези с желано начало се преместват най-отпред
+                $withStart = $withoutStart =array();
+                foreach ($assetTasks as $t1){
+                    if(!empty($t1->timeStart)){
+                        $withStart[$t1->id] = $t1;
+                    } else {
+                        $withoutStart[$t1->id] = $t1;
+                    }
                 }
-            }
-            $sortedArr = $withStart + $withoutStart;
+                $sortedArr = $withStart + $withoutStart;
 
-            foreach ($sortedArr as $task){
-                $isPlannable = true;
-                if(!array_key_exists($task->id, $previousTasks)){
-                    $startTime = max($now, $task->timeStart);
-                    $debugRes .= "{$taskLinks[$task->id]} - Няма ограничения <br />";
-                } else {
-                    $debugStr = "";
-                    $calcedTimes = array();
-                    foreach ($previousTasks[$task->id] as $prevId => $prevTask){
-                        $plannedPrevTime = $planned[$prevId]->expectedTimeStart;
-                        if(empty($plannedPrevTime)) {
-                            $isPlannable = false;
-                            $debugStr .= "|{$taskLinks[$prevId]} not planned|";
-                        } else {
-                            $plannedPrevTime = dt::addSecs($prevTask->waitingTime, $plannedPrevTime);
-                            $calcedTimes[$plannedPrevTime] = $plannedPrevTime;
-                            $debugStr .= "|{$taskLinks[$prevId]} planned: {$plannedPrevTime} - offset {$prevTask->waitingTime}|";
+                foreach ($sortedArr as $task){
+                    $isPlannable = true;
+                    if(!array_key_exists($task->id, $previousTasks)){
+                        $startTime = max($now, $task->timeStart);
+                        $debugRes .= "{$taskLinks[$task->id]} - Няма ограничения <br />";
+                    } else {
+                        $debugStr = "";
+                        $calcedTimes = array();
+                        foreach ($previousTasks[$task->id] as $prevId => $prevTask){
+                            $plannedPrevTime = $planned[$prevId]->expectedTimeStart;
+                            if(empty($plannedPrevTime)) {
+                                $isPlannable = false;
+                                $debugStr .= "|{$taskLinks[$prevId]} not planned|";
+                            } else {
+                                $plannedPrevTime = dt::addSecs($prevTask->waitingTime, $plannedPrevTime);
+                                $calcedTimes[$plannedPrevTime] = $plannedPrevTime;
+                                $debugStr .= "|{$taskLinks[$prevId]} planned: {$plannedPrevTime} - offset {$prevTask->waitingTime}|";
+                            }
                         }
+
+                        if(!$isPlannable) {
+                            $debugRes .= "{$taskLinks[$task->id]} - <b>НЕ МОЖЕ ДА СЕ ПЛАНИРА</b> предходни ({$debugStr})<br />";
+                            continue;
+                        }
+
+                        $debugRes .= "{$taskLinks[$task->id]} - <b>МОЖЕ да се планира</b> предходни ({$debugStr})<br />";
+
+                        $calcedTimes[$now] = $now;
+                        $calcedTimes[$task->timeStart] = $task->timeStart;
+                        $startTime = max($calcedTimes);
                     }
 
-                    if(!$isPlannable) {
-                        $debugRes .= "{$taskLinks[$task->id]} - <b>НЕ МОЖЕ ДА СЕ ПЛАНИРА</b> предходни ({$debugStr})<br />";
-                        continue;
+                    $offset = isset($interruptionArr[$task->productId]) ?? null;
+                    $begin = strtotime($startTime);
+
+                    $debugRes .= "{$taskLinks[$task->id]} храни <b>[{$assets[$task->assetId]}]($task->assetId)</b> с начало {$startTime} / прод. {$task->calcedCurrentDuration} <br />";
+                    $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $offset);
+                    $planned[$task->id] = (object)array('assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => $notFoundDate, 'expectedTimeEnd' => $notFoundDate);
+                    if(is_array($timeArr)){
+                        $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
+                        $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
+                        $debugRes .="--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />";
+                    } else {
+                        $debugRes .="--------Не е изчислено начало/край<br />";
                     }
+                    $debugArr[$assetId][$task->id] = $planned[$task->id]->expectedTimeStart;
+                    unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
 
-                    $debugRes .= "{$taskLinks[$task->id]} - <b>МОЖЕ да се планира</b> предходни ({$debugStr})<br />";
-
-                    $calcedTimes[$now] = $now;
-                    $calcedTimes[$task->timeStart] = $task->timeStart;
-                    $startTime = max($calcedTimes);
+                    $debugRes .= "<hr />";
                 }
-
-                $offset = isset($interruptionArr[$task->productId]) ?? null;
-                $begin = strtotime($startTime);
-
-                $debugRes .= "{$taskLinks[$task->id]} храни <b>[{$assets[$task->assetId]}]($task->assetId)</b> с начало {$startTime} / прод. {$task->calcedCurrentDuration} <br />";
-                $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $offset);
-                $planned[$task->id] = (object)array('assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => $notFoundDate, 'expectedTimeEnd' => $notFoundDate);
-                if(is_array($timeArr)){
-                    $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
-                    $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
-                    $debugRes .="--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />";
-                } else {
-                    $debugRes .="--------Не е изчислено начало/край<br />";
-                }
-                $debugArr[$assetId][$task->id] = $planned[$task->id]->expectedTimeStart;
-                unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
-
-                $debugRes .= "<hr />";
             }
-        }
 
-        $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
+            $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
+            $debugRes .= "ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
+            $i++;
+        } while($countWithoutActualStart);
 
-        $debugRes .= "ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
         echo $debugRes;
         bp($debugArr, $tasksWithoutActualStartByAssetId);
 
