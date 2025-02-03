@@ -420,6 +420,8 @@ class hr_HomeOffice extends core_Master
         if (!$mvc->haveRightFor('activate', $rec)) {
             if ($rec->state == 'active') {
                 $rec->state = 'pending';
+
+                core_Statuses::newStatus("|Дните са над допустимите за ативиране без одобрение. Документа е приведен в състояние 'Заявка' и чака одобрение.|*");
             }
         }
     }
