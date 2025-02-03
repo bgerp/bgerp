@@ -221,7 +221,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,prevErrId,nextErrId,timeClosed,lastProgressProduction,lastProgress,firstProgress';
+    public $fieldsNotToClone = 'progress,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd,prevErrId,nextErrId,timeClosed,lastProgressProduction,lastProgress,firstProgress,actualStart';
 
 
     /**
@@ -1262,56 +1262,6 @@ class planning_Tasks extends core_Master
 
         // Ако има промяна в прогреса (само ако не е приключена операцията)
         $autoActivation = ($rec->state == 'pending' && planning_ProductionTaskDetails::count("#taskId = {$rec->id}"));
-        if($rec->state != 'closed'){
-            $reorder = false;
-            if ($rec->progress > $originalProgress) {
-
-                // Ако прогреса е увеличен - става първа
-                $rec->orderByAssetId = 0.5;
-                $reorder = true;
-            } elseif($autoActivation) {
-                $rec->orderByAssetId = null;
-
-                // Ако само е активирана - БЕЗ да е увеличен прогреса
-                $query = static::getQuery();
-                $query->where("#assetId = {$rec->assetId} AND  #state IN ('pending', 'stopped')");
-                $query->orderBy("orderByAssetId", 'ASC');
-                $query->show('id,orderByAssetId');
-                $query->limit(1);
-                $firstPendingRec = $query->fetch();
-
-                // Намества се преди първата спряна/заявка
-                if(is_object($firstPendingRec)){
-                    $rec->orderByAssetId = $firstPendingRec->orderByAssetId - 0.5;
-                } else {
-
-                    // Ако няма заявки/спрени - мести се след първата активна/събудена
-                    $query1 = static::getQuery();
-                    $query1->where("#assetId = {$rec->assetId} AND #state IN ('active', 'wakeup')");
-                    $query1->orderBy("orderByAssetId", 'ASC');
-                    $query1->show('id,orderByAssetId');
-                    $query1->limit(1);
-                    $lastActiveRec = $query1->fetch();
-                    if(is_object($lastActiveRec)){
-                        $rec->orderByAssetId = $lastActiveRec->orderByAssetId + 0.5;
-                    } else {
-
-                        // Ако няма и такива - става първа
-                        $rec->orderByAssetId = 0.5;
-                    }
-                }
-                $reorder = true;
-            }
-
-            // Ако ще се преподреждат
-            if($reorder){
-                if (isset($rec->assetId)) {
-                    $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
-                }
-                $updateFields .= ',orderByAssetId';
-                $rec->_stopReorder = true;
-            }
-        }
 
         // При първо добавяне на прогрес, ако е в заявка - се активира автоматично
         if ($autoActivation) {
@@ -2209,6 +2159,7 @@ class planning_Tasks extends core_Master
         $fields['taskWastePercent'] = "|*<small class='quiet'>|Отп.|*</small>";
         if ($data->masterMvc instanceof planning_AssetResources) {
             unset($fields['assetId']);
+            unset($fields['saoOrder']);
         }
 
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount,taskWastePercent,notConvertedQuantity');
@@ -3513,33 +3464,13 @@ class planning_Tasks extends core_Master
             }
         } elseif(in_array($rec->state, array('closed', 'rejected')) || ($rec->state == 'waiting' && $rec->brState == 'pending')) {
             planning_TaskConstraints::delete("#taskId = {$rec->id} OR #previousTaskId = {$rec->id}");
+            $rec->orderByAssetId = null;
+            $mvc->save_($rec, 'orderByAssetId');
         }
 
         // Преизчисляване на продължителноста след промяна
         if($rec->_fromForm){
             planning_TaskConstraints::calcTaskDuration($rec->id);
-        }
-
-        // Ако има избрано оборудване, задачата се поставя на правилното място и се преподреждат задачите на машината
-        if(isset($rec->assetId)){
-            if($rec->_stopReorder) return;
-
-            if(in_array($rec->state, array('pending', 'active', 'wakeup'))){
-                $firstTaskId = key(planning_AssetResources::getAssetTaskOptions($rec->assetId));
-                $orderByAssetId = ($firstTaskId) ? $mvc->fetchField($firstTaskId, 'orderByAssetId') : 1;
-                $rec->orderByAssetId = $orderByAssetId - 0.5;
-            }
-
-            if($rec->orderByAssetId != $rec->_exAssetId){
-                $mvc->save_($rec, 'orderByAssetId');
-                if(isset($rec->assetId)){
-                    $mvc->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
-                }
-            }
-
-            if(isset($rec->_exAssetId) && $rec->assetId != $rec->_exAssetId){
-                $mvc->reorderTasksInAssetId[$rec->_exAssetId] = $rec->_exAssetId;
-            }
         }
 
         // Маркиране на операцията, ако е променена нормата ѝ, да се преизчислят нормите на детайлите ѝ
@@ -3825,7 +3756,6 @@ class planning_Tasks extends core_Master
             }
 
             $rec->_exAssetId = $exRec->assetId;
-            $rec->_exOrderByAssetId = $exRec->orderByAssetId;
             $rec->_exIndTime = $exRec->indTime;
             if(isset($rec->assetId) && $rec->assetId != $rec->_exAssetId){
                 $rec->prevAssetId = $rec->_exAssetId;

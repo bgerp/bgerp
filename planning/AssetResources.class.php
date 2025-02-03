@@ -1251,39 +1251,48 @@ class planning_AssetResources extends core_Master
      */
     public function cron_RecalcTaskTimes()
     {
-        // Всички оборудвания, които са закачени към ПО
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
-        $tQuery->where('#assetId IS NOT NULL');
-        $assetArr = array();
-        while($tRec = $tQuery->fetch()){
-            $key = "{$tRec->plannedQuantity}|{$tRec->state}|{$tRec->indTime}|{$tRec->indPackagingId}|{$tRec->timeStart}|{$tRec->timeEnd}|{$tRec->timeDuration}|{$tRec->simultaneity}";
-            $assetArr[$tRec->assetId][$tRec->orderByAssetId] = array('key' => $key, 'id' => $tRec->id);
+        // Извличане на всички ПО годни за планиране
+        core_Debug::startTimer('PREPARE_FOR_CYCLE');
+        $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate');
+
+        // Еднократно извличане на всички ограничения
+        $query = planning_TaskConstraints::getQuery();
+        $constraintsArr = $query->fetchAll();
+
+        // Разделяне на ограниченията на ПО-та
+        $previousTasks = array();
+        foreach ($constraintsArr as $cRec){
+            if($cRec->type == 'prevId') {
+                if(!empty($cRec->previousTaskId)){
+                    $previousTasks[$cRec->taskId][$cRec->previousTaskId] = (object)array('previousTaskId' => $cRec->previousTaskId, 'waitingTime' => $cRec->waitingTime);
+                }
+            }
         }
 
-        // Ако няма нищо не прави
-        if(!countR($assetArr)) return;
+        $scheduledData = planning_TaskConstraints::calcScheduledTimes($tasks, $previousTasks);
+        $notFoundDate = '9999-12-31 23:59:59';
 
-        $from = dt::now();
-        $to = dt::addSecs(planning_Setup::get('ASSET_HORIZON'), $from);
+        $Tasks = cls::get('planning_Tasks');
+        $savedTasks = array();
+        foreach ($scheduledData->tasks as $assetId => &$plannedTasks){
+            arr::sortObjects($plannedTasks, 'expectedTimeStart', 'ASC');
 
-        // За всяко оборудване
-        foreach ($assetArr as $assetId => $assetData){
+            $order = 1;
+            array_walk($plannedTasks, function($a) use (&$order, $notFoundDate){
+                if($a->expectedTimeStart == $notFoundDate){
+                    $a->expectedTimeStart = null;
+                    $a->expectedTimeEnd = null;
+                }
+                $a->orderByAssetId = $order;
+                $order++;
+            });
+            $savedTasks[$assetId] = $plannedTasks;
+            $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId');
+        }
 
-            // Сортиране по подредба и създаване на хеш за проверка
-            ksort($assetData);
-            $checkArr = array();
-            array_walk($assetData, function($a) use (&$checkArr) {$checkArr[$a['id']] = $a['key'];});
-            $newMd5 = md5(json_encode($checkArr));
+        if(Mode::is('debugOrder')){
 
-            // Какъв е записания кеш към момента
-            $oldMd5 = core_Permanent::get("assetTaskOrder|{$assetId}");
-            if($oldMd5 != $newMd5){
-
-                // Ако има промяна рекалкулират се времената на оборудването
-                static::recalcTaskTimes($assetId, $from, $to);
-                core_Permanent::set("assetTaskOrder|{$assetId}", $newMd5, 24*60*60);
-            }
+            return $scheduledData;
         }
 
         // Проверява зависимостите между операциите

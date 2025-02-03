@@ -337,8 +337,8 @@ class planning_Setup extends core_ProtoSetup
             'description' => 'Преизчисляване на началото на производствени операции',
             'controller' => 'planning_AssetResources',
             'action' => 'RecalcTaskTimes',
-            'period' => 2,
-            'timeLimit' => 30,
+            'period' => 5,
+            'timeLimit' => 60,
         ),
 
         array(
