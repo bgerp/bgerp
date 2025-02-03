@@ -583,6 +583,7 @@ class planning_TaskConstraints extends core_Master
             $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
 
             foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
+                if(!countR($assetTasks)) continue;
                 $debugRes .= " Слагане на задачи на <b>{$assets[$assetId]}</b><br />";
 
                 $Interval = $intervals[$assetId];
