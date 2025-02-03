@@ -88,8 +88,15 @@ class hr_HomeOffice extends core_Master
      * Кой има право да прави начисления
      */
     public $canChangerec = 'ceo, hrMaster';
-    
-    
+
+
+    /**
+     * Кой може да e мастър
+     * @var string
+     */
+    public $canMaster = 'hrHomeOffice, ceo, hrMaster';
+
+
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
@@ -130,8 +137,8 @@ class hr_HomeOffice extends core_Master
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'hr/tpl/SingleLayoutHomeOffice.shtml';
-    
-    
+
+
     /**
      * За плъгина acc_plg_DocumentSummary
      */
@@ -250,8 +257,31 @@ class hr_HomeOffice extends core_Master
             }
         }
     }
-    
-    
+
+
+    /**
+     *
+     *
+     * @param $startDate
+     * @param $toDate
+     * @param $personId
+     * @return int
+     */
+    protected function getLeaveDays($startDate, $toDate, $personId)
+    {
+        $leaveDays = null;
+
+        // Изисляване на брой дни хоум офис
+        if ($startDate && $toDate) {
+            $scheduleId = planning_Hr::getSchedule($personId);
+            $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId, $startDate, $toDate);
+            $leaveDays = $days->workDays;
+        }
+
+        return $leaveDays;
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
@@ -290,14 +320,9 @@ class hr_HomeOffice extends core_Master
             if (isset($form->rec->toDate) && ($form->rec->toDate > $after1year)) {
                 $form->setError('toDate', "Крайната дата трябва да е преди {$after1yearVerbal}г.", $ignorable);
             }
-            
-            // Изисляване на брой дни хоум офис
-            if ($form->rec->startDate && $form->rec->toDate) {
-                $scheduleId = planning_Hr::getSchedule($form->rec->personId);
-                $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId, $form->rec->startDate, $form->rec->toDate);
-                $form->rec->leaveDays = $days->workDays;
-            }
-            
+
+            $form->rec->leaveDays = $mvc->getLeaveDays($form->rec->startDate, $form->rec->toDate, $form->rec->personId);
+
             // ако не са изчислени дните за отпуска или са по-малко от 1, даваме грешка
             if (!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
                 $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
@@ -378,6 +403,27 @@ class hr_HomeOffice extends core_Master
         
     }
 
+
+    /**
+     * Функция, която се извиква преди активирането на документа
+     */
+    protected static function on_BeforeActivation($mvc, $rec)
+    {
+        if (!isset($rec->personId) && $rec->id) {
+            $rec = $mvc->fetch($rec->id);
+        }
+
+        if (!isset($rec->leaveDays)) {
+            $rec->leaveDays = $mvc->getLeaveDays($rec->startDate, $rec->toDate, $rec->personId);
+        }
+
+        if (!$mvc->haveRightFor('activate', $rec)) {
+            if ($rec->state == 'active') {
+                $rec->state = 'pending';
+            }
+        }
+    }
+
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -391,31 +437,28 @@ class hr_HomeOffice extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         $homeDays = hr_Setup::get('DAYS_IN_HOMEOFFICE');
-        $lDays = self::getHomeDayForMonth();
-        
-        
-        if ($rec->id) {
-            
-            
-            if ($action == 'order') {
-                // и нямаме нужните права
-                if (!Users::haveRole('ceo') || !Users::haveRole('hrHomeOffice')) {
-                    // то не може да я направим
-                    $requiredRoles = 'no_one';
-                }
-            }
-            
-            if($action == 'activate') {
-               
-                if($lDays >= $homeDays ){ 
 
-                    $canActivate = $mvc->canActivate($rec); 
-                    if ($canActivate == TRUE) {
-                        // то не може да я направим
+        if ($requiredRoles != 'no_one') {
+            if ($action == 'activate') {
+                if ($rec) {
+                    $lDays = self::getHomeDayForMonth($rec->personId);
+                    if (!isset($rec->leaveDays)) {
+                        $rec->leaveDays = $mvc->getLeaveDays($rec->startDate, $rec->toDate, $rec->personId);
+                    }
+
+                    if ((!$rec->id || $rec->state != 'active') && $rec->leaveDays) {
+                        $lDays += $rec->leaveDays;
+                    }
+                } else {
+                    $lDays = self::getHomeDayForMonth();
+                }
+
+                if ($lDays > $homeDays) {
+                    if (!$mvc->haveRightFor('master', $rec, $userId)) {
                         $requiredRoles = 'no_one';
                     }
-                }   
-            }  
+                }
+            }
         }
 
         if ($action == 'add' || $action == 'reject' || $action == 'decline') {
@@ -622,30 +665,7 @@ class hr_HomeOffice extends core_Master
             }
         }
     }
-    
-    
-    /**
-     * Метод по подразбиране на canActivate
-     */
-    public static function on_AfterCanActivate($mvc, &$res, $rec)
-    {
-        if (!$res) {
-            if (empty($rec->id)) {
-                $res = false;
-            } else {
-                $cUser = core_Users::getCurrent();
 
-                if (haveRole('ceo', $cUser) || haveRole('hrHomeOffice',$cUser)) {
-                    // то не може да я направим
-                    $res = false;
-                } else { 
-                    $res = true;
-                }
-            }
-        } 
-    }
-    
-    
     
     /**
      * Обновява информацията за задачата в календара
@@ -809,8 +829,11 @@ class hr_HomeOffice extends core_Master
      * Връща броя дни използвани за хоум офис
      * @return number
      */
-    public static function getHomeDayForMonth()
+    public static function getHomeDayForMonth($personId = null)
     {
+        if (!isset($personId)) {
+            $personId = crm_Profiles::getPersonByUser(core_Users::getCurrent());
+        }
         $map = array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
         
         foreach ($map as $id => $month) {
@@ -850,9 +873,7 @@ class hr_HomeOffice extends core_Master
             }
             //календарна датана първият ден на следващия месец
             $nextMonth = "$ny-$nm-01";
-            
-            $cUser = core_Users::getCurrent();
-            
+
             // Създаваме обекта $data
             $data = new stdClass();
             
@@ -863,15 +884,13 @@ class hr_HomeOffice extends core_Master
             $data->query->where("#state = 'active' AND ((#startDate >= '{$fromDate}' AND #toDate <= '{$toDate}')
                                                OR (#startDate <= '{$prevMonth}') OR (#toDate >= '{$nextMonth}'))");
             // търсим всички заявки за хоум офис, които са за текущия потребител
-            $data->query->where("#personId='{$cUser}'");
-            
+            $data->query->where(array("#personId = '[#1#]'", $personId));
+
             $data->recs = $data->query->fetchAll();
             
             $lDay = 0;
             
             foreach($data->recs as $id=>$rec){ 
-
-                    
                 $lDay += $rec->leaveDays;
 
             }
