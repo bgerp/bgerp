@@ -216,7 +216,7 @@ class hr_HomeOffice extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=selectPeriod');
+        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител,silent,before=selectPeriod');
         $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
         $data->listFilter->input('employeeId', 'silent');
         
@@ -245,7 +245,7 @@ class hr_HomeOffice extends core_Master
             $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
             $form->setReadonly('personId');
             
-            if (!haveRole('ceo')) {
+            if (!haveRole('ceo,hrHomeOffice')) {
                 $form->setField('sharedUsers', 'mandatory');
             }
         }
@@ -257,7 +257,7 @@ class hr_HomeOffice extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if (haveRole('ceo,hrMaster,admin')) {
+        if (haveRole('ceo,hrHomeOffice,admin')) {
             $ignorable = true;
         } else {
             $ignorable = false;
@@ -363,7 +363,6 @@ class hr_HomeOffice extends core_Master
 
             $row->startDate = $DateTime->mysql2verbal($rec->startDate, 'd.m.Y');
             
-           // $row->dayFrom = static::$weekDays[$dayOfWeekFrom];
         }
         
         if ($rec->toDate) {
@@ -372,7 +371,6 @@ class hr_HomeOffice extends core_Master
             
             $row->toDate = $DateTime->mysql2verbal($rec->toDate, 'd.m.Y');
 
-            //$row->dayTo = static::$weekDays[$dayOfWeekTo];
         }
         
         $myCompany = crm_Companies::fetchOurCompany();
@@ -406,13 +404,18 @@ class hr_HomeOffice extends core_Master
                     $requiredRoles = 'no_one';
                 }
             }
-          
-            if($action == 'activate') { 
+            
+            if($action == 'activate') {
+               
+                if($lDays >= $homeDays ){ 
 
-                if($lDays > $homeDays){
-                    $requiredRoles = 'no_one';
-                }
-            }
+                    $canActivate = $mvc->canActivate($rec); 
+                    if ($canActivate == TRUE) {
+                        // то не може да я направим
+                        $requiredRoles = 'no_one';
+                    }
+                }   
+            }  
         }
 
         if ($action == 'add' || $action == 'reject' || $action == 'decline') {
@@ -462,7 +465,7 @@ class hr_HomeOffice extends core_Master
                     'ret_url' => array('hr_HomeOffice', 'single', $data->rec->id)
                 ),
                 array('ef_icon' => 'img/16/cancel16.png',
-                    'title' => 'Отказ на молбата'
+                    'title' => 'Отказ на заявка за работа от вкъщи'
                 )
                 );
         }
@@ -619,6 +622,29 @@ class hr_HomeOffice extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Метод по подразбиране на canActivate
+     */
+    public static function on_AfterCanActivate($mvc, &$res, $rec)
+    {
+        if (!$res) {
+            if (empty($rec->id)) {
+                $res = false;
+            } else {
+                $cUser = core_Users::getCurrent();
+
+                if (haveRole('ceo', $cUser) || haveRole('hrHomeOffice',$cUser)) {
+                    // то не може да я направим
+                    $res = false;
+                } else { 
+                    $res = true;
+                }
+            }
+        } 
+    }
+    
     
     
     /**
@@ -785,83 +811,73 @@ class hr_HomeOffice extends core_Master
      */
     public static function getHomeDayForMonth()
     {
-        // Текущото време 
-        $today = dt::now($full = FALSE);
-        $today = explode("-", $today);
+        $map = array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
         
-        // Таймстамп на първия ден на текущия месеца
-        $firstDayTms = mktime(0, 0, 0, $today[1], 1, $today[0]);
-        
-        // Броя на дните в текущия месеца
-        $lastDay = date('t', $firstDayTms);
-        
-        //календарна дата на първи и последен ден от текущия месец
-        $fromDate = "$today[0]-$today[1]-01";
-        $toDate = "$today[0]-$today[1]-$lastDay";
-        
-        // Предишния месец
-        $pm = $today[1]-1;
-        if($pm == 0) {
-            $pm = 12;
-            $py = $today[0]-1;
-        } else {
-            $py = $today[0];
-        }
-    
-        $firstDayTmsPrevMonth = mktime(0, 0, 0, $pm, 1, $py);
-        $lastDayPrevMonth = date('t', $firstDayTmsPrevMonth);
-        //календарна дата на последния ден от предишния месец
-        $prevMonth = "$py-$pm-$lastDayPrevMonth";
-
-        // Следващият месец
-        $nm = $today[1]+1;
-        if($nm == 13) {
-            $nm = 1;
-            $ny = $today[0]+1;
-        } else {
-            $ny = $today[0];
-        }
-        //календарна датана първият ден на следващия месец
-        $nextMonth = "$ny-$nm-01";
-
-        $cUser = core_Users::getCurrent();
-
-        // Създаваме обекта $data
-        $data = new stdClass();
-        
-        // Създаваме заявката
-        $data->query = self::getQuery();
-        
-        // Искаме само активираните документи
-        $data->query->where("#state = 'active' AND ((#startDate >= '{$fromDate}' AND #toDate <= '{$toDate}')
-                                               OR (#startDate <= '{$prevMonth}') OR (#toDate >= '{$nextMonth}'))");
-        // търсим всички заявки за хоум офис, които са за текущия потребител
-        $data->query->where("#personId='{$cUser}'");
-        
-        $data->recs = $data->query->fetchAll();
-       
-        $lDay = 0;
-      
-        foreach($data->recs as $id=>$rec){
-       
-            if($rec->startDate <= $prevMonth && $rec->toDate <= $toDate) { 
-                $scheduleId = planning_Hr::getSchedule($cUser);
-                $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId,  dt::verbal2mysql($fromDate, false), dt::verbal2mysql($rec->toDate, false));
-
-                $lDay += $days->workDays;
-            } elseif($rec->toDate >= $toDate){
-       
-                $scheduleId = planning_Hr::getSchedule($cUser);
-                $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId, dt::verbal2mysql($rec->startDate, false), dt::verbal2mysql($nextMonth, false));
-              
-                $lDay += $days->workDays; 
-            } elseif($rec->startDate >= $fromDate && $rec->toDate <= $toDate) { 
-
-                $lDay += $rec->leaveDays;
+        foreach ($map as $id => $month) {
+            $year = date('Y');
+           
+            // Таймстамп на първия ден на текущия месеца
+            $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
+            
+            // Броя на дните в текущия месеца
+            $lastDay = date('t', $firstDayTms);
+            
+            //календарна дата на първи и последен ден от избрания месец
+            $fromDate = "$year-$month-01";
+            $toDate = "$year-$month-$lastDay";
+            
+            // Предишния месец
+            $pm = $month-1;
+            if($pm == 0) {
+                $pm = 12;
+                $py = $year-1;
+            } else {
+                $py = $year;
             }
-        }
+            
+            $firstDayTmsPrevMonth = mktime(0, 0, 0, $pm, 1, $py);
+            $lastDayPrevMonth = date('t', $firstDayTmsPrevMonth);
+            //календарна дата на последния ден от предишния месец
+            $prevMonth = "$py-$pm-$lastDayPrevMonth";
+            
+            // Следващият месец
+            $nm = $month+1;
+            if($nm == 13) {
+                $nm = 1;
+                $ny = $year+1;
+            } else {
+                $ny = $year;
+            }
+            //календарна датана първият ден на следващия месец
+            $nextMonth = "$ny-$nm-01";
+            
+            $cUser = core_Users::getCurrent();
+            
+            // Създаваме обекта $data
+            $data = new stdClass();
+            
+            // Създаваме заявката
+            $data->query = self::getQuery();
+            
+            // Искаме само активираните документи
+            $data->query->where("#state = 'active' AND ((#startDate >= '{$fromDate}' AND #toDate <= '{$toDate}')
+                                               OR (#startDate <= '{$prevMonth}') OR (#toDate >= '{$nextMonth}'))");
+            // търсим всички заявки за хоум офис, които са за текущия потребител
+            $data->query->where("#personId='{$cUser}'");
+            
+            $data->recs = $data->query->fetchAll();
+            
+            $lDay = 0;
+            
+            foreach($data->recs as $id=>$rec){ 
 
-        return $lDay;
+                    
+                $lDay += $rec->leaveDays;
+
+            }
+            return $lDay;
+          
+        }     
     }
     
     
