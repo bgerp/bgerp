@@ -659,7 +659,7 @@ class planning_TaskConstraints extends core_Master
         }
 
         echo $debugRes;
-        bp($debugArr);
+        bp($debugArr, $tasksWithoutActualStartByAssetId);
 
         bp($debugArr, $tasksWithoutActualStartByAssetId);
         bp($tasksWithoutActualStartByAssetId);
