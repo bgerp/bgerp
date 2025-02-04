@@ -427,7 +427,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         // Рендираме таблицата с вложените материали
         $data->listFields['productId'] = 'Вложени артикули|* ';
         $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
-        if($firstDoc->isInstanceOf('planning_Tasks')) return $tpl;
+        if($firstDoc->isInstanceOf('planning_Tasks')){
+            $firstDocRec = $firstDoc->fetch('isFinal,productId');
+            if($firstDocRec->isFinal == 'no') return new $tpl;
+        }
 
         $fieldset = clone $this;
         $fieldset->FNC('num', 'int');
@@ -456,6 +459,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
         $this->modifyRows($iData);
         $detailsInput = $table->get($iData->rows, $iData->listFields);
+
         $tpl->append($detailsInput, 'INPUTED_PRODUCTS_TABLE');
         
         // Добавяне на бутон за нов материал
@@ -473,6 +477,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if($this->haveRightFor('selectrowstodelete', (object)array("noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input'))){
             $tpl->append(ht::createBtn('Изтриване', array($this, 'selectRowsToDelete', "noteId" => $data->masterId, '_filterFld' => 'type', '_filterFldVal' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/delete.png', 'title' => 'Форма за избор на редове за изтриване', 'class' => 'selectDeleteRowsBtn')), 'INPUTED_PRODUCTS_TABLE');
         }
+
+        if($firstDoc->isInstanceOf('planning_Tasks')) return $tpl;
 
         // Рендиране на таблицата с отпадъците
         foreach (array('subProduct', 'pop') as $type){
