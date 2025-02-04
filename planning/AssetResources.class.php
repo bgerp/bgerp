@@ -931,7 +931,7 @@ class planning_AssetResources extends core_Master
 
         $from = isset($from) ? $from : dt::now();
         $to = isset($to) ? $to : dt::addSecs(planning_Setup::get('ASSET_HORIZON'), $from);
-
+        $to = '2025-02-15 10:00:00';
         $int = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to);
 
         return $int;

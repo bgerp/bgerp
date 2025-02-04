@@ -587,9 +587,7 @@ class planning_TaskConstraints extends core_Master
             foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
                 if(!countR($assetTasks)) continue;
                 $debugRes .= " Слагане на задачи на <b>{$assets[$assetId]}</b><br />";
-
                 $Interval = $intervals[$assetId];
-
 
                 // След това тези с желано начало се преместват най-отпред
                 $withStart = $withoutStart =array();
@@ -602,55 +600,79 @@ class planning_TaskConstraints extends core_Master
                 }
                 $sortedArr = $withStart + $withoutStart;
 
+                // Сортираните задачи се обикалят и се проверява изпълнени ли са им ограниченията
                 foreach ($sortedArr as $task){
+                    $previousTasksAreInTheFuture = false;
                     $isPlannable = true;
                     if(!array_key_exists($task->id, $previousTasks)){
+
+                        // Ако нямат зависимости от предходни задачи - ще се захранят с по-голямото от желантото начало и сега
                         $startTime = max($now, $task->timeStart);
                         $debugRes .= "{$taskLinks[$task->id]} - Няма ограничения <br />";
                     } else {
+
+                        // Ако има ограничения от предходни операции се проверява те изпълнени ли са
                         $debugStr = "";
                         $calcedTimes = array();
                         foreach ($previousTasks[$task->id] as $prevId => $prevTask){
                             if(!isset($taskLinks[$prevId])) continue;
+
+                            // Предходната операция има ли планирано начало
                             $plannedPrevTime = $planned[$prevId]->expectedTimeStart;
                             if(empty($plannedPrevTime)) {
 
+                                // Ако НЯМА, значи текущата задача не може да се планира, ще се провери на следващата итерация
                                 $isPlannable = false;
                                 $debugStr .= "|{$taskLinks[$prevId]} not planned|";
                             } else {
-                                $plannedPrevTime = dt::addSecs($prevTask->waitingTime, $plannedPrevTime);
-                                $calcedTimes[$plannedPrevTime] = $plannedPrevTime;
-                                $debugStr .= "|{$taskLinks[$prevId]} planned: {$plannedPrevTime} - offset {$prevTask->waitingTime}|";
+                                if($plannedPrevTime == static::NOT_FOUND_DATE){
+
+                                    // Ако предходната е планирана извън графика - то и тази ще е извън графика
+                                    $previousTasksAreInTheFuture = true;
+                                    $debugStr .= "|{$taskLinks[$prevId]} planned: ИЗВЪН - offset {$prevTask->waitingTime}|";
+                                } else {
+
+                                    // Ако е планирана предходната се калкулира за какво време е планирана
+                                    $debugStr .= "|{$taskLinks[$prevId]} planned: {$plannedPrevTime} - offset {$prevTask->waitingTime}|";
+                                    $plannedPrevTime = dt::addSecs($prevTask->waitingTime, $plannedPrevTime);
+                                    $calcedTimes[$plannedPrevTime] = $plannedPrevTime;
+                                }
                             }
                         }
 
+                        // Ако не може да се планира текущата - пропуска се, ще се прави опит на следващата итерация
                         if(!$isPlannable) {
                             $debugRes .= "{$taskLinks[$task->id]} - <b>НЕ МОЖЕ ДА СЕ ПЛАНИРА</b> предходни ({$debugStr})<br />";
                             continue;
                         }
 
+                        // Ако може да се планира се взима най-голямото от желаното ѝ начало, сега и времената на предходните ѝ
                         $debugRes .= "{$taskLinks[$task->id]} - <b>МОЖЕ да се планира</b> предходни ({$debugStr})<br />";
                         $calcedTimes[$now] = $now;
                         $calcedTimes[$task->timeStart] = $task->timeStart;
                         $startTime = max($calcedTimes);
                     }
 
-
-
-
                     $offset = isset($interruptionArr[$task->productId]) ?? null;
                     $begin = strtotime($startTime);
-
-                    $debugRes .= "{$taskLinks[$task->id]} храни <b>[{$assets[$task->assetId]}]($task->assetId)</b> с начало {$startTime} / прод. {$task->calcedCurrentDuration} <br />";
-                    $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $offset);
                     $planned[$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => $notFoundDate, 'expectedTimeEnd' => $notFoundDate);
-                    if(is_array($timeArr)){
-                        $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
-                        $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
-                        $debugRes .="--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />";
+
+                    // Ако не оставена извън графика ще се захрани графика с нейното време и продължителност
+                    if(!$previousTasksAreInTheFuture){
+                        $debugRes .= "{$taskLinks[$task->id]} храни <b>[{$assets[$task->assetId]}]($task->assetId)</b> с начало {$startTime} / прод. {$task->calcedCurrentDuration} <br />";
+                        $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $offset);
+                        if(is_array($timeArr)){
+                            $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
+                            $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
+                            $debugRes .="--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />";
+                        } else {
+                            $debugRes .="--------Не е изчислено начало/край<br />";
+                        }
                     } else {
-                        $debugRes .="--------Не е изчислено начало/край<br />";
+                        // Ако е изчислена да е извън графика - няма да се подава на него
+                        $debugRes .= "{$taskLinks[$task->id]}--------Е ИЗВЪН ГРАФИКА<br />";
                     }
+
                     $plannedByAssets[$assetId][$task->id] = $planned[$task->id];
                     unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
 
@@ -678,7 +700,6 @@ class planning_TaskConstraints extends core_Master
             $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
             $debugRes .= "<hr />ИТЕРАЦИЯ КРАЙ <b>{$i}</b> ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
             $i++;
-
         } while($countWithoutActualStart);
 
         core_Debug::stopTimer('START_CYCLE');
