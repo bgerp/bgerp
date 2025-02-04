@@ -208,13 +208,13 @@ defIfNot('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', '');
 /**
  * Колко да е изчакването между предходни операции->В една локация
  */
-defIfNot('PLANNING_TASK_OFFSET_IN_SAME_LOCATION', '0');
+defIfNot('PLANNING_TASK_OFFSET_IN_SAME_LOCATION', '7200');
 
 
 /**
  * Колко да е изчакването между предходни операции->В различна локация
  */
-defIfNot('PLANNING_TASK_OFFSET_IN_OTHER_LOCATION', '3600');
+defIfNot('PLANNING_TASK_OFFSET_IN_OTHER_LOCATION', '3600x24');
 
 
 /**
