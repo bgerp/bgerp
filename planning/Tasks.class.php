@@ -4400,11 +4400,6 @@ class planning_Tasks extends core_Master
         $form->input();
 
         $rec = $form->rec;
-        if(isset($rec->newAssetId)){
-            $form->setField('after', 'input');
-            $tasksInAssetArr = planning_AssetResources::getAssetTaskOptions($rec->newAssetId, false, 'ASC',true);
-            $form->setOptions('after', array('' => '') + $tasksInAssetArr);
-        }
 
         if($form->isSubmitted()){
 
@@ -4412,11 +4407,10 @@ class planning_Tasks extends core_Master
             $tQuery->in('id', $selectedIds);
             $tQuery->show('folderId,productId,assetId');
             $taskFullArr = $tQuery->fetchAll();
-            $refTaskRec = !empty($rec->after) ? planning_Tasks::fetch($rec->after) : null;
 
             // От избраните ПО се проверява, кои могат да се поставят след посочената
-            $tasksToMove = $tasksNotToMove = $errorTaskMoves = array();
-            array_walk($taskFullArr, function($a) use($refTaskRec, $rec, &$tasksToMove, &$tasksNotToMove){
+            $tasksToMove = $tasksNotToMove = array();
+            array_walk($taskFullArr, function($a) use($rec, &$tasksToMove, &$tasksNotToMove){
                 $allowedAssetArr = array();
                 if($Driver = cat_Products::getDriver($a->productId)) {
                     $productionData = $Driver->getProductionData($a->productId);
@@ -4427,38 +4421,14 @@ class planning_Tasks extends core_Master
 
                 // Трябва да са в същия ЦД и машината на операцията да е от позволените
                 $allowedAssetArr = countR($allowedAssetArr) ? $allowedAssetArr : array_keys(planning_AssetResources::getByFolderId($a->folderId, $a->assetId, 'planning_Tasks', true));
-
-                if(!is_object($refTaskRec)){
-                    if(in_array($rec->newAssetId, $allowedAssetArr)){
-                        $tasksToMove[$a->id] = $a;
-                    }
-                } elseif($refTaskRec->folderId == $a->folderId && in_array($refTaskRec->assetId, $allowedAssetArr) && $refTaskRec->id != $a->id) {
+                if(in_array($rec->newAssetId, $allowedAssetArr)){
                     $tasksToMove[$a->id] = $a;
-                }
-
-                if(!array_key_exists($a->id, $tasksToMove)){
+                } else {
                     $tasksNotToMove[$a->id] = "#" . $this->getHandle($a->id);
                 }
             });
 
             $movedArr = array();
-            $tasksByNow = $tasksToInsert = array();
-            array_walk($tasksInAssetArr, function($a, $k) use (&$tasksByNow) {$tasksByNow[$k] = (object)array('id' => $k);});
-            array_walk($tasksToMove, function($a, $k) use (&$tasksToInsert) {$tasksToInsert[$k] = (object)array('id' => $k);});
-
-            $keys = array_keys($tasksByNow);
-            $pos = array_search($rec->after, $keys, true);
-
-            if ($pos === false) {
-                // Ключът не е намерен, вмъкваме в началото
-                $newOrdered = $tasksToInsert + $tasksByNow;
-            } else {
-                // Ключът е намерен, вмъкваме след него
-                $before = array_slice($tasksByNow, 0, $pos+1, true);
-                $after = array_slice($tasksByNow, $pos+1, null, true);
-                $newOrdered = $before + $tasksToInsert + $after;
-            }
-
             foreach ($tasksToMove as $tRec){
                 $tRec->prevAssetId = $tRec->assetId;
                 $tRec->assetId = $rec->newAssetId;
@@ -4470,8 +4440,8 @@ class planning_Tasks extends core_Master
                 $movedArr[] = "#" . $this->getHandle($tRec->id);
             }
 
-            planning_AssetResources::reOrderTasks($rec->newAssetId, $newOrdered, true);
-            planning_AssetResources::reOrderTasks($assetId);
+            //planning_AssetResources::reOrderTasks($rec->newAssetId, $newOrdered, true);
+            //lanning_AssetResources::reOrderTasks($assetId);
 
             if(countR($movedArr)){
                 $msgPart = isset($rec->after) ? "|са преместени след|* #{$this->getHandle($rec->after)}" : "са премести като първи за оборудването";
@@ -4482,11 +4452,6 @@ class planning_Tasks extends core_Master
             if(countR($tasksNotToMove)){
                 $implodedNotMoved = implode(', ', $tasksNotToMove);
                 core_Statuses::newStatus("Следните операции не могат да се преместят след избраната|*: {$implodedNotMoved}", 'warning', null, 180);
-            }
-
-            if(countR($errorTaskMoves)){
-                $implodedErrorMoved = implode(', ', $errorTaskMoves);
-                core_Statuses::newStatus("Имаше проблем при преместването на следните операции|*: {$implodedErrorMoved}", 'error', null, 180);
             }
 
             if($form->cmd == 'saveAndRed'){
