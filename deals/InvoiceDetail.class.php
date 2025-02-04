@@ -694,7 +694,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 if ($countSameProduct) {
                     if($masterRec->type != 'dc_note'){
                         $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа');
-                        unset($rec->packPrice, $rec->price, $rec->quantityInPack);
                     }
                 }
             }
