@@ -88,7 +88,7 @@ defIfNot('DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD', '');
 /**
  * Да се показва ли предупреждение при повтаряне на артикул в бизнес документ
  */
-defIfNot('DEALS_WARNING_ON_DUPLICATED_ROWS', 'no');
+defIfNot('DEALS_WARNING_ON_DUPLICATED_ROWS', 'yes');
 
 
 /**
