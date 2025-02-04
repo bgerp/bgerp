@@ -314,7 +314,7 @@ class hr_Leaves extends core_Master
 
         if (isset($from)) {
             list($dateFrom, ) = explode(' ', $from);
-            if ($dateFrom < $today) {
+            if ($dateFrom > $today) {
 
                 return $emoji;
             }
@@ -322,7 +322,7 @@ class hr_Leaves extends core_Master
 
         if (isset($to)) {
             list($dateTo, ) = explode(' ', $to);
-            if ($dateTo > $today) {
+            if ($dateTo < $today) {
 
                 return $emoji;
             }
