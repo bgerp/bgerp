@@ -223,9 +223,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             $rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 
             // Ако има такъв запис, сетваме грешка
-            $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
-            if ($countSameProduct) {
-                $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа');
+            $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
+            if($setWarning == 'yes'){
+                $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
+                if ($countSameProduct) {
+                    $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа');
+                }
             }
 
             // При редакция, ако е променена опаковката слагаме преудпреждение
