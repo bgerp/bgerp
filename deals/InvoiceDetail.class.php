@@ -693,7 +693,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
                 if ($countSameProduct) {
                     if($masterRec->type != 'dc_note'){
-                        $form->setError('productId', 'Артикулът вече присъства на друг ред в документа');
+                        $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа');
                         unset($rec->packPrice, $rec->price, $rec->quantityInPack);
                     }
                 }
