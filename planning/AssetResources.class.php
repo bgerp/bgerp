@@ -882,7 +882,9 @@ class planning_AssetResources extends core_Master
 
 
     /**
-     * Какъв е работния график на центъра
+     * Какъв е работния график на центъра на оборудването
+     * Ако има индивидуален - него, ако няма този на първия център
+     * който е, ако и такъв няма е дефолтния
      *
      * @param int|stdClass $id - ид или запис
      * @return int|null        - ид на графика
@@ -908,7 +910,9 @@ class planning_AssetResources extends core_Master
             }
         }
 
-        return key($centerSchedules);
+        $scheduleCenterId = key($centerSchedules);
+
+        return $scheduleCenterId ?? hr_Schedules::getDefaultScheduleId();
     }
 
 

@@ -399,6 +399,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::calcTaskLastProgress2504v2',
         'migrate::syncOperatorsWithGroups2504v2',
         'migrate::migrateTaskActualTime2505',
+        'migrate::migrateCenterSchedules2506',
     );
 
 
@@ -641,5 +642,19 @@ class planning_Setup extends core_ProtoSetup
         if(countR($save)){
             $Tasks->saveArray($save, 'id,actualStart');
         }
+    }
+
+
+    /**
+     * Миграция на дефолтния график на центровете на дейност
+     */
+    public function migrateCenterSchedules2506()
+    {
+        $Centers = cls::get('planning_Centers');
+
+        $defaultScheduleId = hr_Schedules::getDefaultScheduleId();
+        $scheduleIdColName = str::phpToMysqlName('scheduleId');
+        $query = "UPDATE {$Centers->dbTableName} SET {$scheduleIdColName} = {$defaultScheduleId} WHERE {$scheduleIdColName} IS NULL";
+        $Centers->db->query($query);
     }
 }

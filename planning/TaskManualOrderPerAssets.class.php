@@ -59,7 +59,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $listFields = 'assetId,taskId,order,createdOn,createdBy';
+    public $listFields = 'assetId,data,createdOn,createdBy';
 
 
     /**
@@ -74,9 +74,9 @@ class planning_TaskManualOrderPerAssets extends core_Master
     public function description()
     {
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
-        $this->FLD('taskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Операция');
+        $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни,input=none');
         $this->FLD('order', 'int', 'caption=Подредба');
 
-        $this->setDbIndex('assetId');
+        $this->setDbUnique('assetId');
     }
 }
