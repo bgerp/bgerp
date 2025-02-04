@@ -65,7 +65,7 @@ class ztm_Setup extends core_ProtoSetup
     /**
      * @var string
      */
-    public $defClasses = 'ztm_SensMonitoring, ztm_StatMonitoring';
+    public $defClasses = 'ztm_SensMonitoring, ztm_StatMonitoring, ztm_SensRegisters';
     
     
     /**

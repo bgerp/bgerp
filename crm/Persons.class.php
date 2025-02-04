@@ -2672,9 +2672,9 @@ class crm_Persons extends core_Master
 
             // Бутон за бързо закриване/откриване на потребителя
             if(crm_Profiles::haveRightFor('closeprofile', $profileRec)) {
-                $profileBtnCaption = ($profileRec->state == 'closed') ? 'Профил (Откриване)' : 'Профил (Закриване)';
+                $profileBtnCaption = ($profileRec->state == 'closed') ? 'Профил (Откр.)' : 'Профил (Закр.)';
                 $icon = ($profileRec->state == 'closed') ? 'img/16/lock_unlock.png' : 'img/16/gray-close.png';
-                $data->toolbar->addBtn($profileBtnCaption, array('crm_Profiles', 'closeprofile', $profileRec->id, 'ret_url' => true), 'id=btnCloseProfile', "ef_icon={$icon},title=Промяна на състоянието на профила на лицето");
+                $data->toolbar->addBtn($profileBtnCaption, array('crm_Profiles', 'closeprofile', $profileRec->id, 'ret_url' => true), 'id=btnCloseProfile', "ef_icon={$icon},title=Промяна на състоянието на профила на лицето,row=2");
             }
         } else {
             
