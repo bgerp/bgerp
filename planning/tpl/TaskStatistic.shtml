@@ -35,18 +35,15 @@
                       <!--ET_END batch-->
                   </div>
                   <div class='clearfix21'></div>
-                  <!--ET_BEGIN mandatoryDocuments-->
-                  <div><span style='font-weight:normal'>|Задължително|*</span>: [#mandatoryDocuments#]</div>
-                  <!--ET_END mandatoryDocuments-->
+                  <!--ET_BEGIN previousJob-->
+                  <span style='font-weight:normal'>[#previousJobCaption#]</span>: [#previousJob#]<br>
+                  <!--ET_END previousJob-->				  
                   <!--ET_BEGIN storeId-->
                   <span style='font-weight:normal'>|В склад|*</span>: [#storeId#]<br>
                   <!--ET_END storeId-->
                   <!--ET_BEGIN wasteProductId-->
                   <span style='font-weight:normal'>|Отпадък|*</span>: [#wasteProductId#]<br>
-                  <!--ET_END wasteProductId-->
-                  <!--ET_BEGIN employees-->
-                  <span style='font-weight:normal'>|Оператори|*</span>: [#employees#]<br>
-                  <!--ET_END employees-->
+                  <!--ET_END wasteProductId-->                  
                   <!--ET_BEGIN followBatchesForFinalProduct-->
                   <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
                   <!--ET_END followBatchesForFinalProduct-->
@@ -103,7 +100,7 @@
                 <td class='sum-th'>|Невложено от предходни операции|*</td>
             </tr>
             <tr>
-                <td style='font-weight:normal;font-size: 0.8em;'>[#dependantProgress#] [#previousTask#]</td>
+                <td style='font-weight:normal;font-size: 0.8em;'>[#dependantProgress#] [#manualPreviousTask#]</td>
                 <td style='font-weight:normal;font-size: 0.8em;'>[#notConvertedFromPreviousTasks#]</td>
             </tr>
         </table>
@@ -114,7 +111,7 @@
 
 <div class="scrolling-holder">
     <div class='sale-summary'>
-        <table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:2px'>
+        <table class='paddingCells' style='margin-bottom:0px;width:100%;margin-top:2px'>
             <tr>
                 <td class='sum-th'><b>|Планирано начало|*</b></td>
                 <td class='sum-th'><b>|Планиран край|*</b></td>
@@ -132,26 +129,23 @@
                     <!--ET_BEGIN startAfter-->
                     <span style='font-weight:normal'>|Започва след|*</span>: [#startAfter#]<br>
                     <!--ET_END startAfter-->
-                    <!--ET_BEGIN previousJob-->
-                    <span style='font-weight:normal'>[#previousJobCaption#]</span>: [#previousJob#]<br>
-                    <!--ET_END previousJob-->
-                    <!--ET_BEGIN lastChangeStateOn-->
-                    <span style='font-weight:normal'>|Променено състояние|*</span>: [#lastChangeStateOn#] |от|* [#lastChangeStateBy#]<br>
-                    <!--ET_END lastChangeStateOn-->
-                    <!--ET_BEGIN actualStart-->
-                    <span style='font-weight:normal'>|Фактическо начало|*</span>: [#actualStart#]<br>
-                    <!--ET_END actualStart-->
-                    <!--ET_BEGIN firstProgress-->
-                    <span style='font-weight:normal'>|Първи прогрес|*</span>: [#firstProgress#]<br>
-                    <!--ET_END firstProgress-->
-                    <!--ET_BEGIN lastProgress-->
-                    <span style='font-weight:normal'>|Последен прогрес|*</span>: [#lastProgress#]<br>
-                    <!--ET_END lastProgress-->
-                    <!--ET_BEGIN lastProgressProduction-->
-                    <span style='font-weight:normal'>|Последен прогрес (Произв.)|*</span>: [#lastProgressProduction#]<br>
-                    <!--ET_END lastProgressProduction-->
+					<!--ET_BEGIN employees-->
+                    <span style='font-weight:normal'>|Оператори|*</span>: [#employees#]<br>
+                    <!--ET_END employees-->
+                    <!--ET_BEGIN mandatoryDocuments-->
+                    <div><span style='font-weight:normal'>|Задължит.док.|*</span>: [#mandatoryDocuments#]</div>
+                    <!--ET_END mandatoryDocuments-->
                 </td>
             </tr>
         </table>
+		<table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:-1px'>
+			<tr>
+				<td class='sum-th'><b>|Прогрес|*</b></td>
+                <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Първи|*</span>: [#firstProgress#]</td>
+                <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Последен|*</span>: [#lastProgress#]</td>
+                <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Последен Произв.|*</span>: [#lastProgressProduction#]</td>
+                <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Променено състояние|*</span>: [#lastChangeStateOn#] |от|* [#lastChangeStateBy#]</td>
+            </tr>
+		</table>
     </div>
 </div>
