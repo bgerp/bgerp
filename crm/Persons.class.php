@@ -956,7 +956,7 @@ class crm_Persons extends core_Master
     public function cron_UpdateCalendarEvents()
     {
         $query = self::getQuery();
-        
+        $query->where("#id = 8");
         while ($rec = $query->fetch()) {
             $res = static::updateBirthdaysToCalendar($rec->id);
             $new += $res['new'];
@@ -999,7 +999,7 @@ class crm_Persons extends core_Master
         $years = array($cYear, $cYear + 1, $cYear + 2);
         
         // Префикс на клучовете за рожденните дни на това лице
-        $prefix = "BD-{$id}";
+        $prefix = "BD-{$id}-";
         
         if ($d > 0 && $m > 0) {
             foreach ($years as $year) {
@@ -1012,7 +1012,7 @@ class crm_Persons extends core_Master
                 $calRec = new stdClass();
                 
                 // Ключ на събитието
-                $calRec->key = $prefix . '-' . $year;
+                $calRec->key = $prefix . $year;
                 
                 // TODO да се проверява за високосна година
                 $calRec->time = date('Y-m-d 00:00:00', mktime(0, 0, 0, $m, $d, $year));
