@@ -262,7 +262,7 @@ class planning_Tasks extends core_Master
     /**
      * Опашка за оборудванията на, които да се преподредят машините
      */
-    protected $reorderTasksInAssetId = array();
+    protected $forceCalcTimes = false;
 
 
     /**
@@ -615,14 +615,6 @@ class planning_Tasks extends core_Master
             if (!empty($dependantTaskArr[$rec->id]['previous'])) {
                 $dependantTask = planning_StepConditions::renderTaskBlock($dependantTaskArr[$rec->id]['previous'], 'bigBar');
                 $row->dependantProgress = implode("", $dependantTask);
-            }
-
-            if (isset($rec->assetId)) {
-                if (planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $rec->assetId)) && !Mode::is('printing')) {
-                    if (!in_array($rec->state, array('draft', 'waiting', 'rejected'))) {
-                        $row->recalcBtn = ht::createLink('', array('planning_AssetResources', 'recalcTimes', $rec->assetId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
-                    }
-                }
             }
 
             if (!Mode::is('printing')) {
@@ -1172,13 +1164,11 @@ class planning_Tasks extends core_Master
         if ($newAssetId = Mode::get("newAsset{$rec->id}")) {
             $rec->prevAssetId = $rec->assetId;
             $rec->assetId = $newAssetId;
+            $rec->orderByAssetId = null;
             Mode::setPermanent("newAsset{$rec->id}", null);
 
-            // Новата и старата машина се заопашават
-            $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
-            if (isset($rec->prevAssetId)) {
-                $this->reorderTasksInAssetId[$rec->prevAssetId] = $rec->prevAssetId;
-            }
+            $this->recalcTaskTimes = true;
+            $updateFields .= ',orderByAssetId';
             $this->logWrite("Промяна на оборудването ", $rec->id);
         }
 
@@ -3454,6 +3444,10 @@ class planning_Tasks extends core_Master
             $mvc->save_($rec, 'orderByAssetId');
         }
 
+        if(isset($rec->_exAssetId) && $rec->assetId != $rec->_exAssetId){
+            $mvc->forceCalcTimes = true;
+        }
+
         // Преизчисляване на продължителноста след промяна
         if($rec->_fromForm){
             planning_TaskConstraints::calcTaskDuration($rec->id);
@@ -3505,6 +3499,7 @@ class planning_Tasks extends core_Master
             $mvc->save_($rec, 'saoOrder');
         }
 
+
         // Копиране на параметрите на артикула към операцията
         if (is_array($rec->_params)) {
             cat_products_Params::saveParams($mvc, $rec);
@@ -3555,15 +3550,10 @@ class planning_Tasks extends core_Master
     {
         core_Debug::startTimer('AFTER_SESSION_TASKS');
 
-        // Задачите към заопашените оборудвания се преподреждат
-        if (countR($mvc->reorderTasksInAssetId)) {
-            core_Debug::startTimer('REORDER_TASK_ASSET_SHUTDOWN');
-            foreach ($mvc->reorderTasksInAssetId as $assetId) {
-                if(isset($assetId)){
-                    planning_AssetResources::reOrderTasks($assetId);
-                }
-            }
-            core_Debug::stopTimer('REORDER_TASK_ASSET_SHUTDOWN');
+        // Рекалкулиране на времената на задачите, ако е указано
+        if ($mvc->forceCalcTimes) {
+            cls::get('planning_AssetResources')->cron_RecalcTaskTimes();
+            unset($mvc->forceCalcTimes);
         }
 
         if (countR($mvc->recalcProducedDetailIndTime)) {
@@ -3574,9 +3564,7 @@ class planning_Tasks extends core_Master
         }
 
         if ($mvc->recalcTaskTimes) {
-            core_Debug::startTimer('TASKS_AFTER_SESSION_RECALC_TIMES');
             cls::get('planning_AssetResources')->cron_RecalcTaskTimes();
-            core_Debug::stopTimer('TASKS_AFTER_SESSION_RECALC_TIMES');
         }
 
         core_Debug::stopTimer('AFTER_SESSION_TASKS');
@@ -3787,13 +3775,6 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $assetId = Request::get('assetId', 'int');
-        if(isset($assetId) && !Request::get('Rejected')){
-            if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $assetId))){
-                if (!Mode::is('isReorder')) {
-                    $data->toolbar->addBtn('Преизчисляване', array('planning_AssetResources', 'recalcTimes', $assetId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
-                }
-            }
-        }
 
         if (Mode::is('isReorder')) {
             $data->toolbar->removeBtn('btnPrint');
@@ -4235,6 +4216,7 @@ class planning_Tasks extends core_Master
             $manualRec = is_object($manualRec) ? $manualRec : (object)array('assetId' => $assetId);
             $manualRec->data = array_combine($inOrderTasks, $inOrderTasks);
             planning_TaskManualOrderPerAssets::save($manualRec);
+            $this->forceCalcTimes = true;
 
             core_Cache::remove('planning_Tasks', "reorderAsset{$assetId}");
             $cu = core_Users::getCurrent();

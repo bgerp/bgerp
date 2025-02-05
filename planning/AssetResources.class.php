@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -70,12 +70,6 @@ class planning_AssetResources extends core_Master
      * Кой има право да разглежда сингъла?
      */
     public $canSingle = 'ceo, planning, support, taskWorker';
-
-
-    /**
-     * Кой има право да форсира преизчисляването на времето?
-     */
-    public $canRecalctime = 'ceo, task, debug';
 
 
     /**
@@ -810,47 +804,6 @@ class planning_AssetResources extends core_Master
 
 
     /**
-     * Преподреждане на операциите към оборудването
-     *
-     * @param int $assetId
-     * @return void
-     */
-    public static function reOrderTasks($assetId, $orderedTaskRecs = null, $alwaysReorder = false, $manualTimes = array())
-    {
-        $assetTasks = is_array($orderedTaskRecs) ? $orderedTaskRecs : static::getAssetTaskOptions($assetId, true);
-
-        $i = 1;
-        $tasksToUpdate = array();
-        $Tasks = cls::get('planning_Tasks');
-        foreach ($assetTasks as &$t) {
-            if ($t->orderByAssetId != $i || $alwaysReorder) {
-                $t->orderByAssetId = $i;
-                $tasksToUpdate[$t->id] = $t;
-            }
-
-            if(is_array($manualTimes['expectedTimeStart']) && array_key_exists($t->id, $manualTimes['expectedTimeStart'])){
-                $t->timeStart = $manualTimes['expectedTimeStart'][$t->id];
-                $Tasks->logWrite('Промяна на целево начало', $t->id);
-            }
-
-            if(is_array($manualTimes['expectedTimeEnd']) && array_key_exists($t->id, $manualTimes['expectedTimeEnd'])){
-                $t->timeEnd = $manualTimes['expectedTimeEnd'][$t->id];
-                $Tasks->logWrite('Промяна на целеви край', $t->id);
-            }
-            $i++;
-        }
-
-        if(countR($tasksToUpdate)){
-            cls::get('planning_Tasks')->saveArray($tasksToUpdate, 'id,orderByAssetId,timeStart,timeEnd');
-        }
-
-        $rec = static::fetchRec($assetId);
-        $rec->lastReorderedTasks = dt::now();
-        cls::get(get_called_class())->save_($rec, 'id,lastReorderedTasks');
-    }
-
-
-    /**
      * Връща опциите за избор на операциите от обордуването
      *
      * @param int $assetId                - ид на оборудване
@@ -968,6 +921,12 @@ class planning_AssetResources extends core_Master
      */
     public function cron_RecalcTaskTimes()
     {
+        // Ако процеса е заключен да не се изпълнява отново
+        if (!core_Locks::get('CALC_TASK_TIMES', 120, 1)) {
+            $this->logNotice('Преизчисляването на времената е заключено от друг процес');
+            return;
+        }
+
         // Извличане на всички ПО годни за планиране
         core_Debug::startTimer('PREPARE_FOR_CYCLE');
         $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate');
@@ -987,13 +946,12 @@ class planning_AssetResources extends core_Master
         }
 
         $scheduledData = planning_TaskConstraints::calcScheduledTimes($tasks, $previousTasks);
-
         $Tasks = cls::get('planning_Tasks');
         foreach ($scheduledData->tasks as $assetId => &$plannedTasks){
             arr::sortObjects($plannedTasks, 'expectedTimeStart', 'ASC');
 
             $order = 1;
-            array_walk($plannedTasks, function($a) use (&$order, $notFoundDate){
+            array_walk($plannedTasks, function($a) use (&$order){
                 if($a->expectedTimeStart == planning_TaskConstraints::NOT_FOUND_DATE){
                     $a->expectedTimeStart = null;
                     $a->expectedTimeEnd = null;
@@ -1008,10 +966,13 @@ class planning_AssetResources extends core_Master
             $this->save_($rec, 'lastRecalcTimes');
         }
 
+        core_Locks::release('CALC_TASK_TIMES');
+
         if(Mode::is('debugOrder')) return $scheduledData;
 
         // Преизчисляване на очаквания падеж на заданията
         planning_Jobs::recalcExpectedDueDates();
+
     }
 
 
