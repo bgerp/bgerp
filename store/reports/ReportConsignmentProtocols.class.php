@@ -167,6 +167,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $recs = array();
 
+        $consignmentDetQuery = store_ConsignmentProtocolDetailsReceived::getQuery()->fetchAll();
+
         bp();
 
         return $recs;
