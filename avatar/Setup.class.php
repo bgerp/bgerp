@@ -86,7 +86,7 @@ class avatar_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Аватари', 'avatar_Plugin', 'core_Users', 'private');
         
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('Avatars', 'Аватари на потребители', 'jpg,jpeg,png,gif,image/*', '3MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('Avatars', 'Аватари на потребители', 'jpg,jpeg,png,gif,webp,image/*', '15MB', 'user', 'every_one');
         
         $Users = cls::get('core_Users');
         $AvatarPlg = cls::get('avatar_Plugin');
