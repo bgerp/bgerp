@@ -3022,8 +3022,6 @@ class planning_Tasks extends core_Master
         if (isset($data->listFilter->rec->folder)) {
             unset($data->listFields['folderId']);
         }
-        //unset($data->listFields['firstProgress']);
-       // unset($data->listFields['lastProgressProduction']);
 
         if (Mode::is('isReorder')) {
             $data->stopListRefresh = true;
@@ -3295,6 +3293,7 @@ class planning_Tasks extends core_Master
                 $row->originId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleJobUrl, 'title' => $jobTitle, 'onmouseUp' => 'selectInnerText(this);'), $jobTitle, true);
             } else {
                 $row->originId = planning_Jobs::getHyperlink($jobRecs[$rec->originId], true);
+                $row->title->append("<br>{$inlineTags[$rec->containerId]}");
             }
 
             $row->jobQuantity = $quantityStr;
