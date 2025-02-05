@@ -1,9 +1,7 @@
 $(document).ready(function () {
     compareDates();
-
+    fillManualTimes();
     sessionStorage.removeItem('sortableOrder');
-
-
 
     $('#backBtn').on('click', function(e) {
         let url = $(this).attr("data-url");
@@ -63,11 +61,12 @@ $(document).ready(function () {
             let params = { orderedTasks: dataIdString, manualTimes: manualTimes};
 
             console.log(url);
-            console.log(params);
+            console.log(dataIdString);
+            console.log(manualTimes);
+
             sessionStorage.removeItem('sortableOrder');
             sessionStorage.removeItem('manualTimes');
 
-            //return;
             let resObj = {};
             resObj['url'] = url;
 
@@ -238,11 +237,6 @@ $(document).ready(function () {
         let promptText = holder.attr("data-prompt-text");
         let currentText = holder.text();
 
-        // Prevent editing if the row is forbidden
-        if (cell.closest('tr').hasClass('state-forbidden')) {
-            return;
-        }
-
         // Show prompt to the user and get new text input
         isPromptOpen = true; // Set flag to indicate the prompt is open
         let newText = prompt(promptText, currentText);
@@ -348,9 +342,15 @@ $(document).ready(function () {
             minDate: 0
         });
 
+        let $span = null;
+
         // 🏗️ Показване на модала при двоен клик
         $(".openModal").on("dblclick", function () {
-            const $span = $(this).closest("td").find("span.modalDateCol");
+            let tr = $(this).closest("tr");
+            let dragging = tr.data("dragging");
+            if(dragging === false) return;
+
+            $span = $(this).closest("td").find("span.modalDateCol");
 
             if ($span.length > 0) {
                 const modalCaption = $span.data("modal-caption");
@@ -359,7 +359,6 @@ $(document).ready(function () {
 
                 // ✅ Вземаме `data-manual-date` или `data-date`
                 const currentDateTime = $span.data("manual-date") || $span.data("date") || "";
-
                 $modalTitle.text(modalCaption);
 
                 // ✅ Нулираме предишните стойности
@@ -429,26 +428,10 @@ $(document).ready(function () {
                 };
 
                 storedData[selectedTaskField][selectedTaskId] = formattedDateTime;
-
                 sessionStorage.setItem('manualTimes', JSON.stringify(storedData));
 
-                // Optional: Process server update
-                let table = document.querySelector("#dragTable");
-                if (table.dataset.url) {
-                    let dataIds = getOrderedTasks();
-                    let resObj = { url: table.dataset.url };
-                    let dataIdString = JSON.stringify(dataIds);
-
-                    let manualTimes = sessionStorage.getItem('manualTimes');
-
-                    let params = {orderedTasks: dataIdString, manualTimes: manualTimes, forceReorder: 1};
-
-                    console.log(params.orderedTasks);
-                    console.log(params.manualTimes);
-
-                    //getEfae().preventRequest = 0;
-                    //getEfae().process(resObj, params);
-                }
+                fillManualTimes();
+                compareDates();
             } else {
                 alert("Грешка: Липсва task ID или task field!");
             }
@@ -493,6 +476,63 @@ function render_forceSort(data)
 
 
 /**
+ * Попълва датата от ръчно въведен елемент
+ */
+function replaceDatesWithManuals(elem, manualValues)
+{
+    let taskId = elem.data('taskId');
+    let manualDate = manualValues[taskId];
+
+    if(manualDate){
+        let oldDate = elem.data('date');
+        elem.attr("data-old-date", oldDate);
+
+        let formattedDateTime = manualDate;
+        let [date, time] = formattedDateTime.split(" ");
+        let [year, month, day] = date.split("-");
+        let [h, i, s] = time.split(":");
+
+        let displayDateTime = `${day}.${month}.${year.slice(2)} ${h}:${i}`;
+        elem.html(displayDateTime);
+        elem.attr("data-date", formattedDateTime);
+        elem.closest("td").addClass("manualTime");
+    }
+
+    if(manualDate === null){
+        let oldDate = elem.data('old-date');
+        if(oldDate){
+            let [date, time] = oldDate.split(" ");
+            let [year, month, day] = date.split("-");
+            let [h, i, s] = time.split(":");
+
+            let displayDateTime = `${day}.${month}.${year.slice(2)} ${h}:${i}`;
+            elem.html(displayDateTime);
+            elem.closest("td").removeClass("manualTime");
+        }
+    }
+}
+
+
+/**
+ * Попълва ръчно въведените времена
+ */
+function fillManualTimes()
+{
+    let manualTimes = sessionStorage.getItem('manualTimes');
+    manualTimes = JSON.parse(manualTimes);
+    if(!manualTimes) return;
+
+    $("span.expectedTimeStartCol").each(function () {
+        replaceDatesWithManuals($(this), manualTimes.expectedTimeStart);
+    });
+
+    $("span.expectedTimeEndCol").each(function () {
+        replaceDatesWithManuals($(this), manualTimes.expectedTimeEnd);
+    });
+}
+
+
+/**
  * Сравняване на датите и оцветяването им
  */
 function compareDates()
@@ -503,12 +543,12 @@ function compareDates()
     for (let i = 0, row; row = table.rows[i]; i++) {
 
         // Get the spans within the row
-        let prevTimeOuterSpan = row.querySelector('td span span.prevExpectedTimeEndCol');
-        let startTimeOuterSpan = row.querySelector('td span span.expectedTimeStartCol');
+        let prevTimeOuterSpan = row.querySelector('td span.prevExpectedTimeEndCol');
+        let startTimeOuterSpan = row.querySelector('td span.expectedTimeStartCol');
         compareDateSpan(prevTimeOuterSpan, startTimeOuterSpan, 'eGroupOne');
 
-        let endTimeOuterSpan = row.querySelector('td span span.expectedTimeEndCol');
-        let nextTimeOuterSpan = row.querySelector('td span span.nextExpectedTimeStartCol');
+        let endTimeOuterSpan = row.querySelector('td span.expectedTimeEndCol');
+        let nextTimeOuterSpan = row.querySelector('td span.nextExpectedTimeStartCol');
         compareDateSpan(endTimeOuterSpan, nextTimeOuterSpan, 'eGroupTwo');
 
         let dueDateSpan = row.querySelector('td span.dueDateCol');

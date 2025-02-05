@@ -566,6 +566,13 @@ class planning_Tasks extends core_Master
                 $row->{$useField} = ht::createHint($row->{$useField}, "Планирания край е след падежа на заданието|*!", 'img/16/red-warning.png');
             }
 
+            if($fields['-single']){
+                if(!empty($rec->timeStart)) {
+                    $row->timeStart = dt::mysql2verbal($rec->timeStart, 'd.m.Y H:i');
+                    $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Зададено е желано начало|*: {$row->timeStart}", 'img/16/pin.png', false);
+                }
+            }
+
             $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
             $durationUom = ($expectedDuration < 60) ? 'seconds' : (($expectedDuration < 3600) ? 'minutes' : 'hours');
             $row->expectedDuration = empty($expectedDuration) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$durationUom},noSmart)")->toVerbal($expectedDuration);
@@ -852,10 +859,6 @@ class planning_Tasks extends core_Master
         if (empty($rec->indTime)) {
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
-
-        Mode::push('text', 'plain');
-        $plannedQuantityVerbal = $mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId);
-        Mode::pop('text');
         $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
         core_Debug::stopTimer('RENDER_VERBAL');
 
@@ -2200,7 +2203,7 @@ class planning_Tasks extends core_Master
                 $cUrl = getCurrentUrl();
                 if(!Mode::get('isReorder')){
                     $cUrl['isFinalSelect'] = 'all';
-                    $cUrl['state'] = 'activeAndPending';
+                    $cUrl['state'] = 'manualOrder';
                     $cUrl['selectPeriod'] = 'gr0';
                     unset($cUrl['folder']);
                     unset($cUrl['search']);
@@ -2212,9 +2215,13 @@ class planning_Tasks extends core_Master
         }
 
         $orderByDir = 'ASC';
+        $stateOptions = arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени', true);
         if (!Request::get('Rejected', 'int')) {
+            if(!Mode::is('isReorder')){
+                unset($stateOptions['manualOrder']);
+            }
             $data->listFilter->FNC('isFinalSelect', 'enum(all=Всички,yes=Финален етап,no=Междинен етап)', 'caption=Вид етап,input');
-            $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
+            $data->listFilter->setOptions('state', $stateOptions);
             $data->listFilter->showFields .= ',state,isFinalSelect';
             $data->listFilter->input('state,isFinalSelect');
             $data->listFilter->setDefault('state', 'activeAndPending');
@@ -2226,7 +2233,7 @@ class planning_Tasks extends core_Master
                     $data->query->where("#isFinal = '{$filter->isFinalSelect}'");
                 }
 
-                if ($filter->state == 'activeAndPending') {
+                if (in_array($filter->state, array('activeAndPending', 'manualOrder'))) {
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif ($filter->state != 'all') {
                     $data->query->where("#state = '{$filter->state}' OR #state = 'rejected'");
@@ -2234,8 +2241,6 @@ class planning_Tasks extends core_Master
                         $orderByField = 'orderByDate';
                         $orderByDir = 'DESC';
                         $orderByDateCoalesce = 'COALESCE(#timeClosed, 0)';
-
-                        //$data->listFields['']
                     }
                 }
 
@@ -3225,10 +3230,10 @@ class planning_Tasks extends core_Master
                 $rowNoteAttr = array('class' => 'notesHolder', 'id' => "notesHolder{$rec->id}", 'data-prompt-text' => tr('Забележка на|*: ') . $mvc->getRecTitle($rec));
                 $rowNoteAttr['data-url'] = $mvc->haveRightFor('edit', $rec) ? toUrl(array($mvc, 'editnotes', $rec->id), 'local') : null;
                 $row->notes = ht::createElement("span", $rowNoteAttr, $row->notes, true);
-                if (!$mvc->haveRightFor('edit', $rec)) {
+                if (!empty($rec->actualStart)) {
                     $row->ROW_ATTR['data-dragging'] = "false";
                     $row->ROW_ATTR['class'] .= " state-forbidden";
-                    $row->ROW_ATTR['style'] = 'opacity:0.2';
+                    $row->ROW_ATTR['style'] = 'opacity:0.7';
                 }
             } else {
                 $row->title = ht::createLink($row->title, $singleUrl, false, $titleAttr);
@@ -3276,9 +3281,6 @@ class planning_Tasks extends core_Master
 
             foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart') as $fld) {
                 $row->{$fld} = $mvc->getDateFieldVerbal($rec, $fld, Mode::is('isReorder'));
-                if(Mode::is('isReorder')){
-                    $row->{$fld} = ht::createElement("span", array('id' => "{$fld}{$rec->id}"), $row->{$fld}, true)->getContent();
-                }
             }
 
             if(!empty($dependantTaskArr[$rec->id]['next'])){
@@ -3371,7 +3373,7 @@ class planning_Tasks extends core_Master
             $res =  $isReorder ? dt::mysql2verbal($datePure, 'd.m.y H:i') : core_Type::getByName('datetime(format=smartTime)')->toVerbal($datePure);
         }
 
-        $attr = array('data-date' => "{$datePure}", 'class' => "{$fld}Col");
+        $attr = array('data-date' => "{$datePure}", 'class' => "{$fld}Col", "id" => "{$fld}{$rec->id}");
         if(in_array($fld, array('expectedTimeStart', 'expectedTimeEnd'))){
             $attr['class'] .= " modalDateCol";
             $attr['data-task-id'] = $rec->id;
@@ -4183,6 +4185,7 @@ class planning_Tasks extends core_Master
     public function act_savereordertasks()
     {
         $success = true;
+        $assetId = null;
         try{
             $this->requireRightFor('savereordertasks');
             $assetId = Request::get('assetId', 'int');
@@ -4201,23 +4204,39 @@ class planning_Tasks extends core_Master
             $manualTimes = json_decode($manualTimes, true);
             $manualTimes = is_array($manualTimes) ? $manualTimes : array('expectedTimeStart' => array(), 'expectedTimeEnd' => array());
 
-            $tasks = array();
+            // Ако има ръчно зададени желани времена, ще се запишат в операциите
             $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
+            $Tasks = cls::get('planning_Tasks');
+            $countSavedManualTasks = 0;
             foreach ($inOrderTasks as $i => $taskId){
-                $tasks[$taskId] = $cachedData['tasks'][$taskId];
+                $save = false;
+                $rec = $cachedData['tasks'][$taskId];
+                if(isset($manualTimes['expectedTimeStart'][$taskId])){
+                    $rec->timeStart = $manualTimes['expectedTimeStart'][$taskId];
+                    $save = true;
+                } elseif(isset($manualTimes['expectedTimeEnd'][$taskId])){
+                    $rec->timeStart = dt::addSecs(-1 * $rec->calcedCurrentDuration, $manualTimes['expectedTimeEnd'][$taskId]);
+                    $save = true;
+                }
+
+                if($save){
+                    $countSavedManualTasks++;
+                    $Tasks->save_($rec, 'timeStart');
+                    $Tasks->logWrite('Задаване на желано начало', $rec->id);
+                }
             }
 
-            core_Debug::startTimer('TASKS_LIVE_REORDER_TASKS');
-            planning_AssetResources::reOrderTasks($assetId, $tasks, true, $manualTimes);
-            unset($this->reorderTasksInAssetId[$assetId]);
-            core_Debug::stopTimer('TASKS_LIVE_REORDER_TASKS');
-            planning_AssetResources::logWrite('Ръчни преподреждане на операциите', $assetId);
+            if($countSavedManualTasks){
+                core_Statuses::newStatus("Задаване на желано начало на |* {$countSavedManualTasks} |операции|*");
+            }
 
-            $this->recalcTaskTimes = true;
-            $count = countR($tasks);
-            core_Statuses::newStatus("Преподредени са|* {$count} |на|* " . planning_AssetResources::getTitleById($assetId));
+            // Запис на потребителската подредба
+            $manualRec = planning_TaskManualOrderPerAssets::fetch("#assetId = {$assetId}");
+            $manualRec = is_object($manualRec) ? $manualRec : (object)array('assetId' => $assetId);
+            $manualRec->data = array_combine($inOrderTasks, $inOrderTasks);
+            planning_TaskManualOrderPerAssets::save($manualRec);
+
             core_Cache::remove('planning_Tasks', "reorderAsset{$assetId}");
-
             $cu = core_Users::getCurrent();
             core_Permanent::remove("folderFilter{$this->className}|{$cu}");
             core_Permanent::remove("isReorderingTasks|{$assetId}|{$cu}");
@@ -4440,9 +4459,6 @@ class planning_Tasks extends core_Master
                 $movedArr[] = "#" . $this->getHandle($tRec->id);
             }
 
-            //planning_AssetResources::reOrderTasks($rec->newAssetId, $newOrdered, true);
-            //lanning_AssetResources::reOrderTasks($assetId);
-
             if(countR($movedArr)){
                 $msgPart = isset($rec->after) ? "|са преместени след|* #{$this->getHandle($rec->after)}" : "са премести като първи за оборудването";
                 $implodedMoved = implode(', ', $movedArr);
@@ -4473,5 +4489,34 @@ class planning_Tasks extends core_Master
         $tpl = $this->renderWrapping($form->renderHtml());
 
         return $tpl;
+    }
+
+
+    /**
+     * След извличане на записите от базата данни
+     */
+    protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    {
+        if(!Mode::is('isReorder') || !countR($data->recs)) return;
+
+        // Най-отпред са винаги тези с фактическо начало
+        $manualOrder = planning_TaskManualOrderPerAssets::fetchField("#assetId = {$data->listFilter->rec->assetId}", 'data');
+        $newRecs = array_filter($data->recs, function ($a) {return isset($a->actualStart);});
+        arr::sortObjects($newRecs, 'actualStart', 'ASC');
+
+        // След това са останалите, които присъстват в потребителската подредба
+        $alreadyOrdered = array();
+        $withoutActualStart = array_diff_key($data->recs, $newRecs);
+        if(is_array($manualOrder)){
+            foreach ($manualOrder as $taskId){
+                if(isset($data->recs[$taskId])){
+                    $alreadyOrdered[$taskId] = $data->recs[$taskId];
+                }
+            }
+        }
+
+        // операциите ще са подредени накрая така: първо с фактическо начало, после ръчно подредените, после останалите
+        $notOrdered = array_diff_key($withoutActualStart, $alreadyOrdered);
+        $data->recs = $newRecs + $alreadyOrdered + $notOrdered;
     }
 }

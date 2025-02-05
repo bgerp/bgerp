@@ -59,7 +59,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $listFields = 'assetId,data,createdOn,createdBy';
+    public $listFields = 'assetId,data,createdBy,createdOn';
 
 
     /**
@@ -78,5 +78,31 @@ class planning_TaskManualOrderPerAssets extends core_Master
         $this->FLD('order', 'int', 'caption=Подредба');
 
         $this->setDbUnique('assetId');
+    }
+
+    /**
+     * Ако отговорника на папката е системата
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $row->assetId = planning_AssetResources::getTitleById($rec->assetId);
+        if(planning_Tasks::haveRightFor('list')){
+            $url = array('planning_Tasks', 'list', 'assetId' => $rec->assetId, 'isFinalSelect' => 'all', 'state' => 'manualOrder', 'selectPeriod' => 'gr0', 'reorder' => true, 'ret_url' => true);
+            $row->assetId = ht::createLink($row->assetId, $url);
+        }
+
+        if(is_array($rec->data)){
+            $tableHtml = "<table>";
+            $count = 1;
+            foreach ($rec->data as $taskId){
+                $taskState = planning_Tasks::fetchField($taskId, 'state');
+                $taskLink = planning_Tasks::getLink($taskId, 0);
+                $taskHandle = "<span class= 'state-{$taskState} document-handler'>{$taskLink->getContent()}</span>";
+                $tableHtml .= "<tr><td>{$count}.</td><td>{$taskHandle}</td></tr>";
+                $count++;
+            }
+            $tableHtml .= "</table>";
+            $row->data = $tableHtml;
+        }
     }
 }

@@ -83,7 +83,7 @@ td {
 
 .state-forbidden,
 .state-forbidden:hover td {
-  background: #777777 !important; }
+  background: #bdbcbc !important; }
 
 .selected,
 .selected:hover {
@@ -303,4 +303,7 @@ tr:hover td {
  */
 #modalSave:active {
   background-color: #1b5e20; }
+
+.manualTime {
+  background-color: #d5ffc3 !important; }
 
