@@ -976,7 +976,7 @@ class crm_Persons extends core_Master
      */
     public static function updateBirthdaysToCalendar($id)
     {
-        if (($rec = static::fetch($id)) && ($rec->state != 'rejected')) {
+        if (($rec = static::fetch($id)) && ($rec->state != 'rejected') && ($rec->state != 'closed')) {
             if ($rec->birthday) {
                 list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
             } else {
