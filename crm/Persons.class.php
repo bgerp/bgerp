@@ -956,7 +956,7 @@ class crm_Persons extends core_Master
     public function cron_UpdateCalendarEvents()
     {
         $query = self::getQuery();
-        $query->where("#id = 8");
+
         while ($rec = $query->fetch()) {
             $res = static::updateBirthdaysToCalendar($rec->id);
             $new += $res['new'];
