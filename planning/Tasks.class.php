@@ -581,7 +581,7 @@ class planning_Tasks extends core_Master
         $calcedDurationUom = ($rec->calcedDuration < 60) ? 'seconds' : (($rec->calcedDuration < 3600) ? 'minutes' : 'hours');
         $row->calcedDuration = core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedDuration);
         if(haveRole('debug')){
-            $row->calcedDuration = ht::createHint($row->calcedDuration, "Текуща|* (debug): " . core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedCurrentDuration));
+            $row->calcedDuration = ht::createHint($row->calcedDuration, "Текуща|* (debug): " . core_Type::getByName("time(uom={$calcedDurationUom},noSmart)")->toVerbal($rec->calcedCurrentDuration), 'noicon');
         }
 
         if(isset($rec->assetId)){
@@ -606,6 +606,12 @@ class planning_Tasks extends core_Master
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
+            foreach (array('firstProgress', 'actualStart', 'lastProgressProduction', 'lastChangeStateOn', 'lastProgress') as $progressFld){
+                if(empty($rec->{$progressFld})) {
+                    $row->{$progressFld} = "<span class='quiet'>n/a</span>";
+                }
+            }
+
             $eFields = static::getExpectedDeviations($rec, true);
             $row->deviationNettoNotice = $eFields['notice'];
             $row->deviationNettoWarning = $eFields['warning'];
@@ -696,8 +702,8 @@ class planning_Tasks extends core_Master
 
             if (isset($rec->wasteProductId)) {
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
-                $row->wasteStart = isset($row->wasteStart) ? $row->wasteStart : 'n/a';
-                $row->wastePercent = isset($row->wastePercent) ? $row->wastePercent : 'n/a';
+                $row->wasteStart = $row->wasteStart ?? 'n/a';
+                $row->wastePercent = $row->wastePercent ?? 'n/a';
                 $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
             }
 
