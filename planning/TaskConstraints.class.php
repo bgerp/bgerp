@@ -725,7 +725,7 @@ class planning_TaskConstraints extends core_Master
 
 
                 // Подредба по падеж във възходящ ред
-                arr::sortObjects($assetTasks, 'dueDate', 'ASC');
+
                 // квантувам ги по седмица (от оборудването) и във всяка седмица подреждане базирано
                 // на потребителската подредба, след това по тази на заданието
             }
@@ -733,8 +733,12 @@ class planning_TaskConstraints extends core_Master
             $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
             $debugRes .= "<hr />ИТЕРАЦИЯ КРАЙ <b>{$i}</b> ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
             $i++;
+
+            if($i == 5) break;
         } while($countWithoutActualStart);
 
+        echo $debugRes;
+        bp();
         core_Debug::stopTimer('START_CYCLE');
         core_Debug::log("END START_CYCLE " . round(core_Debug::$timers["START_CYCLE"]->workingTime, 6));
 
