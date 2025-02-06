@@ -847,8 +847,14 @@ class cat_Boms extends core_Master
             }
         }
 
-        if ($rec->expenses) {
-            $resources['expenses'] = $rec->expenses;
+        $expenses = $rec->expenses;
+        if(!$expenses){
+            $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
+            $expenses = $defaultOverheadCost['overheadCost'];
+        }
+
+        if ($expenses) {
+            $resources['expenses'] = $expenses;
         }
         
         // Връщаме намерените ресурси
