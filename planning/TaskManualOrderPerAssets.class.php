@@ -106,4 +106,27 @@ class planning_TaskManualOrderPerAssets extends core_Master
             $row->data = $tableHtml;
         }
     }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param bgerp_Bookmark $mvc
+     * @param object         $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->title = 'Търсене';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $assetOptions = planning_AssetResources::getUsedAssetsInTasks();
+        $data->listFilter->setOptions('assetId', $assetOptions);
+        $data->listFilter->showFields = 'assetId';
+        $data->listFilter->input();
+
+        $rec = $data->listFilter->rec;
+        if(isset($rec->assetId)){
+            $data->query->where("#assetId = {$rec->assetId}");
+        }
+    }
 }

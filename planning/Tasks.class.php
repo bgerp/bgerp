@@ -2193,7 +2193,8 @@ class planning_Tasks extends core_Master
             if (isset($filter->assetId)) {
                 $mvc->listItemsPerPage = 2000;
                 $data->query->where("#assetId = {$filter->assetId}");
-                $orderByField = 'orderByAssetId';
+                $data->query->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 1000+#id)");
+                $orderByField = 'orderByAssetIdCalc';
 
                 $cUrl = getCurrentUrl();
                 if(!Mode::get('isReorder')){
