@@ -13,9 +13,10 @@
                <!--ET_BEGIN toDate-->
                <small class='quiet2'>( |наличности към края на|* <b>[#toDate#]</b> )</small>
                <!--ET_END toDate-->
-               <!--ET_BEGIN groups--><div class="small" style="margin-top:5px;"><span class="quiet">|Група|*</span>: [#groups#]</div><!--ET_END groups-->
-               <div class="small no-print"><span class="quiet">|Разпъване по партиди|*</span>: [#expandByBatches#]</span></div>
-               <div class="small no-print"><span class="quiet">|Подредба в групите|*</span>: [#orderProductBy#]</span></div>
+               <!--ET_BEGIN groups--><div class="small" style="margin-top:5px;"><span class="quiet">|Група|*</span>: [#groups#]<!--ET_END groups-->
+               <div class="small no-print"><span class="quiet">|Разпъване по партиди|*</span>: [#expandByBatches#]</div>
+               <div class="small no-print"><span class="quiet">|Подредба в групите|*</span>: [#orderProductBy#]</div>
+               <div class="small no-print"><span class="quiet">|Очаквани количества|*</span>: [#quantitiesFilter#]</div>
            </td>
       </tr>
       <tr>
