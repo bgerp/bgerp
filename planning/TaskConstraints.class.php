@@ -500,18 +500,23 @@ class planning_TaskConstraints extends core_Master
 
     public static function calcScheduledTimes($tasks, $previousTasks)
     {
-
-
         // Извличат се графиците на всички ПО с интервали за планиране
         $assetIds = arr::extractValuesFromArray($tasks, 'assetId');
         $intervals = $assets = array();
         foreach ($assetIds as $assetId) {
-            $assets[$assetId] = planning_AssetResources::fetchField($assetId, 'code');
+            $assets[$assetId] = planning_AssetResources::fetch($assetId, 'code,taskQuantization');
             if($Interval = planning_AssetResources::getWorkingInterval($assetId)) {
                 $intervals[$assetId] = $Interval;
             }
         }
 
+        // Извлича се ръчната подредба по машини
+        $manualQuery = planning_TaskManualOrderPerAssets::getQuery();
+        while($manualRec = $manualQuery->fetch()){
+            if(isset($assets[$manualRec->assetId])){
+                $assets[$manualRec->assetId]->manualOrder = $manualRec->data;
+            }
+        }
 
         // От операциите остават само тези, които са на машини с закачени графици
         // Попринцип не би трябвало да има машина без график, но за всеки случай
@@ -555,24 +560,13 @@ class planning_TaskConstraints extends core_Master
             $begin = max($taskRec1->actualStart, $now);
 
             if($Interval = $intervals[$taskRec1->assetId]){
-                $offset = isset($interruptionArr[$taskRec1->productId]) ?? null;
+                $offset = array_key_exists($taskRec1->productId, $interruptionArr) ? $interruptionArr[$taskRec1->productId] : null;
                 $beginDate = $begin;
                 $begin = strtotime($begin);
 
-                $debugRes .= "{$taskLinks[$taskRec1->id]} храни <b>[{$assets[$taskRec1->assetId]}]($taskRec1->assetId)</b> с начало {$beginDate} / прод. {$taskRec1->calcedCurrentDuration} <br />";
-                $timeArr = $Interval->consume($taskRec1->calcedCurrentDuration, $begin, null, $offset);
-
-                // Опит за смятане на очакваното начало/край. Ако не може значи е `9999-12-31 23:59:59`
-                $planned[$taskRec1->id] = (object)array('id' => $taskRec1->id, 'assetId' => $taskRec1->assetId, 'calcedCurrentDuration' => $taskRec1->calcedCurrentDuration, 'expectedTimeStart' => $notFoundDate, 'expectedTimeEnd' => $notFoundDate);
-                if(is_array($timeArr)){
-                    $planned[$taskRec1->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
-                    $planned[$taskRec1->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
-                    $debugRes .="--------Изчислено за S: <b>{$planned[$taskRec1->id]->expectedTimeStart}</b> / Е: <b>{$planned[$taskRec1->id]->expectedTimeEnd}</b> <br />";
-                } else {
-                    $debugRes .="--------Не е изчислено начало/край<br />";
-                }
+                $debugRes .= "{$taskLinks[$taskRec1->id]} храни <b>[{$assets[$taskRec1->assetId]->code}]($taskRec1->assetId)</b> с начало {$beginDate} / прод. {$taskRec1->calcedCurrentDuration} ";
+                $debugRes .= static::feedToInterval($taskRec1, $begin, $offset, $Interval, $planned);
                 $plannedByAssets[$taskRec1->assetId][$taskRec1->id] = $planned[$taskRec1->id];
-                $debugRes .= "<hr />";
                 $debugArr[$taskRec1->assetId][$taskRec1->id] = $planned[$taskRec1->id]->expectedTimeStart;
             }
         }
@@ -586,7 +580,7 @@ class planning_TaskConstraints extends core_Master
 
             foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
                 if(!countR($assetTasks)) continue;
-                $debugRes .= " Слагане на задачи на <b>{$assets[$assetId]}</b><br />";
+                $debugRes .= " Слагане на задачи на <b>{$assets[$assetId]->code}</b><br />";
                 $Interval = $intervals[$assetId];
 
                 // След това тези с желано начало се преместват най-отпред
@@ -601,6 +595,7 @@ class planning_TaskConstraints extends core_Master
                 $sortedArr = $withStart + $withoutStart;
 
                 // Сортираните задачи се обикалят и се проверява изпълнени ли са им ограниченията
+                $plannable = array();
                 foreach ($sortedArr as $task){
                     $previousTasksAreInTheFuture = false;
                     $isPlannable = true;
@@ -653,36 +648,76 @@ class planning_TaskConstraints extends core_Master
                         $startTime = max($calcedTimes);
                     }
 
-                    $offset = isset($interruptionArr[$task->productId]) ?? null;
-                    $begin = strtotime($startTime);
-                    $planned[$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => $notFoundDate, 'expectedTimeEnd' => $notFoundDate);
-
-                    // Ако не оставена извън графика ще се захрани графика с нейното време и продължителност
-                    if(!$previousTasksAreInTheFuture){
-                        $debugRes .= "{$taskLinks[$task->id]} храни <b>[{$assets[$task->assetId]}]($task->assetId)</b> с начало {$startTime} / прод. {$task->calcedCurrentDuration} <br />";
-                        $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $offset);
-                        if(is_array($timeArr)){
-                            $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
-                            $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
-                            $debugRes .="--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />";
-                        } else {
-                            $debugRes .="--------Не е изчислено начало/край<br />";
-                        }
-                    } else {
-                        // Ако е изчислена да е извън графика - няма да се подава на него
+                    if($previousTasksAreInTheFuture){
                         $debugRes .= "{$taskLinks[$task->id]}--------Е ИЗВЪН ГРАФИКА<br />";
+                        $plannedByAssets[$assetId][$task->id] = $planned[$task->id];
+                        unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
+                        continue;
                     }
 
-                    $plannedByAssets[$assetId][$task->id] = $planned[$task->id];
-                    unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
-
-                    $debugRes .= "<hr />";
+                    $task->_plannedTime = $startTime;
+                    $plannable[$task->id] = $task;
                 }
+
+                $debugRes .= "Планируеми: " . countR($plannable). "<br />";
+
+                // Сортират се по-планирано след и после се квантуват спрямо указаното в оборудването
+                arr::sortObjects($plannable, '_plannedTime', 'ASC');
+                $quantizedArr = static::quantizeByDate($plannable, '_plannedTime', $assets[$assetId]->taskQuantization);
+
+                $debugRes .= "-----Квантуване по: {$assets[$assetId]->taskQuantization} [" . countR($quantizedArr) . "]<br />";
+                $carryOver = array();
+                foreach ($quantizedArr as $quant => $objects) {
+                    // Обединяваме текущите остатъци с обектите от текущия квант
+                    $objects = $carryOver + $objects;
+
+                    // Преподреждане на кванта
+                    $manualOrderStr = "";
+                    if(isset($assets[$assetId]->manualOrder)){
+                        $manualOrderStr = 'приложена ръчна подредба';
+                        $objects = arr::reorderArrayByOrderedKeys($objects, $assets[$assetId]->manualOrder);
+                    }
+
+                    $debugRes .= "-----Квант: {$quant} - " . implode(',', array_keys($objects)). " [{$manualOrderStr}]<br />";
+
+                    // Разделяне обектите на две половини
+                    $half = (int) ceil(count($objects) / 2);
+                    $firstHalf = array_slice($objects, 0, $half, true);
+                    $carryOver = array_slice($objects, $half, null, true);
+
+                    foreach ($firstHalf as $task) {
+                        $offset = array_key_exists($task->productId, $interruptionArr) ? $interruptionArr[$task->productId] : null;
+                        $debugRes .= "{$taskLinks[$task->id]} храни <b>[{$assets[$task->assetId]->code}]($task->assetId)</b> с начало {$task->_plannedTime} / прод. {$task->calcedCurrentDuration} <br />";
+                        $begin = strtotime($task->_plannedTime);
+                        $debugRes .= self::feedToInterval($task, $begin, $offset, $Interval, $planned);
+
+                        $plannedByAssets[$assetId][$task->id] = $planned[$task->id];
+                        unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
+                    }
+                }
+
+                if(countR($carryOver)){
+                    $debugRes .= "-----Квант ОСТАТЪК - " . implode(',', array_keys($carryOver)) . "<br />";
+                }
+
+
+                foreach ($carryOver as $t1) {
+                    $offset = array_key_exists($t1->productId, $interruptionArr) ? $interruptionArr[$t1->productId] : null;
+                    $debugRes .= "{$taskLinks[$t1->id]} храни <b>[{$assets[$t1->assetId]->code}]($t1->assetId)</b> с начало {$t1->_plannedTime} / прод. {$t1->calcedCurrentDuration} <br />";
+                    $begin = strtotime($t1->_plannedTime);
+                    $debugRes .= self::feedToInterval($t1, $begin, $offset, $Interval, $planned);
+                    $plannedByAssets[$assetId][$t1->id] = $planned[$t1->id];
+                    unset($tasksWithoutActualStartByAssetId[$assetId][$t1->id]);
+                }
+
+
+                // След като се извлекат всички операции, за които е изчислено "Планиране след",
+                // те се подреждат първо по "Планиране след" и след това по реда в който се срещат в "Подредба".
+                // В получената последователност те хранят графиците на машините и получават времена"Планирано начало" и "Планиран край"
 
                 // От планируемите ги групирам по седмици, във всяка седмица ги подреждам
                 // първо по потребителя после по падежа на заданието
                 // тогава храня графика
-
 
                 //@todo потребителската подредба
                 // подреждам първо тези с потребителска
@@ -693,8 +728,6 @@ class planning_TaskConstraints extends core_Master
                 arr::sortObjects($assetTasks, 'dueDate', 'ASC');
                 // квантувам ги по седмица (от оборудването) и във всяка седмица подреждане базирано
                 // на потребителската подредба, след това по тази на заданието
-
-
             }
 
             $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
@@ -709,6 +742,47 @@ class planning_TaskConstraints extends core_Master
     }
 
 
+    private static function feedToInterval($task, $begin, $offset, &$Interval, &$planned)
+    {
+        $planned[$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_FOUND_DATE, 'expectedTimeEnd' => self::NOT_FOUND_DATE);
+
+        $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $offset);
+        if(is_array($timeArr)){
+            $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
+            $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
+            return "--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />";
+        }
+
+        return "--------Не е изчислено начало/край<br />";
+    }
+
+
+    private static function quantizeByDate($plannable, $field, $type)
+    {
+        expect(in_array($type, array('day', 'weekly', 'month')), $type);
+        $result = array();
+
+        foreach ($plannable as $key => $object) {
+            if (!isset($object->{$field}) || strtotime($object->{$field}) === false) continue;
+
+            $date = new DateTime($object->$field);
+            switch ($type) {
+                case 'day':
+                    $bucket = $date->format('Y-m-d');
+                    break;
+                case 'weekly':
+                    $bucket = $date->format('o-\WW'); // Година + седмица
+                    break;
+                default:
+                    $bucket = $date->format('Y-m');
+            }
+
+            $result[$bucket][$key] = $object;
+        }
+
+        return $result;
+    }
+
     function act_Order()
     {
         requireRole('debug');
@@ -719,11 +793,5 @@ class planning_TaskConstraints extends core_Master
 
         echo $res->debug;
         bp($res->tasks);
-    }
-
-
-    function act_Test()
-    {
-        cls::get('planning_Setup')->migrateTaskActualTime2505();
     }
 }
