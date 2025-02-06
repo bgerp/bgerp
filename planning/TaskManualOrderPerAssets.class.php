@@ -2,7 +2,7 @@
 
 
 /**
- * Модел за ограничения на ПО
+ * Модел за Ръчната подредба на ПО
  *
  * @category  bgerp
  * @package   planning
@@ -79,6 +79,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
 
         $this->setDbUnique('assetId');
     }
+
 
     /**
      * Ако отговорника на папката е системата

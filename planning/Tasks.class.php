@@ -1163,7 +1163,6 @@ class planning_Tasks extends core_Master
     {
         core_Debug::startTimer('UPDATE_TASK_MASTER');
         $rec = $this->fetch($id);
-        $originalProgress = $rec->progress;
         $updateFields = 'totalQuantity,totalWeight,totalNetWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy,prevAssetId,assetId,lastProgress,lastProgressProduction,firstProgress';
 
         // Ако е записано в сесията, че е подменена машината да се подмени и в операцията
@@ -1173,7 +1172,7 @@ class planning_Tasks extends core_Master
             $rec->orderByAssetId = null;
             Mode::setPermanent("newAsset{$rec->id}", null);
 
-            $this->recalcTaskTimes = true;
+            $this->forceCalcTimes = true;
             $updateFields .= ',orderByAssetId';
             $this->logWrite("Промяна на оборудването ", $rec->id);
         }
@@ -3566,10 +3565,6 @@ class planning_Tasks extends core_Master
                 planning_ProductionTaskDetails::recalcIndTime($rec->id, 'production', $rec->productId);
                 core_Statuses::newStatus('Нормата е променена. Преизчислени са заработките на прогреса|*!');
             }
-        }
-
-        if ($mvc->recalcTaskTimes) {
-            cls::get('planning_AssetResources')->cron_RecalcTaskTimes();
         }
 
         core_Debug::stopTimer('AFTER_SESSION_TASKS');
