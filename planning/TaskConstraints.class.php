@@ -660,6 +660,7 @@ class planning_TaskConstraints extends core_Master
                 }
 
                 $debugRes .= "Планируеми: " . countR($plannable). "<br />";
+                if(!countR($plannable)) continue;
 
                 // Сортират се по-планирано след и после се квантуват спрямо указаното в оборудването
                 arr::sortObjects($plannable, '_plannedTime', 'ASC');
@@ -734,7 +735,7 @@ class planning_TaskConstraints extends core_Master
             $debugRes .= "<hr />ИТЕРАЦИЯ КРАЙ <b>{$i}</b> ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
             $i++;
 
-            if($i == 5) break;
+            if($i == 10) break;
         } while($countWithoutActualStart);
 
         echo $debugRes;
