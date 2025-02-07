@@ -628,7 +628,7 @@ class planning_TaskConstraints extends core_Master
 
                                     // Ако е планирана предходната се калкулира за какво време е планирана
                                     $debugStr .= "|{$taskLinks[$prevId]} planned: {$plannedPrevTime} - offset {$prevTask->waitingTime}|";
-                                    $plannedPrevTime = dt::addSecs($prevTask->waitingTime, $plannedPrevTime);
+                                    $plannedPrevTime = ($plannedPrevTime == static::NOT_FOUND_DATE) ? static::NOT_FOUND_DATE : dt::addSecs($prevTask->waitingTime, $plannedPrevTime);
                                     $calcedTimes[$plannedPrevTime] = $plannedPrevTime;
                                 //}
                             }
