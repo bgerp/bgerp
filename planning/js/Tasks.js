@@ -359,7 +359,7 @@ $(document).ready(function () {
                 selectedTaskField = $span.data("task-field");
 
                 // ✅ Вземаме `data-manual-date` или `data-date`
-                const currentDateTime = $span.data("manual-date") || $span.data("date") || "";
+                const currentDateTime = $span.data("date") || "";
                 $modalTitle.text(modalCaption);
 
                 // ✅ Нулираме предишните стойности
@@ -368,7 +368,11 @@ $(document).ready(function () {
 
                 // 🕒 Ако има `data-manual-date`, попълваме го
                 if (currentDateTime) {
-                    const [date, time] = currentDateTime.split(" ");
+                    console.log("BEFORE " + currentDateTime);
+                    let currentDateTime1 = currentDateTime.replace('T', ' ');
+
+                    console.log("C " + currentDateTime1);
+                    const [date, time] = currentDateTime1.split(" ");
                     const [year, month, day] = date.split("-");
                     const formattedDate = `${day}.${month}.${year}`;
                     const formattedTime = time.substring(0, 5);
@@ -488,7 +492,7 @@ function replaceDatesWithManuals(elem, manualValues)
     let manualDate = manualValues[taskId];
 
     if(manualDate){
-        let oldDate = elem.data('date');
+        let oldDate = elem.text();
         elem.attr("data-old-date", oldDate);
 
         let formattedDateTime = manualDate;
@@ -506,21 +510,19 @@ function replaceDatesWithManuals(elem, manualValues)
     if(manualDate === null){
         let oldDate = elem.data('old-date');
         if(oldDate){
-
-            oldDate.replace(' ', 'T');
-
             console.log('OLD ' + oldDate);
-            let [date, time] = oldDate.split("T");
-            let [year, month, day] = date.split("-");
-            if(time){
-                let [h, i, s] = time.split(":");
-            } else {
-                let h = '00';
-                let i = '00';
-            }
+            //let [date, time] = oldDate.split(" ");
+            //let [year, month, day] = date.split("-");
 
-            let displayDateTime = `${day}.${month}.${year.slice(2)} ${h}:${i}`;
-            elem.html(displayDateTime);
+           // if(time){
+                //let [hour, min, s] = time.split(":");
+            //} else {
+              //  let hour = '00';
+                //let min = '00';
+           // }
+
+            //let displayDateTime = `${day}.${month}.${year.slice(2)} ${hour}:${min}`;
+            elem.html(oldDate);
             elem.closest("td").removeClass("manualTime");
         }
     }

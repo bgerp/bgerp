@@ -3375,10 +3375,8 @@ class planning_Tasks extends core_Master
             $attr['data-task-field'] = $fld;
             if(!empty($rec->timeStart)){
                 $res = ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent() . " " . $res;
-                $attr['data-manual-date'] = "{$datePure}";
             } elseif(!empty($rec->timeEnd)){
                 $res = ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent() . " " . $res;
-                $attr['data-manual-date'] = "{$datePure}";
             }
             $attr['data-modal-caption'] = ($fld == 'expectedTimeStart') ? tr('Ново целево начало за') : tr('Нов целеви край за');
             $attr['data-modal-caption'] .= ": #" . $this->getTitleById($rec->id);
