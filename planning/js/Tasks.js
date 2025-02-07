@@ -419,7 +419,8 @@ $(document).ready(function () {
                 let formattedDateTime = null;
                 if (selectedDate && selectedTime1) {
                     const [day, month, year] = selectedDate.split(".");
-                    formattedDateTime = `${year}-${month}-${day} ${selectedTime1}:00`;
+                    formattedDateTime = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${selectedTime1}:00`;
+                    console.log("Formatted DateTime:", formattedDateTime);
                 }
 
 
