@@ -419,15 +419,11 @@ $(document).ready(function () {
                 let formattedDateTime = null;
                 if (selectedDate && selectedTime1) {
                     const [day, month, year] = selectedDate.split(".");
-                    const [hours, minutes] = selectedTime1.split(":");
-
-                    formattedDateTime = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}/${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:00`;
-
-                    // Форматиране в желания вид: YYYY-MM-DD HH:MM:SS
-                    //formattedDateTime = dateObj.toISOString().slice(0, 19).replace("T", " ");
+                    formattedDateTime = `${year}-${month}-${day}T${selectedTime1}:00`;
                 }
 
-                console.log("SEL D " + selectedDate + " T: " + selectedTime + "T1: " +  selectedTime1 + "F: " + formattedDateTime);
+                console.log("SEL D" + selectedDate + " T:" + selectedTime + "T1:" +  + "F:" + formattedDateTime);
+
 
 
                 let storedData = sessionStorage.getItem('manualTimes');
@@ -498,20 +494,11 @@ function replaceDatesWithManuals(elem, manualValues)
 
         let formattedDateTime = manualDate;
         console.log('REPLACE ' + oldDate + ' WITH ' + formattedDateTime);
-
-
-        let [date, time] = formattedDateTime.split(" ");
+        let [date, time] = formattedDateTime.split("T");
         let [year, month, day] = date.split("-");
         let [h, i, s] = time.split(":");
 
-
-        const dateObj = new Date(Date.UTC(year, month - 1, day, h, i));
-
-        let formattedDate = `${dateObj.getDate().toString().padStart(2, "0")}.${(dateObj.getMonth() + 1).toString().padStart(2, "0")}.${dateObj.getFullYear().toString().slice(-2)}`;
-        let formattedTime = `${dateObj.getHours()}:${dateObj.getMinutes().toString().padStart(2, "0")}`;
-
-        let displayDateTime = `${formattedDate} ${formattedTime}`;
-
+        let displayDateTime = `${day}.${month}.${year.slice(2)} ${h}:${i}`;
         elem.html(displayDateTime);
         elem.attr("data-date", formattedDateTime);
         elem.closest("td").addClass("manualTime");
