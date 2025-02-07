@@ -667,7 +667,7 @@ class planning_TaskConstraints extends core_Master
                     // Преподреждане на кванта
                     $manualOrderStr = "";
                     if(isset($assets[$assetId]->manualOrder)){
-                        $manualOrderStr = 'приложена ръчна подредба';
+                        $manualOrderStr = "приложена ръчна подредба " . countR($assets[$assetId]->manualOrder);
                         $objects = arr::reorderArrayByOrderedKeys($objects, $assets[$assetId]->manualOrder);
                     }
 
