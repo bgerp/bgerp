@@ -506,10 +506,14 @@ class planning_TaskConstraints extends core_Master
         // Извличат се графиците на всички ПО с интервали за планиране
         $assetIds = arr::extractValuesFromArray($tasks, 'assetId');
         $intervals = $assets = array();
-        foreach ($assetIds as $assetId) {
-            $assets[$assetId] = planning_AssetResources::fetch($assetId, 'code,taskQuantization');
-            if($Interval = planning_AssetResources::getWorkingInterval($assetId)) {
-                $intervals[$assetId] = $Interval;
+
+        $assetQuery = planning_AssetResources::getQuery();
+        $assetQuery->in('id', $assetIds);
+        $assetQuery->show("code,taskQuantization");
+        while($aRec = $assetQuery->fetch()){
+            $assets[$aRec->id] = $aRec;
+            if($Interval = planning_AssetResources::getWorkingInterval($aRec->id)) {
+                $intervals[$aRec->id] = $Interval;
             }
         }
 

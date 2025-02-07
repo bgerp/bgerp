@@ -937,6 +937,7 @@ class planning_AssetResources extends core_Master
 
         // Еднократно извличане на всички ограничения
         $query = planning_TaskConstraints::getQuery();
+        $query->where("#type != 'earliest'");
         $constraintsArr = $query->fetchAll();
 
         // Разделяне на ограниченията на ПО-та
