@@ -561,7 +561,6 @@ class planning_TaskConstraints extends core_Master
             if($Interval = $intervals[$taskRec1->assetId]){
                 $offset = array_key_exists($taskRec1->productId, $interruptionArr) ? $interruptionArr[$taskRec1->productId] : null;
                 $beginDate = $begin;
-                $begin = strtotime($begin);
 
                 //$debugRes .= "{$taskLinks[$taskRec1->id]} храни <b>[{$assets[$taskRec1->assetId]->code}]($taskRec1->assetId)</b> с начало {$beginDate} / прод. {$taskRec1->calcedCurrentDuration} ";
                 //$debugRes .=
@@ -620,18 +619,18 @@ class planning_TaskConstraints extends core_Master
                                 $isPlannable = false;
                                 $debugStr .= "|{$taskLinks[$prevId]} not planned|";
                             } else {
-                                if($plannedPrevTime == static::NOT_FOUND_DATE){
+                                //if($plannedPrevTime == static::NOT_FOUND_DATE){
 
                                     // Ако предходната е планирана извън графика - то и тази ще е извън графика
-                                    $previousTasksAreInTheFuture = true;
-                                    $debugStr .= "|{$taskLinks[$prevId]} planned: <b>ИЗВЪН</b> - offset {$prevTask->waitingTime}|";
-                                } else {
+                                    //$previousTasksAreInTheFuture = true;
+                                    //$debugStr .= "|{$taskLinks[$prevId]} planned: <b>ИЗВЪН</b> - offset {$prevTask->waitingTime}|";
+                                //} else {
 
                                     // Ако е планирана предходната се калкулира за какво време е планирана
                                     $debugStr .= "|{$taskLinks[$prevId]} planned: {$plannedPrevTime} - offset {$prevTask->waitingTime}|";
                                     $plannedPrevTime = dt::addSecs($prevTask->waitingTime, $plannedPrevTime);
                                     $calcedTimes[$plannedPrevTime] = $plannedPrevTime;
-                                }
+                                //}
                             }
                         }
 
@@ -649,11 +648,11 @@ class planning_TaskConstraints extends core_Master
                     }
 
                     if($previousTasksAreInTheFuture){
-                        $debugRes .= "{$taskLinks[$task->id]}--------Е ИЗВЪН ГРАФИКА<br />";
-                        $planned[$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_FOUND_DATE, 'expectedTimeEnd' => self::NOT_FOUND_DATE);
-                        $plannedByAssets[$assetId][$task->id] = $planned[$task->id];
-                        unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
-                        continue;
+                        //$debugRes .= "{$taskLinks[$task->id]}--------Е ИЗВЪН ГРАФИКА<br />";
+                        //$planned[$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_FOUND_DATE, 'expectedTimeEnd' => self::NOT_FOUND_DATE);
+                        //$plannedByAssets[$assetId][$task->id] = $planned[$task->id];
+                        //unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
+                        //continue;
                     }
 
                     $task->_plannedTime = $startTime;
@@ -690,8 +689,7 @@ class planning_TaskConstraints extends core_Master
                     foreach ($firstHalf as $task) {
                         $offset = array_key_exists($task->productId, $interruptionArr) ? $interruptionArr[$task->productId] : null;
                         $debugRes .= "{$taskLinks[$task->id]} храни <b>[{$assets[$task->assetId]->code}]($task->assetId)</b> с начало {$task->_plannedTime} / прод. {$task->calcedCurrentDuration} <br />";
-                        $begin = strtotime($task->_plannedTime);
-                        $debugRes .= self::feedToInterval($task, $begin, $offset, $Interval, $planned);
+                        $debugRes .= self::feedToInterval($task, $task->_plannedTime, $offset, $Interval, $planned);
 
                         $plannedByAssets[$assetId][$task->id] = $planned[$task->id];
                         unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
@@ -706,8 +704,8 @@ class planning_TaskConstraints extends core_Master
                 foreach ($carryOver as $t1) {
                     $offset = array_key_exists($t1->productId, $interruptionArr) ? $interruptionArr[$t1->productId] : null;
                     $debugRes .= "{$taskLinks[$t1->id]} храни <b>[{$assets[$t1->assetId]->code}]($t1->assetId)</b> с начало {$t1->_plannedTime} / прод. {$t1->calcedCurrentDuration} <br />";
-                    $begin = strtotime($t1->_plannedTime);
-                    $debugRes .= self::feedToInterval($t1, $begin, $offset, $Interval, $planned);
+
+                    $debugRes .= self::feedToInterval($t1, $t1->_plannedTime, $offset, $Interval, $planned);
                     $plannedByAssets[$assetId][$t1->id] = $planned[$t1->id];
                     unset($tasksWithoutActualStartByAssetId[$assetId][$t1->id]);
                 }
@@ -751,6 +749,7 @@ class planning_TaskConstraints extends core_Master
     private static function feedToInterval($task, $begin, $offset, &$Interval, &$planned)
     {
         $planned[$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_FOUND_DATE, 'expectedTimeEnd' => self::NOT_FOUND_DATE);
+        $begin = strtotime($begin);
 
         $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $offset);
         if(is_array($timeArr)){
