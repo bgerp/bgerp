@@ -852,7 +852,7 @@ class cal_Calendar extends core_Master
     	$type = strtoupper($country);
     	
     	if ($type == 'BG') {
-            $query->where("#time = '{$time}' AND (#type = 'holiday' OR #type = 'non-working' OR #type = 'workday')");
+            $query->where("#time = '{$time}' AND #type IN ('holiday', 'non-working', 'workday')");
     	} else {
     	    $query->where("#time = '{$time}' AND #type = '{$type}'");
     	}
