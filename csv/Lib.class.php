@@ -908,9 +908,9 @@ class csv_Lib
      */
     public static function getDevider($str)
     {
-        if (strpos($str, '|')) {
+        if (strpos($str, '|') !== false) {
             $d = '|';
-        } elseif (strpos($str, ';')) {
+        } elseif (strpos($str, ';') !== false) {
             $d = ';';
         } else {
             $d = ',';
