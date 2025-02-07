@@ -488,6 +488,7 @@ function replaceDatesWithManuals(elem, manualValues)
         elem.attr("data-old-date", oldDate);
 
         let formattedDateTime = manualDate;
+        console.log('REPLACE ' + oldDate + ' WITH ' + formattedDateTime);
         let [date, time] = formattedDateTime.split(" ");
         let [year, month, day] = date.split("-");
         let [h, i, s] = time.split(":");
