@@ -414,14 +414,18 @@ $(document).ready(function () {
                 const selectedDate = $datepicker.val();
                 let selectedTime = $timeSelect.val(); // Взимаме времето от `.pickerSelect`
 
-                console.log("SEL D" + selectedDate + " T:" + selectedTime);
-                selectedTime = !selectedTime ? '00:00' : selectedTime;
+                let selectedTime1 = !selectedTime ? '00:00' : selectedTime;
 
                 let formattedDateTime = null;
-                if (selectedDate && selectedTime) {
+                if (selectedDate && selectedTime1) {
                     const [day, month, year] = selectedDate.split(".");
-                    formattedDateTime = `${year}-${month}-${day} ${selectedTime}:00`;
+                    formattedDateTime = `${year}-${month}-${day} ${selectedTime1}:00`;
                 }
+
+
+                console.log("SEL D" + selectedDate + " T:" + selectedTime + "T1:" + selectedTime1 + "F:" + formattedDateTime);
+
+
 
                 let storedData = sessionStorage.getItem('manualTimes');
                 storedData = storedData ? JSON.parse(storedData) : {
