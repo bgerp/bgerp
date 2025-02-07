@@ -932,7 +932,7 @@ class planning_AssetResources extends core_Master
          */
 
         // Извличане на всички ПО годни за планиране
-        core_Debug::startTimer('PREPARE_FOR_CYCLE');
+        core_Debug::startTimer('SCHEDULE_PREPARE');
         $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate');
 
         // Еднократно извличане на всички ограничения
@@ -949,7 +949,11 @@ class planning_AssetResources extends core_Master
             }
         }
 
+        core_Debug::stopTimer('SCHEDULE_PREPARE');
+        core_Debug::log("END SCHEDULE_PREPARE " . round(core_Debug::$timers["SCHEDULE_PREPARE"]->workingTime, 6));
+
         $scheduledData = planning_TaskConstraints::calcScheduledTimes($tasks, $previousTasks);
+
         $Tasks = cls::get('planning_Tasks');
         foreach ($scheduledData->tasks as $assetId => &$plannedTasks){
             arr::sortObjects($plannedTasks, 'expectedTimeStart', 'ASC');

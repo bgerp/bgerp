@@ -500,6 +500,9 @@ class planning_TaskConstraints extends core_Master
 
     public static function calcScheduledTimes($tasks, $previousTasks)
     {
+        core_Debug::startTimer('SCHEDULE_CALC_TIMES');
+        core_Debug::stopTimer('SCHEDULE_PREPARE_INTERVALS');
+
         // Извличат се графиците на всички ПО с интервали за планиране
         $assetIds = arr::extractValuesFromArray($tasks, 'assetId');
         $intervals = $assets = array();
@@ -509,6 +512,9 @@ class planning_TaskConstraints extends core_Master
                 $intervals[$assetId] = $Interval;
             }
         }
+
+        core_Debug::stopTimer('SCHEDULE_PREPARE_INTERVALS');
+        core_Debug::log("END SCHEDULE_PREPARE_INTERVALS " . round(core_Debug::$timers["SCHEDULE_PREPARE_INTERVALS"]->workingTime, 6));
 
         // Извлича се ръчната подредба по машини
         $manualQuery = planning_TaskManualOrderPerAssets::getQuery();
@@ -543,15 +549,12 @@ class planning_TaskConstraints extends core_Master
         $interruptionArr = planning_Steps::getInterruptionArr($tasks);
         arr::sortObjects($tasksWithActualStart, 'actualStart', 'ASC');
 
-        core_Debug::stopTimer('PREPARE_FOR_CYCLE');
-        core_Debug::log("END PREPARE_FOR_CYCLE " . round(core_Debug::$timers["PREPARE_FOR_CYCLE"]->workingTime, 6));
-
         // Първо ще се наместят в графика тези с фактическо начало
         $debugRes = "<hr>Без графици:" . countR($withoutIntervals);
         $debugRes .= "<hr />ВСИЧКИ: " . countR($tasks);
         $debugRes .= "<hr />1. Разполагане на тези с ФАКТИЧЕСКО начало <b>" . countR($tasksWithActualStart) . "</b> <hr />";
-        core_Debug::startTimer('START_CYCLE');
 
+        core_Debug::startTimer('START_CYCLE');
         $planned = $plannedByAssets = array();
         $now = dt::now();
 
@@ -724,8 +727,8 @@ class planning_TaskConstraints extends core_Master
 
         echo $debugRes;
 
-        core_Debug::stopTimer('START_CYCLE');
-        core_Debug::log("END START_CYCLE " . round(core_Debug::$timers["START_CYCLE"]->workingTime, 6));
+        core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
+        core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
 
         return (object)array('tasks' => $plannedByAssets, 'debug' => $debugRes);
     }
