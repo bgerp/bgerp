@@ -419,10 +419,16 @@ $(document).ready(function () {
                 let formattedDateTime = null;
                 if (selectedDate && selectedTime1) {
                     const [day, month, year] = selectedDate.split(".");
-                    formattedDateTime = `${year}-${month}-${day} 00:00`;
+                    const [hours, minutes] = selectedTime1.split(":");
+
+                    // Създаваме обект за дата
+                    const dateObj = new Date(year, month - 1, day, hours, minutes);
+
+                    // Форматиране в желания вид: YYYY-MM-DD HH:MM:SS
+                    formattedDateTime = dateObj.toISOString().slice(0, 19).replace("T", " ");
                 }
 
-                console.log("SEL D" + selectedDate + " T:" + selectedTime + "T1:" +  + "F:" + formattedDateTime);
+                console.log("SEL D" + selectedDate + " T:" + selectedTime + "T1:" +  selectedTime1 + "F:" + formattedDateTime);
 
 
 
