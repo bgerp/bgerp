@@ -506,10 +506,18 @@ function replaceDatesWithManuals(elem, manualValues)
     if(manualDate === null){
         let oldDate = elem.data('old-date');
         if(oldDate){
+
             oldDate.replace(' ', 'T');
+
+            console.log('OLD ' + oldDate);
             let [date, time] = oldDate.split("T");
             let [year, month, day] = date.split("-");
-            let [h, i, s] = time.split(":");
+            if(time){
+                let [h, i, s] = time.split(":");
+            } else {
+                let h = '00';
+                let i = '00';
+            }
 
             let displayDateTime = `${day}.${month}.${year.slice(2)} ${h}:${i}`;
             elem.html(displayDateTime);
