@@ -749,16 +749,21 @@ class planning_TaskConstraints extends core_Master
     private static function feedToInterval($task, $begin, $offset, &$Interval, &$planned)
     {
         $planned[$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_FOUND_DATE, 'expectedTimeEnd' => self::NOT_FOUND_DATE);
-        $begin = strtotime($begin);
 
-        $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $offset);
-        if(is_array($timeArr)){
-            $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
-            $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
-            return "--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />";
+        if($begin != self::NOT_FOUND_DATE) {
+            $begin = strtotime($begin);
+
+            $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $offset);
+            if(is_array($timeArr)){
+                $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
+                $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
+                return "--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />";
+            }
+
+            return "--------Не е изчислено начало/край<br />";
+        } else {
+            return "--------Е ИЗВЪН ГРАФИКА<br />";
         }
-
-        return "--------Не е изчислено начало/край<br />";
     }
 
 
