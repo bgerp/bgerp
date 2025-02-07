@@ -421,7 +421,7 @@ $(document).ready(function () {
                     const [day, month, year] = selectedDate.split(".");
                     const [hours, minutes] = selectedTime1.split(":");
 
-                    formattedDateTime = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")} ${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:00`;
+                    formattedDateTime = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}/${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}:00`;
 
                     // Форматиране в желания вид: YYYY-MM-DD HH:MM:SS
                     //formattedDateTime = dateObj.toISOString().slice(0, 19).replace("T", " ");
