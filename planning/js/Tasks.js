@@ -498,7 +498,7 @@ function replaceDatesWithManuals(elem, manualValues)
         let [year, month, day] = date.split("-");
         let [h, i, s] = time.split(":");
 
-        let displayDateTime = `${day}.${month}.${year.slice(2)} ${h}:${i}`;
+        let displayDateTime = `${day}.${month}.${year.slice(2)}&nbsp;${h}:${i}`;
         elem.html(displayDateTime);
         elem.attr("data-date", formattedDateTime);
         elem.closest("td").addClass("manualTime");
