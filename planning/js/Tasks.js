@@ -413,6 +413,8 @@ $(document).ready(function () {
             if (selectedTaskId !== null && selectedTaskField !== null) {
                 const selectedDate = $datepicker.val();
                 let selectedTime = $timeSelect.val(); // Взимаме времето от `.pickerSelect`
+
+                console.log("SEL D" + selectedDate + " T:" + selectedTime);
                 selectedTime = !selectedTime ? '00:00' : selectedTime;
 
                 let formattedDateTime = null;
