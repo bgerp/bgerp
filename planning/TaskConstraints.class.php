@@ -501,7 +501,7 @@ class planning_TaskConstraints extends core_Master
     public static function calcScheduledTimes($tasks, $previousTasks)
     {
         core_Debug::startTimer('SCHEDULE_CALC_TIMES');
-        core_Debug::stopTimer('SCHEDULE_PREPARE_INTERVALS');
+        core_Debug::startTimer('SCHEDULE_PREPARE_INTERVALS');
 
         // Извличат се графиците на всички ПО с интервали за планиране
         $assetIds = arr::extractValuesFromArray($tasks, 'assetId');
@@ -657,7 +657,8 @@ class planning_TaskConstraints extends core_Master
                 arr::sortObjects($plannable, '_plannedTime', 'ASC');
                 $quantizedArr = static::quantizeByDate($plannable, '_plannedTime', $assets[$assetId]->taskQuantization);
 
-                $debugRes .= "{$i}.-----Квантуване по: {$assets[$assetId]->taskQuantization} [" . countR($quantizedArr) . "]<br />";
+                $quants = countR($quantizedArr);
+                $debugRes .= "{$i}.-----Квантуване по: {$assets[$assetId]->taskQuantization} [{$quants}]<br />";
                 $carryOver = array();
                 foreach ($quantizedArr as $quant => $objects) {
                     // Обединяваме текущите остатъци с обектите от текущия квант
