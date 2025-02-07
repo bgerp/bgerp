@@ -564,7 +564,8 @@ class planning_TaskConstraints extends core_Master
                 $begin = strtotime($begin);
 
                 //$debugRes .= "{$taskLinks[$taskRec1->id]} храни <b>[{$assets[$taskRec1->assetId]->code}]($taskRec1->assetId)</b> с начало {$beginDate} / прод. {$taskRec1->calcedCurrentDuration} ";
-                //$debugRes .= static::feedToInterval($taskRec1, $begin, $offset, $Interval, $planned);
+                //$debugRes .=
+                static::feedToInterval($taskRec1, $begin, $offset, $Interval, $planned);
                 $plannedByAssets[$taskRec1->assetId][$taskRec1->id] = $planned[$taskRec1->id];
                 $debugArr[$taskRec1->assetId][$taskRec1->id] = $planned[$taskRec1->id]->expectedTimeStart;
             }
