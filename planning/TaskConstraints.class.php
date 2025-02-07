@@ -650,7 +650,7 @@ class planning_TaskConstraints extends core_Master
 
                     if($previousTasksAreInTheFuture){
                         $debugRes .= "{$taskLinks[$task->id]}--------Е ИЗВЪН ГРАФИКА<br />";
-                        //$planned[$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_FOUND_DATE, 'expectedTimeEnd' => self::NOT_FOUND_DATE);
+                        $planned[$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_FOUND_DATE, 'expectedTimeEnd' => self::NOT_FOUND_DATE);
                         $plannedByAssets[$assetId][$task->id] = $planned[$task->id];
                         unset($tasksWithoutActualStartByAssetId[$assetId][$task->id]);
                         continue;
