@@ -214,7 +214,7 @@ defIfNot('PLANNING_TASK_OFFSET_IN_SAME_LOCATION', '7200');
 /**
  * Колко да е изчакването между предходни операции->В различна локация
  */
-defIfNot('PLANNING_TASK_OFFSET_IN_OTHER_LOCATION', '3600x24');
+defIfNot('PLANNING_TASK_OFFSET_IN_OTHER_LOCATION', '86400');
 
 
 /**
