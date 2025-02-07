@@ -343,6 +343,7 @@ $(document).ready(function () {
         });
 
         let $span = null;
+        let $cDate = null;
 
         // 🏗️ Показване на модала при двоен клик
         $(".openModal").on("dblclick", function () {
@@ -374,6 +375,8 @@ $(document).ready(function () {
 
                     $datepicker.val(formattedDate).datepicker("refresh");
                     syncTimeInputs(formattedTime);
+
+                    $cDate = formattedTime;
                 }
             }
 
@@ -414,17 +417,13 @@ $(document).ready(function () {
                 const selectedDate = $datepicker.val();
                 let selectedTime = $timeSelect.val(); // Взимаме времето от `.pickerSelect`
 
-                let selectedTime1 = !selectedTime ? '00:00' : selectedTime;
+                let selectedTime1 = !selectedTime ? $cDate : selectedTime;
 
                 let formattedDateTime = null;
                 if (selectedDate && selectedTime1) {
                     const [day, month, year] = selectedDate.split(".");
                     formattedDateTime = `${year}-${month}-${day}T${selectedTime1}:00`;
                 }
-
-                console.log("SEL D" + selectedDate + " T:" + selectedTime + "T1:" +  + "F:" + formattedDateTime);
-
-
 
                 let storedData = sessionStorage.getItem('manualTimes');
                 storedData = storedData ? JSON.parse(storedData) : {
