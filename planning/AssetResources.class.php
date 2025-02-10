@@ -981,7 +981,6 @@ class planning_AssetResources extends core_Master
 
         // Преизчисляване на очаквания падеж на заданията
         planning_Jobs::recalcExpectedDueDates();
-
     }
 
 

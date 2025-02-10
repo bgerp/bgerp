@@ -509,10 +509,10 @@ class planning_TaskConstraints extends core_Master
 
         $assetQuery = planning_AssetResources::getQuery();
         $assetQuery->in('id', $assetIds);
-        $assetQuery->show("code,taskQuantization");
+        $assetQuery->show("code,taskQuantization,scheduleId");
         while($aRec = $assetQuery->fetch()){
             $assets[$aRec->id] = $aRec;
-            if($Interval = planning_AssetResources::getWorkingInterval($aRec->id)) {
+            if($Interval = planning_AssetResources::getWorkingInterval($aRec)) {
                 $intervals[$aRec->id] = $Interval;
             }
         }
@@ -729,7 +729,6 @@ class planning_TaskConstraints extends core_Master
             $i++;
 
         } while($countWithoutActualStart);
-
 
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
