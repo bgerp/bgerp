@@ -4214,6 +4214,8 @@ class planning_Tasks extends core_Master
             $manualRec = planning_TaskManualOrderPerAssets::fetch("#assetId = {$assetId}");
             $manualRec = is_object($manualRec) ? $manualRec : (object)array('assetId' => $assetId);
             $manualRec->data = array_combine($inOrderTasks, $inOrderTasks);
+            $manualRec->createdOn = dt::now();
+            $manualRec->createdBy = core_Users::getCurrent();
             planning_TaskManualOrderPerAssets::save($manualRec);
             $this->forceCalcTimes = true;
 

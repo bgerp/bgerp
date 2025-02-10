@@ -59,7 +59,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $listFields = 'assetId,data,createdBy,createdOn';
+    public $listFields = 'assetId,data,createdOn,createdBy';
 
 
     /**
