@@ -493,7 +493,14 @@ function replaceDatesWithManuals(elem, manualValues)
 
     if(manualDate){
         let oldDate = elem.text();
-        elem.attr("data-old-date", oldDate);
+
+        if (!elem.attr("data-old-date")) {
+            elem.attr("data-old-date", oldDate);
+        }
+
+        if (!elem.attr("data-old-date-val")) {
+            elem.attr("data-old-date-val", elem.attr("data-date"));
+        }
 
        // let date = new Date(manualDate);
 
@@ -504,7 +511,7 @@ function replaceDatesWithManuals(elem, manualValues)
         // Създаваме дата директно в UTC, която игнорира локалното време
         let date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
 
-        let formatted = formattedDate = `${String(date.getUTCDate()).padStart(2, '0')}.${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCFullYear()).slice(2)} ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
+        let formatted = `${String(date.getUTCDate()).padStart(2, '0')}.${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCFullYear()).slice(2)}&nbsp;${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
 
         // Извличане на компоненти в UTC формат
         //let day = String(date.getUTCDate()).padStart(2, '0');
@@ -533,21 +540,11 @@ function replaceDatesWithManuals(elem, manualValues)
     if(manualDate === null){
         let oldDate = elem.attr("data-old-date");
         if(oldDate){
-            console.log('OLD ' + oldDate);
-
-
-            let [day, month, yearAndTime] = oldDate.split('.');
-            let [yearShort, time] = yearAndTime.split(' ');
-
-            let year = parseInt(yearShort) < 100 ? `20${yearShort}` : yearShort;
-            let dateVal = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${time}`;
-
-            console.log('OLD VAL' + dateVal);
-
-            //let displayDateTime = `${day}.${month}.${year.slice(2)} ${hour}:${min}`;
-            elem.attr("data-date", dateVal);
+            elem.attr("data-date", elem.attr("data-old-date-val"));
             elem.html(oldDate);
             elem.closest("td").removeClass("manualTime");
+            elem.removeAttr("data-old-date-val");
+            elem.removeAttr("data-old-date");
         }
     }
 }
