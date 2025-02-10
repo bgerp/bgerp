@@ -33,12 +33,18 @@ class store_InventoryNoteDetails extends doc_Detail
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'noteId';
-    
-    
+
+
+    /**
+     * Може ли да се импортират цени
+     */
+    public $allowPriceImport = false;
+
+
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'store_Wrapper, plg_AlignDecimals2, plg_RowTools2, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,plg_Created,plg_Sorting,plg_Search';
+    public $loadList = 'store_Wrapper, plg_AlignDecimals2, plg_RowTools2, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,deals_plg_ImportDealDetailProduct,plg_Created,plg_Sorting,plg_Search';
     
     
     /**
@@ -496,5 +502,31 @@ class store_InventoryNoteDetails extends doc_Detail
         core_Form::preventDoubleSubmission($tpl, $form);
         
         return $tpl;
+    }
+
+
+    /**
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int   $masterId - ид на мастъра на детайла
+     * @param array $row      - Обект представляващ артикула за импортиране
+     *                        ->code - код/баркод на артикула
+     *                        ->quantity - К-во на опаковката или в основна мярка
+     *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     *                        ->pack - Опаковката
+     *                        ->batch - Партида ако има
+     *
+     * @return mixed - резултата от експорта
+     */
+    public function import($masterId, $row)
+    {
+        $pRec = cat_Products::getByCode($row->code);
+        $pRec->packagingId = (isset($row->pack)) ? $row->pack : $pRec->packagingId;
+        $packRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
+        $quantityInPack  = is_object($packRec) ? $packRec->quantity : 1;
+
+        $dRec = (object) array('noteId' => $masterId, 'productId' => $pRec->productId, 'quantity' => $row->quantity * $quantityInPack, 'quantityInPack' => $quantityInPack, 'packagingId' => $pRec->packagingId, 'batch' => $row->batch);
+
+        return self::save($dRec);
     }
 }
