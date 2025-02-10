@@ -354,12 +354,13 @@ $(document).ready(function () {
             $span = $(this).closest("td").find("span.modalDateCol");
 
             if ($span.length > 0) {
-                const modalCaption = $span.data("modal-caption");
+                let modalCaption = $span.data("modal-caption");
                 selectedTaskId = $span.data("task-id");
                 selectedTaskField = $span.data("task-field");
 
                 // ✅ Вземаме `data-manual-date` или `data-date`
-                const currentDateTime = $span.data("date") || "";
+                let currentDateTime = $span.attr("data-date");
+
                 $modalTitle.text(modalCaption);
 
                 // ✅ Нулираме предишните стойности
@@ -371,11 +372,10 @@ $(document).ready(function () {
                     console.log("BEFORE " + currentDateTime);
                     let currentDateTime1 = currentDateTime.replace('T', ' ');
 
-                    console.log("C " + currentDateTime1);
-                    const [date, time] = currentDateTime1.split(" ");
-                    const [year, month, day] = date.split("-");
-                    const formattedDate = `${day}.${month}.${year}`;
-                    const formattedTime = time.substring(0, 5);
+                    let [date, time] = currentDateTime1.split(" ");
+                    let [year, month, day] = date.split("-");
+                    let formattedDate = `${day}.${month}.${year}`;
+                    let formattedTime = time.substring(0, 5);
 
                     $datepicker.val(formattedDate).datepicker("refresh");
                     syncTimeInputs(formattedTime);
@@ -418,14 +418,14 @@ $(document).ready(function () {
         // 📝 Запазване на въведената стойност в sessionStorage
         $modalSave.on("click", function () {
             if (selectedTaskId !== null && selectedTaskField !== null) {
-                const selectedDate = $datepicker.val();
+                let selectedDate = $datepicker.val();
                 let selectedTime = $timeSelect.val(); // Взимаме времето от `.pickerSelect`
 
                 let selectedTime1 = !selectedTime ? $cDate : selectedTime;
 
                 let formattedDateTime = null;
                 if (selectedDate && selectedTime1) {
-                    const [day, month, year] = selectedDate.split(".");
+                    let [day, month, year] = selectedDate.split(".");
                     formattedDateTime = `${year}-${month}-${day}T${selectedTime1}:00`;
                 }
 
@@ -501,27 +501,28 @@ function replaceDatesWithManuals(elem, manualValues)
         let [year, month, day] = date.split("-");
         let [h, i, s] = time.split(":");
 
-        let displayDateTime = `${day}.${month}.${year.slice(2)}&nbsp;${h}:${i}`;
+        let displayDateTime = `${day}.${month}.${year.slice(2)} ${h}:${i}`;
         elem.html(displayDateTime);
         elem.attr("data-date", formattedDateTime);
         elem.closest("td").addClass("manualTime");
     }
 
     if(manualDate === null){
-        let oldDate = elem.data('old-date');
+        let oldDate = elem.attr("data-old-date");
         if(oldDate){
             console.log('OLD ' + oldDate);
-            //let [date, time] = oldDate.split(" ");
-            //let [year, month, day] = date.split("-");
 
-           // if(time){
-                //let [hour, min, s] = time.split(":");
-            //} else {
-              //  let hour = '00';
-                //let min = '00';
-           // }
+
+            let [day, month, yearAndTime] = oldDate.split('.');
+            let [yearShort, time] = yearAndTime.split(' ');
+
+            let year = parseInt(yearShort) < 100 ? `20${yearShort}` : yearShort;
+            let dateVal = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${time}`;
+
+            console.log('OLD VAL' + dateVal);
 
             //let displayDateTime = `${day}.${month}.${year.slice(2)} ${hour}:${min}`;
+            elem.attr("data-date", dateVal);
             elem.html(oldDate);
             elem.closest("td").removeClass("manualTime");
         }
