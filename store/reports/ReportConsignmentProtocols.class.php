@@ -38,7 +38,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields ;
+    protected $sortableListFields;
 
 
     /**
@@ -46,7 +46,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields ;
+    protected $summaryListFields;
 
 
     /**
@@ -68,13 +68,13 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField;
+    protected $groupByField = 'contragent';
 
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields ;
+    protected $changeableFields;
 
 
     /**
@@ -124,22 +124,15 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('selfPrices', 'balance');
-        $form->setDefault('availability', 'Всички');
-        $form->setDefault('seeByGroups', 'no');
-        $form->setDefault('orderBy', 'name');
-        $form->setDefault('type', 'short');
-        $form->setDefault('workingPdogresOn', 'off');
+        $consignmentQuery = store_ConsignmentProtocols::getQuery();
 
-        $salesQuery = store_ConsignmentProtocols::getQuery();
+        $consignmentQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
 
-        $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+        $consignmentQuery->groupBy('folderId');
 
-        $salesQuery->groupBy('folderId');
+        $consignmentQuery->show('folderId, contragentId, folderTitle');
 
-        $salesQuery->show('folderId, contragentId, folderTitle');
-
-        while ($contragent = $salesQuery->fetch()) {
+        while ($contragent = $consignmentQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
                 $suggestions[$contragent->folderId] = $contragent->folderTitle;
             }
@@ -163,13 +156,53 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
     {
 
-        $date = (is_null($rec->date)) ? dt::today() : $rec->date;
+        //  $date = (is_null($rec->date)) ? dt::today() : $rec->date;
 
         $recs = array();
 
-        $consignmentDetQuery = store_ConsignmentProtocolDetailsReceived::getQuery()->fetchAll();
+        $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '3231', 'cacheBalance' => false, 'keepUnique' => true));
+        $bRecs = $Balance->getBalance('3231');
+        $balHistory = $Balance->getBalanceHystory('3231', $from = $rec->from, $to = $rec->to, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = true, $strict = true);
 
-        bp();
+        foreach ($balHistory['history'] as $jRec) {
+
+            $debitQuantity =  $creditQuantity = 0;
+
+            $pRec = cls::get($jRec['docType'])->fetch($jRec['docId']);
+
+            $item = acc_Items::fetch($jRec['debitItem2']);
+
+            if($jRec['debitQuantity']){
+                $debitQuantity = $jRec['debitQuantity'];
+            }
+            if($jRec['creditQuantity']){
+                $creditQuantity = $jRec['creditQuantity'];
+            }
+
+            $prodRec = cls::get($item->classId)->fetch($item->objectId);
+
+            $id = $prodRec->id;
+
+            // добавяме в масива
+            if (!array_key_exists($id, $recs)) {
+                $recs[$id] = (object)array(
+
+                    'contragent' => $pRec->folderId,
+                    'protocol' => $pRec->id,
+                    'productId' => $prodRec->id,
+                    'debitQuantity' => $debitQuantity,
+                    'creditQuantity' => $creditQuantity,
+                    'date' => $pRec->valior,
+                    'storeId' => $pRec->storeId,
+
+                );
+            } else {
+                $obj = &$recs[$id];
+                $obj->debitQuantity += $debitQuantity;
+                $obj->creditQuantity += $creditQuantity;
+            }
+
+        }
 
         return $recs;
     }
@@ -188,11 +221,22 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         if ($export === false) {
-            $fld->FLD('contragentId', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
+            $fld->FLD('contragent', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            //$fld->FLD('date', 'date', 'caption=Дата');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
+            $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено');
+            $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Прието');
+
+        //    $fld->FLD('protocol', 'varchar', 'caption=Протокол');
+         //   $fld->FLD('inOut', 'varchar', 'caption=Тип');
+           // $fld->FLD('storeId', 'varchar', 'caption=Склад');
+           // $fld->FLD('newProtocol', 'varchar', 'caption=Нов ПОП');
+
+
         } else {
 
         }
-
 
 
         return $fld;
@@ -213,12 +257,37 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     {
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $Enum = cls::get('type_Enum', array('options' => array('yes' => 'Включено')));
+        $Date = cls::get('type_Date');
 
         $row = new stdClass();
 
+        $row->contragent = doc_Folders::getTitleById($dRec->contragent);
 
-            $row->contragentId = $dRec->contragentId;
+        $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'storeId' => $dRec->storeId, 'ret_url' => true);
+
+        $row->contragent .= ht::createBtn('Нов ПОП', $cUrl);
+
+        $row->productId = cat_Products::getHyperlink($dRec->productId);
+        $row->date = $Date->toVerbal($dRec->date);
+
+        $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity - $dRec->creditQuantity);
+
+        $row->debitQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity);
+
+        $row->creditQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->creditQuantity);
+
+        $row->protocol = store_ConsignmentProtocols::getHyperlink($dRec->protocol);
+        if ($dRec->inOut) {
+            $row->inOut = 'Входящ';
+        } else {
+            $row->inOut = 'Изходящ';
+        }
+        $row->storeId = store_Stores::getHyperlink($dRec->storeId);
+
+        $toolbar = cls::get('core_Toolbar');
+
+
+
 
         return $row;
     }
@@ -293,5 +362,40 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
 
     }
+
+    /**
+     * Създаване на нов ПОП
+     */
+    public static function act_NewProtocol()
+    {
+
+        expect($contragentFolder = Request::get('contragentFolder', 'int'));
+        expect($storeId = Request::get('storeId', 'int'));
+
+        $fRec = doc_Folders::fetch($contragentFolder);
+        $contragentClassId = $fRec -> coverClass;
+        $contragentId = $fRec -> coverId;
+
+        // Прави запис в модела на движенията
+        $pRec = (object)array(
+
+            'folderId' => $contragentFolder,
+            'storeId' => $storeId,
+            'protocolType' => 'protocol',
+            'productType' => 'ours',
+            'contragentClassId' =>$contragentClassId,
+            'contragentId' => $contragentId,
+            'state' => 'draft',
+        );
+
+        store_ConsignmentProtocols::save($pRec);
+
+        $cu = core_Users::getCurrent();
+        doc_ThreadUsers::addShared($pRec->threadId, $pRec->containerId, $cu);
+
+        return new Redirect(array('store_ConsignmentProtocols', 'single', $pRec->id));
+
+    }
+
 
 }

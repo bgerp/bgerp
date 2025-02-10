@@ -382,9 +382,6 @@ abstract class deals_DealDetail extends doc_Detail
             if (!deals_Helper::isPriceAllowed($price, $rec->quantity, $rec->autoPrice, $msg)) {
                 $form->setError('packPrice,packQuantity', $msg);
             }
-            
-            $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-            $rec->price = $price;
 
             if (Request::get('Act') != 'CreateProduct') {
 
@@ -394,8 +391,14 @@ abstract class deals_DealDetail extends doc_Detail
                     $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
                     if ($countSameProduct) {
                         $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа');
+                        unset($rec->price, $rec->packPrice);
                     }
                 }
+            }
+
+            if(!$form->gotErrors()){
+                $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+                $rec->price = $price;
             }
 
             // При редакция, ако е променена опаковката слагаме преудпреждение

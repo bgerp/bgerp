@@ -228,6 +228,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
                 if ($countSameProduct) {
                     $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа');
+                    unset($rec->price,$rec->packPrice);
                 }
             }
 
