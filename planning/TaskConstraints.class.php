@@ -730,7 +730,6 @@ class planning_TaskConstraints extends core_Master
 
         } while($countWithoutActualStart);
 
-        echo $debugRes;
 
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
