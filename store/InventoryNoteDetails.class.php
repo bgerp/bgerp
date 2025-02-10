@@ -509,14 +509,14 @@ class store_InventoryNoteDetails extends doc_Detail
      * Импортиране на артикул генериран от ред на csv файл
      *
      * @param int   $masterId - ид на мастъра на детайла
-     * @param array $row      - Обект представляващ артикула за импортиране
+     * @param stdClass $row      - Обект представляващ артикула за импортиране
      *                        ->code - код/баркод на артикула
      *                        ->quantity - К-во на опаковката или в основна мярка
      *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
      *                        ->pack - Опаковката
      *                        ->batch - Партида ако има
      *
-     * @return mixed - резултата от експорта
+     * @return int - резултата от експорта
      */
     public function import($masterId, $row)
     {
