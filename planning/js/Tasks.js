@@ -495,15 +495,38 @@ function replaceDatesWithManuals(elem, manualValues)
         let oldDate = elem.text();
         elem.attr("data-old-date", oldDate);
 
-        let formattedDateTime = manualDate;
+       // let date = new Date(manualDate);
+
+        let [datePart, timePart] = manualDate.split("T");
+        let [year, month, day] = datePart.split("-").map(Number);
+        let [hours, minutes, seconds] = timePart.split(":").map(Number);
+
+        // Създаваме дата директно в UTC, която игнорира локалното време
+        let date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
+
+        let formatted = formattedDate = `${String(date.getUTCDate()).padStart(2, '0')}.${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCFullYear()).slice(2)} ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
+
+        // Извличане на компоненти в UTC формат
+        //let day = String(date.getUTCDate()).padStart(2, '0');
+        //let month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Месеците започват от 0
+        //let year = String(date.getUTCFullYear()).slice(2);
+
+        //let hours = String(date.getUTCHours()).padStart(2, '0');
+        //let minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
+        //let  formattedDateTime = `${day}.${month}.${year} ${hours}:${minutes}`;
+        console.log("manual: " + manualDate + "F: " + formatted);
+        elem.html(formatted);
+
+        /*let formattedDateTime = manualDate;
         console.log('REPLACE ' + oldDate + ' WITH ' + formattedDateTime);
         let [date, time] = formattedDateTime.split("T");
         let [year, month, day] = date.split("-");
         let [h, i, s] = time.split(":");
 
         let displayDateTime = `${day}.${month}.${year.slice(2)} ${h}:${i}`;
-        elem.html(displayDateTime);
-        elem.attr("data-date", formattedDateTime);
+        elem.html(displayDateTime);*/
+        elem.attr("data-date", manualDate);
         elem.closest("td").addClass("manualTime");
     }
 
