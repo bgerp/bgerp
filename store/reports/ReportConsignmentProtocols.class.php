@@ -124,13 +124,6 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('selfPrices', 'balance');
-        $form->setDefault('availability', 'Всички');
-        $form->setDefault('seeByGroups', 'no');
-        $form->setDefault('orderBy', 'name');
-        $form->setDefault('type', 'short');
-        $form->setDefault('workingPdogresOn', 'off');
-
         $consignmentQuery = store_ConsignmentProtocols::getQuery();
 
         $consignmentQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
@@ -167,44 +160,49 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $recs = array();
 
-
         $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '3231', 'cacheBalance' => false, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('3231');
         $balHistory = $Balance->getBalanceHystory('3231', $from = $rec->from, $to = $rec->to, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = true, $strict = true);
 
         foreach ($balHistory['history'] as $jRec) {
 
+            $debitQuantity =  $creditQuantity = 0;
+
             $pRec = cls::get($jRec['docType'])->fetch($jRec['docId']);
 
             $item = acc_Items::fetch($jRec['debitItem2']);
 
+            if($jRec['debitQuantity']){
+                $debitQuantity = $jRec['debitQuantity'];
+            }
+            if($jRec['creditQuantity']){
+                $creditQuantity = $jRec['creditQuantity'];
+            }
+
             $prodRec = cls::get($item->classId)->fetch($item->objectId);
 
-            $id = $prodRec->id . '|' . $jRec['docId'];
-
+            $id = $prodRec->id;
 
             // добавяме в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
 
-//                    'contragentId' =>$contragentId,
-//                    'contragentClassName' => $contragentClassName,
                     'contragent' => $pRec->folderId,
                     'protocol' => $pRec->id,
                     'productId' => $prodRec->id,
-                    'quantity' => $jRec['debitQuantity'],
+                    'debitQuantity' => $debitQuantity,
+                    'creditQuantity' => $creditQuantity,
                     'date' => $pRec->valior,
                     'storeId' => $pRec->storeId,
+
                 );
             } else {
                 $obj = &$recs[$id];
-                $obj->quantity += $jRec['debitQuantity'];
+                $obj->debitQuantity += $debitQuantity;
+                $obj->creditQuantity += $creditQuantity;
             }
 
         }
-
-      //  bp($recs);
-
 
         return $recs;
     }
@@ -225,12 +223,15 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('contragent', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('date', 'date', 'caption=Дата');
+            //$fld->FLD('date', 'date', 'caption=Дата');
             $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
-            $fld->FLD('protocol', 'varchar', 'caption=Протокол');
-            $fld->FLD('inOut', 'varchar', 'caption=Тип');
-            $fld->FLD('storeId', 'varchar', 'caption=Склад');
-            $fld->FLD('newProtocol', 'varchar', 'caption=Нов ПОП');
+            $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено');
+            $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Прието');
+
+        //    $fld->FLD('protocol', 'varchar', 'caption=Протокол');
+         //   $fld->FLD('inOut', 'varchar', 'caption=Тип');
+           // $fld->FLD('storeId', 'varchar', 'caption=Склад');
+           // $fld->FLD('newProtocol', 'varchar', 'caption=Нов ПОП');
 
 
         } else {
@@ -262,9 +263,19 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $row->contragent = doc_Folders::getTitleById($dRec->contragent);
 
+        $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'storeId' => $dRec->storeId, 'ret_url' => true);
+
+        $row->contragent .= ht::createBtn('Нов ПОП', $cUrl);
+
         $row->productId = cat_Products::getHyperlink($dRec->productId);
         $row->date = $Date->toVerbal($dRec->date);
-        $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
+
+        $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity - $dRec->creditQuantity);
+
+        $row->debitQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity);
+
+        $row->creditQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->creditQuantity);
+
         $row->protocol = store_ConsignmentProtocols::getHyperlink($dRec->protocol);
         if ($dRec->inOut) {
             $row->inOut = 'Входящ';
@@ -275,9 +286,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $toolbar = cls::get('core_Toolbar');
 
-        $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'ret_url' => true);
 
-        $row->newProtocol = ht::createBtn('Нов ПОП', $cUrl);
 
 
         return $row;
@@ -360,55 +369,32 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     public static function act_NewProtocol()
     {
 
-        expect($recId = Request::get('contragentFolder', 'int'));
+        expect($contragentFolder = Request::get('contragentFolder', 'int'));
+        expect($storeId = Request::get('storeId', 'int'));
 
-        $rec = frame2_Reports::fetch($recId);
+        $fRec = doc_Folders::fetch($contragentFolder);
+        $contragentClassId = $fRec -> coverClass;
+        $contragentId = $fRec -> coverId;
 
-        frame2_Reports::refresh($rec);
+        // Прави запис в модела на движенията
+        $pRec = (object)array(
 
-        $form = cls::get('core_Form');
+            'folderId' => $contragentFolder,
+            'storeId' => $storeId,
+            'protocolType' => 'protocol',
+            'productType' => 'ours',
+            'contragentClassId' =>$contragentClassId,
+            'contragentId' => $contragentId,
+            'state' => 'draft',
+        );
 
-        $form->title = "Филтър по артикул";
+        store_ConsignmentProtocols::save($pRec);
 
-        $artSuggestionsArr = array();
+        $cu = core_Users::getCurrent();
+        doc_ThreadUsers::addShared($pRec->threadId, $pRec->containerId, $cu);
 
+        return new Redirect(array('store_ConsignmentProtocols', 'single', $pRec->id));
 
-        if (is_array($rec->data->recs) && !empty($rec->data->recs)) {
-
-            $prArr = arr::extractValuesFromArray($rec->data->recs, 'productId');
-            foreach (array_keys($prArr) as $val) {
-
-                $pRec = cat_Products::fetch($val);
-                $code = $pRec->code ?: 'Art' . $pRec->productId;
-                $artSuggestionsArr[$val] = $code . '|' . $pRec->name;
-
-            }
-        }
-
-        $form->FLD('artFilter', 'key(mvc=cat_Products, select=name)', 'caption=Артикул,silent');
-
-        $form->setOptions('artFilter', $artSuggestionsArr);
-
-        $mRec = $form->input();
-
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
-
-        if ($form->isSubmitted()) {
-
-            foreach ($rec->data->recs as $key => $pRec) {
-                if (($pRec->productId) && ($form->rec->artFilter != $pRec->productId)) {
-                    unset($rec->data->recs[$key]);
-                }
-            }
-
-            frame2_Reports::save($rec);
-            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'artFilter' => $form->rec->artFilter, 'ret_url' => true));
-
-        }
-
-        return $form->renderHtml();
     }
 
 
