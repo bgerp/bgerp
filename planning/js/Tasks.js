@@ -1,6 +1,10 @@
+let areMoved = false;
+let haveManualTimes = false;
+
 $(document).ready(function () {
     compareDates();
     fillManualTimes();
+    let hasDragged = false;
     sessionStorage.removeItem('sortableOrder');
 
     $('#backBtn').on('click', function(e) {
@@ -50,6 +54,13 @@ $(document).ready(function () {
 
     $('#saveBtn').on('click', function(e) {
         let url = $(this).attr("data-url");
+        console.log('moved ' + areMoved + " SET TIMES " + haveManualTimes);
+
+        if(!areMoved && !haveManualTimes) {
+            let error = $(this).attr("data-on-error");
+            alert(error);
+            return;
+        }
 
         if(url){
             $('body').css('overflow', 'hidden').append($('<div class="loadingModal"></div>'));
@@ -127,6 +138,7 @@ $(document).ready(function () {
 
             onEnd: function (evt) {
                 console.log("END");
+                areMoved = true;
 
                 if (selectedElements.length === 0) {
                     selectedElements.push({
@@ -157,6 +169,7 @@ $(document).ready(function () {
                 // Clear selectedElements after the operation
                 selectedElements = [];
                 isScrolling = false; // Reset scrolling state
+
             },
 
             store: {
@@ -437,6 +450,7 @@ $(document).ready(function () {
 
                 storedData[selectedTaskField][selectedTaskId] = formattedDateTime;
                 sessionStorage.setItem('manualTimes', JSON.stringify(storedData));
+                haveManualTimes = true;
 
                 fillManualTimes();
                 compareDates();
@@ -510,29 +524,12 @@ function replaceDatesWithManuals(elem, manualValues)
 
         // Създаваме дата директно в UTC, която игнорира локалното време
         let date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
-
         let formatted = `${String(date.getUTCDate()).padStart(2, '0')}.${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCFullYear()).slice(2)}&nbsp;${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
-
-        // Извличане на компоненти в UTC формат
-        //let day = String(date.getUTCDate()).padStart(2, '0');
-        //let month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Месеците започват от 0
-        //let year = String(date.getUTCFullYear()).slice(2);
-
-        //let hours = String(date.getUTCHours()).padStart(2, '0');
-        //let minutes = String(date.getUTCMinutes()).padStart(2, '0');
 
         //let  formattedDateTime = `${day}.${month}.${year} ${hours}:${minutes}`;
         console.log("manual: " + manualDate + "F: " + formatted);
         elem.html(formatted);
 
-        /*let formattedDateTime = manualDate;
-        console.log('REPLACE ' + oldDate + ' WITH ' + formattedDateTime);
-        let [date, time] = formattedDateTime.split("T");
-        let [year, month, day] = date.split("-");
-        let [h, i, s] = time.split(":");
-
-        let displayDateTime = `${day}.${month}.${year.slice(2)} ${h}:${i}`;
-        elem.html(displayDateTime);*/
         elem.attr("data-date", manualDate);
         elem.closest("td").addClass("manualTime");
     }

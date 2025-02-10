@@ -3627,7 +3627,7 @@ class planning_Tasks extends core_Master
                 $backUrl = toUrl(getRetUrl());
 
                 $hash = str::addHash($assetId, 6, 'RO');
-                $saveBtnAttr = array('id' => 'saveBtn', 'title' => 'Запис на направените промени');
+                $saveBtnAttr = array('id' => 'saveBtn', 'title' => 'Запис на направените промени', 'data-on-error' => tr("Няма променена подредба или сменени времена|*!"));
                 if ($mvc->haveRightFor('savereordertasks', (object)array('assetId' => $assetId))) {
                     $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
                 }
