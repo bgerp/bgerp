@@ -933,7 +933,7 @@ class planning_AssetResources extends core_Master
 
         // Извличане на всички ПО годни за планиране
         core_Debug::startTimer('SCHEDULE_PREPARE');
-        $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate');
+        $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate,state');
 
         // Еднократно извличане на всички ограничения
         $query = planning_TaskConstraints::getQuery();

@@ -524,11 +524,11 @@ function replaceDatesWithManuals(elem, manualValues)
 
         // Създаваме дата директно в UTC, която игнорира локалното време
         let date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
-        let formatted = `${String(date.getUTCDate()).padStart(2, '0')}.${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCFullYear()).slice(2)} ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
+        let formatted = `${String(date.getUTCDate()).padStart(2, '0')}.${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCFullYear()).slice(2)}&nbsp;${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
 
         //let  formattedDateTime = `${day}.${month}.${year} ${hours}:${minutes}`;
         console.log("manual: " + manualDate + "F: " + formatted);
-        elem.text(formatted);
+        elem.html(formatted);
 
         elem.attr("data-date", manualDate);
         elem.closest("td").addClass("manualTime");
@@ -538,7 +538,7 @@ function replaceDatesWithManuals(elem, manualValues)
         let oldDate = elem.attr("data-old-date");
         if(oldDate){
             elem.attr("data-date", elem.attr("data-old-date-val"));
-            elem.text(oldDate);
+            elem.html(oldDate);
             elem.closest("td").removeClass("manualTime");
             elem.removeAttr("data-old-date-val");
             elem.removeAttr("data-old-date");

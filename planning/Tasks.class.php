@@ -4484,7 +4484,7 @@ class planning_Tasks extends core_Master
 
         // Най-отпред са винаги тези с фактическо начало
         $manualOrder = planning_TaskManualOrderPerAssets::fetchField("#assetId = {$data->listFilter->rec->assetId}", 'data');
-        $newRecs = array_filter($data->recs, function ($a) {return isset($a->actualStart);});
+        $newRecs = array_filter($data->recs, function ($a) {return isset($a->actualStart) && $a->state != 'stopped';});
         arr::sortObjects($newRecs, 'actualStart', 'ASC');
 
         // След това са останалите, които присъстват в потребителската подредба

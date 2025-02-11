@@ -537,9 +537,10 @@ class planning_TaskConstraints extends core_Master
         array_walk($tasks, function ($task) use ($assetsWithIntervals, &$allTasks, &$tasksWithActualStart, &$tasksWithoutActualStartByAssetId, &$taskLinks, &$withoutIntervals) {
             if(in_array($task->assetId, $assetsWithIntervals)) {
                 $taskLinks[$task->id] = ht::createLink("Opr{$task->id}", array('planning_Tasks', 'single', $task->id), false, 'target=_blank')->getContent();
-
                 $allTasks[$task->id] = $task;
-                if(!empty($task->actualStart)){
+
+                // Тези които са с фактическо начало се отделят от тези без (спрените ги броим че са без фактическо начало)
+                if(!empty($task->actualStart) && $task->state != 'stopped'){
                     $tasksWithActualStart[$task->id] = $task;
                 } else {
                     $tasksWithoutActualStartByAssetId[$task->assetId][$task->id] = $task;
