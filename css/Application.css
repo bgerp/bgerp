@@ -50,7 +50,9 @@ dl {
 
   .groupList table td {
     vertical-align: top;
-    line-height: 1.2em; }
+    line-height: 1.5em; }
+    .groupList table td:first-child {
+      white-space: nowrap; }
   .groupList table .dt {
     width: 21.5%;
     text-align: right;
@@ -2059,6 +2061,11 @@ a.tUnsighted {
     .document-settings .linkWithIcon.disliked.disable,
     .document-settings-left .linkWithIcon.disliked.disable {
       cursor: default; }
+
+.smallBtnHolder .linkWithIcon {
+  font-size: 0.65em;
+  background-size: 11px;
+  padding-left: 18px !important; }
 
 .narrow .document-settings,
 .narrow .document-settings-left,
