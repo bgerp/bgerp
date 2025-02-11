@@ -377,7 +377,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::removeCachedAssetModified4124v2',
         'migrate::repairSearchKeywords2442',
         'migrate::calcTaskLastProgress2504v2',
-        'migrate::syncOperatorsWithGroups2504',
+        'migrate::syncOperatorsWithGroups2504v2',
     );
 
 
@@ -554,7 +554,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Миграция групите на операторите в центрове на дейност
      */
-    public function syncOperatorsWithGroups2504()
+    public function syncOperatorsWithGroups2504v2()
     {
         $employeesGroupId = crm_Groups::getIdFromSysId('employees');
         $groupRec = (object)array('name' => 'Център на дейност', 'sysId' => 'activityCenters', 'parentId' => $employeesGroupId);
@@ -562,6 +562,7 @@ class planning_Setup extends core_ProtoSetup
 
         $centerGroups = array();
         $query = planning_Centers::getQuery();
+        $query->where("#state != 'rejected'");
         while($rec = $query->fetch()){
             $centerGroups[$rec->folderId] = planning_Centers::syncCrmGroup($rec);
         }
@@ -588,6 +589,8 @@ class planning_Setup extends core_ProtoSetup
             $centers = $personArr[$pRec->id];
             $addGroups = array_intersect_key($centerGroups, $centers);
             $addGroups = array_combine($addGroups, $addGroups);
+
+            $pRec->groupListInput = keylist::removeKey($pRec->groupListInput, $employeesGroupId);
             $pRec->groupListInput = keylist::merge($pRec->groupListInput, $addGroups);
             $Persons->save($pRec, 'groupListInput,groupList');
         }

@@ -159,7 +159,7 @@ class store_Setup extends core_ProtoSetup
                           store_reports_ArticlesDepended,store_reports_ProductsInStock,store_reports_UnrealisticPricesAndWeights,
                           store_reports_ProductAvailableQuantity1,store_reports_JobsHorizons,store_tpl_SingleLayoutPackagingListGrouped,
                           store_tpl_SingleLayoutShipmentOrderEuro,store_iface_ShipmentWithBomPriceTplHandler,store_iface_OpeningBalanceImportImpl,
-                          store_reports_NonPublicItems';
+                          store_reports_NonPublicItems,store_reports_ReportConsignmentProtocols';
     
     
     /**
