@@ -117,7 +117,7 @@ class planning_AssetResources extends core_Master
     /**
      * Детайли
      */
-    public $details = 'assetSupport=support_TaskType,Tasks=planning_Tasks,planning_AssetResourcesNorms,planning_AssetResourceFolders,planning_AssetSparePartsDetail,calendar=hr_Schedules';
+    public $details = 'assetSupport=support_TaskType,Tasks=planning_Tasks,planning_AssetResourcesNorms,planning_AssetResourceFolders,planning_AssetSparePartsDetail,planning_AssetScheduleDetails';
     
     
     /**

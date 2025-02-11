@@ -410,8 +410,9 @@ class hr_Schedules extends core_Master
         $d = 0;
         $today = dt::today();
         $thisMont = $data->CalendarYear . '-' . dt::getMonth((int) $data->CalendarMonth) . '-';
-            
-  
+
+        $dayLinkUrl = (($data->masterMvc instanceof planning_AssetResources)) ? array('planning_AssetScheduleDetails', 'add', 'assetId' => $data->masterId) : array();
+
         while(($d + 2 - $data->CalendarFirstWeekDay) <= $data->CalendarLastDayOfMonth) {
             $db[] = " -" . $d;
             $html .= "\n<tr>";
@@ -446,6 +447,10 @@ class hr_Schedules extends core_Master
          
                 if($cDay > 0 && $cDay <= $data->CalendarLastDayOfMonth) {
                     $date = "<div class='mc-day' style='font-size:2em;{$dayColor}'>{$cDay}</div>";
+                    if(countR($dayLinkUrl)){
+                        $date = ht::createLink($date, $dayLinkUrl, false, "class=calendar-date-link");
+                    }
+
                     if($cDate == $today) {
                         $outline = 'outline:solid 3px red; outline-offset:-3px;';
                     }
@@ -458,26 +463,11 @@ class hr_Schedules extends core_Master
             
             $html .= "\n</tr>";
         }
-    
         $html .= '</table>';
-
-        // Ако графика се рендира към
-        if(!($data->masterMvc instanceof hr_Schedules)){
-            $tpl = new core_ET(tr("|*<fieldset class='top-tab-content' style='margin-top:10px'>
-	                                    <legend class='groupTitle'>|Работен график|*: [#print#][#name#]</legend>
-		                                <div class='detail-info portal [#TAB_STATE#]'>
-		                                <div class='groupList clearfix21'>
-		                                [#CYCLES#]
-		                                </div></div></fieldset>"));
-
-            $tpl->replace($html, 'CYCLES');
-            $tpl->replace(hr_Schedules::getHyperlink($data->scheduleId, true), 'name');
-
-            $html = $tpl->getContent();
-        }
 
         return $html;
     }
+
 
     /**
      * Изтриване на кеша при обновяване на детайла

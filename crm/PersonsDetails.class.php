@@ -90,7 +90,8 @@ class crm_PersonsDetails extends core_Manager
         if (isset($data->Schedule)) {
             $resTpl = $Schedules->renderCalendar($data->Schedule);
             $tpl->append($resTpl, 'CYCLES');
-            
+            $tpl->append(hr_Schedules::getHyperlink($data->Schedule->scheduleId, true), 'name');
+
             if (crm_Persons::haveRightFor('single', (object) array('personId' => $data->masterId))) {
                 // правим url  за принтиране
                 $url = array('hr_Schedules', 'Single', $data->Schedule->masterId, 'Printing' => 'yes', 'month' => Request::get('month', 'date'));

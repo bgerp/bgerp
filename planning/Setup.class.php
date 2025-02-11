@@ -392,6 +392,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_AssetSparePartsDetail',
         'planning_TaskConstraints',
         'planning_TaskManualOrderPerAssets',
+        'planning_AssetScheduleDetails',
         'migrate::repairSearchKeywords2524',
         'migrate::renameResourceFields2624v2',
         'migrate::removeCachedAssetModified4124v2',
