@@ -4188,16 +4188,14 @@ class planning_Tasks extends core_Master
             $Tasks = cls::get('planning_Tasks');
             $countSavedManualTasks = 0;
 
-
             foreach ($inOrderTasks as $i => $taskId){
                 $save = false;
                 $rec = $cachedData['tasks'][$taskId];
                 if(array_key_exists($taskId, $manualTimes['expectedTimeStart'])){
                     $rec->timeStart = $manualTimes['expectedTimeStart'][$taskId];
-
                     $save = true;
                 } elseif(array_key_exists($taskId, $manualTimes['expectedTimeEnd'])){
-                    $rec->timeStart = dt::addSecs(-1 * $rec->calcedCurrentDuration, $manualTimes['expectedTimeEnd'][$taskId]);
+                    $rec->timeStart = $manualTimes['expectedTimeEnd'][$taskId] ? dt::addSecs(-1 * $rec->calcedCurrentDuration, $manualTimes['expectedTimeEnd'][$taskId]) : null;
                     $save = true;
                 }
 
