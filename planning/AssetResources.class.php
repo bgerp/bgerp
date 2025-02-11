@@ -117,7 +117,7 @@ class planning_AssetResources extends core_Master
     /**
      * Детайли
      */
-    public $details = 'assetSupport=support_TaskType,Tasks=planning_Tasks,planning_AssetResourcesNorms,planning_AssetResourceFolders,planning_AssetSparePartsDetail';
+    public $details = 'assetSupport=support_TaskType,Tasks=planning_Tasks,planning_AssetResourcesNorms,planning_AssetResourceFolders,planning_AssetSparePartsDetail,calendar=hr_Schedules';
     
     
     /**
@@ -334,8 +334,11 @@ class planning_AssetResources extends core_Master
                 }
             }
 
-            if(isset($rec->scheduleId)){
-                $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
+            $scheduleId = $rec->scheduleId ?? self::getScheduleId($rec->id);
+            $row->scheduleId = hr_Schedules::getHyperlink($scheduleId, true);
+
+            if(!isset($rec->scheduleId)){
+                $row->scheduleId = ht::createHint($row->scheduleId, 'Машината няма свой график, а ползва графика на първия ѝ споделен център на дейност!');
             }
 
             $row->SingleIcon = ht::createElement('img', array('src' => sbf(str_replace('/16/', '/32/', $mvc->singleIcon), ''), 'alt' => ''));
@@ -397,7 +400,7 @@ class planning_AssetResources extends core_Master
      * @param $mvc
      * @param $rec
      */
-    function on_CalcShortName($mvc, &$rec)
+    protected static function on_CalcShortName($mvc, &$rec)
     {
         if (!$rec->shortName) {
             $rec->shortName = '[' . $rec->code . '] ' . $rec->name;
@@ -505,7 +508,6 @@ class planning_AssetResources extends core_Master
                 $noOptions = true;
             }
         }
-
 
         // Ако ще се търсят опции
         if(!$noOptions){
@@ -886,7 +888,6 @@ class planning_AssetResources extends core_Master
 
         $from = $from ?? dt::now();
         $to = $to ?? dt::addSecs(planning_Setup::get('ASSET_HORIZON'), $from);
-
         $int = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to);
 
         return $int;

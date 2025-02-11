@@ -362,8 +362,17 @@ class hr_Schedules extends core_Master
 
         $lastDay = date("Y-m-t", strtotime($firstDay));
 
-        $startingTimes = self::getStartingTimes($data->masterId, $firstDay, $lastDay);
-     
+        // Ако графика се показва към обордуване
+        $data->scheduleId = $data->masterId;
+        if($data->masterMvc instanceof planning_AssetResources){
+            $data->scheduleId = planning_AssetResources::getScheduleId($data->masterId);
+            $data->TabCaption = 'График';
+        } elseif($data->masterMvc instanceof crm_Persons){
+            $data->scheduleId = planning_Hr::getSchedule($data->masterId);
+        }
+
+        $startingTimes = self::getStartingTimes($data->scheduleId, $firstDay, $lastDay);
+
         foreach($startingTimes as $day => $time) {
             $data->Calendar[(int) substr($day, 8)] = substr($time, 0, 5);
         }
@@ -451,6 +460,21 @@ class hr_Schedules extends core_Master
         }
     
         $html .= '</table>';
+
+        // Ако графика се рендира към
+        if(!($data->masterMvc instanceof hr_Schedules)){
+            $tpl = new core_ET(tr("|*<fieldset class='top-tab-content' style='margin-top:10px'>
+	                                    <legend class='groupTitle'>|Работен график|*: [#print#][#name#]</legend>
+		                                <div class='detail-info portal [#TAB_STATE#]'>
+		                                <div class='groupList clearfix21'>
+		                                [#CYCLES#]
+		                                </div></div></fieldset>"));
+
+            $tpl->replace($html, 'CYCLES');
+            $tpl->replace(hr_Schedules::getHyperlink($data->scheduleId, true), 'name');
+
+            $html = $tpl->getContent();
+        }
 
         return $html;
     }

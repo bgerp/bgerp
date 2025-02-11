@@ -34,11 +34,11 @@ class crm_PersonsDetails extends core_Manager
         if (keylist::isIn($employeeId, $data->masterData->rec->groupList)) {
             $data->Codes = cls::get('planning_Hr');
             $data->TabCaption = 'HR';
-            $Schedule = new stdClass();
-            $Schedule->masterId = planning_Hr::getSchedule($data->masterId);
-            $Schedule->masterMvc = cls::get('hr_Schedules');
-            hr_Schedules::prepareCalendar($Schedule);
-            $data->Schedule = $Schedule;
+            $ScheduleData = new stdClass();
+            $ScheduleData->masterMvc = $data->masterMvc;
+            $ScheduleData->masterId = $data->masterId;
+            hr_Schedules::prepareCalendar($ScheduleData);
+            $data->Schedule = $ScheduleData;
         }
 
         // Подготовка на индикаторите
