@@ -365,6 +365,12 @@ $(document).ready(function () {
             if(dragging === false) return;
 
             $span = $(this).closest("td").find("span.modalDateCol");
+            let haveStartTime = $span.attr('data-have-start-time');
+            if(!haveStartTime){
+                $modalClear.hide();
+            } else {
+                $modalClear.show();
+            }
 
             if ($span.length > 0) {
                 let modalCaption = $span.data("modal-caption");
@@ -506,6 +512,8 @@ function replaceDatesWithManuals(elem, manualValues)
     let manualDate = manualValues[taskId];
 
     if(manualDate){
+
+        haveManualTimes = true;
         let oldDate = elem.text();
 
         if (!elem.attr("data-old-date")) {
@@ -515,8 +523,6 @@ function replaceDatesWithManuals(elem, manualValues)
         if (!elem.attr("data-old-date-val")) {
             elem.attr("data-old-date-val", elem.attr("data-date"));
         }
-
-       // let date = new Date(manualDate);
 
         let [datePart, timePart] = manualDate.split("T");
         let [year, month, day] = datePart.split("-").map(Number);
@@ -535,14 +541,9 @@ function replaceDatesWithManuals(elem, manualValues)
     }
 
     if(manualDate === null){
-        let oldDate = elem.attr("data-old-date");
-        if(oldDate){
-            elem.attr("data-date", elem.attr("data-old-date-val"));
-            elem.html(oldDate);
-            elem.closest("td").removeClass("manualTime");
-            elem.removeAttr("data-old-date-val");
-            elem.removeAttr("data-old-date");
-        }
+        haveManualTimes = true;
+        elem.html(' ');
+        elem.closest("td").addClass("manualTime");
     }
 }
 
@@ -553,6 +554,7 @@ function replaceDatesWithManuals(elem, manualValues)
 function fillManualTimes()
 {
     let manualTimes = sessionStorage.getItem('manualTimes');
+
     manualTimes = JSON.parse(manualTimes);
     if(!manualTimes) return;
 

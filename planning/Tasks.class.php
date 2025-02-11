@@ -3375,8 +3375,7 @@ class planning_Tasks extends core_Master
             $attr['data-task-field'] = $fld;
             if(!empty($rec->timeStart)){
                 $res = ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent() . " " . $res;
-            } elseif(!empty($rec->timeEnd)){
-                $res = ht::createElement('img', array('style' => 'height:12px;width:12px;', 'src' => sbf('img/16/pin.png', '')))->getContent() . " " . $res;
+                $attr['data-have-start-time'] = true;
             }
             $attr['data-modal-caption'] = ($fld == 'expectedTimeStart') ? tr('Ново целево начало за') : tr('Нов целеви край за');
             $attr['data-modal-caption'] .= ": #" . $this->getTitleById($rec->id);
@@ -4188,13 +4187,16 @@ class planning_Tasks extends core_Master
             $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
             $Tasks = cls::get('planning_Tasks');
             $countSavedManualTasks = 0;
+
+
             foreach ($inOrderTasks as $i => $taskId){
                 $save = false;
                 $rec = $cachedData['tasks'][$taskId];
-                if(isset($manualTimes['expectedTimeStart'][$taskId])){
+                if(array_key_exists($taskId, $manualTimes['expectedTimeStart'])){
                     $rec->timeStart = $manualTimes['expectedTimeStart'][$taskId];
+
                     $save = true;
-                } elseif(isset($manualTimes['expectedTimeEnd'][$taskId])){
+                } elseif(array_key_exists($taskId, $manualTimes['expectedTimeEnd'])){
                     $rec->timeStart = dt::addSecs(-1 * $rec->calcedCurrentDuration, $manualTimes['expectedTimeEnd'][$taskId]);
                     $save = true;
                 }
