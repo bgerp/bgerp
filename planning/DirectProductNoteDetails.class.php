@@ -480,6 +480,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         
         if($firstDoc->isInstanceOf('planning_Tasks')) return $tpl;
 
+        if($firstDoc->isInstanceOf('planning_Tasks')) return $tpl;
+
         // Рендиране на таблицата с отпадъците
         foreach (array('subProduct', 'pop') as $type){
             $arr = $data->{"{$type}Arr"};

@@ -81,7 +81,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Икона на единичния изглед
      */
-    public $singleIcon = 'img/16/invertory.png';
+    public $singleIcon = 'img/16/inventory.png';
     
     
     /**
@@ -199,7 +199,7 @@ class store_InventoryNotes extends core_Master
     {
         $this->FLD('valior', 'date', 'caption=Вальор');
         $this->FLD('instockTo', 'enum(dayBefore=Вальора - 1 ден,valior=Вальора)', 'caption=Наличности към, notNull, value=dayBefore');
-
+        $this->FLD('quantitiesFilter', 'enum(all=Всички,positive=Само положителните,negative=Само отрицателните,zero=Само нулевите)', 'caption=Очаквани к-ва,notNull,value=all');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
         $this->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Подгрупи,columns=2,single=none,notNull,value=no');
@@ -677,7 +677,17 @@ class store_InventoryNotes extends core_Master
         
         // Извличаме артикулите от баланса
         $balanceArr = $this->getProductsFromBalance($rec);
-        
+
+        if($rec->quantitiesFilter != 'all'){
+            $balanceArr = array_filter($balanceArr, function($a) use ($rec){
+                if($rec->quantitiesFilter == 'negative' && $a->blQuantity < 0) return true;
+                if($rec->quantitiesFilter == 'positive' && $a->blQuantity > 0) return true;
+                if($rec->quantitiesFilter == 'zero' && empty($a->blQuantity)) return true;
+
+                return false;
+            });
+        }
+
         // Извличаме текущите записи
         $currentArr = $this->getCurrentProducts($rec);
         

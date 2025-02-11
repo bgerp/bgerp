@@ -25,7 +25,7 @@ class itis_Devices extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Логванена IT устройства';
+    public $title = 'Логване на IT устройства';
     
     
     /**
