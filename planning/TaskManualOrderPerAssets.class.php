@@ -129,4 +129,36 @@ class planning_TaskManualOrderPerAssets extends core_Master
             $data->query->where("#assetId = {$rec->assetId}");
         }
     }
+
+
+    /**
+     * Подредба на операциите спрямо тяхната ръчна подредба
+     *
+     * @param $assetId
+     * @param $recs
+     * @return array
+     */
+    public static function getOrderedRecs($assetId, $recs)
+    {
+        // Най-отпред ще са тези с фактическо начало (неспрените)
+        $manualOrder = planning_TaskManualOrderPerAssets::fetchField("#assetId = {$assetId}", 'data');
+        $newRecs = array_filter($recs, function ($a) {return isset($a->actualStart) && $a->state != 'stopped';});
+        arr::sortObjects($newRecs, 'actualStart', 'ASC');
+
+        // След това са останалите, които присъстват в потребителската подредба
+        $alreadyOrdered = array();
+        $withoutActualStart = array_diff_key($recs, $newRecs);
+        if(is_array($manualOrder)){
+            foreach ($manualOrder as $taskId){
+                if(isset($withoutActualStart[$taskId])){
+                    $alreadyOrdered[$taskId] = $withoutActualStart[$taskId];
+                }
+            }
+        }
+
+        // Операциите ще са подредени накрая така: първо с фактическо начало, после ръчно подредените, после останалите
+        $notOrdered = array_diff_key($withoutActualStart, $alreadyOrdered);
+
+        return $newRecs + $alreadyOrdered + $notOrdered;
+    }
 }

@@ -4401,17 +4401,19 @@ class planning_Tasks extends core_Master
         if(isset($rec->newAssetId)){
             $form->setField('after', 'input');
 
-            $assetOptions = planning_AssetResources::getAssetTaskOptions($rec->newAssetId, true);
+            $taskOptions = array();
+            $taskAssets = planning_AssetResources::getAssetTaskOptions($rec->newAssetId, true);
+            $orderedTaskAssets = planning_TaskManualOrderPerAssets::getOrderedRecs($rec->newAssetId, $taskAssets);
+            foreach ($orderedTaskAssets as $tRec){
+                $taskOptions[$tRec->id] = $this->getAlternativeTitle($tRec);
+            }
 
-           // $manualRec = planning_TaskManualOrderPerAssets::fetch("#assetId = {$assetId}");
-
-            //bp($assetOptions);
+            $form->setOptions('after', array('' => '') + $taskOptions);
         }
-
-
 
         if($form->isSubmitted()){
 
+           // bp($form->rec);
             $tQuery = static::getQuery();
             $tQuery->in('id', $selectedIds);
             $tQuery->show('folderId,productId,assetId');
@@ -4489,24 +4491,6 @@ class planning_Tasks extends core_Master
     {
         if(!Mode::is('isReorder') || !countR($data->recs)) return;
 
-        // Най-отпред са винаги тези с фактическо начало
-        $manualOrder = planning_TaskManualOrderPerAssets::fetchField("#assetId = {$data->listFilter->rec->assetId}", 'data');
-        $newRecs = array_filter($data->recs, function ($a) {return isset($a->actualStart) && $a->state != 'stopped';});
-        arr::sortObjects($newRecs, 'actualStart', 'ASC');
-
-        // След това са останалите, които присъстват в потребителската подредба
-        $alreadyOrdered = array();
-        $withoutActualStart = array_diff_key($data->recs, $newRecs);
-        if(is_array($manualOrder)){
-            foreach ($manualOrder as $taskId){
-                if(isset($data->recs[$taskId])){
-                    $alreadyOrdered[$taskId] = $data->recs[$taskId];
-                }
-            }
-        }
-
-        // операциите ще са подредени накрая така: първо с фактическо начало, после ръчно подредените, после останалите
-        $notOrdered = array_diff_key($withoutActualStart, $alreadyOrdered);
-        $data->recs = $newRecs + $alreadyOrdered + $notOrdered;
+        $data->recs = planning_TaskManualOrderPerAssets::getOrderedRecs($data->listFilter->rec->assetId, $data->recs);
     }
 }

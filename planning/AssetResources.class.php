@@ -822,7 +822,7 @@ class planning_AssetResources extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
         $tQuery->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 9999)");
-        $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'pending', 'stopped')))) AND #assetId = {$assetId}");
+        $tQuery->where("#state IN ('active', 'wakeup', 'pending', 'stopped') AND #assetId = {$assetId}");
         $tQuery->orderBy('orderByAssetIdCalc,id', $order);
         $taskRecs = $tQuery->fetchAll();
 
