@@ -261,11 +261,11 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->contragent = doc_Folders::getTitleById($dRec->contragent);
+        $row->contragent = "<span style='line-height: 140%'>" . doc_Folders::getTitleById($dRec->contragent) . "</span>";
 
         $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'storeId' => $dRec->storeId, 'ret_url' => true);
 
-        $row->contragent .= ht::createBtn('Нов ПОП', $cUrl);
+        $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, false, "ef_icon = img/16/add.png") . "</span>";
 
         $row->productId = cat_Products::getHyperlink($dRec->productId);
         $row->date = $Date->toVerbal($dRec->date);
