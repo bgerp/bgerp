@@ -119,8 +119,17 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
             }
+
+            // Ако има такъв запис, сетваме грешка
+            $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
+            if($setWarning == 'yes'){
+                $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
+                if ($countSameProduct) {
+                    $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*');
+                }
+            }
         }
-        
+
         if ($form->isSubmitted() && !$form->gotErrors()) {
             if (!isset($rec->packQuantity)) {
                 $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
@@ -221,16 +230,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             }
             
             $rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-
-            // Ако има такъв запис, сетваме грешка
-            $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
-            if($setWarning == 'yes'){
-                $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
-                if ($countSameProduct) {
-                    $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа');
-                    unset($rec->price,$rec->packPrice);
-                }
-            }
 
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if ($rec->id) {
