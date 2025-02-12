@@ -879,9 +879,10 @@ class planning_AssetResources extends core_Master
      * @param mixed $id                 - ид или запис
      * @param datetime|null $from       - от кога, null за СЕГА
      * @param datetime|null $to         - до кога, null за Сега + уеб константата
+     * @param int|null $scheduleId      - графика на машината по референция
      * @return core_Intervals|null $int -
      */
-    public static function getWorkingInterval($id, $from = null, $to = null)
+    public static function getWorkingInterval($id, $from = null, $to = null, &$scheduleId = null)
     {
         $scheduleId = static::getScheduleId($id);
         if(!isset($scheduleId)) return null;

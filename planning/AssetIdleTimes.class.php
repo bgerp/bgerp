@@ -42,7 +42,7 @@ class planning_AssetIdleTimes extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'assetId,date,duration';
+    public $listFields = 'assetId,date,duration,modified=Модифициране';
 
 
     /**
@@ -89,7 +89,7 @@ class planning_AssetIdleTimes extends core_Detail
      */
     public function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy('#start', 'DESC');
+        $data->query->orderBy('#date', 'ASC');
     }
 
 
@@ -149,5 +149,14 @@ class planning_AssetIdleTimes extends core_Detail
         }
 
         return $tpl;
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $row->modified = $mvc->getVerbal($rec, 'modifiedOn') . tr("|* |от|* ") . crm_Profiles::createLink($rec->modifiedBy);
     }
 }

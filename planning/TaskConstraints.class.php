@@ -525,14 +525,38 @@ class planning_TaskConstraints extends core_Master
 
         // Извличат се графиците на всички ПО с интервали за планиране
         $assetIds = arr::extractValuesFromArray($tasks, 'assetId');
-        $intervals = $assets = array();
+        $intervals = $assets = $idleTimes = array();
 
+        // Извличане на времето за престой
+        $idleQuery = planning_AssetIdleTimes::getQuery();
+        $idleQuery->in('assetId', $assetIds);
+        while($iRec = $idleQuery->fetch()){
+            $idleTimes[$iRec->assetId][$iRec->id] = $iRec;
+        }
+
+        // Извличане на графиците на оборудването
+        $debugRes = 'Графици';
         $assetQuery = planning_AssetResources::getQuery();
         $assetQuery->in('id', $assetIds);
-        $assetQuery->show("code,taskQuantization,scheduleId");
+        $assetQuery->show("code,taskQuantization,scheduleId,code");
         while($aRec = $assetQuery->fetch()){
             $assets[$aRec->id] = $aRec;
-            if($Interval = planning_AssetResources::getWorkingInterval($aRec)) {
+            $scheduleId = null;
+            if($Interval = planning_AssetResources::getWorkingInterval($aRec, null, null, $scheduleId)) {
+                $assets[$aRec->id]->scheduleName = hr_Schedules::getTitleById($scheduleId);
+                $debugRes .= "<li>[$aRec->code]: " . $assets[$aRec->id]->scheduleName;
+                if(array_key_exists($aRec->id, $idleTimes)){
+                    arr::sortObjects($idleTimes[$aRec->id], 'date', 'ASC');
+                    foreach ($idleTimes[$aRec->id] as $idRec) {
+                        if($aRec->id == 109){
+                            $debugRes .= "<li>----Престой {$idRec->date} - {$idRec->duration}";
+                        }
+
+                        $idleBegin = strtotime($idRec->date);
+                        $Interval->consume($idRec->duration, $idleBegin);
+                    }
+                }
+
                 $intervals[$aRec->id] = $Interval;
             }
         }
@@ -575,7 +599,7 @@ class planning_TaskConstraints extends core_Master
         arr::sortObjects($tasksWithActualStart, 'actualStart', 'ASC');
 
         // Първо ще се наместят в графика тези с фактическо начало
-        $debugRes = "<hr>Без графици:" . countR($withoutIntervals);
+        $debugRes .= "<hr>Без графици:" . countR($withoutIntervals);
         $debugRes .= "<hr />ВСИЧКИ: " . countR($tasks);
         $debugRes .= "<hr />1. Разполагане на тези с ФАКТИЧЕСКО начало <b>" . countR($tasksWithActualStart) . "</b> <hr />";
 
@@ -608,7 +632,7 @@ class planning_TaskConstraints extends core_Master
             foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
                 if(!countR($assetTasks)) continue;
 
-                $debugRes .= " Слагане на задачи на <b>{$assets[$assetId]->code}</b><br />";
+                $debugRes .= " Слагане на задачи на <b>{$assets[$assetId]->code} [{$assets[$assetId]->scheduleName}]</b><br />";
                 $Interval = $intervals[$assetId];
 
                 // След това тези с желано начало се преместват най-отпред
@@ -755,8 +779,8 @@ class planning_TaskConstraints extends core_Master
 
         if($begin != self::NOT_FOUND_DATE) {
             $begin = strtotime($begin);
-
             $timeArr = $Interval->consume($task->calcedCurrentDuration, $begin, null, $interrupedOffset);
+
             if(is_array($timeArr)){
                 $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
                 $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
