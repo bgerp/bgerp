@@ -548,9 +548,7 @@ class planning_TaskConstraints extends core_Master
                 if(array_key_exists($aRec->id, $idleTimes)){
                     arr::sortObjects($idleTimes[$aRec->id], 'date', 'ASC');
                     foreach ($idleTimes[$aRec->id] as $idRec) {
-                        if($aRec->id == 109){
-                            $debugRes .= "<li>----Престой {$idRec->date} - {$idRec->duration}";
-                        }
+                        $debugRes .= "<li>----Престой {$idRec->date} - {$idRec->duration}";
 
                         $idleBegin = strtotime($idRec->date);
                         $Interval->consume($idRec->duration, $idleBegin);
@@ -616,7 +614,6 @@ class planning_TaskConstraints extends core_Master
                 $debugRes .= "{$taskLinks[$taskRec1->id]} храни <b>[{$assets[$taskRec1->assetId]->code}]($taskRec1->assetId)</b> с начало {$begin} / прод. {$taskRec1->calcedCurrentDuration} ";
                 $debugRes .= static::feedToInterval($taskRec1, $begin, $interruptOffset, $Interval, $planned);
                 $plannedByAssets[$taskRec1->assetId][$taskRec1->id] = $planned[$taskRec1->id];
-                $debugArr[$taskRec1->assetId][$taskRec1->id] = $planned[$taskRec1->id]->expectedTimeStart;
             }
         }
 
