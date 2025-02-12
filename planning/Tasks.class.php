@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -93,6 +93,7 @@ class planning_Tasks extends core_Master
      * Да не се кешира документа
      */
     public $preventCache = true;
+
 
     /**
      * Полета, които ще се показват в листов изглед
@@ -1543,12 +1544,7 @@ class planning_Tasks extends core_Master
         $form->setField("deviationNettoWarning", "placeholder=" . $mvc->getFieldType('deviationNettoWarning')->toVerbal($placeholderNetWarning));
 
         // За произвеждане може да се избере само артикула от заданието
-        try {
-            $origin = doc_Containers::getDocument($rec->originId);
-        } catch (core_exception_Expect $e) {
-            followRetUrl(null, '|Има грешка при създаването', 'error');
-        }
-
+        $origin = doc_Containers::getDocument($rec->originId);
         $originRec = $origin->fetch();
 
         // Задаване на дефолти от шаблонни ПО
@@ -4402,6 +4398,17 @@ class planning_Tasks extends core_Master
         $form->input();
 
         $rec = $form->rec;
+        if(isset($rec->newAssetId)){
+            $form->setField('after', 'input');
+
+            $assetOptions = planning_AssetResources::getAssetTaskOptions($rec->newAssetId, true);
+
+           // $manualRec = planning_TaskManualOrderPerAssets::fetch("#assetId = {$assetId}");
+
+            //bp($assetOptions);
+        }
+
+
 
         if($form->isSubmitted()){
 
