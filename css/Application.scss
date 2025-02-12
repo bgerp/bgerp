@@ -2393,7 +2393,11 @@ span, a{
     }
 }
 }
-
+.smallBtnHolder .linkWithIcon {
+	font-size: 0.65em;
+	background-size: 11px;
+	padding-left: 18px !important;
+}
 .narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
 display: inline;
 float: none;

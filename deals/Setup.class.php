@@ -157,7 +157,7 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE' => array('int(min=0)', 'caption=Толеранс за просрочване на сделките->Дни'),
         'DEALS_OVERDUE_TOLERANCE_AMOUNT' => array('int(min=0)', 'caption=Толеранс за просрочване на сделките->Сума'),
         'DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD' => array('key(mvc=cond_PaymentMethods,select=title)', 'caption=Толеранс за просрочване на сделките->Дефолтен метод'),
-        'DEALS_WARNING_ON_DUPLICATED_ROWS' => array('enum(no=Не,yes=Да)', 'caption=Предупреждение при дублиране на ред в бизнес документи->Избор,customizeBy=powerUser'),
+        'DEALS_WARNING_ON_DUPLICATED_ROWS' => array('enum(yes=Да,no=Не)', 'caption=Предупреждение при дублиране на ред в бизнес документи->Избор,customizeBy=powerUser'),
     );
     
     

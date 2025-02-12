@@ -396,7 +396,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
                     if($setWarning == 'yes' && isset($productId)){
                         if($mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #productId = {$productId}")){
-                            $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа');
+                            $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*!');
                         }
                     }
                 }
