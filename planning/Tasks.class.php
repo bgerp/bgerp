@@ -4206,13 +4206,7 @@ class planning_Tasks extends core_Master
                 core_Statuses::newStatus("Задаване на желано начало на |* {$countSavedManualTasks} |операции|*");
             }
 
-            // Запис на потребителската подредба
-            $manualRec = planning_TaskManualOrderPerAssets::fetch("#assetId = {$assetId}");
-            $manualRec = is_object($manualRec) ? $manualRec : (object)array('assetId' => $assetId);
-            $manualRec->data = array_combine($inOrderTasks, $inOrderTasks);
-            $manualRec->createdOn = dt::now();
-            $manualRec->createdBy = core_Users::getCurrent();
-            planning_TaskManualOrderPerAssets::save($manualRec);
+            planning_TaskManualOrderPerAssets::force($assetId, $inOrderTasks);
             $this->forceCalcTimes = true;
 
             core_Cache::remove('planning_Tasks', "reorderAsset{$assetId}");
@@ -4413,7 +4407,6 @@ class planning_Tasks extends core_Master
 
         if($form->isSubmitted()){
 
-           // bp($form->rec);
             $tQuery = static::getQuery();
             $tQuery->in('id', $selectedIds);
             $tQuery->show('folderId,productId,assetId');
@@ -4446,9 +4439,15 @@ class planning_Tasks extends core_Master
                 $tRec->modifiedOn = dt::now();
                 $tRec->modifiedBy = core_Users::getCurrent();
 
+                $newManualOrder = array_keys($taskOptions);
+                $afterKey = array_search($rec->after, $newManualOrder);
+                array_splice($newManualOrder, $afterKey + 1, 0, $tRec->id);
+
                 $this->save_($tRec, 'assetId,prevAssetId,modifiedBy,modifiedOn');
                 $this->logWrite("Преместване на друго оборудване", $tRec->id);
                 $movedArr[] = "#" . $this->getHandle($tRec->id);
+
+                planning_TaskManualOrderPerAssets::force($rec->newAssetId, $newManualOrder);
             }
 
             if(countR($movedArr)){

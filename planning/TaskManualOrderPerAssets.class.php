@@ -161,4 +161,23 @@ class planning_TaskManualOrderPerAssets extends core_Master
 
         return $newRecs + $alreadyOrdered + $notOrdered;
     }
+
+
+    /**
+     * Форсиране на ръчна подредба
+     *
+     * @param int $assetId
+     * @param array $arr
+     * @return int
+     */
+    public static function force($assetId, $arr)
+    {
+        $manualRec = planning_TaskManualOrderPerAssets::fetch("#assetId = {$assetId}");
+        $manualRec = is_object($manualRec) ? $manualRec : (object)array('assetId' => $assetId);
+        $manualRec->data = array_combine($arr, $arr);
+        $manualRec->createdOn = dt::now();
+        $manualRec->createdBy = core_Users::getCurrent();
+
+        return self::save($manualRec);
+    }
 }
