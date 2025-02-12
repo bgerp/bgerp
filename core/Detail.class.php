@@ -615,6 +615,14 @@ class core_Detail extends core_Manager
         // Визуализиране на редовете за изтриване
         $data = (object)array('masterMvc' => $this->Master, 'masterData' => (object)array('rec' => $this->Master->fetch($masterId)), 'recs' => array(), 'rows' => array(), 'masterId' => $masterId, 'query' => $query);
 
+        // Ако са повече от 500 да се показват първите 500
+        $count = $query->count();
+        if($count > 500){
+            $data->query->limit(500);
+            $count = core_Type::getByName('int')->toVerbal(500);
+            $form->info->append(tr("|*<div style='font-size:1.2em;margin-bottom:5px;'>|Показване на първите|*: <b>{$count}</b></div>"));
+        }
+
         Mode::push('selectRows2Delete', true);
         $this->prepareListFields($data);
         $this->prepareListRecs($data);
