@@ -3,7 +3,7 @@
         <legend class='groupTitle'>|Работен график|*</legend>
         <div class='detail-info portal [#TAB_STATE#]'>
             <div class='groupList clearfix21'>
-                <div>|Интервали|*</div>
+                <div>|Време за престой|*</div>
                 [#INTERVALS#]
 
                 <div>|График|* [#name#]</div>

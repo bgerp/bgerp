@@ -173,6 +173,13 @@ class planning_TaskConstraints extends core_Master
     }
 
 
+    /**
+     * Връща масив с планируемите операции (активни+спрени+събудени+завка)
+     *
+     * @param array $tasks
+     * @param array $fields
+     * @return array
+     */
     public static function getDefaultArr($tasks = array(), $fields = null)
     {
         $arr = arr::make($tasks, true);
@@ -347,6 +354,13 @@ class planning_TaskConstraints extends core_Master
         followRetUrl(null, 'Записите са изтрити');
     }
 
+
+    /**
+     * Калкулира и кешира продължителноста на операциите
+     *
+     * @param array $tasks
+     * @return void
+     */
     public static function calcTaskDuration($tasks = array())
     {
         core_Debug::startTimer('SYNC_TASK_DURATIONS');
@@ -497,7 +511,13 @@ class planning_TaskConstraints extends core_Master
     }
 
 
-
+    /**
+     * Калкулира планираните времена
+     *
+     * @param array $tasks   - масив с операции
+     * @param $previousTasks - масив със зависимости на операциите с предходни такива
+     * @return object
+     */
     public static function calcScheduledTimes($tasks, $previousTasks)
     {
         core_Debug::startTimer('SCHEDULE_CALC_TIMES');
@@ -785,6 +805,9 @@ class planning_TaskConstraints extends core_Master
     }
 
 
+    /**
+     * Дебъг екшън за ръчна преподредба
+     */
     function act_Order()
     {
         requireRole('debug');

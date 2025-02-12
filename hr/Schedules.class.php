@@ -411,8 +411,6 @@ class hr_Schedules extends core_Master
         $today = dt::today();
         $thisMont = $data->CalendarYear . '-' . dt::getMonth((int) $data->CalendarMonth) . '-';
 
-        $dayLinkUrl = (($data->masterMvc instanceof planning_AssetResources)) ? array('planning_AssetScheduleDetails', 'add', 'assetId' => $data->masterId) : array();
-
         while(($d + 2 - $data->CalendarFirstWeekDay) <= $data->CalendarLastDayOfMonth) {
             $db[] = " -" . $d;
             $html .= "\n<tr>";
@@ -447,9 +445,6 @@ class hr_Schedules extends core_Master
          
                 if($cDay > 0 && $cDay <= $data->CalendarLastDayOfMonth) {
                     $date = "<div class='mc-day' style='font-size:2em;{$dayColor}'>{$cDay}</div>";
-                    if(countR($dayLinkUrl)){
-                        $date = ht::createLink($date, $dayLinkUrl, false, "class=calendar-date-link");
-                    }
 
                     if($cDate == $today) {
                         $outline = 'outline:solid 3px red; outline-offset:-3px;';

@@ -13,18 +13,18 @@
  *
  * @since     v 0.1
  */
-class planning_AssetScheduleDetails extends core_Detail
+class planning_AssetIdleTimes extends core_Detail
 {
     /**
      * Заглавие
      */
-    public $title = 'Работни интервали на оборудването';
+    public $title = 'Времена за престой на оборудването';
 
 
     /**
      * Работни интервали на оборудването
      */
-    public $singleTitle = 'Работен интервал на оборудване';
+    public $singleTitle = 'Време за престой на оборудването';
 
 
     /**
@@ -42,7 +42,7 @@ class planning_AssetScheduleDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'assetId,start,duration,break,repeat,until';
+    public $listFields = 'assetId,date,duration';
 
 
     /**
@@ -79,11 +79,8 @@ class planning_AssetScheduleDetails extends core_Detail
     {
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
 
-        $this->FLD('start', 'datetime', 'caption=Начало,mandatory');
+        $this->FLD('date', 'datetime(format=smartTime)', 'caption=Начало,mandatory');
         $this->FLD('duration', 'time(min=1,suggestions=00:30|01:00|01:30|02:00|02:30|03:00|03:30|04:00|04:30|05:00|05:30|6:00|6:30|7:00|7:30|8:00|8:30|9:00|9:30|10:00|10:30|11:00|11:30|12:00|24:00,allowEmpty)', 'caption=Продължителност,mandatory,remember');
-        $this->FLD('break', 'time(min=1,suggestions=00|0:30|00:45|1:00|00,allowEmpty)', 'caption=в т.ч. Почивка,remember');
-        $this->FLD('repeat', 'time(min=1,suggestions=1 ден|2 дни|3 дни|4 дни|5 дни|6 дни|7 дни|8 дни|9 дни|10 дни|2 седмици,allowEmpty)', 'caption=Повторение->Период,remember,autohide');
-        $this->FLD('until', 'datetime', 'caption=Повторение->Край,remember,autohide');
     }
 
 
@@ -107,11 +104,11 @@ class planning_AssetScheduleDetails extends core_Detail
         $rec = &$form->rec;
 
         if ($form->isSubmitted()) {
-            if(isset($form->rec->until) && $form->rec->until <= $form->rec->start) {
-                $form->setError('until', "Краят на периода за повторение, трябва да е след началото на интервала!");
-            }
-            if(isset($form->rec->repeat) && $form->rec->repeat < $form->rec->duration) {
-                $form->setError('repeat', "Повторението не може да е по-кратко от продължителността на самия интервал!");
+            if(empty($rec->id)){
+                $until = dt::addSecs($rec->duration, $rec->date);
+                if($until < dt::now()) {
+                    $form->setError('date,duration', "Не може да добавяте време за престой в миналото!");
+                }
             }
         }
     }
