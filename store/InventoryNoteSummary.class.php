@@ -910,7 +910,7 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if (store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $data->masterId))) {
-            $data->toolbar->addBtn('Импорт', array('store_InventoryNoteDetails', 'import', 'noteId' => $data->masterId, 'ret_url' => true), 'title=Добавяне на артикули от група,ef_icon=img/16/cart_go.png');
+            $data->toolbar->addBtn('Импорт', array('store_InventoryNoteDetails', 'ImportGroups', 'noteId' => $data->masterId, 'ret_url' => true), 'title=Добавяне на артикули от група,ef_icon=img/16/cart_go.png');
         }
     }
 }

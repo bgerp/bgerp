@@ -431,7 +431,7 @@ class store_InventoryNoteDetails extends doc_Detail
      *
      * @return core_ET $tpl
      */
-    public function act_Import()
+    public function act_ImportGroups()
     {
         // Проверки
         $this->requireRightFor('add');
