@@ -412,7 +412,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //$suggestionContragents = $posContragents;
         
         
-        $suggestionContragents = array_merge($suggestionContragents,$posContragents);
+        $suggestionContragents = ($suggestionContragents+$posContragents);
         
         asort($suggestionContragents);
         
