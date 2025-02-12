@@ -555,9 +555,16 @@ abstract class deals_DealBase extends core_Master
                     $clId = $CloseDoc->create($this->className, $dRec, $id);
 
                     try {
-                        Mode::push('isBeingClosedWithDeal', true);
-                        $CloseDoc->conto($clId);
-                        Mode::pop('isBeingClosedWithDeal');
+
+                        // Ако няма друг активен приключващ документ за обединяване към тази сделка - да не се дублира
+                        $exClosedDoc = $CloseDoc->fetch("#threadId = {$dRec->threadId} AND #docClassId = {$this->getClassId()} AND #docId = {$dealRec->id} AND #id != '{$clId}' AND #state = 'active'");
+                        if(!$exClosedDoc){
+                            Mode::push('isBeingClosedWithDeal', true);
+                            $CloseDoc->conto($clId);
+                            Mode::pop('isBeingClosedWithDeal');
+                        } else {
+                            wp($exClosedDoc, $CloseDoc->fetch($clId), 'Дублиране на обединяване');
+                        }
                     } catch (acc_journal_RejectRedirect $e) {
                         // Ако е имало грешка и има изтрити разходи възстановяват се
                         foreach ($tmpCache as $exAccCostId => $deletedCostRec){
