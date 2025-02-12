@@ -317,7 +317,7 @@ abstract class deals_DealDetail extends doc_Detail
                     if($setWarning == 'yes'){
                         $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
                         if ($countSameProduct) {
-                            $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа');
+                            $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*!');
                         }
                     }
                 }
