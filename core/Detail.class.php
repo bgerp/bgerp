@@ -369,33 +369,27 @@ class core_Detail extends core_Manager
                 if(isset($rec->{$this->masterKey})){
                     $query = static::getQuery();
                     $query->where("#{$this->masterKey} = {$rec->{$this->masterKey}}");
-                    $dCount = $query->count();
-                    if($dCount > 100) {
-                        $res = 'no_one';
+
+                    // Ако има указани допълнителни полета за филтриране на детайлите
+                    if(isset($rec->_filterFld)){
+                        $sign = ($rec->_filterFldNot) ? '!=' : '=';
+                        $query->where("#{$rec->_filterFld} {$sign} '{$rec->_filterFldVal}'");
                     }
 
-                    if($res != 'no_one'){
-                        // Ако има указани допълнителни полета за филтриране на детайлите
-                        if(isset($rec->_filterFld)){
-                            $sign = ($rec->_filterFldNot) ? '!=' : '=';
-                            $query->where("#{$rec->_filterFld} {$sign} '{$rec->_filterFldVal}'");
-                        }
-
-                        $canDeleteCount = 0;
-                        $haveDeletableMoreThanOneRec = false;
-                        while ($dRec = $query->fetch()){
-                            if(static::haveRightFor('delete', $dRec)){
-                                $canDeleteCount++;
-                                if($canDeleteCount >= 2) {
-                                    $haveDeletableMoreThanOneRec = true;
-                                    break;
-                                }
+                    $canDeleteCount = 0;
+                    $haveDeletableMoreThanOneRec = false;
+                    while ($dRec = $query->fetch()){
+                        if(static::haveRightFor('delete', $dRec)){
+                            $canDeleteCount++;
+                            if($canDeleteCount >= 2) {
+                                $haveDeletableMoreThanOneRec = true;
+                                break;
                             }
                         }
+                    }
 
-                        if(!$haveDeletableMoreThanOneRec){
-                            $res = 'no_one';
-                        }
+                    if(!$haveDeletableMoreThanOneRec){
+                        $res = 'no_one';
                     }
                 } else {
                     $res = 'no_one';
@@ -620,6 +614,14 @@ class core_Detail extends core_Manager
 
         // Визуализиране на редовете за изтриване
         $data = (object)array('masterMvc' => $this->Master, 'masterData' => (object)array('rec' => $this->Master->fetch($masterId)), 'recs' => array(), 'rows' => array(), 'masterId' => $masterId, 'query' => $query);
+
+        // Ако са повече от 500 да се показват първите 500
+        $count = $query->count();
+        if($count > 500){
+            $data->query->limit(500);
+            $count = core_Type::getByName('int')->toVerbal(500);
+            $form->info->append(tr("|*<div style='font-size:1.2em;margin-bottom:5px;'>|Показване на първите|*: <b>{$count}</b></div>"));
+        }
 
         Mode::push('selectRows2Delete', true);
         $this->prepareListFields($data);
