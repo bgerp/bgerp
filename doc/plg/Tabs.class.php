@@ -95,7 +95,7 @@ class doc_plg_Tabs extends core_Plugin
             $tpl->replace($tabHtml, $mvc->tabPlaceholder);
 
             // Ако има избран таб и това не е статистиката, рендираме го
-            if (isset($data->{$data->selectedTab}) && $data->selectedTab != 'Statistic') {
+            if (isset($data->selectedTab) && $data->selectedTab != 'Statistic') {
                 $method = "render{$data->selectedTab}";
                 $mvc->$method($tpl, $data);
             }
