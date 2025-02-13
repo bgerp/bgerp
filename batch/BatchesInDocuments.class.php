@@ -285,19 +285,25 @@ class batch_BatchesInDocuments extends core_Manager
                 }
 
                 if(in_array($rInfo->state, array('draft', 'pending'))){
-                    $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
-                    $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
 
                     if ($rInfo->operation['out']) {
+                        $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
+                        $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
+
                         if ($rec->quantity > $batchQuantityInStore) {
                             $batch = ht::createHint($batch, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning');
                         }
-                    } elseif($batchQuantityInStore >= 1) {
-                        $batch = ht::createHint($batch, "Има вече налично количество от този сериен номер|* {$batchQuantityInStoreVerbal} |в|* " . store_Stores::getTitleById($storeId), 'warning');
-                    } else{
-                        $exRec = batch_Items::fetchField(array("#productId = {$rec->productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $rec->batch));
-                        if($exRec){
-                            $batch = ht::createHint($batch, "Партидата вече е минавала в " . store_Stores::getTitleById($storeId), 'img/16/warning-gray.png');
+                    } else {
+                        $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $rec->batch);
+                        $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInAllStores[$rec->batch] / $quantityInPack);
+
+                        if($batchQuantityInAllStores[$rec->batch] >= 1) {
+                            $batch = ht::createHint($batch, "Има вече налично количество от този сериен номер|*: {$batchQuantityInStoreVerbal}!", 'warning');
+                        } else{
+                            $exRec = batch_Items::fetchField(array("#productId = {$rec->productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $rec->batch));
+                            if($exRec){
+                                $batch = ht::createHint($batch, "Партидата вече е минавала в в системата", 'img/16/warning-gray.png');
+                            }
                         }
                     }
                 }
