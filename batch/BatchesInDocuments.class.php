@@ -1226,9 +1226,11 @@ class batch_BatchesInDocuments extends core_Manager
             $batches[$bRec->batch] = 1;
         }
 
-        if(countR($batches) > $noteRec->quantity){
-            followRetUrl(null, 'Серийните номера са повече от количеството на производимия артикул|*!', 'error');
+        if(countR($batches) != $noteRec->quantity){
+            followRetUrl(null, 'Серийните номера на материалите трябва точно да съответстват на бройката на производимия артикул|*!', 'error');
         }
+
+        ksort($batches, SORT_NATURAL);
 
         self::delete("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
         batch_BatchesInDocuments::saveBatches($detailClassId, $detailRecId, $batches);
