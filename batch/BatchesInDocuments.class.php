@@ -293,11 +293,13 @@ class batch_BatchesInDocuments extends core_Manager
                         if ($rec->quantity > $batchQuantityInStore) {
                             $batch = ht::createHint($batch, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning');
                         }
-                    } else {
+                    }
+
+                    if ($rInfo->operation['in']) {
                         $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $rec->batch);
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInAllStores[$rec->batch] / $quantityInPack);
 
-                        if($batchQuantityInAllStores[$rec->batch] >= 1) {
+                        if($batchQuantityInAllStores[$rec->batch] >= 1 && !($Class instanceof store_TransfersDetails)) {
                             $batch = ht::createHint($batch, "Има вече налично количество от този сериен номер|*: {$batchQuantityInStoreVerbal}!", 'warning');
                         } else{
                             $exRec = batch_Items::fetchField(array("#productId = {$rec->productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $rec->batch));
