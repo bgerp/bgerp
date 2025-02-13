@@ -21,6 +21,7 @@ class doc_plg_Tabs extends core_Plugin
     public static function on_AfterDescription(&$mvc)
     {
         setIfNot($mvc->mainTabCaption, 'Статистика');
+        setIfNot($mvc->tabPlaceholder, 'TABS');
     }
 
 
@@ -66,13 +67,14 @@ class doc_plg_Tabs extends core_Plugin
      */
     public static function on_AfterPrepareDocumentTabs($mvc, &$res, $data)
     {
+        if(!$res){
+            $data->tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab alphabet', 'urlParam' => "docTab{$data->rec->containerId}"));
+            $url = getCurrentUrl();
+            unset($url['export']);
 
-        $data->tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab alphabet', 'urlParam' => "docTab{$data->rec->containerId}"));
-        $url = getCurrentUrl();
-        unset($url['export']);
-
-        $url["docTab{$data->rec->containerId}"] = 'Statistic';
-        $data->tabs->TAB('Statistic', $mvc->mainTabCaption, $url, null, 1);
+            $url["docTab{$data->rec->containerId}"] = 'Statistic';
+            $data->tabs->TAB('Statistic', $mvc->mainTabCaption, $url, null, 1);
+        }
     }
 
 
@@ -90,7 +92,7 @@ class doc_plg_Tabs extends core_Plugin
             }
 
             $tabHtml = $data->tabs->renderHtml('', $data->selectedTab);
-            $tpl->replace($tabHtml, 'TABS');
+            $tpl->replace($tabHtml, $mvc->tabPlaceholder);
 
             // Ако има избран таб и това не е статистиката, рендираме го
             if (isset($data->{$data->selectedTab}) && $data->selectedTab != 'Statistic') {
