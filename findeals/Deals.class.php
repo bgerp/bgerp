@@ -39,7 +39,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, acc_plg_Contable, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone, doc_plg_Prototype, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_plg_Tabs, acc_plg_Contable, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone, doc_plg_Prototype, doc_plg_SelectFolder';
     
     
     /**

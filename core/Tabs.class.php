@@ -132,7 +132,7 @@ class core_Tabs extends core_BaseClass
         
         $isAjax = defined('EF_AJAX_TAB') && $headers['Ajax-Mode'] && !empty($this->htmlId) && $this->htmlId == $headers['Html-Part-Id'];
 
-
+        // Прилагане на ръчна подредба ако има, тези без посочена подредба отиват открая в същия ред
         if(countR($this->tabOrder)){
             $tabOrder = $this->tabOrder;
             uksort($this->tabs, function ($a, $b) use ($tabOrder) {
