@@ -308,6 +308,13 @@ class planning_TaskConstraints extends core_Master
                     $res["prev|{$taskRec->id}|$prevTaskId"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => $waitingTime, 'previousTaskId' => $prevTaskId, 'updatedOn' => $now);
                 }
             }
+
+
+
+
+            if($taskRec->id == 190739){
+                bp($taskRec, $tasksByJobs[$taskRec->originId], $prevStepsArr);
+            }
         }
 
         // Извличат се записите за посочените операции
