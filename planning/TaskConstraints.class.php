@@ -313,7 +313,7 @@ class planning_TaskConstraints extends core_Master
 
 
             if($taskRec->id == 190739){
-                bp($taskRec, $tasksByJobs[$taskRec->originId], $prevStepsArr);
+                bp($taskRec, $tasksByJobs[$taskRec->originId], $prevStepsArr, $prevTaskIds);
             }
         }
 
