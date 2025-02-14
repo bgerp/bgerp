@@ -769,7 +769,7 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
-        $debugRes .= "<hr />КРАЙНО НЕПЛАНИРАНИ: " . implode(',', array_keys($notPlanned)) . "<br />";
+        $debugRes .= "<hr />КРАЙНО НЕПЛАНИРАНИ: " . implode(', ', array_keys($notPlanned)) . "<br />";
 
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));

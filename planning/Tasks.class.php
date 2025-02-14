@@ -353,6 +353,7 @@ class planning_Tasks extends core_Master
         $this->FLD('firstProgress', 'datetime(format=smartTime)', 'caption=Първи Прогрес (всички), tdClass=leftColImportant,input=none');
         $this->FLD('lastProgress', 'datetime(format=smartTime)', 'caption=Последен Прогрес (всички), tdClass=leftColImportant,input=none');
         $this->FLD('lastProgressProduction', 'datetime(format=smartTime)', 'caption=Последен Прогрес (произвеждане), tdClass=leftColImportant,input=none');
+        $this->FLD('planningError', 'enum(no=Не,yes=Да)', 'caption=Грешка при планиране,input=none,notNull,value=no');
 
         $this->setDbIndex('labelPackagingId');
         $this->setDbIndex('productId');
@@ -2207,7 +2208,7 @@ class planning_Tasks extends core_Master
         }
 
         $orderByDir = 'ASC';
-        $stateOptions = arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени', true);
+        $stateOptions = arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Грешка при планиране', true);
         if (!Request::get('Rejected', 'int')) {
             if(!Mode::is('isReorder')){
                 unset($stateOptions['manualOrder']);
@@ -2227,6 +2228,8 @@ class planning_Tasks extends core_Master
 
                 if (in_array($filter->state, array('activeAndPending', 'manualOrder'))) {
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
+                } elseif($filter->state == 'planningError') {
+                    $data->query->where("#planningError = 'yes'");
                 } elseif ($filter->state != 'all') {
                     $data->query->where("#state = '{$filter->state}' OR #state = 'rejected'");
                     if ($filter->state == 'closed') {

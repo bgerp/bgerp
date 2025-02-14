@@ -963,14 +963,19 @@ class planning_AssetResources extends core_Master
 
             $order = 1;
             array_walk($plannedTasks, function($a) use (&$order){
+                $a->planningError = 'no';
                 if($a->expectedTimeStart == planning_TaskConstraints::NOT_FOUND_DATE){
+                    $a->expectedTimeStart = null;
+                    $a->expectedTimeEnd = null;
+                } elseif($a->expectedTimeStart == planning_TaskConstraints::NOT_PLANNABLE) {
+                    $a->planningError = 'yes';
                     $a->expectedTimeStart = null;
                     $a->expectedTimeEnd = null;
                 }
                 $a->orderByAssetId = $order;
                 $order++;
             });
-            $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId');
+            $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId,planningError');
 
             $rec = $this->fetchRec($assetId);
             $rec->lastRecalcTimes = dt::now();
