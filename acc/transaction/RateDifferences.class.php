@@ -413,8 +413,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 $sign = ($docRec->action == 'increase') ? -1 : 1;
                 $currencyId = currency_Currencies::getIdByCode($docRec->currencyId);
 
-                $strategyRate = currency_CurrencyRates::getRate($valior, $docRec->currencyId, null);
-                $diffRate = round($docRec->rate - $strategyRate, 5);
+                $diffRate = round($docRec->rate - $rate, 5);
                 $finalAmount = round($diffRate * $sign * ($docRec->amount / $docRec->rate), 2);
                 $debitQuantity = ($docRec->amount / $docRec->rate);
                 $totalAmount += $finalAmount;
