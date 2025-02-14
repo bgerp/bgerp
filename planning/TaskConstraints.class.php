@@ -753,7 +753,11 @@ class planning_TaskConstraints extends core_Master
             $debugRes .= "<hr />ИТЕРАЦИЯ КРАЙ <b>{$i}</b> ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
             $i++;
 
+            if($i >= 20) break;
+
         } while($countWithoutActualStart);
+
+        bp();
 
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
