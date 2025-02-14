@@ -533,7 +533,7 @@ class planning_TaskConstraints extends core_Master
         // Извличане на времето за престой
         $idleQuery = planning_AssetIdleTimes::getQuery();
         $idleQuery->in('assetId', $assetIds);
-        while($iRec = $idleQuery->fetch()){
+        while ($iRec = $idleQuery->fetch()) {
             $idleTimes[$iRec->assetId][$iRec->id] = $iRec;
         }
 
@@ -542,13 +542,13 @@ class planning_TaskConstraints extends core_Master
         $assetQuery = planning_AssetResources::getQuery();
         $assetQuery->in('id', $assetIds);
         $assetQuery->show("code,taskQuantization,scheduleId,code");
-        while($aRec = $assetQuery->fetch()){
+        while ($aRec = $assetQuery->fetch()) {
             $assets[$aRec->id] = $aRec;
             $scheduleId = null;
-            if($Interval = planning_AssetResources::getWorkingInterval($aRec, null, null, $scheduleId)) {
+            if ($Interval = planning_AssetResources::getWorkingInterval($aRec, null, null, $scheduleId)) {
                 $assets[$aRec->id]->scheduleName = hr_Schedules::getTitleById($scheduleId);
                 $debugRes .= "<li>[$aRec->code]: " . $assets[$aRec->id]->scheduleName;
-                if(array_key_exists($aRec->id, $idleTimes)){
+                if (array_key_exists($aRec->id, $idleTimes)) {
                     arr::sortObjects($idleTimes[$aRec->id], 'date', 'ASC');
                     foreach ($idleTimes[$aRec->id] as $idRec) {
                         $debugRes .= "<li>----Престой {$idRec->date} - {$idRec->duration}";
@@ -569,8 +569,8 @@ class planning_TaskConstraints extends core_Master
 
         // Извлича се ръчната подредба по машини
         $manualQuery = planning_TaskManualOrderPerAssets::getQuery();
-        while($manualRec = $manualQuery->fetch()){
-            if(isset($assets[$manualRec->assetId])){
+        while ($manualRec = $manualQuery->fetch()) {
+            if (isset($assets[$manualRec->assetId])) {
                 $assets[$manualRec->assetId]->manualOrder = $manualRec->data;
             }
         }
@@ -582,12 +582,12 @@ class planning_TaskConstraints extends core_Master
         $allTasks = $taskLinks = array();
         $withoutIntervals = array();
         array_walk($tasks, function ($task) use ($assetsWithIntervals, &$allTasks, &$tasksWithActualStart, &$tasksWithoutActualStartByAssetId, &$taskLinks, &$withoutIntervals) {
-            if(in_array($task->assetId, $assetsWithIntervals)) {
+            if (in_array($task->assetId, $assetsWithIntervals)) {
                 $taskLinks[$task->id] = ht::createLink("Opr{$task->id}", array('planning_Tasks', 'single', $task->id), false, 'target=_blank')->getContent();
                 $allTasks[$task->id] = $task;
 
                 // Тези които са с фактическо начало се отделят от тези без (спрените ги броим че са без фактическо начало)
-                if(!empty($task->actualStart) && $task->state != 'stopped'){
+                if (!empty($task->actualStart) && $task->state != 'stopped') {
                     $tasksWithActualStart[$task->id] = $task;
                 } else {
                     $tasksWithoutActualStartByAssetId[$task->assetId][$task->id] = $task;
@@ -610,11 +610,11 @@ class planning_TaskConstraints extends core_Master
         $planned = $plannedByAssets = array();
         $now = dt::now();
 
-        foreach ($tasksWithActualStart as $taskRec1){
+        foreach ($tasksWithActualStart as $taskRec1) {
             $begin = max($taskRec1->actualStart, $now);
 
             // Захранват се графиците със задачите с фактическо начало
-            if($Interval = $intervals[$taskRec1->assetId]){
+            if ($Interval = $intervals[$taskRec1->assetId]) {
                 $interruptOffset = array_key_exists($taskRec1->productId, $interruptionArr) ? $interruptionArr[$taskRec1->productId] : null;
                 $debugRes .= "{$taskLinks[$taskRec1->id]} храни <b>[{$assets[$taskRec1->assetId]->code}]($taskRec1->assetId)</b> с начало {$begin} / прод. {$taskRec1->calcedCurrentDuration} ";
                 $debugRes .= static::feedToInterval($taskRec1, $begin, $interruptOffset, $Interval, $planned);
@@ -632,16 +632,16 @@ class planning_TaskConstraints extends core_Master
             $debugRes .= "<hr />2.{$i} ИТЕРАЦИЯ НАЧАЛО <b>{$i}</b> <hr />";
 
             // За всяка операция без начало на всяка машина
-            foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks){
-                if(!countR($assetTasks)) continue;
+            foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks) {
+                if (!countR($assetTasks)) continue;
 
                 $debugRes .= " Слагане на задачи на <b>{$assets[$assetId]->code} [{$assets[$assetId]->scheduleName}]</b><br />";
                 $Interval = $intervals[$assetId];
 
                 // След това тези с желано начало се преместват най-отпред
-                $withStart = $withoutStart =array();
-                foreach ($assetTasks as $t1){
-                    if(!empty($t1->timeStart)){
+                $withStart = $withoutStart = array();
+                foreach ($assetTasks as $t1) {
+                    if (!empty($t1->timeStart)) {
                         $withStart[$t1->id] = $t1;
                     } else {
                         $withoutStart[$t1->id] = $t1;
@@ -651,11 +651,11 @@ class planning_TaskConstraints extends core_Master
 
                 // Сортираните задачи се обикалят и се проверява изпълнени ли са им ограниченията
                 $plannable = array();
-                foreach ($sortedArr as $task){
+                foreach ($sortedArr as $task) {
                     $isPlannable = true;
 
                     // Ако нямат зависимости от предходни задачи - ще се захранят с по-голямото от желантото начало и сега
-                    if(!array_key_exists($task->id, $previousTasks)){
+                    if (!array_key_exists($task->id, $previousTasks)) {
                         $startTime = max($now, $task->timeStart);
                         $debugRes .= "{$taskLinks[$task->id]} - Няма ограничения <br />";
                     } else {
@@ -663,12 +663,12 @@ class planning_TaskConstraints extends core_Master
                         // Ако има ограничения от предходни операции се проверява те изпълнени ли са
                         $debugStr = "";
                         $calcedTimes = array();
-                        foreach ($previousTasks[$task->id] as $prevId => $prevTask){
-                            if(!isset($taskLinks[$prevId])) continue;
+                        foreach ($previousTasks[$task->id] as $prevId => $prevTask) {
+                            if (!isset($taskLinks[$prevId])) continue;
 
                             // Предходната операция има ли планирано начало
                             $plannedPrevTime = $planned[$prevId]->expectedTimeStart;
-                            if(empty($plannedPrevTime)) {
+                            if (empty($plannedPrevTime)) {
 
                                 // Ако НЯМА, значи текущата задача не може да се планира, ще се провери на следващата итерация
                                 $isPlannable = false;
@@ -682,7 +682,7 @@ class planning_TaskConstraints extends core_Master
                         }
 
                         // Ако не може да се планира текущата - пропуска се, ще се прави опит на следващата итерация
-                        if(!$isPlannable) {
+                        if (!$isPlannable) {
                             $debugRes .= "{$taskLinks[$task->id]} - <b>НЕ МОЖЕ ДА СЕ ПЛАНИРА</b> предходни ({$debugStr})<br />";
                             continue;
                         }
@@ -698,8 +698,8 @@ class planning_TaskConstraints extends core_Master
                     $plannable[$task->id] = $task;
                 }
 
-                $debugRes .= "{$i}. Планируеми: " . countR($plannable). "<br />";
-                if(!countR($plannable)) continue;
+                $debugRes .= "{$i}. Планируеми: " . countR($plannable) . "<br />";
+                if (!countR($plannable)) continue;
 
                 // Сортират се по-планирано след и после се квантуват спрямо указаното в оборудването
                 arr::sortObjects($plannable, '_plannedTime', 'ASC');
@@ -714,15 +714,15 @@ class planning_TaskConstraints extends core_Master
 
                     // Преподреждане на кванта
                     $manualOrderStr = "";
-                    if(isset($assets[$assetId]->manualOrder)){
+                    if (isset($assets[$assetId]->manualOrder)) {
                         $manualOrderStr = "приложена ръчна подредба " . countR($assets[$assetId]->manualOrder);
                         $objects = arr::reorderArrayByOrderedKeys($objects, $assets[$assetId]->manualOrder);
                     }
 
-                    $debugRes .= "-----Квант: {$quant} - " . implode(',', array_keys($objects)). " [{$manualOrderStr}]<br />";
+                    $debugRes .= "-----Квант: {$quant} - " . implode(',', array_keys($objects)) . " [{$manualOrderStr}]<br />";
 
                     // Разделяне обектите на две половини
-                    $half = (int) ceil(count($objects) / 2);
+                    $half = (int)ceil(count($objects) / 2);
                     $firstHalf = array_slice($objects, 0, $half, true);
                     $carryOver = array_slice($objects, $half, null, true);
 
@@ -739,7 +739,7 @@ class planning_TaskConstraints extends core_Master
                     }
                 }
 
-                if(countR($carryOver)){
+                if (countR($carryOver)) {
                     $debugRes .= "-----Квант ОСТАТЪК - " . implode(',', array_keys($carryOver)) . "<br />";
                 }
 
@@ -758,13 +758,14 @@ class planning_TaskConstraints extends core_Master
             $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
             $debugRes .= "<hr />ИТЕРАЦИЯ КРАЙ <b>{$i}</b> ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
             $i++;
-        } while($haveChange);
+        } while ($haveChange);
 
-        $notPlanned = array();
-        array_walk($tasksWithoutActualStartByAssetId, function($a) use (&$plannedByAssets) {
-            $plannedByAssets[$a->assetId][$a->id] = (object)array('id' => $a->id, 'assetId' => $a->assetId, 'calcedCurrentDuration' => $a->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_PLANNABLE, 'expectedTimeEnd' => self::NOT_PLANNABLE);
-        });
-
+        foreach ($tasksWithoutActualStartByAssetId as $assetId => $notPlannedTasks) {
+            foreach ($notPlannedTasks as $notPlannedTask) {
+                $plannedByAssets[$assetId][$notPlannedTask->id] = (object)array('id' => $notPlannedTask->id, 'assetId' => $notPlannedTask->assetId, 'calcedCurrentDuration' => $notPlannedTask->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_PLANNABLE, 'expectedTimeEnd' => self::NOT_PLANNABLE);
+            }
+        }
+        bp($plannedByAssets);
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
 
