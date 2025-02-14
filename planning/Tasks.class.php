@@ -3278,9 +3278,15 @@ class planning_Tasks extends core_Master
                 $row->{$fld} = $mvc->getDateFieldVerbal($rec, $fld, Mode::is('isReorder'));
             }
 
-            if($rec->planningError == 'yes' && !Mode::is('isReorder')){
-                $row->expectedTimeStart = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
-                $row->expectedTimeEnd = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
+            if(!Mode::is('isReorder')){
+                if($rec->planningError == 'error'){
+                    $row->expectedTimeStart = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
+                    $row->expectedTimeEnd = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
+
+                } elseif($rec->planningError == 'outsideSchedule') {
+                    $row->expectedTimeStart = ht::createHint('', 'Операцията е планирана извън хоризонта', 'img/16/emotion_alert_yellow.png');
+                    $row->expectedTimeEnd = ht::createHint('', 'Операцията е планирана извън хоризонта', 'img/16/emotion_alert_yellow.png');
+                }
             }
 
             if(!empty($dependantTaskArr[$rec->id]['next'])){
