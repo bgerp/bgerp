@@ -308,13 +308,6 @@ class planning_TaskConstraints extends core_Master
                     $res["prev|{$taskRec->id}|$prevTaskId"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => $waitingTime, 'previousTaskId' => $prevTaskId, 'updatedOn' => $now);
                 }
             }
-
-
-
-
-            if($taskRec->id == 190739){
-                bp($taskRec, $tasksByJobs[$taskRec->originId], $prevStepsArr, $prevTaskIds);
-            }
         }
 
         // Извличат се записите за посочените операции
@@ -632,6 +625,7 @@ class planning_TaskConstraints extends core_Master
 
         $i = 1;
         do {
+            $haveChange = false;
             $debugRes .= "<hr />2.{$i} ИТЕРАЦИЯ НАЧАЛО <b>{$i}</b> <hr />";
 
             // За всяка операция без начало на всяка машина
@@ -731,6 +725,7 @@ class planning_TaskConstraints extends core_Master
 
                     // Първата половина ще захранят графика
                     foreach ($firstHalf as $task) {
+                        $haveChange = true;
                         $interruptOffset = array_key_exists($task->productId, $interruptionArr) ? $interruptionArr[$task->productId] : null;
                         $debugRes .= "{$taskLinks[$task->id]} храни <b>[{$assets[$task->assetId]->code}]($task->assetId)</b> с начало {$task->_plannedTime} / прод. {$task->calcedCurrentDuration} <br />";
                         $debugRes .= self::feedToInterval($task, $task->_plannedTime, $interruptOffset, $Interval, $planned);
@@ -747,6 +742,7 @@ class planning_TaskConstraints extends core_Master
 
                 // Ако има остатъчен квант захранва се и той на графика
                 foreach ($carryOver as $t1) {
+                    $haveChange = true;
                     $interruptOffset = array_key_exists($t1->productId, $interruptionArr) ? $interruptionArr[$t1->productId] : null;
                     $debugRes .= "{$taskLinks[$t1->id]} храни <b>[{$assets[$t1->assetId]->code}]($t1->assetId)</b> с начало {$t1->_plannedTime} / прод. {$t1->calcedCurrentDuration} <br />";
 
@@ -760,12 +756,9 @@ class planning_TaskConstraints extends core_Master
             $debugRes .= "<hr />ИТЕРАЦИЯ КРАЙ <b>{$i}</b> ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
             $i++;
 
-            if($i >= 10) break;
+            //if($i >= 10) break;
 
-        } while($countWithoutActualStart);
-
-        echo $debugRes;
-        bp();
+        } while($haveChange);
 
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
