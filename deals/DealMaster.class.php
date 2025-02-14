@@ -2509,21 +2509,24 @@ abstract class deals_DealMaster extends deals_DealBase
             $mvc->save($rec, 'valior');
         }
     }
-    
-    
+
+
     /**
-     * Подготвя табовете на задачите
+     * След подготовка на табовете на документа
+     * @see doc_plg_Tabs
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     * @return void
      */
-    public function prepareDealTabs_(&$data)
+    protected static function on_AfterPrepareDocumentTabs($mvc, &$res, $data)
     {
-        parent::prepareDealTabs_($data);
-        
+        // Добавяне на таб показващ поръчано/доставено
         if ($data->rec->state != 'draft') {
             $url = getCurrentUrl();
-            unset($url['export']);
-            
-            $url['dealTab'] = 'DealReport';
-            $data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url);
+            $url["docTab{$data->rec->containerId}"] = 'DealReport';
+            $data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url, null, 3);
         }
     }
 

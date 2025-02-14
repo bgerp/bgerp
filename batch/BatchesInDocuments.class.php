@@ -151,8 +151,48 @@ class batch_BatchesInDocuments extends core_Manager
                     $requiredRoles = 'no_one';
                 }
             }
-
         }
+
+        // Ако екшъна е за регенериране на сериен номер
+        if($action == 'regenserial') {
+            $requiredRoles = $mvc->getRequiredRoles('modify', $rec, $userId);
+            if($requiredRoles != 'no_one' && isset($rec)){
+                $regen = false;
+                $Detail = cls::get($rec->detailClassId);
+
+                // Само се позволява за мастъра на ПП
+                if(cls::get($rec->detailClassId) instanceof planning_DirectProductionNote){
+                    $noteRec = $Detail->fetch($rec->detailRecId);
+                    $productDef = batch_Defs::getBatchDef($noteRec->productId);
+
+                    // Ако той и към него има само един детайл със същата партидност
+                    // и сетнато да се прехвърля серийния номер - ще се показва бутона за регенериране
+                    if($productDef instanceof batch_definitions_Serial){
+                        if($productDef->getField('transferBatchOnProduction') == 'yes'){
+                            $dQuery = planning_DirectProductNoteDetails::getQuery();
+                            $dQuery->where("#noteId = '{$noteRec->id}'");
+                            $dQuery->show('productId');
+                            $detailProducts = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+
+                            if(countR($detailProducts) == 1){
+                                $detailDef = batch_Defs::getBatchDef(key($detailProducts));
+                                if($detailDef instanceof batch_definitions_Serial){
+                                    if($detailDef->getField('transferBatchOnProduction') == 'yes'){
+                                        $regen = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Ако горните условия не са изпълнени бутона не се показва
+                if(!$regen) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+
     }
 
 
@@ -244,11 +284,29 @@ class batch_BatchesInDocuments extends core_Manager
                     }
                 }
 
-                if ($rInfo->operation['out'] && in_array($rInfo->state, array('draft', 'pending'))) {
-                    $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
-                    if ($rec->quantity > $batchQuantityInStore) {
+                if(in_array($rInfo->state, array('draft', 'pending'))){
+
+                    if ($rInfo->operation['out']) {
+                        $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
-                        $batch = ht::createHint($batch, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning');
+
+                        if ($rec->quantity > $batchQuantityInStore) {
+                            $batch = ht::createHint($batch, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning');
+                        }
+                    }
+
+                    if ($rInfo->operation['in']) {
+                        $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $rec->batch);
+                        $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInAllStores[$rec->batch] / $quantityInPack);
+
+                        if($batchQuantityInAllStores[$rec->batch] >= 1 && !($Class instanceof store_TransfersDetails)) {
+                            $batch = ht::createHint($batch, "Има вече налично количество от този сериен номер|*: {$batchQuantityInStoreVerbal}!", 'warning');
+                        } else{
+                            $exRec = batch_Items::fetchField(array("#productId = {$rec->productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $rec->batch));
+                            if($exRec){
+                                $batch = ht::createHint($batch, "Партидата вече е минавала в в системата", 'img/16/warning-gray.png');
+                            }
+                        }
                     }
                 }
 
@@ -1147,5 +1205,36 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         followRetUrl(null, '|Всяка партида е прехвърлена на нов ред');
+    }
+
+
+    /**
+     * Екшън за пренасяне на серийните номера от детайла на ПП към производимия артикул
+     */
+    public function act_regenserial()
+    {
+        expect($detailClassId = Request::get('detailClassId', 'class'));
+        expect($detailRecId = Request::get('detailRecId', 'int'));
+        $this->requireRightFor('regenserial', (object)array('detailClassId' => $detailClassId, 'detailRecId' => $detailRecId));
+
+        // Сумарно всички партиди от детайла
+        $batches = array();
+        $noteRec = cls::get($detailClassId)->fetch($detailRecId);
+        $bQuery = self::getQuery();
+        $bQuery->where("#containerId = {$noteRec->containerId} AND #detailClassId = " . planning_DirectProductNoteDetails::getClassId());
+        while($bRec = $bQuery->fetch()){
+            $batches[$bRec->batch] = 1;
+        }
+
+        if(countR($batches) != $noteRec->quantity){
+            followRetUrl(null, 'Серийните номера на материалите трябва точно да съответстват на бройката на производимия артикул|*!', 'error');
+        }
+
+        ksort($batches, SORT_NATURAL);
+
+        self::delete("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
+        batch_BatchesInDocuments::saveBatches($detailClassId, $detailRecId, $batches);
+
+        followRetUrl(null, 'Серийните номера са пренесени|*!');
     }
 }

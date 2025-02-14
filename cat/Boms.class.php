@@ -1928,6 +1928,7 @@ class cat_Boms extends core_Master
     {
         $res = array();
         $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
+
         if (!countR($bomInfo['resources'])) return $res;
 
         foreach ($bomInfo['resources'] as $pRec) {

@@ -492,15 +492,23 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         // Ако документа има сингъл добавя му се информацията за партидата
         $row = &$data->row;
         $rec = &$data->rec;
-        
-        if (batch_BatchesInDocuments::haveRightFor('modify', (object) array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}))) {
-            if (!core_Mode::isReadOnly()) {
+
+        if (!core_Mode::isReadOnly()) {
+            core_RowToolbar::createIfNotExists($row->batchBtn);
+
+            if (batch_BatchesInDocuments::haveRightFor('modify', (object) array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}))) {
                 core_Request::setProtected('detailClassId,detailRecId,storeId');
                 $url = array('batch_BatchesInDocuments', 'modify', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}, 'ret_url' => true);
-                $row->addBatchBtn = ht::createLink('', $url, false, 'ef_icon=img/16/edit-icon.png,title=Промяна на партидите');
+                $row->batchBtn->addLink('Партиди', $url, array('ef_icon' => 'img/16/edit-icon.png', 'title' => "Промяна на партидите"));
+            }
+
+            if (batch_BatchesInDocuments::haveRightFor('regenserial', (object) array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}))) {
+                $url = array('batch_BatchesInDocuments', 'regenserial', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}, 'ret_url' => true);
+                $row->batchBtn->addLink('Пренеси партиди', $url, array('ef_icon' => 'img/16/arrow_refresh.png', 'title' => "Пренасяне на партидата от материала"));
             }
         }
-        
+
+        $row->addBatchBtn = $row->batchBtn->renderHtml();
         if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) {
             
             return;
