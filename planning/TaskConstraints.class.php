@@ -755,11 +755,11 @@ class planning_TaskConstraints extends core_Master
             $countWithoutActualStart = array_sum(array_map('count', $tasksWithoutActualStartByAssetId));
             $debugRes .= "<hr />ИТЕРАЦИЯ КРАЙ <b>{$i}</b> ПЛАНИРАНИ " . countR($planned) . " / НЕПЛАНИРАНИ {$countWithoutActualStart}";
             $i++;
-
-            //if($i >= 10) break;
-
         } while($haveChange);
 
+        $notPlanned = array();
+        array_walk($tasksWithoutActualStartByAssetId, function($a) use (&$notPlanned) {$notPlanned += $a;});
+        bp($notPlanned);
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
 
