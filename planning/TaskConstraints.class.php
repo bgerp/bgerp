@@ -62,7 +62,10 @@ class planning_TaskConstraints extends core_Master
     public $listFields = 'taskId,type,previousTaskId=Предходна,earliestTimeStart=Най-рано,waitingTime=Изчакване,updatedOn';
 
 
-    const NOT_FOUND_DATE = '9999-12-31 23:59:59';
+    const NOT_FOUND_DATE = '9999-12-21 23:59:59';
+
+
+    const NOT_PLANNABLE = '9999-12-31 23:59:59';
 
 
     /**
@@ -758,12 +761,14 @@ class planning_TaskConstraints extends core_Master
         } while($haveChange);
 
         $notPlanned = array();
-        array_walk($tasksWithoutActualStartByAssetId, function($a) use (&$notPlanned) {$notPlanned += $a;});
-        bp($notPlanned);
+        array_walk($tasksWithoutActualStartByAssetId, function($a) use (&$plannedByAssets) {
+            $plannedByAssets[$a->assetId][$a->id] = (object)array('id' => $a->id, 'assetId' => $a->assetId, 'calcedCurrentDuration' => $a->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_PLANNABLE, 'expectedTimeEnd' => self::NOT_PLANNABLE);
+        });
+
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
 
-        return (object)array('tasks' => $plannedByAssets, 'debug' => $debugRes);
+        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'debug' => $debugRes);
     }
 
 
