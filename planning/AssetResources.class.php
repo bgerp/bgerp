@@ -278,7 +278,7 @@ class planning_AssetResources extends core_Master
         $rec = $form->rec;
         if ($form->isSubmitted()) {
             $assetFolderErrors = array();
-            if (!empty($rec->assetFolders)) {
+            if (empty($rec->assetFolders)) {
                 if($rec->assetUsers){
                     $assetFolderErrors[] = '|Не е избран център на дейност, но са избрани отговорници|*!';
                 }
@@ -287,7 +287,7 @@ class planning_AssetResources extends core_Master
                 if($resourceType == 'material'){
                     $selectedCenterCounts = countR(keylist::toArray($rec->assetFolders));
                     if($selectedCenterCounts > 1){
-                        $assetFolderErrors[] = '|Материалните ресурси може да са споделени в повече от един център|*!';
+                        $assetFolderErrors[] = '|Материалните ресурси НЕ МОЖЕ да са споделени в повече от един център|*!';
                     }
                 }
 

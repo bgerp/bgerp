@@ -397,7 +397,7 @@ class planning_WorkInProgress extends core_Manager
         }
 
         // Вербализиране на данните
-        $data->workInProgressData = (object)array('recs' => array(), 'rows' => array(), 'listFields' => arr::make('productId=Артикул,measureId=Мярка,bomQuantity=Рецепта,consumpedDetailed=|*<small>Детайлно</small>->Вложено,returnedInput=|*<small>Детайлно</small>->Върнато,inputed=Изразходено,diff=Остатък,consumped=|*<small>Бездетайлно</small>->Вложено,returned=|*<small>Бездетайлно</small>->Върнато', true));
+        $data->workInProgressData = (object)array('recs' => array(), 'rows' => array(), 'listFields' => arr::make('productId=Артикул,measureId=Мярка,bomQuantity=Рецепта,consumpedDetailed=|*Детайлно->Вложено,returnedInput=|*Детайлно->Върнато,inputed=Изразходено,diff=Остатък,consumped=|*Бездетайлно->Вложено,returned=|*Бездетайлно->Върнато', true));
         foreach ($productArr as $pId => $pRec){
             $pRec->diff = $pRec->consumpedDetailed - $pRec->returnedInput - $pRec->inputed;
             $data->workInProgressData->recs[$pId] = $pRec;
@@ -426,11 +426,13 @@ class planning_WorkInProgress extends core_Manager
     public static function renderJobStatistic(&$tpl, &$data)
     {
         $fieldset = new core_FieldSet();
-        $fieldset->FLD('productId', 'varchar', 'tdClass=leftCol normalCol');
-        $fieldset->FLD('measureId', 'varchar', 'tdClass=normalCol');
+        $fieldset->FLD('productId', 'varchar', 'tdClass=leftCol');
+        $fieldset->FLD('measureId', 'varchar', 'tdClass=centerCol');
+
         foreach (array('returnedInput', 'consumped', 'consumpedDetailed', 'bomQuantity', 'inputed', 'returned', 'diff') as $fld) {
             $fieldset->FLD($fld, 'double', 'tdClass=quantityCol');
         }
+        $fieldset->setField('diff', 'tdClass=wasteCol');
 
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
         $details = $table->get($data->workInProgressData->rows, $data->workInProgressData->listFields);
