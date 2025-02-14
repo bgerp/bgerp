@@ -426,7 +426,7 @@ class planning_WorkInProgress extends core_Manager
     public static function renderJobStatistic(&$tpl, &$data)
     {
         $fieldset = new core_FieldSet();
-        $fieldset->FLD('productId', 'varchar', 'tdClass=centerCol');
+        $fieldset->FLD('productId', 'varchar', 'tdClass=leftCol');
         $fieldset->FLD('measureId', 'varchar', 'tdClass=centerCol');
 
         foreach (array('returnedInput', 'consumped', 'consumpedDetailed', 'bomQuantity', 'inputed', 'returned', 'diff') as $fld) {
