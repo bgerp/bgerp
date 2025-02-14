@@ -209,7 +209,6 @@ abstract class deals_DealMaster extends deals_DealBase
             if (!empty($methodId)) {
 
                 // За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
-                $date = null;
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
 
                 // Проверяваме дали сделката е просрочена по платежния си план
