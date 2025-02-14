@@ -354,11 +354,11 @@ class planning_WorkInProgress extends core_Manager
         $threads = planning_Jobs::getJobLinkedThreads($jobRec);
 
         // Ако има рецепта - колко е планирано по нея
-        $bomRec = cat_Products::getLastActiveBom($jobRec->productId, 'production,instant,sale');
+        $bomRec = cat_Products::getLastActiveBom($jobRec->productId, 'production,instant,sales');
         if(is_object($bomRec)){
             $materials = cat_Boms::getBomMaterials($bomRec, $jobRec->quantity, null, false);
             foreach ($materials as $materialRec){
-                $productArr[$materialRec->productId] = (object)array('productId' => $materialRec->productId, 'bomQuantity' => $materialRec->quantity, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0);
+                $productArr[$materialRec->productId] = (object)array('productId' => $materialRec->productId, 'bomQuantity' => $materialRec->quantity, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
             }
         }
 
@@ -374,20 +374,11 @@ class planning_WorkInProgress extends core_Manager
 
             while($cRec = $cNotes->fetch()) {
                 if(!array_key_exists($cRec->productId, $productArr)){
-                    $productArr[$cRec->productId] = (object)array('productId' => $cRec->productId, 'bomQuantity' => 0, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0);
+                    $productArr[$cRec->productId] = (object)array('productId' => $cRec->productId, 'bomQuantity' => 0, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
                 }
 
-                if($Detail instanceof planning_ConsumptionNoteDetails){
-                    if($cRec->useResourceAccounts == 'yes'){
-                        $productArr[$cRec->productId]->consumpedDetailed += $cRec->quantity;
-                    } else {
-                        $productArr[$cRec->productId]->consumped += $cRec->quantity;
-                    }
-                } else {
-                    if($cRec->useResourceAccounts == 'yes'){
-                        $productArr[$cRec->productId]->returnedInput += $cRec->quantity;
-                    }
-                }
+                $val = ($Detail instanceof planning_ConsumptionNoteDetails) ? ($cRec->useResourceAccounts == 'yes' ? 'consumpedDetailed' : 'consumped') : ($cRec->useResourceAccounts == 'yes' ? 'returnedInput' : 'returned');
+                $productArr[$cRec->productId]->{$val} += $cRec->quantity;
             }
         }
 
@@ -400,13 +391,13 @@ class planning_WorkInProgress extends core_Manager
         $cNotes->where("#state = 'active'");
         while($cRec = $cNotes->fetch()) {
             if (!array_key_exists($cRec->productId, $productArr)) {
-                $productArr[$cRec->productId] = (object)array('productId' => $cRec->productId, 'bomQuantity' => 0, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0);
+                $productArr[$cRec->productId] = (object)array('productId' => $cRec->productId, 'bomQuantity' => 0, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
             }
             $productArr[$cRec->productId]->inputed += $cRec->quantity;
         }
 
         // Вербализиране на данните
-        $data->workInProgressData = (object)array('recs' => array(), 'rows' => array(), 'listFields' => arr::make('productId=Артикул,measureId=Мярка,bomQuantity=Рецепта,consumpedDetailed=|*<small>Вложено</small>->Детайлно,returnedInput=Върнато,inputed=Изразходено,diff=Остатък,consumped=|*<small>Вложено</small>->Бездетайлно', true));
+        $data->workInProgressData = (object)array('recs' => array(), 'rows' => array(), 'listFields' => arr::make('productId=Артикул,measureId=Мярка,bomQuantity=Рецепта,consumpedDetailed=|*<small>Детайлно</small>->Вложено,returnedInput=|*<small>Детайлно</small>->Върнато,inputed=Изразходено,diff=Остатък,consumped=|*<small>Бездетайлно</small>->Вложено,returned=|*<small>Бездетайлно</small>->Върнато', true));
         foreach ($productArr as $pId => $pRec){
             $pRec->diff = $pRec->consumpedDetailed - $pRec->returnedInput - $pRec->inputed;
             $data->workInProgressData->recs[$pId] = $pRec;
@@ -415,7 +406,7 @@ class planning_WorkInProgress extends core_Manager
             $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
             $round = cat_Uom::fetchField($measureId, 'round');
             $Double = core_Type::getByName("double(decimals={$round})");
-            foreach (array('returnedInput', 'consumped', 'consumpedDetailed', 'bomQuantity', 'inputed', 'diff') as $fld){
+            foreach (array('returnedInput', 'consumped', 'consumpedDetailed', 'bomQuantity', 'inputed', 'returned', 'diff') as $fld){
                 $row->{$fld} = $Double->toVerbal($pRec->{$fld});
                 $row->{$fld} = ht::styleNumber($row->{$fld}, $pRec->{$fld});
             }
@@ -437,9 +428,12 @@ class planning_WorkInProgress extends core_Manager
         $fieldset = new core_FieldSet();
         $fieldset->FLD('productId', 'varchar', 'tdClass=leftCol normalCol');
         $fieldset->FLD('measureId', 'varchar', 'tdClass=normalCol');
+        foreach (array('returnedInput', 'consumped', 'consumpedDetailed', 'bomQuantity', 'inputed', 'returned', 'diff') as $fld) {
+            $fieldset->FLD($fld, 'double', 'tdClass=quantityCol');
+        }
+
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
         $details = $table->get($data->workInProgressData->rows, $data->workInProgressData->listFields);
-
         $tpl->append($details, 'WORK_IN_PROGRESS');
     }
 }

@@ -209,7 +209,6 @@ abstract class deals_DealMaster extends deals_DealBase
             if (!empty($methodId)) {
 
                 // За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
-                $date = null;
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
 
                 // Проверяваме дали сделката е просрочена по платежния си план
@@ -345,9 +344,11 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         $defaultMakeInvoice = 'yes';
-        $ContragentClass = cls::get($rec->contragentClassId);
-        if($ContragentClass instanceof crm_Persons){
-            $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId) ? 'yes' : 'no';
+        if($mvc instanceof purchase_Purchases){
+            $ContragentClass = cls::get($rec->contragentClassId);
+            if($ContragentClass instanceof crm_Persons){
+                $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId) ? 'yes' : 'no';
+            }
         }
         $form->setDefault('makeInvoice', $defaultMakeInvoice);
         
