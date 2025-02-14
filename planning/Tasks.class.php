@@ -353,7 +353,7 @@ class planning_Tasks extends core_Master
         $this->FLD('firstProgress', 'datetime(format=smartTime)', 'caption=Първи Прогрес (всички), tdClass=leftColImportant,input=none');
         $this->FLD('lastProgress', 'datetime(format=smartTime)', 'caption=Последен Прогрес (всички), tdClass=leftColImportant,input=none');
         $this->FLD('lastProgressProduction', 'datetime(format=smartTime)', 'caption=Последен Прогрес (произвеждане), tdClass=leftColImportant,input=none');
-        $this->FLD('planningError', 'enum(no=Не,yes=Да)', 'caption=Грешка при планиране,input=none,notNull,value=no');
+        $this->FLD('planningError', 'enum(no=Не,outsideSchedule=Извън графика,error=Грешка)', 'caption=Грешка при планиране,input=none,notNull,value=no');
 
         $this->setDbIndex('labelPackagingId');
         $this->setDbIndex('productId');
@@ -2208,7 +2208,7 @@ class planning_Tasks extends core_Master
         }
 
         $orderByDir = 'ASC';
-        $stateOptions = arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Грешка при планиране', true);
+        $stateOptions = arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Непланируеми,outsideSchedule=Извън графика', true);
         if (!Request::get('Rejected', 'int')) {
             if(!Mode::is('isReorder')){
                 unset($stateOptions['manualOrder']);
@@ -2229,7 +2229,9 @@ class planning_Tasks extends core_Master
                 if (in_array($filter->state, array('activeAndPending', 'manualOrder'))) {
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif($filter->state == 'planningError') {
-                    $data->query->where("#planningError = 'yes'");
+                    $data->query->where("#planningError = 'error'");
+                } elseif($filter->state == 'outsideSchedule'){
+                    $data->query->where("#planningError = 'outsideSchedule'");
                 } elseif ($filter->state != 'all') {
                     $data->query->where("#state = '{$filter->state}' OR #state = 'rejected'");
                     if ($filter->state == 'closed') {
@@ -3274,6 +3276,11 @@ class planning_Tasks extends core_Master
 
             foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart') as $fld) {
                 $row->{$fld} = $mvc->getDateFieldVerbal($rec, $fld, Mode::is('isReorder'));
+            }
+
+            if($rec->planningError == 'yes' && !Mode::is('isReorder')){
+                $row->expectedTimeStart = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
+                $row->expectedTimeEnd = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
             }
 
             if(!empty($dependantTaskArr[$rec->id]['next'])){

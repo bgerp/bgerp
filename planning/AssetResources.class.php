@@ -965,10 +965,11 @@ class planning_AssetResources extends core_Master
             array_walk($plannedTasks, function($a) use (&$order){
                 $a->planningError = 'no';
                 if($a->expectedTimeStart == planning_TaskConstraints::NOT_FOUND_DATE){
+                    $a->planningError = 'outsideSchedule';
                     $a->expectedTimeStart = null;
                     $a->expectedTimeEnd = null;
                 } elseif($a->expectedTimeStart == planning_TaskConstraints::NOT_PLANNABLE) {
-                    $a->planningError = 'yes';
+                    $a->planningError = 'error';
                     $a->expectedTimeStart = null;
                     $a->expectedTimeEnd = null;
                 }
