@@ -550,8 +550,10 @@ class planning_TaskConstraints extends core_Master
                     foreach ($idleTimes[$aRec->id] as $idRec) {
                         $debugRes .= "<li>----Престой {$idRec->date} - {$idRec->duration}";
 
+                        // Времето за престой се премахва
                         $idleBegin = strtotime($idRec->date);
-                        $Interval->consume($idRec->duration, $idleBegin);
+                        $idleEnd = strtotime(dt::addSecs($idRec->duration, $idRec->date));
+                        $Interval->cut($idleBegin, $idleEnd);
                     }
                 }
 
