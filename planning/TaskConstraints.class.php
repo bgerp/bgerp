@@ -760,12 +760,17 @@ class planning_TaskConstraints extends core_Master
             $i++;
         } while ($haveChange);
 
+        // Накрая се добавят и непланираните
+        $notPlanned = array();
         foreach ($tasksWithoutActualStartByAssetId as $assetId => $notPlannedTasks) {
+            $notPlanned += $notPlannedTasks;
             foreach ($notPlannedTasks as $notPlannedTask) {
                 $plannedByAssets[$assetId][$notPlannedTask->id] = (object)array('id' => $notPlannedTask->id, 'assetId' => $notPlannedTask->assetId, 'calcedCurrentDuration' => $notPlannedTask->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_PLANNABLE, 'expectedTimeEnd' => self::NOT_PLANNABLE);
             }
         }
-        bp($plannedByAssets);
+
+        $debugRes .= "<hr />КРАЙНО НЕПЛАНИРАНИ: " . implode(',', array_keys($notPlanned)) . "<br />";
+
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
 
