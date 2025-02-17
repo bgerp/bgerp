@@ -222,7 +222,7 @@ class batch_BatchesInDocuments extends core_Manager
                     $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
                     if ($rec->quantity > $batchQuantityInStore) {
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
-                        $quantity = ht::createHint($quantity, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning', false);
+                        $quantity = ht::createHint($quantity, 'Недостатъчно количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning', false);
                     }
                 }
                 $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
@@ -250,7 +250,7 @@ class batch_BatchesInDocuments extends core_Manager
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
 
                         if ($rec->quantity > $batchQuantityInStore) {
-                            $batch = ht::createHint($batch, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning');
+                            $batch = ht::createHint($batch, 'Недостатъчно количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning');
                         }
                     }
 
