@@ -116,7 +116,7 @@ class tcost_FeeZones extends core_Master
     public function description()
     {
         $this->FLD('name', 'varchar(16)', 'caption=Зона, mandatory');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName,allowEmpty)', 'caption=Условие на доставка, mandatory');
         $this->FLD('deliveryTime', 'time(uom=days)', 'caption=Срок на доставка,recently,smartCenter');
         
         $this->FLD('addTax', 'double', 'caption=Надценки->Твърда, autohide');
