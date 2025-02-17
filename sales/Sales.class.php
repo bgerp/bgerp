@@ -50,7 +50,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, cat_plg_NotifyProductOnDocumentStateChange, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation,price_plg_TotalDiscount, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg,cat_plg_UsingProductVat, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Tabs, cat_plg_UsingProductVat, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
     
     /**

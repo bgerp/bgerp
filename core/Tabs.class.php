@@ -21,8 +21,14 @@ class core_Tabs extends core_BaseClass
      * Масив с табове
      */
     protected $tabs = array();
-    
-    
+
+
+    /**
+     * Подредбата на табовете
+     */
+    protected $tabOrder = array();
+
+
     /**
      * Масив с табове
      */
@@ -49,7 +55,7 @@ class core_Tabs extends core_BaseClass
     /**
      * Задаване на нов таб
      */
-    public function TAB($tab, $caption = null, $url = null, $class = null)
+    public function TAB($tab, $caption = null, $url = null, $class = null, $tabOrder = null)
     {
         if ($url === null) {
             if (!$tab) {
@@ -68,6 +74,9 @@ class core_Tabs extends core_BaseClass
         $this->tabs[$tab] = $url;
         $this->captions[$tab] = $caption ? $caption : $tab;
         $this->classes[$tab] = $class;
+        if(isset($tabOrder)){
+            $this->tabOrder[$tab] = $tabOrder;
+        }
     }
     
     
@@ -95,9 +104,6 @@ class core_Tabs extends core_BaseClass
             $selectedTab = $this->getSelected();
         }
 
-      
-        
-        //  ,
         if (!$selectedTab) {
             $selectedTab = key($this->tabs);
         }
@@ -125,6 +131,17 @@ class core_Tabs extends core_BaseClass
         $head = '';
         
         $isAjax = defined('EF_AJAX_TAB') && $headers['Ajax-Mode'] && !empty($this->htmlId) && $this->htmlId == $headers['Html-Part-Id'];
+
+        // Прилагане на ръчна подредба ако има, тези без посочена подредба отиват открая в същия ред
+        if(countR($this->tabOrder)){
+            $tabOrder = $this->tabOrder;
+            uksort($this->tabs, function ($a, $b) use ($tabOrder) {
+                $posA = $tabOrder[$a] ?? PHP_INT_MAX;
+                $posB = $tabOrder[$b] ?? PHP_INT_MAX;
+                return $posA <=> $posB;
+            });
+        }
+
         foreach ($this->tabs as $tab => $url) {
             if ($tab == $selectedTab) {
                 $selectedUrl = $url;

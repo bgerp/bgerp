@@ -501,11 +501,6 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 $url = array('batch_BatchesInDocuments', 'modify', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}, 'ret_url' => true);
                 $row->batchBtn->addLink('Партиди', $url, array('ef_icon' => 'img/16/edit-icon.png', 'title' => "Промяна на партидите"));
             }
-
-            if (batch_BatchesInDocuments::haveRightFor('regenserial', (object) array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}))) {
-                $url = array('batch_BatchesInDocuments', 'regenserial', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}, 'ret_url' => true);
-                $row->batchBtn->addLink('Пренеси партиди', $url, array('ef_icon' => 'img/16/arrow_refresh.png', 'title' => "Пренасяне на партидата от материала"));
-            }
         }
 
         $row->addBatchBtn = $row->batchBtn->renderHtml();
