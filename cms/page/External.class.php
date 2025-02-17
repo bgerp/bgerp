@@ -80,9 +80,9 @@ class cms_page_External extends core_page_Active
         if ($skin) {
             $skin->prepareWrapper($this);
         }
-        
+
         // Скрипт за генериране на min-height, според устройството
-        jquery_Jquery::run($this, 'setMinHeightExt();');
+        //jquery_Jquery::run($this, 'setMinHeightExt();');
         
         // Добавка за разпознаване на браузъра
         $Browser = cls::get('log_Browsers');
@@ -163,5 +163,13 @@ class cms_page_External extends core_page_Active
         
         // Добавяне на включвания външен код
         cms_Includes::insert($invoker);
+    }
+
+    /**
+     * @return void
+     */
+    public function getDepricated(): void
+    {
+        @depricated;
     }
 }
