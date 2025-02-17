@@ -109,9 +109,10 @@ class batch_plg_DocumentMovement extends core_Plugin
                 $bdQuery = batch_BatchesInDocuments::getQuery();
                 $bdQuery->where("#detailClassId = {$dRec->detMvcId} AND #detailRecId = {$dRec->id}");
 
+
                 $sum = 0;
                 while($bdRec = $bdQuery->fetch()){
-                    $sum += $bdRec->quantity;
+
                     $batchesArr = array_keys($Def->makeArray($bdRec->batch));
                     if($bdRec->operation == 'in' && !($Detail instanceof store_TransfersDetails)){
                         if($Def instanceof batch_definitions_Serial){
@@ -122,7 +123,9 @@ class batch_plg_DocumentMovement extends core_Plugin
                     }
 
                     // Ако е МСТ се гледат само излизащите
-                    if($Detail instanceof store_TransfersDetails && $bdRec->operation = 'in') continue;
+                    if($Detail instanceof store_TransfersDetails && $bdRec->operation == 'in') continue;
+
+                    $sum += $bdRec->quantity;
 
                     // Проверка дали посочената партида на изходящите документи е налична
                     if($checkIfBatchExists == 'yes' && $bdRec->operation == 'out'){

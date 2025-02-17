@@ -409,7 +409,7 @@ class eshop_Settings extends core_Master
         $form->setDefault('discountType', $mvc->getFieldType('discountType')->fromVerbal('percent'));
         
         $ownCompany = crm_Companies::fetchOurCompany('id,country');
-        $shouldChargeVat = crm_Companies::shouldChargeVat($ownCompany->id);
+        $shouldChargeVat = crm_Companies::shouldChargeVat($ownCompany->id, 'sales_Sales');
         $defaultChargeVat = ($shouldChargeVat === true) ? 'yes' : 'no';
         $form->setDefault('chargeVat', $defaultChargeVat);
         

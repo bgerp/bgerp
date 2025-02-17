@@ -1579,17 +1579,16 @@ class crm_Companies extends core_Master
 
 
     /**
-     * Дали на фирмата се начислява ДДС:
-     * Не начисляваме ако:
-     * 		1 . Не е от ЕС
-     * 		2.  Има ЕИК от ЕС, различен от BG
-     * Ако няма държава начисляваме ДДС
+     * Дали на лицето се начислява ДДС:
+     * Начисляваме винаги ако е в ЕУ (ако е регистриран по ДДС)
      *
-     * @param int $id - id' то на записа
+     * @param int $id                - id' то на записа
+     * @param mixed $class           - за кой клас
      * @param int|null $ownCompanyId - ид на "Моята фирма"
+     *
      * @return bool TRUE/FALSE
      */
-    public static function shouldChargeVat($id, $ownCompanyId = null)
+    public static function shouldChargeVat($id, $class, $ownCompanyId = null)
     {
         $rec = static::fetch($id);
         if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;

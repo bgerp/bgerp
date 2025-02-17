@@ -123,8 +123,14 @@ class store_InventoryNoteDetails extends doc_Detail
      * Име на полето за търсене
      */
     public $searchInputField = 'searchDetail';
-    
-    
+
+
+    /**
+     * Позволява ли се възможност за подмяна при импорт
+     */
+    public $allowImportReplacement = true;
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -526,6 +532,14 @@ class store_InventoryNoteDetails extends doc_Detail
         $quantityInPack  = is_object($packRec) ? $packRec->quantity : 1;
 
         $dRec = (object) array('noteId' => $masterId, 'productId' => $pRec->productId, 'quantity' => $row->quantity * $quantityInPack, 'quantityInPack' => $quantityInPack, 'packagingId' => $pRec->packagingId, 'batch' => $row->batch);
+
+        // Ако е избрано заместване при дублиране да се заместват
+        $onDuplicate = Mode::get('onDuplicate');
+        if($onDuplicate){
+            $batchCond = isset($row->batch) ? "#batch = '[#1#]'" : "#batch IS NULL";
+            $n = self::delete(array("#noteId = {$masterId} AND #productId = {$pRec->productId} AND {$batchCond}", $row->batch));
+            core_Statuses::newStatus($n, 'warning');
+        }
 
         return self::save($dRec);
     }
