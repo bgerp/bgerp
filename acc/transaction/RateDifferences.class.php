@@ -257,8 +257,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
             } elseif($Doc->isInstanceOf('acc_ValueCorrections')){
                 $sign = ($docRec->action == 'increase') ? -1 : 1;
-                $strategyRate = currency_CurrencyRates::getRate($valior, $docRec->currencyId, null);
-                $diffRate = round($docRec->rate - $strategyRate, 5);
+                $diffRate = round($docRec->rate - $rate, 5);
                 $finalAmount = round($diffRate * $sign * ($docRec->amount / $docRec->rate), 2);
                 $quantity = round($docRec->amount / $docRec->rate, 2);
                 $creditAccId = 411;
