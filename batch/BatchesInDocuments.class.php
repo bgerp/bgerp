@@ -582,9 +582,10 @@ class batch_BatchesInDocuments extends core_Manager
         $captions = ($Def instanceof batch_definitions_Serial) ? 'Партида' : 'Партида|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
         $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
-
+        $batchReadOnly = ($Def instanceof batch_definitions_Serial) ? '' : ',batch_ro=readonly';
         if ($hideTable === false) {
-            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди{$middleCaption}{$caption},placeholder={$Def->placeholder}");
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd{$batchReadOnly},captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди{$middleCaption}{$caption},placeholder={$Def->placeholder}");
+
             if (is_array($bOptions)) {
                 $bOptions = array_combine(array_values($bOptions), array_values($bOptions));
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $bOptions));
