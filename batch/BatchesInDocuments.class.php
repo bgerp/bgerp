@@ -263,7 +263,7 @@ class batch_BatchesInDocuments extends core_Manager
                         } else{
                             $exRec = batch_Items::fetchField(array("#productId = {$rec->productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $rec->batch));
                             if($exRec){
-                                $batch = ht::createHint($batch, "Партидата вече е минавала в в системата", 'img/16/warning-gray.png');
+                                $batch = ht::createHint($batch, "Партидата вече е минавала в системата", 'img/16/warning-gray.png');
                             }
                         }
                     }
