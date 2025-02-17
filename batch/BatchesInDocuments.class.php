@@ -783,6 +783,7 @@ class batch_BatchesInDocuments extends core_Manager
 
         $form->toolbar->addBtn('Отказ', $retUrl, 'id=back,ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         $form->toolbar->setBtnOrder('back', 50);
+        $Detail->invoke('AfterPrepareBatchToolbar', array($detailRecId, &$form));
 
         // Добавяне на бутони за обхождане на другите редове
         if (!empty($selArr)) {
