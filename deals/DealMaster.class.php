@@ -347,7 +347,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if($mvc instanceof purchase_Purchases){
             $ContragentClass = cls::get($rec->contragentClassId);
             if($ContragentClass instanceof crm_Persons){
-                $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId) ? 'yes' : 'no';
+                $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId, $mvc) ? 'yes' : 'no';
             }
         }
         $form->setDefault('makeInvoice', $defaultMakeInvoice);

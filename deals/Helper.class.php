@@ -2173,7 +2173,7 @@ abstract class deals_Helper
         }
 
         if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
-            return ($Class->shouldChargeVat($coverId)) ? 'separate' : 'no';
+            return ($Class->shouldChargeVat($coverId, $mvc)) ? 'separate' : 'no';
         }
         
         return 'separate';
