@@ -647,6 +647,8 @@ class planning_TaskConstraints extends core_Master
                         $withoutStart[$t1->id] = $t1;
                     }
                 }
+
+                arr::sortObjects($withStart, 'timeStart', 'ASC');
                 $sortedArr = $withStart + $withoutStart;
 
                 // Сортираните задачи се обикалят и се проверява изпълнени ли са им ограниченията
