@@ -86,7 +86,7 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,btns=Количество->Пулт,delta,charge,groupName';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,btns=Количество->Пулт,delta,charge,createdBy,groupName';
     
     
     /**
@@ -347,6 +347,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('btns', 'varchar', 'tdClass=small-field nowrap,smartCenter');
+        $data->listTableMvc->setField('createdBy', 'tdClass=small');
         $data->listTableMvc->setField('charge', 'tdClass=charge-td');
         $masterRec = $data->masterData->rec;
         $pageVar = core_Pager::getPageVar('store_InventoryNotes', $masterRec->id);
