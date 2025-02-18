@@ -25,11 +25,10 @@
             
             <!--ET_BEGIN STATISTIC_BAR-->
             [#STATISTIC_BAR#]
-            <!--ET_END STATISTIC_BAR-->
-            
             <!--ET_BEGIN TRANSPORT_BAR-->
             [#sales/tpl/TransportStatistic.shtml#]
             <!--ET_END TRANSPORT_BAR-->
+            <!--ET_END STATISTIC_BAR-->
             
             [#SINGLE_CONTENT#]
         </div>

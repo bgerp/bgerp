@@ -167,13 +167,16 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         }
 
                         if (!$form->gotErrors()) {
+                            $onDuplicate = $form->rec->onDuplicate == 'yes';
                             if($mvc instanceof sales_QuotationsDetails){
                                 array_walk($rows, function($a) use ($form){ $a->optional = $form->rec->optional;});
                             }
 
                             // Импортиране на данните от масива в зададените полета
+                            Mode::push('onDuplicate', $onDuplicate);
                             $msg = self::importRows($mvc, $rec->{$mvc->masterKey}, $rows, $fields);
-                            
+                            Mode::pop('onDuplicate');
+
                             self::cacheImportParams($mvc, $rec);
                             $mvc->Master->logWrite('Импортиране на артикули', $rec->{$mvc->masterKey});
                             
@@ -418,14 +421,34 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
         return $err;
     }
-    
-    
+
     /**
      * Импортиране на записите ред по ред от мениджъра
      */
     private static function importRows($mvc, $masterId, $rows, $fields)
     {
         $added = $failed = 0;
+
+        // Ако е избрано да се дублират, да се сумират редовете преди това
+        $onDuplicate = Mode::get('onDuplicate');
+        if($onDuplicate){
+            $total = array();
+            foreach ($rows as $row){
+                $key = "{$row->code}|{$row->pack}|{$row->batch}";
+                if($mvc->allowPriceImport){
+                    $key .= "|{$row->price}";
+                }
+
+                if(!array_key_exists($key, $total)){
+                    $clone = clone $row;
+                    $clone->quantity = 0;
+                    $total[$key] = $clone;
+                }
+
+                $total[$key]->quantity += $row->quantity;
+            }
+        }
+
         foreach ($rows as $row) {
 
             // Опитваме се да импортираме записа
@@ -470,6 +493,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             'firstRow' => $rec->firstRow,
             'codecol' => $rec->codecol,
             'quantitycol' => $rec->quantitycol,
+            'onDuplicate' => $rec->onDuplicate,
             'pricecol' => $rec->pricecol);
         
         
@@ -532,6 +556,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $isFromClipboard = true;
         }
 
+
+
         $unit = '';
         $type = 'enum()';
         if (!$isFromClipboard) {
@@ -550,7 +576,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $type = 'int';
         }
 
-
+        if($mvc->allowImportReplacement){
+            $form->FLD('onDuplicate', 'enum(no=Всяко на нов ред,yes=Заместване)', 'width=100%,caption=Настройки->При дублиране,maxRadio=5');
+            $form->setDefault('onDuplicate', 'no');
+        }
 
         // Съответстващи колонки на полета
         $form->FLD('codecol', $type, "caption=Съответствие в данните->Код{$unit},mandatory");

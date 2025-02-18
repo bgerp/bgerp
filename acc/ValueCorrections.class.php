@@ -120,8 +120,7 @@ class acc_ValueCorrections extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор,input=none');
         $this->FLD('amount', 'double(decimals=2,Min=0,maxAllowedDecimals=2)', 'caption=Сума,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=rate,silent');
-        $this->FLD('rate', 'double(decimals=5)', 'caption=Курс');
-        
+
         $this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
         $this->FLD('allocateBy', 'enum(value=Стойност,quantity=Количество,weight=Тегло,volume=Обем)', 'caption=Разпределяне по,notNull,value=value');
         $this->FLD('correspondingDealOriginId', 'int', 'input=hidden,tdClass=leftColImportant');
@@ -129,7 +128,8 @@ class acc_ValueCorrections extends core_Master
         // Кеш поле за цялата информация на възможните артикули
         $this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
         $this->FLD('notes', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки,after=chosenProducts');
-        
+        $this->FLD('rate', 'double(decimals=5)', 'caption=Настройки->Курс,autohide=any');
+
         // Поставяне на уникален индекс
         $this->setDbIndex('correspondingDealOriginId');
     }
@@ -378,10 +378,11 @@ class acc_ValueCorrections extends core_Master
         // Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
         expect($firstDoc = doc_Threads::getFirstDocument($rec->threadId));
         self::addProductsFromOriginToForm($form, $firstDoc, $mvc);
-        
-        $chargeVat = $firstDoc->fetchField('chargeVat');
-        $form->setDefault('currencyId', $firstDoc->fetchField('currencyId'));
-        
+
+        $firstDocRec = $firstDoc->fetch('chargeVat,currencyId,currencyRate');
+        $form->setDefault('currencyId', $firstDocRec->currencyId);
+        $form->setReadOnly('currencyId');
+
         // Ако избраната валута е основната за периода, не се показва курса
         if($rec->currencyId == acc_Periods::getBaseCurrencyCode()){
             $form->setField('rate', "input=hidden");
@@ -389,15 +390,15 @@ class acc_ValueCorrections extends core_Master
         
         // Курса е винаги актуалния
         if(isset($rec->currencyId)){
-            $form->setDefault('rate', currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
+            $form->setDefault('rate', $firstDocRec->currencyRate);
         }
         
         if (isset($rec->id, $rec->rate)) {
             $rec->amount /= $rec->rate;
             $rec->amount = round($rec->amount, 2);
         }
-        
-        if ($chargeVat == 'yes' || $chargeVat == 'separate') {
+
+        if (in_array($firstDocRec->chargeVat, array('yes', 'separate'))) {
             if ($form->rec->amount) {
                 $averageRate = $mvc->getAverageVatRate($form->allProducts, $rec);
                 $form->rec->amount = $form->rec->amount * (1 + $averageRate);
@@ -409,7 +410,7 @@ class acc_ValueCorrections extends core_Master
         }
         
         $data->form->origin = $firstDoc;
-        $data->form->chargeVat = $chargeVat;
+        $data->form->chargeVat = $firstDocRec->chargeVat;
     }
     
     

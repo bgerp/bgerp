@@ -52,7 +52,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, support_plg_IssueSource, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, doc_DocumentPlg, doc_plg_Tabs, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, support_plg_IssueSource, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_SaveAndNew';
     
     
     /**
@@ -2472,29 +2472,32 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        // Показване на обобщението на отпадъка в статистиката
-        $tasksInJob = planning_Tasks::getTasksByJob($data->rec->id, 'active,wakeup,closed,stopped', false, false, 'yes');
-        $totalFinalNetWeight = countR($tasksInJob) ? arr::sumValuesArray($tasksInJob, 'totalNetWeight', true) : 0;
-        $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId, $totalFinalNetWeight);
+        if (!$data->selectedTab || $data->selectedTab == 'Statistic') {
 
-        $subProductArr = planning_ProductionTaskProducts::getSubProductsArr($data->rec->threadId);
-        if(!Mode::is('printBlank')){
-            if(countR($wasteArr) || countR($subProductArr)){
-                foreach ($wasteArr as $wasteRow){
-                    $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
-                    $cloneTpl->replace($wasteRow->productLink, 'wasteProducedProductId');
-                    $cloneTpl->replace($wasteRow->class, 'wasteClass');
-                    $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
-                    $cloneTpl->removeBlocksAndPlaces();
-                    $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
-                }
+            // Показване на обобщението на отпадъка в статистиката
+            $tasksInJob = planning_Tasks::getTasksByJob($data->rec->id, 'active,wakeup,closed,stopped', false, false, 'yes');
+            $totalFinalNetWeight = countR($tasksInJob) ? arr::sumValuesArray($tasksInJob, 'totalNetWeight', true) : 0;
+            $wasteArr = planning_ProductionTaskProducts::getTotalWasteArr($data->rec->threadId, $totalFinalNetWeight);
 
-                foreach ($subProductArr as $subRow){
-                    $cloneTpl = clone $tpl->getBlock('SUB_PRODUCT_BLOCK_ROW');
-                    $cloneTpl->replace($subRow->productLink, 'subProductId');
-                    $cloneTpl->replace($subRow->quantityVerbal, 'subProductQuantity');
-                    $cloneTpl->removeBlocksAndPlaces();
-                    $tpl->append($cloneTpl, 'SUB_BLOCK_TABLE_ROW');
+            $subProductArr = planning_ProductionTaskProducts::getSubProductsArr($data->rec->threadId);
+            if(!Mode::is('printBlank')){
+                if(countR($wasteArr) || countR($subProductArr)){
+                    foreach ($wasteArr as $wasteRow){
+                        $cloneTpl = clone $tpl->getBlock('WASTE_BLOCK_ROW');
+                        $cloneTpl->replace($wasteRow->productLink, 'wasteProducedProductId');
+                        $cloneTpl->replace($wasteRow->class, 'wasteClass');
+                        $cloneTpl->replace($wasteRow->quantityVerbal, 'wasteQuantity');
+                        $cloneTpl->removeBlocksAndPlaces();
+                        $tpl->append($cloneTpl, 'WASTE_BLOCK_TABLE_ROW');
+                    }
+
+                    foreach ($subProductArr as $subRow){
+                        $cloneTpl = clone $tpl->getBlock('SUB_PRODUCT_BLOCK_ROW');
+                        $cloneTpl->replace($subRow->productLink, 'subProductId');
+                        $cloneTpl->replace($subRow->quantityVerbal, 'subProductQuantity');
+                        $cloneTpl->removeBlocksAndPlaces();
+                        $tpl->append($cloneTpl, 'SUB_BLOCK_TABLE_ROW');
+                    }
                 }
             }
         }
@@ -2593,5 +2596,50 @@ class planning_Jobs extends core_Master
         }
 
         cls::get('planning_Jobs')->saveArray($jobArr, 'id,expectedDueDate');
+    }
+
+
+    /**
+     * След подготовка на табовете на документа
+     * @see doc_plg_Tabs
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     * @return void
+     */
+    protected static function on_AfterPrepareDocumentTabs($mvc, &$res, $data)
+    {
+        if (!in_array($data->rec->state, array('draft', 'rejected'))) {
+            $url = getCurrentUrl();
+            $url["docTab{$data->rec->containerId}"] = 'WorkInProgress';
+            $data->tabs->TAB('WorkInProgress', 'Незавършено производство', $url, null, 2);
+        }
+    }
+
+
+    /**
+     * Подготовка на статистиката на данните от НП за заданието
+     *
+     * @param $data
+     * @return void
+     */
+    public static function prepareWorkInProgress(&$data)
+    {
+        planning_WorkInProgress::prepareJobStatistic($data);
+    }
+
+
+    /**
+     * Рендиране на статистиката за НП в заданието
+     *
+     * @param core_ET $tpl
+     * @param stdClass $data
+     * @return void
+     */
+    public static function renderWorkInProgress(&$tpl, &$data)
+    {
+        planning_WorkInProgress::renderJobStatistic($tpl, $data);
+        $tpl->removeBlock("STATISTIC");
     }
 }

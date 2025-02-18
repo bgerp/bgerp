@@ -209,7 +209,6 @@ abstract class deals_DealMaster extends deals_DealBase
             if (!empty($methodId)) {
 
                 // За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
-                $date = null;
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
 
                 // Проверяваме дали сделката е просрочена по платежния си план
@@ -345,9 +344,11 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         $defaultMakeInvoice = 'yes';
-        $ContragentClass = cls::get($rec->contragentClassId);
-        if($ContragentClass instanceof crm_Persons){
-            $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId) ? 'yes' : 'no';
+        if($mvc instanceof purchase_Purchases){
+            $ContragentClass = cls::get($rec->contragentClassId);
+            if($ContragentClass instanceof crm_Persons){
+                $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId, $mvc) ? 'yes' : 'no';
+            }
         }
         $form->setDefault('makeInvoice', $defaultMakeInvoice);
         
@@ -2509,21 +2510,24 @@ abstract class deals_DealMaster extends deals_DealBase
             $mvc->save($rec, 'valior');
         }
     }
-    
-    
+
+
     /**
-     * Подготвя табовете на задачите
+     * След подготовка на табовете на документа
+     * @see doc_plg_Tabs
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     * @return void
      */
-    public function prepareDealTabs_(&$data)
+    protected static function on_AfterPrepareDocumentTabs($mvc, &$res, $data)
     {
-        parent::prepareDealTabs_($data);
-        
+        // Добавяне на таб показващ поръчано/доставено
         if ($data->rec->state != 'draft') {
             $url = getCurrentUrl();
-            unset($url['export']);
-            
-            $url['dealTab'] = 'DealReport';
-            $data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url);
+            $url["docTab{$data->rec->containerId}"] = 'DealReport';
+            $data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url, null, 3);
         }
     }
 

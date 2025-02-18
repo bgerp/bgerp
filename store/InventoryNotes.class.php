@@ -1071,15 +1071,16 @@ class store_InventoryNotes extends core_Master
         $this->requireRightFor('fillreport', $rec);
 
         $summaryQuery = store_InventoryNoteSummary::getQuery();
-        $summaryQuery->where("#noteId = {$rec->id} AND #quantity IS NULL");
+        $summaryQuery->where("#noteId = {$rec->id}");
 
         while ($summaryRec = $summaryQuery->fetch()) {
             $packagingId = cat_Products::fetchField($summaryRec->productId, 'measureId');
 
-            if(core_Packs::isInstalled('batch')){
-                $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $rec->storeId, $rec->valior, null, array(), true);
+            $save = true;
 
-                $save = true;
+            if(core_Packs::isInstalled('batch')){
+                $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $rec->storeId, $rec->valior, null, array('store_InventoryNotes', $rec->id), true, null, false, true);
+
                 if(countR($batchQuantities)){
                     $noBatchQuantity = $summaryRec->blQuantity - array_sum($batchQuantities);
                     if(isset($noBatchQuantity)){
@@ -1100,12 +1101,14 @@ class store_InventoryNotes extends core_Master
                         store_InventoryNoteDetails::save($dRec);
                     }
                 }
+            }
 
-                if($save){
-                    $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1, 'packagingId' => $packagingId);
-                    $dRec->quantity = 0;
-                    store_InventoryNoteDetails::save($dRec);
-                }
+            if($save){
+                if(store_InventoryNoteDetails::fetchField(array("#noteId = {$id} AND #productId = {$summaryRec->productId}"))) continue;
+
+                $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1, 'packagingId' => $packagingId);
+                $dRec->quantity = 0;
+                store_InventoryNoteDetails::save($dRec);
             }
         }
 

@@ -1,6 +1,13 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 <div class="scrolling-holder">
     <div class="sale-summary">
+        [#TABS#]
+        <!--ET_BEGIN WORK_IN_PROGRESS-->
+        <div class="jobWorkInProgressTable">[#WORK_IN_PROGRESS#]</div>
+        <!--ET_END WORK_IN_PROGRESS-->
+
+        <!--ET_BEGIN STATISTIC-->
+        [#STATISTIC#]
         <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
             <tr>
                 <td class = 'sum-th'>
@@ -40,6 +47,7 @@
                 <!--ET_END quantityNotStored-->
             </tr>
         </table>
+        <!--ET_END STATISTIC-->
         <!--ET_BEGIN MISC-->
         [#MISC#]
         <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
