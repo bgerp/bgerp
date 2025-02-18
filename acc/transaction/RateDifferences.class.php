@@ -258,8 +258,15 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
             } elseif($Doc->isInstanceOf('acc_ValueCorrections')){
                 $sign = ($docRec->action == 'increase') ? -1 : 1;
                 $diffRate = round($docRec->rate - $rate, 5);
-                $finalAmount = round($diffRate * $sign * ($docRec->amount / $docRec->rate), 2);
-                $quantity = round($docRec->amount / $docRec->rate, 2);
+
+                $amount = $docRec->amount;
+                if (in_array($dealRec->chargeVat, array('yes', 'separate'))) {
+                    $averageRate = $Doc->getInstance()->getAverageVatRate($docRec->productsData, $docRec);
+                    $amount = $amount * (1 + $averageRate);
+                }
+
+                $finalAmount = round($diffRate * $sign * ($amount / $docRec->rate), 2);
+                $quantity = round($amount / $docRec->rate, 2);
                 $creditAccId = 411;
                 $currencyId = currency_Currencies::getIdByCode($docRec->currencyId);
                 $reverseDebit = true;
@@ -408,13 +415,18 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
                 $debitQuantity = ($docRec->amountDeal / $rate);
             } elseif($Doc->isInstanceOf('acc_ValueCorrections')) {
-
                 $sign = ($docRec->action == 'increase') ? -1 : 1;
                 $currencyId = currency_Currencies::getIdByCode($docRec->currencyId);
-
                 $diffRate = round($docRec->rate - $rate, 5);
-                $finalAmount = round($diffRate * $sign * ($docRec->amount / $docRec->rate), 2);
-                $debitQuantity = ($docRec->amount / $docRec->rate);
+
+                $amount = $docRec->amount;
+                if (in_array($dealRec->chargeVat, array('yes', 'separate'))) {
+                    $averageRate = $Doc->getInstance()->getAverageVatRate($docRec->productsData, $docRec);
+                    $amount = $amount * (1 + $averageRate);
+                }
+
+                $finalAmount = round($diffRate * $sign * ($amount / $docRec->rate), 2);
+                $debitQuantity = ($amount / $docRec->rate);
                 $totalAmount += $finalAmount;
 
                 $data[$docRec->containerId] = $finalAmount;
