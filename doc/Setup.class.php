@@ -196,6 +196,12 @@ defIfNot('DOC_DEFAULT_ACCESS', 'private');
 
 
 /**
+ * Да се показват ли сумите с ДДС в съмърито на лист изгледа
+ */
+defIfNot('DOC_SHOW_LIST_SUMMARY_VAT', 'no');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -283,6 +289,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON' => array('time(unit=years, suggestions=Без ограничение|6 месеца|1 год.|2 год.|3 год.|5 год.)', 'caption=До колко време назад да се показват филтрираните документи при избор на период "Всички" в списъка->Време,customizeBy=officer'),
         'DOC_SHOW_LAST_VISITED_AS_PROTOTYPES' => array('int(Min=0)', 'caption=Показване на последно посетените документи за избор на Шаблони->Брой, customizeBy=powerUser'),
         'DOC_OPEN_FOLDER_AFTER_REJECT' => array('enum(yes=Да,no=Не)', 'canView=no_one, caption=Пренасочване към папката|*&#44; | след оттегляне на първия документ в нишката->Избор, customizeBy=debug'),
+        'DOC_SHOW_LIST_SUMMARY_VAT' => array('enum(yes=С ДДС,no=Без ДДС)', 'caption=Показване на статистиката в лист изгледите->ДДС, customizeBy=powerUser'),
     );
 
     // Инсталиране на мениджърите
