@@ -378,6 +378,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::repairSearchKeywords2442',
         'migrate::calcTaskLastProgress2504v2',
         'migrate::syncOperatorsWithGroups2504v2',
+        'migrate::repairSearchKeywords2508',
     );
 
 
@@ -596,5 +597,15 @@ class planning_Setup extends core_ProtoSetup
         }
 
         crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи
+     */
+    public static function repairSearchKeywords2508()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_AssetGroups', $callOn);
     }
 }
