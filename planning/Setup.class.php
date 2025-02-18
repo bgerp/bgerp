@@ -401,6 +401,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::syncOperatorsWithGroups2504v2',
         'migrate::migrateTaskActualTime2505',
         'migrate::migrateCenterSchedules2506',
+        'migrate::repairSearchKeywords2508',
     );
 
 
@@ -657,5 +658,15 @@ class planning_Setup extends core_ProtoSetup
         $scheduleIdColName = str::phpToMysqlName('scheduleId');
         $query = "UPDATE {$Centers->dbTableName} SET {$scheduleIdColName} = {$defaultScheduleId} WHERE {$scheduleIdColName} IS NULL";
         $Centers->db->query($query);
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи
+     */
+    public static function repairSearchKeywords2508()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_AssetGroups', $callOn);
     }
 }
