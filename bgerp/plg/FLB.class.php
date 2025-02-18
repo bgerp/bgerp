@@ -94,20 +94,17 @@ class bgerp_plg_FLB extends core_Plugin
     /**
      * Помощна ф-я връщаща дали потребителя може да активира корицата или да я избира
      *
-     * @param core_Master $mvc
-     * @param stdClass    $rec
-     * @param int         $userId
-     * @param string      $action
+     * @param mixed     $mvc
+     * @param stdClass  $rec
+     * @param int       $userId
+     * @param string    $action
      *
      * @return bool
      */
     public static function canUse($mvc, $rec, $userId = null, $action = 'activate')
     {
         // Инстанциране на класа при нужда
-        if (!is_object($mvc)) {
-            $mvc = cls::get($mvc);
-        }
-        
+        $mvc = cls::get($mvc);
         if($userId === null) {
             $userId = core_Users::getCurrent();
         }
