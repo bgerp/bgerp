@@ -164,12 +164,4 @@ class cms_page_External extends core_page_Active
         // Добавяне на включвания външен код
         cms_Includes::insert($invoker);
     }
-
-    /**
-     * @return void
-     */
-    public function getDepricated(): void
-    {
-        @depricated;
-    }
 }

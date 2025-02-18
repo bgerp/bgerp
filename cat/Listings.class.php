@@ -195,7 +195,8 @@ class cat_Listings extends core_Master
 
         if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
-            $form->setDefault('vat', ($Cover->shouldChargeVat()) ? 'yes' : 'no');
+            $Class = $rec->type == 'canSell' ? 'sales_Sales' : 'purchase_Purchases';
+            $form->setDefault('vat', ($Cover->shouldChargeVat($Class)) ? 'yes' : 'no');
         }
     }
     
@@ -604,7 +605,7 @@ class cat_Listings extends core_Master
         if (!$listId) {
             $lRec = (object) array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
             $lRec->currencyId = $Cover->getDefaultCurrencyId();
-            $lRec->vat = ($Cover->shouldChargeVat()) ? 'yes' : 'no';
+            $lRec->vat = ($Cover->shouldChargeVat('sales_Sales')) ? 'yes' : 'no';
             $listId = self::save($lRec);
         }
         

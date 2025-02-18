@@ -448,7 +448,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                             }
                             
                             if(empty($masterRec->chargeVat)){
-                                $masterRec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
+                                $masterRec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId, $mvc)) ? 'yes' : 'no';
                             }
                             
                             if($mvc instanceof store_InternalDocumentDetail){
