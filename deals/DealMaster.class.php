@@ -742,10 +742,10 @@ abstract class deals_DealMaster extends deals_DealBase
 
             if($showVat == 'yes') {
                 $caption = 'с ДДС';
-                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(#amountDeal, 2)');
             } else {
                 $caption = 'без ДДС';
-                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(#amountDeal, 2)');
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
             }
 
             foreach (array('amountDelivered', 'amountPaid', 'amountBl', 'amountInvoiced') as $fld){
