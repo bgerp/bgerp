@@ -650,9 +650,9 @@ class core_Detail extends core_Manager
             $selectedArr = explode('|', $form->rec->selected);
             if(countR($selectedArr)){
                 $str = implode(',', $selectedArr);
-                Mode::push('selectRowsOnDelete', true);
+                Mode::push("selectRowsOnDelete_{$this->className}", true);
                 static::delete("#{$this->masterKey} = {$masterId} AND #id IN ({$str})");
-                Mode::pop('selectRowsOnDelete');
+                Mode::pop("selectRowsOnDelete_{$this->className}");
                 $this->Master->logWrite('Изтриване на избрани редове', $masterId);
                 redirect($this->Master->getSingleUrlArray($masterId), 'Успешно са изтрити избраните редове|*!');
             }

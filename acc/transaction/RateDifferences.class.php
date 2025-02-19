@@ -370,11 +370,16 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $docRec->currencyId)->id;
 
-                // Търси се кредитната цена от журнала/от очакваната по стратегия/от курса
-                $strategyRate = self::getJournalCurrencyPrice('credit', $creditAccId, $currencyItemId, $Doc);
+                if($docRec->isReverse == 'yes' && in_array($docRec->operationSysId, array('supplier2caseRet', 'supplier2bankRet', 'supplierAdvance2caseRet', 'supplierAdvance2bankRet'))){
+                    $strategyRate = self::getJournalCurrencyPrice('debit', $creditAccId, $currencyItemId, $Doc);
+                } else {
+                    $strategyRate = self::getJournalCurrencyPrice('credit', $creditAccId, $currencyItemId, $Doc);
+                }
+
                 if(empty($strategyRate)){
                     $strategyRate = acc_strategy_WAC::getAmount(1, $valior, $creditAccId, $item1Id, $currencyItemId, null);
                 }
+
                 if(empty($strategyRate)){
                     $strategyRate = currency_CurrencyRates::getRate($valior, currency_Currencies::getCodeById($docRec->currencyId), null);
                 }
