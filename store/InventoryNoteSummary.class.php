@@ -268,8 +268,14 @@ class store_InventoryNoteSummary extends doc_Detail
     {
         if ($action == 'setresponsibleperson' && isset($rec)) {
             $requiredRoles = store_InventoryNotes::getRequiredRoles('edit', $rec->noteId);
-            
             if (!isset($rec->delta) || (isset($rec->delta) && $rec->delta >= 0)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'delete' && isset($rec)){
+            $noteRec = store_InventoryNotes::fetch($rec->noteId);
+            if($noteRec->state != 'draft'){
                 $requiredRoles = 'no_one';
             }
         }
