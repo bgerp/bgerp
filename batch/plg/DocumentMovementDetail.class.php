@@ -495,19 +495,16 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
 
         if (!core_Mode::isReadOnly()) {
             core_RowToolbar::createIfNotExists($row->batchBtn);
-
             if (batch_BatchesInDocuments::haveRightFor('modify', (object) array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}))) {
                 core_Request::setProtected('detailClassId,detailRecId,storeId');
                 $url = array('batch_BatchesInDocuments', 'modify', 'detailClassId' => $mvc->getClassId(), 'detailRecId' => $rec->id, 'storeId' => $rec->{$mvc->storeFieldName}, 'ret_url' => true);
                 $row->batchBtn->addLink('Партиди', $url, array('ef_icon' => 'img/16/edit-icon.png', 'title' => "Промяна на партидите"));
             }
+
+            $row->addBatchBtn = $row->batchBtn->renderHtml();
         }
 
-        $row->addBatchBtn = $row->batchBtn->renderHtml();
-        if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) {
-            
-            return;
-        }
+        if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) return;
         
         if($mvc->batchPlaceholderField){
             $row->{$mvc->batchPlaceholderField} = batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $rec->{$mvc->storeFieldName});
