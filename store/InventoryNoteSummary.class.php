@@ -944,7 +944,7 @@ class store_InventoryNoteSummary extends doc_Detail
     public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
-            if(Mode::is('selectRowsOnDelete')){
+            if(Mode::is("selectRowsOnDelete_{$mvc->className}")){
                 store_InventoryNoteDetails::delete("#noteId = {$rec->noteId} AND #productId = {$rec->productId}");
             }
         }
