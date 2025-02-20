@@ -1898,7 +1898,7 @@ function isTouchDevice() {
  */
 function setMinHeightExt() {
     // Ако сме в широката тема, да не изчисляваме нищо
-    if($('body').hasClass('externalPage')) return;
+    if($('body > .externalPage').length) return;
 
     var clientHeight = document.documentElement.clientHeight;
 
