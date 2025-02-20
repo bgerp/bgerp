@@ -7502,8 +7502,8 @@ tr.wasteWeightPercent td {
     .sale-summary table .specialLink {
       white-space: normal; }
 
-.sale-summary .jobWorkInProgressTable table td .quantityCol {
-  color: #888888 !important; }
+.sale-summary .jobWorkInProgressTable table td.quantityCol {
+  color: #888888; }
 
 .sale-summary .cartStatistic .sum-th {
   background: #c1c1c1;
