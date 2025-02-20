@@ -285,9 +285,9 @@ class store_Products extends core_Detail
                 $data->listFilter->setDefault('setting', $lastHorizon);
             }
         }
+        $data->listFilter->setDefault('inventory', 'all');
         $data->listFilter->setDefault('setting', 'productMeasureId');
         $data->listFilter->input('horizon,productId,storeId,filters,groupId,search,setting,inventory,selectPeriod,from,to', 'silent');
-
 
         // Ако има филтър
         if ($rec = $data->listFilter->rec) {
