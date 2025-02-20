@@ -458,7 +458,11 @@ class core_Html
                     round(sqrt(max(0, $optionsCnt + 1)))
                 );
             }
-            
+            if ($options && is_array($options)) {
+                $col = min(countR($options), $col);
+            } else {
+                $col = 0;
+            }
             if ($col > 1) {
                 $tpl = "<table class='keylist {$keyListClass}'><tr>";
                 
