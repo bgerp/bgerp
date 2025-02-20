@@ -448,7 +448,9 @@ class transsrv_ProductDrv extends cat_ProductDriver
             $rec->groups = keylist::addKey($rec->groups, $newGroupId);
 
             $expand36Name = cls::get('cat_Products')->getExpandFieldName36();
+            Mode::push('dontUpdateKeywords', true);
             cat_Products::save($rec, "groups,groupsInput,{$expand36Name}");
+            Mode::pop('dontUpdateKeywords');
         }
 
         return $newGroupId;
