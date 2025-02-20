@@ -8956,6 +8956,9 @@ tr.wasteWeightPercent td {
 table.listTable>tbody>tr>td.wasteCol {
 	font-weight: bold !important;
 	background: #eee;
+	.quiet {
+		font-weight: bold !important;
+	}
 }
 .selectTaskOptions {
 	width:100%;
