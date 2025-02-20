@@ -1897,6 +1897,9 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
+    // Ако сме в широката тема, да не изчисляваме нищо
+    if($('body').hasClass('externalPage')) return;
+
     var clientHeight = document.documentElement.clientHeight;
 
     var padding = $('.background-holder').length ? parseInt($('.background-holder').css('padding-top')) : 0;
