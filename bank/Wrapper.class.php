@@ -22,11 +22,11 @@ class bank_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('bank_Accounts', 'Всички сметки', 'ceo, bank');
-        $this->TAB('bank_OwnAccounts', 'Наши сметки', 'ceo, bank');
-        $this->TAB('bank_IncomeDocuments', 'Документи->Приходни документи', 'ceo, bank');
-        $this->TAB('bank_SpendingDocuments', 'Документи->Разходни документи', 'ceo, bank');
-        $this->TAB('bank_InternalMoneyTransfer', 'Документи->Вътрешни трансфери', 'ceo, bank');
-        $this->TAB('bank_ExchangeDocument', 'Документи->Обмени на валути', 'ceo, bank');
+        $this->TAB('bank_OwnAccounts', 'Наши сметки', 'ceo, bank,bankAll');
+        $this->TAB('bank_IncomeDocuments', 'Документи->Приходни документи', 'ceo, bank,bankAll');
+        $this->TAB('bank_SpendingDocuments', 'Документи->Разходни документи', 'ceo, bank,bankAll');
+        $this->TAB('bank_InternalMoneyTransfer', 'Документи->Вътрешни трансфери', 'ceo, bank,bankAll');
+        $this->TAB('bank_ExchangeDocument', 'Документи->Обмени на валути', 'ceo, bank,bankAll');
         $this->TAB('bank_PaymentOrders', 'Бланки->Платежни Нареждания', 'ceo, bank');
         $this->TAB('bank_CashWithdrawOrders', 'Бланки->Нареждане Разписка', 'ceo, bank');
         $this->TAB('bank_DepositSlips', 'Бланки->Вносни Бележки', 'ceo, bank');

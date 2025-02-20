@@ -38,6 +38,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
         $fieldset->FLD('prefixHistory', 'blob', 'input=none');
         $fieldset->FLD('suffixHistory', 'blob', 'input=none');
         $fieldset->FLD('length', 'int(Min=0)', 'caption=Дължина,unit=Символа');
+        $fieldset->FLD('transferBatchOnProduction', 'enum(no=Не,yes=Да)', 'caption=Пренасяне на партиди от вложения към произвеждания артикул->Избор');
     }
 
 

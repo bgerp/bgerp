@@ -69,6 +69,7 @@ class email_drivers_RouteOutgoingEmails extends email_drivers_OutgoingEmails
                     }
 
                     if (!empty($emailArr)) {
+                        $data->form->setDefault('redirection', key($emailArr));
                         array_unshift($emailArr , '');
                         $emailArr = arr::make($emailArr, true);
                         $data->form->setSuggestions('redirection', $emailArr);

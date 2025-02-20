@@ -62,7 +62,7 @@ class store_Stores extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,storeWorker';
+    public $canList = 'ceo,storeWorker,storeAll';
     
     
     /**
@@ -233,7 +233,7 @@ class store_Stores extends core_Master
         
         if ($rec->state != 'rejected') {
             if (store_InventoryNotes::haveRightFor('add', (object) array('folderId' => $rec->folderId))) {
-                $data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'ef_icon=img/16/invertory.png,title = Създаване на протокол за инвентаризация');
+                $data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'ef_icon=img/16/inventory.png,title = Създаване на протокол за инвентаризация');
             }
         }
     }

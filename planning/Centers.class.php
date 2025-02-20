@@ -48,7 +48,7 @@ class planning_Centers extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning, jobSee';
+    public $canList = 'ceo, planning, jobSee, planningAll';
     
     
     /**
@@ -304,6 +304,8 @@ class planning_Centers extends core_Master
         if(isset($rec->scheduleId)){
             $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
         }
+
+        $row->hrGroupId = crm_Groups::getHyperlink(static::getEmployeesGroupId($rec));
 
         if($rec->mandatoryOperatorsInTasks == 'auto'){
             $row->mandatoryOperatorsInTasks = $mvc->getFieldType('mandatoryOperatorsInTasks')->toVerbal(planning_Setup::get('TASK_PROGRESS_OPERATOR'));
@@ -570,20 +572,60 @@ class planning_Centers extends core_Master
      */
     function act_dispatch()
     {
-        requireRole('ceo,planning,production,jobSee');
+        requireRole('powerUser');
 
-        if(haveRole('production') || haveRole('ceo')){
+        if(planning_DirectProductionNote::haveRightFor('list')){
             redirect(array('planning_DirectProductionNote', 'list'));
-        } elseif(haveRole('consumption')){
+        } elseif(planning_ConsumptionNotes::haveRightFor('list')){
             redirect(array('planning_ConsumptionNotes', 'list'));
-        } elseif(haveRole('jobSee')){
+        } elseif(planning_Jobs::haveRightFor('list')){
             redirect(array('planning_Jobs', 'list'));
-        } elseif(haveRole('task')){
+        } elseif(planning_Tasks::haveRightFor('list')){
             redirect(array('planning_Tasks', 'list'));
-        } elseif(haveRole('planning')) {
+        } elseif(planning_Centers::haveRightFor('list')) {
             redirect(array('planning_Centers', 'list'));
         }
 
         redirect(array('bgerp_Portal', 'show'), false, 'Нямате достъп до таб от менюто', 'warning');
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // Синхронизиране на системата група за оператори спрямо името на центъра
+        static::syncCrmGroup($rec->id);
+    }
+
+
+    /**
+     * В коя системна група ще бъдат служителите от центъра
+     *
+     * @param int $id
+     * @return mixed
+     */
+    public static function getEmployeesGroupId($id)
+    {
+        $rec = static::fetchRec($id);
+
+        return crm_Groups::getIdFromSysId("planningCenter{$rec->id}");
+    }
+
+
+    /**
+     * Синхронизира системната група за операторите на центъра на дейност
+     *
+     * @param int $id
+     * @return int
+     */
+    public static function syncCrmGroup($id)
+    {
+        $rec = static::fetchRec($id);
+        $centerGroupId = crm_Groups::getIdFromSysId('activityCenters');
+        $groupRec = (object)array('name' => $rec->name, 'sysId' => "planningCenter{$rec->id}", 'parentId' => $centerGroupId);
+
+        return crm_Groups::forceGroup($groupRec);
     }
 }

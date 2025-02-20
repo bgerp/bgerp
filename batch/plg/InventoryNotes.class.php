@@ -304,9 +304,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         $allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior, null, array('store_InventoryNotes', $noteId), true, null, false, true);
         if(!countR($allBatches) && !countR($batchesInDetail)) return false;
 
-
         $allBatches[''] = $expectedQuantity - array_sum($allBatches);
-
         $summary = array();
         $combinedKeys = array_keys($allBatches + $batchesInDetail);
 
@@ -329,9 +327,6 @@ class batch_plg_InventoryNotes extends core_Plugin
             unset($summary['']);
             $summary[''] = $noBatch;
         }
-        //bp($expected, $summary, $expectedQuantity, $combinedKeys);
-
-
 
         return $summary;
     }
@@ -346,6 +341,9 @@ class batch_plg_InventoryNotes extends core_Plugin
             
             return;
         }
+
+        if(Mode::is('selectRows2Delete')) return;
+
         $Double = cls::get('type_Double');
         
         $storeId = $masterRec->storeId;
@@ -363,7 +361,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $r[$id] = $sRow;
 
             $summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior, $alwaysShowBatches);
-
+            //bp($sRec, $summary);
             if(!$summary) continue;
             $Def = batch_Defs::getBatchDef($sRec->productId);
 
@@ -493,10 +491,11 @@ class batch_plg_InventoryNotes extends core_Plugin
     {
         $explicitBatchQuantities = array();
         $dQuery = store_InventoryNoteDetails::getQuery();
-        $dQuery->where("#batch IS NOT NULL AND #productId = {$summaryRec->productId} AND #noteId = {$summaryRec->noteId}");
+        $dQuery->where("#productId = {$summaryRec->productId} AND #noteId = {$summaryRec->noteId}");
         $dQuery->XPR('totalQ', 'double', 'SUM(#quantity)');
         $dQuery->groupBy('batch');
         $dQuery->show('batch, totalQ');
+
         $calcedQuantity = 0;
         while($dRec = $dQuery->fetch()){
             $calcedQuantity += $dRec->totalQ;

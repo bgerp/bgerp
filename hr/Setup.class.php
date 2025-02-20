@@ -26,7 +26,7 @@ defIfNot('HR_COMPANIES_IP', '');
 /**
  * разрешените дни за работа от вкъщи
  */
-defIfNot('HR_DAYS_IN_HOMEOFFICE', '10');
+defIfNot('HR_DAYS_IN_HOMEOFFICE', '2');
 
 
 /**

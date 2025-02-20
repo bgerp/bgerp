@@ -61,7 +61,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,production,store';
+    public $canList = 'ceo,production,store, planningAll';
 
 
     /**

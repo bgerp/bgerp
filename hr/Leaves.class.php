@@ -53,7 +53,7 @@ class hr_Leaves extends core_Master
      * @var array
      */
     protected static $emojiList = array('s1' => '🏥', 's2' => '🤒', 's3' => '💊', 's4' => '🛌',
-                                    'l1' => '🎿', 'l2' => '❄️', 'l3' => '⛷️', 'l4' => '🏖️', 'l5' => '🌴',
+                                    'l1' => '🎿', 'l6' => '🏔️', 'l2' => '❄️', 'l3' => '⛷️', 'l4' => '🏖️', 'l5' => '🌴',
                                     't1' => '✈️', 't2' => '🌍', 't3' => '🧳', 't4' => '🚗',
                                     'h1' => '🏠', 'h2' => '💻', 'h3' => '☕', 'h4' => '🪟');
 
@@ -219,7 +219,7 @@ class hr_Leaves extends core_Master
         $this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
         $this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
         $this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefis('l'))), 'caption=Информация->Икона за ника, maxRadio=10,columns=10,notNull,value=l5');
+        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('l'))), 'caption=Информация->Икона за ника, maxRadio=6,columns=6,notNull,value=l5');
         $this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
         $this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
         $this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');
@@ -297,12 +297,38 @@ class hr_Leaves extends core_Master
      *
      * @param string $emoji
      * @param string $class
+     * @param null|string $from
+     * @param null|string $to
      *
      * @return string
      */
-    public static function getEmoji($emoji, $class = 'statusIcon')
+    public static function getEmoji($emojiType, $class = 'statusIcon', $from = null, $to = null)
     {
-        $emoji =  self::$emojiList[$emoji] ? self::$emojiList[$emoji] : '';
+        $emoji = '';
+        if (!$emojiType) {
+
+            return $emoji;
+        }
+
+        $today = dt::now(false);
+
+        if (isset($from)) {
+            list($dateFrom, ) = explode(' ', $from);
+            if ($dateFrom > $today) {
+
+                return $emoji;
+            }
+        }
+
+        if (isset($to)) {
+            list($dateTo, ) = explode(' ', $to);
+            if ($dateTo < $today) {
+
+                return $emoji;
+            }
+        }
+
+        $emoji =  self::$emojiList[$emojiType] ? self::$emojiList[$emojiType] : '';
         if ($class) {
             $emoji = "<span class='{$class}'>{$emoji}</span>";
         }
@@ -318,7 +344,7 @@ class hr_Leaves extends core_Master
      *
      * @return array
      */
-    public static function getEmojiesWithPrefis($pref = null)
+    public static function getEmojiesWithPrefix($pref = null)
     {
         if (!isset($pref)) {
 

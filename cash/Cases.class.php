@@ -86,7 +86,7 @@ class cash_Cases extends core_Master
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canReports = 'ceo,cash,acc';
+    public $canReports = 'ceo,cash,acc,cashAll';
     
     
     /**
@@ -98,7 +98,7 @@ class cash_Cases extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, cash';
+    public $canList = 'ceo, cash, cashAll';
     
     
     /**
@@ -110,7 +110,7 @@ class cash_Cases extends core_Master
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,cash';
+    public $canSingle = 'ceo, cash, cashAll';
     
     
     /**

@@ -1897,6 +1897,9 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
+    // Ако сме в широката тема, да не изчисляваме нищо
+    if($('body > .externalPage').length) return;
+
     var clientHeight = document.documentElement.clientHeight;
 
     var padding = $('.background-holder').length ? parseInt($('.background-holder').css('padding-top')) : 0;
@@ -5829,6 +5832,8 @@ function addBugReportInput(form, nameInput, value)
 
 /**
  * При хоризонтален скрол на страницата, да създадем watch point
+ *
+ * @deprecated
  */
 function detectScrollAndWp() {
     if($('#packWrapper').outerWidth() > $(window).width() ) {

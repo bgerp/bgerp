@@ -956,7 +956,7 @@ class crm_Persons extends core_Master
     public function cron_UpdateCalendarEvents()
     {
         $query = self::getQuery();
-        
+
         while ($rec = $query->fetch()) {
             $res = static::updateBirthdaysToCalendar($rec->id);
             $new += $res['new'];
@@ -976,7 +976,7 @@ class crm_Persons extends core_Master
      */
     public static function updateBirthdaysToCalendar($id)
     {
-        if (($rec = static::fetch($id)) && ($rec->state != 'rejected')) {
+        if (($rec = static::fetch($id)) && ($rec->state != 'rejected') && ($rec->state != 'closed')) {
             if ($rec->birthday) {
                 list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
             } else {
@@ -999,7 +999,7 @@ class crm_Persons extends core_Master
         $years = array($cYear, $cYear + 1, $cYear + 2);
         
         // Префикс на клучовете за рожденните дни на това лице
-        $prefix = "BD-{$id}";
+        $prefix = "BD-{$id}-";
         
         if ($d > 0 && $m > 0) {
             foreach ($years as $year) {
@@ -1012,7 +1012,7 @@ class crm_Persons extends core_Master
                 $calRec = new stdClass();
                 
                 // Ключ на събитието
-                $calRec->key = $prefix . '-' . $year;
+                $calRec->key = $prefix . $year;
                 
                 // TODO да се проверява за високосна година
                 $calRec->time = date('Y-m-d 00:00:00', mktime(0, 0, 0, $m, $d, $year));
@@ -1402,16 +1402,21 @@ class crm_Persons extends core_Master
      * Дали на лицето се начислява ДДС:
      * Начисляваме винаги ако е в ЕУ (ако е регистриран по ДДС)
      *
-     * @param int $id - id' то на записа
+     * @param int $id                - id' то на записа
+     * @param mixed $class           - за кой клас
      * @param int|null $ownCompanyId - ид на "Моята фирма"
      *
      * @return bool TRUE/FALSE
      */
-    public static function shouldChargeVat($id, $ownCompanyId = null)
+    public static function shouldChargeVat($id, $class, $ownCompanyId = null)
     {
         // Ако моята фирма не е регистрирана по ДДС или лицето няма ДДС номер - не се начислява
         $rec = static::fetch($id);
-        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId) || empty($rec->vatId)) return false;
+        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;
+        $Class = cls::get($class);
+        if(in_array($Class->className, array('purchase_Purchases', 'findeals_Deals', 'findeals_AdvanceDeals'))){
+            if(empty($rec->vatId)) return false;
+        }
 
         // Ако няма държава или е в ЕС ще се начислява
         if (!$rec->country) return true;
@@ -2672,9 +2677,9 @@ class crm_Persons extends core_Master
 
             // Бутон за бързо закриване/откриване на потребителя
             if(crm_Profiles::haveRightFor('closeprofile', $profileRec)) {
-                $profileBtnCaption = ($profileRec->state == 'closed') ? 'Профил (Откриване)' : 'Профил (Закриване)';
+                $profileBtnCaption = ($profileRec->state == 'closed') ? 'Профил (Откр.)' : 'Профил (Закр.)';
                 $icon = ($profileRec->state == 'closed') ? 'img/16/lock_unlock.png' : 'img/16/gray-close.png';
-                $data->toolbar->addBtn($profileBtnCaption, array('crm_Profiles', 'closeprofile', $profileRec->id, 'ret_url' => true), 'id=btnCloseProfile', "ef_icon={$icon},title=Промяна на състоянието на профила на лицето");
+                $data->toolbar->addBtn($profileBtnCaption, array('crm_Profiles', 'closeprofile', $profileRec->id, 'ret_url' => true), 'id=btnCloseProfile', "ef_icon={$icon},title=Промяна на състоянието на профила на лицето,row=2");
             }
         } else {
             

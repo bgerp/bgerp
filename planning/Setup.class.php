@@ -206,6 +206,18 @@ defIfNot('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', '');
 
 
 /**
+ * Колко да е изчакването между предходни операции->В една локация
+ */
+defIfNot('PLANNING_TASK_OFFSET_IN_SAME_LOCATION', '0');
+
+
+/**
+ * Колко да е изчакването между предходни операции->В различна локация
+ */
+defIfNot('PLANNING_TASK_OFFSET_IN_OTHER_LOCATION', '0');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -287,6 +299,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_AUTO_CREATE_TASK_STATE' => array('enum(pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние'),
         'PLANNING_ORDER_TASK_PARAMS_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Показване в ред,customizeBy=taskSee|ceo'),
         'PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Скриване,customizeBy=taskSee|ceo'),
+        'PLANNING_TASK_OFFSET_IN_SAME_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В една локация'),
+        'PLANNING_TASK_OFFSET_IN_OTHER_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В различна локация'),
     );
 
 
@@ -363,6 +377,8 @@ class planning_Setup extends core_ProtoSetup
         'migrate::removeCachedAssetModified4124v2',
         'migrate::repairSearchKeywords2442',
         'migrate::calcTaskLastProgress2504v2',
+        'migrate::syncOperatorsWithGroups2504v2',
+        'migrate::repairSearchKeywords2508',
     );
 
 
@@ -387,7 +403,7 @@ class planning_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.21, 'Производство', 'Планиране', 'planning_Centers', 'dispatch', 'ceo,planning,production,jobSee'),
+        array(3.21, 'Производство', 'Планиране', 'planning_Centers', 'dispatch', 'ceo,planning,production,jobSee,planningAll'),
     );
 
 
@@ -533,5 +549,63 @@ class planning_Setup extends core_ProtoSetup
     public function calcTaskLastProgress2504v2()
     {
         planning_Tasks::recalcTaskLastProgress(null, 'active,wakeup,stopped', 90);
+    }
+
+
+    /**
+     * Миграция групите на операторите в центрове на дейност
+     */
+    public function syncOperatorsWithGroups2504v2()
+    {
+        $employeesGroupId = crm_Groups::getIdFromSysId('employees');
+        $groupRec = (object)array('name' => 'Център на дейност', 'sysId' => 'activityCenters', 'parentId' => $employeesGroupId);
+        crm_Groups::forceGroup($groupRec);
+
+        $centerGroups = array();
+        $query = planning_Centers::getQuery();
+        $query->where("#state != 'rejected'");
+        while($rec = $query->fetch()){
+            $centerGroups[$rec->folderId] = planning_Centers::syncCrmGroup($rec);
+        }
+
+        $personArr = array();
+        $hrClassId = planning_Hr::getClassId();
+        $folderQuery = planning_AssetResourceFolders::getQuery();
+        $folderQuery->EXT('personId', "planning_Hr", "externalName=personId,externalKey=objectId");
+        $folderQuery->where("#classId = {$hrClassId}");
+        $folderQuery->in('folderId', array_keys($centerGroups));
+        while ($fRec = $folderQuery->fetch()){
+            $personArr[$fRec->personId][$fRec->folderId] = $fRec->folderId;
+        }
+
+        $personCount  = count($personArr);
+        if(!$personCount) return;
+
+        core_App::setTimeLimit(0.3 * $personCount, false, 200);
+        $personQuery = crm_Persons::getQuery();
+        $personQuery->in('id', array_keys($personArr));
+
+        $Persons = cls::get('crm_Persons');
+        while ($pRec = $personQuery->fetch()){
+            $centers = $personArr[$pRec->id];
+            $addGroups = array_intersect_key($centerGroups, $centers);
+            $addGroups = array_combine($addGroups, $addGroups);
+
+            $pRec->groupListInput = keylist::removeKey($pRec->groupListInput, $employeesGroupId);
+            $pRec->groupListInput = keylist::merge($pRec->groupListInput, $addGroups);
+            $Persons->save($pRec, 'groupListInput,groupList');
+        }
+
+        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи
+     */
+    public static function repairSearchKeywords2508()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_AssetGroups', $callOn);
     }
 }

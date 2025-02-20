@@ -31,7 +31,7 @@ class crm_Locations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_Sorting, plg_Search,plg_LastUsedKeys';
+    public $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_Sorting, plg_Search,plg_LastUsedKeys, core_UserTranslatePlg';
 
 
     /**
@@ -131,7 +131,7 @@ class crm_Locations extends core_Master
     {
         $this->FLD('contragentCls', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Собственик->Клас,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
-        $this->FLD('title', 'varchar', 'caption=Наименование,silent');
+        $this->FLD('title', 'varchar', 'caption=Наименование,silent, translate=user|tr|transliterate');
         $this->FLD('type', 'varchar(32)', 'caption=Тип,mandatory');
         $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Адресни данни->Държава,class=contactData,mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Адресни данни->Град,oldFieldName=city,class=contactData');
@@ -401,6 +401,10 @@ class crm_Locations extends core_Master
             } else {
                 $row->ROW_ATTR['class'] .= ' state-rejected';
             }
+        }
+
+        if ($rec->type) {
+            $row->type = tr($rec->type);
         }
     }
     

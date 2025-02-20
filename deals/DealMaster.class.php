@@ -190,7 +190,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     while($pRec = $pQuery->fetch()){
                         $proformaDates[] = !empty($pRec->dueDate) ? $pRec->dueDate : $pRec->date;
                     }
-                    $proformaValior = min($proformaDates);
+                    $proformaValior = countR($proformaDates) ? min($proformaDates) : null;
                 }
             }
 
@@ -209,7 +209,6 @@ abstract class deals_DealMaster extends deals_DealBase
             if (!empty($methodId)) {
 
                 // За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
-                $date = null;
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
 
                 // Проверяваме дали сделката е просрочена по платежния си план
@@ -345,9 +344,11 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         $defaultMakeInvoice = 'yes';
-        $ContragentClass = cls::get($rec->contragentClassId);
-        if($ContragentClass instanceof crm_Persons){
-            $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId) ? 'yes' : 'no';
+        if($mvc instanceof purchase_Purchases){
+            $ContragentClass = cls::get($rec->contragentClassId);
+            if($ContragentClass instanceof crm_Persons){
+                $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId, $mvc) ? 'yes' : 'no';
+            }
         }
         $form->setDefault('makeInvoice', $defaultMakeInvoice);
         
@@ -736,19 +737,34 @@ abstract class deals_DealMaster extends deals_DealBase
     public function prepareListSummary_(&$data)
     {
         if(!Request::get('Rejected')){
+            $showVat = doc_Setup::get('SHOW_LIST_SUMMARY_VAT');
             $summaryQuery = clone $data->query;
-            $summaryQuery->XPR('amountDealNoVat', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
-            $summaryQuery->XPR('amountDeliveredNoVat', 'double', 'ROUND((#amountDelivered / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
-            $summaryQuery->XPR('amountPaidNoVat', 'double', 'ROUND((#amountPaid / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
-            $summaryQuery->XPR('amountBlNoVat', 'double', 'ROUND((#amountBl / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
-            $summaryQuery->XPR('amountInvoicedNoVat', 'double', 'ROUND((#amountInvoiced / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
+
+            if($showVat == 'yes') {
+                $caption = 'с ДДС';
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(#amountDeal, 2)');
+            } else {
+                $caption = 'без ДДС';
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
+            }
+
+            foreach (array('amountDelivered', 'amountPaid', 'amountBl', 'amountInvoiced') as $fld){
+                if($showVat == 'yes'){
+                    $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(#{$fld}, 2)");
+                } else {
+                    $condNull = "(#{$fld} / 1.2)";
+                    $condNotNUll = "(#{$fld} / (1 + #amountVat / (#amountDeal - #amountVat)))";
+                    $cond = "IF(#amountVat IS NOT NULL, $condNotNUll, $condNull)";
+                    $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(($cond), 2)");
+                }
+            }
 
             $data->listSummary = (object)array('mvc' => clone $this, 'query' => $summaryQuery);
-            $data->listSummary->mvc->FNC('amountDealNoVat', 'varchar', 'caption=Поръчано (без ДДС),input=none,summary=amount');
-            $data->listSummary->mvc->FNC('amountDeliveredNoVat', 'varchar', 'caption=Доставено (без ДДС),input=none,summary=amount');
-            $data->listSummary->mvc->FNC('amountPaidNoVat', 'varchar', 'caption=Платено (без ДДС),input=none,summary=amount');
-            $data->listSummary->mvc->FNC('amountInvoicedNoVat', 'varchar', 'caption=Фактурирано (без ДДС),input=none,summary=amount');
-            $data->listSummary->mvc->FNC('amountBlNoVat', 'varchar', 'caption=Крайно салдо,input=none,summary=amount');
+            $data->listSummary->mvc->FNC('amountDealCalc', 'varchar', "caption=Поръчано ({$caption}),input=none,summary=amount");
+            $data->listSummary->mvc->FNC('amountDeliveredCalc', 'varchar', "caption=Доставено ({$caption}),input=none,summary=amount");
+            $data->listSummary->mvc->FNC('amountPaidCalc', 'varchar', "caption=Платено ({$caption}),input=none,summary=amount");
+            $data->listSummary->mvc->FNC('amountInvoicedCalc', 'varchar', "caption=Фактурирано ({$caption}),input=none,summary=amount");
+            $data->listSummary->mvc->FNC('amountBlCalc', 'varchar', "caption=Крайно салдо,input=none,summary=amount");
         }
     }
 
@@ -1687,11 +1703,13 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // ако има каса, метода за плащане е COD и текущия потребител може да се логне в касата
         $defaultCaseId = $rec->caseId ?? cash_Cases::getCurrent('id', false);
-        if (isset($rec->amountDeal) && isset($defaultCaseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && bgerp_plg_FLB::canUse('cash_Cases', $defaultCaseId)) {
-            
-            // Може да се плати от каса
-            $caseName = cash_Cases::getTitleById($defaultCaseId);
-            $options['pay'] = "{$opt['pay']} \"${caseName}\"";
+        if (isset($rec->amountDeal) && isset($defaultCaseId) && bgerp_plg_FLB::canUse('cash_Cases', $defaultCaseId)) {
+            if ($rec->paymentType == 'cash' || (empty($rec->paymentType) && cond_PaymentMethods::isCOD($rec->paymentMethodId))) {
+
+                // Може да се плати от каса
+                $caseName = cash_Cases::getTitleById($defaultCaseId);
+                $options['pay'] = "{$opt['pay']} \"${caseName}\"";
+            }
         }
 
         $res = $options;
@@ -2509,21 +2527,24 @@ abstract class deals_DealMaster extends deals_DealBase
             $mvc->save($rec, 'valior');
         }
     }
-    
-    
+
+
     /**
-     * Подготвя табовете на задачите
+     * След подготовка на табовете на документа
+     * @see doc_plg_Tabs
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     * @return void
      */
-    public function prepareDealTabs_(&$data)
+    protected static function on_AfterPrepareDocumentTabs($mvc, &$res, $data)
     {
-        parent::prepareDealTabs_($data);
-        
+        // Добавяне на таб показващ поръчано/доставено
         if ($data->rec->state != 'draft') {
             $url = getCurrentUrl();
-            unset($url['export']);
-            
-            $url['dealTab'] = 'DealReport';
-            $data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url);
+            $url["docTab{$data->rec->containerId}"] = 'DealReport';
+            $data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url, null, 3);
         }
     }
 

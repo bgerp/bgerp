@@ -112,6 +112,8 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteDetails',
         'store_StockPlanning',
         'store_ShipmentOrderTariffCodeSummary',
+        'migrate::repairSearchKeywords2505',
+        'migrate::repairSearchKeywordsNotes2505',
     );
     
     
@@ -132,7 +134,7 @@ class store_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.2, 'Логистика', 'Склад', 'store_Products', 'default', 'storeWorker,ceo'),
+        array(3.2, 'Логистика', 'Склад', 'store_Products', 'default', 'storeWorker,ceo,storeAll'),
     );
     
     
@@ -157,7 +159,7 @@ class store_Setup extends core_ProtoSetup
                           store_reports_ArticlesDepended,store_reports_ProductsInStock,store_reports_UnrealisticPricesAndWeights,
                           store_reports_ProductAvailableQuantity1,store_reports_JobsHorizons,store_tpl_SingleLayoutPackagingListGrouped,
                           store_tpl_SingleLayoutShipmentOrderEuro,store_iface_ShipmentWithBomPriceTplHandler,store_iface_OpeningBalanceImportImpl,
-                          store_reports_NonPublicItems';
+                          store_reports_NonPublicItems,store_reports_ReportConsignmentProtocols';
     
     
     /**
@@ -297,5 +299,25 @@ class store_Setup extends core_ProtoSetup
                 $Class->saveArray($toSave, $updateFields);
             }
         }
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи на ПОП
+     */
+    public static function repairSearchKeywords2505()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'store_ConsignmentProtocols', $callOn);
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи на инвентаризацията
+     */
+    public static function repairSearchKeywordsNotes2505()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'store_InventoryNotes', $callOn);
     }
 }

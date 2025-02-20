@@ -63,14 +63,21 @@ class doc_ContragentDataIntf
     {
         return $this->class->getFullAdress($id, $translitarate, $showCountry, $showAddress, $date);
     }
-    
-    
+
+
     /**
-     * Връща дали на контрагента се начислява ДДС
+     * Дали на лицето се начислява ДДС:
+     * Начисляваме винаги ако е в ЕУ (ако е регистриран по ДДС)
+     *
+     * @param int $id                - id' то на записа
+     * @param mixed $class           - за кой клас
+     * @param int|null $ownCompanyId - ид на "Моята фирма"
+     *
+     * @return bool TRUE/FALSE
      */
-    public function shouldChargeVat($id)
+    public function shouldChargeVat($id, $class, $ownCompanyId = null)
     {
-        return $this->class->shouldChargeVat($id);
+        return $this->class->shouldChargeVat($id, $class, $ownCompanyId);
     }
     
     

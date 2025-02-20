@@ -447,6 +447,10 @@ class acc_ActiveShortBalance
                 }
                 
                 if ($add) {
+                    foreach (array('debitItem1', 'debitItem2', 'debitItem2', 'creditItem1', 'creditItem2', 'creditItem3') as $field) {
+                        $entry[$field] = $jRec->{$field};
+                    }
+
                     $history[$jRec->id] = $entry;
                 }
             }

@@ -2393,7 +2393,11 @@ span, a{
     }
 }
 }
-
+.smallBtnHolder .linkWithIcon {
+	font-size: 0.65em;
+	background-size: 11px;
+	padding-left: 18px !important;
+}
 .narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
 display: inline;
 float: none;
@@ -8946,7 +8950,13 @@ tr.wasteWeightPercent td {
 .workingTimeBlock table.typeTable {
 	width: 100%;
 }
-
+.jobWorkInProgressTable .listTable th {
+	text-align: center !important;
+}
+table.listTable>tbody>tr>td.wasteCol {
+	font-weight: bold !important;
+	background: #eee;
+}
 .selectTaskOptions {
 	width:100%;
 }
@@ -9143,4 +9153,13 @@ table.bomProductionStepTable td{
 	&.purchases {
 		border: 1px solid rgba(204, 204, 204, 0.5);
 	}
+}
+
+.jobWorkInProgressTable {
+	margin-bottom:10px;
+	font-size:0.7em
+}
+
+.jobWorkInProgressTable td {
+	font-weight:normal !important;
 }

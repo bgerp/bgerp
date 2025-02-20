@@ -382,4 +382,77 @@ class transsrv_ProductDrv extends cat_ProductDriver
         
         return $tpl;
     }
+
+
+    /**
+     * Подготвя групите, в които да бъде вкаран продукта
+     */
+    public static function on_BeforeSave($Driver, embed_Manager &$Embedder, &$id, &$rec, $fields = null)
+    {
+        if(isset($rec->id)){
+            // Преди запис се проверява в коя системна група е бил артикула
+            $exRec = $Embedder->fetch($rec->id, '*', false);
+            $rec->_exGroupId = self::forceCountryGroup($exRec, null, false);
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param int               $id
+     * @param stdClass          $rec
+     */
+    public static function on_AfterSave(cat_ProductDriver $Driver, embed_Manager $Embedder, &$id, $rec)
+    {
+        // След запис се синхронизира промяната
+        self::forceCountryGroup($rec, null, true, $rec->_exGroupId);
+    }
+
+
+    /**
+     * Форсиране на продуктова група за транспорт
+     *
+     * @param stdClass $rec
+     * @param stdClass|null $ownCompanyData
+     * @param boolean $save
+     * @param int|null $exGroupId
+     * @return int
+     */
+    public static function forceCountryGroup($rec, $ownCompanyData = null, $save = true, $exGroupId = null)
+    {
+        if(empty($ownCompanyData)){
+            $ownData = crm_Companies::fetchOwnCompany();
+            $ownCountryId = $ownData->countryId;
+        } else {
+            $ownCountryId = $ownCompanyData->countryId;
+        }
+
+        $countryId = ($rec->toCountry == $ownCountryId) ? $rec->fromCountry : $rec->toCountry;
+        $countryName = drdata_Countries::getCountryName($countryId);
+        $newGroupId = cat_Groups::forceGroup("Външни услуги » Транспорт » {$countryName}");
+
+        if(!$save) return $newGroupId;
+
+        // Ако е имало стара група и тя е различна да се премахне
+        if(isset($exGroupId) && $newGroupId != $exGroupId){
+            $rec->groupsInput = keylist::removeKey($rec->groupsInput, $exGroupId);
+            $rec->groups = keylist::addKey($rec->groups, $exGroupId);
+        }
+
+        // Ако новата група не присъства да се добавя
+        if(!keylist::isIn($newGroupId, $rec->groupsInput)){
+            $rec->groupsInput = keylist::addKey($rec->groupsInput, $newGroupId);
+            $rec->groups = keylist::addKey($rec->groups, $newGroupId);
+
+            $expand36Name = cls::get('cat_Products')->getExpandFieldName36();
+            Mode::push('dontUpdateKeywords', true);
+            cat_Products::save($rec, "groups,groupsInput,{$expand36Name}");
+            Mode::pop('dontUpdateKeywords');
+        }
+
+        return $newGroupId;
+    }
 }

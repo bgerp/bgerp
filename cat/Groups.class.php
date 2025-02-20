@@ -178,7 +178,7 @@ class cat_Groups extends core_Master
         $form->setField('parentId', 'caption=Настройки->В състава на,remember');
         $form->setField('orderProductBy', 'caption=Настройки->Сортиране по');
         $form->setField('parentId', 'silent,removeAndRefreshForm=defaultOverheadCostsPercent');
-        $form->FLD('addProducts', 'text(rows=2)', 'caption=Допълнително->Добави артикули,input');
+        $form->FLD('addProducts', 'text(rows=2)', 'caption=Допълнително->Добави артикули,input,hint=Кодовете на артикулите трябва да са на нов ред');
 
         // На системните групи само определени полета може да се променят
         if (isset($rec->sysId)) {
@@ -285,13 +285,14 @@ class cat_Groups extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (cat_Products::haveRightFor('list')) {
+            $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
+            $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
+
             if ($fields['-list']) {
-                $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+                $row->productCnt = ht::createLinkRef($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
 
             if ($fields['-single']) {
-                $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
-                $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
                 $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
         }

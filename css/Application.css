@@ -50,7 +50,9 @@ dl {
 
   .groupList table td {
     vertical-align: top;
-    line-height: 1.2em; }
+    line-height: 1.5em; }
+    .groupList table td:first-child {
+      white-space: nowrap; }
   .groupList table .dt {
     width: 21.5%;
     text-align: right;
@@ -2059,6 +2061,11 @@ a.tUnsighted {
     .document-settings .linkWithIcon.disliked.disable,
     .document-settings-left .linkWithIcon.disliked.disable {
       cursor: default; }
+
+.smallBtnHolder .linkWithIcon {
+  font-size: 0.65em;
+  background-size: 11px;
+  padding-left: 18px !important; }
 
 .narrow .document-settings,
 .narrow .document-settings-left,
@@ -7846,6 +7853,13 @@ tr.wasteWeightPercent td {
 .workingTimeBlock table.typeTable {
   width: 100%; }
 
+.jobWorkInProgressTable .listTable th {
+  text-align: center !important; }
+
+table.listTable>tbody>tr>td.wasteCol {
+  font-weight: bold !important;
+  background: #eeeeee; }
+
 .selectTaskOptions {
   width: 100%; }
 
@@ -8003,4 +8017,11 @@ table.bomProductionStepTable td {
     border: 1px solid rgba(204, 204, 204, 0.5); }
   .contragentStatisticBlock.purchases {
     border: 1px solid rgba(204, 204, 204, 0.5); }
+
+.jobWorkInProgressTable {
+  margin-bottom: 10px;
+  font-size: 0.7em; }
+
+.jobWorkInProgressTable td {
+  font-weight: normal !important; }
 

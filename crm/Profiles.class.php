@@ -160,7 +160,7 @@ class crm_Profiles extends core_Master
         $this->FLD('stateDateTo', 'datetime(format=smartTime, defaultTime=23:59:59)', 'caption=Статус->До,input=none');
         $this->FLD('stateAlternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees)', 'caption=Статус->Заместници,input=none');
         $this->FLD('stateAnswerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=Статус->Отговаря на моб. телефон, input=none');
-        $this->FLD('stateEmoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefis())), 'caption=Статус->Икона за ника, input=none');
+        $this->FLD('stateEmoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix())), 'caption=Статус->Икона за ника, input=none');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
@@ -1188,11 +1188,12 @@ class crm_Profiles extends core_Master
             
             $attr['class'] .= ' profile';
 
+            $e = '';
             if ($profRec && $profRec->stateDateFrom) {
                 $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo, (boolean) ($profRec->stateAnswerGSM == 'yes'));
+                $e = hr_Leaves::getEmoji($profRec->stateEmoji, 'statusIcon', $profRec->stateDateFrom, $profRec->stateDateTo);
             }
 
-            $e = ($profRec->stateEmoji) ? hr_Leaves::getEmoji($profRec->stateEmoji) : '';
 
             $profileId = self::getProfileId($userId);
             

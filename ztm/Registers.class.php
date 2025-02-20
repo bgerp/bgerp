@@ -101,7 +101,35 @@ class ztm_Registers extends core_Master
 
         $this->setDbUnique('name');
     }
-    
+
+
+    /**
+     * Връща всички активни регистри
+     *
+     * @return array
+     */
+    public static function getRegisters($ignoreScoreArr = array())
+    {
+        $resArr = core_Cache::get('ztm_Register', 'registers|' . implode('|', $ignoreScoreArr));
+        if ($resArr === false) {
+            $query = ztm_Registers::getQuery();
+            $query->where("#state = 'active'");
+            $query->orderBy('#name');
+            if (!empty($ignoreScoreArr)) {
+                $query->notIn('scope', $ignoreScoreArr);
+            }
+            $query->show('name, id');
+            $resArr = array();
+            while ($rec = $query->fetch()) {
+                $resArr[$rec->id] = $rec->name;
+            }
+
+            core_Cache::set('ztm_Register', 'registers', $resArr);
+        }
+
+        return $resArr;
+    }
+
     
     /**
      * Извиква се след SetUp-а на таблицата за модела

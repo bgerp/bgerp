@@ -372,7 +372,7 @@ class sales_Routes extends core_Manager
     public function renderRoutes($data)
     {
         $tpl = getTplFromFile('sales/tpl/SingleLayoutRoutes.shtml');
-        $title = $this->title;
+        $title = tr($this->title);
         $listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение');
         
         if ($data->addUrl && !Mode::isReadOnly()) {

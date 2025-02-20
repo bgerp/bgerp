@@ -32,38 +32,48 @@ class cat_plg_AddSearchKeywords extends core_Plugin
         if(isset($rec->productId)){
             $products[$rec->productId] = (object)array('productId' => $rec->productId, 'notes' => null);
         }
-       
+
+        $productDetailArr = isset($mvc->addProductKeywordsFromDetails) ? arr::make($mvc->addProductKeywordsFromDetails, true) : arr::make($mvc->mainDetail, true);
+
         // Гледа се в детайла на класа (ако има, кои артикули се използват)
         if ($rec->id) {
-            if(isset($mvc->mainDetail)){
-               
-                // Намиране на детайлите на документа
-                $Detail = cls::get($mvc->mainDetail);
-                $dQuery = $Detail::getQuery();
-                $dQuery->where("#{$Detail->masterKey} = '{$rec->id}'");
-                
-                if ($Detail->getField('state', false)) {
-                    $dQuery->where("#state != 'rejected' AND #state != 'closed'");
-                }
-                
-                setIfNot($Detail->productFld, 'productId');
-                setIfNot($Detail->notesFld, 'notes');
-                $dQuery->where("#{$Detail->productFld} IS NOT NULL");
-                
-                // Кои полета да се показват
-                if ($Detail->getField($Detail->notesFld, false)) {
-                    $dQuery->show("{$Detail->notesFld},{$Detail->productFld}");
-                } else {
-                    $dQuery->show($Detail->productFld);
-                }
-                
-                // За всеки запис
-                while ($dRec = $dQuery->fetch()) {
-                    $products[$dRec->{$Detail->productFld}] = (object)array('productId' => $dRec->{$Detail->productFld}, 'notes' => $dRec->{$Detail->notesFld});
+
+            if(countR($productDetailArr)){
+                foreach ($productDetailArr as $productDetail) {
+
+                    // Намиране на детайлите на документа
+                    $Detail = cls::get($productDetail);
+                    $dQuery = $Detail::getQuery();
+                    $dQuery->where("#{$Detail->masterKey} = '{$rec->id}'");
+
+                    if ($Detail->getField('state', false)) {
+                        $dQuery->where("#state != 'rejected' AND #state != 'closed'");
+                    }
+
+                    setIfNot($Detail->productFld, 'productId');
+                    setIfNot($Detail->notesFld, 'notes');
+                    $dQuery->where("#{$Detail->productFld} IS NOT NULL");
+
+                    // Кои полета да се показват
+                    if ($Detail->getField($Detail->notesFld, false)) {
+                        $dQuery->show("{$Detail->notesFld},{$Detail->productFld}");
+                    } else {
+                        $dQuery->show($Detail->productFld);
+                    }
+
+                    // За всеки запис
+                    while ($dRec = $dQuery->fetch()) {
+                        if(!array_key_exists($dRec->{$Detail->productFld}, $products)){
+                            $products[$dRec->{$Detail->productFld}] = (object)array('productId' => $dRec->{$Detail->productFld}, 'notes' => null);
+                        }
+                        if(!empty($dRec->{$Detail->notesFld})){
+                            $products[$dRec->{$Detail->productFld}]->notes .= " " . $dRec->{$Detail->notesFld};
+                        }
+                    }
                 }
             }
         }
-        
+
         // Ако има артикули
         if(countR($products)){
             $detailsKeywords = '';
