@@ -285,13 +285,14 @@ class cat_Groups extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (cat_Products::haveRightFor('list')) {
+            $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
+            $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
+
             if ($fields['-list']) {
-                $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+                $row->productCnt = ht::createLinkRef($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
 
             if ($fields['-single']) {
-                $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
-                $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
                 $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
         }
