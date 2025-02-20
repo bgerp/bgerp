@@ -185,7 +185,7 @@ class hr_HomeOffice extends core_Master
         $this->FLD('startDate', 'datetime(defaultTime=00:00:00)', 'caption=Считано->От, mandatory');
         $this->FLD('toDate', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
         $this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('h'))), 'caption=Информация->Икона за ника, maxRadio=10,columns=10,notNull,value=h2');
+        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('h'))), 'caption=Информация->Икона за ника, maxRadio=4,columns=4,notNull,value=h2');
         $this->FLD('note', 'richtext(rows=5, bucket=Notes)', 'caption=Информация->Бележки');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на работата от вкъщи->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на работата от вкъщи->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');

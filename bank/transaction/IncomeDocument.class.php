@@ -70,7 +70,11 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         } elseif ($rec->dealCurrencyId == $baseCurrencyId) {
             $amount = $rec->amountDeal;
         } else {
-            $amount = $rec->amount * $rec->rate;
+            if ($reverse === true && ($rec->operationSysId == 'bank2customerRet' || $rec->operationSysId == 'bankAdvance2customerRet')) {
+                $amount = $rec->amount * $origin->fetchField('currencyRate');
+            } else {
+                $amount = $rec->amount * $rec->rate;
+            }
         }
         
         $entry1 = array('amount' => $sign * round($amount, 2),
@@ -86,7 +90,7 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
                 'quantity' => $sign * round($rec->amountDeal, 2)),);
         
         $entry[] = $entry1;
-        
+
         if ($reverse === true && ($rec->operationSysId == 'bank2customerRet' || $rec->operationSysId == 'bankAdvance2customerRet')) {
             $entry2 = $entry[0];
             $entry2['amount'] = abs($entry2['amount']);

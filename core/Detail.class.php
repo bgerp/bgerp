@@ -73,6 +73,7 @@ class core_Detail extends core_Manager
 
         setIfNot($mvc->requireMasterBeInstanceOfCoreMaster, true);
         setIfNot($mvc->addDeleteSelectRows, true);
+        setIfNot($mvc->addDeleteSelectedRowsMinCount, 2);
     }
     
     
@@ -213,26 +214,25 @@ class core_Detail extends core_Manager
     public function prepareListToolbar_(&$data)
     {
         $data->toolbar = cls::get('core_Toolbar');
-        
         $masterKey = $data->masterKey;
         
         if ($data->masterId) {
             $rec = new stdClass();
             $rec->{$masterKey} = $data->masterId;
-
             if ($this->haveRightFor('add', $rec) && $data->masterId && $this->listAddBtn !== false) {
                 $data->toolbar->addBtn('Нов запис', array($this, 'add', $masterKey => $data->masterId, 'ret_url' => true),  'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
             }
         }
 
+        // Бутон за групово изтриване
         if($this->haveRightFor('selectrowstodelete', (object)array($masterKey => $data->masterId))){
             $data->toolbar->addBtn('Изтриване', array($this, 'selectRowsToDelete', $masterKey => $data->masterId, 'ret_url' => true,), 'id=btnDellAll', 'ef_icon = img/16/deletered.png,title=Форма за избор на редове за изтриване,order=500,class=selectDeleteRowsBtn');
         }
 
         return $data;
     }
-    
-    
+
+
     /**
      * Подготвя формата за редактиране
      */
@@ -359,7 +359,7 @@ class core_Detail extends core_Manager
 
         // За екшъна за изтриване на избрани редове, се изисква да има поне един запис, който може да се изтрива
         if($action == 'selectrowstodelete'){
-            if(!$this->addDeleteSelectRows || (!$this->hasPlugin('plg_RowTools') && !$this->hasPlugin('plg_RowTools2')) || $this->hasPlugin('plg_Select')) return 'no_one';
+            if(!$this->addDeleteSelectRows || $this->hasPlugin('plg_Select')) return 'no_one';
 
             $actionCast = 'delete';
             $res = parent::getRequiredRoles_($actionCast, $rec, $userId);
@@ -381,7 +381,7 @@ class core_Detail extends core_Manager
                     while ($dRec = $query->fetch()){
                         if(static::haveRightFor('delete', $dRec)){
                             $canDeleteCount++;
-                            if($canDeleteCount >= 2) {
+                            if($canDeleteCount >= $this->addDeleteSelectedRowsMinCount) {
                                 $haveDeletableMoreThanOneRec = true;
                                 break;
                             }
@@ -607,6 +607,7 @@ class core_Detail extends core_Manager
         $filterFld = Request::get('_filterFld', 'varchar');
         $filterNot = Request::get('_filterFldNot', 'varchar');
         $filterFldVal = Request::get('_filterFldVal', 'varchar');
+
         if(!empty($filterFld)){
             $sign = ($filterNot) ? '!=' : '=';
             $query->where("#{$filterFld} {$sign} '{$filterFldVal}'");
@@ -649,8 +650,9 @@ class core_Detail extends core_Manager
             $selectedArr = explode('|', $form->rec->selected);
             if(countR($selectedArr)){
                 $str = implode(',', $selectedArr);
+                Mode::push("selectRowsOnDelete_{$this->className}", true);
                 static::delete("#{$this->masterKey} = {$masterId} AND #id IN ({$str})");
-
+                Mode::pop("selectRowsOnDelete_{$this->className}");
                 $this->Master->logWrite('Изтриване на избрани редове', $masterId);
                 redirect($this->Master->getSingleUrlArray($masterId), 'Успешно са изтрити избраните редове|*!');
             }

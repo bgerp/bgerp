@@ -374,8 +374,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if ($pRec) {
                     $obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
                     if (!$obj->quantity) {
-                        if(!$mvc->hasPlugin('store_plg_RequestDetail')){
-                            $err[$i][] = $obj->code . '|Невалидно количество|*';
+                        if(!$mvc->hasPlugin('store_plg_RequestDetail') && !($mvc instanceof store_InventoryNoteDetails)){
+                            $err[$i][] = $obj->code . ' |Невалидно количество|*';
                         }
                     } else {
                         $packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
@@ -390,10 +390,14 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             // Ако е инсталиран пакета за партидност и има партида
             if ($batchInstalled && isset($obj->batch, $pRec->productId)) {
                 if ($batchDef = batch_Defs::getBatchDef($pRec->productId)) {
+                    if($mvc instanceof store_InventoryNoteDetails){
+                        $batchDef->params['allowZero'] = true;
+                    }
+
                     $batchType = $batchDef->getBatchClassType($mvc, (object)array($mvc->masterKey => $masterId));
                     $obj->batch = $batchType->fromVerbal($obj->batch);
                     $r = $batchType->isValid($obj->batch);
-                    
+
                     if (!$obj->batch || !empty($r['error'])) {
                         $error = !empty($r['error']) ? $r['error'] : $batchType->error;
                         $err[$i][] = $obj->batch . " |{$error}|*";

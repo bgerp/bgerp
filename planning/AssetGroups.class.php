@@ -241,4 +241,21 @@ class planning_AssetGroups extends core_Master
             }
         }
     }
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        if(isset($rec->id)){
+            $nQuery = planning_AssetResourcesNorms::getQuery();
+            $nQuery->where("#classId = {$mvc->getClassId()} AND #objectId = {$rec->id}");
+            while($nRec = $nQuery->fetch()) {
+                $indTime = planning_AssetResourcesNorms::getVerbal($nRec, 'indTime');
+                $productName = cat_Products::getTitleById($nRec->productId);
+                $res .= ' ' . plg_Search::normalizeText($productName) . " " . plg_Search::normalizeText($indTime);
+            }
+        }
+    }
 }

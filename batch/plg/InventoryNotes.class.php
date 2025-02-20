@@ -341,6 +341,9 @@ class batch_plg_InventoryNotes extends core_Plugin
             
             return;
         }
+
+        if(Mode::is('selectRows2Delete')) return;
+
         $Double = cls::get('type_Double');
         
         $storeId = $masterRec->storeId;

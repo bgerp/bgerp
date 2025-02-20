@@ -386,7 +386,7 @@ class planning_WorkInProgress extends core_Manager
         $cNotes = planning_DirectProductNoteDetails::getQuery();
         $cNotes->EXT('threadId', 'planning_DirectProductionNote', 'externalName=threadId,externalKey=noteId');
         $cNotes->EXT('state', 'planning_DirectProductionNote', 'externalName=state,externalKey=noteId');
-        $cNotes->where("#storeId IS NULL AND #type = 'input'");
+        $cNotes->where("#type = 'input'");
         $cNotes->in('threadId', $threads);
         $cNotes->where("#state = 'active'");
         while($cRec = $cNotes->fetch()) {
@@ -394,6 +394,9 @@ class planning_WorkInProgress extends core_Manager
                 $productArr[$cRec->productId] = (object)array('productId' => $cRec->productId, 'bomQuantity' => 0, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
             }
             $productArr[$cRec->productId]->inputed += $cRec->quantity;
+            if(isset($cRec->storeId)){
+                $productArr[$cRec->productId]->consumpedDetailed += $cRec->quantity;
+            }
         }
 
         // Вербализиране на данните
@@ -413,6 +416,8 @@ class planning_WorkInProgress extends core_Manager
             $row->measureId = cat_Uom::getSmartName($measureId);
             $data->workInProgressData->rows[$pId] = $row;
         }
+
+        //bp($data->workInProgressData->rows, $data->workInProgressData->recs);
     }
 
 
