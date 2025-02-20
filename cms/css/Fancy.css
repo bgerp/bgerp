@@ -13,13 +13,17 @@ html, body {
 }
 
 .externalPage {
-    min-height: 100vh; /* Гарантира, че контейнерът е поне 100% от височината на екрана */
-    min-height: 100dvh; /* dynamic viewport height, работи по-добре на мобилни */
+    min-height: 100vh;
     position: relative; /* За да работи абсолютното позициониране на футъра правилно */
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
 }
+
+.narrow .externalPage {
+    min-height: 100dvh;
+}
+
 .mainContent {
     flex: 1; /* Запълва цялото останало пространство */
 }
