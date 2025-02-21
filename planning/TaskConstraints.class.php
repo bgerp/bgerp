@@ -373,28 +373,14 @@ class planning_TaskConstraints extends core_Master
         $taskCount = countR($tasks);
         core_App::setTimeLimit($taskCount * 0.3, false, 60);
 
-        $taskIds = $assetInTasks = $stepsData = $normsByTask = $jobContainers = array();
+        $taskIds = $assetInTasks = $normsByTask = $jobContainers = array();
         $productIds = arr::extractValuesFromArray($tasks, 'productId');
-
-        // Еднократно извличане на планиращите действия
-        $stepQuery = planning_Steps::getQuery();
-        $stepQuery->where("#classId = " . cat_Products::getClassId());
-        $stepQuery->in("objectId", $productIds);
-        $stepQuery->show('objectId,planningActions');
-        while($stepRec = $stepQuery->fetch()){
-            $stepsData[$stepRec->objectId] = keylist::toArray($stepRec->planningActions);
-        }
 
         foreach ($tasks as $taskRec) {
             $taskIds[$taskRec->id] = $taskRec->id;
             $jobContainers[$taskRec->originId] = $taskRec->originId;
             if (isset($taskRec->assetId)) {
                 $assetInTasks[$taskRec->assetId] = $taskRec->assetId;
-            }
-            if (is_array($stepsData[$taskRec->productId])) {
-                foreach ($stepsData[$taskRec->productId] as $actionProductId) {
-                    $normsByTask[$taskRec->id][$actionProductId] = 0;
-                }
             }
         }
 
@@ -423,17 +409,15 @@ class planning_TaskConstraints extends core_Master
         // Изчисляват се времената на планираните операции за задачата
         $pQuery = planning_ProductionTaskProducts::getQuery();
         $pQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
-        $pQuery->where("#type = 'input' AND #canStore != 'yes'");
+        $pQuery->where("#type = 'input' AND #canStore != 'yes' AND #indTime IS NOT NULL");
         $pQuery->in('taskId', $taskIds);
         $pQuery->show('productId,taskId,plannedQuantity,indTime,totalTime');
         while ($pRec = $pQuery->fetch()) {
+            $indTimeNorm = planning_type_ProductionRate::getInSecsByQuantity($pRec->indTime, $pRec->plannedQuantity);
+            $totalTimeNorm = planning_type_ProductionRate::getInSecsByQuantity($pRec->totalTime, $pRec->plannedQuantity);
 
-            // Ако планираното влагане е от планиращите операции на артикула
-            if (isset($normsByTask[$pRec->taskId][$pRec->productId])) {
-                $indTimeNorm = planning_type_ProductionRate::getInSecsByQuantity($pRec->indTime, $pRec->plannedQuantity);
-                $totalTimeNorm = planning_type_ProductionRate::getInSecsByQuantity($pRec->totalTime, $pRec->plannedQuantity);
-                $normsByTask[$pRec->taskId][$pRec->productId] = max($indTimeNorm, $totalTimeNorm);
-            }
+            $normsByTask[$pRec->taskId][$pRec->productId]['total'] = $indTimeNorm;
+            $normsByTask[$pRec->taskId][$pRec->productId]['rest'] = max(round($indTimeNorm - $totalTimeNorm, 2), 0);
         }
 
         // За всяка операция
@@ -466,7 +450,6 @@ class planning_TaskConstraints extends core_Master
                 $duration = round($indTime / $simultaneity);
             }
 
-
             // От продължителността, се приспада произведеното досега
             $nettDuration = $duration;
             $duration = round((1 - $t->progress) * $duration);
@@ -477,9 +460,10 @@ class planning_TaskConstraints extends core_Master
 
             // Към така изчислената продължителност се добавя тази от действията към машината
             if (array_key_exists($t->id, $normsByTask)) {
-                $duration += array_sum($normsByTask[$t->id]);
-                $nettDuration += array_sum($normsByTask[$t->id]);
+                $duration += arr::sumValuesArray($normsByTask[$t->id], 'rest');
+                $nettDuration += arr::sumValuesArray($normsByTask[$t->id], 'total');
             }
+
             $t->calcedDuration = $nettDuration;
             $t->calcedCurrentDuration = $duration;
         }
