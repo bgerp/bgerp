@@ -1103,7 +1103,7 @@ class crm_Profiles extends core_Master
             $profile->_skipUserUpdate = true;
             self::save($profile, 'searchKeywords');
         }
-        
+
         core_Users::save($userRec);
     }
     
@@ -1190,10 +1190,9 @@ class crm_Profiles extends core_Master
 
             $e = '';
             if ($profRec && $profRec->stateDateFrom) {
-                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo, (boolean) ($profRec->stateAnswerGSM == 'yes'));
+                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo, (boolean) ($profRec->stateAnswerGSM != 'no'));
                 $e = hr_Leaves::getEmoji($profRec->stateEmoji, 'statusIcon', $profRec->stateDateFrom, $profRec->stateDateTo);
             }
-
 
             $profileId = self::getProfileId($userId);
             
