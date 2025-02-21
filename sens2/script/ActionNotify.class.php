@@ -98,26 +98,26 @@ class sens2_script_ActionNotify
         }
 
         if($rec->repeat > 1) { 
-            $repeat = (int) core_Cache::get('Sens2RPT', $rec->action) + 1;
+            $repeat = (int) core_Cache::get('Sens2RPT', $rec->id) + 1;
            
             if($repeat < $rec->repeat) {
-                core_Cache::set('Sens2RPT', $rec->action, $repeat, 100);
+                core_Cache::set('Sens2RPT', $rec->id, $repeat, 100);
 
                 return 'active';
             } else {
-                core_Cache::remove('Sens2RPT', $rec->action);
+                core_Cache::remove('Sens2RPT', $rec->id);
             }
         }
         
         // Предотвратяваме изпращането, ако от последното изпращане не е минал зададеният интервал
         if($rec->minNotifyTime > 0) { 
-            $lastSent =  core_Cache::get('Sens2LS', $rec->action);
+            $lastSent =  core_Cache::get('Sens2LS', $rec->id);
            
             if($lastSent && ($lastSent + $rec->minNotifyTime) > time()) {
 
                 return 'active';
             } else {
-                core_Cache::set('Sens2LS', $rec->action, time(), floor($rec->minNotifyTime/60 + 2));
+                core_Cache::set('Sens2LS', $rec->id, time(), floor($rec->minNotifyTime/60 + 2));
             }
         }
         

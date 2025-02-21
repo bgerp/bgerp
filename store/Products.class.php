@@ -202,7 +202,7 @@ class store_Products extends core_Detail
      * @param stdClass $data
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
+    {;
         if($data->masterMvc instanceof cat_Products){
             $data->query->EXT('storeName', 'store_Stores', 'externalName=name,externalKey=storeId');
             
@@ -215,7 +215,8 @@ class store_Products extends core_Detail
             } else {
                 $data->query->orderBy('storeName', 'ASC');
             }
-            
+
+            unset($data->listFilter->showFields);
             return;
         }
 
@@ -266,14 +267,15 @@ class store_Products extends core_Detail
         $data->query->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
         $data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
 
-
         if (isset($data->masterMvc)) {
             $showFieldsArr = arr::make('horizon,search,groupId', 2);
+
             $data->listFilter->showFields = implode(',', $showFieldsArr);
             if($data->masterMvc instanceof store_Stores){
                 $data->listFilter->setDefault('setting', $data->masterData->rec->displayStockMeasure);
             }
         } else {
+            $data->listFilter->defOrder = false;
             $showFieldsArr = arr::make('search,productId,storeId,filters,groupId,horizon,setting,inventory,selectPeriod,from,to', 2);
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('filters', 'active');
@@ -291,6 +293,7 @@ class store_Products extends core_Detail
 
         // Ако има филтър
         if ($rec = $data->listFilter->rec) {
+
             if(isset($rec->inventory)){
                 if($rec->inventory == 'all'){
                     unset($showFieldsArr['selectPeriod']);

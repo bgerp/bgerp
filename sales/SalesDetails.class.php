@@ -161,6 +161,12 @@ class sales_SalesDetails extends deals_DealDetail
 
 
     /**
+     * Дали артикула ще произвежда при експедиране артикулите с моментна рецепта
+     */
+    public $manifactureProductsOnShipment = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -215,14 +221,11 @@ class sales_SalesDetails extends deals_DealDetail
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
-            $pInfo = cat_Products::getProductInfo($rec->productId);
 
             $row->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
-            if (isset($pInfo->meta['canStore'])) {
-                $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
-                deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
-            }
-            
+            $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
+
             if (core_Users::haveRole('ceo,seePriceSale') && isset($row->packPrice)) {
                $hintField = isset($data->listFields['packPrice']) ? 'packPrice' : 'amount';
                $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;

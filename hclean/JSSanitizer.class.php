@@ -76,6 +76,7 @@ class hclean_JSSanitizer extends core_Manager
 
         // Премахваме всичко коментари
         $content = preg_replace("/<!--.*?-->/si", '', $content);
+        $content = preg_replace("/<!\\[.*?]>/si", '', $content);
 
         // Преобразуваме HTML' а в текст, който може да се използва в променливи на JS
         $jsHtml = static::htmlToJsText($content);
