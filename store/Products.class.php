@@ -275,6 +275,7 @@ class store_Products extends core_Detail
                 $data->listFilter->setDefault('setting', $data->masterData->rec->displayStockMeasure);
             }
         } else {
+            $data->listFilter->defOrder = false;
             $showFieldsArr = arr::make('search,productId,storeId,filters,groupId,horizon,setting,inventory,selectPeriod,from,to', 2);
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('filters', 'active');
@@ -292,6 +293,7 @@ class store_Products extends core_Detail
 
         // Ако има филтър
         if ($rec = $data->listFilter->rec) {
+
             if(isset($rec->inventory)){
                 if($rec->inventory == 'all'){
                     unset($showFieldsArr['selectPeriod']);
