@@ -239,6 +239,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
         }
 
+        $this->Master->logWrite("Зареждане на артикулите от договора", $invoiceRec->id);
+
         // Редирект обратно към фактурата
         return followRetUrl(null, '|Артикулите от сделката са копирани успешно');
     }

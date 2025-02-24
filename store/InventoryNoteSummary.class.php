@@ -637,6 +637,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
         if(Mode::is('selectRows2Delete')){
             unset($data->listFields['btns']);
+            unset($data->listFields['charge']);
         }
     }
     
