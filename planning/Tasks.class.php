@@ -354,6 +354,7 @@ class planning_Tasks extends core_Master
         $this->FLD('lastProgress', 'datetime(format=smartTime)', 'caption=Последен Прогрес (всички), tdClass=leftColImportant,input=none');
         $this->FLD('lastProgressProduction', 'datetime(format=smartTime)', 'caption=Последен Прогрес (произвеждане), tdClass=leftColImportant,input=none');
         $this->FLD('planningError', 'enum(no=Не,outsideSchedule=Извън графика,error=Грешка)', 'caption=Грешка при планиране,input=none,notNull,value=no');
+        $this->FLD('nextGapType', 'enum(no=Няма,gap=Дупка,idle=Престой)', 'caption=Има ли дупка в следващата задача,input=none,notNull,value=no');
 
         $this->setDbIndex('labelPackagingId');
         $this->setDbIndex('productId');

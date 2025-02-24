@@ -218,6 +218,12 @@ defIfNot('PLANNING_TASK_OFFSET_IN_OTHER_LOCATION', '86400');
 
 
 /**
+ * Минимално време между задачите смятащо се за дупка
+ */
+defIfNot('PLANNING_MIN_TIME_FOR_GAP', 3600);
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -301,6 +307,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Скриване,customizeBy=taskSee|ceo'),
         'PLANNING_TASK_OFFSET_IN_SAME_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В една локация'),
         'PLANNING_TASK_OFFSET_IN_OTHER_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В различна локация'),
+        'PLANNING_MIN_TIME_FOR_GAP' => array('time', 'caption=Минимално време между ПО на една машина приемащо се за дупка->Време'),
     );
 
 
