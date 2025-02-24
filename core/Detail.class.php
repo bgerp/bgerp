@@ -649,7 +649,16 @@ class core_Detail extends core_Manager
         if($form->rec->selected){
             $selectedArr = explode('|', $form->rec->selected);
             if(countR($selectedArr)){
-                $str = implode(',', $selectedArr);
+                $idArr = array();
+                foreach ($selectedArr as $selId){
+                    if(is_numeric($selId)){
+                        $idArr[$selId] = $selId;
+                    } else {
+                        wp($selectedArr, $form->rec);
+                    }
+                }
+                $str = implode(',', $idArr);
+
                 Mode::push("selectRowsOnDelete_{$this->className}", true);
                 static::delete("#{$this->masterKey} = {$masterId} AND #id IN ({$str})");
                 Mode::pop("selectRowsOnDelete_{$this->className}");
