@@ -87,8 +87,14 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      * Полета за скриване/показване от шаблоните
      */
     public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума,weight=Обем,volume=Тегло,info=Инфо';
-    
-    
+
+
+    /**
+     * Дали артикула ще произвежда при експедиране артикулите с моментна рецепта
+     */
+    public $manifactureProductsOnShipment = true;
+
+
     /**
      * Описание на модела (таблицата)
      */

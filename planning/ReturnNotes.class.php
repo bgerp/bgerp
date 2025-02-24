@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -256,6 +256,15 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     {
         $form = &$data->form;
         $rec = &$form->rec;
+
+        // Дали връщането е детайлно се взима с приоритет ако е създаден от ПВ, ако не от уеб константата
+        if(isset($rec->originId)){
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('planning_ConsumptionNotes')) {
+                $form->setDefault('useResourceAccounts', $origin->fetchField('useResourceAccounts'));
+            }
+        }
+
         $form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
         $form->setDefault('valior', dt::today());
 

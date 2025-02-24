@@ -7494,13 +7494,16 @@ tr.wasteWeightPercent td {
       font-weight: bold;
       padding: 5px 3px;
       vertical-align: middle !important; }
-      .sale-summary table td .quiet {
+      .sale-summary table td span.quiet {
         color: #cccccc;
         font-weight: normal; }
       .sale-summary table td.vtop {
         vertical-align: top !important; }
     .sale-summary table .specialLink {
       white-space: normal; }
+
+.sale-summary .jobWorkInProgressTable table td.quantityCol {
+  color: #888888; }
 
 .sale-summary .cartStatistic .sum-th {
   background: #c1c1c1;
@@ -7859,6 +7862,8 @@ tr.wasteWeightPercent td {
 table.listTable>tbody>tr>td.wasteCol {
   font-weight: bold !important;
   background: #eeeeee; }
+  table.listTable>tbody>tr>td.wasteCol .quiet {
+    font-weight: bold !important; }
 
 .selectTaskOptions {
   width: 100%; }

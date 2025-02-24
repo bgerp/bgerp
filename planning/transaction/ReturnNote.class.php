@@ -93,18 +93,20 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
                 // Сумата с която ще върнем артикула в склада е неговата средно претеглена
                 if($prodRec->canStore == 'yes'){
                     $averageAmount = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $rec->valior, $rec->storeId);
+                } else {
+                    $averageAmount = planning_GenericMapper::getWacAmountInProduction($dRec->quantity, $dRec->productId, $rec->valior);
+                }
 
-                    if (!isset($averageAmount)) {
-                        $averageAmount = cat_Products::getPrimeCost($dRec->productId);
-                        if (isset($averageAmount)) {
-                            $averageAmount = $dRec->quantity * $averageAmount;
-                        }
+                if (!isset($averageAmount)) {
+                    $averageAmount = cat_Products::getPrimeCost($dRec->productId);
+                    if (isset($averageAmount)) {
+                        $averageAmount = $dRec->quantity * $averageAmount;
                     }
+                }
 
-                    if (!isset($averageAmount)) {
-                        $errorArr[] = cls::get('cat_Products')->getTitleById($dRec->productId);
-                        $averageAmount = 0;
-                    }
+                if (!isset($averageAmount)) {
+                    $errorArr[] = cls::get('cat_Products')->getTitleById($dRec->productId);
+                    $averageAmount = 0;
                 }
             }
 

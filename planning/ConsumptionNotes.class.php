@@ -405,7 +405,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         if(!store_Setup::canDoShippingWhenStockIsNegative()){
             $rec = $mvc->fetchRec($id);
-            if($rec->useResourceAccounts == 'yes') {
+            if($rec->state == 'active' && $rec->useResourceAccounts == 'yes') {
 
                 // Проверка дали оттеглянето ще доведе до отрицателни к-ва в незавършеното производство
                 $detailQuantities = array();

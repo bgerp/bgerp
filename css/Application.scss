@@ -8520,7 +8520,7 @@ tr.wasteWeightPercent td {
 			font-weight: bold;
 			padding: 5px 3px;
 			vertical-align: middle !important;
-			.quiet {
+			span.quiet {
 			   color: #ccc;
 			   font-weight: normal;
 			}
@@ -8533,7 +8533,9 @@ tr.wasteWeightPercent td {
 		}
     }
 }
-
+.sale-summary .jobWorkInProgressTable table td.quantityCol {
+	color: #888888;
+}
 .sale-summary .cartStatistic .sum-th {
 	background: #c1c1c1;
 	color: #333;
@@ -8956,6 +8958,9 @@ tr.wasteWeightPercent td {
 table.listTable>tbody>tr>td.wasteCol {
 	font-weight: bold !important;
 	background: #eee;
+	.quiet {
+		font-weight: bold !important;
+	}
 }
 .selectTaskOptions {
 	width:100%;

@@ -13,11 +13,17 @@ html, body {
 }
 
 .externalPage {
-    min-height: 100vh; /* Гарантира, че контейнерът е поне 100% от височината на екрана */
+    min-height: 100vh;
     position: relative; /* За да работи абсолютното позициониране на футъра правилно */
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
 }
+
+.narrow .externalPage {
+    min-height: 100dvh;
+}
+
 .mainContent {
     flex: 1; /* Запълва цялото останало пространство */
 }
@@ -140,6 +146,10 @@ html, body {
     position: absolute;
     bottom: -40px;
 }
+
+ .narrow .footer-links {
+     margin-top: 4px;
+ }
 @media handheld, only screen and (min-width: 1800px) {
     .centerContent {
         width: 1400px !important;
@@ -222,7 +232,7 @@ header img {
     height: auto;
 }
 .foorterAdd {
-    top: -2px !important;
+    top: -4px !important;
 }
 .narrow header {
     min-height: 90px;
@@ -240,9 +250,13 @@ header img {
 .soc-following {
     padding: 7px 7px 7px 2px;
 }
+
+.externalPage:has(.additionalFooter) {
+    padding-bottom: 50px;
+}
 .narrow .additionalFooter {
     position: absolute;
-    bottom: 0;
+    bottom: 38px;
     width: 100%;
 }
 

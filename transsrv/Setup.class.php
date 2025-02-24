@@ -59,8 +59,16 @@ class transsrv_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = 'transsrv';
-    
-    
+
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
+        'migrate::forceProductGroups2508',
+    );
+
+
     /**
      * Описание на конфигурационните константи
      */
@@ -91,5 +99,27 @@ class transsrv_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Създаване на търгове от МС', 'transsrv_plg_CreateAuction', 'store_Transfers', 'private');
         
         return $html;
+    }
+
+
+    /**
+     * Функция за мигриране на групи
+     */
+    public function forceProductGroups2508()
+    {
+        $ownData = crm_Companies::fetchOwnCompany();
+
+        $groups = array();
+        $transClassId = transsrv_ProductDrv::getClassId();
+        $pQuery = cat_Products::getQuery();
+        $pQuery->where("#innerClass = {$transClassId} AND #state != 'rejected'");
+        core_App::setTimeLimit(0.3 * $pQuery->count, false, 300);
+
+        while($pRec = $pQuery->fetch()){
+            $forcedGroupId = transsrv_ProductDrv::forceCountryGroup($pRec, $ownData);
+            $groups[$forcedGroupId] = $forcedGroupId;
+        }
+
+        cat_Groups::updateGroupsCnt($groups);
     }
 }

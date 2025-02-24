@@ -297,7 +297,8 @@ abstract class deals_Helper
         
         $coreConf = core_Packs::getConfig('core');
         $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
-        
+        $countVats = countR($values['vats']);
+
         if ($invoice || $chargeVat == 'separate') {
             if (is_array($values['vats'])) {
                 foreach ($values['vats'] as $percent => $vi) {
@@ -309,7 +310,12 @@ abstract class deals_Helper
                         
                         if ($invoice) {
                             $arr["vat{$index}Base"] = $arr["vat{$index}"];
-                            $arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
+                            if($countVats == 1) {
+                                $arr["vat{$index}BaseAmount"] = $arr['neto'];
+                            } else {
+                                $arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
+                            }
+
                             $arr["vat{$index}BaseCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
                         }
                     }
@@ -827,6 +833,16 @@ abstract class deals_Helper
         if (!in_array($state, array('draft', 'pending'))) return;
 
         $pRec = cat_Products::fetch($productId, 'canStore,isPublic');
+
+        // Ако артикулът е с моментна рецепта няма да се проверява за наличност
+        if($mvc->manifactureProductsOnShipment) {
+            $lastInstantBom = cat_Products::getLastActiveBom($productId, 'instant');
+            if(is_object($lastInstantBom)) {
+                $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, null, "class=doc-positive-quantity");
+                return;
+            }
+        }
+
         if ($pRec->canStore != 'yes') return;
 
         $date = $date ?? null;
@@ -895,7 +911,7 @@ abstract class deals_Helper
                         if($stRec->quantity >= $quantity) {
                             $hint = "Наличността в склада е достатъчна за изпълнение / контиране на документа, но разполагаемата наличност е недостатъчна за изпълнението на всички чакащи документи!";
                         } else {
-                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                         }
                     }
                 }
@@ -907,14 +923,14 @@ abstract class deals_Helper
         if(!$firstCheck){
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
-                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                     $class = 'doc-negative-quantity';
                     $makeLink = false;
                 }
             } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
                 if($showNegativeWarning) {
                     $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
                 }
             } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
                 if($showNegativeWarning) {
