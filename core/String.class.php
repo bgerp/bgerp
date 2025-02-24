@@ -1573,22 +1573,4 @@ class core_String
 
         return $exist;
     }
-
-
-    /**
-     * Обръща маркдаун в bbcode
-     *
-     * @param string $text
-     * @return string
-     */
-    public static function markdownToBBCode($text)
-    {
-        // Заместваме **bold** с [b]bold[/b]
-        $text = preg_replace('/\*\*(.*?)\*\*/s', '[b]$1[/b]', $text);
-
-        // Заместваме [текст](url) с [link=url]текст[/link]
-        $text = preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '[link=$2]$1[/link]', $text);
-
-        return $text;
-    }
 }

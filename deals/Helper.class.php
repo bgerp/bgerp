@@ -310,7 +310,7 @@ abstract class deals_Helper
                         
                         if ($invoice) {
                             $arr["vat{$index}Base"] = $arr["vat{$index}"];
-                            if($countVats == 1) {
+                            if($countVats == 1 && isset($arr['neto'])) {
                                 $arr["vat{$index}BaseAmount"] = $arr['neto'];
                             } else {
                                 $arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
