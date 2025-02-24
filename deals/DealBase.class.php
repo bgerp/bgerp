@@ -557,7 +557,7 @@ abstract class deals_DealBase extends core_Master
                     try {
 
                         // Ако няма друг активен приключващ документ за обединяване към тази сделка - да не се дублира
-                        $exClosedDoc = $CloseDoc->fetch("#threadId = {$dRec->threadId} AND #docClassId = {$this->getClassId()} AND #docId = {$dealRec->id} AND #id != '{$clId}' AND #state = 'active'");
+                        $exClosedDoc = $CloseDoc->fetch("#threadId = {$dRec->threadId} AND #id != '{$clId}' AND #state = 'active'");
                         if(!$exClosedDoc){
                             Mode::push('isBeingClosedWithDeal', true);
                             $CloseDoc->conto($clId);

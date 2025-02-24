@@ -301,7 +301,7 @@ class core_Master extends core_Manager
             
             if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
-                    $data->singleFields[$name] = $fld->caption;
+                    $data->singleFields[$name] = ltrim($fld->caption, '@');
                 }
             }
         }

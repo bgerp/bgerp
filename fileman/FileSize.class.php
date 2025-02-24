@@ -78,7 +78,7 @@ class fileman_FileSize extends type_Bigint
      */
     public function fromVerbal_($value)
     {
-        if ($value === null) {
+        if (empty($value)) {
             
             return;
         }
@@ -96,7 +96,7 @@ class fileman_FileSize extends type_Bigint
         $sizesTo = array('-1', '-1024', '-1048576', '-1073741824', '-1099511627776', '-1', '-1024', '-1048576', '-1073741824', '-1099511627776', '-1', '-1', '-1024', '-1024', '-1048576', '-1048576', '-1073741824', '-1073741824', '-1073741824', '-1073741824');
         
         $value1 = str_replace($sizesFrom, $sizesTo, mb_strtoupper($value));
-        
+       
         $arr = explode('-', $value1);
         
         $res = trim($arr[0]) * trim($arr[1]);

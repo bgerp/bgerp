@@ -136,6 +136,12 @@ class store_InventoryNoteSummary extends doc_Detail
 
 
     /**
+     * Кеш за инвалидиране
+     */
+    protected $invalidateNoteCache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -953,6 +959,22 @@ class store_InventoryNoteSummary extends doc_Detail
         foreach ($query->getDeletedRecs() as $rec) {
             if(Mode::is("selectRowsOnDelete_{$mvc->className}")){
                 store_InventoryNoteDetails::delete("#noteId = {$rec->noteId} AND #productId = {$rec->productId}");
+                $mvc->invalidateNoteCache[$rec->noteId] = $rec->noteId;
+            }
+        }
+    }
+
+
+    /**
+     * Обновява списъците със свойства на номенклатурите от които е имало засегнати пера
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(is_array($mvc->invalidateNoteCache)){
+            foreach ($mvc->invalidateNoteCache as $noteId) {
+                store_InventoryNotes::invalidateCache($noteId);
             }
         }
     }

@@ -436,6 +436,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         // Ако е избрано да се дублират, да се сумират редовете преди това
         $onDuplicate = Mode::get('onDuplicate');
         if($onDuplicate){
+
             $total = array();
             foreach ($rows as $row){
                 $key = "{$row->code}|{$row->pack}|{$row->batch}";
@@ -451,6 +452,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
                 $total[$key]->quantity += $row->quantity;
             }
+
+            $rows = $total;
         }
 
         foreach ($rows as $row) {

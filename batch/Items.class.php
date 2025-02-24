@@ -479,6 +479,7 @@ class batch_Items extends core_Master
             $query->where("#storeId = {$data->storeId}");
         }
 
+
         $filterRec = $data->form->rec;
         $filterState = $filterRec->{"state{$data->masterId}"};
         if ($filterState != 'all') {
@@ -495,12 +496,12 @@ class batch_Items extends core_Master
 
         // Добавяне на наличните к-ва без партида
         $storeQuery = store_Products::getQuery();
-        $storeQuery->where("#productId = {$data->masterId} AND #quantity != 0");
+        $storeQuery->where("#productId = {$data->masterId}");
         $storeQuery->orderBy('storeId', 'ASC');
         if(isset($data->storeId)){
             $storeQuery->where("#storeId = {$data->storeId}");
         }
-
+       // bp($data->recs, $storeQuery->fetchAll());
         $newRecs = array();
         while ($storeRec = $storeQuery->fetch()){
             $onBatches = $count = 0;
@@ -526,8 +527,8 @@ class batch_Items extends core_Master
                                                                      'batch' => -1);
             }
 
-            $withoutBatch = round($storeRec->quantity - $onBatches, 4);
-            if(!empty($withoutBatch)){
+            if(isset($filtered["-{$storeRec->storeId}batches"])){
+                $withoutBatch = round($storeRec->quantity - $onBatches, 4);
                 $filtered["-{$storeRec->storeId}nobatch"] = (object)array('storeId' => $storeRec->storeId,
                                                                             'productId' => $data->masterId,
                                                                             'quantity' => $withoutBatch,

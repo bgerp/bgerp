@@ -53,7 +53,7 @@ class hr_Leaves extends core_Master
      * @var array
      */
     protected static $emojiList = array('s1' => '🏥', 's2' => '🤒', 's3' => '💊', 's4' => '🛌',
-                                    'l1' => '🎿', 'l2' => '❄️', 'l3' => '⛷️', 'l4' => '🏖️', 'l5' => '🌴',
+                                    'l1' => '🎿', 'l6' => '🏔️', 'l2' => '❄️', 'l3' => '⛷️', 'l4' => '🏖️', 'l5' => '🌴',
                                     't1' => '✈️', 't2' => '🌍', 't3' => '🧳', 't4' => '🚗',
                                     'h1' => '🏠', 'h2' => '💻', 'h3' => '☕', 'h4' => '🪟');
 
@@ -219,7 +219,7 @@ class hr_Leaves extends core_Master
         $this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
         $this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
         $this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('l'))), 'caption=Информация->Икона за ника, maxRadio=5,columns=5,notNull,value=l5');
+        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('l'))), 'caption=Информация->Икона за ника, maxRadio=6,columns=6,notNull,value=l5');
         $this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
         $this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
         $this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');

@@ -332,7 +332,7 @@ class planning_WorkInProgress extends core_Manager
                 $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($inStock[$rec->{$productFldName}]);
                 $measureName = cat_UoM::getShortName(cat_Products::fetchField($rec->{$productFldName}, 'measureId'));
 
-                $hint = "Недостатъчна наличност в незавършеното производство|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|*!";
+                $hint = "Недостатъчна наличност в незавършеното производство|*: {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|*!";
                 $row->{$hintFld} = ht::createHint($row->{$hintFld}, $hint, 'warning', false, null, "class=doc-negative-quantity");
             }
         }
@@ -438,6 +438,10 @@ class planning_WorkInProgress extends core_Manager
             $fieldset->FLD($fld, 'double', 'tdClass=quantityCol');
         }
         $fieldset->setField('diff', 'tdClass=wasteCol');
+        $fieldset->setField('bomQuantity', 'tdClass=quiet');
+        $fieldset->setField('consumpedDetailed', 'tdClass=green');
+        $fieldset->setField('returnedInput', 'tdClass=red');
+        $fieldset->setField('inputed', 'tdClass=red');
 
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
         $details = $table->get($data->workInProgressData->rows, $data->workInProgressData->listFields);
