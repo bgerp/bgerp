@@ -357,7 +357,7 @@ class planning_AssetResources extends core_Master
                 $row->cams = '';
                 foreach (type_Keylist::toArray($rec->cameras) as $cId) {
                     try {
-                        $cRow = cams_Cameras::recToVerbal($cId, 'liveImg');
+                        $cRow = cams_Cameras::recToVerbal(cams_Cameras::fetchRec($cId), 'liveImg');
                         $liveImg = $cRow->liveImg;
                     } catch (core_exception_Expect $e) {
                         reportException($e);

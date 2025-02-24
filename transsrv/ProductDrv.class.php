@@ -443,13 +443,15 @@ class transsrv_ProductDrv extends cat_ProductDriver
         }
 
         // Ако новата група не присъства да се добавя
+        $Products = cls::get('cat_Products');
         if(!keylist::isIn($newGroupId, $rec->groupsInput)){
             $rec->groupsInput = keylist::addKey($rec->groupsInput, $newGroupId);
             $rec->groups = keylist::addKey($rec->groups, $newGroupId);
 
             $expand36Name = cls::get('cat_Products')->getExpandFieldName36();
             Mode::push('dontUpdateKeywords', true);
-            cat_Products::save($rec, "groups,groupsInput,{$expand36Name}");
+            plg_ExpandInput::on_BeforeSave($Products, $rec->id, $rec);
+            $Products->save_($rec, "groups,groupsInput,{$expand36Name}");
             Mode::pop('dontUpdateKeywords');
         }
 
