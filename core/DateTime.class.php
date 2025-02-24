@@ -1179,4 +1179,26 @@ class core_DateTime
 
         return  $day . $suffix;
     }
+
+
+    /**
+     * Връща средната дата между две дати
+     *
+     * @param string $datetime1  - първата дата
+     * @param string $datetime2  - втората дата
+     * @param string $mask       - маска
+     * @param string|null $lg    - език на който да се върне резултата
+     *
+     * @return string
+     */
+    public static function getMiddleDate($datetime1, $datetime2, $mask = 'Y-m-d H:i:s', $lg = null)
+    {
+        $timestamp1 = strtotime($datetime1);
+        $timestamp2 = strtotime($datetime2);
+
+        $middleTimestamp = ($timestamp1 + $timestamp2) / 2;
+        $middleTimestampDate = self::timestamp2Mysql($middleTimestamp);
+
+        return dt::mysql2verbal($middleTimestampDate, $mask, $lg);
+    }
 }
