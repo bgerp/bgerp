@@ -297,7 +297,8 @@ abstract class deals_Helper
         
         $coreConf = core_Packs::getConfig('core');
         $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
-        
+        $countVats = countR($values['vats']);
+
         if ($invoice || $chargeVat == 'separate') {
             if (is_array($values['vats'])) {
                 foreach ($values['vats'] as $percent => $vi) {
@@ -309,7 +310,12 @@ abstract class deals_Helper
                         
                         if ($invoice) {
                             $arr["vat{$index}Base"] = $arr["vat{$index}"];
-                            $arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
+                            if($countVats == 1) {
+                                $arr["vat{$index}BaseAmount"] = $arr['neto'];
+                            } else {
+                                $arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
+                            }
+
                             $arr["vat{$index}BaseCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
                         }
                     }
