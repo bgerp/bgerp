@@ -252,15 +252,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Дали да се помни последно избраната папка в лист изгледа
-     *
-     * @see acc_plg_DocumentSummary
-     * @var bool
-     */
-    public $rememberListFilterFolderId = true;
-
-
-    /**
      * Опашка за оборудванията на, които да се преподредят машините
      */
     protected $forceCalcTimes = false;
