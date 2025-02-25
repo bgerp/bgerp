@@ -145,6 +145,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
                         $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/leaves.png') .'>&nbsp;';
                     } elseif ($rec->type == 'sick') {
                         $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/sick.png') .'>&nbsp;';
+                    } elseif ($rec->type == 'house') {
+                        $resData->cData[$i]->html = "<img style='height:10px;width:10px;' src=". sbf('img/16/house.png') .'>&nbsp;';
                     } elseif ($rec->type == 'workday') {
                         // Нищо не се прави
                     } elseif ($rec->type == 'task' || $rec->type == 'reminder') {
@@ -242,7 +244,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                                         <!--ET_BEGIN FUTURE--><div class="portal-cal-day" style="padding: 5px; border-top: none">[#FUTURE_DATE#]</div>[#FUTURE#]<!--ET_END FUTURE-->
                                     </div>'
                                     ));
-            
+
             $tArr = $data->EventsData;
 
             $today = dt::now(false);
@@ -772,6 +774,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $rArrNow[$orderDate]['events'] .= '&nbsp;' . $event;
             }
         }
+
+
     }
     
     
