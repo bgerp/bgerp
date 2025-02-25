@@ -2157,6 +2157,10 @@ class planning_Tasks extends core_Master
 
         if ($data->masterMvc instanceof planning_AssetResources) {
             $tpl->append("Производствени операции (заявки, активни, събудени, спрени)", 'title');
+            if(planning_Tasks::haveRightFor('list')){
+                $filterLink = ht::createLink('', array('planning_Tasks', 'list', 'assetId' => $data->masterId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване');
+                $tpl->append($filterLink, 'title');
+            }
             $tpl->append($contentTpl, 'content');
         } else {
             $tpl = $contentTpl;
@@ -3368,7 +3372,8 @@ class planning_Tasks extends core_Master
                     foreach ($rec->gapData as $gapArr){
                         $trClass = $gapArr['type'] == 'gap' ? 'taskGapRow gapRow' : 'taskGapRow idleRow';
                         foreach (range(1, $gapArr['count']) as $i){
-                            $newRows[] = (object)array('ROW_ATTR' => array('class' => $trClass));
+                            $zebra = ($i % 2 == 0) ? "{$gapArr['type']}Zebra1" : "{$gapArr['type']}Zebra2";
+                            $newRows[] = (object)array('ROW_ATTR' => array('class' => "{$trClass} {$zebra}"));
                         }
                     }
                     $newRows[] = $row;
