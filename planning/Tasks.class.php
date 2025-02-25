@@ -354,7 +354,7 @@ class planning_Tasks extends core_Master
         $this->FLD('lastProgress', 'datetime(format=smartTime)', 'caption=Последен Прогрес (всички), tdClass=leftColImportant,input=none');
         $this->FLD('lastProgressProduction', 'datetime(format=smartTime)', 'caption=Последен Прогрес (произвеждане), tdClass=leftColImportant,input=none');
         $this->FLD('planningError', 'enum(no=Не,outsideSchedule=Извън графика,error=Грешка)', 'caption=Грешка при планиране,input=none,notNull,value=no');
-        $this->FLD('nextGapType', 'enum(no=Няма,gap=Дупка,idle=Престой)', 'caption=Има ли дупка в следващата задача,input=none,notNull,value=no');
+        $this->FLD('gapData', 'blob(serialize, compress)', 'caption=Информация за дупки и престой,input=none,notNull');
 
         $this->setDbIndex('labelPackagingId');
         $this->setDbIndex('productId');
@@ -3358,6 +3358,26 @@ class planning_Tasks extends core_Master
             $data->listFields = $modifiedData;
         } else {
             unset($data->listFields['firstProgress'], $data->listFields['lastProgressProduction']);
+        }
+
+        if (isset($data->listFilter->rec->assetId) && !Mode::is('isReorder')) {
+            $newRows = array();
+            foreach($data->rows as $id => $row){
+                $rec = $data->recs[$id];
+                if(is_array($rec->gapData)){
+                    foreach ($rec->gapData as $gapArr){
+                        $trClass = $gapArr['type'] == 'gap' ? 'taskGapRow gapRow' : 'taskGapRow idleRow';
+                        foreach (range(1, $gapArr['count']) as $i){
+                            $newRows[] = (object)array('ROW_ATTR' => array('class' => $trClass));
+                        }
+                    }
+                    $newRows[] = $row;
+                } else {
+                    $newRows[] = $row;
+                }
+            }
+
+            $data->rows = $newRows;
         }
 
         core_Debug::stopTimer('RENDER_TABLE');

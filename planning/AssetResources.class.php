@@ -932,7 +932,7 @@ class planning_AssetResources extends core_Master
             return;
         }
          */
-
+        $now = dt::now();
         // Извличане на всички ПО годни за планиране
         core_Debug::startTimer('SCHEDULE_PREPARE');
         $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate,state');
@@ -955,15 +955,18 @@ class planning_AssetResources extends core_Master
         core_Debug::stopTimer('SCHEDULE_PREPARE');
         core_Debug::log("END SCHEDULE_PREPARE " . round(core_Debug::$timers["SCHEDULE_PREPARE"]->workingTime, 6));
 
-        $scheduledData = planning_TaskConstraints::calcScheduledTimes($tasks, $previousTasks);
-
+        $gap = planning_Setup::get('MIN_TIME_FOR_GAP');
+        $scheduledData = planning_TaskConstraints::calcScheduledTimes($tasks, $previousTasks, $now);
         $Tasks = cls::get('planning_Tasks');
         foreach ($scheduledData->tasks as $assetId => &$plannedTasks){
             arr::sortObjects($plannedTasks, 'expectedTimeStart', 'ASC');
 
             $order = 1;
-            array_walk($plannedTasks, function($a) use (&$order){
+            $prevEnd = $now;
+            $Interval = $scheduledData->intervals[$assetId];
+            array_walk($plannedTasks, function($a) use (&$order, &$prevEnd, $gap, $Interval){
                 $a->planningError = 'no';
+                $a->gapData = null;
                 if($a->expectedTimeStart == planning_TaskConstraints::NOT_FOUND_DATE){
                     $a->planningError = 'outsideSchedule';
                     $a->expectedTimeStart = null;
@@ -973,10 +976,71 @@ class planning_AssetResources extends core_Master
                     $a->expectedTimeStart = null;
                     $a->expectedTimeEnd = null;
                 }
+
+                // Ако има планирано начало и разликата му с края на предишната е над зададения
+                if(isset($a->expectedTimeStart)){
+                    $diff = max(dt::secsBetween($a->expectedTimeStart, $prevEnd), 0);
+
+                    // Ако е над зададения интервал ще се проверява дали е дупка или е престой
+                    if($diff > $gap){
+                        $start = strtotime($prevEnd);
+                        $end = strtotime($a->expectedTimeStart);
+
+                        // Разбива се интервала на толкова периоди, колкото е очакваното
+                        $lastType = null;
+                        $count = 0;
+                        $typeIndex = array('gap' => 0, 'idle' => 0);
+                        $intervals = array();
+
+                        // За всеки се взима средната дата между тях и се изчислява дали е дупка/престой
+                        while ($start < $end) {
+                            $next = min($start + $gap, $end);
+                            $middleDateTimestamp = dt::getMiddleDate($start, $next, false);
+                            $pointInv = $Interval->getByPoint($middleDateTimestamp);
+                            $currentType = is_array($pointInv) ? 'gap' : 'idle';
+
+                            if ($lastType === null) {
+                                // Първи елемент в цикъла - задаваме стойности
+                                $lastType = $currentType;
+                                $count = 1;
+                            } elseif ($currentType === $lastType) {
+                                // Продължава същият тип интервал -> увеличаваме броя
+                                $count++;
+                            } else {
+                                // Промяна на типа -> записваме предишната серия и започваме нова
+                                $typeIndex[$lastType]++;
+                                $intervals[$lastType . $typeIndex[$lastType]] = array(
+                                    'count' => $count,
+                                    'type' => $lastType
+                                );
+
+                                // Започваме новата серия
+                                $count = 1;
+                                $lastType = $currentType;
+                            }
+
+                            $start = $next;
+                        }
+
+                        if ($count > 0) {
+                            $typeIndex[$lastType]++;
+                            $intervals[$lastType . $typeIndex[$lastType]] = array(
+                                'count' => $count,
+                                'type' => $lastType
+                            );
+                        }
+
+                        // Накрая ще се запише последователноста на всички дупки/престои
+                        $a->gapData = $intervals;
+                    }
+                }
+
                 $a->orderByAssetId = $order;
                 $order++;
+                $prevEnd = $a->expectedTimeEnd;
             });
-            $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId,planningError');
+
+            $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId,planningError,gapData');
 
             $rec = $this->fetchRec($assetId);
             $rec->lastRecalcTimes = dt::now();

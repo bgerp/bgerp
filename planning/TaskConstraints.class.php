@@ -505,8 +505,10 @@ class planning_TaskConstraints extends core_Master
      * @param $previousTasks - масив със зависимости на операциите с предходни такива
      * @return object
      */
-    public static function calcScheduledTimes($tasks, $previousTasks)
+    public static function calcScheduledTimes($tasks, $previousTasks, $now = null)
     {
+        $now = $now ?? dt::now();
+
         core_Debug::startTimer('SCHEDULE_CALC_TIMES');
         core_Debug::startTimer('SCHEDULE_PREPARE_INTERVALS');
 
@@ -529,7 +531,7 @@ class planning_TaskConstraints extends core_Master
         while ($aRec = $assetQuery->fetch()) {
             $assets[$aRec->id] = $aRec;
             $scheduleId = null;
-            if ($Interval = planning_AssetResources::getWorkingInterval($aRec, null, null, $scheduleId)) {
+            if ($Interval = planning_AssetResources::getWorkingInterval($aRec, $now, null, $scheduleId)) {
                 $assets[$aRec->id]->scheduleName = hr_Schedules::getTitleById($scheduleId);
                 $debugRes .= "<li>[$aRec->code]: " . $assets[$aRec->id]->scheduleName;
                 if (array_key_exists($aRec->id, $idleTimes)) {
@@ -592,7 +594,6 @@ class planning_TaskConstraints extends core_Master
 
         core_Debug::startTimer('START_CYCLE');
         $planned = $plannedByAssets = array();
-        $now = dt::now();
 
         foreach ($tasksWithActualStart as $taskRec1) {
             $begin = max($taskRec1->actualStart, $now);
@@ -760,7 +761,7 @@ class planning_TaskConstraints extends core_Master
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
 
-        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'debug' => $debugRes);
+        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'intervals' => $intervals, 'debug' => $debugRes);
     }
 
 
