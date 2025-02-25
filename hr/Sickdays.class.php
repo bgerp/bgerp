@@ -309,8 +309,8 @@ class hr_Sickdays extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -322,6 +322,13 @@ class hr_Sickdays extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
+        if ($rec->id) {
+            if ($action == 'reject' && $rec && $rec->state == 'active' && $rec->startDate <= dt::now()) {
+                if (!haveRole('hrSickdays, ceo')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     

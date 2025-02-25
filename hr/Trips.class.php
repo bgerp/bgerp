@@ -466,4 +466,25 @@ class hr_Trips extends core_Master
         
         return $title;
     }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string   $requiredRoles
+     * @param string   $action
+     * @param stdClass $rec
+     * @param int      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($rec->id) {
+            if ($action == 'reject' && $rec && $rec->state == 'active' && $rec->startDate <= dt::now()) {
+                if (!haveRole('hrTrips, ceo')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
 }
