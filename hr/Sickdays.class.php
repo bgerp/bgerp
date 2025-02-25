@@ -307,6 +307,13 @@ class hr_Sickdays extends core_Master
             if (isset($form->rec->startDate, $form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) {
                 $form->setError('startDate, toDate', 'Началната дата трябва да е по-малка от крайната');
             }
+
+            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id);
+            // за всяка една молба отговаряща на условията проверяваме
+            if (!empty($iArr)) {
+                // и изписваме предупреждение
+                $form->setError('startDate, toDate', "|Засичане по време с: |*" . implode('<br>', $iArr));
+            }
         }
     }
 
