@@ -4224,7 +4224,7 @@ class cal_Tasks extends embed_Manager
         // Екшъна е прокси към лист изгледа, с допълнителнения за сигналите
         $this->requireRightFor('listsupporttasks');
         Mode::push('supportList', true);
-        $this->filterRolesForAll = 'ceo,support';
+        $this->filterRolesForAll = 'ceo|support';
 
         $forwardUrl = array('Ctr' => $this->className, 'Act' => 'list');
         $forwardUrl[$this->driverClassField] = support_TaskType::getClassId();
@@ -4232,7 +4232,7 @@ class cal_Tasks extends embed_Manager
             $forwardUrl['selectPeriod'] = 'gr0';
         }
         if(!Request::get('selectedUsers')) {
-            if(haveRole($this->filterRolesForAll)) {
+            if(haveRole(str_replace('|', ',', $this->filterRolesForAll))) {
                 $forwardUrl['selectedUsers'] = 'all_users';
             }
         }
