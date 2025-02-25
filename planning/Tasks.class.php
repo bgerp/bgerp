@@ -536,24 +536,6 @@ class planning_Tasks extends core_Master
             $row->expectedTimeStart = "<i class = 'quiet'>{$row->state}</i>";
             $row->expectedTimeEnd = "<i class = 'quiet'>{$row->state}</i>";
         } elseif(!Mode::is('isReorder')) {
-            // Проверяване на времената
-            foreach (array('expectedTimeStart', 'expectedTimeEnd') as $eTimeField) {
-
-                // Вербализиране на времената
-                $DateTime = core_Type::getByName('datetime(format=smartTime)');
-                $row->{$eTimeField} = '<span class=quiet>N/A</span>';
-                if (!empty($rec->{$eTimeField})) {
-                    $row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
-                    if ($eTimeField == 'expectedTimeStart') {
-                        $now = dt::now();
-                        if (in_array($rec->state, array('wakeup', 'stopped', 'active'))) {
-                            if ($rec->expectedTimeEnd < $now) {
-                                $row->expectedTimeStart = ht::createHint("<span class='red'>{$row->expectedTimeStart}</span>", 'Планираният край е в миналото', 'warning');
-                            }
-                        }
-                    }
-                }
-            }
 
             if (!empty($rec->expectedTimeEnd) && $rec->expectedTimeEnd >= ("{$origin->fetchField('dueDate')} 23:59:59")) {
                 $useField = isset($fields['-list']) ? 'expectedTimeStart' : 'expectedTimeEnd';
@@ -561,6 +543,15 @@ class planning_Tasks extends core_Master
             }
 
             if($fields['-single']){
+                // Проверяване на времената
+                foreach (array('expectedTimeStart', 'expectedTimeEnd') as $eTimeField) {
+                    $DateTime = core_Type::getByName('datetime(format=smartTime)');
+                    $row->{$eTimeField} = '<span class=quiet>N/A</span>';
+                    if (!empty($rec->{$eTimeField})) {
+                        $row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
+                    }
+                }
+
                 if(!empty($rec->timeStart)) {
                     $row->timeStart = dt::mysql2verbal($rec->timeStart, 'd.m.Y H:i');
                     $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Зададено е желано начало|*: {$row->timeStart}", 'img/16/pin.png', false);
@@ -3394,7 +3385,7 @@ class planning_Tasks extends core_Master
 
         if(!empty($rec->{$fld})) {
             $datePure = strlen($rec->{$fld}) == 10 ? "{$rec->{$fld}} 00:00:00" : $rec->{$fld};
-            $res =  $isReorder ? dt::mysql2verbal($datePure, 'd.m.y H:i') : core_Type::getByName('datetime(format=smartTime)')->toVerbal($datePure);
+            $res =  dt::mysql2verbal($datePure, 'd.m.y H:i');
         }
 
         $attr = array('data-date' => "{$datePure}", 'class' => "{$fld}Col", "id" => "{$fld}{$rec->id}");
