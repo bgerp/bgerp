@@ -1687,7 +1687,7 @@ class crm_Companies extends core_Master
             $conf = core_Packs::getConfig('crm');
             
             // Заглавието
-            $title = $rec->name;
+            $title = self::getVerbal($rec, 'name');
             
             // Ако е зададена държава
             if ($rec->country) {
