@@ -9171,40 +9171,50 @@ table.bomProductionStepTable td{
 /* Стилове за редовете */
 .taskGapRow {
 	height: 1px; /* Височина на реда */
+	border-collapse: collapse; /* Това ще събере бордърите само в тези редове */
 }
 
-.taskGapRow.gapRow {
-	background-color: red; /* Цветът на фона на реда с клас gapRow */
-}
-
-.taskGapRow.idleRow {
-	background-color: #5dc95d; /* Цветът на фона на реда с клас idleRow */
-}
-
-/* Стилове за клетките */
-.gapRow td {
+/* Премахване на текстовото съдържание в gapRow */
+.gapRow td, .idleRow td {
 	padding: 0;
-	font-size: 0px; /* Премахва текста, ако е нужно */
-	line-height: 0px; /* Премахва интервала между редовете */
-	background-color: red !important; /* Фон на клетките в gapRow */
-	border-right: 1px solid red !important; /* Бордър на клетките */
+	font-size: 0px;
+	line-height: 0px;
 }
 
-/* Стилове за клетките в idleRow */
-.idleRow td {
-	padding: 0;
-	font-size: 0px; /* Премахва текста, ако е нужно */
-	line-height: 0px; /* Премахва интервала между редовете */
-	background-color: #5dc95d !important; /* Фон на клетките в idleRow */
-	border-right: 1px solid #5dc95d !important; /* Бордър на клетките*/
+/* Зеброви редове в gapRow с бордър в същия цвят като фона */
+.gapZebra1 td {
+	background-color: rgba(255, 0, 0, 0.7) !important;
+	border: 0px !important;
 }
 
-/* За да предотвратиш промените при ховър */
-.taskGapRow td:hover {
-	background-color: inherit !important;
+.gapZebra2 td {
+	background-color: rgba(255, 0, 0, 0.6) !important;
+	border: 0px !important;
+}
+
+/* Зеброви редове в gapRow с бордър в същия цвят като фона */
+.idleZebra1 td {
+	background-color: rgba(0, 233, 0, 0.7) !important;
+	border: 0px !important;
+}
+
+.idleZebra2 td {
+	background-color: rgba(0, 255, 0, 0.6) !important;
+	border: 0px !important;
+}
+
+.gapZebra1 td:hover {
+	background-color: rgba(255, 0, 0, 0.7) !important;
 	border-color: inherit !important;
-	cursor: default !important; /* Опционално, ако искаш да промениш курсора при ховър */
+	cursor: default !important;
 }
+
+.gapZebra2 td:hover {
+	background-color: rgba(255, 0, 0, 0.6) !important;
+	border-color: inherit !important;
+	cursor: default !important;
+}
+
 
 
 
