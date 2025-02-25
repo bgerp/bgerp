@@ -4513,7 +4513,7 @@ table .eshop-btn {
 
 .cms-row h1 {
   margin-top: 0;
-  margin-left: 0px; }
+  margin-left: 0; }
 
 .richtext h1,
 .richtext h2,
@@ -4526,7 +4526,6 @@ table .eshop-btn {
 
   .clear-center img {
     max-width: 100%;
-    width: 100% \9;
     height: auto; }
 
 .clear-right {
@@ -8029,4 +8028,80 @@ table.bomProductionStepTable td {
 
 .jobWorkInProgressTable td {
   font-weight: normal !important; }
+
+/*
+ * Стилове за редовете
+ */
+.taskGapRow {
+  height: 1px;
+    /*
+   * Височина на реда
+   */ }
+
+.taskGapRow.gapRow {
+  background-color: red;
+    /*
+   * Цветът на фона на реда с клас gapRow
+   */ }
+
+.taskGapRow.idleRow {
+  background-color: #5dc95d;
+    /*
+   * Цветът на фона на реда с клас idleRow
+   */ }
+
+/*
+ * Стилове за клетките
+ */
+.gapRow td {
+  padding: 0;
+  font-size: 0px;
+    /*
+   * Премахва текста, ако е нужно
+   */
+  line-height: 0px;
+    /*
+   * Премахва интервала между редовете
+   */
+  background-color: red !important;
+    /*
+   * Фон на клетките в gapRow
+   */
+  border-right: 1px solid red !important;
+    /*
+   * Бордър на клетките
+   */ }
+
+/*
+ * Стилове за клетките в idleRow
+ */
+.idleRow td {
+  padding: 0;
+  font-size: 0px;
+    /*
+   * Премахва текста, ако е нужно
+   */
+  line-height: 0px;
+    /*
+   * Премахва интервала между редовете
+   */
+  background-color: #5dc95d !important;
+    /*
+   * Фон на клетките в idleRow
+   */
+  border-right: 1px solid #5dc95d !important;
+    /*
+   * Бордър на клетките
+   */ }
+
+/*
+ * За да предотвратиш промените при ховър
+ */
+.taskGapRow td:hover {
+  background-color: inherit !important;
+  border-color: inherit !important;
+  cursor: default !important;
+    /*
+   * Опционално, ако искаш да промениш курсора при ховър
+   */ }
 
