@@ -70,6 +70,8 @@ class dec_Materials extends core_Master
     {
         $this->FLD('title', 'varchar', 'caption=Заглавие, width=100%');
         $this->FLD('text', 'richtext(bucket=Notes)', 'caption=Текст');
+        
+        $this->setDbUnique('title');
     }
     
     
@@ -90,7 +92,7 @@ class dec_Materials extends core_Master
         
         // Импортираме данните от CSV файла.
         // Ако той не е променян - няма да се импортират повторно
-        $cntObj = csv_Lib::importOnce($mvc, $file, $fields, null, null, true);
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields, null, null);
         
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
