@@ -959,12 +959,20 @@ class planning_AssetResources extends core_Master
         $scheduledData = planning_TaskConstraints::calcScheduledTimes($tasks, $previousTasks, $now);
         $Tasks = cls::get('planning_Tasks');
         foreach ($scheduledData->tasks as $assetId => &$plannedTasks){
-            arr::sortObjects($plannedTasks, 'expectedTimeStart', 'ASC');
+            $assetUrl = planning_AssetResources::getSingleUrlArray($assetId);
+            $assetLink = ht::createLink($scheduledData->assets[$assetId]->code, $assetUrl, false, 'target=_blank');
+            $scheduledData->debug .= "<li>Подреждане на операциите на: {$assetLink} [{$scheduledData->assets[$assetId]->scheduleName}]";
+
+            // Подреждане по начало във възходящ ред, ако са еднакви по края
+            usort($plannedTasks, fn($a, $b) => strtotime($a->expectedTimeStart) == strtotime($b->expectedTimeStart)
+                ? strtotime($a->expectedTimeEnd) <=> strtotime($b->expectedTimeEnd)
+                : strtotime($a->expectedTimeStart) <=> strtotime($b->expectedTimeStart));
 
             $order = 1;
             $prevEnd = $now;
             $Interval = $scheduledData->intervals[$assetId];
-            array_walk($plannedTasks, function($a) use (&$order, &$prevEnd, $gap, $Interval){
+
+            foreach ($plannedTasks as $a) {
                 $a->planningError = 'no';
                 $a->gapData = null;
                 if($a->expectedTimeStart == planning_TaskConstraints::NOT_FOUND_DATE){
@@ -983,6 +991,8 @@ class planning_AssetResources extends core_Master
 
                     // Ако е над зададения интервал ще се проверява дали е дупка или е престой
                     if($diff > $gap){
+                        $scheduledData->debug .= "<li>&nbsp;&nbsp;<b>Дупка</b> #Opr{$a->id} - PREV {$prevEnd} -> {$a->expectedTimeStart}";
+
                         $start = strtotime($prevEnd);
                         $end = strtotime($a->expectedTimeStart);
 
@@ -996,8 +1006,10 @@ class planning_AssetResources extends core_Master
                         while ($start < $end) {
                             $next = min($start + $gap, $end);
                             $middleDateTimestamp = dt::getMiddleDate($start, $next, false);
+
                             $pointInv = $Interval->getByPoint($middleDateTimestamp);
                             $currentType = is_array($pointInv) ? 'gap' : 'idle';
+                            $scheduledData->debug .= "<li>&nbsp;&nbsp;&nbsp;&nbsp;<b>Средна дата</b> " . date('Y-m-d H:i:s', $middleDateTimestamp) . " е {$currentType}";
 
                             if ($lastType === null) {
                                 // Първи елемент в цикъла - задаваме стойности
@@ -1038,7 +1050,7 @@ class planning_AssetResources extends core_Master
                 $a->orderByAssetId = $order;
                 $order++;
                 $prevEnd = $a->expectedTimeEnd;
-            });
+            }
 
             $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId,planningError,gapData');
 

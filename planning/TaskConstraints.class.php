@@ -455,7 +455,7 @@ class planning_TaskConstraints extends core_Master
             $duration = round((1 - $t->progress) * $duration);
 
             // Ако мин прогреса е под 100%, то се използва мин. продължителността, иначе за мин. прод. се използва 0
-            $cMinDuration = ($t->progress >= 1) ? 1 : $minDuration;
+            $cMinDuration = ($t->progress >= 1) ? 60 : $minDuration;
             $duration = max($duration, $cMinDuration);
 
             // Към така изчислената продължителност се добавя тази от действията към машината
