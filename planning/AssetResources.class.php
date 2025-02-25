@@ -963,10 +963,17 @@ class planning_AssetResources extends core_Master
             $assetLink = ht::createLink($scheduledData->assets[$assetId]->code, $assetUrl, false, 'target=_blank');
             $scheduledData->debug .= "<li>Подреждане на операциите на: {$assetLink} [{$scheduledData->assets[$assetId]->scheduleName}]";
 
-            // Подреждане по начало във възходящ ред, ако са еднакви по края
-            usort($plannedTasks, fn($a, $b) => strtotime($a->expectedTimeStart) == strtotime($b->expectedTimeStart)
-                ? strtotime($a->expectedTimeEnd) <=> strtotime($b->expectedTimeEnd)
-                : strtotime($a->expectedTimeStart) <=> strtotime($b->expectedTimeStart));
+            usort($plannedTasks, function($a, $b) {
+                $startA = strtotime($a->expectedTimeStart);
+                $startB = strtotime($b->expectedTimeStart);
+                if ($startA == $startB) {
+                    $endA = strtotime($a->expectedTimeEnd);
+                    $endB = strtotime($b->expectedTimeEnd);
+                    return ($endA < $endB) ? -1 : (($endA > $endB) ? 1 : 0);
+                }
+
+                return ($startA < $startB) ? -1 : 1;
+            });
 
             $order = 1;
             $prevEnd = $now;
