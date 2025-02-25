@@ -761,7 +761,7 @@ class planning_TaskConstraints extends core_Master
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
 
-        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'intervals' => $intervals, 'debug' => $debugRes);
+        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'assets' => $assets, 'intervals' => $intervals, 'debug' => $debugRes);
     }
 
 
