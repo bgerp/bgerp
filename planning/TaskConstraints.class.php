@@ -376,7 +376,6 @@ class planning_TaskConstraints extends core_Master
 
         $tasks = self::getDefaultArr($tasks);
         if (!count($tasks)) return;
-        $tasks = array_filter($tasks, function ($task) { return $task->id == 2071;});
 
         $taskCount = countR($tasks);
         core_App::setTimeLimit($taskCount * 0.3, false, 60);
