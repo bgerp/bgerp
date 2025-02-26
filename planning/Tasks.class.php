@@ -4013,29 +4013,50 @@ class planning_Tasks extends core_Master
         $form->setOptions('previousTask', array('' => '') + $options);
         $form->setDefault('previousTask', $rec->previousTask);
         $autoPreviousTaskId = key($this->getPreviousTaskIds($rec, 1));
-        $form->setDefault('previousTask', $autoPreviousTaskId);
+        if($autoPreviousTaskId){
+            $form->setField('previousTask', "placeholder=" . $this->getTitleById($autoPreviousTaskId, false));
+        }
 
         $form->input();
         if ($form->isSubmitted()) {
-            $msg = null;
             $fRec = $form->rec;
 
-            if (empty($fRec->previousTask) || ($fRec->previousTask != $rec->previousTask && $autoPreviousTaskId != $fRec->previousTask)) {
-                if(empty($fRec->previousTask)){
-                    $sRec = (object) array('id' => $id, 'saoOrder' => 0.5, 'previousTask' => null);
-                    $this->save_($sRec, 'saoOrder,previousTask');
-                } else {
-                    $sRec = (object) array('id' => $id, 'previousTask' => $fRec->previousTask);
-                    $this->save_($sRec, 'previousTask');
+            // Проверка дали избрания предходен етап случайно не е предшестващ този е текущата ПО
+            if(!empty($fRec->previousTask)){
+                $previousStepId = planning_Tasks::fetchField($fRec->previousTask, 'productId');
+                $previousSteps = planning_StepConditions::getConditionalArr($previousStepId);
+                if(countR($previousSteps)){
+                    if(in_array($rec->productId, $previousSteps[$previousStepId])){
+                        $form->setError('previousTask', 'Не може за предходна операция да изберете такава с етап, на който е посочен, че текущия етап е предходен!');
+                    }
                 }
-
-                $this->logInAct('Ръчно избиране на предходна операция', $rec);
-                $this->reorderTasksInJob($rec->originId);
-                $msg = 'Предходната операция е избрана успешно|*!';
-                planning_TaskConstraints::sync($rec->id);
             }
 
-            return followRetUrl(null, $msg);
+            if(!$form->gotErrors()){
+                $msg = null;
+
+                $syncIds = array($rec->id);
+                if(isset($fRec->previousTask)){
+                    $syncIds[] = $fRec->previousTask;
+                }
+                if (empty($fRec->previousTask) || ($fRec->previousTask != $rec->previousTask && $autoPreviousTaskId != $fRec->previousTask)) {
+                    if(empty($fRec->previousTask)){
+                        $sRec = (object) array('id' => $id, 'saoOrder' => 0.5, 'previousTask' => null);
+                        $this->save_($sRec, 'saoOrder,previousTask');
+                    } else {
+                        $sRec = (object) array('id' => $id, 'previousTask' => $fRec->previousTask);
+                        $this->save_($sRec, 'previousTask');
+                    }
+
+                    $this->logInAct('Ръчно избиране на предходна операция', $rec);
+                    $this->reorderTasksInJob($rec->originId);
+                    $msg = 'Предходната операция е избрана успешно|*!';
+
+                    planning_TaskConstraints::sync($syncIds);
+                }
+
+                return followRetUrl(null, $msg);
+            }
         }
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
