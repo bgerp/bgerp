@@ -252,10 +252,10 @@ class planning_Hr extends core_Master
             $data->rec = $rec;
             $data->row = self::recToVerbal($rec);
             
-            $fodlerQuery = planning_AssetResourceFolders::getQuery();
-            $fodlerQuery->where("#classId={$this->getClassId()} AND #objectId = {$data->rec->id}");
-            $fodlerQuery->show('folderId');
-            $folders = arr::extractValuesFromArray($fodlerQuery->fetchAll(), 'folderId');
+            $folderQuery = planning_AssetResourceFolders::getQuery();
+            $folderQuery->where("#classId={$this->getClassId()} AND #objectId = {$data->rec->id}");
+            $folderQuery->show('folderId');
+            $folders = arr::extractValuesFromArray($folderQuery->fetchAll(), 'folderId');
             $data->row->centers = core_Type::getByName('keylist(mvc=doc_Folders,select=title)')->toVerbal(keylist::fromArray($folders));
         } else {
             if ($this->haveRightFor('add', (object) array('personId' => $data->masterId))) {
