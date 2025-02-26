@@ -364,23 +364,23 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                 $start = acc_Periods::fetchField($rec->periods, 'start');
                 $date = new DateTime($start);
                 $url['period'] = $date->format('Y-m-01');
-            }
 
-            if (!empty($dRec->person)) {
-                $url['personId'] = $dRec->person;
-            }
+                if (!empty($dRec->person)) {
+                    $url['personId'] = $dRec->person;
+                }
 
-            if ($haveRight !== true) {
-                core_Request::setProtected('period,personId,indicatorId,force');
-                $url['force'] = true;
-            }
+                if ($haveRight !== true) {
+                    core_Request::setProtected('period,personId,indicatorId,force');
+                    $url['force'] = true;
+                }
 
-            if (!Mode::isReadOnly()) {
-                $row->value = ht::createLinkRef($row->value, toUrl($url), false, 'target=_blank,title=Към документите формирали записа');
-            }
+                if (!Mode::isReadOnly()) {
+                    $row->value = ht::createLinkRef($row->value, toUrl($url), false, 'target=_blank,title=Към документите формирали записа');
+                }
 
-            if ($haveRight !== true) {
-                core_Request::removeProtected('period,personId,indicatorId,force');
+                if ($haveRight !== true) {
+                    core_Request::removeProtected('period,personId,indicatorId,force');
+                }
             }
         }
         
