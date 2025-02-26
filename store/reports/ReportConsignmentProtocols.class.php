@@ -161,10 +161,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $recs = array();
 
         $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '3231', 'cacheBalance' => false, 'keepUnique' => true));
-        $bRecs = $Balance->getBalance('3231');
+        //$bRecs = $Balance->getBalance('3231');
         $balHistory = $Balance->getBalanceHystory('3231', $from = $rec->from, $to = $rec->to, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = false, $strict = true);
-
-        $documentsDebitQuantity = $documentsCreditQuantity = array();
 
         foreach ($balHistory['history'] as $jRec) {
 
@@ -176,7 +174,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
             $prodRec = cls::get($item->classId)->fetch($item->objectId);
 
-            $documentsDebitQuantity = $documentsCreditQuantity = array();
+            $documentsDebitQuantity1 = $documentsCreditQuantity1 = array();
             if ($jRec['debitQuantity']) {
                 $debitQuantity = $jRec['debitQuantity'];
                 $documentsDebitQuantity1[$jRec['docId'] . '|' . $prodRec->id] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId'], 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
