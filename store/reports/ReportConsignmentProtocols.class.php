@@ -164,6 +164,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         //$bRecs = $Balance->getBalance('3231');
         $balHistory = $Balance->getBalanceHystory('3231', $from = $rec->from, $to = $rec->to, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = false, $strict = true);
 
+        $documentsDebitQuantity1 = $documentsCreditQuantity1 = array();
+
         foreach ($balHistory['history'] as $jRec) {
 
             $debitQuantity = $creditQuantity = 0;
@@ -174,7 +176,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
             $prodRec = cls::get($item->classId)->fetch($item->objectId);
 
-            $documentsDebitQuantity1 = $documentsCreditQuantity1 = array();
+
             if ($jRec['debitQuantity']) {
                 $debitQuantity = $jRec['debitQuantity'];
                 $documentsDebitQuantity1[$jRec['docId'] . '|' . $prodRec->id] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId'], 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
