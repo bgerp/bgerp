@@ -251,7 +251,7 @@ class planning_Hr extends core_Master
         if (!empty($rec)) {
             $data->rec = $rec;
             $data->row = self::recToVerbal($rec);
-            
+            unset($data->row->scheduleId);
             $folderQuery = planning_AssetResourceFolders::getQuery();
             $folderQuery->where("#classId={$this->getClassId()} AND #objectId = {$data->rec->id}");
             $folderQuery->show('folderId');
@@ -278,10 +278,6 @@ class planning_Hr extends core_Master
         
         if($data->row->_rowTools instanceof core_RowToolbar){
             $data->row->code_toolbar = $data->row->_rowTools->renderHtml();
-        }
-
-        if(isset($data->row->scheduleId)) {
-            $data->row->scheduleId = hr_Schedules::getHyperLink($data->rec->scheduleId, true);
         }
 
         $tpl->placeObject($data->row);
