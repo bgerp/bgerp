@@ -588,6 +588,7 @@ class pos_Receipts extends core_Master
     {
         pos_Points::addPointFilter($data->listFilter, $data->query);
         $filterDateFld = $data->listFilter->rec->filterDateField;
+        $data->listFilter->FLD('revertState', 'enum(,no=Без сторниране,revertId=Сторниращи,isReverted=Сторнирани)', 'caption=Сторно');
 
         // Добавяне на филтър по начините на плащане
         $paymentOptions = array();
@@ -604,9 +605,9 @@ class pos_Receipts extends core_Master
         }
         $data->listFilter->FLD('payment', 'varchar', 'caption=Плащане');
         $data->listFilter->setOptions('payment', array('all' => tr('Всички'), '-1' => tr('В брой')) + $paymentOptions);
-        $data->listFilter->showFields .= ',payment';
+        $data->listFilter->showFields .= ',payment,revertState';
         $data->listFilter->setDefault('payment', 'all');
-        $data->listFilter->input('payment');
+        $data->listFilter->input('payment,revertState');
         $data->query->orderBy($filterDateFld, 'DESC');
 
         // Скриване на полето за дата, ако се филтрира по конкретно поле
@@ -639,6 +640,17 @@ class pos_Receipts extends core_Master
                     } else {
                         $data->query->where("1=2");
                     }
+                }
+            }
+
+            // Филтър по сторно състояния
+            if (!empty($filter->revertState)) {
+                if($filter->revertState == 'no'){
+                    $data->query->where("#returnedTotal IS NULL");
+                } elseif($filter->revertState == 'isReverted'){
+                    $data->query->where("#returnedTotal IS NOT NULL");
+                } elseif($filter->revertState == 'revertId'){
+                    $data->query->where("#revertId IS NOT NULL");
                 }
             }
         }
