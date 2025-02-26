@@ -177,35 +177,41 @@ class planning_TaskConstraints extends core_Master
 
 
     /**
-     * Връща масив с планируемите операции (активни+спрени+събудени+завка)
+     * Връща масив с планируемите операции
      *
-     * @param array $tasks
-     * @param array $fields
-     * @return array
+     * @param array|null $tasks  - масив с конкретни операции или null за всички (активни+спрени+събудени+завка)
+     * @param array|null $fields - кои полета
+     * @return array $tasks
      */
     public static function getDefaultArr($tasks = array(), $fields = null)
     {
         $arr = arr::make($tasks, true);
-        if (!countR($arr)) {
-            $stepClassId = planning_interface_StepProductDriver::getClassId();
-            $tQuery = planning_Tasks::getQuery();
-            $tQuery->in('state', array('active', 'wakeup', 'stopped', 'pending'));
-            $tQuery->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=productId");
-            $tQuery->EXT('dueDate', 'planning_Jobs', 'externalName=dueDate,remoteKey=containerId,externalFieldName=originId,caption=Задание->Падеж');
-            $tQuery->where("#innerClass = {$stepClassId} AND #assetId IS NOT NULL");
-            if(isset($fields)){
-                $fields = arr::make($fields, true);
-                $tQuery->show(implode(',', $fields));
-            }
-            $tasks = $tQuery->fetchAll();
-        } else {
-            $tasks = array();
-            foreach ($arr as $id) {
-                $fields = $fields ? arr::make($fields, true) : '*';
-                $taskId = is_numeric($id) ? $id : $id->id;
-                $tasks[$taskId] = planning_Tasks::fetch($taskId, $fields);
-            }
+
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=productId");
+        $tQuery->EXT('jobProductId', 'planning_Jobs', "externalName=productId,remoteKey=containerId,externalFieldName=originId");
+        $tQuery->EXT('dueDate', 'planning_Jobs', 'externalName=dueDate,remoteKey=containerId,externalFieldName=originId,caption=Задание->Падеж');
+        if(isset($fields)){
+            $fields = arr::make($fields, true);
+            $tQuery->show(implode(',', $fields));
         }
+
+        if (!countR($arr)) {
+            // Ако не са подадени конкретни ид-та извличат се тези, които са готови за планиране  и са към оборудване
+            $stepClassId = planning_interface_StepProductDriver::getClassId();
+            $tQuery->in('state', array('active', 'wakeup', 'stopped', 'pending'));
+            $tQuery->where("#innerClass = {$stepClassId} AND #assetId IS NOT NULL");
+        } else {
+            // Иначе конкретно, които са подадени
+            $ids = array();
+            foreach ($arr as $id) {
+                $key = is_numeric($id) ? $id : $id->id;
+                $ids[$key] = $key;
+            }
+            $tQuery->in('id', $ids);
+        }
+
+        $tasks = $tQuery->fetchAll();
 
         return $tasks;
     }
@@ -367,15 +373,16 @@ class planning_TaskConstraints extends core_Master
     public static function calcTaskDuration($tasks = array())
     {
         core_Debug::startTimer('SYNC_TASK_DURATIONS');
+
         $tasks = self::getDefaultArr($tasks);
         if (!count($tasks)) return;
+        $tasks = array_filter($tasks, function ($task) { return $task->id == 2071;});
 
         $taskCount = countR($tasks);
         core_App::setTimeLimit($taskCount * 0.3, false, 60);
 
         $taskIds = $assetInTasks = $normsByTask = $jobContainers = array();
         $productIds = arr::extractValuesFromArray($tasks, 'productId');
-
         foreach ($tasks as $taskRec) {
             $taskIds[$taskRec->id] = $taskRec->id;
             $jobContainers[$taskRec->originId] = $taskRec->originId;
@@ -440,7 +447,6 @@ class planning_TaskConstraints extends core_Master
                     } else {
                         $indQuantityInPack = $pPacks["{$indProductIdKey}|{$t->indPackagingId}"] ?? 1;
                     }
-
                     $quantityInPack = $pPacks["{$indProductIdKey}|{$t->measureId}"] ?? 1;
                     $calcedPlannedQuantity = round(($t->plannedQuantity * $quantityInPack) / $indQuantityInPack);
                 }
