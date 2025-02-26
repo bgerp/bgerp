@@ -172,20 +172,21 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
             $pRec = cls::get($jRec['docType'])->fetch($jRec['docId']);
 
-
             $item = acc_Items::fetch($jRec['debitItem2']);
+
+            $prodRec = cls::get($item->classId)->fetch($item->objectId);
+
             $documentsDebitQuantity = $documentsCreditQuantity = array();
             if ($jRec['debitQuantity']) {
                 $debitQuantity = $jRec['debitQuantity'];
-                $documentsDebitQuantity[$jRec['docId']] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId']);
+                $documentsDebitQuantity1[$jRec['docId'] . '|' . $prodRec->id] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId'], 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
             }
             if ($jRec['creditQuantity']) {
                 $creditQuantity = $jRec['creditQuantity'];
-                $documentsCreditQuantity[$jRec['docId']] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId']);
+                $documentsCreditQuantity1[$jRec['docId'] . '|' . $prodRec->id] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId'], 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
 
             }
 
-            $prodRec = cls::get($item->classId)->fetch($item->objectId);
 
             $id = $prodRec->id . '|' . $pRec->folderId;
             //    if($jRec['docId'] == 24)
@@ -199,8 +200,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                     'productId' => $prodRec->id,
                     'debitQuantity' => $debitQuantity,
                     'creditQuantity' => $creditQuantity,
-                    'documentsDebitQuantity' => array($documentsDebitQuantity),
-                    'documentsCreditQuantity' => array($documentsCreditQuantity),
+                    'documentsDebitQuantity' => array(),
+                    'documentsCreditQuantity' => array(),
                     'date' => $pRec->valior,
                     'storeId' => $pRec->storeId,
 
@@ -209,15 +210,13 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                 $obj = &$recs[$id];
                 $obj->debitQuantity += $debitQuantity;
                 $obj->creditQuantity += $creditQuantity;
-                array_push($obj->documentsDebitQuantity, $documentsDebitQuantity);
-                array_push($obj->documentsCreditQuantity, $documentsCreditQuantity);
             }
-            foreach ($recs[$id]->documentsDebitQuantity as $key => $v) {
-                if (empty($v)) unset($recs[$id]->documentsDebitQuantity[$key]);
-            }
-            foreach ($recs[$id]->documentsCreditQuantity as $key => $v) {
-                if (empty($v)) unset($recs[$id]->documentsCreditQuantity[$key]);
-            }
+
+        }
+        foreach ($recs as $rec) {
+
+            $rec->documentsDebitQuantity = $documentsDebitQuantity1;
+            $rec->documentsCreditQuantity = $documentsCreditQuantity1;
 
         }
 
@@ -297,27 +296,29 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         if (!empty($dRec->documentsDebitQuantity)) {
 
             foreach ($dRec->documentsDebitQuantity as $v) {
-                foreach ($v as $v1) {
-                    if (!empty($v1)) {
-                        $className = cls::getClassName($v1->docType);
-                        $handle = $className::getHandle($v1->docId);
-                        $url = toUrl(array($className, 'single', $v1->docId));
 
-                        $row->debitDocuments .= ht::createLink($handle, $url) . ',';
-                    }
+                if (($v->contragent == $dRec->contragent) && ($v->productId == $dRec->productId)) {
+
+                    $className = cls::getClassName($v->docType);
+                    $handle = $className::getHandle($v->docId);
+                    $url = toUrl(array($className, 'single', $v->docId));
+                    $row->debitDocuments .= ht::createLink($handle, $url) . ',';
                 }
             }
         }
+
         $row->creditDocuments = '';
         if (!empty($dRec->documentsCreditQuantity)) {
+
             foreach ($dRec->documentsCreditQuantity as $v) {
-                foreach ($v as $v1) {
-                    if (!empty($v1)) {
-                        $className = cls::getClassName($v1->docType);
-                        $handle = $className::getHandle($v1->docId);
-                        $url = toUrl(array($className, 'single', $v1->docId));
-                        $row->creditDocuments .= ht::createLink($handle, $url) . ',';
-                    }
+
+                if (($v->contragent == $dRec->contragent) && ($v->productId == $dRec->productId)) {
+
+                    $className = cls::getClassName($v->docType);
+                    $handle = $className::getHandle($v->docId);
+                    $url = toUrl(array($className, 'single', $v->docId));
+                    $row->creditDocuments .= ht::createLink($handle, $url) . ',';
+
                 }
             }
         }
