@@ -626,9 +626,11 @@ class hr_Indicators extends core_Manager
     {
         $data->listFilter->setField('personId', 'silent');
         $data->listFilter->setField('indicatorId', 'silent');
-        
+
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-        $data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,placeholder=Всички');
+        $data->listFilter->FLD('period', 'date(select2MinItems=11)', 'caption=Период,silent,autoFilter,placeholder=Всички');
+        $data->listFilter->FLD('from', 'date', 'caption=От,silent');
+        $data->listFilter->FLD('to', 'date', 'caption=До,silent');
         $data->listFilter->FLD('document', 'varchar(16)', 'caption=Документ,silent,placeholder=Всички');
         $data->listFilter->FLD('Protected', 'varchar', 'caption=Документ,silent,input=hidden');
         $data->listFilter->input(null, 'silent');
@@ -638,7 +640,6 @@ class hr_Indicators extends core_Manager
         $min = $cloneQuery->fetch()->minDate;
         
         $data->listFilter->setOptions('period', array('' => '') + dt::getMonthsBetween($min, null, 'DESC'));
-        $data->listFilter->showFields = 'period,document';
         $data->query->orderBy('date', 'DESC');
         
         if (isset($data->masterMvc)) {
@@ -651,8 +652,8 @@ class hr_Indicators extends core_Manager
         } else {
             $data->listFilter->setFieldTypeParams('personId', array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setFieldTypeParams('indicatorId', array('allowEmpty' => 'allowEmpty'));
-            $data->listFilter->showFields = 'period,document,personId,indicatorId,Protected';
-            $data->listFilter->input('period,document,personId,indicatorId,Protected');
+            $data->listFilter->showFields = 'period,from,to,document,personId,indicatorId,Protected';
+            $data->listFilter->input('period,from,to,document,personId,indicatorId,Protected');
         }
         
         // В хоризонтален вид
@@ -665,8 +666,7 @@ class hr_Indicators extends core_Manager
             }
         }
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        
+
         // Филтриране на записите
         if ($fRec = $data->listFilter->rec) {
             if (isset($fRec->personId)) {
@@ -684,7 +684,21 @@ class hr_Indicators extends core_Manager
                     $data->fullQuery->where("#date >= '{$fRec->period}' AND #date <= '{$to}'");
                 }
             }
-            
+
+            if (isset($fRec->from)) {
+                $data->query->where("#date >= '{$fRec->from}'");
+                if (isset($data->fullQuery)) {
+                    $data->fullQuery->where("#date >= '{$fRec->from}'");
+                }
+            }
+
+            if (isset($fRec->to)) {
+                $data->query->where("#date <= '{$fRec->to}'");
+                if (isset($data->fullQuery)) {
+                    $data->fullQuery->where("#date <= '{$fRec->to}'");
+                }
+            }
+
             if (!empty($fRec->document)) {
                 if ($document = doc_Containers::getDocumentByHandle($fRec->document)) {
                     $data->query->where("#docClass = {$document->getClassId()} AND #docId = {$document->that}");
