@@ -1487,7 +1487,7 @@ class pos_Receipts extends core_Master
         $rec = $this->fetch($id);
         
         $query = pos_Receipts::getQuery();
-        $query->where("#revertId = {$rec->id}");
+        $query->where("#revertId = {$rec->id} AND #state NOT IN ('draft', 'rejected')");
         $query->XPR('returnedTotalCalc', 'double', 'SUM(#total)');
         $query->show('returnedTotalCalc');
         $tRec = $query->fetch();
