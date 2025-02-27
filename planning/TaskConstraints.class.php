@@ -460,7 +460,7 @@ class planning_TaskConstraints extends core_Master
             $duration = round((1 - $t->progress) * $duration);
 
             // Ако мин прогреса е под 100%, то се използва мин. продължителността, иначе за мин. прод. се използва 0
-            $cMinDuration = ($t->progress >= 1) ? 60 : $minDuration;
+            $cMinDuration = ($t->progress >= 1) ? $minDuration : $duration;
             $duration = max($duration, $cMinDuration);
 
             // Към така изчислената продължителност се добавя тази от действията към машината
@@ -639,6 +639,7 @@ class planning_TaskConstraints extends core_Master
                 }
 
                 arr::sortObjects($withStart, 'timeStart', 'ASC');
+                arr::sortObjects($withoutStart, 'dueDate', 'ASC');
                 $sortedArr = $withStart + $withoutStart;
 
                 // Сортираните задачи се обикалят и се проверява изпълнени ли са им ограниченията
