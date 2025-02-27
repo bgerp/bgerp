@@ -98,7 +98,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'firstProgress=Начало,lastProgressProduction=Край,dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка';
+    public $listFields = 'firstProgress=Начало,lastProgressProduction=Край,dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка,gaps=@';
 
 
     /**
@@ -152,7 +152,7 @@ class planning_Tasks extends core_Master
     /**
      * Блок за тейбъл роу
      */
-    public $tableRowTpl = "<tbody class='rowBlock' [#TBODY_ROW_ATTR#]>[#ROW#][#ADD_ROWS#]</tbody>";
+    public $tableRowTpl = "<tbody class='rowBlock' [#TBODY_ROW_ATTR#]>[#ADD_ROWS#][#ROW#]</tbody>";
 
 
     /**
@@ -3006,6 +3006,8 @@ class planning_Tasks extends core_Master
             $groupParams = planning_AssetGroups::fetchField($assetRec->groupId, 'planningParams');
             $plannedParams += keylist::toArray($groupParams);
             unset($data->listFields['assetId']);
+        } else {
+            unset($data->listFields['prev']);
         }
         if (isset($data->listFilter->rec->folder)) {
             unset($data->listFields['folderId']);
@@ -3171,6 +3173,7 @@ class planning_Tasks extends core_Master
         $haveDiffProductIds = countR($productIds) > 1;
 
         foreach ($rows as $id => $row) {
+
             core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
             if($saleIdRow = $jobRecs[$rec->originId]->_saleId){
@@ -3346,25 +3349,24 @@ class planning_Tasks extends core_Master
             unset($data->listFields['firstProgress'], $data->listFields['lastProgressProduction']);
         }
 
+        // Ако е филтрирано по машина и не се преподрежда ще се визуализират дупките
         if (isset($data->listFilter->rec->assetId) && !Mode::is('isReorder')) {
-            $newRows = array();
+            $gap = planning_Setup::get('MIN_TIME_FOR_GAP');
+
+            // За всяка ПО ако има
             foreach($data->rows as $id => $row){
                 $rec = $data->recs[$id];
                 if(is_array($rec->gapData)){
+                    $row->gaps = "<ul class='gapList'>";
                     foreach ($rec->gapData as $gapArr){
-                        $trClass = $gapArr['type'] == 'gap' ? 'taskGapRow gapRow' : 'taskGapRow idleRow';
-                        foreach (range(1, $gapArr['count']) as $i){
-                            $zebra = ($i % 2 == 0) ? "{$gapArr['type']}Zebra1" : "{$gapArr['type']}Zebra2";
-                            $newRows[] = (object)array('ROW_ATTR' => array('class' => "{$trClass} {$zebra}"));
-                        }
+                        $caption = $gapArr['type'] == 'gap' ? tr('Дупка') : tr('Престой');
+                        $gapVerbal = core_Type::getByName('time')->toVerbal($gapArr['count'] * $gap);
+                        $size = round(25 * log($gapArr['count'], 2) + 1);
+                        $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'><b>{$caption}</b>: <i>{$gapVerbal}</i></li>";
                     }
-                    $newRows[] = $row;
-                } else {
-                    $newRows[] = $row;
+                    $row->gaps .= "</ul>";
                 }
             }
-
-            $data->rows = $newRows;
         }
 
         core_Debug::stopTimer('RENDER_TABLE');
