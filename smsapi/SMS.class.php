@@ -109,9 +109,6 @@ class smsapi_SMS extends core_Manager
             $http_status = curl_getinfo($c, CURLINFO_HTTP_CODE);
             
             curl_close($c);
-           
-            //$res -> Success - {"count":1,"list":[{"id":"67BDCE89656139431D933179","points":0.105,"number":"359887181813","date_sent":1740492425,"submitted_number":"359887181813","status":"QUEUE","error":null,"idx":null,"parts":1}]}
-            //        Error - {"error":103,"message":"Cannot send sms, account balance is low"}
             
             // Ако има грешки
             if ($http_status != 200) {
@@ -211,28 +208,7 @@ class smsapi_SMS extends core_Manager
      */
     public function act_Delivery()
     { 
-//                  dlr url
-//     Array
-//     (
-//         [virtual_url] => smsapi_SMS/Delivery/
-//         [MsgId] => 444444444444444444444444
-//         [to] => 48900900900
-//         [from] => 48900900900
-//         [donedate] => 1445448844
-//         [sent_at] => 1445448844
-//         [status] => 403
-//         [status_name] => SENT
-//         [idx] => IDX
-//         [username] => mitko@experta.bg
-//         [points] => 0.16
-//         [mcc] => 260
-//         [mnc] => 2
-//         [App] => bgerp
-//         [Ctr] => smsapi_SMS
-//         [Act] => Delivery
-//     )
-    
-    // Вземаме променливите
+        // Вземаме променливите
         $uid = Request::get('MsgId', 'varchar');
         $number = Request::get('to', 'varchar');
         $code = Request::get('status_name', 'varchar');
