@@ -3359,10 +3359,10 @@ class planning_Tasks extends core_Master
                 if(is_array($rec->gapData)){
                     $row->gaps = "<ul class='gapList'>";
                     foreach ($rec->gapData as $gapArr){
-                        $caption = $gapArr['type'] == 'gap' ? tr('Дупка') : tr('Престой');
+                        $caption = $gapArr['type'] == 'gap' ? tr('Дупка') : tr('Планиран престой');
                         $gapVerbal = core_Type::getByName('time')->toVerbal($gapArr['count'] * $gap);
-                        $size = round(25 * log($gapArr['count'], 2) + 1);
-                        $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'><b>{$caption}</b>: <i>{$gapVerbal}</i></li>";
+                        $size = round(10 * log($gapArr['count'], 2) + 2);
+                        $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'>{$caption}:&nbsp;&nbsp;<i><b>$gapVerbal</b></i></li>";
                     }
                     $row->gaps .= "</ul>";
                 }
