@@ -8029,57 +8029,53 @@ table.bomProductionStepTable td {
 .jobWorkInProgressTable td {
   font-weight: normal !important; }
 
-/*
- * Стилове за редовете
- */
-.taskGapRow {
-  height: 1px;
+td:has(.gapList) {
+  padding: 0 !important; }
+
+ul.gapList {
+  padding: 0;
     /*
-   * Височина на реда
+   * Премахва падинга на списъка
    */
-  border-collapse: collapse;
+  margin: 0;
     /*
-   * Това ще събере бордърите само в тези редове
+   * Премахва марджина на списъка
+   */
+  list-style: none;
+    /*
+   * Премахва маркерите
    */ }
 
 /*
- * Премахване на текстовото съдържание в gapRow
+ * Подреждаме li елементите един под друг
  */
-.gapRow td,
-.idleRow td {
-  padding: 0;
-  font-size: 0px;
-  line-height: 0px; }
-
-/*
- * Зеброви редове в gapRow с бордър в същия цвят като фона
- */
-.gapZebra1 td {
-  background-color: rgba(255, 0, 0, 0.7) !important;
-  border: 0px !important; }
-
-.gapZebra2 td {
-  background-color: rgba(255, 0, 0, 0.6) !important;
-  border: 0px !important; }
-
-/*
- * Зеброви редове в gapRow с бордър в същия цвят като фона
- */
-.idleZebra1 td {
-  background-color: rgba(0, 233, 0, 0.7) !important;
-  border: 0px !important; }
-
-.idleZebra2 td {
-  background-color: rgba(0, 255, 0, 0.6) !important;
-  border: 0px !important; }
-
-.gapZebra1 td:hover {
-  background-color: rgba(255, 0, 0, 0.7) !important;
-  border-color: inherit !important;
-  cursor: default !important; }
-
-.gapZebra2 td:hover {
-  background-color: rgba(255, 0, 0, 0.6) !important;
-  border-color: inherit !important;
-  cursor: default !important; }
+ul.gapList li {
+  display: block;
+    /*
+   * Всеки елемент заема цял ред
+   */
+  padding: 5px 5px;
+  margin: 0;
+    /*
+   * Премахваме марджина на li
+   */
+  border: 1px solid #cccccc;
+    /*
+   * Леки граници
+   */
+  text-align: left;
+    /*
+   * Центрира текстовете
+   */
+  font-size: 16px; }
+  ul.gapList li.gap {
+    background: linear-gradient(to bottom, tomato, rgba(255, 69, 0, 0.7)) !important;
+        /*
+     * Ярко червен градиент с малък контраст
+     */ }
+  ul.gapList li.idle {
+    background: linear-gradient(to bottom, rgba(144, 238, 144, 0.8), rgba(0, 255, 0, 0.3)) !important;
+        /*
+     * По-нежен градиент
+     */ }
 
