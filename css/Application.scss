@@ -9180,11 +9180,13 @@ ul.gapList {
 
 /* Подреждаме li елементите един под друг */
 ul.gapList li {
-	display: block; /* Всеки елемент заема цял ред */
-	padding: 5px 5px;
+	display: flex; /* Всеки елемент заема цял ред */
+	align-items: center; /* Подравнява текста по вертикала (по средата на височината) */
+	justify-content: center;
+	padding: 10px;
 	margin: 0;  /* Премахваме марджина на li */
 	border: 1px solid #ccc; /* Леки граници */
-	text-align: left; /* Центрира текстовете */
+	text-align: center; /* Центрира текстовете */
 	font-size: 16px;
 
 	&.gap {

@@ -8050,11 +8050,16 @@ ul.gapList {
  * Подреждаме li елементите един под друг
  */
 ul.gapList li {
-  display: block;
+  display: flex;
     /*
    * Всеки елемент заема цял ред
    */
-  padding: 5px 5px;
+  align-items: center;
+    /*
+   * Подравнява текста по вертикала (по средата на височината)
+   */
+  justify-content: center;
+  padding: 10px;
   margin: 0;
     /*
    * Премахваме марджина на li
@@ -8063,7 +8068,7 @@ ul.gapList li {
     /*
    * Леки граници
    */
-  text-align: left;
+  text-align: center;
     /*
    * Центрира текстовете
    */
