@@ -168,7 +168,7 @@ class hr_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'hr_reports_LeaveDaysRep, hr_reports_IndicatorsRep, hr_reports_AbsencesPerEmployee,
-                          hr_reports_TimeToWorkWithTheSystem, hr_WorkingCycleSens';
+                          hr_reports_TimeToWorkWithTheSystem, hr_WorkingCycleSens, hr_reports_WorkFromHomeAndAbsence';
     
     
     /**
