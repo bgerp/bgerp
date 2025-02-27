@@ -6,6 +6,10 @@
  */
 defIfNot('SMSAPI_URL', 'https://api.smsapi.bg/sms.do');
 
+/**
+ * URL за изпращане на SMS-и
+ */
+defIfNot('SMSAPI_NOTIFY_URL', ''); // https://domain.bg/smsapi_SMS/Delivery/
 
 /**
  * Дали поддържа UTF-8
@@ -56,6 +60,7 @@ class smsapi_Setup extends core_ProtoSetup
     
     public $configDescription = array(
         'SMSAPI_URL' => array('url', 'mandatory, caption=Адрес за изпращане на SMS-и през smsapi->URL адрес'),
+        'SMSAPI_NOTIFY_URL' => array('url', 'mandatory, caption=Адрес за Delivery report->URL адрес'),
         'SMSAPI_TOKEN' => array('varchar', 'mandatory, caption=Токън за изпращане на SMS-и през smsapi->Токън'),
         'SMSAPI_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Да/Не'),
         'SMSAPI_MAX_STRING_LEN' => array('int',  'caption=Максималната дължина на стринга->Бр. символи'),

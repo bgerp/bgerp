@@ -94,6 +94,9 @@ class smsapi_SMS extends core_Manager
                 'format'        => 'json',
             );
             
+            if (!empty($conf->SMSAPI_NOTIFY_URL)) {
+                $params['notify_url'] = $conf->SMSAPI_NOTIFY_URL;
+            }
             
             $c = curl_init();
             curl_setopt($c, CURLOPT_URL, $conf->SMSAPI_URL);
