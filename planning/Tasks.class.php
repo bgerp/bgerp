@@ -2117,7 +2117,7 @@ class planning_Tasks extends core_Master
         $data->listTableMvc->FNC('taskWastePercent', 'int', 'tdClass=small quiet');
 
         $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc));
-        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План.,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи,taskWastePercent=Отп., assetId=Оборудв.,info=@info');
+        $fields = arr::make('saoOrder=№,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=План.,totalQuantity=Произв.,producedQuantity=Заскл.,notConvertedQuantity=Невл.,costsCount=Разходи,taskWastePercent=Отп., assetId=Оборудв.,gaps=@gaps');
         $fields['taskWastePercent'] = "|*<small class='quiet'>|Отп.|*</small>";
         if ($data->masterMvc instanceof planning_AssetResources) {
             unset($fields['assetId']);
@@ -3350,7 +3350,7 @@ class planning_Tasks extends core_Master
         }
 
         // Ако е филтрирано по машина и не се преподрежда ще се визуализират дупките
-        if (isset($data->listFilter->rec->assetId) && !Mode::is('isReorder')) {
+        if ((isset($data->listFilter->rec->assetId) || isset($data->masterId)) && !Mode::is('isReorder')) {
             $gap = planning_Setup::get('MIN_TIME_FOR_GAP');
 
             // За всяка ПО ако има
@@ -3360,8 +3360,8 @@ class planning_Tasks extends core_Master
                     $row->gaps = "<ul class='gapList'>";
                     foreach ($rec->gapData as $gapArr){
                         $caption = $gapArr['type'] == 'gap' ? tr('Дупка') : tr('Планиран престой');
-                        $gapVerbal = core_Type::getByName('time')->toVerbal($gapArr['count'] * $gap);
-                        $size = round(10 * log($gapArr['count'], 2) + 2);
+                        $gapVerbal = core_Type::getByName('time(uom=hours,noSmart)')->toVerbal($gapArr['count'] * $gap);
+                        $size = $gapArr['type'] == 'gap' ? round(10 * log($gapArr['count'], 2) + 2) : 2;
                         $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'>{$caption}:&nbsp;&nbsp;<i><b>$gapVerbal</b></i></li>";
                     }
                     $row->gaps .= "</ul>";
