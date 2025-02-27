@@ -2195,7 +2195,7 @@ class planning_Tasks extends core_Master
         }
 
         $orderByDir = 'ASC';
-        $stateOptions = arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Проблемно планиране,haveGaps=С дупки или престой', true);
+        $stateOptions = arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Проблемно планиране,haveGaps=С бездействие/престой', true);
         if (!Request::get('Rejected', 'int')) {
             if(!Mode::is('isReorder')){
                 unset($stateOptions['manualOrder']);
@@ -3358,7 +3358,7 @@ class planning_Tasks extends core_Master
                 if(is_array($rec->gapData)){
                     $row->gaps = "<ul class='gapList'>";
                     foreach ($rec->gapData as $gapArr){
-                        $caption = $gapArr['type'] == 'gap' ? tr('Дупка') : tr('Планиран престой');
+                        $caption = $gapArr['type'] == 'gap' ? tr('Бездействие') : tr('Планиран престой');
                         $gapVerbal = core_Type::getByName('time(uom=hours,noSmart)')->toVerbal($gapArr['count'] * $gap);
                         $size = $gapArr['type'] == 'gap' ? round(10 * log($gapArr['count'], 2) + 2) : 2;
                         $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'>{$caption}:&nbsp;&nbsp;<i><b>$gapVerbal</b></i></li>";
