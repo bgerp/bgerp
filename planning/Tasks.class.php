@@ -2195,7 +2195,7 @@ class planning_Tasks extends core_Master
         }
 
         $orderByDir = 'ASC';
-        $stateOptions = arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Непланируеми,outsideSchedule=Извън графика', true);
+        $stateOptions = arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички,manualOrder=Ръчно подредени,planningError=Проблемно планиране,haveGaps=С дупки или престой', true);
         if (!Request::get('Rejected', 'int')) {
             if(!Mode::is('isReorder')){
                 unset($stateOptions['manualOrder']);
@@ -2215,10 +2215,10 @@ class planning_Tasks extends core_Master
 
                 if (in_array($filter->state, array('activeAndPending', 'manualOrder'))) {
                     $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
+                } elseif($filter->state == 'haveGaps'){
+                    $data->query->where("#gapData != '' AND #state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif($filter->state == 'planningError') {
-                    $data->query->where("#planningError = 'error'");
-                } elseif($filter->state == 'outsideSchedule'){
-                    $data->query->where("#planningError = 'outsideSchedule'");
+                    $data->query->where("#planningError != 'no' AND #state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif ($filter->state != 'all') {
                     $data->query->where("#state = '{$filter->state}' OR #state = 'rejected'");
                     if ($filter->state == 'closed') {
@@ -2274,10 +2274,9 @@ class planning_Tasks extends core_Master
         if (in_array(strtolower($action), array('list', 'default'))) {
             Mode::set('isReorder', Request::get('reorder', 'int'));
 
-            if(Mode::is('isReorder', true)){
+            if(Mode::is('isReorder')){
                 Mode::set('wrapper', 'page_Empty');
                 unset($mvc->_plugins['planning_Wrapper']);
-                $mvc->rememberListFilterFolderId = null;
             }
         }
     }
@@ -3274,8 +3273,8 @@ class planning_Tasks extends core_Master
                     $row->expectedTimeEnd = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
 
                 } elseif($rec->planningError == 'outsideSchedule') {
-                    $row->expectedTimeStart = ht::createHint('', 'Операцията е планирана извън хоризонта', 'img/16/emotion_alert_yellow.png');
-                    $row->expectedTimeEnd = ht::createHint('', 'Операцията е планирана извън хоризонта', 'img/16/emotion_alert_yellow.png');
+                    $row->expectedTimeStart = ht::createHint('', 'Операцията е планирана извън хоризонта на графика', 'img/16/emotion_alert_yellow.png');
+                    $row->expectedTimeEnd = ht::createHint('', 'Операцията е планирана извън хоризонта на графика', 'img/16/emotion_alert_yellow.png');
                 }
             }
 
@@ -3295,7 +3294,7 @@ class planning_Tasks extends core_Master
                 $row->originId = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singleJobUrl, 'title' => $jobTitle, 'onmouseUp' => 'selectInnerText(this);'), $jobTitle, true);
             } else {
                 $row->originId = planning_Jobs::getHyperlink($jobRecs[$rec->originId], true);
-                $row->title->append("<br>{$inlineTags[$rec->containerId]}");
+                $row->title->append("{$inlineTags[$rec->containerId]}");
             }
 
             $row->jobQuantity = $quantityStr;
