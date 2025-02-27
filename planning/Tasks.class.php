@@ -582,9 +582,9 @@ class planning_Tasks extends core_Master
             }
             if(planning_Tasks::haveRightFor('list') && !Mode::is('printing')) {
                 if(isset($fields['-single'])) {
-                    $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по център на дейност и оборудване'));
+                    $row->assetId->append(ht::createLink('', array('planning_Tasks', 'list', 'assetId' => $rec->assetId), false, 'ef_icon=img/16/funnel.png,title=Филтър по оборудване'));
                 } else {
-                    $row->assetId = ht::createLink(planning_AssetResources::getTitleById($rec->assetId), array('planning_Tasks', 'list', 'folder' => $rec->folderId, 'assetId' => $rec->assetId), false, 'ef_icon=img/16/equipment.png,title=Филтър по център на дейност и оборудване');
+                    $row->assetId = ht::createLink(planning_AssetResources::getTitleById($rec->assetId), array('planning_Tasks', 'list', 'assetId' => $rec->assetId), false, 'ef_icon=img/16/equipment.png,title=Филтър по оборудване');
                 }
             }
         }
