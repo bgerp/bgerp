@@ -364,6 +364,13 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                 $start = acc_Periods::fetchField($rec->periods, 'start');
                 $date = new DateTime($start);
                 $url['period'] = $date->format('Y-m-01');
+            } else{
+                if(!empty($rec->fromDate)){
+                    $url['from'] = $rec->fromDate;
+                }
+                if(!empty($rec->toDate)){
+                    $url['to'] = $rec->toDate;
+                }
             }
 
             if (!empty($dRec->person)) {
@@ -382,6 +389,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             if ($haveRight !== true) {
                 core_Request::removeProtected('period,personId,indicatorId,force');
             }
+
         }
         
         return $row;

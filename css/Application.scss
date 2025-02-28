@@ -3937,6 +3937,11 @@ fieldset.sharing-history {
 	max-height: 90px;
 	float:left;
 }
+
+.narrow .externalPage .headerImg {
+	max-width: none;
+}
+
 .narrow .externalPage {
 	position: relative;
 }
@@ -9168,43 +9173,36 @@ table.bomProductionStepTable td{
 	font-weight:normal !important;
 }
 
-/* Стилове за редовете */
-.taskGapRow {
-	height: 1px; /* Височина на реда */
+td:has(.gapList) {
+	padding: 0 !important;
 }
 
-.taskGapRow.gapRow {
-	background-color: red; /* Цветът на фона на реда с клас gapRow */
+ul.gapList {
+	padding: 0; /* Премахва падинга на списъка */
+	margin: 0;  /* Премахва марджина на списъка */
+	list-style: none; /* Премахва маркерите */
 }
 
-.taskGapRow.idleRow {
-	background-color: #5dc95d; /* Цветът на фона на реда с клас idleRow */
+/* Подреждаме li елементите един под друг */
+ul.gapList li {
+	display: flex; /* Всеки елемент заема цял ред */
+	align-items: center; /* Подравнява текста по вертикала (по средата на височината) */
+	justify-content: center;
+	padding: 10px;
+	margin: 0;  /* Премахваме марджина на li */
+	border: 1px solid #ccc; /* Леки граници */
+	text-align: center; /* Центрира текстовете */
+	font-size: 14px;
+
+	&.idle {
+		background: linear-gradient(to bottom, rgba(255, 99, 71, 1), rgba(255, 69, 0, 0.7)) !important; /* Ярко червен градиент с малък контраст */
+	}
+
+	&.break {
+		background: linear-gradient(to bottom, rgba(144, 238, 144, 0.6), rgba(0, 255, 0, 0.3)) !important; /* По-нежен градиент */
+	}
 }
 
-/* Стилове за клетките */
-.gapRow td {
-	padding: 0;
-	font-size: 0px; /* Премахва текста, ако е нужно */
-	line-height: 0px; /* Премахва интервала между редовете */
-	background-color: red !important; /* Фон на клетките в gapRow */
-	border-right: 1px solid red !important; /* Бордър на клетките */
-}
-
-/* Стилове за клетките в idleRow */
-.idleRow td {
-	padding: 0;
-	font-size: 0px; /* Премахва текста, ако е нужно */
-	line-height: 0px; /* Премахва интервала между редовете */
-	background-color: #5dc95d !important; /* Фон на клетките в idleRow */
-	border-right: 1px solid #5dc95d !important; /* Бордър на клетките*/
-}
-
-/* За да предотвратиш промените при ховър */
-.taskGapRow td:hover {
-	background-color: inherit !important;
-	border-color: inherit !important;
-	cursor: default !important; /* Опционално, ако искаш да промениш курсора при ховър */
-}
 
 
 

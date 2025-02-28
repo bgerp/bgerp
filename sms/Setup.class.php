@@ -46,7 +46,7 @@ class sms_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'mobio=0.1';
+    public $depends = 'mobio=0.1, smsapi=0.1';
     
     
     /**

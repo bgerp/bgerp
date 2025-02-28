@@ -22,7 +22,7 @@
 		        			<br>|От|*: [#baseAccountId#]
                             <!--ET_END baseAccountId-->
                         </td>
-                        <td style='font-size:0.8em;text-align:left' class="vtop">
+                        <td style='font-size:0.8em;text-align:left;' class="vtop">
 							<table class="no-border">
 								[#OPERATOR_DATA#]
 								<!--ET_BEGIN OPERATOR-->
@@ -35,7 +35,7 @@
 								[#PAYMENT#]
 								<!--ET_BEGIN PAYMENT_ROW-->
 								[#PAYMENT_ROW#]
-								<tr>
+								<tr class="[#PAYMENT_CLASS#]">
 									<td class="aleft indent border-bottom">[#paymentId#]</td>
 									<td class="aright  border-bottom">[#paymentAmount#]</td>
 								</tr>
