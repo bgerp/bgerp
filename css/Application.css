@@ -8072,13 +8072,13 @@ ul.gapList li {
     /*
    * Центрира текстовете
    */
-  font-size: 16px; }
-  ul.gapList li.gap {
+  font-size: 14px; }
+  ul.gapList li.idle {
     background: linear-gradient(to bottom, tomato, rgba(255, 69, 0, 0.7)) !important;
         /*
      * Ярко червен градиент с малък контраст
      */ }
-  ul.gapList li.idle {
+  ul.gapList li.break {
     background: linear-gradient(to bottom, rgba(144, 238, 144, 0.6), rgba(0, 255, 0, 0.3)) !important;
         /*
      * По-нежен градиент
