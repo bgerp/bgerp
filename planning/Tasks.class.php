@@ -3059,7 +3059,7 @@ class planning_Tasks extends core_Master
                     $paramExt[1] = ht::createHint($paramExt[1], $fullName);
                 }
                 $paramFields["param_{$paramRec->id}"] = "|*<small>{$paramExt[1]}</small>";
-                $data->listTableMvc->FNC("param_{$paramRec->id}", 'varchar', 'tdClass=taskParamCol');
+                $data->listTableMvc->FNC("param_{$paramRec->id}", 'varchar', 'tdClass=taskParamCol small');
             }
             $data->listTableMvc->setField("assetId", 'tdClass=small');
             $fieldsToFilterIfEmpty = array_merge($paramFields, $fieldsToFilterIfEmpty);
