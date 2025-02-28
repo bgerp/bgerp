@@ -417,7 +417,9 @@ class doc_FolderResources extends core_Manager
             $coverClassName = core_Classes::fetchField($fRec->coverClass, 'title');
             $v = "{$fRec->title} (${coverClassName})";
         }
-        
+
+        asort($suggestions);
+
         // Върнатите предложение
         return $suggestions;
     }
