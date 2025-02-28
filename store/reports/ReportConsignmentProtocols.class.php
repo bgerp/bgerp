@@ -243,10 +243,10 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $fld->FLD('contragent', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             //$fld->FLD('date', 'date', 'caption=Дата');
-            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
-            $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено->Количество');
-            $fld->FLD('debitDocuments', 'varchar', 'caption=Дадено->Документи');
-            $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Прието->Количество');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=К-во,smartCenter,tdClass=boldText');
+            $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено->К-во,smartCenter');
+            $fld->FLD('debitDocuments', 'varchar', 'caption=Дадено->Документи,tdClass=leftCol');
+            $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Прието->К-во,smartCenter');
             $fld->FLD('creditDocuments', 'varchar', 'caption=Прието->Документи');
 
             //    $fld->FLD('protocol', 'varchar', 'caption=Протокол');
@@ -309,8 +309,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                     $state = $rDoc->state;
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
-                    $row->debitDocuments .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" .
-                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>' . '</div>';
+                    $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 0 3px;'>" .
+                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>' ;
 
                 }
             }
