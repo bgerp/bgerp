@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Oтговорно пазене
+ * @title     Склад » Отговорно пазене
  */
 class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 {
