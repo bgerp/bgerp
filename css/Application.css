@@ -3362,6 +3362,9 @@ span.sharing-history-title {
   max-height: 90px;
   float: left; }
 
+.narrow .externalPage .headerImg {
+  max-width: none; }
+
 .narrow .externalPage {
   position: relative; }
 

@@ -29,6 +29,13 @@ defIfNot('SMSAPI_MAX_STRING_LEN', 160);
 defIfNot('SMSAPI_ALLOWED_USER_NAMES', '');
 
 
+
+/**
+ * Токън за изпращане на SMS-и през smsapi
+ */
+defIfNot('SMSAPI_TOKEN', '');
+
+
 /**
  * class smsapi_Setup
  *
