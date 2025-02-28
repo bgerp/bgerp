@@ -117,7 +117,7 @@ class planning_AssetResources extends core_Master
     /**
      * Детайли
      */
-    public $details = 'assetSupport=support_TaskType,Tasks=planning_Tasks,planning_AssetResourcesNorms,planning_AssetResourceFolders,planning_AssetSparePartsDetail,planning_AssetIdleTimes';
+    public $details = 'assetSupport=support_TaskType,Tasks=planning_Tasks,planning_AssetResourcesNorms,planning_AssetResourceFolders,planning_AssetSparePartsDetail,planning_AssetScheduleBreaks';
     
     
     /**
@@ -926,12 +926,11 @@ class planning_AssetResources extends core_Master
     public function cron_RecalcTaskTimes()
     {
         // Ако процеса е заключен да не се изпълнява отново
-        /*
-         * if (!core_Locks::get('CALC_TASK_TIMES', 120, 1)) {
-            $this->logNotice('Преизчисляването на времената е заключено от друг процес');
-            return;
+         if (!core_Locks::get('CALC_TASK_TIMES', 120, 1)) {
+            //$this->logNotice('Преизчисляването на времената е заключено от друг процес');
+           // return;
         }
-         */
+
         $now = dt::now();
         // Извличане на всички ПО годни за планиране
         core_Debug::startTimer('SCHEDULE_PREPARE');
@@ -998,7 +997,7 @@ class planning_AssetResources extends core_Master
 
                     // Ако е над зададения интервал ще се проверява дали е дупка или е престой
                     if($diff > $gap){
-                        $scheduledData->debug .= "<li>&nbsp;&nbsp;<b>Дупка</b> #Opr{$a->id} - PREV {$prevEnd} -> {$a->expectedTimeStart}";
+                        $scheduledData->debug .= "<li>&nbsp;&nbsp;<b>Престой</b> #Opr{$a->id} - PREV {$prevEnd} -> {$a->expectedTimeStart}";
 
                         $start = strtotime($prevEnd);
                         $end = strtotime($a->expectedTimeStart);
@@ -1006,7 +1005,7 @@ class planning_AssetResources extends core_Master
                         // Разбива се интервала на толкова периоди, колкото е очакваното
                         $lastType = null;
                         $count = 0;
-                        $typeIndex = array('gap' => 0, 'idle' => 0);
+                        $typeIndex = array('idle' => 0, 'break' => 0);
                         $intervals = array();
 
                         // За всеки се взима средната дата между тях и се изчислява дали е дупка/престой
@@ -1015,7 +1014,7 @@ class planning_AssetResources extends core_Master
                             $middleDateTimestamp = dt::getMiddleDate($start, $next, false);
 
                             $pointInv = $Interval->getByPoint($middleDateTimestamp);
-                            $currentType = is_array($pointInv) ? 'gap' : 'idle';
+                            $currentType = is_array($pointInv) ? 'idle' : 'break';
                             $scheduledData->debug .= "<li>&nbsp;&nbsp;&nbsp;&nbsp;<b>Средна дата</b> " . date('Y-m-d H:i:s', $middleDateTimestamp) . " е {$currentType}";
 
                             if ($lastType === null) {

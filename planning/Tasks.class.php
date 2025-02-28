@@ -3081,7 +3081,7 @@ class planning_Tasks extends core_Master
         }
 
         $data->listTableMvc->setField('notes', 'tdClass=notesCol');
-        foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId') as $fld) {
+        foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId', 'folderId') as $fld) {
             $dateClass = in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? "{$tableClass} openModal" : ($fld == 'title' ? "{$tableClass} titleTags" : $tableClass);
             $data->listTableMvc->setField($fld, "tdClass={$dateClass}");
         }
@@ -3358,9 +3358,9 @@ class planning_Tasks extends core_Master
                 if(is_array($rec->gapData)){
                     $row->gaps = "<ul class='gapList'>";
                     foreach ($rec->gapData as $gapArr){
-                        $caption = $gapArr['type'] == 'gap' ? tr('Бездействие') : tr('Планиран престой');
+                        $caption = $gapArr['type'] == 'idle' ? tr('Престой') : tr('Почивка');
                         $gapVerbal = core_Type::getByName('time(uom=hours,noSmart)')->toVerbal($gapArr['count'] * $gap);
-                        $size = $gapArr['type'] == 'gap' ? round(10 * log($gapArr['count'], 2) + 2) : 2;
+                        $size = $gapArr['type'] == 'idle' ? round(10 * log($gapArr['count'], 2) + 2) : 2;
                         $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'>{$caption}:&nbsp;&nbsp;<i><b>$gapVerbal</b></i></li>";
                     }
                     $row->gaps .= "</ul>";

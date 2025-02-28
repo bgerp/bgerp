@@ -522,7 +522,7 @@ class planning_TaskConstraints extends core_Master
         $intervals = $assets = $idleTimes = array();
 
         // Извличане на времето за престой
-        $idleQuery = planning_AssetIdleTimes::getQuery();
+        $idleQuery = planning_AssetScheduleBreaks::getQuery();
         $idleQuery->in('assetId', $assetIds);
         while ($iRec = $idleQuery->fetch()) {
             $idleTimes[$iRec->assetId][$iRec->id] = $iRec;

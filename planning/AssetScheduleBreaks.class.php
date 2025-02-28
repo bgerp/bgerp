@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Детайли на работните цикли на оборудването
+ * Времена за почивка на оборудването
  *
  *
  * @category  bgerp
- * @package   hr
+ * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2025 Experta OOD
@@ -13,18 +13,25 @@
  *
  * @since     v 0.1
  */
-class planning_AssetIdleTimes extends core_Detail
+class planning_AssetScheduleBreaks extends core_Detail
 {
+
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'planning_AssetIdleTimes';
+
+
     /**
      * Заглавие
      */
-    public $title = 'Времена за престой на оборудването';
+    public $title = 'Времена за почивка на оборудването';
 
 
     /**
      * Работни интервали на оборудването
      */
-    public $singleTitle = 'Време за престой на оборудването';
+    public $singleTitle = 'Време за почивка на оборудването';
 
 
     /**
@@ -157,6 +164,7 @@ class planning_AssetIdleTimes extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
         $row->modified = $mvc->getVerbal($rec, 'modifiedOn') . tr("|* |от|* ") . crm_Profiles::createLink($rec->modifiedBy);
     }
 }
