@@ -3361,7 +3361,7 @@ class planning_Tasks extends core_Master
                         $caption = $gapArr['type'] == 'idle' ? tr('Престой') : tr('Почивка');
                         $gapVerbal = core_Type::getByName('time(uom=hours,noSmart)')->toVerbal($gapArr['count'] * $gap);
                         $size = $gapArr['type'] == 'idle' ? round(10 * log($gapArr['count'], 2) + 2) : 2;
-                        $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'>{$caption}:&nbsp;&nbsp;<i><b>$gapVerbal</b></i></li>";
+                        $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'>{$caption}:&nbsp;&nbsp;<i>{$gapVerbal}</i></li>";
                     }
                     $row->gaps .= "</ul>";
                 }
