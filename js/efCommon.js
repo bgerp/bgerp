@@ -1,5 +1,6 @@
 var shortURL;
 var hitState = {};
+var self = this;
 
 function spr(sel, refresh, from, to) {
     if(refresh === undefined) {
@@ -5476,6 +5477,8 @@ Experta.prototype.saveBodyId = function() {
     }
 
     bodyIds[bodyId] = 'ajaxRefresh';
+    self.hitState[bodyId] = undefined;
+
     sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
 };
 
