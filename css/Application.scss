@@ -9187,13 +9187,13 @@ ul.gapList li {
 	margin: 0;  /* Премахваме марджина на li */
 	border: 1px solid #ccc; /* Леки граници */
 	text-align: center; /* Центрира текстовете */
-	font-size: 16px;
+	font-size: 14px;
 
-	&.gap {
+	&.idle {
 		background: linear-gradient(to bottom, rgba(255, 99, 71, 1), rgba(255, 69, 0, 0.7)) !important; /* Ярко червен градиент с малък контраст */
 	}
 
-	&.idle {
+	&.break {
 		background: linear-gradient(to bottom, rgba(144, 238, 144, 0.6), rgba(0, 255, 0, 0.3)) !important; /* По-нежен градиент */
 	}
 }
