@@ -3348,8 +3348,8 @@ class planning_Tasks extends core_Master
             unset($data->listFields['firstProgress'], $data->listFields['lastProgressProduction']);
         }
 
-        // Ако е филтрирано по машина и не се преподрежда ще се визуализират дупките
-        if ((isset($data->listFilter->rec->assetId) || isset($data->masterId)) && !Mode::is('isReorder')) {
+        // Ако е филтрирано по машина (или е в сингъла на машината) и не се преподрежда ще се визуализират дупките
+        if ((isset($data->listFilter->rec->assetId) || (isset($data->masterId) && ($data->masterMvc instanceof planning_AssetResources))) && !Mode::is('isReorder')) {
             $gap = planning_Setup::get('MIN_TIME_FOR_GAP');
 
             // За всяка ПО ако има
@@ -3361,7 +3361,7 @@ class planning_Tasks extends core_Master
                         $caption = $gapArr['type'] == 'idle' ? tr('Престой') : tr('Почивка');
                         $gapVerbal = core_Type::getByName('time(uom=hours,noSmart)')->toVerbal($gapArr['count'] * $gap);
                         $size = $gapArr['type'] == 'idle' ? round(10 * log($gapArr['count'], 2) + 2) : 2;
-                        $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'>{$caption}:&nbsp;&nbsp;<i>{$gapVerbal}</i></li>";
+                        $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'>{$caption}:&nbsp;&nbsp;{$gapVerbal}</li>";
                     }
                     $row->gaps .= "</ul>";
                 }

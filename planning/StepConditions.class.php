@@ -296,7 +296,7 @@ class planning_StepConditions extends core_Detail
                     $prevProgressVerbal = "<span class='readyPercent'>{$prevProgressVerbal}</span>";
                 }
                 $prevId = "<span class='state-{$taskRec->state} document-handler'>{$prevProgressVerbal}</span>";
-                $titleHint = planning_Tasks::getrecTitle($taskRec);
+                $titleHint = "#" . planning_Tasks::getrecTitle($taskRec);
                 if($normalLink){
                     $prevElement = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($taskRec->id), false, array('target' => "_blank", 'title' => $titleHint));
                 } else {
