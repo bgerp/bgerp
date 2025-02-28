@@ -245,9 +245,9 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             //$fld->FLD('date', 'date', 'caption=Дата');
             $fld->FLD('quantity', 'double(decimals=2)', 'caption=К-во,smartCenter,tdClass=boldText');
             $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено->К-во,smartCenter');
-            $fld->FLD('debitDocuments', 'varchar', 'caption=Дадено->Документи,tdClass=leftCol');
+            $fld->FLD('debitDocuments', 'varchar', 'caption=Дадено->Документи,tdClass=midCell');
             $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Прието->К-во,smartCenter');
-            $fld->FLD('creditDocuments', 'varchar', 'caption=Прието->Документи');
+            $fld->FLD('creditDocuments', 'varchar', 'caption=Прието->Документи,tdClass=midCell');
 
             //    $fld->FLD('protocol', 'varchar', 'caption=Протокол');
             //   $fld->FLD('inOut', 'varchar', 'caption=Тип');
@@ -309,7 +309,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                     $state = $rDoc->state;
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
-                    $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 0 3px;'>" .
+                    $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
                         ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>' ;
 
                 }
@@ -329,8 +329,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                     $state = $rDoc->state;
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
-                    $row->creditDocuments .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" .
-                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>' . '</div>';
+                    $row->creditDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
+                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>';
 
                 }
             }

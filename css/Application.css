@@ -2221,6 +2221,10 @@ td.rowtools-column {
 .large-field {
   width: 50%; }
 
+.listAction table.listTable>tbody>tr>td.midCell {
+  max-width: 120px !important;
+  white-space: wrap; }
+
 .narrow .largeNarrowCell {
   min-width: 300px; }
 
