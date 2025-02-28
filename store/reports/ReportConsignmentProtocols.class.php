@@ -193,7 +193,6 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             }
 
             $id = $prodRec->id . '|' . $pRec->folderId;
-            //    if($jRec['docId'] == 24)
             // добавяме в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
