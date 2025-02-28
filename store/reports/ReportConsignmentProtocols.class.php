@@ -172,10 +172,15 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
             $pRec = cls::get($jRec['docType'])->fetch($jRec['docId']);
 
+            $contragentFolder = cls::get($pRec->contragentClassId)::fetch($pRec->contragentId)->folderId;
+
+            if ($rec->contragent) {
+                if (!in_array($contragentFolder, keylist::toArray($rec->contragent))) continue;
+            }
+
             $item = acc_Items::fetch($jRec['debitItem2']);
 
             $prodRec = cls::get($item->classId)->fetch($item->objectId);
-
 
             if ($jRec['debitQuantity']) {
                 $debitQuantity = $jRec['debitQuantity'];
@@ -186,7 +191,6 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                 $documentsCreditQuantity1[$jRec['docId'] . '|' . $prodRec->id] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId'], 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
 
             }
-
 
             $id = $prodRec->id . '|' . $pRec->folderId;
             //    if($jRec['docId'] == 24)
@@ -292,6 +296,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $row->debitQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity);
 
         $row->creditQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->creditQuantity);
+
         $row->debitDocuments = '';
         if (!empty($dRec->documentsDebitQuantity)) {
 
@@ -299,10 +304,15 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                 if (($v->contragent == $dRec->contragent) && ($v->productId == $dRec->productId)) {
 
-                    $className = cls::getClassName($v->docType);
-                    $handle = $className::getHandle($v->docId);
-                    $url = toUrl(array($className, 'single', $v->docId));
-                    $row->debitDocuments .= ht::createLink($handle, $url) . ',';
+                    $Doc = cls::get($v->docType);
+                    $rDoc = $Doc->fetch($v->docId);
+                    $handle = $Doc->className::getHandle($v->docId);
+                    $state = $rDoc->state;
+
+                    $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
+                    $row->debitDocuments .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" .
+                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>' . '</div>';
+
                 }
             }
         }
@@ -314,10 +324,14 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                 if (($v->contragent == $dRec->contragent) && ($v->productId == $dRec->productId)) {
 
-                    $className = cls::getClassName($v->docType);
-                    $handle = $className::getHandle($v->docId);
-                    $url = toUrl(array($className, 'single', $v->docId));
-                    $row->creditDocuments .= ht::createLink($handle, $url) . ',';
+                    $Doc = cls::get($v->docType);
+                    $rDoc = $Doc->fetch($v->docId);
+                    $handle = $Doc->className::getHandle($v->docId);
+                    $state = $rDoc->state;
+
+                    $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
+                    $row->creditDocuments .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" .
+                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>' . '</div>';
 
                 }
             }
