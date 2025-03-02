@@ -30,6 +30,7 @@ class sens2_Wrapper extends plg_ProtoWrapper
         $this->TAB('sens2_Scripts', 'Скриптове->Блокове');
         $this->TAB('sens2_script_DefinedVars', 'Скриптове->Променливи');
         $this->TAB('sens2_script_Logs', 'Скриптове->Логове');
+        $this->TAB('sens2_Semaphores', 'Скриптове->Семафори');
 
         $this->title = 'В/И Контролери';
         
