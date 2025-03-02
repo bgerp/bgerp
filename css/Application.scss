@@ -2563,6 +2563,10 @@ width: 200px;
 .large-field{
 width: 50%;
 }
+.listAction table.listTable>tbody>tr>td.midCell {
+	max-width: 170px !important;
+	white-space: wrap;
+}
 .narrow .largeNarrowCell {
 min-width: 300px;
 }
@@ -3937,6 +3941,11 @@ fieldset.sharing-history {
 	max-height: 90px;
 	float:left;
 }
+
+.narrow .externalPage .headerImg {
+	max-width: none;
+}
+
 .narrow .externalPage {
 	position: relative;
 }
@@ -5277,7 +5286,7 @@ table .eshop-btn {
 }
 .cms-row h1 {
     margin-top: 0;
-    margin-left: 0px;
+    margin-left: 0;
 }
 
 .richtext h1, .richtext h2, .richtext h3 {
@@ -5292,7 +5301,6 @@ table .eshop-btn {
 .clear-center {
 	img {
 		max-width: 100%;
-		width: 100% \9;
 		height: auto;
 	}
 }
@@ -8520,7 +8528,7 @@ tr.wasteWeightPercent td {
 			font-weight: bold;
 			padding: 5px 3px;
 			vertical-align: middle !important;
-			.quiet {
+			span.quiet {
 			   color: #ccc;
 			   font-weight: normal;
 			}
@@ -8533,7 +8541,9 @@ tr.wasteWeightPercent td {
 		}
     }
 }
-
+.sale-summary .jobWorkInProgressTable table td.quantityCol {
+	color: #888888;
+}
 .sale-summary .cartStatistic .sum-th {
 	background: #c1c1c1;
 	color: #333;
@@ -8956,6 +8966,9 @@ tr.wasteWeightPercent td {
 table.listTable>tbody>tr>td.wasteCol {
 	font-weight: bold !important;
 	background: #eee;
+	.quiet {
+		font-weight: bold !important;
+	}
 }
 .selectTaskOptions {
 	width:100%;
@@ -9163,3 +9176,37 @@ table.bomProductionStepTable td{
 .jobWorkInProgressTable td {
 	font-weight:normal !important;
 }
+
+td:has(.gapList) {
+	padding: 0 !important;
+}
+
+ul.gapList {
+	padding: 0; /* Премахва падинга на списъка */
+	margin: 0;  /* Премахва марджина на списъка */
+	list-style: none; /* Премахва маркерите */
+}
+
+/* Подреждаме li елементите един под друг */
+ul.gapList li {
+	display: flex; /* Всеки елемент заема цял ред */
+	align-items: center; /* Подравнява текста по вертикала (по средата на височината) */
+	justify-content: center;
+	padding: 10px;
+	margin: 0;  /* Премахваме марджина на li */
+	border: 1px solid #ccc; /* Леки граници */
+	text-align: center; /* Центрира текстовете */
+	font-size: 14px;
+
+	&.idle {
+		background: linear-gradient(to bottom, rgba(255, 99, 71, 1), rgba(255, 69, 0, 0.7)) !important; /* Ярко червен градиент с малък контраст */
+	}
+
+	&.break {
+		background: linear-gradient(to bottom, rgba(144, 238, 144, 0.6), rgba(0, 255, 0, 0.3)) !important; /* По-нежен градиент */
+	}
+}
+
+
+
+

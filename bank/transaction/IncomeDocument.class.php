@@ -97,8 +97,11 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
             $debitArr = $entry2['debit'];
             $creditArr = $entry2['credit'];
             $entry[0]['debit'] = $creditArr;
-            $entry[0]['debit'][0] = '482';
-            
+            $entry[0]['debit'][0] = '481';
+            $entry[0]['debit'][1] = $entry[0]['debit'][3];
+            unset($entry[0]['debit'][2]);
+            unset($entry[0]['debit'][3]);
+
             $entry2['credit'] = $debitArr;
             $entry2['credit']['quantity'] = abs($entry2['credit']['quantity']);
             $entry2['debit'] = $entry[0]['debit'];

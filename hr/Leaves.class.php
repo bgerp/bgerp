@@ -53,7 +53,7 @@ class hr_Leaves extends core_Master
      * @var array
      */
     protected static $emojiList = array('s1' => '🏥', 's2' => '🤒', 's3' => '💊', 's4' => '🛌',
-                                    'l1' => '🎿', 'l6' => '🏔️', 'l2' => '❄️', 'l3' => '⛷️', 'l4' => '🏖️', 'l5' => '🌴',
+                                    'l1' => '⏳', 'l6' => '🏔️', 'l2' => '❄️', 'l3' => '⛷️', 'l4' => '🏖️', 'l5' => '🌴',
                                     't1' => '✈️', 't2' => '🌍', 't3' => '🧳', 't4' => '🚗',
                                     'h1' => '🏠', 'h2' => '💻', 'h3' => '☕', 'h4' => '🪟');
 
@@ -143,13 +143,7 @@ class hr_Leaves extends core_Master
      * Кой може да го изтрие?
      */
     public $canDelete = 'powerUser';
-    
-    
-    /**
-     * Икона за единичния изглед
-     */
-    //var $singleIcon = 'img/16/money.png';
-    
+
     
     /**
      * Единична икона
@@ -451,32 +445,61 @@ class hr_Leaves extends core_Master
             if (!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
                 $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
             }
-            
-            // правим заявка към базата
-            $query = self::getQuery();
-            
-            // търсим всички молби, които са за текущия потребител
-            $query->where("#personId='{$form->rec->personId}'");
-            
-            if ($form->rec->id) {
-                $query->where("#id != {$form->rec->id}");
-            }
-            
-            // търсим времево засичане
-            $query->where("(#leaveFrom <= '{$form->rec->leaveFrom}' AND #leaveTo >= '{$form->rec->leaveFrom}')
-            OR
-            (#leaveFrom <= '{$form->rec->leaveTo}' AND #leaveTo >= '{$form->rec->leaveTo}')");
-            
-            $query->where("#state = 'active'");
-            
+
+            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id);
             // за всяка една молба отговаряща на условията проверяваме
-            if ($recReq = $query->fetch()) {
-                $link = ht::createLink("Молба за отпуска №{$recReq->id}", array($mvc, 'single', $recReq->id, 'ret_url' => true, ''), null, 'ef_icon=img/16/leaves.png');
-                
+            if (!empty($iArr)) {
                 // и изписваме предупреждение
-                $form->setError('leaveFrom, leaveTo', "|Засичане по време с |*{$link}");
+                $form->setError('leaveFrom, leaveTo', "|Засичане по време с: |*" . implode('<br>', $iArr));
             }
         }
+    }
+
+
+    /**
+     * Връща всички пресичания на датите
+     *
+     * @return void
+     */
+    public static function getIntersections($personId, $from, $to, $ignoreId = null)
+    {
+        $resArr = array();
+
+        foreach (array('hr_Leaves', 'hr_HomeOffice', 'hr_Sickdays', 'hr_Trips') as $class) {
+            $cls = cls::get($class);
+            // правим заявка към базата
+            $query = $class::getQuery();
+
+            // търсим всички молби, които са за текущия потребител
+            $query->where(array("#personId = '[#1#]'", $personId));
+
+            if ($ignoreId) {
+                $query->where(array("#id != '[#1#]'", $ignoreId));
+            }
+
+            $lFiedFrom = 'startDate';
+            $lFiedTo = 'toDate';
+            if ($class == 'hr_Leaves') {
+                $lFiedFrom = 'leaveFrom';
+                $lFiedTo = 'leaveTo';
+            }
+
+            // търсим времево засичане
+            $query->where(array("(#{$lFiedFrom} <= '[#1#]' AND #{$lFiedTo} >= '{$from}')
+                OR
+                (#{$lFiedFrom} <= '[#2#]' AND #{$lFiedTo} >= '[#2#]')", $from, $to));
+
+            $query->where("#state = 'active'");
+
+            // за всяка една молба отговаряща на условията проверяваме
+            while ($recReq = $query->fetch()) {
+                $title = $cls->getRecTitle($recReq);
+                $url = $cls->haveRightFor('single', $recReq) ? array($cls, 'single', $recReq->id) : array();
+                $resArr[] = ht::createLink($title, $url, null, 'ef_icon=' . $cls->singleIcon);
+            }
+        }
+
+        return $resArr;
     }
     
     
@@ -518,6 +541,12 @@ class hr_Leaves extends core_Master
                             $requiredRoles = 'no_one';
                         }
                     }
+                }
+            }
+
+            if ($action == 'reject' && $rec && $rec->state == 'active' && $rec->leaveFrom <= dt::now()) {
+                if (!haveRole('hrLeaves, ceo')) {
+                    $requiredRoles = 'no_one';
                 }
             }
         }

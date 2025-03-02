@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Отчет протоколи за отговорно пазене
+ * @title     Склад » Отговорно пазене
  */
 class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 {
@@ -161,44 +161,50 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $recs = array();
 
         $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '3231', 'cacheBalance' => false, 'keepUnique' => true));
-        $bRecs = $Balance->getBalance('3231');
-        $balHistory = $Balance->getBalanceHystory('3231', $from = $rec->from, $to = $rec->to, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = true, $strict = true);
+        //$bRecs = $Balance->getBalance('3231');
+        $balHistory = $Balance->getBalanceHystory('3231', $from = $rec->from, $to = $rec->to, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = false, $strict = true);
 
-        $documentsDebitQuantity = $documentsCreditQuantity = array();
+        $documentsDebitQuantity1 = $documentsCreditQuantity1 = array();
 
         foreach ($balHistory['history'] as $jRec) {
-//bp($balHistory['history'],$bRecs);
-            $debitQuantity =  $creditQuantity = 0;
+
+            $debitQuantity = $creditQuantity = 0;
 
             $pRec = cls::get($jRec['docType'])->fetch($jRec['docId']);
 
+            $contragentFolder = cls::get($pRec->contragentClassId)::fetch($pRec->contragentId)->folderId;
+
+            if ($rec->contragent) {
+                if (!in_array($contragentFolder, keylist::toArray($rec->contragent))) continue;
+            }
 
             $item = acc_Items::fetch($jRec['debitItem2']);
 
-            if($jRec['debitQuantity']){
-                $debitQuantity = $jRec['debitQuantity'];
-                array_push($documentsDebitQuantity,$pRec->id);
-            }
-            if($jRec['creditQuantity']){
-                $creditQuantity = $jRec['creditQuantity'];
-                array_push($documentsCreditQuantity,$pRec->id);
-            }
-
             $prodRec = cls::get($item->classId)->fetch($item->objectId);
-//bp($prodRec);
-            $id = $prodRec->id;
 
+            if ($jRec['debitQuantity']) {
+                $debitQuantity = $jRec['debitQuantity'];
+                $documentsDebitQuantity1[$jRec['docId'] . '|' . $prodRec->id] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId'], 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
+            }
+            if ($jRec['creditQuantity']) {
+                $creditQuantity = $jRec['creditQuantity'];
+                $documentsCreditQuantity1[$jRec['docId'] . '|' . $prodRec->id] = (object)array('docType' => $jRec['docType'], 'docId' => $jRec['docId'], 'productId' => $prodRec->id, 'contragent' => $pRec->folderId);
+
+            }
+
+            $id = $prodRec->id . '|' . $pRec->folderId;
             // добавяме в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
 
                     'contragent' => $pRec->folderId,
-                    'protocol' => $pRec->id,
+                    'docClsId' => $jRec['docType'],
+                    'docId' => $jRec['docId'],
                     'productId' => $prodRec->id,
                     'debitQuantity' => $debitQuantity,
                     'creditQuantity' => $creditQuantity,
-                    'documentsDebitQuantity' => $documentsDebitQuantity,
-                    'documentsCreditQuantity' => $documentsCreditQuantity,
+                    'documentsDebitQuantity' => array(),
+                    'documentsCreditQuantity' => array(),
                     'date' => $pRec->valior,
                     'storeId' => $pRec->storeId,
 
@@ -210,7 +216,13 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             }
 
         }
-//bp($recs);
+        foreach ($recs as $rec) {
+
+            $rec->documentsDebitQuantity = $documentsDebitQuantity1;
+            $rec->documentsCreditQuantity = $documentsCreditQuantity1;
+
+        }
+
         return $recs;
     }
 
@@ -231,16 +243,16 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $fld->FLD('contragent', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             //$fld->FLD('date', 'date', 'caption=Дата');
-            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
-            $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено->Количество');
-            $fld->FLD('debitDocuments', 'varchar', 'caption=Дадено->Документи');
-            $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Прието->Количество');
-            $fld->FLD('creditDocuments', 'varchar', 'caption=Прието->Документи');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=К-во,smartCenter,tdClass=boldText');
+            $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено->К-во,smartCenter');
+            $fld->FLD('debitDocuments', 'varchar', 'caption=Дадено->Документи,tdClass=midCell');
+            $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Прието->К-во,smartCenter');
+            $fld->FLD('creditDocuments', 'varchar', 'caption=Прието->Документи,tdClass=midCell');
 
-        //    $fld->FLD('protocol', 'varchar', 'caption=Протокол');
-         //   $fld->FLD('inOut', 'varchar', 'caption=Тип');
-           // $fld->FLD('storeId', 'varchar', 'caption=Склад');
-           // $fld->FLD('newProtocol', 'varchar', 'caption=Нов ПОП');
+            //    $fld->FLD('protocol', 'varchar', 'caption=Протокол');
+            //   $fld->FLD('inOut', 'varchar', 'caption=Тип');
+            // $fld->FLD('storeId', 'varchar', 'caption=Склад');
+            // $fld->FLD('newProtocol', 'varchar', 'caption=Нов ПОП');
 
 
         } else {
@@ -284,33 +296,45 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $row->creditQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->creditQuantity);
 
-        if(!empty($dRec->documentsDebitQuantity)) {
+        $row->debitDocuments = '';
+        if (!empty($dRec->documentsDebitQuantity)) {
+
             foreach ($dRec->documentsDebitQuantity as $v) {
-                $className = 'store_ConsignmentProtocols';
-                $handle = $className::getHandle($dRec->documentId) . $v;
-                $url = toUrl(array('store_ConsignmentProtocols', 'single', $v));
 
-                $row->debitDocuments = ht::createLink($handle, $url) . ',';
-            }
-        }
-            if(!empty($dRec->documentsCreditQuantity)){
-                foreach ($dRec->documentsCreditQuantity as $v){
-                    $className = 'store_ConsignmentProtocols';
-                    $handle = $className::getHandle($dRec->documentId).$v;
-                    $url = toUrl(array('store_ConsignmentProtocols', 'single', $v));
+                if (($v->contragent == $dRec->contragent) && ($v->productId == $dRec->productId)) {
 
-                    $row->creditDocuments = ht::createLink($handle, $url).',';
+                    $Doc = cls::get($v->docType);
+                    $rDoc = $Doc->fetch($v->docId);
+                    $handle = $Doc->className::getHandle($v->docId);
+                    $state = $rDoc->state;
+
+                    $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
+                    $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
+                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>' ;
 
                 }
-
-
-
-
+            }
         }
 
+        $row->creditDocuments = '';
+        if (!empty($dRec->documentsCreditQuantity)) {
 
+            foreach ($dRec->documentsCreditQuantity as $v) {
 
+                if (($v->contragent == $dRec->contragent) && ($v->productId == $dRec->productId)) {
 
+                    $Doc = cls::get($v->docType);
+                    $rDoc = $Doc->fetch($v->docId);
+                    $handle = $Doc->className::getHandle($v->docId);
+                    $state = $rDoc->state;
+
+                    $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
+                    $row->creditDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
+                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>';
+
+                }
+            }
+        }
 
         $row->protocol = store_ConsignmentProtocols::getHyperlink($dRec->protocol);
         if ($dRec->inOut) {
@@ -403,8 +427,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         expect($storeId = Request::get('storeId', 'int'));
 
         $fRec = doc_Folders::fetch($contragentFolder);
-        $contragentClassId = $fRec -> coverClass;
-        $contragentId = $fRec -> coverId;
+        $contragentClassId = $fRec->coverClass;
+        $contragentId = $fRec->coverId;
 
         // Прави запис в модела на движенията
         $pRec = (object)array(
@@ -413,7 +437,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             'storeId' => $storeId,
             'protocolType' => 'protocol',
             'productType' => 'ours',
-            'contragentClassId' =>$contragentClassId,
+            'contragentClassId' => $contragentClassId,
             'contragentId' => $contragentId,
             'state' => 'draft',
         );

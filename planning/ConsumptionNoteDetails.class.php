@@ -100,8 +100,14 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      * Кои операции от задачите ще се зареждат
      */
     public $taskActionLoad = 'input';
-    
-    
+
+
+    /**
+     * Дали артикула ще произвежда при експедиране артикулите с моментна рецепта
+     */
+    public $manifactureProductsOnShipment = true;
+
+
     /**
      * Описание на модела (таблицата)
      */

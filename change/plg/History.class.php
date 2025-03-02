@@ -277,8 +277,8 @@ class change_plg_History extends core_Plugin
         $row = &$data->row;
 
         if(isset($rec->validFrom)){
-            $oneMothAgo = dt::addMonths(-1);
-            if($rec->validFrom < $oneMothAgo || $rec->validFrom == dt::today() . " 00:00:00"){
+            $oneMonthAgo = dt::addMonths(-1);
+            if($rec->validFrom < $oneMonthAgo || $rec->validFrom == $rec->createdBy){
                 unset($row->validFrom);
             }
         }

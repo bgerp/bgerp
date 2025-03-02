@@ -814,7 +814,7 @@ class hr_EmployeeContracts extends core_Master
                     'stateDateFrom' => $recSick->startDate,
                     'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recSick->toDate, crm_Profiles::getUserByPerson($id))),
                     'stateAlternatePersons' => $recSick->alternatePersons,
-                    'stateAnswerGSM' => $recSick->answerGSM,
+                    'stateAnswerSystem' => $recSick->answerSystem,
                     'stateEmoji' => $recSick->emoji,
                 );
             }
@@ -831,7 +831,7 @@ class hr_EmployeeContracts extends core_Master
                     'stateDateFrom' => $recLeave->leaveFrom,
                     'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))),
                     'stateAlternatePersons' => $recLeave->alternatePersons,
-                    'stateAnswerGSM' => $recLeave->answerGSM,
+                    'stateAnswerSystem' => $recLeave->answerSystem,
                     'stateEmoji' => $recLeave->emoji,);
             }
         }
@@ -848,7 +848,7 @@ class hr_EmployeeContracts extends core_Master
                     'stateDateFrom' => $recHome->startDate,
                     'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recHome->toDate, crm_Profiles::getUserByPerson($id))),
                     'stateAlternatePersons' => $recHome->alternatePersons,
-                    'stateAnswerGSM' => $recHome->answerGSM,
+                    'stateAnswerSystem' => $recHome->answerSystem,
                     'stateEmoji' => $recHome->emoji,
                 );
             }
@@ -864,7 +864,7 @@ class hr_EmployeeContracts extends core_Master
                     'stateDateFrom' => $recTrip->startDate,
                     'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recTrip->toDate, crm_Profiles::getUserByPerson($id))),
                     'stateAlternatePersons' => $recTrip->alternatePersons,
-                    'stateAnswerGSM' => $recTrip->answerGSM,
+                    'stateAnswerSystem' => $recTrip->answerSystem,
                     'stateEmoji' => $recTrip->emoji,
                 );
             }
@@ -898,14 +898,14 @@ class hr_EmployeeContracts extends core_Master
 
             $rec->stateAlternatePersons = $persons[$rec->personId]->stateAlternatePersons;
 
-            $rec->stateAnswerGSM = $persons[$rec->personId]->stateAnswerGSM;
+            $rec->stateAnswerSystem = $persons[$rec->personId]->stateAnswerSystem;
 
             $rec->stateEmoji = $persons[$rec->personId]->stateEmoji;
 
             $res[] = $rec;
 
             // и ги записваме на съответния профил
-            crm_Profiles::save($rec, 'stateInfo,stateDateFrom,stateDateTo,stateAlternatePersons,stateAnswerGSM,stateEmoji');
+            crm_Profiles::save($rec, 'stateInfo,stateDateFrom,stateDateTo,stateAlternatePersons,stateAnswerSystem,stateEmoji');
         }
     }
 

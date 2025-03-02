@@ -438,6 +438,10 @@ class planning_WorkInProgress extends core_Manager
             $fieldset->FLD($fld, 'double', 'tdClass=quantityCol');
         }
         $fieldset->setField('diff', 'tdClass=wasteCol');
+        $fieldset->setField('bomQuantity', 'tdClass=quiet');
+        $fieldset->setField('consumpedDetailed', 'tdClass=green');
+        $fieldset->setField('returnedInput', 'tdClass=red');
+        $fieldset->setField('inputed', 'tdClass=red');
 
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
         $details = $table->get($data->workInProgressData->rows, $data->workInProgressData->listFields);
