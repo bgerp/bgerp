@@ -118,83 +118,105 @@ abstract class deals_DealMaster extends deals_DealBase
         if (empty($mvc->fields['contoActions'])) {
             $mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
         }
+        $mvc->FLD('overdueAmountPerDays', 'double(decimals=2)', 'input=none');
+        $mvc->FLD('overdueAmount', 'double', 'input=none');
     }
-    
-    
+
+
     /**
      * Какво е платежното състояние на сделката
      *
-     * @param mixed $rec - ид или запис
+     * @param stdClass $rec - ид или запис
      * @param null|bgerp_iface_DealAggregator $aggregator
      * @return string
      */
-    public function getPaymentState($rec, $aggregator = null)
+    public function getPaymentState(&$rec, $aggregator = null)
     {
         $rec = $this->fetchRec($rec);
-        $notInvoicedAmount = core_Math::roundNumber($rec->amountDelivered) - core_Math::roundNumber($rec->amountInvoiced);
-        
-        // Добавне на 0 за да елиминираме -0 ако се получи при изчислението
-        $notInvoicedAmount += 0;
-
-        // Кои са фактурите в сделката
-        $threads = deals_Helper::getCombinedThreads($rec->threadId);
-        $invoices = deals_Helper::getInvoicesInThread($threads);
-        $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
 
         // Ако имаме доставено или платено
         $amountBl = round($rec->amountBl, 4);
-        $tolerance = $rec->amountDelivered * $tolerancePercent;
+        $today = dt::today();
+        $todayTimestamp = strtotime($today);
+        $overdueToleranceAmount = deals_Setup::get('OVERDUE_TOLERANCE_AMOUNT');
 
         // Ако имаме фактури към сделката
+        $invoices = deals_Helper::getInvoicePayments($rec->threadId);
         if (countR($invoices)) {
-            $today = dt::today();
+            $overdueAmount = $overdueAmountPerDays = 0;
+            $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
 
-            // Намираме непадежиралите фактури, тези с вальор >= на днес
-            $sum = 0;
-            array_walk($invoices, function ($v, $k) use ($today, &$sum) {
-                $Doc = doc_Containers::getDocument($k);
-                $iRec = $Doc->fetch('dealValue,vatAmount,discountAmount,type,date,dueDate');
-                $total = $iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount;
-                $total = ($iRec->type == 'credit_note') ? -1 * $total : $total;
-                $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
-                if ($dueDate >= $today && $total > 0) {
-                    $sum += $total;
+            // Всички ф-ри с отнесените плащания към тях
+            foreach ($invoices as $invRec){
+                $dueDate = dt::addDays($overdueAddDays, $invRec->dueDate, false);
+
+                // Ако крайния им срок е в миналото и има НЕПЛАТЕНО
+                if(strtotime($dueDate) < $todayTimestamp){
+                    $diff = ($invRec->amount - $invRec->payout) * $invRec->rate;
+                    if(round($diff, 2) > 0){
+                        // Сумира се неплатеното на всички ф-ри и се смятат леводните просрочие
+                        $overdueAmount += $diff;
+                        $overdueAmountPerDays += $diff * dt::daysBetween($today, $dueDate);
+                    }
                 }
-            });
-
-            // Ще сравняваме салдото със сумата на непадежиралите фактури + нефактурираното
-            $valueToCompare = $sum + $notInvoicedAmount;
-
-            // За покупката гледаме баланса с обратен знак
-            $balance = $rec->amountBl;
-            if ($this instanceof purchase_Purchases) {
-                $balance = -1 * $balance;
             }
-            
-            $balance = round($balance, 4);
-            $valueToCompare = round($valueToCompare, 4);
-            $difference = $balance - $valueToCompare;
 
-            if ($balance > $valueToCompare && ($difference < -5 || $difference > 5)) {
+            // Ако има просрочена сума и тя е извън допустимия толеранс - значи е просрочена
+            $overdueAmount = round($overdueAmount, 2);
+            if ((abs($overdueAmount) > $overdueToleranceAmount)) {
+                $rec->overdueAmountPerDays = $overdueAmountPerDays;
+                $rec->overdueAmount = $overdueAmount;
 
                 return 'overdue';
             }
         } else {
 
-
             // Ако няма фактури, гледаме имали платежен план
             $aggregateDealInfo = !isset($aggregator) ? $this->getAggregateDealInfo($rec->id) : $aggregator;
+
+            $proformaValior = null;
             $methodId = $aggregateDealInfo->get('paymentMethodId');
+            $invoiceDate = $aggregateDealInfo->get('invoicedValior');
+            $shippedValior = $aggregateDealInfo->get('shippedValior');
+            $agreedValior = $aggregateDealInfo->get('agreedValior');
+
+            // Извличане на най-малката дата на проформата (ако няма дата на ф-не или дата на доставка)
+            if($this instanceof sales_Sales){
+                if(empty($invoiceDate) && empty($shippedValior)){
+                    $proformaDates = array();
+                    $pQuery = sales_Proformas::getQuery();
+                    $pQuery->where("#threadId = {$rec->threadId}");
+                    $pQuery->show('date,dueDate');
+                    while($pRec = $pQuery->fetch()){
+                        $proformaDates[] = !empty($pRec->dueDate) ? $pRec->dueDate : $pRec->date;
+                    }
+                    $proformaValior = countR($proformaDates) ? min($proformaDates) : null;
+                }
+            }
+
+            setIfNot($date, $invoiceDate, $shippedValior, $proformaValior, $agreedValior);
+
+            // Ако няма дефолтен начин на плащане се търси такъв
+            if(empty($methodId)){
+                $condSysId = ($this instanceof sales_Sales) ? 'paymentMethodSale' : 'paymentMethodPurchase';
+                $methodId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $condSysId);
+            }
+
+            if(empty($methodId)) {
+                $methodId = deals_Setup::get('OVERDUE_DEFAULT_PAYMENT_METHOD');
+            }
+
             if (!empty($methodId)) {
+
                 // За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
-                $date = null;
-                setIfNot($date, $aggregateDealInfo->get('invoicedValior'), $aggregateDealInfo->get('shippedValior'), $aggregateDealInfo->get('agreedValior'));
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
 
                 // Проверяваме дали сделката е просрочена по платежния си план
-                $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
-                if (abs($diff) > abs($tolerance)) {
-                    if (cond_PaymentMethods::isOverdue($plan, $diff)) {
+                $diff = $rec->amountDelivered - $rec->amountPaid;
+                if (abs(round($diff, 2)) > abs($overdueToleranceAmount)) {
+                    if (cond_PaymentMethods::isOverdue($plan, $diff, $overdueOn)) {
+                        $rec->overdueAmount = $diff;
+                        $rec->overdueAmountPerDays = $rec->overdueAmount * dt::daysBetween($today, $overdueOn);
 
                         return 'overdue';
                     }
@@ -203,11 +225,14 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // Ако салдото е в рамките на толеранса приемаме че е 0
+        $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
+        $tolerance = $rec->amountDelivered * $tolerancePercent;
         if (abs($amountBl) <= abs($tolerance)) {
             $amountBl = 0;
         }
         
         // Правим проверка дали е платена сделката
+        $rec->overdueAmount = $rec->overdueAmountPerDays = null;
         if ($this instanceof sales_Sales) {
             if ($amountBl <= 0) {
                 
@@ -268,7 +293,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('oneTimeDelivery', 'enum(yes=Да,no=Не)', 'caption=Доставка->Еднократно,maxRadio=2,notChangeableByContractor,notNull,value=no');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor,removeAndRefreshForm=paymentType,silent');
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин');
-        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate,notChangeableByContractor');
+        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate,notChangeableByContractor,silent');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса,notChangeableByContractor');
         
@@ -277,8 +302,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('dealerId', "user(rolesForAll={$dealerRolesForAll},allowEmpty,roles={$dealerRolesList})", 'caption=Наш персонал->Търговец,notChangeableByContractor');
         
         // Допълнително
-        $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
-        $mvc->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Допълнително->ДДС изключение');
+        $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor,silent');
+        $mvc->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Допълнително->ДДС изключение,silent');
 
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
@@ -290,7 +315,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 'caption=Статус, input=none'
         );
         
-        $mvc->FLD('paymentState', 'enum(pending=Има||Yes,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Плащане->чакащо, input=none,notNull,value=paid');
+        $mvc->FLD('paymentState', 'enum(pending=Очаква се||Expected,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Плащане->Чакащо, input=none,notNull,value=paid');
         $mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
 
         $mvc->setDbIndex('state');
@@ -317,8 +342,15 @@ abstract class deals_DealMaster extends deals_DealBase
             $form->rec->chargeVat = 'no';
             $form->setReadOnly('chargeVat');
         }
-        
-        $form->setDefault('makeInvoice', 'yes');
+
+        $defaultMakeInvoice = 'yes';
+        if($mvc instanceof purchase_Purchases){
+            $ContragentClass = cls::get($rec->contragentClassId);
+            if($ContragentClass instanceof crm_Persons){
+                $defaultMakeInvoice = $ContragentClass->shouldChargeVat($rec->contragentId, $mvc) ? 'yes' : 'no';
+            }
+        }
+        $form->setDefault('makeInvoice', $defaultMakeInvoice);
         
         // Поле за избор на локация - само локациите на контрагента по сделката
         if (!$form->getFieldTypeParam('deliveryLocationId', 'isReadOnly')) {
@@ -337,7 +369,10 @@ abstract class deals_DealMaster extends deals_DealBase
             $Detail = $mvc->mainDetail;
             if ($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$rec->id}")) {
                 foreach (array('chargeVat', 'currencyId', 'deliveryTermId', 'vatExceptionId') as $fld) {
-                    $form->setReadOnly($fld, $rec->{$fld} ?? $mvc->fetchField($rec->id, $fld));
+                    $readOnlyVal = $rec->{$fld} ?? $mvc->fetchField($rec->id, $fld);
+                    if($data->action == 'clone' && !isset($readOnlyVal)) continue;
+
+                    $form->setReadOnly($fld, $rec->{$fld} ?? $readOnlyVal);
                 }
             }
         } else {
@@ -538,7 +573,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени');
     
         return $options;
     }
@@ -574,6 +609,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 break;
             case 'stopped':
                 $query->where("#state = 'stopped'");
+                break;
+            case 'expectedPayment':
+                $query->where("#paymentState = 'pending' AND (#state = 'active' OR #state = 'closed')");
                 break;
             case 'paid':
                 $query->where("#paymentState = 'paid' OR #paymentState = 'repaid'");
@@ -649,7 +687,8 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         if (!Request::get('Rejected', 'int')) {
             $fType = cls::get('type_Enum', array('options' => $mvc->getListFilterTypeOptions($data)));
-            $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm');
+            $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm,silent');
+            $data->listFilter->input('type', 'silent');
             $data->listFilter->setFieldType('type', $fType);
             $data->listFilter->setDefault('type', 'notClosedWith');
             $data->listFilter->showFields .= ',type';
@@ -698,19 +737,34 @@ abstract class deals_DealMaster extends deals_DealBase
     public function prepareListSummary_(&$data)
     {
         if(!Request::get('Rejected')){
+            $showVat = doc_Setup::get('SHOW_LIST_SUMMARY_VAT');
             $summaryQuery = clone $data->query;
-            $summaryQuery->XPR('amountDealNoVat', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
-            $summaryQuery->XPR('amountDeliveredNoVat', 'double', 'ROUND((#amountDelivered / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
-            $summaryQuery->XPR('amountPaidNoVat', 'double', 'ROUND((#amountPaid / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
-            $summaryQuery->XPR('amountBlNoVat', 'double', 'ROUND((#amountBl / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
-            $summaryQuery->XPR('amountInvoicedNoVat', 'double', 'ROUND((#amountInvoiced / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
+
+            if($showVat == 'yes') {
+                $caption = 'с ДДС';
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(#amountDeal, 2)');
+            } else {
+                $caption = 'без ДДС';
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
+            }
+
+            foreach (array('amountDelivered', 'amountPaid', 'amountBl', 'amountInvoiced') as $fld){
+                if($showVat == 'yes'){
+                    $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(#{$fld}, 2)");
+                } else {
+                    $condNull = "(#{$fld} / 1.2)";
+                    $condNotNUll = "(#{$fld} / (1 + #amountVat / (#amountDeal - #amountVat)))";
+                    $cond = "IF(#amountVat IS NOT NULL, $condNotNUll, $condNull)";
+                    $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(($cond), 2)");
+                }
+            }
 
             $data->listSummary = (object)array('mvc' => clone $this, 'query' => $summaryQuery);
-            $data->listSummary->mvc->FNC('amountDealNoVat', 'varchar', 'caption=Поръчано (без ДДС),input=none,summary=amount');
-            $data->listSummary->mvc->FNC('amountDeliveredNoVat', 'varchar', 'caption=Доставено (без ДДС),input=none,summary=amount');
-            $data->listSummary->mvc->FNC('amountPaidNoVat', 'varchar', 'caption=Платено (без ДДС),input=none,summary=amount');
-            $data->listSummary->mvc->FNC('amountInvoicedNoVat', 'varchar', 'caption=Фактурирано (без ДДС),input=none,summary=amount');
-            $data->listSummary->mvc->FNC('amountBlNoVat', 'varchar', 'caption=Крайно салдо,input=none,summary=amount');
+            $data->listSummary->mvc->FNC('amountDealCalc', 'varchar', "caption=Поръчано ({$caption}),input=none,summary=amount");
+            $data->listSummary->mvc->FNC('amountDeliveredCalc', 'varchar', "caption=Доставено ({$caption}),input=none,summary=amount");
+            $data->listSummary->mvc->FNC('amountPaidCalc', 'varchar', "caption=Платено ({$caption}),input=none,summary=amount");
+            $data->listSummary->mvc->FNC('amountInvoicedCalc', 'varchar', "caption=Фактурирано ({$caption}),input=none,summary=amount");
+            $data->listSummary->mvc->FNC('amountBlCalc', 'varchar', "caption=Крайно салдо,input=none,summary=amount");
         }
     }
 
@@ -1182,10 +1236,26 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
         $row->paymentState = $mvc->getVerbal($rec, 'paymentState');
-        
-        if ($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid') {
+        $row->paymentStateCaption = tr('Чакащо плащане');
+        if ($rec->paymentState == 'overdue') {
             $row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . '</span>';
+            if(isset($rec->overdueAmount)){
+                $overdueAmountInCurrency = $rec->overdueAmount / $rec->currencyRate;
+                $overdueOnHint = "Просрочено средно с:|* " . core_Type::getByName('int')->toVerbal($rec->overdueAmountPerDays / $overdueAmountInCurrency) . " |дни|*";
+                $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($overdueAmountInCurrency);
+                $row->paymentState = $overdueAmount;
+                $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
+                if(!$fields['-list']){
+                    $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
+                }
+                $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'warning', false);
+            }
             $row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
+        } elseif($rec->paymentState == 'pending') {
+            $row->paymentState = $row->amountToPay;
+            if(!$fields['-list']){
+                $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
+            }
         }
         
         if (isset($rec->dealerId)) {
@@ -1632,13 +1702,14 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         // ако има каса, метода за плащане е COD и текущия потребител може да се логне в касата
-
         $defaultCaseId = $rec->caseId ?? cash_Cases::getCurrent('id', false);
-        if ($rec->amountDeal && isset($defaultCaseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && bgerp_plg_FLB::canUse('cash_Cases', $defaultCaseId)) {
-            
-            // Може да се плати от каса
-            $caseName = cash_Cases::getTitleById($defaultCaseId);
-            $options['pay'] = "{$opt['pay']} \"${caseName}\"";
+        if (isset($rec->amountDeal) && isset($defaultCaseId) && bgerp_plg_FLB::canUse('cash_Cases', $defaultCaseId)) {
+            if ($rec->paymentType == 'cash' || (empty($rec->paymentType) && cond_PaymentMethods::isCOD($rec->paymentMethodId))) {
+
+                // Може да се плати от каса
+                $caseName = cash_Cases::getTitleById($defaultCaseId);
+                $options['pay'] = "{$opt['pay']} \"${caseName}\"";
+            }
         }
 
         $res = $options;
@@ -1673,6 +1744,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Извличане на позволените операции
         $options = $this->getContoOptions($rec);
+
         $hasSelectedBankAndCase = !empty($rec->bankAccountId) && !empty($rec->caseId);
         
         // Трябва да има избор на действие
@@ -1905,15 +1977,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $query = $Class->getQuery();
         $query->where("#state = 'active'");
         $query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
-
         while ($rec = $query->fetch()) {
             try {
-                $rec->paymentState = $Class->getPaymentState($rec->id);
-                $Class->save_($rec, 'paymentState');
+                $rec->paymentState = $Class->getPaymentState($rec);
+                $Class->save_($rec, 'paymentState,overdueAmountPerDays,overdueAmount');
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 continue;
-            }
+           }
         }
     }
     
@@ -2456,21 +2527,24 @@ abstract class deals_DealMaster extends deals_DealBase
             $mvc->save($rec, 'valior');
         }
     }
-    
-    
+
+
     /**
-     * Подготвя табовете на задачите
+     * След подготовка на табовете на документа
+     * @see doc_plg_Tabs
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     * @return void
      */
-    public function prepareDealTabs_(&$data)
+    protected static function on_AfterPrepareDocumentTabs($mvc, &$res, $data)
     {
-        parent::prepareDealTabs_($data);
-        
+        // Добавяне на таб показващ поръчано/доставено
         if ($data->rec->state != 'draft') {
             $url = getCurrentUrl();
-            unset($url['export']);
-            
-            $url['dealTab'] = 'DealReport';
-            $data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url);
+            $url["docTab{$data->rec->containerId}"] = 'DealReport';
+            $data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url, null, 3);
         }
     }
 
@@ -3018,6 +3092,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
             }
         }
+
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Плащания', array($mvc, 'showDebugPayments', 'threadId' => $rec->threadId), 'ef_icon=img/16/bug.png,title=Дебъг плащания по фактурите,row=2');
+        }
     }
 
 
@@ -3088,5 +3166,23 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         return false;
+    }
+
+
+    /**
+     * Дебъг екшън показващ разпределени плащанията по фактури
+     */
+    public static function act_showDebugPayments()
+    {
+        requireRole('debug');
+        $threadId = Request::get('threadId', 'int');
+        $payments = deals_Helper::getInvoicePayments($threadId);
+
+        $payments1 = deals_Helper::getInvoicePayments($threadId, null, false, false);
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $pRec = $firstDoc->fetch();
+        $firstDoc->getInstance()->getPaymentState($pRec);
+
+        bp($payments, $payments1, $pRec);
     }
 }

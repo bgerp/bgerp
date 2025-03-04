@@ -113,6 +113,8 @@ class plg_Search extends core_Plugin
             }
             
             foreach ($fieldsArr as $field => $fieldObj) {
+                // Дали това поле даващо ключови думи е дефинирано?
+                expect(is_object($fieldObj), $field);
                 if (get_class($fieldObj->type) == 'type_Text') {
                     $searchKeywords .= ' ' . static::normalizeText($cRec->{$field});
                 } else {

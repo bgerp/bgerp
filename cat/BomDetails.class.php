@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -161,8 +161,8 @@ class cat_BomDetails extends doc_Detail
 	    $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
 
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
-        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Произвеждане В,input=none');
-        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Материали ОТ,input=none');
+        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Произвеждане В,input=none');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Материали ОТ,input=none');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване,input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори,input=none');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма,input=none');
@@ -176,7 +176,7 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък в производството->Допустим,autohide,input=none');
 
         $this->FLD('inputPreviousSteps', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Планиране - влагане на предходния и вложените Етапи->Избор,autohide,input=hidden');
-        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
+        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап,subProduct=Субпродукт)', 'caption=Действие,silent,input=hidden');
         $this->FLD('primeCost', 'double', 'caption=Себестойност,input=none,tdClass=accCell');
         $this->FLD('params', 'blob(serialize, compress)', 'input=none');
         $this->FNC('rowQuantity', 'double(maxDecimals=4)', 'caption=Количество,input=none,tdClass=accCell');
@@ -234,14 +234,15 @@ class cat_BomDetails extends doc_Detail
             $form->setReadOnly('resourceId');
         }
 
-        $matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : 'Етап');
+        $matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : (($rec->type == 'subProduct') ? 'Субпродукт' : 'Етап'));
         $parentIdCaption = ($rec->type == 'stage') ? 'Подетап на' : 'Етап';
         $form->setField('parentId', "caption={$parentIdCaption}");
         $form->setField('resourceId', "caption={$matCaption}");
         
         // Добавяме всички вложими артикули за избор
-        $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
+        $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : ($rec->type == 'input' ? 'canConvert' : 'canManifacture');
         $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
+
         $onlyProductionStages = ($rec->type != 'stage') ? null : true;
         $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups, 'onlyProductionStages' => $onlyProductionStages));
         
@@ -249,9 +250,12 @@ class cat_BomDetails extends doc_Detail
         $quantity = $data->masterRec->quantity;
         $originInfo = cat_Products::getProductInfo($data->masterRec->productId);
         $shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
-        
-        $propCaption = "Количество->|За|* |{$quantity}|* {$shortUom}";
-        $form->setField('propQuantity', "caption={$propCaption}");
+
+        if(!empty($rec->parentId)){
+            $form->setField('propQuantity', "caption=Количество->|За 1 от етапа");
+        } else {
+            $form->setField('propQuantity', "caption=Количество->|За|* |{$quantity}|* {$shortUom}");
+        }
         
         // Възможните етапи са етапите от текущата рецепта
         $stepOptions = static::getParentOptions($rec->bomId, $rec->id);
@@ -389,7 +393,7 @@ class cat_BomDetails extends doc_Detail
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
     {
         $rec = &$data->form->rec;
-        $data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : (($rec->type == 'pop') ? 'отпадък' : 'етап');
+        $data->singleTitle = ($rec->type == 'input') ? 'артикул за влагане' : (($rec->type == 'pop') ? 'отпадък' : (($rec->type == 'subProduct') ? 'субпродукт' : 'етап'));
     }
     
     
@@ -675,10 +679,11 @@ class cat_BomDetails extends doc_Detail
             }
             
             // Ако добавяме отпадък, искаме да има себестойност
-            if ($rec->type == 'pop') {
+            if (in_array($rec->type, array('pop', 'subProduct'))) {
                 $selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId);
                 if (!isset($selfValue)) {
-                    $form->setWarning('resourceId', 'Отпадъкът няма себестойност');
+                    $midCaption = ($rec->type == 'subProduct') ? 'Субпродуктът няма себестойност|*!' : 'Отпадъкът няма себестойност|*!';
+                    $form->setWarning('resourceId', $midCaption);
                 }
             }
             
@@ -790,7 +795,7 @@ class cat_BomDetails extends doc_Detail
             $row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
             $row->ROW_ATTR['title'] = tr('Етап');
         } else {
-            $row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
+            $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : ($rec->type == 'pop' ? 'row-removed' : 'row-subProduct');
         }
 
         // Генерираме кода според позицията на артикула и етапите
@@ -1059,16 +1064,21 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $data->toolbar->removeBtn('btnAdd');
+
+        if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'stage'))) {
+            $data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'stage'), null, 'title=Добавяне на етап,ef_icon=img/16/paste_plain.png');
+        }
+
         if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId))) {
             $data->toolbar->addBtn('Влагане', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'input'), null, 'title=Добавяне на артикул за влагане,ef_icon=img/16/package.png');
         }
         
-        if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'stage'))) {
-            $data->toolbar->addBtn('Етап', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'stage'), null, 'title=Добавяне на етап,ef_icon=img/16/paste_plain.png');
-        }
-        
         if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'pop'))) {
             $data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'pop'), null, 'title=Добавяне на отпадък,ef_icon=img/16/recycle.png');
+        }
+
+        if ($mvc->haveRightFor('add', (object) array('bomId' => $data->masterId, 'type' => 'subProduct'))) {
+            $data->toolbar->addBtn('Субпродукт', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => true, 'type' => 'subProduct'), null, 'title=Добавяне на субпродукт,ef_icon=img/16/door_in.png');
         }
     }
     

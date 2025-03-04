@@ -77,9 +77,10 @@ class type_UserList extends type_Keylist
         // Извличане на  информация за отсъствията на потребителите
         $this->profileInfo = array();
         $pQuery = crm_Profiles::getQuery();
-        $pQuery->show('userId,stateDateFrom,stateDateTo');
+        $pQuery->show('userId,stateDateFrom,stateDateTo,stateEmoji');
         while ($rec = $pQuery->fetch('#stateInfo IS NOT NULL')) {
-            $this->profileInfo[$rec->userId] = crm_Profiles::getAbsenceClass($rec->stateDateFrom, $rec->stateDateTo);
+            $this->profileInfo[$rec->userId]['class'] = crm_Profiles::getAbsenceClass($rec->stateDateFrom, $rec->stateDateTo, (boolean) ($rec->stateAnswerSystem != 'no'));
+            $this->profileInfo[$rec->userId]['emoji'] = hr_Leaves::getEmoji($rec->stateEmoji, 'statusIcon', $rec->stateDateFrom, $rec->stateDateTo);
         }
         
         // Ако може да вижда всички екипи - показват се. Иначе вижда само своя екип

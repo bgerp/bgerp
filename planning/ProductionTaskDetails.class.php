@@ -79,7 +79,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кой има право да листва?
      */
-    public $canList = 'taskSee,ceo';
+    public $canList = 'taskSee,ceo, planningAll';
 
 
     /**
@@ -1050,7 +1050,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : (($rec->type == 'scrap') ? 'state-hidden' : 'row-removed')));
 
-        $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
+        $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name,canStore');
         $row->productId = cat_Products::getVerbal($rec->productId, 'name');
         $singleUrl = cat_Products::getSingleUrlArray($rec->productId);
         $row->productId = (countR($singleUrl) && !Mode::is('printing')) ? ht::createLinkRef($row->productId, $singleUrl) : $row->productId;
@@ -1089,14 +1089,16 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         if ($rec->type == 'production') {
-            $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? "<small>" . tr("Произв.|* {$labelPackagingName}") . "</small>": "<small>" . tr('Произвеждане') . "</small>";
+            $productionCaption = ($pRec->canStore == 'yes' && $taskRec->productId != $foundRec->productId) ? 'Субпродукт' : 'Произвеждане';
+            $productionCaptionShort = ($pRec->canStore == 'yes' && $taskRec->productId != $foundRec->productId) ? 'Субпр.' : 'Произв.';
+            $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? "<small>" . tr("{$productionCaptionShort}|* {$labelPackagingName}") . "</small>": "<small>" . tr($productionCaption) . "</small>";
         }
 
         $rec->_groupedDate = dt::verbal2mysql($date, false);
         $row->_groupedDate = dt::mysql2verbal($rec->_groupedDate, 'd/m/y l');
         if(empty($taskRec->prevAssetId)){
             unset($row->fixedAsset);
-        } else {
+        } elseif(!empty($rec->fixedAsset)) {
             $row->fixedAsset = planning_AssetResources::getShortName($rec->fixedAsset, !Mode::isReadOnly());
         }
 

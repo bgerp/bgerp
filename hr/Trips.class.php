@@ -179,6 +179,7 @@ class hr_Trips extends core_Master
         $this->FLD('toDate', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
         $this->FLD('place', 'richtext(rows=5, bucket=Notes)', 'caption=Място');
         $this->FLD('purpose', 'richtext(rows=5, bucket=Notes)', 'caption=Цел');
+        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('t'))), 'caption=Икона за ника, maxRadio=4,columns=4,notNull,value=t3');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник, oldFieldName=alternatePerson');
@@ -218,7 +219,7 @@ class hr_Trips extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=selectPeriod');
+        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,,group=employees)', 'caption=Служител,silent,before=selectPeriod');
         $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
         $data->listFilter->input('employeeId', 'silent');
         

@@ -345,11 +345,15 @@ class cat_Setup extends core_ProtoSetup
      */
     public function manageConfigDescriptionForm(&$configForm)
     {
-        $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
-        $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
+        if($configForm->getField('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', false)) {
+            $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
+            $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
+        }
 
-        $packSuggestions = cat_UoM::getPackagingOptions();
-        $configForm->setSuggestions('CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC', $packSuggestions);
+        if($configForm->getField('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', false)) {
+            $packSuggestions = cat_UoM::getPackagingOptions();
+            $configForm->setSuggestions('CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC', $packSuggestions);
+        }
     }
 
 

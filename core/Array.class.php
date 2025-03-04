@@ -761,6 +761,11 @@ class core_Array
      */
     public static function isOptionsTotalLenBellowAllowed($options, $allowedLen = null)
     {
+        if (!isset($options)) {
+
+            return false;
+        }
+
         $allowedLen = $allowed ?? bgerp_Setup::get('VERTICAL_FORM_DEFAULT_MAX_RADIO_LENGTH');
 
         $count = $totalLen = 0;
@@ -777,5 +782,44 @@ class core_Array
         $res = $count * 3 + $totalLen;
 
         return $res < $allowedLen;
+    }
+
+
+    /**
+     * Подредба на масив по ключовете му спрямо подредбата в друг масив
+     * Първо се подреждат ключовете в реда от втория масив, а после останалите
+     * в оригиналния си ред
+     *
+     * @param array $arr
+     * @param array $orderedKeys
+     * @param array $priorityKeysIfNotGiven
+     * @return array $res
+     */
+    public static function reorderArrayByOrderedKeys($arr, $orderedKeys, $priorityKeysIfNotGiven = array())
+    {
+        $res = array();
+
+        // Добавяме елементите от $priorityKeysIfNotGiven, които присъстват в $arr, но не са в $orderedKeys
+        foreach ($priorityKeysIfNotGiven as $key) {
+            if (array_key_exists($key, $arr) && !in_array($key, $orderedKeys)) {
+                $res[$key] = $arr[$key];
+            }
+        }
+
+        // Добавяме елементите от $orderedKeys, които присъстват в $arr
+        foreach ($orderedKeys as $key) {
+            if (array_key_exists($key, $arr)) {
+                $res[$key] = $arr[$key];
+            }
+        }
+
+        // Добавяме останалите елементи, които не са нито в $priorityKeysIfNotGiven, нито в $orderedKeys, в оригиналния ред
+        foreach ($arr as $key => $value) {
+            if (!in_array($key, $priorityKeysIfNotGiven) && !in_array($key, $orderedKeys)) {
+                $res[$key] = $value;
+            }
+        }
+
+        return $res;
     }
 }

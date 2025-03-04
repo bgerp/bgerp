@@ -435,9 +435,17 @@ class core_Html
             )));
 
         } elseif ($optionsCnt <= $maxRadio) {
+            $keyListClass = '';
             if ($optionsCnt < 4) {
-                $keyListClass .= ' shrinked';
+                $keyListClass = ' shrinked';
             }
+
+            // Ако има празна опция, да може да се изчиства и да не се показва тази опция
+            if (isset($options['']) && !isset($attr['_isAllowEmpty'])) {
+                unset($options['']);
+                $attr['_isAllowEmpty'] = true;
+            }
+
             // Когато броя на опциите са по-малко
             
             // Определяме броя на колоните, ако не са зададени.
@@ -450,7 +458,11 @@ class core_Html
                     round(sqrt(max(0, $optionsCnt + 1)))
                 );
             }
-            
+            if ($options && is_array($options)) {
+                $col = min(countR($options), $col);
+            } else {
+                $col = 0;
+            }
             if ($col > 1) {
                 $tpl = "<table class='keylist {$keyListClass}'><tr>";
                 
@@ -465,7 +477,7 @@ class core_Html
             }
             
             $i = 0;
-            
+
             foreach ($options as $id => $opt) {
                 $input = new ET();
                 
@@ -1507,5 +1519,62 @@ class core_Html
         }
         
         return self::styleIfNegative($verbal, $notVerbal);
+    }
+
+
+    /**
+     * Рендира видео таг за пускане на виде (Само в новите браузъри)
+     *
+     * @param string $fileHnd    - файл хендлър
+     * @param array $params      - параметри за видеото
+     *     bool 'controls' - контрол над видеото
+     *     bool 'autoplay' - автоматично стартиране
+     *     bool 'loop',    - повтаряне
+     *     bool 'muted'    - дали да е без звук
+     *     string 'poster' - постер
+     *     string 'preload' - auto, metadata, none
+     *     int  'width'     - ширина (в пиксели)
+     *     int  'height'    - височина (в пиксели)
+     *     string 'class'   - CSS класове
+     * @param string $sourceType - тип на видеото
+     *
+     * @return core_ET
+     * @throws core_exception_Expect
+     */
+    public static function createVideo($fileHnd, $params = array(), $sourceType = 'video/mp4')
+    {
+        // Получаваме URL на видеото
+        $src = fileman_Download::getDownloadUrl($fileHnd);
+        expect($src);
+
+        // Стартиране на видео тага
+        $videoTag = '<video';
+
+        // Разрешени параметри за видео тага
+        $allowedParams = array('controls', 'autoplay',  'loop', 'muted', 'poster', 'preload', 'width', 'height', 'class');
+
+        // Обработване на зададените параметри
+        foreach ($allowedParams as $key) {
+            if (isset($params[$key])) {
+                $value = $params[$key];
+                if ($key === 'class') {
+                    $videoTag .= ' class="' . htmlspecialchars($value) . '"';
+                } elseif ($value === true) {
+                    $videoTag .= ' ' . $key;
+                } elseif (!is_bool($value)) {
+                    $videoTag .= ' ' . $key . '="' . htmlspecialchars($value) . '"';
+                }
+            }
+        }
+        $videoTag .= '>';
+
+        // Добавяне на source таг с подадения тип
+        $videoTag .= '<source src="' . htmlspecialchars($src) . '" type="' . htmlspecialchars($sourceType) . '">';
+
+        // Добавяне на fallback текст
+        $videoTag .= tr('Браузърът не поддържа видео тага');
+        $videoTag .= '</video>';
+
+        return new core_ET($videoTag);
     }
 }

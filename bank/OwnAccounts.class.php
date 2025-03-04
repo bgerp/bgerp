@@ -94,13 +94,13 @@ class bank_OwnAccounts extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'bank,ceo';
+    public $canList = 'bank, ceo, bankAll';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo, bank';
+    public $canSingle = 'ceo, bank, bankAll';
     
     
     /**
@@ -156,7 +156,7 @@ class bank_OwnAccounts extends core_Master
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canReports = 'ceo,bank,acc';
+    public $canReports = 'ceo,bank,acc,bankAll';
     
     
     /**
@@ -253,13 +253,7 @@ class bank_OwnAccounts extends core_Master
                 }
                 
                 // Обръщаме го в четим за хората вид
-                $Double = cls::get('type_Double');
-                $Double->params['decimals'] = 2;
-                $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . '</span>';
-                
-                if ($rec->blAmount < 0) {
-                    $row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
-                }
+                $row->blAmount = ht::styleNumber(core_Type::getByName('double(decimals=2)')->toVerbal($rec->blAmount), $rec->blAmount);
             }
         }
         
@@ -274,8 +268,17 @@ class bank_OwnAccounts extends core_Master
             $row->conditionSaleEn = bank_Accounts::getVerbal($ownAccounts, 'conditionSaleEn');
         }
     }
-    
-    
+
+
+    /**
+     * Ако няма записи не вади таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        $data->listTableMvc->FLD('blAmount', 'int');
+    }
+
+
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */

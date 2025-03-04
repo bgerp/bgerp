@@ -3073,7 +3073,7 @@ class email_Outgoings extends core_Master
             if (cls::haveInterface('doc_ContragentDataIntf', $cover->className)) {
 
                 // Вземаме груповите имейли
-                $contrData->groupEmails = $cover->getContragentData()->groupEmails;
+                $contrData->groupEmails = $cover->getContragentData($date)->groupEmails;
             }
         }
         

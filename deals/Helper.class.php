@@ -297,7 +297,8 @@ abstract class deals_Helper
         
         $coreConf = core_Packs::getConfig('core');
         $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
-        
+        $countVats = countR($values['vats']);
+
         if ($invoice || $chargeVat == 'separate') {
             if (is_array($values['vats'])) {
                 foreach ($values['vats'] as $percent => $vi) {
@@ -309,7 +310,12 @@ abstract class deals_Helper
                         
                         if ($invoice) {
                             $arr["vat{$index}Base"] = $arr["vat{$index}"];
-                            $arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
+                            if($countVats == 1 && isset($arr['neto'])) {
+                                $arr["vat{$index}BaseAmount"] = $arr['neto'];
+                            } else {
+                                $arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
+                            }
+
                             $arr["vat{$index}BaseCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
                         }
                     }
@@ -824,14 +830,20 @@ abstract class deals_Helper
      */
     public static function getQuantityHint(&$html, $mvc, $productId, $storeId, $quantity, $state, $date = null, $ignoreFirstDocumentPlannedInThread = null)
     {
-        if (!in_array($state, array('draft', 'pending'))) {
-            return;
+        if (!in_array($state, array('draft', 'pending'))) return;
+
+        $pRec = cat_Products::fetch($productId, 'canStore,isPublic');
+
+        // Ако артикулът е с моментна рецепта няма да се проверява за наличност
+        if($mvc->manifactureProductsOnShipment) {
+            $lastInstantBom = cat_Products::getLastActiveBom($productId, 'instant');
+            if(is_object($lastInstantBom)) {
+                $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, null, "class=doc-positive-quantity");
+                return;
+            }
         }
 
-        $canStore = cat_Products::fetchField($productId, 'canStore');
-        if ($canStore != 'yes') {
-            return;
-        }
+        if ($pRec->canStore != 'yes') return;
 
         $date = $date ?? null;
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
@@ -883,7 +895,7 @@ abstract class deals_Helper
         $showNegativeWarning = $makeLink = true;
 
         if($mvc instanceof sales_SalesDetails){
-            $showNegativeWarning = cat_Products::fetchField($productId, 'isPublic') == 'yes';
+            $showNegativeWarning = $pRec->isPublic == 'yes';
         }
 
         // Проверка дали има минимално разполагаемо
@@ -899,7 +911,7 @@ abstract class deals_Helper
                         if($stRec->quantity >= $quantity) {
                             $hint = "Наличността в склада е достатъчна за изпълнение / контиране на документа, но разполагаемата наличност е недостатъчна за изпълнението на всички чакащи документи!";
                         } else {
-                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                         }
                     }
                 }
@@ -911,14 +923,14 @@ abstract class deals_Helper
         if(!$firstCheck){
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
-                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                     $class = 'doc-negative-quantity';
                     $makeLink = false;
                 }
             } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
                 if($showNegativeWarning) {
                     $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
                 }
             } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
                 if($showNegativeWarning) {
@@ -941,6 +953,12 @@ abstract class deals_Helper
             // Линк към наличното в склада ако има права
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
                 $html = ht::createLinkRef($html, $url);
+            }
+        }
+
+        if($pRec->isPublic == 'no') {
+            if($futureQuantity > 0) {
+                $html = ht::createHint($html, "Наличността в склада е по-голяма|*: {$inStockVerbal} {$measureName}", 'notice', false, null, "class=doc-positive-quantity");
             }
         }
     }
@@ -1828,13 +1846,14 @@ abstract class deals_Helper
     /**
      * Помощен метод връщащ разпределението на плащанията по фактури
      *
-     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
-     * @param datetime|NULL $valior            - към коя дата
-     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
+     * @param int            $threadId               - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
+     * @param datetime|NULL  $valior                 - към коя дата
+     * @param boolean        $onlyExactPayments      - дали да са всички плащания или само конкретните към всяка ф-ра
+     * @param boolean        $applyNotesToTheInvoice - дали да наслагва известията към фактурата
      *
-     * @return array $paid      - масив с разпределените плащания
+     * @return array         $paid - масив с разпределените плащания
      */
-    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
+    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false, $applyNotesToTheInvoice = true)
     {
         // Всички ф-ри в посочената нишка/нишки
         $threads = static::getCombinedThreads($threadId);
@@ -1844,20 +1863,24 @@ abstract class deals_Helper
         $invoicesArr = self::getInvoicesInThread($threads, $valior, true, true, true);
         if (!countR($invoicesArr)) return array();
 
+        core_Debug::startTimer("CALC_INVOICE_PAYMENTS");
         $newInvoiceArr = $invMap = $payArr = array();
         foreach ($invoicesArr as $containerId => $handler) {
             $Document = doc_Containers::getDocument($containerId);
-            $iRec = $Document->fetch('dealValue,discountAmount,vatAmount,rate,type,originId,containerId');
-            
+            $iRec = $Document->fetch('dealValue,discountAmount,vatAmount,rate,type,originId,containerId,dueDate');
+            $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
+
             $amount = round((($iRec->dealValue - $iRec->discountAmount) + $iRec->vatAmount) / $iRec->rate, 2);
-            $key = ($iRec->type != 'dc_note') ? $containerId : $iRec->originId;
+
+            $key = $applyNotesToTheInvoice ? ($iRec->type != 'dc_note' ? $containerId : $iRec->originId) : $containerId;
             $invMap[$containerId] = $key;
             
             if (!array_key_exists($key, $newInvoiceArr)) {
-                $newInvoiceArr[$key] = (object) array('containerId' => $key, 'amount' => $amount, 'payout' => 0, 'payments' => array());
+                $newInvoiceArr[$key] = (object) array('containerId' => $key, 'amount' => $amount, 'payout' => 0, 'payments' => array(), 'dueDate' => $dueDate, 'rate' => $iRec->rate);
             } else {
                 $newInvoiceArr[$key]->amount += $amount;
             }
+            $newInvoiceArr[$key]->dueDate = min($newInvoiceArr[$key]->dueDate, $dueDate);
         }
 
         foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay) {
@@ -1909,7 +1932,7 @@ abstract class deals_Helper
             $DealDoc = cls::get($dealDoc);
             $dQuery = $DealDoc->getQuery();
             $dQuery->in('threadId', $threads);
-            $dQuery->where("#state = 'active' || #state = 'closed'");
+            $dQuery->where("#state IN ('active', 'closed')");
             $dQuery->where(array("#contoActions LIKE '%pay%'"));
             if (isset($valior)) {
                 $dQuery->where("#valior <= '{$valior}'");
@@ -1928,7 +1951,9 @@ abstract class deals_Helper
             $payArr = array_filter($payArr, function ($a) {return isset($a->to);});
         }
 
+
         self::allocationOfPayments($newInvoiceArr, $payArr);
+        core_Debug::stopTimer("CALC_INVOICE_PAYMENTS");
 
         return $newInvoiceArr;
     }
@@ -2164,7 +2189,7 @@ abstract class deals_Helper
         }
 
         if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
-            return ($Class->shouldChargeVat($coverId)) ? 'separate' : 'no';
+            return ($Class->shouldChargeVat($coverId, $mvc)) ? 'separate' : 'no';
         }
         
         return 'separate';
@@ -2533,9 +2558,10 @@ abstract class deals_Helper
                     if ($diff > $toleranceDiff) {
                         $obj = array();
 
+                        $startMsg = !empty($discount) ? 'Цената (с приспадната отстъпка)' : 'Цената';
                         if($i == 0 && $percent >= 0){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
-                            $obj['hint'] ='Цената е под минималната за клиента';
+                            $obj['hint'] = "{$startMsg} е под минималната за клиента";
                             $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = 'error';
                             
@@ -2544,7 +2570,7 @@ abstract class deals_Helper
                         
                         if($i == 1){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
-                            $obj['hint'] = ($percent < 0) ? 'Цената е над очакваната за клиента' : 'Цената е под очакваната за клиента';
+                            $obj['hint'] = ($percent < 0) ? "{$startMsg} е над очакваната за клиента" : "{$startMsg} е под очакваната за клиента";
                             $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
                         

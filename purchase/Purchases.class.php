@@ -34,7 +34,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, purchase_Wrapper,purchase_plg_ExtractPurchasesData, acc_plg_Registry, plg_Sorting, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin,price_plg_TotalDiscount, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank,cat_plg_UsingProductVat, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, change_Plugin, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
+				        doc_EmailCreatePlg, bgerp_plg_Blank,cat_plg_UsingProductVat, doc_plg_Tabs, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, change_Plugin, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
     
     
     /**
@@ -354,7 +354,6 @@ class purchase_Purchases extends deals_DealMaster
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
         $form->setSuggestions('bankAccountId', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
-        $form->setDefault('makeInvoice', 'yes');
         $form->setField('deliveryLocationId', 'caption=Доставка->Обект от');
         $form->setField('shipmentStoreId', 'caption=Доставка->До склад');
         

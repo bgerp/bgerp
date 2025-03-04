@@ -61,7 +61,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,production,store';
+    public $canList = 'ceo,production,store, planningAll';
 
 
     /**
@@ -204,6 +204,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
+     * Поле за подредбата на детайла
+     */
+    public $fieldsNotToClone = 'debitAmount';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -272,6 +278,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
             unset($productOptions[$jobRec->productId]);
+            $form->setField('inputStoreId', 'input=none');
+            $form->setField('inputServicesFrom', 'input=none');
+            $form->setField('detailOrderBy', 'input=none');
         } else {
             $defaultOriginPackField = 'packagingId';
             $jobRec = $originDoc->fetch();
@@ -451,9 +460,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $jobRec = static::getJobRec($rec);
         $threadId = $rec->threadId ?? doc_Containers::fetchField($rec->originId, 'threadId');
         if(!planning_ConsumptionNotes::existActivatedInThread($threadId)){
-            $selectableStore = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $jobRec->inputStores);
-            if(countR($selectableStore) == 1){
-                $form->setDefault('inputStoreId', key($selectableStore));
+            if($form->cmd != 'refresh'){
+                $selectableStore = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $jobRec->inputStores);
+                if(countR($selectableStore) == 1){
+                    $form->setDefault('inputStoreId', key($selectableStore));
+                }
             }
         }
 
@@ -764,11 +775,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                     // Ако няма материали и отпадъци или всички материали са чужди от ПОП - ще може да се контира бездетайлно
                     $hasNotOutsourced = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes' AND #quantity != 0");
-                    $hasPoped = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'pop' AND #quantity != 0");
-                    $hasInputed = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'input' AND #quantity != 0");
                     $hasAllocated = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'allocated' AND #quantity != 0");
-
-                    if ($hasNotOutsourced || $hasAllocated || (!$hasInputed && $hasPoped)) {
+                    if ($hasNotOutsourced || $hasAllocated) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -896,22 +904,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $bomId = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')->id;
 
         // Ако ням рецепта, не могат да се определят дефолт детайли за влагане
-        if (!$bomId) {
-
-            return $details;
-        }
+        if (!$bomId) return $details;
 
         // К-ко е произведено до сега и колко ще произвеждаме
         $quantityProduced = $originRec->quantityProduced;
         $quantityToProduce = $rec->quantity + $quantityProduced;
 
-
         // Извличаме информацията за ресурсите в рецептата за двете количества
+        $now = dt::now();
         $bomInfo1 = array();
         if($quantityProduced){
-            $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, dt::now());
+            $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, $now);
         }
-        $bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, dt::now());
+        $bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, $now);
 
         // За всеки ресурс
         foreach ($bomInfo2['resources'] as $index => $resource) {
@@ -966,10 +971,21 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $dRec->noteId = $rec->id;
                 $dRec->isOutsourced = array_key_exists($dRec->productId, $consignmentProducts) ? 'yes' : 'no';
 
-                // Склада за влагане се добавя само към складируемите артикули, които не са отпадъци
-                if (empty($dRec->storeId) && isset($rec->inputStoreId) && $dRec->_realData !== true) {
-                    if (cat_Products::fetchField($dRec->productId, 'canStore') == 'yes' && $dRec->type == 'input') {
-                        $dRec->storeId = $rec->inputStoreId;
+                // Ако няма склад
+                if (empty($dRec->storeId)) {
+
+                    // Ако са материали за влагане склада е посочения за влагане от
+                    if($dRec->type == 'input') {
+                        if(isset($rec->inputStoreId) && $dRec->_realData !== true){
+                            if (cat_Products::fetchField($dRec->productId, 'canStore') == 'yes') {
+                                $dRec->storeId = $rec->inputStoreId;
+                            }
+                        }
+                    } elseif($dRec->type == 'subProduct'){
+                        // Ако артикула е субпродукт, склада е същия като този на основния
+                        if(isset($rec->storeId)){
+                            $dRec->storeId = $rec->storeId;
+                        }
                     }
                 }
 
@@ -1139,16 +1155,33 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         if ($form->isSubmitted()) {
             $amount = $form->rec->debitPrice * $rec->quantity;
 
-            // Ъпдейъваме подадената себестойност
+            // Ъпдейъване на подадената себестойност
             $rec->debitAmount = $amount;
-            $this->save($rec, 'debitAmount');
-            $this->logWrite('Задаване на себестойност', $rec->id);
 
-            $contoUrl = $this->getContoUrl($id);
-            $contoUrl['ret_url'] = $this->getSingleUrlArray($rec->id);
+            $subtractAmount = 0;
+            $dQuery = planning_DirectProductNoteDetails::getQuery();
+            $dQuery->where("#noteId = {$rec->id} AND #type IN ('pop', 'subProduct')");
+            while($dRec = $dQuery->fetch()){
+                $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec->productId, null, $rec->valior);
+                $primeCost *= $dRec->quantity;
+                $subtractAmount += $primeCost;
+            }
 
-            // Редирект към екшъна за контиране
-            redirect($contoUrl);
+            if(round($rec->debitAmount, 2) < round($subtractAmount, 2)){
+                $subProductAmountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($subtractAmount);
+                $form->setWarning('debitAmount', "Въведената сб-ст е по-малка от сумата на сб-стите на отпадъците и субпродуктите|*: <b>{$subProductAmountVerbal}</b>");
+            }
+
+            if(!$form->gotErrors()){
+                $this->save($rec, 'debitAmount');
+                $this->logWrite('Задаване на себестойност', $rec->id);
+
+                $contoUrl = $this->getContoUrl($id);
+                $contoUrl['ret_url'] = $this->getSingleUrlArray($rec->id);
+
+                // Редирект към екшъна за контиране
+                redirect($contoUrl);
+            }
         }
 
         $form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
@@ -1204,7 +1237,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         cat_Boms::logWrite('Създаване на рецепта от протокол за производство', $newId);
 
         // Редирект
-        return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта');
+        return new Redirect(array('cat_Boms', 'single', $newId), '|Успешно е създадена нова рецепта|*!');
     }
 
 
@@ -1213,17 +1246,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     public static function canActivate($rec)
     {
-        $rec = static::fetchRec($rec);
-
-        if (isset($rec->id)) {
-            $input = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'input' AND #isOutsourced != 'yes'", 'id');
-            $pop = planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #type = 'pop'", 'id');
-            if ($pop && !$input) {
-
-                return false;
-            }
-        }
-
         return true;
     }
 
@@ -1389,9 +1411,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * @param float    $quantityInPack - к-во в опаковка
      * @param bool     $isWaste        - дали е отпадък или не
      * @param int|NULL $storeId        - ид на склад, или NULL ако е от незавършеното производство
+     * @param bool     $isSubProduct   - дали е субпродукт
+     * @param bool     $batch          - партида
      * @return void
      */
-    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null)
+    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null, $isSubProduct = false, $batch = null)
     {
         // Проверки на параметрите
         expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
@@ -1425,18 +1449,33 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Подготовка на записа
         $rec = (object) array('noteId' => $id,
-            'type' => ($isWaste) ? 'pop' : 'input',
+            'type' => ($isWaste) ? 'pop' : (($isSubProduct) ? 'subProduct' : 'input'),
             'productId' => $productId,
             'packagingId' => $packagingId,
             'quantityInPack' => $quantityInPack,
             'quantity' => $quantity,
         );
+        if($rec->type == 'input'){
+            if($productRec->canStore == 'yes'){
+                $rec->storeId = $noteRec->inputStoreId;
+            } elseif($noteRec->inputServicesFrom == 'all') {
+                $rec->fromAccId = '61102';
+            }
+        }
 
-        if (isset($storeId)) {
-            $rec->storeId = $storeId;
+        setIfNot($rec->storeId, $storeId);
+
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            $rec->autoAllocate = false;
+            $rec->_clonedWithBatches = true;
         }
 
         planning_DirectProductNoteDetails::save($rec);
+        if(!empty($batch) && core_Packs::isInstalled('batch')){
+            batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $rec->id, array($batch => $rec->quantity), true);
+        }
+
+        return $rec->id;
     }
 
 
@@ -1452,7 +1491,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         $warning = null;
         $dQuery = planning_DirectProductNoteDetails::getQuery();
-        $dQuery->where("#noteId = {$id} AND #storeId IS NOT NULL");
+        $dQuery->where("#noteId = {$id} AND #storeId IS NOT NULL AND #type != 'subProduct'");
 
         $productsWithNegativeQuantity = array();
         while ($dRec = $dQuery->fetch()) {
@@ -1530,7 +1569,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
         $dQuery->XPR('totalQuantity', 'double', "SUM(#quantity)");
-        $dQuery->where("#noteId = {$rec->id} AND #storeId IS NOT NULL AND #type = 'input' AND #canStore = 'yes'");
+        $dQuery->where("#noteId = {$rec->id} AND #storeId IS NOT NULL AND #type IN ('input', 'subProduct') AND #canStore = 'yes'");
         $dQuery->groupBy('productId');
 
         while ($dRec = $dQuery->fetch()) {
@@ -1541,11 +1580,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
             }
 
+            $quantityIn = $quantityOut = null;
+            if($dRec->type == 'input'){
+                $quantityOut = $dRec->totalQuantity;
+            } else {
+                $quantityIn = $dRec->totalQuantity;
+            }
+
             $res[] = (object)array('storeId'          => $dRec->storeId,
                                    'productId'        => $dRec->productId,
                                    'date'             => $date,
-                                   'quantityIn'       => null,
-                                   'quantityOut'      => $dRec->totalQuantity,
+                                   'quantityIn'       => $quantityIn,
+                                   'quantityOut'      => $quantityOut,
                                    'genericProductId' => $genericProductId);
         }
 
@@ -1619,21 +1665,25 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = $this->fetchRec($rec);
 
         if($action == 'restore' && $rec->brState != 'active') return $errorMsg;
-        $action = $action == 'conto' ? 'контирате' : 'възстановяване';
+        $actionStr = $action == 'conto' ? 'контирате' : 'възстановяване';
 
+        if($action == 'conto'){
+            $subProductsWithoutStores = planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #type = 'subProduct' AND #storeId IS NULL");
+            if($subProductsWithoutStores) return "Не може да {$actionStr} протокола, защото има субпродукти без посочен склад|*!";
+        }
 
         // Ако ПП е артикул различен от този в заданието - няма проблем да се контира
         $jobRec = static::getJobRec($rec);
         if($jobRec->productId != $rec->productId) return $errorMsg;
 
         if($jobRec->state == 'closed'){
-            return "Не може да {$action} протокола, защото заданието вече е приключено|*!";
+            return "Не може да {$actionStr} протокола, защото заданието вече е приключено|*!";
         }
 
         if ($jobRec->allowSecondMeasure == 'no' && !empty($rec->additionalMeasureId)) {
-            $errorMsg = "Не може да {$action} протокола, защото е с втора мярка, а заданието вече не е избрана";
+            $errorMsg = "Не може да {$actionStr} протокола, защото е с втора мярка, а заданието вече не е избрана";
         } elseif ($jobRec->allowSecondMeasure == 'yes' && empty($rec->additionalMeasureId)) {
-            $errorMsg = "Не може да {$action} протокола, защото е без втора мярка, а заданието вече не позволява";
+            $errorMsg = "Не може да {$actionStr} протокола, защото е без втора мярка, а заданието вече не позволява";
         }
 
         return $errorMsg;

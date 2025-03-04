@@ -1191,7 +1191,12 @@ class eshop_Carts extends core_Master
         $file = ($lang == 'bg') ? 'eshop/tpl/email/PlacedOrderBg.shtml' : 'eshop/tpl/email/PlacedOrderEn.shtml';
         $body = getTplFromFile($file);
         $body->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
-        $body->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
+
+        $footerHtml = new core_ET($settings->emailBodyFooter);
+        $domainLink = cms_Domains::getAbsoluteUrl($rec->domainId);
+        $domainName = cms_Domains::getVerbal($rec->domainId, 'domain');
+        $footerHtml->append( "\n" . "[link={$domainLink}]{$domainName}[/link]");
+        $body->replace($footerHtml, 'FOOTER');
 
         if(!empty($settings->emailBodyContactTel)){
             $body->replace(new core_ET($settings->emailBodyContactTel), 'CONTACT_TEL');
@@ -1206,8 +1211,12 @@ class eshop_Carts extends core_Master
         }
 
         $threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
-        $makeInvoice = tr(self::getVerbal($rec, 'makeInvoice'));
-        $body->replace($makeInvoice, 'MAKE_INVOICE');
+        if($rec->makeInvoice == 'none'){
+            $body->replace(tr('Без фактуриране'), 'NO_INVOICE');
+        } else {
+            $typeCaption = $rec->makeInvoice == 'person' ? tr('Лице') : tr('Фирма');
+            $body->replace($typeCaption, 'typeCaption');
+        }
         
         // Показване на информацията за доставка
         if (isset($rec->termId)) {
@@ -1296,12 +1305,12 @@ class eshop_Carts extends core_Master
             Mode::push('text', 'plain');
             $body->replace(self::getVerbal($rec, 'invoiceNames'), 'invoiceNames');
             if(!empty($rec->invoiceVatNo)){
-                $body->replace(tr('ДДС №|*: ') . self::getVerbal($rec, 'invoiceVatNo'), 'invoiceVatNo');
+                $body->replace("[b]" . tr('ДДС №|*[/b]: [i]') . self::getVerbal($rec, 'invoiceVatNo') . "[/i]", 'invoiceVatNo');
             }
             
             if(!empty($rec->invoiceUicNo)){
-                $prefix = ($rec->makeInvoice == 'person') ? tr('ЕГН|*: ') : tr('ЕИК|*: ');
-                $body->replace($prefix . self::getVerbal($rec, 'invoiceUicNo'), 'invoiceUicNo');
+                $prefix = ($rec->makeInvoice == 'person') ? ("[b]" . tr('ЕГН|*[/b]: ')) : ("[b]" . tr('ЕИК|*[/b]: '));
+                $body->replace($prefix . "[i]" . self::getVerbal($rec, 'invoiceUicNo') . "[/i]", 'invoiceUicNo');
             }
             
             $body->replace(self::getVerbal($rec, 'invoiceCountry'), 'invoiceCountry');

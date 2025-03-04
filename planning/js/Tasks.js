@@ -1,10 +1,15 @@
 $(document).ready(function () {
     compareDates();
 
+    sessionStorage.removeItem('sortableOrder');
+
+
+
     $('#backBtn').on('click', function(e) {
         let url = $(this).attr("data-url");
 
         sessionStorage.removeItem('sortableOrder');
+        sessionStorage.removeItem('manualTimes');
 
         // Redirect to the new page using the provided URL
         if(url){
@@ -26,6 +31,7 @@ $(document).ready(function () {
         gripInnerHtml: '<div style="width:10px;"></div>',
         gripClass: 'grip',
         postbackSafe: true,
+        resizeMode:'overflow',
         hoverCursor: 'col-resize',
         minWidth: 50,
         onResize: function() {
@@ -52,17 +58,18 @@ $(document).ready(function () {
 
             let dataIds = getOrderedTasks();
             let dataIdString = JSON.stringify(dataIds);
-            let params = { orderedTasks: dataIdString };
+
+            let manualTimes = sessionStorage.getItem('manualTimes');
+            let params = { orderedTasks: dataIdString, manualTimes: manualTimes};
 
             console.log(url);
-            console.log(dataIdString);
+            console.log(params);
             sessionStorage.removeItem('sortableOrder');
+            sessionStorage.removeItem('manualTimes');
 
             //return;
             let resObj = {};
             resObj['url'] = url;
-
-
 
             getEfae().preventRequest = 0;
             getEfae().process(resObj, params);
@@ -77,7 +84,7 @@ $(document).ready(function () {
     const rows = document.querySelectorAll("#dragTable tbody tr");
 
 // Check if there are multiple rows
-    if (rows.length > 1) {
+
         let sortable = new Sortable(document.querySelector("#dragTable tbody"), {
             animation: 150,
             handle: "tr",
@@ -85,7 +92,6 @@ $(document).ready(function () {
             selectedClass: "selected",
             filter: "tr[data-dragging='false']",
             preventOnFilter: false,
-
             onChoose: function (evt) {
                 // Remove highlight from all rows
                 document.querySelectorAll("#dragTable tbody tr").forEach(row => {
@@ -97,11 +103,12 @@ $(document).ready(function () {
                     evt.item.classList.add('dragging');
                 }
 
-                console.log('CHOOSE');
+                saveSelection();
             },
 
             onUnchoose: function (evt) {
                 evt.item.classList.remove('dragging');
+                saveSelection();
             },
 
             onStart: function (evt) {
@@ -122,34 +129,40 @@ $(document).ready(function () {
             onEnd: function (evt) {
                 console.log("END");
 
-                // Clear previously selected rows after dropping
-                selectedElements.forEach(item => item.element.classList.remove('selected'));
+                if (selectedElements.length === 0) {
+                    selectedElements.push({
+                        element: evt.item,
+                        originalIndex: evt.oldIndex
+                    });
+                }
 
-                const tableBody = document.querySelector("#dragTable tbody");
+                selectedElements.forEach((item) => item.element.classList.remove('selected'));
+
+                let table = document.querySelector("#dragTable");
                 const dropIndex = evt.newIndex; // Index where the item is dropped
+                const rows = Array.from(table.querySelectorAll("tbody tr")); // Get all rows
 
-                // Identify the target row where the selected rows will be inserted
-                const targetRow = tableBody.children[dropIndex];
-
-                // Store the reference to where the selected elements will be inserted
-                let insertAfter = targetRow ? targetRow : tableBody.lastElementChild;
-
-                // Insert selected elements in their original order
-                selectedElements.forEach(item => {
-                    insertAfter.insertAdjacentElement('afterend', item.element);
-                    insertAfter = item.element; // Update reference to the last inserted element
+                // Reinsert the selected elements in their original order, relative to the new drop position
+                selectedElements.forEach((item, index) => {
+                    const targetIndex = dropIndex + index; // Adjust to drop at the correct place
+                    const targetRow = rows[targetIndex] || null; // Handle appending at the end
+                    if (targetRow) {
+                        targetRow.insertAdjacentElement('beforebegin', item.element);
+                    } else {
+                        table.querySelector('tbody').appendChild(item.element); // Append if dropped at the end
+                    }
                 });
 
-                selectedElements.forEach(item => item.element.classList.add('dropped-highlight'));
+                selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
 
-                // Optional: Process server update if needed
-                if (tableBody.dataset.url) {
-                    const dataIds = getOrderedTasks();
-                    const resObj = { url: tableBody.dataset.url };
-                    const dataIdString = JSON.stringify(dataIds);
-                    const params = { orderedTasks: dataIdString };
+                // Optional: Process server update
+                if (table.dataset.url) {
+                    let dataIds = getOrderedTasks();
+                    let resObj = { url: table.dataset.url };
+                    let dataIdString = JSON.stringify(dataIds);
+                    let params = { orderedTasks: dataIdString };
 
-                    console.log('DROP: ' + dataIdString);
+                    console.log('DROP: orderedTasks=' + dataIdString);
                     getEfae().preventRequest = 0;
                     getEfae().process(resObj, params);
                 }
@@ -162,14 +175,19 @@ $(document).ready(function () {
             store: {
                 // Save the order of items to localStorage
                 set: function (sortable) {
-                    const order = sortable.toArray();
-                    const val = order.join('|');
+
+                    let order = sortable.toArray();
+                    let val = order.join('|');
+                    //console.log('session set', val);
+
                     sessionStorage.setItem('sortableOrder', val);
                 },
 
                 // Get the order of items from localStorage
                 get: function (sortable) {
-                    const order = sessionStorage.getItem('sortableOrder');
+                    let order = sessionStorage.getItem('sortableOrder');
+
+                    //console.log('session get', order);
                     return order ? order.split('|') : [];
                 }
             }
@@ -192,9 +210,6 @@ $(document).ready(function () {
                 isScrolling = true; // Set scrolling flag
             }
         });
-    } else {
-        console.log("Not enough rows to enable sorting.");
-    }
 
 
 // Touch event handlers
@@ -285,13 +300,173 @@ $(document).ready(function () {
             cell.data('touchTimer', false); // Clear the timer
         }, 300); // Duration for detecting double touch
 
-        // If the timer was already set, we are in a double touch scenario
+        // If the timer was already set, we are.remove('selected') in a double touch scenario
         if (cell.data('touchTimer') === false) {
             clearTimeout(touchTimer); // Clear the timeout for the double touch
             handleEditing(cell); // Trigger edit on double touch
         } else {
             cell.data('touchTimer', true); // Indicate that the first touch happened
         }
+    });
+
+    $('#changeBtn').on('click', function(e) {
+        restoreSelectionFromLocalStorage();
+
+        let url = $(this).attr("data-url");
+
+        let selectedIds = JSON.parse(sessionStorage.getItem("selectedRows")) || [];
+        let count = selectedIds.length;
+        sessionStorage.removeItem("selectedRows");
+
+        if(!count){
+            let error = $(this).attr("data-error");
+            render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+
+            return;
+        }
+
+        let params = new URLSearchParams();
+        params.append("selectedIds", JSON.stringify(selectedIds)); // Преобразуваме масива в JSON
+
+        // Добавяме параметрите към URL-то
+        window.location.href = `${url}&${params.toString()}`;
+    });
+
+
+    $(document).ready(function () {
+        const $modal = $("#modal");
+        const $modalTitle = $("#modalTitle");
+        const $datepicker = $("#datepicker");
+        const $timepicker = $("#timepicker"); // Полето за ръчно въвеждане (ако все още се използва)
+        const $timeSelect = $(".pickerSelect"); // Новото поле <select>
+        const $modalSave = $("#modalSave");
+        const $modalClear = $("#modalClear");
+
+        let selectedTaskId = null;
+        let selectedTaskField = null;
+
+        // ✅ Функция за синхронизиране на селекта и input-а (ако все още има ръчно въвеждане)
+        function syncTimeInputs(value) {
+            $timeSelect.val(value); // Задаваме стойността в <select>
+            $timepicker.val(value); // Синхронизираме и input-а, ако все още се използва
+        }
+
+        // 📅 Активиране на DatePicker (формат: DD.MM.YYYY)
+        $datepicker.datepicker({
+            dateFormat: "dd.mm.yy",
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "2020:2030",
+            minDate: 0
+        });
+
+        // 🏗️ Показване на модала при двоен клик
+        $(".openModal").on("dblclick", function () {
+            const $span = $(this).closest("td").find("span.modalDateCol");
+
+            if ($span.length > 0) {
+                const modalCaption = $span.data("modal-caption");
+                selectedTaskId = $span.data("task-id");
+                selectedTaskField = $span.data("task-field");
+
+                // ✅ Вземаме `data-manual-date` или `data-date`
+                const currentDateTime = $span.data("manual-date") || $span.data("date") || "";
+
+                $modalTitle.text(modalCaption);
+
+                // ✅ Нулираме предишните стойности
+                $datepicker.val("").datepicker("refresh");
+                syncTimeInputs("");
+
+                // 🕒 Ако има `data-manual-date`, попълваме го
+                if (currentDateTime) {
+                    const [date, time] = currentDateTime.split(" ");
+                    const [year, month, day] = date.split("-");
+                    const formattedDate = `${day}.${month}.${year}`;
+                    const formattedTime = time.substring(0, 5);
+
+                    $datepicker.val(formattedDate).datepicker("refresh");
+                    syncTimeInputs(formattedTime);
+                }
+            }
+
+            if (!$modal.hasClass("show")) {
+                $modal.addClass("show");
+            }
+        });
+
+        // 🕒 Когато потребителят избере от `<select>`, попълваме в `<input>`
+        $timeSelect.on("change", function () {
+            syncTimeInputs($(this).val());
+        });
+
+        // 📝 Когато потребителят пише ръчно в `<input>`, синхронизираме select-а
+        $timepicker.on("input", function () {
+            let typedValue = $(this).val();
+            if ($timeSelect.find(`option[value="${typedValue}"]`).length > 0) {
+                $timeSelect.val(typedValue);
+            } else {
+                $timeSelect.val(""); // Ако стойността не е валидна, нулираме select-а
+            }
+        });
+
+        // 🔄 Изчистване на стойностите
+        $modalClear.on("click", function () {
+            $datepicker.val("").datepicker("refresh");
+            syncTimeInputs("");
+        });
+
+        // ❌ Затваряне на модала
+        $(".close, #modalSave").on("click", function () {
+            $modal.removeClass("show");
+        });
+
+        // 📝 Запазване на въведената стойност в sessionStorage
+        $modalSave.on("click", function () {
+            if (selectedTaskId !== null && selectedTaskField !== null) {
+                const selectedDate = $datepicker.val();
+                let selectedTime = $timeSelect.val(); // Взимаме времето от `.pickerSelect`
+                selectedTime = !selectedTime ? '00:00' : selectedTime;
+
+                let formattedDateTime = null;
+                if (selectedDate && selectedTime) {
+                    const [day, month, year] = selectedDate.split(".");
+                    formattedDateTime = `${year}-${month}-${day} ${selectedTime}:00`;
+                }
+
+                let storedData = sessionStorage.getItem('manualTimes');
+                storedData = storedData ? JSON.parse(storedData) : {
+                    expectedTimeStart: {},
+                    expectedTimeEnd: {}
+                };
+
+                storedData[selectedTaskField][selectedTaskId] = formattedDateTime;
+
+                sessionStorage.setItem('manualTimes', JSON.stringify(storedData));
+
+                // Optional: Process server update
+                let table = document.querySelector("#dragTable");
+                if (table.dataset.url) {
+                    let dataIds = getOrderedTasks();
+                    let resObj = { url: table.dataset.url };
+                    let dataIdString = JSON.stringify(dataIds);
+
+                    let manualTimes = sessionStorage.getItem('manualTimes');
+
+                    let params = {orderedTasks: dataIdString, manualTimes: manualTimes, forceReorder: 1};
+
+                    console.log(params.orderedTasks);
+                    console.log(params.manualTimes);
+
+                    getEfae().preventRequest = 0;
+                    getEfae().process(resObj, params);
+                }
+            } else {
+                alert("Грешка: Липсва task ID или task field!");
+            }
+
+            $modal.removeClass("show");
+        });
     });
 })
 
@@ -313,6 +488,19 @@ function getOrderedTasks()
 function render_compareDates()
 {
     compareDates();
+}
+
+function render_forceSort(data)
+{
+    let sortable = new Sortable(document.querySelector("#dragTable tbody"), {
+        dataIdAttr: 'data-id' // Указва, че ще сортираме по атрибут data-id
+    });
+    sortable.sort(data.inOrder);
+
+    let order = sortable.toArray();
+    let val = order.join('|');
+
+    sessionStorage.setItem('sortableOrder', val);
 }
 
 
@@ -395,4 +583,22 @@ function compareDateSpan(elementOne, elementTwo, groupStr)
             }
         }
     }
+}
+
+function saveSelection() {
+    let selectedIds = Array.from(document.querySelectorAll("#dragTable tbody tr.selected"))
+        .map(row => row.getAttribute("data-id"));
+
+    sessionStorage.setItem("selectedRows", JSON.stringify(selectedIds));
+}
+
+function restoreSelectionFromLocalStorage() {
+    const selectedIds = JSON.parse(sessionStorage.getItem("selectedRows")) || [];
+    document.querySelectorAll("#dragTable tbody tr").forEach(row => {
+        if (selectedIds.includes(row.getAttribute("data-id"))) {
+            row.classList.add("selected");
+        } else {
+            row.classList.remove("selected");
+        }
+    });
 }

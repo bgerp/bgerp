@@ -99,7 +99,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'bank,ceo';
+    public $canList = 'bank,ceo,bankAll';
     
     
     /**

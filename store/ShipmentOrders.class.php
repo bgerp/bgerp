@@ -314,7 +314,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             if ($rec->state != 'pending') {
                 unset($row->storeReadiness);
             } else {
-                $row->storeReadiness = isset($row->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
+                $row->storeReadiness = $row->storeReadiness ?? "<b class='quiet'>N/A</b>";
             }
 
             if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
@@ -347,6 +347,15 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $row->operationSysId = $mvc->isDocForReturnFromDocument($rec) ? tr('Връщане на артикули') : tr('Експедиране на артикули');
                 if(isset($rec->reverseContainerId)){
                     $row->operationSysId .= tr("|* |от|* ") . doc_Containers::getDocument($rec->reverseContainerId)->getLink(0, array('ef_icon' => false));
+                }
+            }
+
+            // Ако ще се печата в изглед за ДН - да се показва уебсайта на клиента ако има такъв
+            if(Request::get('asClient')){
+                $webSite = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'website');
+                $websiteUrls = type_Urls::toArray($webSite);
+                if(countR($websiteUrls)){
+                    $row->asClientQrCodeString = $websiteUrls[0];
                 }
             }
         }
@@ -390,34 +399,29 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         if ($rec->isReverse == 'no') {
 
-            // Кои са фактурите в нишката
-            $invoiceArr = deals_Helper::getInvoicesInThread($rec->threadId);
-            if (countR($invoiceArr)) {
-                $dQuery = store_ShipmentOrderDetails::getQuery();
-                $dQuery->where("#shipmentId = {$rec->id}");
-                $dQuery->show('productId');
-                $products = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+            // Ако има ф-ри към ЕН-то да излизат линкнати
+            $selectedInvoices = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+            $selectedInvoicesCount = countR($selectedInvoices);
 
-                $invoiceArr = array_keys($invoiceArr);
-                foreach ($invoiceArr as $invoiceContainerId) {
-                    $InvoiceRef = doc_Containers::getDocument($invoiceContainerId);
-                    $InvoiceDetail = cls::get($InvoiceRef->mainDetail);
-                    $iQuery = $InvoiceDetail->getQuery();
-                    $iQuery->where("#{$InvoiceDetail->masterKey} = {$InvoiceRef->that}");
-                    $iQuery->show('productId');
-                    $invoiceProducts = arr::extractValuesFromArray($iQuery->fetchAll(), 'productId');
-
-                    // Ако има фактура със същите артикули, като ЕН-то ще се покаже към имейла
-                    $diff1 = countR(array_diff_key($products, $invoiceProducts));
-                    $diff2 = countR(array_diff_key($invoiceProducts, $products));
-
-                    if (empty($diff1) && empty($diff2)) {
-                        $iTpl = new ET(tr("|*\n|Моля, запознайте се с приложената фактура") . ': #[#handle#]');
-                        $iTpl->replace($InvoiceRef->getHandle(), 'handle');
-                        $tpl->append($iTpl);
-                        break;
-                    }
+            // Ако ЕН-то е обвързано с ф-ри - ще се показват те, ако не но има само една ф-ра в нишката - нея
+            $handles = array();
+            if($selectedInvoicesCount){
+                foreach ($selectedInvoices as $invoiceRec){
+                    $handles[] = "#" . doc_Containers::getDocument($invoiceRec->containerId)->getHandle();
                 }
+            } elseif($this->count("#threadId = {$rec->threadId} AND #state = 'active'") == 1){
+                $invoicesInThread = deals_Helper::getInvoicesInThread($rec->threadId);
+                if(countR($invoicesInThread) == 1){
+                    $handles[] = "#" . doc_Containers::getDocument(key($invoicesInThread))->getHandle();
+                }
+            }
+
+            $countInvoices = countR($handles);
+            if($countInvoices){
+                $caption = ($countInvoices == 1) ? 'приложената фактура' : 'приложените фактури';
+                $iTpl = new ET(tr("|*\n|Моля, запознайте се с {$caption}|*") . ': [#handles#]');
+                $iTpl->replace(implode(', ', $handles), 'handles');
+                $tpl->append($iTpl);
             }
         }
 
@@ -474,7 +478,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if ($firstDoc->isInstanceOf('sales_Sales')) {
 
-            return $firstDoc->getContragentData($firstDoc->that);
+            return $firstDoc->getContragentData($date);
         }
     }
 

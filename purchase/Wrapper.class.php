@@ -22,7 +22,7 @@ class purchase_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('purchase_Purchases', 'Покупки', 'ceo,purchase,acc,purchaseAll');
-        $this->TAB('purchase_Invoices', 'Фактури', 'ceo,purchase,acc');
+        $this->TAB('purchase_Invoices', 'Фактури', 'ceo,purchase,acc,invoiceAll');
         $this->TAB('purchase_Quotations', 'Оферти', 'ceo,purchase');
         $this->TAB('purchase_Services', 'Протоколи->Приемателни', 'ceo,purchase');
         $this->TAB('purchase_Vops', 'Протоколи->ВОП', 'ceo,purchase');

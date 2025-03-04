@@ -50,7 +50,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         }
 
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
-            $notAllocatedInputProductArr = array_filter($rec->_details, function($a) { return $a->type != 'allocated';});
+            $notAllocatedInputProductArr = array_filter($rec->_details, function($a) { return $a->type != 'allocated' && $a->type != 'subProduct';});
             $notNullQuantityProductArr = array_filter($rec->_details, function($a) { return $a->packQuantity != 0;});
 
             $productArr = arr::extractValuesFromArray($notNullQuantityProductArr, 'productId');
@@ -73,6 +73,15 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 }
             }
 
+            $subProductArr = array_filter($rec->_details, function($a) { return $a->type == 'subProduct';});
+            if(countR($subProductArr)){
+                $subProductArr = arr::extractValuesFromArray($subProductArr, 'productId');
+                if($redirectError = deals_Helper::getContoRedirectError($subProductArr, 'canManifacture,canStore', null, 'трябва да са производими и складируеми за да са субпродукти')){
+                    acc_journal_RejectRedirect::expect(false, $redirectError);
+                }
+            }
+
+
             // Ако е забранено да се изписва на минус, прави се проверка
             if(!store_Setup::canDoShippingWhenStockIsNegative()){
 
@@ -82,6 +91,18 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($arr, $storeId, $rec->state)) {
                         acc_journal_RejectRedirect::expect(false, $warning);
                     }
+                }
+
+                // Проверка за неналичните артикули в незавършеното производство
+                $inputedRecsWorkInProgress = array();
+                array_walk($rec->_details, function($a) use (&$inputedRecsWorkInProgress) {
+                    if($a->type == 'input' && empty($a->storeId) && empty($a->fromAccId)){
+                        $inputedRecsWorkInProgress[$a->productId] += $a->quantity;
+                    }
+                });
+
+                if ($error = planning_WorkInProgress::getContoRedirectError($inputedRecsWorkInProgress)){
+                    acc_journal_RejectRedirect::expect(false, $error);
                 }
             }
         }
@@ -159,10 +180,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $dQuery->orderBy('id,type', 'ASC');
             while($dRec = $dQuery->fetch()){
                 $rec->_details[$dRec->id] = $dRec;
-                if(isset($dRec->storeId)){
-                    $byStores[$dRec->storeId][$dRec->id] = $dRec;
-                } elseif(isset($dRec->fromAccId)){
-                    $instantServices[$dRec->id] = $dRec;
+                if($rec->type == 'input'){
+                    if(isset($dRec->storeId)){
+                        $byStores[$dRec->storeId][$dRec->id] = $dRec;
+                    } elseif(isset($dRec->fromAccId)){
+                        $instantServices[$dRec->id] = $dRec;
+                    }
                 }
             }
         }
@@ -323,17 +346,20 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             }
         }
 
-        if (!countR($details)) {
+        $costAmount = 0;
+        if(isset($debitAmount)){
             $debitAmount = ($debitAmount) ? round($debitAmount, 2) : 0;
             $amount = $debitAmount;
             $costAmount = $debitAmount;
             $array['quantity'] = $quantity;
-                
+
             $entry = array('amount' => $amount,
                 'debit' => $array,
                 'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
-                $entries[] = $entry;
-        } else {
+            $entries[] = $entry;
+        }
+
+        if (countR($details)) {
             arr::sortObjects($details, 'type');
             foreach ($details as $dRec) {
                     
@@ -376,7 +402,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     }
                 }
 
-            $costAmount = $index = 0;
+            $index = 0;
             foreach ($details as $dRec1) {
                 $canStore = cat_Products::fetchField($dRec1->productId, 'canStore');
                 $primeCost = null;
@@ -410,7 +436,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     
                 // Ако е материал го изписваме към произведения продукт
                 $entry = array();
-                if ($dRec1->type != 'pop') {
+                if (!in_array($dRec1->type, array('pop', 'subProduct'))) {
                     $reason = ($index == 0) ? (($prodRec->canStore == 'yes') ? 'Засклаждане на произведен артикул' : 'Произвеждане на услуга') : (($canStore != 'yes' ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
                     $array['quantity'] = $quantityD;
                     $entry['debit'] = $array;
@@ -427,9 +453,17 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     $entries[] = $entry;
                 } else {
                     $entry['amount'] = $primeCost;
-                    $entry['debit'] = array('61101', array('cat_Products', $dRec1->productId), 'quantity' => $dRec1->quantity);
+                    if($dRec1->type == 'subProduct' && !empty($dRec1->storeId)){
+                        $entry['debit'] = array('321', array('store_Stores', $dRec1->storeId), array('cat_Products', $dRec1->productId), 'quantity' => $dRec1->quantity);
+                        $entry['reason'] = 'Засклаждане на субпродукт';
+                        $reason2 = 'Приспадане себестойността на субпродукт от произведен артикул';
+                    } else {
+                        $entry['debit'] = array('61101', array('cat_Products', $dRec1->productId), 'quantity' => $dRec1->quantity);
+                        $entry['reason'] = 'Заприхождаване на отпадък в незавършеното производство';
+                        $reason2 = 'Приспадане себестойността на отпадък от произведен артикул';
+                    }
                     $entry['credit'] = array('484');
-                    $entry['reason'] = 'Заприхождаване на отпадък в незавършеното производство ';
+
                     $entries[] = $entry;
                         
                     $entry2 = array();
@@ -444,14 +478,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         
                     $entry2['credit'] = array('484');
                         
-                    $entry2['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
+                    $entry2['reason'] = $reason2;
                     $entries[] = $entry2;
                 }
                     
                 $index++;
             }
         }
-            
         $selfAmount = $costAmount + $consignmentAmount;
 
         // Ако има режийни разходи, разпределяме ги

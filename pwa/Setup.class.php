@@ -96,7 +96,7 @@ class pwa_Setup extends core_ProtoSetup
         $Domains = cls::get('cms_Domains');
         $Domains->setupMvc();
 
-        $html .= fileman_Buckets::createBucket('pwa', 'Файлове качени с PWA', '', '100MB', 'user', 'every_one');
+        $html .= fileman_Buckets::createBucket('pwa', 'Файлове качени с PWA', '', '1GB', 'user', 'every_one');
         
         $existDArr = array();
         $dArr = type_Keylist::toArray($this->get('DOMAINS'));

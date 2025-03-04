@@ -2475,6 +2475,10 @@ class cat_Products extends embed_Manager
                 $row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
             }
 
+            if (isset($rec->clonedFromId)) {
+                $row->clonedFromId = $mvc->getHyperlink($rec->clonedFromId);
+            }
+
             if (isset($rec->proto)) {
                 $row->proto = core_Users::isContractor() ? $mvc->getTitleById($rec->proto) : $mvc->getHyperlink($rec->proto);
             }
@@ -2564,7 +2568,9 @@ class cat_Products extends embed_Manager
             if ($originalName == $part) {
                 $part = core_Lg::transliterate($part);
             }
-            $part = type_Varchar::escape($part);
+            if (!Mode::is('forSearch')) {
+                $part = type_Varchar::escape($part);
+            }
 
             return false;
         } elseif ($field == 'code') {

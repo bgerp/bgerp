@@ -67,6 +67,32 @@ class pwa_Share extends core_Mvc
                 
                 return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'fArr' => json_encode($fhArr)));
             }
+
+            // Ако не се подава файл, или е линк или е текст
+            if ($desc = Request::get('description')) {
+                // Ако е линк и е html, опитваме се да вземем съдъжданието му
+                if (core_Url::isValidUrl($desc) || core_Url::isValidUrl2($desc)) {
+                    $headers = get_headers($desc, 1);
+                    if (isset($headers['Content-Type']) && strpos($headers['Content-Type'], 'text/html') !== false) {
+                        $urlContent = @file_get_contents($desc);
+                        if ($urlContent) {
+                            $urlContent = html2text_Converter::toRichText($urlContent);
+                        }
+                        if ($urlContent) {
+                            $desc = $urlContent;
+                        }
+                    }
+                }
+
+                $name = Request::get('name');
+                $name = $name ? $name : tr('Споделен текст');
+
+                $key = md5(str::getRand() . $name . $desc);
+
+                core_Cache::set('pwa_Share', $key, array('body' => $desc, 'subject' => $name));
+
+                return new Redirect(array('pwa_Share', 'SaveTargetFiles', 'key' => $key));
+            }
         }
          
         $script = "  navigator.serviceWorker.onmessage = (event) => {
@@ -100,18 +126,27 @@ class pwa_Share extends core_Mvc
     public function act_SaveTargetFiles()
     {
         $fArr = Request::get('fArr');
-        
+        $key = Request::get('key');
+
         if (!haveRole('user')) {
             
-            return new Redirect(array('core_Users', 'login', 'ret_url' => array('pwa_Share', 'SaveTargetFiles', 'fArr' => $fArr, 'force' => true)));
+            return new Redirect(array('core_Users', 'login', 'ret_url' => array('pwa_Share', 'SaveTargetFiles', 'fArr' => $fArr, 'key' => $key, 'force' => true)));
         }
         
         if (Request::get('force')) {
             $fArr = json_decode($fArr);
-            
-            foreach ($fArr as $fh) {
-                fileman_Log::updateLogInfo($fh, 'upload');
+
+            if ($fArr) {
+                foreach ($fArr as $fh) {
+                    fileman_Log::updateLogInfo($fh, 'upload');
+                }
             }
+        }
+
+        if (!$fArr) {
+            $defFolder = doc_Folders::getDefaultFolder(core_Users::getCurrent());
+
+            return new Redirect(array('doc_Notes', 'add', 'folderId' => $defFolder, 'key' => $key));
         }
         
         if (haveRole('powerUser')) {

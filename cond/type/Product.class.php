@@ -26,6 +26,7 @@ class cond_type_Product extends cond_type_Varchar
     {
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Конкретизиране->Групи,mandatory');
         $fieldset->FLD('show', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване,mandatory');
+        $fieldset->FLD('showList', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване лист,mandatory');
         $fieldset->FLD('display', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Избор,mandatory');
         $fieldset->FLD('orderBy', 'enum(idAsc=По артикул [нарастващ ред],idDesc=По артикул [намаляващ ред],codeAsc=По код [нарастващ ред],codeDesc=По код [намаляващ ред])', 'caption=Конкретизиране->Подредба,mandatory');
         $fieldset->FLD('maxSuggestions', 'int(Min=0)', 'caption=Конкретизиране->Макс. предложения,mandatory', "unit=при показване в комбобокс,placeholder=10");
@@ -105,17 +106,19 @@ class cond_type_Product extends cond_type_Varchar
      */
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
-        if($this->driverRec->show == 'info'){
+        $showVal = Mode::is('taskListMode') ? $this->driverRec->showList : $this->driverRec->show;
+
+        if($showVal == 'info'){
             Mode::push('text', 'plain');
             $lg = core_Lg::getCurrent();
             if($lg != 'bg'){
                 $valueRec = cat_Products::fetch($value);
                 if(!empty($valueRec->infoInt)){
-                    $title = core_Type::getByName('richtext')->toVerbal($valueRec->infoInt);
+                    $title = core_Type::getByName('richtext')->toVerbal(trim($valueRec->infoInt));
                 }
             }
             if(empty($title)){
-                $title = cat_Products::getVerbal($value, 'info');
+                $title = trim(cat_Products::getVerbal($value, 'info'));
             }
             Mode::pop('text');
         }

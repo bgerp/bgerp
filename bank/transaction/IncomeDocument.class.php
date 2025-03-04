@@ -70,7 +70,11 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         } elseif ($rec->dealCurrencyId == $baseCurrencyId) {
             $amount = $rec->amountDeal;
         } else {
-            $amount = $rec->amount * $rec->rate;
+            if ($reverse === true && ($rec->operationSysId == 'bank2customerRet' || $rec->operationSysId == 'bankAdvance2customerRet')) {
+                $amount = $rec->amount * $origin->fetchField('currencyRate');
+            } else {
+                $amount = $rec->amount * $rec->rate;
+            }
         }
         
         $entry1 = array('amount' => $sign * round($amount, 2),
@@ -86,15 +90,18 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
                 'quantity' => $sign * round($rec->amountDeal, 2)),);
         
         $entry[] = $entry1;
-        
+
         if ($reverse === true && ($rec->operationSysId == 'bank2customerRet' || $rec->operationSysId == 'bankAdvance2customerRet')) {
             $entry2 = $entry[0];
             $entry2['amount'] = abs($entry2['amount']);
             $debitArr = $entry2['debit'];
             $creditArr = $entry2['credit'];
             $entry[0]['debit'] = $creditArr;
-            $entry[0]['debit'][0] = '482';
-            
+            $entry[0]['debit'][0] = '481';
+            $entry[0]['debit'][1] = $entry[0]['debit'][3];
+            unset($entry[0]['debit'][2]);
+            unset($entry[0]['debit'][3]);
+
             $entry2['credit'] = $debitArr;
             $entry2['credit']['quantity'] = abs($entry2['credit']['quantity']);
             $entry2['debit'] = $entry[0]['debit'];

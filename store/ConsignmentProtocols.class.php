@@ -52,7 +52,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,cat_plg_AddSearchKeywords,
                         plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,cat_plg_UsingProductVat, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, store_plg_StockPlanning';
     
     
@@ -101,7 +101,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, contragentId=Контрагент, lineId, folderId, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, storeId=Склад, contragentId=Контрагент, lineId, folderId, createdOn, createdBy';
     
     
     /**
@@ -137,7 +137,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior,folderId,note,responsible';
+    public $searchFields = 'lineId,locationId,storeId';
 
 
     /**
@@ -164,8 +164,16 @@ class store_ConsignmentProtocols extends core_Master
      * @see plg_Clone
      */
     public $cloneDetails = 'store_ConsignmentProtocolDetailsSend, store_ConsignmentProtocolDetailsReceived';
-    
-    
+
+
+    /**
+     * Ключови думи от артикулите в кои детайли да се търсят в модела
+     *
+     * @see plg_Clone
+     */
+    public $addProductKeywordsFromDetails = 'store_ConsignmentProtocolDetailsSend, store_ConsignmentProtocolDetailsReceived';
+
+
     /**
      * Полета, които при клониране да не са попълнени
      *
@@ -282,7 +290,8 @@ class store_ConsignmentProtocols extends core_Master
 
         $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId);
         $row = (object) ((array) $row + (array) $headerInfo);
-        
+        $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+
         if (isset($fields['-single'])) {
             if($rec->protocolType == 'protocol'){
                 unset($row->protocolType);
@@ -290,7 +299,6 @@ class store_ConsignmentProtocols extends core_Master
                 $row->protocolType = mb_strtoupper(tr($row->protocolType));
             }
 
-            $row->storeId = store_Stores::getHyperlink($rec->storeId);
             $row->username = core_Users::getVerbal($rec->createdBy, 'names');
             
             $mvc->pushTemplateLg($rec->template);
@@ -1091,5 +1099,45 @@ class store_ConsignmentProtocols extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->FLD('type', 'enum(all=Всички,send=Предаване,receive=Получаване)', 'caption=Действие,silent');
+        $data->listFilter->showFields .= ',type';
+        $data->listFilter->setDefault('type', 'all');
+        $data->listFilter->input();
+
+        if ($filter = $data->listFilter->rec) {
+            if($filter->type != 'all'){
+                $cloneQuery = clone $data->query;
+                $cloneQuery->show('id');
+                $allNoteIds = $cloneQuery->fetchAll();
+                if(countR($allNoteIds)){
+
+                    // Филтър по това дали се искат такива с получаване/предаване
+                    $filterIds = array();
+                    foreach (array('store_ConsignmentProtocolDetailsSend' => 'send', 'store_ConsignmentProtocolDetailsReceived' => 'receive') as $Detail => $type){
+                        if($filter->type == $type){
+                            $sQuery = $Detail::getQuery();
+                            $sQuery->in('protocolId', array_keys($allNoteIds));
+                            $sQuery->groupBy('protocolId');
+                            $sQuery->show('protocolId');
+                            $filterIds += arr::extractValuesFromArray($sQuery->fetchAll(), 'protocolId');
+                        }
+                    }
+
+                    if(countR($filterIds)){
+                        $data->query->in("id", $filterIds);
+                    } else {
+                        $data->query->where("1=2");
+                    }
+                }
+            }
+        }
     }
 }

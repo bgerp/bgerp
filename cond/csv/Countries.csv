@@ -3,3 +3,4 @@
 ,calcShippingWeight,0
 ,totalInPackListWithTariffCode,yes
 ,tareInPackListWithTariffCode,no
+,saleOverdueAmount,1000

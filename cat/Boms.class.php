@@ -740,7 +740,7 @@ class cat_Boms extends core_Master
                 }
 
                 $overheadCost = $rec->expenses;
-                if (empty($rec->expenses)) {
+                if (!isset($rec->expenses)) {
                     $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
                     if (!empty($defaultOverheadCost)) {
                         $overheadCost = $defaultOverheadCost['overheadCost'];
@@ -768,6 +768,7 @@ class cat_Boms extends core_Master
                         if(isset($overheadCost) && !empty($rec->primeCost)){
                             $rec->primeCostWithOverheadCost = $rec->primeCost * (1 + $overheadCost);
                             $row->primeCostWithOverheadCost = $Double->toVerbal($rec->primeCostWithOverheadCost);
+                            $row->primeCostWithOverheadCost = ht::styleNumber($row->primeCostWithOverheadCost, $rec->primeCostWithOverheadCost);
                         }
                     }
 
@@ -846,8 +847,14 @@ class cat_Boms extends core_Master
             }
         }
 
-        if ($rec->expenses) {
-            $resources['expenses'] = $rec->expenses;
+        $expenses = $rec->expenses;
+        if(!$expenses){
+            $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
+            $expenses = $defaultOverheadCost['overheadCost'];
+        }
+
+        if ($expenses) {
+            $resources['expenses'] = $expenses;
         }
         
         // Връщаме намерените ресурси
@@ -914,7 +921,7 @@ class cat_Boms extends core_Master
                 expect($d->resourceId);
                 expect(cat_Products::fetch($d->resourceId));
                 $d->type = ($d->type) ? $d->type : 'input';
-                expect(in_array($d->type, array('input', 'pop')));
+                expect(in_array($d->type, array('input', 'pop', 'subProduct')));
                 
                 $d->baseQuantity = $Double->fromVerbal($d->baseQuantity);
                 $d->propQuantity = $Double->fromVerbal($d->propQuantity);
@@ -999,7 +1006,7 @@ class cat_Boms extends core_Master
                     $nRec->baseQuantity = $matRec->baseQuantity;
                     $nRec->propQuantity = $matRec->propQuantity;
                     $nRec->quantityInPack = 1;
-                    $nRec->type = ($matRec->waste) ? 'pop' : 'input';
+                    $nRec->type = ($matRec->waste) ? 'pop' : (($matRec->isSubProduct) ? 'subProduct' : 'input');
                     $nRec->packagingId = cat_Products::fetchField($prod->productId, 'measureId');
                     if (isset($prod->packagingId)) {
                         $nRec->packagingId = $prod->packagingId;
@@ -1428,9 +1435,9 @@ class cat_Boms extends core_Master
         
         // Ако реда не е етап а е материал или отпадък
         if ($rec->type != 'stage') {
-            if ($rec->type == 'pop') {
+            if (in_array($rec->type, array('pop', 'subProduct'))) {
                 
-                // Ако е отпадък търсим твърдо мениджърската себестойност
+                // Ако е отпадък или субпродукт търсим твърдо мениджърската себестойност
                 $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId, $rec->packagingId, $date);
                 if (!isset($price)) {
                     $price = false;
@@ -1545,7 +1552,7 @@ class cat_Boms extends core_Master
         }
         
         // Ако реда е отпадък то ще извадим цената му от себестойността
-        if ($rec->type == 'pop' && $price !== false) {
+        if (in_array($rec->type, array('pop', 'subProduct')) && $price !== false) {
             $price *= -1;
         }
         
@@ -1809,7 +1816,7 @@ class cat_Boms extends core_Master
                                   'wasteProductId' => ($dRec->wasteProductId) ? $dRec->wasteProductId : $pRec->planning_Steps_wasteProductId,
                                   'wasteStart' => ($dRec->wasteStart) ? $dRec->wasteStart : $pRec->planning_Steps_wasteStart,
                                   'wastePercent' => ($dRec->wastePercent) ? $dRec->wastePercent : $pRec->planning_Steps_wastePercent,
-                                  'products' => array('input' => array(), 'waste' => array()));
+                                  'products' => array('input' => array(), 'waste' => array(), 'production' => array()));
 
             $pQuery = cat_products_Params::getQuery();
             $pQuery->where("#classId = '{$Details->getClassId()}' AND #productId = {$dRec->id}");
@@ -1831,7 +1838,7 @@ class cat_Boms extends core_Master
                         $quantityS = 0;
                     }
 
-                    $place = ($cRec->type == 'pop') ? 'waste' : 'input';
+                    $place = ($cRec->type == 'pop') ? 'waste' : ($cRec->type == 'subProduct' ? 'production': 'input');
                     $obj->products[$place][] = array('productName' => cat_Products::getTitleById($cRec->resourceId), 'productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
                 }
             }
@@ -1921,6 +1928,7 @@ class cat_Boms extends core_Master
     {
         $res = array();
         $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
+
         if (!countR($bomInfo['resources'])) return $res;
 
         foreach ($bomInfo['resources'] as $pRec) {

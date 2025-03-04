@@ -152,6 +152,7 @@ class mejs_Adapter
         setIfNot($params['pauseOtherPlayers'], true); // При пускане на единия, да спира другите
         setIfNot($params['startVolume'], 1); // 0..1 - Сила на звука
         setIfNot($params['features'], array('playpause','loop','progress','current','duration','tracks','volume','fullscreen'));
+        setIfNot($params['stretching'], 'responsive'); // responsive при по-новите версии
         
         // Връщаме в JSON вид
         return json_encode($params);

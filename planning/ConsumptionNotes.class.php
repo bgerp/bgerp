@@ -61,7 +61,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,consumption,store';
+    public $canList = 'ceo,consumption,store, planningAll';
     
     
     /**
@@ -395,5 +395,31 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         $cQuery->in("threadId", $threadArr);
 
         return $cQuery->count() > 0;
+    }
+
+
+    /**
+     * Преди оттегляне, ако има затворени пера в транзакцията, не може да се оттегля
+     */
+    public static function on_BeforeReject($mvc, &$res, $id)
+    {
+        if(!store_Setup::canDoShippingWhenStockIsNegative()){
+            $rec = $mvc->fetchRec($id);
+            if($rec->state == 'active' && $rec->useResourceAccounts == 'yes') {
+
+                // Проверка дали оттеглянето ще доведе до отрицателни к-ва в незавършеното производство
+                $detailQuantities = array();
+                $dQuery = planning_ConsumptionNoteDetails::getQuery();
+                $dQuery->where("#noteId = {$rec->id}");
+                while($dRec = $dQuery->fetch()){
+                    $detailQuantities[$dRec->productId] += -1 * $dRec->quantity;
+                }
+
+                if ($error = planning_WorkInProgress::getContoRedirectError($detailQuantities, false)){
+                    core_Statuses::newStatus($error, 'error');
+                    return false;
+                }
+            }
+        }
     }
 }

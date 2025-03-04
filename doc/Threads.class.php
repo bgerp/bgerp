@@ -3505,23 +3505,21 @@ class doc_Threads extends core_Manager
      */
     public static function getAsText($threadId, $params = array())
     {
-        $res = '======================================================' . "\n";
+        $res = "";
+
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
         $cQuery->orderBy('createdOn', 'ASC');
-
         while($cRec = $cQuery->fetch()){
-
-            // Генериране на текстовото представяне
             $Document = doc_Containers::getDocument($cRec->id);
             if($Document->haveInterface('export_TxtExportIntf')){
                 $txtExportIntf = cls::getInterface('export_TxtExportIntf', $Document->getInstance());
+                $res .= !empty($res) ? ("\n" . '======================================================' . "\n") : '';
+
+                // Генериране на текстовото представяне
                 $res .= $txtExportIntf->getTxtContent($Document->that, $params);
-                $res .= "\n" . '======================================================' . "\n";
             }
         }
-
-        $res = rtrim($res, "\n");
 
         return $res;
     }

@@ -86,7 +86,7 @@ class cash_Cases extends core_Master
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canReports = 'ceo,cash,acc';
+    public $canReports = 'ceo,cash,acc,cashAll';
     
     
     /**
@@ -98,7 +98,7 @@ class cash_Cases extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, cash';
+    public $canList = 'ceo, cash, cashAll';
     
     
     /**
@@ -110,7 +110,7 @@ class cash_Cases extends core_Master
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,cash';
+    public $canSingle = 'ceo, cash, cashAll';
     
     
     /**
@@ -220,17 +220,19 @@ class cash_Cases extends core_Master
                 }
                 
                 // Обръщаме го във четим за хората вид
-                $Double = cls::get('type_Double');
-                $Double->params['decimals'] = 2;
-                $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . '</span>';
-                if ($rec->blAmount < 0) {
-                    $row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
-                }
+                $row->blAmount = ht::styleNumber(core_Type::getByName('double(decimals=2)')->toVerbal($rec->blAmount), $rec->blAmount);
             }
         }
     }
-    
-    
+
+
+    /**
+     * Ако няма записи не вади таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        $data->listTableMvc->FLD('blAmount', 'int');
+    }
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */

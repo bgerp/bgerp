@@ -746,7 +746,7 @@ class eshop_CartDetails extends core_Detail
         
         $productParams = array_intersect_key($productParams, $displayParams);
         $diff = array_diff_key($productParams, $commonParams);
-        
+
         $arr = array();
         foreach ($diff as $paramId => $value) {
             $paramRec = cat_Params::fetch($paramId, 'driverClass,suffix,name');
@@ -759,11 +759,13 @@ class eshop_CartDetails extends core_Detail
             }
 
             $caption = tr(cat_Params::getVerbal($paramRec, 'name'));
+            $key = $caption;
             if(!$asRichText){
                 $caption = "<span class='quiet'>{$caption}</span>";
             }
-            $arr[] = "{$caption}: " . $value;
+            $arr[$key] = "{$caption}: " . trim($value);
         }
+        ksort($arr, SORT_NATURAL);
 
         $separator = $inline ? ', ' : '<br>';
         $str = (countR($arr)) ? implode($separator, $arr) : '';

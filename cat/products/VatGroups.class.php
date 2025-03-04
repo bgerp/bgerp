@@ -80,6 +80,12 @@ class cat_products_VatGroups extends core_Detail
 
 
     /**
+     * Временен кеш
+     */
+    protected static $tempCache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -199,6 +205,21 @@ class cat_products_VatGroups extends core_Detail
                 } else {
                     $row->ROW_ATTR['class'] = 'state-closed';
                 }
+
+                // Показване докога е валидно изключението
+                if(isset($rec->exceptionId)){
+                    $exceptionRec = cond_VatExceptions::fetch($rec->exceptionId);
+                    if(!empty($exceptionRec->validTo) && $exceptionRec->validTo <= $today){
+                        $exceptionValidToVerbal = dt::mysql2verbal($exceptionRec->validTo, 'd.m.Y');
+                        $row->validFrom = tr("|*{$row->validFrom} ( |до|* {$exceptionValidToVerbal} )");
+                        $row->ROW_ATTR['class'] = 'state-closed';
+                    } elseif(!empty($exceptionRec->validFrom) && $exceptionRec->validFrom > $today) {
+                        $validFrom = min($exceptionRec->validFrom, $rec->validFrom);
+                        $exceptionValidToVerbal = dt::mysql2verbal($validFrom, 'd.m.Y');
+                        $row->validFrom = ht::createHint($exceptionValidToVerbal, 'Изключението ще влезе в сила след|*: ' . dt::mysql2verbal($exceptionRec->validFrom, 'd.m.Y'));
+                        $row->ROW_ATTR['class'] = 'state-draft';
+                    }
+                }
             }
         }
         
@@ -266,12 +287,25 @@ class cat_products_VatGroups extends core_Detail
     {
         $date = (!empty($date)) ? dt::verbal2mysql($date, false) : dt::today();
 
+        // Кои са валидните ДДС изключения към датата
+        if(!array_key_exists($date, static::$tempCache)){
+            $exQuery = cond_VatExceptions::getQuery();
+            $exQuery->XPR('from', 'date', 'COALESCE(#validFrom, "0000-00-00")');
+            $exQuery->XPR('to', 'date', 'COALESCE(#validTo, "9999-99-90")');
+            $exQuery->where("'{$date}' BETWEEN #from AND #to");
+            $exQuery->show('id');
+            static::$tempCache[$date] = arr::extractValuesFromArray($exQuery->fetchAll(), 'id');
+        }
+
+        // Ако има изключение и то е активно, първо ще се търси правило за него, ако няма за "без изключение"
+        $useExceptionId = isset($exceptionId) ? (array_key_exists($exceptionId, static::$tempCache[$date]) ? $exceptionId : null) : null;
+
         // Извличат се активните записи (ако има ддс изключение - само за него, ако няма това без изключения)
         $query = cat_products_VatGroups::getQuery();
         $query->XPR('orderExceptionId', 'int', "COALESCE(#exceptionId, '')");
         $query->where("#productId = {$productId} AND #validFrom <= '{$date}'");
-        $query->where("#exceptionId = '{$exceptionId}' OR #exceptionId IS NULL");
-        $query->orderBy('#validFrom,orderExceptionId', 'DESC');
+        $query->where("#exceptionId = '{$useExceptionId}' OR #exceptionId IS NULL");
+        $query->orderBy('orderExceptionId,#validFrom', 'DESC');
         $query->limit(1);
 
         $value = false;

@@ -106,9 +106,18 @@
                     <td colspan = "2">[#description#]</td>
                 </tr>
                 <!--ET_END description-->
+
+                <tr>
+                    <td class="gray-title aright" style="float:left" colspan="2">
+
+                    </td>
+                </tr>
             </table>
         </fieldset>
-       
+
+        <fieldset class="detail-info">
+            [#PARAMS#]
+        </fieldset>
         <!--ET_BEGIN sensors-->
         <div class="scrolling-holder">
             <fieldset class="detail-info" style="margin-top: 20px; display: block;">

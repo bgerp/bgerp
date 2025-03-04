@@ -140,6 +140,12 @@ class pos_Reports extends core_Master
 
 
     /**
+     * Дали артикула ще произвежда при експедиране артикулите с моментна рецепта
+     */
+    public $manifactureProductsOnShipment = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

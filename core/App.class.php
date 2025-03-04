@@ -899,13 +899,13 @@ class core_App
                 if (is_array($value)) {
                     foreach ($value as $k => $v) {
                         if (is_array($v)) {
-                            wp('Очаква се стринг, но се подава масив', $v, $key, $arr);
+                            wp($v);
                         }
                         $url .= ($url ? '/' : '') . "{$key},{$k}/" . @urlencode($v);
                     }
                 } else {
                     if (is_array($value)) {
-                        wp('Очаква се стринг, но се подава масив', $value, $key, $arr);
+                        wp($value);
                     }
                     $url .= ($url ? '/' : '') . "{$key}/" . @urlencode($value);
                 }

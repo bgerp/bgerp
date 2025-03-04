@@ -144,7 +144,7 @@
 "hvac.temp_1.min","float","-50.0/50.0","HVAC","system",20.0,"Minimum achievable","mz"
 "hvac.thermal_force_limit_1","float","0.0/100.0","HVAC","system",100.0,"Thermal force limit","mz"
 "hvac.thermal_mode_1","int","1|2|3|4","HVAC","system",2,"Thermal mode","mz"
-"hvac.update_rate_1","float","0.0/","HVAC","system",1.0,"Update rate of the plugin [s]","mz"
+"hvac.update_rate_1","float","0.0/","HVAC","system",300.0,"Update rate of the plugin [s]","mz"
 "light.min","float","0.0/10000.0","Light","system",800.0,"Minimum limit","mz"
 "light.max","float","0.0/10000.0","Light","system",10000.0,"Maximum limit","mz"
 "light.v1.output","str","","Light","system","U0:ID2:FC16:R0:AO0","Analog output 0. U0:ID2:FC16:R0:AO0","mz"

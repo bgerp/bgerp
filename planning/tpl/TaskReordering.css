@@ -2,6 +2,12 @@
 body {
   background: white !important; }
 
+table th {
+  position: sticky;
+  top: -1px;
+  z-index: 1;
+  white-space: nowrap; }
+
 .dragging {
   opacity: 0.5; }
 
@@ -19,6 +25,25 @@ body {
 .taskParamCol {
   text-align: right; }
 
+.modal-content input {
+  font-size: 20px; }
+
+.comboTime {
+  display: inline-block !important;
+  position: relative;
+  top: 2px;
+  margin-right: 5px; }
+  .comboTime input,
+  .comboTime select {
+    background: white;
+    border-radius: 3px !important;
+    -webkit-appearance: none;
+    border: solid 1px #bbbbbb;
+    margin-top: 0;
+    font-size: 19px;
+    -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset; }
+
 table {
   width: 100%;
   border-collapse: collapse; }
@@ -30,18 +55,15 @@ th {
 th,
 td {
   border: 1px solid #dddddd !important;
-  padding: 2px 3px !important;
+  padding: 1px 3px !important;
   font-family: "Roboto", sans-serif !important;
   font-weight: 400;
   font-size: 13px !important;
   box-sizing: content-box; }
 
 .wrongDates {
-  background: red;
-  color: white; }
-
-td:has(.wrongDates) {
-  background: red !important; }
+  color: red;
+  font-weight: bold; }
 
 .state-pending,
 .state-pending:hover {
@@ -153,4 +175,132 @@ tr:hover td {
   margin-top: 38px;
   box-sizing: border-box;
   height: calc(100vh - 40px); }
+
+#modal {
+  visibility: hidden;
+    /*
+   * Вместо display: none, използваме visibility
+   */
+  opacity: 0;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out; }
+
+/*
+ * Активен модален прозорец
+ */
+#modal.show {
+  visibility: visible;
+  opacity: 1; }
+
+/*
+ * Съдържанието на модала
+ */
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+  position: relative; }
+
+/*
+ * Бутон за затваряне
+ */
+.close {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  font-size: 20px;
+  cursor: pointer; }
+
+/*
+ * Полета за дата и час
+ */
+#datepicker,
+#timepicker {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  background-color: white; }
+
+/*
+ * Бутон за запазване
+ */
+#save {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 5px; }
+
+#save:hover {
+  background-color: #218838; }
+
+#modalClear {
+  background-color: white;
+    /*
+   * Тъмнозелен основен цвят
+   */
+  color: black;
+  border: 1px solid #2e7d32;
+    /*
+   * Още по-тъмен зелен бордър
+   */
+  padding: 5px 10px;
+  border-radius: 5px;
+    /*
+   * Леко заоблени ръбове
+   */
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out; }
+
+#modalSave {
+  background-color: #388e3c;
+    /*
+   * Тъмнозелен основен цвят
+   */
+  color: white;
+    /*
+   * Бял текст
+   */
+  border: 1px solid #2e7d32;
+    /*
+   * Още по-тъмен зелен бордър
+   */
+  padding: 5px 10px;
+  border-radius: 5px;
+    /*
+   * Леко заоблени ръбове
+   */
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out; }
+
+/*
+ * Ефект при ховър (малко по-тъмен)
+ */
+#modalSave:hover {
+  background-color: #2e7d32; }
+
+/*
+ * Ефект при натискане
+ */
+#modalSave:active {
+  background-color: #1b5e20; }
 

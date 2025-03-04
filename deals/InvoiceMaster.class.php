@@ -149,15 +149,15 @@ abstract class deals_InvoiceMaster extends core_Master
 
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,silent');
         $mvc->FLD('contragentId', 'int', 'input=hidden,silent');
-        $mvc->FLD('contragentName', 'varchar', 'caption=Контрагент->Име, mandatory, class=contactData');
+        $mvc->FLD('contragentName', 'varchar', 'caption=Контрагент->Име, mandatory, class=contactData,silent');
         $mvc->FLD('responsible', 'varchar(255)', 'caption=Контрагент->Отговорник, class=contactData');
-        $mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId,silent');
-        $mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Контрагент->VAT №,contragentDataField=vatNo');
-        $mvc->FLD('contragentEori', 'drdata_type_Eori', 'caption=Контрагент->EORI №,contragentDataField=eori');
-        $mvc->FLD('uicNo', 'varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId');
-        $mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode');
-        $mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place');
-        $mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
+        $mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty,silent)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId,silent');
+        $mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Контрагент->VAT №,contragentDataField=vatNo,silent');
+        $mvc->FLD('contragentEori', 'drdata_type_Eori', 'caption=Контрагент->EORI №,contragentDataField=eori,silent');
+        $mvc->FLD('uicNo', 'varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId,silent');
+        $mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode,silent');
+        $mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place,silent');
+        $mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address,silent');
         $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         $mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
         $mvc->FLD('dcReason', 'richtext(rows=2)', 'input=none');
@@ -169,7 +169,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime,input=hidden,silent');
         $mvc->FLD('displayRate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime');
         $mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
-        $mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
+        $mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
         $mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
@@ -615,6 +615,10 @@ abstract class deals_InvoiceMaster extends core_Master
             doc_DocumentCache::threadCacheInvalidation($rec->threadId);
         }
 
+        if($rec->_changedCondition){
+            $mvc->logWrite('Променено условие от сметка', $rec->id);
+        }
+
         $Source = $mvc->getSourceOrigin($rec);
         if (!$Source) {
             return;
@@ -940,6 +944,26 @@ abstract class deals_InvoiceMaster extends core_Master
                 $form->setDefault('importProducts', 'fromSource');
             }
         }
+
+        if($data->action == 'changefields'){
+            // При промяна да се показва поле за редакция на кешираните допълнителни условия от банковата сметка
+            if($mvc->cacheAdditionalConditions){
+                $exRec = $mvc->fetch($rec->id, 'additionalConditions,accountId', false);
+                $defaultCondition = $exRec->additionalConditions[0];
+                if($rec->accountId != $exRec->accountId){
+                    if($rec->accountId){
+                        $ownBankAccountId = bank_OwnAccounts::fetchField($rec->accountId, 'bankAccountId');
+                        $lang = $rec->tplLang ?? doc_TplManager::fetchField($rec->template, 'lang');
+                        $defaultCondition = bank_Accounts::getDocumentConditionFor($ownBankAccountId, 'sales_Sales', $lang);
+                    } else {
+                        $defaultCondition = null;
+                    }
+                }
+
+                $form->FLD('additionalConditionsInput', "text(rows=3)", 'caption=Допълнително->Условия,input,changable,after=additionalInfo');
+                $form->setDefault('additionalConditionsInput', $defaultCondition);
+            }
+        }
     }
     
     
@@ -1151,7 +1175,7 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Преди запис в модела
      */
-    protected static function beforeInvoiceSave($rec)
+    protected static function beforeInvoiceSave($mvc, $rec)
     {
         if (!empty($rec->folderId)) {
             if (empty($rec->contragentClassId)) {
@@ -1199,6 +1223,16 @@ abstract class deals_InvoiceMaster extends core_Master
 
                 $rec->displayContragentClassId = 'crm_Companies';
                 $rec->displayContragentId = $cRec->id;
+            }
+        }
+
+        // Ако е променено условието от банковата сметка - записва се
+        if($mvc->cacheAdditionalConditions){
+            if($rec->__isBeingChanged){
+                if(md5(str::removeWhiteSpace($rec->additionalConditions[0])) != md5(str::removeWhiteSpace($rec->additionalConditionsInput))){
+                    $rec->_changedCondition = true;
+                }
+                $rec->additionalConditions[0] = $rec->additionalConditionsInput;
             }
         }
     }
@@ -1974,7 +2008,6 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = $mvc->fetchRec($rec);
 
-        $saveFields = array();
         if($mvc->cacheAdditionalConditions){
             if (empty($rec->additionalConditions)) {
                 if(!empty($rec->accountId)) {

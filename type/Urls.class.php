@@ -28,7 +28,7 @@ class type_Urls extends type_Varchar
     /**
      * Шаблон за разделяне на линковете
      */
-    public static $pattern = '/[,;]\s/';
+    public static $pattern = '/\s?[,; ]\s?/';
     
     
     /**
@@ -100,6 +100,30 @@ class type_Urls extends type_Varchar
         return $res;
     }
     
+
+    /**
+     * Превръща вербална стойност с имейл към вътрешно представяне
+     */
+    public function fromVerbal($value)
+    {
+        $value = trim($value);
+     
+        if (empty($value)) {
+            
+            return;
+        }
+   
+        $urlsArr = preg_split(self::$pattern, $value, null, PREG_SPLIT_NO_EMPTY);
+        foreach($urlsArr as &$url) {
+            if(stripos($url, '://') === false) {
+                $url = 'http://' . $url;
+            }
+        }
+        $value = implode(', ', $urlsArr);
+   
+        return parent::fromVerbal($value);
+    }
+
     
     /**
      * Преобразува полетата за много URL-та в човешки вид

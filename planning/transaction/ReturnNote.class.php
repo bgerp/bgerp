@@ -56,7 +56,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
     {
         $entries = array();
         $errorArr = array();
-        $productsArr = array();
+        $productsArr = $quantities = array();
         
         $dQuery = planning_ReturnNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
@@ -65,6 +65,8 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 
             $prodRec = cat_Products::fetch($dRec->productId, 'canStore,fixedAsset');
             $productsArr[$dRec->productId] = $dRec->productId;
+            $quantities[$dRec->productId] += $dRec->quantity;
+
             $creditArr = null;
             
             if ($rec->useResourceAccounts == 'yes') {
@@ -91,18 +93,20 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
                 // Сумата с която ще върнем артикула в склада е неговата средно претеглена
                 if($prodRec->canStore == 'yes'){
                     $averageAmount = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $rec->valior, $rec->storeId);
+                } else {
+                    $averageAmount = planning_GenericMapper::getWacAmountInProduction($dRec->quantity, $dRec->productId, $rec->valior);
+                }
 
-                    if (!isset($averageAmount)) {
-                        $averageAmount = cat_Products::getPrimeCost($dRec->productId);
-                        if (isset($averageAmount)) {
-                            $averageAmount = $dRec->quantity * $averageAmount;
-                        }
+                if (!isset($averageAmount)) {
+                    $averageAmount = cat_Products::getPrimeCost($dRec->productId);
+                    if (isset($averageAmount)) {
+                        $averageAmount = $dRec->quantity * $averageAmount;
                     }
+                }
 
-                    if (!isset($averageAmount)) {
-                        $errorArr[] = cls::get('cat_Products')->getTitleById($dRec->productId);
-                        $averageAmount = 0;
-                    }
+                if (!isset($averageAmount)) {
+                    $errorArr[] = cls::get('cat_Products')->getTitleById($dRec->productId);
+                    $averageAmount = 0;
                 }
             }
 
@@ -115,9 +119,17 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
             
             $entries[] = $entry;
         }
-        
+
         // Ако някой от артикулите не може да бдъе произведем сетваме, че ще правим редирект със съобщението
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
+            if($rec->useResourceAccounts == 'yes'){
+                if (!store_Setup::canDoShippingWhenStockIsNegative()) {
+                    if($redirectError = planning_WorkInProgress::getContoRedirectError($quantities)){
+                        acc_journal_RejectRedirect::expect(false, $redirectError);
+                    }
+                }
+            }
+
             if (countR($errorArr)) {
                 $errorArr = implode(', ', $errorArr);
                 acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото липсва себестойност");
@@ -125,7 +137,6 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
             
             $msg = "трябва да са вложими";
             if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canConvert', null, $msg)){
-                
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
             

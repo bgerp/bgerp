@@ -52,24 +52,6 @@ class doc_StepFolderDetails extends core_Manager
         foreach($data->recs as $key => $rec) {
             if (!$data->Pager->isOnPage()) continue;
             $data->rows[$key] = $rec->_class->recToVerbal($rec, $rec->_fields);
-
-            /*
-             * $fRec = doc_Folders::fetch($rec->folderId);
-            if (doc_Folders::haveRightFor('single', $rec->folderId)) {
-                $data->rows[$key]->folder = ht::createLink(
-
-                    'Папка',
-                    array('doc_Threads', 'list', 'folderId' => $rec->folderId),
-                    null,
-
-                    array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn')
-
-                );
-            }
-             */
-
-
-
         }
     }
 

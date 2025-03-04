@@ -193,6 +193,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         
         while ($dRec = $query->fetch()) {
             $name = cat_Products::getVerbal($dRec->productId, 'name');
+            $name = str_replace(array('&lt;', '&amp;'), array('<', '&'), $name);
             if($settings->chargeVat == 'yes'){
                 $price = $dRec->price * (1 + $dRec->param);
             } else {
@@ -218,12 +219,8 @@ class bgfisc_plg_Receipts extends core_Plugin
                 $arr['DISC_ADD_V'] = -1 * round($discountPercent * $amount, 2);
             }
 
-            if($settings->chargeVat == 'yes'){
-                $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId, null, $settings->vatExceptionId)->sysId;
-                $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
-            } else {
-                $arr['VAT_CLASS'] = $vatClasses['A'];
-            }
+            $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId, null, $settings->vatExceptionId)->sysId;
+            $arr['VAT_CLASS'] = (!empty($vatSysId)) ? $vatClasses[$vatSysId] : $vatClasses['B'];
 
             $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
             $price = round($amount / $dRec->quantity, $fiscFuRound);
@@ -428,7 +425,12 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
                     $discountVal = round($discountVal, $fiscFuRound);
                     $discountVal = number_format($discountVal, $fiscFuRound, '.', '');
-                    $fiscalArr['END_TEXT'] = "Обща отстъпка: {$discountVal}лв";
+                    $fiscalArr['END_TEXT'][] = "Обща отстъпка: {$discountVal}лв";
+                }
+
+                if($rec->voucherId){
+                    $endVoucher = substr(voucher_Cards::getVerbal($rec->voucherId, 'number'), 12, 4);
+                    $fiscalArr['END_TEXT'][] = "Ваучер: *{$endVoucher}";
                 }
 
                 if (cls::haveInterface('peripheral_FiscPrinterWeb', $Driver)) {

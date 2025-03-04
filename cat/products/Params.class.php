@@ -182,7 +182,8 @@ class cat_products_Params extends doc_Detail
                 if($rec->classId == cat_BomDetails::getClassId()){
                     $warningMsg = 'Няма повече планиращи параметри';
                 }
-                return followRetUrl(null, $warningMsg, 'warning');
+
+                followRetUrl(null, $warningMsg, 'warning');
             }
             
             $form->setOptions('paramId', array('' => '') + $options);
@@ -401,15 +402,17 @@ class cat_products_Params extends doc_Detail
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 if ($data->noChange !== true && !Mode::isReadOnly()) {
-                    $minRowToolbar = isset($data->minRowToolbar) ? $data->minRowToolbar : null;
+                    $minRowToolbar = $data->minRowToolbar ?? null;
                     $row->tools = $row->_rowTools->renderHtml($minRowToolbar);
                 } else {
                     unset($row->tools);
                 }
             }
         }
-        
-        $tpl = cat_Params::renderParamBlock($data->params);
+
+        $paramCaption = $data->paramCaption ?? null;
+
+        $tpl = cat_Params::renderParamBlock($data->params, $paramCaption);
         $tpl->replace(get_called_class(), 'DetailName');
         
         if ($data->noChange !== true) {
@@ -430,8 +433,9 @@ class cat_products_Params extends doc_Detail
         $query = self::getQuery();
         $query->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
         $query->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
+        $query->EXT('state', 'cat_Params', 'externalName=state,externalKey=paramId');
         $query->XPR('orderEx', 'varchar', 'COALESCE(#order, 999999)');
-        $query->where("#productId = {$data->masterId} AND #classId = {$data->masterClassId}");
+        $query->where("#productId = {$data->masterId} AND #classId = {$data->masterClassId} AND #state != 'rejected'");
         $query->orderBy('group,orderEx,id', 'ASC');
 
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
@@ -464,6 +468,8 @@ class cat_products_Params extends doc_Detail
                     $requiredRoles = 'task,ceo';
                 } elseif ($rec->classId == marketing_Inquiries2::getClassId()) {
                     $requiredRoles = 'marketing,ceo';
+                } elseif($rec->classId == planning_AssetResources::getClassId()){
+                    $requiredRoles = 'ceo, planningMaster';
                 } elseif ($rec->classId == cat_Products::getClassId()) {
                     $requiredRoles = 'cat,ceo,catEdit,sales,purchase';
                     $isPublic = cat_Products::fetchField($rec->productId, 'isPublic');
@@ -577,7 +583,14 @@ class cat_products_Params extends doc_Detail
 
         $Class->logWrite($logMsg, $rec->productId);
         $Class->logDebug("{$logMsg}: {$paramName}", $rec->productId);
-        $Class->touchRec($rec->productId);
+        if(cls::haveInterface('doc_DocumentIntf', $Class)){
+            $Class->touchRec($rec->productId);
+        } else {
+            $cRec = $Class->fetch($rec->productId);
+            $cRec->modifiedOn = dt::now();
+            $cRec->modifiedBy = core_Users::getCurrent();
+            $Class->save_($cRec, 'modifiedOn,modifiedBy');
+        }
     }
     
     
@@ -746,6 +759,8 @@ class cat_products_Params extends doc_Detail
             }
 
             $paramRec = cat_Params::fetch($pId);
+            if(in_array($paramRec->state, array('rejected', 'closed'))) continue;
+
             $name = cat_Params::getVerbal($paramRec, 'name');
             if(!empty($paramRec->group)){
                 $groupName = cat_Params::getVerbal($paramRec, 'group');
@@ -869,7 +884,7 @@ class cat_products_Params extends doc_Detail
             if(!in_array($objectRec->state, array('draft', 'active'))){
                 $d->noChange = true;
             }
-        }elseif ($objectRec->state == 'closed' || $objectRec->state == 'stopped' || $objectRec->state == 'rejected') {
+        } elseif ($objectRec->state == 'closed' || $objectRec->state == 'stopped' || $objectRec->state == 'rejected') {
             $d->noChange = true;
         }
         cat_products_Params::prepareParams($d);

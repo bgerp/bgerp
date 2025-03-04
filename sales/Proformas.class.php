@@ -102,7 +102,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,sales,acc';
+    public $canList = 'ceo,sales,acc,invoiceAll';
     
     
     /**
@@ -282,7 +282,7 @@ class sales_Proformas extends deals_InvoiceMaster
             }
         }
         
-        parent::beforeInvoiceSave($rec);
+        parent::beforeInvoiceSave($mvc, $rec);
         
         // Кой е следващия най-голям номер
         $number = (isset($rec->number)) ? $rec->number : ((isset($rec->id) ? $mvc->fetchField($rec->id, 'number') : 0));

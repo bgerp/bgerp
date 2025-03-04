@@ -57,7 +57,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,cash';
+    public $canList = 'ceo,cash, cashAll';
     
     
     /**

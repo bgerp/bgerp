@@ -879,8 +879,10 @@ class pos_ReceiptDetails extends core_Detail
             case 'sale':
                 $mvc->renderSale($rec, $row, $receiptRec, $fields);
                 if ($fields['-list']) {
-                    $row->quantity = ($rec->value) ? $row->quantity : $row->quantity;
+                    $row->productId = cat_Products::getHyperlink($rec->productId, true);
                 }
+
+
                 break;
             case 'payment':
                 $row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
@@ -1361,43 +1363,31 @@ class pos_ReceiptDetails extends core_Detail
             $quantityArr[$storeId] = store_Products::getQuantities($productId, $storeId)->quantity;
         });
 
-        // Кой е основния склад и какво количество е в него
+        // Изчисляване на нужното количество в основната мярка
+        $quantityInPack = 1;
+        if(isset($packagingId)){
+            $packRec = cat_products_Packagings::getPack($productId, $packagingId);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+        }
+        $expectedQuantity = round($quantityInPack * $quantity, 2);
         $firstStoreId = key($quantityArr);
+
+        // Ако к-то е налично в основния склад - взима се с приоритет от там
+        $defaultStoreId = $firstStoreId;
         $quantityInDefaultStore = $quantityArr[$firstStoreId];
 
-        // Ако е забранена продажбата на неналични артикули
-        $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
-        if($notInStockChosen != 'yes'){
-            $instantBomRec = cat_Products::getLastActiveBom($productId, 'instant');
-
-            if(is_object($instantBomRec)) return $firstStoreId;
-
-            // Изчисляване на нужното количество в основната мярка
-            $quantityInPack = 1;
-            if(isset($packagingId)){
-                $packRec = cat_products_Packagings::getPack($productId, $packagingId);
-                $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-            }
-            $expectedQuantity = round($quantityInPack * $quantity, 2);
-
-            // Ако в основния е налична, връща се той
-            if($expectedQuantity <= $quantityInDefaultStore){
-
-                return $firstStoreId;
-            }
-
-            // Ако не е налична в основния, връща се склада с най-голямо количество където е налична
-            // ако няма се връща null
+        if($expectedQuantity > $quantityInDefaultStore){
+            // Ако няма се търси в другите складове, където е с най-голямо но достатъчно к-во
             unset($quantityArr[$firstStoreId]);
             arsort($quantityArr);
-            $storeIdWithMostQuantity = key($quantityArr);
-            $inStock = $quantityArr[$storeIdWithMostQuantity];
 
-            return ($expectedQuantity <= $inStock) ? $storeIdWithMostQuantity : null;
+            $storeIdWithMostQuantity = key($quantityArr);
+            $quantityInDefaultStore = $quantityArr[$storeIdWithMostQuantity];
+            $defaultStoreId = ($expectedQuantity <= $quantityInDefaultStore) ? $storeIdWithMostQuantity : $firstStoreId;
         }
 
         // Връщане на склада с най-голямо к-во, ако може да се продават неналични артикули
-        return $firstStoreId;
+        return $defaultStoreId;
     }
 
 

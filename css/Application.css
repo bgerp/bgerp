@@ -50,7 +50,9 @@ dl {
 
   .groupList table td {
     vertical-align: top;
-    line-height: 1.2em; }
+    line-height: 1.5em; }
+    .groupList table td:first-child {
+      white-space: nowrap; }
   .groupList table .dt {
     width: 21.5%;
     text-align: right;
@@ -2060,6 +2062,11 @@ a.tUnsighted {
     .document-settings-left .linkWithIcon.disliked.disable {
       cursor: default; }
 
+.smallBtnHolder .linkWithIcon {
+  font-size: 0.65em;
+  background-size: 11px;
+  padding-left: 18px !important; }
+
 .narrow .document-settings,
 .narrow .document-settings-left,
 .narrow .document-title-group {
@@ -2782,6 +2789,9 @@ div.attachments {
   width: 100% !important;
   height: auto !important;
   padding-top: 57%; }
+
+.narrow .mejs-time {
+  font-size: 10px !important; }
 
 .narrow .imageProcesing {
   width: 100%;
@@ -4503,7 +4513,7 @@ table .eshop-btn {
 
 .cms-row h1 {
   margin-top: 0;
-  margin-left: 0px; }
+  margin-left: 0; }
 
 .richtext h1,
 .richtext h2,
@@ -4516,7 +4526,6 @@ table .eshop-btn {
 
   .clear-center img {
     max-width: 100%;
-    width: 100% \9;
     height: auto; }
 
 .clear-right {
@@ -4803,10 +4812,10 @@ table .eshop-btn {
 /*
  * край на grid
  */
-.narrow .row-holder {
+.narrow .alphabet .row-holder {
   overflow: auto; }
 
-.narrow .row-holder > div {
+.narrow .alphabet .row-holder > div {
   display: flex;
   flex-wrap: nowrap; }
 
@@ -5705,6 +5714,10 @@ div.location.public {
  */
 .doc-negative-quantity {
   color: red;
+  font-weight: bold; }
+
+.doc-positive-quantity {
+  color: green;
   font-weight: bold; }
 
 .doc-warning-quantity {
@@ -7480,13 +7493,16 @@ tr.wasteWeightPercent td {
       font-weight: bold;
       padding: 5px 3px;
       vertical-align: middle !important; }
-      .sale-summary table td .quiet {
+      .sale-summary table td span.quiet {
         color: #cccccc;
         font-weight: normal; }
       .sale-summary table td.vtop {
         vertical-align: top !important; }
     .sale-summary table .specialLink {
       white-space: normal; }
+
+.sale-summary .jobWorkInProgressTable table td.quantityCol {
+  color: #888888; }
 
 .sale-summary .cartStatistic .sum-th {
   background: #c1c1c1;
@@ -7839,6 +7855,15 @@ tr.wasteWeightPercent td {
 .workingTimeBlock table.typeTable {
   width: 100%; }
 
+.jobWorkInProgressTable .listTable th {
+  text-align: center !important; }
+
+table.listTable>tbody>tr>td.wasteCol {
+  font-weight: bold !important;
+  background: #eeeeee; }
+  table.listTable>tbody>tr>td.wasteCol .quiet {
+    font-weight: bold !important; }
+
 .selectTaskOptions {
   width: 100%; }
 
@@ -7980,4 +8005,103 @@ table.bomProductionStepTable td {
 
 .dialogHolder .result .dump {
   white-space: normal; }
+
+.contragentStatisticBlock {
+  margin: 3px 0;
+  padding: 3px 5px;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6; }
+  .contragentStatisticBlock.overdue {
+    box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.1);
+    color: white;
+    background-color: #ff4d4d; }
+  .contragentStatisticBlock.sales {
+    border: 1px solid rgba(204, 204, 204, 0.5); }
+  .contragentStatisticBlock.purchases {
+    border: 1px solid rgba(204, 204, 204, 0.5); }
+
+.jobWorkInProgressTable {
+  margin-bottom: 10px;
+  font-size: 0.7em; }
+
+.jobWorkInProgressTable td {
+  font-weight: normal !important; }
+
+/*
+ * Стилове за редовете
+ */
+.taskGapRow {
+  height: 1px;
+    /*
+   * Височина на реда
+   */ }
+
+.taskGapRow.gapRow {
+  background-color: red;
+    /*
+   * Цветът на фона на реда с клас gapRow
+   */ }
+
+.taskGapRow.idleRow {
+  background-color: #5dc95d;
+    /*
+   * Цветът на фона на реда с клас idleRow
+   */ }
+
+/*
+ * Стилове за клетките
+ */
+.gapRow td {
+  padding: 0;
+  font-size: 0px;
+    /*
+   * Премахва текста, ако е нужно
+   */
+  line-height: 0px;
+    /*
+   * Премахва интервала между редовете
+   */
+  background-color: red !important;
+    /*
+   * Фон на клетките в gapRow
+   */
+  border-right: 1px solid red !important;
+    /*
+   * Бордър на клетките
+   */ }
+
+/*
+ * Стилове за клетките в idleRow
+ */
+.idleRow td {
+  padding: 0;
+  font-size: 0px;
+    /*
+   * Премахва текста, ако е нужно
+   */
+  line-height: 0px;
+    /*
+   * Премахва интервала между редовете
+   */
+  background-color: #5dc95d !important;
+    /*
+   * Фон на клетките в idleRow
+   */
+  border-right: 1px solid #5dc95d !important;
+    /*
+   * Бордър на клетките
+   */ }
+
+/*
+ * За да предотвратиш промените при ховър
+ */
+.taskGapRow td:hover {
+  background-color: inherit !important;
+  border-color: inherit !important;
+  cursor: default !important;
+    /*
+   * Опционално, ако искаш да промениш курсора при ховър
+   */ }
 

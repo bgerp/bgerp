@@ -46,36 +46,41 @@ class batch_plg_DocumentMovement extends core_Plugin
             }
         }
     }
-    
-    
+
+
     /**
-     * Изпълнява се преди контиране на документа
+     * Каква грешка да се показва при контиране/възстановяване на контиран документ
+     *
+     * @param $mvc
+     * @param $res
+     * @param $rec
+     * @return false|void
      */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    private static function getContoError($mvc, &$res, $rec)
     {
-        $rec = $mvc->fetchRec($id);
         $actions = type_Set::toArray($rec->contoActions);
 
         // Ако няма избран склад, няма какво да се прави
         if(empty($rec->{$mvc->storeFieldName}) || ($mvc instanceof sales_Sales && !isset($actions['ship']))) {
-            
+
             return;
         }
-        
+
         static $cache = array();
-        
+
         // Гледат се детайлите на документа
         $productsWithoutBatchesArr = $productsWithNotExistingBatchesArr = $batchDiffArr = array();
         $detailMvcs = ($mvc instanceof store_ConsignmentProtocols) ? array('store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend') : (isset($mvc->mainDetail) ? array($mvc->mainDetail) : array());
-        
+        $batchesWithSerials = array();
+
         foreach ($detailMvcs as $det){
-            
+
             // Има ли в тях артикули, от тези, на които задължително трябва да е посочена партида
             $Detail = cls::get($det);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
             $dRecs = $dQuery->fetchAll();
-            
+
             // хак за мастъра на протокола за производство
             if($mvc instanceof planning_DirectProductionNote){
                 $dRecs[0] = (object)array("{$Detail->productFld}" => $rec->productId, "{$Detail->quantityFld}" => $rec->quantity, 'id' => $rec->id, 'detMvcId' => $mvc->getClassId());
@@ -85,11 +90,11 @@ class batch_plg_DocumentMovement extends core_Plugin
                 $dRec->detMvcId = (empty($dRec->detMvcId)) ? $Detail->getClassId() : $dRec->detMvcId;
                 $defRec = batch_Defs::fetch("#productId = {$dRec->{$Detail->productFld}}");
                 if(empty($defRec)) continue;
-                
+
                 if($Detail instanceof store_InternalDocumentDetail){
                     $dRec->quantity = $dRec->quantityInPack * $dRec->packQuantity;
                 }
-                
+
                 $checkIfBatchExists = ($defRec->onlyExistingBatches == 'auto') ? batch_Templates::fetchField($defRec->templateId, 'onlyExistingBatches') : $defRec->onlyExistingBatches;
                 $checkIfBatchExists = haveRole('contoNegativeBatches') ? false : $checkIfBatchExists;
                 $checkIfBatchIsMandatory = ($defRec->alwaysRequire == 'auto') ? batch_Templates::fetchField($defRec->templateId, 'alwaysRequire') : $defRec->alwaysRequire;
@@ -103,22 +108,32 @@ class batch_plg_DocumentMovement extends core_Plugin
                 $Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
                 $bdQuery = batch_BatchesInDocuments::getQuery();
                 $bdQuery->where("#detailClassId = {$dRec->detMvcId} AND #detailRecId = {$dRec->id}");
-                if($Detail instanceof store_TransfersDetails){
-                    $bdQuery->where("#operation = 'out'");
-                }
+
 
                 $sum = 0;
                 while($bdRec = $bdQuery->fetch()){
-                    $sum += $bdRec->quantity;
+
                     $batchesArr = array_keys($Def->makeArray($bdRec->batch));
-                    
+                    if($bdRec->operation == 'in' && !($Detail instanceof store_TransfersDetails)){
+                        if($Def instanceof batch_definitions_Serial){
+                            foreach ($batchesArr as $b){
+                                $batchesWithSerials[$bdRec->productId][$b] = $b;
+                            }
+                        }
+                    }
+
+                    // Ако е МСТ се гледат само излизащите
+                    if($Detail instanceof store_TransfersDetails && $bdRec->operation == 'in') continue;
+
+                    $sum += $bdRec->quantity;
+
                     // Проверка дали посочената партида на изходящите документи е налична
                     if($checkIfBatchExists == 'yes' && $bdRec->operation == 'out'){
                         if(!array_key_exists("{$bdRec->productId}|{$bdRec->storeId}", $cache)){
                             $cache["{$bdRec->productId}|{$bdRec->storeId}"] = batch_Items::getBatchQuantitiesInStore($bdRec->productId, $bdRec->storeId);
                         }
                         $quantitiesInStore = $cache["{$bdRec->productId}|{$bdRec->storeId}"];
-                        
+
                         $quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $bdRec->quantity;
                         foreach ($batchesArr as $batchValue){
                             $inStore = isset($quantitiesInStore[$batchValue]) ? $quantitiesInStore[$batchValue] : 0;
@@ -141,13 +156,28 @@ class batch_plg_DocumentMovement extends core_Plugin
             }
         }
 
+        $errMsgSerials = '';
+        foreach ($batchesWithSerials as $pId => $bArr){
+            $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($pId);
+            $serialErrArr = array();
+            foreach ($bArr as $b1){
+                if($batchQuantityInAllStores[$b1] >= 1){
+                    $serialErrArr[$b1] = $b1;
+                }
+            }
+
+            if(countR($serialErrArr)){
+                $errMsgSerials .= " " . cat_Products::getTitleById($pId) . ": " . implode(',', $serialErrArr);
+            }
+        }
+
         // Ако има артикули, с задължителни партидности, които не са посочени няма да може да се контира
-        if(countR($productsWithoutBatchesArr) || countR($productsWithNotExistingBatchesArr) || countR($batchDiffArr)){
+        if(countR($productsWithoutBatchesArr) || countR($productsWithNotExistingBatchesArr) || countR($batchDiffArr) || $errMsgSerials){
             if(countR($productsWithoutBatchesArr)){
                 $productMsg = implode(', ', $productsWithoutBatchesArr);
                 core_Statuses::newStatus("Артикулите не могат да са без партида|*: {$productMsg}", 'error');
             }
-            
+
             if(countR($productsWithNotExistingBatchesArr)){
                 $productMsg = implode(', ', $productsWithNotExistingBatchesArr);
                 core_Statuses::newStatus("Артикули с неналични партиди|*: {$productMsg}", 'error');
@@ -157,11 +187,38 @@ class batch_plg_DocumentMovement extends core_Plugin
                 $productMsg = implode(', ', $batchDiffArr);
                 core_Statuses::newStatus("Разпределеното по партиди е повече от количеството на артикула|*: {$productMsg}", 'error');
             }
-            
+
+            if($errMsgSerials){
+                core_Statuses::newStatus("Следните серийни номера са вече налични в системата|*: {$errMsgSerials}", 'error');
+            }
+
             $res = false;
-            
+
             return false;
         }
+    }
+
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if(!in_array($rec->brState, array('active', 'closed'))) return;
+
+        return self::getContoError($mvc, $res, $rec);
+    }
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        return self::getContoError($mvc, $res, $rec);
     }
 
 

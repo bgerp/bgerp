@@ -50,7 +50,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, cat_plg_NotifyProductOnDocumentStateChange, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation,price_plg_TotalDiscount, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg,cat_plg_UsingProductVat, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Tabs, cat_plg_UsingProductVat, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
     
     /**
@@ -352,10 +352,10 @@ class sales_Sales extends deals_DealMaster
     public function description()
     {
         parent::setDealFields($this);
-        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
+        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty,maxRadio=1)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Артикули->Цени,before=detailOrderBy,notChangeableByContractor');
-        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId');
+        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId,silent');
         $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'input=hidden,caption=Доставка->Куриерско Api,after=deliveryCalcTransport,notChangeableIfHidden,placeholder=Автоматично');
         $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
@@ -1042,6 +1042,7 @@ class sales_Sales extends deals_DealMaster
     {
         core_App::setTimeLimit(300);
         $overdueDelay = sales_Setup::get('OVERDUE_CHECK_DELAY');
+        core_Debug::$isLogging = false;
         $this->checkPayments($overdueDelay);
         
         // Изпращане на нотификации, за нефактурирани продажби
@@ -1049,6 +1050,7 @@ class sales_Sales extends deals_DealMaster
         if(!empty($lateTime)){
             $this->sendNotificationIfInvoiceIsTooLate($lateTime);
         }
+        core_Debug::$isLogging = true;
     }
     
     
@@ -2134,7 +2136,7 @@ class sales_Sales extends deals_DealMaster
      * @param datetime|int $id
      * @return object
      *
-     * @see doc_ContragentDataIntf
+     * @see doc_ContragentDataIntfstatic function getContragentData(
      */
     public static function getContragentData($id, $date = null)
     {
@@ -2146,7 +2148,7 @@ class sales_Sales extends deals_DealMaster
                     $Cover = doc_Folders::getCover($rec->folderId);
                     
                     if ($Cover->haveInterface('doc_ContragentDataIntf')) {
-                        $cData = $Cover->getContragentData($Cover->that);
+                        $cData = $Cover->getContragentData($date);
                         
                         if ($cData->company) {
                             $contrData->company = $cData->company;

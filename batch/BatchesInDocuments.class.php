@@ -83,10 +83,8 @@ class batch_BatchesInDocuments extends core_Manager
         $this->FLD('isInstant', 'enum(no=Не,yes=Да)', 'caption=Моментно?,notNull,value=no');
 
         $this->setDbIndex('batch');
-        $this->setDbIndex('detailClassId,detailRecId');
-        $this->setDbIndex('productId');
         $this->setDbIndex('productId,batch');
-        $this->setDbIndex('detailClassId,detailRecId,productId,storeId');
+        $this->setDbIndex('detailRecId,detailClassId,productId,storeId');
         $this->setDbIndex('containerId');
     }
 
@@ -153,7 +151,6 @@ class batch_BatchesInDocuments extends core_Manager
                     $requiredRoles = 'no_one';
                 }
             }
-
         }
     }
 
@@ -214,16 +211,18 @@ class batch_BatchesInDocuments extends core_Manager
             $batch1 = $batch;
             $batch = implode(', ', $batch);
 
+            $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
+            $q = $rec->quantity / $quantityInPack;
+
             // Вербализацията на к-то ако е нужно
             if (countR($batch1) == 1 && (!($batchDef instanceof batch_definitions_Serial))) {
-                $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
-                $q = $rec->quantity / $quantityInPack;
+
                 $quantity = core_Type::getByName('double(smartRound)')->toVerbal($q);
                 if ($rInfo->operation['out'] && in_array($rInfo->state, array('draft', 'pending'))) {
                     $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
                     if ($rec->quantity > $batchQuantityInStore) {
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
-                        $quantity = ht::createHint($quantity, 'Над наличното количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning', false);
+                        $quantity = ht::createHint($quantity, 'Недостатъчно количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning', false);
                     }
                 }
                 $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
@@ -241,6 +240,32 @@ class batch_BatchesInDocuments extends core_Manager
                 if ($showBatchLink) {
                     if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, 1, $rec->batch, $rInfo->containerId)) {
                         $batch = $palletImgLink . $batch;
+                    }
+                }
+
+                if(in_array($rInfo->state, array('draft', 'pending'))){
+
+                    if ($rInfo->operation['out']) {
+                        $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
+                        $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
+
+                        if ($rec->quantity > $batchQuantityInStore) {
+                            $batch = ht::createHint($batch, 'Недостатъчно количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning');
+                        }
+                    }
+
+                    if ($rInfo->operation['in']) {
+                        $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $rec->batch);
+                        $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInAllStores[$rec->batch] / $quantityInPack);
+
+                        if($batchQuantityInAllStores[$rec->batch] >= 1 && !($Class instanceof store_TransfersDetails)) {
+                            $batch = ht::createHint($batch, "Има вече налично количество от този сериен номер|*: {$batchQuantityInStoreVerbal}!", 'warning');
+                        } else{
+                            $exRec = batch_Items::fetchField(array("#productId = {$rec->productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $rec->batch));
+                            if($exRec){
+                                $batch = ht::createHint($batch, "Партидата вече е минавала в системата", 'img/16/warning-gray.png');
+                            }
+                        }
                     }
                 }
 
@@ -557,9 +582,10 @@ class batch_BatchesInDocuments extends core_Manager
         $captions = ($Def instanceof batch_definitions_Serial) ? 'Партида' : 'Партида|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
         $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
-
+        $batchReadOnly = ($Def instanceof batch_definitions_Serial) ? '' : ',batch_ro=readonly';
         if ($hideTable === false) {
-            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди{$middleCaption}{$caption},placeholder={$Def->placeholder}");
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd{$batchReadOnly},captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди{$middleCaption}{$caption},placeholder={$Def->placeholder}");
+
             if (is_array($bOptions)) {
                 $bOptions = array_combine(array_values($bOptions), array_values($bOptions));
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $bOptions));
@@ -758,6 +784,7 @@ class batch_BatchesInDocuments extends core_Manager
 
         $form->toolbar->addBtn('Отказ', $retUrl, 'id=back,ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         $form->toolbar->setBtnOrder('back', 50);
+        $Detail->invoke('AfterPrepareBatchToolbar', array($detailRecId, &$form));
 
         // Добавяне на бутони за обхождане на другите редове
         if (!empty($selArr)) {

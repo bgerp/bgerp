@@ -150,7 +150,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 }
 
                 $expenseItemError = null;
-                if(!acc_CostAllocations::checkSelectedExpenseItem($rec->expenseItemId, $expenseItemError)){
+                if(!acc_CostAllocations::checkSelectedExpenseItem($rec->expenseItemId, $rec->allocationFilter, $mvc, $rec->id, $expenseItemError)){
                     $form->setError('expenseItemId', $expenseItemError);
                 }
 

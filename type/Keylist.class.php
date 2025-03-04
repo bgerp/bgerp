@@ -339,8 +339,9 @@ class type_Keylist extends core_Type
                     $v = type_Varchar::escape($v);
 
                     list(, $uId) = explode('_', $key);  
-                    if ($class = $this->profileInfo[$uId]) {
-                        $v = "<span class='{$class}'>" . $v . '</span>';
+                    if ($this->profileInfo[$uId]) {
+                        $class = $this->profileInfo[$uId]['class'];
+                        $v = "<span class='{$class}'>" . $v . $this->profileInfo[$uId]['emoji'] . '</span>';
                     }
                     
                     $cb->append("<label {$labelStyle} {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$insideLabel}{$v}{$insideLabelEnd}</label>");
@@ -741,7 +742,7 @@ class type_Keylist extends core_Type
      * Съединяваме два keylist стринга
      *
      * @param type_Keylist $klist1
-     * @param type_Keylist $klist2
+     * @param type_Keylist|array $klist2
      *
      * @return type_Keylist $newKlist
      */

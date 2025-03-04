@@ -243,7 +243,6 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => $acc, 'item1' => $item1, 'item2' => $item2, 'cacheBalance' => false, 'keepUnique' => true));
             $bRecs = $Balance->getBalance($acc);
-            // bp(acc_Lists::fetch(2),$acc,$workingPdogresAccRec,$bRecs);
 
             foreach ($bRecs as $item) {
 
@@ -343,8 +342,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                         'measureId' => $productMeasureId,
                         'groupOne' => '',
 
-                        'selfPrice' => '',
-                        'amount' => '',
+                        'selfPrice' => 0,
+                        'amount' => 0,
 
                         'baseQuantity' => $baseQuantity,
                         'baseAmount' => $baseAmount,
@@ -464,13 +463,24 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         foreach ($recs as $key => $val) {
 
             //Себестойност на артикула
-            if ($rec->selfPrice == 'manager') {
+
+            //ako количеството закръглено до минималната заначеща стойност на мярката е 0, го нулирам
+            $mround = cat_UoM::fetch($val->measureId)->round;
+            if (round($val->blQuantity, $mround) == 0) {
+
+                $val->blQuantity = 0;
+
+            }
+            if ($rec->selfPrices == 'manager') {
                 $val->selfPrice = cat_Products::getPrimeCost($key, null, $val->blQuantity, $date);
+                if (!$val->selfPrice) {
+                    $val->selfPrice = 0;
+                }
             } else {
-                $val->selfPrice = $val->blQuantity ? $val->blAmount / $val->blQuantity : null;
+                $val->selfPrice = $val->blQuantity ? $val->blAmount / $val->blQuantity : 0;
             }
 
-            if ($val->blQuantity > 0) {
+            if ($val->blQuantity >= 0) {
                 $val->amount = $val->selfPrice * $val->blQuantity;
             } else {
                 $val->amount = $val->blAmount;

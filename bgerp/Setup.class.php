@@ -245,6 +245,14 @@ class bgerp_Setup extends core_ProtoSetup
         ),
     );
 
+
+    /**
+     * Роли за достъп до модула
+     */
+    public $roles = array(
+        array('groupingMaster'),
+    );
+
     
     /**
      * Дефинирани класове, които имат интерфейси

@@ -58,7 +58,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $valior = dt::addDays(-1, $masterRec->valior);
             $valior = dt::verbal2mysql($valior, false);
             
-            $quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $valior, null, array(), true);
+            $quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $valior, null, array(), true, null, false, true);
             $selected = $Def->makeArray($rec->batch);
             if (!empty($rec->batch) && !array_key_exists($rec->batch, $quantities)) {
                 foreach ($selected as $k => $b) {
@@ -69,7 +69,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
 
             // Добавяне на поле за избор на съществуваща партида
-            $form->FNC('batchEx', 'varchar', 'caption=Партида');
+            $form->FNC('batchEx', 'varchar', 'caption=Партида,maxRadio=1,placeholder=Без партида');
             $autohide = countR($quantities) ? 'autohide' : '';
             $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
             $form->FNC('batchNew', 'varchar', "caption=Установена нова партида->{$caption},input,placeholder={$Def->placeholder}");
@@ -169,7 +169,11 @@ class batch_plg_InventoryNotes extends core_Plugin
                     $form->setError('batchNew', $msg);
                 }
             }
-            
+
+            if(!strlen($rec->batchEx) && !strlen($rec->batchNew)){
+                $form->setWarning('batchEx', 'Въведеното количество ще се отнесе към "Без партида"');
+            }
+
             if (!$form->gotErrors()) {
                 $rec->batch = (!empty($rec->batchEx)) ? $rec->batchEx : $rec->batchNew;
                 if ($rec->batch === '') {
@@ -288,7 +292,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $batchesInDetail[$k]->quantity += $quantity;
             }
         }
-        
+
         // Засичане на очакваните колчества с въведените
         if ($alwaysShowBatches !== true) {
             if (!countR($batchesInDetail)) {
@@ -299,8 +303,8 @@ class batch_plg_InventoryNotes extends core_Plugin
 
         $allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior, null, array('store_InventoryNotes', $noteId), true, null, false, true);
         if(!countR($allBatches) && !countR($batchesInDetail)) return false;
-        $allBatches[''] = $expectedQuantity - array_sum($allBatches);
 
+        $allBatches[''] = $expectedQuantity - array_sum($allBatches);
         $summary = array();
         $combinedKeys = array_keys($allBatches + $batchesInDetail);
 
@@ -337,6 +341,9 @@ class batch_plg_InventoryNotes extends core_Plugin
             
             return;
         }
+
+        if(Mode::is('selectRows2Delete')) return;
+
         $Double = cls::get('type_Double');
         
         $storeId = $masterRec->storeId;
@@ -348,15 +355,13 @@ class batch_plg_InventoryNotes extends core_Plugin
         $r = array();
         $recs = array();
 
-
-
         foreach ($summaryRows as $id => $sRow) {
             $sRec = $summaryRecs[$id];
             $recs[$id] = $sRec;
             $r[$id] = $sRow;
 
             $summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior, $alwaysShowBatches);
-
+            //bp($sRec, $summary);
             if(!$summary) continue;
             $Def = batch_Defs::getBatchDef($sRec->productId);
 
@@ -390,7 +395,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $r[$k] = $clone;
             }
         }
-
+       // bp($recs);
         $summaryRecs = $recs;
         $summaryRows = $r;
     }
@@ -486,10 +491,11 @@ class batch_plg_InventoryNotes extends core_Plugin
     {
         $explicitBatchQuantities = array();
         $dQuery = store_InventoryNoteDetails::getQuery();
-        $dQuery->where("#batch IS NOT NULL AND #productId = {$summaryRec->productId} AND #noteId = {$summaryRec->noteId}");
+        $dQuery->where("#productId = {$summaryRec->productId} AND #noteId = {$summaryRec->noteId}");
         $dQuery->XPR('totalQ', 'double', 'SUM(#quantity)');
         $dQuery->groupBy('batch');
         $dQuery->show('batch, totalQ');
+
         $calcedQuantity = 0;
         while($dRec = $dQuery->fetch()){
             $calcedQuantity += $dRec->totalQ;
@@ -505,7 +511,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         $valior = dt::addDays(-1, $masterRec->valior);
         $valior = dt::verbal2mysql($valior, false);
 
-        $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $masterRec->storeId, $valior, null, array(), true);
+        $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $masterRec->storeId, $valior, null, array(), true, null, false, true);
         $notInputed = array_diff_key($batchQuantities, $explicitBatchQuantities);
         array_walk($notInputed, function($a) use (&$calcedQuantity) {$calcedQuantity += $a;});
         $expectedBatchQuantities = array_sum($batchQuantities);

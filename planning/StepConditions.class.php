@@ -194,7 +194,6 @@ class planning_StepConditions extends core_Detail
         $tQuery = planning_Tasks::getQuery();
         $tQuery->in("productId", array_keys($stepArr));
         $tQuery->in("state", array('wakeup', 'stopped', 'active', 'pending'));
-        $tQuery->where("#timeClosed IS NULL");
         $tQuery->show('expectedTimeStart,expectedTimeEnd,originId,productId,prevErrId,nextErrId');
 
         while ($tRec = $tQuery->fetch()) {
@@ -379,9 +378,10 @@ class planning_StepConditions extends core_Detail
      * @param array $taskArr
      * @param string $type
      * @param int|null $limit
+     * @param bool $normalLink
      * @return array $res
      */
-    public static function renderTaskBlock($taskArr, $type, $limit = null)
+    public static function renderTaskBlock($taskArr, $type, $limit = null, $normalLink = false)
     {
         $res = array();
         $count = countR($taskArr);
@@ -406,8 +406,14 @@ class planning_StepConditions extends core_Detail
                     $prevProgressVerbal = "<span class='readyPercent'>{$prevProgressVerbal}</span>";
                 }
                 $prevId = "<span class='state-{$taskRec->state} document-handler'>{$prevProgressVerbal}</span>";
-                $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($taskRec->id));
-                $prevElement = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => planning_Tasks::getrecTitle($taskRec)), $prevId, true);
+                $titleHint = planning_Tasks::getrecTitle($taskRec);
+                if($normalLink){
+                    $prevElement = ht::createLink($prevId, planning_Tasks::getSingleUrlArray($taskRec->id), false, array('target' => "_blank", 'title' => $titleHint));
+                } else {
+                    $singlePrevUrl = toUrl(planning_Tasks::getSingleUrlArray($taskRec->id));
+                    $prevElement = ht::createElement("span", array('class' => 'doubleclicklink', 'data-doubleclick-url' => $singlePrevUrl, 'title' => $titleHint), $prevId, true);
+                }
+
                 $res[] = $prevElement->getContent();
                 $count++;
             }

@@ -308,6 +308,20 @@ abstract class deals_DealDetail extends doc_Detail
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
             }
+
+            if (Request::get('Act') != 'CreateProduct') {
+
+                // Сетване на предупреждение ако реда се дублира
+                if(empty($rec->id)){
+                    $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
+                    if($setWarning == 'yes'){
+                        $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
+                        if ($countSameProduct) {
+                            $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*!');
+                        }
+                    }
+                }
+            }
         }
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
@@ -382,9 +396,11 @@ abstract class deals_DealDetail extends doc_Detail
             if (!deals_Helper::isPriceAllowed($price, $rec->quantity, $rec->autoPrice, $msg)) {
                 $form->setError('packPrice,packQuantity', $msg);
             }
-            
-            $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-            $rec->price = $price;
+
+            if(!$form->gotErrors()){
+                $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+                $rec->price = $price;
+            }
 
             // При редакция, ако е променена опаковката слагаме преудпреждение
             if ($rec->id) {

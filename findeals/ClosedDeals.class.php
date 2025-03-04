@@ -147,7 +147,9 @@ class findeals_ClosedDeals extends deals_ClosedDeals
         
         //@TODO а ако е авансов отчет ??
         if ($rec->closeWith) {
+            $dealState = findeals_Deals::fetchField($rec->closeWith, 'state');
             $row->closeWith = ht::createLink($row->closeWith, array('findeals_Deals', 'single', $rec->closeWith));
+            $row->closeWith = "<span class= 'state-{$dealState} document-handler'>{$row->closeWith}</span>";
         }
     }
     
