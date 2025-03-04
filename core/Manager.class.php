@@ -430,11 +430,12 @@ class core_Manager extends core_Mvc
         
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
+        $this->invoke('AfterRenderPrepareEditForm', array($tpl, $data->form));
         core_Form::preventDoubleSubmission($tpl, $data->form);
         
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
-        
+
         return $tpl;
     }
     
