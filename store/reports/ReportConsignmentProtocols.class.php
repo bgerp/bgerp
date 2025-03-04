@@ -201,6 +201,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                     'docClsId' => $jRec['docType'],
                     'docId' => $jRec['docId'],
                     'productId' => $prodRec->id,
+                    'measureId' => $prodRec->measureId,
                     'debitQuantity' => $debitQuantity,
                     'creditQuantity' => $creditQuantity,
                     'documentsDebitQuantity' => array(),
@@ -242,6 +243,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('contragent', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('measureId', 'key(mvc=cat_Uom,select=shortName)', 'smartCenter,caption=Мярка');
             //$fld->FLD('date', 'date', 'caption=Дата');
             $fld->FLD('quantity', 'double(decimals=2)', 'caption=К-во,smartCenter,tdClass=boldText');
             $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено->К-во,smartCenter');
@@ -287,6 +289,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'storeId' => $dRec->storeId, 'ret_url' => true);
 
         $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, false, "ef_icon = img/16/add.png") . "</span>";
+
+        $row->measureId = cat_UoM::fetchField($dRec->measureId, 'shortName');
 
         $row->productId = cat_Products::getHyperlink($dRec->productId);
 
