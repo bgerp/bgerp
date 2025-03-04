@@ -34,7 +34,9 @@ class doc_plg_TxtExportable extends core_Plugin
 
             // Рендиране на цялото представяне на документа в текстов вид
             Mode::push('renderForTxtExport', true);
+            Mode::push('forceDownload', true);
             $docHtml = $mvc->getInlineDocumentBody($id, 'plain');
+            Mode::pop('forceDownload');
             Mode::pop('renderForTxtExport');
 
             $content = $docHtml->getContent();
