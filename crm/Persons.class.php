@@ -733,10 +733,10 @@ class crm_Persons extends core_Master
             $mvcClone = clone $mvc;
 
             foreach (array('mobile' => 'mobile', 'buzTel' => 'tel', 'buzFax' => 'fax', 'buzEmail' => 'email') as $cFld1 => $cFld2){
-                $mvcClone->setFieldTypeParams($cFld1, array('maskVerbal' => true));
+                $mvcClone->setFieldTypeParams($cFld1);
                 $mvcClone->setFieldTypeParams($cFld2, array('maskVerbal' => true));
 
-                $val = $mvc->getVerbal($rec, $rec->buzFax ? $cFld1 : $cFld2);
+                $val = $mvc->getVerbal($rec, $rec->{$cFld1} ? $cFld1 : $cFld2);
                 $valClass = $cFld1 == 'buzTel' ? 'telephone' : $cFld2;
                 $row->phonesBox .= $val ? "<div class='crm-icon {$valClass}'>{$val}</div>" : '';
             }
