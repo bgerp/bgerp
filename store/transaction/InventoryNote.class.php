@@ -93,8 +93,8 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                     }
 
                     $amount = round($amount, 2);
-                    $total += $amount;
                 }
+                $total += $amount;
 
                 $entries[] = array('amount' => $amount,
                     'debit' => array('321', array('store_Stores', $rec->storeId),

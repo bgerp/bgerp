@@ -132,6 +132,12 @@ class store_InventoryNoteDetails extends doc_Detail
 
 
     /**
+     * Кои записи да се рекалкулират при шътдаун
+     */
+    public $recalcOnShutDown = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -353,11 +359,8 @@ class store_InventoryNoteDetails extends doc_Detail
             $mvc->delete($rec->id);
         }
 
-        $summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
-        store_InventoryNoteSummary::recalc($summeryId);
-        
+        $mvc->recalcOnShutDown[$rec->noteId][$rec->productId] = $rec->productId;
         Mode::setPermanent("InventoryNoteLastSavedRow{$rec->noteId}", $rec->id);
-        $mvc->cache[$rec->noteId] = $rec->noteId;
     }
     
     
@@ -369,10 +372,7 @@ class store_InventoryNoteDetails extends doc_Detail
         if(Mode::is("selectRowsOnDelete_store_InventoryNoteSummary")) return;
 
         foreach ($query->getDeletedRecs() as $rec) {
-            $summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
-            store_InventoryNoteSummary::recalc($summeryId);
-            
-            $mvc->cache[$rec->noteId] = $rec->noteId;
+            $mvc->recalcOnShutDown[$rec->noteId][$rec->productId] = $rec->productId;
             Mode::setPermanent("InventoryNoteLastSavedRow{$rec->noteId}", null);
         }
     }
@@ -383,10 +383,16 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     public static function on_Shutdown($mvc)
     {
-        if (countR($mvc->cache)) {
-            foreach ($mvc->cache as $noteId) {
+        if (countR($mvc->recalcOnShutDown)) {
+            core_Debug::startTimer('RECALC_ON_SHUTDOWN');
+            foreach ($mvc->recalcOnShutDown as $noteId => $productArr){
+                foreach ($productArr as $productId){
+                    $summeryId = store_InventoryNoteSummary::force($noteId, $productId);
+                    store_InventoryNoteSummary::recalc($summeryId);
+                }
                 store_InventoryNotes::invalidateCache($noteId);
             }
+            core_Debug::stopTimer('RECALC_ON_SHUTDOWN');
         }
     }
     

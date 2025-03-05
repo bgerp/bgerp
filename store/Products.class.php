@@ -268,7 +268,7 @@ class store_Products extends core_Detail
         $data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
 
         if (isset($data->masterMvc)) {
-            $showFieldsArr = arr::make('horizon,search,groupId', 2);
+            $showFieldsArr = arr::make('horizon,search,groupId', true);
 
             $data->listFilter->showFields = implode(',', $showFieldsArr);
             if($data->masterMvc instanceof store_Stores){
@@ -277,6 +277,10 @@ class store_Products extends core_Detail
         } else {
             $data->listFilter->defOrder = false;
             $showFieldsArr = arr::make('search,productId,storeId,filters,groupId,horizon,setting,inventory,selectPeriod,from,to', 2);
+            if($mvc instanceof rack_Products){
+                unset($showFieldsArr['horizon']);
+                unset($showFieldsArr['inventory']);
+            }
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('filters', 'active');
             $data->listFilter->showFields = implode(',', $showFieldsArr);

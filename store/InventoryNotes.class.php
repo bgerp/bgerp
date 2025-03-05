@@ -1072,10 +1072,33 @@ class store_InventoryNotes extends core_Master
 
         $summaryQuery = store_InventoryNoteSummary::getQuery();
         $summaryQuery->where("#noteId = {$rec->id}");
+        $summaryQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId', 'caption=Сметка->№');
+        $summaryQuery->show('productId,quantity,measureId');
 
+        $exRecs = array();
+        $dQuery = store_InventoryNoteDetails::getQuery();
+        $dQuery->where("#noteId = {$rec->id}");
+        $dQuery->show('productId,batch');
+        while ($dRec = $dQuery->fetch()){
+            $exRecs[$dRec->productId][$dRec->batch] = true;
+        }
+
+        $count = $summaryQuery->count();
+        core_App::setTimeLimit(0.3 * $count, false, 300);
+
+        $cu = core_Users::getCurrent();
+        $now = dt::now();
+        $saveArr = $productIds = array();
         while ($summaryRec = $summaryQuery->fetch()) {
-            $packagingId = cat_Products::fetchField($summaryRec->productId, 'measureId');
-
+            $obj = (object) array('noteId' => $id,
+                                  'productId' => $summaryRec->productId,
+                                  'quantityInPack' => 1,
+                                  'quantity' => 0,
+                                  'createdOn' => $now,
+                                  'modifiedOn' => $now,
+                                  'createdBy' => $cu,
+                                  'modifiedBy' => $cu,
+                                  'packagingId' => $summaryRec->measureId);
             $save = true;
 
             if(core_Packs::isInstalled('batch')){
@@ -1089,29 +1112,28 @@ class store_InventoryNotes extends core_Master
                     }
 
                     foreach ($batchQuantities as $batch => $batchQuantity){
-                        if(store_InventoryNoteDetails::fetchField(array("#noteId = {$id} AND #productId = {$summaryRec->productId} AND #batch = '[#1#]'", $batch))) continue;
+                        if($exRecs[$summaryRec->productId][$batch] === true) continue;
+                        $productIds[$summaryRec->productId] = $summaryRec->productId;
 
-                        $dRec = (object) array('noteId' => $id,
-                            'productId' => $summaryRec->productId,
-                            'quantityInPack' => 1,
-                            'quantity' => 0,
-                            'batch' => $batch,
-                            'packagingId' => $packagingId);
-
-                        store_InventoryNoteDetails::save($dRec);
+                        $dRec = clone $obj;
+                        $dRec->batch = $batch;
+                        $saveArr[] = $dRec;
                     }
                 }
             }
 
             if($save){
-                if(store_InventoryNoteDetails::fetchField(array("#noteId = {$id} AND #productId = {$summaryRec->productId}"))) continue;
-
-                $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1, 'packagingId' => $packagingId);
+                if(array_key_exists($summaryRec->productId, $exRecs)) continue;
+                $productIds[$summaryRec->productId] = $summaryRec->productId;
+                $dRec = clone $obj;
                 $dRec->quantity = 0;
-                store_InventoryNoteDetails::save($dRec);
+                $saveArr[] = $dRec;
             }
         }
 
+        $Details = cls::get('store_InventoryNoteDetails');
+        $Details->saveArray($saveArr);
+        cls::get('store_InventoryNoteDetails')->recalcOnShutDown[$rec->id] = $productIds;
         $this->logInAct('Нулиране на невъведените артикули', $id);
         
         followRetUrl('|Всички артикули с невъведени количества са нулирани');
