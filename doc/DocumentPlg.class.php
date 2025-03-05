@@ -3141,9 +3141,13 @@ class doc_DocumentPlg extends core_Plugin
             return;
         }
 
-//        if($data->threadCachedView === FALSE) {
         $tpl = $mvc->renderSingle($data);
-        
+
+        // Ако ще се експортира в TXT да не се показва лентата
+        if(Mode::is('renderForTxtExport')){
+            $tpl->removeBlock('header');
+        }
+
         if ($data->rec->_resending) {
             $tpl->append(tr($data->rec->_resending), '_resending');
         }

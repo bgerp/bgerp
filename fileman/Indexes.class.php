@@ -1041,7 +1041,7 @@ class fileman_Indexes extends core_Manager
             $content = $textOcr;
         }
 
-        if ($convertToUtf8) {
+        if ($convertToUtf8 && $content !== false) {
             $content = i18n_Charset::convertToUtf8($content);
         }
 
@@ -1160,7 +1160,19 @@ class fileman_Indexes extends core_Manager
             $fileLenVerbal = str_replace('&nbsp;', ' ', $fileLenVerbal);
 
             $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
-            if(empty($fileTxtContent)) continue;
+
+            // Ако все още не е извлечен текста, форсираме извличането му
+            if ($fileTxtContent === false) {
+                $me = cls::get(get_called_class());
+                $fRec = fileman::fetchByFh($fileHnd);
+                if ($fRec && $fRec->dataId) {
+                    $fData = fileman_Data::fetch($fRec->dataId);
+                    $me->processFile($fData, dt::addSecs(120));
+                    $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
+                }
+            }
+
+            if ($fileTxtContent === false || empty(trim($fileTxtContent))) continue;
 
             $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
             $string .= "\n" . tr("|*& |Прикачен файл|*: {$fileName} ({$fileLenVerbal})") . "\n";

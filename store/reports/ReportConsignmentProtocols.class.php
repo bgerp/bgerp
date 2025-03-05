@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Отчет протоколи за отговорно пазене
+ * @title     Склад » Отговорно пазене
  */
 class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 {
@@ -74,7 +74,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields;
+    protected $changeableFields = 'from,to,contragent';
 
 
     /**
@@ -84,10 +84,10 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
+        $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=orderBy');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=to');
 
     }
 
@@ -172,10 +172,15 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
             $pRec = cls::get($jRec['docType'])->fetch($jRec['docId']);
 
+            $contragentFolder = cls::get($pRec->contragentClassId)::fetch($pRec->contragentId)->folderId;
+
+            if ($rec->contragent) {
+                if (!in_array($contragentFolder, keylist::toArray($rec->contragent))) continue;
+            }
+
             $item = acc_Items::fetch($jRec['debitItem2']);
 
             $prodRec = cls::get($item->classId)->fetch($item->objectId);
-
 
             if ($jRec['debitQuantity']) {
                 $debitQuantity = $jRec['debitQuantity'];
@@ -187,9 +192,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
             }
 
-
             $id = $prodRec->id . '|' . $pRec->folderId;
-            //    if($jRec['docId'] == 24)
             // добавяме в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -198,6 +201,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                     'docClsId' => $jRec['docType'],
                     'docId' => $jRec['docId'],
                     'productId' => $prodRec->id,
+                    'measureId' => $prodRec->measureId,
                     'debitQuantity' => $debitQuantity,
                     'creditQuantity' => $creditQuantity,
                     'documentsDebitQuantity' => array(),
@@ -239,12 +243,13 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('contragent', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('measureId', 'key(mvc=cat_Uom,select=shortName)', 'smartCenter,caption=Мярка');
             //$fld->FLD('date', 'date', 'caption=Дата');
-            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
-            $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено->Количество');
-            $fld->FLD('debitDocuments', 'varchar', 'caption=Дадено->Документи');
-            $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Прието->Количество');
-            $fld->FLD('creditDocuments', 'varchar', 'caption=Прието->Документи');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=К-во,smartCenter,tdClass=boldText');
+            $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено->К-во,smartCenter');
+            $fld->FLD('debitDocuments', 'varchar', 'caption=Дадено->Документи,tdClass=midCell');
+            $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Прието->К-во,smartCenter');
+            $fld->FLD('creditDocuments', 'varchar', 'caption=Прието->Документи,tdClass=midCell');
 
             //    $fld->FLD('protocol', 'varchar', 'caption=Протокол');
             //   $fld->FLD('inOut', 'varchar', 'caption=Тип');
@@ -285,6 +290,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, false, "ef_icon = img/16/add.png") . "</span>";
 
+        $row->measureId = cat_UoM::fetchField($dRec->measureId, 'shortName');
+
         $row->productId = cat_Products::getHyperlink($dRec->productId);
 
         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity - $dRec->creditQuantity);
@@ -292,6 +299,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $row->debitQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity);
 
         $row->creditQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->creditQuantity);
+
         $row->debitDocuments = '';
         if (!empty($dRec->documentsDebitQuantity)) {
 
@@ -299,10 +307,15 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                 if (($v->contragent == $dRec->contragent) && ($v->productId == $dRec->productId)) {
 
-                    $className = cls::getClassName($v->docType);
-                    $handle = $className::getHandle($v->docId);
-                    $url = toUrl(array($className, 'single', $v->docId));
-                    $row->debitDocuments .= ht::createLink($handle, $url) . ',';
+                    $Doc = cls::get($v->docType);
+                    $rDoc = $Doc->fetch($v->docId);
+                    $handle = $Doc->className::getHandle($v->docId);
+                    $state = $rDoc->state;
+
+                    $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
+                    $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
+                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>' ;
+
                 }
             }
         }
@@ -314,10 +327,14 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                 if (($v->contragent == $dRec->contragent) && ($v->productId == $dRec->productId)) {
 
-                    $className = cls::getClassName($v->docType);
-                    $handle = $className::getHandle($v->docId);
-                    $url = toUrl(array($className, 'single', $v->docId));
-                    $row->creditDocuments .= ht::createLink($handle, $url) . ',';
+                    $Doc = cls::get($v->docType);
+                    $rDoc = $Doc->fetch($v->docId);
+                    $handle = $Doc->className::getHandle($v->docId);
+                    $state = $rDoc->state;
+
+                    $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
+                    $row->creditDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
+                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>';
 
                 }
             }

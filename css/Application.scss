@@ -2563,6 +2563,10 @@ width: 200px;
 .large-field{
 width: 50%;
 }
+.listAction table.listTable>tbody>tr>td.midCell {
+	max-width: 170px !important;
+	white-space: wrap;
+}
 .narrow .largeNarrowCell {
 min-width: 300px;
 }
