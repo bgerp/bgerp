@@ -88,14 +88,14 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                     array('currency_Currencies', $rec->currencyId),
                     'quantity' => $sign * round($rec->amount, 2)));
 
-            $entry[] = array('amount' => $sign * round($amount, 2),
+            $entry[] = array('amount' => round($amount, 2),
                 'debit' => array($rec->creditAccId,
                     array('bank_OwnAccounts', $rec->ownAccount),
                     array('currency_Currencies', $rec->currencyId),
                     'quantity' => $sign * round($rec->amount, 2)),
                 'credit' => array(481,
                     array('currency_Currencies', $rec->currencyId),
-                    'quantity' => $sign * round($rec->amount, 2))
+                    'quantity' => round($rec->amount, 2))
             );
         } else {
             if($rec->currencyId != $baseCurrencyId || $rec->dealCurrencyId != $baseCurrencyId){
