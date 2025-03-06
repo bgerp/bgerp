@@ -1095,11 +1095,15 @@ class core_DateTime
      */
     public static function getSmartPeriod($from, $to, $lg = null)
     {
-        $fromDateObj = DateTime::createFromFormat("Y-m-d", $from);
-        $toDateObj = DateTime::createFromFormat("Y-m-d", $to);
-
         if(empty($from) && !empty($to)) return tr('Към') . ": " . ltrim(dt::mysql2verbal($to, 'd M y'),'0');
         if(empty($to) && !empty($from)) return tr('От') . ": " . ltrim(dt::mysql2verbal($from, 'd M y'),'0');
+        if(empty($to) && empty($from)) {
+            wp('НЕВАЛИДЕН ПЕРИОД');
+            return tr('От') . ": n/a";
+        }
+
+        $fromDateObj = DateTime::createFromFormat("Y-m-d", $from);
+        $toDateObj = DateTime::createFromFormat("Y-m-d", $to);
 
         $toYear = $toDateObj->format("Y");
         $toMonth = static::getMonth($toDateObj->format("m"), 'M', $lg);
