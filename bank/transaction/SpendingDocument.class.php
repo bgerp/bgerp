@@ -92,7 +92,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                 'debit' => array($rec->creditAccId,
                     array('bank_OwnAccounts', $rec->ownAccount),
                     array('currency_Currencies', $rec->currencyId),
-                    'quantity' => $sign * round($rec->amount, 2)),
+                    'quantity' => round($rec->amount, 2)),
                 'credit' => array(481,
                     array('currency_Currencies', $rec->currencyId),
                     'quantity' => round($rec->amount, 2))
