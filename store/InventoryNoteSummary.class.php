@@ -835,7 +835,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
-        
+
         // Проверяваме имали кеш за $data->rows, ако потребителя е с роля дебъг - няма кеш
         $cache = null;
         if(!Mode::is('selectRows2Delete') && !haveRole('debug')){
