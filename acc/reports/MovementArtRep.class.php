@@ -609,6 +609,29 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         }
 
         return $res;
+    }
 
+
+    /**
+     * Връща периода на справката - ако има такъв
+     *
+     * @param stdClass $rec
+     * @return array
+     *          ['from'] - начало на период
+     *          ['to']   - край на период
+     */
+    protected function getPeriodRange($rec)
+    {
+        $from = $rec->from;
+        if(is_numeric($rec->from)){
+            $from = acc_Periods::fetch($rec->from)->start;
+        }
+
+        $to = $rec->to;
+        if(is_numeric($rec->to)){
+            $to = dt::getLastDayOfMonth(acc_Periods::fetch($rec->to)->start);
+        }
+
+        return array('from' => $from, 'to' => $to);
     }
 }
