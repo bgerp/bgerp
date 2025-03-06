@@ -257,10 +257,7 @@ class batch_plg_InventoryNotes extends core_Plugin
     public static function getBatchSummary($noteId, $productId, $expectedQuantity, $storeId, $valior, $alwaysShowBatches = false)
     {
         $Def = batch_Defs::getBatchDef($productId);
-        if (!$Def) {
-            
-            return false;
-        }
+        if (!$Def) return false;
         
         $batchesInDetail = array();
         
@@ -300,6 +297,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 return false;
             }
         }
+
 
         $allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior, null, array('store_InventoryNotes', $noteId), true, null, false, true);
         if(!countR($allBatches) && !countR($batchesInDetail)) return false;
@@ -347,8 +345,11 @@ class batch_plg_InventoryNotes extends core_Plugin
         $Double = cls::get('type_Double');
         
         $storeId = $masterRec->storeId;
-        $valior = dt::addDays(-1, $masterRec->valior);
-        $valior = dt::verbal2mysql($valior, false);
+        $valior = $masterRec->valior;
+        if($masterRec->instockTo == 'dayBefore'){
+            $valior = dt::addDays(-1, $masterRec->valior);
+            $valior = dt::verbal2mysql($valior, false);
+        }
         
         $alwaysShowBatches = (Mode::is('blank') && Request::get('showBatches')) || $masterRec->expandByBatches == 'yes';
 
@@ -361,7 +362,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $r[$id] = $sRow;
 
             $summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior, $alwaysShowBatches);
-            //bp($sRec, $summary);
+
             if(!$summary) continue;
             $Def = batch_Defs::getBatchDef($sRec->productId);
 

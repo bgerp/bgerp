@@ -23,7 +23,7 @@ class cal_Calendar extends core_Master
     /**
      * Типове, които да се разширяват и така да се показвт в портлания блок
      */
-    public $blockExpandTypes = 'working-travel,leaves,sick,attendance';
+    public $blockExpandTypes = 'working-travel,leaves,sick,attendance,house';
 
 
     /**

@@ -47,7 +47,7 @@ class hr_HomeOffice extends core_Master
      */
     public $canRead = 'ceo, hrMaster';
     
-    
+
     /**
      * Кой може да го разглежда?
      */
@@ -92,7 +92,6 @@ class hr_HomeOffice extends core_Master
 
     /**
      * Кой може да e мастър
-     * @var string
      */
     public $canMaster = 'hrHomeOffice, ceo, hrMaster';
 
@@ -203,7 +202,7 @@ class hr_HomeOffice extends core_Master
     {
         $rec->title = "Заявка за работа от вкъщи  №{$rec->id}";
     }
-    
+
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
@@ -327,30 +326,12 @@ class hr_HomeOffice extends core_Master
             if (!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
                 $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
             }
-            
-            // правим заявка към базата
-            $query = self::getQuery();
-            
-            // търсим всички молби, които са за текущия потребител
-            $query->where("#personId='{$form->rec->personId}'");
-            
-            if ($form->rec->id) {
-                $query->where("#id != {$form->rec->id}");
-            }
-            
-            // търсим времево засичане
-            $query->where("(#startDate <= '{$form->rec->startDate}' AND #toDate >= '{$form->rec->startDate}')
-            OR
-            (#startDate <= '{$form->rec->toDate}' AND #toDate >= '{$form->rec->toDate}')");
-            
-            $query->where("#state = 'active'");
-            
+
+            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id);
             // за всяка една молба отговаряща на условията проверяваме
-            if ($recReq = $query->fetch()) {
-                $link = ht::createLink("Заявка за работа от вкъщи №{$recReq->id}", array($mvc, 'single', $recReq->id, 'ret_url' => true, ''), null, 'ef_icon=img/16/house.png');
-                
+            if (!empty($iArr)) {
                 // и изписваме предупреждение
-                $form->setError('startDate, toDate', "|Засичане по време с |*{$link}");
+                $form->setError('startDate, toDate', "|Засичане по време с: |*" . implode('<br>', $iArr));
             }
         }
     }
@@ -419,7 +400,9 @@ class hr_HomeOffice extends core_Master
 
         if (!$mvc->haveRightFor('activate', $rec)) {
             if ($rec->state == 'active') {
+                $rec->brState = 'active';
                 $rec->state = 'pending';
+                $rec->pendingSaved = true;
 
                 core_Statuses::newStatus("|Дните са над допустимите за ативиране без одобрение. Документа е приведен в състояние 'Заявка' и чака одобрение.|*");
             }
@@ -443,6 +426,11 @@ class hr_HomeOffice extends core_Master
         if ($requiredRoles != 'no_one') {
             if ($action == 'activate') {
                 if ($rec) {
+                    $iArr = hr_Leaves::getIntersections($rec->personId, $rec->startDate, $rec->toDate, $rec->id);
+                    if (!empty($iArr)) {
+                        $requiredRoles = 'no_one';
+                    }
+
                     $lDays = self::getHomeDayForMonth($rec->personId);
                     if (!isset($rec->leaveDays)) {
                         $rec->leaveDays = $mvc->getLeaveDays($rec->startDate, $rec->toDate, $rec->personId);
@@ -451,11 +439,18 @@ class hr_HomeOffice extends core_Master
                     if ((!$rec->id || $rec->state != 'active') && $rec->leaveDays) {
                         $lDays += $rec->leaveDays;
                     }
-                } else {
-                    $lDays = self::getHomeDayForMonth();
-                }
 
-                if ($lDays > $homeDays) {
+                    if ($lDays > $homeDays) {
+                        if (!$mvc->haveRightFor('master', $rec, $userId)) {
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+            }
+
+            // След началото не може всеки да оттегля
+            if ($action == 'reject' && $rec) {
+                if ($rec->startDate <= dt::now()) {
                     if (!$mvc->haveRightFor('master', $rec, $userId)) {
                         $requiredRoles = 'no_one';
                     }
@@ -555,6 +550,13 @@ class hr_HomeOffice extends core_Master
                     bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
                 }
             }
+        }
+
+        if ($rec->state == 'pending') {
+            $rec->activatedOn = null;
+            $rec->activatedBy = null;
+
+            $mvc->save_($rec, 'activatedOn, activatedBy');
         }
     }
     

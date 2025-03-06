@@ -2221,6 +2221,10 @@ td.rowtools-column {
 .large-field {
   width: 50%; }
 
+.listAction table.listTable>tbody>tr>td.midCell {
+  max-width: 170px !important;
+  white-space: wrap; }
+
 .narrow .largeNarrowCell {
   min-width: 300px; }
 
@@ -3361,6 +3365,9 @@ span.sharing-history-title {
   height: auto;
   max-height: 90px;
   float: left; }
+
+.narrow .externalPage .headerImg {
+  max-width: none; }
 
 .narrow .externalPage {
   position: relative; }
@@ -8029,79 +8036,58 @@ table.bomProductionStepTable td {
 .jobWorkInProgressTable td {
   font-weight: normal !important; }
 
-/*
- * Стилове за редовете
- */
-.taskGapRow {
-  height: 1px;
-    /*
-   * Височина на реда
-   */ }
+td:has(.gapList) {
+  padding: 0 !important; }
 
-.taskGapRow.gapRow {
-  background-color: red;
-    /*
-   * Цветът на фона на реда с клас gapRow
-   */ }
-
-.taskGapRow.idleRow {
-  background-color: #5dc95d;
-    /*
-   * Цветът на фона на реда с клас idleRow
-   */ }
-
-/*
- * Стилове за клетките
- */
-.gapRow td {
+ul.gapList {
   padding: 0;
-  font-size: 0px;
     /*
-   * Премахва текста, ако е нужно
+   * Премахва падинга на списъка
    */
-  line-height: 0px;
+  margin: 0;
     /*
-   * Премахва интервала между редовете
+   * Премахва марджина на списъка
    */
-  background-color: red !important;
+  list-style: none;
     /*
-   * Фон на клетките в gapRow
-   */
-  border-right: 1px solid red !important;
-    /*
-   * Бордър на клетките
+   * Премахва маркерите
    */ }
 
 /*
- * Стилове за клетките в idleRow
+ * Подреждаме li елементите един под друг
  */
-.idleRow td {
-  padding: 0;
-  font-size: 0px;
+ul.gapList li {
+  display: flex;
     /*
-   * Премахва текста, ако е нужно
+   * Всеки елемент заема цял ред
    */
-  line-height: 0px;
+  align-items: center;
     /*
-   * Премахва интервала между редовете
+   * Подравнява текста по вертикала (по средата на височината)
    */
-  background-color: #5dc95d !important;
+  justify-content: center;
+  padding: 10px;
+  margin: 0;
     /*
-   * Фон на клетките в idleRow
+   * Премахваме марджина на li
    */
-  border-right: 1px solid #5dc95d !important;
+  border: 1px solid #cccccc;
     /*
-   * Бордър на клетките
-   */ }
-
-/*
- * За да предотвратиш промените при ховър
- */
-.taskGapRow td:hover {
-  background-color: inherit !important;
-  border-color: inherit !important;
-  cursor: default !important;
+   * Леки граници
+   */
+  text-align: center;
     /*
-   * Опционално, ако искаш да промениш курсора при ховър
-   */ }
+   * Центрира текстовете
+   */
+  font-size: 14px; }
+  ul.gapList li.idle {
+    background: linear-gradient(to bottom, tomato, rgba(255, 69, 0, 0.7)) !important;
+        /*
+     * Ярко червен градиент с малък контраст
+     */ }
+  ul.gapList li.break {
+    background: linear-gradient(to bottom, rgba(144, 238, 144, 0.6), rgba(0, 255, 0, 0.3)) !important;
+        /*
+     * По-нежен градиент
+     */ }
 

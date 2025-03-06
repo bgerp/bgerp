@@ -591,7 +591,7 @@ class core_Manager extends core_Mvc
                 $Type = $data->listFilter->getField($name);
                 $options = array();
 
-                if (($Type->input == 'hidden') || ($Type->input == 'none')) continue;
+                if (in_array($Type->input, array('hidden', 'none')) || $Type->alwaysShowInListFilter) continue;
 
                 try {
                     // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции

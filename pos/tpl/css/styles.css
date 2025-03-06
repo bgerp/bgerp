@@ -1452,3 +1452,6 @@ only screen and (max-width: 320px) {
   .printing .receiptHeader {
     text-align: center !important; }
 
+.reportTotal {
+  background-color: #cff3ff; }
+
