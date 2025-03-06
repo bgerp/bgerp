@@ -53,7 +53,7 @@ class cms_FancyTheme extends core_ProtoInner
         $form->FLD('wImg7', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 7');
         $form->FLD('wImg8', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 8');
 
-        $form->FLD('menuPosition', 'enum(below=Под банера,above=Над банера)', 'caption=Меню->Позиция');
+        $form->FLD('menuPosition', 'enum(below=Под банера,above=Над банера,hidden=Без меню)', 'caption=Меню->Позиция');
 
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
@@ -97,7 +97,7 @@ class cms_FancyTheme extends core_ProtoInner
         if($this->innerForm->menuPosition == 'above'){
             $tpl->replace($menu, 'TOP_PAGE');
             $css .= "\n    header {border-bottom: 2px solid {$this->innerForm->baseColor} !important;}";
-        } else {
+        } else if($this->innerForm->menuPosition == 'below'){
             $tpl->replace($menu, 'MENU');
         }
         // Добавяме заглавния текст
@@ -231,7 +231,9 @@ class cms_FancyTheme extends core_ProtoInner
         $css .= "\n    .cookies a { color: #{$bgcolorActive} !important;}";
 
         $css .= "\n    #all #maincontent .richtext a:visited, #all #maincontent .articles-menu a:visited, #all #maincontent .blogm-categories a:visited{ color: #{$visitedFontColor};}";
-        $css .= "\n    #cmsNavigation .sel_page a, #cmsNavigation a:hover, .cookies .agree {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor}}";
+        $css .= "\n    .eventHub .nav_item:hover a ,#cmsNavigation .sel_page a, #cmsNavigation a:hover, .cookies .agree {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor}}";
+        $css .= "\n    .eventHub .sel_page a, .eventHub .nav_item.sel_page:hover a {background-color: #{$fontColor} !important; color: #fff !important; border: 1px solid #{$fontColor} !important}";
+
         $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a,.additionalFooter .footer-links, .additionalFooter .footer-links a{color: #{$fontColor} !important;}";
         $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
         $css .= "\n    .prevNextNav {border:dotted 1px #ccc; background-color:#eee; margin-top:10px;margin-bottom:7px; width:100%; display:table;}";
