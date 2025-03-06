@@ -838,8 +838,9 @@ class store_InventoryNoteSummary extends doc_Detail
 
         // Проверяваме имали кеш за $data->rows, ако потребителя е с роля дебъг - няма кеш
         $cache = null;
+        $isSelectRows2Delete = Mode::is('selectRows2Delete');
         if(!Mode::is('selectRows2Delete') && !haveRole('debug')){
-            $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
+            $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}_{$isSelectRows2Delete}", $key);
         }
 
         $cacheRows = empty($data->listFilter->rec->search);
