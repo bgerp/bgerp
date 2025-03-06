@@ -40,8 +40,8 @@ class doc_plg_TxtExportable extends core_Plugin
             Mode::pop('renderForTxtExport');
 
             $content = $docHtml->getContent();
-            $content = str_replace(array('</td>', '</th>'), ' | ', $content);
             $string = strip_tags($content);
+            $string = preg_replace("/:\s*[\r\n]\s*/", ": ", $string);
             $string = preg_replace("/\s*[\r\n]+\s*/", "\n", $string);
 
             $string = str_replace('&nbsp;', ' ', $string);
