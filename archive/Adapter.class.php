@@ -307,10 +307,10 @@ class archive_Adapter
      */
     public static function compressFile($src, $dest, $pass = null, $options = '')
     {
-        expect(file_exists($src), $src);
-        expect(is_readable($src), $src);
-        
-        
+        $tSrc = rtrim($src, '*');
+        expect(file_exists($tSrc) || is_dir($tSrc), $src);
+        expect(is_readable($tSrc), $src);
+
         if ($pass) {
             $p = "-p{$pass} -mem=AES256 ";
             escapeshellarg($p);
