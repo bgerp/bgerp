@@ -29,6 +29,11 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
      */
     public $canSelectDriver = 'ceo,manager,store,planning,purchase';
 
+    /**
+     * По-кое поле да се групират листовите данни
+     */
+    protected $groupByField = 'saleId';
+
 
     /**
      * Брой записи на страница
@@ -401,19 +406,18 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
-            $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
+            $fld->FLD('requestQuantity', 'double(decimals=2)', 'caption=Количество->Заявено,smartCenter');
+            $fld->FLD('shipedQuantity', 'double(decimals=2)', 'caption=Количество->Експедирано,smartCenter');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
         } else {
             $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
-            $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
-
+            $fld->FLD('requestQuantity', 'double(decimals=2)', 'caption=Количество->Заявено,smartCenter');
+            $fld->FLD('shipedQuantity', 'double(decimals=2)', 'caption=Количество->Експедирано,smartCenter');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
 
         }
         return $fld;
@@ -447,9 +451,8 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             $state = (sales_Sales::fetch($dRec->saleId)->state);
             $singleUrl = toUrl(array($Sale->className, 'single', $dRec->saleId));
 
-            $row->saleId = "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Sale->singleIcon}") . '</span>';
-            $row->saleId .= "<span class= small>" . "</br>" . $sRec->valior . '</span>';
+            $row->saleId = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Sale->singleIcon}");
+            $row->saleId .= ' / ' . $sRec->valior;
 
         }
 
