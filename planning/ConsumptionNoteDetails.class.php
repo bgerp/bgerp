@@ -132,7 +132,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
             $deliveryDate = (!empty($data->masterData->rec->deadline)) ? $data->masterData->rec->deadline : $data->masterData->rec->valior;
-            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $data->masterData->rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $data->masterData->rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate, $data->masterData->rec->threadId);
         }
     }
     
