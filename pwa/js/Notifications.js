@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     let isPushEnabled = false;
     if (typeof pwaSubsctiptionUrl === 'undefined') {
-        pwaSubsctiptionUrl = 'pwa_PushSubscriptions/Subscribe';
+        pwaSubsctiptionUrl = 'bgerp/pwa_PushSubscriptions/Subscribe';
     }
 
     if (typeof forceSubscibe === 'undefined') {
@@ -68,14 +68,20 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function changePushButtonState(state)
     {
-        if (!pushButton) {
+        let buttonToWork = pushButton;
+        if (!buttonToWork) {
+
+            buttonToWork = pushButtonUnsubscribe;
+        }
+
+        if (!buttonToWork) {
 
             return ;
         }
-        pushButton.classList.add('pwa-push-' + state);
+        buttonToWork.classList.add('pwa-push-' + state);
 
-        var pushButtonValue = pushButton.value;
-        var pushButtonTitle = pushButton.title;
+        var pushButtonValue = buttonToWork.value;
+        var pushButtonTitle = buttonToWork.title;
 
         if (state && typeof pushButtonVals != 'undefined' && pushButtonVals[state]) {
             pushButtonValue = pushButtonVals[state].btnText;
@@ -85,28 +91,28 @@ document.addEventListener('DOMContentLoaded', () => {
         // Променяме класа и надписа на бутона, в завиисмост от състоянието
         switch (state) {
             case 'enabled':
-                pushButton.disabled = false;
+                buttonToWork.disabled = false;
                 isPushEnabled = true;
                 break;
             case 'disabled':
-                pushButton.disabled = false;
+                buttonToWork.disabled = false;
                 isPushEnabled = false;
                 break;
             case 'computing':
-                pushButton.disabled = true;
+                buttonToWork.disabled = true;
                 break;
             case 'incompatible':
-                pushButton.onclick = function() { alert(pushButton.title); };
+                buttonToWork.onclick = function() { alert(buttonToWork.title); };
                 break;
             case 'denied':
-                pushButton.onclick = function() { alert(pushButton.title); };
+                buttonToWork.onclick = function() { alert(buttonToWork.title); };
                 break;
             default:
                 break;
         }
 
-        pushButton.value = pushButtonValue;
-        pushButton.title = pushButtonTitle;
+        buttonToWork.value = pushButtonValue;
+        buttonToWork.title = pushButtonTitle;
     }
 
 

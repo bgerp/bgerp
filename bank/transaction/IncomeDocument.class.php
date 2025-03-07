@@ -79,11 +79,16 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         }
 
         if ($reverse === true && in_array($rec->operationSysId, array('bank2customerRet', 'bankAdvance2customerRet'))) {
-            $entry1 = array('amount' => $sign * round($rec->amountDeal * $dealCurrencyRate, 2),
-                'debit' => array(481,
-                    array('currency_Currencies', $rec->currencyId),
-                    'quantity' => $sign * round($rec->amount, 2)),
+            $transAccArr = array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $sign * round($rec->amount, 2));
+            if($rec->currencyId == $baseCurrencyId && $rec->dealCurrencyId == $baseCurrencyId){
+                $transAccArr = array('482', array($rec->contragentClassId, $rec->contragentId),
+                                          array($origin->className, $origin->that),
+                                          array('currency_Currencies', $rec->currencyId),
+                                        'quantity' => $sign * round($rec->amount, 2));
+            }
 
+            $entry1 = array('amount' => $sign * round($rec->amountDeal * $dealCurrencyRate, 2),
+                'debit' => $transAccArr,
                 'credit' => array($rec->creditAccId,
                     array($rec->contragentClassId, $rec->contragentId),
                     array($origin->className, $origin->that),
@@ -91,11 +96,9 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
                     'quantity' => $sign * round($rec->amountDeal, 2)),);
 
             $entry[] = $entry1;
-
+            $transAccArr['quantity'] = abs($transAccArr['quantity']);
             $entry2 = array('amount' => round($amount, 2),
-                'debit' => array(481, array('currency_Currencies', $rec->currencyId),
-                    'quantity' => round($rec->amount, 2)),
-
+                'debit' => $transAccArr,
                 'credit' => array($rec->debitAccId,
                     array('bank_OwnAccounts', $rec->ownAccount),
                     array('currency_Currencies', $rec->currencyId),
@@ -104,35 +107,24 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
             $entry[] = $entry2;
 
         } else {
-            if($rec->dealCurrencyId == $baseCurrencyId) {
+            if($rec->currencyId != $baseCurrencyId || $rec->dealCurrencyId != $baseCurrencyId){
+                $currencyId481 = ($rec->currencyId != $baseCurrencyId) ? $rec->currencyId : $rec->dealCurrencyId;
+                $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $$rec->amountDeal;
+
                 $entry1 = array('amount' => $sign * round($amount, 2),
                     'debit' => array($rec->debitAccId,
                         array('bank_OwnAccounts', $rec->ownAccount),
                         array('currency_Currencies', $rec->currencyId),
                         'quantity' => $sign * round($rec->amount, 2)),
 
-                    'credit' => array($rec->creditAccId,
-                        array($rec->contragentClassId, $rec->contragentId),
-                        array($origin->className, $origin->that),
-                        array('currency_Currencies', $rec->dealCurrencyId),
-                        'quantity' => $sign * round($rec->amountDeal, 2)),);
-
-                $entry[] = $entry1;
-            } else {
-                $entry1 = array('amount' => $sign * round($amount, 2),
-                    'debit' => array($rec->debitAccId,
-                        array('bank_OwnAccounts', $rec->ownAccount),
-                        array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $sign * round($rec->amount, 2)),
-
-                    'credit' => array(481,
-                        array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $sign * round($rec->amount, 2)),);
+                    'credit' => array('481',
+                        array('currency_Currencies', $currencyId481),
+                        'quantity' => $sign * round($amount481, 2)),);
                 $entry[] = $entry1;
 
                 $entry2 = array('amount' => $sign * round($dealCurrencyRate * $rec->amountDeal, 2),
-                    'debit' => array(481, array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $sign * round($rec->amount, 2)),
+                    'debit' => array('481', array('currency_Currencies', $currencyId481),
+                        'quantity' => $sign * round($amount481, 2)),
 
                     'credit' => array($rec->creditAccId,
                         array($rec->contragentClassId, $rec->contragentId),
@@ -141,6 +133,20 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
                         'quantity' => $sign * round($rec->amountDeal, 2)),);
 
                 $entry[] = $entry2;
+            } else {
+                $entry1 = array('amount' => $sign * round($amount, 2),
+                    'debit' => array($rec->debitAccId,
+                        array('bank_OwnAccounts', $rec->ownAccount),
+                        array('currency_Currencies', $rec->currencyId),
+                        'quantity' => $sign * round($rec->amount, 2)),
+
+                    'credit' => array($rec->creditAccId,
+                        array($rec->contragentClassId, $rec->contragentId),
+                        array($origin->className, $origin->that),
+                        array('currency_Currencies', $rec->dealCurrencyId),
+                        'quantity' => $sign * round($rec->amountDeal, 2)),);
+
+                $entry[] = $entry1;
             }
         }
         

@@ -446,7 +446,7 @@ class hr_Leaves extends core_Master
                 $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
             }
 
-            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id);
+            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->leaveFrom, $form->rec->leaveTo, $form->rec->id, get_called_class());
             // за всяка една молба отговаряща на условията проверяваме
             if (!empty($iArr)) {
                 // и изписваме предупреждение
@@ -461,8 +461,11 @@ class hr_Leaves extends core_Master
      *
      * @return void
      */
-    public static function getIntersections($personId, $from, $to, $ignoreId = null)
+    public static function getIntersections($personId, $from, $to, $ignoreId = null, $classToIgnore = null)
     {
+        expect($from && $to);
+        expect($personId);
+
         $resArr = array();
 
         foreach (array('hr_Leaves', 'hr_HomeOffice', 'hr_Sickdays', 'hr_Trips') as $class) {
@@ -474,7 +477,9 @@ class hr_Leaves extends core_Master
             $query->where(array("#personId = '[#1#]'", $personId));
 
             if ($ignoreId) {
-                $query->where(array("#id != '[#1#]'", $ignoreId));
+                if ($class == $classToIgnore) {
+                    $query->where(array("#id != '[#1#]'", $ignoreId));
+                }
             }
 
             $lFiedFrom = 'startDate';
@@ -488,7 +493,6 @@ class hr_Leaves extends core_Master
             $query->where(array("(#{$lFiedFrom} <= '[#1#]' AND #{$lFiedTo} >= '{$from}')
                 OR
                 (#{$lFiedFrom} <= '[#2#]' AND #{$lFiedTo} >= '[#2#]')", $from, $to));
-
             $query->where("#state = 'active'");
 
             // за всяка една молба отговаряща на условията проверяваме

@@ -1913,10 +1913,11 @@ class cat_Boms extends core_Master
      * Връща складируемите материали по-рецепта, ако е подаден склад се
      * отсяват само ненулевите количества
      *
-     * @param int      $bomId        - ид на рецепта
-     * @param double   $quantity     - к-во в рецептата
-     * @param int|null $storeId      - ид на склад (или null) за всички
-     * @param bool     $onlyStorable - дали да са само складируемите
+     * @param int        $bomId                   - ид на рецепта
+     * @param double     $quantity                - к-во в рецептата
+     * @param int|null   $storeId                 - ид на склад (или null) за всички
+     * @param bool       $onlyStorable            - дали да са само складируемите
+     * @param array|null $ignoreReservedByDocsArr - запазените к-ва от кои документи да се игнорират
      *
      * @return array $res
      *               ['productId']      - ид на артикул
@@ -1924,7 +1925,7 @@ class cat_Boms extends core_Master
      *               ['quantity']       - к-во
      *               ['quantityInPack'] - к-во в опаковка
      */
-    public static function getBomMaterials($bomId, $quantity, $storeId = null, $onlyStorable = true)
+    public static function getBomMaterials($bomId, $quantity, $storeId = null, $onlyStorable = true, $ignoreReservedByDocsArr = array())
     {
         $res = array();
         $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
@@ -1945,18 +1946,39 @@ class cat_Boms extends core_Master
                     $productArr = array($pRec->productId);
                 }
 
+                // Ако има подадени документи от които да се игнорират запазените/очакваните к-ва да се извлекат
+                $reservedByJobs = array();
+                if(countR($ignoreReservedByDocsArr)){
+                    $sQuery = store_StockPlanning::getQuery();
+                    $sQuery->where("#storeId = {$storeId}");
+                    foreach ($ignoreReservedByDocsArr as $ignoreArr){
+                        $sQuery->where("#sourceClassId = {$ignoreArr[0]} AND #sourceId = {$ignoreArr[1]}");
+                    }
+                    while($sRec = $sQuery->fetch()) {
+                        $reservedByJobs[$sRec->productId] = $sRec;
+                    }
+                }
+
                 // Ако разполагаемото е очакваното - няма да се върне
                 $quantity = 0;
-                array_walk($productArr, function($pId) use (&$quantity, $storeId) {$quantity += store_Products::getQuantities($pId, $storeId)->free;});
+                array_walk($productArr, function($pId) use (&$quantity, $storeId, $reservedByJobs) {
+                    $quantity += store_Products::getQuantities($pId, $storeId)->free;
+                    if(array_key_exists($pId, $reservedByJobs)){
+                        $quantity += $reservedByJobs[$pId]->quantityOut;
+                        $quantity -= $reservedByJobs[$pId]->quantityIn;
+                    }
+                });
+
                 $found = round($quantity / $pRec->quantityInPack, 6);
 
                 if ($found < $pRec->propQuantity) continue;
             }
 
             $r = (object) array('productId' => $pRec->productId,
-                'packagingId' => $pRec->packagingId,
-                'quantity' => $pRec->propQuantity,
-                'quantityInPack' => $pRec->quantityInPack);
+                                'packagingId' => $pRec->packagingId,
+                                'quantity' => $pRec->propQuantity,
+                                'canStore' => $productRec->canStore,
+                                'quantityInPack' => $pRec->quantityInPack);
             if(isset($pRec->genericProductId)){
                 $r->genericProductId = $pRec->genericProductId;
             }

@@ -327,7 +327,7 @@ class hr_HomeOffice extends core_Master
                 $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
             }
 
-            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id);
+            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id, get_called_class());
             // за всяка една молба отговаряща на условията проверяваме
             if (!empty($iArr)) {
                 // и изписваме предупреждение
@@ -426,7 +426,7 @@ class hr_HomeOffice extends core_Master
         if ($requiredRoles != 'no_one') {
             if ($action == 'activate') {
                 if ($rec) {
-                    $iArr = hr_Leaves::getIntersections($rec->personId, $rec->startDate, $rec->toDate, $rec->id);
+                    $iArr = hr_Leaves::getIntersections($rec->personId, $rec->startDate, $rec->toDate, $rec->id, get_called_class());
                     if (!empty($iArr)) {
                         $requiredRoles = 'no_one';
                     }
