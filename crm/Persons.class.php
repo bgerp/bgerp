@@ -2655,6 +2655,17 @@ class crm_Persons extends core_Master
         if ($action == 'delete') {
             $requiredRoles = 'no_one';
         }
+
+        if (($action == 'single') || ($action == 'edit')) {
+            if ($requiredRoles == 'no_one') {
+                if ($rec) {
+                    $eSysId = crm_Groups::getIdFromSysId('employees');
+                    if ($eSysId && type_Keylist::isIn($eSysId, $rec->groupList)) {
+                        $requiredRoles = 'hrMaster';
+                    }
+                }
+            }
+        }
     }
     
     
