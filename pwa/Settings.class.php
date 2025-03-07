@@ -296,6 +296,11 @@ class pwa_Settings extends core_Manager
      */
     public static function canUse($dId = null)
     {
+        if (!core_Packs::isInstalled('pwa')) {
+
+            return 'no';
+        }
+
         $defSettings = pwa_Settings::getDomains();
         if (empty($defSettings)) {
 
