@@ -415,9 +415,9 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('requestQuantity', 'double(decimals=2)', 'caption=Количество->Заявено,smartCenter');
-            $fld->FLD('shipedQuantity', 'double(decimals=2)', 'caption=Количество->Експедирано,smartCenter');
-            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
+            $fld->FLD('requestQuantity', 'double(decimals=2)', 'caption=Количество->Заявено');
+            $fld->FLD('shipedQuantity', 'double(decimals=2)', 'caption=Количество->Експедирано');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Неизпълнение');
 
         }
         return $fld;
@@ -567,6 +567,9 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
 
-        $res->quantity = $Double->toVerbal($dRec->requestQuantity - $dRec->shipedQuantity);
+        $res->quantity = $dRec->requestQuantity - $dRec->shipedQuantity;
+        $res->requestQuantity = $dRec->requestQuantity;
+
+        $res->shipedQuantity = $dRec->shipedQuantity;
     }
 }
