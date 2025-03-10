@@ -151,6 +151,14 @@ class drdata_Address extends core_MVC
      */
     public static function extractContact1($text, $assumed = array(), $avoid = array())
     {
+        $cData = new stdClass();
+        cls::get(get_called_class())->invoke('ParseAddress', array($cData, $text, $assumed));
+
+        if (!empty((array) $cData)) {
+
+            return $cData;
+        }
+
         // Добавяме стринговете, които се избягват в адреса от конфигурационните данни
         $conf = core_Packs::getConfig('drdata');
         if ($avoidLines = $conf->DRDATA_AVOID_IN_EXT_ADDRESS) {
@@ -404,6 +412,14 @@ class drdata_Address extends core_MVC
      */
     public function extractContact($text, $assumed = array(), $avoid = array())
     {
+        $cData = new stdClass();
+        cls::get(get_called_class())->invoke('ParseAddress', array($cData, $text, $assumed));
+
+        if (!empty((array) $cData)) {
+
+            return $cData;
+        }
+
         // Опитваме се да намерим държавата на изпращача
         // Подготваме данни за държавите
         if (!($cData = core_Cache::get('drdata', 'cData'))) {

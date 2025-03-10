@@ -128,11 +128,19 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
             
             return;
         }
-        
+
+        // от коя нишка да се игнорират запазените количества
+        $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
+        $ignoreThreadId = $firstDoc->fetchField('threadId');
+        if($firstDoc->isInstanceOf('planning_Tasks')){
+            $taskOriginId = $firstDoc->fetchField('originId');
+            $ignoreThreadId = planning_Jobs::fetchField("#containerId = {$taskOriginId}", 'threadId');
+        }
+
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
             $deliveryDate = (!empty($data->masterData->rec->deadline)) ? $data->masterData->rec->deadline : $data->masterData->rec->valior;
-            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $data->masterData->rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $data->masterData->rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate, $ignoreThreadId);
         }
     }
     
