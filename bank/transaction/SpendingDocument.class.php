@@ -105,7 +105,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
         } else {
             if($rec->currencyId != $baseCurrencyId || $rec->dealCurrencyId != $baseCurrencyId){
                 $currencyId481 = ($rec->currencyId != $baseCurrencyId) ? $rec->currencyId : $rec->dealCurrencyId;
-                $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $$rec->amountDeal;
+                $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
 
                 $entry[] = array('amount' => $sign * round($dealCurrencyRate * $rec->amountDeal, 2),
                     'debit' => array($rec->debitAccId,
