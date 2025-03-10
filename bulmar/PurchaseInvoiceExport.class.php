@@ -163,24 +163,22 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
                 $byProducts += $dRec->amount * (1 - $dRec->discount);
             }
         }
-        
+
         if ($rec->type != 'invoice') {
             $origin = $this->Invoices->getOrigin($rec);
             $oRec = $origin->rec();
-            $number = $origin->getInstance()->recToVerbal($oRec)->number;
-            $nRec->reason = "Ф. №{$number}";
-            
+
             if($oRec->dpOperation == 'accrued'){
                 $nRec->downpaymentChanged = $rec->changeAmount;
             }
+        }
+
+        if (($byOtherService != 0  || $byTransport != 0) && $byProducts == 0) {
+            $nRec->reason = 'Услуга';
+        } elseif (($byOtherService == 0  && $byTransport == 0) && $byProducts != 0) {
+            $nRec->reason = 'Покупка на стоки';
         } else {
-            if (($byOtherService != 0  || $byTransport != 0) && $byProducts == 0) {
-                $nRec->reason = 'Услуга';
-            } elseif (($byOtherService == 0  && $byTransport == 0) && $byProducts != 0) {
-                $nRec->reason = 'Покупка на стоки';
-            } else {
-                $nRec->reason = 'Покупка на стоки';
-            }
+            $nRec->reason = 'Покупка на стоки';
         }
         
         $vat = round($rec->vatAmount, 2);
