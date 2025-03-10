@@ -311,12 +311,12 @@ abstract class deals_Helper
                         if ($invoice) {
                             $arr["vat{$index}Base"] = $arr["vat{$index}"];
                             if($countVats == 1 && isset($arr['neto'])) {
-                                $arr["vat{$index}BaseAmount"] = $arr['neto'];
+                                $arr["vat{$index}BaseAmount"] = $arr['neto'] * $currencyRate;
                             } else {
-                                $arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
+                                $arr["vat{$index}BaseAmount"] = $vi->sum * $currencyRate;
                             }
 
-                            $arr["vat{$index}BaseCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
+                            $arr["vat{$index}BaseCurrencyId"] = $baseCurrency;
                         }
                     }
                 }
