@@ -227,20 +227,13 @@ class bulmar_InvoiceExport extends core_Manager
                 $byProducts += $dRec->amount * (1 - $dRec->discount);
             }
         }
-        
-        if ($rec->type != 'invoice') {
-            $origin = $this->Invoices->getOrigin($rec);
-            $oRec = $origin->rec();
-            $number = $origin->getInstance()->recToVerbal($oRec)->number;
-            $nRec->reason = "Ф. №{$number}";
+
+        if ($byServices != 0 && $byProducts == 0) {
+            $nRec->reason = 'Приход от продажба на услуги';
+        } elseif ($byServices == 0 && $byProducts != 0) {
+            $nRec->reason = 'Приход от продажба на стоки';
         } else {
-            if ($byServices != 0 && $byProducts == 0) {
-                $nRec->reason = 'Приход от продажба на услуги';
-            } elseif ($byServices == 0 && $byProducts != 0) {
-                $nRec->reason = 'Приход от продажба на стоки';
-            } else {
-                $nRec->reason = 'Приход от продажба';
-            }
+            $nRec->reason = 'Приход от продажба';
         }
         
         $vat = round($rec->vatAmount, 2);
@@ -355,11 +348,11 @@ class bulmar_InvoiceExport extends core_Manager
             }
 
             if ($rec->amountCardPaid) {
-                $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->cardAnal}||{$rec->amountCardPaid}||{$static->creditPayment}|AN|$|{$rec->amountCardPaid}||" . "\r\n";
+                $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->cardAnal}|$|{$rec->amountCardPaid}||{$static->creditPayment}|AN|$|{$rec->amountCardPaid}||" . "\r\n";
             }
 
             if ($rec->amountPostalPaid) {
-                $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->pptAnal}||{$rec->amountPostalPaid}||{$static->creditPayment}|AN|$|{$rec->amountPostalPaid}||" . "\r\n";
+                $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->pptAnal}|$|{$rec->amountPostalPaid}||{$static->creditPayment}|AN|$|{$rec->amountPostalPaid}||" . "\r\n";
             }
 
             $content .= $line;
