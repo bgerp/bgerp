@@ -68,18 +68,19 @@ class bulmar_InvoiceExport extends core_Manager
         $ownCompanyOptions = array();
         $companyClassId = crm_Companies::getClassId();
         foreach ($ownCompanyIds as $ownCompanyId){
+            $myCompany = crm_Companies::fetchOurCompany('*', $ownCompanyId);
+            $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
+            $ownCompanyOptions["{$ownCompanyId}|{$num}|{$myCompany->name}"] = $myCompany->name .  ((!empty($num)) ? " [ {$num} ]" : '');
+
             $cQuery = change_History::getQuery();
             $cQuery->where("#classId = {$companyClassId} AND #objectId = {$ownCompanyId}");
+            $cQuery->orderBy('validFrom', 'DESC');
             $cQuery->show("data");
             if($cQuery->count()){
                 while($cRec = $cQuery->fetch()){
                     $num = (!empty($cRec->data->vatId)) ? str_replace('BG', '', $cRec->data->vatId) : $cRec->data->uicId;
-                    $ownCompanyOptions["{$ownCompanyId}|{$num}"] = $cRec->data->name . " [ {$num} ]";
+                    $ownCompanyOptions["{$ownCompanyId}|{$num}|{$cRec->data->name}"] = $cRec->data->name . " [ {$num} ]";
                 }
-            } else {
-                $myCompany = crm_Companies::fetchOurCompany('*', $ownCompanyId);
-                $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
-                $ownCompanyOptions["{$ownCompanyId}|{$num}"] = $myCompany->name .  ((!empty($num)) ? " [ {$num} ]" : '');
             }
         }
 
@@ -133,13 +134,14 @@ class bulmar_InvoiceExport extends core_Manager
         $query->orderBy('#number', 'ASC');
 
         $recs = array();
-        list($ownCompanyId, $uicId) = explode('|', $filter->ownCompanyId);
+        list($ownCompanyId, $uicId, $companyName) = explode('|', $filter->ownCompanyId);
 
         while($rec = $query->fetch()){
             $ownCompanyFieldValue = core_Packs::isInstalled('holding') ? $rec->{$this->Invoices->ownCompanyFieldName} : null;
             $ownCompanyRec = crm_Companies::fetchOurCompany('*', $ownCompanyFieldValue, $rec->activatedOn);
             $num = (!empty($ownCompanyRec->vatNo)) ? str_replace('BG', '', $ownCompanyRec->vatNo) : $ownCompanyRec->uicId;
-            if($ownCompanyId == $ownCompanyRec->id && $num == $uicId){
+
+            if($ownCompanyId == $ownCompanyRec->id && $num == $uicId && $ownCompanyRec->name == $companyName){
                 $recs[$rec->id] = $rec;
             }
         }
@@ -164,7 +166,7 @@ class bulmar_InvoiceExport extends core_Manager
     protected function prepareExportData($recs, $filter)
     {
         $data = new stdClass();
-        
+
         $data->static = $this->getStaticData($filter);
         $data->recs = array();
         
