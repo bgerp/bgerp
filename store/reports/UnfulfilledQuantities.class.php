@@ -468,12 +468,13 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         if (isset($dRec->measure)) {
             $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
+        $round = (cat_UoM::fetch($dRec->measure)->round) ? cat_UoM::fetch($dRec->measure)->round : 2;
 
-        $row->requestQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->requestQuantity);
+        $row->requestQuantity = core_Type::getByName("double(decimals={$round})")->toVerbal($dRec->requestQuantity);
 
-        $row->shipedQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->shipedQuantity);
+        $row->shipedQuantity = core_Type::getByName("double(decimals={$round})")->toVerbal($dRec->shipedQuantity);
 
-        $row->quantity = "<span class = 'red'>" . '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->requestQuantity - $dRec->shipedQuantity) . '</b>' . '</span>';
+        $row->quantity = "<span class = 'red'>" . '<b>' . core_Type::getByName("double(decimals={$round})")->toVerbal($dRec->requestQuantity - $dRec->shipedQuantity) . '</b>' . '</span>';
 
         $state = $dRec->state;
 
