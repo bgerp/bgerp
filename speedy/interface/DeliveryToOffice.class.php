@@ -152,13 +152,15 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
                     $officeName = ht::createLinkRef($officeName, $officeLocationUrlTpl->getContent(), false, 'target=_blank');
                 }
             } else {
-                $officeName = ht::createHint($officeName, 'Офисът вече не е актуален', 'warning');
+                if(!Mode::is('text', 'plain')){
+                    $officeName = ht::createHint($officeName, 'Офисът вече не е актуален', 'warning');
+                }
             }
         } else {
             $officeName = ht::createHint('', 'Офисът не е уточнен', 'error');
         }
         
-        $res[] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
+        $res['office'] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
         
         return $res;
     }
