@@ -74,8 +74,11 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
             $amount = $rec->amount * $rec->rate;
         }
 
+        $currencyId481 = ($rec->currencyId != $baseCurrencyId) ? $rec->currencyId : $rec->dealCurrencyId;
+        $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
+
         if ($reverse === true && in_array($rec->operationSysId, array('bank2customerRet', 'bankAdvance2customerRet'))) {
-            $transAccArr = array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $sign * round($rec->amount, 2));
+            $transAccArr = array('481', array('currency_Currencies', $currencyId481), 'quantity' => $sign * round($amount481, 2));
             if($rec->currencyId == $baseCurrencyId && $rec->dealCurrencyId == $baseCurrencyId){
                 $transAccArr = array('482', array($rec->contragentClassId, $rec->contragentId),
                                           array($origin->className, $origin->that),
@@ -104,9 +107,6 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
 
         } else {
             if($rec->currencyId != $baseCurrencyId || $rec->dealCurrencyId != $baseCurrencyId){
-                $currencyId481 = ($rec->currencyId != $baseCurrencyId) ? $rec->currencyId : $rec->dealCurrencyId;
-                $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
-
                 $entry1 = array('amount' => $sign * round($amount, 2),
                     'debit' => array($rec->debitAccId,
                         array('bank_OwnAccounts', $rec->ownAccount),
