@@ -71,11 +71,7 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         } elseif ($rec->dealCurrencyId == $baseCurrencyId) {
             $amount = $rec->amountDeal;
         } else {
-            if ($reverse === true && ($rec->operationSysId == 'bank2customerRet' || $rec->operationSysId == 'bankAdvance2customerRet')) {
-                $amount = $rec->amount * $dealCurrencyRate;
-            } else {
-                $amount = $rec->amount * $rec->rate;
-            }
+            $amount = $rec->amount * $rec->rate;
         }
 
         if ($reverse === true && in_array($rec->operationSysId, array('bank2customerRet', 'bankAdvance2customerRet'))) {

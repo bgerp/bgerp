@@ -71,10 +71,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
         } elseif ($rec->dealCurrencyId == $baseCurrencyId) {
             $amount = $rec->amountDeal;
         } else {
-            $item1 = acc_Items::fetchItem('bank_OwnAccounts', $rec->ownAccount)->id;
-            $item2 = acc_Items::fetchItem('currency_Currencies', $rec->currencyId)->id;
-            $strategyRate = acc_strategy_WAC::getAmount(1, $rec->valior, $rec->creditAccId, $item1, $item2, null);
-            $amount = $rec->amount * $strategyRate;
+            $amount = $rec->amount * $rec->rate;
         }
 
         $currencyId481 = ($rec->currencyId != $baseCurrencyId) ? $rec->currencyId : $rec->dealCurrencyId;
