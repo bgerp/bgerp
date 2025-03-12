@@ -950,7 +950,15 @@ class doc_FolderPlg extends core_Plugin
             
             // Ако след записа няма да имаме достъп до корицата слагаме предупреждение
             if (!doc_Folders::haveRightToObject($rec)) {
-                $form->setWarning('inCharge,access', 'След запис няма да имате достъп до корицата');
+                $prevHaveRight = true;
+                if ($rec->id) {
+                    $oRec = $mvc->fetch($rec->id);
+                    $prevHaveRight = doc_Folders::haveRightToObject($oRec);
+                }
+
+                if ($prevHaveRight) {
+                    $form->setWarning('inCharge,access', 'След запис няма да имате достъп до корицата');
+                }
             }
         }
         

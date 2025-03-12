@@ -3,6 +3,7 @@ use Minishlink\WebPush\VAPID;
 
 /**
  * За кои домейни да се използва PWA
+ * @deprecated
  */
 defIfNot('PWA_DOMAINS', '');
 
@@ -37,18 +38,12 @@ class pwa_Setup extends core_ProtoSetup
 
 
     /**
-     * Описание на конфигурационните константи
-     */
-    public $configDescription = array(
-        'PWA_DOMAINS' => array('keylist(mvc=cms_Domains, select=domain, forceGroupBy=domain)', 'caption=Мобилно приложение->Домейни'),
-    );
-
-
-    /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
         'pwa_PushSubscriptions',
+        'pwa_Settings',
+        'migrate::updateSettings2509',
     );
 
 
@@ -97,7 +92,9 @@ class pwa_Setup extends core_ProtoSetup
         $Domains->setupMvc();
 
         $html .= fileman_Buckets::createBucket('pwa', 'Файлове качени с PWA', '', '1GB', 'user', 'every_one');
-        
+        $html .= fileman_Buckets::createBucket('pwaZip', 'Файлове за иконите в PWA', 'zip,rar,7z,tar,gz', '100MB', 'powerUser', 'powerUser');
+
+        // @deprecated
         $existDArr = array();
         $dArr = type_Keylist::toArray($this->get('DOMAINS'));
         foreach ($dArr as $domainId) {
@@ -106,6 +103,9 @@ class pwa_Setup extends core_ProtoSetup
                 $domainName = $dRec->domain;
                 $existDArr[$domainName] = $domainName;
             }
+        }
+        foreach (pwa_Settings::getDomains() as $dId => $name) {
+            $existDArr[$name] = $name;
         }
 
         $dQuery = cms_Domains::getQuery();
@@ -118,7 +118,7 @@ class pwa_Setup extends core_ProtoSetup
         $sw = getFileContent('pwa/js/sw.js');
 
         foreach ($dArr as $domainId) {
-            $manifest = pwa_Manifest::getPWAManifest($domainId);
+            $manifest = pwa_Settings::getPWAManifest($domainId);
 
             $dRec = cms_Domains::fetch($domainId);
             if ($dRec->wrFiles) {
@@ -261,5 +261,105 @@ class pwa_Setup extends core_ProtoSetup
         }
 
         return $html;
+    }
+
+
+    /**
+     * Миграция за обновяване на настройките от PWA_DOMAINS към pwa_Settings
+     */
+    function updateSettings2509()
+    {
+        $dArr = type_Keylist::toArray($this->get('DOMAINS'));
+        if (empty($dArr)) {
+
+            return ;
+        }
+
+        fileman_Buckets::createBucket('pwaZip', 'Файлове за иконите в PWA', 'zip,7z', '100MB', 'powerUser', 'powerUser');
+        $nRec = new stdClass();
+
+        $appTitle = core_Setup::get('EF_APP_TITLE', true);
+        $text = 'интегрирана система за управление';
+
+        foreach ($dArr as $dId) {
+            $tPath = fileman::getTempPath();
+
+            expect($tPath);
+
+            $iconSizes = array(72, 96, 128, 144, 152, 192, 384, 512);
+            $iconInfoArr = array();
+
+            $imageUrl = $fName = null;
+
+            if (core_Webroot::isExists('android-chrome-512x512.png', $dId)) {
+                $imageUrl = '/android-chrome-512x512.png';
+                $fName = 'android-chrome-512x512.png';
+            } elseif (core_Webroot::isExists('favicon.png', $dId)) {
+                $imageUrl = '/favicon.png';
+                $fName = 'favicon.png';
+            }
+
+            foreach ($iconSizes as $size) {
+                if (isset($imageUrl)) {
+                    $aUrl = cms_Domains::getAbsoluteUrl($dId);
+                    $content = @file_get_contents(rtrim($aUrl, '/') . $imageUrl);
+                } else {
+                    $content = getFileContent("pwa/icons/icon-{$size}x{$size}.png");
+                    $fName = 'pwa-icon.png';
+                }
+
+                if ($content === false) {
+
+                    continue;
+                }
+
+                $iconInfoArr = @file_put_contents($tPath . '/' . $size . 'x' . $size . '_' . $fName, $content);
+            }
+
+            if (!empty($iconInfoArr)) {
+                $tPathDest = fileman::getTempPath();
+                archive_Adapter::compressFile($tPath . '/*', $tPathDest . '/pwa' . '.zip');
+                $nRec->icons = fileman::absorbStr(file_get_contents($tPathDest . '/pwa' . '.zip'), 'pwaZip', 'pwa' . '.zip');
+                core_Os::deleteDir($tPathDest);
+            }
+            core_Os::deleteDir($tPath);
+
+            $nRec->domainId = $dId;
+            $nRec->shortName = $appTitle;
+            $nRec->name = $appTitle . ' - ' . $text;
+            $nRec->description = $appTitle . ' - ' . $text;
+            $nRec->display = 'standalone';
+//            $nRec->displayOverride = type_Set::fromArray(array(''));
+            $nRec->backgroundColor = '#fff';
+            $nRec->themeColor = '#ddd';
+            $nRec->startUrl = '/?isPwa=yes';
+//            $nRec->clientMode = '';
+//            $nRec->orientation = 'any';
+            $nRec->scope = '/';
+
+            $nRec->sc1Name = 'Сканиране на баркод';
+            $nRec->sc1ShortName = 'Баркод';
+            $nRec->sc1Description = 'Сканиране и търсене на информация за баркод';
+            $nRec->sc1Url = '/barcode_Search';
+
+            if ($scIcon = getFullPath('pwa/icons/barcode-scan.png')) {
+                $nRec->sc1Icon = fileman::absorbStr(file_get_contents($scIcon), 'pwaZip', 'scIcon.png');
+            }
+
+            $nRec->state = 'active';
+
+            pwa_Settings::save($nRec, null, 'IGNORE');
+
+            if ($nRec->id) {
+                // Зануляваме старата стойност, която няма да се използва повече
+                $conf = core_Packs::getConfig('pwa');
+                $data = array();
+
+                if ($conf->_data['PWA_DOMAINS']) {
+                    $data['PWA_DOMAINS'] = null;
+                    core_Packs::setConfig('pwa', $data);
+                }
+            }
+        }
     }
 }

@@ -1224,10 +1224,21 @@ class eshop_Carts extends core_Master
             if (empty($termName)) {
                 $termName = cond_DeliveryTerms::getVerbal($rec->termId, 'codeName');
             }
-            
+
+            if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)) {
+                Mode::push('text', 'plain');
+                $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->termId, $rec->deliveryData, 'sales_Sales');
+                Mode::pop('text');
+                if(isset($deliveryDataArr['office'])){
+                    $officeLink = html2text_Converter::toRichText($deliveryDataArr['office']->value);
+                    $officeLink = preg_replace('/\[hide(?:=[^\]]*)?\].*?\[\/hide\]/is', '', $officeLink);
+                    $body->replace("- " . trim($officeLink), 'DELIVERY_COUNTRY');
+                }
+            }
             $termName = strip_tags(str_replace('<br>', ' ', $termName));
             $body->replace($termName, 'TERM_ID');
             $countryName = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)')->toVerbal($rec->deliveryCountry);
+
             $pCode = core_Type::getByName('varchar')->toVerbal($rec->deliveryPCode);
             $place = core_Type::getByName('varchar')->toVerbal($rec->deliveryPlace);
             $place = (!empty($pCode)) ? "{$pCode} {$place}" : $place;
@@ -1371,8 +1382,8 @@ class eshop_Carts extends core_Master
         
         core_Lg::pop($lang);
     }
-    
-    
+
+
     /**
      * След изтриване
      *

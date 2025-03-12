@@ -129,26 +129,31 @@ class cat_type_Uom extends type_Varchar
     {
         // Ако има запис, конвертира се в удобен вид
         $convObject = new stdClass();
-        expect($baseUnitId = cat_UoM::fetchBySysId($this->params['unit'])->id);
-        
+        expect($unitRec = cat_UoM::fetchBySysId($this->params['unit']));
+
+        // Извличане на всички производни мярки
+        $options = cat_UoM::getSameTypeMeasures($unitRec->id, true);
+        unset($options['']);
+
+        $toUnitSysId = $this->params['unit'];
+        if(!array_key_exists($unitRec->id, $options)){
+            $toUnitSysId = cat_Uom::fetchField($unitRec->baseUnitId, 'sysId');
+        }
+
         if ($value === null || $value === '') {
             $convObject->value = '';
-            $convObject->measure = $baseUnitId;
+            $convObject->measure = $unitRec->id;
         } elseif (empty($this->error)) {
-            $convObject = cat_UoM::smartConvert($value, $this->params['unit'], false, true);
+            $convObject = cat_UoM::smartConvert($value, $toUnitSysId, false, true);
         } else {
             $convObject->value = $value['lP'];
             $convObject->measure = $value['rP'];
         }
-        
+
         // Рендиране на частта за въвеждане на числото
         $inputLeft = $this->double->renderInput($name . '[lP]', $convObject->value, $attr);
         unset($attr['size']);
-        
-        // Извличане на всички производни мярки
-        $options = cat_UoM::getSameTypeMeasures($baseUnitId, true);
-        unset($options['']);
-        
+
         $inputRight = ' &nbsp;' . ht::createSmartSelect($options, $name . '[rP]', $convObject->measure);
         $inputRight = "<span style='vertical-align: top'>" . $inputRight . '</span>';
         
@@ -168,7 +173,8 @@ class cat_type_Uom extends type_Varchar
         if (!isset($value) || !is_numeric($value))return;
         $value = abs($value);
 
-        $res = cat_UoM::smartConvert($value, $this->params['unit']);
+        $res = cat_UoM::smartConvert($value, $this->params['unit'], true, false, false);
+
         if(Mode::is('verbalWithoutSuffix')){
             // Маха се мерната еденица, ако се иска това
             $res = preg_replace('/[a-zа-я]/ui', '', $res);

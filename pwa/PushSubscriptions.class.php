@@ -33,7 +33,7 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, crm_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, pwa_Wrapper';
 
 
     /**
@@ -134,8 +134,6 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('forceNotify', 'enum(no=Не, yes=Да (Само при промяна на съобщението), yesAll=Да (Винаги при обновяване))', 'caption=Неотворените известия да продължат да се обновяват при промяна->Избор');
 
         $this->setDbUnique('brid');
-
-        $this->currentTab = 'Профили';
     }
 
 

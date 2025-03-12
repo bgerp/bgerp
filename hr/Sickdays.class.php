@@ -308,7 +308,7 @@ class hr_Sickdays extends core_Master
                 $form->setError('startDate, toDate', 'Началната дата трябва да е по-малка от крайната');
             }
 
-            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id);
+            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id, get_called_class());
             // за всяка една молба отговаряща на условията проверяваме
             if (!empty($iArr)) {
                 // и изписваме предупреждение

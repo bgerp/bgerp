@@ -11,6 +11,8 @@
  * @license   GPL 3
  *
  * @since     v 0.1
+ *
+ * @deprecated
  */
 class pwa_Manifest extends core_Mvc
 {
@@ -20,6 +22,8 @@ class pwa_Manifest extends core_Mvc
      *
      * @param $domainId
      * @return false|string
+     *
+     * @deprecated
      */
     public static function getPWAManifest($domainId)
     {
@@ -110,6 +114,8 @@ class pwa_Manifest extends core_Mvc
      * Помощна фунцкция за проверка дали може да се използва PWA
      *
      * @return string - yes|no
+     *
+     * @deprecated
      */
     public static function canUse($dId = null)
     {
