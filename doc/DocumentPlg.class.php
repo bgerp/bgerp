@@ -777,12 +777,16 @@ class doc_DocumentPlg extends core_Plugin
                 $mvc->addDocumentLinks[$rec->id] = $rec;
             }
 
+            // Опит за извличане на създателя
+            $mvc->getCreatedBy($rec);
+
             // ... този документ няма ключ към папка и нишка, тогава
             // извикваме метода за рутиране на документа
             if (!isset($rec->folderId) || !isset($rec->threadId)) {
                 $mvc->route($rec);
             }
-            
+
+
             // ... този документ няма ключ към контейнер, тогава
             // създаваме нов контейнер за документите от този клас
             // и записваме връзка към новия контейнер в този документ
@@ -794,7 +798,7 @@ class doc_DocumentPlg extends core_Plugin
             if (!$rec->state) {
                 $rec->state = $mvc->firstState ? $mvc->firstState : 'draft';
             }
-            
+
             // Задаваме стойностите на created полетата
             if (!isset($rec->createdBy)) {
                 $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
@@ -823,7 +827,7 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
     
-    
+
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
@@ -5012,5 +5016,20 @@ class doc_DocumentPlg extends core_Plugin
         if(!isset($res)){
             $res = crm_Companies::isOwnCompanyVatRegistered();
         }
+    }
+
+
+    /**
+     * Метод по подразбиране връщащ създателя на документа
+     *
+     * @param mixed $mvc
+     * @param mixed $res
+     * @param stdClass$rec
+     * @return void
+     * @throws core_exception_Break
+     */
+    public static function on_AfterGetCreatedBy($mvc, &$res, &$rec)
+    {
+
     }
 }

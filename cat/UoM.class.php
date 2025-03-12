@@ -558,7 +558,7 @@ class cat_UoM extends core_Manager
      *
      * @return string - закръглената сума с краткото име на мярката
      */
-    public static function smartConvert($val, $sysId, $verbal = true, $asObject = false)
+    public static function smartConvert($val, $sysId, $verbal = true, $asObject = false, $skipClosed = true)
     {
         $Double = cls::get('type_Double');
         $Double->params['smartRound'] = 'smartRound';
@@ -573,7 +573,7 @@ class cat_UoM extends core_Manager
         }
         
         // Извличат се мерките от същия тип и се премахва празния елемент в масива
-        $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id);
+        $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id, false, $skipClosed);
         unset($sameMeasures['']);
         
         if ($sysId == 'l') {

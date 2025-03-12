@@ -33,7 +33,7 @@ class pwa_SubscribePlg extends core_Plugin
                 }
             }
 
-            $canUse = pwa_Manifest::canUse();
+            $canUse = pwa_Settings::canUse();
 
             if ($canUse != 'yes') {
 
