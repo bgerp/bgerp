@@ -95,7 +95,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                 'credit' => $transAccArr);
 
             $transAccArr['quantity'] = abs($transAccArr['quantity']);
-            $entry[] = array('amount' => round($amount, 2),
+            $entry[] = array('amount' => round($rec->amount * $rec->rate, 2),
                 'debit' => array($rec->creditAccId,
                     array('bank_OwnAccounts', $rec->ownAccount),
                     array('currency_Currencies', $rec->currencyId),
