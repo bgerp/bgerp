@@ -684,7 +684,7 @@ class doc_Setup extends core_ProtoSetup
             if(countR($recontoCloseDocs)){
 
                 // Реконтиране на курсовите разлики
-                $curQuery = currency_CurrencyRates::getQuery();
+                $curQuery = acc_RatesDifferences::getQuery();
                 $curQuery->in('threadId', $recontoCloseDocs);
                 $curQuery->where("state = 'active'");
                 $curQuery->show('containerId,threadId');

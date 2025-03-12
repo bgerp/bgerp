@@ -111,7 +111,7 @@ class batch_Defs extends core_Manager
     {
         $data->listFilter->FLD('type', 'class(interface=batch_BatchTypeIntf,select=title,allowEmpty)', 'caption=Тип,silent');
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'search,type';
+        $data->listFilter->showFields = 'search,templateId,type';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         
@@ -119,6 +119,10 @@ class batch_Defs extends core_Manager
             if ($type = $data->listFilter->rec->type) {
                 $data->query->EXT('driverClass', 'batch_Templates', 'externalName=driverClass,externalKey=templateId');
                 $data->query->where("#driverClass = {$type}");
+            }
+
+            if ($templateId = $data->listFilter->rec->templateId) {
+                $data->query->where("#templateId = {$templateId}");
             }
         }
         
