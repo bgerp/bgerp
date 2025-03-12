@@ -682,6 +682,17 @@ class doc_Setup extends core_ProtoSetup
 
             // Ако има реконтиран документ в обединена нишка - реконтира се и обединяващия договор
             if(countR($recontoCloseDocs)){
+
+                // Реконтиране на курсовите разлики
+                $curQuery = currency_CurrencyRates::getQuery();
+                $curQuery->in('threadId', $recontoCloseDocs);
+                $curQuery->where("state = 'active'");
+                $curQuery->show('containerId,threadId');
+                while($curRec = $curQuery->fetch()){
+                    acc_Journal::reconto($curRec->containerId);
+                }
+
+                // Реконтиране на обединените договори
                 $closedDoc = cls::get($dealClass)->closeDealDoc;
                 $closeQuery = $closedDoc::getQuery();
                 $closeQuery->in('threadId', $recontoCloseDocs);
