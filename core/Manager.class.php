@@ -970,14 +970,46 @@ class core_Manager extends core_Mvc
      */
     public function renderListFilter_($data)
     {
-        if (!isset($data->listFilter)) return;
-        
-        $data->listFilter->showFields = isset($data->listFilter->showFields) ? arr::make($data->listFilter->showFields, true) : array();
-        if (countR($data->listFilter->showFields)) {
-            if($data->listFilter->hide === true) return new core_ET("");
+        $listFilter = &$data->listFilter;
+        if (!isset($listFilter)) return;
 
-            $tpl = new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(null, $data->listFilter->rec));
-            core_Form::preventDoubleSubmission($tpl, $data->listFilter);
+
+        // Ако лист филтъра не е хоризонтален
+        if($listFilter->view != 'horizontal'){
+
+            // И има посочени полета за скриване да им се добавя клас, че може да се скриват
+            $toggableFieldsCount = 0;
+            $toggableFields = arr::make($listFilter->mvc->toggableFieldsInVerticalListFilter, true);
+            foreach ($toggableFields as $toggableField){
+                if($listFilter->getField($toggableField, false)){
+
+                    // Добавяне на клас на полетата, които могат да се скриват
+                    $toggableFieldsCount++;
+                    $toggableClass = $listFilter->getFieldParam($toggableField, 'class');
+                    $listFilter->setField($toggableField, array('class' => "{$toggableClass} toggable", 'toggable' => 'toggable'));
+
+                    // Ако полетата са с празна стойност или е избрано "Всички" ще се скриват първоначално
+                    if(empty($listFilter->rec->{$toggableField}) || $listFilter->rec->{$toggableField} == 'all'){
+                        $toggableRowStyle = $listFilter->getFieldParam($toggableField, 'rowStyle');
+                        $listFilter->setField($toggableField, array('rowStyle' => "{$toggableRowStyle};display:none"));
+                    }
+                }
+            }
+
+            // Ако има скрити полета се добавя бутон за показване/скриване
+            if($toggableFieldsCount){
+                $listFilter->toolbar->addFnBtn("+ {$toggableFieldsCount}", 'toggleListFilter()', array('class' => 'toggleListFilterBtn'));
+            }
+        }
+
+        $listFilter->formAttr['data-mvc'] = $listFilter->mvc->className;
+        $listFilter->showFields = isset($listFilter->showFields) ? arr::make($listFilter->showFields, true) : array();
+
+        if (countR($listFilter->showFields)) {
+            if($listFilter->hide === true) return new core_ET("");
+
+            $tpl = new ET("<div class='listFilter'>[#1#]</div>", $listFilter->renderHtml(null, $listFilter->rec));
+            core_Form::preventDoubleSubmission($tpl, $listFilter);
             
             return $tpl;
         }

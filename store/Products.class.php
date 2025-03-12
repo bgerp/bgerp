@@ -100,6 +100,12 @@ class store_Products extends core_Detail
 
 
     /**
+     * Кои полета да може да се скриват в хоризонталния лист филтър
+     */
+    public $toggableFieldsInVerticalListFilter = 'productId,horizon,inventory';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
