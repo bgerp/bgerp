@@ -35,6 +35,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
 
         // Ако няма вальор - ще е ДНЕС, ще се подмени и централния курс към ДНЕС
         if(empty($rec->valior)){
+            $rec->valior = dt::today();
             $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
             $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, null);
         }
