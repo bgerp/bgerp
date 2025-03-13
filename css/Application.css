@@ -2949,6 +2949,17 @@ table.mc-header a {
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4); }
   .zoneTitle a {
     color: white !important; }
+  .zoneTitle .lockers {
+    padding: 1px 4px;
+    font-size: 0.9em;
+    color: white !important;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.6); }
+    .zoneTitle .lockers.busy {
+      background-color: #f0703e !important; }
+    .zoneTitle .lockers.available {
+      background-color: #76b42f !important; }
+  .zoneTitle .lockerStatus {
+    margin-left: 10px; }
 
 .zoneRow {
   padding: 5px 10px;
