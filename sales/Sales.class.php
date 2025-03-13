@@ -226,12 +226,6 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
-     * Огледален клас за обратната операция
-     */
-    public $reverseClassName = 'store_Receipts';
-
-
-    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -2399,5 +2393,16 @@ class sales_Sales extends deals_DealMaster
                 return false;
             }
         }
+    }
+
+
+    /**
+     * Връща класа на обратния документ
+     */
+    public function getDocumentReverseClass($rec)
+    {
+        $class = 'store_Receipts';
+
+        return cls::get($class);
     }
 }

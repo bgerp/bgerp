@@ -165,12 +165,6 @@ class purchase_Purchases extends deals_DealMaster
 
 
     /**
-     * Огледален клас за обратната операция
-     */
-    public $reverseClassName = 'store_ShipmentOrders';
-
-
-    /**
      * До потребители с кои роли може да се споделя документа
      *
      * @var string
@@ -978,5 +972,16 @@ class purchase_Purchases extends deals_DealMaster
         if($mvc->recalcAutoTotalDiscount($rec)){
             $mvc->updateMaster_($rec);
         }
+    }
+
+
+    /**
+     * Връща класа на обратния документ
+     */
+    public function getDocumentReverseClass($rec)
+    {
+        $class = 'store_ShipmentOrders';
+
+        return cls::get($class);
     }
 }
