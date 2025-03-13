@@ -973,12 +973,13 @@ class core_Manager extends core_Mvc
         $listFilter = &$data->listFilter;
         if (!isset($listFilter)) return;
 
-
         // Ако лист филтъра не е хоризонтален
         if($listFilter->view != 'horizontal'){
 
             // И има посочени полета за скриване да им се добавя клас, че може да се скриват
             $toggableFieldsCount = 0;
+            setIfNot($data->toggableFieldsInVerticalListFilter, $this->toggableFieldsInVerticalListFilter);
+
             $toggableFields = arr::make($listFilter->mvc->toggableFieldsInVerticalListFilter, true);
             foreach ($toggableFields as $toggableField){
                 if($listFilter->getField($toggableField, false)){
