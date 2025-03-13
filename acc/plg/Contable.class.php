@@ -84,7 +84,10 @@ class acc_plg_Contable extends core_Plugin
             } else {
                 $res = ht::wrapMixedToHtml(ht::mixedToHtml($transaction, 4));
             }
-            
+
+            $res->append("<hr />");
+            $res->append(ht::wrapMixedToHtml(ht::mixedToHtml($rec, 4)));
+
             return false;
         }
         
