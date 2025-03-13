@@ -34,7 +34,13 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
         expect($rec = $this->class->fetchRec($id));
         $origin = $this->class->getOrigin($rec);
         $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : $this->class->getDefaultCase($rec);
-        
+
+        // Ако няма вальор - ще е ДНЕС, ще се подмени и централния курс към ДНЕС
+        if(empty($rec->valior)){
+            $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+            $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, null);
+        }
+
         if ($rec->isReverse == 'yes') {
             
             // Ако документа е обратен, правим контировката на ПКО-то но с отрицателен знак
@@ -44,8 +50,6 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
             // Ако документа не е обратен, правим нормална контировка на РКО
             $entry = $this->getEntry($rec, $origin);
         }
-        
-        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
