@@ -6498,6 +6498,19 @@ function copyPlaceholderAsValOnClick()
 }
 
 
+/**
+ * Скриване/показване на допълнителните бутони в лист изгледа
+ */
+function toggleListFilter()
+{
+    document.querySelectorAll('.listFilter tr.toggable').forEach(tr => {
+        if (tr.style.display === "none") {
+            tr.style.display = ""; // Показва реда
+        } else {
+            tr.style.display = "none"; // Скрива реда
+        }
+    });
+}
 
 runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);

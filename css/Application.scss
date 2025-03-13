@@ -3445,6 +3445,21 @@ table.mc-header a {
 	a {
 		color: #fff !important;
 	}
+	.lockers {
+		padding: 1px 4px;
+		font-size: 0.9em;
+		color: #fff !important;
+		box-shadow: 0 0 1px rgba(0,0,0,0.6);
+		&.busy{
+			background-color: #F0703E !important
+		}
+		&.available {
+			background-color: #76B42F !important
+		}
+	}
+	.lockerStatus {
+		margin-left: 10px;
+	}
 }
 .zoneRow {
 	padding: 5px 10px;
