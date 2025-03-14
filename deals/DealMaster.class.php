@@ -524,7 +524,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($vatWarning = deals_Helper::getVatWarning($defVat, $rec->chargeVat)) {
             $isCurrencyReadOnly = $form->getFieldTypeParam('currencyId', 'isReadOnly');
             if(!$isCurrencyReadOnly){
-                //$form->setWarning('chargeVat', $vatWarning);
+                $form->setWarning('chargeVat', $vatWarning);
             }
         }
         
