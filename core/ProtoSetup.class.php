@@ -596,6 +596,19 @@ class core_ProtoSetup
         
         return $res;
     }
+
+
+    /**
+     * Връща описанието на web-константите
+     *
+     * @return array
+     */
+    public function getCronSettings()
+    {
+        $cronSettings = $this->cronSettings;
+
+        return $cronSettings;
+    }
     
     
     /**

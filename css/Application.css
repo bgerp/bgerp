@@ -2937,27 +2937,6 @@ table.mc-header a {
 /*
  * край на стиловете за календара в портала
  */
-  .zoneInfoHolder:last-child .zoneRow {
-    margin-bottom: 0; }
-
-.zoneTitle {
-  background-color: rgba(10, 10, 10, 0.45);
-  border-radius: 3px;
-  padding: 5px 10px;
-  color: white;
-  font-weight: bold;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4); }
-  .zoneTitle a {
-    color: white !important; }
-
-.zoneRow {
-  padding: 5px 10px;
-  border-bottom: 1px dotted #cccccc;
-  font-size: 14px; }
-  .zoneRow:last-child {
-    margin-bottom: 5px;
-    border-bottom: none; }
-
 .portal-select {
   border: none;
   position: relative;

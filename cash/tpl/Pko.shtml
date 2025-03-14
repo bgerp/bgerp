@@ -119,7 +119,7 @@
                                 <td>
                                 <span class='sign_names nowrap'>
                                 <!--ET_BEGIN issuer-->
-                                ([#issuer#] )
+                                ( [#issuer#] )
                                 <!--ET_END issuer-->
                                 </span>
                                 </td>

@@ -33,7 +33,14 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         expect($rec = $this->class->fetchRec($id));
         
         $origin = $this->class->getOrigin($rec);
-        
+
+        // Ако няма вальор - ще е ДНЕС, ще се подмени и централния курс към ДНЕС
+        if(empty($rec->valior)){
+            $rec->valior = dt::today();
+            $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+            $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, null);
+        }
+
         if ($rec->isReverse == 'yes') {
             // Ако документа е обратен, правим контировката на РБД-то но с отрицателен знак
             $entry = bank_transaction_SpendingDocument::getReverseEntries($rec, $origin);
@@ -43,8 +50,8 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
             $entry = $this->getEntry($rec, $origin);
         }
         
-        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
-        
+
+
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
             'reason' => (!empty($rec->reason)) ? $rec->reason : deals_Helper::getPaymentOperationText($rec->operationSysId),   // основанието за ордера
