@@ -288,7 +288,7 @@ class purchase_Purchases extends deals_DealMaster
     public function description()
     {
         parent::setDealFields($this);
-        $this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
+        $this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyManualRate');
         $this->FLD('haveVatCreditProducts', 'enum(yes=С право,no=Без право)', 'caption=Допълнително->Данъчен кредит,maxRadio=2,columns=2,before=template,notNull,value=yes');
         $this->setField('dealerId', 'caption=Наш персонал->Закупчик,notChangeableByContractor');
         $this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
@@ -353,7 +353,7 @@ class purchase_Purchases extends deals_DealMaster
         
         $hideRate = core_Packs::getConfigValue('purchase', 'PURCHASE_USE_RATE_IN_CONTRACTS');
         if ($hideRate == 'yes' && !haveRole('partner')) {
-            $form->setField('currencyRate', 'input');
+            $form->setField('currencyManualRate', 'input');
         }
         
         // Търговеца по дефолт е отговорника на контрагента
