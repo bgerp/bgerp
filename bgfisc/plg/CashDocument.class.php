@@ -652,7 +652,11 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 $mvc->rollbackConto($rec);
                 $mvc->logWrite('Ревъртване на контировката', $rec);
                 $mvc->logErr($errorMsg, $id);
-                
+                $cu = core_Users::getCurrent();
+                if($cu == core_Users::ANONYMOUS_USER){
+                    wp("АНОНИМНО РЕВЪРТВАНЕ", $rec, $obj);
+                }
+
                 core_Statuses::newStatus($errorMsg, 'error');
                 bgfisc_PrintedReceipts::removeWaitingLog($mvc, $rec->id);
                 

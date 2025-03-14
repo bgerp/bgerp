@@ -79,7 +79,11 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             $mvc->logWrite('Ревъртване на контировката', $rec);
             $mvc->logErr($err, $id);
             core_Statuses::newStatus($err, 'error');
-            
+            $cu = core_Users::getCurrent();
+            if($cu == core_Users::ANONYMOUS_USER){
+                wp("АНОНИМНО РЕВЪРТВАНЕ", $rec);
+            }
+
             if ($mvc instanceof cash_Pko) {
                 $rec->cashRegNum = null;
                 $mvc->save_($rec, 'cashRegNum');

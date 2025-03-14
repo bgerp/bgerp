@@ -287,7 +287,11 @@ class bgfisc_plg_Sales extends core_Plugin
                 $mvc->rollbackConto($rec);
                 $mvc->logWrite('Ревъртване на контировката', $rec);
                 $mvc->logErr($errorMsg, $id);
-                
+                $cu = core_Users::getCurrent();
+                if($cu == core_Users::ANONYMOUS_USER){
+                    wp("АНОНИМНО РЕВЪРТВАНЕ", $rec);
+                }
+
                 core_Statuses::newStatus($errorMsg, 'error');
                 bgfisc_PrintedReceipts::removeWaitingLog($mvc, $rec->id);
                 core_Locks::release("lock_{$mvc->className}_{$rec->id}");
