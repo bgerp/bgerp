@@ -2462,6 +2462,8 @@ function appendQuote(id, line, useParagraph) {
         // Вземаме текста
         text = sessionStorage.getItem('selText');
 
+        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+
         if (text) {
 
             if (typeof useParagraph === "undefined") {
