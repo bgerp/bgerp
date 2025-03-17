@@ -71,12 +71,14 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             expect($hash = Request::get('hash', 'varchar'));
             expect(str::checkHash($hash, 4));
             expect($err = Request::get('err', 'varchar'));
-            
+            $mvc->requireRightFor('conto');
+
             $id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             bgfisc_PrintedReceipts::removeWaitingLog($mvc, $id);
-            $mvc->rollbackConto($id);
-            $mvc->logWrite('Ревъртване на контировката (3)', $rec);
+            if($mvc->rollbackConto($id)){
+                $mvc->logWrite('Ревъртване на контировката (3)', $rec);
+            }
             $mvc->logErr($err, $id);
             core_Statuses::newStatus($err, 'error');
             $cu = core_Users::getCurrent();
