@@ -2937,6 +2937,9 @@ table.mc-header a {
 /*
  * край на стиловете за календара в портала
  */
+.narrow .leftCol.wrapText {
+  min-width: 260px; }
+
 .portal-select {
   border: none;
   position: relative;
