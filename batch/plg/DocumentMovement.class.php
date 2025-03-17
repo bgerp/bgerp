@@ -280,7 +280,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 // Дига се флаг в текущия хит че движението е отразено
                 $mvc->savedMovements[$containerId] = true;
             }
-        } elseif (in_array($rec->state, array('closed', 'stopped'))) {
+        } elseif (in_array($rec->state, array('rejected', 'stopped'))) {
             $containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
             $doc = doc_Containers::getDocument($containerId);
             batch_Movements::removeMovement($doc->getInstance(), $doc->that);
