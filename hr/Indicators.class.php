@@ -646,8 +646,10 @@ class hr_Indicators extends core_Manager
             $data->listFilter->FLD('Tab', 'varchar', 'input=hidden');
             $data->listFilter->setDefault('Tab', 'PersonsDetails');
             $data->listFilter->setDefault('period', date('Y-m-01'));
-            $data->listFilter->input('period,document,Tab');
+            $data->listFilter->input('period,from,to,document,Tab');
             $data->listFilter->setField('id', 'input=none');
+            $data->listFilter->setField('period', 'placeholder=Период');
+            $data->listFilter->showFields = 'period';
             $data->listFilter->view = 'horizontal';
         } else {
             $data->listFilter->setFieldTypeParams('personId', array('allowEmpty' => 'allowEmpty'));
@@ -678,6 +680,7 @@ class hr_Indicators extends core_Manager
             }
             
             if (isset($fRec->period)) {
+
                 $to = dt::getLastDayOfMonth($fRec->period);
                 $data->query->where("#date >= '{$fRec->period}' AND #date <= '{$to}'");
                 if (isset($data->fullQuery)) {
