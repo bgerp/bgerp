@@ -417,7 +417,14 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
         }
     }
-    
+
+
+    /**
+     * Записване на движенията
+     *
+     * @param stdClass $rec
+     * @return void
+     */
     private static function saveMovements($rec)
     {
         $storeId = isset($rec->storeId) ? $rec->storeId : store_InventoryNotes::fetchField($rec->id, 'storeId');

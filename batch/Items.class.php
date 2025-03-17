@@ -528,17 +528,18 @@ class batch_Items extends core_Master
                                                                      'batch' => -1);
             }
 
-            if(isset($filtered["-{$storeRec->storeId}batches"])){
-                $withoutBatch = round($storeRec->quantity - $onBatches, 4);
+            $withoutBatch = round($storeRec->quantity - $onBatches, 4);
+            if($withoutBatch > 0){
                 $filtered["-{$storeRec->storeId}nobatch"] = (object)array('storeId' => $storeRec->storeId,
-                                                                            'productId' => $data->masterId,
-                                                                            'quantity' => $withoutBatch,
-                                                                            'state' => 'active',
-                                                                            'batch' => -2);
+                    'productId' => $data->masterId,
+                    'quantity' => $withoutBatch,
+                    'state' => 'active',
+                    'batch' => -2);
             }
 
             $newRecs += $filtered;
         }
+
         $data->recs = $newRecs;
 
         // Подготвяме страницирането
