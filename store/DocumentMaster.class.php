@@ -1316,8 +1316,7 @@ abstract class store_DocumentMaster extends core_Master
 
         if($rec->state == 'active'){
             if ($rec->isReverse == 'no') {
-                if(isset($mvc->reverseClassName)){
-                    $ReverseClass = cls::get($mvc->reverseClassName);
+                if($ReverseClass = $mvc->getDocumentReverseClass($data->rec)){
                     if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
                         $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
                     }

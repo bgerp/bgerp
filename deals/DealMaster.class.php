@@ -65,7 +65,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,currencyManualRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
     
     
     /**
@@ -293,8 +293,10 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('oneTimeDelivery', 'enum(yes=Да,no=Не)', 'caption=Доставка->Еднократно,maxRadio=2,notChangeableByContractor,notNull,value=no');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor,removeAndRefreshForm=paymentType,silent');
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин');
-        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate,notChangeableByContractor,silent');
+        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate|currencyManualRate,notChangeableByContractor,silent');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
+        $mvc->FLD('currencyManualRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
+
         $mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса,notChangeableByContractor');
         
         // Наш персонал
@@ -499,19 +501,20 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         if (!$form->isSubmitted()) return;
         $rec = &$form->rec;
-        
-        if (empty($rec->currencyRate)) {
-            // Ако няма курс винаги е този към днешна дата
-            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
-            if (!$rec->currencyRate) {
-                $form->setError('currencyRate', 'Не може да се изчисли курс');
+
+        // Какъв е новия курс
+        $rec->_newCurrencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+        if(!empty($rec->currencyManualRate)){
+            if ($msg = currency_CurrencyRates::hasDeviation($rec->currencyManualRate, $rec->valior, $rec->currencyId, null)) {
+                $form->setWarning('currencyManualRate', $msg);
             }
-        } else {
-            if ($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, null)) {
-                $form->setWarning('currencyRate', $msg);
-            }
+            $rec->_newCurrencyRate = $rec->currencyManualRate;
         }
-        
+
+        if(empty($rec->id)){
+            $rec->currencyRate = $rec->_newCurrencyRate;
+        }
+
         if (isset($rec->deliveryTermTime, $rec->deliveryTime)) {
             $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
         }
@@ -944,6 +947,10 @@ abstract class deals_DealMaster extends deals_DealBase
         if(isset($rec->id)){
             $rec->productIdWithBiggestAmount = $mvc->findProductIdWithBiggestAmount($rec);
         }
+
+        if(isset($rec->id)){
+            $rec->_oldRate = $mvc->fetchField($rec->id, 'currencyRate', false);
+        }
     }
     
     
@@ -952,6 +959,14 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        // Ако е променен курса преизчисляват се нещата
+        if(isset($rec->_newCurrencyRate) && $rec->currencyRate != $rec->_newCurrencyRate){
+            deals_Helper::recalcRate($mvc, $rec->id, $rec->_newCurrencyRate);
+            $msg = 'Курсът е променен';
+            $msg .= haveRole('debug') ? " : (стар) {$rec->currencyRate} - (нов) {$rec->_newCurrencyRate} " : $msg;
+            core_Statuses::newStatus($msg, 'notice');
+        }
+
         if ($rec->state != 'draft') {
             $state = $rec->state;
             $rec = $mvc->fetch($id);
@@ -961,8 +976,8 @@ abstract class deals_DealMaster extends deals_DealBase
             deals_OpenDeals::saveRec($rec, $mvc);
         }
     }
-    
-    
+
+
     /**
      * Връща тялото на имейла генериран от документа
      *
@@ -1294,7 +1309,12 @@ abstract class deals_DealMaster extends deals_DealBase
             if ($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)) {
                 $row->currencyCode = $row->currencyId;
             }
-            
+            if(haveRole('debug')){
+                $msg = " |курс|* {$rec->currencyRate}" . (!empty($rec->currencyManualRate) ? ", |ръчен|* {$rec->currencyManualRate}" : "");
+                $row->currencyCode = ht::createHint($row->currencyId, $msg, 'img/16/bug.png');
+            }
+
+
             if(isset($rec->deliveryTermId)){
                 if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                     $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
@@ -3085,11 +3105,12 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec = &$data->rec;
 
         // Ако е експедирано с договора, бутон за връщане
-        $ReverseClass = cls::get($mvc->reverseClassName);
         $contoActions = type_Set::toArray($rec->contoActions);
         if($contoActions['ship']){
-            if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
-                $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
+            if($ReverseClass = $mvc->getDocumentReverseClass($data->rec)) {
+                if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
+                    $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
+                }
             }
         }
 

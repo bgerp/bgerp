@@ -199,12 +199,6 @@ class store_Receipts extends store_DocumentMaster
 
 
     /**
-     * Огледален клас за обратната операция
-     */
-    public $reverseClassName = 'store_ShipmentOrders';
-
-
-    /**
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, modifiedOn, valior, loadingOn, deliveryTime';
@@ -460,6 +454,17 @@ class store_Receipts extends store_DocumentMaster
                      'deliveryTime' => array('caption' => 'Разтоварване', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => true, "input" => "input"),);
 
         return $res;
+    }
+
+
+    /**
+     * Връща класа на обратния документ
+     */
+    public function getDocumentReverseClass($rec)
+    {
+        $class = 'store_ShipmentOrders';
+
+        return cls::get($class);
     }
 }
 
