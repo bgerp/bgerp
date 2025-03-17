@@ -263,8 +263,11 @@ class batch_plg_DocumentMovement extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFields = null)
     {
         // Ако документа се променя от бутона за промяна или при преизчисляване на курса да не се дублират партидите
-        if($rec->__isBeingChanged || $rec->_recalcRate || $rec->_changeLine) return;
-
+        if($rec->__isBeingChanged || $rec->_recalcRate || $rec->_changeLine) {
+            bp();
+            return;
+        }
+        bp();
         if ($rec->state == 'active') {
             if ($mvc->hasPlugin('acc_plg_Contable')) {
 
@@ -280,7 +283,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 // Дига се флаг в текущия хит че движението е отразено
                 $mvc->savedMovements[$containerId] = true;
             }
-        } elseif ($rec->state == 'rejected') {
+        } elseif (in_array($rec->state, array('closed', 'stopped'))) {
             $containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
             $doc = doc_Containers::getDocument($containerId);
             batch_Movements::removeMovement($doc->getInstance(), $doc->that);

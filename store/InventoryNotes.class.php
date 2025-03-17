@@ -773,8 +773,12 @@ class store_InventoryNotes extends core_Master
         // Синхронизираме данните само в чернова
         if ($rec->state == 'draft' && $rec->_isClone !== true) {
             $mvc->sync($rec);
-        } elseif ($rec->state == 'active' || ($rec->state == 'rejected' && $rec->brState == 'active')) {
-            cls::get('store_InventoryNoteDetails')->invoke('AfterContoOrReject', array($rec));
+        } elseif ($rec->state == 'active' && $rec->brState == 'stopped') {
+            cls::get('store_InventoryNoteDetails')->invoke('AfterStartDocument', array($rec));
+        } elseif($rec->state == 'stopped' && $rec->brState != 'stopped') {
+            if (core_Packs::isInstalled('batch')) {
+                batch_Movements::removeMovement('store_InventoryNotes', $rec);
+            }
         }
         
         static::invalidateCache($rec);
