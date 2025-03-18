@@ -649,7 +649,7 @@ class hr_Indicators extends core_Manager
             $data->listFilter->input('period,from,to,document,Tab');
             $data->listFilter->setField('id', 'input=none');
             $data->listFilter->setField('period', 'placeholder=Период');
-            $data->listFilter->showFields = 'period';
+            $data->listFilter->showFields = 'period,document';
             $data->listFilter->view = 'horizontal';
         } else {
             $data->listFilter->setFieldTypeParams('personId', array('allowEmpty' => 'allowEmpty'));

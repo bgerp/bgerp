@@ -770,14 +770,11 @@ class store_InventoryNotes extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-       bp($rec);
+
         // Синхронизираме данните само в чернова
         if ($rec->state == 'draft' && $rec->_isClone !== true) {
             $mvc->sync($rec);
         } elseif ($rec->state == 'active' && ($rec->brState == 'stopped' || Mode::is('recontoMovement'))) {
-
-            //if(Mode::is('recontoMovement')){
-
             cls::get('store_InventoryNoteDetails')->invoke('AfterStartDocument', array($rec));
         } elseif($rec->state == 'stopped' && $rec->brState != 'stopped') {
             if (core_Packs::isInstalled('batch')) {
