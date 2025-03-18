@@ -530,8 +530,8 @@ class acc_Items extends core_Manager
     public static function fetchItem($class, $objectId)
     {
         $Class = cls::get($class);
-        $objectId = $Class->fetchRec($objectId)->id;
-        
+        $objectId = is_numeric($objectId) ? $objectId : $Class->fetchRec($objectId)->id;
+
         return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
     }
     

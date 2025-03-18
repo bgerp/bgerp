@@ -61,7 +61,8 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             $res->append($doc);
             $res->append(ht::mixedToHtml($obj->arr));
             $res->append($obj->js, 'SCRIPTS');
-            
+            $mvc->logWrite('Дебъг печатане на касов бон', $rec->id);
+
             return false;
         }
         

@@ -362,8 +362,17 @@ class hr_Schedules extends core_Master
 
         $lastDay = date("Y-m-t", strtotime($firstDay));
 
-        $startingTimes = self::getStartingTimes($data->masterId, $firstDay, $lastDay);
-     
+        // Ако графика се показва към обордуване
+        $data->scheduleId = $data->masterId;
+        if($data->masterMvc instanceof planning_AssetResources){
+            $data->scheduleId = planning_AssetResources::getScheduleId($data->masterId);
+            $data->TabCaption = 'График';
+        } elseif($data->masterMvc instanceof crm_Persons){
+            $data->scheduleId = planning_Hr::getSchedule($data->masterId);
+        }
+
+        $startingTimes = self::getStartingTimes($data->scheduleId, $firstDay, $lastDay);
+
         foreach($startingTimes as $day => $time) {
             $data->Calendar[(int) substr($day, 8)] = substr($time, 0, 5);
         }
@@ -401,8 +410,7 @@ class hr_Schedules extends core_Master
         $d = 0;
         $today = dt::today();
         $thisMont = $data->CalendarYear . '-' . dt::getMonth((int) $data->CalendarMonth) . '-';
-            
-  
+
         while(($d + 2 - $data->CalendarFirstWeekDay) <= $data->CalendarLastDayOfMonth) {
             $db[] = " -" . $d;
             $html .= "\n<tr>";
@@ -437,6 +445,7 @@ class hr_Schedules extends core_Master
          
                 if($cDay > 0 && $cDay <= $data->CalendarLastDayOfMonth) {
                     $date = "<div class='mc-day' style='font-size:2em;{$dayColor}'>{$cDay}</div>";
+
                     if($cDate == $today) {
                         $outline = 'outline:solid 3px red; outline-offset:-3px;';
                     }
@@ -449,11 +458,11 @@ class hr_Schedules extends core_Master
             
             $html .= "\n</tr>";
         }
-    
         $html .= '</table>';
 
         return $html;
     }
+
 
     /**
      * Изтриване на кеша при обновяване на детайла

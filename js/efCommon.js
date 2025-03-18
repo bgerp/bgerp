@@ -1960,6 +1960,15 @@ function setMinHeightExt() {
     dragToScroll.run();
 }
 
+/**
+ * След клик не позволява бутона да бъде натиснат отново
+ * @param el
+ */
+function disableBtn(el){
+    $(el).attr('disabled', 'disabled');
+    $(el).addClass('btn-disabled');
+}
+
 
 /**
  * Връща ширината на устройството

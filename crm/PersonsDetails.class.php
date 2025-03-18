@@ -34,11 +34,11 @@ class crm_PersonsDetails extends core_Manager
         if (keylist::isIn($employeeId, $data->masterData->rec->groupList)) {
             $data->Codes = cls::get('planning_Hr');
             $data->TabCaption = 'HR';
-            $Schedule = new stdClass();
-            $Schedule->masterId = planning_Hr::getSchedule($data->masterId);
-            $Schedule->masterMvc = cls::get('hr_Schedules');
-            hr_Schedules::prepareCalendar($Schedule);
-            $data->Schedule = $Schedule;
+            $ScheduleData = new stdClass();
+            $ScheduleData->masterMvc = $data->masterMvc;
+            $ScheduleData->masterId = $data->masterId;
+            hr_Schedules::prepareCalendar($ScheduleData);
+            $data->Schedule = $ScheduleData;
         }
 
         // Подготовка на индикаторите
@@ -91,7 +91,8 @@ class crm_PersonsDetails extends core_Manager
             $resTpl = $Schedules->renderCalendar($data->Schedule);
             $tpl->append(hr_Schedules::getHyperlink($data->Schedule->masterId, true), 'CYCLES');
             $tpl->append($resTpl, 'CYCLES');
-            
+            $tpl->append(hr_Schedules::getHyperlink($data->Schedule->scheduleId, true), 'name');
+
             if (crm_Persons::haveRightFor('single', (object) array('personId' => $data->masterId))) {
                 // правим url  за принтиране
                 $url = array('hr_Schedules', 'Single', $data->Schedule->masterId, 'Printing' => 'yes', 'month' => Request::get('month', 'date'));
