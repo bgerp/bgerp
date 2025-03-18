@@ -770,11 +770,16 @@ class store_InventoryNotes extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+
         // Синхронизираме данните само в чернова
         if ($rec->state == 'draft' && $rec->_isClone !== true) {
             $mvc->sync($rec);
-        } elseif ($rec->state == 'active' || ($rec->state == 'rejected' && $rec->brState == 'active')) {
-            cls::get('store_InventoryNoteDetails')->invoke('AfterContoOrReject', array($rec));
+        } elseif ($rec->state == 'active' && ($rec->brState == 'stopped' || Mode::is('recontoMovement'))) {
+            cls::get('store_InventoryNoteDetails')->invoke('AfterStartDocument', array($rec));
+        } elseif($rec->state == 'stopped' && $rec->brState != 'stopped') {
+            if (core_Packs::isInstalled('batch')) {
+                batch_Movements::removeMovement('store_InventoryNotes', $rec);
+            }
         }
         
         static::invalidateCache($rec);
@@ -928,8 +933,18 @@ class store_InventoryNotes extends core_Master
             $this->save($rec, 'isContable');
         }
     }
-    
-    
+
+
+    /**
+     * След дебъг реконтиране
+     */
+    public static function on_AfterDebugReconto($mvc, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        cls::get('store_InventoryNoteDetails')->invoke('AfterContoMaster', array($rec));
+    }
+
+
     /**
      * Ре-контиране на счетоводен документ
      */

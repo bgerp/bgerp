@@ -648,9 +648,10 @@ class bgfisc_plg_CashDocument extends core_Plugin
             } catch (core_exception_Expect $e) {
                 reportException($e);
                 $errorMsg = $e->getMessage();
-                
-                $mvc->rollbackConto($rec);
-                $mvc->logWrite('Ревъртване на контировката', $rec);
+                if($mvc->rollbackConto($rec)){
+                    $mvc->logWrite('Ревъртване на контировката (2)', $rec);
+                }
+
                 $mvc->logErr($errorMsg, $id);
                 $cu = core_Users::getCurrent();
                 if($cu == core_Users::ANONYMOUS_USER){

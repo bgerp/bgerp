@@ -994,12 +994,27 @@ class acc_plg_Contable extends core_Plugin
     {
         if(!isset($res)){
             $rec = $mvc->fetchRec($id);
-            
+
             if(acc_Journal::fetchByDoc($mvc, $rec->id)){
+                if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){
+                    if($firstDoc->isInstanceOf('deals_DealBase')){
+                        if($firstDoc->fetchField('state') == 'closed') {
+                            $res = false;
+                            return;
+                        }
+                    }
+                }
+
                 acc_Journal::deleteTransaction($mvc, $rec->id);
                 $rec->state = $rec->brState;
                 $rec->brState = 'active';
-                $mvc->save($rec, 'state,brState');
+                $rollbackFields = array('state', 'brState');
+                if($mvc instanceof deals_DealMaster){
+                    $rec->contoActions = null;
+                    $rollbackFields[] = 'contoActions';
+                }
+
+                $mvc->save($rec, $rollbackFields);
                 $res = true;
             }
         }

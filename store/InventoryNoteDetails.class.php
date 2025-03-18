@@ -506,6 +506,7 @@ class store_InventoryNoteDetails extends doc_Detail
                 // След импорт се изтрива кеша, да се покажат новите данни
                 $key = store_InventoryNotes::getCacheKey($noteId);
                 core_Cache::remove("{$this->Master->className}_{$noteId}", $key);
+                store_InventoryNotes::logWrite('Импортиране от група', $noteId);
 
                 followRetUrl(null, "Импортирани са|* '{$count}' |артикула|*");
             }
