@@ -2461,6 +2461,8 @@ function appendQuote(id, line, useParagraph) {
         // Вземаме текста
         text = sessionStorage.getItem('selText');
 
+        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+
         if (text) {
 
             if (typeof useParagraph === "undefined") {
@@ -6497,6 +6499,19 @@ function copyPlaceholderAsValOnClick()
 }
 
 
+/**
+ * Скриване/показване на допълнителните бутони в лист изгледа
+ */
+function toggleListFilter()
+{
+    document.querySelectorAll('.listFilter tr.toggable').forEach(tr => {
+        if (tr.style.display === "none") {
+            tr.style.display = ""; // Показва реда
+        } else {
+            tr.style.display = "none"; // Скрива реда
+        }
+    });
+}
 
 runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);

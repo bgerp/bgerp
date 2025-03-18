@@ -417,20 +417,23 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
         }
     }
-    
-    
+
+
     /**
-     * След контиране на мастъра
+     * Записване на движенията
+     *
+     * @param stdClass $rec
+     * @return void
      */
-    public static function on_AfterContoMaster($mvc, $rec)
+    private static function saveMovements($rec)
     {
         $storeId = isset($rec->storeId) ? $rec->storeId : store_InventoryNotes::fetchField($rec->id, 'storeId');
         $valior = isset($rec->valior) ? $rec->valior : store_InventoryNotes::fetchField($rec->id, 'valior');
         $obj = (object) array('docId' => $rec->id, 'docType' => store_InventoryNotes::getClassId(), 'date' => $valior);
-        
+
         $valior = dt::addDays(-1, $valior);
         $valior = dt::verbal2mysql($valior, false);
-        
+
         $dQuery = store_InventoryNoteSummary::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
@@ -439,7 +442,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 if (!is_array($summary)) {
                     continue;
                 }
-                
+
                 foreach ($summary as $batch => $o) {
                     if ($batch == '') {
                         continue;
@@ -447,15 +450,15 @@ class batch_plg_InventoryNotes extends core_Plugin
                     if ($o->delta == 0) {
                         continue;
                     }
-                    
+
                     $move = clone $obj;
                     $move->operation = ($o->delta < 0) ? 'out' : 'in';
                     $move->quantity = abs($o->delta);
                     $move->itemId = batch_Items::forceItem($dRec->productId, $batch, $storeId);
-                    
+
                     // Запис на движението
                     $id = batch_Movements::save($move);
-                    
+
                     // Ако има проблем със записа, сетваме грешка
                     if (!$id) {
                         $result = false;
@@ -463,19 +466,37 @@ class batch_plg_InventoryNotes extends core_Plugin
                     }
                 }
             } catch (core_exception_Expect $e) {
-                
+
                 // Ако е изникнала грешка
                 $result = false;
             }
         }
-        
+
         // При грешка изтриваме всички записи до сега
         if ($result === false) {
             batch_Movements::removeMovement('store_InventoryNotes', $rec);
         }
     }
-    
-    
+
+
+    /**
+     * След контиране на мастъра
+     */
+    public static function on_AfterContoMaster($mvc, $rec)
+    {
+        self::saveMovements($rec);
+    }
+
+
+    /**
+     * След пускане отново на документа
+     */
+    public static function on_AfterStartDocument($mvc, $rec)
+    {
+        self::saveMovements($rec);
+    }
+
+
     /**
      * След оттегляне на мастъра
      */

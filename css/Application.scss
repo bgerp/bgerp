@@ -3426,37 +3426,15 @@ table.mc-calendar {
 		font-size: 0.9em;
 	}
 }
+
 table.mc-header a {
   color: #999;
 }
 /*край на стиловете за календара в портала*/
-.zoneInfoHolder{
-	&:last-child .zoneRow{
-		margin-bottom: 0;
-	}
-}
-.zoneTitle {
-	background-color: rgba(10, 10, 10, .45);
-	border-radius: 3px;
-	padding: 5px 10px;
-	color: #fff;
-	font-weight: bold;
-	text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
-	a {
-		color: #fff !important;
-	}
-}
-.zoneRow {
-	padding: 5px 10px;
-	border-bottom: 1px dotted #ccc;
-	font-size: 14px;
-	&:last-child {
-		margin-bottom: 5px;
-		border-bottom: none;
-	}
 
+.narrow .leftCol.wrapText {
+	min-width: 260px;
 }
-
 .portal-select {
     border: none;
     position: relative;
