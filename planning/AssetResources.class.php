@@ -457,31 +457,41 @@ class planning_AssetResources extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->FNC('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка,silent,remember,input,refreshForm');
+        $data->listFilter->setFieldType('state', 'enum(all=Всички,active=Активни,closed=Затворени)');
+        $data->listFilter->setDefault('state', 'active');
+
         $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
         $data->listFilter->setOptions('folderId', array('' => '') + $resourceSuggestionsArr);
         
-        $data->listFilter->showFields = 'search,groupId,folderId';
+        $data->listFilter->showFields = 'search,groupId,folderId,state';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        if ($data->listFilter->rec->groupId) {
-            $data->query->where("#groupId = {$data->listFilter->rec->groupId}");
-        }
-        
+
         $data->listFilter->FLD('type', 'enum(material=Материален, nonMaterial=Нематериален)', 'caption=Тип, input=hidden, silent');
-        $data->listFilter->input('type, folderId', true);
-        
-        if ($data->listFilter->rec->type) {
-            $data->query->EXT('type', 'planning_AssetGroups', 'externalName=type,externalKey=groupId');
-            $data->query->where(array("#type = '[#1#]'", $data->listFilter->rec->type));
+        $data->listFilter->input('type,folderId,state', true);
+
+        if($filterRec = $data->listFilter->rec){
+            if ($filterRec->groupId) {
+                $data->query->where("#groupId = {$filterRec->groupId}");
+            }
+
+            if ($filterRec->type) {
+                $data->query->EXT('type', 'planning_AssetGroups', 'externalName=type,externalKey=groupId');
+                $data->query->where(array("#type = '[#1#]'", $filterRec->type));
+            }
+
+            if ($filterRec->folderId) {
+                $data->query->likeKeylist('assetFolders', $filterRec->folderId);
+                $data->query->orLikeKeylist('systemFolderId', $filterRec->folderId);
+                $data->query->orLikeKeylist('unsortedFolders', $filterRec->folderId);
+            }
+
+            if ($filterRec->state && $filterRec->state != 'all') {
+                $data->query->where("#state = '{$filterRec->state}'");
+            }
         }
-        
-        if ($data->listFilter->rec->folderId) {
-            $data->query->likeKeylist('assetFolders', $data->listFilter->rec->folderId);
-            $data->query->orLikeKeylist('systemFolderId', $data->listFilter->rec->folderId);
-            $data->query->orLikeKeylist('unsortedFolders', $data->listFilter->rec->folderId);
-        }
-        
+
+
         $data->query->orderBy('modifiedOn', 'DESC');
     }
     
