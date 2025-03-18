@@ -560,7 +560,7 @@ class frame2_Reports extends embed_Manager
         
         // Добавен бутон за ръчно обновяване
         if ($mvc->haveRightFor('refresh', $rec)) {
-            $data->toolbar->addBtn('Обновяване', array($mvc, 'refresh', $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на справката,class=disableIfPressed');
+            $data->toolbar->addBtn('Обновяване', array($mvc, 'refresh', $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на справката,class=disableWhileLoading');
         }
 
         if(!core_Users::isContractor()){
