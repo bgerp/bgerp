@@ -157,42 +157,18 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $quantitiesByMeasure = array();
 
         $query = planning_ProductionTaskDetails::getQuery();
-
-        $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
-        $query->EXT('folderId', 'planning_Tasks', 'externalName=folderId,externalKey=taskId');
-        $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
-
+        $query->EXT('indTimeAllocation', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'indTimeAllocation'));
+        $query->EXT('folderId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'folderId'));
+        $query->EXT('originId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'originId'));
         $query->where("#state != 'rejected' ");
-
-        $dateWhere = "";
-        $createdOnWhere = (!empty($rec->start) || !empty($rec->to)) ? "#date IS NULL" : "";
-        if(!empty($rec->start)){
-            $dateWhere = "#date >= '{$rec->start}'";
-            $createdOnWhere .= (!empty($createdOnWhere) ? " AND " : "") . "#createdOn >= '{$rec->start}'";
-        }
-
-        if(!empty($rec->to)){
-            $dateWhere .= (!empty($dateWhere) ? " AND " : "") . "#date <= '{$rec->to}'";
-            $date = str_replace('00:00:00', '23:59:59', $rec->to);
-            $createdOnWhere .= (!empty($createdOnWhere) ? " AND " : "") . "#createdOn <= '{$date}'";
-        }
-
-        if(!empty($createdOnWhere) && !empty($dateWhere)){
-            $query->useUnionAll = true;
-            $query->setUnion($dateWhere);
-            $query->setUnion($createdOnWhere);
-        } elseif(!empty($createdOnWhere)){
-            $query->where($createdOnWhere);
-        } elseif(!empty($dateWhere)){
-            $query->where($dateWhere);
-        }
 
         //Филтър по център на дейност
         if ($rec->centre) {
 
-            foreach (keylist::toArray($rec->centre) as $cent) {
-                $centFoldersArr[planning_Centers::fetch($cent)->folderId] = planning_Centers::fetch($cent)->folderId;
-            }
+            $cQuery = planning_Centers::getQuery();
+            $cQuery->in('id', keylist::toArray($rec->centre));
+            $cQuery->show('folderId');
+            $centFoldersArr = arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
             $query->in('folderId', $centFoldersArr);
         }
 
@@ -200,7 +176,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
         if ($rec->employees && $rec->resultsOn != 'arts') {
             $query->likeKeylist('employees', $rec->employees);
         }
-
 
         //Филтър по машини
         if ($rec->assetResources) {
@@ -218,11 +193,36 @@ class planning_reports_Workflows extends frame2_driver_TableData
             'quantitiesByMeasure' => array(),
         );
 
+        $dateWhere = "";
+        $createdOnWhere = (!empty($rec->start) || !empty($rec->to)) ? "#date IS NULL" : "";
+        if(!empty($rec->start)){
+            $dateWhere = "#date >= '{$rec->start}'";
+            $createdOnWhere .= (!empty($createdOnWhere) ? " AND " : "") . "#createdOn >= '{$rec->start}'";
+        }
 
-        $taskDetails = $query->fetchAll();
-        $taskIds = arr::extractValuesFromArray($taskDetails, 'taskId');
+        if(!empty($rec->to)){
+            $dateWhere .= (!empty($dateWhere) ? " AND " : "") . "#date <= '{$rec->to}'";
+            $date = str_replace('00:00:00', '23:59:59', $rec->to);
+            $createdOnWhere .= (!empty($createdOnWhere) ? " AND " : "") . "#createdOn <= '{$date}'";
+        }
+
+        if(!empty($createdOnWhere) && !empty($dateWhere)){
+            $query2 = clone $query;
+            $query->where($dateWhere);
+            $query2->where($createdOnWhere);
+            $taskDetails = $query->fetchAll() + $query2->fetchAll();
+        } elseif(!empty($createdOnWhere)){
+            $query->where($createdOnWhere);
+            $taskDetails = $query->fetchAll();
+        } elseif(!empty($dateWhere)){
+            $query->where($dateWhere);
+            $taskDetails = $query->fetchAll();
+        } else {
+            $taskDetails = $query->fetchAll();
+        }
 
         $taskArr = array();
+        $taskIds = arr::extractValuesFromArray($taskDetails, 'taskId');
         if(countR($taskIds)){
             $taskQuery = planning_Tasks::getQuery();
             $taskQuery->in('id', $taskIds);
