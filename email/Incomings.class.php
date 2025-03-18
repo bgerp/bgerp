@@ -3099,8 +3099,28 @@ class email_Incomings extends core_Master
         $footer = email_Outgoings::getFooter();
         
         $avoid = array('html') + array_filter(explode("\n", str_replace(array('Тел.:', 'Факс:', 'Tel.:', 'Fax:'), array('', '', '', ''), trim($footer))));
-        
-        $contragentData = $addrParse->extractContact($textPart, array('email' => $msg->fromEml, 'lg' => $msg->lg, 'country' => $msg->country), $avoid);
+
+        $deepExtract = false;
+        if ($msg->folderId) {
+            $fRec = doc_Folders::fetch($msg->folderId);
+            $Cover = doc_Folders::getCover($msg->folderId);
+            $folder = $Cover->className;
+
+            if (($folder == 'doc_UnsortedFolders') || ($folder == 'email_Inboxes')) {
+                $iQuery = self::getQuery();
+                $iQuery->where(array("#threadId = '[#1#]'", $msg->threadId));
+                $iQuery->limit(2);
+                $iQuery->show('id');
+                if ($iQuery->count() < 2) {
+                    if (!email_Salutations::fetch(array("#toEmail = '[#1#]'", $msg->fromEml))) {
+                        $deepExtract = true;
+                    }
+                }
+            }
+        }
+
+        $contragentData = $addrParse->extractContact($textPart, array('email' => $msg->fromEml, 'lg' => $msg->lg,
+                                                    'country' => $msg->country, 'deepExtract' => $deepExtract), $avoid);
         
         $headersArr = array();
         
