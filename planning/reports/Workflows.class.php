@@ -156,7 +156,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $recs = array();
         $quantitiesByMeasure = array();
 
-        $query = planning_ProductionTaskDetails::getQuery();
+        $pDetails = cls::get('planning_ProductionTaskDetails');
+        $pDetails->forceProxy($pDetails->className);
+        $query = $pDetails->getQuery();
         $query->EXT('indTimeAllocation', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'indTimeAllocation'));
         $query->EXT('folderId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'folderId'));
         $query->EXT('originId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'originId'));
