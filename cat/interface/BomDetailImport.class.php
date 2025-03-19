@@ -123,13 +123,13 @@ class cat_interface_BomDetailImport extends core_Manager
                     $rec->type = 'input';
                     $rec->bomId = $bomRec->id;
                     $rec->parentId = empty($fields['parentId']) ? null : $fields['parentId'];
-                }
 
-                $notAllowed = array();
-                $Details->findNotAllowedProducts($rec->resourceId, $bomRec->productId, $notAllowed);
-                if (isset($notAllowed[$rec->resourceId])) {
-                    $errors[] = 'Невъзможен за добавяне';
-                    $add = false;
+                    $notAllowed = array();
+                    $Details->findNotAllowedProducts($rec->resourceId, $bomRec->productId, $notAllowed);
+                    if (isset($notAllowed[$rec->resourceId])) {
+                        $errors[] = 'Невъзможен за добавяне';
+                        $add = false;
+                    }
                 }
             }
 
