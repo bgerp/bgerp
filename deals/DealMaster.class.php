@@ -745,10 +745,10 @@ abstract class deals_DealMaster extends deals_DealBase
 
             if($showVat == 'yes') {
                 $caption = 'с ДДС';
-                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(#amountDeal, 2)');
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(COALESCE(#amountDeal, 0), 2)');
             } else {
                 $caption = 'без ДДС';
-                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND((COALESCE(#amountDeal, 0) - COALESCE(#amountVat, 0)), 2)');
             }
 
             foreach (array('amountDelivered', 'amountPaid', 'amountBl', 'amountInvoiced') as $fld){
@@ -757,7 +757,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 } else {
                     $condNull = "(#{$fld} / 1.2)";
                     $condNotNUll = "(#{$fld} / (1 + #amountVat / (#amountDeal - #amountVat)))";
-                    $cond = "IF(#amountVat IS NOT NULL, $condNotNUll, $condNull)";
+                    $cond = "IF((#amountVat IS NOT NULL AND #amountVat != 0), $condNotNUll, $condNull)";
                     $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(($cond), 2)");
                 }
             }
@@ -770,6 +770,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->listSummary->mvc->FNC('amountBlCalc', 'varchar', "caption=Крайно салдо,input=none,summary=amount");
         }
     }
+
 
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
