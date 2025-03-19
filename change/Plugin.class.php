@@ -356,7 +356,10 @@ class change_Plugin extends core_Plugin
     public static function on_AfterSaveChanged($mvc, $oldRec, $newRec, $changeFieldsArr = array())
     {
         if (empty($changeFieldsArr)) {
-            $changeFieldsArr = arr::make($mvc->changableFields, true);
+            $changeFieldsArr = self::getAllowedFields($mvc->getForm(), $mvc->changableFields);
+        } else {
+            // Вземи ключовете и ги добави като стойности
+            $changeFieldsArr = array_keys($changeFieldsArr);
         }
 
         $oldRec->changeModifiedOn = $newRec->changeModifiedOn = dt::now();
