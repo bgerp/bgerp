@@ -378,8 +378,9 @@ class change_Plugin extends core_Plugin
 
         $savedRecsArr = change_Log::create($mvc->className, $changeFieldsArr, $oldRec, $newRec);
 
-        // Извикваме фунцкия, след като запишем
-        $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
+        doclog_Documents::changed($savedRecsArr);
+//        // Извикваме фунцкия, след като запишем
+//        $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
 
         $newRec->subVersion++;
         $oldRec->subVersion = $newRec->subVersion;
