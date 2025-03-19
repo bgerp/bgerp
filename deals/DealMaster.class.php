@@ -743,6 +743,13 @@ abstract class deals_DealMaster extends deals_DealBase
             $showVat = doc_Setup::get('SHOW_LIST_SUMMARY_VAT');
             $summaryQuery = clone $data->query;
 
+            // Да излиза в съмърито и винаги конкретно искания запис
+            if($summaryQuery->addId){
+                $w = $summaryQuery->getWhereAndHaving(true)->w;
+                $summaryQuery->where = array();
+                $summaryQuery->where("#id = {$summaryQuery->addId} OR ({$w})");
+            }
+
             if($showVat == 'yes') {
                 $caption = 'с ДДС';
                 $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(COALESCE(#amountDeal, 0), 2)');
