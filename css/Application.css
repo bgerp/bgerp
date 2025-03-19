@@ -4518,6 +4518,9 @@ table .eshop-btn {
     height: 20px;
     background: url('../img/16/toggle1.png') center bottom no-repeat; }
 
+input[type=button].toggleListFilterBtn {
+  background-position: center !important; }
+
 .narrow .cms-row {
   padding-top: 20px; }
 

@@ -6514,12 +6514,91 @@ function copyPlaceholderAsValOnClick()
  */
 function toggleListFilter()
 {
-    document.querySelectorAll('.listFilter tr.toggable').forEach(tr => {
-        if (tr.style.display === "none") {
-            tr.style.display = ""; // Показва реда
-        } else {
-            tr.style.display = "none"; // Скрива реда
-        }
+    var formId = $('form').data('mvc'); // ID на формата
+    //localStorage.removeItem(formId);
+    var hiddenItems = JSON.parse(localStorage.getItem(formId)); // Зареждаме скритите редове
+
+    if (!hiddenItems) {
+        // Ако няма скрити редове в localStorage, скриваме всички с класа
+        $('.listFilter tr.toggable').hide();
+        hiddenItems = []; // Инициализираме празен масив, за да не е null
+        $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+    } else if(hiddenItems.length) {
+        // Скриваме редовете, които са били записани като скрити
+        $('.listFilter tr.toggable').each(function() {
+            var $row = $(this);
+            var rowId = [...$row[0].classList].find(cls => cls !== 'toggable')
+
+            if (rowId && hiddenItems.includes(rowId)) {
+                $row.hide();
+            }
+        });
+        $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+    }
+
+    $('.toggleListFilterBtn').on('click', function() {
+
+        $('.listFilter tr.toggable').each(function() {
+            var $row = $(this);
+            var rowId = [...$row[0].classList].find(cls => cls !== 'toggable');
+            var shouldHide = true;
+            if (!rowId) return;
+
+            // Проверка за select (обикновен и select2)
+            $row.find('.select2-src, select').each(function() {
+                if ($(this).val() && $(this).val() != "all" &&  $(this).val().length > 0) {
+                    shouldHide = false;
+                }
+            });
+
+            // Проверка за текстови полета
+            $row.find('input[type="text"]').each(function() {
+                if ($(this).val().trim() !== '') {
+                    shouldHide = false;
+                }
+            });
+
+            // Проверка за чекбокси (ако поне един е маркиран, не крие реда)
+            $row.find('input[type="checkbox"]').each(function() {
+                if ($(this).prop('checked')) {
+                    shouldHide = false;
+                }
+            });
+
+            // Проверка за radio (ако поне един е маркиран, не крие реда)
+            $row.find('input[type="radio"]').each(function() {
+                if ($(this).prop('checked')) {
+                    shouldHide = false;
+                }
+            });
+
+            if ($row.is(':visible') && shouldHide) {
+                // Скриваме реда и добавяме в LocalStorage
+                $row.fadeOut('slow', function() {
+                    if (!hiddenItems.includes(rowId)) {
+                        hiddenItems.push(rowId);
+                        localStorage.setItem(formId, JSON.stringify(hiddenItems));
+                    }
+                });
+                $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+            } else if (!$row.is(':visible')){
+                // Показваме реда и го премахваме от LocalStorage
+                $row.fadeIn('slow', function() {
+                    hiddenItems = hiddenItems.filter(id => id !== rowId);
+                    localStorage.setItem(formId, JSON.stringify(hiddenItems));
+                    $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('minus') + ")");
+
+                    $(this).find('input.combo').each(function(){
+                        var idComboBox = $(this).attr('id');
+                        if(!comboBoxInited[idComboBox]){
+                            comboBoxInit(idComboBox, idComboBox + "_cs");
+                            comboBoxInited[idComboBox] = true;
+                        }
+                    });
+                    $(this).find('.select2-container').css('width', '100%');
+                });
+            }
+        });
     });
 }
 
