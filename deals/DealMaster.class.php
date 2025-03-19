@@ -745,9 +745,18 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Да излиза в съмърито и винаги конкретно искания запис
             if($summaryQuery->addId){
+                $whereArr = $summaryQuery->where;
+                $clone = clone $summaryQuery;
+                $clone->where = array();
+                foreach ($whereArr as $cond){
+                    if ((stripos($cond, 'match(') !== false) || (stripos($cond, 'locate(') !== false)) continue;
+                    $clone->where($cond);
+                }
+
                 $w = $summaryQuery->getWhereAndHaving(true)->w;
+                $w1 = $clone->getWhereAndHaving(true)->w;
                 $summaryQuery->where = array();
-                $summaryQuery->where("#id = {$summaryQuery->addId} OR ({$w})");
+                $summaryQuery->where("({$w}) OR (#id = {$summaryQuery->addId} AND ({$w1}))");
             }
 
             if($showVat == 'yes') {
