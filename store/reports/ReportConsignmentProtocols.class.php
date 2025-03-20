@@ -87,7 +87,9 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=to');
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,after=to,single=none');
+
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=crmGroup');
 
     }
 
@@ -314,7 +316,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>' ;
+                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>';
 
                 }
             }
@@ -430,30 +432,42 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         expect($contragentFolder = Request::get('contragentFolder', 'int'));
         expect($storeId = Request::get('storeId', 'int'));
 
+        $form = cls::get('core_Form');
+
+        $form->title = "Избор на полета";
         $fRec = doc_Folders::fetch($contragentFolder);
         $contragentClassId = $fRec->coverClass;
         $contragentId = $fRec->coverId;
 
-        // Прави запис в модела на движенията
-        $pRec = (object)array(
+        $form->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,silent');
+        $form->FLD('folderId', 'int', 'caption=Контрагент,silent,input=hidden');
+        $form->FLD('protocolType', 'enum(protocol=Протокол,return=Връщане,reclamation=Рекламация)', 'caption=Тип протокол,silent');
+        $form->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули наши/ външни,silent');
+        $form->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf,select=title)', 'input=hidden,caption=caption=Контрагент->Вид,silent');
+        $form->FLD('contragentId', 'int', 'input=hidden,caption=caption=Контрагент->Име,silent');
+        $form->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');;
 
-            'folderId' => $contragentFolder,
-            'storeId' => $storeId,
-            'protocolType' => 'protocol',
-            'productType' => 'ours',
-            'contragentClassId' => $contragentClassId,
-            'contragentId' => $contragentId,
-            'state' => 'draft',
-        );
+        $pRec = $form->input();
+        $pRec->folderId = $contragentFolder;
+        $pRec->contragentClassId = $contragentClassId;
+        $pRec->contragentId = $contragentId;
+        $pRec->state = 'draft';
 
-        store_ConsignmentProtocols::save($pRec);
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
-        $cu = core_Users::getCurrent();
-        doc_ThreadUsers::addShared($pRec->threadId, $pRec->containerId, $cu);
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
-        return new Redirect(array('store_ConsignmentProtocols', 'single', $pRec->id));
+        if ($form->isSubmitted()) {
+
+            store_ConsignmentProtocols::save($pRec);
+
+            $cu = core_Users::getCurrent();
+            doc_ThreadUsers::addShared($pRec->threadId, $pRec->containerId, $cu);
+
+            return new Redirect(array('store_ConsignmentProtocols', 'single', $pRec->id));
+        }
+
+        return $form->renderHtml();
 
     }
-
-
 }
