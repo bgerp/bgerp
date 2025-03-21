@@ -552,7 +552,7 @@ class currency_CurrencyRates extends core_Detail
         if ($difference > $allowedDeviation) {
             $dateVerbal = dt::mysql2verbal($date, 'd.m.y');
 
-            return "Въведения курс е много различен от очаквания|*: <b>{$knownRate}</b> (|към|* <b>{$dateVerbal}</b>)";
+            return "Въведеният курс е много различен от очаквания|*: <b>{$knownRate}</b> (|към|* <b>{$dateVerbal}</b>)";
         }
         
         return false;

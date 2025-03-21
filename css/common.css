@@ -944,6 +944,9 @@ table .linkWithIcon {
 .toolbar .linkWithIcon {
   margin-bottom: 0; }
 
+.form-filter-btn .toolbar .linkWithIcon {
+  float: left; }
+
 .linkWithIcon {
   padding-left: 25px !important;
   background-repeat: no-repeat !important;

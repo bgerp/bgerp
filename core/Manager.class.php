@@ -949,7 +949,8 @@ class core_Manager extends core_Mvc
         if ($data->listScroll) {
             $listLayout->replace('narrow-scroll', 'NARROWSCROLL');
         }
-        
+        jquery_Jquery::run( $listLayout, 'toggleListFilter();', true);
+
         return $listLayout;
     }
     
@@ -992,18 +993,18 @@ class core_Manager extends core_Mvc
                     // Ако полетата са с празна стойност или е избрано "Всички" ще се скриват първоначално
                     if(empty($listFilter->rec->{$toggableField}) || $listFilter->rec->{$toggableField} == 'all'){
                         $toggableRowStyle = $listFilter->getFieldParam($toggableField, 'rowStyle');
-                        $listFilter->setField($toggableField, array('rowStyle' => "{$toggableRowStyle};display:none"));
+                        $listFilter->setField($toggableField, array('rowStyle' => "{$toggableRowStyle};"));
                     }
                 }
             }
 
             // Ако има скрити полета се добавя бутон за показване/скриване
             if($toggableFieldsCount){
-                $listFilter->toolbar->addFnBtn("+ {$toggableFieldsCount}", 'toggleListFilter()', array('class' => 'toggleListFilterBtn'));
+                $listFilter->toolbar->addFnBtn("", null, array('class' => 'toggleListFilterBtn', 'ef_icon' => "img/16/toggle2.png", 'data-plus'=> sbf("img/16/toggle1.png"), 'data-minus' => sbf("img/16/toggle2.png") ));
             }
         }
 
-        $listFilter->formAttr['data-mvc'] = $listFilter->mvc->className;
+        $listFilter->formAttr['data-mvc'] = "listFilter_" . $listFilter->mvc->className;
         $listFilter->showFields = isset($listFilter->showFields) ? arr::make($listFilter->showFields, true) : array();
 
         if (countR($listFilter->showFields)) {

@@ -338,8 +338,54 @@ class change_Plugin extends core_Plugin
         
         // Рендираме изгледа
         $tpl = $mvc->renderWrapping($form->renderHtml());
+
+        $mvc->invoke('AfterRenderPrepareEditForm', array($tpl, $form));
         
         return false;
+    }
+
+
+    /**
+     * След промяна на полетата, добавя версия
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $oldRec
+     * @param stdClass $newRec
+     * @param array $changeFieldsArr
+     */
+    public static function on_AfterSaveChanged($mvc, $oldRec, $newRec, $changeFieldsArr = array())
+    {
+        if (empty($changeFieldsArr)) {
+            $changeFieldsArr = self::getAllowedFields($mvc->getForm(), $mvc->changableFields);
+        } else {
+            // Вземи ключовете и ги добави като стойности
+            $changeFieldsArr = array_keys($changeFieldsArr);
+        }
+
+        $oldRec->changeModifiedOn = $newRec->changeModifiedOn = dt::now();
+        $oldRec->changeModifiedBy = $newRec->changeModifiedBy = core_Users::getCurrent();
+
+        if (!$oldRec->id) {
+            $oldRec->id = $newRec->id;
+        }
+        if (!isset($oldRec->subVersion)) {
+            $oldRec->subVersion = $newRec->subVersion;
+        }
+
+        if (!isset($oldRec->version)) {
+            $oldRec->version = $newRec->version;
+        }
+
+        $savedRecsArr = change_Log::create($mvc->className, $changeFieldsArr, $oldRec, $newRec);
+
+        doclog_Documents::changed($savedRecsArr);
+//        // Извикваме фунцкия, след като запишем
+//        $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
+
+        $newRec->subVersion++;
+        $oldRec->subVersion = $newRec->subVersion;
+
+        $mvc->save_($newRec, 'subVersion, changeModifiedOn, changeModifiedBy');
     }
     
     

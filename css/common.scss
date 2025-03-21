@@ -948,7 +948,11 @@ table .linkWithIcon {
 }
 
 .toolbar .linkWithIcon {
-	margin-bottom:0;	
+	margin-bottom:0;
+}
+
+.form-filter-btn .toolbar .linkWithIcon {
+	float: left;
 }
 
 .linkWithIcon{
