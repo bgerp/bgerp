@@ -117,14 +117,16 @@ class batch_plg_DocumentMovement extends core_Plugin
                     if($bdRec->operation == 'in' && !($Detail instanceof store_TransfersDetails)){
                         if($Def instanceof batch_definitions_Serial){
                             foreach ($batchesArr as $b){
-                                $batchesWithSerials[$bdRec->productId][$b] = $b;
+                                $batchesWithSerials[$bdRec->productId]['in'][$b] = $b;
                             }
                         }
                     }
 
                     // Ако е МСТ се гледат само излизащите
                     if($Detail instanceof store_TransfersDetails && $bdRec->operation == 'in') continue;
-
+                    foreach ($batchesArr as $b){
+                        $batchesWithSerials[$bdRec->productId]['out'][$b] = $b;
+                    }
                     $sum += $bdRec->quantity;
 
                     // Проверка дали посочената партида на изходящите документи е налична
@@ -157,10 +159,17 @@ class batch_plg_DocumentMovement extends core_Plugin
         }
 
         $errMsgSerials = '';
-        foreach ($batchesWithSerials as $pId => $bArr){
-            $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($pId);
+        foreach ($batchesWithSerials as $pId => $bArr1){
+            $bArr = $bArr1['in'];
+
+            $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($pId, null, null, null);
             $serialErrArr = array();
+
             foreach ($bArr as $b1){
+
+                // Ако серийния номер дето се засклажда се изписва и със същия документ да не се прави проверка
+                if(isset($bArr1['out'][$b1])) continue;
+
                 if($batchQuantityInAllStores[$b1] >= 1){
                     $serialErrArr[$b1] = $b1;
                 }
