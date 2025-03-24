@@ -103,7 +103,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'bomId=Рецепта,position=№, resourceId=Материал / Етап, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
+    public $listFields = 'bomId=Рецепта,position=№, type=Вид, resourceId=Материал / Етап, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -974,10 +974,8 @@ class cat_BomDetails extends doc_Detail
         if (is_numeric($compare)) {
             $row->propQuantity = "<span style='float:right'>{$row->propQuantity}</span>";
         }
-        
-        if ($rec->type == 'pop') {
-            $row->resourceId = ht::createHint($row->resourceId, 'Артикулът е отпадък', 'notice', true, array('src' => 'img/16/recycle.png'));
-        }
+
+        $row->type = "<span class='state-active document-handler'>{$row->type}</span>";
     }
     
     
