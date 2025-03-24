@@ -273,7 +273,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             } elseif ($rec->typeOfQuantity == 'diff') {
 
-                $quantity = $reservedQuantity - $freeQuantity;
+                $quantity = $avQuantity -$reservedQuantity;
 
             }
 
