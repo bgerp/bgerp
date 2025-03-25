@@ -1004,6 +1004,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
+     * Изпълнява се преди записа
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(isset($rec->id)){
+            // Какво е било старото количество
+            $rec->_exQuantity = $mvc->fetchField($rec->id, 'quantity', false);
+        }
+    }
+
+
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
@@ -1039,6 +1051,25 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     }
                 }
             }
+        }
+
+        // При промяна на количеството да се преизчисли очакваното по рецепта
+        if(isset($rec->_exQuantity) && $rec->quantity != $rec->_exQuantity){
+            $save = array();
+            $Details = cls::get('planning_DirectProductNoteDetails');
+            $dQuery = $Details->getQuery();
+            $dQuery->where("#noteId = {$rec->id} AND #quantityFromBom IS NOT NULL");
+            while($dRec = $dQuery->fetch()){
+                $singleQuantity = $dRec->quantityFromBom / $rec->_exQuantity;
+                $round = cat_UoM::fetchField($dRec->measureId, 'round');
+                $dRec->quantityFromBom = round($singleQuantity * $rec->quantity, $round);
+                $save[] = $dRec;
+            }
+            if(countR($save)){
+                $Details->saveArray($save, 'id,quantityFromBom');
+            }
+
+            core_Statuses::newStatus("След промяна на количеството е преизчислено очакваното по рецепта!");
         }
     }
 
