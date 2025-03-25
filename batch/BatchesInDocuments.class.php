@@ -477,11 +477,22 @@ class batch_BatchesInDocuments extends core_Manager
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->title = 'Задаване на партидности в|* ' . $link;
-        $form->info = new core_ET(tr('Артикул|*:[#productId#]<br>|Склад|*: [#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#] [#packName#]</b>'));
+        $form->info = new core_ET(tr('|*<div class="batchInfoBlock">|Артикул|*:[#productId#]<br>|Склад|*: [#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#] [#packName#]</b></div>'));
         $form->info->replace(cat_Products::getHyperlink($recInfo->productId, true), 'productId');
         $form->info->replace(store_Stores::getHyperlink($storeId, true), 'storeId');
         $form->info->replace($packName, 'packName');
         $form->info->append(cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($recInfo->quantity / $recInfo->quantityInPack), 'quantity');
+
+        // Ако е сериен номер добавя се и бутон за маркиране/отмаркиране на всички чекбоксове
+        if ($Def instanceof batch_definitions_Serial) {
+            if(countR($batches) > 2){
+                $CheckType = cls::get('type_Check', array('params' => array('label' => tr('Всички'))));
+                $checkInput = $CheckType->renderInput('checkAll', null, array());
+                $checkInput->prepend("<div class='checkAllBatchBtn'>");
+                $checkInput->append("</div>");
+                $form->info->append($checkInput);
+            }
+        }
 
         // Кеширане на модифицируемите записи
         if($Detail instanceof core_Detail){
