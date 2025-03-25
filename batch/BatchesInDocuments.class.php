@@ -418,12 +418,12 @@ class batch_BatchesInDocuments extends core_Manager
         $recInfo->detailClassId = $detailClassId;
         $recInfo->detailRecId = $detailRecId;
         $storeId = $recInfo->operation[key($recInfo->operation)];
+        $Def = batch_Defs::getBatchDef($recInfo->productId);
 
         // Кои са наличните партиди към момента
         $batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date, null, array(), true);
 
         // Ако има други споменати партиди в нишката добавят се и те като достъпни
-        $batchesInThread = array();
         $threadId = doc_Containers::fetchField($recInfo->containerId, 'threadId');
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId} AND #id != {$recInfo->containerId}");
@@ -463,6 +463,11 @@ class batch_BatchesInDocuments extends core_Manager
             }
         }
 
+        // Ако партидноста е сериен номер - да се предлагат винаги наличните партиди
+        if ($Def instanceof batch_definitions_Serial) {
+            $batches = array_filter($batches, function($a) {return $a != 0;});
+        }
+
         // Филтриране на партидите
         $Detail->filterBatches($detailRecId, $batches);
         $packName = cat_UoM::getShortName($recInfo->packagingId);
@@ -491,7 +496,6 @@ class batch_BatchesInDocuments extends core_Manager
         $haveMoreThenDisplayedBatches = false;
         $middleCaption = '->';
 
-        $Def = batch_Defs::getBatchDef($recInfo->productId);
         $suggestions = array();
         $Def->orderBatchesForDisplay($batches);
 
