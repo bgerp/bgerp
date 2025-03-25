@@ -6605,6 +6605,15 @@ function toggleListFilter()
         });
     });
 }
+/**
+Груповo селектиране на чекбоксове
+ */
+function selectAllCheckboxes() {
+    $('.checkAllBatchBtn .checkbox').on('change', function (){
+        $('.batch-quantity-fields').prop('checked', this.checked);
+    });
+}
+
 
 runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);

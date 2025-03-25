@@ -822,6 +822,7 @@ class batch_BatchesInDocuments extends core_Manager
         core_Form::preventDoubleSubmission($tpl, $form);
 
         // Рендиране на формата
+        jquery_Jquery::run($tpl, 'selectAllCheckboxes();', true);
         return $tpl;
     }
 
