@@ -506,10 +506,12 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         if ($Def instanceof batch_definitions_Serial) {
+
             // Ако е сериен номер добавя се и бутон за маркиране/отмаркиране на всички чекбоксове
-            if ($Def instanceof batch_definitions_Serial) {
+            if(countR($batches)){
+                $checkVal =   $type == 'in' ? 'yes' : null;
                 $CheckType = cls::get('type_Check', array('params' => array('label' => tr('Всички'))));
-                $checkInput = $CheckType->renderInput('checkAll', null, array());
+                $checkInput = $CheckType->renderInput('checkAll', $checkVal, array());
                 $checkInput->prepend("<div class='checkAllBatchBtn'>");
                 $checkInput->append("</div>");
                 $form->info->append($checkInput);
