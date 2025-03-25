@@ -483,17 +483,6 @@ class batch_BatchesInDocuments extends core_Manager
         $form->info->replace($packName, 'packName');
         $form->info->append(cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($recInfo->quantity / $recInfo->quantityInPack), 'quantity');
 
-        // Ако е сериен номер добавя се и бутон за маркиране/отмаркиране на всички чекбоксове
-        if ($Def instanceof batch_definitions_Serial) {
-            if(countR($batches) > 2){
-                $CheckType = cls::get('type_Check', array('params' => array('label' => tr('Всички'))));
-                $checkInput = $CheckType->renderInput('checkAll', null, array());
-                $checkInput->prepend("<div class='checkAllBatchBtn'>");
-                $checkInput->append("</div>");
-                $form->info->append($checkInput);
-            }
-        }
-
         // Кеширане на модифицируемите записи
         if($Detail instanceof core_Detail){
             $selArr = static::getBatchModifiableRecs($Detail, $detailRecId, $storeId);
@@ -517,6 +506,14 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         if ($Def instanceof batch_definitions_Serial) {
+            // Ако е сериен номер добавя се и бутон за маркиране/отмаркиране на всички чекбоксове
+            if ($Def instanceof batch_definitions_Serial) {
+                $CheckType = cls::get('type_Check', array('params' => array('label' => tr('Всички'))));
+                $checkInput = $CheckType->renderInput('checkAll', null, array());
+                $checkInput->prepend("<div class='checkAllBatchBtn'>");
+                $checkInput->append("</div>");
+                $form->info->append($checkInput);
+            }
 
             // Полетата излизат като списък
             $suggestions = '';
@@ -527,7 +524,10 @@ class batch_BatchesInDocuments extends core_Manager
                     $suggestions .= "{$b1}={$verbal},";
                 }
             }
+
+
             $suggestions = trim($suggestions, ',');
+
             if (!empty($suggestions)) {
                 $form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=2,class=batch-quantity-fields');
             }
