@@ -160,6 +160,7 @@ class batch_plg_DocumentMovement extends core_Plugin
 
         $errMsgSerials = '';
         foreach ($batchesWithSerials as $pId => $bArr1){
+            if(!is_array($bArr1['in'])) continue;
             $bArr = $bArr1['in'];
 
             $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($pId, null, null, null);
