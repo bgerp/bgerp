@@ -1065,11 +1065,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $dRec->quantityFromBom = round($singleQuantity * $rec->quantity, $round);
                 $save[] = $dRec;
             }
+
             if(countR($save)){
                 $Details->saveArray($save, 'id,quantityFromBom');
+                core_Statuses::newStatus("След промяна на количеството е преизчислено очакваното по рецепта!");
             }
-
-            core_Statuses::newStatus("След промяна на количеството е преизчислено очакваното по рецепта!");
         }
     }
 
