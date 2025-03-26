@@ -84,12 +84,14 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
+        $fieldset->FLD('typeOfReport', 'enum(standart=Стандартна, zeroRows=Показва празните)', 'caption=Тип на справката,after=title,removeAndRefreshForm,single=none,silent');
+
+        $fieldset->FLD('from', 'date', 'caption=От,after=typeOfReport,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,mandatory,RemoveAndRefreshForm,after=to,single=none');
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,mandatory,input=none,after=to,single=none');
 
-        //$fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=crmGroup');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=crmGroup');
 
     }
 
@@ -126,6 +128,12 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
+        $form->setDefault('typeOfReport', 'standart');
+
+        if ($rec->typeOfReport == 'zeroRows') {
+            $form->setField('crmGroup', 'input');
+            $form->setField('contragent', 'input=hidden');
+        }
 
     }
 
