@@ -1000,7 +1000,7 @@ class core_Manager extends core_Mvc
 
             // Ако има скрити полета се добавя бутон за показване/скриване
             if($toggableFieldsCount){
-                $listFilter->toolbar->addFnBtn("", null, array('class' => 'toggleListFilterBtn', 'ef_icon' => "img/16/toggle2.png", 'data-plus'=> sbf("img/16/toggle1.png"), 'data-minus' => sbf("img/16/toggle2.png") ));
+                $listFilter->toolbar->addFnBtn(tr("Още филтри"), null, array('class' => 'toggleListFilterBtn', 'ef_icon' => "img/16/toggle2.png", 'data-open' => tr("Още филтри"), 'data-close' => tr("По-малко филтри"), 'data-plus'=> sbf("img/16/toggle1.png"), 'data-minus' => sbf("img/16/toggle2.png") ));
             }
         }
 

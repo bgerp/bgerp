@@ -418,12 +418,12 @@ class batch_BatchesInDocuments extends core_Manager
         $recInfo->detailClassId = $detailClassId;
         $recInfo->detailRecId = $detailRecId;
         $storeId = $recInfo->operation[key($recInfo->operation)];
+        $Def = batch_Defs::getBatchDef($recInfo->productId);
 
         // Кои са наличните партиди към момента
         $batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date, null, array(), true);
 
         // Ако има други споменати партиди в нишката добавят се и те като достъпни
-        $batchesInThread = array();
         $threadId = doc_Containers::fetchField($recInfo->containerId, 'threadId');
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId} AND #id != {$recInfo->containerId}");
@@ -463,6 +463,11 @@ class batch_BatchesInDocuments extends core_Manager
             }
         }
 
+        // Ако партидноста е сериен номер - да се предлагат винаги наличните партиди
+        if ($Def instanceof batch_definitions_Serial) {
+            $batches = array_filter($batches, function($a) {return $a != 0;});
+        }
+
         // Филтриране на партидите
         $Detail->filterBatches($detailRecId, $batches);
         $packName = cat_UoM::getShortName($recInfo->packagingId);
@@ -472,7 +477,7 @@ class batch_BatchesInDocuments extends core_Manager
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->title = 'Задаване на партидности в|* ' . $link;
-        $form->info = new core_ET(tr('Артикул|*:[#productId#]<br>|Склад|*: [#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#] [#packName#]</b>'));
+        $form->info = new core_ET(tr('|*<div class="batchInfoBlock">|Артикул|*:[#productId#]<br>|Склад|*: [#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#] [#packName#]</b></div>'));
         $form->info->replace(cat_Products::getHyperlink($recInfo->productId, true), 'productId');
         $form->info->replace(store_Stores::getHyperlink($storeId, true), 'storeId');
         $form->info->replace($packName, 'packName');
@@ -491,7 +496,6 @@ class batch_BatchesInDocuments extends core_Manager
         $haveMoreThenDisplayedBatches = false;
         $middleCaption = '->';
 
-        $Def = batch_Defs::getBatchDef($recInfo->productId);
         $suggestions = array();
         $Def->orderBatchesForDisplay($batches);
 
@@ -503,6 +507,16 @@ class batch_BatchesInDocuments extends core_Manager
 
         if ($Def instanceof batch_definitions_Serial) {
 
+            // Ако е сериен номер добавя се и бутон за маркиране/отмаркиране на всички чекбоксове
+            if(countR($batches)){
+                $checkVal =   $type == 'in' ? 'yes' : null;
+                $CheckType = cls::get('type_Check', array('params' => array('label' => tr('Всички'))));
+                $checkInput = $CheckType->renderInput('checkAll', $checkVal, array());
+                $checkInput->prepend("<div class='checkAllBatchBtn'>");
+                $checkInput->append("</div>");
+                $form->info->append($checkInput);
+            }
+
             // Полетата излизат като списък
             $suggestions = '';
             foreach ($batches as $b => $q) {
@@ -512,7 +526,10 @@ class batch_BatchesInDocuments extends core_Manager
                     $suggestions .= "{$b1}={$verbal},";
                 }
             }
+
+
             $suggestions = trim($suggestions, ',');
+
             if (!empty($suggestions)) {
                 $form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=2,class=batch-quantity-fields');
             }
@@ -807,6 +824,7 @@ class batch_BatchesInDocuments extends core_Manager
         core_Form::preventDoubleSubmission($tpl, $form);
 
         // Рендиране на формата
+        jquery_Jquery::run($tpl, 'selectAllCheckboxes();', true);
         return $tpl;
     }
 

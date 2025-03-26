@@ -593,7 +593,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
         if($action == 'delete' && isset($rec)){
             if(!empty($rec->quantityFromBom) || !empty($rec->quantityExpected)){
-                $requiredRoles = 'no_one';
+                $canDelete = planning_Setup::get('PRODUCTION_DELETE_SYSTEM_DETAILS');
+                if($canDelete == 'no'){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }

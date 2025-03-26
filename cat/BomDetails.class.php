@@ -103,7 +103,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'bomId=Рецепта,position=№, resourceId=Материал / Етап, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
+    public $listFields = 'bomId=Рецепта,position=№, type=Вид, resourceId=Материал / Етап, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -176,7 +176,7 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък в производството->Допустим,autohide,input=none');
 
         $this->FLD('inputPreviousSteps', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Планиране - влагане на предходния и вложените Етапи->Избор,autohide,input=hidden');
-        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап,subProduct=Субпродукт)', 'caption=Действие,silent,input=hidden');
+        $this->FLD('type', 'enum(input=Влаг.,pop=Отп.,stage=Етап,subProduct=Субпр.)', 'caption=Действие,silent,input=hidden');
         $this->FLD('primeCost', 'double', 'caption=Себестойност,input=none,tdClass=accCell');
         $this->FLD('params', 'blob(serialize, compress)', 'input=none');
         $this->FNC('rowQuantity', 'double(maxDecimals=4)', 'caption=Количество,input=none,tdClass=accCell');
@@ -974,10 +974,8 @@ class cat_BomDetails extends doc_Detail
         if (is_numeric($compare)) {
             $row->propQuantity = "<span style='float:right'>{$row->propQuantity}</span>";
         }
-        
-        if ($rec->type == 'pop') {
-            $row->resourceId = ht::createHint($row->resourceId, 'Артикулът е отпадък', 'notice', true, array('src' => 'img/16/recycle.png'));
-        }
+
+        $row->type = "<span class='state-active document-handler quiet'>{$row->type}</span>";
     }
     
     
