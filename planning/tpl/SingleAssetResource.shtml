@@ -57,6 +57,12 @@
                 <!--ET_END scheduleId-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
+                        |Групиране на операциите|*:
+                    </td>
+                    <td>[#taskQuantization#]</td>
+                </tr>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
                         |Създаване|*:
                     </td>
                     <td>|на|* [#createdOn#] |от|* [#createdBy#]</td>

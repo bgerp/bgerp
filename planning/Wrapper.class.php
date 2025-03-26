@@ -41,9 +41,12 @@ class planning_Wrapper extends plg_ProtoWrapper
         $this->TAB('planning_AssetSparePartsDetail', 'Настройки->Резерв. части', 'ceo,planning');
         $this->TAB('planning_AssetGroupIssueTemplates', 'Настройки->Готови сигнали', 'ceo,planning');
         $this->TAB('planning_GenericMapper', 'Настройки->Генерични', 'ceo,planning');
+        $this->TAB('planning_AssetScheduleBreaks', 'Настройки->Почивки на обордуване', 'ceo,planning');
         $this->TAB('planning_Points', 'Дебъг->Точки', 'debug');
         $this->TAB('planning_GenericProductPerDocuments', 'Дебъг->По документи', 'debug');
         $this->TAB('planning_AssetResourceFolders', 'Дебъг->Ресурси по папки', 'debug');
+        $this->TAB('planning_TaskConstraints', 'Дебъг->Ограничения', 'debug');
+        $this->TAB('planning_TaskManualOrderPerAssets', 'Дебъг->Ръчна подредба', 'debug');
 
         $this->title = 'Планиране';
     }

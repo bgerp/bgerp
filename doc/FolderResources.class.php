@@ -110,6 +110,14 @@ class doc_FolderResources extends core_Manager
         if ($DetailName == 'planning_Hr') {
             $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
             $query->EXT('name', 'crm_Persons', 'externalName=name,externalKey=personId');
+
+            $employeeId = crm_Groups::getIdFromSysId('employees');
+            $query->EXT('groups', 'crm_Persons', 'externalName=groupList,externalKey=personId');
+            $query->EXT('groupList36', 'crm_Persons', 'externalName=groupList36,externalKey=personId');
+            $query->where("#state NOT IN ('closed', 'rejected')");
+            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $employeeId);
+        } else {
+            $query->where("#state = 'active'");
         }
         $query->orderBy('code=ASC,state=ASC');
         

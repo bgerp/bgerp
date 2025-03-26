@@ -2569,6 +2569,7 @@ class planning_Jobs extends core_Master
     {
         // Всички задания отговарящи на условията
         $containerIds = isset($containerIds) ? arr::make($containerIds, true) : array();
+
         $jobArr = array();
         $jQuery = planning_Jobs::getQuery();
         if(countR($containerIds)){

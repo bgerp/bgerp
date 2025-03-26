@@ -743,12 +743,28 @@ abstract class deals_DealMaster extends deals_DealBase
             $showVat = doc_Setup::get('SHOW_LIST_SUMMARY_VAT');
             $summaryQuery = clone $data->query;
 
+            // Да излиза в съмърито и винаги конкретно искания запис
+            if($summaryQuery->addId){
+                $whereArr = $summaryQuery->where;
+                $clone = clone $summaryQuery;
+                $clone->where = array();
+                foreach ($whereArr as $cond){
+                    if ((stripos($cond, 'match(') !== false) || (stripos($cond, 'locate(') !== false)) continue;
+                    $clone->where($cond);
+                }
+
+                $w = $summaryQuery->getWhereAndHaving(true)->w;
+                $w1 = $clone->getWhereAndHaving(true)->w;
+                $summaryQuery->where = array();
+                $summaryQuery->where("({$w}) OR (#id = {$summaryQuery->addId} AND ({$w1}))");
+            }
+
             if($showVat == 'yes') {
                 $caption = 'с ДДС';
-                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(#amountDeal, 2)');
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(COALESCE(#amountDeal, 0), 2)');
             } else {
                 $caption = 'без ДДС';
-                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND((COALESCE(#amountDeal, 0) - COALESCE(#amountVat, 0)), 2)');
             }
 
             foreach (array('amountDelivered', 'amountPaid', 'amountBl', 'amountInvoiced') as $fld){
@@ -757,7 +773,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 } else {
                     $condNull = "(#{$fld} / 1.2)";
                     $condNotNUll = "(#{$fld} / (1 + #amountVat / (#amountDeal - #amountVat)))";
-                    $cond = "IF(#amountVat IS NOT NULL, $condNotNUll, $condNull)";
+                    $cond = "IF((#amountVat IS NOT NULL AND #amountVat != 0), $condNotNUll, $condNull)";
                     $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(($cond), 2)");
                 }
             }
@@ -770,6 +786,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->listSummary->mvc->FNC('amountBlCalc', 'varchar', "caption=Крайно салдо,input=none,summary=amount");
         }
     }
+
 
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед

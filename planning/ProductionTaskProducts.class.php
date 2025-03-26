@@ -112,7 +112,7 @@ class planning_ProductionTaskProducts extends core_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'totalQuantity';
+    public $fieldsNotToClone = 'totalQuantity,totalTime';
 
 
     /**
