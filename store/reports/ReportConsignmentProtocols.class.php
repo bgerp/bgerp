@@ -352,10 +352,12 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $row->contragent = "<span style='line-height: 140%'>" . doc_Folders::getTitleById($dRec->contragent) . "</span>";
 
-        $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'ret_url' => true);
+        $userId = core_Users::getCurrent();
+        if (store_ConsignmentProtocols::haveRightFor('add')) {
+            $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'ret_url' => true);
 
-        $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, false, "ef_icon = img/16/add.png") . "</span>";
-
+            $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, false, "ef_icon = img/16/add.png") . "</span>";
+        }
 
         if (isset($dRec->measureId)) {
             $row->measureId = cat_UoM::fetchField($dRec->measureId, 'shortName');
@@ -499,6 +501,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      */
     public static function act_NewProtocol()
     {
+        requireRole('ceo,store');
 
         expect($contragentFolder = Request::get('contragentFolder', 'int'));
 
