@@ -65,7 +65,7 @@ class crm_PersonsDetails extends core_Manager
     public function renderPersonsDetails($data)
     {
         $tpl = getTplFromFile('crm/tpl/PersonsData.shtml');
-        
+
         // Показване на индикаторите
         if (isset($data->IData)) {
             $resTpl = $data->Indicators->renderPersonIndicators($data);
@@ -84,12 +84,12 @@ class crm_PersonsDetails extends core_Manager
             $resTpl->removeBlocks();
             $tpl->append($resTpl, 'CODE');
         }
-        
+
         $Schedules = cls::get('hr_Schedules');
         // Показване на работните цикли
         if (isset($data->Schedule)) {
+
             $resTpl = $Schedules->renderCalendar($data->Schedule);
-            $tpl->append(hr_Schedules::getHyperlink($data->Schedule->masterId, true), 'CYCLES');
             $tpl->append($resTpl, 'CYCLES');
             $tpl->append(hr_Schedules::getHyperlink($data->Schedule->scheduleId, true), 'name');
 
