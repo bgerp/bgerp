@@ -115,7 +115,7 @@ class doc_FolderResources extends core_Manager
             $query->EXT('groups', 'crm_Persons', 'externalName=groupList,externalKey=personId');
             $query->EXT('groupList36', 'crm_Persons', 'externalName=groupList36,externalKey=personId');
             $query->where("#state NOT IN ('closed', 'rejected')");
-            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $employeeId);
+            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $employeeId, 'personId');
         } else {
             $query->where("#state = 'active'");
         }
