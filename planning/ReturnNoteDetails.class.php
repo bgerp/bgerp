@@ -49,14 +49,6 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
     
     
     /**
-     * Какво движение на партида поражда документа в склада
-     *
-     * @param string - тип движение (излиза, влиза, стои)
-     */
-    public $batchMovementDocument = 'in';
-    
-    
-    /**
      * Кои операции от задачите ще се зареждат
      */
     public $taskActionLoad = 'production';
@@ -153,5 +145,17 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
         if (!in_array($data->masterData->rec->state, array('draft', 'pending'))) return;
 
         planning_WorkInProgress::applyQuantityHintIfNegative($data->rows, $data->recs);
+    }
+
+
+    /**
+     * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+     */
+    protected static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    {
+        if($res->operation['out'] != batch_Items::WORK_IN_PROGRESS_ID){
+            $res->operation['in'] = $res->operation['out'];
+            $res->operation['out'] = batch_Items::WORK_IN_PROGRESS_ID;
+        }
     }
 }

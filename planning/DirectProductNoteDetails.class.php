@@ -539,7 +539,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $rec = $mvc->fetchRec($rec);
         if (empty($rec->storeId)) {
-            unset($res->operation);
+            $res->operation['out'] = batch_Items::WORK_IN_PROGRESS_ID;
         } else {
             $res->operation[key($res->operation)] = $rec->storeId;
         }

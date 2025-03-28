@@ -195,4 +195,13 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
             }
         }
     }
+
+
+    /**
+     * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+     */
+    protected static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    {
+        $res->operation['in'] = batch_Items::WORK_IN_PROGRESS_ID;
+    }
 }
