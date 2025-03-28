@@ -467,7 +467,7 @@ class batch_BatchesInDocuments extends core_Manager
 
         // Ако партидноста е сериен номер - да се предлагат винаги наличните партиди
         if ($Def instanceof batch_definitions_Serial) {
-            $batches = array_filter($batches, function($a) {return $a != 0;});
+            $batches = array_filter($batches, function($a) {return $a > 0;});
         }
 
         // Филтриране на партидите

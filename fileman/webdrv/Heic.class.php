@@ -6,7 +6,7 @@
  * 
  * @see https://github.com/monostream/tifig
  */
-defIfNot('TIFIG_PATH', '');
+defIfNot('TIFIG_PATH', 'tifig');
 
 
 /**
