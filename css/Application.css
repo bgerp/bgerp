@@ -8106,3 +8106,6 @@ td.withFullDiv {
   position: relative;
   padding: 0; }
 
+tr.workInProgressBatchRow .workInProgressProductColName {
+  text-indent: 10%; }
+
