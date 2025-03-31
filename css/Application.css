@@ -4152,7 +4152,7 @@ table .eshop-btn {
 .narrow .cart-view-buttons-top a {
   font-size: 0.95em; }
 
-.tab .tab-title {
+.tab span.tab-title {
   color: #999999; }
 
   .foldertabs > .tab-row {
