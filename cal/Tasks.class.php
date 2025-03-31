@@ -4198,7 +4198,7 @@ class cal_Tasks extends embed_Manager
         $data->listFields = arr::make('title=Задача,driverClass=Вид,folderId=Папка,state=Състояние,createdOn=Създадено->На,createdBy=Създадено->От');
         $listTableMvc = clone $this;
         $listTableMvc->setField('folderId', 'tdClass=leftCol');
-        $listTableMvc->setField('title', 'tdClass=leftCol');
+        $listTableMvc->setField('title', 'tdClass=leftCol long-field');
         $listTableMvc->setField('driverClass', 'tdClass=leftCol');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));

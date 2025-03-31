@@ -2550,7 +2550,12 @@ width:1%;
 .small-field{
 width:1%;
 }
-
+.maxCell {
+	max-width: none !important;
+	.maxwidth {
+		text-align: left !important;
+	}
+}
 .logisticCol {
 	text-align: right;
 	max-width: 400px !important;
@@ -2563,6 +2568,12 @@ width: 200px;
 .large-field{
 width: 50%;
 }
+
+.long-field {
+	min-width: 400px !important;
+	white-space: normal !important;
+}
+
 .listAction table.listTable>tbody>tr>td.midCell {
 	max-width: 170px !important;
 	white-space: wrap;
@@ -4861,6 +4872,10 @@ table .eshop-btn {
 
 .narrow .cart-view-buttons-top a {
 	font-size: 0.95em;
+}
+
+.tab span.tab-title {
+	color: #999;
 }
 
 .foldertabs {
@@ -9217,6 +9232,10 @@ ul.gapList li {
 td.withFullDiv {
 	position: relative;
 	padding: 0;
+}
+
+tr.workInProgressBatchRow .workInProgressProductColName {
+	text-indent:10%;
 }
 
 

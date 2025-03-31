@@ -320,8 +320,9 @@ class planning_TaskConstraints extends core_Master
         }
 
         // Извличат се записите за посочените операции
-        $taskIds = arr::extractValuesFromArray($res, 'taskId');
+        $taskIds = arr::extractValuesFromArray($tasks, 'id');
         $exQuery = static::getQuery();
+
         if(countR($taskIds)){
             $exQuery->in("taskId", $taskIds);
         } else {

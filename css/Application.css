@@ -2211,6 +2211,11 @@ td.rowtools-column {
 .small-field {
   width: 1%; }
 
+.maxCell {
+  max-width: none !important; }
+  .maxCell .maxwidth {
+    text-align: left !important; }
+
 .logisticCol {
   text-align: right;
   max-width: 400px !important; }
@@ -2220,6 +2225,10 @@ td.rowtools-column {
 
 .large-field {
   width: 50%; }
+
+.long-field {
+  min-width: 400px !important;
+  white-space: normal !important; }
 
 .listAction table.listTable>tbody>tr>td.midCell {
   max-width: 170px !important;
@@ -4147,6 +4156,9 @@ table .eshop-btn {
 
 .narrow .cart-view-buttons-top a {
   font-size: 0.95em; }
+
+.tab span.tab-title {
+  color: #999999; }
 
   .foldertabs > .tab-row {
     overflow: hidden;
@@ -8101,4 +8113,7 @@ ul.gapList li {
 td.withFullDiv {
   position: relative;
   padding: 0; }
+
+tr.workInProgressBatchRow .workInProgressProductColName {
+  text-indent: 10%; }
 

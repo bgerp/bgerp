@@ -229,7 +229,7 @@ class cond_plg_DefaultValues extends core_Plugin
         
         $cu = core_Users::getCurrent();
         $query = $mvc->getQuery();
-        $query->where("#state = 'active' OR #state = 'closed'");
+        $query->where("#state IN ('active', 'closed')");
         $query->where("#folderId = {$folderId}");
         if ($fromUser) {
             $query->where("#createdBy = '{$cu}'");
@@ -257,7 +257,7 @@ class cond_plg_DefaultValues extends core_Plugin
         
         // Намиране на последната продажба, на контрагент от същата държава
         $query = $mvc->getQuery();
-        $query->where("#state = 'active' OR #state = 'closed'");
+        $query->where("#state IN ('active', 'closed')");
         $query->orderBy('#createdOn', 'DESC');
         $query->where("#folderId != {$rec->folderId}");
         $query->groupBy('folderId');
