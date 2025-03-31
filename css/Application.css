@@ -2211,6 +2211,11 @@ td.rowtools-column {
 .small-field {
   width: 1%; }
 
+.maxCell {
+  max-width: none !important; }
+  .maxCell .maxwidth {
+    text-align: left !important; }
+
 .logisticCol {
   text-align: right;
   max-width: 400px !important; }
