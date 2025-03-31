@@ -25,8 +25,8 @@ class crm_PersonsDetails extends core_Manager
     /**
      * Подготвя ценовата информация за артикула
      */
-    public function preparePersonsDetails($data)
-    { 
+    public function preparePersonsDetails_($data)
+    {
         $data->TabCaption = 'Лични данни';
         expect($data->masterMvc instanceof crm_Persons);
 
@@ -62,7 +62,7 @@ class crm_PersonsDetails extends core_Manager
     /**
      * Подготвя ценовата информация за артикула
      */
-    public function renderPersonsDetails($data)
+    public function renderPersonsDetails_($data)
     {
         $tpl = getTplFromFile('crm/tpl/PersonsData.shtml');
         
