@@ -153,9 +153,13 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterGetRowInfo($mvc, &$res, $rec)
     {
-        if($res->operation['out'] != batch_Items::WORK_IN_PROGRESS_ID){
-            $res->operation['in'] = $res->operation['out'];
-            $res->operation['out'] = batch_Items::WORK_IN_PROGRESS_ID;
+        $rec = $mvc->fetchRec($rec);
+        $masterRec = $mvc->Master->fetch($rec->noteId);
+        if($masterRec->useResourceAccounts == 'yes'){
+            if($res->operation['out'] != batch_Items::WORK_IN_PROGRESS_ID){
+                $res->operation['in'] = $res->operation['out'];
+                $res->operation['out'] = batch_Items::WORK_IN_PROGRESS_ID;
+            }
         }
     }
 }

@@ -202,6 +202,10 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterGetRowInfo($mvc, &$res, $rec)
     {
-        $res->operation['in'] = batch_Items::WORK_IN_PROGRESS_ID;
+        $rec = $mvc->fetchRec($rec);
+        $masterRec = $mvc->Master->fetch($rec->noteId);
+        if($masterRec->useResourceAccounts == 'yes'){
+            $res->operation['in'] = batch_Items::WORK_IN_PROGRESS_ID;
+        }
     }
 }
