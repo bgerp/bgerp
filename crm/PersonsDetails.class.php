@@ -88,14 +88,13 @@ class crm_PersonsDetails extends core_Manager
         $Schedules = cls::get('hr_Schedules');
         // Показване на работните цикли
         if (isset($data->Schedule)) {
-
             $resTpl = $Schedules->renderCalendar($data->Schedule);
             $tpl->append($resTpl, 'CYCLES');
             $tpl->append(hr_Schedules::getHyperlink($data->Schedule->scheduleId, true), 'name');
 
-            if (crm_Persons::haveRightFor('single', (object) array('personId' => $data->masterId))) {
+            if (hr_Schedules::haveRightFor('single', $data->Schedule->scheduleId)) {
                 // правим url  за принтиране
-                $url = array('hr_Schedules', 'Single', $data->Schedule->masterId, 'Printing' => 'yes', 'month' => Request::get('month', 'date'));
+                $url = array('hr_Schedules', 'Single', $data->Schedule->scheduleId, 'Printing' => 'yes', 'month' => Request::get('month', 'date'));
                 $efIcon = 'img/16/printer.png';
                 $link = ht::createLink('', $url, false, "title=Печат,ef_icon={$efIcon},style=float:right; height: 16px;");
                 $tpl->append($link, 'print');
