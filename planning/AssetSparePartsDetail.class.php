@@ -95,7 +95,7 @@ class planning_AssetSparePartsDetail extends core_Detail
     public function description()
     {
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, removeAndRefreshForm, silent');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул,mandatory,silent,class=w100,tdClass=productCell leftCol');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул,mandatory,silent,class=w100,tdClass=productCell leftCol wrap');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'mandatory,caption=Основен склад,tdClass=leftCol');
 
         $this->setDbIndex('assetId');
