@@ -322,13 +322,16 @@ class planning_TaskConstraints extends core_Master
         // Извличат се записите за посочените операции
         $taskIds = arr::extractValuesFromArray($res, 'taskId');
         $exQuery = static::getQuery();
-        $exQuery->in("taskId", $taskIds);
+        if(countR($taskIds)){
+            $exQuery->in("taskId", $taskIds);
+        } else {
+            $exQuery->where("1=2");
+        }
         $exRecs = $exQuery->fetchAll();
         $me = cls::get(get_called_class());
 
         // Синхронизират се
         $synced = arr::syncArrays($res, $exRecs, 'taskId,type,previousTaskId', 'taskId,type,earliestTimeStart,waitingTime,previousTaskId');
-
         $i = countR($synced['insert']);
         if ($i) {
             $me->saveArray($synced['insert']);
