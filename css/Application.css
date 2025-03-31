@@ -4152,6 +4152,9 @@ table .eshop-btn {
 .narrow .cart-view-buttons-top a {
   font-size: 0.95em; }
 
+.tab .tab-title {
+  color: #999999; }
+
   .foldertabs > .tab-row {
     overflow: hidden;
     width: 100%;
@@ -8105,4 +8108,7 @@ ul.gapList li {
 td.withFullDiv {
   position: relative;
   padding: 0; }
+
+tr.workInProgressBatchRow .workInProgressProductColName {
+  text-indent: 10%; }
 
