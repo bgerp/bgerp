@@ -354,29 +354,19 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, &$data)
     {
-        if ($mvc instanceof core_Master) {
-            
-            return;
-        }
-        if (!countR($data->rows) || haveRole('partner')) {
-            
-            return;
-        }
+        if ($mvc instanceof core_Master) return;
+
+        if (!countR($data->rows) || haveRole('partner')) return;
         
         $rows = &$data->rows;
-        
         foreach ($rows as $id => &$row) {
             $rec = &$data->recs[$id];
+            $recInfo = $mvc->getRowInfo($rec);
+
+            $storeId = $recInfo->operation[key($recInfo->operation)];
+            if (!$storeId) return;
             
-            $storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : (($mvc->Master->storeFieldName && $data->masterData->rec->{$mvc->Master->storeFieldName}) ? $data->masterData->rec->{$mvc->Master->storeFieldName} : null);
-            if (!$storeId) {
-                
-                return;
-            }
-            
-            if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) {
-                continue;
-            }
+            if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) continue;
             
             $row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
             $row->{$mvc->productFieldName}->append(batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $storeId));

@@ -379,10 +379,22 @@ class planning_WorkInProgress extends core_Manager
 
                 $val = ($Detail instanceof planning_ConsumptionNoteDetails) ? ($cRec->useResourceAccounts == 'yes' ? 'consumpedDetailed' : 'consumped') : ($cRec->useResourceAccounts == 'yes' ? 'returnedInput' : 'returned');
                 $productArr[$cRec->productId]->{$val} += $cRec->quantity;
+
+                if(core_Packs::isInstalled('batch')){
+                    $bQuery = batch_BatchesInDocuments::getQuery();
+                    $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$cRec->id} AND #operation = 'out'");
+                    while($bRec = $bQuery->fetch()) {
+                        if(!array_key_exists("{$cRec->productId}|{$bRec->batch}", $productArr)){
+                            $productArr["{$cRec->productId}|{$bRec->batch}"] = (object)array('productId' => $cRec->productId, 'bomQuantity' => null, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0, 'batch' => $bRec->batch);
+                        }
+                        $productArr["{$cRec->productId}|{$bRec->batch}"]->{$val} += $bRec->quantity;
+                    }
+                }
             }
         }
 
         // Извличане и данните за влагане от НП в ПП-та
+        $productionNoteDetailClassId = planning_DirectProductNoteDetails::getClassId();
         $cNotes = planning_DirectProductNoteDetails::getQuery();
         $cNotes->EXT('threadId', 'planning_DirectProductionNote', 'externalName=threadId,externalKey=noteId');
         $cNotes->EXT('state', 'planning_DirectProductionNote', 'externalName=state,externalKey=noteId');
@@ -397,14 +409,31 @@ class planning_WorkInProgress extends core_Manager
             if(isset($cRec->storeId)){
                 $productArr[$cRec->productId]->consumpedDetailed += $cRec->quantity;
             }
+
+            if(core_Packs::isInstalled('batch')){
+                $bQuery = batch_BatchesInDocuments::getQuery();
+                $bQuery->where("#detailClassId = {$productionNoteDetailClassId} AND #detailRecId = {$cRec->id} AND #operation = 'out'");
+
+                while($bRec = $bQuery->fetch()) {
+                    if(!array_key_exists("{$cRec->productId}|{$bRec->batch}", $productArr)){
+                        $productArr["{$cRec->productId}|{$bRec->batch}"] = (object)array('productId' => $cRec->productId, 'bomQuantity' => null, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0, 'batch' => $bRec->batch);
+                    }
+
+                    $productArr["{$cRec->productId}|{$bRec->batch}"]->inputed += $bRec->quantity;
+                    if(isset($cRec->storeId)){
+                        $productArr["{$cRec->productId}|{$bRec->batch}"]->consumpedDetailed += $bRec->quantity;
+                    }
+                }
+            }
         }
 
         // Вербализиране на данните
         $data->workInProgressData = (object)array('recs' => array(), 'rows' => array(), 'listFields' => arr::make('productId=Артикул,measureId=Мярка,bomQuantity=Рецепта,consumpedDetailed=|*Детайлно->Вложено,returnedInput=|*Детайлно->Върнато,inputed=Изразходено,diff=Остатък,consumped=|*Бездетайлно->Вложено,returned=|*Бездетайлно->Върнато', true));
+
         foreach ($productArr as $pId => $pRec){
             $pRec->diff = $pRec->consumpedDetailed - $pRec->returnedInput - $pRec->inputed;
             $data->workInProgressData->recs[$pId] = $pRec;
-            $row = (object)array('productId' => cat_Products::getHyperlink($pId, true));
+            $row = (object)array('productId' => cat_Products::getHyperlink($pRec->productId, true));
 
             $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
             $round = cat_Uom::fetchField($measureId, 'round');
@@ -413,11 +442,18 @@ class planning_WorkInProgress extends core_Manager
                 $row->{$fld} = $Double->toVerbal($pRec->{$fld});
                 $row->{$fld} = ht::styleNumber($row->{$fld}, $pRec->{$fld});
             }
+
+            if(!empty($pRec->batch)){
+                $batchLinks = batch_Movements::getLinkArr($pRec->productId, $pRec->batch);
+                $row->productId = $batchLinks[$pRec->batch];
+                $row->ROW_ATTR['class'] = "state-waiting workInProgressBatchRow";
+            } else {
+                $row->ROW_ATTR['class'] = "state-active";
+            }
+
             $row->measureId = cat_Uom::getSmartName($measureId);
             $data->workInProgressData->rows[$pId] = $row;
         }
-
-        //bp($data->workInProgressData->rows, $data->workInProgressData->recs);
     }
 
 
@@ -431,7 +467,7 @@ class planning_WorkInProgress extends core_Manager
     public static function renderJobStatistic(&$tpl, &$data)
     {
         $fieldset = new core_FieldSet();
-        $fieldset->FLD('productId', 'varchar', 'tdClass=leftCol');
+        $fieldset->FLD('productId', 'varchar', 'tdClass=leftCol workInProgressProductColName');
         $fieldset->FLD('measureId', 'varchar', 'tdClass=centerCol');
 
         foreach (array('returnedInput', 'consumped', 'consumpedDetailed', 'bomQuantity', 'inputed', 'returned', 'diff') as $fld) {

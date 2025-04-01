@@ -109,7 +109,6 @@ class batch_plg_DocumentMovement extends core_Plugin
                 $bdQuery = batch_BatchesInDocuments::getQuery();
                 $bdQuery->where("#detailClassId = {$dRec->detMvcId} AND #detailRecId = {$dRec->id}");
 
-
                 $sum = 0;
                 while($bdRec = $bdQuery->fetch()){
 
@@ -123,7 +122,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                     }
 
                     // Ако е МСТ се гледат само излизащите
-                    if($Detail instanceof store_TransfersDetails && $bdRec->operation == 'in') continue;
+                    if(($Detail instanceof store_TransfersDetails || $Detail instanceof deals_ManifactureDetail) && $bdRec->operation == 'in') continue;
                     foreach ($batchesArr as $b){
                         $batchesWithSerials[$bdRec->productId]['out'][$b] = $b;
                     }
@@ -138,7 +137,7 @@ class batch_plg_DocumentMovement extends core_Plugin
 
                         $quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $bdRec->quantity;
                         foreach ($batchesArr as $batchValue){
-                            $inStore = isset($quantitiesInStore[$batchValue]) ? $quantitiesInStore[$batchValue] : 0;
+                            $inStore = array_key_exists($batchValue, $quantitiesInStore) ? $quantitiesInStore[$batchValue] : 0;
                             if(round($quantity, 5) > round($inStore, 5)){
                                 wp($bdRec, $batchValue, $quantitiesInStore, round($quantity, 5), round($inStore, 5));
                                 $productsWithNotExistingBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
