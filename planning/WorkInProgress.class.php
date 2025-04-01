@@ -483,4 +483,17 @@ class planning_WorkInProgress extends core_Manager
         $details = $table->get($data->workInProgressData->rows, $data->workInProgressData->listFields);
         $tpl->append($details, 'WORK_IN_PROGRESS');
     }
+
+
+    /**
+     * Връща линк към Незавършеното производство
+     *
+     * @return core_ET
+     */
+    public static function getHyperlink()
+    {
+        $workInProgressUrl = planning_WorkInProgress::haveRightFor('list') ? array('planning_WorkInProgress', 'list') : array();
+
+        return ht::createLink("Незав. произв", $workInProgressUrl, false, 'ef_icon=img/16/cog.png');
+    }
 }

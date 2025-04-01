@@ -480,7 +480,7 @@ class batch_BatchesInDocuments extends core_Manager
         $form = cls::get('core_Form');
         $form->title = 'Задаване на партидности в|* ' . $link;
 
-        $storeName = $storeId == batch_Items::WORK_IN_PROGRESS_ID ? "<i class='quiet'>" . tr('Незавършено производство'). "</i>" : tr("|Склад|*:") . store_Stores::getHyperlink($storeId, true);
+        $storeName = $storeId == batch_Items::WORK_IN_PROGRESS_ID ? planning_WorkInProgress::getHyperlink() : tr("|Склад|*:") . store_Stores::getHyperlink($storeId, true);
 
         $form->info = new core_ET(tr('|*<div class="batchInfoBlock">|Артикул|*:[#productId#]<br>[#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#] [#packName#]</b></div>'));
         $form->info->replace(cat_Products::getHyperlink($recInfo->productId, true), 'productId');

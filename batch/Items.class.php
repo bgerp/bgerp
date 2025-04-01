@@ -171,7 +171,7 @@ class batch_Items extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
-        $row->storeId = $rec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? "<i class='quiet'>" . tr('Незав. произв'). "</i>" : store_Stores::getHyperlink($rec->storeId, true);
+        $row->storeId = ($rec->storeId == batch_Items::WORK_IN_PROGRESS_ID) ? planning_WorkInProgress::getHyperlink() : store_Stores::getHyperlink($rec->storeId, true);
 
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');
         $row->measureId = cat_UoM::getShortName($measureId);
