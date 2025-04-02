@@ -114,7 +114,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 while($bdRec = $bdQuery->fetch()){
 
                     $batchesArr = array_keys($Def->makeArray($bdRec->batch));
-                    if($bdRec->operation == 'in' && !(($Detail instanceof store_TransfersDetails) || ($Detail instanceof planning_ConsumptionNoteDetails) || ($Detail instanceof planning_ReturnNoteDetails))){
+                    if($bdRec->operation == 'in' && !($Detail instanceof store_TransfersDetails)){
                         if($Def instanceof batch_definitions_Serial){
                             foreach ($batchesArr as $b){
                                 $batchesWithSerials[$bdRec->productId]['in'][$b] = $b;
