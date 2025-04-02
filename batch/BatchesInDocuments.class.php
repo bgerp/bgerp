@@ -101,7 +101,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
-        $row->storeId = $rec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? "<i class='quiet'>" . tr('Незав. произв'). "</i>" : store_Stores::getHyperlink($rec->storeId, true);
+        $row->storeId = $rec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? planning_WorkInProgress::getHyperlink() : store_Stores::getHyperlink($rec->storeId, true);
     }
 
 

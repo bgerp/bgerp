@@ -82,7 +82,7 @@ class batch_Movements extends core_Detail
     public function description()
     {
         $this->FLD('itemId', 'key(mvc=batch_Items)', 'input=hidden,mandatory,caption=Партида');
-        $this->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'mandatory,caption=Операция');
+        $this->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'tdClass=maxCell,smartCenter,mandatory,caption=Операция');
         $this->FLD('quantity', 'double', 'input=hidden,mandatory,caption=Количество');
         $this->FLD('docType', 'class(interface=doc_DocumentIntf)', 'caption=Документ вид');
         $this->FLD('docId', 'int', 'caption=Документ номер');
@@ -128,7 +128,7 @@ class batch_Movements extends core_Detail
         }
         
         if (isset($rec->storeId)) {
-            $row->storeId = $rec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? "<i class='quiet'>" . tr('Незав. произв'). "</i>" : store_Stores::getHyperlink($rec->storeId, true);
+            $row->storeId = $rec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? planning_WorkInProgress::getHyperlink() : store_Stores::getHyperlink($rec->storeId, true);
         }
 
         switch ($rec->operation) {
