@@ -82,7 +82,7 @@ class batch_Movements extends core_Detail
     public function description()
     {
         $this->FLD('itemId', 'key(mvc=batch_Items)', 'input=hidden,mandatory,caption=Партида');
-        $this->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'mandatory,caption=Операция');
+        $this->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'tdClass=maxCell,smartCenter,mandatory,caption=Операция');
         $this->FLD('quantity', 'double', 'input=hidden,mandatory,caption=Количество');
         $this->FLD('docType', 'class(interface=doc_DocumentIntf)', 'caption=Документ вид');
         $this->FLD('docId', 'int', 'caption=Документ номер');
@@ -128,10 +128,9 @@ class batch_Movements extends core_Detail
         }
         
         if (isset($rec->storeId)) {
-            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+            $row->storeId = $rec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? planning_WorkInProgress::getHyperlink() : store_Stores::getHyperlink($rec->storeId, true);
         }
-        
-        $row->operation = "<span style='float:center'>{$row->operation}</span>";
+
         switch ($rec->operation) {
             case 'in':
                 $row->ROW_ATTR['style'] = 'background-color:rgba(0, 255, 0, 0.1)';
@@ -156,7 +155,8 @@ class batch_Movements extends core_Detail
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
         $data->listFilter->FLD('searchType', 'enum(full=Точно съвпадение,notFull=Частично съвпадение)', 'caption=Търсене,silent');
-        $data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
+        batch_Items::setStoreFilter($data);
+
         $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул');
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
         $data->listFilter->FNC('action', 'enum(all=Всички,in=Влиза, out=Излиза, stay=Стои)', 'caption=Операция,input');
@@ -202,7 +202,7 @@ class batch_Movements extends core_Detail
                 unset($data->listFields['productId']);
             }
             
-            if (isset($fRec->storeId)) {
+            if (!empty($fRec->storeId)) {
                 $data->query->where("#storeId = {$fRec->storeId}");
                 unset($data->listFields['storeId']);
             }
@@ -358,7 +358,8 @@ class batch_Movements extends core_Detail
             }
             
             if (isset($fRec->storeId)) {
-                $titles[] = "<b style='color:green'>" . store_Stores::getTitleById($fRec->storeId) . '</b>';
+                $storeName = $fRec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? tr('Незавършено производство') : store_Stores::getTitleById($fRec->storeId);
+                $titles[] = "<b style='color:green'>{$storeName}</b>";
             }
         }
         

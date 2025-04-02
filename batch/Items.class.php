@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -85,6 +85,12 @@ class batch_Items extends core_Master
 
 
     /**
+     * ИД на склад за незавършено производство
+     */
+    const WORK_IN_PROGRESS_ID = -1;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -114,7 +120,7 @@ class batch_Items extends core_Master
      */
     public static function getQuantity($productId, $batch, $storeId)
     {
-        $quantity = self::fetchField(array("#productId = {$productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $batch), 'quantity');
+        $quantity = self::fetchField(array("#productId = {$productId} AND #batch = '[#1#]' AND #storeId = '{$storeId}'", $batch), 'quantity');
         
         $quantity = empty($quantity) ? 0 : $quantity;
         
@@ -165,8 +171,8 @@ class batch_Items extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
-        $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-        
+        $row->storeId = ($rec->storeId == batch_Items::WORK_IN_PROGRESS_ID) ? planning_WorkInProgress::getHyperlink() : store_Stores::getHyperlink($rec->storeId, true);
+
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');
         $row->measureId = cat_UoM::getShortName($measureId);
         
@@ -263,15 +269,37 @@ class batch_Items extends core_Master
             $this->save($rec, 'state');
         }
     }
-    
-    
+
+
+    /**
+     * Задаване на поле за филтър по складове+незав. произв
+     *
+     * @param $data
+     * @param $storeFieldName
+     * @return void
+     */
+    public static function setStoreFilter($data, $storeFieldName = 'storeId')
+    {
+        $storeOptions = array(batch_Items::WORK_IN_PROGRESS_ID => 'Незавършено производство');
+        $storeQuery = store_Stores::getQuery();
+        $storeQuery->where("#state != 'rejected'");
+        while($storeRec = $storeQuery->fetch()) {
+            $storeOptions[$storeRec->id] = $storeRec->name;
+        }
+
+        $data->listFilter->FLD($storeFieldName, 'varchar', 'placeholder=Всички складове,caption=Склад');
+        $data->listFilter->setOptions($storeFieldName, array('' => '') + $storeOptions);
+    }
+
+
     /**
      * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->FLD('store', 'key(mvc=store_Stores,select=name,allowEmpty)', 'placeholder=Всички складове');
+
+        self::setStoreFilter($data, 'store');
         $data->listFilter->FLD('filterState', 'varchar', 'placeholder=Състояние');
         $options = arr::make('active=Активни,closed=Затворени,all=Всички', true);
         
@@ -308,11 +336,21 @@ class batch_Items extends core_Master
         if ($filter = $data->listFilter->rec) {
             
             // Филтрираме по склад
-            if (isset($filter->store)) {
-                $data->query->where("#storeId = {$filter->store}");
+            if (!empty($filter->store)) {
+                $data->query->where("#storeId = '{$filter->store}'");
                 unset($data->listFields['storeId']);
-                $selectedStoreName = store_Stores::getHyperlink($filter->store, true);
-                $data->title = "|Наличности по партиди в склад|* <b style='color:green'>{$selectedStoreName}</b>";
+                if($filter->store == batch_Items::WORK_IN_PROGRESS_ID){
+                    if(planning_WorkInProgress::haveRightFor('list')){
+                        $selectedStoreName = ht::createLink('Незавършено производство', array('planning_WorkInProgress', 'list'));
+                    } else {
+                        $selectedStoreName = tr('Незавършено производство');
+                    }
+                    $selectedStoreName = "<b>{$selectedStoreName}</b>";
+                } else {
+                    $selectedStoreName = tr("склад|* <b>") . store_Stores::getHyperlink($filter->store, true) . "</b>";
+                }
+
+                $data->title = "|Наличности по партиди в|* {$selectedStoreName}";
             }
 
             if (isset($filter->productId)) {
@@ -403,7 +441,7 @@ class batch_Items extends core_Master
         $query->where("#productId = {$productId}");
         $query->where("#state != 'closed' AND #quantity != 0");
         if (isset($storeId)) {
-            $query->where("#storeId = {$storeId}");
+            $query->where("#storeId = '{$storeId}'");
         }
         
         $query->show('batch,productId');
@@ -477,7 +515,7 @@ class batch_Items extends core_Master
         // Ако филтрираме по склад, оставяме само тези в избрания склад
         if (isset($data->form->rec->{"storeId{$data->masterId}"})) {
             $data->storeId = $data->form->rec->{"storeId{$data->masterId}"};
-            $query->where("#storeId = {$data->storeId}");
+            $query->where("#storeId = '{$data->storeId}'");
         }
 
 
@@ -502,9 +540,16 @@ class batch_Items extends core_Master
         if(isset($data->storeId)){
             $storeQuery->where("#storeId = {$data->storeId}");
         }
-       // bp($data->recs, $storeQuery->fetchAll());
+
+        // Към складовите наличности се добавя и незавършеното производство
+        $stores = $storeQuery->fetchAll();
+        if($workInProgressRec = planning_WorkInProgress::fetch("#productId = {$data->masterId}")) {
+            $workInProgressRec->storeId = batch_Items::WORK_IN_PROGRESS_ID;
+            $stores[$workInProgressRec->storeId] = $workInProgressRec;
+        }
+
         $newRecs = array();
-        while ($storeRec = $storeQuery->fetch()){
+        foreach ($stores as $storeRec){
             $onBatches = $count = 0;
             $filtered = array_filter($data->recs, function($a) use(&$onBatches, &$count, $storeRec) {
                 if($a->storeId == $storeRec->storeId){
@@ -522,10 +567,10 @@ class batch_Items extends core_Master
 
             if($count > 1){
                 $filtered["-{$storeRec->storeId}batches"] = (object)array('storeId' => $storeRec->storeId,
-                                                                     'productId' => $data->masterId,
-                                                                     'quantity' => $onBatches,
-                                                                     'state' => 'active',
-                                                                     'batch' => -1);
+                                                                          'productId' => $data->masterId,
+                                                                          'quantity' => $onBatches,
+                                                                          'state' => 'active',
+                                                                          'batch' => -1);
             }
 
             $withoutBatch = round($storeRec->quantity - $onBatches, 4);

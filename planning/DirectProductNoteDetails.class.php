@@ -374,14 +374,15 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 if($rec->type == 'subProduct'){
                     $row->storeId = ht::createHint("<span class='red'>n/a</span>", 'Изберете склад, за да може да се контира документа!', 'error', false);
                 } else {
-                    $emptyPlaceholder = tr('Незавършено производство');
+                    $emptyPlaceholder = planning_WorkInProgress::getHyperlink();
                     if(!empty($rec->fromAccId)){
                         $emptyPlaceholder = tr('Разходи за услуги (без влагане)');
+                        $emptyPlaceholder = "<span class='quiet'>{$emptyPlaceholder}</span>";
                     } elseif($rec->type == 'input') {
                         $workInProgressRecs[$rec->id] = $rec;
                     }
 
-                    $row->storeId = "<span class='quiet'>{$emptyPlaceholder}</span>";
+                    $row->storeId = $emptyPlaceholder;
                 }
             } elseif(!in_array($rec->type, array('pop', 'subProduct'))) {
                 $threadId = $origin->fetchField('threadId');
@@ -539,7 +540,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $rec = $mvc->fetchRec($rec);
         if (empty($rec->storeId)) {
-            unset($res->operation);
+            $res->operation['out'] = batch_Items::WORK_IN_PROGRESS_ID;
         } else {
             $res->operation[key($res->operation)] = $rec->storeId;
         }

@@ -235,12 +235,13 @@ class batch_BatchTypeIntf extends embed_DriverIntf
      * @param array  $quantities - масив с наличните партиди и количества
      * @param string $mvc        - клас на обект, към който да се разпределят
      * @param string $id         - ид на обект, към който да се разпределят
+     * @param int $storeId       - ид на склад
      *
      * @return array $quantities - масив с филтрираните наличните партиди и количества
      */
-    public function filterBatches($quantities, $mvc, $id)
+    public function filterBatches($quantities, $mvc, $id, $storeId)
     {
-        return $this->class->filterBatches($quantities, $mvc, $id);
+        return $this->class->filterBatches($quantities, $mvc, $id, $storeId);
     }
 
 

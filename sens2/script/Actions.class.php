@@ -226,7 +226,22 @@ class sens2_script_Actions extends core_Detail
                 $rec->data->cond = '1 != 1';
             }
             $rec->data->id = $rec->id;
-            $rec->state = $action->run($rec->data);
+            try {
+                $rec->state = $action->run($rec->data);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+                self::logWarning('Грешка при изпъление на скрипт: ' . $e->getMessage());
+            } catch (Exception $e) {
+                reportException($e);
+                self::logWarning('Грешка при изпъление на скрипт: ' . $e->getMessage());
+            } catch (Error $e) {
+                reportException($e);
+                self::logWarning('Грешка при изпъление на скрипт: ' . $e->getMessage());
+            } catch (Throwable $t) {
+                reportException($t);
+                self::logWarning('Грешка при изпъление на скрипт: ' . $t->getMessage());
+            }
+
             if ($rec->state != $exState) {
                 self::save($rec, 'state');
             }
