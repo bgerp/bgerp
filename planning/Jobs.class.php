@@ -2104,6 +2104,7 @@ class planning_Jobs extends core_Master
         $pQuery1->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $pQuery1->where("#state = 'active' AND #productId != {$rec->productId}");
         $pQuery1->in('threadId', $threadsArr);
+        $workInProgressId = batch_Items::WORK_IN_PROGRESS_ID;
 
         // Всички протоколи за влагане/връщане на услуги се реконтират - за да се смени правилно разходния обект
         foreach (array('planning_ConsumptionNoteDetails' => 'planning_ConsumptionNotes', 'planning_ReturnNoteDetails' => 'planning_ReturnNotes') as $detailName => $masterName){
@@ -2120,47 +2121,22 @@ class planning_Jobs extends core_Master
             $dQuery->in('threadId', $threadsArr);
 
             while($dRec = $dQuery->fetch()){
-                $key = "{$dRec->productId}|{$dRec->packagingId}||||";
-                $cSign = $sign;
+                $fromAccId = ($dRec->canStore == 'yes') ? null : '61102';
 
-                // Ако артикула е заготовка, но вече е заскладен в посочения склад ще се приспада к-то от него
-                if(array_key_exists($dRec->productId, $consumable) && $cSign > 0){
-                    $fromAccId = ($dRec->canStore == 'yes') ? null : '61102';
-                    $storeId = ($dRec->canStore == 'yes') ?  $dRec->storeId : null;
+                $key = "{$dRec->productId}|{$dRec->packagingId}||{$fromAccId}|{$workInProgressId}";
+                if(!array_key_exists($key, $convertedArr)){
+                    $convertedArr[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'measureId' => $dRec->measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => $fromAccId, 'type' => 'input', 'batches' => array());
+                }
 
-                    $aArray = array('' => $dRec->quantity);
+                $convertedArr[$key]->quantityExpected += $sign * $dRec->quantity;
 
-                    if(core_Packs::isInstalled('batch')){
-                        $bQuery = batch_BatchesInDocuments::getQuery();
-                        $bQuery->where("#detailClassId = {$DetailMvc->getClassId()} AND #detailRecId = {$dRec->id}");
-                        while($bRec = $bQuery->fetch()){
-                            $aArray["{$bRec->batch}"] = $bRec->quantity;
-                            $aArray[""] -= $bRec->quantity;
-                        }
-                        if(empty($aArray[""])){
-                            unset($aArray[""]);
-                        }
+                if(core_Packs::isInstalled('batch')){
+                    $bQuery = batch_BatchesInDocuments::getQuery();
+                    $bQuery->where("#detailClassId = {$DetailMvc->getClassId()} AND #detailRecId = {$dRec->id}");
+                    $bQuery->where("#storeId = {$workInProgressId}");
+                    while($bRec = $bQuery->fetch()){
+                        $convertedArr[$key]->batches[$bRec->batch] += $sign * $bRec->quantity;
                     }
-
-                    foreach ($aArray as $batch => $q){
-                        $key1 = "{$dRec->productId}|{$dRec->packagingId}||{$fromAccId}|{$storeId}|{$batch}";
-
-                        if(array_key_exists($key1, $convertedArr)){
-                            $convertedArr[$key1]->quantityExpected -= $q;
-                        } else {
-                            $key1 = "{$dRec->productId}|{$dRec->packagingId}||||";
-                            if(!array_key_exists($key1, $convertedArr)){
-                                $convertedArr[$key1] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'measureId' => $dRec->measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => null, 'type' => 'input', 'batch' => null);
-                            }
-                            $convertedArr[$key1]->quantityExpected += $sign * $q;
-                        }
-                    }
-                } else {
-                    if(!array_key_exists($key, $convertedArr)){
-                        $convertedArr[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'measureId' => $dRec->measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => null, 'type' => 'input', 'batch' => null);
-                    }
-
-                    $convertedArr[$key]->quantityExpected += $sign * $dRec->quantity;
                 }
             }
         }
@@ -2169,7 +2145,7 @@ class planning_Jobs extends core_Master
         $allocatedProducts = planning_Jobs::getAllocatedServices($rec);
         if(countR($allocatedProducts)){
             foreach ($allocatedProducts as $aRec){
-                $key = "{$aRec->productId}|{$aRec->measureId}|{$aRec->expenseItemId}|61102||";
+                $key = "{$aRec->productId}|{$aRec->measureId}|{$aRec->expenseItemId}|61102|";
                 if(!array_key_exists($key, $convertedArr)){
                     $convertedArr[$key] = (object)array('productId' => $aRec->productId, 'packagingId' => $aRec->measureId, 'quantityInPack' => 1, 'measureId' => $aRec->measureId, 'quantityExpected' => 0, 'expenseItemId' => $aRec->expenseItemId, 'fromAccId' => '61102', 'type' => 'allocated');
                 }
@@ -2189,35 +2165,16 @@ class planning_Jobs extends core_Master
 
         $detailClassId = planning_DirectProductNoteDetails::getClassId();
         while($dRec = $pQuery->fetch()){
-            if(!isset($dRec->storeId) || array_key_exists($dRec->productId, $consumable)){
-                if(!isset($dRec->storeId)){
-                    // Приспада се произведеното до сега
-                    $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->expenseItemId}|{$dRec->fromAccId}||";
+            $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->expenseItemId}|{$dRec->fromAccId}|{$workInProgressId}";
+            if(array_key_exists($key, $convertedArr)){
+                $convertedArr[$key]->quantityExpected -= $dRec->quantity;
 
-                    if(array_key_exists($key, $convertedArr)){
-                        $convertedArr[$key]->quantityExpected -= $dRec->quantity;
-                    }
-
-                } else {
-                    $aArray = array("" => $dRec->quantity);
-
-                    if(core_Packs::isInstalled('batch')){
-                        $bQuery = batch_BatchesInDocuments::getQuery();
-                        $bQuery->where("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
-                        while($bRec = $bQuery->fetch()){
-                            $aArray["{$bRec->batch}"] = $bRec->quantity;
-                            $aArray[""] -= $bRec->quantity;
-                        }
-                        if(empty($aArray[""])){
-                            unset($aArray[""]);
-                        }
-
-                        foreach ($aArray as $batch => $q) {
-                            $key1 = "{$dRec->productId}|{$dRec->packagingId}|||{$dRec->storeId}|{$batch}";
-                            if(array_key_exists($key1, $convertedArr)){
-                                $convertedArr[$key1]->quantityExpected -= $q;
-                            }
-                        }
+                if(core_Packs::isInstalled('batch')){
+                    $bQuery = batch_BatchesInDocuments::getQuery();
+                    $bQuery->where("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
+                    $bQuery->where("#storeId = {$workInProgressId}");
+                    while($bRec = $bQuery->fetch()){
+                        $convertedArr[$key]->batches[$bRec->batch] -= $bRec->quantity;
                     }
                 }
             }
@@ -2227,6 +2184,12 @@ class planning_Jobs extends core_Master
         foreach ($convertedArr as $cId => $cObj){
             if($cObj->quantityExpected <= 0){
                 unset($convertedArr[$cId]);
+            } elseif(is_array($cObj->batches)) {
+                foreach ($cObj->batches as $bId => $bQuantity){
+                    if($bQuantity <= 0){
+                        unset($cObj->batches[$bId]);
+                    }
+                }
             }
         }
 
