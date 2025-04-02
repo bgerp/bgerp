@@ -71,7 +71,7 @@ class batch_plg_DocumentMovement extends core_Plugin
         // Гледат се детайлите на документа
         $productsWithoutBatchesArr = $productsWithNotExistingBatchesArr = $batchDiffArr = array();
         $detailMvcs = ($mvc instanceof store_ConsignmentProtocols) ? array('store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend') : (isset($mvc->mainDetail) ? array($mvc->mainDetail) : array());
-        $batchesWithSerials = array();
+        $batchesWithSerials = $outBatches = array();
 
         foreach ($detailMvcs as $det){
 
@@ -87,6 +87,7 @@ class batch_plg_DocumentMovement extends core_Plugin
             }
 
             foreach ($dRecs as $k => $dRec){
+
                 $dRec->detMvcId = (empty($dRec->detMvcId)) ? $Detail->getClassId() : $dRec->detMvcId;
                 $defRec = batch_Defs::fetch("#productId = {$dRec->{$Detail->productFld}}");
                 if(empty($defRec)) continue;
@@ -113,7 +114,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 while($bdRec = $bdQuery->fetch()){
 
                     $batchesArr = array_keys($Def->makeArray($bdRec->batch));
-                    if($bdRec->operation == 'in' && !($Detail instanceof store_TransfersDetails)){
+                    if($bdRec->operation == 'in' && !(($Detail instanceof store_TransfersDetails) || ($Detail instanceof planning_ConsumptionNoteDetails) || ($Detail instanceof planning_ReturnNoteDetails))){
                         if($Def instanceof batch_definitions_Serial){
                             foreach ($batchesArr as $b){
                                 $batchesWithSerials[$bdRec->productId]['in'][$b] = $b;
@@ -130,18 +131,14 @@ class batch_plg_DocumentMovement extends core_Plugin
 
                     // Проверка дали посочената партида на изходящите документи е налична
                     if($checkIfBatchExists == 'yes' && $bdRec->operation == 'out'){
-                        if(!array_key_exists("{$bdRec->productId}|{$bdRec->storeId}", $cache)){
-                            $cache["{$bdRec->productId}|{$bdRec->storeId}"] = batch_Items::getBatchQuantitiesInStore($bdRec->productId, $bdRec->storeId);
-                        }
-                        $quantitiesInStore = $cache["{$bdRec->productId}|{$bdRec->storeId}"];
 
-                        $quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $bdRec->quantity;
+                        // Сумират се общото искано крайно количество, на партидите които ще се изписват
+                        if(!array_key_exists("{$bdRec->productId}|{$bdRec->storeId}", $outBatches)){
+                            $outBatches["{$bdRec->productId}|{$bdRec->storeId}"] = (object)array('productId' => $bdRec->productId, 'storeId' => $bdRec->storeId, 'batches' => array());
+                        }
                         foreach ($batchesArr as $batchValue){
-                            $inStore = array_key_exists($batchValue, $quantitiesInStore) ? $quantitiesInStore[$batchValue] : 0;
-                            if(round($quantity, 5) > round($inStore, 5)){
-                                wp($bdRec, $batchValue, $quantitiesInStore, round($quantity, 5), round($inStore, 5));
-                                $productsWithNotExistingBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
-                            }
+                            $quantity = ($Def instanceof batch_definitions_Serial) ? 1 : $bdRec->quantity;
+                            $outBatches["{$bdRec->productId}|{$bdRec->storeId}"]->batches[$batchValue] += $quantity;
                         }
                     }
                 }
@@ -153,6 +150,18 @@ class batch_plg_DocumentMovement extends core_Plugin
 
                 if(round($sum, 3) > round($dRec->{$Detail->quantityFld}, 3)){
                     $batchDiffArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
+                }
+            }
+        }
+
+        // От сумарните артикули, които ще се изписват се проверява дали са налични (ако се иска)
+        foreach ($outBatches as $outObj){
+            $quantitiesInStore = batch_Items::getBatchQuantitiesInStore($outObj->productId, $outObj->storeId);
+            foreach ($outObj->batches as $batchValue => $batchQuantity){
+                $inStore = array_key_exists($batchValue, $quantitiesInStore) ? $quantitiesInStore[$batchValue] : 0;
+
+                if(round($batchQuantity, 5) > round($inStore, 5)){
+                    $productsWithNotExistingBatchesArr[$outObj->productId] = "<b>" . cat_Products::getTitleById($outObj->productId, false) . "</b>";
                 }
             }
         }
