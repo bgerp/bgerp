@@ -95,7 +95,7 @@ class store_InventoryNotes extends core_Master
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,plg_Clone,acc_plg_Contable,
                         doc_DocumentPlg,purchase_plg_ExtractPurchasesData,
-                        plg_Printing, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation, plg_Search,bgerp_plg_Blank';
+                        plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
     
     
     /**
@@ -197,7 +197,7 @@ class store_InventoryNotes extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date', 'caption=Вальор');
+        $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('instockTo', 'enum(dayBefore=Вальора - 1 ден,valior=Вальора)', 'caption=Наличности към, notNull, value=dayBefore');
         $this->FLD('quantitiesFilter', 'enum(all=Всички,positive=Само положителните,negative=Само отрицателните,zero=Само нулевите)', 'caption=Очаквани к-ва,notNull,value=all');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
@@ -290,6 +290,12 @@ class store_InventoryNotes extends core_Master
 
         if (isset($form->rec->id)) {
             $form->setReadOnly('storeId');
+
+            if(store_InventoryNoteDetails::count("#noteId = {$rec->id}")){
+                $form->setReadOnly('valior');
+                $form->setReadOnly('instockTo');
+                $form->info = tr("|*<div class='richtext-message richtext-warning'>|Има вече въведено установено к-во и вальора не може да се променя|*</div>");
+            }
         }
 
         if(!core_Packs::isInstalled('batch')){
