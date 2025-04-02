@@ -987,22 +987,24 @@ class batch_BatchesInDocuments extends core_Manager
         // Подготвяне на редовете за обновяване
         $update = array();
         foreach ($batchesArr as $b => $q) {
-            foreach ($recInfo->operation as $operation => $storeId) {
-                $obj = clone $recInfo;
-                $obj->operation = $operation;
-                $obj->storeId = $storeId;
-                $obj->quantity = $q;
-                $obj->batch = $b;
+            if(is_array($recInfo->operation)){
+                foreach ($recInfo->operation as $operation => $storeId) {
+                    $obj = clone $recInfo;
+                    $obj->operation = $operation;
+                    $obj->storeId = $storeId;
+                    $obj->quantity = $q;
+                    $obj->batch = $b;
 
-                $b1 = ($sync === true) ? null : $obj->batch;
-                if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b1, $operation)) {
-                    $obj->id = $id;
-                    if($increment){
-                        $obj->quantity = $q + static::fetchField($id, 'quantity', false);
+                    $b1 = ($sync === true) ? null : $obj->batch;
+                    if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b1, $operation)) {
+                        $obj->id = $id;
+                        if($increment){
+                            $obj->quantity = $q + static::fetchField($id, 'quantity', false);
+                        }
                     }
+
+                    $update[] = $obj;
                 }
-                
-                $update[] = $obj;
             }
         }
 
