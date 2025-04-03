@@ -83,7 +83,7 @@ class batch_plg_DocumentMovement extends core_Plugin
 
             // хак за мастъра на протокола за производство
             if($mvc instanceof planning_DirectProductionNote){
-                $dRecs[0] = (object)array("{$Detail->productFld}" => $rec->productId, "{$Detail->quantityFld}" => $rec->quantity, 'id' => $rec->id, 'detMvcId' => $mvc->getClassId());
+                $dRecs[0] = (object)array("{$Detail->productFld}" => $rec->productId, "{$Detail->quantityFld}" => $rec->quantity, 'operation' => 'in', 'id' => $rec->id, 'detMvcId' => $mvc->getClassId());
             }
 
             foreach ($dRecs as $k => $dRec){
@@ -110,7 +110,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 $bdQuery = batch_BatchesInDocuments::getQuery();
                 $bdQuery->where("#detailClassId = {$dRec->detMvcId} AND #detailRecId = {$dRec->id}");
 
-                $sum = 0;
+                $sum = $sumWithoutBatch = 0;
                 while($bdRec = $bdQuery->fetch()){
 
                     $batchesArr = array_keys($Def->makeArray($bdRec->batch));
@@ -123,6 +123,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                     }
 
                     // Ако е МСТ се гледат само излизащите
+                    $sumWithoutBatch += $bdRec->quantity;
                     if(($Detail instanceof store_TransfersDetails || $Detail instanceof deals_ManifactureDetail) && $bdRec->operation == 'in') continue;
                     foreach ($batchesArr as $b){
                         $batchesWithSerials[$bdRec->productId]['out'][$b] = $b;
@@ -144,7 +145,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 }
 
                 // Ако някои от тях нямат посочена партида, документа няма да се контира
-                if($checkIfBatchIsMandatory == 'yes' && round($sum, 3) < round($dRec->{$Detail->quantityFld}, 3)){
+                if($checkIfBatchIsMandatory == 'yes' && round($sumWithoutBatch, 3) < round($dRec->{$Detail->quantityFld}, 3)){
                     $productsWithoutBatchesArr[$dRec->{$Detail->productFld}] = "<b>" . cat_Products::getTitleById($dRec->{$Detail->productFld}, false) . "</b>";
                 }
 
