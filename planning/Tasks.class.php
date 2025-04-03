@@ -337,6 +337,7 @@ class planning_Tasks extends core_Master
         $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
         $this->FLD('notes', 'varchar(255)', 'caption=Допълнително->Забележка');
+        $this->FLD('offsetAfter', 'time', 'caption=Допълнително->Изчакване след,hint=Колко време да се изчака след изпълнение на операцията за етапа');
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
         $this->FLD('saoOrder', 'double(smartRound)', 'caption=Структура и подредба->Подредба,input=none,column=none,order=100000');
 
@@ -1587,7 +1588,7 @@ class planning_Tasks extends core_Master
             }
 
             if (!isset($rec->systemId) && empty($rec->id)) {
-                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode,mandatoryDocuments=mandatoryDocuments");
+                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode,mandatoryDocuments=mandatoryDocuments,offsetAfter=offsetAfter");
                 foreach ($defFields as $fld => $val) {
                     $form->setDefault($fld, $productionData[$val]);
                 }

@@ -260,7 +260,6 @@ class planning_TaskConstraints extends core_Master
         $sQuery = planning_Steps::getQuery();
         $sQuery->where("#classId = {$productClassId}");
         $sQuery->show('objectId,offsetAfter');
-        $sQuery->in("objectId", $stepIds);
         while ($sRec = $sQuery->fetch()) {
             $offsetArr[$sRec->objectId] = $sRec->offsetAfter ?? 0;
         }
@@ -269,9 +268,9 @@ class planning_TaskConstraints extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#state IN ('active', 'stopped', 'wakeup', 'pending')");
         $tQuery->in('originId', $jobIds);
-        $tQuery->show('id,originId,productId,folderId');
+        $tQuery->show('id,originId,productId,folderId,offsetAfter');
         while ($tRec = $tQuery->fetch()) {
-            $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id, 'folderId' => $tRec->folderId);
+            $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id, 'folderId' => $tRec->folderId, 'offsetAfter' => $tRec->offsetAfter);
         }
 
         $offsetSameLocation = planning_Setup::get('TASK_OFFSET_IN_SAME_LOCATION');
@@ -312,8 +311,11 @@ class planning_TaskConstraints extends core_Master
                     $prevTaskLocationId = $folderLocations[$tasks[$prevTaskId]->folderId];
                     $locationOffset = ($thisTaskLocationId == $prevTaskLocationId) ? $offsetSameLocation : $offsetOtherLocation;
 
+                    // Ако има време за изчакване в предишната ПО взима се то, ако няма това от етапа
+                    $offset = !empty($tasksByJobs[$taskRec->originId][$prevTaskId]->offsetAfter) ? $tasksByJobs[$taskRec->originId][$prevTaskId]->offsetAfter : $offsetArr[$tasksByJobs[$taskRec->originId][$prevTaskId]->productId];
+
                     // Времето за изчакване е по-голямото от това за локацията и зададеното в етапа време на изчакване
-                    $waitingTime = max($locationOffset,  $offsetArr[$tasks[$prevTaskId]->productId]);
+                    $waitingTime = max($locationOffset,  $offset);
                     $res["prev|{$taskRec->id}|$prevTaskId"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => $waitingTime, 'previousTaskId' => $prevTaskId, 'updatedOn' => $now);
                 }
             }
