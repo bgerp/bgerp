@@ -235,12 +235,6 @@ class batch_Movements extends core_Detail
             }
         }
     }
-    
-
-    function act_Test()
-    {
-        static::saveMovement(304068);
-    }
 
 
     /**
