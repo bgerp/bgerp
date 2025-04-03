@@ -235,8 +235,8 @@ class batch_Movements extends core_Detail
             }
         }
     }
-    
-    
+
+
     /**
      * Записва движение на партида от документ
      *
@@ -252,10 +252,8 @@ class batch_Movements extends core_Detail
             
             // Ако е покупка/продажба трябва да има експедирано/доставено с нея
             $actions = type_Set::toArray($doc->fetchField('contoActions'));
-            if (!isset($actions['ship'])) {
-                
-                return;
-            }
+
+            if (!isset($actions['ship'])) return;
         }
         
         // Какви партиди са въведени
@@ -263,6 +261,7 @@ class batch_Movements extends core_Detail
         $jQuery->where("#containerId = {$containerId}");
         $jQuery->orderBy('id', 'ASC');
         $docRec = $doc->fetch();
+        $totalMovements = array();
 
         // За всяка
         while ($jRec = $jQuery->fetch()) {
@@ -277,40 +276,47 @@ class batch_Movements extends core_Detail
             // Записва се движението и
             foreach ($batches as $key => $b) {
                 $result = true;
-                
-                try {
-                    $itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
-                    if (empty($jRec->date)) {
-                        $jRec->date = $doc->fetchField($doc->valiorFld);
-                        cls::get('batch_BatchesInDocuments')->save_($jRec, 'date');
-                    }
-                    
-                    // Движението, което ще запишем
-                    $mRec = (object) array('itemId' => $itemId,
-                        'quantity' => $quantity,
-                        'operation' => $jRec->operation,
-                        'docType' => $doc->getClassId(),
-                        'docId' => $doc->that,
-                        'date' => $jRec->date,
-                    );
-                    
-                    // Запис на движението
-                    $id = self::save($mRec);
-                    
-                    // Ако има проблем със записа, сетваме грешка
-                    if (!$id) {
-                        $result = false;
-                        break;
-                    }
-                } catch (core_exception_Expect $e) {
-                    reportException($e);
-                    
-                    // Ако е изникнала грешка
-                    $result = false;
+
+                $itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
+                if (empty($jRec->date)) {
+                    $jRec->date = $doc->fetchField($doc->valiorFld);
+                    cls::get('batch_BatchesInDocuments')->save_($jRec, 'date');
                 }
+
+                $key = "{$itemId}|{$jRec->operation}";
+                if (!array_key_exists($key, $totalMovements)) {
+                    $mRec = (object)array('itemId' => $itemId,
+                                          'operation' => $jRec->operation,
+                                          'docType' => $doc->getClassId(),
+                                          'docId' => $doc->that,
+                                          'date' => $jRec->date,
+                    );
+                    $totalMovements[$key] = $mRec;
+                }
+
+                $totalMovements[$key]->quantity += $quantity;
             }
         }
-        
+
+        // Записване на сумарното по партиди
+        foreach ($totalMovements as $mRec) {
+            try {
+                // Запис на движението
+                $id = self::save($mRec);
+
+                // Ако има проблем със записа, сетваме грешка
+                if (!$id) {
+                    $result = false;
+                    break;
+                }
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+
+                // Ако е изникнала грешка
+                $result = false;
+            }
+        }
+
         // При грешка изтриваме всички записи до сега
         if ($result === false) {
             self::removeMovement($doc->getInstance(), $doc->that);
