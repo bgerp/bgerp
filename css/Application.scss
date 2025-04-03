@@ -1897,6 +1897,13 @@ a.tUnsighted {
 		border-radius: 5px;
 	}
 }
+.titleTags, .small.openModal {
+	line-height: 1.5em !important;
+}
+.titleTags .documentTags {
+	position: relative;
+	top: -2px;
+}
 
 .tags.lightBg a{
 	color: #000 !important;
