@@ -437,23 +437,23 @@ class store_InventoryNoteSummary extends doc_Detail
             }
 
             if (isset($rec)) {
-                $isNoBatchRow = $rec->isBatch && empty($rec->_batch);
+                if($rec->hasNoBatchRow !== true) {
+                    // Добавяне на бутон за редакция на реда
+                    if ($rec->productId && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
+                        $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId, $pageVar => $pageVal));
 
-                // Добавяне на бутон за редакция на реда
-                if ($rec->productId && !$isNoBatchRow && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
-                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId, $pageVar => $pageVal));
-
-                    // Ако се редактира сумарен ред. Маркира се в урл-то
-                    if(isset($rec->quantity) || isset($rec->_batch)){
-                        $url['packagingId'] = cat_Products::fetchField($rec->productId, 'measureId');
-                        $url['editQuantity'] = $rec->quantity;
-                        $url['editSummary'] = true;
-                        if(isset($rec->_batch)){
-                            $url['editBatch'] = $rec->_batch;
+                        // Ако се редактира сумарен ред. Маркира се в урл-то
+                        if(isset($rec->quantity) || isset($rec->_batch)){
+                            $url['packagingId'] = cat_Products::fetchField($rec->productId, 'measureId');
+                            $url['editQuantity'] = $rec->quantity;
+                            $url['editSummary'] = true;
+                            if(isset($rec->_batch)){
+                                $url['editBatch'] = $rec->_batch;
+                            }
                         }
-                    }
 
-                    $row->btns = ht::createLink('', $url, false, 'ef_icon=img/16/edit.png,title=Задаване на установено количество');
+                        $row->btns = ht::createLink('', $url, false, 'ef_icon=img/16/edit.png,title=Задаване на установено количество');
+                    }
                 }
 
                 if($rec->isBatch !== true){
