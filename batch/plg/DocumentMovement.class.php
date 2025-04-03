@@ -159,9 +159,11 @@ class batch_plg_DocumentMovement extends core_Plugin
             $quantitiesInStore = batch_Items::getBatchQuantitiesInStore($outObj->productId, $outObj->storeId);
             foreach ($outObj->batches as $batchValue => $batchQuantity){
                 $inStore = array_key_exists($batchValue, $quantitiesInStore) ? $quantitiesInStore[$batchValue] : 0;
-
                 if(round($batchQuantity, 5) > round($inStore, 5)){
-                    $productsWithNotExistingBatchesArr[$outObj->productId] = "<b>" . cat_Products::getTitleById($outObj->productId, false) . "</b>";
+                    if(!array_key_exists($outObj->productId, $productsWithNotExistingBatchesArr)){
+                        $productsWithNotExistingBatchesArr[$outObj->productId] = (object)array('productId' => "<b>" . cat_Products::getTitleById($outObj->productId, false) . "</b>: ", 'batches' => array());
+                    }
+                    $productsWithNotExistingBatchesArr[$outObj->productId]->batches[$batchValue] = $batchValue;
                 }
             }
         }
@@ -197,7 +199,12 @@ class batch_plg_DocumentMovement extends core_Plugin
             }
 
             if(countR($productsWithNotExistingBatchesArr)){
-                $productMsg = implode(', ', $productsWithNotExistingBatchesArr);
+                $notExistingBatchesArr = array();
+                foreach ($productsWithNotExistingBatchesArr as $pObj){
+                    $notExistingBatchesArr[] = $pObj->productId . implode(', ', $pObj->batches);
+                }
+
+                $productMsg = implode('; ', $notExistingBatchesArr);
                 core_Statuses::newStatus("Артикули с неналични партиди|*: {$productMsg}", 'error');
             }
 
