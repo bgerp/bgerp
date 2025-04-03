@@ -2077,7 +2077,7 @@ class planning_Tasks extends core_Master
                 $notesByStates[] = " <div class='state-{$noteRec->state} consumptionNoteBubble'>{$noteCountVerbal}</div>";
             }
             if(countR($notesByStates)){
-                $row->progress .= " <small><i>" . tr('ПВ') . ":" . implode($notesByStates) . "</i></small>";
+                $row->notes = " <small class='noteInJobTasks'><i>" . tr('ПВ') . ":" . implode($notesByStates) . "</i></small>";
             }
 
             $data->rows[$rec->id] = $row;
@@ -2127,6 +2127,9 @@ class planning_Tasks extends core_Master
 
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount,taskWastePercent,notConvertedQuantity');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        foreach ($data->rows as $row){
+            $row->title = $row->title->append($row->notes);
+        }
         $contentTpl = $table->get($data->rows, $data->listFields);
         if (isset($data->pager)) {
             $contentTpl->append($data->pager->getHtml());
