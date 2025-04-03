@@ -829,9 +829,9 @@ class hr_HomeOffice extends core_Master
     protected function getHomeDayForMonth($startDate, $endDate, $personId)
     {
         $cLeaveDays = $this->getLeaveDays($startDate, $endDate, $personId);
-        $hMonth = 15;
+        $hMonth = 30;
 
-        $d = round(abs(dt::daysBetween($endDate, $startDate))/2);
+        $d = round(abs(dt::daysBetween($endDate, $startDate)) / 2);
 
         if ($d >= $hMonth) {
 
