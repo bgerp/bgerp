@@ -170,10 +170,6 @@ class batch_plg_InventoryNotes extends core_Plugin
                 }
             }
 
-            if(!strlen($rec->batchEx) && !strlen($rec->batchNew)){
-                $form->setWarning('batchEx', 'Въведеното количество ще се отнесе към "Без партида"');
-            }
-
             if (!$form->gotErrors()) {
                 $rec->batch = (!empty($rec->batchEx)) ? $rec->batchEx : $rec->batchNew;
                 if ($rec->batch === '') {
@@ -391,11 +387,16 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $clone->delta = $Double->toVerbal($bRec->delta);
                 unset($clone->code);
 
+                if(empty($bRec->batch)){
+                    $recs[$id]->hasNoBatchRow = true;
+                }
+
                 $k = "{$id}|{$batch}";
                 $recs[$k] = $bRec;
                 $r[$k] = $clone;
             }
         }
+
        // bp($recs);
         $summaryRecs = $recs;
         $summaryRows = $r;

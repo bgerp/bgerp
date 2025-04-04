@@ -350,11 +350,12 @@ class store_InventoryNoteDetails extends doc_Detail
         // Ако е редакция от съмърите да се изтрият другите записи
         if(isset($rec->editSummary)){
             $deleteWhere = "#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #id != '{$rec->id}'";
-            if(isset($rec->editBatch) && core_Packs::isInstalled('batch')){
-                $deleteWhere .= " AND #batch = '[#1#]'";
-                $deleteWhere = array($deleteWhere, $rec->batch);
+            if(core_Packs::isInstalled('batch')){
+                $deleteWhere .= " AND #batch = '{$rec->batch}'";
+                static::delete($deleteWhere);
+            } else {
+                static::delete($deleteWhere);
             }
-            static::delete($deleteWhere);
         }
 
         if (is_null($rec->quantity)) {
