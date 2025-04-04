@@ -106,6 +106,7 @@ class pwa_Setup extends core_ProtoSetup
         }
         foreach (pwa_Settings::getDomains() as $dId => $name) {
             $existDArr[$name] = $name;
+            $dArr[$dId] = $dId;
         }
 
         $dQuery = cms_Domains::getQuery();
