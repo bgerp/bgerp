@@ -39,7 +39,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
         $fieldset->FLD('suffixHistory', 'blob', 'input=none');
         $fieldset->FLD('length', 'int(Min=0)', 'caption=Дължина,unit=Символа');
         $fieldset->FLD('transferBatchOnProduction', 'enum(no=Не,yes=Да)', 'caption=Пренасяне на партиди от вложения към произвеждания артикул->Избор');
-        $fieldset->FLD('batchesInputedInJobPriority', 'enum(no=От всички налични в незав. произв.,yes=Само от вложените по заданието в незав. произв.)', 'caption=Автоматично изписване на партиди от незав. произв.->Избор');
+        $fieldset->FLD('batchesInputedInJobPriority', 'enum(yes=Само от вложените по заданието в незав. произв.,no=От всички налични в незав. произв.)', 'caption=Автоматично изписване на партиди от незавършеното производство->Избор');
     }
 
 

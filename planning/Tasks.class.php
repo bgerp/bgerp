@@ -2027,7 +2027,6 @@ class planning_Tasks extends core_Master
                 $row->taskWastePercent = core_Type::getByName('percent(smartRound)')->toVerbal($taskWastePercent);
             }
 
-            $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
             if(!empty($rec->notConvertedQuantity)){
@@ -3070,7 +3069,11 @@ class planning_Tasks extends core_Master
             $data->listFields += $paramFields;
         }
 
-        $tableClass = 'small';
+        $tableClass = '';
+        if(!$data->masterMvc){
+            $tableClass = 'small';
+        }
+
         $data->listTableMvc->FNC('prevExpectedTimeEnd', 'datetime');
         $data->listTableMvc->FNC('nextExpectedTimeStart', 'datetime');
         $data->listTableMvc->FNC('dueDate', 'date');
@@ -3172,7 +3175,9 @@ class planning_Tasks extends core_Master
             $measuresArr[$r1->measureId] = $r1->measureId;
             $productIds[$r1->productId] = $r1->productId;
         }
-        $haveDiffMeasure = countR($measuresArr) > 1;
+
+
+        $haveDiffMeasure = countR($measuresArr) > 1 || isset($data->masterMvc);
         $haveDiffProductIds = countR($productIds) > 1;
 
         foreach ($rows as $id => $row) {

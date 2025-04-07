@@ -1272,19 +1272,23 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($rec->paymentState == 'overdue') {
             $row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . '</span>';
             if(isset($rec->overdueAmount)){
-                $overdueAmountInCurrency = $rec->overdueAmount / $rec->currencyRate;
-                $overdueOnHint = "Просрочено средно с:|* " . core_Type::getByName('int')->toVerbal($rec->overdueAmountPerDays / $overdueAmountInCurrency) . " |дни|*";
-                $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($overdueAmountInCurrency);
-                $row->paymentState = $overdueAmount;
-                $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
-                if(!$fields['-list']){
-                    $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
+                if(doc_plg_HidePrices::canSeePriceFields($mvc, $rec)) {
+                    $overdueAmountInCurrency = $rec->overdueAmount / $rec->currencyRate;
+                    $overdueOnHint = "Просрочено средно с:|* " . core_Type::getByName('int')->toVerbal($rec->overdueAmountPerDays / $overdueAmountInCurrency) . " |дни|*";
+                    $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($overdueAmountInCurrency);
+                    $row->paymentState = $overdueAmount;
+                    $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
+                    if(!$fields['-list']){
+                        $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
+                    }
+                    $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'warning', false);
                 }
-                $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'warning', false);
             }
             $row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
         } elseif($rec->paymentState == 'pending') {
-            $row->paymentState = $row->amountToPay;
+            if(doc_plg_HidePrices::canSeePriceFields($mvc, $rec)) {
+                $row->paymentState = $row->amountToPay;
+            }
             if(!$fields['-list']){
                 $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
             }
