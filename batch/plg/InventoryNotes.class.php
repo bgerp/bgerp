@@ -428,13 +428,14 @@ class batch_plg_InventoryNotes extends core_Plugin
      */
     private static function saveMovements($rec)
     {
-        $storeId = isset($rec->storeId) ? $rec->storeId : store_InventoryNotes::fetchField($rec->id, 'storeId');
-        $valior = isset($rec->valior) ? $rec->valior : store_InventoryNotes::fetchField($rec->id, 'valior');
-        $obj = (object) array('docId' => $rec->id, 'docType' => store_InventoryNotes::getClassId(), 'date' => $valior);
+        $storeId = $rec->storeId ?? store_InventoryNotes::fetchField($rec->id, 'storeId');
+        $valior = $rec->valior ?? store_InventoryNotes::fetchField($rec->id, 'valior');
+        $instockTo = $rec->instockTo ?? store_InventoryNotes::fetchField($rec->id, 'instockTo');
 
-        $valior = dt::addDays(-1, $valior);
+        $valior = $instockTo ? $valior : dt::addDays(-1, $valior);
         $valior = dt::verbal2mysql($valior, false);
 
+        $obj = (object) array('docId' => $rec->id, 'docType' => store_InventoryNotes::getClassId(), 'date' => $valior);
         $dQuery = store_InventoryNoteSummary::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {

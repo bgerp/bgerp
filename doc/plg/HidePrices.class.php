@@ -281,6 +281,8 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_RightBeforeRenderListTable($mvc, $res, &$data)
     {
+        if(isset($data->masterMvc)) return;
+
         $priceFields = arr::make($mvc->priceFields);
 
         // За всеки запис от листа се гледа дали може да му се виждат ценовите полета - ако не скриват се
