@@ -19,7 +19,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDelivered';
+    public $priceFields = 'amountDelivered,amountDeliveredVat';
     
     
     /**
