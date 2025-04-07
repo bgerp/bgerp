@@ -299,7 +299,7 @@ class batch_Items extends core_Master
     {
         $data->listFilter->view = 'horizontal';
 
-        self::setStoreFilter($data, 'store');
+        self::setStoreFilter($data->listFilter, 'store');
         $data->listFilter->FLD('filterState', 'varchar', 'placeholder=Състояние');
         $options = arr::make('active=Активни,closed=Затворени,all=Всички', true);
         
@@ -334,7 +334,7 @@ class batch_Items extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
         if ($filter = $data->listFilter->rec) {
-            
+
             // Филтрираме по склад
             if (!empty($filter->store)) {
                 $data->query->where("#storeId = '{$filter->store}'");

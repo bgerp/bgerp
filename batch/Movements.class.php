@@ -155,7 +155,7 @@ class batch_Movements extends core_Detail
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
         $data->listFilter->FLD('searchType', 'enum(full=Точно съвпадение,notFull=Частично съвпадение)', 'caption=Търсене,silent');
-        batch_Items::setStoreFilter($data);
+        batch_Items::setStoreFilter($data->listFilter);
 
         $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул');
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
