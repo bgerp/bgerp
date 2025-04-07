@@ -274,11 +274,11 @@ class batch_Items extends core_Master
     /**
      * Задаване на поле за филтър по складове+незав. произв
      *
-     * @param $data
-     * @param $storeFieldName
+     * @param core_Form $form
+     * @param string $storeFieldName
      * @return void
      */
-    public static function setStoreFilter($data, $storeFieldName = 'storeId')
+    public static function setStoreFilter($form, $storeFieldName = 'storeId')
     {
         $storeOptions = array(batch_Items::WORK_IN_PROGRESS_ID => 'Незавършено производство');
         $storeQuery = store_Stores::getQuery();
@@ -287,8 +287,13 @@ class batch_Items extends core_Master
             $storeOptions[$storeRec->id] = $storeRec->name;
         }
 
-        $data->listFilter->FLD($storeFieldName, 'varchar', 'placeholder=Всички складове,caption=Склад');
-        $data->listFilter->setOptions($storeFieldName, array('' => '') + $storeOptions);
+        if(!$form->getField($storeFieldName, false)){
+            $form->FLD($storeFieldName, 'varchar', 'placeholder=Всички складове,caption=Склад,forceField');
+        } else {
+            $form->setFieldType($storeFieldName, "varchar(nullIfEmpty)");
+            $form->setField($storeFieldName, "placeholder=Всички складове");
+        }
+        $form->setOptions($storeFieldName, array('' => '') + $storeOptions);
     }
 
 
@@ -494,7 +499,7 @@ class batch_Items extends core_Master
         $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $form->FLD("state{$data->masterId}", 'enum(active=Активни,closed=Затворени,inStock=Налични,notInStock=Без наличност,all=Всички)', 'caption=Състояние,silent');
         $form->FLD("filter{$data->masterId}", 'enum(asc=Подредба (Възх.),desc=Подредба (Низх.))', 'caption=Подредба,silent');
-
+        batch_Items::setStoreFilter($form, "storeId{$data->masterId}");
         $form->setDefault("state{$data->masterId}", 'active');
         $form->setDefault("filter{$data->masterId}", 'asc');
 

@@ -189,7 +189,6 @@ class planning_WorkInProgress extends core_Manager
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
 
         // Подготвяме в заявката да може да се търси по полета от друга таблица
-        $field36groups = cls::get('cat_Products')->getExpandFieldName36();
         $data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
         $data->query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $data->query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
