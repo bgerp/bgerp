@@ -3070,7 +3070,11 @@ class planning_Tasks extends core_Master
             $data->listFields += $paramFields;
         }
 
-        $tableClass = 'small';
+        $tableClass = '';
+        if(!$data->masterMvc){
+            $tableClass = 'small';
+        }
+
         $data->listTableMvc->FNC('prevExpectedTimeEnd', 'datetime');
         $data->listTableMvc->FNC('nextExpectedTimeStart', 'datetime');
         $data->listTableMvc->FNC('dueDate', 'date');
