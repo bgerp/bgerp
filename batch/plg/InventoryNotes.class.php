@@ -117,12 +117,9 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $form->setField('batchNew', 'input=none');
             }
 
-            if(isset($rec->editBatch)){
+            if(isset($rec->editSummary)){
                 $form->setReadOnly('batchEx', $rec->editBatch);
-            }
-
-            if(isset($rec->editSummary) && !isset($rec->editBatch)){
-                $form->setField('batchEx', 'input=none');
+                $form->setField('batchNew', 'input=none');
             }
 
             $form->setField('batchNew', $autohide);
