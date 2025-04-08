@@ -234,6 +234,8 @@ class batch_Movements extends core_Detail
                 }
             }
         }
+
+        $data->query->orderBy('date', 'DESC');
     }
 
 

@@ -288,7 +288,7 @@ class batch_Items extends core_Master
         }
 
         if(!$form->getField($storeFieldName, false)){
-            $form->FLD($storeFieldName, 'varchar', 'placeholder=Всички складове,caption=Склад,forceField');
+            $form->FLD($storeFieldName, 'varchar(nullIfEmpty)', 'placeholder=Всички складове,caption=Склад,forceField');
         } else {
             $form->setFieldType($storeFieldName, "varchar(nullIfEmpty)");
             $form->setField($storeFieldName, "placeholder=Всички складове");
