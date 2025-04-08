@@ -156,7 +156,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $form->setField('orderLimit', 'input=hidden');
         }
 
-        if ($rec->typeOfQuantity == 'free') {
+        if ($rec->typeOfQuantity == 'free' || $rec->typeOfQuantity == 'diff') {
 
             $form->setField('typeOfPeriod', 'input');
 
