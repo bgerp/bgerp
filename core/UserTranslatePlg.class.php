@@ -158,14 +158,8 @@ class core_UserTranslatePlg extends core_Plugin
             }
             
             if (isset($tr)) {
-                $res = $tr;
-                
-                $cRec = clone $rec;
-                $cRec->{$part} = $tr;
-                
-                $res = $mvc->getVerbal_($cRec, $part);
-                
-                return false;
+//                $res = $tr;
+                $rec->{$part} = $tr;
             }
         }
     }
