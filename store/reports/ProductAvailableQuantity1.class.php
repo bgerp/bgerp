@@ -583,10 +583,16 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $dateVerb = dt::mysql2verbal($data->rec->date, 'd.m.Y');
             $fieldTpl->append('<b>' . 'Разполагаемо към ' . $dateVerb . '</b>', 'typeOfQuantity');
 
-        } else {
+        } elseif ($data->rec->typeOfQuantity == 'available') {
 
             $dateVerb = dt::mysql2verbal(dt::today(), 'd.m.Y');
             $fieldTpl->append('<b>' . 'Налично към ' . $dateVerb . '</b>', 'typeOfQuantity');
+
+        }
+        elseif ($data->rec->typeOfQuantity == 'diff') {
+
+            $dateVerb = dt::mysql2verbal($data->rec->date, 'd.m.Y');
+            $fieldTpl->append('<b>' . 'Налично минус запазено ' .'('. $dateVerb.')'. '</b>', 'typeOfQuantity');
 
         }
 
