@@ -1063,11 +1063,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $singleQuantity = $dRec->quantityFromBom / $rec->_exQuantity;
                 $round = cat_UoM::fetchField($dRec->measureId, 'round');
                 $dRec->quantityFromBom = round($singleQuantity * $rec->quantity, $round);
+                $Details->invoke('AfterNoteQuantityIsChangedUpdate', array(&$dRec, $rec));
                 $save[] = $dRec;
             }
 
             if(countR($save)){
-                $Details->saveArray($save, 'id,quantityFromBom');
+                $Details->saveArray($save, 'id,quantity,quantityFromBom');
                 core_Statuses::newStatus("След промяна на количеството е преизчислено очакваното по рецепта!");
             }
         }
