@@ -590,13 +590,15 @@ class type_Keylist extends core_Type
                 }
                 
                 if ($select != '*') {
-                    $this->suggestions[$rec->id] = $mvc->getVerbal($rec, $select);
+                    $name = $mvc->getVerbal($rec, $select);
+                    $name = str_replace(array('&lt;', '&amp;'), array('<', '&'), $name);
+                    $this->suggestions[$rec->id] = $name;
                 } else {
-                    $this->suggestions[$rec->id] = $mvc->getTitleById($rec->id);
+                    $this->suggestions[$rec->id] = $mvc->getTitleById($rec->id, false);
                 }
             }
         }
-        
+
         $mvc->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
         
         return $this->suggestions;
