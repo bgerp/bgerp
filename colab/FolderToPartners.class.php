@@ -827,6 +827,10 @@ class colab_FolderToPartners extends core_Manager
             if (!core_Users::checkNames($form->rec->names)) {
                 $form->setError('names', 'Напишете поне две имена разделени с интервал');
             }
+
+            if (drdata_Domains::isDisposal($form->rec->email)) {
+                $form->setError('email', 'Не може да се използват временни имейли за регистрация!');
+            }
             
             $errorMsg = null;
             if (core_Users::isForbiddenNick($form->rec->nick, $errorMsg)) {
