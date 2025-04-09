@@ -18,8 +18,8 @@ class rtac_Plugin extends core_Plugin
     /**
      * Шаблон за намиране на потребителите
      */
-    public static $pattern = "/\B(?'pre'@)(?'nick'(\w|\.)+(\w){1})(?'emoji'([\p{Emoji_Presentation}\p{Extended_Pictographic}]))*/ui";
-
+    public static $pattern = "/\B(?'pre'@)(?'nick'(\w|\.)+(\w){1})/";
+    
     
     /**
      * Масив с всички потребители, споделени в
