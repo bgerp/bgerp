@@ -1054,15 +1054,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         // При промяна на количеството да се преизчисли очакваното по рецепта
-        if(isset($rec->_exQuantity) && $rec->quantity != $rec->_exQuantity){
+        if(isset($rec->_isCreated) || (isset($rec->_exQuantity) && $rec->quantity != $rec->_exQuantity)){
             $save = array();
             $Details = cls::get('planning_DirectProductNoteDetails');
             $dQuery = $Details->getQuery();
             $dQuery->where("#noteId = {$rec->id} AND #quantityFromBom IS NOT NULL");
             while($dRec = $dQuery->fetch()){
-                $singleQuantity = $dRec->quantityFromBom / $rec->_exQuantity;
-                $round = cat_UoM::fetchField($dRec->measureId, 'round');
-                $dRec->quantityFromBom = round($singleQuantity * $rec->quantity, $round);
+                if(!$rec->_isCreated){
+                    $singleQuantity = $dRec->quantityFromBom / $rec->_exQuantity;
+                    $round = cat_UoM::fetchField($dRec->measureId, 'round');
+                    $dRec->quantityFromBom = round($singleQuantity * $rec->quantity, $round);
+                }
+
                 $Details->invoke('AfterNoteQuantityIsChangedUpdate', array(&$dRec, $rec));
                 $save[] = $dRec;
             }
