@@ -1074,6 +1074,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             if(countR($save)){
                 $Details->saveArray($save, 'id,quantity,quantityFromBom');
                 core_Statuses::newStatus("След промяна на количеството е преизчислено очакваното по рецепта!");
+
+                foreach ($save as $sRec){
+                    if($sRec->_reAlocateBatches){
+                        batch_BatchesInDocuments::delete("#detailClassId = {$Details->getClassId()} AND #detailRecId = {$sRec->id}");
+                        batch_plg_DocumentMovementDetail::autoAllocate($Details, $sRec);
+                    }
+                }
             }
         }
     }

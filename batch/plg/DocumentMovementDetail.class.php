@@ -195,17 +195,18 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     /**
      * Преразпределяне на партидите
      */
-    private static function autoAllocate($mvc, $rec)
+    public static function autoAllocate($mvc, $rec)
     {
         // След създаване се прави опит за разпределяне на количествата според наличните партиди
         $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
         if (is_object($BatchClass)) {
             if (!$BatchClass->canAutoAllocate()) {
-                
+
                 return;
             }
             
-            $info = $mvc->getRowInfo($rec->id);
+            $info = $mvc->getRowInfo($rec);
+
             if (isset($info->operation['out'])) {
                 $batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $mvc, $rec->id, $info->date);
                 batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
