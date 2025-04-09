@@ -53,7 +53,12 @@
 					<!--ET_BEGIN autoValue-->
                 	<tr><td class="quiet">|Генериране|*:</td> <td>[#autoValue#]</td></tr>
                 	<!--ET_END autoValue-->
-                	
+
+					<!--ET_BEGIN batchesInputedInJobPriority-->
+					<tr><td colspan="2" class="quiet"> |Автоматично изписване на партиди от незав. произв.|*</td></tr>
+					<tr><td class="quiet">|Избор|*:</td> <td>[#batchesInputedInJobPriority#]</td></tr>
+					<!--ET_END batchesInputedInJobPriority-->
+
 					<!--ET_BEGIN autoAllocate-->
 					<tr><td colspan="2" class="quiet"> |Автоматично разпределение в документи|*</td></tr>
 					<tr><td class="quiet">|Избор|*:</td> <td>[#autoAllocate#]</td></tr>

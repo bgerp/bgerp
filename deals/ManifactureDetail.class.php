@@ -43,8 +43,20 @@ abstract class deals_ManifactureDetail extends doc_Detail
      * Да се показва ли кода като в отделна колона
      */
     public $showCodeColumn = true;
-    
-    
+
+
+    /**
+     * Да се сумират ли редовете при импорт
+     */
+    public $combineImportRecs = true;
+
+
+    /**
+     * Може ли да се импортират цени
+     */
+    public $allowPriceImport = false;
+
+
     /**
      * След описанието на модела
      */
@@ -262,18 +274,15 @@ abstract class deals_ManifactureDetail extends doc_Detail
                 $meta = $meta->canConvert;;
             }
         }
-        
-        
-        if ($meta != 'yes') {
-            
-            return;
-        }
+
+        if ($meta != 'yes') return;
         
         $productInfo = cat_Products::getProductInfo($pRec->productId);
         $quantityInPack = ($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
         $packQuantity = $row->quantity;
+        $batch = is_array($row->batches) ? $row->batches : $row->batch;
 
-        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack, false, null, false, $row->batch);
+        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack, false, null, false, $batch);
     }
 
 

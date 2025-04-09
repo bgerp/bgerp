@@ -474,10 +474,10 @@ class planning_Hr extends core_Master
                 $data->query->EXT('groupList36', 'crm_Persons', 'externalName=groupList36,externalKey=personId');
                 $data->query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
                 if($filterRec->order == 'active'){
-                    plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $data->query, $employeeId);
+                    plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $data->query, $employeeId, 'personId');
                     $data->query->where("#state NOT IN ('closed', 'rejected')");
                 } else {
-                    plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $data->query, $employeeId, null, true);
+                    plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $data->query, $employeeId, 'personId', true);
                     $data->query->orWhere("#state IN ('closed', 'rejected')");
                 }
             }

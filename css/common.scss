@@ -1750,6 +1750,18 @@ form .inputAdvanced {
 .inlineForm .listFilter form {
 	float: none !important;
 }
+.folder-cover .groupList .inlineForm{
+	.hFormField input {
+		height: 26px !important;
+
+	}
+	.form-filter-btn input {
+		height: 26px !important;
+		position: relative;
+		top: -1px;
+	}
+}
+
 
 .inputWarning {
     border: solid 1px blue;

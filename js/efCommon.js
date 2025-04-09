@@ -6522,6 +6522,7 @@ function toggleListFilter()
         $('.listFilter tr.toggable').hide();
         hiddenItems = []; // Инициализираме празен масив, за да не е null
         $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+        $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('close'));
     } else if(hiddenItems.length) {
         // Скриваме редовете, които са били записани като скрити
         $('.listFilter tr.toggable').each(function() {
@@ -6533,6 +6534,7 @@ function toggleListFilter()
             }
         });
         $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+        $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('open'));
     }
 
     $('.toggleListFilterBtn').on('click', function() {
@@ -6580,12 +6582,14 @@ function toggleListFilter()
                     }
                 });
                 $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+                $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('open'));
             } else if (!$row.is(':visible')){
                 // Показваме реда и го премахваме от LocalStorage
                 $row.fadeIn('slow', function() {
                     hiddenItems = hiddenItems.filter(id => id !== rowId);
                     localStorage.setItem(formId, JSON.stringify(hiddenItems));
                     $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('minus') + ")");
+                    $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('close'));
 
                     $(this).find('input.combo').each(function(){
                         var idComboBox = $(this).attr('id');
@@ -6600,6 +6604,15 @@ function toggleListFilter()
         });
     });
 }
+/**
+Груповo селектиране на чекбоксове
+ */
+function selectAllCheckboxes() {
+    $('.checkAllBatchBtn .checkbox').on('change', function (){
+        $('.batch-quantity-fields').prop('checked', this.checked);
+    });
+}
+
 
 runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);

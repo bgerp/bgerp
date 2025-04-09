@@ -129,6 +129,9 @@
                     <!--ET_BEGIN startAfter-->
                     <span style='font-weight:normal'>|Започва след|*</span>: [#startAfter#]<br>
                     <!--ET_END startAfter-->
+                    <!--ET_BEGIN offsetAfter-->
+                    <span style='font-weight:normal'>|Изчакване след|*</span>: [#offsetAfter#]<br>
+                    <!--ET_END offsetAfter-->
 					<!--ET_BEGIN employees-->
                     <span style='font-weight:normal'>|Оператори|*</span>: [#employees#]<br>
                     <!--ET_END employees-->

@@ -178,9 +178,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $dQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
             $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $dQuery->orderBy('id,type', 'ASC');
+
             while($dRec = $dQuery->fetch()){
                 $rec->_details[$dRec->id] = $dRec;
-                if($rec->type == 'input'){
+                if($dRec->type == 'input'){
                     if(isset($dRec->storeId)){
                         $byStores[$dRec->storeId][$dRec->id] = $dRec;
                     } elseif(isset($dRec->fromAccId)){
@@ -196,6 +197,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $clone->storeId = $storeId;
             $clone->details = $dRecs;
             $entriesProduction = sales_transaction_Sale::getProductionEntries($clone, 'planning_DirectProductionNote', 'storeId', $this->instantProducts);
+
             if (countR($entriesProduction)) {
                 $entries = array_merge($entries, $entriesProduction);
             }

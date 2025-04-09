@@ -146,7 +146,7 @@ class pwa_Settings extends core_Manager
             return false;
         }
 
-        $json = core_Cache::get('pwaManifest', 'manifest', 100000, array('pwa_Settings'));
+        $json = core_Cache::get('pwaManifest', 'manifest_' . $domainId, 100000, array('pwa_Settings'));
 
         if ($json === false) {
             $iconInfoArr = array();
@@ -280,7 +280,7 @@ class pwa_Settings extends core_Manager
                 ),
             );
 
-            core_Cache::set('pwaManifest', 'manifest', $json, 100000, array('pwa_Settings'));
+            core_Cache::set('pwaManifest', 'manifest_' . $domainId, $json, 100000, array('pwa_Settings'));
         }
 
         return json_encode($json);

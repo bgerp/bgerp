@@ -1897,6 +1897,13 @@ a.tUnsighted {
 		border-radius: 5px;
 	}
 }
+.titleTags, .small.openModal {
+	line-height: 1.5em !important;
+}
+.titleTags .documentTags {
+	position: relative;
+	top: -2px;
+}
 
 .tags.lightBg a{
 	color: #000 !important;
@@ -2550,7 +2557,12 @@ width:1%;
 .small-field{
 width:1%;
 }
-
+.maxCell {
+	max-width: none !important;
+	.maxwidth {
+		text-align: left !important;
+	}
+}
 .logisticCol {
 	text-align: right;
 	max-width: 400px !important;
@@ -2563,6 +2575,12 @@ width: 200px;
 .large-field{
 width: 50%;
 }
+
+.long-field {
+	min-width: 400px !important;
+	white-space: normal !important;
+}
+
 .listAction table.listTable>tbody>tr>td.midCell {
 	max-width: 170px !important;
 	white-space: wrap;
@@ -4863,6 +4881,10 @@ table .eshop-btn {
 	font-size: 0.95em;
 }
 
+.tab span.tab-title {
+	color: #999;
+}
+
 .foldertabs {
     > .tab-row {
         overflow: hidden;
@@ -5275,18 +5297,8 @@ table .eshop-btn {
 	margin-bottom: 5px
 
 }
-.toggleGroups {
-	.openBtn {
-		display: inline-block;
-		width: 20px;
-		height: 20px;
-		background: url('../img/16/toggle1.png') center bottom no-repeat;
 
-	}
-}
-input[type=button].toggleListFilterBtn {
-	background-position: center !important;
-}
+
 .narrow .cms-row {
 	padding-top: 20px;
 }
@@ -9227,6 +9239,10 @@ ul.gapList li {
 td.withFullDiv {
 	position: relative;
 	padding: 0;
+}
+
+tr.workInProgressBatchRow .workInProgressProductColName {
+	text-indent:10%;
 }
 
 

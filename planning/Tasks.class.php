@@ -337,6 +337,7 @@ class planning_Tasks extends core_Master
         $this->FLD('subTitle', 'varchar(24)', 'caption=Допълнително->Подзаглавие,width=100%,recently');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
         $this->FLD('notes', 'varchar(255)', 'caption=Допълнително->Забележка');
+        $this->FLD('offsetAfter', 'time', 'caption=Допълнително->Изчакване след,hint=Колко време да се изчака след изпълнение на операцията за етапа');
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
         $this->FLD('saoOrder', 'double(smartRound)', 'caption=Структура и подредба->Подредба,input=none,column=none,order=100000');
 
@@ -1586,7 +1587,7 @@ class planning_Tasks extends core_Master
             }
 
             if (!isset($rec->systemId) && empty($rec->id)) {
-                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode,mandatoryDocuments=mandatoryDocuments");
+                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode,mandatoryDocuments=mandatoryDocuments,offsetAfter=offsetAfter");
                 foreach ($defFields as $fld => $val) {
                     $form->setDefault($fld, $productionData[$val]);
                 }
@@ -2025,7 +2026,6 @@ class planning_Tasks extends core_Master
                 $row->taskWastePercent = core_Type::getByName('percent(smartRound)')->toVerbal($taskWastePercent);
             }
 
-            $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
             if(!empty($rec->notConvertedQuantity)){
@@ -2075,7 +2075,7 @@ class planning_Tasks extends core_Master
                 $notesByStates[] = " <div class='state-{$noteRec->state} consumptionNoteBubble'>{$noteCountVerbal}</div>";
             }
             if(countR($notesByStates)){
-                $row->progress .= " <small><i>" . tr('ПВ') . ":" . implode($notesByStates) . "</i></small>";
+                $row->notes = " <small class='noteInJobTasks fright'><i>" . tr('ПВ') . ":" . implode($notesByStates) . "</i></small>";
             }
 
             $data->rows[$rec->id] = $row;
@@ -2125,6 +2125,9 @@ class planning_Tasks extends core_Master
 
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount,taskWastePercent,notConvertedQuantity');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
+        foreach ($data->rows as $row){
+            $row->title = $row->title->append($row->notes);
+        }
         $contentTpl = $table->get($data->rows, $data->listFields);
         if (isset($data->pager)) {
             $contentTpl->append($data->pager->getHtml());
@@ -3065,7 +3068,11 @@ class planning_Tasks extends core_Master
             $data->listFields += $paramFields;
         }
 
-        $tableClass = 'small';
+        $tableClass = '';
+        if(!$data->masterMvc){
+            $tableClass = 'small';
+        }
+
         $data->listTableMvc->FNC('prevExpectedTimeEnd', 'datetime');
         $data->listTableMvc->FNC('nextExpectedTimeStart', 'datetime');
         $data->listTableMvc->FNC('dueDate', 'date');
@@ -3167,7 +3174,9 @@ class planning_Tasks extends core_Master
             $measuresArr[$r1->measureId] = $r1->measureId;
             $productIds[$r1->productId] = $r1->productId;
         }
-        $haveDiffMeasure = countR($measuresArr) > 1;
+
+
+        $haveDiffMeasure = countR($measuresArr) > 1 || isset($data->masterMvc);
         $haveDiffProductIds = countR($productIds) > 1;
 
         foreach ($rows as $id => $row) {
@@ -3359,7 +3368,7 @@ class planning_Tasks extends core_Master
                     foreach ($rec->gapData as $gapArr){
                         $caption = $gapArr['type'] == 'idle' ? tr('Престой') : tr('Почивка');
                         $gapVerbal = core_Type::getByName('time(uom=hours,noSmart)')->toVerbal($gapArr['count'] * $gap);
-                        $size = $gapArr['type'] == 'idle' ? round(10 * log($gapArr['count'], 2) + 2) : 2;
+                        $size = $gapArr['type'] == 'idle' ? round(10 * log($gapArr['count'], 2) + 1) : 2;
                         $row->gaps .= "<li class='{$gapArr['type']}' style='height:{$size}px'>{$caption}:&nbsp;&nbsp;{$gapVerbal}</li>";
                     }
                     $row->gaps .= "</ul>";

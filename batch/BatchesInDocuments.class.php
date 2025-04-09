@@ -101,7 +101,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
-        $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+        $row->storeId = $rec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? planning_WorkInProgress::getHyperlink() : store_Stores::getHyperlink($rec->storeId, true);
     }
 
 
@@ -175,7 +175,8 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote) && $rInfo->state != 'rejected';
-        $palletStoreId = isset($rInfo->operation['in']) ? $rInfo->operation['in'] : $storeId;
+        $palletStoreId = $rInfo->operation['in'] ?? $storeId;
+        $palletStoreId = $palletStoreId == batch_Items::WORK_IN_PROGRESS_ID ? null : $palletStoreId;
         $operation = key($rInfo->operation);
 
         $query = self::getQuery();
@@ -210,6 +211,7 @@ class batch_BatchesInDocuments extends core_Manager
             $label = (!empty($caption)) ? tr($caption) . ':' : 'lot:';
             $batch1 = $batch;
             $batch = implode(', ', $batch);
+            $storeName = ($storeId == batch_Items::WORK_IN_PROGRESS_ID) ? 'Незавършено производство' : store_Stores::getTitleById($storeId);
 
             $quantityInPack = empty($rInfo->quantityInPack) ? 1 : $rInfo->quantityInPack;
             $q = $rec->quantity / $quantityInPack;
@@ -222,7 +224,7 @@ class batch_BatchesInDocuments extends core_Manager
                     $batchQuantityInStore = batch_Items::getQuantity($rec->productId, $rec->batch, $storeId);
                     if ($rec->quantity > $batchQuantityInStore) {
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
-                        $quantity = ht::createHint($quantity, 'Недостатъчно количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning', false);
+                        $quantity = ht::createHint($quantity, 'Недостатъчно количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . $storeName . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning', false);
                     }
                 }
                 $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
@@ -250,11 +252,11 @@ class batch_BatchesInDocuments extends core_Manager
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInStore / $quantityInPack);
 
                         if ($rec->quantity > $batchQuantityInStore) {
-                            $batch = ht::createHint($batch, 'Недостатъчно количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . store_Stores::getTitleById($storeId) . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning');
+                            $batch = ht::createHint($batch, 'Недостатъчно количество|* ' . $batchQuantityInStoreVerbal . ' |в|* "' . $storeName . '". |Проверете за контирани документи по партидата с по-нова дата|*.', 'warning');
                         }
                     }
 
-                    if ($rInfo->operation['in']) {
+                    if ($rInfo->operation['in'] && empty($rInfo->operation['out'])) {
                         $batchQuantityInAllStores = batch_Items::getBatchQuantitiesInStore($rec->productId, null, null, null, array(), false, $rec->batch);
                         $batchQuantityInStoreVerbal = core_Type::getByName('double(smartRound)')->toVerbal($batchQuantityInAllStores[$rec->batch] / $quantityInPack);
 
@@ -418,12 +420,12 @@ class batch_BatchesInDocuments extends core_Manager
         $recInfo->detailClassId = $detailClassId;
         $recInfo->detailRecId = $detailRecId;
         $storeId = $recInfo->operation[key($recInfo->operation)];
+        $Def = batch_Defs::getBatchDef($recInfo->productId);
 
         // Кои са наличните партиди към момента
         $batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date, null, array(), true);
 
         // Ако има други споменати партиди в нишката добавят се и те като достъпни
-        $batchesInThread = array();
         $threadId = doc_Containers::fetchField($recInfo->containerId, 'threadId');
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId} AND #id != {$recInfo->containerId}");
@@ -463,6 +465,11 @@ class batch_BatchesInDocuments extends core_Manager
             }
         }
 
+        // Ако партидноста е сериен номер - да се предлагат винаги наличните партиди
+        if ($Def instanceof batch_definitions_Serial) {
+            $batches = array_filter($batches, function($a) {return $a > 0;});
+        }
+
         // Филтриране на партидите
         $Detail->filterBatches($detailRecId, $batches);
         $packName = cat_UoM::getShortName($recInfo->packagingId);
@@ -472,9 +479,12 @@ class batch_BatchesInDocuments extends core_Manager
         // Подготовка на формата
         $form = cls::get('core_Form');
         $form->title = 'Задаване на партидности в|* ' . $link;
-        $form->info = new core_ET(tr('Артикул|*:[#productId#]<br>|Склад|*: [#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#] [#packName#]</b>'));
+
+        $storeName = $storeId == batch_Items::WORK_IN_PROGRESS_ID ? planning_WorkInProgress::getHyperlink() : tr("|Склад|*:") . store_Stores::getHyperlink($storeId, true);
+
+        $form->info = new core_ET(tr('|*<div class="batchInfoBlock">|Артикул|*:[#productId#]<br>[#storeId#]<br>|Количество за разпределяне|*: <b>[#quantity#] [#packName#]</b></div>'));
         $form->info->replace(cat_Products::getHyperlink($recInfo->productId, true), 'productId');
-        $form->info->replace(store_Stores::getHyperlink($storeId, true), 'storeId');
+        $form->info->replace($storeName, 'storeId');
         $form->info->replace($packName, 'packName');
         $form->info->append(cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($recInfo->quantity / $recInfo->quantityInPack), 'quantity');
 
@@ -491,7 +501,6 @@ class batch_BatchesInDocuments extends core_Manager
         $haveMoreThenDisplayedBatches = false;
         $middleCaption = '->';
 
-        $Def = batch_Defs::getBatchDef($recInfo->productId);
         $suggestions = array();
         $Def->orderBatchesForDisplay($batches);
 
@@ -503,6 +512,16 @@ class batch_BatchesInDocuments extends core_Manager
 
         if ($Def instanceof batch_definitions_Serial) {
 
+            // Ако е сериен номер добавя се и бутон за маркиране/отмаркиране на всички чекбоксове
+            if(countR($batches)){
+                $checkVal =   $type == 'in' ? 'yes' : null;
+                $CheckType = cls::get('type_Check', array('params' => array('label' => tr('Всички'))));
+                $checkInput = $CheckType->renderInput('checkAll', $checkVal, array());
+                $checkInput->prepend("<div class='checkAllBatchBtn'>");
+                $checkInput->append("</div>");
+                $form->info->append($checkInput);
+            }
+
             // Полетата излизат като списък
             $suggestions = '';
             foreach ($batches as $b => $q) {
@@ -512,7 +531,9 @@ class batch_BatchesInDocuments extends core_Manager
                     $suggestions .= "{$b1}={$verbal},";
                 }
             }
+
             $suggestions = trim($suggestions, ',');
+
             if (!empty($suggestions)) {
                 $form->FLD('serials', "set({$suggestions})", 'caption=Партиди,maxRadio=2,class=batch-quantity-fields');
             }
@@ -807,6 +828,7 @@ class batch_BatchesInDocuments extends core_Manager
         core_Form::preventDoubleSubmission($tpl, $form);
 
         // Рендиране на формата
+        jquery_Jquery::run($tpl, 'selectAllCheckboxes();', true);
         return $tpl;
     }
 
@@ -965,22 +987,24 @@ class batch_BatchesInDocuments extends core_Manager
         // Подготвяне на редовете за обновяване
         $update = array();
         foreach ($batchesArr as $b => $q) {
-            foreach ($recInfo->operation as $operation => $storeId) {
-                $obj = clone $recInfo;
-                $obj->operation = $operation;
-                $obj->storeId = $storeId;
-                $obj->quantity = $q;
-                $obj->batch = $b;
+            if(is_array($recInfo->operation)){
+                foreach ($recInfo->operation as $operation => $storeId) {
+                    $obj = clone $recInfo;
+                    $obj->operation = $operation;
+                    $obj->storeId = $storeId;
+                    $obj->quantity = $q;
+                    $obj->batch = $b;
 
-                $b1 = ($sync === true) ? null : $obj->batch;
-                if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b1, $operation)) {
-                    $obj->id = $id;
-                    if($increment){
-                        $obj->quantity = $q + static::fetchField($id, 'quantity', false);
+                    $b1 = ($sync === true) ? null : $obj->batch;
+                    if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b1, $operation)) {
+                        $obj->id = $id;
+                        if($increment){
+                            $obj->quantity = $q + static::fetchField($id, 'quantity', false);
+                        }
                     }
+
+                    $update[] = $obj;
                 }
-                
-                $update[] = $obj;
             }
         }
 

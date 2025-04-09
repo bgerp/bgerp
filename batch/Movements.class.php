@@ -82,7 +82,7 @@ class batch_Movements extends core_Detail
     public function description()
     {
         $this->FLD('itemId', 'key(mvc=batch_Items)', 'input=hidden,mandatory,caption=Партида');
-        $this->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'mandatory,caption=Операция');
+        $this->FLD('operation', 'enum(in=Влиза, out=Излиза, stay=Стои)', 'tdClass=maxCell,smartCenter,mandatory,caption=Операция');
         $this->FLD('quantity', 'double', 'input=hidden,mandatory,caption=Количество');
         $this->FLD('docType', 'class(interface=doc_DocumentIntf)', 'caption=Документ вид');
         $this->FLD('docId', 'int', 'caption=Документ номер');
@@ -128,10 +128,9 @@ class batch_Movements extends core_Detail
         }
         
         if (isset($rec->storeId)) {
-            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
+            $row->storeId = $rec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? planning_WorkInProgress::getHyperlink() : store_Stores::getHyperlink($rec->storeId, true);
         }
-        
-        $row->operation = "<span style='float:center'>{$row->operation}</span>";
+
         switch ($rec->operation) {
             case 'in':
                 $row->ROW_ATTR['style'] = 'background-color:rgba(0, 255, 0, 0.1)';
@@ -156,7 +155,8 @@ class batch_Movements extends core_Detail
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->FLD('batch', 'varchar(128)', 'caption=Партида,silent');
         $data->listFilter->FLD('searchType', 'enum(full=Точно съвпадение,notFull=Частично съвпадение)', 'caption=Търсене,silent');
-        $data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
+        batch_Items::setStoreFilter($data->listFilter);
+
         $data->listFilter->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'caption=Артикул');
         $data->listFilter->FLD('document', 'varchar(128)', 'silent,caption=Документ,placeholder=Хендлър');
         $data->listFilter->FNC('action', 'enum(all=Всички,in=Влиза, out=Излиза, stay=Стои)', 'caption=Операция,input');
@@ -202,7 +202,7 @@ class batch_Movements extends core_Detail
                 unset($data->listFields['productId']);
             }
             
-            if (isset($fRec->storeId)) {
+            if (!empty($fRec->storeId)) {
                 $data->query->where("#storeId = {$fRec->storeId}");
                 unset($data->listFields['storeId']);
             }
@@ -234,9 +234,11 @@ class batch_Movements extends core_Detail
                 }
             }
         }
+
+        $data->query->orderBy('date', 'DESC');
     }
-    
-    
+
+
     /**
      * Записва движение на партида от документ
      *
@@ -252,10 +254,8 @@ class batch_Movements extends core_Detail
             
             // Ако е покупка/продажба трябва да има експедирано/доставено с нея
             $actions = type_Set::toArray($doc->fetchField('contoActions'));
-            if (!isset($actions['ship'])) {
-                
-                return;
-            }
+
+            if (!isset($actions['ship'])) return;
         }
         
         // Какви партиди са въведени
@@ -263,6 +263,7 @@ class batch_Movements extends core_Detail
         $jQuery->where("#containerId = {$containerId}");
         $jQuery->orderBy('id', 'ASC');
         $docRec = $doc->fetch();
+        $totalMovements = array();
 
         // За всяка
         while ($jRec = $jQuery->fetch()) {
@@ -277,40 +278,47 @@ class batch_Movements extends core_Detail
             // Записва се движението и
             foreach ($batches as $key => $b) {
                 $result = true;
-                
-                try {
-                    $itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
-                    if (empty($jRec->date)) {
-                        $jRec->date = $doc->fetchField($doc->valiorFld);
-                        cls::get('batch_BatchesInDocuments')->save_($jRec, 'date');
-                    }
-                    
-                    // Движението, което ще запишем
-                    $mRec = (object) array('itemId' => $itemId,
-                        'quantity' => $quantity,
-                        'operation' => $jRec->operation,
-                        'docType' => $doc->getClassId(),
-                        'docId' => $doc->that,
-                        'date' => $jRec->date,
-                    );
-                    
-                    // Запис на движението
-                    $id = self::save($mRec);
-                    
-                    // Ако има проблем със записа, сетваме грешка
-                    if (!$id) {
-                        $result = false;
-                        break;
-                    }
-                } catch (core_exception_Expect $e) {
-                    reportException($e);
-                    
-                    // Ако е изникнала грешка
-                    $result = false;
+
+                $itemId = batch_Items::forceItem($jRec->productId, $key, $jRec->storeId);
+                if (empty($jRec->date)) {
+                    $jRec->date = $doc->fetchField($doc->valiorFld);
+                    cls::get('batch_BatchesInDocuments')->save_($jRec, 'date');
                 }
+
+                $key = "{$itemId}|{$jRec->operation}";
+                if (!array_key_exists($key, $totalMovements)) {
+                    $mRec = (object)array('itemId' => $itemId,
+                                          'operation' => $jRec->operation,
+                                          'docType' => $doc->getClassId(),
+                                          'docId' => $doc->that,
+                                          'date' => $jRec->date,
+                    );
+                    $totalMovements[$key] = $mRec;
+                }
+
+                $totalMovements[$key]->quantity += $quantity;
             }
         }
-        
+
+        // Записване на сумарното по партиди
+        foreach ($totalMovements as $mRec) {
+            try {
+                // Запис на движението
+                $id = self::save($mRec);
+
+                // Ако има проблем със записа, сетваме грешка
+                if (!$id) {
+                    $result = false;
+                    break;
+                }
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+
+                // Ако е изникнала грешка
+                $result = false;
+            }
+        }
+
         // При грешка изтриваме всички записи до сега
         if ($result === false) {
             self::removeMovement($doc->getInstance(), $doc->that);
@@ -358,7 +366,8 @@ class batch_Movements extends core_Detail
             }
             
             if (isset($fRec->storeId)) {
-                $titles[] = "<b style='color:green'>" . store_Stores::getTitleById($fRec->storeId) . '</b>';
+                $storeName = $fRec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? tr('Незавършено производство') : store_Stores::getTitleById($fRec->storeId);
+                $titles[] = "<b style='color:green'>{$storeName}</b>";
             }
         }
         
