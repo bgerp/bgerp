@@ -184,7 +184,11 @@ class plg_UserReg extends core_Plugin
                 if (EF_USSERS_EMAIL_AS_NICK) {
                     $rec->nick = $rec->email;
                 }
-                
+
+                if (drdata_Domains::isDisposal($rec->email)) {
+                    $form->setError('email', 'Не може да се използват временни имейли за регистрация!');
+                }
+
                 // Проверка дали никът не се повтаря
                 if ($eRec = $mvc->fetch("#nick = '{$rec->nick}'") || core_Users::isForbiddenNick($rec->nick)) {
                     if (EF_USSERS_EMAIL_AS_NICK) {
