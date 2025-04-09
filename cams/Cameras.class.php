@@ -79,7 +79,32 @@ class cams_Cameras extends core_Master
         $this->FLD('params', 'text', 'caption=Параметри,input=none');
         $this->FLD('driver', 'class(interface=cams_DriverIntf)', 'caption=Драйвер,mandatory');
     }
-    
+
+
+    /**
+     * Връща снимка от драйвера
+     *
+     * @param integer $id
+     *
+     * @return mixed
+     */
+    public static function getPicture($id, $save = false)
+    {
+        expect($rec = self::fetchRec($id), $id);
+
+        if ($rec->state == 'closed') {
+            self::logWarning('Камерата е изключена', $rec);
+
+            return null;
+        }
+
+        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
+
+        $img = $driver->getPicture($save);
+
+        return $img;
+    }
+
     
     /**
      * Показва текуща снимка от камера
@@ -91,22 +116,26 @@ class cams_Cameras extends core_Master
      */
     public function act_ShowImage()
     {
-//    	$this->haveRightFor('single');
-        
+    	$this->requireRightFor('single');
+
         $id = Request::get('id', 'int');
         
         expect($rec = $this->fetch($id));
 
-//        $this->haveRightFor('single', $rec);
-        
-        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
-        
-        $img = $driver->getPicture();
-        
-        if (!$img) {
-            $img = imagecreatefromjpeg(dirname(__FILE__) . '/img/novideo.jpg');
+        $this->requireRightFor('single', $rec);
+
+        if ($rec->state != 'closed') {
+            $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
+
+            $img = $driver->getPicture();
+
+            if (!$img) {
+                $img = imagecreatefromjpeg(dirname(__FILE__) . '/img/novideo.jpg');
+            }
+        } else {
+            $img = imagecreatefromjpeg(getFullPath('cams/img/novideo.jpg'));
         }
-        
+
         if (Request::get('thumb')) {
             $imgInst = new thumb_Img(array($img, 64, 64, 'gdRes', 'isAbsolute' => false, 'mode' => 'small-no-change'));
             $img = $imgInst->getScaledGdRes();
@@ -238,6 +267,8 @@ class cams_Cameras extends core_Master
      */
     public function act_ApplyPtzCmd()
     {
+        requireRole('ceo,admin,cams');
+
         if (!($id = Request::get('id', 'int'))) {
             
             return new Redirect(array($this));

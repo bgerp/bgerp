@@ -288,7 +288,7 @@ class batch_Items extends core_Master
         }
 
         if(!$form->getField($storeFieldName, false)){
-            $form->FLD($storeFieldName, 'varchar', 'placeholder=Всички складове,caption=Склад,forceField');
+            $form->FLD($storeFieldName, 'varchar(nullIfEmpty)', 'placeholder=Всички складове,caption=Склад,forceField');
         } else {
             $form->setFieldType($storeFieldName, "varchar(nullIfEmpty)");
             $form->setField($storeFieldName, "placeholder=Всички складове");
@@ -549,8 +549,10 @@ class batch_Items extends core_Master
         // Към складовите наличности се добавя и незавършеното производство
         $stores = $storeQuery->fetchAll();
         if($workInProgressRec = planning_WorkInProgress::fetch("#productId = {$data->masterId}")) {
-            $workInProgressRec->storeId = batch_Items::WORK_IN_PROGRESS_ID;
-            $stores[$workInProgressRec->storeId] = $workInProgressRec;
+            if(empty($data->storeId) || $data->storeId == batch_Items::WORK_IN_PROGRESS_ID){
+                $workInProgressRec->storeId = batch_Items::WORK_IN_PROGRESS_ID;
+                $stores[$workInProgressRec->storeId] = $workInProgressRec;
+            }
         }
 
         $newRecs = array();
