@@ -1062,7 +1062,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             while($dRec = $dQuery->fetch()){
                 if(!$rec->_isCreated){
                     $singleQuantity = $dRec->quantityFromBom / $rec->_exQuantity;
-                    $round = cat_UoM::fetchField($dRec->measureId, 'round');
+                    $measureId = $dRec->measureId ?? $dRec->packagingId;
+                    $round = cat_UoM::fetchField($measureId, 'round');
                     $dRec->quantityFromBom = round($singleQuantity * $rec->quantity, $round);
                 }
 
