@@ -96,7 +96,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
 
-        $fieldset->FLD('availability', 'enum(all=Всички, available=Налични,neg=Отрицателни ,notzero=Ненулеви)', 'notNull,caption=Филтри->Наличност,maxRadio=3,columns=3,after=products,single=none');
+        $fieldset->FLD('availability', 'set(available=Положителна,neg=Отрицателна,zero=Нулева)', 'notNull,caption=Филтри->Наличност,maxRadio=4,columns=4,after=products,mandatory,single=none');
 
         $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=4,columns=4,after=availability,silent');
 
@@ -142,7 +142,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('selfPrices', 'balance');
-        $form->setDefault('availability', 'all');
+        $form->setDefault('availability', 'available,neg');
         $form->setDefault('seeByGroups', 'no');
         $form->setDefault('orderBy', 'name');
         $form->setDefault('type', 'short');
@@ -321,17 +321,19 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                 //Количество в края на периода
                 $blQuantity = $item->blQuantity;
 
-                if (($rec->availability == 'available') && $blQuantity < 0.0001) {
-                    continue;
+                $mark = false;
+
+                if (is_numeric(strpos($rec->availability, 'available')) && $blQuantity > 0.0001) {
+                    $mark = true;
                 }
-                if ($rec->availability == 'neg' && $blQuantity > -0.0001) {
-                    continue;
+                if (is_numeric(strpos($rec->availability, 'neg')) && $blQuantity < -0.0001) {
+                    $mark = true;
                 }
 
-                if ($rec->availability == 'notzero' && $blQuantity > -0.0001 && $blQuantity < 0.0001 ) {
-
-                    continue;
+                if (is_numeric(strpos($rec->availability, 'zero')) && $blQuantity > -0.0001 && $blQuantity < 0.0001) {
+                    $mark = true;
                 }
+                if (!$mark) continue;
 
                 //Стойност в края на периода
                 $blAmount = $item->blAmount;
@@ -721,7 +723,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $Enum = cls::get('type_Enum', array('options' => array('included' => 'Включено', 'off' => 'Изключено', 'only' => 'Само')));
-        $Enum1 = cls::get('type_Enum', array('options' => array('all'=>'Всички', 'available'=>'Налични','neg'=>'Отрицателни' ,'notzero'=>'Ненулеви')));
+        $Enum1 = cls::get('type_Enum', array('options' => array('all' => 'Всички', 'available' => 'Налични', 'neg' => 'Отрицателни', 'notzero' => 'Ненулеви')));
 
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
