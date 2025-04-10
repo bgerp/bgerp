@@ -73,7 +73,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $autohide = countR($quantities) ? 'autohide' : '';
             $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
             $form->FNC('batchNew', 'varchar', "caption=Установена нова партида->{$caption},input,placeholder={$Def->placeholder}");
-            
+
             // Ако е сериен номер само едно поле се показва
             if ($Def instanceof batch_definitions_Serial) {
                 if(isset($rec->editBatch) || isset($rec->batch)){
@@ -109,15 +109,18 @@ class batch_plg_InventoryNotes extends core_Plugin
                 }
                 
                 if (isset($rec->batch)) {
+                    $form->setField('batchEx', 'input');
                     $form->setDefault('batchEx', $rec->batch);
                 }
             }
 
             if(isset($rec->editQuantity) || isset($rec->editBatch)){
+                $form->setField('batchEx', 'input');
                 $form->setField('batchNew', 'input=none');
             }
 
             if(isset($rec->editSummary)){
+                $form->setField('batchEx', 'input');
                 $form->setReadOnly('batchEx', $rec->editBatch);
                 $form->setField('batchNew', 'input=none');
             }
