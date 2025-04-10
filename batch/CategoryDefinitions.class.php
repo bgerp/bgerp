@@ -57,8 +57,14 @@ class batch_CategoryDefinitions extends core_Manager
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'id';
-    
-    
+
+
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = false;
+
+
     /**
      * Описание на модела (таблицата)
      */
