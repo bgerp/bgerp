@@ -55,8 +55,11 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
             
             // Ако има налични партиди
-            $valior = dt::addDays(-1, $masterRec->valior);
-            $valior = dt::verbal2mysql($valior, false);
+            $valior = $masterRec->valior;
+            if($masterRec->instockTo == 'dayBefore'){
+                $valior = dt::addDays(-1, $masterRec->valior);
+                $valior = dt::verbal2mysql($valior, false);
+            }
             
             $quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $valior, null, array(), true, null, false, true);
             $selected = $Def->makeArray($rec->batch);
@@ -531,9 +534,12 @@ class batch_plg_InventoryNotes extends core_Plugin
             return;
         }
 
-        $masterRec = store_InventoryNotes::fetch($summaryRec->noteId, 'valior,storeId');
-        $valior = dt::addDays(-1, $masterRec->valior);
-        $valior = dt::verbal2mysql($valior, false);
+        $masterRec = store_InventoryNotes::fetch($summaryRec->noteId, 'valior,storeId,instockTo');
+        $valior = $masterRec->valior;
+        if($masterRec->instockTo == 'dayBefore'){
+            $valior = dt::addDays(-1, $masterRec->valior);
+            $valior = dt::verbal2mysql($valior, false);
+        }
 
         $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $masterRec->storeId, $valior, null, array(), true, null, false, true);
         $notInputed = array_diff_key($batchQuantities, $explicitBatchQuantities);
