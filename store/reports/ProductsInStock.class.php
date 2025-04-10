@@ -96,9 +96,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
 
-        $fieldset->FLD('availability', 'enum(Всички=Всички, Налични=Налични,Отрицателни=Отрицателни)', 'notNull,caption=Филтри->Наличност,maxRadio=3,columns=3,after=products,single=none');
+        $fieldset->FLD('availability', 'enum(all=Всички, available=Налични,neg=Отрицателни ,notzero=Ненулеви)', 'notNull,caption=Филтри->Наличност,maxRadio=3,columns=3,after=products,single=none');
 
-        $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=3,columns=3,after=availability,silent');
+        $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=4,columns=4,after=availability,silent');
 
         $fieldset->FLD('seeByGroups', 'enum(no=Без разбивка,checked=Само за избраните,subGroups=Включи подгрупите)', 'notNull,caption=Филтри->"Общо" по групи,after=orderBy, single=none');
 
@@ -142,7 +142,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('selfPrices', 'balance');
-        $form->setDefault('availability', 'Всички');
+        $form->setDefault('availability', 'all');
         $form->setDefault('seeByGroups', 'no');
         $form->setDefault('orderBy', 'name');
         $form->setDefault('type', 'short');
@@ -321,10 +321,15 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                 //Количество в края на периода
                 $blQuantity = $item->blQuantity;
 
-                if (($rec->availability == 'Налични') && $blQuantity < 0.0001) {
+                if (($rec->availability == 'available') && $blQuantity < 0.0001) {
                     continue;
                 }
-                if ($rec->availability == 'Отрицателни' && $blQuantity > -0.0001) {
+                if ($rec->availability == 'neg' && $blQuantity > -0.0001) {
+                    continue;
+                }
+
+                if ($rec->availability == 'notzero' && $blQuantity > -0.0001 && $blQuantity < 0.0001 ) {
+
                     continue;
                 }
 
@@ -716,6 +721,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $Enum = cls::get('type_Enum', array('options' => array('included' => 'Включено', 'off' => 'Изключено', 'only' => 'Само')));
+        $Enum1 = cls::get('type_Enum', array('options' => array('all'=>'Всички', 'available'=>'Налични','neg'=>'Отрицателни' ,'notzero'=>'Ненулеви')));
 
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -788,7 +794,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
 
         if ((isset($data->rec->availability))) {
-            $fieldTpl->append('<b>' . ($data->rec->availability) . '</b>', 'availability');
+            $fieldTpl->append('<b>' . $Enum1->toVerbal($data->rec->availability) . '</b>', 'availability');
         }
 
         if ((isset($data->rec->totalProducts))) {
