@@ -362,8 +362,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         $rows = &$data->rows;
         foreach ($rows as $id => &$row) {
             $rec = &$data->recs[$id];
-            $recInfo = $mvc->getRowInfo($rec);
+            if(!isset($rec)) continue;
 
+            $recInfo = $mvc->getRowInfo($rec);
             $storeId = $recInfo->operation[key($recInfo->operation)];
             if (!$storeId) return;
             
@@ -397,12 +398,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
      */
     public static function on_AfterGetRowInfo($mvc, &$res, $rec)
     {
-        if (isset($res)) {
-            
-            return;
-        }
-        
+        if (isset($res)) return;
+
         $rec = $mvc->fetchRec($rec);
+
         if (isset($mvc->rowInfo[$rec->id])) {
             $res = $mvc->rowInfo[$rec->id];
             
