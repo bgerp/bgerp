@@ -549,9 +549,7 @@ class acc_BalanceDetails extends core_Detail
             
             // Събираме числовите данни
             foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld) {
-                if (!is_null($rec1->{$fld})) {
-                    $r->{$fld} += $rec1->{$fld};
-                }
+                $r->{$fld} += $rec1->{$fld};
             }
             
             foreach (array('grouping1', 'grouping2', 'grouping3') as $gr) {
