@@ -133,8 +133,10 @@ class planning_AssetResourcesNorms extends core_Manager
             // Взимат се всички норми от групата му
             $gQuery = self::getQuery();
             $gQuery->where("#classId = {$data->masterMvc->Master->getClassId()} AND #objectId = {$data->masterData->rec->groupId} AND #state != 'closed'");
-            $gQuery->notIn('productId', arr::extractValuesFromArray($data->recs, 'productId'));
-            
+            if (!empty($data->recs)) {
+                $gQuery->notIn('productId', arr::extractValuesFromArray($data->recs, 'productId'));
+            }
+
             // Те ще се показват под неговите норми
             while ($rec = $gQuery->fetch()) {
                 $data->recs[$rec->productId] = $rec;
