@@ -2047,7 +2047,7 @@ class planning_Tasks extends core_Master
             if ($countNotes) {
                 $row->info .= "<div style='padding-bottom:7px;' class='taskInJobListRow small pnotes{$rec->id}'>" . implode(' | ', $notes) . "</div>";
                 if(!Mode::isReadOnly()){
-                    $row->producedQuantity = "{$row->producedQuantity}&nbsp;<a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','pnotes{$rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>";
+                    $row->producedQuantity = "{$row->producedQuantity}&nbsp;<a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','pnotes{$rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn", title="' . tr('Показване на протоколи за производство') . "\"</a>";
                 }
             }
 
@@ -2984,7 +2984,7 @@ class planning_Tasks extends core_Master
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
-        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId', 'prevExpectedTimeEnd', 'notes');
+        $fieldsToFilterIfEmpty = array('dependantProgress', 'saleId', 'prevExpectedTimeEnd', 'notes', 'info');
 
         // Кои ще са планиращите параметри
         $plannedParams = array();
@@ -3037,6 +3037,9 @@ class planning_Tasks extends core_Master
                     $plannedParams += keylist::toArray($cRec->planningParams);
                 }
             }
+        } else {
+            $data->listFields['info'] = '@';
+            $data->listTableMvc->tableRowTpl = "<tbody class='rowBlock' [#TBODY_ROW_ATTR#]>[#ROW#][#ADD_ROWS#]</tbody>";
         }
 
         // Ако има намерени планиращи параметри - показват се в таблицата
