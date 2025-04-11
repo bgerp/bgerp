@@ -799,8 +799,8 @@ class core_Master extends core_Manager
         }
 
         if ($attr['name']) {
+            $attr['title'] = $name;
             $name = $attr['name'];
-            $attr['title'] = $attr['name'];
             unset($attr['name']);
         }
 
