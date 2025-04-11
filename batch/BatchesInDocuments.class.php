@@ -169,6 +169,7 @@ class batch_BatchesInDocuments extends core_Manager
         $Class = cls::get($detailClassId);
         $detailClassId = $Class->getClassId();
         $rInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
+
         if (!countR($rInfo->operation)) {
 
             return;
@@ -177,13 +178,19 @@ class batch_BatchesInDocuments extends core_Manager
         $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote) && $rInfo->state != 'rejected';
         $palletStoreId = $rInfo->operation['in'] ?? $storeId;
         $palletStoreId = $palletStoreId == batch_Items::WORK_IN_PROGRESS_ID ? null : $palletStoreId;
-        $operation = key($rInfo->operation);
 
+        $bRecs = array();
         $query = self::getQuery();
-        $query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId} AND #operation = '{$operation}'");
+        $query->where("#detailClassId = {$detailClassId} AND #detailRecId = {$detailRecId}");
         $query->orderBy('id', 'ASC');
-        $batchDef = batch_Defs::getBatchDef($rInfo->productId);
+        while($bRec = $query->fetch()) {
+            $key = "{$bRec->detailRecId}|{$bRec->detailRecId}|{$bRec->batch}";
+            if(!array_key_exists($key, $bRecs)) {
+                $bRecs[$key] = $bRec;
+            }
+        }
 
+        $batchDef = batch_Defs::getBatchDef($rInfo->productId);
         $file = ($batchDef instanceof batch_definitions_Serial) ? 'batch/tpl/BatchInfoBlockSerial.shtml' : 'batch/tpl/BatchInfoBlock.shtml';
         $tpl = getTplFromFile($file);
 
@@ -192,7 +199,7 @@ class batch_BatchesInDocuments extends core_Manager
         $totalCount = $query->count() - 1;
 
         $blocks = array();
-        while ($rec = $query->fetch()) {
+        foreach ($bRecs as $rec){
             $batch = batch_Movements::getLinkArr($rec->productId, $rec->batch);
             if (is_array($batch)) {
                 foreach ($batch as $key => &$b) {
@@ -284,7 +291,7 @@ class batch_BatchesInDocuments extends core_Manager
             $blocks[$rec->batch] = $block;
             $count++;
         }
-        //bp($blocks);
+
         $batchDef->orderBatchesForDisplay($blocks);
         foreach ($blocks as $block) {
             $block->append2Master();
