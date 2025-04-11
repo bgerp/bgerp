@@ -472,7 +472,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             //Себестойност на артикула
 
             //ako количеството закръглено до минималната заначеща стойност на мярката е 0, го нулирам
+            if($val->measureId){
             $mround = cat_UoM::fetch($val->measureId)->round;
+            }
             if (round($val->blQuantity, $mround) == 0) {
 
                 $val->blQuantity = 0;
@@ -723,7 +725,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $Enum = cls::get('type_Enum', array('options' => array('included' => 'Включено', 'off' => 'Изключено', 'only' => 'Само')));
-        $Enum1 = cls::get('type_Enum', array('options' => array('all' => 'Всички', 'available' => 'Налични', 'neg' => 'Отрицателни', 'notzero' => 'Ненулеви')));
+        $Set = cls::get('type_Set', array('options' => array('available' => 'Положителна', 'neg' => 'Отрицателна', 'zero' => 'Ненулева')));
 
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -796,7 +798,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
 
         if ((isset($data->rec->availability))) {
-            $fieldTpl->append('<b>' . $Enum1->toVerbal($data->rec->availability) . '</b>', 'availability');
+            $fieldTpl->append('<b>' . $Set->toVerbal($data->rec->availability) . '</b>', 'availability');
         }
 
         if ((isset($data->rec->totalProducts))) {
