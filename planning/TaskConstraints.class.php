@@ -517,7 +517,9 @@ class planning_TaskConstraints extends core_Master
 
         // Извличане на времето за престой
         $idleQuery = planning_AssetScheduleBreaks::getQuery();
-        $idleQuery->in('assetId', $assetIds);
+        if(countR($assetIds)){
+            $idleQuery->in('assetId', $assetIds);
+        }
         while ($iRec = $idleQuery->fetch()) {
             $idleTimes[$iRec->assetId][$iRec->id] = $iRec;
         }
@@ -525,7 +527,10 @@ class planning_TaskConstraints extends core_Master
         // Извличане на графиците на оборудването
         $debugRes = 'Графици';
         $assetQuery = planning_AssetResources::getQuery();
-        $assetQuery->in('id', $assetIds);
+        if(countR($assetIds)){
+            $assetQuery->in('id', $assetIds);
+        }
+
         $assetQuery->show("code,taskQuantization,scheduleId,code");
         while ($aRec = $assetQuery->fetch()) {
             $assets[$aRec->id] = $aRec;
