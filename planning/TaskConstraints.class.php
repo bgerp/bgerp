@@ -467,10 +467,6 @@ class planning_TaskConstraints extends core_Master
             $t->calcedCurrentDuration = $duration;
         }
 
-        if (haveRole('debug')) {
-            core_Statuses::newStatus("RECALC_TIMES-" . countR($tasks), 'warning');
-        }
-
         // Кешира се нетната продължителност
         cls::get('planning_Tasks')->saveArray($tasks, 'id,calcedDuration,calcedCurrentDuration');
 
