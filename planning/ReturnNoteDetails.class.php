@@ -160,6 +160,9 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
                 $res->operation['in'] = $res->operation['out'];
                 $res->operation['out'] = batch_Items::WORK_IN_PROGRESS_ID;
             }
+        } else {
+            unset($res->operation['out']);
+            $res->operation['in'] = $masterRec->storeId;
         }
     }
 }
