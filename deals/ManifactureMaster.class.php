@@ -149,15 +149,15 @@ abstract class deals_ManifactureMaster extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $folderCover = doc_Folders::getCover($data->form->rec->folderId);
+        $folderCover = doc_Folders::getCover($form->rec->folderId);
         if ($folderCover->haveInterface('store_AccRegIntf')) {
             $form->setDefault('storeId', $folderCover->that);
         }
 
         if($form->getField('useResourceAccounts', false)){
-            if(isset($rec->id)){
+            if(isset($form->rec->id)){
                 if(core_Packs::isInstalled('batch')){
-                    if(batch_BatchesInDocuments::count("#containerId = {$rec->containerId}")){
+                    if(batch_BatchesInDocuments::count("#containerId = {$form->rec->containerId}")){
                         $form->setReadOnly('useResourceAccounts');
                         $form->setField('useResourceAccounts', array('hint' => 'За да смените типа на влагането, трябва да се изтрият вече разписаните партиди'));
                     }
