@@ -132,6 +132,11 @@ defIfNot('FSD_ZDDS_CHL163A', 88);
 defIfNot('BASE_GROUP', '');
 
 /**
+ * Код за Синтезия
+ */
+defIfNot('SYNTESIA_PRODCODE', 'no');
+
+/**
  * Сметка  продажби складируеми
  */
 defIfNot('FSD_SALES', '');
@@ -230,6 +235,7 @@ class bnav_Setup extends core_ProtoSetup
         'FSD_ZDDS_CHL163A' => array('int', 'caption=Сделка по чл 163 А ЗДДС->FSD номер'),
         'FSD_ZDDS_CHL163A_DEAL_TYPE' => array('int', 'caption=Сделка по чл 163 А ЗДДС->Тип сделка'),
         'BASE_GROUP' => array('keylist(mvc=cat_Groups,select=name)','caption=Основна група'),
+        'SYNTESIA_PRODCODE' => array('enum(no=Не,yes=Да)', 'caption=Код за Синтезия'),
     );
     
     
