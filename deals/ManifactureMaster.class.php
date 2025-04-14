@@ -153,6 +153,17 @@ abstract class deals_ManifactureMaster extends core_Master
         if ($folderCover->haveInterface('store_AccRegIntf')) {
             $form->setDefault('storeId', $folderCover->that);
         }
+
+        if($form->getField('useResourceAccounts', false)){
+            if(isset($rec->id)){
+                if(core_Packs::isInstalled('batch')){
+                    if(batch_BatchesInDocuments::count("#containerId = {$rec->containerId}")){
+                        $form->setReadOnly('useResourceAccounts');
+                        $form->setField('useResourceAccounts', array('hint' => 'За да смените типа на влагането, трябва да се изтрият вече разписаните партиди'));
+                    }
+                }
+            }
+        }
     }
 
 

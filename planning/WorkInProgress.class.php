@@ -357,7 +357,7 @@ class planning_WorkInProgress extends core_Manager
         if(is_object($bomRec)){
             $materials = cat_Boms::getBomMaterials($bomRec, $jobRec->quantity, null, false);
             foreach ($materials as $materialRec){
-                $productArr[$materialRec->productId] = (object)array('productId' => $materialRec->productId, 'bomQuantity' => $materialRec->quantity, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
+                $productArr[$materialRec->productId][''] = (object)array('productId' => $materialRec->productId, 'bomQuantity' => $materialRec->quantity, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
             }
         }
 
@@ -373,20 +373,20 @@ class planning_WorkInProgress extends core_Manager
 
             while($cRec = $cNotes->fetch()) {
                 if(!array_key_exists($cRec->productId, $productArr)){
-                    $productArr[$cRec->productId] = (object)array('productId' => $cRec->productId, 'bomQuantity' => 0, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
+                    $productArr[$cRec->productId][''] = (object)array('productId' => $cRec->productId, 'bomQuantity' => 0, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
                 }
 
                 $val = ($Detail instanceof planning_ConsumptionNoteDetails) ? ($cRec->useResourceAccounts == 'yes' ? 'consumpedDetailed' : 'consumped') : ($cRec->useResourceAccounts == 'yes' ? 'returnedInput' : 'returned');
-                $productArr[$cRec->productId]->{$val} += $cRec->quantity;
+                $productArr[$cRec->productId]['']->{$val} += $cRec->quantity;
 
                 if(core_Packs::isInstalled('batch')){
                     $bQuery = batch_BatchesInDocuments::getQuery();
                     $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$cRec->id} AND #operation = 'out'");
                     while($bRec = $bQuery->fetch()) {
-                        if(!array_key_exists("{$cRec->productId}|{$bRec->batch}", $productArr)){
-                            $productArr["{$cRec->productId}|{$bRec->batch}"] = (object)array('productId' => $cRec->productId, 'bomQuantity' => null, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0, 'batch' => $bRec->batch);
+                        if(!array_key_exists($bRec->batch, $productArr[$cRec->productId])){
+                            $productArr[$cRec->productId][$bRec->batch] = (object)array('productId' => $cRec->productId, 'bomQuantity' => null, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0, 'batch' => $bRec->batch);
                         }
-                        $productArr["{$cRec->productId}|{$bRec->batch}"]->{$val} += $bRec->quantity;
+                        $productArr[$cRec->productId][$bRec->batch]->{$val} += $bRec->quantity;
                     }
                 }
             }
@@ -402,11 +402,11 @@ class planning_WorkInProgress extends core_Manager
         $cNotes->where("#state = 'active'");
         while($cRec = $cNotes->fetch()) {
             if (!array_key_exists($cRec->productId, $productArr)) {
-                $productArr[$cRec->productId] = (object)array('productId' => $cRec->productId, 'bomQuantity' => 0, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
+                $productArr[$cRec->productId][''] = (object)array('productId' => $cRec->productId, 'bomQuantity' => 0, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
             }
-            $productArr[$cRec->productId]->inputed += $cRec->quantity;
+            $productArr[$cRec->productId]['']->inputed += $cRec->quantity;
             if(isset($cRec->storeId)){
-                $productArr[$cRec->productId]->consumpedDetailed += $cRec->quantity;
+                $productArr[$cRec->productId]['']->consumpedDetailed += $cRec->quantity;
             }
 
             if(core_Packs::isInstalled('batch')){
@@ -414,13 +414,13 @@ class planning_WorkInProgress extends core_Manager
                 $bQuery->where("#detailClassId = {$productionNoteDetailClassId} AND #detailRecId = {$cRec->id} AND #operation = 'out'");
 
                 while($bRec = $bQuery->fetch()) {
-                    if(!array_key_exists("{$cRec->productId}|{$bRec->batch}", $productArr)){
-                        $productArr["{$cRec->productId}|{$bRec->batch}"] = (object)array('productId' => $cRec->productId, 'bomQuantity' => null, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0, 'batch' => $bRec->batch);
+                    if(!array_key_exists($bRec->batch, $productArr[$cRec->productId])){
+                        $productArr[$cRec->productId][$bRec->batch] = (object)array('productId' => $cRec->productId, 'bomQuantity' => null, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0, 'batch' => $bRec->batch);
                     }
 
-                    $productArr["{$cRec->productId}|{$bRec->batch}"]->inputed += $bRec->quantity;
+                    $productArr[$cRec->productId][$bRec->batch]->inputed += $bRec->quantity;
                     if(isset($cRec->storeId)){
-                        $productArr["{$cRec->productId}|{$bRec->batch}"]->consumpedDetailed += $bRec->quantity;
+                        $productArr[$cRec->productId][$bRec->batch]->consumpedDetailed += $bRec->quantity;
                     }
                 }
             }
@@ -429,29 +429,31 @@ class planning_WorkInProgress extends core_Manager
         // Вербализиране на данните
         $data->workInProgressData = (object)array('recs' => array(), 'rows' => array(), 'listFields' => arr::make('productId=Артикул,measureId=Мярка,bomQuantity=Рецепта,consumpedDetailed=|*Детайлно->Вложено,returnedInput=|*Детайлно->Върнато,inputed=Изразходено,diff=Остатък,consumped=|*Бездетайлно->Вложено,returned=|*Бездетайлно->Върнато', true));
 
-        foreach ($productArr as $pId => $pRec){
-            $pRec->diff = $pRec->consumpedDetailed - $pRec->returnedInput - $pRec->inputed;
-            $data->workInProgressData->recs[$pId] = $pRec;
-            $row = (object)array('productId' => cat_Products::getHyperlink($pRec->productId, true));
+        foreach ($productArr as $pId => $pData){
+            foreach ($pData as $key => $pRec){
+                $pRec->diff = $pRec->consumpedDetailed - $pRec->returnedInput - $pRec->inputed;
+                $data->workInProgressData->recs["{$pId}|{$key}"] = $pRec;
+                $row = (object)array('productId' => cat_Products::getHyperlink($pRec->productId, true));
 
-            $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
-            $round = cat_Uom::fetchField($measureId, 'round');
-            $Double = core_Type::getByName("double(decimals={$round})");
-            foreach (array('returnedInput', 'consumped', 'consumpedDetailed', 'bomQuantity', 'inputed', 'returned', 'diff') as $fld){
-                $row->{$fld} = $Double->toVerbal($pRec->{$fld});
-                $row->{$fld} = ht::styleNumber($row->{$fld}, $pRec->{$fld});
+                $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
+                $round = cat_Uom::fetchField($measureId, 'round');
+                $Double = core_Type::getByName("double(decimals={$round})");
+                foreach (array('returnedInput', 'consumped', 'consumpedDetailed', 'bomQuantity', 'inputed', 'returned', 'diff') as $fld){
+                    $row->{$fld} = $Double->toVerbal($pRec->{$fld});
+                    $row->{$fld} = ht::styleNumber($row->{$fld}, $pRec->{$fld});
+                }
+
+                if(!empty($pRec->batch)){
+                    $batchLinks = batch_Movements::getLinkArr($pRec->productId, $pRec->batch);
+                    $row->productId = $batchLinks[$pRec->batch];
+                    $row->ROW_ATTR['class'] = "state-waiting workInProgressBatchRow";
+                } else {
+                    $row->ROW_ATTR['class'] = "state-active";
+                }
+
+                $row->measureId = cat_Uom::getSmartName($measureId);
+                $data->workInProgressData->rows["{$pId}|{$key}"] = $row;
             }
-
-            if(!empty($pRec->batch)){
-                $batchLinks = batch_Movements::getLinkArr($pRec->productId, $pRec->batch);
-                $row->productId = $batchLinks[$pRec->batch];
-                $row->ROW_ATTR['class'] = "state-waiting workInProgressBatchRow";
-            } else {
-                $row->ROW_ATTR['class'] = "state-active";
-            }
-
-            $row->measureId = cat_Uom::getSmartName($measureId);
-            $data->workInProgressData->rows[$pId] = $row;
         }
     }
 
