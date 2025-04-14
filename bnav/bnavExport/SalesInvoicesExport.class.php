@@ -310,8 +310,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             //Извличане на счетоводна сметка и код на артикула
             $accItem = null;
 
+            $confBnav = core_Packs::getConfig('bnav');
 
-            if ($pRec->bnavCode) {
+            if ($pRec->bnavCode && $confBnav->SYNTESIA_PRODCODE == 'yes') {
 
                 $bnavCodeMarker = null;
 
@@ -412,8 +413,13 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 }
 
             }
-            // $erpCode = $pRec->code ? $pRec->code : 'Art' . $pRec->id;
-            //   $prodCode = $pRec->bnavCode ? $pRec->bnavCode : $erpCode;
+
+            if ($confBnav->SYNTESIA_PRODCODE == 'no') {
+
+                 $erpCode = $pRec->code ? $pRec->code : 'Art' . $pRec->id;
+                 $prodCode = $pRec->bnavCode ? $pRec->bnavCode : $erpCode;
+            }
+
             $measure = cat_UoM::getShortName($dRec->packagingId);
             $detAmount = $dRec->amount;
 
