@@ -2460,6 +2460,11 @@ td.keylist-group{
    display: none;
 }
 
+.statusIcon {
+	text-decoration: none;
+	display: inline-block;
+}
+
 .filed-sharedUsers label span.statusIcon {
 	filter: unquote('grayscale(100%)');
 	font-size: 0.95em;
