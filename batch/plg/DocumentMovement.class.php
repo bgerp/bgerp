@@ -319,14 +319,14 @@ class batch_plg_DocumentMovement extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        if (batch_Movements::haveRightFor('list') && $data->rec->state == 'active') {
+        if (batch_Movements::haveRightFor('list')) {
             if(batch_Movements::count("#docType = {$mvc->getClassId()} AND #docId = {$data->rec->id}")){
                 $data->toolbar->addBtn('Партиди', array('batch_Movements', 'list', 'document' => $mvc->getHandle($data->rec->id)), 'ef_icon = img/16/wooden-box.png,title=Показване на движенията на партидите генерирани от документа,row=2');
             }
+        }
 
-            if(batch_BatchesInDocuments::haveRightFor('list') && batch_BatchesInDocuments::count("#containerId = {$data->rec->containerId}")){
-                $data->toolbar->addBtn('Партиди (Чер.)', array('batch_BatchesInDocuments', 'list', 'document' => $mvc->getHandle($data->rec)), 'ef_icon = img/16/bug.png,title=Показване на черновите движения на партидите генерирани от документа,row=2');
-            }
+        if(batch_BatchesInDocuments::haveRightFor('list')){
+            $data->toolbar->addBtn('Партиди (Чер.)', array('batch_BatchesInDocuments', 'list', 'document' => $mvc->getHandle($data->rec)), 'ef_icon = img/16/bug.png,title=Показване на черновите движения на партидите генерирани от документа,row=2');
         }
     }
 }
