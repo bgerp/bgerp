@@ -235,7 +235,7 @@ class bnav_Setup extends core_ProtoSetup
         'FSD_ZDDS_CHL163A' => array('int', 'caption=Сделка по чл 163 А ЗДДС->FSD номер'),
         'FSD_ZDDS_CHL163A_DEAL_TYPE' => array('int', 'caption=Сделка по чл 163 А ЗДДС->Тип сделка'),
         'BASE_GROUP' => array('keylist(mvc=cat_Groups,select=name)','caption=Артикули->Основна група'),
-        'SYCODE_PRODCODE' => array('enum(no=Не,yes=Да)', 'caption=Артикули->Модифициране на кода,hint=synth'),
+        'SYCODE_PRODCODE' => array('enum(no=Не,yes=Да)', 'caption=Артикули->Модифициране на кода,hint=Type: "synth" / '),
     );
     
     
