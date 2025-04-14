@@ -345,6 +345,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $Date = cls::get('type_Date');
 
         if($rec->seeZeroRows == null && (($dRec->debitQuantity - $dRec->creditQuantity) == 0) && $rec->typeOfReport == 'standard') {
+
             return ;
         }
 
@@ -519,12 +520,14 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $form->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf,select=title)', 'input=hidden,caption=caption=Контрагент->Вид,silent');
         $form->FLD('contragentId', 'int', 'input=hidden,caption=caption=Контрагент->Име,silent');
         $form->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');;
+        $form->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута, input=none');;
 
         $pRec = $form->input();
         $pRec->folderId = $contragentFolder;
         $pRec->contragentClassId = $contragentClassId;
         $pRec->contragentId = $contragentId;
         $pRec->state = 'draft';
+        $pRec->currencyId = acc_Periods::getBaseCurrencyCode();
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
