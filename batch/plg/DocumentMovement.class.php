@@ -154,7 +154,7 @@ class batch_plg_DocumentMovement extends core_Plugin
                 }
             }
         }
-        bp($outBatches);
+
         // От сумарните артикули, които ще се изписват се проверява дали са налични (ако се иска)
         foreach ($outBatches as $outObj){
             $quantitiesInStore = batch_Items::getBatchQuantitiesInStore($outObj->productId, $outObj->storeId);
