@@ -312,7 +312,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
             $confBnav = core_Packs::getConfig('bnav');
 
-            if ($pRec->bnavCode && $confBnav->SYNTESIA_PRODCODE == 'yes') {
+            if ($pRec->bnavCode && $confBnav->SYCODE_PRODCODE == 'yes') {
 
                 $bnavCodeMarker = null;
 
@@ -414,7 +414,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
             }
 
-            if ($confBnav->SYNTESIA_PRODCODE == 'no') {
+            if ($confBnav->SYCODE_PRODCODE == 'no') {
 
                  $erpCode = $pRec->code ? $pRec->code : 'Art' . $pRec->id;
                  $prodCode = $pRec->bnavCode ? $pRec->bnavCode : $erpCode;
