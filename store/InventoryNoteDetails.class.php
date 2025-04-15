@@ -351,7 +351,7 @@ class store_InventoryNoteDetails extends doc_Detail
         if(isset($rec->editSummary)){
             $deleteWhere = "#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #id != '{$rec->id}'";
             if(core_Packs::isInstalled('batch')){
-                $deleteWhere .= " AND #batch = '{$rec->batch}'";
+                $deleteWhere .= empty($rec->batch) ? " AND (#batch = '' OR #batch IS NULL)" : " AND #batch = '{$rec->batch}'";
                 static::delete($deleteWhere);
             } else {
                 static::delete($deleteWhere);
