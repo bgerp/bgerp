@@ -134,7 +134,7 @@ class type_Enum extends core_Type
         $countOptions = countR($arr);
         $maxRadio = $this->params['maxRadio'];
         if (!$attr['_isRefresh']){
-            if ($maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
+            if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
                 if (arr::isOptionsTotalLenBellowAllowed($arr)) {
                     $maxRadio = 4;
                     $this->params['select2MinItems'] = 10000;
