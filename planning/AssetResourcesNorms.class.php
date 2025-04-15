@@ -274,7 +274,7 @@ class planning_AssetResourcesNorms extends core_Manager
         $query = self::getQuery();
         $query->where("#classId = {$classId} AND #objectId = {$objectId} AND #state != 'closed'");
         $query->show('productId,indTime,packagingId,quantityInPack,limit');
-        if (isset($notIn)) {
+        if (isset($notIn) && !empty($notIn)) {
             $query->notIn('productId', $notIn);
         }
         if (isset($productId)) {
