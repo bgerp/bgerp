@@ -44,9 +44,10 @@ class cams_DriverIntf
     /**
      * Записва снимка от камерата в указания файл;
      */
-    public function getPicture()
+    public function getPicture($save = false)
     {
-        return $this->class->getPicture();
+
+        return $this->class->getPicture($save);
     }
     
     

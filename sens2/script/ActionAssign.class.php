@@ -41,7 +41,10 @@ class sens2_script_ActionAssign
         $form->FLD('varId', 'varchar', 'caption=Променлива,mandatory,oldFieldName=var,silent');
         $form->FLD('expr', 'text(rows=2,maxOptionsShowCount=20)', 'caption=Нова стойност на променливата->Израз,width=100%,mandatory');
         $form->FLD('cond', 'text(rows=2,maxOptionsShowCount=20)', 'caption=Условие за да се присвои->Израз,width=100%');
-        
+        $form->FLD('onlyDifferent', 'enum(,no=Не,yes=Да)', 'caption=Условия за да се зададе променливата->Различна ст-ст,autohide');
+        $form->FLD('minAttempts', 'int', 'caption=Условия за да се зададе променливата->Мин. брой опити,placeholder=1,autohide');
+        $form->FLD('minInterval', 'time', 'caption=Условия за да се зададе променливата->Мин. период,autohide');
+
         $vars = sens2_script_DefinedVars::getContex($form->rec->scriptId);
         foreach ($vars as $i => $v) {
             $opt[$i] = $i;
@@ -112,6 +115,12 @@ class sens2_script_ActionAssign
         if ($value === sens2_Scripts::CALC_ERROR) {
             
             return 'stopped';
+        }
+
+        // Проверяваме дали семафора позволява да се зададе променливата
+        if(!sens2_Semaphores::check($rec->id, $value, $rec->onlyDifferent, $rec->minInterval, $rec->minAttempts)) {
+
+            return 'active';
         }
         
         // Задаваме го на изхода

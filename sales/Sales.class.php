@@ -226,12 +226,6 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Огледален клас за обратната операция
-     */
-    public $reverseClassName = 'store_Receipts';
-    
-    
-    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -343,7 +337,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'expectedTransportCost,valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions,voucherId';
+    public $fieldsNotToClone = 'expectedTransportCost,valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,currencyManualRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions,voucherId';
 
 
     /**
@@ -352,7 +346,7 @@ class sales_Sales extends deals_DealMaster
     public function description()
     {
         parent::setDealFields($this);
-        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty,maxRadio=1)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
+        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty,maxRadio=1)', 'caption=Плащане->Банкова с-ка,after=currencyManualRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Артикули->Цени,before=detailOrderBy,notChangeableByContractor');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId,silent');
@@ -510,7 +504,7 @@ class sales_Sales extends deals_DealMaster
         
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
         if ($hideRate == 'yes' && !haveRole('partner')) {
-            $form->setField('currencyRate', 'input');
+            $form->setField('currencyManualRate', 'input');
         }
         
         if (empty($rec->id)) {
@@ -2398,5 +2392,16 @@ class sales_Sales extends deals_DealMaster
                 return false;
             }
         }
+    }
+
+
+    /**
+     * Връща класа на обратния документ
+     */
+    public function getDocumentReverseClass($rec)
+    {
+        $class = 'store_Receipts';
+
+        return cls::get($class);
     }
 }

@@ -83,7 +83,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     {
         $fieldset->FLD('limits', 'enum(no=Без лимити,yes=С лимити)', 'caption=Вид,removeAndRefreshForm,after=title,silent');
 
-        $fieldset->FLD('typeOfQuantity', 'enum(available=Налично,free=Разполагаемо)', 'caption=Количество,removeAndRefreshForm,single=none,silent,after=limits');
+        $fieldset->FLD('typeOfQuantity', 'enum(available=Налично,free=Разполагаемо,diff=Налично минус Запазено)', 'caption=Количество,removeAndRefreshForm,single=none,silent,after=limits');
 
         $fieldset->FLD('typeOfPeriod', 'enum(toDate=Конкретна дата,period=Бъдещ момент)', 'caption=Към,removeAndRefreshForm,input=none,single=none,silent,after=typeOfQuantity');
 
@@ -156,7 +156,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $form->setField('orderLimit', 'input=hidden');
         }
 
-        if ($rec->typeOfQuantity == 'free') {
+        if ($rec->typeOfQuantity == 'free' || $rec->typeOfQuantity == 'diff') {
 
             $form->setField('typeOfPeriod', 'input');
 
@@ -247,25 +247,33 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         while ($recProduct = $sQuery->fetch()) {
 
             $productId = $recProduct->productId;
-           //if ($productId != 33)continue;
+
+            // Изваждаме разполагаемото  и запазеното количества
+            if ($rec->typeOfPeriod == 'toDate') {
+                $date = ($rec->date) ? $rec->date : dt::today();
+            } else {
+                $date = dt::addSecs($rec->period, dt::today(), false) . ' 23:59:59';
+                $rec->date = $date;
+            }
+
+            $quantities = store_Products::getQuantities($productId, $recProduct->storeId, $date);
+            $freeQuantity = $quantities->free;
+            $reservedQuantity = $quantities->reserved;
+
+            // Изваждаме наличното количество
+            $avQuantity = $recProduct->quantity;
 
             if ($rec->typeOfQuantity == 'free' && $recProduct->storeId) {
 
-                // Гледаме разполагаемото количество
-                if ($rec->typeOfPeriod == 'toDate') {
-                    $date = ($rec->date) ? $rec->date : dt::today();
-                } else {
-                    $date = dt::addSecs($rec->period, dt::today(), false) . ' 23:59:59';
-                    $rec->date = $date;
-                }
+                $quantity = $freeQuantity;
 
+            } elseif ($rec->typeOfQuantity == 'available') {
 
-                $quantity = store_Products::getQuantities($productId, $recProduct->storeId, $date)->free;
+                $quantity = $avQuantity;
 
-            } else {
+            } elseif ($rec->typeOfQuantity == 'diff') {
 
-                // Гледаме наличното количество
-                $quantity = $recProduct->quantity;
+                $quantity = $avQuantity -$reservedQuantity;
 
             }
 
@@ -575,10 +583,16 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $dateVerb = dt::mysql2verbal($data->rec->date, 'd.m.Y');
             $fieldTpl->append('<b>' . 'Разполагаемо към ' . $dateVerb . '</b>', 'typeOfQuantity');
 
-        } else {
+        } elseif ($data->rec->typeOfQuantity == 'available') {
 
             $dateVerb = dt::mysql2verbal(dt::today(), 'd.m.Y');
             $fieldTpl->append('<b>' . 'Налично към ' . $dateVerb . '</b>', 'typeOfQuantity');
+
+        }
+        elseif ($data->rec->typeOfQuantity == 'diff') {
+
+            $dateVerb = dt::mysql2verbal($data->rec->date, 'd.m.Y');
+            $fieldTpl->append('<b>' . 'Налично минус запазено ' .'('. $dateVerb.')'. '</b>', 'typeOfQuantity');
 
         }
 

@@ -29,7 +29,7 @@ class cond_type_Product extends cond_type_Varchar
         $fieldset->FLD('showList', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Показване лист,mandatory');
         $fieldset->FLD('display', 'enum(name=Наименование,info=Описание)', 'caption=Конкретизиране->Избор,mandatory');
         $fieldset->FLD('orderBy', 'enum(idAsc=По артикул [нарастващ ред],idDesc=По артикул [намаляващ ред],codeAsc=По код [нарастващ ред],codeDesc=По код [намаляващ ред])', 'caption=Конкретизиране->Подредба,mandatory');
-        $fieldset->FLD('maxSuggestions', 'int(Min=0)', 'caption=Конкретизиране->Макс. предложения,mandatory', "unit=при показване в комбобокс,placeholder=10");
+        $fieldset->FLD('maxSuggestions', 'int(Min=0)', 'caption=Конкретизиране->Макс. предложения', "unit=при показване в комбобокс,placeholder=10");
         $fieldset->FLD('maxRadio', 'int(min=0,max=50)', 'caption=Конкретизиране->Радио бутони до,mandatory', "unit=|опции (при повече - падащо меню)|*");
         $fieldset->FLD('columns', 'int(Min=0)', 'caption=Конкретизиране->Радио бутон (колони),placeholder=2');
         $fieldset->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)', 'caption=Конкретизиране->Със свойства');
@@ -108,23 +108,14 @@ class cond_type_Product extends cond_type_Varchar
     {
         $showVal = Mode::is('taskListMode') ? $this->driverRec->showList : $this->driverRec->show;
 
-        if($showVal == 'info'){
-            Mode::push('text', 'plain');
-            $lg = core_Lg::getCurrent();
-            if($lg != 'bg'){
-                $valueRec = cat_Products::fetch($value);
-                if(!empty($valueRec->infoInt)){
-                    $title = core_Type::getByName('richtext')->toVerbal(trim($valueRec->infoInt));
-                }
-            }
-            if(empty($title)){
-                $title = trim(cat_Products::getVerbal($value, 'info'));
-            }
-            Mode::pop('text');
+        if($Driver = cat_Products::getDriver($value)){
+            $title = $Driver->getProductParamValueDisplay($domainClass, $domainId, $value, $showVal);
         }
+
         if(empty($title)){
             $title = cat_Products::getTitleById($value);
         }
+
         if(!Mode::is('text', 'plain')){
             $singleUrlArray = cat_Products::getSingleUrlArray($value);
             if(countR($singleUrlArray)){

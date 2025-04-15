@@ -544,12 +544,15 @@ class currency_CurrencyRates extends core_Detail
         $conf = core_Packs::getConfig('currency');
         $percent = $conf->EXCHANGE_DEVIATION * 100;
         $knownRate = static::getRate($date, $from, $to);
-        
-        $delimeter = min($givenRate, $knownRate) * 100;
-        $difference = (!empty($delimeter)) ? round(abs($givenRate - $knownRate) / $delimeter) : 0;
-        if ($difference > $percent) {
-            
-            return "Въведения курс е много различен от очаквания '{$knownRate}'";
+
+        $difference = abs($givenRate - $knownRate);
+        $allowedDeviation = ($knownRate * $percent) / 100;
+
+        // Ако разликата е по-голяма от разрешеното отклонение, връщаме съобщение
+        if ($difference > $allowedDeviation) {
+            $dateVerbal = dt::mysql2verbal($date, 'd.m.y');
+
+            return "Въведеният курс е много различен от очаквания|*: <b>{$knownRate}</b> (|към|* <b>{$dateVerbal}</b>)";
         }
         
         return false;

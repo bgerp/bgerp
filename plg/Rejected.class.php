@@ -89,7 +89,11 @@ class plg_Rejected extends core_Plugin
     {
         if (Request::get('Rejected')) {
             $data->toolbar->removeBtn('*', 'with_selected');
-            $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png,title=Всички ' . mb_strtolower($mvc->title));
+
+            // Ако детайла се рендира в мастър урл-то за всички е към сингъла, иначе е към листа
+            $allUrl = (isset($data->masterMvc) && isset($data->masterId)) ? array($data->masterMvc, 'single', $data->masterId) : array($mvc);
+
+            $data->toolbar->addBtn('Всички', $allUrl, 'id=listBtn', 'ef_icon = img/16/application_view_list.png,title=Всички ' . mb_strtolower($mvc->title));
         } elseif($data->showRejectedRows === false) {
             $rejCnt = $data->rejQuery->count();
             

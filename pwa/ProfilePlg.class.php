@@ -26,7 +26,7 @@ class pwa_ProfilePlg extends core_Plugin
         if (core_Users::getCurrent() == $data->rec->userId) {
             $dId = cms_Domains::getCurrent('id', false);
             if ($dId) {
-                if (pwa_Manifest::canUse($dId) == 'yes') {
+                if (pwa_Settings::canUse($dId) == 'yes') {
                     $dRec = cms_Domains::fetch($dId);
                     if ($dRec && $dRec->publicKey) {
                         $data->toolbar->addFnBtn('Известяване', '', 'class=pwa-push-default button linkWithIcon, id=push-subscription-button, order=14, title=Абониране за получаване на PUSH известия, row=2, ef_icon=img/16/pwa.png');

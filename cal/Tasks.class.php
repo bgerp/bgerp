@@ -1432,14 +1432,12 @@ class cal_Tasks extends embed_Manager
         if ($rec->assign) {
             $sharedUsersArr += type_Keylist::toArray($rec->assign);
         }
-        
-        if ($now >= $canActivate && $canActivate !== null) {
-            $rec->timeCalc = $canActivate->calcTime;
-        
-        // ако не може, задачата става заявка
+
+        if (($canActivate !== null) && ($now >= (dt::addDays(-1 * cal_Tasks::$taskShowPeriod, $canActivate)))) {
+            $rec->timeCalc = $canActivate;
         } elseif (empty($sharedUsersArr)) {
+            // ако не може, задачата става заявка
             $rec->state = 'pending';
-            
             core_Statuses::newStatus("|Не е избран потребител. Документа е приведен в състояние 'Заявка'|*");
         } else {
             $rec->state = 'waiting';
@@ -4198,7 +4196,7 @@ class cal_Tasks extends embed_Manager
         $data->listFields = arr::make('title=Задача,driverClass=Вид,folderId=Папка,state=Състояние,createdOn=Създадено->На,createdBy=Създадено->От');
         $listTableMvc = clone $this;
         $listTableMvc->setField('folderId', 'tdClass=leftCol');
-        $listTableMvc->setField('title', 'tdClass=leftCol');
+        $listTableMvc->setField('title', 'tdClass=leftCol long-field');
         $listTableMvc->setField('driverClass', 'tdClass=leftCol');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));

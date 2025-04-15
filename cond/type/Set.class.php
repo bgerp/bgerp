@@ -41,17 +41,15 @@ class cond_type_Set extends cond_type_abstract_Proto
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
         $options = static::text2options($rec->options);
-        
-        // Ако има подадена стойност и тя не е в опциите, добавя се
-        if (isset($value)) {
-            $value = trim($value);
-            if (!array_key_exists($value, $options)) {
-                $options[$value] = $value;
+
+        $valueArr = type_Set::toArray($value);
+        foreach ($valueArr as $val){
+            if (!array_key_exists($val, $options)) {
+                $options[$val] = $val;
             }
         }
-        
+
         $options = arr::fromArray($options);
-        
         $Type = core_Type::getByName("set(${options})");
         
         return $Type;

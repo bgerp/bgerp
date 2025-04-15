@@ -404,7 +404,8 @@ class planning_Centers extends core_Master
             $rec->name = 'Неопределен';
             $rec->type = 'workshop';
             $rec->state = 'active';
-            
+            $rec->scheduleId = hr_Schedules::getDefaultScheduleId();
+
             core_Users::forceSystemUser();
             $this->save($rec, null, 'REPLACE');
             core_Users::cancelSystemUser();

@@ -2200,8 +2200,12 @@ class doc_Folders extends core_Master
         if ($params['excludeArr']) {
             $query->notIn('id', $params['excludeArr']);
         }
-        
-        $query->orderBy('last=DESC');
+
+        if ($params['orderBy']) {
+            $query->orderBy($params['orderBy']);
+        } else {
+            $query->orderBy('last=DESC');
+        }
         
         // Ако има зададен интерфейс за кориците, взимат се само тези папки, чиито корици имат интерфейса
         if (isset($params['coverInterface'])) {
@@ -2219,7 +2223,6 @@ class doc_Folders extends core_Master
                     $skipCoverClasses[] = cls::get($cName)->getClassId();
                 }
             }
-            
             $query->in('coverClass', $skipCoverClasses);
         }
 
@@ -2319,7 +2322,7 @@ class doc_Folders extends core_Master
         $query->show("id,searchFieldXpr,class, {$titleFld}");
         
         $res = array();
-        
+
         while ($rec = $query->fetch()) {
             $res[$rec->id] = trim($rec->{$titleFld}) . ' (' . $rec->class . ')';
         }

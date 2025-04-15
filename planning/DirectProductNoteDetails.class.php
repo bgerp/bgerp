@@ -374,14 +374,15 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 if($rec->type == 'subProduct'){
                     $row->storeId = ht::createHint("<span class='red'>n/a</span>", 'Изберете склад, за да може да се контира документа!', 'error', false);
                 } else {
-                    $emptyPlaceholder = tr('Незавършено производство');
+                    $emptyPlaceholder = planning_WorkInProgress::getHyperlink();
                     if(!empty($rec->fromAccId)){
                         $emptyPlaceholder = tr('Разходи за услуги (без влагане)');
+                        $emptyPlaceholder = "<span class='quiet'>{$emptyPlaceholder}</span>";
                     } elseif($rec->type == 'input') {
                         $workInProgressRecs[$rec->id] = $rec;
                     }
 
-                    $row->storeId = "<span class='quiet'>{$emptyPlaceholder}</span>";
+                    $row->storeId = $emptyPlaceholder;
                 }
             } elseif(!in_array($rec->type, array('pop', 'subProduct'))) {
                 $threadId = $origin->fetchField('threadId');
@@ -467,7 +468,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $tpl->append(ht::createBtn('Влагане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'INPUTED_PRODUCTS_TABLE');
         }
         if ($this->haveRightFor('import', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
-            $tpl->append(ht::createBtn('Импортиране', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Добавяне на нов материал')), 'INPUTED_PRODUCTS_TABLE');
+            $tpl->append(ht::createBtn('Импорт', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Добавяне на нов материал')), 'INPUTED_PRODUCTS_TABLE');
         }
         
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'allocated'))) {
@@ -541,7 +542,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $rec = $mvc->fetchRec($rec);
         if (empty($rec->storeId)) {
-            unset($res->operation);
+            $res->operation['out'] = batch_Items::WORK_IN_PROGRESS_ID;
         } else {
             $res->operation[key($res->operation)] = $rec->storeId;
         }
@@ -595,7 +596,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
         if($action == 'delete' && isset($rec)){
             if(!empty($rec->quantityFromBom) || !empty($rec->quantityExpected)){
-                $requiredRoles = 'no_one';
+                $canDelete = planning_Setup::get('PRODUCTION_DELETE_SYSTEM_DETAILS');
+                if($canDelete == 'no'){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }

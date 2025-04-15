@@ -19,7 +19,7 @@ abstract class peripheral_Terminal extends peripheral_DeviceDriver
     
     public $title = 'Терминал';
     
-    protected $nameField = 'name';
+    public $nameField = 'name';
     
     protected $clsName;
     

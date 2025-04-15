@@ -733,10 +733,12 @@ class crm_Persons extends core_Master
             $mvcClone = clone $mvc;
 
             foreach (array('mobile' => 'mobile', 'buzTel' => 'tel', 'buzFax' => 'fax', 'buzEmail' => 'email') as $cFld1 => $cFld2){
-                $mvcClone->setFieldTypeParams($cFld1, array('maskVerbal' => true));
+                if($cFld1 == 'mobile'){
+                    $mvcClone->setFieldTypeParams($cFld1, array('maskVerbal' => true));
+                }
                 $mvcClone->setFieldTypeParams($cFld2, array('maskVerbal' => true));
 
-                $val = $mvc->getVerbal($rec, $rec->buzFax ? $cFld1 : $cFld2);
+                $val = $mvc->getVerbal($rec, $rec->{$cFld1} ? $cFld1 : $cFld2);
                 $valClass = $cFld1 == 'buzTel' ? 'telephone' : $cFld2;
                 $row->phonesBox .= $val ? "<div class='crm-icon {$valClass}'>{$val}</div>" : '';
             }
@@ -2652,6 +2654,17 @@ class crm_Persons extends core_Master
         // Никой да не може да изтрива
         if ($action == 'delete') {
             $requiredRoles = 'no_one';
+        }
+
+        if (($action == 'single') || ($action == 'edit')) {
+            if ($requiredRoles == 'no_one') {
+                if ($rec) {
+                    $eSysId = crm_Groups::getIdFromSysId('employees');
+                    if ($eSysId && type_Keylist::isIn($eSysId, $rec->groupList)) {
+                        $requiredRoles = 'hrMaster';
+                    }
+                }
+            }
         }
     }
     

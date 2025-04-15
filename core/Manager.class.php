@@ -430,11 +430,12 @@ class core_Manager extends core_Mvc
         
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
+        $this->invoke('AfterRenderPrepareEditForm', array($tpl, $data->form));
         core_Form::preventDoubleSubmission($tpl, $data->form);
         
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
-        
+
         return $tpl;
     }
     
@@ -590,7 +591,7 @@ class core_Manager extends core_Mvc
                 $Type = $data->listFilter->getField($name);
                 $options = array();
 
-                if (($Type->input == 'hidden') || ($Type->input == 'none')) continue;
+                if (in_array($Type->input, array('hidden', 'none')) || $Type->alwaysShowInListFilter) continue;
 
                 try {
                     // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
@@ -948,7 +949,8 @@ class core_Manager extends core_Mvc
         if ($data->listScroll) {
             $listLayout->replace('narrow-scroll', 'NARROWSCROLL');
         }
-        
+        jquery_Jquery::run( $listLayout, 'toggleListFilter();', true);
+
         return $listLayout;
     }
     
@@ -969,14 +971,47 @@ class core_Manager extends core_Mvc
      */
     public function renderListFilter_($data)
     {
-        if (!isset($data->listFilter)) return;
-        
-        $data->listFilter->showFields = isset($data->listFilter->showFields) ? arr::make($data->listFilter->showFields, true) : array();
-        if (countR($data->listFilter->showFields)) {
-            if($data->listFilter->hide === true) return new core_ET("");
+        $listFilter = &$data->listFilter;
+        if (!isset($listFilter)) return;
 
-            $tpl = new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(null, $data->listFilter->rec));
-            core_Form::preventDoubleSubmission($tpl, $data->listFilter);
+        // Ако лист филтъра не е хоризонтален
+        if($listFilter->view != 'horizontal'){
+
+            // И има посочени полета за скриване да им се добавя клас, че може да се скриват
+            $toggableFieldsCount = 0;
+            setIfNot($data->toggableFieldsInVerticalListFilter, $this->toggableFieldsInVerticalListFilter);
+
+            $toggableFields = arr::make($listFilter->mvc->toggableFieldsInVerticalListFilter, true);
+            foreach ($toggableFields as $toggableField){
+                if($listFilter->getField($toggableField, false)){
+
+                    // Добавяне на клас на полетата, които могат да се скриват
+                    $toggableFieldsCount++;
+                    $toggableClass = $listFilter->getFieldParam($toggableField, 'class');
+                    $listFilter->setField($toggableField, array('class' => "{$toggableClass} toggable", 'toggable' => 'toggable'));
+
+                    // Ако полетата са с празна стойност или е избрано "Всички" ще се скриват първоначално
+                    if(empty($listFilter->rec->{$toggableField}) || $listFilter->rec->{$toggableField} == 'all'){
+                        $toggableRowStyle = $listFilter->getFieldParam($toggableField, 'rowStyle');
+                        $listFilter->setField($toggableField, array('rowStyle' => "{$toggableRowStyle};"));
+                    }
+                }
+            }
+
+            // Ако има скрити полета се добавя бутон за показване/скриване
+            if($toggableFieldsCount){
+                $listFilter->toolbar->addFnBtn(tr("Още филтри"), null, array('class' => 'toggleListFilterBtn', 'ef_icon' => "img/16/toggle2.png", 'data-open' => tr("Още филтри"), 'data-close' => tr("По-малко филтри"), 'data-plus'=> sbf("img/16/toggle1.png"), 'data-minus' => sbf("img/16/toggle2.png") ));
+            }
+        }
+
+        $listFilter->formAttr['data-mvc'] = "listFilter_" . $listFilter->mvc->className;
+        $listFilter->showFields = isset($listFilter->showFields) ? arr::make($listFilter->showFields, true) : array();
+
+        if (countR($listFilter->showFields)) {
+            if($listFilter->hide === true) return new core_ET("");
+
+            $tpl = new ET("<div class='listFilter'>[#1#]</div>", $listFilter->renderHtml(null, $listFilter->rec));
+            core_Form::preventDoubleSubmission($tpl, $listFilter);
             
             return $tpl;
         }

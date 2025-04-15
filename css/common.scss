@@ -948,7 +948,11 @@ table .linkWithIcon {
 }
 
 .toolbar .linkWithIcon {
-	margin-bottom:0;	
+	margin-bottom:0;
+}
+
+.form-filter-btn .toolbar .linkWithIcon {
+	float: left;
 }
 
 .linkWithIcon{
@@ -1746,6 +1750,18 @@ form .inputAdvanced {
 .inlineForm .listFilter form {
 	float: none !important;
 }
+.folder-cover .groupList .inlineForm{
+	.hFormField input {
+		height: 26px !important;
+
+	}
+	.form-filter-btn input {
+		height: 26px !important;
+		position: relative;
+		top: -1px;
+	}
+}
+
 
 .inputWarning {
     border: solid 1px blue;
@@ -2442,6 +2458,11 @@ td.keylist-group{
 
 .inner-keylist .hiddenElement {
    display: none;
+}
+
+.statusIcon {
+	text-decoration: none;
+	display: inline-block;
 }
 
 .filed-sharedUsers label span.statusIcon {

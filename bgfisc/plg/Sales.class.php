@@ -154,27 +154,6 @@ class bgfisc_plg_Sales extends core_Plugin
     
     
     /**
-     * Ролбакване на транзакцията за контиране
-     */
-    public static function on_AfterRollbackConto($mvc, $res, $id)
-    {
-        if (!isset($res)) {
-            $rec = $mvc->fetchRec($id);
-            $rec->state = 'draft';
-            $rec->brState = 'active';
-            $rec->contoActions = null;
-            
-            if (acc_Journal::fetchByDoc($mvc, $rec->id)) {
-                acc_Journal::deleteTransaction($mvc, $rec->id);
-                $res = true;
-            }
-            
-            $mvc->save($rec, 'state,brState,contoActions');
-        }
-    }
-    
-    
-    /**
      * Какви са плащанията
      *
      * @param core_Mvc                   $mvc
@@ -284,10 +263,16 @@ class bgfisc_plg_Sales extends core_Plugin
                 reportException($e);
                 $errorMsg = $e->getMessage();
                 
-                $mvc->rollbackConto($rec);
-                $mvc->logWrite('Ревъртване на контировката', $rec);
+                if($mvc->rollbackConto($rec)){
+                    $mvc->logWrite('Ревъртване на контировката (1)', $rec);
+                }
+
                 $mvc->logErr($errorMsg, $id);
-                
+                $cu = core_Users::getCurrent();
+                if($cu == core_Users::ANONYMOUS_USER){
+                    wp("АНОНИМНО РЕВЪРТВАНЕ", $rec);
+                }
+
                 core_Statuses::newStatus($errorMsg, 'error');
                 bgfisc_PrintedReceipts::removeWaitingLog($mvc, $rec->id);
                 core_Locks::release("lock_{$mvc->className}_{$rec->id}");

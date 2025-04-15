@@ -55,8 +55,11 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
             
             // Ако има налични партиди
-            $valior = dt::addDays(-1, $masterRec->valior);
-            $valior = dt::verbal2mysql($valior, false);
+            $valior = $masterRec->valior;
+            if($masterRec->instockTo == 'dayBefore'){
+                $valior = dt::addDays(-1, $masterRec->valior);
+                $valior = dt::verbal2mysql($valior, false);
+            }
             
             $quantities = batch_Items::getBatchQuantitiesInStore($rec->productId, $masterRec->storeId, $valior, null, array(), true, null, false, true);
             $selected = $Def->makeArray($rec->batch);
@@ -73,7 +76,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $autohide = countR($quantities) ? 'autohide' : '';
             $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
             $form->FNC('batchNew', 'varchar', "caption=Установена нова партида->{$caption},input,placeholder={$Def->placeholder}");
-            
+
             // Ако е сериен номер само едно поле се показва
             if ($Def instanceof batch_definitions_Serial) {
                 if(isset($rec->editBatch) || isset($rec->batch)){
@@ -109,20 +112,20 @@ class batch_plg_InventoryNotes extends core_Plugin
                 }
                 
                 if (isset($rec->batch)) {
+                    $form->setField('batchEx', 'input');
                     $form->setDefault('batchEx', $rec->batch);
                 }
             }
 
             if(isset($rec->editQuantity) || isset($rec->editBatch)){
+                $form->setField('batchEx', 'input');
                 $form->setField('batchNew', 'input=none');
             }
 
-            if(isset($rec->editBatch)){
+            if(isset($rec->editSummary)){
+                $form->setField('batchEx', 'input');
                 $form->setReadOnly('batchEx', $rec->editBatch);
-            }
-
-            if(isset($rec->editSummary) && !isset($rec->editBatch)){
-                $form->setField('batchEx', 'input=none');
+                $form->setField('batchNew', 'input=none');
             }
 
             $form->setField('batchNew', $autohide);
@@ -168,10 +171,6 @@ class batch_plg_InventoryNotes extends core_Plugin
                 if (!$BatchClass->isValid($rec->batchNew, $rec->quantity, $msg)) {
                     $form->setError('batchNew', $msg);
                 }
-            }
-
-            if(!strlen($rec->batchEx) && !strlen($rec->batchNew)){
-                $form->setWarning('batchEx', 'Въведеното количество ще се отнесе към "Без партида"');
             }
 
             if (!$form->gotErrors()) {
@@ -257,10 +256,7 @@ class batch_plg_InventoryNotes extends core_Plugin
     public static function getBatchSummary($noteId, $productId, $expectedQuantity, $storeId, $valior, $alwaysShowBatches = false)
     {
         $Def = batch_Defs::getBatchDef($productId);
-        if (!$Def) {
-            
-            return false;
-        }
+        if (!$Def) return false;
         
         $batchesInDetail = array();
         
@@ -300,6 +296,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 return false;
             }
         }
+
 
         $allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior, null, array('store_InventoryNotes', $noteId), true, null, false, true);
         if(!countR($allBatches) && !countR($batchesInDetail)) return false;
@@ -347,8 +344,11 @@ class batch_plg_InventoryNotes extends core_Plugin
         $Double = cls::get('type_Double');
         
         $storeId = $masterRec->storeId;
-        $valior = dt::addDays(-1, $masterRec->valior);
-        $valior = dt::verbal2mysql($valior, false);
+        $valior = $masterRec->valior;
+        if($masterRec->instockTo == 'dayBefore'){
+            $valior = dt::addDays(-1, $masterRec->valior);
+            $valior = dt::verbal2mysql($valior, false);
+        }
         
         $alwaysShowBatches = (Mode::is('blank') && Request::get('showBatches')) || $masterRec->expandByBatches == 'yes';
 
@@ -361,7 +361,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $r[$id] = $sRow;
 
             $summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior, $alwaysShowBatches);
-            //bp($sRec, $summary);
+
             if(!$summary) continue;
             $Def = batch_Defs::getBatchDef($sRec->productId);
 
@@ -390,11 +390,16 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $clone->delta = $Double->toVerbal($bRec->delta);
                 unset($clone->code);
 
+                if(empty($bRec->batch)){
+                    $recs[$id]->hasNoBatchRow = true;
+                }
+
                 $k = "{$id}|{$batch}";
                 $recs[$k] = $bRec;
                 $r[$k] = $clone;
             }
         }
+
        // bp($recs);
         $summaryRecs = $recs;
         $summaryRows = $r;
@@ -416,20 +421,24 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
         }
     }
-    
-    
+
+
     /**
-     * След контиране на мастъра
+     * Записване на движенията
+     *
+     * @param stdClass $rec
+     * @return void
      */
-    public static function on_AfterContoMaster($mvc, $rec)
+    private static function saveMovements($rec)
     {
-        $storeId = isset($rec->storeId) ? $rec->storeId : store_InventoryNotes::fetchField($rec->id, 'storeId');
-        $valior = isset($rec->valior) ? $rec->valior : store_InventoryNotes::fetchField($rec->id, 'valior');
-        $obj = (object) array('docId' => $rec->id, 'docType' => store_InventoryNotes::getClassId(), 'date' => $valior);
-        
-        $valior = dt::addDays(-1, $valior);
+        $storeId = $rec->storeId ?? store_InventoryNotes::fetchField($rec->id, 'storeId');
+        $valior = $rec->valior ?? store_InventoryNotes::fetchField($rec->id, 'valior');
+        $instockTo = $rec->instockTo ?? store_InventoryNotes::fetchField($rec->id, 'instockTo');
+
+        $valior = $instockTo ? $valior : dt::addDays(-1, $valior);
         $valior = dt::verbal2mysql($valior, false);
-        
+
+        $obj = (object) array('docId' => $rec->id, 'docType' => store_InventoryNotes::getClassId(), 'date' => $valior);
         $dQuery = store_InventoryNoteSummary::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
@@ -438,7 +447,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 if (!is_array($summary)) {
                     continue;
                 }
-                
+
                 foreach ($summary as $batch => $o) {
                     if ($batch == '') {
                         continue;
@@ -446,15 +455,15 @@ class batch_plg_InventoryNotes extends core_Plugin
                     if ($o->delta == 0) {
                         continue;
                     }
-                    
+
                     $move = clone $obj;
                     $move->operation = ($o->delta < 0) ? 'out' : 'in';
                     $move->quantity = abs($o->delta);
                     $move->itemId = batch_Items::forceItem($dRec->productId, $batch, $storeId);
-                    
+
                     // Запис на движението
                     $id = batch_Movements::save($move);
-                    
+
                     // Ако има проблем със записа, сетваме грешка
                     if (!$id) {
                         $result = false;
@@ -462,19 +471,37 @@ class batch_plg_InventoryNotes extends core_Plugin
                     }
                 }
             } catch (core_exception_Expect $e) {
-                
+
                 // Ако е изникнала грешка
                 $result = false;
             }
         }
-        
+
         // При грешка изтриваме всички записи до сега
         if ($result === false) {
             batch_Movements::removeMovement('store_InventoryNotes', $rec);
         }
     }
-    
-    
+
+
+    /**
+     * След контиране на мастъра
+     */
+    public static function on_AfterContoMaster($mvc, $rec)
+    {
+        self::saveMovements($rec);
+    }
+
+
+    /**
+     * След пускане отново на документа
+     */
+    public static function on_AfterStartDocument($mvc, $rec)
+    {
+        self::saveMovements($rec);
+    }
+
+
     /**
      * След оттегляне на мастъра
      */
@@ -507,9 +534,12 @@ class batch_plg_InventoryNotes extends core_Plugin
             return;
         }
 
-        $masterRec = store_InventoryNotes::fetch($summaryRec->noteId, 'valior,storeId');
-        $valior = dt::addDays(-1, $masterRec->valior);
-        $valior = dt::verbal2mysql($valior, false);
+        $masterRec = store_InventoryNotes::fetch($summaryRec->noteId, 'valior,storeId,instockTo');
+        $valior = $masterRec->valior;
+        if($masterRec->instockTo == 'dayBefore'){
+            $valior = dt::addDays(-1, $masterRec->valior);
+            $valior = dt::verbal2mysql($valior, false);
+        }
 
         $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $masterRec->storeId, $valior, null, array(), true, null, false, true);
         $notInputed = array_diff_key($batchQuantities, $explicitBatchQuantities);

@@ -40,9 +40,10 @@ class sens2_script_ActionNotify
         $form->FLD('priority', 'enum(normal=Нормален, warning=Неотложен, alert=Спешен)', 'caption=Известяване->Приоритет,mandatory');
         $form->FLD('users', 'userList', 'caption=Известяване->Потребители,mandatory');
         $form->FLD('cond', 'text(rows=2,maxOptionsShowCount=20)', 'caption=Условие за да се изпрати->Израз,mandatory,width=100%');
-        $form->FLD('repeat', 'int', 'caption=Последователни сработвания за да се изпрати->Цикли,placeholder=1');
-        $form->FLD('minNotifyTime', 'time', 'caption=Минимално време между две изпращания->Време');
-
+        $form->FLD('onlyDifferent', 'enum(,no=Не,yes=Да)', 'caption=Условия за да се зададе изхода->Различна ст-ст,autohide');
+        $form->FLD('repeat', 'int', 'caption=Условия за да се зададе изхода->Мин. брой опити,placeholder=1,autohide');
+        $form->FLD('minNotifyTime', 'time', 'caption=Условия за да се зададе изхода->Мин. период,autohide');
+        
         $suggestions = sens2_script_Helper::getSuggestions($form->rec->scriptId);
         $form->setSuggestions('cond', $suggestions);
         
@@ -96,29 +97,11 @@ class sens2_script_ActionNotify
                 return 'closed';
             }
         }
+ 
+        // Проверяваме дали семафора позволява да се изпрати нотификацията
+        if(!sens2_Semaphores::check($rec->id, crc32($rec->message), $rec->onlyDifferent, $rec->minNotifyTime, $rec->repeat)) {
 
-        if($rec->repeat > 1) { 
-            $repeat = (int) core_Cache::get('Sens2RPT', $rec->id) + 1;
-           
-            if($repeat < $rec->repeat) {
-                core_Cache::set('Sens2RPT', $rec->id, $repeat, 100);
-
-                return 'active';
-            } else {
-                core_Cache::remove('Sens2RPT', $rec->id);
-            }
-        }
-        
-        // Предотвратяваме изпращането, ако от последното изпращане не е минал зададеният интервал
-        if($rec->minNotifyTime > 0) { 
-            $lastSent =  core_Cache::get('Sens2LS', $rec->id);
-           
-            if($lastSent && ($lastSent + $rec->minNotifyTime) > time()) {
-
-                return 'active';
-            } else {
-                core_Cache::set('Sens2LS', $rec->id, time(), floor($rec->minNotifyTime/60 + 2));
-            }
+            return 'active';
         }
         
         // Заменяме променливите от контекста

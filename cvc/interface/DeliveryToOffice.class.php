@@ -142,13 +142,17 @@ class cvc_interface_DeliveryToOffice extends core_BaseClass
             $officeName = cvc_Offices::getVerbal($officeRec, 'name');
 
             if($officeRec->state == 'closed'){
-                $officeName = ht::createHint($officeName, 'Офисът вече не е актуален', 'warning');
+                if(!Mode::is('text', 'plain')){
+                    $officeName = ht::createHint($officeName, 'Офисът вече не е актуален', 'warning');
+                }
             }
         } else {
-            $officeName = ht::createHint('', 'Офисът не е уточнен', 'error');
+            if(!Mode::is('text', 'plain')){
+                $officeName = ht::createHint('', 'Офисът не е уточнен', 'error');
+            }
         }
 
-        $res[] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
+        $res['office'] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
 
         return $res;
     }

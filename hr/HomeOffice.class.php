@@ -47,7 +47,7 @@ class hr_HomeOffice extends core_Master
      */
     public $canRead = 'ceo, hrMaster';
     
-    
+
     /**
      * Кой може да го разглежда?
      */
@@ -92,7 +92,6 @@ class hr_HomeOffice extends core_Master
 
     /**
      * Кой може да e мастър
-     * @var string
      */
     public $canMaster = 'hrHomeOffice, ceo, hrMaster';
 
@@ -203,7 +202,7 @@ class hr_HomeOffice extends core_Master
     {
         $rec->title = "Заявка за работа от вкъщи  №{$rec->id}";
     }
-    
+
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
@@ -327,30 +326,12 @@ class hr_HomeOffice extends core_Master
             if (!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
                 $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
             }
-            
-            // правим заявка към базата
-            $query = self::getQuery();
-            
-            // търсим всички молби, които са за текущия потребител
-            $query->where("#personId='{$form->rec->personId}'");
-            
-            if ($form->rec->id) {
-                $query->where("#id != {$form->rec->id}");
-            }
-            
-            // търсим времево засичане
-            $query->where("(#startDate <= '{$form->rec->startDate}' AND #toDate >= '{$form->rec->startDate}')
-            OR
-            (#startDate <= '{$form->rec->toDate}' AND #toDate >= '{$form->rec->toDate}')");
-            
-            $query->where("#state = 'active'");
-            
+
+            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id, get_called_class());
             // за всяка една молба отговаряща на условията проверяваме
-            if ($recReq = $query->fetch()) {
-                $link = ht::createLink("Заявка за работа от вкъщи №{$recReq->id}", array($mvc, 'single', $recReq->id, 'ret_url' => true, ''), null, 'ef_icon=img/16/house.png');
-                
+            if (!empty($iArr)) {
                 // и изписваме предупреждение
-                $form->setError('startDate, toDate', "|Засичане по време с |*{$link}");
+                $form->setError('startDate, toDate', "|Засичане по време с: |*" . implode('<br>', $iArr));
             }
         }
     }
@@ -419,7 +400,9 @@ class hr_HomeOffice extends core_Master
 
         if (!$mvc->haveRightFor('activate', $rec)) {
             if ($rec->state == 'active') {
+                $rec->brState = 'active';
                 $rec->state = 'pending';
+                $rec->pendingSaved = true;
 
                 core_Statuses::newStatus("|Дните са над допустимите за ативиране без одобрение. Документа е приведен в състояние 'Заявка' и чака одобрение.|*");
             }
@@ -443,19 +426,24 @@ class hr_HomeOffice extends core_Master
         if ($requiredRoles != 'no_one') {
             if ($action == 'activate') {
                 if ($rec) {
-                    $lDays = self::getHomeDayForMonth($rec->personId);
-                    if (!isset($rec->leaveDays)) {
-                        $rec->leaveDays = $mvc->getLeaveDays($rec->startDate, $rec->toDate, $rec->personId);
+                    $iArr = hr_Leaves::getIntersections($rec->personId, $rec->startDate, $rec->toDate, $rec->id, get_called_class());
+                    if (!empty($iArr)) {
+                        $requiredRoles = 'no_one';
                     }
 
-                    if ((!$rec->id || $rec->state != 'active') && $rec->leaveDays) {
-                        $lDays += $rec->leaveDays;
+                    $lDays = $mvc->getHomeDayForMonth($rec->startDate, $rec->toDate, $rec->personId);
+
+                    if ($lDays > $homeDays) {
+                        if (!$mvc->haveRightFor('master', $rec, $userId)) {
+                            $requiredRoles = 'no_one';
+                        }
                     }
-                } else {
-                    $lDays = self::getHomeDayForMonth();
                 }
+            }
 
-                if ($lDays > $homeDays) {
+            // След началото не може всеки да оттегля
+            if ($action == 'reject' && $rec) {
+                if ($rec->startDate <= dt::now() && ($rec->state == 'active')) {
                     if (!$mvc->haveRightFor('master', $rec, $userId)) {
                         $requiredRoles = 'no_one';
                     }
@@ -555,6 +543,13 @@ class hr_HomeOffice extends core_Master
                     bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
                 }
             }
+        }
+
+        if ($rec->state == 'pending') {
+            $rec->activatedOn = null;
+            $rec->activatedBy = null;
+
+            $mvc->save_($rec, 'activatedOn, activatedBy');
         }
     }
     
@@ -831,77 +826,38 @@ class hr_HomeOffice extends core_Master
      * Връща броя дни използвани за хоум офис
      * @return number
      */
-    public static function getHomeDayForMonth($personId = null)
+    protected function getHomeDayForMonth($startDate, $endDate, $personId)
     {
-        if (!isset($personId)) {
-            $personId = crm_Profiles::getPersonByUser(core_Users::getCurrent());
+        $cLeaveDays = $this->getLeaveDays($startDate, $endDate, $personId);
+        $hMonth = 30;
+
+        $d = round(abs(dt::daysBetween($endDate, $startDate)) / 2);
+
+        if ($d >= $hMonth) {
+
+            return $cLeaveDays;
         }
-        $map = array("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
-        
-        foreach ($map as $id => $month) {
-            $year = date('Y');
-           
-            // Таймстамп на първия ден на текущия месеца
-            $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
-            
-            // Броя на дните в текущия месеца
-            $lastDay = date('t', $firstDayTms);
-            
-            //календарна дата на първи и последен ден от избрания месец
-            $fromDate = "$year-$month-01";
-            $toDate = "$year-$month-$lastDay";
-            
-            // Предишния месец
-            $pm = $month-1;
-            if($pm == 0) {
-                $pm = 12;
-                $py = $year-1;
+
+        $m = $hMonth - $d;
+
+        $fromDate = dt::addDays(-1 * $m, $startDate);
+        $toDate = dt::addDays($m, $endDate);
+
+        $query = self::getQuery();
+        $query->where(array("#personId = '[#1#]'", $personId));
+        $query->where(array("#state = 'active' AND (#startDate >= '[#1#]' AND #toDate <= '[#2#]')", $fromDate, $toDate));
+
+        while ($rec = $query->fetch()) {
+            if (!isset($rec->leaveDays)) {
+                $cLeaveDays += $this->getLeaveDays($rec->startDate, $rec->toDate, $rec->personId);
             } else {
-                $py = $year;
+                $cLeaveDays += $rec->leaveDays;
             }
-            
-            $firstDayTmsPrevMonth = mktime(0, 0, 0, $pm, 1, $py);
-            $lastDayPrevMonth = date('t', $firstDayTmsPrevMonth);
-            //календарна дата на последния ден от предишния месец
-            $prevMonth = "$py-$pm-$lastDayPrevMonth";
-            
-            // Следващият месец
-            $nm = $month+1;
-            if($nm == 13) {
-                $nm = 1;
-                $ny = $year+1;
-            } else {
-                $ny = $year;
-            }
-            //календарна датана първият ден на следващия месец
-            $nextMonth = "$ny-$nm-01";
+        }
 
-            // Създаваме обекта $data
-            $data = new stdClass();
-            
-            // Създаваме заявката
-            $data->query = self::getQuery();
-            
-            // Искаме само активираните документи
-            $data->query->where("#state = 'active' AND ((#startDate >= '{$fromDate}' AND #toDate <= '{$toDate}')
-                                               OR (#startDate <= '{$prevMonth}') OR (#toDate >= '{$nextMonth}'))");
-            // търсим всички заявки за хоум офис, които са за текущия потребител
-            $data->query->where(array("#personId = '[#1#]'", $personId));
-
-            $data->recs = $data->query->fetchAll();
-            
-            $lDay = 0;
-            
-            foreach($data->recs as $id=>$rec){ 
-                $lDay += $rec->leaveDays;
-
-            }
-            return $lDay;
-          
-        }     
+        return $cLeaveDays;
     }
-    
-    
+
     
     /**
      * Метод за отказване на заявка за работа от вкъщи

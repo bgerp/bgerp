@@ -744,8 +744,24 @@ class plg_Search extends core_Plugin
     {
         $searchFieldsArr = arr::make($mvc->searchFields);
     }
-    
-    
+
+
+    /**
+     * Функция за проверка на свалените имейли
+     * Ако хеша го няма - предизвиква сваляне
+     *
+     * @param string $emlStatus
+     *
+     * @deprecated
+     * @see callback_repairSearchKeywords
+     */
+    public static function callback_repairSerchKeywords($clsName)
+    {
+
+        return self::callback_repairSearchKeywords($clsName);
+    }
+
+
     /**
      * Функция за проверка на свалените имейли
      * Ако хеша го няма - предизвиква сваляне

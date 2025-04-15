@@ -65,7 +65,8 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         //Период
-        $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption = Период,after=title,single=none');
+        $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
+        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=period,placeholder=Всички,silent,single=none');
 
@@ -121,8 +122,8 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
         $debitAccId = acc_Accounts::fetch("#num = 701")->id;
         $creditAccId = acc_Accounts::fetch("#num = 321")->id;
 
-        $from = acc_Periods::fetch($rec->period)->start;
-        $to = acc_Periods::fetch($rec->period)->end;
+        $from = $rec->from;
+        $to = $rec->to;
 
         $sallDetQuery = acc_JournalDetails::getQuery();
 
@@ -136,17 +137,17 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
         while ($saleDetRec = $sallDetQuery->fetch()) {
 
             //Филтър по склад
-            if($rec->stores) {
+            if ($rec->stores) {
                 $storeRec = store_Stores::fetch(acc_Items::fetch($saleDetRec->creditItem1)->objectId);
-               if(!keylist::isIn($storeRec->id,$rec->stores))continue;
+                if (!keylist::isIn($storeRec->id, $rec->stores)) continue;
             }
 
             //Артикул
             $pRec = cat_Products::fetch(acc_Items::fetch($saleDetRec->creditItem2)->objectId);
 
             //Филтър по групи артикули
-            if($rec->groups) {
-                if(!keylist::isIn(keylist::toArray($pRec->groups),$rec->groups))continue;
+            if ($rec->groups) {
+                if (!keylist::isIn(keylist::toArray($pRec->groups), $rec->groups)) continue;
             }
 
             $artCode = $pRec->code;
@@ -202,11 +203,11 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
 
         if ($export === false) {
             $fld->FLD('code', 'varchar', 'smartCenter,caption=Код');
-            $fld->FLD('productId',  'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measureId', 'key(mvc=cat_Uom,select=shortName)', 'smartCenter,caption=Мярка');
             $fld->FLD('quantity', 'double(decimals=2)', 'caption=Продажби->Количество');
             $fld->FLD('amount', 'double(decimals=2)', 'caption=Продажби->Стойност');
-        }else{
+        } else {
             $fld->FLD('code', 'varchar', 'smartCenter,caption=Код');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measureId', 'varchar', 'smartCenter,caption=Мярка');
@@ -325,9 +326,9 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
      * След подготовка на реда за експорт
      *
      * @param frame2_driver_Proto $Driver
-     * @param stdClass            $res
-     * @param stdClass            $rec
-     * @param stdClass            $dRec
+     * @param stdClass $res
+     * @param stdClass $rec
+     * @param stdClass $dRec
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {

@@ -81,6 +81,14 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     {
         $entries = array();
         $rec = $this->class->fetchRec($id);
+
+        // Ако няма вальор е СЕГА, ако няма ръчно въведен курс - ВИНАГИ се взима този към вальора
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+        $newRate = !empty($rec->currencyManualRate) ? $rec->currencyManualRate : currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+        if($rec->currencyRate != $newRate){
+            $rec->_newCurrencyRate = $newRate;
+        }
+
         $actions = type_Set::toArray($rec->contoActions);
         $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
 
@@ -141,9 +149,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
-        
-        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
-        
+
         $transaction = (object) array(
             'reason' => 'Продажба #' . $rec->id,
             'valior' => $rec->valior,

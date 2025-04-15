@@ -922,7 +922,7 @@ class core_Form extends core_FieldSet
 
                     $maxRadio = $type->params['maxRadio'];
                     if (!$attr['_isRefresh']) {
-                        if(empty($maxRadio) && !$type->params['isHorizontal']){
+                        if ($maxRadio !== 0 && $maxRadio !== '0' && !$type->params['isHorizontal']){
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
                                 $maxRadio = 4;
                                 $type->params['select2MinItems'] = 10000;
@@ -1103,7 +1103,13 @@ class core_Form extends core_FieldSet
                     $icon = ($originalCaption != '@') ? $icon : 'notice';
                     $caption = ht::createHint($caption, $field->hint, $icon);
                 }
-                
+
+                // Ако полето може да се скрива и няма стойност ()
+                $toggable = ' ';
+                if($field->toggable){
+                    $toggable .= "toggable ";
+                }
+
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow) {
                         $tpl->append("\n<tr><td><div class='formGroup'>&nbsp;</div></td></tr>", 'FIELDS');
@@ -1115,7 +1121,7 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? (', ' . $fUnit) : '';
                     
-                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#] wideNowrap'  style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("\n<tr class='filed-{$name}{$toggable}{$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#] wideNowrap'  style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
                     if ($emptyRow) {
                         $tpl->append(new ET("\n<tr class='{$fsRow}'><td colspan=2><div class='formGroup'>&nbsp;</div></td></tr>"), 'FIELDS');
@@ -1132,7 +1138,7 @@ class core_Form extends core_FieldSet
                     } else {
                        $tdHtml = "<td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td>";
                     }
-                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}>{$tdHtml}</tr>");
+                    $fld = new ET("\n<tr class='filed-{$name}{$toggable}{$fsRow}'{$rowStyle}>{$tdHtml}</tr>");
                 }
 
                 // Ако ще се показва нещо преди рендирането на полето - да се покаже
@@ -1271,7 +1277,7 @@ class core_Form extends core_FieldSet
     {
         $this->formAttr['method'] = $this->getMethod();
         $this->formAttr['action'] = $this->action ? toUrl($this->action) : '';
-        
+
         foreach ($this->formAttr as $attr => $content) {
             if ($content === true) {
                 $content = $attr;
@@ -1363,7 +1369,7 @@ class core_Form extends core_FieldSet
     
     
     /**
-     * Отпечатва съдържанието на шаблона като JSPN масив за ajax
+     * Отпечатва съдържанието на шаблона като JSОN масив за ajax
      */
     public function ajaxOutput($tpl)
     {

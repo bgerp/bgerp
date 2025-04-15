@@ -76,12 +76,12 @@ class crm_GroupEmbed extends core_BaseClass
             }
         }
 
-
- 
-        // Подредба на визитките
-       // bp($contragents);
         // Рендиране
         foreach ($contragents as $row) {
+            $row->name = transliterate(tr($row->name));
+            $row->country = transliterate(tr($row->country));
+            $row->place = transliterate(tr($row->place));
+            $row->address = transliterate(tr($row->address));
             $rowTpl = clone $tpl->getBlock('CONTRAGENT');
             $rowTpl->placeObject($row);
             $rowTpl->removeBlocksAndPlaces();

@@ -1685,10 +1685,14 @@ class crm_Companies extends core_Master
         } else {
             // Конфигурационните данните
             $conf = core_Packs::getConfig('crm');
-            
-            // Заглавието
-            $title = $rec->name;
-            
+
+            if ($escaped) {
+                // Заглавието
+                $title = self::getVerbal($rec, 'name');
+            } else {
+                $title = $rec->name;
+            }
+
             // Ако е зададена държава
             if ($rec->country) {
                 

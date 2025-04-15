@@ -176,6 +176,10 @@ class core_UserReg extends core_Manager
                 $form->setError('names', 'Напишете поне две имена разделени с интервал');
             }
 
+            if (drdata_Domains::isDisposal($form->rec->email)) {
+                $form->setError('email', 'Не може да се използват временни имейли за регистрация!');
+            }
+
             if (core_Users::isForbiddenNick($form->rec->nick, $errorMsg)) {
                 $form->setError('nick', $errorMsg);
             }

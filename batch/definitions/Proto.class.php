@@ -131,8 +131,8 @@ abstract class batch_definitions_Proto extends core_BaseClass
     /**
      * Връша поле от записа
      *
-     * @param stdClass $field
-     * @return void
+     * @param string $field
+     * @return mixed
      */
     public function getField($field)
     {
@@ -297,6 +297,7 @@ abstract class batch_definitions_Proto extends core_BaseClass
 
         $date = (isset($date)) ? $date : dt::today();
         $quantities = batch_Items::getBatchQuantitiesInStore($this->rec->productId, $storeId, $date);
+
         $mvc = cls::get($mvc);
         $containerId = ($mvc instanceof core_Detail) ? $mvc->Master->fetchField($mvc->fetchField($id, $mvc->masterKey), 'containerId') : $mvc->fetchField($id, 'containerId');
 
@@ -311,23 +312,24 @@ abstract class batch_definitions_Proto extends core_BaseClass
             }
         }
 
-        $quantities = $this->filterBatches($quantities, $mvc, $id);
+        $quantities = $this->filterBatches($quantities, $mvc, $id, $storeId);
         $batches = batch_Items::allocateQuantity($quantities, $quantity);
         
         return $batches;
     }
-    
-    
+
+
     /**
      * Разпределя количество към наличните партиди в даден склад към дадена дата
      *
      * @param array  $quantities - масив с наличните партиди и количества
      * @param string $mvc        - клас на обект, към който да се разпределят
      * @param string $id         - ид на обект, към който да се разпределят
+     * @param int $storeId       - ид на склад
      *
      * @return array $quantities - масив с филтрираните наличните партиди и количества
      */
-    public function filterBatches($quantities, $mvc, $id)
+    public function filterBatches($quantities, $mvc, $id, $storeId)
     {
         return $quantities;
     }

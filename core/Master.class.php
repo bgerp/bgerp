@@ -798,6 +798,12 @@ class core_Master extends core_Manager
             $attr['data-doubleclick'] .= $doubleClickDataUrl;
         }
 
+        if ($attr['name']) {
+            $attr['title'] = $name;
+            $name = $attr['name'];
+            unset($attr['name']);
+        }
+
         // Вземаме линка
         $link = ht::createLink($name, $url, null, $attr);
         

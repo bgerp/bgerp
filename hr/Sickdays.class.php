@@ -307,10 +307,17 @@ class hr_Sickdays extends core_Master
             if (isset($form->rec->startDate, $form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) {
                 $form->setError('startDate, toDate', 'Началната дата трябва да е по-малка от крайната');
             }
+
+            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id, get_called_class());
+            // за всяка една молба отговаряща на условията проверяваме
+            if (!empty($iArr)) {
+                // и изписваме предупреждение
+                $form->setError('startDate, toDate', "|Засичане по време с: |*" . implode('<br>', $iArr));
+            }
         }
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -322,6 +329,13 @@ class hr_Sickdays extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
+        if ($rec->id) {
+            if ($action == 'reject' && $rec && $rec->state == 'active' && $rec->startDate <= dt::now()) {
+                if (!haveRole('hrSickdays, ceo')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     

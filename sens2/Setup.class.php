@@ -83,6 +83,7 @@ class sens2_Setup extends core_ProtoSetup
         'sens2_Controllers',
         'sens2_Scripts',
         'sens2_script_Actions',
+        'sens2_Semaphores',
         'sens2_script_DefinedVars',
         'sens2_IOPorts',
         'sens2_script_Logs',

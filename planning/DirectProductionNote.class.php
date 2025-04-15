@@ -1004,6 +1004,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
+     * Изпълнява се преди записа
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(isset($rec->id)){
+            // Какво е било старото количество
+            $rec->_exQuantity = $mvc->fetchField($rec->id, 'quantity', false);
+        }
+    }
+
+
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
@@ -1036,6 +1048,37 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         if($rec->quantity >= $batchSum){
                             batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $producedBatches, true);
                         }
+                    }
+                }
+            }
+        }
+
+        // При промяна на количеството да се преизчисли очакваното по рецепта
+        if(isset($rec->_isCreated) || (isset($rec->_exQuantity) && $rec->quantity != $rec->_exQuantity)){
+            $save = array();
+            $Details = cls::get('planning_DirectProductNoteDetails');
+            $dQuery = $Details->getQuery();
+            $dQuery->where("#noteId = {$rec->id} AND #quantityFromBom IS NOT NULL");
+            while($dRec = $dQuery->fetch()){
+                if(!$rec->_isCreated){
+                    $singleQuantity = $dRec->quantityFromBom / $rec->_exQuantity;
+                    $measureId = $dRec->measureId ?? $dRec->packagingId;
+                    $round = cat_UoM::fetchField($measureId, 'round');
+                    $dRec->quantityFromBom = round($singleQuantity * $rec->quantity, $round);
+                }
+
+                $Details->invoke('AfterNoteQuantityIsChangedUpdate', array(&$dRec, $rec));
+                $save[] = $dRec;
+            }
+
+            if(countR($save)){
+                $Details->saveArray($save, 'id,quantity,quantityFromBom');
+                core_Statuses::newStatus("След промяна на количеството е преизчислено очакваното по рецепта!");
+
+                foreach ($save as $sRec){
+                    if($sRec->_reAlocateBatches){
+                        batch_BatchesInDocuments::delete("#detailClassId = {$Details->getClassId()} AND #detailRecId = {$sRec->id}");
+                        batch_plg_DocumentMovementDetail::autoAllocate($Details, $sRec);
                     }
                 }
             }
@@ -1412,10 +1455,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * @param bool     $isWaste        - дали е отпадък или не
      * @param int|NULL $storeId        - ид на склад, или NULL ако е от незавършеното производство
      * @param bool     $isSubProduct   - дали е субпродукт
-     * @param bool     $batch          - партида
+     * @param array    $batch          - партида
      * @return void
      */
-    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null, $isSubProduct = false, $batch = null)
+    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null, $isSubProduct = false, $batches)
     {
         // Проверки на параметрите
         expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
@@ -1465,14 +1508,20 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         setIfNot($rec->storeId, $storeId);
 
-        if(!empty($batch) && core_Packs::isInstalled('batch')){
+        if(!empty($batches) && core_Packs::isInstalled('batch')){
             $rec->autoAllocate = false;
             $rec->_clonedWithBatches = true;
         }
 
         planning_DirectProductNoteDetails::save($rec);
-        if(!empty($batch) && core_Packs::isInstalled('batch')){
-            batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $rec->id, array($batch => $rec->quantity), true);
+
+        if(!empty($batches) && core_Packs::isInstalled('batch')){
+            $batchArr = $batches;
+            if(!is_array($batches)){
+                $batchArr = array($batches => $rec->quantity);
+            }
+
+            batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $rec->id, $batchArr, true);
         }
 
         return $rec->id;

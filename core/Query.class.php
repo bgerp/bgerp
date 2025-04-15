@@ -458,7 +458,9 @@ class core_Query extends core_FieldSet
     {
         $values = arr::make($values);
         if (!$values) {
-            
+
+            wp('Подадена празна стойност за заявка', $field, $values, $not, $or);
+
             return ;
         }
         

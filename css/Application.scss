@@ -1897,6 +1897,13 @@ a.tUnsighted {
 		border-radius: 5px;
 	}
 }
+.titleTags, .small.openModal {
+	line-height: 1.5em !important;
+}
+.titleTags .documentTags {
+	position: relative;
+	top: -2px;
+}
 
 .tags.lightBg a{
 	color: #000 !important;
@@ -2550,7 +2557,12 @@ width:1%;
 .small-field{
 width:1%;
 }
-
+.maxCell {
+	max-width: none !important;
+	.maxwidth {
+		text-align: left !important;
+	}
+}
 .logisticCol {
 	text-align: right;
 	max-width: 400px !important;
@@ -2562,6 +2574,16 @@ width: 200px;
 
 .large-field{
 width: 50%;
+}
+
+.long-field {
+	min-width: 400px !important;
+	white-space: normal !important;
+}
+
+.listAction table.listTable>tbody>tr>td.midCell {
+	max-width: 170px !important;
+	white-space: wrap;
 }
 .narrow .largeNarrowCell {
 min-width: 300px;
@@ -3422,12 +3444,15 @@ table.mc-calendar {
 		font-size: 0.9em;
 	}
 }
+
 table.mc-header a {
   color: #999;
 }
 /*край на стиловете за календара в портала*/
 
-
+.narrow .leftCol.wrapText {
+	min-width: 260px;
+}
 .portal-select {
     border: none;
     position: relative;
@@ -3937,6 +3962,11 @@ fieldset.sharing-history {
 	max-height: 90px;
 	float:left;
 }
+
+.narrow .externalPage .headerImg {
+	max-width: none;
+}
+
 .narrow .externalPage {
 	position: relative;
 }
@@ -4851,6 +4881,10 @@ table .eshop-btn {
 	font-size: 0.95em;
 }
 
+.tab span.tab-title {
+	color: #999;
+}
+
 .foldertabs {
     > .tab-row {
         overflow: hidden;
@@ -5263,15 +5297,8 @@ table .eshop-btn {
 	margin-bottom: 5px
 
 }
-.toggleGroups {
-	.openBtn {
-		display: inline-block;
-		width: 20px;
-		height: 20px;
-		background: url('../img/16/toggle1.png') center bottom no-repeat;
 
-	}
-}
+
 .narrow .cms-row {
 	padding-top: 20px;
 }
@@ -9168,43 +9195,60 @@ table.bomProductionStepTable td{
 	font-weight:normal !important;
 }
 
-/* Стилове за редовете */
-.taskGapRow {
-	height: 1px; /* Височина на реда */
+td:has(.gapList) {
+	padding: 0 !important;
 }
 
-.taskGapRow.gapRow {
-	background-color: red; /* Цветът на фона на реда с клас gapRow */
+ul.gapList {
+	padding: 0; /* Премахва падинга на списъка */
+	margin: 0;  /* Премахва марджина на списъка */
+	list-style: none; /* Премахва маркерите */
 }
 
-.taskGapRow.idleRow {
-	background-color: #5dc95d; /* Цветът на фона на реда с клас idleRow */
+/* Подреждаме li елементите един под друг */
+ul.gapList li {
+	display: flex; /* Всеки елемент заема цял ред */
+	align-items: center; /* Подравнява текста по вертикала (по средата на височината) */
+	justify-content: center;
+	padding: 15px;
+	margin: 0;  /* Премахваме марджина на li */
+	border: 1px solid #ccc; /* Леки граници */
+	text-align: center; /* Центрира текстовете */
+	font-size: 14px;
+
+	&.idle {
+		background: linear-gradient(to bottom, rgba(255, 99, 71, 1), rgba(255, 69, 0, 0.7)) !important; /* Ярко червен градиент с малък контраст */
+	}
+
+	&.break {
+		background: linear-gradient(to bottom, rgba(144, 238, 144, 0.6), rgba(0, 255, 0, 0.3)) !important; /* По-нежен градиент */
+	}
 }
 
-/* Стилове за клетките */
-.gapRow td {
+.fullTdDiv {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+td.withFullDiv {
+	position: relative;
 	padding: 0;
-	font-size: 0px; /* Премахва текста, ако е нужно */
-	line-height: 0px; /* Премахва интервала между редовете */
-	background-color: red !important; /* Фон на клетките в gapRow */
-	border-right: 1px solid red !important; /* Бордър на клетките */
 }
 
-/* Стилове за клетките в idleRow */
-.idleRow td {
-	padding: 0;
-	font-size: 0px; /* Премахва текста, ако е нужно */
-	line-height: 0px; /* Премахва интервала между редовете */
-	background-color: #5dc95d !important; /* Фон на клетките в idleRow */
-	border-right: 1px solid #5dc95d !important; /* Бордър на клетките*/
+tr.workInProgressBatchRow .workInProgressProductColName {
+	text-indent:10%;
 }
 
-/* За да предотвратиш промените при ховър */
-.taskGapRow td:hover {
-	background-color: inherit !important;
-	border-color: inherit !important;
-	cursor: default !important; /* Опционално, ако искаш да промениш курсора при ховър */
+tr.workInProgressBatchRow {
+	font-size:0.9em;
 }
+
 
 
 

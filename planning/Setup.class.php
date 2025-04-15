@@ -208,13 +208,25 @@ defIfNot('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', '');
 /**
  * Колко да е изчакването между предходни операции->В една локация
  */
-defIfNot('PLANNING_TASK_OFFSET_IN_SAME_LOCATION', '0');
+defIfNot('PLANNING_TASK_OFFSET_IN_SAME_LOCATION', '7200');
 
 
 /**
  * Колко да е изчакването между предходни операции->В различна локация
  */
-defIfNot('PLANNING_TASK_OFFSET_IN_OTHER_LOCATION', '0');
+defIfNot('PLANNING_TASK_OFFSET_IN_OTHER_LOCATION', '86400');
+
+
+/**
+ * Минимално време между задачите смятащо се за дупка
+ */
+defIfNot('PLANNING_MIN_TIME_FOR_GAP', 3600);
+
+
+/**
+ * Изтриване на редове от ПП с очаквано количество по рецепта/за влагане->Избор
+ */
+defIfNot('PLANNING_PRODUCTION_DELETE_SYSTEM_DETAILS', 'no');
 
 
 /**
@@ -301,6 +313,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Скриване,customizeBy=taskSee|ceo'),
         'PLANNING_TASK_OFFSET_IN_SAME_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В една локация'),
         'PLANNING_TASK_OFFSET_IN_OTHER_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В различна локация'),
+        'PLANNING_MIN_TIME_FOR_GAP' => array('time', 'caption=Минимално време между ПО на една машина приемащо се за дупка->Време'),
+        'PLANNING_PRODUCTION_DELETE_SYSTEM_DETAILS' => array('enum(yes=Да,no=Не)', array('caption' => 'Изтриване на редове от ПП с очаквано количество по рецепта/за влагане->Избор')),
     );
 
 
@@ -337,8 +351,26 @@ class planning_Setup extends core_ProtoSetup
             'description' => 'Преизчисляване на началото на производствени операции',
             'controller' => 'planning_AssetResources',
             'action' => 'RecalcTaskTimes',
-            'period' => 2,
-            'timeLimit' => 30,
+            'period' => 5,
+            'timeLimit' => 60,
+        ),
+
+        array(
+            'systemId' => 'Recalc Task Durations',
+            'description' => 'Преизчисляване на продължителноста на производствените операции',
+            'controller' => 'planning_TaskConstraints',
+            'action' => 'RecalcTaskDuration',
+            'period' => 30,
+            'timeLimit' => 60,
+        ),
+
+        array(
+            'systemId' => 'Recalc Task Constraints',
+            'description' => 'Преизчисляване на ограниченията на производствените операции',
+            'controller' => 'planning_TaskConstraints',
+            'action' => 'RecalcTaskConstraints',
+            'period' => 5,
+            'timeLimit' => 60,
         ),
     );
 
@@ -372,12 +404,17 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkInProgress',
         'planning_AssetGroupIssueTemplates',
         'planning_AssetSparePartsDetail',
+        'planning_TaskConstraints',
+        'planning_TaskManualOrderPerAssets',
+        'planning_AssetScheduleBreaks',
         'migrate::repairSearchKeywords2524',
         'migrate::renameResourceFields2624v2',
         'migrate::removeCachedAssetModified4124v2',
         'migrate::repairSearchKeywords2442',
         'migrate::calcTaskLastProgress2504v2',
         'migrate::syncOperatorsWithGroups2504v2',
+        'migrate::migrateTaskActualTime2505',
+        'migrate::migrateCenterSchedules2506',
         'migrate::repairSearchKeywords2508',
     );
 
@@ -597,6 +634,44 @@ class planning_Setup extends core_ProtoSetup
         }
 
         crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+    }
+
+
+    /**
+     * Миграция на фактическото начало на операциите
+     */
+    public function migrateTaskActualTime2505()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+
+        $save = array();
+        $query = planning_Tasks::getQuery();
+        $query->where("#state IN ('active', 'wakeup', 'stopped')");
+        $query->where("#actualStart IS NULL");
+        $query->show('state,lastChangeStateOn,activatedOn');
+        while($sRec = $query->fetch()){
+            $sRec->actualStart = ($sRec->state == 'wakeup') ? $sRec->lastChangeStateOn : $sRec->activatedOn;
+            $save[$sRec->id] = $sRec;
+        }
+
+        if(countR($save)){
+            $Tasks->saveArray($save, 'id,actualStart');
+        }
+    }
+
+
+    /**
+     * Миграция на дефолтния график на центровете на дейност
+     */
+    public function migrateCenterSchedules2506()
+    {
+        $Centers = cls::get('planning_Centers');
+
+        $defaultScheduleId = hr_Schedules::getDefaultScheduleId();
+        $scheduleIdColName = str::phpToMysqlName('scheduleId');
+        $query = "UPDATE {$Centers->dbTableName} SET {$scheduleIdColName} = {$defaultScheduleId} WHERE {$scheduleIdColName} IS NULL";
+        $Centers->db->query($query);
     }
 
 

@@ -1,9 +1,11 @@
+let areMoved = false;
+let haveManualTimes = false;
+
 $(document).ready(function () {
     compareDates();
-
+    fillManualTimes();
+    let hasDragged = false;
     sessionStorage.removeItem('sortableOrder');
-
-
 
     $('#backBtn').on('click', function(e) {
         let url = $(this).attr("data-url");
@@ -52,6 +54,13 @@ $(document).ready(function () {
 
     $('#saveBtn').on('click', function(e) {
         let url = $(this).attr("data-url");
+        console.log('moved ' + areMoved + " SET TIMES " + haveManualTimes);
+
+        if(!areMoved && !haveManualTimes) {
+            let error = $(this).attr("data-on-error");
+            alert(error);
+            return;
+        }
 
         if(url){
             $('body').css('overflow', 'hidden').append($('<div class="loadingModal"></div>'));
@@ -63,11 +72,12 @@ $(document).ready(function () {
             let params = { orderedTasks: dataIdString, manualTimes: manualTimes};
 
             console.log(url);
-            console.log(params);
+            console.log(dataIdString);
+            console.log(manualTimes);
+
             sessionStorage.removeItem('sortableOrder');
             sessionStorage.removeItem('manualTimes');
 
-            //return;
             let resObj = {};
             resObj['url'] = url;
 
@@ -128,6 +138,7 @@ $(document).ready(function () {
 
             onEnd: function (evt) {
                 console.log("END");
+                areMoved = true;
 
                 if (selectedElements.length === 0) {
                     selectedElements.push({
@@ -155,21 +166,10 @@ $(document).ready(function () {
 
                 selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
 
-                // Optional: Process server update
-                if (table.dataset.url) {
-                    let dataIds = getOrderedTasks();
-                    let resObj = { url: table.dataset.url };
-                    let dataIdString = JSON.stringify(dataIds);
-                    let params = { orderedTasks: dataIdString };
-
-                    console.log('DROP: orderedTasks=' + dataIdString);
-                    getEfae().preventRequest = 0;
-                    getEfae().process(resObj, params);
-                }
-
                 // Clear selectedElements after the operation
                 selectedElements = [];
                 isScrolling = false; // Reset scrolling state
+
             },
 
             store: {
@@ -249,11 +249,6 @@ $(document).ready(function () {
         let holder = cell.find('.notesHolder');
         let promptText = holder.attr("data-prompt-text");
         let currentText = holder.text();
-
-        // Prevent editing if the row is forbidden
-        if (cell.closest('tr').hasClass('state-forbidden')) {
-            return;
-        }
 
         // Show prompt to the user and get new text input
         isPromptOpen = true; // Set flag to indicate the prompt is open
@@ -360,17 +355,30 @@ $(document).ready(function () {
             minDate: 0
         });
 
+        let $span = null;
+        let $cDate = null;
+
         // 🏗️ Показване на модала при двоен клик
         $(".openModal").on("dblclick", function () {
-            const $span = $(this).closest("td").find("span.modalDateCol");
+            let tr = $(this).closest("tr");
+            let dragging = tr.data("dragging");
+            if(dragging === false) return;
+
+            $span = $(this).closest("td").find("span.modalDateCol");
+            let haveStartTime = $span.attr('data-have-start-time');
+            if(!haveStartTime){
+                $modalClear.hide();
+            } else {
+                $modalClear.show();
+            }
 
             if ($span.length > 0) {
-                const modalCaption = $span.data("modal-caption");
+                let modalCaption = $span.data("modal-caption");
                 selectedTaskId = $span.data("task-id");
                 selectedTaskField = $span.data("task-field");
 
                 // ✅ Вземаме `data-manual-date` или `data-date`
-                const currentDateTime = $span.data("manual-date") || $span.data("date") || "";
+                let currentDateTime = $span.attr("data-date");
 
                 $modalTitle.text(modalCaption);
 
@@ -380,13 +388,18 @@ $(document).ready(function () {
 
                 // 🕒 Ако има `data-manual-date`, попълваме го
                 if (currentDateTime) {
-                    const [date, time] = currentDateTime.split(" ");
-                    const [year, month, day] = date.split("-");
-                    const formattedDate = `${day}.${month}.${year}`;
-                    const formattedTime = time.substring(0, 5);
+                    console.log("BEFORE " + currentDateTime);
+                    let currentDateTime1 = currentDateTime.replace('T', ' ');
+
+                    let [date, time] = currentDateTime1.split(" ");
+                    let [year, month, day] = date.split("-");
+                    let formattedDate = `${day}.${month}.${year}`;
+                    let formattedTime = time.substring(0, 5);
 
                     $datepicker.val(formattedDate).datepicker("refresh");
                     syncTimeInputs(formattedTime);
+
+                    $cDate = formattedTime;
                 }
             }
 
@@ -424,14 +437,15 @@ $(document).ready(function () {
         // 📝 Запазване на въведената стойност в sessionStorage
         $modalSave.on("click", function () {
             if (selectedTaskId !== null && selectedTaskField !== null) {
-                const selectedDate = $datepicker.val();
+                let selectedDate = $datepicker.val();
                 let selectedTime = $timeSelect.val(); // Взимаме времето от `.pickerSelect`
-                selectedTime = !selectedTime ? '00:00' : selectedTime;
+
+                let selectedTime1 = !selectedTime ? $cDate : selectedTime;
 
                 let formattedDateTime = null;
-                if (selectedDate && selectedTime) {
-                    const [day, month, year] = selectedDate.split(".");
-                    formattedDateTime = `${year}-${month}-${day} ${selectedTime}:00`;
+                if (selectedDate && selectedTime1) {
+                    let [day, month, year] = selectedDate.split(".");
+                    formattedDateTime = `${year}-${month}-${day}T${selectedTime1}:00`;
                 }
 
                 let storedData = sessionStorage.getItem('manualTimes');
@@ -441,26 +455,11 @@ $(document).ready(function () {
                 };
 
                 storedData[selectedTaskField][selectedTaskId] = formattedDateTime;
-
                 sessionStorage.setItem('manualTimes', JSON.stringify(storedData));
+                haveManualTimes = true;
 
-                // Optional: Process server update
-                let table = document.querySelector("#dragTable");
-                if (table.dataset.url) {
-                    let dataIds = getOrderedTasks();
-                    let resObj = { url: table.dataset.url };
-                    let dataIdString = JSON.stringify(dataIds);
-
-                    let manualTimes = sessionStorage.getItem('manualTimes');
-
-                    let params = {orderedTasks: dataIdString, manualTimes: manualTimes, forceReorder: 1};
-
-                    console.log(params.orderedTasks);
-                    console.log(params.manualTimes);
-
-                    getEfae().preventRequest = 0;
-                    getEfae().process(resObj, params);
-                }
+                fillManualTimes();
+                compareDates();
             } else {
                 alert("Грешка: Липсва task ID или task field!");
             }
@@ -505,6 +504,71 @@ function render_forceSort(data)
 
 
 /**
+ * Попълва датата от ръчно въведен елемент
+ */
+function replaceDatesWithManuals(elem, manualValues)
+{
+    let taskId = elem.data('taskId');
+    let manualDate = manualValues[taskId];
+
+    if(manualDate){
+
+        haveManualTimes = true;
+        let oldDate = elem.text();
+
+        if (!elem.attr("data-old-date")) {
+            elem.attr("data-old-date", oldDate);
+        }
+
+        if (!elem.attr("data-old-date-val")) {
+            elem.attr("data-old-date-val", elem.attr("data-date"));
+        }
+
+        let [datePart, timePart] = manualDate.split("T");
+        let [year, month, day] = datePart.split("-").map(Number);
+        let [hours, minutes, seconds] = timePart.split(":").map(Number);
+
+        // Създаваме дата директно в UTC, която игнорира локалното време
+        let date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
+        let formatted = `${String(date.getUTCDate()).padStart(2, '0')}.${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCFullYear()).slice(2)}&nbsp;${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
+
+        //let  formattedDateTime = `${day}.${month}.${year} ${hours}:${minutes}`;
+        console.log("manual: " + manualDate + "F: " + formatted);
+        elem.html(formatted);
+
+        elem.attr("data-date", manualDate);
+        elem.closest("td").addClass("manualTime");
+    }
+
+    if(manualDate === null){
+        haveManualTimes = true;
+        elem.html(' ');
+        elem.closest("td").addClass("manualTime");
+    }
+}
+
+
+/**
+ * Попълва ръчно въведените времена
+ */
+function fillManualTimes()
+{
+    let manualTimes = sessionStorage.getItem('manualTimes');
+
+    manualTimes = JSON.parse(manualTimes);
+    if(!manualTimes) return;
+
+    $("span.expectedTimeStartCol").each(function () {
+        replaceDatesWithManuals($(this), manualTimes.expectedTimeStart);
+    });
+
+    $("span.expectedTimeEndCol").each(function () {
+        replaceDatesWithManuals($(this), manualTimes.expectedTimeEnd);
+    });
+}
+
+
+/**
  * Сравняване на датите и оцветяването им
  */
 function compareDates()
@@ -515,12 +579,12 @@ function compareDates()
     for (let i = 0, row; row = table.rows[i]; i++) {
 
         // Get the spans within the row
-        let prevTimeOuterSpan = row.querySelector('td span span.prevExpectedTimeEndCol');
-        let startTimeOuterSpan = row.querySelector('td span span.expectedTimeStartCol');
+        let prevTimeOuterSpan = row.querySelector('td span.prevExpectedTimeEndCol');
+        let startTimeOuterSpan = row.querySelector('td span.expectedTimeStartCol');
         compareDateSpan(prevTimeOuterSpan, startTimeOuterSpan, 'eGroupOne');
 
-        let endTimeOuterSpan = row.querySelector('td span span.expectedTimeEndCol');
-        let nextTimeOuterSpan = row.querySelector('td span span.nextExpectedTimeStartCol');
+        let endTimeOuterSpan = row.querySelector('td span.expectedTimeEndCol');
+        let nextTimeOuterSpan = row.querySelector('td span.nextExpectedTimeStartCol');
         compareDateSpan(endTimeOuterSpan, nextTimeOuterSpan, 'eGroupTwo');
 
         let dueDateSpan = row.querySelector('td span.dueDateCol');
