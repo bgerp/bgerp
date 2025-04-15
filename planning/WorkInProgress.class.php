@@ -381,7 +381,12 @@ class planning_WorkInProgress extends core_Manager
 
                 if(core_Packs::isInstalled('batch')){
                     $bQuery = batch_BatchesInDocuments::getQuery();
-                    $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$cRec->id} AND #operation = 'out'");
+                    $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$cRec->id}");
+                    if(($Detail instanceof planning_ReturnNoteDetails) && $cRec->useResourceAccounts != 'yes'){
+                        $bQuery->where("#operation = 'in'");
+                    } else {
+                        $bQuery->where("#operation = 'out'");
+                    }
                     while($bRec = $bQuery->fetch()) {
                         if(!array_key_exists($bRec->batch, $productArr[$cRec->productId])){
                             $productArr[$cRec->productId][$bRec->batch] = (object)array('productId' => $cRec->productId, 'bomQuantity' => null, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0, 'batch' => $bRec->batch);
