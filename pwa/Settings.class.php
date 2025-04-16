@@ -291,8 +291,6 @@ class pwa_Settings extends core_Manager
      * Помощна фунцкция за проверка дали може да се използва PWA
      *
      * @return string - yes|no
-     *
-     * @deprecated
      */
     public static function canUse($dId = null)
     {
