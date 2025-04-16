@@ -1123,7 +1123,7 @@ abstract class cat_ProductDriver extends core_BaseClass
                 $changeIcon = "img/16/checked-not-green.png";
                 $changeTitle = 'Показване на разликите с оригинала';
             }
-            $row->clonedFromId .= ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}")->getContent();
+            $row->clonedFromId .= "&nbsp;" . ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}")->getContent();
         }
     }
 
