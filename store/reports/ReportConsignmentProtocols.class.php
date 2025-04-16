@@ -142,6 +142,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $consignmentQuery = store_ConsignmentProtocols::getQuery();
 
             $consignmentQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+            $consignmentQuery->limit(20);
 
             $consignmentQuery->groupBy('folderId');
 
@@ -176,16 +177,20 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     {
 
         $recs = array();
-
+        $stateArr = array('rejected');
         // фирми, които са включени в избраните групи
         $crmComp = crm_Companies::getQuery();
+        $crmComp -> in('state', $stateArr,true);
         $crmComp->likeKeylist('groupList', $rec->crmGroup);
         $crmComp -> where("#folderId IS NOT NULL");
+
         $contragentsInGroups = arr::extractValuesFromArray($crmComp->fetchAll(), 'folderId');
 
         //лица, които са включени в избраните групи
         $crmPers = crm_Persons::getQuery();
+        $crmComp -> in('state', $stateArr,true);
         $crmPers->likeKeylist('groupList', $rec->crmGroup);
+        $crmComp -> in('state', $stateArr,true);
         $crmPers -> where("#folderId IS NOT NULL");
 
         //общо контрагенти в избраните групи
@@ -357,7 +362,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         if (store_ConsignmentProtocols::haveRightFor('add')) {
             $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'ret_url' => true);
 
-            $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, false, "ef_icon = img/16/add.png") . "</span>";
+            $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, true, "ef_icon = img/16/add.png") . "</span>";
         }
 
         if (isset($dRec->measureId)) {
