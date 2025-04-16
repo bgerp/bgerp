@@ -142,6 +142,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $consignmentQuery = store_ConsignmentProtocols::getQuery();
 
             $consignmentQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+            $consignmentQuery->limit(20);
 
             $consignmentQuery->groupBy('folderId');
 
@@ -176,16 +177,20 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     {
 
         $recs = array();
-
+        $stateArr = array('rejected');
         // фирми, които са включени в избраните групи
         $crmComp = crm_Companies::getQuery();
+        $crmComp -> in('state', $stateArr,true);
         $crmComp->likeKeylist('groupList', $rec->crmGroup);
         $crmComp -> where("#folderId IS NOT NULL");
+
         $contragentsInGroups = arr::extractValuesFromArray($crmComp->fetchAll(), 'folderId');
 
         //лица, които са включени в избраните групи
         $crmPers = crm_Persons::getQuery();
+        $crmComp -> in('state', $stateArr,true);
         $crmPers->likeKeylist('groupList', $rec->crmGroup);
+        $crmComp -> in('state', $stateArr,true);
         $crmPers -> where("#folderId IS NOT NULL");
 
         //общо контрагенти в избраните групи
