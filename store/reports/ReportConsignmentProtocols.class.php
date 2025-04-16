@@ -188,9 +188,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         //лица, които са включени в избраните групи
         $crmPers = crm_Persons::getQuery();
-        $crmComp -> in('state', $stateArr,true);
+        $crmPers -> in('state', $stateArr,true);
         $crmPers->likeKeylist('groupList', $rec->crmGroup);
-        $crmComp -> in('state', $stateArr,true);
         $crmPers -> where("#folderId IS NOT NULL");
 
         //общо контрагенти в избраните групи
