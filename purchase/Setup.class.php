@@ -92,6 +92,12 @@ defIfNot('PURCHASE_SHOW_CODE_IN_SEPARATE_COLUMN', 'no');
 
 
 /**
+ * Над каква сума за покупка на резервни части да се пуска протокол за предаване на ремонт
+ */
+defIfNot('PURCHASE_ASSET_TRANSFER_REPLACEMENTS_FROM_INVOICE_ABOVE', '1000');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -145,6 +151,9 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_PurchasesData',
         'purchase_Quotations',
         'purchase_QuotationDetails',
+        'purchase_SparePartsProtocols',
+        'purchase_SparePartsProtocolDetails',
+        'purchase_SparePartsProtocolReturnedDetails',
         'migrate::fixInvoices2824',
         'migrate::forceIsPurchaseOverdue2451',
     );
@@ -185,7 +194,8 @@ class purchase_Setup extends core_ProtoSetup
         'PURCHASE_SHOW_REFF_IN_PURCHASE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към покупката->Избор'),
         'PURCHASE_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен закупчик в покупката->Избор'),
         'PURCHASE_SHOW_CODE_IN_SEPARATE_COLUMN' => array('enum(no=Не,yes=Да)', 'caption=Показване на кода на артикула в покупката в отделна колонка->Избор'),
-        );
+        'PURCHASE_ASSET_TRANSFER_REPLACEMENTS_FROM_INVOICE_ABOVE' => array('double(Min=0)', 'caption=Над каква сума за покупка на резервни части да се пуска протокол за предаване на ремонт->Сума'),
+    );
     
     
     /**
