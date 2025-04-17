@@ -84,14 +84,14 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('typeOfReport', 'enum(standard=Стандартна, zeroRows=Показва празните)', 'caption=Тип на справката,after=title,removeAndRefreshForm,single=none,silent');
+        $fieldset->FLD('typeOfReport', 'enum(standard=Само с ПОП, zeroRows=Всички от избраните групи)', 'caption=Контрагенти->Избор,after=to,removeAndRefreshForm,single=none,silent');
 
         $fieldset->FLD('from', 'date', 'caption=От,after=typeOfReport,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Избери,mandatory,input=none,after=to,single=none');
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Избери,mandatory,input=none,after=typeOfReport,single=none');
 
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички които имат издавани ПОП,single=none,after=crmGroup');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички които имат издавани ПОП,single=none,after=typeOfReport');
         $fieldset->FLD('seeZeroRows', 'set(yes = )', 'caption=Контрагенти->Покажи нулевите редове,after=contragent,single=none,silent');
     }
 
@@ -519,7 +519,6 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $form->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,silent');
         $form->FLD('folderId', 'int', 'caption=Контрагент,silent,input=hidden');
-        $form->FLD('protocolType', 'enum(protocol=Протокол,return=Връщане,reclamation=Рекламация)', 'caption=Тип протокол,silent');
         $form->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули наши/ външни,silent');
         $form->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf,select=title)', 'input=hidden,caption=caption=Контрагент->Вид,silent');
         $form->FLD('contragentId', 'int', 'input=hidden,caption=caption=Контрагент->Име,silent');

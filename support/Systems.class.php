@@ -62,7 +62,7 @@ class support_Systems extends core_Master
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'support, ceo, admin';
+    public $canSingle = 'powerUser';
 
 
     /**

@@ -36,7 +36,7 @@ html, body {
 
 .wide .narrowCenter {
     text-align: center;
-    width: 1200px;
+    width: 1400px;
     height: 220px;
     margin: 0 auto;
     position: relative;
@@ -52,7 +52,7 @@ html, body {
 
 .wide  .headerImg{
     height:auto;
-    max-width: 1200px;
+    max-width: 1400px;
     float: none;
 
 }
