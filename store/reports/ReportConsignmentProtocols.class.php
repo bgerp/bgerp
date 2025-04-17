@@ -519,7 +519,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $form->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,silent');
         $form->FLD('folderId', 'int', 'caption=Контрагент,silent,input=hidden');
-        $form->FLD('protocolType', 'enum(protocol=Протокол,return=Връщане,reclamation=Рекламация)', 'caption=Тип протокол,silent');
+        // $form->FLD('protocolType', 'enum(protocol=Протокол,return=Връщане,reclamation=Рекламация)', 'caption=Тип протокол,silent');
         $form->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули наши/ външни,silent');
         $form->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf,select=title)', 'input=hidden,caption=caption=Контрагент->Вид,silent');
         $form->FLD('contragentId', 'int', 'input=hidden,caption=caption=Контрагент->Име,silent');
