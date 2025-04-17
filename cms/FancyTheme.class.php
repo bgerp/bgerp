@@ -221,7 +221,7 @@ class cms_FancyTheme extends core_ProtoInner
         $css .= "\n    #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
 
         // цветове на формите в зависимост от основния цвят
-        $css .= "\n    .searchBox button, .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {background-color:#{$baseColor} !important; border: 1px solid #{$bordercolor} !important}";
+        $css .= "\n    .searchBox button, .narrow .searchForm button,  .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {background-color:#{$baseColor} !important; border: 1px solid #{$bordercolor} !important}";
         $css .= "\n    .vertical .formTitle, .vertical .formMiddleCaption, .vertical .formGroup {background-color:#{$baseColor} !important; border-color:#{$bordercolor};}";
 
         $linkBorder = phpcolor_Adapter::changeColor($bgcolorActive, 'mix', 5, $bordercolor);
