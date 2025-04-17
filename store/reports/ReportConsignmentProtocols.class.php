@@ -84,7 +84,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('typeOfReport', 'enum(standard=Стандартна, zeroRows=Показва празните)', 'caption=Тип на справката,after=title,removeAndRefreshForm,single=none,silent');
+        $fieldset->FLD('typeOfReport', 'enum(standard=Стандартна, zeroRows=Разширена - по групи Контрагенти)', 'caption=Тип на справката,after=title,removeAndRefreshForm,single=none,silent');
 
         $fieldset->FLD('from', 'date', 'caption=От,after=typeOfReport,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
