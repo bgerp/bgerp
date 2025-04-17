@@ -84,9 +84,9 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('from', 'date', 'caption=От,single=none,mandatory');
+        $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-	$fieldset->FLD('typeOfReport', 'enum(standard=Само с ПОП, zeroRows=Всички от избраните групи)', 'caption=Контрагенти->Избор,after=to,removeAndRefreshForm,single=none,silent');
+	    $fieldset->FLD('typeOfReport', 'enum(standard=Само с ПОП, zeroRows=Всички от избраните групи)', 'caption=Контрагенти->Избор,after=to,removeAndRefreshForm,single=none,silent');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Избери,mandatory,input=none,after=typeOfReport,single=none');
 
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички които имат издавани ПОП,single=none,after=typeOfReport');
@@ -126,7 +126,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('typeOfReport', 'standard');
+        $form->setDefault('typeOfReport', 'zeroRows');
         $form->setDefault('seeZeroRows', null);
 
         if ($rec->typeOfReport == 'zeroRows') {
