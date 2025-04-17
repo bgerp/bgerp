@@ -295,9 +295,9 @@ class cms_FancyTheme extends core_ProtoInner
                 $banner .= '<div class="fadein" style="overflow: hidden;">';
                 $style = '';
                 foreach ($imgs as $iHash) {
-                    $img = new thumb_Img(array($iHash, 1200, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($iHash, 1400, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                     $imageURL = $img->getUrl('forced');
-                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1200, 'height' => 220, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
+                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1400, 'height' => 220, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
                     $banner .= "\n{$hImage}";
                     $style = 'display:none;';
                 }
@@ -332,7 +332,7 @@ class cms_FancyTheme extends core_ProtoInner
 
             if ($img) {
                 if (!Mode::is('screenMode', 'narrow')) {
-                    $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($img, 1400, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 } else {
                     $img = new thumb_Img(array($img, 360, 104, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 }
