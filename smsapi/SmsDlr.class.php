@@ -42,5 +42,7 @@ class smsapi_SmsDlr extends core_Manager
         }
         
         sms_Sender::update($rec->id, $status);
+        
+        die ("OK");
     }
 }
