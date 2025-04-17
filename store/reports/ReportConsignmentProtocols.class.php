@@ -142,6 +142,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $consignmentQuery = store_ConsignmentProtocols::getQuery();
 
             $consignmentQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+            $consignmentQuery->limit(20);
 
             $consignmentQuery->groupBy('folderId');
 
@@ -176,15 +177,18 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     {
 
         $recs = array();
-
+        $stateArr = array('rejected');
         // фирми, които са включени в избраните групи
         $crmComp = crm_Companies::getQuery();
+        $crmComp -> in('state', $stateArr,true);
         $crmComp->likeKeylist('groupList', $rec->crmGroup);
         $crmComp -> where("#folderId IS NOT NULL");
+
         $contragentsInGroups = arr::extractValuesFromArray($crmComp->fetchAll(), 'folderId');
 
         //лица, които са включени в избраните групи
         $crmPers = crm_Persons::getQuery();
+        $crmPers -> in('state', $stateArr,true);
         $crmPers->likeKeylist('groupList', $rec->crmGroup);
         $crmPers -> where("#folderId IS NOT NULL");
 
@@ -357,7 +361,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         if (store_ConsignmentProtocols::haveRightFor('add')) {
             $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'ret_url' => true);
 
-            $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, false, "ef_icon = img/16/add.png") . "</span>";
+            $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, true, "ef_icon = img/16/add.png") . "</span>";
         }
 
         if (isset($dRec->measureId)) {
@@ -397,8 +401,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>';
-
+                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank','ef_icon' => "{$Doc->singleIcon}")) . '</span>';
+//ht::createLink($str, $str, false, array('target' => '_blank')),
                 }
             }
         }
@@ -417,7 +421,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->creditDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>';
+                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank','ef_icon' => "{$Doc->singleIcon}")) . '</span>';
 
                 }
             }

@@ -60,7 +60,7 @@ class pwa_ProfilePlg extends core_Plugin
             $pwaSubscriptionUrl = toUrl(array('pwa_PushSubscriptions', 'Subscribe'), 'local');
             $pwaSubscriptionUrl = urlencode($pwaSubscriptionUrl);
 
-            $tpl->appendOnce("const pwaSubsctiptionUrl = '{$pwaSubscriptionUrl}';", 'SCRIPTS');
+            $tpl->appendOnce("const pwaSubscriptionUrl = '{$pwaSubscriptionUrl}';", 'SCRIPTS');
 
             $pButton = new stdClass();
             $pButton->enabled = (object) array('btnText' => tr('Известяване'), 'btnTitle' => tr('Редактиране на настройките за известията'));

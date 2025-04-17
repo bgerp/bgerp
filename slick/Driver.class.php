@@ -90,8 +90,9 @@ class slick_Driver extends core_BaseClass
         $style = '';
         foreach ($images as $fileId) {
             $img = new thumb_Img(array(fileman::idToFh($fileId), $maxwidth, $maxwidth, 'fileman', 'mode' => 'small-no-change', 'isAbsolute' => $absolute));
+            $name = $img->getThumbName();
             $imageURL = $img->getUrl('forced');
-            $slide = "\n    <div{$style}><img style='width:100%;height:auto;' src='{$imageURL}'></div>";
+            $slide = "\n    <div{$style}><img style='width:100%;height:auto;' alt='{$name}' src='{$imageURL}'/></div>";
             $tpl->append($slide, 'SLICK_SLIDES');
             $style = ' style="display:none;"';
         }

@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     let isPushEnabled = false;
-    if (typeof pwaSubsctiptionUrl === 'undefined') {
-        pwaSubsctiptionUrl = 'bgerp/pwa_PushSubscriptions/Subscribe';
+    if (typeof pwaSubscriptionUrl === 'undefined') {
+        pwaSubscriptionUrl = 'bgerp/pwa_PushSubscriptions/Subscribe';
     }
 
-    if (typeof forceSubscibe === 'undefined') {
-        forceSubscibe = 'no';
+    if (typeof forceSubscribe === 'undefined') {
+        forceSubscribe = 'no';
     }
 
     // Бутона за абониране и отписване от известия
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pushButton) {
         pushButton.addEventListener('click', function() {
             if (isPushEnabled) {
-                getEfae().process({url: pwaSubsctiptionUrl}, {haveSubscription: 1}, false);
+                getEfae().process({url: pwaSubscriptionUrl}, {haveSubscription: 1}, false);
 
                 return ;
             } else {
@@ -50,12 +50,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
         changePushButtonState('incompatible');
+
+        if (typeof deniedText !== 'undefined') {
+            render_showToast({timeOut: 800, text: deniedText, isSticky: true, stayTime: 8000, type: "error"});
+        }
+
         return;
     }
 
     // Ako потребителят е отказал известията, не можем да го абонираме
     if (Notification.permission === 'denied') {
         changePushButtonState('denied');
+
+        if (typeof deniedText !== 'undefined') {
+            render_showToast({timeOut: 800, text: deniedText, isSticky: true, stayTime: 8000, type: "error"});
+        }
+
         return;
     }
 
@@ -240,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
             redirectUrl = 'none';
         }
 
-        getEfae().process({url: pwaSubsctiptionUrl}, {action: action, publicKey: publicKey, authToken: authToken, endpoint: endpoint, contentEncoding: contentEncoding, redirectUrl: redirectUrl}, false);
+        getEfae().process({url: pwaSubscriptionUrl}, {action: action, publicKey: publicKey, authToken: authToken, endpoint: endpoint, contentEncoding: contentEncoding, redirectUrl: redirectUrl}, false);
 
         return subscription;
     }
@@ -267,9 +277,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Ако е зададено форсирано абониране, го правим
-    if (forceSubscibe == 'yes') {
+    if (forceSubscribe == 'yes') {
         if (isPushEnabled) {
-            getEfae().process({url: pwaSubsctiptionUrl}, {haveSubscription: 1}, false);
+            getEfae().process({url: pwaSubscriptionUrl}, {haveSubscription: 1}, false);
         } else {
             push_subscribe();
         }
