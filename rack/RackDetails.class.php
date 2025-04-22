@@ -66,9 +66,15 @@ class rack_RackDetails extends core_Detail
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'row,col,status';
-    
-    
+    public $listFields = 'position=Позиция,status,productId';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,rackSee';
+
+
     /**
      * Описание на модела
      */
@@ -275,7 +281,24 @@ class rack_RackDetails extends core_Detail
             
             core_Cache::set('getUnusableAndReserved', $storeId, $res, 1440);
         }
-        
+
         return $res;
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(isset($rec->productId)){
+            $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        }
+
+        $row->position = core_Type::getByName('rack_PositionType')->toVerbal("{$rec->rackId}-{$rec->row}-{$rec->col}");
     }
 }

@@ -35,7 +35,8 @@ class rack_Wrapper extends plg_ProtoWrapper
         $this->TAB(array('rack_Zones', 'list', 'terminal' => true), 'Зони->Терминал', 'ceo,rackSee');
         $this->TAB(array('rack_Zones'), 'Зони->Списък', 'ceo,rackSee');
         $this->TAB('rack_ZoneGroups', 'Зони->Групи', 'ceo,rackSee');
-        $this->TAB('rack_Racks', 'Стелажи', 'ceo,rackSee');
+        $this->TAB('rack_Racks', 'Стелажи->Списък', 'ceo,rackSee');
+        $this->TAB('rack_RackDetails', 'Стелажи->Състояния', 'ceo,rackSee');
         $this->TAB('rack_Logs', 'Логове', 'ceo,rackSee');
         $this->TAB('rack_MovementGenerator2', 'Дебъг->Генератор (ver2)', 'debug');
         $this->TAB('rack_MovementGenerator', 'Дебъг->Генератор (ver1)', 'debug');
