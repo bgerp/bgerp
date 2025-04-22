@@ -193,7 +193,7 @@ class rack_RackDetails extends core_Detail
                                 $form->setError('nextCol,nextRow', 'Има текущи движения, които засягат посочената област' . "|* [{$pos}]");
                             }
                             
-                            if ($rec->status == 'unsusable') {
+                            if ($rec->status == 'unusable') {
                                 if ($used[$pos]) {
                                     $form->setError('nextCol,nextRow', 'В посочената област има заети позиции' . "|* [{$pos}]");
                                 }
