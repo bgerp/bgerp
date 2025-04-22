@@ -126,7 +126,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('typeOfReport', 'zeroRows');
+        $form->setDefault('typeOfReport', 'standard');
         $form->setDefault('seeZeroRows', null);
 
         if ($rec->typeOfReport == 'zeroRows') {
@@ -145,10 +145,14 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $consignmentQuery->groupBy('folderId');
 
             $consignmentQuery->show('folderId, contragentId, folderTitle');
+            $consignmentQuery -> limit(0);
+            $suggestions = array();
 
-            while ($contragent = $consignmentQuery->fetch()) {
-                if (!is_null($contragent->contragentId)) {
-                    $suggestions[$contragent->folderId] = $contragent->folderTitle;
+            if($consignmentQuery -> count() > 0){
+                while ($contragent = $consignmentQuery->fetch()) {
+                    if (!is_null($contragent->contragentId)) {
+                        $suggestions[$contragent->folderId] = $contragent->folderTitle;
+                    }
                 }
             }
 
@@ -198,6 +202,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $balHistory = $Balance->getBalanceHystory('3231', $from = $rec->from, $to = $rec->to, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = false, $strict = true);
 
         $documentsDebitQuantity1 = $documentsCreditQuantity1 = array();
+
+        if(countR($balHistory['history']) < 1) return $recs;
 
         foreach ($balHistory['history'] as $jRec) {
 
