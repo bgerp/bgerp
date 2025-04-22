@@ -79,7 +79,8 @@ class rack_RackDetails extends core_Detail
         $this->FLD('col', 'int', 'caption=Колона,smartCenter,silent');
         $this->FLD('status', 'enum(usable=Използваемо,
                                    unusable=Неизползваемо,
-                                   reserved=Запазено                                     
+                                   reserved=Запазено (твърдо), 
+                                   reservedSoft=Запазено (препоръчително)                                   
                                    )', 'caption=Състояние,smartCenter,silent,refreshForm');
         $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'caption=Артикул,input=none');
         
@@ -133,8 +134,8 @@ class rack_RackDetails extends core_Detail
                 $rec = $exRec;
             }
         }
-        
-        if ($rec->status == 'reserved') {
+
+        if (in_array($rec->status, array('reservedSoft', 'reserved'))) {
             $form->setField('productId', 'input=input');
         }
         
@@ -178,7 +179,9 @@ class rack_RackDetails extends core_Detail
                 $x2 = $rec->nextCol;
                 $y2 = ord($rec->nextRow);
                 
-                list($unusable, $reserved) = rack_RackDetails::getUnusableAndReserved();
+                list($unusable, $reserved, $reservedSoft) = rack_RackDetails::getUnusableAndReserved();
+                $reserved += $reservedSoft;
+
                 $used = rack_Pallets::getUsed($rec->productId);
                 list($movedFrom, $movedTo) = rack_Movements::getExpected();
                 
@@ -265,14 +268,16 @@ class rack_RackDetails extends core_Detail
                 $query = self::getQuery();
                 while ($rec = $query->fetch("#rackId = {$rRec->id}")) {
                     $pos = "{$rRec->num}-{$rec->row}-{$rec->col}";
-                    if ($rec->status == 'reserved') {
+                    if ($rec->status == 'reservedSoft') {
+                        $res[2][$pos] = $rec->productId ? $rec->productId : -1;
+                    } elseif ($rec->status == 'reserved') {
                         $res[1][$pos] = $rec->productId ? $rec->productId : -1;
                     } elseif ($rec->status == 'unusable') {
                         $res[0][$pos] = true;
                     }
                 }
             }
-            
+
             core_Cache::set('getUnusableAndReserved', $storeId, $res, 1440);
         }
 

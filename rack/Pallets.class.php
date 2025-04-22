@@ -376,7 +376,8 @@ class rack_Pallets extends core_Manager
             $storeId = store_Stores::getCurrent();
         }
         
-        list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
+        list($unusable, $reserved, $reservedSoft) = rack_RackDetails::getunUsableAndReserved();
+        $reserved += $reservedSoft;
         list(, $movedTo) = rack_Movements::getExpected();
 
         // Ако намерим палет с този продукт и свободно място към края на стелажа - вземаме него

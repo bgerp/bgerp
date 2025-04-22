@@ -431,7 +431,9 @@ class rack_Racks extends core_Master
         $row = $rec->rows;
         $hlPos = Request::get('pos');
         $hlFullPos = "{$rec->num}-{$hlPos}";
-        list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
+        list($unusable, $reserved, $reservedSoft) = rack_RackDetails::getunUsableAndReserved();
+        $reserved += $reservedSoft;
+
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
         $hlProdId = $used[$hlFullPos];
