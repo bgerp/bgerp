@@ -145,7 +145,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $consignmentQuery->groupBy('folderId');
 
             $consignmentQuery->show('folderId, contragentId, folderTitle');
-            $consignmentQuery -> limit(0);
+
             $suggestions = array();
 
             if($consignmentQuery -> count() > 0){
