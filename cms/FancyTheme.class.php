@@ -96,7 +96,6 @@ class cms_FancyTheme extends core_ProtoInner
 
         if($this->innerForm->menuPosition == 'above'){
             $tpl->replace($menu, 'TOP_PAGE');
-            $css .= "\n    header {border-bottom: 2px solid {$this->innerForm->baseColor} !important;}";
         } else if($this->innerForm->menuPosition == 'below'){
             $tpl->replace($menu, 'MENU');
         }
