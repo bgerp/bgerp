@@ -146,7 +146,7 @@ class purchase_SparePartsProtocols extends core_Master
         $this->FLD('assetModel', 'varchar', 'caption=I. Предаване->Модел');
         $this->FLD('assetSerial', 'varchar', 'caption=I. Предаване->Сериен №');
         $this->FLD('assetInvNum', 'varchar', 'caption=I. Предаване->Инв. номер');
-        $this->FLD('assetManifactureOn', 'double(smartRound)', 'caption=I. Предаване->Година на произв.');
+        $this->FLD('assetManifactureOn', 'int', 'caption=I. Предаване->Година на произв.');
 
         $this->FLD('notes', 'text(rows=4)', 'caption=I. Предаване->Описание');
         $this->FLD('handedOverForRepairBy', 'varchar', 'caption=I. Предаване->Предадено от');
@@ -182,7 +182,7 @@ class purchase_SparePartsProtocols extends core_Master
             $rec = $form->rec;
 
             if(!empty($rec->assetManifactureOn)){
-                if(!(is_numeric($rec->assetManifactureOn) && ctype_digit($rec->assetManifactureOn) && (int)$rec->assetManifactureOn >= 1000 && (int)$rec->assetManifactureOn <= (date("Y") + 20))){
+                if(!((int)$rec->assetManifactureOn >= 1000 && (int)$rec->assetManifactureOn <= (date("Y") + 20))){
                     $form->setError('assetManifactureOn', 'Невалидна година на производство');
                 }
             }
@@ -236,7 +236,7 @@ class purchase_SparePartsProtocols extends core_Master
         $startYear = $currentYear - 50;
         $assetManifactureOnOptions = array();
         for ($year = $startYear; $year <= $currentYear; $year++) {
-            $assetManifactureOnOptions[$year] = $year;
+            $assetManifactureOnOptions["{$year}"] = "{$year}";
         }
         $form->setSuggestions('assetManifactureOn', $assetManifactureOnOptions);
     }

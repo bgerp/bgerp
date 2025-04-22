@@ -82,6 +82,12 @@ class purchase_SparePartsProtocolDetails extends core_Detail
 
 
     /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'no_one';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

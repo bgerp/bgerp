@@ -13,6 +13,9 @@
 <div class="section">
     <table>
         <tr>
+            <td class="label" colspan="2">I. ПРЕДАВАНЕ</td>
+        </tr>
+        <tr>
             <td class="label" colspan="2">|Дата|* [#date#] / [#time#] |час|*</td>
         </tr>
         <tr>
