@@ -524,7 +524,7 @@ class rack_Racks extends core_Master
                     
                     if ($pId > 0) {
                         $prodTitle = cat_Products::getTitleById($pId);
-                        $hint = tr('Запазено място за') . ' ' . $prodTitle;
+                        $hint = tr('Запазено място за') . ': ' . $prodTitle;
                     }
                 }
                 
@@ -532,7 +532,7 @@ class rack_Racks extends core_Master
                 if (!isset($title) && $movedTo[$posFull]) {
                     $title = $pos;
                     $attr['style'] = 'color:#6c6;';
-                    $hint = tr('Очаква се палет') . " {$prodTitle}";
+                    $hint = tr('Очаква се палет') . ": {$prodTitle}";
                 }
                 
                 // Ако ще се премества палет
