@@ -20,7 +20,7 @@ class purchase_SparePartsProtocolReturnedDetails extends core_Detail
      *
      * @var string
      */
-    public $title = 'Върнати резервни части и консумативи';
+    public $title = 'Върнати резервни части или консумативи';
 
 
     /**
@@ -28,7 +28,7 @@ class purchase_SparePartsProtocolReturnedDetails extends core_Detail
      *
      * @var string
      */
-    public $singleTitle = 'резервна част или консуматив';
+    public $singleTitle = 'Върната резервна част или консуматив';
 
 
     /**
@@ -118,6 +118,7 @@ class purchase_SparePartsProtocolReturnedDetails extends core_Detail
     {
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
     }
+
 
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие

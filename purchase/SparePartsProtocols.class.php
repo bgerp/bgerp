@@ -24,7 +24,7 @@ class purchase_SparePartsProtocols extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Протоколи за резервни чати';
+    public $title = 'Протоколи за резервни части';
 
 
     /**
@@ -231,6 +231,14 @@ class purchase_SparePartsProtocols extends core_Master
         }
 
         $form->setOptions('assetId', array('' => '') + $assetOptions);
+
+        $currentYear = date("Y");
+        $startYear = $currentYear - 50;
+        $assetManifactureOnOptions = array();
+        for ($year = $startYear; $year <= $currentYear; $year++) {
+            $assetManifactureOnOptions[$year] = $year;
+        }
+        $form->setSuggestions('assetManifactureOn', $assetManifactureOnOptions);
     }
 
 
@@ -305,14 +313,14 @@ class purchase_SparePartsProtocols extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        list($row->date, $row->time) = explode(' ', $row->date);
-        list($row->handedOverOn, $row->handedOverOnTime) = explode(' ', $row->handedOverOn);
-
         if(!Mode::isReadOnly()){
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
         }
 
         if(isset($fields['-single'])){
+            list($row->date, $row->time) = explode(' ', $row->date);
+            list($row->handedOverOn, $row->handedOverOnTime) = explode(' ', $row->handedOverOn);
+
             if(!empty($rec->repairBy)){
                 $repairByArr = explode("\n", $rec->repairBy);
             } else {
