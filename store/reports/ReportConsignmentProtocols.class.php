@@ -140,7 +140,6 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $consignmentQuery = store_ConsignmentProtocols::getQuery();
 
             $consignmentQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
-            $consignmentQuery->limit(20);
 
             $consignmentQuery->groupBy('folderId');
 
