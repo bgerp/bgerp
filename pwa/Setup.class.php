@@ -44,6 +44,7 @@ class pwa_Setup extends core_ProtoSetup
         'pwa_PushSubscriptions',
         'pwa_Settings',
         'migrate::updateSettings2509',
+        'migrate::updateState2516',
     );
 
 
@@ -361,6 +362,23 @@ class pwa_Setup extends core_ProtoSetup
                     core_Packs::setConfig('pwa', $data);
                 }
             }
+        }
+    }
+
+
+    /**
+     * Активира PWA абонаментите, които са null
+     *
+     * @return void
+     */
+    function updateState2516()
+    {
+        $pQuery = pwa_PushSubscriptions::getQuery();
+        $pQuery->where("#state IS NULL");
+
+        while ($pRec = $pQuery->fetch()) {
+            $pRec->state = 'active';
+            pwa_PushSubscriptions::save($pRec, 'state');
         }
     }
 }

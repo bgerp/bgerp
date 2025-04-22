@@ -15,7 +15,7 @@
  * @since     v 0.1
  * @title     История на SMS-ите
  */
-class mobio_SmsDlr extends core_Manager
+class smsapi_SmsDlr extends core_Manager
 {
     /**
      * Заглавие
@@ -42,5 +42,7 @@ class mobio_SmsDlr extends core_Manager
         }
         
         sms_Sender::update($rec->id, $status);
+        
+        die ("OK");
     }
 }
