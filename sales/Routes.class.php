@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'contragent=Контрагент,locationId,nextVisit=Посещения->Следващо,dateFld=Посещения->Начало,repeat=Посещения->Период,salesmanId,state,createdOn,createdBy';
+    public $listFields = 'contragent=Контрагент,locationId,nextVisit=Посещения->Следващо,dateFld=Посещения->Начало,repeat=Посещения->Период,salesmanId,type,state,createdOn,createdBy';
     
     
     /**
@@ -96,8 +96,9 @@ class sales_Routes extends core_Manager
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,mandatory,silent');
         $this->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Търговец,mandatory');
         $this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
+        $this->FLD('type', 'enum(visit=Посещение,delivery=Доставка,mixed=Посещение и доставка)', 'caption=Посещения->Вид,mandatory,notNull,default=visit');
         $this->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|4 седмици|1 месец)', 'caption=Посещения->Период, hint=на какъв период да е повторението на маршрута');
-        
+
         // Изчислимо поле за кога е следващото посещение
         $this->FLD('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо,input=none');
         
@@ -235,27 +236,39 @@ class sales_Routes extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('user', 'user(roles=sales|ceo)', 'input,caption=Търговец,placeholder=Търговец,silent,autoFilter');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
+        $data->listFilter->setFieldType('type', "enum(all=Вид,visit=Посещение,delivery=Доставка,mixed=Посещение и доставка)");
+
         if(haveRole('officer')){
             $data->listFilter->setFieldTypeParams('user', array('allowEmpty' => 'allowEmpty'));
         } elseif(haveRole('sales')) {
             $data->listFilter->setDefault('user', core_Users::getCurrent());
         }
-        $data->listFilter->showFields = 'search,user,date';
+        $data->listFilter->setDefault('type', 'all');
+        $data->listFilter->showFields = 'search,user,type,date';
         $data->listFilter->input();
         $data->query->orderBy('#nextVisit', 'ASC');
         
         // Филтриране по дата
-        if ($data->listFilter->rec->date) {
-            $data->query->where("#nextVisit = '{$data->listFilter->rec->date}'");
-            $data->query->XPR('dif', 'int', "DATEDIFF (#dateFld , '{$data->listFilter->rec->date}')");
+        $filterRec = $data->listFilter->rec;
+        if ($filterRec->date) {
+            $data->query->where("#nextVisit = '{$filterRec->date}'");
+            $data->query->XPR('dif', 'int', "DATEDIFF (#dateFld , '{$filterRec->date}')");
             $data->query->orWhere('MOD(#dif, round(#repeat / 86400 )) = 0');
         }
         
         // Филтриране по продавач
-        if ($data->listFilter->rec->user) {
-            $data->query->where(array('#salesmanId = [#1#]', $data->listFilter->rec->user));
+        if ($filterRec->user) {
+            $data->query->where(array('#salesmanId = [#1#]', $filterRec->user));
         }
-        
+
+        if ($filterRec->type == 'mixed') {
+            $data->query->where("#type = 'mixed'");
+        } elseif ($filterRec->type == 'visit') {
+            $data->query->where("#type IN ('visit', 'mixed')");
+        } elseif ($filterRec->type == 'delivery') {
+            $data->query->where("#type IN ('delivery', 'mixed')");
+        }
+
         if (Mode::isReadOnly()) {
             unset($data->listFields['state']);
             unset($data->listFields['createdOn']);
@@ -373,7 +386,7 @@ class sales_Routes extends core_Manager
     {
         $tpl = getTplFromFile('sales/tpl/SingleLayoutRoutes.shtml');
         $title = tr($this->title);
-        $listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение');
+        $listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение,type=Вид');
         
         if ($data->addUrl && !Mode::isReadOnly()) {
             $title .= ht::createLink('', $data->addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addRoute', 'title' => 'Създаване на нов търговски маршрут'));
@@ -579,10 +592,11 @@ class sales_Routes extends core_Manager
      * Кои марршрути са допустими за избор
      *
      * @param int $locationId  - към коя локация
-     * @param int $inDays - в следващите колко дни? null за без ограничение
+     * @param int $inDays      - в следващите колко дни? null за без ограничение
+     * @param string $type     - вид посещение
      * @return string[] $routeOptions - опции от маршрути
      */
-    public static function getRouteOptions($locationId, $inDays = null)
+    public static function getRouteOptions($locationId, $inDays = null, $type = null)
     {
         $today = dt::today();
         
@@ -593,7 +607,15 @@ class sales_Routes extends core_Manager
             $inDays = dt::addDays($inDays, $today, false);
             $rQuery->where("#nextVisit <= '{$inDays}'");
         }
-        
+
+        if ($type == 'mixed') {
+            $rQuery->where("#type = 'mixed'");
+        } elseif ($type == 'visit') {
+            $rQuery->where("#type IN ('visit', 'mixed')");
+        } elseif ($type == 'delivery') {
+            $rQuery->where("#type IN ('delivery', 'mixed')");
+        }
+
         $rQuery->show('id,nextVisit');
         $rQuery->orderBy('id', "ASC");
         

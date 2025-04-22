@@ -106,7 +106,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
         $locationId = ($Document instanceof eshop_Carts) ? $form->rec->locationId : $form->rec->deliveryLocationId;
       
         if(isset($locationId)){
-            $routeOptions = sales_Routes::getRouteOptions($locationId, $inDays);
+            $routeOptions = sales_Routes::getRouteOptions($locationId, $inDays, 'delivery');
             $countRoutes = countR($routeOptions);
             $form->FLD('routeId', "key(mvc=sales_Routes,select=nextVisit)", 'silent,mandatory,caption=Доставка->Доставка на');
             
