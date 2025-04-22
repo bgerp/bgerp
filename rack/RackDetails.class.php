@@ -28,12 +28,6 @@ class rack_RackDetails extends core_Detail
     
     
     /**
-     * Активен таб
-     */
-    public $currentTab = 'Стелажи';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, rack_Wrapper';
