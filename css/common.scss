@@ -3796,6 +3796,10 @@ td.centerCol {
 	text-align:center;
 	.modal-toolbar {
 		white-space: normal;
+		text-align: left;
+		.linkWithIcon {
+			display: block;
+		}
 	}
 }
 

@@ -3432,7 +3432,10 @@ td.centerCol {
   white-space: nowrap;
   text-align: center; }
   td.centerCol .modal-toolbar {
-    white-space: normal; }
+    white-space: normal;
+    text-align: left; }
+    td.centerCol .modal-toolbar .linkWithIcon {
+      display: block; }
 
 td.leftColImportant {
   white-space: nowrap;
