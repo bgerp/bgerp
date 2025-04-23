@@ -28,12 +28,6 @@ class rack_RackDetails extends core_Detail
     
     
     /**
-     * Активен таб
-     */
-    public $currentTab = 'Стелажи';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, rack_Wrapper';
@@ -66,9 +60,15 @@ class rack_RackDetails extends core_Detail
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'row,col,status';
-    
-    
+    public $listFields = 'position=Позиция,status,productId';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo,rackSee';
+
+
     /**
      * Описание на модела
      */
@@ -79,9 +79,10 @@ class rack_RackDetails extends core_Detail
         $this->FLD('col', 'int', 'caption=Колона,smartCenter,silent');
         $this->FLD('status', 'enum(usable=Използваемо,
                                    unusable=Неизползваемо,
-                                   reserved=Запазено                                     
+                                   reserved=Запазено (твърдо), 
+                                   reservedSoft=Запазено (препоръчително)                                   
                                    )', 'caption=Състояние,smartCenter,silent,refreshForm');
-        $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'caption=Артикул,input=none');
+        $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=fixedAsset,hasnotProperties=generic)', 'caption=Артикул,input=none');
         
         $this->setDbUnique('rackId,row,col');
     }
@@ -133,8 +134,8 @@ class rack_RackDetails extends core_Detail
                 $rec = $exRec;
             }
         }
-        
-        if ($rec->status == 'reserved') {
+
+        if (in_array($rec->status, array('reservedSoft', 'reserved'))) {
             $form->setField('productId', 'input=input');
         }
         
@@ -178,7 +179,9 @@ class rack_RackDetails extends core_Detail
                 $x2 = $rec->nextCol;
                 $y2 = ord($rec->nextRow);
                 
-                list($unusable, $reserved) = rack_RackDetails::getUnusableAndReserved();
+                list($unusable, $reserved, $reservedSoft) = rack_RackDetails::getUnusableAndReserved();
+                $reserved += $reservedSoft;
+
                 $used = rack_Pallets::getUsed($rec->productId);
                 list($movedFrom, $movedTo) = rack_Movements::getExpected();
                 
@@ -193,7 +196,7 @@ class rack_RackDetails extends core_Detail
                                 $form->setError('nextCol,nextRow', 'Има текущи движения, които засягат посочената област' . "|* [{$pos}]");
                             }
                             
-                            if ($rec->status == 'unsusable') {
+                            if ($rec->status == 'unusable') {
                                 if ($used[$pos]) {
                                     $form->setError('nextCol,nextRow', 'В посочената област има заети позиции' . "|* [{$pos}]");
                                 }
@@ -265,17 +268,36 @@ class rack_RackDetails extends core_Detail
                 $query = self::getQuery();
                 while ($rec = $query->fetch("#rackId = {$rRec->id}")) {
                     $pos = "{$rRec->num}-{$rec->row}-{$rec->col}";
-                    if ($rec->status == 'reserved') {
+                    if ($rec->status == 'reservedSoft') {
+                        $res[2][$pos] = $rec->productId ? $rec->productId : -1;
+                    } elseif ($rec->status == 'reserved') {
                         $res[1][$pos] = $rec->productId ? $rec->productId : -1;
                     } elseif ($rec->status == 'unusable') {
                         $res[0][$pos] = true;
                     }
                 }
             }
-            
+
             core_Cache::set('getUnusableAndReserved', $storeId, $res, 1440);
         }
-        
+
         return $res;
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(isset($rec->productId)){
+            $row->productId = cat_Products::getHyperlink($rec->productId, true);
+        }
+
+        $row->position = core_Type::getByName('rack_PositionType')->toVerbal("{$rec->rackId}-{$rec->row}-{$rec->col}");
     }
 }

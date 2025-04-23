@@ -55,7 +55,7 @@
     }
 
     .details-label {
-        top: -4mm;
+        top: -1mm;
         position: relative;
     }
 

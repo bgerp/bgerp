@@ -173,17 +173,16 @@ class accda_Da extends core_Master
         $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Счетоводство->Сметка,mandatory,input=hidden,remember');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Счетоводство->Склад,input=none,silent,refreshForm,remember');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Счетоводство->В употреба от,mandatory,remember');
-        $this->FLD('title', 'varchar', 'caption=Счетоводство->Наименование,mandatory,width=400px,remember');
-        $this->FLD('num', 'varchar(32)', 'caption=Счетоводство->Наш номер, mandatory');
-        $this->FLD('serial', 'varchar', 'caption=Счетоводство->Сериен номер');
+        $this->FLD('title', 'varchar', 'caption=Дълготраен актив->Наименование,mandatory,width=400px,remember');
+        $this->FLD('num', 'varchar(32)', 'caption=Дълготраен актив->Наш номер, mandatory');
+        $this->FLD('serial', 'varchar', 'caption=Дълготраен актив->Сериен номер');
         
-        $this->FLD('info', 'richtext(rows=3, bucket=accda)', 'caption=Описание,column=none,width=400px');
-        $this->FLD('origin', 'richtext(rows=3, bucket=accda)', 'caption=Произход,column=none,width=400px');
-        $this->FLD('amortNorm', 'percent', 'caption=ГАН,hint=Годишна амортизационна норма,notNull');
-        $this->FLD('location', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,column=none,width=400px,silent,refreshForm');
-        $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
-        $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
-
+        $this->FLD('info', 'richtext(rows=3, bucket=accda)', 'caption=Дълготраен актив->Описание,column=none,width=400px');
+        $this->FLD('origin', 'richtext(rows=3, bucket=accda)', 'caption=Дълготраен актив->Произход,column=none,width=400px');
+        $this->FLD('amortNorm', 'percent', 'caption=Дълготраен актив->ГАН,hint=Годишна амортизационна норма,notNull');
+        $this->FLD('location', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Дълготраен актив->Локация,column=none,width=400px,silent,refreshForm');
+        $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Дълготраен актив->Координати');
+        $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Дълготраен актив->Снимка');
         $this->FLD('syncWithAsset', 'enum(no=Няма,new=Нов ресурс,existing=Съществуващ ресурс)', 'caption=Оборудване->Ресурс,notNull,value=new,silent,removeAndRefreshForm=exAssetId|assetCode|assetGroupId|assetResourceFolderId|assetSupportFolderId');
 
         $this->FLD('exAssetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване->Избор,input=hidden');
