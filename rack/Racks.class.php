@@ -431,7 +431,9 @@ class rack_Racks extends core_Master
         $row = $rec->rows;
         $hlPos = Request::get('pos');
         $hlFullPos = "{$rec->num}-{$hlPos}";
-        list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
+        list($unusable, $reserved, $reservedSoft) = rack_RackDetails::getunUsableAndReserved();
+        $reserved += $reservedSoft;
+
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
         $hlProdId = $used[$hlFullPos];
@@ -524,7 +526,7 @@ class rack_Racks extends core_Master
                     
                     if ($pId > 0) {
                         $prodTitle = cat_Products::getTitleById($pId);
-                        $hint = tr('Запазено място за') . ' ' . $prodTitle;
+                        $hint = tr('Запазено място за') . ': ' . $prodTitle;
                     }
                 }
                 
@@ -532,7 +534,7 @@ class rack_Racks extends core_Master
                 if (!isset($title) && $movedTo[$posFull]) {
                     $title = $pos;
                     $attr['style'] = 'color:#6c6;';
-                    $hint = tr('Очаква се палет') . " {$prodTitle}";
+                    $hint = tr('Очаква се палет') . ": {$prodTitle}";
                 }
                 
                 // Ако ще се премества палет
