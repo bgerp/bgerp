@@ -210,18 +210,29 @@ class smsapi_SMS extends core_Manager
      * Извиква се от външната програма след промяна на статуса на SMS'а
      */
     public function act_Delivery()
-    { 
+    {
         // Вземаме променливите
         $uid = Request::get('MsgId', 'varchar');
         $number = Request::get('to', 'varchar');
         $code = Request::get('status_name', 'varchar');
         $time = Request::get('sent_at', 'varchar');
         $timestamp = null;
-        // Ако не е получен успешно
-        if ($code !== 'SENT') {
-            $status = 'receiveError';
-        } else {
-            $status = 'received';
+        // Определяне състоянието
+        switch ($code) {
+            case "SENT":
+            case "ACCEPTED":
+                $status = 'sended';
+                break;
+            case "DELIVERED":
+                $status = 'received';
+                break;
+            case "QUEUE":
+                $status = 'pending';
+                break;
+            case "UNDELIVERED":
+                $status = 'receiveError';
+                break;
+            default: $status = 'sendError';
         }
         
         try {
