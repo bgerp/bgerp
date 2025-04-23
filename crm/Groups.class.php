@@ -227,6 +227,7 @@ class crm_Groups extends core_Master
         }
 
         $query = $clsName::getQuery();
+        $query->where("#state != 'rejected'");
         $gCntArr = $query->countKeylist('groupList');
 
         if (!empty($gCntArr)) {

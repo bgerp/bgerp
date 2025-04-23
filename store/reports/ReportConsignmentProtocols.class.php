@@ -84,15 +84,13 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('typeOfReport', 'enum(standard=Стандартна, zeroRows=Показва празните)', 'caption=Тип на справката,after=title,removeAndRefreshForm,single=none,silent');
-
-        $fieldset->FLD('from', 'date', 'caption=От,after=typeOfReport,single=none,mandatory');
+        $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
+	    $fieldset->FLD('typeOfReport', 'enum(standard=Само с ПОП, zeroRows=Всички от избраните групи)', 'caption=Контрагенти->Избор,after=to,removeAndRefreshForm,single=none,silent');
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Избери,mandatory,input=none,after=typeOfReport,single=none');
 
-        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Избери,mandatory,input=none,after=to,single=none');
-
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички които имат издавани ПОП,single=none,after=crmGroup');
-        $fieldset->FLD('seeZeroRows', 'set(yes = )', 'caption=Контрагенти->Покажи нулевите редове,after=contragent,single=none,silent');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички които имат издавани ПОП,single=none,after=typeOfReport');
+        $fieldset->FLD('seeZeroRows', 'set(yes = )', 'caption=Контрагенти->Без текуща наличност,after=contragent,single=none,silent');
     }
 
 
@@ -128,7 +126,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('typeOfReport', 'standard');
+        $form->setDefault('typeOfReport', 'zeroRows');
         $form->setDefault('seeZeroRows', null);
 
         if ($rec->typeOfReport == 'zeroRows') {
@@ -142,6 +140,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $consignmentQuery = store_ConsignmentProtocols::getQuery();
 
             $consignmentQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+            $consignmentQuery->limit(20);
 
             $consignmentQuery->groupBy('folderId');
 
@@ -176,15 +175,18 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     {
 
         $recs = array();
-
+        $stateArr = array('rejected');
         // фирми, които са включени в избраните групи
         $crmComp = crm_Companies::getQuery();
+        $crmComp -> in('state', $stateArr,true);
         $crmComp->likeKeylist('groupList', $rec->crmGroup);
         $crmComp -> where("#folderId IS NOT NULL");
+
         $contragentsInGroups = arr::extractValuesFromArray($crmComp->fetchAll(), 'folderId');
 
         //лица, които са включени в избраните групи
         $crmPers = crm_Persons::getQuery();
+        $crmPers -> in('state', $stateArr,true);
         $crmPers->likeKeylist('groupList', $rec->crmGroup);
         $crmPers -> where("#folderId IS NOT NULL");
 
@@ -357,7 +359,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         if (store_ConsignmentProtocols::haveRightFor('add')) {
             $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'ret_url' => true);
 
-            $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, false, "ef_icon = img/16/add.png") . "</span>";
+            $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, true, "ef_icon = img/16/add.png") . "</span>";
         }
 
         if (isset($dRec->measureId)) {
@@ -397,8 +399,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>';
-
+                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank','ef_icon' => "{$Doc->singleIcon}")) . '</span>';
+//ht::createLink($str, $str, false, array('target' => '_blank')),
                 }
             }
         }
@@ -417,7 +419,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->creditDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>';
+                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank','ef_icon' => "{$Doc->singleIcon}")) . '</span>';
 
                 }
             }
@@ -515,7 +517,6 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $form->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,silent');
         $form->FLD('folderId', 'int', 'caption=Контрагент,silent,input=hidden');
-        $form->FLD('protocolType', 'enum(protocol=Протокол,return=Връщане,reclamation=Рекламация)', 'caption=Тип протокол,silent');
         $form->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули наши/ външни,silent');
         $form->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf,select=title)', 'input=hidden,caption=caption=Контрагент->Вид,silent');
         $form->FLD('contragentId', 'int', 'input=hidden,caption=caption=Контрагент->Име,silent');
