@@ -3794,6 +3794,9 @@ td.leftCol, th.leftCol {
 td.centerCol {
 	white-space:nowrap;
 	text-align:center;
+	.modal-toolbar {
+		white-space: normal;
+	}
 }
 
 td.leftColImportant {

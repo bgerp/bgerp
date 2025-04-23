@@ -3431,6 +3431,8 @@ th.leftCol {
 td.centerCol {
   white-space: nowrap;
   text-align: center; }
+  td.centerCol .modal-toolbar {
+    white-space: normal; }
 
 td.leftColImportant {
   white-space: nowrap;
