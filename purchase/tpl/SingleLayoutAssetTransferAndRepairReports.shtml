@@ -1,33 +1,38 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-<div class="section">
-    <p>[#companyVerb#]</p>
-    <p>ЕИК: [#uicId#]</p>
-    <p>ЗДДС № [#vatNo#]</p>
-    <p>[#pCode#] [#place#], [#address#]</p>
-    <p>email: [#email#], [#tel#]</p>
+<div class=" row">
+    <div class="fleft" style="width: 50%">
+        <p>[#companyVerb#]</p>
+        <p>ЕИК: [#uicId#]</p>
+        <p>ЗДДС № [#vatNo#]</p>
+    </div>
+
+    <div class="fleft" style="width: 50%">
+        <p>[#pCode#] [#place#], [#address#]</p>
+        <p>email: [#email#], [#tel#]</p>
+    </div>
 </div>
-
-<h1>|Протокол|* №[#id#] / [#date#]</h1>
-<h2>ЗА ПРЕДАВАНЕ И ПРИЕМАНЕ НА РЕМОНТ НА МАШИНА/СЪОРЪЖЕНИЕ</h2>
+<div class="clearfix21"></div>
+<h1 class="centered">|Протокол|* №[#id#] / [#date#]</h1>
+<h2 class="centered">ЗА ПРЕДАВАНЕ И ПРИЕМАНЕ НА РЕМОНТ НА МАШИНА/СЪОРЪЖЕНИЕ</h2>
 
 <div class="section">
-    <table>
+    <table style="width: 100%">
         <tr>
-            <td class="label" colspan="2">I. ПРЕДАВАНЕ</td>
+            <td class="label">
+                <h3 style="margin: 0 0 10px 0 ">I. ПРЕДАВАНЕ</h3>
+            <div>|Дата|* [#date#] / [#time#] |час|*</div>
+            </td>
+            <td class="label" style="text-align: right; width: 1%"><table><tr><td>|Разрешил|*:</td><td>.....................</td></tr> <tr><td></td><td style="text-align: center"> [#allowedBy#]</td></tr> </table></td>
         </tr>
         <tr>
-            <td class="label" colspan="2">|Дата|* [#date#] / [#time#] |час|*</td>
-        </tr>
-        <tr>
-            <td class="label">|Разрешил|*:</td>
-            <td>[#allowedBy#]</td>
+            <td class="label"></td>
+            <td></td>
         </tr>
         <tr>
     </table>
 </div>
-<hr>
 <div class="section">
-    <table class="simpleTable">
+    <table class="border-table" style="margin: 10px 0">
         <tr>
             <td class="label">|Машина/Съоръжение|*:</td>
             <td>[#assetId#]</td>
@@ -49,46 +54,33 @@
             <td>[#assetManifactureOn#]</td>
         </tr>
     </table>
-    <p>|Описание на повредата|* [#notes#]</p>
+    <p>|Описание на повредата|*:  [#notes#]</p>
 </div>
 
 <div class="section">
     <p>|Машината/съоръжението се предаде за ремонт от|*: [#handedOverForRepairBy#]</p>
     <p>|Машината/съоръжението се прие за ремонт от|*: [#receivedForRepairBy#]</p>
 </div>
-<hr>
+
 <div class="section">
-    <h2>II. |РЕМОНТ|* / |ТЕХНИЧЕСКО ОБСЛУЖВАНЕ|*</h2>
+    <h3 style="margin:30px 0 10px 0">II. |РЕМОНТ|* / |ТЕХНИЧЕСКО ОБСЛУЖВАНЕ|*</h3>
     <p>Днес [#handedOverOn#] в [#handedOverOnTime#] часа, бе предадена от ремонт, безопасна и годна за работа,
-        описанта по-горе машина/съоръжение. В процеса на ремонта са сменени резервни части и/или подменени консумативи
+        описаната по-горе машина/съоръжение. В процеса на ремонта са сменени резервни части и/или подменени консумативи
     </p>
-    <h2>Описанието на вложените ремонтни дейности, части и материали</h2>
+    <p style="border:1px solid #ccc; border-bottom: none; padding: 5px; text-align: center; font-weight: bold; margin-bottom: 0; background-color: #eee">Описание на вложените ремонтни дейности, части и материали</p>
     [#purchase_SparePartsProtocolDetails#]
 
-    <h2>Върнати резервни части и консумативи</h2>
+    <p style="border:1px solid #ccc; border-bottom: none; padding: 5px; text-align: center; font-weight: bold; margin-bottom: 0; background-color: #eee">Върнати резервни части и консумативи</p>
     [#purchase_SparePartsProtocolReturnedDetails#]
 </div>
 
-<div class="section">
-    <table>
-        <tr>
-            <td class="label" colspan="2">Гаранцията за извършения ремонт е от датата на приемане на машина/съоръжение</td>
-        </tr>
-        <tr>
-            <td class="label">Гаранция на ремонта*:</td>
-            <td>[#warranty#]</td>
-        </tr>
-        <tr>
-            <td class="label" colspan="2">Извършили ремонта (име, фамилия, подпис):</td>
-        </tr>
-        <tr>
-            <td class="label" colspan="2">[#repairBy#]</td>
-        </tr>
-    </table>
-</div>
-<div class="section">
-    <p>Работни човекочасове: [#manHours#]</p>
-    <p>Машината/съоръжението се предаде от ремонт от: [#handedOverFromRepairBy#]</p>
-    <p>Машината/съоръжението се прие от ремонт от: [#receivedFromRepairBy#]</p>
-</div>
+<p>Гаранцията за извършения ремонт е от датата на приемане на машина/съоръжение</p>
+
+<p>Гаранция на ремонта: [#warranty#]</p>
+<p>Извършили ремонта (име, фамилия, подпис):</p>
+<p>[#repairBy#]</p>
+<p>Работни човекочасове: [#manHours#]</p>
+<p>Машината/съоръжението се предаде от ремонт от: [#handedOverFromRepairBy#]</p>
+<p>Машината/съоръжението се прие от ремонт от: [#receivedFromRepairBy#]</p>
+
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

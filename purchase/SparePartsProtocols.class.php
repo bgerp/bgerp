@@ -331,7 +331,7 @@ class purchase_SparePartsProtocols extends core_Master
             foreach ($repairByArr as $repairBy){
                 $repairByUl .= "<li>$repairBy</li>";
             }
-            $repairByUl .= "<ol>";
+            $repairByUl .= "</ol>";
             $row->repairBy = $repairByUl;
 
             $ownCompanyData = crm_Companies::fetchOwnCompany(null, $rec->date);
