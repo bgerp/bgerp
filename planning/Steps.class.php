@@ -726,7 +726,9 @@ class planning_Steps extends core_Extender
         $iQuery = planning_Steps::getQuery();
         $iQuery->where("#classId = " . cat_Products::getClassId());
         $iQuery->show('interruptOffset,objectId');
-        $iQuery->in("objectId", $taskProductIds);
+        if (!empty($taskProductIds)) {
+            $iQuery->in("objectId", $taskProductIds);
+        }
 
         $interruptionArr = array();
         while($iRec = $iQuery->fetch()){
