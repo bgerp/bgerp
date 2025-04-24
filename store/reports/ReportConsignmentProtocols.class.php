@@ -84,13 +84,17 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
-        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-        $fieldset->FLD('typeOfReport', 'enum(standard=Само с ПОП, zeroRows=Всички от избраните групи)', 'caption=Контрагенти->Избор,after=to,removeAndRefreshForm,single=none,silent');
+        $fieldset->FLD('typeOfReport', 'enum(standard=Само с ПОП, zeroRows=Всички от избраните групи)', 'caption=Избор,after=title,removeAndRefreshForm,single=none,silent');
+
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Избери,mandatory,input=none,after=typeOfReport,single=none');
 
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички които имат издавани ПОП,single=none,after=typeOfReport');
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички които имат издавани ПОП,single=none,after=contragent');
         $fieldset->FLD('seeZeroRows', 'set(yes = )', 'caption=Контрагенти->Без текуща наличност,after=contragent,single=none,silent');
+
+        $fieldset->FLD('from', 'date', 'caption=От,after=seeZeroRows,single=none,mandatory');
+        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
+
+
     }
 
 
@@ -133,8 +137,9 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $form->setField('crmGroup', 'input');
             $form->setField('contragent', 'input=hidden');
             $form->setField('seeZeroRows', 'input=hidden');
+            $form->setField('selectPeriod', 'input=hidden');
         }
-
+        $form->setField('selectPeriod', 'caption=Период->Период');
         if ($rec->typeOfReport == 'standard') {
 
             $consignmentQuery = store_ConsignmentProtocols::getQuery();
