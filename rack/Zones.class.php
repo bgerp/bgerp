@@ -833,10 +833,6 @@ class rack_Zones extends core_Master
     }
 
 
-    function act_Test()
-    {
-        $this->updateMaster(103);
-    }
     /**
      * Обновява данни в мастъра
      *
