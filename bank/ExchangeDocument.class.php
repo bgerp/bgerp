@@ -268,7 +268,7 @@ class bank_ExchangeDocument extends core_Master
 
             $bankRec = bank_OwnAccounts::fetch($rec->peroTo);
             if ($bankRec->autoShare == 'yes') {
-                $rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
+                $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($bankRec->operators, core_Users::getCurrent()));
             }
         }
     }

@@ -833,6 +833,10 @@ class rack_Zones extends core_Master
     }
 
 
+    function act_Test()
+    {
+        $this->updateMaster(103);
+    }
     /**
      * Обновява данни в мастъра
      *
@@ -847,6 +851,9 @@ class rack_Zones extends core_Master
 
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->where("#zoneId = {$rec->id}");
+
+
+
         while ($dRec = $dQuery->fetch()) {
             if (!empty($dRec->documentQuantity) && round($dRec->documentQuantity, 4) == round($dRec->movementQuantity, 4)) {
                 $ready++;
@@ -855,11 +862,15 @@ class rack_Zones extends core_Master
             if (!empty(round($dRec->documentQuantity, 4)) || !empty(round($dRec->movementQuantity, 4))) {
                 $count++;
             }
+
+            bp($dRec, $ready, $count);
         }
 
         // Запомняне на старата готовност и изчисляване на новата
         $oldReadiness = $rec->readiness;
         $rec->readiness = ($count) ? $ready / $count : null;
+
+
         $this->save($rec, 'readiness');
 
         // Ако готовността е току що станала на 100% или от 100% е паднала

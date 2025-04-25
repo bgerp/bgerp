@@ -276,7 +276,7 @@ class bank_InternalMoneyTransfer extends core_Master
                 $form->setOptions('debitBank', bank_OwnAccounts::getOwnAccounts());
                 break;
             case 'bank2case':
-                $form->setField('debitCase', 'input');
+                $form->setField('debitCase', 'input,mandatory');
                 break;
         }
         
@@ -364,8 +364,7 @@ class bank_InternalMoneyTransfer extends core_Master
         } elseif ($rec->operationSysId == 'bank2case') {
             $caseRec = cash_Cases::fetch($rec->debitCase);
             if ($caseRec->autoShare == 'yes') {
-                $rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
-                $rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+                $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($caseRec->cashiers, core_Users::getCurrent()));
             }
             
             if ($creditInfo->currencyId != $rec->currencyId) {

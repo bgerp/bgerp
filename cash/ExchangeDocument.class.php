@@ -273,8 +273,7 @@ class cash_ExchangeDocument extends core_Master
             
             $caseRec = cash_Cases::fetch($rec->peroTo);
             if ($caseRec->autoShare == 'yes') {
-                $rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
-                $rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+                $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($caseRec->cashiers, core_Users::getCurrent()));
             }
         }
     }
