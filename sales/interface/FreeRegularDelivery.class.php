@@ -102,7 +102,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
     public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
         $Document = cls::get($document);
-        $inDays = ($Document instanceof eshop_Carts) ? 7 : null;
+        $inDays = ($Document instanceof eshop_Carts) ? eshop_Setup::get('SHOW_ROUTES_IN_NEXT_DAYS') : null;
         $locationId = ($Document instanceof eshop_Carts) ? $form->rec->locationId : $form->rec->deliveryLocationId;
       
         if(isset($locationId)){
