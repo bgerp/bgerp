@@ -100,7 +100,7 @@
                 <td class='sum-th'>|Невложено от предходни операции|*</td>
             </tr>
             <tr>
-                <td style='font-weight:normal;font-size: 0.8em;'>[#dependantProgress#] [#manualPreviousTask#]</td>
+                <td style='font-weight:normal;font-size: 0.8em;'>[#dependantProgress#] [#previousTask#]</td>
                 <td style='font-weight:normal;font-size: 0.8em;'>[#notConvertedFromPreviousTasks#]</td>
             </tr>
         </table>
@@ -129,6 +129,9 @@
                     <!--ET_BEGIN startAfter-->
                     <span style='font-weight:normal'>|Започва след|*</span>: [#startAfter#]<br>
                     <!--ET_END startAfter-->
+                    <!--ET_BEGIN offsetAfter-->
+                    <span style='font-weight:normal'>|Изчакване след|*</span>: [#offsetAfter#]<br>
+                    <!--ET_END offsetAfter-->
 					<!--ET_BEGIN employees-->
                     <span style='font-weight:normal'>|Оператори|*</span>: [#employees#]<br>
                     <!--ET_END employees-->
@@ -144,6 +147,7 @@
                 <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Първи|*</span>: [#firstProgress#]</td>
                 <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Последен|*</span>: [#lastProgress#]</td>
                 <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Последен Произв.|*</span>: [#lastProgressProduction#]</td>
+                <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Фактическо начало|*</span>: [#actualStart#]</td>
                 <td class='vtop' style='font-size:0.8em;text-align:left'><span style='font-weight:normal'>|Променено състояние|*</span>: [#lastChangeStateOn#] |от|* [#lastChangeStateBy#]</td>
             </tr>
 		</table>

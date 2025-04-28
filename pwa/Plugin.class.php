@@ -17,7 +17,7 @@ class pwa_Plugin extends core_Plugin
 
     public function on_Output(&$invoker)
     {
-        $canUse = pwa_Manifest::canUse();
+        $canUse = pwa_Settings::canUse();
 
         // Ако е активирана опцията за мобилно приложение - манифестираме го
         if ($canUse == 'yes') {

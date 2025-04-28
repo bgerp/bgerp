@@ -549,9 +549,7 @@ class acc_BalanceDetails extends core_Detail
             
             // Събираме числовите данни
             foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld) {
-                if (!is_null($rec1->{$fld})) {
-                    $r->{$fld} += $rec1->{$fld};
-                }
+                $r->{$fld} += $rec1->{$fld};
             }
             
             foreach (array('grouping1', 'grouping2', 'grouping3') as $gr) {
@@ -841,8 +839,8 @@ class acc_BalanceDetails extends core_Detail
         
         $listName = acc_Lists::getVerbal($listRec, 'name');
         $form->fieldsLayout->replace($listName, "caption{$i}");
-        $form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title,maxRadio=1)', "silent,caption={$listName},width=330px,input,class=balance-grouping");
-        $form->FNC("feat{$i}", 'varchar', "maxRadio=1,silent,caption={$listName}->Свойства,width=330px,input,class=balance-feat");
+        $form->FNC("grouping{$i}", 'key(mvc=acc_Items,allowEmpty,select=title,maxRadio=0)', "silent,caption={$listName},width=330px,input,class=balance-grouping");
+        $form->FNC("feat{$i}", 'varchar', "silent,maxRadio=0,caption={$listName}->Свойства,width=330px,input,class=balance-feat");
         if (countR($options)) {
             $form->setOptions("grouping{$i}", $options);
         } else {
@@ -850,6 +848,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $form->setOptions("feat{$i}", $features);
+
         $form->showFields .= "grouping{$i},";
         $form->showFields .= "feat{$i}," ;
     }

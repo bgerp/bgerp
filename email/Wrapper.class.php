@@ -26,7 +26,7 @@ class email_Wrapper extends plg_ProtoWrapper
         //Показва таба за постинги, само ако имаме права за листване
         $this->TAB('email_Outgoings', 'Изходящи', 'ceo, admin');
         
-        $this->TAB('email_Incomings', 'Входящи->Съобщения', 'ceo');
+        $this->TAB('email_Incomings', 'Входящи->Съобщения', 'email');
 
         $this->TAB('email_Returned', 'Входящи->Върнати', 'admin,email');
         $this->TAB('email_Receipts', 'Входящи->Разписки', 'admin,email');

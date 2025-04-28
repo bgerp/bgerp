@@ -74,7 +74,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields;
+    protected $changeableFields = 'from,to,contragent';
 
 
     /**
@@ -84,11 +84,13 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,mandatory');
+        $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
+        $fieldset->FLD('typeOfReport', 'enum(standard=Само с ПОП, zeroRows=Всички от избраните групи)', 'caption=Контрагенти->Избор,after=to,removeAndRefreshForm,single=none,silent');
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Избери,mandatory,input=none,after=typeOfReport,single=none');
 
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,single=none,after=orderBy');
-
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички които имат издавани ПОП,single=none,after=typeOfReport');
+        $fieldset->FLD('seeZeroRows', 'set(yes = )', 'caption=Контрагенти->Без текуща наличност,after=contragent,single=none,silent');
     }
 
 
@@ -124,23 +126,42 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $consignmentQuery = store_ConsignmentProtocols::getQuery();
+        $form->setDefault('typeOfReport', 'standard');
+        $form->setDefault('seeZeroRows', null);
 
-        $consignmentQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
-
-        $consignmentQuery->groupBy('folderId');
-
-        $consignmentQuery->show('folderId, contragentId, folderTitle');
-
-        while ($contragent = $consignmentQuery->fetch()) {
-            if (!is_null($contragent->contragentId)) {
-                $suggestions[$contragent->folderId] = $contragent->folderTitle;
-            }
+        if ($rec->typeOfReport == 'zeroRows') {
+            $form->setField('crmGroup', 'input');
+            $form->setField('contragent', 'input=hidden');
+            $form->setField('seeZeroRows', 'input=hidden');
         }
 
-        asort($suggestions);
+        if ($rec->typeOfReport == 'standard') {
 
-        $form->setSuggestions('contragent', $suggestions);
+            $consignmentQuery = store_ConsignmentProtocols::getQuery();
+
+            $consignmentQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
+
+            $consignmentQuery->groupBy('folderId');
+
+            $consignmentQuery->show('folderId, contragentId, folderTitle');
+
+            $suggestions = array();
+
+            if ($consignmentQuery->count() > 0) {
+                while ($contragent = $consignmentQuery->fetch()) {
+                    if (!is_null($contragent->contragentId)) {
+                        $suggestions[$contragent->folderId] = $contragent->folderTitle;
+                    }
+                }
+            }
+
+            asort($suggestions);
+
+            $form->setSuggestions('contragent', $suggestions);
+        } else {
+            $form->setSuggestions('contragent', array());
+        }
+
     }
 
 
@@ -156,27 +177,45 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
     {
 
-        //  $date = (is_null($rec->date)) ? dt::today() : $rec->date;
-
         $recs = array();
+        $stateArr = array('rejected');
+        // фирми, които са включени в избраните групи
+        $crmComp = crm_Companies::getQuery();
+        $crmComp->in('state', $stateArr, true);
+        $crmComp->likeKeylist('groupList', $rec->crmGroup);
+        $crmComp->where("#folderId IS NOT NULL");
+
+        $contragentsInGroups = arr::extractValuesFromArray($crmComp->fetchAll(), 'folderId');
+
+        //лица, които са включени в избраните групи
+        $crmPers = crm_Persons::getQuery();
+        $crmPers->in('state', $stateArr, true);
+        $crmPers->likeKeylist('groupList', $rec->crmGroup);
+        $crmPers->where("#folderId IS NOT NULL");
+
+        //общо контрагенти в избраните групи
+        $contragentsInGroups = $contragentsInGroups + arr::extractValuesFromArray($crmPers->fetchAll(), 'folderId');
 
         $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '3231', 'cacheBalance' => false, 'keepUnique' => true));
-        //$bRecs = $Balance->getBalance('3231');
+
         $balHistory = $Balance->getBalanceHystory('3231', $from = $rec->from, $to = $rec->to, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = false, $strict = true);
 
         $documentsDebitQuantity1 = $documentsCreditQuantity1 = array();
 
         foreach ($balHistory['history'] as $jRec) {
 
-            $debitQuantity = $creditQuantity = 0;
-
             $pRec = cls::get($jRec['docType'])->fetch($jRec['docId']);
 
-            $contragentFolder = cls::get($pRec->contragentClassId)::fetch($pRec->contragentId)->folderId;
+            $debitQuantity = $creditQuantity = 0;
 
-            if ($rec->contragent) {
-                if (!in_array($contragentFolder, keylist::toArray($rec->contragent))) continue;
+            if ($rec->typeOfReport == 'zeroRows') {
+                if (!in_array($pRec->folderId, $contragentsInGroups)) continue;
             }
+
+            $contragentName = doc_Folders::getTitleById($pRec->folderId);
+
+            //филтър по контрагент когато е избран режим на справката стандартен
+            if ($rec->typeOfReport == 'standard' && $rec->contragent && !in_array($pRec->folderId, keylist::toArray($rec->contragent))) continue;
 
             $item = acc_Items::fetch($jRec['debitItem2']);
 
@@ -198,9 +237,11 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                 $recs[$id] = (object)array(
 
                     'contragent' => $pRec->folderId,
+                    'contragentName' => $contragentName,
                     'docClsId' => $jRec['docType'],
                     'docId' => $jRec['docId'],
                     'productId' => $prodRec->id,
+                    'measureId' => $prodRec->measureId,
                     'debitQuantity' => $debitQuantity,
                     'creditQuantity' => $creditQuantity,
                     'documentsDebitQuantity' => array(),
@@ -216,11 +257,43 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             }
 
         }
-        foreach ($recs as $rec) {
 
-            $rec->documentsDebitQuantity = $documentsDebitQuantity1;
-            $rec->documentsCreditQuantity = $documentsCreditQuantity1;
+        //Добавяме масивите с документите
+        foreach ($recs as $key => $r) {
+            $r->documentsDebitQuantity = $documentsDebitQuantity1;
+            $r->documentsCreditQuantity = $documentsCreditQuantity1;
+        }
 
+        //Добавяне на празните редове с бутон за създаване на ПОП
+        if ($rec->typeOfReport == 'zeroRows') {
+            $contragentsInRecs = arr::extractValuesFromArray($recs, 'contragent');
+
+            foreach ($contragentsInGroups as $contragent) {
+                $id = $contragent;
+
+                if (in_array($contragent, $contragentsInRecs)) continue;
+
+                $contragentName = doc_Folders::getTitleById($contragent);
+
+                $recs[$id] = (object)array(
+                    'contragent' => $contragent,
+                    'contragentName' => $contragentName,
+                    'docClsId' => null,
+                    'docId' => null,
+                    'productId' => null,
+                    'measureId' => null,
+                    'debitQuantity' => null,
+                    'creditQuantity' => null,
+                    'documentsDebitQuantity' => array(),
+                    'documentsCreditQuantity' => array(),
+                    'date' => null,
+                    'storeId' => null,
+                );
+
+            }
+        }
+        if (countR($recs)) {
+            arr::sortObjects($recs, 'contragentName', 'asc', 'stri');
         }
 
         return $recs;
@@ -240,20 +313,16 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         if ($export === false) {
+
             $fld->FLD('contragent', 'key(mvc=doc_Folders,select=name)', 'caption=Контрагент');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('measureId', 'key(mvc=cat_Uom,select=shortName)', 'smartCenter,caption=Мярка');
             //$fld->FLD('date', 'date', 'caption=Дата');
             $fld->FLD('quantity', 'double(decimals=2)', 'caption=К-во,smartCenter,tdClass=boldText');
             $fld->FLD('debitQuantity', 'double(decimals=2)', 'caption=Дадено->К-во,smartCenter');
             $fld->FLD('debitDocuments', 'varchar', 'caption=Дадено->Документи,tdClass=midCell');
             $fld->FLD('creditQuantity', 'double(decimals=2)', 'caption=Прието->К-во,smartCenter');
             $fld->FLD('creditDocuments', 'varchar', 'caption=Прието->Документи,tdClass=midCell');
-
-            //    $fld->FLD('protocol', 'varchar', 'caption=Протокол');
-            //   $fld->FLD('inOut', 'varchar', 'caption=Тип');
-            // $fld->FLD('storeId', 'varchar', 'caption=Склад');
-            // $fld->FLD('newProtocol', 'varchar', 'caption=Нов ПОП');
-
 
         } else {
 
@@ -280,21 +349,44 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         $Date = cls::get('type_Date');
 
+        if ($rec->seeZeroRows == null && (($dRec->debitQuantity - $dRec->creditQuantity) == 0) && $rec->typeOfReport == 'standard') {
+
+            return;
+        }
+
         $row = new stdClass();
 
         $row->contragent = "<span style='line-height: 140%'>" . doc_Folders::getTitleById($dRec->contragent) . "</span>";
 
-        $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'storeId' => $dRec->storeId, 'ret_url' => true);
+        $userId = core_Users::getCurrent();
+        if (store_ConsignmentProtocols::haveRightFor('add')) {
+            $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'ret_url' => true);
 
-        $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, false, "ef_icon = img/16/add.png") . "</span>";
+            $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, true, "ef_icon = img/16/add.png") . "</span>";
+        }
 
-        $row->productId = cat_Products::getHyperlink($dRec->productId);
+        if (isset($dRec->measureId)) {
+            $row->measureId = cat_UoM::fetchField($dRec->measureId, 'shortName');
+        } else {
+            $row->measureId = '';
+        }
 
-        $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity - $dRec->creditQuantity);
+        if (isset($dRec->productId)) {
+            $row->productId = cat_Products::getHyperlink($dRec->productId);
+        } else {
+            $row->productId = '';
+        }
 
-        $row->debitQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity);
+        if (isset($dRec->debitQuantity) || isset($dRec->creditQuantity)) {
+            $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity - $dRec->creditQuantity);
+        }
 
-        $row->creditQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->creditQuantity);
+        if (isset($dRec->debitQuantity)) {
+            $row->debitQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->debitQuantity);
+        }
+        if (isset($dRec->creditQuantity)) {
+            $row->creditQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->creditQuantity);
+        }
 
         $row->debitDocuments = '';
         if (!empty($dRec->documentsDebitQuantity)) {
@@ -310,8 +402,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>' ;
-
+                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank', 'ef_icon' => "{$Doc->singleIcon}")) . '</span>';
+//ht::createLink($str, $str, false, array('target' => '_blank')),
                 }
             }
         }
@@ -330,17 +422,10 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->creditDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Doc->singleIcon}") . '</span>';
+                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank', 'ef_icon' => "{$Doc->singleIcon}")) . '</span>';
 
                 }
             }
-        }
-
-        $row->protocol = store_ConsignmentProtocols::getHyperlink($dRec->protocol);
-        if ($dRec->inOut) {
-            $row->inOut = 'Входящ';
-        } else {
-            $row->inOut = 'Изходящ';
         }
 
         return $row;
@@ -422,34 +507,47 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
      */
     public static function act_NewProtocol()
     {
+        requireRole('ceo,store');
 
         expect($contragentFolder = Request::get('contragentFolder', 'int'));
-        expect($storeId = Request::get('storeId', 'int'));
 
+        $form = cls::get('core_Form');
+
+        $form->title = "Избор на полета";
         $fRec = doc_Folders::fetch($contragentFolder);
         $contragentClassId = $fRec->coverClass;
         $contragentId = $fRec->coverId;
 
-        // Прави запис в модела на движенията
-        $pRec = (object)array(
+        $form->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,silent');
+        $form->FLD('folderId', 'int', 'caption=Контрагент,silent,input=hidden');
+        $form->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули наши/ външни,silent');
+        $form->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf,select=title)', 'input=hidden,caption=caption=Контрагент->Вид,silent');
+        $form->FLD('contragentId', 'int', 'input=hidden,caption=caption=Контрагент->Име,silent');
+        $form->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');;
+        $form->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута, input=none');;
 
-            'folderId' => $contragentFolder,
-            'storeId' => $storeId,
-            'protocolType' => 'protocol',
-            'productType' => 'ours',
-            'contragentClassId' => $contragentClassId,
-            'contragentId' => $contragentId,
-            'state' => 'draft',
-        );
+        $pRec = $form->input();
+        $pRec->folderId = $contragentFolder;
+        $pRec->contragentClassId = $contragentClassId;
+        $pRec->contragentId = $contragentId;
+        $pRec->state = 'draft';
+        $pRec->currencyId = acc_Periods::getBaseCurrencyCode();
 
-        store_ConsignmentProtocols::save($pRec);
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
-        $cu = core_Users::getCurrent();
-        doc_ThreadUsers::addShared($pRec->threadId, $pRec->containerId, $cu);
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
-        return new Redirect(array('store_ConsignmentProtocols', 'single', $pRec->id));
+        if ($form->isSubmitted()) {
+
+            store_ConsignmentProtocols::save($pRec);
+
+            $cu = core_Users::getCurrent();
+            doc_ThreadUsers::addShared($pRec->threadId, $pRec->containerId, $cu);
+
+            return new Redirect(array('store_ConsignmentProtocols', 'single', $pRec->id));
+        }
+
+        return $form->renderHtml();
 
     }
-
-
 }

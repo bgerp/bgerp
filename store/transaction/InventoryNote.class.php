@@ -93,8 +93,8 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                     }
 
                     $amount = round($amount, 2);
-                    $total += $amount;
                 }
+                $total += $amount;
 
                 $entries[] = array('amount' => $amount,
                     'debit' => array('321', array('store_Stores', $rec->storeId),
@@ -124,7 +124,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
             // Ако има грешки, при контиране прекъсваме
             if (countR($errorArr)) {
                 $errorArr = implode(', ', $errorArr);
-                $message = "{$errorArr} |нямат себестойност|*";
+                $message = "Следните артикули нямат себестойност|*: {$errorArr}";
                 acc_journal_RejectRedirect::expect(false, $message);
             }
             

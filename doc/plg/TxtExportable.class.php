@@ -33,10 +33,15 @@ class doc_plg_TxtExportable extends core_Plugin
             Mode::set('ONLY_ATTACHED_FILES', true);
 
             // Рендиране на цялото представяне на документа в текстов вид
+            Mode::push('renderForTxtExport', true);
+            Mode::push('forceDownload', true);
             $docHtml = $mvc->getInlineDocumentBody($id, 'plain');
+            Mode::pop('forceDownload');
+            Mode::pop('renderForTxtExport');
+
             $content = $docHtml->getContent();
-            $content = str_replace(array('</td>', '</th>'), ' | ', $content);
             $string = strip_tags($content);
+            $string = preg_replace("/:\s*[\r\n]\s*/", ": ", $string);
             $string = preg_replace("/\s*[\r\n]+\s*/", "\n", $string);
 
             $string = str_replace('&nbsp;', ' ', $string);
@@ -49,10 +54,20 @@ class doc_plg_TxtExportable extends core_Plugin
             Mode::pop('text');
 
             // Допълване с антетката на документа
-            $createdName = core_Lg::transliterate(core_Users::fetchField($rec->createdBy, 'names'));
             $singleTitle = tr($mvc->singleTitle);
+            $docRow = $mvc->getDocumentRow($rec->id);
             $startStr = tr('Документ') . ": {$singleTitle} {$mvc->getHandle($id)}";
-            $startStr .= " " . tr('създаден от||created by') . " {$row->createdBy} ({$createdName})";
+            if($rec->createdBy != core_Users::SYSTEM_USER){
+                if(!empty($docRow->authorName)){
+                    $authorName = $docRow->authorName;
+                } else {
+                    $createdName = core_Users::fetchField($rec->createdBy, 'names');
+                    $createdName = core_Lg::transliterate($createdName);
+                    $authorName = "{$docRow->author} ({$createdName})";
+                }
+
+                $startStr .= " " . tr('създаден от||created by') . " {$authorName}";
+            }
             $startStr .= " " . tr('в състояние') . " {$row->state}" . "\n";
 
             $string = $startStr . $string;

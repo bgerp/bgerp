@@ -195,17 +195,18 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     /**
      * Преразпределяне на партидите
      */
-    private static function autoAllocate($mvc, $rec)
+    public static function autoAllocate($mvc, $rec)
     {
         // След създаване се прави опит за разпределяне на количествата според наличните партиди
         $BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName});
         if (is_object($BatchClass)) {
             if (!$BatchClass->canAutoAllocate()) {
-                
+
                 return;
             }
             
-            $info = $mvc->getRowInfo($rec->id);
+            $info = $mvc->getRowInfo($rec);
+
             if (isset($info->operation['out'])) {
                 $batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $mvc, $rec->id, $info->date);
                 batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
@@ -354,29 +355,20 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$res, &$data)
     {
-        if ($mvc instanceof core_Master) {
-            
-            return;
-        }
-        if (!countR($data->rows) || haveRole('partner')) {
-            
-            return;
-        }
+        if ($mvc instanceof core_Master) return;
+
+        if (!countR($data->rows) || haveRole('partner')) return;
         
         $rows = &$data->rows;
-        
         foreach ($rows as $id => &$row) {
             $rec = &$data->recs[$id];
+            if(!isset($rec)) continue;
+
+            $recInfo = $mvc->getRowInfo($rec);
+            $storeId = $recInfo->operation[key($recInfo->operation)];
+            if (!$storeId) return;
             
-            $storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : (($mvc->Master->storeFieldName && $data->masterData->rec->{$mvc->Master->storeFieldName}) ? $data->masterData->rec->{$mvc->Master->storeFieldName} : null);
-            if (!$storeId) {
-                
-                return;
-            }
-            
-            if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) {
-                continue;
-            }
+            if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) continue;
             
             $row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
             $row->{$mvc->productFieldName}->append(batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $storeId));
@@ -406,12 +398,10 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
      */
     public static function on_AfterGetRowInfo($mvc, &$res, $rec)
     {
-        if (isset($res)) {
-            
-            return;
-        }
-        
+        if (isset($res)) return;
+
         $rec = $mvc->fetchRec($rec);
+
         if (isset($mvc->rowInfo[$rec->id])) {
             $res = $mvc->rowInfo[$rec->id];
             

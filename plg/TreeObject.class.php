@@ -140,6 +140,7 @@ class plg_TreeObject extends core_Plugin
         if (countR($options)) {
             foreach ($options as $id => &$title) {
                 $title = $mvc->getVerbal($id, $mvc->nameField);
+                $title = str_replace(array('&lt;', '&amp;'), array('<', '&'), $title);
             }
             
             // Сортираме опциите

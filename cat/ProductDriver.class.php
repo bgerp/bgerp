@@ -1123,7 +1123,37 @@ abstract class cat_ProductDriver extends core_BaseClass
                 $changeIcon = "img/16/checked-not-green.png";
                 $changeTitle = 'Показване на разликите с оригинала';
             }
-            $row->clonedFromId .= ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}")->getContent();
+            $row->clonedFromId .= "&nbsp;" . ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}")->getContent();
         }
+    }
+
+
+    /**
+     * Връща стойноста за показване на параметъра cond_type_Product
+     *
+     * @param mixed $domainClass
+     * @param mixed $domainId
+     * @param int $value
+     * @param string $showVal
+     * @return void
+     */
+    public function getProductParamValueDisplay($domainClass, $domainId, $value, $showVal)
+    {
+        if($showVal == 'info'){
+            Mode::push('text', 'plain');
+            $lg = core_Lg::getCurrent();
+            if($lg != 'bg'){
+                $valueRec = cat_Products::fetch($value);
+                if(!empty($valueRec->infoInt)){
+                    $title = core_Type::getByName('richtext')->toVerbal(trim($valueRec->infoInt));
+                }
+            }
+            if(empty($title)){
+                $title = trim(cat_Products::getVerbal($value, 'info'));
+            }
+            Mode::pop('text');
+        }
+
+        return !empty($title) ? $title : cat_Products::getTitleById($value);
     }
 }

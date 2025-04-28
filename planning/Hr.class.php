@@ -445,15 +445,18 @@ class planning_Hr extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център на дейност');
-        $data->listFilter->showFields = 'search,centerId';
+        $data->listFilter->FLD('order', 'enum(active=Активни,notActive=Неактивни)', 'caption=Показване');
+        $data->listFilter->setDefault('order', 'active');
+        $data->listFilter->showFields = 'search,centerId,order';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
 
-        if($rec = $data->listFilter->rec){
-            if(isset($rec->centerId)){
-                $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+        if($filterRec = $data->listFilter->rec){
 
+            // Филтър по център на дейност
+            if(isset($filterRec->centerId)){
+                $folderId = planning_Centers::fetchField($filterRec->centerId, 'folderId');
                 $folderQuery = planning_AssetResourceFolders::getQuery();
                 $folderQuery->where("#classId = {$mvc->getClassId()} AND #folderId = {$folderId}");
                 $ids = arr::extractValuesFromArray($folderQuery->fetchAll(), 'objectId');
@@ -461,6 +464,21 @@ class planning_Hr extends core_Master
                     $data->query->in('id', $ids);
                 } else {
                     $data->query->where("1=2");
+                }
+            }
+
+            // Филтър по състояние
+            if(isset($filterRec->order)){
+                $employeeId = crm_Groups::getIdFromSysId('employees');
+                $data->query->EXT('groups', 'crm_Persons', 'externalName=groupList,externalKey=personId');
+                $data->query->EXT('groupList36', 'crm_Persons', 'externalName=groupList36,externalKey=personId');
+                $data->query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
+                if($filterRec->order == 'active'){
+                    plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $data->query, $employeeId, 'personId');
+                    $data->query->where("#state NOT IN ('closed', 'rejected')");
+                } else {
+                    plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $data->query, $employeeId, 'personId', true);
+                    $data->query->orWhere("#state IN ('closed', 'rejected')");
                 }
             }
         }

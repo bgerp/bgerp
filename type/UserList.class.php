@@ -77,7 +77,7 @@ class type_UserList extends type_Keylist
         // Извличане на  информация за отсъствията на потребителите
         $this->profileInfo = array();
         $pQuery = crm_Profiles::getQuery();
-        $pQuery->show('userId,stateDateFrom,stateDateTo,stateEmoji');
+        $pQuery->show('userId,stateDateFrom,stateDateTo,stateEmoji,stateAnswerSystem');
         while ($rec = $pQuery->fetch('#stateInfo IS NOT NULL')) {
             $this->profileInfo[$rec->userId]['class'] = crm_Profiles::getAbsenceClass($rec->stateDateFrom, $rec->stateDateTo, (boolean) ($rec->stateAnswerSystem != 'no'));
             $this->profileInfo[$rec->userId]['emoji'] = hr_Leaves::getEmoji($rec->stateEmoji, 'statusIcon', $rec->stateDateFrom, $rec->stateDateTo);

@@ -145,11 +145,11 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
             }
         }
 
-
         $resArr['startAfter'] = $resArr['lastClosed'] = $resArr['endAfter'] = 0;
         if (isset($endIn)) {
             $resArr['endAfter'] = ceil(dt::secsBetween($endIn, $now) / 60);
-        } else {
+        }
+        if (isset($startIn)) {
             $resArr['startAfter'] = ceil(dt::secsBetween($startIn, $now) / 60);
         }
 

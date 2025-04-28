@@ -1095,11 +1095,15 @@ class core_DateTime
      */
     public static function getSmartPeriod($from, $to, $lg = null)
     {
-        $fromDateObj = DateTime::createFromFormat("Y-m-d", $from);
-        $toDateObj = DateTime::createFromFormat("Y-m-d", $to);
-
         if(empty($from) && !empty($to)) return tr('Към') . ": " . ltrim(dt::mysql2verbal($to, 'd M y'),'0');
         if(empty($to) && !empty($from)) return tr('От') . ": " . ltrim(dt::mysql2verbal($from, 'd M y'),'0');
+        if(empty($to) && empty($from)) return tr('От') . ": n/a";
+
+        $fromDateObj = DateTime::createFromFormat("Y-m-d", $from);
+        expect(is_object($fromDateObj), "Проблем при конвертиране към дата", $from);
+
+        $toDateObj = DateTime::createFromFormat("Y-m-d", $to);
+        expect(is_object($toDateObj), "Проблем при конвертиране към дата", $to);
 
         $toYear = $toDateObj->format("Y");
         $toMonth = static::getMonth($toDateObj->format("m"), 'M', $lg);
@@ -1115,6 +1119,7 @@ class core_DateTime
 
         $res = null;
         if($fromYear == $toYear) {
+
             if($fromMonth == $toMonth){
                 if($fromDay == $toDay){
                     $res = "{$fromDayPadded} {$toMonth} {$fromDateObj->format("y")}";
@@ -1178,5 +1183,31 @@ class core_DateTime
         }
 
         return  $day . $suffix;
+    }
+
+
+    /**
+     * Връща средната дата между две дати
+     *
+     * @param string $datetime1  - първата дата
+     * @param string $datetime2  - втората дата
+     * @param string|false $mask - маска, false за timestamp
+     * @param string|null $lg    - език на който да се върне резултата
+     *
+     * @return string
+     */
+    public static function getMiddleDate($datetime1, $datetime2, $mask = 'Y-m-d H:i:s', $lg = null)
+    {
+        $timestamp1 = !is_numeric($datetime1) ? strtotime($datetime1) : $datetime1;
+        $timestamp2 = !is_numeric($datetime2) ? strtotime($datetime2) : $datetime2;
+
+        $middleTimestamp = ($timestamp1 + $timestamp2) / 2;
+        if($mask !== false){
+            $middleTimestampDate = self::timestamp2Mysql($middleTimestamp);
+
+            return dt::mysql2verbal($middleTimestampDate, $mask, $lg);
+        }
+
+        return round($middleTimestamp);
     }
 }

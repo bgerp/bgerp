@@ -132,12 +132,18 @@ class store_InventoryNoteDetails extends doc_Detail
 
 
     /**
+     * Кои записи да се рекалкулират при шътдаун
+     */
+    public $recalcOnShutDown = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch|batchEx|batchEx|batchNew');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,tdClass=small-field nowrap,removeAndRefreshForm=quantity|quantityInPack|packQuantity|batch,remember,silent');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=hidden,column=none');
@@ -226,7 +232,9 @@ class store_InventoryNoteDetails extends doc_Detail
         $form->setDefault('keepProduct', $permanentName);
         
         $defProduct = Mode::get("InventoryNoteNextProduct{$rec->noteId}");
-        $form->setDefault('productId', $defProduct);
+        if($form->cmd != 'refresh'){
+            $form->setDefault('productId', $defProduct);
+        }
         
         // Рендиране на опаковките
         if (isset($rec->productId)) {
@@ -342,22 +350,20 @@ class store_InventoryNoteDetails extends doc_Detail
         // Ако е редакция от съмърите да се изтрият другите записи
         if(isset($rec->editSummary)){
             $deleteWhere = "#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #id != '{$rec->id}'";
-            if(isset($rec->editBatch) && core_Packs::isInstalled('batch')){
-                $deleteWhere .= " AND #batch = '[#1#]'";
-                $deleteWhere = array($deleteWhere, $rec->batch);
+            if(core_Packs::isInstalled('batch')){
+                $deleteWhere .= empty($rec->batch) ? " AND (#batch = '' OR #batch IS NULL)" : " AND #batch = '{$rec->batch}'";
+                static::delete($deleteWhere);
+            } else {
+                static::delete($deleteWhere);
             }
-            static::delete($deleteWhere);
         }
 
         if (is_null($rec->quantity)) {
             $mvc->delete($rec->id);
         }
 
-        $summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
-        store_InventoryNoteSummary::recalc($summeryId);
-        
+        $mvc->recalcOnShutDown[$rec->noteId][$rec->productId] = $rec->productId;
         Mode::setPermanent("InventoryNoteLastSavedRow{$rec->noteId}", $rec->id);
-        $mvc->cache[$rec->noteId] = $rec->noteId;
     }
     
     
@@ -369,10 +375,7 @@ class store_InventoryNoteDetails extends doc_Detail
         if(Mode::is("selectRowsOnDelete_store_InventoryNoteSummary")) return;
 
         foreach ($query->getDeletedRecs() as $rec) {
-            $summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
-            store_InventoryNoteSummary::recalc($summeryId);
-            
-            $mvc->cache[$rec->noteId] = $rec->noteId;
+            $mvc->recalcOnShutDown[$rec->noteId][$rec->productId] = $rec->productId;
             Mode::setPermanent("InventoryNoteLastSavedRow{$rec->noteId}", null);
         }
     }
@@ -383,10 +386,16 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     public static function on_Shutdown($mvc)
     {
-        if (countR($mvc->cache)) {
-            foreach ($mvc->cache as $noteId) {
+        if (countR($mvc->recalcOnShutDown)) {
+            core_Debug::startTimer('RECALC_ON_SHUTDOWN');
+            foreach ($mvc->recalcOnShutDown as $noteId => $productArr){
+                foreach ($productArr as $productId){
+                    $summeryId = store_InventoryNoteSummary::force($noteId, $productId);
+                    store_InventoryNoteSummary::recalc($summeryId);
+                }
                 store_InventoryNotes::invalidateCache($noteId);
             }
+            core_Debug::stopTimer('RECALC_ON_SHUTDOWN');
         }
     }
     
@@ -498,6 +507,7 @@ class store_InventoryNoteDetails extends doc_Detail
                 // След импорт се изтрива кеша, да се покажат новите данни
                 $key = store_InventoryNotes::getCacheKey($noteId);
                 core_Cache::remove("{$this->Master->className}_{$noteId}", $key);
+                store_InventoryNotes::logWrite('Импортиране от група', $noteId);
 
                 followRetUrl(null, "Импортирани са|* '{$count}' |артикула|*");
             }

@@ -1,0 +1,15 @@
+<div class='scrolling-holder'>
+    <fieldset class='top-tab-content'>
+        <legend class='groupTitle'>|Работен график|*</legend>
+        <div class='detail-info portal [#TAB_STATE#]'>
+            <div class='groupList clearfix21'>
+                <div>|Почивка|*</div>
+                [#INTERVALS#]
+
+                <div>|График|* [#name#]</div>
+                [#CYCLES#]
+            </div>
+        </div>
+    </fieldset>
+
+</div>

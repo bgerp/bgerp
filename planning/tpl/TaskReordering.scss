@@ -89,7 +89,7 @@ th, td {
 }
 
 .state-forbidden, .state-forbidden:hover td {
-  background: #777 !important;
+  background: #bdbcbc !important;
 }
 
 .selected, .selected:hover {
@@ -294,6 +294,10 @@ tr:hover td {
 /* Ефект при натискане */
 #modalSave:active {
   background-color: #1B5E20;
+}
+
+.manualTime {
+  background-color: #d5ffc3 !important;
 }
 
 

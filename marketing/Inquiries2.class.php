@@ -351,7 +351,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         // Добавяме полета за количество според параметрите на продукта
         $quantityCount = &$form->rec->quantityCount;
-        
+
         if ($quantityCount > 3) {
             $quantityCount = 3;
         } elseif (isset($quantityCount) && $quantityCount == 0) {
@@ -448,7 +448,7 @@ class marketing_Inquiries2 extends embed_Manager
                 $form->setField('proto', 'input=none');
             }
         }
-        
+
         if (cls::load($form->rec->innerClass, true)) {
             if ($Driver = cls::get($form->rec->innerClass)) {
                 if ($moq = $Driver->getMoq()) {
@@ -1256,6 +1256,10 @@ class marketing_Inquiries2 extends embed_Manager
                 foreach (array_keys($driverFields) as $driverFld){
                     $params[$driverFld] = $rec->{$driverFld};
                 }
+                if(isset($rec->moq)){
+                    $params['manualMoq'] = $rec->moq;
+                }
+
                 $moqAfterTheParamsAreKnown = $Driver->getMoq(null, 'sell', $params);
                 if(isset($moqAfterTheParamsAreKnown)){
                     $rec->moq = $moqAfterTheParamsAreKnown;

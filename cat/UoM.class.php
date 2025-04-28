@@ -558,7 +558,7 @@ class cat_UoM extends core_Manager
      *
      * @return string - закръглената сума с краткото име на мярката
      */
-    public static function smartConvert($val, $sysId, $verbal = true, $asObject = false)
+    public static function smartConvert($val, $sysId, $verbal = true, $asObject = false, $skipClosed = true)
     {
         $Double = cls::get('type_Double');
         $Double->params['smartRound'] = 'smartRound';
@@ -571,9 +571,12 @@ class cat_UoM extends core_Manager
             
             return ($asObject) ? (object) (array('value' => 0, 'measure' => $typeUom->id)) : $val . ' ' . tr($typeUom->shortName);
         }
-        
+
+        $sign = $val < 0 ? -1 : 1;
+        $val = abs($val);
+
         // Извличат се мерките от същия тип и се премахва празния елемент в масива
-        $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id);
+        $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id, false, $skipClosed);
         unset($sameMeasures['']);
         
         if ($sysId == 'l') {
@@ -585,6 +588,7 @@ class cat_UoM extends core_Manager
             
             // Ако мярката няма сродни мерки, сумата се конвертира в нея и се връща
             $val = cat_UoM::convertFromBaseUnit($val, $typeUom->id);
+            $val = $sign * $val;
             $val = ($verbal) ? $Double->toVerbal($val) : $val;
             
             return ($asObject) ? (object) (array('value' => $val, 'measure' => $typeUom->id)) : $val . ' ' . tr($typeUom->shortName);
@@ -602,7 +606,8 @@ class cat_UoM extends core_Manager
         // Първата сума по голяма от 1 се връща
         foreach ($all as $mId => $amount) {
             if ($amount >= 1) {
-                $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
+                $val = $sign * $all[$mId];
+                $all[$mId] = ($verbal) ? $Double->toVerbal($val) : $val;
                 
                 return ($asObject) ? (object) (array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . ' ' . static::getShortName($mId);
             }
@@ -611,8 +616,9 @@ class cat_UoM extends core_Manager
         // Ако няма такава се връща последната (тази най-близо до 1)
         end($all);
         $uomId = key($all);
-        
-        $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
+
+        $val = $sign * $all[$mId];
+        $all[$mId] = ($verbal) ? $Double->toVerbal($val) : $val;
         
         return ($asObject) ? (object) (array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . ' ' . static::getShortName($mId);
     }

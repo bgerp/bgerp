@@ -65,7 +65,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,currencyManualRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
     
     
     /**
@@ -293,8 +293,10 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('oneTimeDelivery', 'enum(yes=Да,no=Не)', 'caption=Доставка->Еднократно,maxRadio=2,notChangeableByContractor,notNull,value=no');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor,removeAndRefreshForm=paymentType,silent');
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин');
-        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate,notChangeableByContractor,silent');
+        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate|currencyManualRate,notChangeableByContractor,silent');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
+        $mvc->FLD('currencyManualRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
+
         $mvc->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса,notChangeableByContractor');
         
         // Наш персонал
@@ -499,19 +501,20 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         if (!$form->isSubmitted()) return;
         $rec = &$form->rec;
-        
-        if (empty($rec->currencyRate)) {
-            // Ако няма курс винаги е този към днешна дата
-            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
-            if (!$rec->currencyRate) {
-                $form->setError('currencyRate', 'Не може да се изчисли курс');
+
+        // Какъв е новия курс
+        $rec->_newCurrencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+        if(!empty($rec->currencyManualRate)){
+            if ($msg = currency_CurrencyRates::hasDeviation($rec->currencyManualRate, $rec->valior, $rec->currencyId, null)) {
+                $form->setWarning('currencyManualRate', $msg);
             }
-        } else {
-            if ($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, null)) {
-                $form->setWarning('currencyRate', $msg);
-            }
+            $rec->_newCurrencyRate = $rec->currencyManualRate;
         }
-        
+
+        if(empty($rec->id)){
+            $rec->currencyRate = $rec->_newCurrencyRate;
+        }
+
         if (isset($rec->deliveryTermTime, $rec->deliveryTime)) {
             $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
         }
@@ -740,12 +743,28 @@ abstract class deals_DealMaster extends deals_DealBase
             $showVat = doc_Setup::get('SHOW_LIST_SUMMARY_VAT');
             $summaryQuery = clone $data->query;
 
+            // Да излиза в съмърито и винаги конкретно искания запис
+            if($summaryQuery->addId){
+                $whereArr = $summaryQuery->where;
+                $clone = clone $summaryQuery;
+                $clone->where = array();
+                foreach ($whereArr as $cond){
+                    if ((stripos($cond, 'match(') !== false) || (stripos($cond, 'locate(') !== false)) continue;
+                    $clone->where($cond);
+                }
+
+                $w = $summaryQuery->getWhereAndHaving(true)->w;
+                $w1 = $clone->getWhereAndHaving(true)->w;
+                $summaryQuery->where = array();
+                $summaryQuery->where("({$w}) OR (#id = {$summaryQuery->addId} AND ({$w1}))");
+            }
+
             if($showVat == 'yes') {
                 $caption = 'с ДДС';
-                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(#amountDeal, 2)');
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND(COALESCE(#amountDeal, 0), 2)');
             } else {
                 $caption = 'без ДДС';
-                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
+                $summaryQuery->XPR('amountDealCalc', 'double', 'ROUND((COALESCE(#amountDeal, 0) - COALESCE(#amountVat, 0)), 2)');
             }
 
             foreach (array('amountDelivered', 'amountPaid', 'amountBl', 'amountInvoiced') as $fld){
@@ -754,7 +773,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 } else {
                     $condNull = "(#{$fld} / 1.2)";
                     $condNotNUll = "(#{$fld} / (1 + #amountVat / (#amountDeal - #amountVat)))";
-                    $cond = "IF(#amountVat IS NOT NULL, $condNotNUll, $condNull)";
+                    $cond = "IF((#amountVat IS NOT NULL AND #amountVat != 0), $condNotNUll, $condNull)";
                     $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(($cond), 2)");
                 }
             }
@@ -767,6 +786,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->listSummary->mvc->FNC('amountBlCalc', 'varchar', "caption=Крайно салдо,input=none,summary=amount");
         }
     }
+
 
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
@@ -944,6 +964,10 @@ abstract class deals_DealMaster extends deals_DealBase
         if(isset($rec->id)){
             $rec->productIdWithBiggestAmount = $mvc->findProductIdWithBiggestAmount($rec);
         }
+
+        if(isset($rec->id)){
+            $rec->_oldRate = $mvc->fetchField($rec->id, 'currencyRate', false);
+        }
     }
     
     
@@ -952,6 +976,14 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        // Ако е променен курса преизчисляват се нещата
+        if(isset($rec->_newCurrencyRate) && $rec->currencyRate != $rec->_newCurrencyRate){
+            deals_Helper::recalcRate($mvc, $rec->id, $rec->_newCurrencyRate);
+            $msg = 'Курсът е променен';
+            $msg .= haveRole('debug') ? " : (стар) {$rec->currencyRate} - (нов) {$rec->_newCurrencyRate} " : $msg;
+            core_Statuses::newStatus($msg, 'notice');
+        }
+
         if ($rec->state != 'draft') {
             $state = $rec->state;
             $rec = $mvc->fetch($id);
@@ -961,8 +993,8 @@ abstract class deals_DealMaster extends deals_DealBase
             deals_OpenDeals::saveRec($rec, $mvc);
         }
     }
-    
-    
+
+
     /**
      * Връща тялото на имейла генериран от документа
      *
@@ -1240,19 +1272,23 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($rec->paymentState == 'overdue') {
             $row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . '</span>';
             if(isset($rec->overdueAmount)){
-                $overdueAmountInCurrency = $rec->overdueAmount / $rec->currencyRate;
-                $overdueOnHint = "Просрочено средно с:|* " . core_Type::getByName('int')->toVerbal($rec->overdueAmountPerDays / $overdueAmountInCurrency) . " |дни|*";
-                $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($overdueAmountInCurrency);
-                $row->paymentState = $overdueAmount;
-                $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
-                if(!$fields['-list']){
-                    $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
+                if(doc_plg_HidePrices::canSeePriceFields($mvc, $rec)) {
+                    $overdueAmountInCurrency = $rec->overdueAmount / $rec->currencyRate;
+                    $overdueOnHint = "Просрочено средно с:|* " . core_Type::getByName('int')->toVerbal($rec->overdueAmountPerDays / $overdueAmountInCurrency) . " |дни|*";
+                    $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($overdueAmountInCurrency);
+                    $row->paymentState = $overdueAmount;
+                    $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
+                    if(!$fields['-list']){
+                        $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
+                    }
+                    $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'warning', false);
                 }
-                $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'warning', false);
             }
             $row->paymentState = "<span style='color:red'>{$row->paymentState}</span>";
         } elseif($rec->paymentState == 'pending') {
-            $row->paymentState = $row->amountToPay;
+            if(doc_plg_HidePrices::canSeePriceFields($mvc, $rec)) {
+                $row->paymentState = $row->amountToPay;
+            }
             if(!$fields['-list']){
                 $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
             }
@@ -1294,7 +1330,12 @@ abstract class deals_DealMaster extends deals_DealBase
             if ($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)) {
                 $row->currencyCode = $row->currencyId;
             }
-            
+            if(haveRole('debug')){
+                $msg = " |курс|* {$rec->currencyRate}" . (!empty($rec->currencyManualRate) ? ", |ръчен|* {$rec->currencyManualRate}" : "");
+                $row->currencyCode = ht::createHint($row->currencyId, $msg, 'img/16/bug.png');
+            }
+
+
             if(isset($rec->deliveryTermId)){
                 if ($Driver = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                     $deliveryDataArr = $Driver->getVerbalDeliveryData($rec->deliveryTermId, $rec->deliveryData, get_called_class());
@@ -3085,11 +3126,12 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec = &$data->rec;
 
         // Ако е експедирано с договора, бутон за връщане
-        $ReverseClass = cls::get($mvc->reverseClassName);
         $contoActions = type_Set::toArray($rec->contoActions);
         if($contoActions['ship']){
-            if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
-                $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
+            if($ReverseClass = $mvc->getDocumentReverseClass($data->rec)) {
+                if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
+                    $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
+                }
             }
         }
 

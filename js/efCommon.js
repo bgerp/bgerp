@@ -1960,6 +1960,15 @@ function setMinHeightExt() {
     dragToScroll.run();
 }
 
+/**
+ * След клик не позволява бутона да бъде натиснат отново
+ * @param el
+ */
+function disableBtn(el){
+    $(el).attr('disabled', 'disabled');
+    $(el).addClass('btn-disabled');
+}
+
 
 /**
  * Връща ширината на устройството
@@ -2461,6 +2470,8 @@ function appendQuote(id, line, useParagraph) {
 
         // Вземаме текста
         text = sessionStorage.getItem('selText');
+
+        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
 
         if (text) {
 
@@ -6497,6 +6508,111 @@ function copyPlaceholderAsValOnClick()
     });
 }
 
+
+/**
+ * Скриване/показване на допълнителните бутони в лист изгледа
+ */
+function toggleListFilter()
+{
+    var formId = $('form').data('mvc'); // ID на формата
+    //localStorage.removeItem(formId);
+    var hiddenItems = JSON.parse(localStorage.getItem(formId)); // Зареждаме скритите редове
+
+    if (!hiddenItems) {
+        // Ако няма скрити редове в localStorage, скриваме всички с класа
+        $('.listFilter tr.toggable').hide();
+        hiddenItems = []; // Инициализираме празен масив, за да не е null
+        $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+        $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('close'));
+    } else if(hiddenItems.length) {
+        // Скриваме редовете, които са били записани като скрити
+        $('.listFilter tr.toggable').each(function() {
+            var $row = $(this);
+            var rowId = [...$row[0].classList].find(cls => cls !== 'toggable')
+
+            if (rowId && hiddenItems.includes(rowId)) {
+                $row.hide();
+            }
+        });
+        $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+        $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('open'));
+    }
+
+    $('.toggleListFilterBtn').on('click', function() {
+
+        $('.listFilter tr.toggable').each(function() {
+            var $row = $(this);
+            var rowId = [...$row[0].classList].find(cls => cls !== 'toggable');
+            var shouldHide = true;
+            if (!rowId) return;
+
+            // Проверка за select (обикновен и select2)
+            $row.find('.select2-src, select').each(function() {
+                if ($(this).val() && $(this).val() != "all" &&  $(this).val().length > 0) {
+                    shouldHide = false;
+                }
+            });
+
+            // Проверка за текстови полета
+            $row.find('input[type="text"]').each(function() {
+                if ($(this).val().trim() !== '') {
+                    shouldHide = false;
+                }
+            });
+
+            // Проверка за чекбокси (ако поне един е маркиран, не крие реда)
+            $row.find('input[type="checkbox"]').each(function() {
+                if ($(this).prop('checked')) {
+                    shouldHide = false;
+                }
+            });
+
+            // Проверка за radio (ако поне един е маркиран, не крие реда)
+            $row.find('input[type="radio"]').each(function() {
+                if ($(this).prop('checked')) {
+                    shouldHide = false;
+                }
+            });
+
+            if ($row.is(':visible') && shouldHide) {
+                // Скриваме реда и добавяме в LocalStorage
+                $row.fadeOut('slow', function() {
+                    if (!hiddenItems.includes(rowId)) {
+                        hiddenItems.push(rowId);
+                        localStorage.setItem(formId, JSON.stringify(hiddenItems));
+                    }
+                });
+                $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+                $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('open'));
+            } else if (!$row.is(':visible')){
+                // Показваме реда и го премахваме от LocalStorage
+                $row.fadeIn('slow', function() {
+                    hiddenItems = hiddenItems.filter(id => id !== rowId);
+                    localStorage.setItem(formId, JSON.stringify(hiddenItems));
+                    $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('minus') + ")");
+                    $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('close'));
+
+                    $(this).find('input.combo').each(function(){
+                        var idComboBox = $(this).attr('id');
+                        if(!comboBoxInited[idComboBox]){
+                            comboBoxInit(idComboBox, idComboBox + "_cs");
+                            comboBoxInited[idComboBox] = true;
+                        }
+                    });
+                    $(this).find('.select2-container').css('width', '100%');
+                });
+            }
+        });
+    });
+}
+/**
+Груповo селектиране на чекбоксове
+ */
+function selectAllCheckboxes() {
+    $('.checkAllBatchBtn .checkbox').on('change', function (){
+        $('.batch-quantity-fields').prop('checked', this.checked);
+    });
+}
 
 
 runOnLoad(markSelectedChecboxes);

@@ -68,18 +68,19 @@ class bulmar_InvoiceExport extends core_Manager
         $ownCompanyOptions = array();
         $companyClassId = crm_Companies::getClassId();
         foreach ($ownCompanyIds as $ownCompanyId){
+            $myCompany = crm_Companies::fetchOurCompany('*', $ownCompanyId);
+            $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
+            $ownCompanyOptions["{$ownCompanyId}|{$num}|{$myCompany->name}"] = $myCompany->name .  ((!empty($num)) ? " [ {$num} ]" : '');
+
             $cQuery = change_History::getQuery();
             $cQuery->where("#classId = {$companyClassId} AND #objectId = {$ownCompanyId}");
+            $cQuery->orderBy('validFrom', 'DESC');
             $cQuery->show("data");
             if($cQuery->count()){
                 while($cRec = $cQuery->fetch()){
                     $num = (!empty($cRec->data->vatId)) ? str_replace('BG', '', $cRec->data->vatId) : $cRec->data->uicId;
-                    $ownCompanyOptions["{$ownCompanyId}|{$num}"] = $cRec->data->name . " [ {$num} ]";
+                    $ownCompanyOptions["{$ownCompanyId}|{$num}|{$cRec->data->name}"] = $cRec->data->name . " [ {$num} ]";
                 }
-            } else {
-                $myCompany = crm_Companies::fetchOurCompany('*', $ownCompanyId);
-                $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
-                $ownCompanyOptions["{$ownCompanyId}|{$num}"] = $myCompany->name .  ((!empty($num)) ? " [ {$num} ]" : '');
             }
         }
 
@@ -133,13 +134,14 @@ class bulmar_InvoiceExport extends core_Manager
         $query->orderBy('#number', 'ASC');
 
         $recs = array();
-        list($ownCompanyId, $uicId) = explode('|', $filter->ownCompanyId);
+        list($ownCompanyId, $uicId, $companyName) = explode('|', $filter->ownCompanyId);
 
         while($rec = $query->fetch()){
             $ownCompanyFieldValue = core_Packs::isInstalled('holding') ? $rec->{$this->Invoices->ownCompanyFieldName} : null;
             $ownCompanyRec = crm_Companies::fetchOurCompany('*', $ownCompanyFieldValue, $rec->activatedOn);
             $num = (!empty($ownCompanyRec->vatNo)) ? str_replace('BG', '', $ownCompanyRec->vatNo) : $ownCompanyRec->uicId;
-            if($ownCompanyId == $ownCompanyRec->id && $num == $uicId){
+
+            if($ownCompanyId == $ownCompanyRec->id && $num == $uicId && $ownCompanyRec->name == $companyName){
                 $recs[$rec->id] = $rec;
             }
         }
@@ -164,7 +166,7 @@ class bulmar_InvoiceExport extends core_Manager
     protected function prepareExportData($recs, $filter)
     {
         $data = new stdClass();
-        
+
         $data->static = $this->getStaticData($filter);
         $data->recs = array();
         
@@ -227,20 +229,13 @@ class bulmar_InvoiceExport extends core_Manager
                 $byProducts += $dRec->amount * (1 - $dRec->discount);
             }
         }
-        
-        if ($rec->type != 'invoice') {
-            $origin = $this->Invoices->getOrigin($rec);
-            $oRec = $origin->rec();
-            $number = $origin->getInstance()->recToVerbal($oRec)->number;
-            $nRec->reason = "Ф. №{$number}";
+
+        if ($byServices != 0 && $byProducts == 0) {
+            $nRec->reason = 'Приход от продажба на услуги';
+        } elseif ($byServices == 0 && $byProducts != 0) {
+            $nRec->reason = 'Приход от продажба на стоки';
         } else {
-            if ($byServices != 0 && $byProducts == 0) {
-                $nRec->reason = 'Приход от продажба на услуги';
-            } elseif ($byServices == 0 && $byProducts != 0) {
-                $nRec->reason = 'Приход от продажба на стоки';
-            } else {
-                $nRec->reason = 'Приход от продажба';
-            }
+            $nRec->reason = 'Приход от продажба';
         }
         
         $vat = round($rec->vatAmount, 2);
@@ -355,11 +350,11 @@ class bulmar_InvoiceExport extends core_Manager
             }
 
             if ($rec->amountCardPaid) {
-                $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->cardAnal}||{$rec->amountCardPaid}||{$static->creditPayment}|AN|$|{$rec->amountCardPaid}||" . "\r\n";
+                $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->cardAnal}|$|{$rec->amountCardPaid}||{$static->creditPayment}|AN|$|{$rec->amountCardPaid}||" . "\r\n";
             }
 
             if ($rec->amountPostalPaid) {
-                $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->pptAnal}||{$rec->amountPostalPaid}||{$static->creditPayment}|AN|$|{$rec->amountPostalPaid}||" . "\r\n";
+                $line .= "{$rec->num}|2|{$static->pptAndCardOperation}|{$static->pptAndCardAccount}|{$static->pptAnal}|$|{$rec->amountPostalPaid}||{$static->creditPayment}|AN|$|{$rec->amountPostalPaid}||" . "\r\n";
             }
 
             $content .= $line;

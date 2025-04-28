@@ -25,8 +25,8 @@ class crm_PersonsDetails extends core_Manager
     /**
      * Подготвя ценовата информация за артикула
      */
-    public function preparePersonsDetails($data)
-    { 
+    public function preparePersonsDetails_($data)
+    {
         $data->TabCaption = 'Лични данни';
         expect($data->masterMvc instanceof crm_Persons);
 
@@ -34,11 +34,11 @@ class crm_PersonsDetails extends core_Manager
         if (keylist::isIn($employeeId, $data->masterData->rec->groupList)) {
             $data->Codes = cls::get('planning_Hr');
             $data->TabCaption = 'HR';
-            $Schedule = new stdClass();
-            $Schedule->masterId = planning_Hr::getSchedule($data->masterId);
-            $Schedule->masterMvc = cls::get('hr_Schedules');
-            hr_Schedules::prepareCalendar($Schedule);
-            $data->Schedule = $Schedule;
+            $ScheduleData = new stdClass();
+            $ScheduleData->masterMvc = $data->masterMvc;
+            $ScheduleData->masterId = $data->masterId;
+            hr_Schedules::prepareCalendar($ScheduleData);
+            $data->Schedule = $ScheduleData;
         }
 
         // Подготовка на индикаторите
@@ -62,10 +62,10 @@ class crm_PersonsDetails extends core_Manager
     /**
      * Подготвя ценовата информация за артикула
      */
-    public function renderPersonsDetails($data)
+    public function renderPersonsDetails_($data)
     {
         $tpl = getTplFromFile('crm/tpl/PersonsData.shtml');
-        
+
         // Показване на индикаторите
         if (isset($data->IData)) {
             $resTpl = $data->Indicators->renderPersonIndicators($data);
@@ -84,17 +84,17 @@ class crm_PersonsDetails extends core_Manager
             $resTpl->removeBlocks();
             $tpl->append($resTpl, 'CODE');
         }
-        
+
         $Schedules = cls::get('hr_Schedules');
         // Показване на работните цикли
         if (isset($data->Schedule)) {
             $resTpl = $Schedules->renderCalendar($data->Schedule);
-            $tpl->append(hr_Schedules::getHyperlink($data->Schedule->masterId, true), 'CYCLES');
             $tpl->append($resTpl, 'CYCLES');
-            
-            if (crm_Persons::haveRightFor('single', (object) array('personId' => $data->masterId))) {
+            $tpl->append(hr_Schedules::getHyperlink($data->Schedule->scheduleId, true), 'name');
+
+            if (hr_Schedules::haveRightFor('single', $data->Schedule->scheduleId)) {
                 // правим url  за принтиране
-                $url = array('hr_Schedules', 'Single', $data->Schedule->masterId, 'Printing' => 'yes', 'month' => Request::get('month', 'date'));
+                $url = array('hr_Schedules', 'Single', $data->Schedule->scheduleId, 'Printing' => 'yes', 'month' => Request::get('month', 'date'));
                 $efIcon = 'img/16/printer.png';
                 $link = ht::createLink('', $url, false, "title=Печат,ef_icon={$efIcon},style=float:right; height: 16px;");
                 $tpl->append($link, 'print');

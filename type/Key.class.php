@@ -653,7 +653,7 @@ class type_Key extends type_Int
 
             $maxRadio = $this->params['maxRadio'];
             if (!$attr['_isRefresh']) {
-                if(empty($maxRadio) && !$this->params['isHorizontal']){
+                if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
                     if(arr::isOptionsTotalLenBellowAllowed($options)){
                         $maxRadio = 4;
                         $this->params['select2MinItems'] = 10000;

@@ -1404,4 +1404,42 @@ class core_Packs extends core_Manager
 
         return false;
     }
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $text = '';
+        if ($rec->startCtr) {
+            list($pack) = explode('_', $rec->startCtr, 2);
+            $pack = $pack . '_Setup';
+            if (cls::load($pack, true)) {
+                $Inst = cls::get($pack);
+                foreach (array('managers', 'roles', 'configDescription', 'cronSettings') as $m) {
+                    $method = 'get' . strtoupper($m);
+                    if (method_exists($Inst, $method)) {
+                        $r = $Inst->{$method}();
+                    } else {
+                        $r = $Inst->{$m};
+                    }
+
+                    if (is_array($r)) {
+                        foreach ($r as $ra) {
+                            if (is_array($ra)) {
+                                $text .= ' ' . implode(' ', $ra);
+                            } else {
+                                $text .= ' ' . $ra;
+                            }
+                        }
+                    } else {
+                        $text .= ' ' . $r;
+                    }
+                }
+            }
+        }
+
+        $res .= ' ' . plg_Search::normalizeText($text);
+    }
 }

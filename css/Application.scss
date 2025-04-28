@@ -1544,7 +1544,10 @@ table.listTable > tbody > tr {
     }
     display: table-cell;
 }
-
+.planning.small .plus-icon {
+	top: 4px;
+	margin-top: -6px;
+}
 .narrow .portal .legend .addTask {
 	top:2px;
 }
@@ -1896,6 +1899,13 @@ a.tUnsighted {
 	&.tagType-personal {
 		border-radius: 5px;
 	}
+}
+.titleTags, .small.openModal {
+	line-height: 1.5em !important;
+}
+.titleTags .documentTags {
+	position: relative;
+	top: -2px;
 }
 
 .tags.lightBg a{
@@ -2550,7 +2560,12 @@ width:1%;
 .small-field{
 width:1%;
 }
-
+.maxCell {
+	max-width: none !important;
+	.maxwidth {
+		text-align: left !important;
+	}
+}
 .logisticCol {
 	text-align: right;
 	max-width: 400px !important;
@@ -2563,6 +2578,12 @@ width: 200px;
 .large-field{
 width: 50%;
 }
+
+.long-field {
+	min-width: 400px !important;
+	white-space: normal !important;
+}
+
 .listAction table.listTable>tbody>tr>td.midCell {
 	max-width: 170px !important;
 	white-space: wrap;
@@ -3426,12 +3447,15 @@ table.mc-calendar {
 		font-size: 0.9em;
 	}
 }
+
 table.mc-header a {
   color: #999;
 }
 /*край на стиловете за календара в портала*/
 
-
+.narrow .leftCol.wrapText {
+	min-width: 260px;
+}
 .portal-select {
     border: none;
     position: relative;
@@ -4860,6 +4884,10 @@ table .eshop-btn {
 	font-size: 0.95em;
 }
 
+.tab span.tab-title {
+	color: #999;
+}
+
 .foldertabs {
     > .tab-row {
         overflow: hidden;
@@ -5272,15 +5300,8 @@ table .eshop-btn {
 	margin-bottom: 5px
 
 }
-.toggleGroups {
-	.openBtn {
-		display: inline-block;
-		width: 20px;
-		height: 20px;
-		background: url('../img/16/toggle1.png') center bottom no-repeat;
 
-	}
-}
+
 .narrow .cms-row {
 	padding-top: 20px;
 }
@@ -9192,7 +9213,7 @@ ul.gapList li {
 	display: flex; /* Всеки елемент заема цял ред */
 	align-items: center; /* Подравнява текста по вертикала (по средата на височината) */
 	justify-content: center;
-	padding: 10px;
+	padding: 15px;
 	margin: 0;  /* Премахваме марджина на li */
 	border: 1px solid #ccc; /* Леки граници */
 	text-align: center; /* Центрира текстовете */
@@ -9205,6 +9226,30 @@ ul.gapList li {
 	&.break {
 		background: linear-gradient(to bottom, rgba(144, 238, 144, 0.6), rgba(0, 255, 0, 0.3)) !important; /* По-нежен градиент */
 	}
+}
+
+.fullTdDiv {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+td.withFullDiv {
+	position: relative;
+	padding: 0;
+}
+
+tr.workInProgressBatchRow .workInProgressProductColName {
+	text-indent:10%;
+}
+
+tr.workInProgressBatchRow {
+	font-size:0.9em;
 }
 
 

@@ -18,7 +18,7 @@
  * @package   bgerp
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -456,6 +456,29 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $rows = $total;
         }
 
+        // Ако е указвано да се групират по партиди при импорт да се прави
+        if($mvc->combineImportRecs){
+            $total = array();
+            foreach ($rows as $row) {
+                $key = "{$row->code}|{$row->pack}";
+                if ($mvc->allowPriceImport) {
+                    $key .= "|{$row->price}";
+                }
+
+                if (!array_key_exists($key, $total)) {
+                    $clone = clone $row;
+                    $clone->quantity = 0;
+                    $total[$key] = $clone;
+                }
+                if (isset($row->batch)) {
+                    $total[$key]->batches[$row->batch] += $row->quantity;
+                }
+
+                $total[$key]->quantity += $row->quantity;
+            }
+            $rows = $total;
+        }
+
         foreach ($rows as $row) {
 
             // Опитваме се да импортираме записа
@@ -665,7 +688,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $error = '';
         if ($mvc->haveRightFor('import', (object) array("{$mvc->masterKey}" => $masterRec->id))) {
             $data->toolbar->addBtn(
-                'Импортиране|* (CSV)',
+                'Импорт|* (CSV)',
                 array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => true),
             "id=btnAdd-import,title=Импортиране на артикули от CSV",
                 "ef_icon = img/16/import.png,order=15,{$error}"

@@ -629,4 +629,79 @@ class doc_Setup extends core_ProtoSetup
 
         core_Permanent::set('docFilesLastId', $lastId, 1000);
     }
+
+
+    /**
+     * Реконтиране на документи към активни сделки
+     */
+    public static function callback_recontoActivePayments($classes)
+    {
+        foreach (array('sales_Sales', 'purchase_Purchases', 'findeals_Deals') as $dealClass){
+            $Deal = cls::get($dealClass);
+
+            // Всички активни сделки
+            $threads = $closedDeals = $closedThreads = array();
+            $dQuery = $Deal->getQuery();
+            $dQuery->where("#state = 'active'");
+            $dQuery->show('id,threadId,closedDocuments');
+            while($dRec = $dQuery->fetch()){
+                $threads[$dRec->threadId] = $dRec->threadId;
+                if(!empty($dRec->closedDocuments)){
+                    $closedDeals += arr::make(keylist::toArray($dRec->closedDocuments), true);
+                }
+            }
+
+            // Ако някои са обединяващи - кои нишки са обединили
+            if(countR($closedDeals)){
+                $dQuery2 = $Deal->getQuery();
+                $dQuery2->in('id', $closedDeals);
+                $dQuery2->show('threadId');
+                $closedThreads += arr::extractValuesFromArray($dQuery2->fetchAll(), 'threadId');
+                $threads += $closedThreads;
+            }
+
+            if(!countR($threads)) continue;
+
+            // Всеки активен документ в тези папки
+            $recontoCloseDocs = array();
+            foreach ($classes as $payDoc){
+                $pQuery = $payDoc::getQuery();
+                $pQuery->where("#state = 'active'");
+                $pQuery->in('threadId', $threads);
+                $pQuery->show('containerId,threadId');
+                core_App::setTimeLimit(0.4 * $pQuery->count(), false, 300);
+
+                // Реконтира се
+                while($pRec = $pQuery->fetch()){
+                    acc_Journal::reconto($pRec->containerId);
+                    if(isset($closedThreads[$pRec->threadId])){
+                        $recontoCloseDocs[$pRec->threadId] = $pRec->threadId;
+                    }
+                }
+            }
+
+            // Ако има реконтиран документ в обединена нишка - реконтира се и обединяващия договор
+            if(countR($recontoCloseDocs)){
+
+                // Реконтиране на курсовите разлики
+                $curQuery = acc_RatesDifferences::getQuery();
+                $curQuery->in('threadId', $recontoCloseDocs);
+                $curQuery->where("state = 'active'");
+                $curQuery->show('containerId,threadId');
+                while($curRec = $curQuery->fetch()){
+                    acc_Journal::reconto($curRec->containerId);
+                }
+
+                // Реконтиране на обединените договори
+                $closedDoc = cls::get($dealClass)->closeDealDoc;
+                $closeQuery = $closedDoc::getQuery();
+                $closeQuery->in('threadId', $recontoCloseDocs);
+                $closeQuery->where("state = 'active'");
+                $closeQuery->show('containerId,threadId');
+                while($cRec = $closeQuery->fetch()){
+                    acc_Journal::reconto($cRec->containerId);
+                }
+            }
+        }
+    }
 }

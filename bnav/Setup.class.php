@@ -132,6 +132,11 @@ defIfNot('FSD_ZDDS_CHL163A', 88);
 defIfNot('BASE_GROUP', '');
 
 /**
+ * Код за специфициране
+ */
+defIfNot('SYCODE_PRODCODE', 'no');
+
+/**
  * Сметка  продажби складируеми
  */
 defIfNot('FSD_SALES', '');
@@ -229,7 +234,8 @@ class bnav_Setup extends core_ProtoSetup
         'FSD_PBD_NUM' => array('int', 'caption=Приходни банкови документи->Последователен номер'),
         'FSD_ZDDS_CHL163A' => array('int', 'caption=Сделка по чл 163 А ЗДДС->FSD номер'),
         'FSD_ZDDS_CHL163A_DEAL_TYPE' => array('int', 'caption=Сделка по чл 163 А ЗДДС->Тип сделка'),
-        'BASE_GROUP' => array('keylist(mvc=cat_Groups,select=name)','caption=Основна група'),
+        'BASE_GROUP' => array('keylist(mvc=cat_Groups,select=name)','caption=Артикули->Основна група'),
+        'SYCODE_PRODCODE' => array('enum(no=Не,yes=Да)', 'caption=Артикули->Модифициране на кода,hint=Type: "synth" / '),
     );
     
     
