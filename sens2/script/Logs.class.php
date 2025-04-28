@@ -87,6 +87,7 @@ class sens2_script_Logs extends core_Manager
 
         $this->setDbIndex('scriptId');        
         $this->setDbIndex('name');
+        $this->setDbIndex('createdOn');
     }
     
     /**
