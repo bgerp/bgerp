@@ -7,8 +7,8 @@
  * @category  bgerp
  * @package   rack
  *
- * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -60,7 +60,7 @@ class rack_RackDetails extends core_Detail
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'position=Позиция,status,productId';
+    public $listFields = 'rackId,position=Позиция,status,productId';
 
 
     /**
@@ -82,7 +82,7 @@ class rack_RackDetails extends core_Detail
                                    reserved=Запазено (твърдо), 
                                    reservedSoft=Запазено (препоръчително)                                   
                                    )', 'caption=Състояние,smartCenter,silent,refreshForm');
-        $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=fixedAsset,hasnotProperties=generic)', 'caption=Артикул,input=none');
+        $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic)', 'caption=Артикул,input=none');
         
         $this->setDbUnique('rackId,row,col');
     }
@@ -260,9 +260,7 @@ class rack_RackDetails extends core_Detail
         }
         
         if (true || !($res = core_Cache::get('getUnusableAndReserved', $storeId))) {
-            $res = array();
-            $res[0] = array();
-            $res[1] = array();
+            $res = array(0 => array(), 1 => array(), 2 => array());
             $rQuery = rack_Racks::getQuery();
             while ($rRec = $rQuery->fetch("#storeId = {$storeId}")) {
                 $query = self::getQuery();
@@ -298,6 +296,24 @@ class rack_RackDetails extends core_Detail
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
         }
 
-        $row->position = core_Type::getByName('rack_PositionType')->toVerbal("{$rec->rackId}-{$rec->row}-{$rec->col}");
+        $rackRec = rack_Racks::fetch($rec->rackId);
+        $row->rackId = rack_Racks::getHyperlink($rec->rackId, true);
+        $row->position = core_Type::getByName('rack_PositionType')->toVerbal("{$rackRec->num}-{$rec->row}-{$rec->col}");
+    }
+
+
+    /**
+     * Добавя филтър към перата
+     *
+     * @param acc_Items $mvc
+     * @param stdClass  $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $storeId = store_Stores::getCurrent();
+        $data->query->EXT('storeId', 'rack_Racks', 'externalName=storeId,externalKey=rackId');
+        $data->query->where("#storeId = {$storeId}");
+        $data->title = 'Детайли на стелажи в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
+        $data->query->orderBy('#rackId', 'ASC');
     }
 }

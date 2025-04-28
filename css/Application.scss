@@ -1544,7 +1544,10 @@ table.listTable > tbody > tr {
     }
     display: table-cell;
 }
-
+.planning.small .plus-icon {
+	top: 4px;
+	margin-top: -6px;
+}
 .narrow .portal .legend .addTask {
 	top:2px;
 }
