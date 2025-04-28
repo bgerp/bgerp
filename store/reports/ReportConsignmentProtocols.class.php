@@ -86,7 +86,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
     {
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-	    $fieldset->FLD('typeOfReport', 'enum(standard=Само с ПОП, zeroRows=Всички от избраните групи)', 'caption=Контрагенти->Избор,after=to,removeAndRefreshForm,single=none,silent');
+        $fieldset->FLD('typeOfReport', 'enum(standard=Само с ПОП, zeroRows=Всички от избраните групи)', 'caption=Контрагенти->Избор,after=to,removeAndRefreshForm,single=none,silent');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Избери,mandatory,input=none,after=typeOfReport,single=none');
 
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички които имат издавани ПОП,single=none,after=typeOfReport');
@@ -126,7 +126,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('typeOfReport', 'zeroRows');
+        $form->setDefault('typeOfReport', 'standard');
         $form->setDefault('seeZeroRows', null);
 
         if ($rec->typeOfReport == 'zeroRows') {
@@ -140,22 +140,25 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
             $consignmentQuery = store_ConsignmentProtocols::getQuery();
 
             $consignmentQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
-            $consignmentQuery->limit(20);
 
             $consignmentQuery->groupBy('folderId');
 
             $consignmentQuery->show('folderId, contragentId, folderTitle');
 
-            while ($contragent = $consignmentQuery->fetch()) {
-                if (!is_null($contragent->contragentId)) {
-                    $suggestions[$contragent->folderId] = $contragent->folderTitle;
+            $suggestions = array();
+
+            if ($consignmentQuery->count() > 0) {
+                while ($contragent = $consignmentQuery->fetch()) {
+                    if (!is_null($contragent->contragentId)) {
+                        $suggestions[$contragent->folderId] = $contragent->folderTitle;
+                    }
                 }
             }
 
             asort($suggestions);
 
             $form->setSuggestions('contragent', $suggestions);
-        }else{
+        } else {
             $form->setSuggestions('contragent', array());
         }
 
@@ -178,17 +181,17 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $stateArr = array('rejected');
         // фирми, които са включени в избраните групи
         $crmComp = crm_Companies::getQuery();
-        $crmComp -> in('state', $stateArr,true);
+        $crmComp->in('state', $stateArr, true);
         $crmComp->likeKeylist('groupList', $rec->crmGroup);
-        $crmComp -> where("#folderId IS NOT NULL");
+        $crmComp->where("#folderId IS NOT NULL");
 
         $contragentsInGroups = arr::extractValuesFromArray($crmComp->fetchAll(), 'folderId');
 
         //лица, които са включени в избраните групи
         $crmPers = crm_Persons::getQuery();
-        $crmPers -> in('state', $stateArr,true);
+        $crmPers->in('state', $stateArr, true);
         $crmPers->likeKeylist('groupList', $rec->crmGroup);
-        $crmPers -> where("#folderId IS NOT NULL");
+        $crmPers->where("#folderId IS NOT NULL");
 
         //общо контрагенти в избраните групи
         $contragentsInGroups = $contragentsInGroups + arr::extractValuesFromArray($crmPers->fetchAll(), 'folderId');
@@ -205,14 +208,14 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
             $debitQuantity = $creditQuantity = 0;
 
-            if($rec->typeOfReport == 'zeroRows'){
-                if(!in_array($pRec->folderId, $contragentsInGroups)) continue;
+            if ($rec->typeOfReport == 'zeroRows') {
+                if (!in_array($pRec->folderId, $contragentsInGroups)) continue;
             }
 
             $contragentName = doc_Folders::getTitleById($pRec->folderId);
 
             //филтър по контрагент когато е избран режим на справката стандартен
-            if($rec->typeOfReport == 'standard' && $rec->contragent  && !in_array($pRec->folderId, keylist::toArray($rec->contragent))) continue;
+            if ($rec->typeOfReport == 'standard' && $rec->contragent && !in_array($pRec->folderId, keylist::toArray($rec->contragent))) continue;
 
             $item = acc_Items::fetch($jRec['debitItem2']);
 
@@ -262,7 +265,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         }
 
         //Добавяне на празните редове с бутон за създаване на ПОП
-        if($rec->typeOfReport == 'zeroRows') {
+        if ($rec->typeOfReport == 'zeroRows') {
             $contragentsInRecs = arr::extractValuesFromArray($recs, 'contragent');
 
             foreach ($contragentsInGroups as $contragent) {
@@ -346,9 +349,9 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         $Date = cls::get('type_Date');
 
-        if($rec->seeZeroRows == null && (($dRec->debitQuantity - $dRec->creditQuantity) == 0) && $rec->typeOfReport == 'standard') {
+        if ($rec->seeZeroRows == null && (($dRec->debitQuantity - $dRec->creditQuantity) == 0) && $rec->typeOfReport == 'standard') {
 
-            return ;
+            return;
         }
 
         $row = new stdClass();
@@ -399,7 +402,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank','ef_icon' => "{$Doc->singleIcon}")) . '</span>';
+                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank', 'ef_icon' => "{$Doc->singleIcon}")) . '</span>';
 //ht::createLink($str, $str, false, array('target' => '_blank')),
                 }
             }
@@ -419,7 +422,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
                     $row->creditDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
-                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank','ef_icon' => "{$Doc->singleIcon}")) . '</span>';
+                        ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank', 'ef_icon' => "{$Doc->singleIcon}")) . '</span>';
 
                 }
             }
