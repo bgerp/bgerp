@@ -1350,6 +1350,10 @@ div.acc-detail {
   .portal.planning table.listTable th:last-child {
     border-right: none; }
 
+.planning.small .plus-icon {
+  top: 4px;
+  margin-top: -6px; }
+
 .narrow .portal .legend .addTask {
   top: 2px; }
 

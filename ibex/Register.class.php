@@ -123,7 +123,7 @@ class ibex_Register extends core_Manager
                     $rec->kind = $hour;
                     $rec->price = $price;
                     
-                    if($rec->price > 0 && !$this->fetch("#date = '{$rec->date}' AND #kind = '{$rec->kind}' && #price = {$rec->price}")) {
+                    if(!$this->fetch("#date = '{$rec->date}' AND #kind = '{$rec->kind}' && #price = {$rec->price}")) {
                         $this->save($rec);
                     }
                 }
@@ -138,7 +138,7 @@ class ibex_Register extends core_Manager
     private function retrieve2($date)
     {
         static $text;
-
+ 
         if(!isset($text)) {
             $text = core_Url::loadUrl("https://ibex.bg/%d0%b4%d0%b0%d0%bd%d0%bd%d0%b8-%d0%b7%d0%b0-%d0%bf%d0%b0%d0%b7%d0%b0%d1%80%d0%b0/%d0%bf%d0%b0%d0%b7%d0%b0%d1%80%d0%b5%d0%bd-%d1%81%d0%b5%d0%b3%d0%bc%d0%b5%d0%bd%d1%82-%d0%b4%d0%b5%d0%bd-%d0%bd%d0%b0%d0%bf%d1%80%d0%b5%d0%b4/day-ahead-prices-and-volumes-v2-0/");
         }
@@ -153,17 +153,21 @@ class ibex_Register extends core_Manager
             
             $left = "<td class='column-time_part'>{$hour}:00:00</td><td class='column-date_part'>{$date}</td><td class='column-price_eur'>";
             $left = preg_replace("/\\s/", '', $left);
-
+ 
             $right = "</td>";
 
             $to = str_pad((((int) $hour) + 1), 2, '0',  STR_PAD_LEFT);
             $key = $hour . '-' . $to;
             
+            $cut = trim(str::cut($text, $left, $right));
+
+            if(strlen($cut) == 0) return false;
+
             $prices[$key] = (float) str::cut($text, $left, $right) * 1.95583;
 
             if($prices[$key] === false) return false;
         }
-
+ 
         return $prices;
     }
 
@@ -177,7 +181,7 @@ class ibex_Register extends core_Manager
         $day = 8;
 
         $url = "http://www.ibex.bg/download-prices-volumes-data-table.php?date={$date}&lang=bg";
-
+ 
         $content = file_get_contents($url);
         
         $res = array();
@@ -200,7 +204,7 @@ class ibex_Register extends core_Manager
 
                     $price = $dbl->fromVerbal($week[$day]);
                     
-                    if($price) { 
+                    if($price !== null) { 
                         $res[$from . '-' . $to] =  $price;
                     }
                 }
