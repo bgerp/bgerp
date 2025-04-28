@@ -52,6 +52,8 @@ class planning_plg_BalanceSync extends core_Plugin
         $dQuery->where("#balanceId = {$balanceRec->id}");
         $recs = $dQuery->fetchAll();
 
+        if(!countR($recs)) return $arr;
+
         // Кои са ид-та на перата от баланса
         $itemIds = array();
         foreach ($recs as $rec1) {

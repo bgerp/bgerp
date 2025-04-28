@@ -260,9 +260,7 @@ class rack_RackDetails extends core_Detail
         }
         
         if (true || !($res = core_Cache::get('getUnusableAndReserved', $storeId))) {
-            $res = array();
-            $res[0] = array();
-            $res[1] = array();
+            $res = array(0 => array(), 1 => array(), 2 => array());
             $rQuery = rack_Racks::getQuery();
             while ($rRec = $rQuery->fetch("#storeId = {$storeId}")) {
                 $query = self::getQuery();

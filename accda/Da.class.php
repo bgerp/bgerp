@@ -172,7 +172,7 @@ class accda_Da extends core_Master
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=fixedAsset,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,caption=Счетоводство->Артикул,mandatory,silent,refreshForm,remember');
         $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Счетоводство->Сметка,mandatory,input=hidden,remember');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Счетоводство->Склад,input=none,silent,refreshForm,remember');
-        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Счетоводство->В употреба от,mandatory,remember');
+        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Дълготраен актив->В употреба от,mandatory,remember');
         $this->FLD('title', 'varchar', 'caption=Дълготраен актив->Наименование,mandatory,width=400px,remember');
         $this->FLD('num', 'varchar(32)', 'caption=Дълготраен актив->Наш номер, mandatory');
         $this->FLD('serial', 'varchar', 'caption=Дълготраен актив->Сериен номер');
@@ -423,6 +423,7 @@ class accda_Da extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->setField('location', 'caption=Локация');
         $ownCompany = crm_Companies::fetchOurCompany();
         $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
         if (countR($ourLocations)) {
