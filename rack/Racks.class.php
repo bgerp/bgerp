@@ -521,7 +521,7 @@ class rack_Racks extends core_Master
                 // Ако е резервирано за нещо
                 if (!isset($title) && ($pId = $reserved[$posFull])) {
                     $title = $pos;
-                    $attr['style'] = 'color:#fbb;';
+                    $attr['style'] = 'color:#ff6699;';
                     $hint = tr('Запазено място');
                     
                     if ($pId > 0) {
@@ -545,7 +545,7 @@ class rack_Racks extends core_Master
                 
                 if (!isset($title)) {
                     $title = $pos;
-                    $attr['style'] = 'color:#ccc;';
+                    $attr['style'] = 'color:#bbb;';
                 }
                 
                 
