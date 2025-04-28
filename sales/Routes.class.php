@@ -716,12 +716,14 @@ class sales_Routes extends core_Manager
                             $hint = 'Планираният ден е почивен. Маршрутът няма да се изпълнява!';
                             break;
                         case 'prevWorkDay';
-                            $filteredDate = cal_Calendar::nextWorkingDay($filteredDate, null, -1);
-                            $hint = 'Планираният ден е почивен. Маршрутът ще се изпълнява на предишния работен ден!';
+                            $prevDate = cal_Calendar::nextWorkingDay($filteredDate, null, -1);
+                            $prevDateVerbal = $mvc->getFieldType('nextVisit')->toVerbal($prevDate);
+                            $hint = "Планираният ден е почивен. Маршрутът ще се изпълнява на предишния работен ден|* {$prevDateVerbal}!";
                             break;
                         case 'nextWorkDay';
-                            $filteredDate = cal_Calendar::nextWorkingDay($filteredDate);
-                            $hint = 'Планираният ден е почивен. Маршрутът ще се изпълнява на следващия работен ден!';
+                            $nextDate = cal_Calendar::nextWorkingDay($filteredDate);
+                            $nextDateVerbal = $mvc->getFieldType('nextVisit')->toVerbal($nextDate);
+                            $hint = "Планираният ден е почивен. Маршрутът ще се изпълнява на следващия работен ден|* {$nextDateVerbal}!";
                             break;
                     }
                 }
