@@ -82,7 +82,7 @@ class rack_RackDetails extends core_Detail
                                    reserved=Запазено (твърдо), 
                                    reservedSoft=Запазено (препоръчително)                                   
                                    )', 'caption=Състояние,smartCenter,silent,refreshForm');
-        $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=fixedAsset,hasnotProperties=generic)', 'caption=Артикул,input=none');
+        $this->FLD('productId', 'key2(mvc=cat_Products, select=name,allowEmpty,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic)', 'caption=Артикул,input=none');
         
         $this->setDbUnique('rackId,row,col');
     }
