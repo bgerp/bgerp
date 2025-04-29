@@ -28,9 +28,6 @@ class hclean_JSSanitizer extends core_Manager
         // Подготвяме HTML'а
         $jsHtml = static::prepareHtml($link);
 
-        $jsHtml = str_replace('width: 100%; display: flex;', 'width: 100% ; display: block;', $jsHtml);
-        $jsHtml = str_replace('display: flex;', 'display: table-cell;  ', $jsHtml);
-
         // Вземаме скрипта, който санитаризира HTML' а
         $sanitizer = new ET(static::JSSanitizer());
         
@@ -79,6 +76,7 @@ class hclean_JSSanitizer extends core_Manager
 
         // Премахваме всичко коментари
         $content = preg_replace("/<!--.*?-->/si", '', $content);
+        $content = preg_replace("/<!\\[.*?]>/si", '', $content);
 
         // Преобразуваме HTML' а в текст, който може да се използва в променливи на JS
         $jsHtml = static::htmlToJsText($content);
@@ -91,7 +89,9 @@ class hclean_JSSanitizer extends core_Manager
      * Превръщаме HTML текста в JS текст, който да може да се използва в променлива
      */
     public static function htmlToJsText($html)
-    {
+    { 
+        $html = str_replace('/<![^>]+>/', '', $html);
+ 
         $jsHtml = preg_replace(array("/\r?\n/", "/\//", "/\r/"), array('\\n', "\/", ""), addslashes($html));
         
         return $jsHtml;

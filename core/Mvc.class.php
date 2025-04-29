@@ -946,7 +946,7 @@ class core_Mvc extends core_FieldSet
      */
     public static function getTitleForId_($id, $escaped = true)
     {
-        return self::getTitleById($id);
+        return self::getTitleById($id, $escaped);
     }
     
     
@@ -1308,6 +1308,9 @@ class core_Mvc extends core_FieldSet
                             }
                         }
                         
+                        // Ако има дефинирана константа и в нея този индекс се съдържа - скупваме го
+                        if(defined('BGERP_PREVENT_INDEXES') && isset(BGERP_PREVENT_INDEXES[$this->dbTableName][$name])) continue;
+          
                         // За да не бъде премахнат този индекс по-нататък
                         unset($indexes[$name]);
                         

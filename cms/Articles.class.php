@@ -127,7 +127,7 @@ class cms_Articles extends core_Master
     public function description()
     {
         $this->FLD('level', 'order(11)', 'caption=№,tdClass=rowtools-column,mandatory');
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu,allowEmpty)', 'caption=Меню,mandatory,silent');
         $this->FLD('title', 'varchar', 'caption=Заглавие,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes,hideTextAfterLength=10000000)', 'caption=Текст,column=none');
         $this->FLD('background', 'color_Type(AllowEmpty)', 'caption=Фон на статията->Цвят,autohide');
@@ -199,7 +199,8 @@ class cms_Articles extends core_Master
     public function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if (trim($rec->body) && $fields['-list'] && $mvc->haveRightFor('show', $rec)) {
-            $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), null, 'ef_icon=img/16/monitor.png');
+            $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), null, 
+                array('ef_icon' => 'img/16/monitor.png', 'title' => isset($rec->seoTitle) ? $rec->seoTitle : null));
         }
     }
     
@@ -434,6 +435,10 @@ class cms_Articles extends core_Master
             if ($rec1->state == 'closed') {
                 $l->closed = true;
             }
+
+            if(isset($rec1->seoTitle)) {
+                $l->seoTitle = $rec1->seoTitle;
+            }
             
             $navData->links[] = $l;
             
@@ -485,6 +490,10 @@ class cms_Articles extends core_Master
                     $aAttr = array('style' => 'color:#aaa !important;');
                 } else {
                     $aAttr = array();
+                }
+                
+                if(isset($l->seoTitle)) {
+                   $aAttr['title'] = $l->seoTitle;
                 }
 
                 $navTpl->append("<div class='nav_item {$noRootClass} level{$l->level} {$selected}'>");

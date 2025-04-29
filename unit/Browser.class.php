@@ -87,13 +87,18 @@ class unit_Browser
     /**
      * Емулира клик върху линк
      */
-    public function click($link)
+    public function click($link = null)
     {
+        if (!$link) {
+            wp('Няма параметър за click');
+        }
         $this->prepareNode();
         $link = $this->node->findLink($link);
         if ($link) {
             $link->click();
             $this->node = null;
+        } else {
+            wp('Линкът не е намерен', $link);
         }
     }
     
@@ -113,6 +118,8 @@ class unit_Browser
                 $link->click();
                 $this->node = null;
             }
+        } else {
+            wp('Бутонът не е намерен', $link, $button);
         }
         
         expect($this->node === null, $this->node, $link, $button, $this->page->getText(), $this->session->getCurrentUrl());

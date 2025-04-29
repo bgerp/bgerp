@@ -94,13 +94,13 @@ class bank_OwnAccounts extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'bank,ceo';
+    public $canList = 'bank, ceo, bankAll';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo, bank';
+    public $canSingle = 'ceo, bank, bankAll';
     
     
     /**
@@ -156,7 +156,7 @@ class bank_OwnAccounts extends core_Master
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canReports = 'ceo,bank,acc';
+    public $canReports = 'ceo,bank,acc,bankAll';
     
     
     /**
@@ -185,7 +185,7 @@ class bank_OwnAccounts extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg)', 'caption=Държави, title=Използване по подразбиране за фирми от съответните държави');
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
-        $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Контиране на документи->Потребители');
+        $this->FLD('operators', 'userList(roles=bank|ceo,showClosedUsers=no)', 'caption=Контиране на документи->Потребители');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
         
         $this->setDbUnique('title');
@@ -253,13 +253,7 @@ class bank_OwnAccounts extends core_Master
                 }
                 
                 // Обръщаме го в четим за хората вид
-                $Double = cls::get('type_Double');
-                $Double->params['decimals'] = 2;
-                $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . '</span>';
-                
-                if ($rec->blAmount < 0) {
-                    $row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
-                }
+                $row->blAmount = ht::styleNumber(core_Type::getByName('double(decimals=2)')->toVerbal($rec->blAmount), $rec->blAmount);
             }
         }
         
@@ -274,8 +268,17 @@ class bank_OwnAccounts extends core_Master
             $row->conditionSaleEn = bank_Accounts::getVerbal($ownAccounts, 'conditionSaleEn');
         }
     }
-    
-    
+
+
+    /**
+     * Ако няма записи не вади таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        $data->listTableMvc->FLD('blAmount', 'int');
+    }
+
+
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
@@ -332,8 +335,8 @@ class bank_OwnAccounts extends core_Master
         $form->FNC('currencyId', 'key(mvc=currency_Currencies, select=code,allowEmpty)', 'caption=Валута,mandatory,after=iban,input');
         $form->FNC('bic', 'varchar(12)', 'caption=BIC,after=currencyId,input');
         $form->FNC('bank', 'varchar(64)', 'caption=Банка,after=bic,input');
-        $form->FNC('conditionSaleBg', 'text(rows=2)', 'caption=Допълнителни условия към Продажба->BG,autohide,input,after=comment');
-        $form->FNC('conditionSaleEn', 'text(rows=2)', 'caption=Допълнителни условия към Продажба->EN,autohide,input,after=conditionSaleBg');
+        $form->FNC('conditionSaleBg', 'richtext(rows=2)', 'caption=Допълнителни условия към Продажба->BG,autohide,input,after=comment');
+        $form->FNC('conditionSaleEn', 'richtext(rows=2)', 'caption=Допълнителни условия към Продажба->EN,autohide,input,after=conditionSaleBg');
         $form->FNC('fromOurCompany', 'int', 'input=hidden');
         if (Request::get('fromOurCompany', 'int')) {
             $form->rec->fromOurCompany = true;

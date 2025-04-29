@@ -18,9 +18,15 @@ class ztm_Devices extends core_Master
      * Заглавие на модела
      */
     public $title = 'Устройства';
-    public $singleTitle = 'Устройсво';
-    
-    
+    public $singleTitle = 'Устройство';
+
+
+    /**
+     * Детайла, на модела
+     */
+    public $details = 'ztm_Notes';
+
+
     /**
      * Кой има право да чете?
      */
@@ -276,7 +282,9 @@ class ztm_Devices extends core_Master
     {
         $ident = Request::get('serial_number');
         $bgerpId = Request::get('bgerp_id');
-        
+
+        $ident = trim($ident);
+
         expect($ident);
         
         $uniqId = getBGERPUniqId();
@@ -354,6 +362,7 @@ class ztm_Devices extends core_Master
     public static function on_AfterGetVerbal($mvc, &$res, $rec, $part)
     {
         if ($part == 'name') {
+            $rec = $mvc->fetchRec($rec);
             if (!$rec->name) {
                 $res = $mvc->getRecTitle($rec);
             }
@@ -373,6 +382,37 @@ class ztm_Devices extends core_Master
         $data->form->setOptions('fireGroupId', ztm_Groups::getOptionsByType('fire'));
 
         $data->form->setOptions('locationId', crm_Locations::getOwnLocations());
+    }
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        if (ztm_RegisterValues::haveRightFor('list')) {
+            $data->toolbar->addBtn('Стойности', array('ztm_RegisterValues', 'list', 'deviceId' => $data->rec->id, 'ret_url' => true),
+                'id=btnRegisterValues', 'ef_icon = img/16/specification.png,title=Разглеждане на регистрите на това устройство');
+        }
+
+        if (ztm_RegisterValues::haveRightFor('import')) {
+            $data->toolbar->addBtn('Импорт', array('ztm_RegisterValues', 'import', 'device' => $data->rec->id, 'ret_url' => true),
+                'id=btnRegisterValuesImport', 'ef_icon = img/16/import.png,title=Импортиране на стойности в това устройство');
+        }
+
+        if (ztm_RegisterValues::haveRightFor('export')) {
+            $data->toolbar->addBtn('Експорт', array('ztm_RegisterValues', 'export', 'device' => $data->rec->id, 'ret_url' => true),
+                'id=btnRegisterValuesExport', 'ef_icon = img/16/export.png,title=Експортиране на стойности за това устройство');
+
+            $zQuery = ztm_RegisterValues::getQuery();
+            $zQuery->where(array("#deviceId = '[#1#]'", $data->rec->id));
+            $userId = core_Users::getCurrent();
+            core_Cache::remove('ztm_RegisterValues', "exportRecs{$userId}");
+            core_Cache::set('ztm_RegisterValues', "exportRecs{$userId}", $zQuery->fetchAll(), 20);
+        }
     }
     
     

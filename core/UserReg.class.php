@@ -123,7 +123,7 @@ class core_UserReg extends core_Manager
         while ($rec = $query->fetch()) {
             if ($rec->uId) {
                 $uRec = core_Users::fetch($rec->uId);
-                if ($uRec && ($uRec->state != 'rejected')) {
+                if ($uRec && ($uRec->state == 'draft')) {
                     // Ако има добавен запис, преминаваме към активиране на акаунта
                     $retUrl = $this->activateAccount($class, $objId, $rec);
 
@@ -174,6 +174,10 @@ class core_UserReg extends core_Manager
             // Проверка на имената да са поне две с поне 2 букви
             if (!core_Users::checkNames($form->rec->names)) {
                 $form->setError('names', 'Напишете поне две имена разделени с интервал');
+            }
+
+            if (drdata_Domains::isDisposal($form->rec->email)) {
+                $form->setError('email', 'Не може да се използват временни имейли за регистрация!');
             }
 
             if (core_Users::isForbiddenNick($form->rec->nick, $errorMsg)) {

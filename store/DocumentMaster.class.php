@@ -19,7 +19,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDelivered';
+    public $priceFields = 'amountDelivered,amountDeliveredVat';
     
     
     /**
@@ -306,10 +306,11 @@ abstract class store_DocumentMaster extends core_Master
 
         // Ако е към ориджин на КИ/ДИ да се налеят променените к-ва от него
         if(isset($rec->fromContainerId) && empty($rec->importProducts)){
-            store_ReceiptDetails::delete("#receiptId = {$rec->id}");
             $fromDocument = doc_Containers::getDocument($rec->fromContainerId);
+
             if($fromDocument->isInstanceOf('deals_InvoiceMaster')){
                 $invRec = $fromDocument->fetch();
+
                 if($invRec->type == 'dc_note'){
                     $invDetail = cls::get($fromDocument->mainDetail);
                     $dQuery = $invDetail->getQuery();
@@ -670,14 +671,6 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
-
-            if ($rec->isReverse == 'yes') {
-                $row->operationSysId = tr('Връщане на стока');
-                if(isset($rec->reverseContainerId)){
-                    $row->operationSysId .= tr("|* |от|* ") . doc_Containers::getDocument($rec->reverseContainerId)->getLink(0, array('ef_icon' => false));
-                }
-            }
-
             core_Lg::pop();
 
         } elseif (isset($fields['-list'])) {
@@ -796,7 +789,7 @@ abstract class store_DocumentMaster extends core_Master
     public function pushDealInfo($id, &$aggregator)
     {
         $rec = $this->fetchRec($id);
-        
+
         // Конвертираме данъчната основа към валутата идваща от продажбата
         if(isset($rec->locationId)){
             $aggregator->setIfNot('deliveryLocation', $rec->locationId);
@@ -827,8 +820,9 @@ abstract class store_DocumentMaster extends core_Master
                 $arr = (object) array('packagingId' => $dRec->packagingId, 'inPack' => $dRec->quantityInPack);
                 $aggregator->push('shippedPacks', $arr, $index);
             }
-            
-            $vat = cat_Products::getVat($dRec->productId);
+
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+            $vat = cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId);
             if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate') {
                 $dRec->packPrice += $dRec->packPrice * $vat;
             }
@@ -1175,150 +1169,6 @@ abstract class store_DocumentMaster extends core_Master
     }
     
     
-    /*
-     * API за генериране на сделка
-     */
-    
-    
-    /**
-     * Метод за бързо създаване на чернова сделка към контрагент
-     *
-     * @param mixed $contragentClass - ид/инстанция/име на класа на котрагента
-     * @param int   $contragentId    - ид на контрагента
-     * @param array $fields          - стойности на полетата на сделката
-     *
-     * 		o $fields['valior']             -  вальор (ако няма е текущата дата)
-     * 		o $fields['reff']               -  вашия реф на продажбата
-     * 		o $fields['currencyId']         -  код на валута (ако няма е основната за периода)
-     * 		o $fields['currencyRate']       -  курс към валутата (ако няма е този към основната валута)
-     * 		o $fields['paymentMethodId']    -  ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
-     * 		o $fields['chargeVat']          -  да се начислява ли ДДС - separate=Отделен ред за ДДС, yes=Да, exempt=Освободено,no=Без начисляване(ако няма, се определя според контрагента)
-     * 		o $fields['shipmentStoreId']    -  ид на склад (@see store_Stores)
-     * 		o $fields['deliveryTermId']     -  ид на метод на доставка (@see cond_DeliveryTerms)
-     * 		o $fields['deliveryLocationId'] -  ид на локация за доставка (@see crm_Locations)
-     * 		o $fields['deliveryTime']       -  дата на доставка
-     * 		o $fields['dealerId']           -  ид на потребител търговец
-     * 		o $fields['initiatorId']        -  ид на потребител инициатора (ако няма е отговорника на контрагента)
-     * 		o $fields['caseId']             -  ид на каса (@see cash_Cases)
-     * 		o $fields['note'] 				-  бележки за сделката
-     * 		o $fields['originId'] 			-  източник на документа
-     *		o $fields['makeInvoice'] 		-  изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
-     *		o $fields['template'] 		    -  бележки за сделката
-     *      o $fields['receiptId']          -  информативно от коя бележка е
-     *      o $fields['onlineSale']         -  дали е онлайн продажба
-     *
-     * @return mixed $id/FALSE - ид на запис или FALSE
-     */
-    public static function createNewDraft($contragentClass, $contragentId, $fields = array())
-    {
-        $contragentClass = cls::get($contragentClass);
-        expect($cRec = $contragentClass->fetch($contragentId));
-        expect($cRec->state != 'rejected');
-        
-        // Намираме всички полета, които не са скрити или не се инпутват, те са ни позволените полета
-        $me = cls::get(get_called_class());
-        $fields = arr::make($fields);
-        $allowedFields = $me->selectFields("#input != 'none' AND #input != 'hidden'");
-        $allowedFields['originId'] = true;
-        $allowedFields['currencyRate'] = true;
-        $allowedFields['deliveryTermId'] = true;
-        $allowedFields['receiptId'] = true;
-        $allowedFields['onlineSale'] = true;
-        
-        // Проверяваме подадените полета дали са позволени
-        if (countR($fields)) {
-            foreach ($fields as $fld => $value) {
-                expect(array_key_exists($fld, $allowedFields), $fld);
-            }
-        }
-        
-        // Ако има склад, съществува ли?
-        if (isset($fields['shipmentStoreId'])) {
-            expect(store_Stores::fetch($fields['shipmentStoreId']));
-        }
-        
-        // Ако има каса, съществува ли?
-        if (isset($fields['caseId'])) {
-            expect(cash_Cases::fetch($fields['caseId']));
-        }
-        
-        // Ако има условие на доставка, съществува ли?
-        if (isset($fields['deliveryTermId'])) {
-            expect(cond_DeliveryTerms::fetch($fields['deliveryTermId']));
-        }
-        
-        // Ако има платежен метод, съществува ли?
-        if (isset($fields['paymentMethodId'])) {
-            expect(cond_PaymentMethods::fetch($fields['paymentMethodId']));
-        }
-        
-        // Форсираме папката на клиента
-        $fields['folderId'] = $contragentClass::forceCoverAndFolder($contragentId);
-        
-        // Ако е зададен шаблон, съществува ли?
-        if (isset($fields['template'])) {
-            expect(doc_TplManager::fetch($fields['template']));
-        } elseif ($me instanceof sales_Sales) {
-            $fields['template'] = $me->getDefaultTemplate((object) array('folderId' => $fields['folderId']));
-        }
-        
-        // Ако не е подадена дата, това е сегашната
-        $fields['valior'] = (empty($fields['valior'])) ? dt::today() : $fields['valior'];
-        
-        // Записваме данните на контрагента
-        $fields['contragentClassId'] = $contragentClass->getClassId();
-        $fields['contragentId'] = $contragentId;
-        
-        // Ако няма валута, това е основната за периода
-        $fields['currencyId'] = (empty($fields['currencyId'])) ? acc_Periods::getBaseCurrencyCode($fields['valior']) : $fields['currencyId'];
-        
-        // Ако няма курс, това е този за основната валута
-        
-        if (empty($fields['currencyRate'])) {
-            $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['valior'], $fields['currencyId'], null);
-            expect($fields['currencyRate']);
-        }
-        
-        // Ако няма платежен план, това е плащане в брой
-        $paymentSysId = (get_called_class() == 'sales_Sales') ? 'paymentMethodSale' : 'paymentMethodPurchase';
-        $fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $paymentSysId) : $fields['paymentMethodId'];
-        
-        $termSysId = (get_called_class() == 'sales_Sales') ? 'deliveryTermSale' : 'deliveryTermPurchase';
-        $fields['deliveryTermId'] = (empty($fields['deliveryTermId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $termSysId) : $fields['deliveryTermId'];
-        
-        // Ако не е подадено да се начислявали ддс, определяме от контрагента
-        if (empty($fields['chargeVat'])) {
-            $fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
-        }
-        
-        // Ако не е подадено да се начислявали ддс, определяме от контрагента
-        if (empty($fields['makeInvoice'])) {
-            $fields['makeInvoice'] = 'yes';
-        }
-        
-        // Състояние на плащането, чакащо
-        $fields['paymentState'] = 'pending';
-        
-        // Опиваме се да запишем мастъра на сделката
-        $rec = (object) $fields;
-        if ($fields['onlineSale'] === true) {
-            $rec->_onlineSale = true;
-        }
-        
-        if (isset($fields['receiptId'])) {
-            $rec->_receiptId = $fields['receiptId'];
-        }
-        
-        if ($id = $me->save($rec)) {
-            doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
-            
-            return $id;
-        }
-        
-        return false;
-    }
-    
-    
     /**
      * Добавя нов ред в главния детайл на чернова сделка.
      * Ако има вече такъв артикул добавен към сделката, наслагва к-то, цената и отстъпката
@@ -1466,8 +1316,7 @@ abstract class store_DocumentMaster extends core_Master
 
         if($rec->state == 'active'){
             if ($rec->isReverse == 'no') {
-                if(isset($mvc->reverseClassName)){
-                    $ReverseClass = cls::get($mvc->reverseClassName);
+                if($ReverseClass = $mvc->getDocumentReverseClass($data->rec)){
                     if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
                         $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
                     }

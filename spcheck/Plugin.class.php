@@ -35,7 +35,12 @@ class spcheck_Plugin extends core_Plugin
 
             return ;
         }
-        
+
+        if ($mvc->checkSpell === false) {
+
+            return ;
+        }
+
         // Чернова документите и документите, които са променяни последните 10 мин може да се проверяват
         $date = ($data->rec->modifiedOn) ? $data->rec->modifiedOn : $data->rec->createdOn;
         $spcheckInterval = ($mvc->spcheckInterval) ? $mvc->spcheckInterval : 600; // 10 мин

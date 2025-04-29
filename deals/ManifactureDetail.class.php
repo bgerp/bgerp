@@ -21,8 +21,16 @@ abstract class deals_ManifactureDetail extends doc_Detail
      * @var enum(canManifacture=Производими,canConvert=Вложими)
      */
     protected $defaultMeta;
-    
-    
+
+
+    /**
+     * Какви продукти не могат да се избират в детайла
+     *
+     * @var enum(canManifacture=Производими,canConvert=Вложими)
+     */
+    protected $defaultNotHaveMeta;
+
+
     /**
      * Полета, които при клониране да не са попълнени
      *
@@ -35,8 +43,20 @@ abstract class deals_ManifactureDetail extends doc_Detail
      * Да се показва ли кода като в отделна колона
      */
     public $showCodeColumn = true;
-    
-    
+
+
+    /**
+     * Да се сумират ли редовете при импорт
+     */
+    public $combineImportRecs = true;
+
+
+    /**
+     * Може ли да се импортират цени
+     */
+    public $allowPriceImport = false;
+
+
     /**
      * След описанието на модела
      */
@@ -56,7 +76,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
      */
     public function setDetailFields($mvc)
     {
-        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity|isOutsourced');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity|isOutsourced');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,mandatory,input=hidden,silent');
         $mvc->FNC('packQuantity', 'double(min=0)', 'caption=Количество,input=input,mandatory,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -105,13 +125,18 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         $form = &$data->form;
         setIfNot($data->defaultMeta, $mvc->defaultMeta);
-        
-        if (!$data->defaultMeta) {
-            
-            return;
+        setIfNot($data->defaultNotHaveMeta, $mvc->defaultNotHaveMeta);
+
+        if (!$data->defaultMeta && !$data->defaultNotHaveMeta) return;
+
+        $params = array();
+        if(isset($data->defaultMeta)){
+            $params['hasProperties'] = $data->defaultMeta;
         }
-        
-        $form->setFieldTypeParams('productId', array('hasProperties' => $data->defaultMeta));
+        if(isset($data->defaultNotHaveMeta)){
+            $params['hasnotProperties'] = $data->defaultNotHaveMeta;
+        }
+        $form->setFieldTypeParams('productId', $params);
         
         if (isset($form->rec->id) && $data->action != 'replaceproduct') {
             $data->form->setReadOnly('productId');
@@ -233,7 +258,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
     public function import($masterId, $row)
     {
         $Master = $this->Master;
-        
+
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
         $meta = cat_Products::fetch($pRec->productId, $this->metaProducts);
@@ -249,37 +274,15 @@ abstract class deals_ManifactureDetail extends doc_Detail
                 $meta = $meta->canConvert;;
             }
         }
-        
-        
-        if ($meta != 'yes') {
-            
-            return;
-        }
+
+        if ($meta != 'yes') return;
         
         $productInfo = cat_Products::getProductInfo($pRec->productId);
         $quantityInPack = ($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
-        
         $packQuantity = $row->quantity;
-        
-        if ($pRec->productId) {
-                $measureId = $productInfo->productRec->measureId;
-        }
-        
-        $price = null;
-        
-        // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
-        if ($row->price) {
-            
-            $packRec = cat_products_Packagings::getPack($pRec->productId,  $pRec->packagingId);
-            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-            $row->price /= $quantityInPack;
-            
-            $masterRec = $Master->fetch($masterId);
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
-            
-        }
-        
-        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId,$packQuantity, $quantityInPack);
+        $batch = is_array($row->batches) ? $row->batches : $row->batch;
+
+        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack, false, null, false, $batch);
     }
 
 

@@ -116,7 +116,7 @@ class tcost_FeeZones extends core_Master
     public function description()
     {
         $this->FLD('name', 'varchar(16)', 'caption=Зона, mandatory');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName)', 'caption=Условие на доставка, mandatory');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms, select = codeName,allowEmpty)', 'caption=Условие на доставка, mandatory');
         $this->FLD('deliveryTime', 'time(uom=days)', 'caption=Срок на доставка,recently,smartCenter');
         
         $this->FLD('addTax', 'double', 'caption=Надценки->Твърда, autohide');
@@ -454,11 +454,9 @@ class tcost_FeeZones extends core_Master
                 $string1 = tr('Добавете артикули на обща стойност');
                 $string2 = tr("|за да спечелите|* <b style='color:green;text-transform:uppercase'>" . tr('безплатна') . "</b> |доставка|*.");
                 $block = new core_ET(tr("|*<!--ET_BEGIN freeDelivery--><div>{$string1} <b style='font-size:1.1em'>[#freeDelivery#]</b>, {$string2}</div><!--ET_END freeDelivery-->"));
-                
                 $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-                $deliveryWithVat  = $cartRec->deliveryNoVat * (1 + cat_Products::getVat($transportId));
+                $deliveryWithVat  = $cartRec->deliveryNoVat * (1 + cat_Products::getVat($transportId, null, $settings->vatExeptionId));
                 $delivery = currency_CurrencyRates::convertAmount($cartRec->total - $deliveryWithVat, null, null, $settings->currencyId);
-                
                 $deliveryAmount = round($deliveryAmount - ($delivery), 2);
             } else {
                 $string = tr('Печелите безплатна доставка, защото поръчката ви надвишава');

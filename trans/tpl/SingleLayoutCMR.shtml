@@ -42,12 +42,12 @@
             </div>
         </div>
         <div class="row-fluid">
-            <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid;    padding:6px; min-height:105px">
+            <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid;    padding:6px; min-height:95px">
                 <b>&nbsp;&nbsp; 3. Place of delivery of the goods (place, country)</b>
-                <div class='filledFieled leftAlign' style="margin-left:5px;height: 100px;">[#deliveryPlace#]</div>
+                <div class='filledFieled leftAlign' style="margin-left:5px;height: 90px;">[#deliveryPlace#]</div>
             </div>
-            <div class="span6 basicFontSize" style="border:3px; border-bottom:1px; border-top:0px; border-left:2px; border-style:solid;    padding:6px; min-height:105px; margin-left:0px"><b>&nbsp;&nbsp; 17. Successive carriers (name, address, country)</b>
-                <div class='filledFieled leftAlign' style="margin-left:5px;height: 100px;">[#successiveCarriers#]</div>
+            <div class="span6 basicFontSize" style="border:3px; border-bottom:1px; border-top:0px; border-left:2px; border-style:solid;    padding:6px; min-height:95px; margin-left:0px"><b>&nbsp;&nbsp; 17. Successive carriers (name, address, country)</b>
+                <div class='filledFieled leftAlign' style="margin-left:5px;height: 90px;">[#successiveCarriers#]</div>
             </div>
         </div>
 
@@ -119,22 +119,13 @@
                         <td class='filledFieled' style="margin-left:5px;">[#volume4#]</td>
                     </tr>
                     <tr>
-                        <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark5#]</td>
-                        <td class='filledFieled' style="margin-left:5px;">[#numOfPacks5#]</td>
-                        <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking5#]</td>
-                        <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods5#]</td>
-                        <td class='filledFieled' style="margin-left:5px;">[#statNum5#]</td>
-                        <td class='filledFieled' style="margin-left:5px;">[#grossWeight5#]</td>
-                        <td class='filledFieled' style="margin-left:5px;">[#volume5#]</td>
-                    </tr>
-                    <tr>
-                        <td class='filledFieled' style="margin-left:5px; height: 20px;">[#mark6#]</td>
-                        <td class='filledFieled' style="margin-left:5px;">[#numOfPacks6#]</td>
-                        <td class='filledFieled' style="margin-left:5px;">[#methodOfPacking6#]</td>
-                        <td class='filledFieled' style="margin-left:5px;">[#natureOfGoods6#]</td>
-                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#statNum6#]</td>
-                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#grossWeight6#]</td>
-                        <td rowspan=3 class='filledFieled' style="margin-left:5px;">[#volume6#]</td>
+                        <td class='filledFieled vtop' style="margin-left:5px; height: 20px;">[#mark5#]</td>
+                        <td class='filledFieled vtop' style="margin-left:5px;">[#numOfPacks5#]</td>
+                        <td class='filledFieled vtop' style="margin-left:5px;">[#methodOfPacking5#]</td>
+                        <td class='filledFieled vtop' style="margin-left:5px;">[#natureOfGoods5#]</td>
+                        <td class='filledFieled vtop' style="margin-left:5px;">[#statNum5#]</td>
+                        <td class='filledFieled vtop' rowspan=3 style="margin-left:5px;">[#grossWeight5#]</td>
+                        <td class='filledFieled vtop' rowspan=3 style="margin-left:5px;">[#volume5#]</td>
                     </tr>
                     <tr>
                         <td class='miniText border-top' style="margin-left:5px;height: 10px">&nbsp;&nbsp;&nbsp; Class</td>
@@ -147,6 +138,7 @@
                         <td class='filledFieled leftAlign' style="margin-left:5px;">[#number#]</td>
                         <td class='filledFieled leftAlign' style="margin-left:5px;">[#letter#]</td>
                         <td class='filledFieled leftAlign' style="margin-left:5px;">[#natureofGoods#]</td>
+                        <td class='filledFieled leftAlign' style="margin-left:5px;"></td>
                     </tr>
 
                 </table>
@@ -155,11 +147,11 @@
 
 
         <div class="row-fluid">
-            <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid;    padding:6px; min-height:90px">
+            <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-style:solid;    padding:6px; min-height:80px">
                 <b>&nbsp;&nbsp; 13. Sender's instructions</b>
                 <div class='filledFieled leftAlign' style="margin-left:5px;">[#senderInstructions#]</div>
             </div>
-            <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-left:0px; border-style:solid;    padding:6px; min-height:90px; margin-left:0px">
+            <div class="span6 basicFontSize" style="border:1px; border-top:0px; border-left:0px; border-style:solid;    padding:6px; min-height:80px; margin-left:0px">
                 <b>&nbsp;&nbsp; 19. Special agreements</b>
                 <div class='filledFieled leftAlign' style="margin-left:5px;">[#specialagreements#]</div>
             </div>

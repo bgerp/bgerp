@@ -706,16 +706,16 @@ class doc_FolderPlg extends core_Plugin
         
         // Подготовка на линк към папката (или създаване на нова) на корицата
         if ($fField = $mvc->listFieldForFolderLink) {
+            list($fField, $fName) = explode('=', $fField);
             $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
             if ($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
                 if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn'));
-                    
+                    $folderVal = $fName ?? $row->{$fField};
                     $row->{$fField} = ht::createLink(
-                        
-                        $row->{$fField},
+                        $folderVal,
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
                             null,
                         
@@ -950,7 +950,15 @@ class doc_FolderPlg extends core_Plugin
             
             // Ако след записа няма да имаме достъп до корицата слагаме предупреждение
             if (!doc_Folders::haveRightToObject($rec)) {
-                $form->setWarning('inCharge,access', 'След запис няма да имате достъп до корицата');
+                $prevHaveRight = true;
+                if ($rec->id) {
+                    $oRec = $mvc->fetch($rec->id);
+                    $prevHaveRight = doc_Folders::haveRightToObject($oRec);
+                }
+
+                if ($prevHaveRight) {
+                    $form->setWarning('inCharge,access', 'След запис няма да имате достъп до корицата');
+                }
             }
         }
         
@@ -1055,15 +1063,6 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterGetResourceTypeArray($mvc, &$res, $rec)
     {
-        $rec = $mvc->fetchRec($rec);
-        
-        // Ако има папка и тя е избрана, че може да има ресурси към нея добавям я
-        if (!isset($res) && isset($rec->folderId)) {
-            if ($types = planning_FoldersWithResources::fetchField("#folderId={$rec->folderId}", 'type')) {
-                $res = type_Set::toArray($types);
-            }
-        }
-        
         // Ако няма резултат
         if (!isset($res)) {
             $res = array();

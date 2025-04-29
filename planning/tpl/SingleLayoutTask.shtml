@@ -12,6 +12,13 @@
        <tr>
            <td>
                [#PARAMS#]
+               <!--ET_BEGIN ASSET_PARAMS-->
+               <hr />
+               <div>
+                   [#ASSET_PARAMS#]
+               </div>
+               <hr />
+               <!--ET_END ASSET_PARAMS-->
                <!--ET_BEGIN ADDITIONAL-->
                [#ADDITIONAL#]
                <div>
@@ -24,9 +31,13 @@
                <!--ET_BEGIN description-->
                <div style="margin-bottom: 10px;"><div style="display:inline-block"><div style="display:inline-block"><b>|Описание|*</b>:</div> [#description#]</div></div>
                <!--ET_END description-->
+               <!--ET_BEGIN notes-->
+               <div style="margin-bottom: 10px;"><div style="display:inline-block"><div style="display:inline-block"><b>|Забележка|*</b>:</div> [#notes#]</div></div>
+               <!--ET_END notes-->
            </td>
            <td class="taskSpecInfo">
                [#productDescription#]
+               <small>[#jobProductPackagings#]</small>
            </td>
        </tr>
     </table>

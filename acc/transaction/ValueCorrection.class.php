@@ -75,13 +75,13 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         $entries = array();
         
         $sign = ($rec->action == 'increase') ? 1 : -1;
-        
         $contragentClassId = $correspondingDoc->fetchField('contragentClassId');
         $contragentId = $correspondingDoc->fetchField('contragentId');
         $currencyId = currency_Currencies::getIdByCode($correspondingDoc->fetchField('currencyId'));
         $vatType = $firstDoc->fetchField('chargeVat');
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-        
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+
         // Ако е към продажба
         if ($firstDoc->isInstanceOf('sales_Sales')) {
             $debitArr = array('411', array($contragentClassId, $contragentId),
@@ -93,8 +93,8 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             foreach ($rec->productsData as $prod) {
                 $pInfo = cat_Products::getProductInfo($prod->productId);
                 $creditAcc = (isset($pInfo->meta['canStore'])) ? '701' : '703';
-                
-                $debitArr['quantity'] = currency_CurrencyRates::convertAmount($prod->allocated, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
+
+                $debitArr['quantity'] = $prod->allocated / $rec->rate;
                 $debitArr['quantity'] = $sign * currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
                 
                 $entries[] = array('amount' => $sign * $prod->allocated,
@@ -108,21 +108,21 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 );
                 
                 $total += $sign * $prod->allocated;
-                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior);
+                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior, $vatExceptionId);
             }
             
             if ($vatType == 'yes' || $vatType == 'separate') {
-                $debitArr['quantity'] = currency_CurrencyRates::convertAmount($vatAmount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
+                $debitArr['quantity'] = $vatAmount / $rec->rate;
                 $debitArr['quantity'] = $sign * currency_Currencies::round($debitArr['quantity'], $correspondingDoc->fetchField('currencyId'));
 
                 $entries[] = array('amount' => round($sign * $vatAmount, 2),
                     'debit' => $debitArr,
                     'credit' => array('4530', array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that)),
                 );
-                
+
                 $total += round($sign * $vatAmount, 2);
             }
-            
+
             // Ако е към покупка
         } elseif ($firstDoc->isInstanceOf('purchase_Purchases')) {
             $creditArr = array('401', array($contragentClassId, $contragentId),
@@ -130,15 +130,15 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                 array('currency_Currencies', $currencyId),
                 'quantity' => 0);
             $vatAmount = 0;
-            
+
             foreach ($rec->productsData as $prod) {
                 if(is_array($prod->inStores) && countR($prod->inStores)){
                     foreach ($prod->inStores as $storeId => $storeQuantity) {
                         $storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
                         $amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
-                        $creditArr['quantity'] = currency_CurrencyRates::convertAmount($amount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
+                        $creditArr['quantity'] = $amount / $rec->rate;
                         $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
-                        
+
                         $entries[] = array('amount' => $sign * $amount,
                             'debit' => array('321',
                                 array('store_Stores', $storeId),
@@ -146,7 +146,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                                 'quantity' => 0),
                             'credit' => $creditArr,
                         );
-                        
+
                         $total += $sign * $amount;
                     }
                 } else {
@@ -156,7 +156,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                             $amount = round($prod->allocated * ($expenseQuantity / $prod->quantity), 2);
                             $creditArr['quantity'] = currency_CurrencyRates::convertAmount($amount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
                             $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
-                            
+
                             $entries[] = array('amount' => $sign * $amount,
                                 'debit' => array('60201',
                                     $expenseItemId,
@@ -164,31 +164,31 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                                     'quantity' => 0),
                                 'credit' => $creditArr,
                             );
-                            
+
                             $total += $sign * $amount;
-                            
+
                             if(countR($expenseData['allocatedToProducts'])){
                                 $correctionsArr = self::getCorrectionEntries($expenseData['allocatedToProducts'], $prod->productId, $expenseItemId, $sign * $amount, $rec->allocateBy);
                                 foreach ($correctionsArr as &$corArr){
                                     if($corArr['debit'][0] == 321){
                                         $corArr['amount'] =  $corArr['credit']['quantity'];
                                         $corArr['credit']['quantity'] = 0;
-                                        
+
                                         $total += $corArr['amount'];
                                     }
                                 }
-                               
+
                                 $entries = array_merge($entries, $correctionsArr);
                             }
                         }
                     }
                 }
-                
-                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior);
+
+                $vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior, $vatExceptionId);
             }
-            
+
             if ($vatType == 'yes' || $vatType == 'separate') {
-                $creditArr['quantity'] = currency_CurrencyRates::convertAmount($vatAmount, $rec->valior, $baseCurrencyCode, $correspondingDoc->fetchField('currencyId'));
+                $creditArr['quantity'] = $vatAmount / $rec->rate;
                 $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
                 
                 $entries[] = array('amount' => round($sign * $vatAmount, 2),

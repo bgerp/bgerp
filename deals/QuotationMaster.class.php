@@ -100,7 +100,7 @@ abstract class deals_QuotationMaster extends core_Master
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
-    public $lastUsedKeys = 'deliveryTermId, paymentMethodId';
+    public $lastUsedKeys = 'deliveryTermId, paymentMethodId, vatExceptionId';
 
 
     /**
@@ -135,6 +135,7 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС');
+        $mvc->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Плащане->ДДС изключение');
         $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress|deliveryCalcTransport');
 
         $mvc->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
@@ -460,7 +461,7 @@ abstract class deals_QuotationMaster extends core_Master
 
                 $date = dt::verbal2mysql($validDate, false);
                 if ($date < dt::today()) {
-                    if (!Mode::isReadOnly()) {
+                    if (!Mode::isReadOnly() && !Mode::is('text', 'plain')) {
                         $row->validDate = "<span class='red'>{$row->validDate}</span>";
 
                         if ($rec->state == 'draft') {
@@ -472,7 +473,7 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
-            if(!Mode::isReadOnly()){
+            if(!Mode::isReadOnly() && !Mode::is('text', 'plain')){
                 $folderCover = doc_Folders::getCover($rec->folderId);
                 if($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId){
                     $row->company = "<span class ='red'>{$row->company}</span>";
@@ -491,17 +492,19 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
-            $ownCompanyData = crm_Companies::fetchOwnCompany();
+            $dateFromWhichToGetName = !empty($rec->date) ? $rec->date : dt::now();
+            $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
+            $ownCompanyData = crm_Companies::fetchOwnCompany(null, $dateFromWhichToGetName);
 
             $Varchar = cls::get('type_Varchar');
-            $row->MyCompany = $Varchar->toVerbal($ownCompanyData->company);
-            $row->MyCompany = transliterate(tr($row->MyCompany));
+            $row->MyCompany = $Varchar->toVerbal($ownCompanyData->companyVerb);
 
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $cData = $contragent->getContragentData();
+            $cData = $contragent->getContragentData($dateFromWhichToGetName);
 
             $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
             $row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
+            $row->contragentCountryId = drdata_Countries::getVerbal($cData->countryId, $fld);
 
             foreach (array('pCode', 'place', 'address') as $fld) {
                 if ($cData->{$fld}) {
@@ -514,15 +517,17 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
+
             if ($rec->currencyRate == 1) {
                 unset($row->currencyRate);
             }
 
+            $isPlain = Mode::is('text', 'plain');
             if ($rec->others) {
                 $others = explode('<br>', $row->others);
                 $row->others = '';
                 foreach ($others as $other) {
-                    $row->others .= "<li>{$other}</li>";
+                    $row->others .= (!$isPlain) ? "<li>{$other}</li>" : strip_tags($other) . ',';
                 }
             }
 
@@ -539,7 +544,7 @@ abstract class deals_QuotationMaster extends core_Master
             $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
             if (is_array($additionalConditions)) {
                 foreach ($additionalConditions as $cond) {
-                    $row->others .= "<li>{$cond}</li>";
+                    $row->others .= (!$isPlain) ? "<li>{$cond}</li>" : strip_tags($cond) . ", ";
                 }
             }
 
@@ -548,10 +553,10 @@ abstract class deals_QuotationMaster extends core_Master
                 $deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
             } else {
                 $placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
-                $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, $mvc);
+                $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, doc_Containers::getDocument($rec->containerId));
             }
 
-            if(isset($rec->deliveryTermId) && !Mode::isReadOnly()){
+            if(isset($rec->deliveryTermId) && !Mode::isReadOnly() && !Mode::is('text', 'plain')){
                 $row->deliveryTermId = ht::createLink($row->deliveryTermId, cond_DeliveryTerms::getSingleUrlArray($rec->deliveryTermId));
             }
 
@@ -809,9 +814,10 @@ abstract class deals_QuotationMaster extends core_Master
         $newRec->quotationId = $rec->id;
         $newRec->productId = $productId;
         $newRec->showMode = 'auto';
-        $newRec->vatPercent = cat_Products::getVat($productId, $rec->date);
+
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+        $newRec->vatPercent = cat_Products::getVat($productId, $rec->date, $vatExceptionId);
         $newRec->optional = ($optional === true) ? 'yes' : 'no';
-        expect(in_array($newRec->optional, array('yes', 'no')));
 
         // Проверка на опаковката
         $newRec->packagingId = isset($packagingId) ? $packagingId : $productRec->measureId;
@@ -905,6 +911,7 @@ abstract class deals_QuotationMaster extends core_Master
             'deliveryTermTime' => $rec->deliveryTermTime,
             'deliveryData' => $rec->deliveryData,
             'deliveryCalcTransport' => $rec->deliveryCalcTransport,
+            'vatExceptionId' => $rec->vatExceptionId,
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
 
@@ -1344,7 +1351,7 @@ abstract class deals_QuotationMaster extends core_Master
         $this->logWrite("Създаване на {$dealSingleTitle} от оферта", $id);
 
         // Редирект към новата сделка
-        return new Redirect(array($DealClass, 'single', $sId), "|Успешно е създадена {$dealSingleTitle} от офертата");
+        return new Redirect(array($DealClass, 'single', $sId), "|Успешно е създадена {$dealSingleTitle} от офертата|*!");
     }
 
 

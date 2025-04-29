@@ -609,7 +609,7 @@ class core_Form extends core_FieldSet
             $tpl = new ET("
                 <!--ET_BEGIN ERRORS_TITLE--><div class=\"formError\">\n" .
                 "<b>[#ERRORS_TITLE#]:</b><ul>[#ERROR_ROWS#]</ul>\n" .
-                '<!--ET_END ERRORS_TITLE--></div>' .
+                '</div><!--ET_END ERRORS_TITLE-->' .
                 "<!--ET_BEGIN WARNINGS_TITLE--><div class=\"formWarning\">\n" .
                 "<b>[#WARNINGS_TITLE#]:</b><ul>[#WARNING_ROWS#]</ul>\n" .
                 "<div style='border-top:solid 1px blue;padding-top:5px;'>[#IGNORE#]</div>\n" .
@@ -702,7 +702,8 @@ class core_Form extends core_FieldSet
         } else {
             $fields = $this->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none' && #input != 'hidden')");
         }
-        
+
+        $isHorizontal = ($this->view == 'horizontal');
         if (countR($fields)) {
             if ($this->defOrder) {
                 $this->orderField();
@@ -762,6 +763,7 @@ class core_Form extends core_FieldSet
             
             $fieldsLayout = $this->renderFieldsLayout($fields, $vars);
             $haveErrors = $this->gotErrors();
+            $firstError = false;
 
             // Създаваме input - елементите
             foreach ($fields as $name => $field) {
@@ -892,9 +894,19 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Рендиране на select или input полето
+                $optionsCount = countR($options);
+                $type->params['isHorizontal'] = $isHorizontal;
+                if($type->params['allowEmpty']){
+                    $attr['_isAllowEmpty'] = true;
+                }
 
-                if ((countR($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
+                if (isset($field->removeAndRefreshForm) || isset($field->refreshForm)) {
+                    $attr['_isRefresh'] = true;
+                }
+
+                if (($optionsCount > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     unset($attr['value']);
+                    $input = new ET();
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     
                     // Групиране по частта преди посочения разделител
@@ -907,12 +919,32 @@ class core_Form extends core_FieldSet
                             $title = tr($title);
                         }
                     }
+
+                    $maxRadio = $type->params['maxRadio'];
+                    if (!$attr['_isRefresh']) {
+                        if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && !$type->params['isHorizontal']){
+                            if(arr::isOptionsTotalLenBellowAllowed($options)){
+                                $maxRadio = 4;
+                                $type->params['select2MinItems'] = 10000;
+                            }
+                        }
+
+                        // ако ще се рендират опциите като радио-бутони маха се празната опция
+                        if(isset($maxRadio) && countR($options) <= $maxRadio){
+                            if($type->params['allowEmpty']){
+                                if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2) {
+                                    unset($options['']);
+                                }
+                            }
+                        }
+                    }
+
                     $input = ht::createSmartSelect(
                         $options,
                         $name,
                         $value,
                         $attr,
-                        $type->params['maxRadio'],
+                        $maxRadio,
                         $type->params['maxColumns'],
                         $type->params['columns']
                     );
@@ -1071,7 +1103,13 @@ class core_Form extends core_FieldSet
                     $icon = ($originalCaption != '@') ? $icon : 'notice';
                     $caption = ht::createHint($caption, $field->hint, $icon);
                 }
-                
+
+                // Ако полето може да се скрива и няма стойност ()
+                $toggable = ' ';
+                if($field->toggable){
+                    $toggable .= "toggable ";
+                }
+
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow) {
                         $tpl->append("\n<tr><td><div class='formGroup'>&nbsp;</div></td></tr>", 'FIELDS');
@@ -1083,7 +1121,7 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? (', ' . $fUnit) : '';
                     
-                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#]' nowrap style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("\n<tr class='filed-{$name}{$toggable}{$fsRow}'{$rowStyle}><td class='formCell[#{$field->name}_INLINETO_CLASS#] wideNowrap'  style='padding-top:5px;'><small>{$caption}{$unit}</small><br>[#{$field->name}#]</td></tr>");
                 } else {
                     if ($emptyRow) {
                         $tpl->append(new ET("\n<tr class='{$fsRow}'><td colspan=2><div class='formGroup'>&nbsp;</div></td></tr>"), 'FIELDS');
@@ -1098,9 +1136,9 @@ class core_Form extends core_FieldSet
                        $mandatoryClass = ($field->mandatory) ? 'mandatoryNoCaptionField' : '';
                        $tdHtml = "<td class='formFieldCaption'>{$caption}</td><td class='formElement[#{$field->name}_INLINETO_CLASS#] noCaptionElement {$mandatoryClass}'>[#{$field->name}#]{$unit}</td>";
                     } else {
-                       $tdHtml = "<td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td>"; 
+                       $tdHtml = "<td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td>";
                     }
-                    $fld = new ET("\n<tr class='filed-{$name} {$fsRow}'{$rowStyle}>{$tdHtml}</tr>");
+                    $fld = new ET("\n<tr class='filed-{$name}{$toggable}{$fsRow}'{$rowStyle}>{$tdHtml}</tr>");
                 }
 
                 // Ако ще се показва нещо преди рендирането на полето - да се покаже
@@ -1239,7 +1277,7 @@ class core_Form extends core_FieldSet
     {
         $this->formAttr['method'] = $this->getMethod();
         $this->formAttr['action'] = $this->action ? toUrl($this->action) : '';
-        
+
         foreach ($this->formAttr as $attr => $content) {
             if ($content === true) {
                 $content = $attr;
@@ -1331,7 +1369,7 @@ class core_Form extends core_FieldSet
     
     
     /**
-     * Отпечатва съдържанието на шаблона като JSPN масив за ajax
+     * Отпечатва съдържанието на шаблона като JSОN масив за ajax
      */
     public function ajaxOutput($tpl)
     {

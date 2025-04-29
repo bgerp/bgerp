@@ -1,0 +1,146 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <div class="info-table">
+        <h3 style='padding: 5px; color:green;' class='[#STATE_CLASS#]'><b>|Домейн|*: [#domain#]</b></h3>
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Общи данни|*</legend>
+            <table>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        №:
+                    </td>
+                    <td>[#id#]</td>
+                </tr>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Език|*:
+                    </td>
+                    <td>[#lang#]</td>
+                </tr>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Домейн|*:
+                    </td>
+                    <td>[#domain#]</td>
+                </tr>
+                <!--ET_BEGIN theme-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Кожа|*:
+                    </td>
+                    <td>[#theme#]</td>
+                </tr>
+                <!--ET_END theme-->
+
+                <!--ET_BEGIN sharedUsers-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Споделени|*:
+                    </td>
+                    <td>[#sharedUsers#]</td>
+                </tr>
+                <!--ET_END sharedUsers-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Видимост|*:
+                    </td>
+                    <td>[#state#]</td>
+                </tr>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Създаване|*:
+                    </td>
+                    <td>[#createdOn#] |от|* [#createdBy#]</td>
+                </tr>
+                <!--ET_BEGIN mandatoryAgreeText-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Текст за съгласие|*:
+                    </td>
+                    <td>[#mandatoryAgreeText#]</td>
+                </tr>
+                <!--ET_END mandatoryAgreeText-->
+            </table>
+        </fieldset>
+
+        <!--ET_BEGIN SEO-->
+        [#SEO#]
+        <fieldset class="detail-info">
+            <legend class="groupTitle">SEO</legend>
+            <table>
+                <!--ET_BEGIN seoTitle-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        Title:
+                    </td>
+                    <td>[#seoTitle#]</td>
+                </tr>
+                <!--ET_BEGIN seoTitle-->
+                <!--ET_BEGIN seoDescription-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        Description:
+                    </td>
+                    <td>[#seoDescription#]</td>
+                </tr>
+                <!--ET_BEGIN seoDescription-->
+                <!--ET_BEGIN seoKeywords-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        Keywords:
+                    </td>
+                    <td>[#seoKeywords#]</td>
+                </tr>
+                <!--ET_BEGIN seoKeywords-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Създаване|*:
+                    </td>
+                    <td>[#createdOn#] |от|* [#createdBy#]</td>
+                </tr>
+            </table>
+        </fieldset>
+        <!--ET_END SEO-->
+
+        <!--ET_BEGIN STATIC_FILES-->
+        [#STATIC_FILES#]
+        <fieldset class="detail-info">
+            <legend class="groupTitle">SEO</legend>
+            <!--ET_BEGIN favicon-->
+            <tr>
+                <td class="gray-title aright" style="padding-right: 5px;">
+                    |Иконка за файла|*:
+                </td>
+                <td>[#favicon#]</td>
+            </tr>
+            <!--ET_BEGIN favicon-->
+            <!--ET_BEGIN wrFiles-->
+            <tr>
+                <td class="gray-title aright" style="padding-right: 5px;">
+                    |Други|* (zip):
+                </td>
+                <td>[#wrFiles#]</td>
+            </tr>
+            <!--ET_BEGIN wrFiles-->
+            <!--ET_BEGIN toRemove-->
+            <tr>
+                <td class="gray-title aright" style="padding-right: 5px;">
+                    За премахване:
+                </td>
+                <td>[#toRemove#]</td>
+            </tr>
+            <!--ET_BEGIN toRemove-->
+            <tr>
+                <td class="gray-title aright" style="padding-right: 5px;">
+                    |Създаване|*:
+                </td>
+                <td>[#createdOn#] |от|* [#createdBy#]</td>
+            </tr>
+            </table>
+        </fieldset>
+        <!--ET_END STATIC_FILES-->
+
+        [#DETAILS#]
+    </div>
+</div>

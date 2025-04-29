@@ -133,7 +133,7 @@ class rack_Racks extends core_Master
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('firstRowTo', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Първи ред до,notNull,value=A');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
-        $this->FLD('direction', 'enum(leftToRight=От ляво на дясно,rightToLeft=От дясно на ляво)', 'caption=Подредба,mandatory,notNull,value=leftToRight');
+        $this->FLD('direction', 'enum(leftToRight=Долу / Ляво ,rightToLeft=Долу / Дясно,topToRight=Горе / Ляво,topToLeft=Горе / Дясно)', 'caption=А-1 (Позиция),mandatory,notNull,value=leftToRight');
         $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
         $this->FLD('groups', 'text', 'caption=Приоритетно използване в зони->Групи,input=none');
         $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
@@ -431,13 +431,15 @@ class rack_Racks extends core_Master
         $row = $rec->rows;
         $hlPos = Request::get('pos');
         $hlFullPos = "{$rec->num}-{$hlPos}";
-        list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
+        list($unusable, $reserved, $reservedSoft) = rack_RackDetails::getunUsableAndReserved();
+        $reserved += $reservedSoft;
+
         $used = rack_Pallets::getUsed();
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
         $hlProdId = $used[$hlFullPos];
 
         // Откъде започва номерацията
-        if($rec->direction == 'leftToRight'){
+        if(in_array($rec->direction, array('leftToRight', 'topToRight'))){
             $from = 1;
             $to = $rec->columns;
         } else {
@@ -445,9 +447,11 @@ class rack_Racks extends core_Master
             $to = 1;
         }
 
+        $resArr = array();
         while ($row >= 'A') {
+
             $trStyle = ($row <= $rec->firstRowTo) ? 'border:1px solid #2cc3229e;' : '';
-            $res .= "<tr style='{$trStyle}'>";
+            $resArr[$row] .= "<tr style='{$trStyle}'>";
             
              foreach (range($from, $to) as $i){
                 $attr = array();
@@ -517,12 +521,12 @@ class rack_Racks extends core_Master
                 // Ако е резервирано за нещо
                 if (!isset($title) && ($pId = $reserved[$posFull])) {
                     $title = $pos;
-                    $attr['style'] = 'color:#fbb;';
+                    $attr['style'] = 'color:#ff6699;';
                     $hint = tr('Запазено място');
                     
                     if ($pId > 0) {
                         $prodTitle = cat_Products::getTitleById($pId);
-                        $hint = tr('Запазено място за') . ' ' . $prodTitle;
+                        $hint = tr('Запазено място за') . ': ' . $prodTitle;
                     }
                 }
                 
@@ -530,7 +534,7 @@ class rack_Racks extends core_Master
                 if (!isset($title) && $movedTo[$posFull]) {
                     $title = $pos;
                     $attr['style'] = 'color:#6c6;';
-                    $hint = tr('Очаква се палет') . " {$prodTitle}";
+                    $hint = tr('Очаква се палет') . ": {$prodTitle}";
                 }
                 
                 // Ако ще се премества палет
@@ -541,7 +545,7 @@ class rack_Racks extends core_Master
                 
                 if (!isset($title)) {
                     $title = $pos;
-                    $attr['style'] = 'color:#ccc;';
+                    $attr['style'] = 'color:#bbb;';
                 }
                 
                 
@@ -563,13 +567,18 @@ class rack_Racks extends core_Master
                 if ($hint) {
                     $attr['title'] = "{$hint}";
                 }
-                $res .= ht::createElement('td', $attr, $title);
+                 $resArr[$row] .= ht::createElement('td', $attr, $title);
             }
-            
-            $res .= '</td>';
-            
+
+            $resArr[$row] .= '</td>';
+
             $row = chr(ord($row) - 1);
         }
+
+        if(in_array($rec->direction, array('topToRight', 'topToLeft'))){
+            $resArr = array_reverse($resArr, true);
+        }
+        $res = implode('', $resArr);
 
         $res = "<table style='border: 1px solid #bbb;margin-bottom:15px;'>{$res}</table>";
         

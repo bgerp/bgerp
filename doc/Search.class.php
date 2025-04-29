@@ -87,6 +87,12 @@ class doc_Search extends core_Manager
 
         $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички, silent');
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
+
+        unset($data->listFilter->getField('state')->type->options['opened'],
+            $data->listFilter->getField('state')->type->options['hidden'],
+            $data->listFilter->getField('state')->type->options['free']
+            );
+        $data->listFilter->setField('state', 'minimumResultsForSearch=20');
         $data->listFilter->setField('search', 'caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
         
@@ -603,7 +609,7 @@ class doc_Search extends core_Manager
         
         /* @var $query core_Query */
         $query = static::getQuery();
-        $query->show('id, docId, docClass');
+        $query->show('id, docId, docClass, searchKeywords');
         
         if ($bEmptyOnly) {
             $query->where("#searchKeywords IS NULL OR #searchKeywords = ''");
@@ -612,17 +618,21 @@ class doc_Search extends core_Manager
         $numUpdated = 0;
         
         while ($rec = $query->fetch()) {
-            $docMvc = cls::get($rec->docClass);
-            if (isset($docMvc->searchFields) && !empty($rec->docId)) {
-                $searchKeywords = $docMvc->getSearchKeywords($rec->docId);
-                if ($searchKeywords != $rec->searchKeywords) {
-                    $rec->searchKeywords = $searchKeywords;
-                    
-                    // Записваме без да предизвикваме събитие за запис
-                    if ($self->save_($rec)) {
-                        $numUpdated++;
+            try {
+                $docMvc = cls::get($rec->docClass);
+                if (isset($docMvc->searchFields) && !empty($rec->docId)) {
+                    $searchKeywords = $docMvc->getSearchKeywords($rec->docId);
+                    if ($searchKeywords != $rec->searchKeywords) {
+                        $rec->searchKeywords = $searchKeywords;
+
+                        // Записваме без да предизвикваме събитие за запис
+                        if ($self->save_($rec)) {
+                            $numUpdated++;
+                        }
                     }
                 }
+            } catch (Exception $e) {
+                continue;
             }
         }
         

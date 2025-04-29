@@ -42,33 +42,42 @@ class doc_ContragentDataIntf
      * $obj->pAddress   - Персонален адрес
      * $obj->pEmail     - Персонален имейл
      */
-    public function getContragentData($id)
+    public function getContragentData($id, $date = null)
     {
-        return $this->class->getContragentData($id);
+        return $this->class->getContragentData($id, $date);
     }
-    
-    
+
+
     /**
      * Връща пълния конкатениран адрес на контрагента
      *
-     * @param int       $id            - ид на контрагент
-     * @param bool      $translitarate - дали да се транслитерира адреса
-     * @param bool|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param int        $id            - ид на контрагент
+     * @param bool       $translitarate - дали да се транслитерира адреса
+     * @param bool|NULL  $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param bool       $showAddress   - да се показва ли адреса
+     * @param date|null  $date          - да се показва ли адреса
      *
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = false, $showCountry = null)
+    public function getFullAdress($id, $translitarate = false, $showCountry = null, $showAddress = true, $date = null)
     {
-        return $this->class->getFullAdress($id, $translitarate);
+        return $this->class->getFullAdress($id, $translitarate, $showCountry, $showAddress, $date);
     }
-    
-    
+
+
     /**
-     * Връща дали на контрагента се начислява ДДС
+     * Дали на лицето се начислява ДДС:
+     * Начисляваме винаги ако е в ЕУ (ако е регистриран по ДДС)
+     *
+     * @param int $id                - id' то на записа
+     * @param mixed $class           - за кой клас
+     * @param int|null $ownCompanyId - ид на "Моята фирма"
+     *
+     * @return bool TRUE/FALSE
      */
-    public function shouldChargeVat($id)
+    public function shouldChargeVat($id, $class, $ownCompanyId = null)
     {
-        return $this->class->shouldChargeVat($id);
+        return $this->class->shouldChargeVat($id, $class, $ownCompanyId);
     }
     
     

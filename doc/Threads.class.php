@@ -185,12 +185,12 @@ class doc_Threads extends core_Manager
         $this->FLD('partnerDocLast', 'datetime(format=smartTime)', 'caption=За партньори->Последен, input=none');
         
         // Индекс за по-бързо избиране по папка
-        $this->setDbIndex('folderId');
+        $this->setDbIndex('folderId,last');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('state');
         $this->setDbIndex('last, id');
-
         $this->setDbIndex('firstContainerId');
+        $this->setDbIndex('firstDocClass');
     }
     
     
@@ -763,7 +763,18 @@ class doc_Threads extends core_Manager
     
     
     /**
-     *
+     * Лист на папките на колабораторите
+     */
+    public function act_List()
+    {
+        $this->forceProxy($this->className);
+
+        return parent::act_List();
+    }
+
+
+    /**
+     * Листване
      *
      * @param doc_Threads $mvc
      * @param object      $data
@@ -904,6 +915,12 @@ class doc_Threads extends core_Manager
                 $query->where("#folderId = {$filter->folderId}");
             } else {
                 $query->dontUseFts = true;
+                if ($filter->folderId) {
+                    $allThreadsCnt = doc_Folders::fetchField($filter->folderId, 'allThreadsCnt');
+                    if ($allThreadsCnt > 5000) {
+                        $query->dontUseFts = false;
+                    }
+                }
                 $query->EXT('containerFolderId', 'doc_Containers', 'externalName=folderId');
                 $query->where("#containerFolderId = {$filter->folderId}");
             }
@@ -1157,7 +1174,7 @@ class doc_Threads extends core_Manager
             $selArr = arr::make($selected);
             Request::push(array('threadId' => $selArr[0]));
         }
-        
+
         $threadId = Request::get('threadId', 'int');
         
         if ($threadId) {
@@ -1224,7 +1241,7 @@ class doc_Threads extends core_Manager
         $exp->DEF('#email', 'emails', 'caption=Имейл,width=100%,notNull');
         $exp->DEF('#tel', 'drdata_PhoneType', 'caption=Телефони,width=100%,notNull');
         $exp->DEF('#fax', 'drdata_PhoneType', 'caption=Факс,width=100%,notNull');
-        $exp->DEF('#website', 'url', 'caption=Web сайт,width=100%,notNull');
+        $exp->DEF('#website', 'urls', 'caption=Web сайт,width=100%,notNull');
         
         // Стойности по подразбиране при нова папка на фирма или лице
         $exp->ASSUME('#email', "getContragentData(#threadId, 'email')", "#dest == 'newCompany' || #dest == 'newPerson'");
@@ -1685,17 +1702,13 @@ class doc_Threads extends core_Manager
             }
 
             $nRec->folderId = $destFolderId;
-
+            $nRec->_isBeingMoved = true;
             $doc->getInstance()->save($nRec, 'id,folderId');
         }
         
         // Преместваме самата нишка
-        if (doc_Threads::save(
-                (object) array(
-                    'id' => $id,
-                    'folderId' => $destFolderId
-                )
-            )) {
+        $mRec = (object) array('id' => $id, 'folderId' => $destFolderId);
+        if (doc_Threads::save($mRec)) {
                 
                 // Изчистваме нотификацията до потребители, които нямат достъп до нишката
             $urlArr = array('doc_Containers', 'list', 'threadId' => $id);
@@ -3480,5 +3493,34 @@ class doc_Threads extends core_Manager
 
         // Връща се последната дата на която има създаден документ
         return $cQuery->fetch()->maxCreatedOn;
+    }
+
+
+    /**
+     * Връща текстотово представяне на нишката
+     *
+     * @param int $threadId - ид на нишка
+     * @param array $params - допълнителни параметри
+     * @return string $res  - текстовото представяне
+     */
+    public static function getAsText($threadId, $params = array())
+    {
+        $res = "";
+
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
+        $cQuery->orderBy('createdOn', 'ASC');
+        while($cRec = $cQuery->fetch()){
+            $Document = doc_Containers::getDocument($cRec->id);
+            if($Document->haveInterface('export_TxtExportIntf')){
+                $txtExportIntf = cls::getInterface('export_TxtExportIntf', $Document->getInstance());
+                $res .= !empty($res) ? ("\n" . '======================================================' . "\n") : '';
+
+                // Генериране на текстовото представяне
+                $res .= $txtExportIntf->getTxtContent($Document->that, $params);
+            }
+        }
+
+        return $res;
     }
 }

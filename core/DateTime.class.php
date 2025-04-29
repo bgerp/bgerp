@@ -1075,4 +1075,139 @@ class core_DateTime
 
         return $mysqlDate;
     }
+
+
+    /**
+     * Умно показване на период
+     *
+     * 1-15 Aug 24, ако двете дати са в един месец
+     * Aug 24, ако двете дати обхващат точно един месец
+     * 7 Jul-15 Aug 24, ако двете дати са в една гидина
+     * Jul-Aug 24, ако двете дати са точни месеци
+     * 7 Jul 24, ако двете дати са в един и същи ден
+     * 7 Jul 24-15 Aug 25, ако двете дати нямат нищо общо
+     * Jul 24-Aug 25, ако двете дати са точни месеци в различни години
+     *
+     * @param string $from    - начало на периода
+     * @param string $to      - край на периода
+     * @param string|null $lg - език (null) за текущия
+     * @return string $res
+     */
+    public static function getSmartPeriod($from, $to, $lg = null)
+    {
+        if(empty($from) && !empty($to)) return tr('Към') . ": " . ltrim(dt::mysql2verbal($to, 'd M y'),'0');
+        if(empty($to) && !empty($from)) return tr('От') . ": " . ltrim(dt::mysql2verbal($from, 'd M y'),'0');
+        if(empty($to) && empty($from)) return tr('От') . ": n/a";
+
+        $fromDateObj = DateTime::createFromFormat("Y-m-d", $from);
+        expect(is_object($fromDateObj), "Проблем при конвертиране към дата", $from);
+
+        $toDateObj = DateTime::createFromFormat("Y-m-d", $to);
+        expect(is_object($toDateObj), "Проблем при конвертиране към дата", $to);
+
+        $toYear = $toDateObj->format("Y");
+        $toMonth = static::getMonth($toDateObj->format("m"), 'M', $lg);
+        $toDay = $toDateObj->format("d");
+
+        $fromYear = $fromDateObj->format("Y");
+        $fromDay = $fromDateObj->format("d");
+        $fromMonth = static::getMonth($fromDateObj->format("m"), 'M', $lg);
+
+        $lastDayOfMonth = dt::getLastDayOfMonth($to);
+        $fromDayPadded = ltrim($fromDay, '0');
+        $toDayPadded = ltrim($toDay, '0');
+
+        $res = null;
+        if($fromYear == $toYear) {
+
+            if($fromMonth == $toMonth){
+                if($fromDay == $toDay){
+                    $res = "{$fromDayPadded} {$toMonth} {$fromDateObj->format("y")}";
+                } elseif($fromDay == '01' && $lastDayOfMonth == $to){
+                    $res = "{$toMonth} {$fromDateObj->format("y")}";
+                } else {
+                    $res = "{$fromDayPadded} – {$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
+                }
+            } else {
+                if($fromDay == '01' && $lastDayOfMonth == $to){
+                    $res = "{$fromMonth}-{$toMonth} {$fromDateObj->format("y")}";
+                } else {
+                    $res = "{$fromDayPadded} {$fromMonth} – {$toDayPadded} {$toMonth} {$fromDateObj->format("y")}";
+                }
+            }
+        } else {
+            if($fromDay == '01' && $lastDayOfMonth == $to) {
+                $res = "{$fromMonth} {$fromDateObj->format("y")} – {$toMonth} {$toDateObj->format("y")}";
+            }
+        }
+
+        if(empty($res)){
+            $res = "{$fromDayPadded} {$fromMonth} {$fromDateObj->format("y")} – {$toDayPadded} {$toMonth} {$toDateObj->format("y")}";
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Членуване на ден от месеца
+     *
+     * @param int $day
+     * @param null|string $lg
+     * @return string
+     */
+    public static function getDayWithSuffix($day, $lg = null)
+    {
+        $lg = $lg ?? core_Lg::getCurrent();
+
+        if ($lg == "bg") {
+            if (in_array($day, [1, 21, 31])) {
+                $suffix = "-ви";
+            } elseif (in_array($day, [2, 22])) {
+                $suffix = "-ри";
+            } elseif (in_array($day, [7, 8])) {
+                $suffix = "-ми";
+            } else {
+                $suffix = "-ти";
+            }
+        } else {
+            if (in_array($day, [1, 21, 31])) {
+                $suffix = "st";
+            } elseif (in_array($day, [2, 22])) {
+                $suffix = "nd";
+            } elseif (in_array($day, [3, 23])) {
+                $suffix = "rd";
+            } else {
+                $suffix = "th";
+            }
+        }
+
+        return  $day . $suffix;
+    }
+
+
+    /**
+     * Връща средната дата между две дати
+     *
+     * @param string $datetime1  - първата дата
+     * @param string $datetime2  - втората дата
+     * @param string|false $mask - маска, false за timestamp
+     * @param string|null $lg    - език на който да се върне резултата
+     *
+     * @return string
+     */
+    public static function getMiddleDate($datetime1, $datetime2, $mask = 'Y-m-d H:i:s', $lg = null)
+    {
+        $timestamp1 = !is_numeric($datetime1) ? strtotime($datetime1) : $datetime1;
+        $timestamp2 = !is_numeric($datetime2) ? strtotime($datetime2) : $datetime2;
+
+        $middleTimestamp = ($timestamp1 + $timestamp2) / 2;
+        if($mask !== false){
+            $middleTimestampDate = self::timestamp2Mysql($middleTimestamp);
+
+            return dt::mysql2verbal($middleTimestampDate, $mask, $lg);
+        }
+
+        return round($middleTimestamp);
+    }
 }

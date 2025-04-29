@@ -18,6 +18,23 @@ defIfNot('THUMB_IMG_PATH', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '/
  */
 defIfNot('THUMB_OPTIMIZATORS', '');
 
+/**
+ * Дали всички картинки да се създават като webp, ако браузърът поддържа този формат
+ */
+defIfNot('THUMB_WEBP', 'no');
+
+
+/**
+ * Качество на webp и jpeg картинките
+ */
+defIfNot('THUMB_QUALITY', '80');
+
+
+/**
+ * Дали да се оправят обърнатите изображения
+ */
+defIfNot('THUMB_FIX_ORIENTATION', 'yes');
+
 
 /**
  * Клас 'thumb_Setup'
@@ -45,8 +62,10 @@ class thumb_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         
-        'THUMB_OPTIMIZATORS' => array('set(jpegoptim/jpg,jpegtran/jpg,optipng/png,pngquant/png)', 'caption=Оптимизатори за графични файлове->Избор')
-    
+        'THUMB_OPTIMIZATORS' => array('set(jpegoptim/jpg,jpegtran/jpg,optipng/png,pngquant/png)', 'caption=Оптимизатори за графични файлове->Избор'),
+        'THUMB_WEBP' => array('enum(no,yes)', 'caption=Когато е възможно използвай webp формат->Избор'),
+        'THUMB_QUALITY' => array('enum(65=65%,70=70%,75=75%,80=80%,85=85%,90=90%,95=95%)', 'caption=Качество за jpeg и webp->Избор'),
+        'THUMB_FIX_ORIENTATION' => array('enum(yes=Да, no=Не)', 'caption=Оправяне на обърнатите изображения->Избор'),
     );
     
     

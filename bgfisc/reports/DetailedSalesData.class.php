@@ -32,8 +32,14 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField ;
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *

@@ -837,7 +837,7 @@ class core_String
      * Подготвя аритметичен израз за изчисляване
      */
     public static function prepareMathExpr($expr, $contex = array())
-    {
+    {  
         // Ако има променливи, заместваме ги в израза
         if (countR($contex)) {
             uksort($contex, 'str::sortByLengthReverse');
@@ -854,23 +854,24 @@ class core_String
         $number = '((?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?|pi|π|time)';
         
         // Allowed PHP functions
-        $functions = '(?:sinh?|cosh?|tanh?|acosh?|asinh?|atanh?|exp|log(10)?|deg2rad|rad2deg|sqrt|pow|min|max|abs|intval|ceil|floor|round|(mt_)?rand|gmp_fact)';
+        $functions = '(?:sinh?|cosh?|tanh?|acosh?|asinh?|atanh?|exp|log(10)?|deg2rad|rad2deg|sqrt|pow|min|max|abs|intval|ceil|floor|round|(mt_)?rand|gmp_fact|aprox)';
         
         // Allowed math operators
         $operators = '[\/\*\^\+\-\,\%\>\<\=\&\|\!]{1,2}';
         
         // Final regexp, heavily using recursive patterns
-        $regexp = '/^([+\-\!]?(' . $number . '|' . $functions . '\s*\((?1)+\)|\((?1)+\))(?:' . $operators . '(?1))?)+$/';
-        
+        $regexp = '/^([+\-\!]?(' . $number . '|' . $functions . '\s*\((?1)(?:\s*,\s*(?1))*\)|\((?1)+\))(?:' . $operators . '(?1))?)+$/';
+
         if (preg_match($regexp, $expr)) {
             // Replace pi with pi function
             $result = preg_replace('!pi|π!', 'pi()', $expr);
             $result = preg_replace('!time!', 'time()', $result);
             $result = preg_replace('!\<\>!', '!=', $result);
         } else {
+     
             $result = false;
         }
-        
+     
         return $result;
     }
     
@@ -879,10 +880,12 @@ class core_String
      * Изчислява аритметичен израз от стринг
      * Предварително израза трябва да се подготви
      */
-    public static function calcMathExpr($expr, &$success = null)
-    {
-        $expr = self::prepareMathExpr($expr);
-        
+    public static function calcMathExpr($expr, &$success = null, &$error = null, $doNotPrepare = false)
+    { 
+        if(!$doNotPrepare) {
+            $expr = self::prepareMathExpr($expr);
+        }
+       
         if (strlen($expr)) {
             set_error_handler(function ($errno, $errstr) {
                 throw new Exception("{$errno}: {$errstr}");
@@ -890,9 +893,11 @@ class core_String
             try {
                 eval('$result = ' . $expr . ';');
             } catch (Exception $t) {
+                $error = $t->getMessage();
                 $result = null;
                 $success = false;
             } catch (Throwable $t) {
+                $error = $t->getMessage();
                 $result = null;
                 $success = false;
             }
@@ -1475,5 +1480,97 @@ class core_String
         }
 
         return preg_match('/(?:^|[^\\p{L}0-9])\\p{L}+(?:$|[^\\p{L}0-9])/u', ' ' . $str . ' ', $matches);
+    }
+
+
+    /**
+     * Ф-я за маскиране на имейл
+     *
+     * @param string $email
+     * @return string
+     */
+    public static function maskEmail($email)
+    {
+        $mailParts = explode("@", $email);
+        $domainParts = explode('.', $mailParts[1]);
+
+        $mailParts[0] = str::maskString($mailParts[0], 1, 1, 5);
+        $domainParts[0] = str::maskString($domainParts[0], 0, 0, 5);
+        $mailParts[1] = implode('.', $domainParts);
+
+        return implode("@", $mailParts);
+    }
+
+
+    /**
+     * Ф-я за маскиране на стринг с '*'
+     *
+     * @param string $str       - стринг
+     * @param int $first        - начало
+     * @param int $last         - край
+     * @param bool $fixedLength - твърд брой колко * да се сложат
+     * @return string
+     */
+    public static function maskString($str, $first, $last, $fixedLength = false)
+    {
+        $len = strlen($str);
+
+        $toShow = $first + $last;
+        $smartLen = ($len - ($len <= $toShow ? 0 : $toShow));
+        $length = $fixedLength ? min($smartLen, $fixedLength) : $smartLen;
+
+        return substr($str, 0, $len <= $toShow ? 0 : $first).str_repeat("*", $length).substr($str, $len - $last, $len <= $toShow ? 0 : $last);
+    }
+
+
+    /**
+     * Помощна фунцкия за проверка дали пододана стойност я има в стинг
+     *
+     * @param string $val
+     * @param string $str
+     * @param string|null $matchStr
+     * @param array $delimArr
+     *
+     * @return boolean
+     */
+    public static function checkExist($val, $str, $matchStr = null, $delimArr = array(',', ';'))
+    {
+        $str = str_replace($delimArr, ' ', $str);
+
+        $val = trim($val);
+        $str = trim($str);
+        $exist = false;
+        if ($val) {
+            if ($str) {
+                $valArr = explode(' ', $str);
+                foreach ($valArr as $valStr) {
+                    $valStr = trim($valStr);
+                    if ($valStr == $val) {
+                        $exist = true;
+                        break;
+                    } else {
+
+                        // Ако има символ, за заместване на израз
+                        if (isset($matchStr) && (stripos($valStr, $matchStr) !== false)) {
+                            $pattern = preg_quote($valStr, '/');
+
+                            $pattern = str_replace(preg_quote($matchStr, '/'), '.*', $pattern);
+
+                            $pattern = "/^{$pattern}$/";
+                            if (preg_match($pattern, $val)) {
+                                $exist = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                $exist = true;
+            }
+        } else {
+            $exist = true;
+        }
+
+        return $exist;
     }
 }

@@ -222,7 +222,7 @@ class eshop_ProductDetails extends core_Detail
                 
                 $price *= $quantityInPack;
                 if ($settings->chargeVat == 'yes') {
-                    $price *= 1 + cat_Products::getVat($productId);
+                    $price *= 1 + cat_Products::getVat($productId, null, $settings->vatExceptionId);
                 }
                 $price = currency_CurrencyRates::convertAmount($price, null, null, $settings->currencyId);
                 

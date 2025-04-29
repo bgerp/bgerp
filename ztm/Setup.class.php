@@ -65,7 +65,7 @@ class ztm_Setup extends core_ProtoSetup
     /**
      * @var string
      */
-    public $defClasses = 'ztm_SensMonitoring, ztm_StatMonitoring';
+    public $defClasses = 'ztm_SensMonitoring, ztm_StatMonitoring, ztm_SensRegisters';
     
     
     /**
@@ -73,6 +73,7 @@ class ztm_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'ztm_Devices',
+        'ztm_Notes',
         'ztm_Groups',
         'ztm_Registers',
         'ztm_RegisterValues',
@@ -134,6 +135,62 @@ class ztm_Setup extends core_ProtoSetup
                     expect($nRec->driver == $dId);
                 }
             }
+        }
+    }
+
+
+    /**
+     * Миграция за прехвръляне на профилите в забележки
+     */
+    public function profilesToNotes2430()
+    {
+        $pQuery = ztm_Profiles::getQuery();
+        while ($pRec = $pQuery->fetch()) {
+            if (!trim($pRec->description)) {
+
+                continue;
+            }
+
+            $zQuery = ztm_Devices::getQuery();
+            $zQuery->where(array("#profileId = '[#1#]'", $pRec->id));
+            while ($zRec = $zQuery->fetch()) {
+                $nRec = new stdClass();
+                $nRec->device = $zRec->name;
+                $nRec->state = 'active';
+                $nRec->note = $pRec->description;
+                $nRec->importance = 'normal';
+
+                ztm_Notes::save($nRec);
+            }
+        }
+
+        ztm_Profiles::truncate();
+
+        return 'yes';
+    }
+
+
+    /**
+     * Миграция за поправка на групите
+     */
+    public function fixProfiles2430()
+    {
+        $dQuery = ztm_Devices::getQuery();
+        $dQuery->where("#profileId IS NOT NULL");
+        $dQuery->orWhere("#profileId != ''");
+        while ($dRec = $dQuery->fetch()) {
+            $dRec->profileId = null;
+            if (stripos(mb_strtolower($dRec->name), 'ztm') === 0) {
+                $dRec->profileId = ztm_Profiles::getIdFromSysId('mz');
+            }
+            if (stripos(mb_strtolower($dRec->name), '-hp') !== false) {
+                $dRec->profileId = ztm_Profiles::getIdFromSysId('hp');
+            }
+            if (stripos(mb_strtolower($dRec->name), '-ecd') !== false) {
+                $dRec->profileId = ztm_Profiles::getIdFromSysId('dt');
+            }
+
+            ztm_Devices::save($dRec, 'profileId');
         }
     }
 }

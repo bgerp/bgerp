@@ -40,6 +40,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      */
     public static function toPdf($file, $cmyk = false, $type = 'auto', $name = '', $otherParam = array())
     {
+
         return self::convertTo($file, 'pdf', $type, $name, $cmyk, $otherParam);
     }
     
@@ -56,7 +57,42 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
      */
     public static function toPng($file, $type = 'auto', $name = '', $otherParam = array())
     {
+
         return self::convertTo($file, 'png', $type, $name, false, $otherParam);
+    }
+
+
+    /**
+     * Преобразува подадения файл в картинка
+     *
+     * @param string $file
+     * @param string $type
+     * @param string $name
+     * @param array  $otherParam
+     *
+     * @return string|NULL - Манипулатора на PNG файла
+     */
+    public static function toJpg($file, $type = 'auto', $name = '', $otherParam = array())
+    {
+
+        return self::convertTo($file, 'jpg', $type, $name, false, $otherParam);
+    }
+
+
+    /**
+     * Преобразува подадения файл в картинка
+     *
+     * @param string $file
+     * @param string $type
+     * @param string $name
+     * @param array  $otherParam
+     *
+     * @return string|NULL - Манипулатора на PNG файла
+     */
+    public static function toSvgConvert($file, $type = 'auto', $name = '', $otherParam = array())
+    {
+
+        return self::convertTo($file, 'svg', $type, $name, false, $otherParam);
     }
     
     
@@ -79,10 +115,10 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             return ;
         }
         
-        expect(in_array($to, array('pdf', 'png')));
+        expect(in_array($to, array('pdf', 'png', 'jpg', 'jpeg', 'svg')));
         
         $lineExec = 'inkscape [#INPUTF#]  --export-text-to-path  --export-pdf=[#OUTPUTF#] --export-area-page';
-        
+
         if ($to == 'png') {
             $height = static::$pngExportHeight;
             $lineExec = 'inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing';
@@ -93,6 +129,23 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             if ($otherParam['exportWidth']) {
                 $lineExec .= ' --export-width=' . $otherParam['exportWidth'];
             }
+        }
+
+        if (($to == 'jpg') || ($to == 'jpeg')) {
+            $lineExec = 'convert -density 150 [#INPUTF#] [#OUTPUTF#]';
+            if ($otherParam['exportHeight']) {
+                $lineExec .= ' --export-height=' . $otherParam['exportHeight'];
+            }
+
+            if ($otherParam['exportWidth']) {
+                $lineExec .= ' --export-width=' . $otherParam['exportWidth'];
+            }
+
+//            $lineExec = "inkscape [#INPUTF#] --export-filename=[#OUTPUTF#] --export-dpi=96 --export-background=white --export-area-drawing";
+        }
+
+        if ($to == 'svg') {
+            $lineExec = 'inkscape [#INPUTF#] --export-text-to-path --export-plain-svg=[#OUTPUTF#] --export-area-page';
         }
         
         cls::load('fileman_Files');

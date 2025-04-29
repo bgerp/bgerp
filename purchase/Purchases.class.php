@@ -34,7 +34,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, purchase_Wrapper,purchase_plg_ExtractPurchasesData, acc_plg_Registry, plg_Sorting, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin,price_plg_TotalDiscount, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank,cat_plg_UsingProductVat, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, change_Plugin, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
+				        doc_EmailCreatePlg, bgerp_plg_Blank,cat_plg_UsingProductVat, doc_plg_Tabs, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, change_Plugin, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
     
     
     /**
@@ -165,12 +165,6 @@ class purchase_Purchases extends deals_DealMaster
 
 
     /**
-     * Огледален клас за обратната операция
-     */
-    public $reverseClassName = 'store_ShipmentOrders';
-
-
-    /**
      * До потребители с кои роли може да се споделя документа
      *
      * @var string
@@ -182,7 +176,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery,detailOrderBy,reff';
+    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery,detailOrderBy,reff,makeInvoice';
 
 
     /**
@@ -294,13 +288,14 @@ class purchase_Purchases extends deals_DealMaster
     public function description()
     {
         parent::setDealFields($this);
-        $this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyRate');
+        $this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=currencyManualRate');
+        $this->FLD('haveVatCreditProducts', 'enum(yes=С право,no=Без право)', 'caption=Допълнително->Данъчен кредит,maxRadio=2,columns=2,before=template,notNull,value=yes');
         $this->setField('dealerId', 'caption=Наш персонал->Закупчик,notChangeableByContractor');
         $this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
         $this->setField('oneTimeDelivery', 'salecondSysId=purchaseOneTimeDelivery');
-        $this->setField('chargeVat', 'salecondSysId=purchaseChargeVat');
+        $this->setField('chargeVat', 'salecondSysId=purchaseChargeVat,removeAndRefreshForm=haveVatCreditProducts,silent');
     }
     
     
@@ -353,13 +348,12 @@ class purchase_Purchases extends deals_DealMaster
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
         $form->setSuggestions('bankAccountId', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
-        $form->setDefault('makeInvoice', 'yes');
         $form->setField('deliveryLocationId', 'caption=Доставка->Обект от');
         $form->setField('shipmentStoreId', 'caption=Доставка->До склад');
         
         $hideRate = core_Packs::getConfigValue('purchase', 'PURCHASE_USE_RATE_IN_CONTRACTS');
         if ($hideRate == 'yes' && !haveRole('partner')) {
-            $form->setField('currencyRate', 'input');
+            $form->setField('currencyManualRate', 'input');
         }
         
         // Търговеца по дефолт е отговорника на контрагента
@@ -770,6 +764,10 @@ class purchase_Purchases extends deals_DealMaster
         }
 		
 		$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
+        if($rec->haveVatCreditProducts == 'yes'){
+            $row->detailOrderBy = ht::createHint($row->detailOrderBy, "С право на данъчен кредит");
+            unset($row->haveVatCreditProducts);
+        }
     }
 
 
@@ -970,8 +968,20 @@ class purchase_Purchases extends deals_DealMaster
     {
         // Ако има твърда отстъпка за целия документ, изчислява се тя
         $rec = $mvc->fetchRec($id);
+
         if($mvc->recalcAutoTotalDiscount($rec)){
             $mvc->updateMaster_($rec);
         }
+    }
+
+
+    /**
+     * Връща класа на обратния документ
+     */
+    public function getDocumentReverseClass($rec)
+    {
+        $class = 'store_ShipmentOrders';
+
+        return cls::get($class);
     }
 }

@@ -96,9 +96,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
 
-        $fieldset->FLD('availability', 'enum(Всички=Всички, Налични=Налични,Отрицателни=Отрицателни)', 'notNull,caption=Филтри->Наличност,maxRadio=3,columns=3,after=products,single=none');
+        $fieldset->FLD('availability', 'set(available=Положителна,neg=Отрицателна,zero=Нулева)', 'notNull,caption=Филтри->Наличност,maxRadio=4,columns=4,after=products,mandatory,single=none');
 
-        $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=3,columns=3,after=availability,silent');
+        $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=4,columns=4,after=availability,silent');
 
         $fieldset->FLD('seeByGroups', 'enum(no=Без разбивка,checked=Само за избраните,subGroups=Включи подгрупите)', 'notNull,caption=Филтри->"Общо" по групи,after=orderBy, single=none');
 
@@ -142,7 +142,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('selfPrices', 'balance');
-        $form->setDefault('availability', 'Всички');
+        $form->setDefault('availability', 'available,neg');
         $form->setDefault('seeByGroups', 'no');
         $form->setDefault('orderBy', 'name');
         $form->setDefault('type', 'short');
@@ -243,7 +243,6 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => $acc, 'item1' => $item1, 'item2' => $item2, 'cacheBalance' => false, 'keepUnique' => true));
             $bRecs = $Balance->getBalance($acc);
-            // bp(acc_Lists::fetch(2),$acc,$workingPdogresAccRec,$bRecs);
 
             foreach ($bRecs as $item) {
 
@@ -322,12 +321,19 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                 //Количество в края на периода
                 $blQuantity = $item->blQuantity;
 
-                if (($rec->availability == 'Налични') && $blQuantity < 0.0001) {
-                    continue;
+                $mark = false;
+
+                if (is_numeric(strpos($rec->availability, 'available')) && $blQuantity > 0.0001) {
+                    $mark = true;
                 }
-                if ($rec->availability == 'Отрицателни' && $blQuantity > -0.0001) {
-                    continue;
+                if (is_numeric(strpos($rec->availability, 'neg')) && $blQuantity < -0.0001) {
+                    $mark = true;
                 }
+
+                if (is_numeric(strpos($rec->availability, 'zero')) && $blQuantity > -0.0001 && $blQuantity < 0.0001) {
+                    $mark = true;
+                }
+                if (!$mark) continue;
 
                 //Стойност в края на периода
                 $blAmount = $item->blAmount;
@@ -343,8 +349,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                         'measureId' => $productMeasureId,
                         'groupOne' => '',
 
-                        'selfPrice' => '',
-                        'amount' => '',
+                        'selfPrice' => 0,
+                        'amount' => 0,
 
                         'baseQuantity' => $baseQuantity,
                         'baseAmount' => $baseAmount,
@@ -394,7 +400,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             //Филтър по групи артикули
             if (isset($rec->group)) {
-                $prodQuery->likeKeylist('groups', $rec->group);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $prodQuery, $rec->group, 'productId');
             }
 
             //Филтър по склад
@@ -464,13 +470,26 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         foreach ($recs as $key => $val) {
 
             //Себестойност на артикула
-            if ($rec->selfPrice == 'manager') {
+
+            //ako количеството закръглено до минималната заначеща стойност на мярката е 0, го нулирам
+            if($val->measureId){
+            $mround = cat_UoM::fetch($val->measureId)->round;
+            }
+            if (round($val->blQuantity, $mround) == 0) {
+
+                $val->blQuantity = 0;
+
+            }
+            if ($rec->selfPrices == 'manager') {
                 $val->selfPrice = cat_Products::getPrimeCost($key, null, $val->blQuantity, $date);
+                if (!$val->selfPrice) {
+                    $val->selfPrice = 0;
+                }
             } else {
-                $val->selfPrice = $val->blQuantity ? $val->blAmount / $val->blQuantity : null;
+                $val->selfPrice = $val->blQuantity ? $val->blAmount / $val->blQuantity : 0;
             }
 
-            if ($val->blQuantity > 0) {
+            if ($val->blQuantity >= 0) {
                 $val->amount = $val->selfPrice * $val->blQuantity;
             } else {
                 $val->amount = $val->blAmount;
@@ -706,6 +725,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         $Enum = cls::get('type_Enum', array('options' => array('included' => 'Включено', 'off' => 'Изключено', 'only' => 'Само')));
+        $Set = cls::get('type_Set', array('options' => array('available' => 'Положителна', 'neg' => 'Отрицателна', 'zero' => 'Ненулева')));
 
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -778,7 +798,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
 
         if ((isset($data->rec->availability))) {
-            $fieldTpl->append('<b>' . ($data->rec->availability) . '</b>', 'availability');
+            $fieldTpl->append('<b>' . $Set->toVerbal($data->rec->availability) . '</b>', 'availability');
         }
 
         if ((isset($data->rec->totalProducts))) {

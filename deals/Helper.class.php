@@ -112,10 +112,12 @@ abstract class deals_Helper
             
             return;
         }
-        
+
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+
         expect(is_object($masterRec));
         
-        // Комбиниране на дефолт стойнсотите с тези подадени от потребителя
+        // Комбиниране на дефолт стойнстите с тези подадени от потребителя
         $map = array_merge(self::$map, $map);
         $haveAtleastOneDiscount = false;
 
@@ -131,7 +133,7 @@ abstract class deals_Helper
         foreach ($recs as &$rec) {
             $vat = 0;
             if ($masterRec->{$map['chargeVat']} == 'yes' || $masterRec->{$map['chargeVat']} == 'separate') {
-                $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
+                $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']}, $vatExceptionId);
             }
 
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
@@ -295,7 +297,8 @@ abstract class deals_Helper
         
         $coreConf = core_Packs::getConfig('core');
         $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
-        
+        $countVats = countR($values['vats']);
+
         if ($invoice || $chargeVat == 'separate') {
             if (is_array($values['vats'])) {
                 foreach ($values['vats'] as $percent => $vi) {
@@ -307,8 +310,13 @@ abstract class deals_Helper
                         
                         if ($invoice) {
                             $arr["vat{$index}Base"] = $arr["vat{$index}"];
-                            $arr["vat{$index}BaseAmount"] = $vi->sum * (($invoice) ? $currencyRate : 1);
-                            $arr["vat{$index}BaseCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
+                            if($countVats == 1 && isset($arr['neto'])) {
+                                $arr["vat{$index}BaseAmount"] = $arr['neto'] * $currencyRate;
+                            } else {
+                                $arr["vat{$index}BaseAmount"] = $vi->sum * $currencyRate;
+                            }
+
+                            $arr["vat{$index}BaseCurrencyId"] = $baseCurrency;
                         }
                     }
                 }
@@ -822,16 +830,22 @@ abstract class deals_Helper
      */
     public static function getQuantityHint(&$html, $mvc, $productId, $storeId, $quantity, $state, $date = null, $ignoreFirstDocumentPlannedInThread = null)
     {
-        if (!in_array($state, array('draft', 'pending'))) {
-            return;
+        if (!in_array($state, array('draft', 'pending'))) return;
+
+        $pRec = cat_Products::fetch($productId, 'canStore,isPublic');
+
+        // Ако артикулът е с моментна рецепта няма да се проверява за наличност
+        if($mvc->manifactureProductsOnShipment) {
+            $lastInstantBom = cat_Products::getLastActiveBom($productId, 'instant');
+            if(is_object($lastInstantBom)) {
+                $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, null, "class=doc-positive-quantity");
+                return;
+            }
         }
 
-        $canStore = cat_Products::fetchField($productId, 'canStore');
-        if ($canStore != 'yes') {
-            return;
-        }
+        if ($pRec->canStore != 'yes') return;
 
-        $date = isset($date) ? $date : null;
+        $date = $date ?? null;
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
         $stRec = store_Products::getQuantities($productId, $storeId, $date);
 
@@ -849,7 +863,7 @@ abstract class deals_Helper
                     }
                 }
 
-                if($skip != true){
+                if(!$skip){
                     $iQuery = store_StockPlanning::getQuery();
                     $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that} AND #storeId IS NOT NULL");
                     $iQuery->show('quantityIn,quantityOut');
@@ -881,7 +895,7 @@ abstract class deals_Helper
         $showNegativeWarning = $makeLink = true;
 
         if($mvc instanceof sales_SalesDetails){
-            $showNegativeWarning = cat_Products::fetchField($productId, 'isPublic') == 'yes';
+            $showNegativeWarning = $pRec->isPublic == 'yes';
         }
 
         // Проверка дали има минимално разполагаемо
@@ -894,7 +908,11 @@ abstract class deals_Helper
                         $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
                         $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
                     } else {
-                        $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                        if($stRec->quantity >= $quantity) {
+                            $hint = "Наличността в склада е достатъчна за изпълнение / контиране на документа, но разполагаемата наличност е недостатъчна за изпълнението на всички чакащи документи!";
+                        } else {
+                            $hint = "Недостатъчна наличност|*(1): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                        }
                     }
                 }
 
@@ -905,14 +923,14 @@ abstract class deals_Helper
         if(!$firstCheck){
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                     $class = 'doc-negative-quantity';
                     $makeLink = false;
                 }
             } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
                 if($showNegativeWarning) {
                     $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
                 }
             } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
                 if($showNegativeWarning) {
@@ -935,6 +953,12 @@ abstract class deals_Helper
             // Линк към наличното в склада ако има права
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
                 $html = ht::createLinkRef($html, $url);
+            }
+        }
+
+        if($pRec->isPublic == 'no') {
+            if($futureQuantity > 0) {
+                $html = ht::createHint($html, "Наличността в склада е по-голяма|*: {$inStockVerbal} {$measureName}", 'notice', false, null, "class=doc-positive-quantity");
             }
         }
     }
@@ -1063,9 +1087,11 @@ abstract class deals_Helper
     {
         // Ако е инсталиран пакета за многофирменост - моята фирма е тази посочена в първия документ на нишката
         $ownCompanyId = null;
+        $Document = doc_Containers::getDocument($containerId);
+        $docRec = $Document->fetch("activatedOn,threadId,{$Document->valiorFld}");
+
         if(core_Packs::isInstalled('holding')) {
-            $Document = doc_Containers::getDocument($containerId);
-            $firstDoc = doc_Threads::getFirstDocument($Document->fetchField('threadId'));
+            $firstDoc = doc_Threads::getFirstDocument($docRec->threadId);
             if($firstDoc->isInstanceOf('deals_DealMaster')) {
                 if(isset($firstDoc->ownCompanyFieldName)) {
                     $ownCompanyId = $firstDoc->fetchField($firstDoc->ownCompanyFieldName);
@@ -1073,16 +1099,29 @@ abstract class deals_Helper
             }
         }
 
-        // Данните на 'Моята фирма'
+        // Данните на 'Моята фирма' към дата 00:00 на вальора
         $res = array();
-        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId);
+        $dateFromWhichToGetName = !empty($docRec->{$Document->valiorFld}) ? $docRec->{$Document->valiorFld} : dt::now();
+        $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
+        $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $dateFromWhichToGetName);
 
         // Името и адреса на 'Моята фирма'
         $Companies = cls::get('crm_Companies');
         $res['MyCompany'] = $ownCompanyData->companyVerb;
-        
+        $now = dt::now();
+
+        if((!empty($ownCompanyData->validTo) && $now >= $ownCompanyData->validTo) || $now <= $ownCompanyData->validFrom) {
+            $ownCompanyData2 =  crm_Companies::fetchOwnCompany($ownCompanyId);
+            $warningMyCompanyArr =  static::getContragentDataCompareString($ownCompanyData, $ownCompanyData2);
+            if(!empty($warningMyCompanyArr)) {
+                if(core_Users::isPowerUser()) {
+                    $res['MyCompany'] = ht::createHint($res['MyCompany'], 'Следните данни на моята фирма във визитката се различават от тези към вальора на документа|*: ' . implode(', ', $warningMyCompanyArr), 'warning');
+                }
+            }
+        }
+
         // ДДС и националния номер на 'Моята фирма'
-        $uic = isset($ownCompanyData->uicId) ? $ownCompanyData->uicId : drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+        $uic = $ownCompanyData->uicId ?? drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if ($uic != $ownCompanyData->vatNo) {
             $res['MyCompanyVatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($ownCompanyData->vatNo);
         }
@@ -1092,28 +1131,38 @@ abstract class deals_Helper
         // името, адреса и ДДС номера на контрагента
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
-            $cData = $ContragentClass->getContragentData($contragentId);
+            $cData = $ContragentClass->getContragentData($contragentId, $dateFromWhichToGetName);
             $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
-            $res['contragentName'] = isset($contragentName) ? $contragentName : $cName;
-            if($res['contragentName'] != $cName){
-                if(!Mode::isReadOnly()){
-                    $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
-                }
-            }
-            $res['inlineContragentName'] = $res['contragentName'];
+            $res['contragentName'] = $contragentName ?? $cName;
 
+            $res['inlineContragentName'] = $res['contragentName'];
             $res['eori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($cData->eori);
             $res['vatNo'] = core_Type::getByName('drdata_VatType')->toVerbal($cData->vatNo);
             $res['contragentUicId'] = $cData->uicId;
             if (!empty($cData->uicId)) {
                 $res['contragentUicCaption'] = ($ContragentClass instanceof crm_Companies) ? tr('ЕИК') : tr('ЕГН||Personal №');
             }
+
+            if((!empty($cData->validTo) && $now >= $cData->validTo) || $now <= $cData->validFrom) {
+                // Ако се извлича версия към по-стара дата - проверка дали се различават съществените данни
+                $currentContragentData = $ContragentClass->getContragentData($contragentId);
+                $warningMsgArr = static::getContragentDataCompareString($cData, $currentContragentData);
+                if(!empty($warningMsgArr)) {
+                    if(core_Users::isPowerUser()){
+                        $res['contragentName'] = ht::createHint($res['contragentName'], "Следните полета във визитката се различават от тези към вальора на документа|*: " . implode(', ', $warningMsgArr), 'warning');
+                    }
+                }
+            } elseif($res['contragentName'] != $cName){
+                if(core_Users::isPowerUser()){
+                    $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
+                }
+            }
         } elseif (isset($contragentName)) {
             $res['contragentName'] = $contragentName;
         }
         
         $makeLink = (!Mode::is('pdf') && !Mode::is('text', 'xhtml') && !Mode::is('text', 'plain'));
-        
+
         // Имената на 'Моята фирма' и контрагента са линкове към тях, ако потребителя има права
         if ($makeLink === true) {
             $res['MyCompany'] = ht::createLink($res['MyCompany'], crm_Companies::getSingleUrlArray($ownCompanyData->companyId));
@@ -1125,15 +1174,14 @@ abstract class deals_Helper
             }
         }
         
-        $showCountries = ($ownCompanyData->countryId == $cData->countryId) ? false : true;
-        
+        $showCountries = !(($ownCompanyData->countryId == $cData->countryId));
         if (isset($contragentClass, $contragentId)) {
-            $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries)->getContent();
-            $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries)->getContent();
+            $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $dateFromWhichToGetName)->getContent();
+            $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $dateFromWhichToGetName)->getContent();
             $res['inlineContragentAddress'] = str_replace('<br>', ',', $res['inlineContragentAddress']);
         }
         
-        $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries)->getContent();
+        $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries, true, $dateFromWhichToGetName)->getContent();
 
         if(drdata_Countries::isEu($cData->countryId) && empty($cData->eori)){
             unset($res['MyCompanyEori']);
@@ -1141,8 +1189,37 @@ abstract class deals_Helper
 
         return $res;
     }
-    
-    
+
+
+    /**
+     * Помощна ф-я връщаща разликата между контрагентските данни на един и същ контрагент
+     *
+     * @param stdClass $cData1
+     * @param stdClass $cData2
+     * @return array $warningMsgArr
+     */
+    private static function getContragentDataCompareString($cData1, $cData2)
+    {
+        $warningMsgArr = array();
+        $cName1 = ($cData1->personVerb) ? $cData1->personVerb : $cData1->companyVerb;
+        $cName2 = ($cData2->personVerb) ? $cData2->personVerb : $cData2->companyVerb;
+        if ($cName1 != $cName2) {
+            $warningMsgArr[] = tr('Име') . (!empty($cName2) ? " [{$cName2}]" : "");
+        }
+        if ($cData1->vatNo != $cData2->vatNo) {
+            $warningMsgArr[] = tr('ДДС№') . (!empty($cData2->vatNo) ? " [{$cData2->vatNo}]" : "");
+        }
+        if ($cData1->eori != $cData2->eori) {
+            $warningMsgArr[] = tr('ЕОРИ') . " [{$cData2->eori}]";
+        }
+        if ($cData1->uicId != $cData2->uicId) {
+            $warningMsgArr[] = ($cData1->personVerb) ? tr('ЕГН') : (tr('Нац. №') . (!empty($cData2->uicId) ? " [{$cData2->uicId}]" : ''));
+        }
+
+        return $warningMsgArr;
+    }
+
+
     /**
      * Помощна ф-я проверяваща дали подаденото к-во може да се зададе за опаковката
      *
@@ -1769,13 +1846,14 @@ abstract class deals_Helper
     /**
      * Помощен метод връщащ разпределението на плащанията по фактури
      *
-     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
-     * @param datetime|NULL $valior            - към коя дата
-     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
+     * @param int            $threadId               - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
+     * @param datetime|NULL  $valior                 - към коя дата
+     * @param boolean        $onlyExactPayments      - дали да са всички плащания или само конкретните към всяка ф-ра
+     * @param boolean        $applyNotesToTheInvoice - дали да наслагва известията към фактурата
      *
-     * @return array $paid      - масив с разпределените плащания
+     * @return array         $paid - масив с разпределените плащания
      */
-    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
+    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false, $applyNotesToTheInvoice = true)
     {
         // Всички ф-ри в посочената нишка/нишки
         $threads = static::getCombinedThreads($threadId);
@@ -1785,20 +1863,24 @@ abstract class deals_Helper
         $invoicesArr = self::getInvoicesInThread($threads, $valior, true, true, true);
         if (!countR($invoicesArr)) return array();
 
+        core_Debug::startTimer("CALC_INVOICE_PAYMENTS");
         $newInvoiceArr = $invMap = $payArr = array();
         foreach ($invoicesArr as $containerId => $handler) {
             $Document = doc_Containers::getDocument($containerId);
-            $iRec = $Document->fetch('dealValue,discountAmount,vatAmount,rate,type,originId,containerId');
-            
+            $iRec = $Document->fetch('dealValue,discountAmount,vatAmount,rate,type,originId,containerId,dueDate');
+            $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
+
             $amount = round((($iRec->dealValue - $iRec->discountAmount) + $iRec->vatAmount) / $iRec->rate, 2);
-            $key = ($iRec->type != 'dc_note') ? $containerId : $iRec->originId;
+
+            $key = $applyNotesToTheInvoice ? ($iRec->type != 'dc_note' ? $containerId : $iRec->originId) : $containerId;
             $invMap[$containerId] = $key;
             
             if (!array_key_exists($key, $newInvoiceArr)) {
-                $newInvoiceArr[$key] = (object) array('containerId' => $key, 'amount' => $amount, 'payout' => 0, 'payments' => array());
+                $newInvoiceArr[$key] = (object) array('containerId' => $key, 'amount' => $amount, 'payout' => 0, 'payments' => array(), 'dueDate' => $dueDate, 'rate' => $iRec->rate);
             } else {
                 $newInvoiceArr[$key]->amount += $amount;
             }
+            $newInvoiceArr[$key]->dueDate = min($newInvoiceArr[$key]->dueDate, $dueDate);
         }
 
         foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay) {
@@ -1850,7 +1932,7 @@ abstract class deals_Helper
             $DealDoc = cls::get($dealDoc);
             $dQuery = $DealDoc->getQuery();
             $dQuery->in('threadId', $threads);
-            $dQuery->where("#state = 'active' || #state = 'closed'");
+            $dQuery->where("#state IN ('active', 'closed')");
             $dQuery->where(array("#contoActions LIKE '%pay%'"));
             if (isset($valior)) {
                 $dQuery->where("#valior <= '{$valior}'");
@@ -1869,7 +1951,9 @@ abstract class deals_Helper
             $payArr = array_filter($payArr, function ($a) {return isset($a->to);});
         }
 
+
         self::allocationOfPayments($newInvoiceArr, $payArr);
+        core_Debug::stopTimer("CALC_INVOICE_PAYMENTS");
 
         return $newInvoiceArr;
     }
@@ -2105,7 +2189,7 @@ abstract class deals_Helper
         }
 
         if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
-            return ($Class->shouldChargeVat($coverId)) ? 'separate' : 'no';
+            return ($Class->shouldChargeVat($coverId, $mvc)) ? 'separate' : 'no';
         }
         
         return 'separate';
@@ -2234,10 +2318,10 @@ abstract class deals_Helper
      */
     public static function getIssuer($createdBy, $activatedBy, &$userId = null)
     {
-        $userId = deals_Setup::get('ISSUER_USER');
+        $userId = deals_Setup::get('ISSUER_USER', false, $createdBy);
         
         if (empty($userId)) {
-            $selected = deals_Setup::get('ISSUER');
+            $selected = deals_Setup::get('ISSUER', false, $createdBy);
             $userId = ($selected == 'activatedBy') ? $activatedBy : $createdBy;
             $userId = (!core_Users::isContractor($userId)) ? $userId : $activatedBy;
         }
@@ -2474,9 +2558,10 @@ abstract class deals_Helper
                     if ($diff > $toleranceDiff) {
                         $obj = array();
 
+                        $startMsg = !empty($discount) ? 'Цената (с приспадната отстъпка)' : 'Цената';
                         if($i == 0 && $percent >= 0){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
-                            $obj['hint'] ='Цената е под минималната за клиента';
+                            $obj['hint'] = "{$startMsg} е под минималната за клиента";
                             $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = 'error';
                             
@@ -2485,7 +2570,7 @@ abstract class deals_Helper
                         
                         if($i == 1){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
-                            $obj['hint'] = ($percent < 0) ? 'Цената е над очакваната за клиента' : 'Цената е под очакваната за клиента';
+                            $obj['hint'] = ($percent < 0) ? "{$startMsg} е над очакваната за клиента" : "{$startMsg} е под очакваната за клиента";
                             $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
                         

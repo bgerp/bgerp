@@ -23,6 +23,7 @@ class bgerp_plg_Groups extends core_Plugin
     public function on_AfterDescription(&$mvc)
     {
         $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('grouping' => 'Групиране');
+        setIfNot($mvc->canGroupingmaster, 'groupingMaster');
     }
     
     
@@ -203,7 +204,7 @@ class bgerp_plg_Groups extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'grouping' && $requiredRoles != 'no_one') {
-            if (!$mvc->haveRightFor('edit', $rec, $userId)) {
+            if (!$mvc->haveRightfor('groupingmaster', $rec, $userId) && !$mvc->haveRightFor('edit', $rec, $userId)) {
                 $requiredRoles = 'no_one';
             }
         }

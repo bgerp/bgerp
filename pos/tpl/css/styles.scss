@@ -67,6 +67,10 @@
 	}
 }
 
+.resultBatch {
+	font-size: 1.1em !important;
+}
+
 .tools-content {
 	padding: 20px 15px;
 	box-sizing: border-box;
@@ -1321,6 +1325,16 @@ th.revertCaption, td.revertCaption {
 	top: -1px;
 }
 
+.paymentErrorInfo {
+	padding:5px;
+	font-size:1.4em;
+	background-color: #fdfdc0;
+	border: solid 1px #cccccc;
+	color: #666666;
+	border-radius: 5px;
+	margin-bottom:3px;
+}
+
 .actionBtn {
 	height: 40px;
 	cursor: pointer;
@@ -1682,5 +1696,9 @@ th.revertCaption, td.revertCaption {
 	.receiptHeader {
 		text-align: center !important;
 	}
+}
+
+.reportTotal {
+	background-color:#cff3ff;
 }
 

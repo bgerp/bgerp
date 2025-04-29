@@ -45,6 +45,14 @@ class core_Master extends core_Manager
      * Клас на горния таб
      */
     public $tabTopClass;
+
+    
+    /**
+     * Дефолтен шаблон за единичен изглед
+     */
+    public $singleLayoutStr = "\n<div class='singleView'>[#SingleToolbar#]<br><div class='{{class}}'><h2>[#SingleTitle#]</h2>" .
+            "\n<table class='listTable' style='border:none;'>{{fieldsHtml}}\n</table>\n" .
+            '<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div></div>';
     
     
     /**
@@ -96,8 +104,16 @@ class core_Master extends core_Manager
                 }
             }
         }
-        
-        $link = ht::createLink($title, $linkArr);
+
+        // Ако има урл при двоен клик - да се добави като дата атрибут
+        $attr = array();
+        $doubleClickUrl = $inst->getUrlForDblClick($objId, $linkArr);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
+
+        $link = ht::createLink($title, $linkArr, false, $attr);
         
         return $link;
     }
@@ -285,7 +301,7 @@ class core_Master extends core_Manager
             
             if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
-                    $data->singleFields[$name] = $fld->caption;
+                    $data->singleFields[$name] = ltrim($fld->caption, '@');
                 }
             }
         }
@@ -576,9 +592,7 @@ class core_Master extends core_Manager
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
             
-            $layoutText = "\n<div class='singleView'>[#SingleToolbar#]<br><div class='{$class}'><h2>[#SingleTitle#]</h2>" .
-            "\n<table class='listTable' style='border:none;'>{$fieldsHtml}\n</table>\n" .
-            '<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div></div>';
+            $layoutText = str_replace(array('{{class}}', '{{fieldsHtml}}'), array($class, $fieldsHtml), $this->singleLayoutStr);
         }
         
         if (is_string($layoutText)) {
@@ -776,7 +790,20 @@ class core_Master extends core_Manager
         $url = $me->getSingleUrlArray($id);
         
         setIfNot($attr['ef_icon'], $me->getIcon($id));
-        
+
+        // Ако има урл при двоен клик - да се добави като дата атрибут
+        $doubleClickUrl = $me->getUrlForDblClick($id, $url);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
+
+        if ($attr['name']) {
+            $attr['title'] = $name;
+            $name = $attr['name'];
+            unset($attr['name']);
+        }
+
         // Вземаме линка
         $link = ht::createLink($name, $url, null, $attr);
         
@@ -850,6 +877,14 @@ class core_Master extends core_Manager
             }
         }
 
+        if(isset($attr['ef_icon'])){
+            $doubleClickUrl = $me->getUrlForDblClick($id, $url);
+            if(isset($doubleClickUrl)){
+                $doubleClickDataUrl = toUrl($doubleClickUrl);
+                $attr['data-doubleclick'] .= $doubleClickDataUrl;
+            }
+        }
+
         if ($short === true) {
             if (!Mode::is('printing') && !Mode::is('text', 'xhtml')) {
                 $title = ht::createLinkRef($title, $url, null, $attr);
@@ -860,8 +895,46 @@ class core_Master extends core_Manager
         
         return $title;
     }
-    
-    
+
+
+    /**
+     * Връща урл което да се извика при двоен клик
+     *
+     * @param int|stdClass $id        - ид или запис
+     * @param array         $url      - основното урл на линка
+     * @param bool         $forFolder - дали да е към папка
+     * @return array|null             - урл или null ако нищо няма
+     */
+    public function getUrlForDblClick_($id, $url = null, $forFolder = false)
+    {
+        $dblClickEnabled = bgerp_Setup::get('ENABLE_DOUBLE_CLICK_ON_LINK');
+        if($dblClickEnabled == 'no') return null;
+
+        $resUrl = array();
+        $rec = $this->fetchRec($id);
+        if(!$forFolder) {
+            if($this->haveRightFor('edit', $rec)) {
+                $resUrl = array($this, 'edit', $rec->id);
+            }
+        }
+
+        // Дефолтното урл ще е към сингъла, ако основното урл не е също за него
+        if(empty($resUrl)){
+            $resUrl = static::getSingleUrlArray($rec->id);
+        }
+
+        if($url){
+            if($url[1] == $resUrl[1] && $url[2] == $resUrl[2]){
+                if(cls::getClassName($url[0]) == cls::getClassName($resUrl[0])){
+                    return null;
+                }
+            }
+        }
+
+        return countR($resUrl) ? $resUrl : null;
+    }
+
+
     /**
      * Създава хиперлинк към единичния изглед който е стрелка след името
      *

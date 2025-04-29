@@ -35,9 +35,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         $mvc->FNC('packQuantity', 'double', 'caption=Количество,smartCenter,input=input');
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
+        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage)', 'caption=Допълнително->Забележки');
 
+        $mvc->setFieldTypeParams('discount', array('warningMax' => deals_Setup::get('MAX_WARNING_DISCOUNT')));
         $mvc->setDbIndex('productId,packagingId');
         setIfNot($mvc->allowInputPriceForQuantity, false);
     }
@@ -54,7 +55,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         $rec = &$data->form->rec;
         $masterRec = $data->masterRec;
-        
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
         // Ако ще се позволява въвеждането на цена за к-то - полето за цена става varchar
@@ -68,7 +70,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         }
         
         if (!empty($rec->packPrice)) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
     }
@@ -84,9 +86,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+
         if ($form->rec->productId) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $productInfo = cat_Products::getProductInfo($rec->productId);
             
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
@@ -116,8 +119,17 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
             }
+
+            // Ако има такъв запис, сетваме грешка
+            $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
+            if($setWarning == 'yes'){
+                $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
+                if ($countSameProduct) {
+                    $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*');
+                }
+            }
         }
-        
+
         if ($form->isSubmitted() && !$form->gotErrors()) {
             if (!isset($rec->packQuantity)) {
                 $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
@@ -358,13 +370,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
         $meta = cat_Products::fetch($pRec->productId, $this->metaProducts);
-        
+        $masterThreadId = $Master::fetchField($masterId, 'threadId');
+
         if (!$meta->metaProducts) {
-            $masterThresdId = $Master::fetchField($masterId, 'threadId');
-            
-            if (doc_Threads::getFirstDocument($masterThresdId)->className == 'sales_Sales') {
+            if (doc_Threads::getFirstDocument($masterThreadId)->className == 'sales_Sales') {
                 $meta = $meta->canSell;
-            } elseif (doc_Threads::getFirstDocument($masterThresdId)->className == 'purchase_Purchases') {
+            } elseif (doc_Threads::getFirstDocument($masterThreadId)->className == 'purchase_Purchases') {
                 $meta = $meta->canBuy;
             }
         }
@@ -383,10 +394,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             $packRec = cat_products_Packagings::getPack($pRec->productId,  $pRec->packagingId);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             $row->price /= $quantityInPack;
-            
+
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterThreadId);
             $masterRec = $Master->fetch($masterId);
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
-            
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, null, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
 
         return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);

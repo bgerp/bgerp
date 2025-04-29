@@ -217,6 +217,10 @@ class core_TableView extends core_BaseClass
                             $header[$i][$last + 1]->rowspan = $rowspan;
                             $header[$i][$last + 1]->tdClass = $tdClass;
                         }
+
+                        if(!empty($this->mvc->fields[$place]->thAttr)){
+                            $header[$i][$last + 1]->thAttr = $this->mvc->fields[$place]->thAttr;
+                        }
                     }
                     
                     // Шаблон за реда
@@ -243,19 +247,20 @@ class core_TableView extends core_BaseClass
                 }
             }
         }
-        
-        
+
         $curTH = 0;
-        
+        $hr = array();
+
         if (countR($header)) {
             foreach ($header as $i => $headerRow) {
                 if ($i == countR($header) - 1) {
                     $lastRowStart = $curTH;     // Започва последният хедър
                     $lastRowFlag = true;
                 }
-                
+
                 $headerRowCnt = countR($headerRow);
                 $j = 0;
+
                 foreach ($headerRow as $h) {
                     $attr = array();
                     
@@ -272,8 +277,18 @@ class core_TableView extends core_BaseClass
                     if ($h->colspan > 1) {
                         $attr['colspan'] = $h->colspan;
                     }
+
+                    if (!empty($h->thAttr)) {
+                        $thAttr = arr::make($h->thAttr);
+                        foreach ($thAttr as $attrName => $attrValue) {
+                            $attr[$attrName] = trim(trim($attrValue, "'"), '"');
+                        }
+
+                        $attr['colspan'] = $h->colspan;
+                    }
+
                     $th = ht::createElement('th', $attr, $h->name);
-                    
+
                     $hr[$i] .= $th->getContent();
                     
                     $curTH++;
@@ -318,7 +333,7 @@ class core_TableView extends core_BaseClass
         if (countR($rows)) {
             foreach ($rows as $r) {
                 $rowTpl = $tpl->getBlock('ROW');
-                
+
                 if ($r instanceof core_Et) {
                     $rowTpl->replace($r);
                 }
@@ -340,7 +355,15 @@ class core_TableView extends core_BaseClass
                     
                     $rowTpl->replace($value, $name);
                 }
-                
+
+                if (is_array($r['TBODY_ROW_ATTR'])) {
+                    $tBodyAttr = '';
+                    foreach ($r['TBODY_ROW_ATTR'] as $attrName => $attrValue) {
+                        $tBodyAttr .= " ${attrName}=\"{$attrValue}\"";
+                    }
+                    $rowTpl->replace($tBodyAttr, 'TBODY_ROW_ATTR', false, false);
+                }
+
                 // Добавяме атрибутите на реда от таблицата, ако има такива
                 if (countR($r['ROW_ATTR'])) {
                     $attrs = $attrs1 = '';

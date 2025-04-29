@@ -195,7 +195,8 @@ class cat_Listings extends core_Master
 
         if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
-            $form->setDefault('vat', ($Cover->shouldChargeVat()) ? 'yes' : 'no');
+            $Class = $rec->type == 'canSell' ? 'sales_Sales' : 'purchase_Purchases';
+            $form->setDefault('vat', ($Cover->shouldChargeVat($Class)) ? 'yes' : 'no');
         }
     }
     
@@ -341,8 +342,7 @@ class cat_Listings extends core_Master
      * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
      * се връща първия намерен код
      *
-     * @param mixed    $cClass      - ид на клас
-     * @param int      $cId         - ид на контрагента
+     * @param int      $listId      - ид на списък
      * @param int      $productId   - ид на артикул
      * @param int|NULL $packagingId - ид на опаковка, NULL ако не е известна
      *
@@ -356,15 +356,9 @@ class cat_Listings extends core_Master
         // Намират се записите за търсения артикул
         $res = array_filter($all, function (&$e) use ($productId, $packagingId) {
             if (isset($packagingId)) {
-                if ($e->productId == $productId && $e->packagingId == $packagingId) {
-                    
-                    return true;
-                }
+                if ($e->productId == $productId && $e->packagingId == $packagingId) return true;
             } else {
-                if ($e->productId == $productId) {
-                    
-                    return true;
-                }
+                if ($e->productId == $productId) return true;
             }
             
             return false;
@@ -440,7 +434,6 @@ class cat_Listings extends core_Master
         $from = dt::addDays(-60, null, false);
         $today = dt::today();
         $now = dt::now();
-        
         $cache = array();
         
         // Намират се последните продажби за месеца
@@ -503,9 +496,8 @@ class cat_Listings extends core_Master
             // Ограничаване по групи, ако има
             $groupList = cat_Setup::get('AUTO_LIST_ALLOWED_GROUPS');
             if (!empty($groupList)) {
-                $dQuery->likeKeylist('groups', $groupList);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $dQuery, $groupList, 'productId');
             }
-            
             $dQuery->groupBy('productId,packagingId');
             $dQuery->show('productId,packagingId,code,count');
             $dQuery->orderBy('count,saleId', 'DESC');
@@ -613,7 +605,7 @@ class cat_Listings extends core_Master
         if (!$listId) {
             $lRec = (object) array('title' => $title, 'type' => 'canSell', 'folderId' => $folderId, 'state' => 'active', 'isPublic' => 'no', 'sysId' => "auto{$folderId}");
             $lRec->currencyId = $Cover->getDefaultCurrencyId();
-            $lRec->vat = ($Cover->shouldChargeVat()) ? 'yes' : 'no';
+            $lRec->vat = ($Cover->shouldChargeVat('sales_Sales')) ? 'yes' : 'no';
             $listId = self::save($lRec);
         }
         

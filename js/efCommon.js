@@ -1,4 +1,6 @@
 var shortURL;
+var hitState = {};
+var self = this;
 
 function spr(sel, refresh, from, to) {
     if(refresh === undefined) {
@@ -549,6 +551,9 @@ function toggleFormGroup(id)
 	$('.fs-toggle' + id).find('.btns-icon').fadeToggle();
 	$('.fs-toggle' + id).toggleClass('openToggleRow');
     setRicheditWidth();
+    setTimeout(function(){
+        $('.autosize').autosize({maxHeight:$(window).height() - 150});
+    }, 1000);
 }
 
 
@@ -1271,6 +1276,12 @@ function toggleDisplay(id) {
     elem.toggleClass('show-btn');
 }
 
+function toggleClass(cls, id) {
+    var elem = $("." + cls);
+    elem.fadeToggle("slow");
+    $("#" + id).toggleClass('show-btn');
+}
+
 function toggleDisplayBomStepDetails() {
     $('.cat_BomDetails .listTable th').on('click', '.newIconStyle.toggleAllRows', function (e) {
         if($(this).hasClass('openAllRows')){
@@ -1887,6 +1898,9 @@ function isTouchDevice() {
  * Задава минимална височина на контента във външната част
  */
 function setMinHeightExt() {
+    // Ако сме в широката тема, да не изчисляваме нищо
+    if($('body > .externalPage').length) return;
+
     var clientHeight = document.documentElement.clientHeight;
 
     var padding = $('.background-holder').length ? parseInt($('.background-holder').css('padding-top')) : 0;
@@ -1944,6 +1958,15 @@ function setMinHeightExt() {
 
     // Стартиране на отзивчивото скролиране
     dragToScroll.run();
+}
+
+/**
+ * След клик не позволява бутона да бъде натиснат отново
+ * @param el
+ */
+function disableBtn(el){
+    $(el).attr('disabled', 'disabled');
+    $(el).addClass('btn-disabled');
 }
 
 
@@ -2010,6 +2033,7 @@ function setFormElementsWidth() {
                 }
                 $(this).parent().css('maxWidth', parseInt((formElWidth - 20) / colsInRow));
                 $(this).parent().css('overflow-x', 'hidden');
+                $(this).parent().css('white-space', 'nowrap');
 
                 $(this).attr('title', $(this).text());
             }
@@ -2067,6 +2091,30 @@ function setFormElementsWidth() {
     }
 }
 
+// при двоен клин да отваря корицата
+function doubleClickOnLink() {
+    var timer;
+    var delay = 250;
+
+    // при 1 клик да се отваря href
+    $(".linkWithIcon[data-doubleclick]").on("click", function(e) {
+        e.preventDefault();
+        var elem = $(this);
+        clearTimeout(timer);
+
+        timer = setTimeout(function() {
+            top.window.location.href = elem.attr("href");
+        }, delay);
+    });
+   // при 2 кликa да се отваря data атрибута
+    $(".linkWithIcon[data-doubleclick]").on("dblclick", function(e) {
+        e.preventDefault();
+        var elem = $(this);
+
+        clearTimeout(timer);
+        top.window.location.href = elem.attr("data-doubleclick");
+    });
+}
 
 /**
  * Задава ширина на селект2 в зависимост от ширината на прозореца/устройството
@@ -2097,6 +2145,40 @@ function setThreadElemWidth() {
     $('#main-container .doc_Containers table.listTable.listAction > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.background-holder .doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
+}
+
+
+/**
+ * Следим к-вото и процента, за да сметнем брака
+ */
+function scrapCalculation(){
+    var quantity = parseInt($("input[name='packQuantity']").val(),10);
+    var scrap = parseInt($("input[name='productionScrap']").val(),10);
+
+    changeHint(quantity, scrap);
+    $("input[name='packQuantity']").on('change keydown paste input', function(){
+        quantity = parseInt($("input[name='packQuantity']").val(),10);
+        changeHint(quantity, scrap);
+    });
+    $("input[name='productionScrap']").on('change keydown paste input', function(){
+        scrap = parseInt($("input[name='productionScrap']").val(),10);
+        changeHint(quantity, scrap);
+    });
+}
+
+/**
+ * Пресмятане на технологичния брак и показване като хинт
+ */
+function changeHint(quantity, scrap){
+    if(!quantity || !scrap)  {
+        $('.scrapHint').css('display', 'none');
+    } else {
+        var result = quantity *  (1 + scrap / 100);
+        if (result) {
+            $('.scrapHint').css('display', 'inline-block');
+            $('.scrapHint .withProductionScrap').html(Math.round(result));
+        }
+    }
 }
 
 
@@ -2178,7 +2260,6 @@ function scrollLongListTable() {
         }
     }
 }
-
 
 /**
  * При натискане с мишката върху елемента, маркираме текста
@@ -2309,6 +2390,35 @@ function getSelText() {
         getEO().log('Грешка при извличане на текста');
     }
 
+    // Ако има функция за превръщане в стринг
+    if (txt.toString) {
+
+        // Вземаме стринга
+        txt = txt.toString();
+    }
+
+    if (txt && txt.trim) {
+        txt = txt.trim();
+    }
+
+    if (!txt) {
+        iframes = document.querySelectorAll('iframe');
+        if (iframes) {
+            iframes.forEach(function(el) {
+                try {
+                    selTextIframe = getEO().getIframeSelection(el);
+                    if (selTextIframe.trim()) {
+                        txt = selTextIframe;
+                    }
+                } catch (err) { }
+            });
+        }
+    }
+
+    if (txt && txt.trim) {
+        txt = txt.trim();
+    }
+
     return txt;
 }
 
@@ -2359,6 +2469,8 @@ function appendQuote(id, line, useParagraph) {
 
         // Вземаме текста
         text = sessionStorage.getItem('selText');
+
+        text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
 
         if (text) {
 
@@ -2549,7 +2661,7 @@ function refreshForm(form, removeFields) {
 		form.submit(); return;
 	}
 
- 	//form.submit(); return;
+ 	// form.submit(); return;
 
 	$.ajax({
 		type: frm.attr('method'),
@@ -2695,6 +2807,7 @@ function replaceFormData(frm, data)
 		}
 	}
 
+
 	if (getType(data) == 'array') {
 		var r1 = data[0];
 		if(r1['func'] == 'redirect') {
@@ -2755,6 +2868,8 @@ function replaceFormData(frm, data)
             }
         }
 	});
+
+    radioButtonActions();
 
 	// Показваме нормален курсур
 	frm.css('cursor', 'default');
@@ -5001,6 +5116,62 @@ Experta.prototype.getIframeSelection = function(iframe) {
     }
 }
 
+function resizeIframes() {
+    const iframes = document.querySelectorAll('iframe.autoHeight');
+    const windowHeight = window.innerHeight * 0.8;
+
+    iframes.forEach(iframe => {
+        // Задаване на максимална височина
+        iframe.style.maxHeight = windowHeight + 'px';
+
+        try {
+            // Настройване на височината според съдържанието
+            iframe.style.height = 'auto';
+            const contentHeight = iframe.contentWindow.document.body.scrollHeight;
+            iframe.style.height = Math.min(contentHeight, windowHeight) + 'px';
+        } catch (e) {
+            // Ако възникне грешка (например поради политика за сигурност),
+            // задаваме височината на прозореца
+            console.warn("Couldn't access iframe content. Setting to window height.", e);
+            iframe.style.height = windowHeight + 'px';
+        }
+    });
+}
+
+window.addEventListener('load', resizeIframes);
+window.addEventListener('resize', resizeIframes);
+
+
+let scrollTop = 0;
+let ajaxInProgress = false;
+
+// Запазване на скрола преди ajax-a
+$(document).ajaxStart(function() {
+    if (!ajaxInProgress && $('iframe.autoHeight').length) {
+        scrollTop = $(document).scrollTop();
+        ajaxInProgress = true;
+    }
+});
+
+// След ajax-а да се скролира до старата позиция
+$(document).ajaxStop(function() {
+    if (!$('iframe.autoHeight').length) return;
+    setTimeout(function() {
+        resizeIframes(); // Adjust as needed
+        $(document).scrollTop(scrollTop);
+        ajaxInProgress = false; // Reset flag
+    }, 100);
+});
+
+window.addEventListener('message', function(event) {
+    const iframe = document.querySelector(`iframe[src^="${event.origin}"]`);
+    if (!iframe || !iframe.classList.contains('autoHeight')) return;
+
+    const height = Math.min(event.data, window.innerHeight);
+    iframe.style.height = height  + 'px';
+});
+
+
 
 /**
  * Записва избрания текст
@@ -5008,26 +5179,6 @@ Experta.prototype.getIframeSelection = function(iframe) {
 Experta.prototype.saveSelText = function() {
     // Вземаме избрания текст
     var selText = getSelText();
-
-    // Ако има функция за превръщане в стринг
-    if (selText.toString) {
-
-        // Вземаме стринга
-        selText = selText.toString();
-    } else {
-
-        return;
-    }
-    if (!selText) {
-        iframes = document.querySelectorAll('iframe');
-        if (iframes) {
-            iframes.forEach(function(el) {
-                try {
-                    selText = getEO().getIframeSelection(el);
-                } catch (err) { } 
-            });
-        }
-    }
 
     // Ако първия записан текст е еднакъв с избрания
     if (this.fSelText == selText) {
@@ -5075,7 +5226,6 @@ Experta.prototype.saveSelTextInTextarea = function(id) {
         //id = textarea.getAttribute('id');
 
         // Вземаме избрания текст
-        // var selText = getSelText();
         var selText = getSelectedText(textarea);
 
         // Ако има функция за превръщане в стринг
@@ -5337,9 +5487,59 @@ Experta.prototype.saveBodyId = function() {
     }
 
     bodyIds[bodyId] = 'ajaxRefresh';
+    self.hitState[bodyId] = undefined;
+
     sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
 };
 
+
+/*
+    да може деселектира радио бутон, ако е allowEmpty
+ */
+function radioButtonActions() {
+
+    setTimeout(function (){
+        let lastChecked = null;
+
+        //отбелязваме всички чекнати радио бутони
+        $('input[type="radio"]').each(function() {
+            $(this).data('wasChecked', $(this).prop('checked')); // Начално състояние
+            if ($(this).prop('checked')) {
+                lastChecked = $(this); //задаване на последния избран бутон
+            }
+        });
+
+        // Маркирай първия бутон, ако не е allowEmpty и няма маркиран в групата
+        $('.notAllowEmptyRadioHolder input[type="radio"]:visible').each(function() {
+            const groupName = $(this).attr('name');
+            const radiosInGroup = $(`input[name="${groupName}"]`);
+
+            if (!radiosInGroup.filter(':checked').length) {
+                const firstRadio = radiosInGroup.first();
+                firstRadio.prop('checked', true);
+                firstRadio.data('wasChecked', true);
+            }
+        });
+
+        $('.allowEmptyRadioHolder input[type="radio"]').click(function() {
+            let $this = $(this);
+
+            // Ако е чекнат, се размаркирва
+            if ($this.data('wasChecked')) {
+                $this.prop('checked', false);
+                $this.data('wasChecked', false);
+                lastChecked = null;
+            } else {
+                // Маркираме го чекнат и го записваме като последен
+                $this.data('wasChecked', true);
+                lastChecked = $this;
+            }
+
+            // Махаме всички останали радио бутони
+            $('.allowEmptyRadioHolder input[type="radio"]').not($this).data('wasChecked', false);
+        });
+    },100 )
+}
 
 /**
  * Определя състоянието на страницата - дали е първо посещение, дали е след рефреш или след рефреш по ajax
@@ -5358,16 +5558,23 @@ function getHitState(bodyId) {
 
     if (!bodyId) {
 
-        return 'firstTime'
+        return 'firstTime';
+    }
+
+    if (this.hitState[bodyId]) {
+
+        return this.hitState[bodyId];
     }
 
     var bodyIds = sessionStorage.getItem('bodyIdHit');
 
     if (typeof (bodyIds) !== 'undefined' && bodyIds) {
         bodyIds = JSON.parse(bodyIds);
-        if(bodyIds[bodyId]) {
+        if (bodyIds[bodyId]) {
 
-            return bodyIds[bodyId];
+            this.hitState[bodyId] = bodyIds[bodyId];
+
+            return this.hitState[bodyId];
         }
     } else {
         bodyIds = {};
@@ -5376,7 +5583,9 @@ function getHitState(bodyId) {
 
     sessionStorage.setItem('bodyIdHit', JSON.stringify(bodyIds));
 
-    return 'firstTime';
+    this.hitState[bodyId] = 'firstTime';
+
+    return this.hitState[bodyId];
 }
 
 
@@ -5467,7 +5676,6 @@ Experta.prototype.reloadFormData = function() {
  * Добавя ивент, който да кара страницата да се презарежда, ако условиет е изпълнено
  */
 function reloadOnPageShow() {
-
 	getEO().addEvent(window, 'pageshow', function() {
         if (getEO().checkBodyId()) {
         	location.reload();
@@ -5637,6 +5845,8 @@ function addBugReportInput(form, nameInput, value)
 
 /**
  * При хоризонтален скрол на страницата, да създадем watch point
+ *
+ * @deprecated
  */
 function detectScrollAndWp() {
     if($('#packWrapper').outerWidth() > $(window).width() ) {
@@ -6153,6 +6363,7 @@ function checkVatAndTriger(name) {
 		name.value = '';
 		const e = new Event("change");
 		target.dispatchEvent(e);
+		target.dispatchEvent(e);
 	} else {
 
 		if(name.value != '') {
@@ -6297,9 +6508,116 @@ function copyPlaceholderAsValOnClick()
 }
 
 
+/**
+ * Скриване/показване на допълнителните бутони в лист изгледа
+ */
+function toggleListFilter()
+{
+    var formId = $('form').data('mvc'); // ID на формата
+    //localStorage.removeItem(formId);
+    var hiddenItems = JSON.parse(localStorage.getItem(formId)); // Зареждаме скритите редове
+
+    if (!hiddenItems) {
+        // Ако няма скрити редове в localStorage, скриваме всички с класа
+        $('.listFilter tr.toggable').hide();
+        hiddenItems = []; // Инициализираме празен масив, за да не е null
+        $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+        $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('close'));
+    } else if(hiddenItems.length) {
+        // Скриваме редовете, които са били записани като скрити
+        $('.listFilter tr.toggable').each(function() {
+            var $row = $(this);
+            var rowId = [...$row[0].classList].find(cls => cls !== 'toggable')
+
+            if (rowId && hiddenItems.includes(rowId)) {
+                $row.hide();
+            }
+        });
+        $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+        $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('open'));
+    }
+
+    $('.toggleListFilterBtn').on('click', function() {
+
+        $('.listFilter tr.toggable').each(function() {
+            var $row = $(this);
+            var rowId = [...$row[0].classList].find(cls => cls !== 'toggable');
+            var shouldHide = true;
+            if (!rowId) return;
+
+            // Проверка за select (обикновен и select2)
+            $row.find('.select2-src, select').each(function() {
+                if ($(this).val() && $(this).val() != "all" &&  $(this).val().length > 0) {
+                    shouldHide = false;
+                }
+            });
+
+            // Проверка за текстови полета
+            $row.find('input[type="text"]').each(function() {
+                if ($(this).val().trim() !== '') {
+                    shouldHide = false;
+                }
+            });
+
+            // Проверка за чекбокси (ако поне един е маркиран, не крие реда)
+            $row.find('input[type="checkbox"]').each(function() {
+                if ($(this).prop('checked')) {
+                    shouldHide = false;
+                }
+            });
+
+            // Проверка за radio (ако поне един е маркиран, не крие реда)
+            $row.find('input[type="radio"]').each(function() {
+                if ($(this).prop('checked')) {
+                    shouldHide = false;
+                }
+            });
+
+            if ($row.is(':visible') && shouldHide) {
+                // Скриваме реда и добавяме в LocalStorage
+                $row.fadeOut('slow', function() {
+                    if (!hiddenItems.includes(rowId)) {
+                        hiddenItems.push(rowId);
+                        localStorage.setItem(formId, JSON.stringify(hiddenItems));
+                    }
+                });
+                $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
+                $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('open'));
+            } else if (!$row.is(':visible')){
+                // Показваме реда и го премахваме от LocalStorage
+                $row.fadeIn('slow', function() {
+                    hiddenItems = hiddenItems.filter(id => id !== rowId);
+                    localStorage.setItem(formId, JSON.stringify(hiddenItems));
+                    $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('minus') + ")");
+                    $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('close'));
+
+                    $(this).find('input.combo').each(function(){
+                        var idComboBox = $(this).attr('id');
+                        if(!comboBoxInited[idComboBox]){
+                            comboBoxInit(idComboBox, idComboBox + "_cs");
+                            comboBoxInited[idComboBox] = true;
+                        }
+                    });
+                    $(this).find('.select2-container').css('width', '100%');
+                });
+            }
+        });
+    });
+}
+/**
+Груповo селектиране на чекбоксове
+ */
+function selectAllCheckboxes() {
+    $('.checkAllBatchBtn .checkbox').on('change', function (){
+        $('.batch-quantity-fields').prop('checked', this.checked);
+    });
+}
+
 
 runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);
 runOnLoad(focusOnHeader);
+runOnLoad(doubleClickOnLink);
+runOnLoad(radioButtonActions);

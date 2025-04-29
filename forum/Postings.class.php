@@ -773,7 +773,7 @@ class forum_Postings extends core_Detail
         $layout->push($data->ForumTheme->getStyles(), 'CSS');
         $layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         $layout->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
-        $layout->replace($data->q, 'SEARCH_FOR');
+        $layout->replace(ht::escapeAttr($data->q), 'SEARCH_FOR');
         
         return $layout;
     }
@@ -901,11 +901,11 @@ class forum_Postings extends core_Detail
         }
         
         if ($action == 'write' && isset($rec)) {
-            $id = ($rec->boardId) ? $id = $rec->boardId : $id = $rec->id;
-            
-            // Който може да създава дъски, той може да прави важни теми, както и да ги заключва
-            $board = forum_Boards::fetch($id);
-            (forum_Boards::haveRightToObject($board)) ? $res = $mvc->Master->canWrite : $res = 'forum';
+            $id = ($rec->boardId) ? $rec->boardId : $rec->id;
+            if(isset($id)){
+                $board = forum_Boards::fetch($id);
+                (forum_Boards::haveRightToObject($board)) ? $res = $mvc->Master->canWrite : $res = 'forum';
+            }
         }
         
         if ($action == 'edit' && isset($rec->id)) {

@@ -87,7 +87,7 @@ class chromephp_Browser
 
         $page = $browser->createPage();
 
-        $page->setHtml($html);
+        $page->setHtml($html, 10000);
 
         $optArr = array();
         $optArr['printBackground'] = true;

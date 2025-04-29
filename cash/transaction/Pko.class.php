@@ -35,7 +35,14 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
         
         $origin = $this->class->getOrigin($rec);
         $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : $this->class->getDefaultCase($rec);
-        
+
+        // Ако няма вальор - ще е ДНЕС, ще се подмени и централния курс към ДНЕС
+        if(empty($rec->valior)){
+            $rec->valior = dt::today();
+            $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+            $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, null);
+        }
+
         if ($rec->isReverse == 'yes') {
             // Ако документа е обратен, правим контировката на РКО-то но с отрицателен знак
             $entry = cash_transaction_Rko::getReverseEntries($rec, $origin);
@@ -44,8 +51,6 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
             // Ако документа не е обратен, правим нормална контировка на ПКО
             $entry = $this->getEntry($rec, $origin);
         }
-        
-        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
@@ -122,8 +127,11 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
             $debitArr = $entry2['debit'];
             $creditArr = $entry2['credit'];
             $entry[0]['debit'] = $creditArr;
-            $entry[0]['debit'][0] = '482';
-            
+            $entry[0]['debit'][0] = '481';
+            $entry[0]['debit'][1] = $entry[0]['debit'][3];
+            unset($entry[0]['debit'][2]);
+            unset($entry[0]['debit'][3]);
+
             $entry2['credit'] = $debitArr;
             $entry2['credit']['quantity'] = abs($entry2['credit']['quantity']);
             $entry2['debit'] = $entry[0]['debit'];

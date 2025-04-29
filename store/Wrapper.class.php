@@ -23,14 +23,14 @@ class store_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('store_Products', 'Наличности', 'ceo,storeWorker');
-        $this->TAB('store_Stores', 'Складове', 'ceo,storeWorker');
-        $this->TAB(array('deals_OpenDeals', 'show' => 'store'), 'Документи->Чакащи', 'store,ceo');
+        $this->TAB('store_Products', 'Наличности', 'ceo,sales,storeWorker,storeAll');
+        $this->TAB('store_Stores', 'Складове', 'ceo,storeWorker,storeAll');
         $this->TAB('store_ShipmentOrders', 'Документи->Експедиции', 'store,ceo');
         $this->TAB('store_Receipts', 'Документи->Получавания', 'store,ceo');
         $this->TAB('store_Transfers', 'Документи->Междускладови трансфери', 'store,ceo');
         $this->TAB('store_ConsignmentProtocols', 'Документи->Отговорно пазене', 'store,ceo');
         $this->TAB('store_InventoryNotes', 'Документи->Инвентаризация', 'store,ceo');
+        $this->TAB(array('deals_OpenDeals', 'show' => 'store'), 'Документи->Чакащи', 'store,ceo');
         if(core_Packs::isInstalled('sync')){
             $this->TAB('sync_Stores', 'Външни складове->Външен склад', 'ceo,admin');
             $this->TAB('sync_StoreStocks', 'Външни складове->Външна наличност', 'admin,ceo,storeWorker');

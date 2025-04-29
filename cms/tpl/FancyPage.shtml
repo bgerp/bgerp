@@ -5,9 +5,9 @@
         <span class="agree">Съгласен съм</span>
 </div>
 <!--ET_END cookies-->
-[#TOP_PAGE#]
-<div class="externalPage">
 
+<div class="externalPage">
+    [#TOP_PAGE#]
     <header>
 
         <div class="narrowCenter">[#HEADER_IMG#]

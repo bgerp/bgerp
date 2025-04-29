@@ -720,8 +720,8 @@ class cat_Boms extends core_Master
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
         $row->title = $mvc->getLink($rec->id, 0);
         $row->singleTitle = ($rec->type == 'sales') ? tr('Търговска рецепта') : (($rec->type == 'instant') ? tr('Моментна рецепта') : ('Работна рецепта'));
+        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
 
-        $measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
         $shortUom = cat_UoM::getShortName($measureId);
         $row->quantity .= ' ' . $shortUom;
 
@@ -740,7 +740,7 @@ class cat_Boms extends core_Master
                 }
 
                 $overheadCost = $rec->expenses;
-                if (empty($rec->expenses)) {
+                if (!isset($rec->expenses)) {
                     $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
                     if (!empty($defaultOverheadCost)) {
                         $overheadCost = $defaultOverheadCost['overheadCost'];
@@ -768,6 +768,7 @@ class cat_Boms extends core_Master
                         if(isset($overheadCost) && !empty($rec->primeCost)){
                             $rec->primeCostWithOverheadCost = $rec->primeCost * (1 + $overheadCost);
                             $row->primeCostWithOverheadCost = $Double->toVerbal($rec->primeCostWithOverheadCost);
+                            $row->primeCostWithOverheadCost = ht::styleNumber($row->primeCostWithOverheadCost, $rec->primeCostWithOverheadCost);
                         }
                     }
 
@@ -846,8 +847,14 @@ class cat_Boms extends core_Master
             }
         }
 
-        if ($rec->expenses) {
-            $resources['expenses'] = $rec->expenses;
+        $expenses = $rec->expenses;
+        if(!$expenses){
+            $defaultOverheadCost = cat_Products::getDefaultOverheadCost($rec->productId);
+            $expenses = $defaultOverheadCost['overheadCost'];
+        }
+
+        if ($expenses) {
+            $resources['expenses'] = $expenses;
         }
         
         // Връщаме намерените ресурси
@@ -914,7 +921,7 @@ class cat_Boms extends core_Master
                 expect($d->resourceId);
                 expect(cat_Products::fetch($d->resourceId));
                 $d->type = ($d->type) ? $d->type : 'input';
-                expect(in_array($d->type, array('input', 'pop')));
+                expect(in_array($d->type, array('input', 'pop', 'subProduct')));
                 
                 $d->baseQuantity = $Double->fromVerbal($d->baseQuantity);
                 $d->propQuantity = $Double->fromVerbal($d->propQuantity);
@@ -999,7 +1006,7 @@ class cat_Boms extends core_Master
                     $nRec->baseQuantity = $matRec->baseQuantity;
                     $nRec->propQuantity = $matRec->propQuantity;
                     $nRec->quantityInPack = 1;
-                    $nRec->type = ($matRec->waste) ? 'pop' : 'input';
+                    $nRec->type = ($matRec->waste) ? 'pop' : (($matRec->isSubProduct) ? 'subProduct' : 'input');
                     $nRec->packagingId = cat_Products::fetchField($prod->productId, 'measureId');
                     if (isset($prod->packagingId)) {
                         $nRec->packagingId = $prod->packagingId;
@@ -1428,9 +1435,9 @@ class cat_Boms extends core_Master
         
         // Ако реда не е етап а е материал или отпадък
         if ($rec->type != 'stage') {
-            if ($rec->type == 'pop') {
+            if (in_array($rec->type, array('pop', 'subProduct'))) {
                 
-                // Ако е отпадък търсим твърдо мениджърската себестойност
+                // Ако е отпадък или субпродукт търсим твърдо мениджърската себестойност
                 $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->resourceId, $rec->packagingId, $date);
                 if (!isset($price)) {
                     $price = false;
@@ -1545,7 +1552,7 @@ class cat_Boms extends core_Master
         }
         
         // Ако реда е отпадък то ще извадим цената му от себестойността
-        if ($rec->type == 'pop' && $price !== false) {
+        if (in_array($rec->type, array('pop', 'subProduct')) && $price !== false) {
             $price *= -1;
         }
         
@@ -1809,7 +1816,7 @@ class cat_Boms extends core_Master
                                   'wasteProductId' => ($dRec->wasteProductId) ? $dRec->wasteProductId : $pRec->planning_Steps_wasteProductId,
                                   'wasteStart' => ($dRec->wasteStart) ? $dRec->wasteStart : $pRec->planning_Steps_wasteStart,
                                   'wastePercent' => ($dRec->wastePercent) ? $dRec->wastePercent : $pRec->planning_Steps_wastePercent,
-                                  'products' => array('input' => array(), 'waste' => array()));
+                                  'products' => array('input' => array(), 'waste' => array(), 'production' => array()));
 
             $pQuery = cat_products_Params::getQuery();
             $pQuery->where("#classId = '{$Details->getClassId()}' AND #productId = {$dRec->id}");
@@ -1831,7 +1838,7 @@ class cat_Boms extends core_Master
                         $quantityS = 0;
                     }
 
-                    $place = ($cRec->type == 'pop') ? 'waste' : 'input';
+                    $place = ($cRec->type == 'pop') ? 'waste' : ($cRec->type == 'subProduct' ? 'production': 'input');
                     $obj->products[$place][] = array('productName' => cat_Products::getTitleById($cRec->resourceId), 'productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
                 }
             }
@@ -1906,10 +1913,11 @@ class cat_Boms extends core_Master
      * Връща складируемите материали по-рецепта, ако е подаден склад се
      * отсяват само ненулевите количества
      *
-     * @param int      $bomId        - ид на рецепта
-     * @param double   $quantity     - к-во в рецептата
-     * @param int|null $storeId      - ид на склад (или null) за всички
-     * @param bool     $onlyStorable - дали да са само складируемите
+     * @param int        $bomId                   - ид на рецепта
+     * @param double     $quantity                - к-во в рецептата
+     * @param int|null   $storeId                 - ид на склад (или null) за всички
+     * @param bool       $onlyStorable            - дали да са само складируемите
+     * @param array|null $ignoreReservedByDocsArr - запазените к-ва от кои документи да се игнорират
      *
      * @return array $res
      *               ['productId']      - ид на артикул
@@ -1917,10 +1925,11 @@ class cat_Boms extends core_Master
      *               ['quantity']       - к-во
      *               ['quantityInPack'] - к-во в опаковка
      */
-    public static function getBomMaterials($bomId, $quantity, $storeId = null, $onlyStorable = true)
+    public static function getBomMaterials($bomId, $quantity, $storeId = null, $onlyStorable = true, $ignoreReservedByDocsArr = array())
     {
         $res = array();
         $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
+
         if (!countR($bomInfo['resources'])) return $res;
 
         foreach ($bomInfo['resources'] as $pRec) {
@@ -1937,18 +1946,39 @@ class cat_Boms extends core_Master
                     $productArr = array($pRec->productId);
                 }
 
+                // Ако има подадени документи от които да се игнорират запазените/очакваните к-ва да се извлекат
+                $reservedByJobs = array();
+                if(countR($ignoreReservedByDocsArr)){
+                    $sQuery = store_StockPlanning::getQuery();
+                    $sQuery->where("#storeId = {$storeId}");
+                    foreach ($ignoreReservedByDocsArr as $ignoreArr){
+                        $sQuery->where("#sourceClassId = {$ignoreArr[0]} AND #sourceId = {$ignoreArr[1]}");
+                    }
+                    while($sRec = $sQuery->fetch()) {
+                        $reservedByJobs[$sRec->productId] = $sRec;
+                    }
+                }
+
                 // Ако разполагаемото е очакваното - няма да се върне
                 $quantity = 0;
-                array_walk($productArr, function($pId) use (&$quantity, $storeId) {$quantity += store_Products::getQuantities($pId, $storeId)->free;});
+                array_walk($productArr, function($pId) use (&$quantity, $storeId, $reservedByJobs) {
+                    $quantity += store_Products::getQuantities($pId, $storeId)->free;
+                    if(array_key_exists($pId, $reservedByJobs)){
+                        $quantity += $reservedByJobs[$pId]->quantityOut;
+                        $quantity -= $reservedByJobs[$pId]->quantityIn;
+                    }
+                });
+
                 $found = round($quantity / $pRec->quantityInPack, 6);
 
                 if ($found < $pRec->propQuantity) continue;
             }
 
             $r = (object) array('productId' => $pRec->productId,
-                'packagingId' => $pRec->packagingId,
-                'quantity' => $pRec->propQuantity,
-                'quantityInPack' => $pRec->quantityInPack);
+                                'packagingId' => $pRec->packagingId,
+                                'quantity' => $pRec->propQuantity,
+                                'canStore' => $productRec->canStore,
+                                'quantityInPack' => $pRec->quantityInPack);
             if(isset($pRec->genericProductId)){
                 $r->genericProductId = $pRec->genericProductId;
             }
@@ -2179,7 +2209,8 @@ class cat_Boms extends core_Master
         $this->requireRightFor('syncparams', $rec);
 
         $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales');
-        if(isset($bomRec)){
+        if(is_object($bomRec)){
+
             $params = array();
             $materials = cat_Boms::getBomMaterials($bomRec, 1);
             $classes = core_Classes::getOptionsByInterface('cat_ParamAggregateIntf');

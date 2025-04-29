@@ -125,12 +125,26 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         if ($form->isSubmitted()){
             $rec = $form->rec;
 
-            if(empty($rec->periods) && empty($rec->fromDate) && empty($rec->toDate)){
-                $form->setError('periods,fromDate,toDate', 'Трябва да бъде избран период');
+            $dateFields = array();
+            $inputPeriods = $form->getFieldParam('periods', 'input');
+            $inputfromDate = $form->getFieldParam('fromDate', 'input');
+            $inputtoDate = $form->getFieldParam('toDate', 'input');
+            foreach (array('periods', 'fromDate', 'toDate') as $dateFld){
+                if(${"input{$dateFld}"} == 'none'){
+                    $dateFields[] = $dateFld;
+                }
             }
 
-            if(!empty($rec->periods) && (!empty($rec->fromDate) || !empty($rec->toDate))){
-                $form->setError('periods,fromDate,toDate', 'Трябва или да е избран точен месец, или конкретни дати|*!');
+            if(empty($rec->periods) && empty($rec->fromDate) && empty($rec->toDate)){
+                $form->setError($dateFields, 'Трябва да бъде избран период');
+            }
+
+            if(!empty($rec->periods)){
+                if($inputfromDate == 'none' && $inputtoDate == 'none'){
+                    $rec->fromDate = $rec->toDate = null;
+                } else {
+                    $form->setError($dateFields, 'Трябва или да е избран точен месец, или конкретни дати|*!');
+                }
             }
 
             if(!empty($rec->fromDate) && !empty($rec->toDate)){
@@ -364,6 +378,13 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                 $start = acc_Periods::fetchField($rec->periods, 'start');
                 $date = new DateTime($start);
                 $url['period'] = $date->format('Y-m-01');
+            } else{
+                if(!empty($rec->fromDate)){
+                    $url['from'] = $rec->fromDate;
+                }
+                if(!empty($rec->toDate)){
+                    $url['to'] = $rec->toDate;
+                }
             }
 
             if (!empty($dRec->person)) {
@@ -382,6 +403,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
             if ($haveRight !== true) {
                 core_Request::removeProtected('period,personId,indicatorId,force');
             }
+
         }
         
         return $row;
@@ -510,5 +532,25 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         }
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
+    }
+
+
+    /**
+     * Връща периода на справката - ако има такъв
+     *
+     * @param stdClass $rec
+     * @return array
+     *          ['from'] - начало на период
+     *          ['to']   - край на период
+     */
+    protected function getPeriodRange($rec)
+    {
+        if(isset($rec->periods)){
+            $periodRec = acc_Periods::fetch($rec->periods);
+
+            return array('from' => $periodRec->start, 'to' => $periodRec->end);
+        }
+
+        return array('from' => $rec->fromDate, 'to' => $rec->toDate);
     }
 }

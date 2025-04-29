@@ -231,8 +231,8 @@ class cat_reports_BomsRep extends frame_BaseDriver
                         
                         $queryProduct = cat_Products::getQuery();
                         $queryProduct->where("#id IN ({$materialsArr})");
-                        $queryProduct->likeKeylist('groups', $fRec->groupId);
-                        
+                        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryProduct, $fRec->groupId, 'productId');
+
                         if ($queryProduct->fetch() == false) {
                             unset($data->recs[$i]);
                         }

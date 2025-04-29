@@ -184,7 +184,11 @@ class plg_UserReg extends core_Plugin
                 if (EF_USSERS_EMAIL_AS_NICK) {
                     $rec->nick = $rec->email;
                 }
-                
+
+                if (drdata_Domains::isDisposal($rec->email)) {
+                    $form->setError('email', 'Не може да се използват временни имейли за регистрация!');
+                }
+
                 // Проверка дали никът не се повтаря
                 if ($eRec = $mvc->fetch("#nick = '{$rec->nick}'") || core_Users::isForbiddenNick($rec->nick)) {
                     if (EF_USSERS_EMAIL_AS_NICK) {
@@ -286,7 +290,7 @@ class plg_UserReg extends core_Plugin
             if ($act == 'activate') {
                 // Нова парола и нейния производен ключ
                 $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
-                $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Вашата парола,input,hint={$minLenHint},width=15em");
+                $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Вашата парола,input,hint={$minLenHint},width=15em,class=checkPass colorPass");
                 $form->FNC('passNewHash', 'varchar', 'caption=Хеш на паролата,input=hidden');
                 
                 // Повторение на новата парола
@@ -300,7 +304,7 @@ class plg_UserReg extends core_Plugin
             } else {
                 // Нова парола и нейния производен ключ
                 $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
-                $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Новата парола,input,hint={$minLenHint},width=15em");
+                $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Новата парола,input,hint={$minLenHint},width=15em,class=checkPass colorPass");
                 $form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола  ч,input=hidden');
                 
                 // Повторение на новата парола
@@ -318,7 +322,7 @@ class plg_UserReg extends core_Plugin
             $form->FNC('id', 'identifier', 'input=hidden');
             $form->FLD('ret_url', 'varchar', 'input=hidden,silent');
             
-            $form->toolbar->addSbBtn('Изпрати');
+            $form->toolbar->addSbBtn('Изпрати', 'default', array(), 'class=checkPassDisable');
             
             
             $pRec = $form->input();

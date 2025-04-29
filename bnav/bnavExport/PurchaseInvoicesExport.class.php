@@ -34,8 +34,14 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields;
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -159,6 +165,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
                     'type' => $pRec->type,
                     'number' => $pRec->number,
                     'date' => $pRec->date,
+                    'threadId' => $pRec->threadId,
                     'contragentVatNo' => $contragentVatNo,
                     'contragentNo' => $contragentNo,
                     'contragentName' => $contragentName,
@@ -177,6 +184,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         $invArr = array_keys($invoices);
         
         $dQuery = purchase_InvoiceDetails::getQuery();
+
         $dQuery->in('invoiceId', $invArr);
         
         
@@ -201,8 +209,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             $erpCode = $prodRec->code ? $prodRec->code : 'Art'.$prodRec->id;
             $prodCode = $prodRec->bnavCode ? $prodRec->bnavCode : $erpCode;
             $measure = cat_UoM::getShortName($prodRec->measureId);
-            
-            
+
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
@@ -213,7 +220,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
                     'price' => $dRec->price,
                     'vatAmount' => '',
                     'measure' => $measure,
-                    'vat' => cat_Products::getVat($prodRec->id) * 100,
+                    'vat' => cat_Products::getVat($prodRec->id, $invoices[$dRec->invoiceId]->date,$invoices[$dRec->invoiceId]->threadId) * 100,
                 
                 
                 );
@@ -274,7 +281,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
                 $fld->FLD('group', 'varchar', 'caption=Група');
             }
             $fld->FLD('quantity', 'double', 'caption=Кол');
-            $fld->FLD('price', 'double', 'caption=Цена');
+            $fld->FLD('price', 'double', 'caption=Ед.Цена');
             $fld->FLD('measure', 'varchar', 'caption=Мерна ед.,tdClass=centered');
             $fld->FLD('vat', 'double', 'caption=ДДС ставка');
             $fld->FLD('paymentType', 'varchar', 'caption=Плащане');

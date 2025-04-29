@@ -135,7 +135,11 @@ class findeals_AdvanceReportDetails extends deals_DeliveryDocumentDetail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getVerbal($rec->productId, 'name');
-        
+        $productSingleUrl = cat_Products::getSingleUrlArray($rec->productId);
+        if(countR($productSingleUrl) && !Mode::isReadOnly()){
+            $row->productId = ht::createLinkRef($row->productId, $productSingleUrl);
+        }
+
         if ($rec->notes) {
             $row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
         }

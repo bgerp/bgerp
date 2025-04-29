@@ -81,6 +81,6 @@ class cash_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(2.2, 'Финанси', 'Каси', 'cash_Cases', 'default', 'cash, ceo'),
+        array(2.3, 'Финанси', 'Каси', 'cash_Cases', 'default', 'cash, ceo, cashAll'),
     );
 }

@@ -44,7 +44,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper,plg_State2';
     
     
     /**
@@ -112,7 +112,7 @@ class planning_ProductionTaskProducts extends core_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'totalQuantity';
+    public $fieldsNotToClone = 'totalQuantity,totalTime';
 
 
     /**
@@ -140,7 +140,6 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо тегло,input=none');
 
         $this->setDbUnique('taskId,productId');
-        $this->setDbIndex('taskId');
         $this->setDbIndex('productId');
     }
     
@@ -311,7 +310,11 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
-        $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
+        if($rec->state != 'closed'){
+            $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
+        } else {
+            $row->type = ht::createHint($row->type, 'Артикулът е деактивиран да не се добавя повече от прогреса', 'warning');
+        }
 
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         if (isset($rec->storeId)) {
@@ -335,6 +338,10 @@ class planning_ProductionTaskProducts extends core_Detail
         }
 
         $row->modified = $mvc->getVerbal($rec, 'modifiedOn') . " " . tr('от') . " "  . crm_Profiles::createLink($rec->modifiedBy);
+        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if($rec->type == 'production' && $canStore == 'yes'){
+            $row->type = tr('Субпродукт');
+        }
     }
     
     
@@ -366,6 +373,12 @@ class planning_ProductionTaskProducts extends core_Detail
                 if(planning_Tasks::fetchField($rec->taskId, 'wasteProductId') == $rec->productId){
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+
+        if($action == 'changestate' && isset($rec->taskId)){
+            if($mvc->haveRightFor('delete', $rec) && isset($rec->taskId)){
+                $requiredRoles = 'no_one';
             }
         }
         
@@ -455,7 +468,7 @@ class planning_ProductionTaskProducts extends core_Detail
 
         } else {
             $query = self::getQuery();
-            $query->where("#taskId = {$taskId}");
+            $query->where("#taskId = {$taskId} AND #state != 'closed'");
             $query->where("#type = '{$type}'");
             if(isset($inputType)){
                 if($inputType != 'actions'){
@@ -503,7 +516,7 @@ class planning_ProductionTaskProducts extends core_Detail
      * @param string   $type      - вид на действието
      * @param int|NULL $assetId   - конкретно оборудване
      *
-     * @return stdClass
+     * @return stdClass|false
      *                  o productId       - ид на артикула
      *                  o packagingId     - ид на опаковката
      *                  o quantityInPack  - к-во в опаковката
@@ -736,13 +749,12 @@ class planning_ProductionTaskProducts extends core_Detail
 
 
     /**
-     * Извлича информация за отпадъка отчетен в нишката
+     * Извлича информация за субпродуктите отчетени в нишката
      *
      * @param int $threadId               - ид на нишка
-     * @param int|null $producedNetWeight - общо тегло, спрямо което да се смята процента
      * @return array $res                 - масив с резултат за отпадъка
      */
-    public static function getTotalWasteArr($threadId, $producedNetWeight = 0)
+    public static function getSubProductsArr($threadId)
     {
         $res = $tasks = array();
         $firstDoc = doc_Threads::getFirstDocument($threadId);
@@ -750,6 +762,58 @@ class planning_ProductionTaskProducts extends core_Detail
             $tasks = array_keys(planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped'));
         } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
             $tasks = array($firstDoc->that);
+        }
+        if(!countR($tasks)) return $res;
+
+        $dQuery = static::getQuery();
+        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+        $dQuery->where("#type = 'production' AND #plannedQuantity != 0 AND #canStore = 'yes'");
+        $dQuery->in('taskId', $tasks);
+        while($dRec = $dQuery->fetch()){
+            $key = "{$dRec->productId}|{$dRec->packagingId}";
+            if(!array_key_exists($key, $res)){
+                $res[$key] = (object)array('packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'productId' => $dRec->productId, 'productLink' => cat_Products::getHyperlink($dRec->productId));
+            }
+            $res[$key]->quantity += $dRec->totalQuantity;
+        }
+
+        foreach ($res as &$rec){
+            $rec->quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantity) . " " . cat_UoM::getSmartName($rec->packagingId, $rec->quantity);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Извлича информация за отпадъка отчетен в нишката
+     *
+     * @param int $threadId               - ид на нишка
+     * @param null $totalWastePercent    - сметнатия процент на общия отпадък
+     * @return array $res                 - масив с резултат за отпадъка
+     */
+    public static function getTotalWasteArr($threadId, &$totalWastePercent = null)
+    {
+        $producedNetWeight = null;
+        $res = $tasks = array();
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $firstRec = $firstDoc->fetch();
+        if($firstDoc->isInstanceOf('planning_Jobs')){
+            $tasks = array_keys(planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped'));
+            $netWeight = cat_Products::convertToUom($firstRec->productId, 'kg');
+            if(!empty($netWeight)){
+                $producedNetWeight = $firstRec->quantity * $netWeight;
+            }
+        } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
+            $tasks = array($firstDoc->that);
+            $producedNetWeight = $firstRec->totalNetWeight;
+            $jobRec = doc_Containers::getDocument($firstRec->originId)->fetch();
+            if(empty($producedNetWeight)){
+                $netWeight = cat_Products::convertToUom($jobRec->productId, 'kg');
+                if(isset($netWeight)){
+                    $producedNetWeight = $jobRec->quantity * $netWeight * $firstRec->progress;
+                }
+            }
         }
 
         if(!countR($tasks)) return $res;
@@ -761,7 +825,7 @@ class planning_ProductionTaskProducts extends core_Detail
         while($rec = $query->fetch()){
             $key = "{$rec->productId}|{$rec->packagingId}";
             if(!array_key_exists($key, $res)){
-                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'quantityInPack' => $rec->quantityInPack, 'productId' => $rec->productId, 'productLink' => cat_Products::getShortHyperlink($rec->productId));
+                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'quantityInPack' => $rec->quantityInPack, 'productId' => $rec->productId, 'productLink' => cat_Products::getHyperlink($rec->productId));
             }
             $res[$key]->quantity += $rec->totalQuantity;
         }
@@ -785,10 +849,11 @@ class planning_ProductionTaskProducts extends core_Detail
         }
 
         if(isset($totalKg)){
-            $percentWeight = ($producedNetWeight) ? round($totalKg / $producedNetWeight, 2) : 1;
-            $percentVerbal = core_Type::getByName('percent')->toVerbal($percentWeight);
-            $percentVerbal = ($percentWeight >= 0.2) ? "<b class='red'>{$percentVerbal}</b>" : ($percentWeight >= 0.1 ? "<b style='color:darkorange'>{$percentVerbal}</b>" : $percentVerbal);
-            $res[] = (object)array('class' => 'wasteWeightPercent', 'productLink' => tr('Общ отпадък'), 'quantityVerbal' => $percentVerbal);
+            $totalWastePercent = ($producedNetWeight) ? round($totalKg / $producedNetWeight, 2) : 1;
+            $percentVerbal = core_Type::getByName('percent')->toVerbal($totalWastePercent);
+            $percentVerbal = ($totalWastePercent >= 0.2) ? "<b class='red'>{$percentVerbal}</b>" : ($totalWastePercent >= 0.1 ? "<b style='color:darkorange'>{$percentVerbal}</b>" : $percentVerbal);
+            $obj = (object)array('class' => 'wasteWeightPercent', 'productLink' => tr('Общ отпадък'), 'quantityVerbal' => $percentVerbal);
+            $res = array('total' => $obj) + $res;
         }
 
         return $res;

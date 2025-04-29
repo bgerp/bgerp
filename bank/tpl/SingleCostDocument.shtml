@@ -39,7 +39,7 @@
             <div class='lines'></div>
             <table class='border-table'>
                 <tr>
-                    <td  class='aleft' style='padding-left:10px; width:67%'>
+                    <td  class='aleft' style=' width:67%'>
                         <table class='no-border'>
                             <tr>
                                 <td style='width:98px' class='nowrap'>|От сметка|*: </td>
@@ -56,8 +56,7 @@
                                 <td>|Основание|*: </td>
                                 <td> [#reason#]</td>
                             </tr>
-                             <!--ET_END reason-->
-                            [#InvoicesToDocuments#]
+                            <!--ET_END reason-->
                             <!--ET_BEGIN termDate-->
                             <tr>
                                  <td>|Срок|*: </td>
@@ -65,6 +64,12 @@
                             </tr>
                             <!--ET_END termDate-->
                         </table>
+                        <!--ET_BEGIN InvoicesToDocuments-->
+                        <hr>
+                        <table>
+                            [#InvoicesToDocuments#]
+                        </table>
+                        <!--ET_END InvoicesToDocuments-->
                     </td>
                     <td>
                     	<table class='no-border' style='width:98%'>

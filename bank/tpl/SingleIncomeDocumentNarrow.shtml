@@ -63,7 +63,7 @@
                                      <td> [#reason#]</td>
                                  </tr>
                                   <!--ET_END reason-->
-                                 [#InvoicesToDocuments#]
+
                                  <!--ET_BEGIN termDate-->
                                     <tr>
                                         <td class="nowrap">|Очаквано на|*: </td>
@@ -71,7 +71,12 @@
                                     </tr>
                                     <!--ET_END termDate-->
                              </table>
-                         
+                             <!--ET_BEGIN InvoicesToDocuments-->
+                             <hr>
+                             <table>
+                                 [#InvoicesToDocuments#]
+                             </table>
+                             <!--ET_END InvoicesToDocuments-->
                          </td>
                      </tr>
                      <tr>

@@ -33,12 +33,18 @@ class store_InventoryNoteDetails extends doc_Detail
      * Име на поле от модела, външен ключ към мастър записа
      */
     public $masterKey = 'noteId';
-    
-    
+
+
+    /**
+     * Може ли да се импортират цени
+     */
+    public $allowPriceImport = false;
+
+
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'store_Wrapper, plg_AlignDecimals2, plg_RowTools2, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,plg_Created,plg_Sorting,plg_Search';
+    public $loadList = 'store_Wrapper, plg_AlignDecimals2, plg_RowTools2, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,deals_plg_ImportDealDetailProduct,plg_Created,plg_Sorting,plg_Search';
     
     
     /**
@@ -117,15 +123,27 @@ class store_InventoryNoteDetails extends doc_Detail
      * Име на полето за търсене
      */
     public $searchInputField = 'searchDetail';
-    
-    
+
+
+    /**
+     * Позволява ли се възможност за подмяна при импорт
+     */
+    public $allowImportReplacement = true;
+
+
+    /**
+     * Кои записи да се рекалкулират при шътдаун
+     */
+    public $recalcOnShutDown = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=store_InventoryNotes)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack|packQuantity|batch|batchEx|batchEx|batchNew');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,tdClass=small-field nowrap,removeAndRefreshForm=quantity|quantityInPack|packQuantity|batch,remember,silent');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=hidden,column=none');
@@ -133,6 +151,9 @@ class store_InventoryNoteDetails extends doc_Detail
         $this->FNC('editQuantity', 'double', 'input=hidden,silent');
         $this->FNC('editSummary', 'double', 'input=hidden,silent');
         $this->FNC('editBatch', 'varchar(nullIfEmpty)', 'input=hidden,silent');
+
+        $this->setDbIndex('productId,packagingId');
+        $this->setDbIndex('modifiedOn');
     }
     
     
@@ -211,7 +232,9 @@ class store_InventoryNoteDetails extends doc_Detail
         $form->setDefault('keepProduct', $permanentName);
         
         $defProduct = Mode::get("InventoryNoteNextProduct{$rec->noteId}");
-        $form->setDefault('productId', $defProduct);
+        if($form->cmd != 'refresh'){
+            $form->setDefault('productId', $defProduct);
+        }
         
         // Рендиране на опаковките
         if (isset($rec->productId)) {
@@ -327,22 +350,20 @@ class store_InventoryNoteDetails extends doc_Detail
         // Ако е редакция от съмърите да се изтрият другите записи
         if(isset($rec->editSummary)){
             $deleteWhere = "#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #id != '{$rec->id}'";
-            if(isset($rec->editBatch) && core_Packs::isInstalled('batch')){
-                $deleteWhere .= " AND #batch = '[#1#]'";
-                $deleteWhere = array($deleteWhere, $rec->batch);
+            if(core_Packs::isInstalled('batch')){
+                $deleteWhere .= empty($rec->batch) ? " AND (#batch = '' OR #batch IS NULL)" : " AND #batch = '{$rec->batch}'";
+                static::delete($deleteWhere);
+            } else {
+                static::delete($deleteWhere);
             }
-            static::delete($deleteWhere);
         }
 
         if (is_null($rec->quantity)) {
             $mvc->delete($rec->id);
         }
 
-        $summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
-        store_InventoryNoteSummary::recalc($summeryId);
-        
+        $mvc->recalcOnShutDown[$rec->noteId][$rec->productId] = $rec->productId;
         Mode::setPermanent("InventoryNoteLastSavedRow{$rec->noteId}", $rec->id);
-        $mvc->cache[$rec->noteId] = $rec->noteId;
     }
     
     
@@ -351,11 +372,10 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
+        if(Mode::is("selectRowsOnDelete_store_InventoryNoteSummary")) return;
+
         foreach ($query->getDeletedRecs() as $rec) {
-            $summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
-            store_InventoryNoteSummary::recalc($summeryId);
-            
-            $mvc->cache[$rec->noteId] = $rec->noteId;
+            $mvc->recalcOnShutDown[$rec->noteId][$rec->productId] = $rec->productId;
             Mode::setPermanent("InventoryNoteLastSavedRow{$rec->noteId}", null);
         }
     }
@@ -366,10 +386,16 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     public static function on_Shutdown($mvc)
     {
-        if (countR($mvc->cache)) {
-            foreach ($mvc->cache as $noteId) {
+        if (countR($mvc->recalcOnShutDown)) {
+            core_Debug::startTimer('RECALC_ON_SHUTDOWN');
+            foreach ($mvc->recalcOnShutDown as $noteId => $productArr){
+                foreach ($productArr as $productId){
+                    $summeryId = store_InventoryNoteSummary::force($noteId, $productId);
+                    store_InventoryNoteSummary::recalc($summeryId);
+                }
                 store_InventoryNotes::invalidateCache($noteId);
             }
+            core_Debug::stopTimer('RECALC_ON_SHUTDOWN');
         }
     }
     
@@ -422,7 +448,7 @@ class store_InventoryNoteDetails extends doc_Detail
      *
      * @return core_ET $tpl
      */
-    public function act_Import()
+    public function act_ImportGroups()
     {
         // Проверки
         $this->requireRightFor('add');
@@ -444,7 +470,7 @@ class store_InventoryNoteDetails extends doc_Detail
             $inArr = arr::extractValuesFromArray($inArr, 'productId');
             
             $query = cat_Products::getQuery();
-            $query->likeKeylist('groups', $rec->group);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group);
             if (countR($inArr)) {
                 $query->notIn('id', $inArr);
             }
@@ -477,7 +503,12 @@ class store_InventoryNoteDetails extends doc_Detail
                     store_InventoryNoteSummary::force($noteId, $pId);
                     $count++;
                 }
-                
+
+                // След импорт се изтрива кеша, да се покажат новите данни
+                $key = store_InventoryNotes::getCacheKey($noteId);
+                core_Cache::remove("{$this->Master->className}_{$noteId}", $key);
+                store_InventoryNotes::logWrite('Импортиране от група', $noteId);
+
                 followRetUrl(null, "Импортирани са|* '{$count}' |артикула|*");
             }
         }
@@ -490,15 +521,38 @@ class store_InventoryNoteDetails extends doc_Detail
         
         return $tpl;
     }
-    
-    
+
+
     /**
-     * Добавя ключови думи за пълнотекстово търсене
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int   $masterId - ид на мастъра на детайла
+     * @param stdClass $row      - Обект представляващ артикула за импортиране
+     *                        ->code - код/баркод на артикула
+     *                        ->quantity - К-во на опаковката или в основна мярка
+     *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     *                        ->pack - Опаковката
+     *                        ->batch - Партида ако има
+     *
+     * @return int - резултата от експорта
      */
-    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    public function import($masterId, $row)
     {
-        $code = cat_Products::fetchField($rec->productId, 'code');
-        $code = (!empty($code)) ? $code : "Art{$rec->productId}";
-        $res .= ' ' . plg_Search::normalizeText($code);
+        $pRec = cat_Products::getByCode($row->code);
+        $pRec->packagingId = (isset($row->pack)) ? $row->pack : $pRec->packagingId;
+        $packRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
+        $quantityInPack  = is_object($packRec) ? $packRec->quantity : 1;
+
+        $dRec = (object) array('noteId' => $masterId, 'productId' => $pRec->productId, 'quantity' => $row->quantity * $quantityInPack, 'quantityInPack' => $quantityInPack, 'packagingId' => $pRec->packagingId, 'batch' => $row->batch);
+
+        // Ако е избрано заместване при дублиране да се заместват
+        $onDuplicate = Mode::get('onDuplicate');
+        if($onDuplicate){
+            $batchCond = isset($row->batch) ? "#batch = '[#1#]'" : "#batch IS NULL";
+            $n = self::delete(array("#noteId = {$masterId} AND #productId = {$pRec->productId} AND {$batchCond}", $row->batch));
+            core_Statuses::newStatus($n, 'warning');
+        }
+
+        return self::save($dRec);
     }
 }

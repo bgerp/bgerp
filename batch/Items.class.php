@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -85,6 +85,12 @@ class batch_Items extends core_Master
 
 
     /**
+     * ИД на склад за незавършено производство
+     */
+    const WORK_IN_PROGRESS_ID = -1;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -99,6 +105,7 @@ class batch_Items extends core_Master
         $this->setDbIndex('productId');
         $this->setDbIndex('storeId');
         $this->setDbIndex('productId,storeId');
+        $this->setDbIndex('nullifiedDate');
     }
 
 
@@ -113,7 +120,7 @@ class batch_Items extends core_Master
      */
     public static function getQuantity($productId, $batch, $storeId)
     {
-        $quantity = self::fetchField(array("#productId = {$productId} AND #batch = '[#1#]' AND #storeId = {$storeId}", $batch), 'quantity');
+        $quantity = self::fetchField(array("#productId = {$productId} AND #batch = '[#1#]' AND #storeId = '{$storeId}'", $batch), 'quantity');
         
         $quantity = empty($quantity) ? 0 : $quantity;
         
@@ -164,8 +171,8 @@ class batch_Items extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
-        $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-        
+        $row->storeId = ($rec->storeId == batch_Items::WORK_IN_PROGRESS_ID) ? planning_WorkInProgress::getHyperlink() : store_Stores::getHyperlink($rec->storeId, true);
+
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');
         $row->measureId = cat_UoM::getShortName($measureId);
         
@@ -255,22 +262,48 @@ class batch_Items extends core_Master
         $query->where("#quantityCalc = 0 AND #state != 'closed'");
         $before = core_Packs::getConfigValue('batch', 'BATCH_CLOSE_OLD_BATCHES');
         $before = dt::addSecs(-1 * $before, dt::now());
-        
         $query->where("#nullifiedDate <= '{$before}'");
         while ($rec = $query->fetch()) {
             $rec->state = 'closed';
             $this->save($rec, 'state');
         }
     }
-    
-    
+
+
+    /**
+     * Задаване на поле за филтър по складове+незав. произв
+     *
+     * @param core_Form $form
+     * @param string $storeFieldName
+     * @return void
+     */
+    public static function setStoreFilter($form, $storeFieldName = 'storeId')
+    {
+        $storeOptions = array(batch_Items::WORK_IN_PROGRESS_ID => 'Незавършено производство');
+        $storeQuery = store_Stores::getQuery();
+        $storeQuery->where("#state != 'rejected'");
+        while($storeRec = $storeQuery->fetch()) {
+            $storeOptions[$storeRec->id] = $storeRec->name;
+        }
+
+        if(!$form->getField($storeFieldName, false)){
+            $form->FLD($storeFieldName, 'varchar(nullIfEmpty)', 'placeholder=Всички складове,caption=Склад,forceField');
+        } else {
+            $form->setFieldType($storeFieldName, "varchar(nullIfEmpty)");
+            $form->setField($storeFieldName, "placeholder=Всички складове");
+        }
+        $form->setOptions($storeFieldName, array('' => '') + $storeOptions);
+    }
+
+
     /**
      * Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->FLD('store', 'key(mvc=store_Stores,select=name,allowEmpty)', 'placeholder=Всички складове');
+
+        self::setStoreFilter($data->listFilter, 'store');
         $data->listFilter->FLD('filterState', 'varchar', 'placeholder=Състояние');
         $options = arr::make('active=Активни,closed=Затворени,all=Всички', true);
         
@@ -305,13 +338,23 @@ class batch_Items extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
         if ($filter = $data->listFilter->rec) {
-            
+
             // Филтрираме по склад
-            if (isset($filter->store)) {
-                $data->query->where("#storeId = {$filter->store}");
+            if (!empty($filter->store)) {
+                $data->query->where("#storeId = '{$filter->store}'");
                 unset($data->listFields['storeId']);
-                $selectedStoreName = store_Stores::getHyperlink($filter->store, true);
-                $data->title = "|Наличности по партиди в склад|* <b style='color:green'>{$selectedStoreName}</b>";
+                if($filter->store == batch_Items::WORK_IN_PROGRESS_ID){
+                    if(planning_WorkInProgress::haveRightFor('list')){
+                        $selectedStoreName = ht::createLink('Незавършено производство', array('planning_WorkInProgress', 'list'));
+                    } else {
+                        $selectedStoreName = tr('Незавършено производство');
+                    }
+                    $selectedStoreName = "<b>{$selectedStoreName}</b>";
+                } else {
+                    $selectedStoreName = tr("склад|* <b>") . store_Stores::getHyperlink($filter->store, true) . "</b>";
+                }
+
+                $data->title = "|Наличности по партиди в|* {$selectedStoreName}";
             }
 
             if (isset($filter->productId)) {
@@ -402,7 +445,7 @@ class batch_Items extends core_Master
         $query->where("#productId = {$productId}");
         $query->where("#state != 'closed' AND #quantity != 0");
         if (isset($storeId)) {
-            $query->where("#storeId = {$storeId}");
+            $query->where("#storeId = '{$storeId}'");
         }
         
         $query->show('batch,productId');
@@ -454,7 +497,10 @@ class batch_Items extends core_Master
         $form = cls::get('core_Form');
         $form->FLD("storeId{$data->masterId}", 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $form->FLD("state{$data->masterId}", 'enum(active=Активни,closed=Затворени,inStock=Налични,notInStock=Без наличност,all=Всички)', 'caption=Състояние,silent');
+        $form->FLD("filter{$data->masterId}", 'enum(asc=Подредба (Възх.),desc=Подредба (Низх.))', 'caption=Подредба,silent');
+        batch_Items::setStoreFilter($form, "storeId{$data->masterId}");
         $form->setDefault("state{$data->masterId}", 'active');
+        $form->setDefault("filter{$data->masterId}", 'asc');
 
         $form->input(null, 'silent');
         $form->view = 'horizontal';
@@ -473,58 +519,85 @@ class batch_Items extends core_Master
         // Ако филтрираме по склад, оставяме само тези в избрания склад
         if (isset($data->form->rec->{"storeId{$data->masterId}"})) {
             $data->storeId = $data->form->rec->{"storeId{$data->masterId}"};
-            $query->where("#storeId = {$data->storeId}");
+            $query->where("#storeId = '{$data->storeId}'");
         }
-        
-        $filterState = $data->form->rec->{"state{$data->masterId}"};
+
+
+        $filterRec = $data->form->rec;
+        $filterState = $filterRec->{"state{$data->masterId}"};
         if ($filterState != 'all') {
             if($filterState == 'inStock'){
                 $query->where("#quantity > 0");
             } elseif($filterState == 'notInStock'){
                 $query->where("#quantity <= 0");
             } else {
-                $query->where("#state = '{$data->form->rec->{"state{$data->masterId}"}}'");
+                $query->where("#state = '{$filterRec->{"state{$data->masterId}"}}'");
+                $query->orderBy('id', 'desc');
             }
         }
-
         $data->recs = $query->fetchAll();
 
         // Добавяне на наличните к-ва без партида
         $storeQuery = store_Products::getQuery();
-        $storeQuery->where("#productId = {$data->masterId} AND #quantity != 0");
+        $storeQuery->where("#productId = {$data->masterId}");
+        $storeQuery->orderBy('storeId', 'ASC');
         if(isset($data->storeId)){
             $storeQuery->where("#storeId = {$data->storeId}");
         }
-        while ($storeRec = $storeQuery->fetch()){
-            $onBatches = $count = 0;
-            array_walk($data->recs, function($a) use(&$onBatches, &$count, $storeRec) {
-                if(!empty($a->batch) && $a->storeId == $storeRec->storeId) {$onBatches += $a->quantity; $count++;}
-            });
 
-            if($count > 1){
-                $data->recs["-{$storeRec->storeId}batches"] = (object)array('storeId' => $storeRec->storeId,
-                                                                     'productId' => $data->masterId,
-                                                                     'quantity' => $onBatches,
-                                                                     'state' => 'active',
-                                                                     'batch' => -1);
-            }
-
-            $withoutBatch = round($storeRec->quantity - $onBatches, 4);
-            if(!empty($withoutBatch)){
-                $data->recs["-{$storeRec->storeId}nobatch"] = (object)array('storeId' => $storeRec->storeId,
-                                                                            'productId' => $data->masterId,
-                                                                            'quantity' => $withoutBatch,
-                                                                            'state' => 'active',
-                                                                            'batch' => -2);
+        // Към складовите наличности се добавя и незавършеното производство
+        $stores = $storeQuery->fetchAll();
+        if($workInProgressRec = planning_WorkInProgress::fetch("#productId = {$data->masterId}")) {
+            if(empty($data->storeId) || $data->storeId == batch_Items::WORK_IN_PROGRESS_ID){
+                $workInProgressRec->storeId = batch_Items::WORK_IN_PROGRESS_ID;
+                $stores[$workInProgressRec->storeId] = $workInProgressRec;
             }
         }
 
-        arr::sortObjects($data->recs, 'storeId', 'ASC');
+        $newRecs = array();
+        foreach ($stores as $storeRec){
+            $onBatches = $count = 0;
+            $filtered = array_filter($data->recs, function($a) use(&$onBatches, &$count, $storeRec) {
+                if($a->storeId == $storeRec->storeId){
+                    if(!empty($a->batch)) {
+                        $onBatches += $a->quantity; $count++;
+                    }
+                    return true;
+                }
+
+                return false;
+            });
+
+            $orderBy = !empty($filterRec->{"filter{$data->masterId}"}) ? $filterRec->{"filter{$data->masterId}"} : 'asc';
+            arr::sortObjects($filtered, 'batch', $orderBy, 'natural');
+
+            if($count > 1){
+                $filtered["-{$storeRec->storeId}batches"] = (object)array('storeId' => $storeRec->storeId,
+                                                                          'productId' => $data->masterId,
+                                                                          'quantity' => $onBatches,
+                                                                          'state' => 'active',
+                                                                          'batch' => -1);
+            }
+
+            $withoutBatch = round($storeRec->quantity - $onBatches, 4);
+            if($withoutBatch != 0){
+                $filtered["-{$storeRec->storeId}nobatch"] = (object)array('storeId' => $storeRec->storeId,
+                    'productId' => $data->masterId,
+                    'quantity' => $withoutBatch,
+                    'state' => 'active',
+                    'batch' => -2);
+            }
+
+            $newRecs += $filtered;
+        }
+
+        $data->recs = $newRecs;
 
         // Подготвяме страницирането
         $url = getCurrentUrl();
         $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"};
         $url["state{$data->masterId}"] = $form->rec->{"state{$data->masterId}"};
+        $url["filter{$data->masterId}"] = $form->rec->{"filter{$data->masterId}"};
         $url["#"] = "batchBlock{$data->masterId}";
 
         $pager = cls::get('core_Pager', array('itemsPerPage' => 20, 'url' => toUrl($url)));
@@ -585,6 +658,11 @@ class batch_Items extends core_Master
                 $ht = ht::createLink('', $data->deleteBatchUrl, 'Сигурни ли сте, че искате да изтриете партидната дефиниция|*?', 'ef_icon=img/12/close.png,title=Изтриване на нова партидна дефиниция,style=vertical-align: middle;');
                 $title->replace($ht, 'btn');
             }
+            if(batch_Defs::haveRightFor('edit', $data->definitionRec)){
+                $editBtn = ht::createLink('', array('batch_Defs', 'edit', $data->definitionRec->id), false, 'ef_icon=img/16/edit-icon.png,title=Редактиране на конкретната партидна дефиниция,style=vertical-align: middle;');
+                $title->append($editBtn);
+            }
+
             $tpl->append($title, 'definition');
         } elseif ($data->addBatchUrl) {
             $ht = ht::createLink('', $data->addBatchUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на нова партидна дефиниция,style=vertical-align: middle;');
@@ -635,18 +713,29 @@ class batch_Items extends core_Master
      * @param int|NULL      $limit     - лимит на резултатите
      * @param array         $except    - кой документ да се игнорира
      * @param string|null   $batch     - конкретна партида
+     * @param bool          $showMovementsWithClosedBatches - дали да са текущо активн
      * @return array $res - масив с партидите и к-та
      *               ['productId']['batch'] => ['quantity']
      */
-    public static function getProductsWithMovement($storeId = null, $productId = null, $date = null, $limit = null, $except = array(), $batch = null)
+    public static function getProductsWithMovement($storeId = null, $productId = null, $date = null, $limit = null, $except = array(), $batch = null, $showMovementsWithClosedBatches = false)
     {
         // Намират се всички движения в посочения интервал за дадения артикул в подадения склад
+        $date = $date ?? dt::now();
         $query = batch_Movements::getQuery();
         $query->EXT('state', 'batch_Items', 'externalName=state,externalKey=itemId');
         $query->EXT('productId', 'batch_Items', 'externalName=productId,externalKey=itemId');
         $query->EXT('storeId', 'batch_Items', 'externalName=storeId,externalKey=itemId');
         $query->EXT('batch', 'batch_Items', 'externalName=batch,externalKey=itemId');
-        $query->where("#state != 'closed'");
+        $query->EXT('nullifiedDate', 'batch_Items', 'externalName=nullifiedDate,externalKey=itemId');
+        $query->EXT('bQuantity', 'batch_Items', 'externalName=quantity,externalKey=itemId');
+        $query->XPR('bQuantityRounded', 'double', 'ROUND(#bQuantity, 3)');
+        if($showMovementsWithClosedBatches){
+            $nullifiedAfter = strlen($date) == 10 ? "{$date} 00:00:00" : $date;
+            $query->where("#state = 'active' OR (#state = 'closed' AND #bQuantityRounded != 0) OR #nullifiedDate >= '{$nullifiedAfter}'");
+        } else {
+            $query->where("#state != 'closed'");
+        }
+
         $query->show('batch,quantity,operation,date,docType,docId,productId');
         if(isset($productId)){
             $query->where("#productId = {$productId}");
@@ -655,8 +744,8 @@ class batch_Items extends core_Master
             $query->where(array("#batch = '[#1#]'", $batch));
         }
 
-        if(isset($storeId)){
-            $query->where("#storeId = {$storeId}");
+        if(!empty($storeId)){
+            $query->where("#storeId = '{$storeId}'");
         }
         $query->where("#date <= '{$date}'");
 
@@ -706,26 +795,27 @@ class batch_Items extends core_Master
      * @param array         $except    - кой документ да се игнорира
      * @param boolean       $onlyActiveBatches - дали да са само текущо активните партиди
      * @param string|null   $batch     - ид на склад
-     *
+     * @param boolean       $onlyPositiveBatches - дали да са само положителните наличности
+     * @param boolean       $showMovementsWithClosedBatches - дали да се извличат движенията на заторените партиди
      *
      * @return array $res - масив с партидите и к-та
      *               ['batch'] => ['quantity']
      */
-    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false, $batch = null)
+    public static function getBatchQuantitiesInStore($productId, $storeId = null, $date = null, $limit = null, $except = array(), $onlyActiveBatches = false, $batch = null, $onlyPositiveBatches = false, $showMovementsWithClosedBatches = false)
     {
         $res = array();
         $date = (isset($date)) ? $date : dt::today();
         $def = batch_Defs::getBatchDef($productId);
         if (!$def) return $res;
-        
-        $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except, $batch);
+
+        $found = static::getProductsWithMovement($storeId, $productId, $date, $limit, $except, $batch, $showMovementsWithClosedBatches);
         $res = is_array($found[$productId]) ? $found[$productId] : array();
 
         // Добавяне и на партидите от активни документи в черновата на журнала
         $bQuery = batch_BatchesInDocuments::getQuery();
         $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
         $bQuery->where("#productId = {$productId}");
-        if(isset($storeId)){
+        if(!empty($storeId)){
             $bQuery->where("#storeId = {$storeId}");
         }
         if(isset($batch)){
@@ -744,6 +834,9 @@ class batch_Items extends core_Master
 
         foreach ($res as $b => $q){
             $res[$b] = round($q, 5);
+            if($onlyPositiveBatches && $res[$b] <= 0){
+                unset($res[$b]);
+            }
         }
 
         // Намерените партиди се подават на партидната дефиниция, ако иска да ги преподреди

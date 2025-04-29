@@ -48,7 +48,7 @@ class planning_Centers extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning, jobSee';
+    public $canList = 'ceo, planning, jobSee, planningAll';
     
     
     /**
@@ -173,19 +173,23 @@ class planning_Centers extends core_Master
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
         $this->FLD('mandatoryOperatorsInTasks', 'enum(auto=Автоматично,lastAndMandatory=Последно въведен (и задължително),lastAndOptional=Последно въведен (и опционално),emptyAndMandatory=Празно (и задължително),emptyAndOptional=Празно (и опционално), current=Текущ оператор)', 'caption=Прогрес в ПО->Оператор(и), notNull,value=auto');
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор, notNull,value=auto');
-        $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Показване,no=Скриване)', 'caption=Предупреждение при дублиране на произв. номер в ПО->Избор,notNull,value=auto');
+        $this->FLD('showSerialWarningOnDuplication', 'enum(auto=Автоматично,yes=Разрешено - с предупреждение,no=Разрешено - без предупреждение)', 'caption=Повторение на един производствен номер в рамките на една Операция->Избор,notNull,value=auto');
+        $this->FLD('allowDuplicateSerialProgress', 'enum(auto=Автоматично,yes=Разрешено,no=Забранено)', 'caption=Използване на един производствен номер в различни Операции->Избор,notNull,value=auto');
 
         $this->FLD('useTareFromPackagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Опаковки');
         $this->FLD('useTareFromParamId', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър,silent,removeAndRefreshForm=useTareFromParamMeasureId');
-        $this->FLD('useTareFromParamMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Параметър(мярка),input=hidden');
+        $this->FLD('useTareFromParamMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник на тара за приспадане от теглото в ПО->Мярка,input=hidden', "unit= (|каква е мярката на избрания параметър|*)");
         $this->FLD('deviationNettoNotice', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Отбелязване');
         $this->FLD('deviationNettoWarning', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Предупреждение');
         $this->FLD('deviationNettoCritical', 'percent(Min=0)', 'caption=Статус при разминаване на нетото в ПО->Критично');
         $this->FLD('paramExpectedNetWeight', 'key(mvc=cat_Params,select=typeExt, allowEmpty)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Параметър,silent,removeAndRefreshForm=paramExpectedNetMeasureId', "unit= |по количеството от Прогреса|*");
-        $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Мярка,input=hidden');
+        $this->FLD('paramExpectedNetMeasureId', 'key(mvc=cat_UoM,select=name)', 'caption=Източник за "единично тегло" - за сравняване на очакваното с реалното от прогреса->Мярка,input=hidden', "unit= (|каква е мярката на избрания параметър|*)");
         $this->FLD('showMaxPreviousTasksInATask', 'int', 'caption=За колко от предходните Операции да се визуализира готовността->До');
         $this->FLD('autoCreateTaskState', 'enum(auto=Автоматично,pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние,value=auto,notNull');
+        $this->FLD('supportSystemFolderId', 'key2(mvc=doc_Folders,select=title,coverClasses=support_Systems,allowEmpty)', 'caption=Система за подаване на сигнали->Система');
 
+        $powerUserId = core_Roles::fetchByName('powerUser');
+        $this->FLD('supportUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Система за подаване на сигнали->Отговорници');
         $this->setDbUnique('name');
     }
 
@@ -301,6 +305,8 @@ class planning_Centers extends core_Master
             $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
         }
 
+        $row->hrGroupId = crm_Groups::getHyperlink(static::getEmployeesGroupId($rec));
+
         if($rec->mandatoryOperatorsInTasks == 'auto'){
             $row->mandatoryOperatorsInTasks = $mvc->getFieldType('mandatoryOperatorsInTasks')->toVerbal(planning_Setup::get('TASK_PROGRESS_OPERATOR'));
             $row->mandatoryOperatorsInTasks = ht::createHint("<span style='color:blue'>{$row->mandatoryOperatorsInTasks}</span>", 'По подразбиране', 'notice', false);
@@ -320,6 +326,12 @@ class planning_Centers extends core_Master
             $row->showSerialWarningOnDuplication = $mvc->getFieldType('showSerialWarningOnDuplication')->toVerbal(planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS'));
             $row->showSerialWarningOnDuplication = ht::createHint("<span style='color:blue'>{$row->showSerialWarningOnDuplication}</span>", 'По подразбиране', 'notice', false);
         }
+
+        if($rec->allowDuplicateSerialProgress == 'auto'){
+            $row->allowDuplicateSerialProgress = $mvc->getFieldType('allowDuplicateSerialProgress')->toVerbal(planning_Setup::get('ALLOW_SERIAL_IN_DIFF_TASKS'));
+            $row->allowDuplicateSerialProgress = ht::createHint("<span style='color:blue'>{$row->allowDuplicateSerialProgress}</span>", 'По подразбиране', 'notice', false);
+        }
+
         $row->deviationNettoWarning = isset($rec->deviationNettoWarning) ? $row->deviationNettoWarning : ht::createHint("<span style='color:blue'>{$mvc->getFieldType('deviationNettoWarning')->toVerbal(planning_Setup::get('TASK_NET_WEIGHT_WARNING'))}</span>", 'Автоматично', 'notice', false);
 
         if(empty($rec->showMaxPreviousTasksInATask)){
@@ -333,6 +345,10 @@ class planning_Centers extends core_Master
 
         if(isset($rec->paramExpectedNetWeight) && isset($row->paramExpectedNetMeasureId)){
             $row->paramExpectedNetWeight = ht::createHint($row->paramExpectedNetWeight, $row->paramExpectedNetMeasureId);
+        }
+
+        if(isset($rec->supportSystemFolderId)){
+            $row->supportSystemFolderId = doc_Folders::recToVerbal($rec->supportSystemFolderId)->title;
         }
     }
     
@@ -388,7 +404,8 @@ class planning_Centers extends core_Master
             $rec->name = 'Неопределен';
             $rec->type = 'workshop';
             $rec->state = 'active';
-            
+            $rec->scheduleId = hr_Schedules::getDefaultScheduleId();
+
             core_Users::forceSystemUser();
             $this->save($rec, null, 'REPLACE');
             core_Users::cancelSystemUser();
@@ -405,7 +422,7 @@ class planning_Centers extends core_Master
      *               ['assets'] - оборудване
      *               ['hr']     - служители
      */
-    public function getResourceTypeArray($rec)
+    public function getResourceTypeArray_($rec)
     {
         return arr::make('assets,hr', true);
     }
@@ -556,20 +573,60 @@ class planning_Centers extends core_Master
      */
     function act_dispatch()
     {
-        requireRole('ceo,planning,production,jobSee');
+        requireRole('powerUser');
 
-        if(haveRole('production') || haveRole('ceo')){
+        if(planning_DirectProductionNote::haveRightFor('list')){
             redirect(array('planning_DirectProductionNote', 'list'));
-        } elseif(haveRole('consumption')){
+        } elseif(planning_ConsumptionNotes::haveRightFor('list')){
             redirect(array('planning_ConsumptionNotes', 'list'));
-        } elseif(haveRole('jobSee')){
+        } elseif(planning_Jobs::haveRightFor('list')){
             redirect(array('planning_Jobs', 'list'));
-        } elseif(haveRole('task')){
+        } elseif(planning_Tasks::haveRightFor('list')){
             redirect(array('planning_Tasks', 'list'));
-        } elseif(haveRole('planning')) {
+        } elseif(planning_Centers::haveRightFor('list')) {
             redirect(array('planning_Centers', 'list'));
         }
 
         redirect(array('bgerp_Portal', 'show'), false, 'Нямате достъп до таб от менюто', 'warning');
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // Синхронизиране на системата група за оператори спрямо името на центъра
+        static::syncCrmGroup($rec->id);
+    }
+
+
+    /**
+     * В коя системна група ще бъдат служителите от центъра
+     *
+     * @param int $id
+     * @return mixed
+     */
+    public static function getEmployeesGroupId($id)
+    {
+        $rec = static::fetchRec($id);
+
+        return crm_Groups::getIdFromSysId("planningCenter{$rec->id}");
+    }
+
+
+    /**
+     * Синхронизира системната група за операторите на центъра на дейност
+     *
+     * @param int $id
+     * @return int
+     */
+    public static function syncCrmGroup($id)
+    {
+        $rec = static::fetchRec($id);
+        $centerGroupId = crm_Groups::getIdFromSysId('activityCenters');
+        $groupRec = (object)array('name' => $rec->name, 'sysId' => "planningCenter{$rec->id}", 'parentId' => $centerGroupId);
+
+        return crm_Groups::forceGroup($groupRec);
     }
 }

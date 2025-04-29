@@ -55,7 +55,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument,deals_plg_ImportDealDetailProduct, plg_PrevAndNext,store_plg_TransportDataDetail';
+                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument,deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, plg_PrevAndNext,store_plg_TransportDataDetail';
     
     
     /**
@@ -96,7 +96,6 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         parent::setFields($this);
         $this->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
         $this->FLD('clonedFromDetailClass', "int", 'caption=От кое поле е клонирано,input=none');
-        $this->setDbUnique('protocolId,productId,packagingId');
     }
 
 
@@ -114,6 +113,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         if($masterRec->productType == 'other'){
             $params['isPublic'] = 'no';
         }
+
         $data->form->setFieldTypeParams('productId', $params);
     }
 

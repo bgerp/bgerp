@@ -23,6 +23,14 @@
                     <td>[#groupId#]</td>
                 </tr>
                 <!--ET_END groupId-->
+                <!--ET_BEGIN protocols-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |ДА|*:
+                    </td>
+                    <td>[#protocols#]</td>
+                </tr>
+                <!--ET_END protocols-->
                 <!--ET_BEGIN planningParams-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
@@ -47,6 +55,12 @@
                     <td>[#scheduleId#]</td>
                 </tr>
                 <!--ET_END scheduleId-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Групиране на операциите|*:
+                    </td>
+                    <td>[#taskQuantization#]</td>
+                </tr>
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |Създаване|*:
@@ -98,9 +112,18 @@
                     <td colspan = "2">[#description#]</td>
                 </tr>
                 <!--ET_END description-->
+
+                <tr>
+                    <td class="gray-title aright" style="float:left" colspan="2">
+
+                    </td>
+                </tr>
             </table>
         </fieldset>
-       
+
+        <fieldset class="detail-info">
+            [#PARAMS#]
+        </fieldset>
         <!--ET_BEGIN sensors-->
         <div class="scrolling-holder">
             <fieldset class="detail-info" style="margin-top: 20px; display: block;">

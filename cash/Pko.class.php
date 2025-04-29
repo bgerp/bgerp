@@ -82,8 +82,14 @@ class cash_Pko extends cash_Document
      * @see plg_Clone
      */
     public $cloneDetails = 'cash_NonCashPaymentDetails';
-    
-    
+
+
+    /**
+     * В кои детайли да не се изисква да има запис за активиране
+     */
+    public $ignoreDetailsToCheckWhenTryingToPost = 'cash_NonCashPaymentDetails,deals_InvoicesToDocuments';
+
+
     /**
      * Описание на модела
      */
@@ -102,12 +108,13 @@ class cash_Pko extends cash_Document
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+        $paymentSuggestions = cls::get('cond_Payments')->makeArray4Select('title', '(#currencyCode IS NULL OR #currencyCode = "") AND #state != "closed"');
+        if(!countR($paymentSuggestions)) return;
+
         // Добавяне на таблица за избор на безналични плащания
         $rec->exPayments = cash_NonCashPaymentDetails::getPaymentsTableArr($rec->id, $mvc->getClassId());
         $form->FLD('payments', "table(columns=paymentId|amount,captions=Плащане|Сума,validate=cash_NonCashPaymentDetails::validatePayments)", "caption=Безналично плащане->Избор,before=contragentName");
-        
-        $form->setFieldTypeParams('payments', array('paymentId_opt' => array('' => '') + cls::get('cond_Payments')->makeArray4Select('title', '#currencyCode IS NULL OR #currencyCode = ""')));
+        $form->setFieldTypeParams('payments', array('paymentId_opt' => array('' => '') + $paymentSuggestions));
         $form->setDefault('payments', $rec->exPayments);
         $rec->exPayments = type_Table::toArray($rec->exPayments);
     }

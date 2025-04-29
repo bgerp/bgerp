@@ -86,7 +86,7 @@ class crm_Persons extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, change_plg_History,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg,
@@ -282,8 +282,35 @@ class crm_Persons extends core_Master
      * Как се казва полето за държава на контрагента
      */
     public $countryFieldName = 'country';
-    
-    
+
+
+    /**
+     * Кои полета да се следят за промяна в логовете
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableFields = 'salutation,name,vatId,egn,eori,birthday,country,pCode,place,address,email,tel,mobile,fax,info,website';
+
+
+    /**
+     * Кои изчислими полета от следените за промяна да се показват при сравнение на версиите
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableAdditionalComparableFields = 'title';
+
+
+    /**
+     * Икони на контрагента спрямо състоянието на сделките в него
+     */
+    public $icons = array('noDeals' => 'img/16/vcard-gray.png',
+                          'activeDeals' => 'img/16/vcard-green.png',
+                          'overdueSales' => 'img/16/red-vcard.png',
+                          'standart' => 'img/16/vcard.png');
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -462,7 +489,7 @@ class crm_Persons extends core_Master
         }
         
         if (!empty($data->listFilter->rec->groupId)) {
-            $data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groupList)");
+            plg_ExpandInput::applyExtendedInputSearch($mvc, $data->query, $data->listFilter->rec->groupId);
         }
     }
     
@@ -670,7 +697,7 @@ class crm_Persons extends core_Master
             }
             
             // Разширяване на $row
-            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec, $fields);
         }
         
         static $ownCompany;
@@ -700,42 +727,33 @@ class crm_Persons extends core_Master
             
             $row->addressBox .= $pCode ? "{$pCode} " : '';
             $row->addressBox .= $place;
-            
+
+            // Добавяме адреса
+            $row->addressBox .= $address ? "<br/>{$address}" : '';
+            $mvcClone = clone $mvc;
+
+            foreach (array('mobile' => 'mobile', 'buzTel' => 'tel', 'buzFax' => 'fax', 'buzEmail' => 'email') as $cFld1 => $cFld2){
+                if($cFld1 == 'mobile'){
+                    $mvcClone->setFieldTypeParams($cFld1, array('maskVerbal' => true));
+                }
+                $mvcClone->setFieldTypeParams($cFld2, array('maskVerbal' => true));
+
+                $val = $mvc->getVerbal($rec, $rec->{$cFld1} ? $cFld1 : $cFld2);
+                $valClass = $cFld1 == 'buzTel' ? 'telephone' : $cFld2;
+                $row->phonesBox .= $val ? "<div class='crm-icon {$valClass}'>{$val}</div>" : '';
+            }
+
+            $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
+
             // Ако имаме права за сингъл
-            if ($canSingle) {
-                
-                // Добавяме адреса
-                $row->addressBox .= $address ? "<br/>{$address}" : '';
-                
-                // Мобилен телефон
-                $mob = $mvc->getVerbal($rec, 'mobile');
-                $row->phonesBox .= $mob ? "<div class='crm-icon mobile'>{$mob}</div>" : '';
-                
-                // Телефон
-                $tel = $mvc->getVerbal($rec, $rec->buzTel ? 'buzTel' : 'tel');
-                $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : '';
-                
-                // Факс
-                $fax = $mvc->getVerbal($rec, $rec->buzFax ? 'buzFax' : 'fax');
-                $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : '';
-                
-                // Email
-                $eml = $mvc->getVerbal($rec, $rec->buzEmail ? 'buzEmail' : 'email');
-                $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : '';
-                
-                $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
-            } else {
-                
-                // Добавяме линк към профила на потребителя, който е inCharge на визитката
-                $row->phonesBox = tr('Отговорник') . ': ' . crm_Profiles::createLink($rec->inCharge);
+            if (!$canSingle) {
+                $row->phonesBox = crm_Companies::displayInfoWhenIsNotAccessible($rec->inCharge, $rec->shared) . $row->phonesBox;
             }
         }
-        $currentId = $mvc->getVerbal($rec, 'id');
-        
         
         $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
         
-        $row->title = $mvc->getTitleById($rec->id);
+        $row->title = $mvc->getTitleById($rec);
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
@@ -755,9 +773,6 @@ class crm_Persons extends core_Master
 
             $dateType = tr($dateType);
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
-        } elseif ($rec->egn) {
-            $egn = $mvc->getVerbal($rec, 'egn');
-            $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$egn}</div>";
         }
         
         if ($rec->buzCompanyId && crm_Companies::haveRightFor('single', $rec->buzCompanyId)) {
@@ -814,7 +829,7 @@ class crm_Persons extends core_Master
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if(isset($id)){
+        if(isset($rec->id)){
             // Коя е старата фирма на лицето
             $rec->_exBuzCompanyId = $mvc->fetchField($rec->id, 'buzCompanyId', false);
         } else {
@@ -844,7 +859,6 @@ class crm_Persons extends core_Master
                 $mvc->updatedListsOnShutdown[$id] = $listId;
             }
         }
-
 
         if($rec->saveInSessionAfterCreation){
             Mode::setPermanent('lastAddedPersonId', $rec->id);
@@ -944,7 +958,7 @@ class crm_Persons extends core_Master
     public function cron_UpdateCalendarEvents()
     {
         $query = self::getQuery();
-        
+
         while ($rec = $query->fetch()) {
             $res = static::updateBirthdaysToCalendar($rec->id);
             $new += $res['new'];
@@ -964,7 +978,7 @@ class crm_Persons extends core_Master
      */
     public static function updateBirthdaysToCalendar($id)
     {
-        if (($rec = static::fetch($id)) && ($rec->state != 'rejected')) {
+        if (($rec = static::fetch($id)) && ($rec->state != 'rejected') && ($rec->state != 'closed')) {
             if ($rec->birthday) {
                 list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
             } else {
@@ -987,7 +1001,7 @@ class crm_Persons extends core_Master
         $years = array($cYear, $cYear + 1, $cYear + 2);
         
         // Префикс на клучовете за рожденните дни на това лице
-        $prefix = "BD-{$id}";
+        $prefix = "BD-{$id}-";
         
         if ($d > 0 && $m > 0) {
             foreach ($years as $year) {
@@ -1000,7 +1014,7 @@ class crm_Persons extends core_Master
                 $calRec = new stdClass();
                 
                 // Ключ на събитието
-                $calRec->key = $prefix . '-' . $year;
+                $calRec->key = $prefix . $year;
                 
                 // TODO да се проверява за високосна година
                 $calRec->time = date('Y-m-d 00:00:00', mktime(0, 0, 0, $m, $d, $year));
@@ -1388,41 +1402,57 @@ class crm_Persons extends core_Master
     
     /**
      * Дали на лицето се начислява ДДС:
-     * Начисляваме винаги ако е в ЕУ
-     * Ако няма държава начисляваме ДДС
+     * Начисляваме винаги ако е в ЕУ (ако е регистриран по ДДС)
      *
-     * @param int $id - id' то на записа
+     * @param int $id                - id' то на записа
+     * @param mixed $class           - за кой клас
      * @param int|null $ownCompanyId - ид на "Моята фирма"
      *
      * @return bool TRUE/FALSE
      */
-    public static function shouldChargeVat($id, $ownCompanyId = null)
+    public static function shouldChargeVat($id, $class, $ownCompanyId = null)
     {
+        // Ако моята фирма не е регистрирана по ДДС или лицето няма ДДС номер - не се начислява
         $rec = static::fetch($id);
         if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;
+        $Class = cls::get($class);
+        if(in_array($Class->className, array('purchase_Purchases', 'findeals_Deals', 'findeals_AdvanceDeals'))){
+            if(empty($rec->vatId)) return false;
+        }
 
+        // Ако няма държава или е в ЕС ще се начислява
         if (!$rec->country) return true;
-        
+
         return drdata_Countries::isEu($rec->country);
     }
-    
-    
+
+
     /**
-     * Връща данните на лицето
+     * Интерфейсен метод
      *
-     * @param int $id - id' то на записа
+     * @param int $id
+     * @param date|null $date
+     * @return object
      *
-     * return object
+     * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         //Вземаме данните
         $person = crm_Persons::fetch($id);
-        
+        $company = null;
+
+        if(isset($date)) {
+            $recToDate = change_History::getRecOnDate(get_called_class(), $person, $date);
+            if($recToDate) {
+                $person = $recToDate;
+            }
+        }
+
         if ($person->buzCompanyId) {
             $company = crm_Companies::fetch($person->buzCompanyId);
         }
-        
+
         // Заместваме и връщаме данните
         if ($person) {
             $contrData = new stdClass();
@@ -1454,7 +1484,9 @@ class crm_Persons extends core_Master
             
             $contrData->salutationRec = $person->salutation;
             $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');
-            
+            $contrData->validFrom = $person->validFrom;
+            $contrData->validTo = $person->validTo;
+
             // Ако е свързан с фирма
             if ($person->buzCompanyId) {
                 
@@ -2623,6 +2655,17 @@ class crm_Persons extends core_Master
         if ($action == 'delete') {
             $requiredRoles = 'no_one';
         }
+
+        if (($action == 'single') || ($action == 'edit')) {
+            if ($requiredRoles == 'no_one') {
+                if ($rec) {
+                    $eSysId = crm_Groups::getIdFromSysId('employees');
+                    if ($eSysId && type_Keylist::isIn($eSysId, $rec->groupList)) {
+                        $requiredRoles = 'hrMaster';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -2632,7 +2675,8 @@ class crm_Persons extends core_Master
     public function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         // Ако има профил
-        if ($profileRec = crm_Profiles::fetch("#personId = '{$data->rec->id}'")) {
+        $rec = $data->rec;
+        if ($profileRec = crm_Profiles::fetch("#personId = '{$rec->id}'")) {
             
             // Ако има права за single на профила
             if (crm_Profiles::haveRightFor('single', $profileRec)) {
@@ -2641,21 +2685,28 @@ class crm_Persons extends core_Master
                 $profileUrl = crm_Profiles::getUrl($profileRec->userId);
                 
                 // Добавяме бутон към профилите
-                $data->toolbar->addBtn(tr('Профил'), $profileUrl, 'id=btnProfile', 'ef_icon = img/16/user-profile.png');
+                $data->toolbar->addBtn('Профил', $profileUrl, 'id=btnProfile', 'ef_icon = img/16/user-profile.png,title=Към профила на лицето');
+            }
+
+            // Бутон за бързо закриване/откриване на потребителя
+            if(crm_Profiles::haveRightFor('closeprofile', $profileRec)) {
+                $profileBtnCaption = ($profileRec->state == 'closed') ? 'Профил (Откр.)' : 'Профил (Закр.)';
+                $icon = ($profileRec->state == 'closed') ? 'img/16/lock_unlock.png' : 'img/16/gray-close.png';
+                $data->toolbar->addBtn($profileBtnCaption, array('crm_Profiles', 'closeprofile', $profileRec->id, 'ret_url' => true), 'id=btnCloseProfile', "ef_icon={$icon},title=Промяна на състоянието на профила на лицето,row=2");
             }
         } else {
             
             // Ако има запис и имаме права admin
-            if ($data->rec->id && haveRole('admin') && $data->rec->state != 'rejected') {
+            if ($rec->id && haveRole('admin') && $rec->state != 'rejected') {
                 
                 // sysId на групата
                 $crmId = crm_Groups::getIdFromSysId('users');
                 
                 // Ако е в групата на потребители
-                if (keylist::isIn($crmId, $data->rec->groupList)) {
+                if (keylist::isIn($crmId, $rec->groupList)) {
                     
                     // URL за създаване на потребител
-                    $personUrl = array('core_Users', 'add', 'personId' => $data->rec->id, 'ret_url' => true);
+                    $personUrl = array('core_Users', 'add', 'personId' => $rec->id, 'ret_url' => true);
                     
                     // Добавяме бутона
                     $data->toolbar->addBtn(tr('Потребител'), $personUrl, 'id=btnUser', 'ef_icon = img/16/user_add.png');
@@ -3187,8 +3238,7 @@ class crm_Persons extends core_Master
         if ($params['group']) {
             $gId = crm_Groups::getIdFromSysId($params['group']);
             expect($gId);
-
-            $query->likeKeylist('groupList', $gId);
+            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $gId);
         }
 
         // Ако е посочена фирма на която е представител - филтър по нея (ако тя има поне един представител)
@@ -3241,8 +3291,8 @@ class crm_Persons extends core_Master
         
         return false;
     }
-    
-    
+
+
     /**
      * След взимане на иконката за единичния изглед
      *
@@ -3252,19 +3302,20 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
-        if (core_Users::isContractor()) {
-            
-            return;
-        }
-        
-        if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
-                $res = 'img/16/stop-sign.png';
-            }
-        }
+        $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
     }
-    
-    
+
+
+    /**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     */
+    public function on_AfterGetIcon($mvc, &$res, $id = null)
+    {
+        $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
+    }
+
+
     /**
      * След взимане на заглавието за единичния изглед
      *
@@ -3280,8 +3331,9 @@ class crm_Persons extends core_Master
         }
         
         if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
-                $res = "<span class='dangerTitle'>{$res}</span>";
+            if ($extRec->haveOverdueSales == 'yes') {
+                $title = tr('Има просрочени продажби');
+                $res = "<span class='dangerTitle' title = '{$title}'>{$res}</span>";
             }
         }
     }

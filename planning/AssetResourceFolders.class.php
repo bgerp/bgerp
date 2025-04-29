@@ -54,7 +54,7 @@ class planning_AssetResourceFolders extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning';
+    public $canList = 'debug';
     
     
     /**
@@ -245,6 +245,25 @@ class planning_AssetResourceFolders extends core_Manager
         // Допустимите папки
         $suggestions = doc_FolderResources::getFolderSuggestions($forType);
         $form->setOptions('folderId', array('' => '') + $suggestions);
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if ($form->isSubmitted()) {
+            if($rec->classId == planning_AssetResources::getClassId()){
+                if(!planning_AssetResources::canAssetBeAddedToFolder($rec->objectId, $rec->folderId)) {
+                    $form->setError('folderId', 'Материалните ресурс не може да е в повече от един център на дейност|*!');
+                }
+            }
+        }
     }
 
 

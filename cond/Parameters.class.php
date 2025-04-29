@@ -106,7 +106,7 @@ class cond_Parameters extends bgerp_ProtoParam
         if (!isset($cClass) && !isset($cId)) return;
         
         expect($Class = cls::get($cClass));
-        expect($cRec = $Class::fetch($cId));
+        expect($cRec = $Class::fetch($cId), $Class->className, $cId);
         expect($condId = self::fetchIdBySysId($conditionSysId));
         
         // Връщаме стойността ако има директен запис за условието

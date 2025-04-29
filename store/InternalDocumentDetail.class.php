@@ -48,6 +48,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         $mvc->FNC('quantity', 'double(minDecimals=2,maxDecimals=2)', 'caption=К-во,input=none');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage)', 'caption=Допълнително->Забележки');
+        $mvc->setDbIndex('productId');
     }
     
     
@@ -92,7 +93,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         if(!$form->_needPrice){
             $form->setField('packPrice', "input=none");
         } else {
-            $rec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
+            $rec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId, 'sales_Sales')) ? 'yes' : 'no';
             $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
             $form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
         }
@@ -316,12 +317,12 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $quantityInPack = (is_object($pacRec)) ? $pacRec->quantity : 1;
         
         $masterRec = $Master->fetch($masterId);
-        $chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
+        $chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId, 'sales_Sales')) ? 'yes' : 'no';
         $currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
-        
+
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
         if ($row->price) {
-            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $currencyRate, $chargeVat);
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId, $masterRec->valior), $currencyRate, $chargeVat);
         } else {
             $Policy = cls::get('price_ListToCustomers');
             $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $pRec->productId, $pRec->packagingId, ($row->quantity * $quantityInPack), $masterRec->valior, $currencyRate, $chargeVat);

@@ -117,9 +117,10 @@ class doc_Linked extends core_Manager
         $this->FLD('state', 'enum(active=Активно, rejected=Оттеглено)', 'caption=Състояние, input=none');
         
         $this->setDbUnique('outType, outVal, inType, inVal');
-        $this->setDbIndex('outType, outVal');
-        $this->setDbIndex('inType, inVal');
+        $this->setDbIndex('outVal');
+        $this->setDbIndex('inVal');
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('createdBy');
      }
     
     
@@ -201,7 +202,7 @@ class doc_Linked extends core_Manager
      */
     public static function getRecsForType($type, $id, $showRejecte = true, $limit = 100, $Pager = null)
     {
-        $query = self::getQuery();
+        $query = doc_LinkedProxy::getQuery();
         
         if (!$showRejecte) {
             $query->where("#state != 'rejected'");
@@ -963,25 +964,27 @@ class doc_Linked extends core_Manager
             }
         }
         
-        $query = self::getQuery();
+        $query = doc_LinkedProxy::getQuery();
         $query->where("#state = 'active'");
         $query->orderBy('createdOn', 'DESC');
         $query->limit($qLimit);
         
         $query->where(array("#outType = '[#1#]'", $type));
-        
+
+        $actTypeStrArr = array();
+
         // Търсим само в наличните опции
-        $or = false;
         foreach ((array) $actTypeArrOpt as $aTypeStr => $aTypeVerb) {
             $aTypeStr = trim($aTypeStr);
             if (!$aTypeStr) {
                 continue;
             }
-            
-            $query->where(array("#actType = '[#1#]'", $aTypeStr), $or);
-            $or = true;
+            $actTypeStrArr[$aTypeStr] = $aTypeStr;
         }
-        
+        if (!empty($actTypeStrArr)) {
+            $query->in('actType', $actTypeStrArr);
+        }
+
         if ($type == 'doc') {
             
             // Подобен файл - от същия клас
@@ -1075,7 +1078,7 @@ class doc_Linked extends core_Manager
                 }
             }
         }
-        
+
         return $actStr;
     }
     
@@ -1375,6 +1378,7 @@ class doc_Linked extends core_Manager
             $fArr = core_Permanent::get($pKey, $minCreatedOn);
 
             if (!isset($fArr) || !is_array($fArr)) {
+                $docTypeInst->forceProxy($docTypeInst->className);
                 $dQuery = $docTypeInst->getQuery();
                 
                 $dQuery->where("#state != 'rejected'");

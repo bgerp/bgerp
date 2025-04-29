@@ -1,0 +1,14 @@
+<!--ET_BEGIN fromEml-->От: [#fromEml#]
+<!--ET_END fromEml--><!--ET_BEGIN AllTo-->|До|*: [#AllTo#]
+<!--ET_END AllTo--><!--ET_BEGIN AllCc-->|Кп|*: [#AllCc#]
+<!--ET_END AllCc--><!--ET_BEGIN date-->|На|*: [#date#]
+<!--ET_END date--><!--ET_BEGIN fromIp-->IP: [#fromIp#]
+<!--ET_END fromIp--><!--ET_BEGIN inReplyToOrigin-->|В отговор на|*: [#inReplyToOrigin#]
+<!--ET_END inReplyToOrigin--><!--ET_BEGIN files-->|Прикачени файлове|*: [#files#]
+<!--ET_END files-->
+
+
+[#subject#]
+
+
+[#textPart#]

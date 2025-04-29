@@ -107,7 +107,7 @@ class price_Setup extends core_ProtoSetup
         'price_Cache',
         'price_ListBasicDiscounts',
         'price_DiscountsPerDocuments',
-        'migrate::deleteOldDiscounts2403',
+        'migrate::updateCostList2524v2',
     );
 
 
@@ -145,7 +145,7 @@ class price_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'price_reports_PriceList,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_ListRulesImport,price_interface_AverageCostStorePricePolicyImpl,price_interface_LastQuotationFromSupplier,price_interface_LastActiveBomCostWithExpenses';
+    public $defClasses = 'price_reports_PriceList,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_ListRulesImport,price_interface_AverageCostStorePricePolicyImpl,price_interface_LastQuotationFromSupplier,price_interface_LastActiveBomCostWithExpenses,price_interface_LastManifacturePrice';
 
 
     /**
@@ -179,12 +179,14 @@ class price_Setup extends core_ProtoSetup
 
 
     /**
-     * Изтриване на старите твърди отстъпки
+     * Миграция на замърсени каталози
      */
-    public function deleteOldDiscounts2403()
+    public function updateCostList2524v2()
     {
-        $Discounts = cls::get('price_ListBasicDiscounts');
-        $Discounts->setupMvc();
-        $Discounts->delete("#groupId IS NULL");
+        $rec = price_Lists::fetch(price_ListRules::PRICE_LIST_CATALOG);
+        if($rec->parent == price_ListRules::PRICE_LIST_CATALOG){
+            $rec->parent = price_ListRules::PRICE_LIST_COST;
+            price_Lists::save($rec, 'parent');
+        }
     }
 }

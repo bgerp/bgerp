@@ -64,6 +64,9 @@
 	        <tr>
 	            <td>
 	                <ol id="conditions">
+                        <!--ET_BEGIN vatExceptionId-->
+                        <li>|ДДС основание|*: [#vatExceptionId#]</li>
+                        <!--ET_END vatExceptionId-->
 	                    <!--ET_BEGIN validFor-->
 	                    <li> |Валидност на офертата|*: [#validFor#] (|до|* [#validDate#])</li>
 	                    <!--ET_END validFor-->

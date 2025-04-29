@@ -301,8 +301,70 @@ class log_Data extends core_Manager
         
         return $resArr;
     }
-    
-    
+
+
+    /**
+     * Връща брид и ip адресите на последните логнати потребители
+     *
+     * @param integer|null $bSec - ограничаване на записите по време
+     * @param $useCurrent - дали да се гледат текущите браузър и ip
+     * @return array[]
+     */
+    public static function getLastLoginBridAndIpArr($bSec = 3600, $useCurrent = false)
+    {
+        $dQuery = log_Data::getQuery();
+        $dQuery->where("#type = 'login'");
+        $dQuery->where(array("#classCrc = '[#1#]'"), log_Classes::getClassCrc('core_Users'));
+        if (isset($bSec)) {
+            $time = dt::mysql2timestamp(dt::subtractSecs($bSec));
+            $dQuery->where(array("#time >= '[#1#]'", $time));
+        } else {
+            $dQuery->where(array("#time <= '[#1#]'", dt::now()));
+        }
+
+        $dQuery->EXT('bridStr', 'log_Browsers', 'externalName=brid,externalKey=brId');
+        $dQuery->EXT('ipStr', 'log_Ips', 'externalName=ip,externalKey=ipId');
+        $dQuery->EXT('roles', 'core_Users', 'externalName=roles,externalKey=objectId');
+
+        if ($useCurrent) {
+            $brid = log_Browsers::getBrid();
+            if ($brid) {
+                $dQuery->orWhere(array("#bridStr = '[#1#]'", $brid));
+            }
+            $ip = core_Users::getRealIpAddr();
+            if ($ip) {
+                $dQuery->orWhere(array("#ipStr = '[#1#]'", $ip));
+            }
+        }
+
+        $pu = core_Roles::fetchByName('powerUser');
+
+        $dQuery->like("roles", type_Keylist::fromArray(array($pu => $pu)));
+
+        $dQuery->orderBy('time', 'DESC');
+
+        $bridArr = array();
+        $ipArr = array();
+        while ($dRec = $dQuery->fetch()) {
+            $nick = core_Users::getNick($dRec->objectId);
+            $names = core_Users::fetchField($dRec->objectId, 'names');
+            $names = core_Users::prepareUserNames($names);
+
+            if (!$bridArr[$dRec->bridStr]) {
+                $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->bridStr})</span>";
+                $bridArr[$dRec->bridStr] = array('val' => $dRec->bridStr, 'template' => $template, 'search' => $dRec->bridStr . ' ' . $nick . ' ' . $names);
+            }
+
+            if (!$ipArr[$dRec->ipStr]) {
+                $template = "{$nick} <span class='autocomplete-name'>{$names} ({$dRec->ipStr})</span>";
+                $ipArr[$dRec->ipStr] = array('val' => $dRec->ipStr, 'template' => $template, 'search' => $dRec->ipStr . ' ' . $nick . ' ' . $names);
+            }
+        }
+
+        return array('bridArr' => $bridArr, 'ipArr' => $ipArr);
+    }
+
+
     /**
      * Връща заявка за съответния обект
      *
@@ -804,7 +866,7 @@ class log_Data extends core_Manager
                         $clsInst = cls::get($className);
                         
                         if (method_exists($clsInst, 'getTitleForId_')) {
-                            $objSuggArr[$cRec->objectId] = $clsInst->getTitleForId($cRec->objectId);
+                            $objSuggArr[$cRec->objectId] = $clsInst->getTitleForId($cRec->objectId, false);
                         } else {
                             $objSuggArr[$cRec->objectId] = $cRec->objectId;
                         }

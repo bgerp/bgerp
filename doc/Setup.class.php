@@ -190,6 +190,18 @@ defIfNot('DOC_DEFAULT_INCHARGE', '');
 
 
 /**
+ * Достъп по подразбиране на създаденият потребител
+ */
+defIfNot('DOC_DEFAULT_ACCESS', 'private');
+
+
+/**
+ * Да се показват ли сумите с ДДС в съмърито на лист изгледа
+ */
+defIfNot('DOC_SHOW_LIST_SUMMARY_VAT', 'no');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -261,6 +273,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_PENDING_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за създадени документи->Заявки, customizeBy=powerUser'),
 
         'DOC_DEFAULT_INCHARGE' => array('user(roles=sales|ceo, allowEmpty)', 'caption=Отговорник по подразбиране на папките->Потребител'),
+        'DOC_DEFAULT_ACCESS' => array('enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Отговорник по подразбиране на папките->Достъп'),
 
         'DOC_SHOW_DOCUMENTS_BEGIN' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
@@ -276,6 +289,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON' => array('time(unit=years, suggestions=Без ограничение|6 месеца|1 год.|2 год.|3 год.|5 год.)', 'caption=До колко време назад да се показват филтрираните документи при избор на период "Всички" в списъка->Време,customizeBy=officer'),
         'DOC_SHOW_LAST_VISITED_AS_PROTOTYPES' => array('int(Min=0)', 'caption=Показване на последно посетените документи за избор на Шаблони->Брой, customizeBy=powerUser'),
         'DOC_OPEN_FOLDER_AFTER_REJECT' => array('enum(yes=Да,no=Не)', 'canView=no_one, caption=Пренасочване към папката|*&#44; | след оттегляне на първия документ в нишката->Избор, customizeBy=debug'),
+        'DOC_SHOW_LIST_SUMMARY_VAT' => array('enum(yes=С ДДС,no=Без ДДС)', 'caption=Показване на статистиката в лист изгледите->ДДС, customizeBy=powerUser'),
     );
 
     // Инсталиране на мениджърите
@@ -303,7 +317,7 @@ class doc_Setup extends core_ProtoSetup
         'doc_FolderResources',
         'doc_LinkedLast',
         'doc_TplManagerHandlerCache',
-//        'doc_UnsortedFolderSteps',
+        'doc_UnsortedFolderSteps',
         'migrate::showFiles2152',
     );
 
@@ -614,5 +628,80 @@ class doc_Setup extends core_ProtoSetup
         $lastId++;
 
         core_Permanent::set('docFilesLastId', $lastId, 1000);
+    }
+
+
+    /**
+     * Реконтиране на документи към активни сделки
+     */
+    public static function callback_recontoActivePayments($classes)
+    {
+        foreach (array('sales_Sales', 'purchase_Purchases', 'findeals_Deals') as $dealClass){
+            $Deal = cls::get($dealClass);
+
+            // Всички активни сделки
+            $threads = $closedDeals = $closedThreads = array();
+            $dQuery = $Deal->getQuery();
+            $dQuery->where("#state = 'active'");
+            $dQuery->show('id,threadId,closedDocuments');
+            while($dRec = $dQuery->fetch()){
+                $threads[$dRec->threadId] = $dRec->threadId;
+                if(!empty($dRec->closedDocuments)){
+                    $closedDeals += arr::make(keylist::toArray($dRec->closedDocuments), true);
+                }
+            }
+
+            // Ако някои са обединяващи - кои нишки са обединили
+            if(countR($closedDeals)){
+                $dQuery2 = $Deal->getQuery();
+                $dQuery2->in('id', $closedDeals);
+                $dQuery2->show('threadId');
+                $closedThreads += arr::extractValuesFromArray($dQuery2->fetchAll(), 'threadId');
+                $threads += $closedThreads;
+            }
+
+            if(!countR($threads)) continue;
+
+            // Всеки активен документ в тези папки
+            $recontoCloseDocs = array();
+            foreach ($classes as $payDoc){
+                $pQuery = $payDoc::getQuery();
+                $pQuery->where("#state = 'active'");
+                $pQuery->in('threadId', $threads);
+                $pQuery->show('containerId,threadId');
+                core_App::setTimeLimit(0.4 * $pQuery->count(), false, 300);
+
+                // Реконтира се
+                while($pRec = $pQuery->fetch()){
+                    acc_Journal::reconto($pRec->containerId);
+                    if(isset($closedThreads[$pRec->threadId])){
+                        $recontoCloseDocs[$pRec->threadId] = $pRec->threadId;
+                    }
+                }
+            }
+
+            // Ако има реконтиран документ в обединена нишка - реконтира се и обединяващия договор
+            if(countR($recontoCloseDocs)){
+
+                // Реконтиране на курсовите разлики
+                $curQuery = acc_RatesDifferences::getQuery();
+                $curQuery->in('threadId', $recontoCloseDocs);
+                $curQuery->where("state = 'active'");
+                $curQuery->show('containerId,threadId');
+                while($curRec = $curQuery->fetch()){
+                    acc_Journal::reconto($curRec->containerId);
+                }
+
+                // Реконтиране на обединените договори
+                $closedDoc = cls::get($dealClass)->closeDealDoc;
+                $closeQuery = $closedDoc::getQuery();
+                $closeQuery->in('threadId', $recontoCloseDocs);
+                $closeQuery->where("state = 'active'");
+                $closeQuery->show('containerId,threadId');
+                while($cRec = $closeQuery->fetch()){
+                    acc_Journal::reconto($cRec->containerId);
+                }
+            }
+        }
     }
 }

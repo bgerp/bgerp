@@ -174,6 +174,7 @@ class planning_interface_ProductionNoteImpl extends label_ProtoSequencerImpl
         $measureId = $pRec->measureId;
 
         $jobRec = planning_DirectProductionNote::getJobRec($rec);
+
         $jobHandle = "#" . planning_Jobs::getHandle($jobRec);
         
         $code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
@@ -230,8 +231,6 @@ class planning_interface_ProductionNoteImpl extends label_ProtoSequencerImpl
         $date = dt::mysql2verbal($rec->valior, 'd.m.Y');
         $singleUrl = toUrl(array($this->class, 'single', $rec->id), 'absolute');
         $arr = array();
-
-
         $saleRec = isset($jobRec->saleId) ? sales_Sales::fetch($jobRec->saleId) : null;
 
         for ($i = 1; $i <= $cnt; $i++) {

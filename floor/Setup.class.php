@@ -60,6 +60,14 @@ class floor_Setup extends core_ProtoSetup
 
 
     /**
+     * Връзки от менюто, сочещи към модула
+     */
+    public $menuItems = array(
+        array(3.51, 'Мониторинг', 'Планове', 'floor_Plans', 'default', 'floor, admin, ceo'),
+    );
+
+
+    /**
      * Дефинирани класове с интерфейси
      */
     public $defClasses = 'floor_TestDecorator';

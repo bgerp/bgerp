@@ -17,7 +17,7 @@ defIfNot('EF_BGERP_LINK_TITLE', 'За bgERP||About');
  * Дали да се презаписват .htaccess файловете?
  * Може да се зададе друга стойност в конфигурационния файл (напр. conf/bgerp.cfg.php)
  */
-defIfNot('CORE_OVERWRITE_HTAACCESS', true);
+defIfNot('CORE_OVERWRITE_HTAACCESS', false);
 
 
 /**
@@ -220,13 +220,19 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '24.23-Malyovitsa');
+define('CORE_CODE_VERSION', '25.18-Dzhangal');
 
 
 /**
  * Включена ли е бекъп функционалността?
  */
 defIfNot('CORE_BACKUP_ENABLED', 'no');
+
+
+/**
+ * Дефолтен шрифт на системата
+ */
+defIfNot('CORE_FONTS', 'roboto');
 
 
 /**
@@ -356,6 +362,8 @@ class core_Setup extends core_ProtoSetup
         'CORE_SYSTEM_NAME' => array('varchar(16)', 'caption=Системен потребител->Име'),
         
         'CORE_FIRST_ADMIN' => array('user(roles=admin, rolesForTeams=admin, rolesForAll=admin, allowEmpty)', 'caption=Главен администратор на системата->Потребител'),
+
+        'CORE_FONTS' =>  array('enum(arial=Arial, roboto=Roboto, sofiaSans=Sofia Sans, openSans=Open Sans)', 'caption=Вътрешен изглед->Шрифт, customizeBy=powerUser, placeholder=Arial'),
         
         'CORE_LOGIN_INFO' => array('varchar', 'caption=Информация във формата за логване->Текст, customizeBy=admin'),
         
@@ -430,7 +438,7 @@ class core_Setup extends core_ProtoSetup
         'core_Permanent',
         'core_UserReg',
         'migrate::clearCallOnTimeBadData2212',
-        'migrate::repairSearchKeywords2351',
+        'migrate::repairSearchKeywords2438',
         'migrate::setBGERPUNIQId3020'
     );
     
@@ -727,7 +735,7 @@ class core_Setup extends core_ProtoSetup
     /**
      * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
      */
-    public static function repairSearchKeywords2351()
+    public static function repairSearchKeywords2438()
     {
         // Вземаме инстанция на core_Interfaces
         $Interfaces = cls::get('core_Interfaces');

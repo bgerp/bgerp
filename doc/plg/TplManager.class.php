@@ -366,9 +366,9 @@ class doc_plg_TplManager extends core_Plugin
         
         // Добавяме бланките
         if (Request::get('asClient')) {
-            $companyName = $data->row->inlineContragentName;
-            
-            if ($companyName) {
+            $qrString = $data->row->asClientQrCodeString ?? $data->row->inlineContragentName;
+
+            if ($qrString) {
                 $params = array(
                     'pixelPerPoint' => 6,
                     'outFileName' => null,
@@ -378,7 +378,7 @@ class doc_plg_TplManager extends core_Plugin
                 );
                 
                 try {
-                    $data->row->blankQrClient = barcode_Generator::getLink('qr', $companyName, array('width' => 87, 'height' => 87), $params);
+                    $data->row->blankQrClient = barcode_Generator::getLink('qr', $qrString, array('width' => 87, 'height' => 87), $params);
                 } catch (Exception $e) {
                     reportException($e);
                 }

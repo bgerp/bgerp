@@ -79,19 +79,19 @@ class eshop_Settings extends core_Master
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_INTRODUCTION_BG = 'Здравейте [#NAME#],';
+    const DEFAULT_EMAIL_INTRODUCTION_BG = 'Здравейте, [b][#NAME#][/b],';
     
     
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_INTRODUCTION_EN = 'Hello [#NAME#],';
+    const DEFAULT_EMAIL_INTRODUCTION_EN = 'Hello [b][#NAME#][/b],';
     
     
     /**
      * Дефолтен шаблон за текст за добавяне към количката на bg
      */
-    const DEFAULT_EMAIL_FOOTER_BG = "Сърдечни поздрави,\nЕкипът на [#COMPANY_NAME#]";
+    const DEFAULT_EMAIL_FOOTER_BG = "С уважение,\nЕкипът на [#COMPANY_NAME#]";
     
     
     /**
@@ -233,6 +233,7 @@ class eshop_Settings extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory,removeAndRefreshForm=freeDelivery|freeDeliveryByBus,silent');
         $this->FLD('minOrderAmount', 'double(min=0)', 'caption=Условия на плащане->Мин. поръчка');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС, no=Без ДДС)', 'caption=Условия на плащане->ДДС режим');
+        $this->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Условия на плащане->ДДС изключение');
 
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика->Политика,placeholder=Автоматично');
         $this->FLD('discountType', 'set(percent=Процент,amount=Намалена сума)', 'caption=Показване на отстъпки спрямо "Каталог"->Като,mandatory');
@@ -264,7 +265,6 @@ class eshop_Settings extends core_Master
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Показване на е-артикулите във външната част->Опаковки/Мерки');
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа артикули)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
-        $this->FLD('canUseCards', 'enum(yes=Включено,no=Изключено)', 'caption=Възможност за логване с клиентска карта->Избор,notNull,value=yes');
         $this->FLD('locationIsMandatory', 'enum(no=Опционална,yes=Задължителна)', 'caption=Настройки на партньори за онлайн магазина->Локация,notNull,value=no');
         
         $this->FLD('addProductText', 'text(rows=3)', 'caption=Добавяне на артикул към количката->Текст');
@@ -272,8 +272,10 @@ class eshop_Settings extends core_Master
         $this->FLD('info', 'richtext(rows=3)', 'caption=Условия на продажбата под количката->Текст');
         $this->FLD('inboxId', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Кутия от която да се изпраща имейл->Кутия');
         $this->FLD('state', 'enum(active=Активно,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
-        $this->FLD('emailBodyIntroduction', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Увод,oldFieldName=emailBody');
-        $this->FLD('emailBodyFooter', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Футър,oldFieldName=emailRegistrationText');
+        $this->FLD('emailBodyIntroduction', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Увод');
+        $this->FLD('emailBodyFooter', 'richtext(rows=3)', 'caption=Текст на имейл за направена поръчка->Футър');
+        $this->FLD('emailBodyContactTel', 'drdata_PhoneType', 'caption=Текст на имейл за направена поръчка->Телефон за контакт');
+        $this->FLD('emailBodyContactEmail', 'email', 'caption=Текст на имейл за направена поръчка->Имейл за контакт');
         $this->FLD('lifetimeForEmptyDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->Празни');
         $this->FLD('lifetimeForNoUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На анонимни');
         $this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');
@@ -287,6 +289,7 @@ class eshop_Settings extends core_Master
         $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Каса');
 
         $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми,both=Фирми и лица)', 'caption=Онлайн поръчки->Допускат се за,notNull,value=auto');
+        $this->FLD('inputCardBtn', 'enum(yes=Включено,no=Изключено)', 'caption=Онлайн поръчки->Въвеждане на карта/ваучер,notNull,value=no');
         $this->FLD('mandatoryInquiryContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допускат се за,notNull,value=auto');
         $this->FLD('mandatoryEGN', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕГН');
         $this->FLD('mandatoryUicId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕИК');
@@ -406,7 +409,7 @@ class eshop_Settings extends core_Master
         $form->setDefault('discountType', $mvc->getFieldType('discountType')->fromVerbal('percent'));
         
         $ownCompany = crm_Companies::fetchOurCompany('id,country');
-        $shouldChargeVat = crm_Companies::shouldChargeVat($ownCompany->id);
+        $shouldChargeVat = crm_Companies::shouldChargeVat($ownCompany->id, 'sales_Sales');
         $defaultChargeVat = ($shouldChargeVat === true) ? 'yes' : 'no';
         $form->setDefault('chargeVat', $defaultChargeVat);
         
@@ -537,13 +540,12 @@ class eshop_Settings extends core_Master
             return self::get($classId, $objectId, $date);
         }
         
-        $settingRec = core_Cache::get('eshop_Settings', $cacheKey);
-        
+        $settingRec = core_Cache::get('eshop_Settings', $cacheKey, 1440, array('eshop_Settings'));
         if (!is_object($settingRec)) {
             $date = dt::now();
             $settingRec = self::get($classId, $objectId, $date);
             if (is_object($settingRec)) {
-                core_Cache::set('eshop_Settings', $cacheKey, $settingRec, 10080);
+                core_Cache::set('eshop_Settings', $cacheKey, $settingRec, 1440, array('eshop_Settings'));
             }
         }
         

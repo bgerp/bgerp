@@ -32,7 +32,7 @@ class cat_Params extends bgerp_ProtoParam
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2,plg_SaveAndNew, plg_Sorting';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_State2,plg_SaveAndNew, plg_Sorting, plg_Rejected';
     
     
     /**
@@ -63,8 +63,14 @@ class cat_Params extends bgerp_ProtoParam
      * Кой има право да го изтрие?
      */
     public $canDelete = 'cat,ceo';
-    
-    
+
+
+    /**
+     * Кой може да оттегля?
+     */
+    public $canReject = 'cat,ceo';
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -105,6 +111,7 @@ class cat_Params extends bgerp_ProtoParam
         $this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Външни документи,notNull,value=yes,maxRadio=2');
         $this->FLD('showInTasks', 'enum(no=Не,yes=Да)', 'caption=Показване на параметъра->Пр. операции,notNull,value=no,maxRadio=2');
         $this->FLD('editInLabel', 'enum(yes=Да,no=Не)', 'caption=Показване на параметъра->Редакция в етикет,notNull,value=yes,maxRadio=2');
+        $this->FLD('state', 'enum(active=Активен,closed=Затворен,rejected=Оттеглен)', 'caption=Видимост,input=none,notSorting,notNull,value=active,smartCenter');
     }
     
     
@@ -218,11 +225,13 @@ class cat_Params extends bgerp_ProtoParam
      * @param array $paramArr
      * @return core_ET $tpl
      */
-    public static function renderParamBlock($paramArr)
+    public static function renderParamBlock($paramArr, $paramCaption = null)
     {
         $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
         $lastGroupId = null;
-        
+        $paramCaption = $paramCaption ?? tr('Параметри');
+
+        $tpl->replace($paramCaption, 'PARAM_CAPTION');
         if (is_array($paramArr)) {
             foreach ($paramArr as &$row2) {
                 $block = clone $tpl->getBlock('PARAM_GROUP_ROW');
@@ -362,6 +371,14 @@ class cat_Params extends bgerp_ProtoParam
 
         if (is_array($params)) {
             foreach ($params as $paramId => $value) {
+                // Ако ключа е не е ид, но е лайв параметър - взима се такъв
+                if(!is_numeric($paramId)){
+                    if(strpos($paramId, '$') !== false){
+                        $strings[$paramId] = $value;
+                    }
+                    continue;
+                }
+
                 if(cat_Params::haveDriver($paramId, 'cond_type_YesOrNo')){
                     $value = ($value == 'yes') ? 1 : 0;
                 }
@@ -405,5 +422,23 @@ class cat_Params extends bgerp_ProtoParam
         }
 
         return $context;
+    }
+
+
+    /**
+     * След подготовка на сингъл тулбара
+     *
+     * @param $mvc
+     * @param $data
+     * @return void
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        if (log_Data::haveRightFor('list')) {
+            $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
+            if ($historyCnt) {
+                $data->toolbar->addBtn("История|* ({$historyCnt})", array('log_Data', 'list', 'class' => $mvc->className, 'object' => $data->rec->id, 'ret_url' => true), 'id=btn-history', 'ef_icon = img/16/book_open.png, title=Разглеждане на историята на файла, row=2');
+            }
+        }
     }
 }

@@ -148,7 +148,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
 
         //Филтър по групи артикули
-        $sQuery->likeKeylist('groups', $rec->groups);
+        plg_ExpandInput::applyExtendedInputSearch('cat_Products', $sQuery, $rec->groups, 'productId');
+
 
         if ($rec->stores) {
             $storesArr = keylist::toArray($rec->stores);
@@ -229,10 +230,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
-            $fld->FLD('reserved', 'varchar', 'caption=Количество->Запазено,smartCenter');
-            $fld->FLD('expected', 'varchar', 'caption=Количество->Очаквано,smartCenter');
-            $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Налично,smartCenter');
+            $fld->FLD('reserved', 'double(decimals=2)', 'caption=Количество->Запазено,smartCenter');
+            $fld->FLD('expected', 'double(decimals=2)', 'caption=Количество->Очаквано,smartCenter');
+            $fld->FLD('free', 'double(decimals=2)', 'caption=Количество->Разполагаемо,smartCenter');
 
             if (core_Users::haveRole('debug')) {
                 $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
@@ -245,13 +246,13 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('date', 'varchar', 'caption=Падеж,tdClass=centered');
             $fld->FLD('note', 'varchar', 'caption=Поръчка,tdClass=centered');
             $fld->FLD('store', 'varchar', 'caption=Склад,tdClass=centered');
-            $fld->FLD('docReservedQuantyti', 'double(decimals=2)', 'caption=Количество->Запазено,smartCenter');
-            $fld->FLD('docExpectedQuantyti', 'double(decimals=2)', 'caption=Количество->Очаквано,smartCenter');
+            $fld->FLD('docReservedQuantyti', 'double(decimals=2)', 'caption=Количество->Запазено');
+            $fld->FLD('docExpectedQuantyti', 'double(decimals=2)', 'caption=Количество->Очаквано');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество Общо->Налично,smartCenter');
-            $fld->FLD('reserved', 'double(decimals=2)', 'caption=Количество Общо->Запазено,smartCenter');
-            $fld->FLD('expected', 'double(decimals=2)', 'caption=Количество Общо->Очаквано,smartCenter');
-            $fld->FLD('free', 'double(decimals=2)', 'caption=Количество Об що->Разполагаемо,smartCenter');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество Общо->Налично');
+            $fld->FLD('reserved', 'varchar', 'caption=Количество Общо->Запазено');
+            $fld->FLD('expected', 'varchar', 'caption=Количество Общо->Очаквано');
+            $fld->FLD('free', 'double(decimals=2)', 'caption=Количество Об що->Разполагаемо');
 
         }
 
@@ -276,7 +277,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $Int = cls::get('type_Int');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 3;
-        $Double->params['smartRound'] = 'smartRound';
 
         $row = new stdClass();
 

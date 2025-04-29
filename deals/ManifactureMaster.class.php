@@ -68,7 +68,9 @@ abstract class deals_ManifactureMaster extends core_Master
         $mvc->FLD('deadline', 'datetime', 'caption=Срок до');
         $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Забележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
+
         $mvc->setDbIndex('valior');
+        $mvc->setDbIndex('storeId');
     }
     
     
@@ -98,8 +100,12 @@ abstract class deals_ManifactureMaster extends core_Master
             if (isset($rec->storeId)) {
                 $storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
                 if ($storeLocation) {
-                    $row->storeLocation = crm_Locations::getAddress($storeLocation);
+                    $row->storeId = ht::createHint($row->storeId, crm_Locations::getAddress($storeLocation));
                 }
+            }
+
+            if($jobRec = static::getJobRec($rec)){
+                $row->jobId = planning_Jobs::getHyperlink($jobRec->id, true);
             }
         }
         
@@ -107,17 +113,56 @@ abstract class deals_ManifactureMaster extends core_Master
             $row->title = $mvc->getLink($rec->id, 0);
         }
     }
-    
-    
+
+
+    /**
+     * Към кое задание е документа
+     *
+     * @param $rec
+     * @return mixed|null
+     */
+    public static function getJobRec($rec)
+    {
+        $rec = static::fetchRec($rec);
+        $threadId = isset($rec->originId) ? doc_Containers::fetchField($rec->originId, 'threadId') : $rec->threadId;
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if(isset($firstDoc) && $firstDoc->isInstanceOf('deals_ManifactureMaster')) return;
+
+        $Origin = isset($rec->originId) ? doc_Containers::getDocument($rec->originId) : $firstDoc;
+        if($Origin){
+            if($Origin->isInstanceOf('planning_Jobs')) return $Origin->fetch();
+            if($Origin->isInstanceOf('planning_ConsumptionNotes')) return $Origin->getJobRec();
+
+            if($Origin->isInstanceOf('planning_Tasks')){
+                $jobDoc = doc_Containers::getDocument($Origin->fetchField('originId'));
+                return $jobDoc->fetch();
+            }
+        }
+
+        return null;
+    }
+
+
     /**
      * Преди показване на форма за добавяне/промяна
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $folderCover = doc_Folders::getCover($data->form->rec->folderId);
+        $folderCover = doc_Folders::getCover($form->rec->folderId);
         if ($folderCover->haveInterface('store_AccRegIntf')) {
             $form->setDefault('storeId', $folderCover->that);
+        }
+
+        if($form->getField('useResourceAccounts', false)){
+            if(isset($form->rec->id)){
+                if(core_Packs::isInstalled('batch')){
+                    if(batch_BatchesInDocuments::count("#containerId = {$form->rec->containerId}")){
+                        $form->setReadOnly('useResourceAccounts');
+                        $form->setField('useResourceAccounts', array('hint' => 'За да смените типа на влагането, трябва да се изтрият вече разписаните партиди'));
+                    }
+                }
+            }
         }
     }
 
@@ -204,8 +249,11 @@ abstract class deals_ManifactureMaster extends core_Master
         
         return ($folderClass == 'store_Stores' || $folderClass == 'planning_Centers');
     }
-    
-    
+
+
+
+
+
     /**
      * Проверка дали нов документ може да бъде добавен в посочената нишка
      *
@@ -217,11 +265,29 @@ abstract class deals_ManifactureMaster extends core_Master
     {
         // Може да добавяме или към нишка в която има задание
         if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
-            
+
             return true;
         }
-        
-        
+
+        // Може да добавяме или към нишка в която има задание
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
+
+            return true;
+        }
+
+        // Ако корицата е папка на склад
+        $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        $Cover = doc_Folders::getCover($folderId);
+        if($Cover->isInstanceOf('store_Stores')) return true;
+
+        // Ако не е ПП и е в нишка на сигнал за поддръжка
+        $me = cls::get(get_called_class());
+        if(!($me instanceof planning_ProductionDocument)){
+            if($Cover->isInstanceOf('planning_Centers')) return true;
+
+            if(cal_Tasks::fetchField("#threadId = {$threadId} AND #state IN ('active','stopped','wakeup','closed','pending')")) return true;
+        }
+
         return false;
     }
 
@@ -246,10 +312,8 @@ abstract class deals_ManifactureMaster extends core_Master
                     return false;
                 }
             }
-        } elseif(($this instanceof planning_ConsumptionNotes) && $origin->isInstanceOf('cal_Tasks')){
-            $supportTaskClassType = support_TaskType::getClassId();
+        } elseif(($this instanceof planning_ConsumptionNotes || $this instanceof planning_ReturnNotes) && $origin->isInstanceOf('cal_Tasks')){
             $originRec = $origin->fetch('driverClass,state');
-            if($originRec->driverClass != $supportTaskClassType) return false;
             if (in_array($originRec->state, array('rejected', 'draft', 'waiting', 'stopped'))) return false;
         } elseif(($this instanceof planning_ReturnNotes) && $origin->isInstanceOf('planning_DirectProductionNote')){
             $originRec = $origin->fetch('state');
@@ -328,23 +392,17 @@ abstract class deals_ManifactureMaster extends core_Master
 
 
     /**
-     * Към кое задание е свързана нишката
-     *
-     * @param int $threadId
-     * @return stdClass|null $jobRec
+     * Добавя ключови думи за пълнотекстово търсене
      */
-    public static function getJobFromThread($threadId)
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $jobRec = null;
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if($firstDoc){
-            if ($firstDoc->isInstanceOf('planning_Tasks')) {
-                $jobRec = doc_Containers::getDocument($firstDoc->fetchField('originId'))->fetch();
-            } elseif($firstDoc->isInstanceOf('planning_Jobs')) {
-                $jobRec = $firstDoc->fetch();
-            }
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
         }
 
-        return $jobRec;
+        if($jobRec = static::getJobRec($rec)){
+            $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getRecTitle($jobRec));
+        }
     }
 }

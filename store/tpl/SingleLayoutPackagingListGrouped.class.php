@@ -128,6 +128,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
 
         // Скриване на колонките за нето/тара/бруто
         $masterRec = $data->masterData->rec;
+        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+        $vatType = $firstDoc->isInstanceOf('sales_Sales') ? 'sales' : 'purchase';
 
         $columnCount = countR($data->listFields);
         $totalInPackListWithTariffCodeVal = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, 'totalInPackListWithTariffCode');
@@ -163,7 +165,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             if($totalInPackListWithTariffCodeVal == 'yes'){
                 $amountR = $rec1->amount * (1 - $rec1->discount);
                 if($masterRec->chargeVat == 'separate'){
-                    $vat = cat_Products::getVat($rec1->productId, $masterRec->valior);
+                    $vat = cat_Products::getVat($rec1->productId, $masterRec->valior, $vatType);
                     $amountR += $amountR * $vat;
                 }
 
@@ -383,7 +385,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         }
 
         if(countR($warnings)){
-            $blockTpl = new core_ET("<div class='invoiceNoteWarning' style='margin-top: 10px;'>[#warnings#]<br>[#btnTransfer#]</div>");
+            $blockTpl = new core_ET("<div class='invoiceNoteWarning' style='margin-bottom: 5px;margin-bottom: 5px;'>[#warnings#]<br>[#btnTransfer#]</div>");
             $blockTpl->append(implode('<br>', $warnings), 'warnings');
 
             if($detail->Master->haveRightFor('changeline', $data->masterId)){
@@ -392,7 +394,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
                 $blockTpl->append($btnTransfer, 'btnTransfer');
             }
 
-            $tpl->append($blockTpl);
+            $tpl->prepend($blockTpl);
         }
     }
 }

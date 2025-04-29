@@ -96,12 +96,13 @@ class crm_Companies extends core_Master
      * Полета за експорт
      */
     public $exportableCsvFields = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax,website,info,logo,folderName,nkid,groupList';
-    
+
+
     /**
      * Класове за автоматично зареждане
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
-                     Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
+                     Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, change_plg_History, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, drdata_plg_Canonize, plg_Printing,
                      acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,
                      plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg';
@@ -300,8 +301,35 @@ class crm_Companies extends core_Master
         'pCode' => array('Пощенски код', '#pCode=DESC', 'pCode=П. код'),
         'website' => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
     );
-    
-    
+
+
+    /**
+     * Кои полета да се следят за промяна в логовете
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableFields = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax,info';
+
+
+    /**
+     * Кои изчислими полета от следените за промяна да се показват при сравнение на версиите
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableAdditionalComparableFields = 'title';
+
+
+    /**
+     * Икони на контрагента спрямо състоянието на сделките в него
+     */
+    public $icons = array('noDeals' => 'img/16/office-building-gray.png',
+                          'activeDeals' => 'img/16/office-building-green.png',
+                          'overdueSales' => 'img/16/office-building-red.png',
+                          'standart' => 'img/16/office-building.png');
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -455,7 +483,7 @@ class crm_Companies extends core_Master
         }
         
         if (!empty($data->listFilter->rec->groupId)) {
-            $data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groupList)");
+            plg_ExpandInput::applyExtendedInputSearch($mvc, $data->query, $data->listFilter->rec->groupId);
         }
     }
     
@@ -908,7 +936,7 @@ class crm_Companies extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
-        
+
         if ($fields['-single']) {
             // Fancy ефект за картинката
             $Fancybox = cls::get('fancybox_Fancybox');
@@ -931,9 +959,9 @@ class crm_Companies extends core_Master
             if ($rec->folderName) {
                 $row->title = $row->name;
             }
-            
+
             // Разширяване на $row
-            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec);
+            crm_ext_ContragentInfo::extendRow($mvc, $row, $rec, $fields);
         }
         
         // Дали има права single' а на тазу фирма
@@ -947,24 +975,22 @@ class crm_Companies extends core_Master
         
         $row->addressBox .= $pCode ? "{$pCode} " : '';
         $row->addressBox .= $place;
-        
+
+        $row->addressBox .= $address ? "<br/>{$address}" : '';
+
+        $tel = $mvc->getVerbal($rec, 'tel');
+        $fax = $mvc->getVerbal($rec, 'fax');
+        $eml = $mvc->getVerbal($rec, 'email');
+
+        // phonesBox
+        $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : '';
+        $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : '';
+        $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : '';
+        $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
+
         // Ако имаме права за сингъл
-        if ($canSingle) {
-            $row->addressBox .= $address ? "<br/>{$address}" : '';
-            
-            $tel = $mvc->getVerbal($rec, 'tel');
-            $fax = $mvc->getVerbal($rec, 'fax');
-            $eml = $mvc->getVerbal($rec, 'email');
-            
-            // phonesBox
-            $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : '';
-            $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : '';
-            $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : '';
-            $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
-        } else {
-            
-            // Добавяме линк към профила на потребителя, който е inCharge на визитката
-            $row->phonesBox = tr('Отговорник') . ': ' . crm_Profiles::createLink($rec->inCharge);
+        if (!$canSingle) {
+            $row->phonesBox = static::displayInfoWhenIsNotAccessible($rec->inCharge, $rec->shared) . $row->phonesBox;
         }
         
         $ownCompany = crm_Companies::fetchOurCompany();
@@ -980,7 +1006,7 @@ class crm_Companies extends core_Master
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : '');
         
         if (!$row->title) {
-            $row->title .= $mvc->getTitleById($rec->id);
+            $row->title .= $mvc->getTitleById($rec);
         }
         
         if ($rec->folderName) {
@@ -990,7 +1016,9 @@ class crm_Companies extends core_Master
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
         if ($rec->vatId && $rec->uicId) {
             if ("BG{$rec->uicId}" == $rec->vatId) {
-                unset($row->uicId);
+                if(!isset($fields['-compare'])) {
+                    unset($row->uicId);
+                }
             }
         }
     }
@@ -1357,8 +1385,7 @@ class crm_Companies extends core_Master
         if ($params['group']) {
             $gId = crm_Groups::getIdFromSysId($params['group']);
             expect($gId);
-
-            $query->likeKeylist('groupList', $gId);
+            plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $query, $gId);
         }
 
         $res = array();
@@ -1478,14 +1505,16 @@ class crm_Companies extends core_Master
      *
      * @param string $fields
      * @param int|null $ownCompanyId
+     * @param datetime|null $date
      * @return null|stdClass $rec
      */
-    public static function fetchOurCompany($fields = '*', $ownCompanyId = null)
+    public static function fetchOurCompany($fields = '*', $ownCompanyId = null, $date = null)
     {
         $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
         $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
         $rec = self::fetch($id);
-        
+        $rec = change_History::getRecOnDate(get_called_class(), $rec->id, $date);
+
         if ($rec) {
             $rec->classId = core_Classes::getId('crm_Companies');
         }
@@ -1550,17 +1579,16 @@ class crm_Companies extends core_Master
 
 
     /**
-     * Дали на фирмата се начислява ДДС:
-     * Не начисляваме ако:
-     * 		1 . Не е от ЕС
-     * 		2.  Има ЕИК от ЕС, различен от BG
-     * Ако няма държава начисляваме ДДС
+     * Дали на лицето се начислява ДДС:
+     * Начисляваме винаги ако е в ЕУ (ако е регистриран по ДДС)
      *
-     * @param int $id - id' то на записа
+     * @param int $id                - id' то на записа
+     * @param mixed $class           - за кой клас
      * @param int|null $ownCompanyId - ид на "Моята фирма"
+     *
      * @return bool TRUE/FALSE
      */
-    public static function shouldChargeVat($id, $ownCompanyId = null)
+    public static function shouldChargeVat($id, $class, $ownCompanyId = null)
     {
         $rec = static::fetch($id);
         if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;
@@ -1627,16 +1655,16 @@ class crm_Companies extends core_Master
     
     /**
      * Фирмата, от чието лице работи bgerp (crm_Setup::BGERP_OWN_COMPANY_ID)
-     * @param int|null $ownCompanyId - ид на моята фирма
-     *
+     * @param int|null $ownCompanyId      - ид на моята фирма
+     * @param datetime|null $datetime     - към коя дата
      * @return stdClass @see doc_ContragentDataIntf::getContragentData()
      */
-    public static function fetchOwnCompany($ownCompanyId = null)
+    public static function fetchOwnCompany($ownCompanyId = null, $datetime = null)
     {
         $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
         $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
 
-        return static::getContragentData($id);
+        return static::getContragentData($id, $datetime);
     }
     
     
@@ -1657,10 +1685,14 @@ class crm_Companies extends core_Master
         } else {
             // Конфигурационните данните
             $conf = core_Packs::getConfig('crm');
-            
-            // Заглавието
-            $title = $rec->name;
-            
+
+            if ($escaped) {
+                // Заглавието
+                $title = self::getVerbal($rec, 'name');
+            } else {
+                $title = $rec->name;
+            }
+
             // Ако е зададена държава
             if ($rec->country) {
                 
@@ -1748,16 +1780,25 @@ class crm_Companies extends core_Master
     /**
      * Връща данните на фирмата
      *
-     * @param int    $id    - id' то на записа
-     * @param string $email - Имейл
+     * @param int    $id          - id' то на записа
+     * @param datetime|null $date - към коя дата
      *
-     * return object
+     * return stdClass
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         //Вземаме данните от визитката
         $company = crm_Companies::fetch($id);
-        
+
+        // Ако има посочена дата, връщат се контрагент данните КЪМ тази дата
+        if(isset($date)) {
+            $recToDate = change_History::getRecOnDate(get_called_class(), $company, $date);
+
+            if($recToDate) {
+                $company = $recToDate;
+            }
+        }
+
         //Заместваме и връщаме данните
         if ($company) {
             $contrData = new stdClass();
@@ -1777,11 +1818,13 @@ class crm_Companies extends core_Master
             $contrData->address = $company->address;
             $contrData->email = $company->email;
             $contrData->website = $company->website;
-            
+            $contrData->validFrom = $company->validFrom;
+            $contrData->validTo = $company->validTo;
+
             // Вземаме груповите имейли
             $contrData->groupEmails = crm_Persons::getGroupEmails($company->id);
         }
-        
+
         return $contrData;
     }
     
@@ -2161,24 +2204,27 @@ class crm_Companies extends core_Master
     /**
      * Връща пълния конкатениран адрес на контрагента
      *
-     * @param int       $id            - ид на контрагент
-     * @param bool      $translitarate - дали да се транслитерира адреса
-     * @param bool|NULL $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
-     * @param bool      $showAddress   - да се показва ли адреса
+     * @param int        $id            - ид на контрагент
+     * @param bool       $translitarate - дали да се транслитерира адреса
+     * @param bool|NULL  $showCountry   - да се показвали винаги държавата или Не, NULL означава че автоматично ще се определи
+     * @param bool       $showAddress   - да се показва ли адреса
+     * @param date|null  $date          - да се показва ли адреса
      *
      * @return core_ET $tpl - адреса
      */
-    public function getFullAdress($id, $translitarate = false, $showCountry = null, $showAddress = true)
+    public function getFullAdress($id, $translitarate = false, $showCountry = null, $showAddress = true, $date = null)
     {
         expect($rec = $this->fetchRec($id));
-        
+        $rec = change_History::getRecOnDate($this, $rec, $date);
+
+
         $obj = new stdClass();
         $tpl = new ET('<!--ET_BEGIN country-->[#country#]<br><!--ET_END country--> <!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--><!--ET_BEGIN place--> [#place#]<br><!--ET_END place--> [#address#]');
         
         // Показваме държавата само ако е различна от тази на моята компания
         if (!isset($showCountry)) {
             if ($rec->country) {
-                $ourCompany = crm_Companies::fetchOurCompany();
+                $ourCompany = crm_Companies::fetchOurCompany('*', null, $date);
                 if ($ourCompany->country != $rec->country) {
                     $obj->country = $this->getVerbal($rec, 'country');
                 }
@@ -2531,19 +2577,20 @@ class crm_Companies extends core_Master
      */
     public static function on_AfterGetSingleIcon($mvc, &$res, $id)
     {
-        if (core_Users::isContractor() || !haveRole('user')) {
-            
-            return ;
-        }
-        
-        if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
-                $res = 'img/16/stop-sign.png';
-            }
-        }
+        $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
     }
-    
-    
+
+
+    /**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     */
+    public function on_AfterGetIcon($mvc, &$res, $id = null)
+    {
+        $res = crm_ext_ContragentInfo::getContragentIcon($mvc, $id);
+    }
+
+
     /**
      * След взимане на заглавието за единичния изглед
      *
@@ -2559,8 +2606,9 @@ class crm_Companies extends core_Master
         }
         
         if ($extRec = crm_ext_ContragentInfo::getByContragent($mvc->getClassId(), $id)) {
-            if ($extRec->overdueSales == 'yes') {
-                $res = "<span class='dangerTitle'>{$res}</span>";
+            if ($extRec->haveOverdueSales == 'yes') {
+                $title = tr('Има просрочени продажби');
+                $res = "<span class='dangerTitle' title='{$title}'>{$res}</span>";
             }
         }
     }
@@ -2697,5 +2745,52 @@ class crm_Companies extends core_Master
         }
 
         return !empty($myCompanyVatId);
+    }
+
+
+    /**
+     * Каква информация да се показва във визитката, ако потребителя няма достъп до нея
+     *
+     * @param int $inCharge
+     * @param string $shared
+     * @return string $res
+     */
+    public static function displayInfoWhenIsNotAccessible($inCharge, $shared)
+    {
+        $res = tr('Отговорник') . ': ' . crm_Profiles::createLink($inCharge);
+
+        if (empty($shared)) return $res;
+
+        // Ако някои от споделените потребители са съекипници на текущия
+        $cTeamMates = core_Users::getTeammates(core_Users::getCurrent());
+        $teamMatesArr = keylist::toArray($cTeamMates);
+        $sharedUsers = keylist::toArray($shared);
+        $sharedTeamMates = array_intersect_key($sharedUsers, $teamMatesArr);
+
+        $sharedTeamMatesShow = array_slice($sharedTeamMates, 0, 7, true);
+        $sharedTeamMatesRest = array_slice($sharedTeamMates, 7, null, true);
+
+        $sharedUserArr = array();
+        foreach ($sharedTeamMatesShow as $uId) {
+            $sharedUserArr[] = crm_Profiles::createLink($uId)->getContent();
+        }
+
+        // Ако има споделени съекипници, ще се покажат част от тях
+        if (!countR($sharedUserArr)) return $res;
+
+        $subRow = tr('Споделени') . ': ' . implode(', ', $sharedUserArr);
+
+        // Ако има останали ще се покажат в хинт
+        if (countR($sharedTeamMatesRest)) {
+            $additionalSharedUserArr = array();
+            foreach ($sharedTeamMatesRest as $uId) {
+                $additionalSharedUserArr[] = core_Users::getVerbal($uId, 'nick');
+            }
+            $subRow = ht::createHint($subRow . "...", implode(', ', $additionalSharedUserArr));
+        }
+
+        $res .= "<br><small>{$subRow}</small>";
+
+        return $res;
     }
 }

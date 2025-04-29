@@ -87,8 +87,14 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      * Полета за скриване/показване от шаблоните
      */
     public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума,weight=Обем,volume=Тегло,info=Инфо';
-    
-    
+
+
+    /**
+     * Дали артикула ще произвежда при експедиране артикулите с моментна рецепта
+     */
+    public $manifactureProductsOnShipment = true;
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -116,7 +122,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
         
         $productTypeParams = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'canStore,generic');
         if($masterRec->isReverse == 'no'){
-            $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId);
+            $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId, 'threadId' => $masterRec->threadId);
             $productTypeParams['priceData'] = $priceData;
         }
         $form->setFieldTypeParams('productId', $productTypeParams);

@@ -61,7 +61,7 @@ class planning_AssetResourcesNorms extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'objectId,productId=Действие,packagingId=Мярка/Опаковка,indTime,limit,state';
+    public $listFields = 'objectId,productId=Действие,packagingId=Мярка/Опак.,indTime,limit,state';
     
     
     /**
@@ -102,6 +102,13 @@ class planning_AssetResourcesNorms extends core_Manager
      */
     public function prepareDetail_(&$data)
     {
+        if(!($data->masterMvc instanceof planning_AssetGroups)){
+            if(empty($data->masterData->rec->simultaneity)) {
+                $data->hide = true;
+                return;
+            }
+        }
+
         $data->TabCaption = tr('Норми');
         $data->recs = $data->rows = array();
         $masterClassId = $data->masterMvc->getClassId();
@@ -126,8 +133,10 @@ class planning_AssetResourcesNorms extends core_Manager
             // Взимат се всички норми от групата му
             $gQuery = self::getQuery();
             $gQuery->where("#classId = {$data->masterMvc->Master->getClassId()} AND #objectId = {$data->masterData->rec->groupId} AND #state != 'closed'");
-            $gQuery->notIn('productId', arr::extractValuesFromArray($data->recs, 'productId'));
-            
+            if (!empty($data->recs)) {
+                $gQuery->notIn('productId', arr::extractValuesFromArray($data->recs, 'productId'));
+            }
+
             // Те ще се показват под неговите норми
             while ($rec = $gQuery->fetch()) {
                 $data->recs[$rec->productId] = $rec;
@@ -162,6 +171,8 @@ class planning_AssetResourcesNorms extends core_Manager
      */
     public function renderDetail_($data)
     {
+        if($data->hide) return new core_ET("");
+
         $tpl = $this->renderList($data);
         
         if (isset($data->addUrl)) {
@@ -263,7 +274,9 @@ class planning_AssetResourcesNorms extends core_Manager
         $query = self::getQuery();
         $query->where("#classId = {$classId} AND #objectId = {$objectId} AND #state != 'closed'");
         $query->show('productId,indTime,packagingId,quantityInPack,limit');
-        $query->notIn('productId', $notIn);
+        if (isset($notIn) && !empty($notIn)) {
+            $query->notIn('productId', $notIn);
+        }
         if (isset($productId)) {
             $query->where("#productId = {$productId}");
         }

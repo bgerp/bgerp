@@ -29,20 +29,20 @@ class recently_Plugin extends core_Plugin
         if (countR($inputFields)) {
             $mustReport = false;
             foreach ($inputFields as $name => $field) {
-                if ($field->recently) {
+                if ($field->recently) {  
                     if ($prefix == '_') {
                         $mustReport = true;
                     }
                     $saveName = $prefix . '.' . $name;
                     
                     $suggetions = recently_Values::fetchSuggestions($saveName);
-                    
+                     
                     $form->appendSuggestions($name, $suggetions);
                 }
             }
 
             if ($mustReport === true) {
-                wp($form, $inputFields);
+                wp('Липсва префикс ', $form, $inputFields);
             }
         }
     }
@@ -51,14 +51,14 @@ class recently_Plugin extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public function on_AfterInput($form)
+    public function on_AfterInput($form, $r, $d = null, $silent = null)
     {
         $rec = $form->rec;
 
         $recCnt = countR((array)$rec);
 
         if (!Request::get('force')) {
-            if (!$recCnt || !$form->isSubmitted()) return;
+            if (!$recCnt || !$form->isSubmitted() || $silent == 'silent') return;
         }
 
         setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
@@ -66,12 +66,12 @@ class recently_Plugin extends core_Plugin
         $flds = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
 
         if (countR($flds)) {
-            foreach ($flds as $name => $field) {
+            foreach ($flds as $name => $field) { 
                 if ($field->recently && isset($rec->{$name}) && !$form->gotErrors($name)) {
                     $saveName = $prefix . '.' . $name;
                     
                     // Запомняме само стойности, които са над 2 символа
-                    if (mb_strlen(trim($rec->{$name})) > 2) {
+                    if (mb_strlen(trim($rec->{$name})) >= 2) {
                         recently_Values::add($saveName, $rec->{$name});
                     }
                 }

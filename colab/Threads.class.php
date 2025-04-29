@@ -32,7 +32,7 @@ class colab_Threads extends core_Manager
     /**
      * 10 секунди време за опресняване на нишката
      */
-    public $refreshRowsTime = 10000;
+    public $refreshRowsTime = 60000;
     
     
     /**
@@ -120,6 +120,8 @@ class colab_Threads extends core_Manager
      */
     public function act_Single()
     {
+        $this->forceProxy($this->className);
+
         expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
         
         if (core_Users::isPowerUser()) {
@@ -240,6 +242,8 @@ class colab_Threads extends core_Manager
      */
     public function act_List()
     {
+        $this->forceProxy($this->className);
+
         $folderId = Request::get('folderId', 'int');
         
         if (core_Users::isPowerUser()) {
@@ -385,6 +389,12 @@ class colab_Threads extends core_Manager
         
         if(core_Users::isContractor() && !haveRole('powerPartner')){
             unset($data->listFields['partnerDocCnt']);
+        }
+
+
+        // Ако има търсене, рефрешването да е след по-дълго време
+        if (isset($data->listFilter->rec->search)) {
+            $this->refreshRowsTime = 600000; // 10 мин.
         }
     }
     

@@ -158,8 +158,8 @@ abstract class deals_ServiceMaster extends core_Master
                     $toShip = $product->quantity;
                 }
                 
-                $price = ($agreedProducts[$index]->price) ? $agreedProducts[$index]->price : $normalizedProducts[$index]->price;
-                $discount = ($agreedProducts[$index]->discount) ? $agreedProducts[$index]->discount : $normalizedProducts[$index]->discount;
+                $price = ($product->price) ? $product->price : $normalizedProducts[$index]->price;
+                $discount = ($product->discount) ? $product->discount : $normalizedProducts[$index]->discount;
                 
                 // Пропускат се експедираните и складируемите артикули
                 if (isset($info->meta['canStore']) || ($toShip <= 0)) {
@@ -381,10 +381,8 @@ abstract class deals_ServiceMaster extends core_Master
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
      *
      * @param int|object $id
-     *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @see bgerp_DealIntf::getDealInfo()
+     * @param bgerp_iface_DealAggregator $aggregator
+     * @return void
      */
     public function pushDealInfo($id, &$aggregator)
     {
@@ -414,7 +412,6 @@ abstract class deals_ServiceMaster extends core_Master
      * Може ли документа да се добави в посочената нишка?
      *
      * @param int $threadId key(mvc=doc_Threads)
-     *
      * @return bool
      */
     public static function canAddToThread($threadId)
@@ -427,7 +424,7 @@ abstract class deals_ServiceMaster extends core_Master
             if ($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) {
                 $operations = $firstDoc->getShipmentOperations();
                 
-                return (isset($operations[static::$defOperationSysId])) ? true : false;
+                return isset($operations[static::$defOperationSysId]);
             }
         }
         

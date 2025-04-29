@@ -120,8 +120,7 @@ class acc_ValueCorrections extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор,input=none');
         $this->FLD('amount', 'double(decimals=2,Min=0,maxAllowedDecimals=2)', 'caption=Сума,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=rate,silent');
-        $this->FLD('rate', 'double(decimals=5)', 'caption=Курс');
-        
+
         $this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
         $this->FLD('allocateBy', 'enum(value=Стойност,quantity=Количество,weight=Тегло,volume=Обем)', 'caption=Разпределяне по,notNull,value=value');
         $this->FLD('correspondingDealOriginId', 'int', 'input=hidden,tdClass=leftColImportant');
@@ -129,7 +128,8 @@ class acc_ValueCorrections extends core_Master
         // Кеш поле за цялата информация на възможните артикули
         $this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
         $this->FLD('notes', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки,after=chosenProducts');
-        
+        $this->FLD('rate', 'double(decimals=5)', 'caption=Настройки->Курс,autohide=any');
+
         // Поставяне на уникален индекс
         $this->setDbIndex('correspondingDealOriginId');
     }
@@ -173,22 +173,26 @@ class acc_ValueCorrections extends core_Master
         
         $rec->amount /= $rec->rate;
         $row->realAmount = $mvc->getFieldType('amount')->toVerbal($rec->amount);
-        
+
         if ($chargeVat == 'yes' || $chargeVat == 'separate') {
-            $averageRate = $mvc->getAverageVatRate($rec->productsData, $rec->amount, $rec->valior, $rec->allocateBy);
+            $averageRate = $mvc->getAverageVatRate($rec->productsData, $rec);
             $amount = $rec->amount * (1 + $averageRate);
             $row->vatType = tr('с ДДС');
         } else {
             $row->vatType = tr('без ДДС');
             $amount = $rec->amount;
         }
-        
+
         $row->amount = $mvc->getFieldType('amount')->toVerbal($amount);
         
         if ($rec->amount < 0) {
             $row->amount = "<span class='red'>{$row->amount}</span>";
         } elseif ($rec->action == 'decrease') {
             $row->amount = "<span class='red'>-{$row->amount}</span>";
+        }
+
+        if (!doc_plg_HidePrices::canSeePriceFields('acc_ValueCorrections', $rec)) {
+            $row->amount = doc_plg_HidePrices::getBuriedElement();
         }
     }
     
@@ -225,10 +229,15 @@ class acc_ValueCorrections extends core_Master
         } else {
             $row->allocated = "<span class='green'>+{$row->allocated}</span>";
         }
-        
+
+        if (!doc_plg_HidePrices::canSeePriceFields('acc_ValueCorrections', $rec)) {
+            $row->allocated = doc_plg_HidePrices::getBuriedElement();
+            $row->amount = doc_plg_HidePrices::getBuriedElement();
+        }
+
         $measureShort = cat_UoM::getShortName(cat_Products::fetchField($pRec->productId, 'measureId'));
         $row->quantity = "{$row->quantity} {$measureShort}";
-        
+
         return $row;
     }
     
@@ -288,7 +297,11 @@ class acc_ValueCorrections extends core_Master
         } elseif ($data->rec->action == 'decrease') {
             $data->row->realAmount = "<span class='red'>-{$data->row->realAmount}</span>";
         }
-        
+
+        if (!doc_plg_HidePrices::canSeePriceFields('acc_ValueCorrections', $data->rec)) {
+            $data->row->realAmount = doc_plg_HidePrices::getBuriedElement();
+        }
+
         $lastRowTpl->replace($data->row->realAmount, 'amount');
         $details->append($lastRowTpl, 'ROW_AFTER');
         
@@ -365,10 +378,11 @@ class acc_ValueCorrections extends core_Master
         // Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
         expect($firstDoc = doc_Threads::getFirstDocument($rec->threadId));
         self::addProductsFromOriginToForm($form, $firstDoc, $mvc);
-        
-        $chargeVat = $firstDoc->fetchField('chargeVat');
-        $form->setDefault('currencyId', $firstDoc->fetchField('currencyId'));
-        
+
+        $firstDocRec = $firstDoc->fetch('chargeVat,currencyId,currencyRate');
+        $form->setDefault('currencyId', $firstDocRec->currencyId);
+        $form->setReadOnly('currencyId');
+
         // Ако избраната валута е основната за периода, не се показва курса
         if($rec->currencyId == acc_Periods::getBaseCurrencyCode()){
             $form->setField('rate', "input=hidden");
@@ -376,17 +390,17 @@ class acc_ValueCorrections extends core_Master
         
         // Курса е винаги актуалния
         if(isset($rec->currencyId)){
-            $form->setDefault('rate', currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
+            $form->setDefault('rate', $firstDocRec->currencyRate);
         }
         
         if (isset($rec->id, $rec->rate)) {
             $rec->amount /= $rec->rate;
             $rec->amount = round($rec->amount, 2);
         }
-        
-        if ($chargeVat == 'yes' || $chargeVat == 'separate') {
+
+        if (in_array($firstDocRec->chargeVat, array('yes', 'separate'))) {
             if ($form->rec->amount) {
-                $averageRate = $mvc->getAverageVatRate($form->allProducts, $rec->amount, $rec->valior, $rec->allocateBy);
+                $averageRate = $mvc->getAverageVatRate($form->allProducts, $rec);
                 $form->rec->amount = $form->rec->amount * (1 + $averageRate);
                 $form->rec->amount = round($form->rec->amount, 2);
             }
@@ -396,7 +410,7 @@ class acc_ValueCorrections extends core_Master
         }
         
         $data->form->origin = $firstDoc;
-        $data->form->chargeVat = $chargeVat;
+        $data->form->chargeVat = $firstDocRec->chargeVat;
     }
     
     
@@ -431,7 +445,7 @@ class acc_ValueCorrections extends core_Master
                 if ($form->chargeVat == 'yes' || $form->chargeVat == 'separate') {
                     $productData = type_Set::toArray($rec->chosenProducts);
                     $intersectedProducts = array_intersect_key($form->allProducts, $productData);
-                    $averageRate = $mvc->getAverageVatRate($intersectedProducts, $rec->amount, $rec->valior, $rec->allocateBy);
+                    $averageRate = $mvc->getAverageVatRate($intersectedProducts, $rec);
                     $rec->amount /= (1 + $averageRate);
                     $rec->amount = round($rec->amount, 2);
                 }
@@ -451,20 +465,20 @@ class acc_ValueCorrections extends core_Master
      * Помощна ф-я изчисляваща средно-претегления ддс курс на коригираните артикули
      *
      * @param array $productArr
-     * @param double $amount
-     * @param date|null $valior
+     * @param stdClass $rec
      * @return double
      */
-    public function getAverageVatRate($productArr, $amount, $valior = null, $allocatedBy)
+    public function getAverageVatRate($productArr, $rec)
     {
         $totalArr = array();
         $total = $averageVatSum = 0;
         foreach ($productArr as $pRec){
-            $vat = cat_Products::getVat($pRec->productId, $valior);
-            if($allocatedBy == 'value'){
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+            $vat = cat_Products::getVat($pRec->productId, $rec->valior, $vatExceptionId);
+            if($rec->allocateBy == 'value'){
                 $currentAmount = $pRec->amount;
             } else {
-                $currentAmount = $pRec->{$allocatedBy};
+                $currentAmount = $pRec->{$rec->allocateBy};
             }
             $totalArr["{$vat}"] += $currentAmount;
             $total += $currentAmount;
@@ -951,11 +965,11 @@ class acc_ValueCorrections extends core_Master
         $amount = $rec->amount;
         $chargeVat = doc_Threads::getFirstDocument($rec->threadId)->fetchField('chargeVat');
         if ($chargeVat == 'yes' || $chargeVat == 'separate') {
-            $averageRate = $this->getAverageVatRate($rec->productsData, $rec->amount, $rec->valior, $rec->allocateBy);
+            $averageRate = $this->getAverageVatRate($rec->productsData, $rec);
             $amount = $amount * (1 + $averageRate);
         }
         $amount = round($amount / $rec->rate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId));
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'isReverse' => $rec->action == 'decrease');
     }
 }

@@ -633,7 +633,7 @@ class type_Key extends type_Int
         if (($div = $this->params['groupByDiv'])) {
             $options = ht::groupOptions($options, $div);
         }
-        
+
         if ($this->getSelectFld() || countR($options)) {
             $optionsCnt = countR($options);
             
@@ -650,7 +650,18 @@ class type_Key extends type_Int
             $maxSuggestions = $this->getMaxSuggestions();
             
             parent::setFieldWidth($attr);
-            
+
+            $maxRadio = $this->params['maxRadio'];
+            if (!$attr['_isRefresh']) {
+                if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
+                    if(arr::isOptionsTotalLenBellowAllowed($options)){
+                        $maxRadio = 4;
+                        $this->params['select2MinItems'] = 10000;
+                        $this->params['columns'] =  ($optionsCnt > 3) ?  4 : 3;
+                    }
+                }
+            }
+
             if (($optionsCnt > $maxSuggestions) && (!core_Packs::isInstalled('select2'))) {
                 $options = $this->prepareOptions($value);
                 
@@ -716,10 +727,18 @@ class type_Key extends type_Int
                     }
                     
                     $cssClass = $this->params['mandatory'] ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
-                    
+
                     $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
                 } else {
-                    
+                    // ако ще се рендират опциите като радио-бутони маха се празната опция
+                    if(isset($maxRadio) && $optionsCnt <= $maxRadio){
+                        if($this->params['allowEmpty']){
+                            if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2){
+                                unset($options['']);
+                            }
+                        }
+                    }
+
                     // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
                     if ($this->params['mandatory'] && $optionsCnt == 2 && empty($value) && $options[key($options)] === '') {
                         list($o1, $o2) = array_keys($options);
@@ -729,21 +748,8 @@ class type_Key extends type_Int
                             $value = $o1;
                         }
                     }
-                    
-                    $tpl = ht::createSmartSelect(
-                        
-                        $options,
-                        
-                        $name,
-                        
-                        $value,
-                        
-                        $attr,
-                        $this->params['maxRadio'],
-                        $this->params['maxColumns'],
-                        $this->params['columns']
-                    
-                    );
+
+                    $tpl = ht::createSmartSelect($options, $name, $value, $attr, $maxRadio, $this->params['maxColumns'], $this->params['columns']);
                 }
             }
         } else {
@@ -886,7 +892,7 @@ class type_Key extends type_Int
         $groupQuery->where("#{$sysIdField} = '{$this->params['group']}'");
         
         // Очакваме да има запис зад това sysId
-        expect($groupRec = $groupQuery->fetch(), 'Няма група с това sysId');
+        expect($groupRec = $groupQuery->fetch(), 'Няма група с това sysId = ' . $this->params['group']);
         
         // Модифицираме заявката като добавяме филтриране по група, която
         // е зададена с нейно Id - отговарящо на посоченото systemId

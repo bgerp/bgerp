@@ -441,23 +441,27 @@ class acc_BalanceHistory extends core_Manager
         $accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
         
         // Извличаме хронологията за перата
-        $isGrouped = ($data->isGrouped !== 'yes') ? false : true;
+        $isGrouped = !(($data->isGrouped !== 'yes'));
         $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, false);
         $data->recs = $balHistory['history'];
-        
-        $addStartAndEnd = true;
+
+        $debitAmount = $creditAmount = $creditQuantity = $debitQuantity = null;
         if(is_array($data->recs) && isset($data->type)){
-            $type = $data->type;
-            $data->recs = array_filter($data->recs, function($a) use ($type){
-                return $a['docType'] == $type;
-            });
-            
-            $addStartAndEnd = false;
+            $filteredRecs = array();
+            foreach ($data->recs as $dKey => $dArr){
+                if($dArr['docType'] == $data->type){
+                    $filteredRecs[$dKey] = $dArr;
+                    $debitQuantity += $dArr['debitQuantity'];
+                    $debitAmount += $dArr['debitAmount'];
+                    $creditQuantity += $dArr['creditQuantity'];
+                    $creditAmount += $dArr['creditAmount'];
+                }
+            }
+            $data->recs = $filteredRecs;
         }
-        
+
         $rec->baseAmount = $balHistory['summary']['baseAmount'];
         $rec->baseQuantity = $balHistory['summary']['baseQuantity'];
-
         if(is_null($rec->baseQuantity)){
             $row->baseQuantity = '<span class="quiet">n/a</span>';
         } else {
@@ -494,10 +498,10 @@ class acc_BalanceHistory extends core_Manager
         if ($data->orderField) {
             arr::sortObjects($data->recs, $data->orderField, $data->orderBy);
         }
-        
+
         // Крайното салдо е изчисленото крайно салдо на сметката
-        $rec->blAmount = $balHistory['summary']['blAmount'];
-        $rec->blQuantity = $balHistory['summary']['blQuantity'];
+        $rec->blAmount = $blAmount ?? $balHistory['summary']['blAmount'];
+        $rec->blQuantity = $blQuantity ?? $balHistory['summary']['blQuantity'];
         $row->blAmount = $Double->toVerbal($rec->blAmount);
         $row->blQuantity = $Double->toVerbal($rec->blQuantity);
         
@@ -506,16 +510,16 @@ class acc_BalanceHistory extends core_Manager
             'valior' => $data->toDate,
             'blAmount' => $rec->blAmount,
             'blQuantity' => $rec->blQuantity,
-            'debitAmount' => $balHistory['summary']['debitAmount'],
-            'debitQuantity' => $balHistory['summary']['debitQuantity'],
-            'creditQuantity' => $balHistory['summary']['creditQuantity'],
-            'creditAmount' => $balHistory['summary']['creditAmount'],
+            'debitAmount' => $debitAmount ?? $balHistory['summary']['debitAmount'],
+            'debitQuantity' => $debitQuantity ?? $balHistory['summary']['debitQuantity'],
+            'creditQuantity' => $creditQuantity ?? $balHistory['summary']['creditQuantity'],
+            'creditAmount' => $creditAmount ?? $balHistory['summary']['creditAmount'],
             'ROW_ATTR' => array('style' => 'background-color:#eee;font-weight:bold'));
-        
-        if($addStartAndEnd){
+
+        if(!isset($data->type)){
             $data->zeroRec = $zeroRec;
-            $data->lastRec = $lastRec;
         }
+        $data->lastRec = $lastRec;
     }
     
     
@@ -691,7 +695,7 @@ class acc_BalanceHistory extends core_Manager
             'blQuantity' => 'Остатък->К-во',
             'blAmount' => 'Остатък->Сума',
         );
-        
+
         // Ако равнят не показваме количествата
         if ($equalBl) {
             unset($data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
@@ -699,19 +703,21 @@ class acc_BalanceHistory extends core_Manager
             $data->listFields['creditAmount'] = 'Сума->Кредит';
             $data->listFields['blAmount'] = 'Сума->Остатък';
         }
-        
+        if(isset($data->type)){
+            unset($data->listFields['blQuantity']);
+            unset($data->listFields['blAmount']);
+        }
+
         // Ако сумите на крайното салдо са отрицателни - оцветяваме ги
         $details = $table->get($data->rows, $data->listFields);
-        
         foreach (array('blQuantity', 'blAmount', 'midQuantity', 'midAmount') as $fld) {
             if ($data->rec->{$fld} < 0) {
                 $data->row->{$fld} = "<span style='color:red'>{$data->row->{$fld}}</span>";
             }
         }
-        
-        $tpl->placeObject($data->row);
-        
+
         // Добавяне в края на таблицата, данните от журнала
+        $tpl->placeObject($data->row);
         $tpl->replace($details, 'DETAILS');
         
         // Рендиране на филтъра

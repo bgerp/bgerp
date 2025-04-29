@@ -7,31 +7,50 @@ function taskSelect() {
         $(".previousTaskCheckbox").prop('checked', $(this).prop("checked"));
     });
 
-    $(document.body).on('click', ".createAllCheckedTasks", function(e){
-        var url = $(this).attr("data-url");
+    $(document.body).on('click', ".checkAllSubRunTask", function(e){
+        let closeTaskClass = $(this).attr("data-close-tasks");
+        $("." + closeTaskClass).prop('checked', $(this).prop("checked"));
+    });
 
-        var chkArray = [];
+    $(document.body).on('click', ".createAllCheckedTasks", function(e){
+        let url = $(this).attr("data-url");
+
+        let chkArray = [];
 
         // Look for all checkboxes that have a specific class and was checked
         $(".defaultTaskCheckbox:checked").each(function() {
-            var sysId = $(this).attr("data-sysId");
+            let sysId = $(this).attr("data-sysId");
             chkArray.push(sysId);
         });
 
-        var selected = chkArray.join('|');
+        let selected = chkArray.join('|');
         window.location = url + "&selected=" + selected;
     });
 
     $(document.body).on('click', ".cloneAllCheckedTasks", function(e){
-        var url = $(this).attr("data-url");
-        var chkArray = [];
+        let url = $(this).attr("data-url");
+        let chkArray = [];
 
         $(".previousTaskCheckbox:checked").each(function() {
-            var cloneId = $(this).attr("data-cloneId");
+            let cloneId = $(this).attr("data-cloneId");
             chkArray.push(cloneId);
         });
 
-        var selected = chkArray.join('|');
+        let selected = chkArray.join('|');
+        window.location = url + "&selected=" + selected;
+    });
+
+    $(document.body).on('click', ".cloneAllSubRunTasks", function(e) {
+        let url = $(this).attr("data-url");
+        let chkArray = [];
+        let childrenClass = $(this).attr("data-clone-tasks");
+
+        $("." + childrenClass + ":checked").each(function() {
+            let cloneId = $(this).attr("data-cloneId");
+            chkArray.push(cloneId);
+        });
+
+        let selected = chkArray.join('|');
         window.location = url + "&selected=" + selected;
     });
 }

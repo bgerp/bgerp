@@ -103,6 +103,8 @@ class eshop_CartDetails extends core_Detail
         $this->FLD('haveVat', 'enum(yes=Да, separate=Отделно, no=Без)', 'caption=ДДС режим');
         
         $this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка');
+        $this->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input');
+
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
         $this->FNC('external', 'int', 'input=hidden,silent');
         
@@ -231,13 +233,13 @@ class eshop_CartDetails extends core_Detail
         $settings = eshop_Settings::getSettings('cms_Domains', $cartRec->domainId);
 
         $quantity = $packQuantity * $quantityInPack;
-        $currencyId = isset($currencyId) ? $currencyId : (isset($settings->currencyId) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode());
+        $currencyId = $currencyId ?? ($settings->currencyId ?? acc_Periods::getBaseCurrencyCode());
 
         $dRec = (object) array('cartId' => $cartId,
             'eshopProductId' => $eshopProductId,
             'productId' => $productId,
             'packagingId' => $packagingId,
-            'vat' => cat_Products::getVat($productId),
+            'vat' => cat_Products::getVat($productId, null, $settings->vatExceptionId),
             'quantityInPack' => $quantityInPack,
             'quantity' => $quantity,
             'currencyId' => $currencyId,
@@ -367,23 +369,30 @@ class eshop_CartDetails extends core_Detail
             
             self::updatePriceInfo($rec, null, true);
             $masterRec = eshop_Carts::fetch($rec->cartId);
-            
+
             $settings = cms_Domains::getSettings($masterRec->domainId);
             if(isset($rec->finalPrice)){
-                $finalPrice = currency_CurrencyRates::convertAmount($rec->finalPrice, null, $rec->currencyId, $settings->currencyId);
-                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
+                $finalPrice = $rec->finalPrice;
+                if(isset($rec->autoDiscount)){
+                    $rec->oldPrice = ($rec->discount) ? $finalPrice / (1 - $rec->discount) : $finalPrice;
+                    $finalPrice *= (1 - $rec->autoDiscount);
+                }
+
+                $finalPriceVerbal = currency_CurrencyRates::convertAmount($finalPrice, null, $rec->currencyId, $settings->currencyId);
+                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPriceVerbal);
                 $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId);
                 
                 if ($rec->oldPrice) {
-                    $difference = round($rec->finalPrice, 2) - round($rec->oldPrice, 2);
+                    $difference = round($finalPrice, 2) - round($rec->oldPrice, 2);
                     $caption = ($difference > 0) ? 'увеличена' : 'намалена';
+                    $hintIcon = ($difference > 0) ? 'img/16/up16.png' : 'img/16/down16.png';
                     $difference = abs($difference);
                     $difference = currency_CurrencyRates::convertAmount($difference, null, $rec->currencyId, $settings->currencyId);
                     $differenceVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($difference);
                     $hint = "Цената е {$caption} с|* {$differenceVerbal} {$settings->currencyId}";
-                    $row->finalPrice = ht::createHint($row->finalPrice, $hint, 'warning');
+                    $row->finalPrice = ht::createHint($row->finalPrice, $hint, $hintIcon);
                 }
-                
+                $rec->amount = $finalPrice * ($rec->quantity / $rec->quantityInPack);
                 $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
                 $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
                 $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
@@ -448,10 +457,8 @@ class eshop_CartDetails extends core_Detail
         $deleteCart = false;
         
         if (isset($id)) {
-            $Carts = cls::get('eshop_Carts');
             $this->delete($id);
-            $Carts->updateMaster($cartId);
-            plg_Search::forceUpdateKeywords($Carts, $cartId);
+
             vislog_History::add("Изтриване на артикул от количка");
             $msg = '|Артикулът е премахнат|*!';
             $dCount = $this->count("#cartId = {$cartId}");
@@ -460,6 +467,10 @@ class eshop_CartDetails extends core_Detail
                 $deleteCart = true;
                 eshop_Carts::delete($cartId);
                 vislog_History::add("Изтриване на количката");
+            } else {
+                $Carts = cls::get('eshop_Carts');
+                $Carts->updateMaster($cartId);
+                plg_Search::forceUpdateKeywords($Carts, $cartId);
             }
         } else {
             $msg = '|Количката е изчистена|*!';
@@ -643,14 +654,17 @@ class eshop_CartDetails extends core_Detail
     public static function updatePriceInfo(&$rec, $domainId = null, $save = false)
     {
         $settings = cms_Domains::getSettings($domainId);
-        $rec->currencyId = isset($rec->currencyId) ? $rec->currencyId : $settings->currencyId;
-        
+        $rec->currencyId = $rec->currencyId ?? $settings->currencyId;
+        $cartRec = eshop_Carts::fetch($rec->cartId);
+
         // Коя е ценовата политика
+        // Ако има ваучер и той е с активна ЦП - нея, ако не тази от потребителя или от домейна
+        $finalPrice = null;
         $oldListId = $settings->listId;
-        $listId = cms_Helper::getCurrentEshopPriceList($settings);
-        $now = dt::now();
+        $listId = eshop_Carts::getCartListId($cartRec, $settings);
 
         // Ако има взема се цената от нея
+        $now = dt::now();
         if (isset($listId)) {
             $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId, $now);
             
@@ -664,12 +678,13 @@ class eshop_CartDetails extends core_Detail
                     $listId = $oldListId;
                 }
             }
-            
+
+            $discount = null;
             $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack, $now);
             if (!empty($priceObject->discount)) {
                 $discount = $priceObject->discount;
             }
-           
+
             $finalPrice = $price * $rec->quantityInPack;
             if ($rec->haveVat == 'yes') {
                 $finalPrice *= 1 + $rec->vat;
@@ -682,10 +697,7 @@ class eshop_CartDetails extends core_Detail
         $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
         
         if(empty($finalPrice) && is_null($price)){
-            if(is_null($price) && is_null($rec->finalPrice)){
-                
-                return;
-            }
+            if(is_null($rec->finalPrice)) return;
             
             $rec->oldPrice = $rec->finalPrice;
             $rec->finalPrice = null;
@@ -693,10 +705,10 @@ class eshop_CartDetails extends core_Detail
             $rec->amount = null;
             $update = true;
         } else {
-           
+
             // Ако цената е променена, обновява се
             $update = false;
-            if (!isset($rec->finalPrice) || (isset($rec->finalPrice) && abs(core_Math::diffInPercent($finalPrice, $rec->finalPrice)) > $toleranceDiff)) {
+            if (!isset($rec->finalPrice) || (abs(core_Math::diffInPercent($finalPrice, $rec->finalPrice)) > $toleranceDiff)) {
                 $rec->oldPrice = $rec->finalPrice;
                 $rec->finalPrice = $finalPrice;
                 $rec->discount = $discount;
@@ -704,7 +716,7 @@ class eshop_CartDetails extends core_Detail
                 $update = true;
             }
         }
-        
+
         if ($update === true && $save === true) {
             self::save($rec, 'oldPrice,finalPrice,discount');
             $rec->_updatedPrice = true;
@@ -734,7 +746,7 @@ class eshop_CartDetails extends core_Detail
         
         $productParams = array_intersect_key($productParams, $displayParams);
         $diff = array_diff_key($productParams, $commonParams);
-        
+
         $arr = array();
         foreach ($diff as $paramId => $value) {
             $paramRec = cat_Params::fetch($paramId, 'driverClass,suffix,name');
@@ -747,11 +759,13 @@ class eshop_CartDetails extends core_Detail
             }
 
             $caption = tr(cat_Params::getVerbal($paramRec, 'name'));
+            $key = $caption;
             if(!$asRichText){
                 $caption = "<span class='quiet'>{$caption}</span>";
             }
-            $arr[] = "{$caption}: " . $value;
+            $arr[$key] = "{$caption}: " . trim($value);
         }
+        ksort($arr, SORT_NATURAL);
 
         $separator = $inline ? ', ' : '<br>';
         $str = (countR($arr)) ? implode($separator, $arr) : '';

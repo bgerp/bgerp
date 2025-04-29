@@ -23,32 +23,32 @@ class bank_Setup extends core_ProtoSetup
      * Версия на пакета
      */
     public $version = '0.1';
-    
-    
+
+
     /**
      * Мениджър - входна точка в пакета
      */
     public $startCtr = 'bank_OwnAccounts';
-    
-    
+
+
     /**
      * Екшън - входна точка в пакета
      */
     public $startAct = 'default';
-    
-    
+
+
     /**
      * Необходими пакети
      */
     public $depends = 'drdata=0.1';
-    
-    
+
+
     /**
      * Описание на модула
      */
     public $info = 'Банкови сметки, операции и справки';
-    
-    
+
+
     /**
      * Списък с мениджърите, които съдържа пакета
      */
@@ -63,10 +63,10 @@ class bank_Setup extends core_ProtoSetup
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
         'bank_Register',
-        'migrate::updateAccounts3',
+        'migrate::recontoDocs2511'
     );
-    
-    
+
+
     /**
      * Роли за достъп до модула
      */
@@ -74,27 +74,23 @@ class bank_Setup extends core_ProtoSetup
         array('bank', 'seePrice'),
         array('bankMaster', 'bank'),
     );
-    
-    
+
+
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(2.2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', 'bank, ceo'),
+        array(2.2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', 'bank, ceo, bankAll'),
     );
 
 
     /**
-     * Миграция на банковите сметки
+     * Миграция за реконтиране на ПБД и РБД
      */
-    function updateAccounts3()
+    function recontoDocs2511()
     {
-        $Accounts = cls::get('bank_Accounts');
-        $Accounts->setupMvc();
-
-        $stateColName = str::phpToMysqlName('state');
-        $brStateColName = str::phpToMysqlName('exState');
-        $query = "UPDATE {$Accounts->dbTableName} SET {$stateColName} = 'active', {$brStateColName} = 'active' WHERE ({$stateColName} = 'draft' OR {$stateColName} = '' OR {$stateColName} IS NULL OR {$brStateColName} = 'draft' OR {$brStateColName} = '')";
-        $Accounts->db->query($query);
+        $callOn = dt::addSecs(120);
+        $documents = array('bank_IncomeDocuments', 'bank_SpendingDocuments');
+        core_CallOnTime::setCall('doc_Setup', 'recontoActivePayments', $documents, $callOn);
     }
 }

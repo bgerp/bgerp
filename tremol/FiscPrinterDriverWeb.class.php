@@ -483,23 +483,33 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * @param float    $amount - ако е минус - изкрва пари, а с плюс - вкарва
      * @param boolean  $printAvailability
      * @param string   $text
+     * @param integer  $defPaymentType
      *
      * @return string
      *
      * @see peripheral_FiscPrinterWeb
      */
-    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability = false, $text = '')
+    public function getJsForCashReceivedOrPaidOut($pRec, $operNum, $operPass, $amount, $printAvailability = false, $text = '', $defPaymentType = 0)
     {
         expect(($operNum >= 1) && ($operNum <= 20));
-        $jsTpl = new ET('[#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
+
+        list($mVer) = explode('.', $pRec->driverVersion);
+
+        if ($mVer == 19) {
+            $fpStr = "fp.ReceivedOnAccount_PaidOut([#OPER_NUM#], [#OPER_PASS#], [#AMOUNT#], [#PRINT_AVAILABILITY#], [#TEXT#]);";
+        } else {
+            $fpStr = "fp.ReceivedOnAccount_PaidOut([#OPER_NUM#], [#OPER_PASS#], [#DEF_PAYMENT_TYPE#], [#AMOUNT#], [#PRINT_AVAILABILITY#], [#TEXT#]);";
+        }
+
+        $jsTpl = new ET("[#/tremol/js/FiscPrinterTplFileImportBegin.shtml#]
                                 try {
                                     [#/tremol/js/FiscPrinterTplConnect.shtml#]
-                                    fp.ReceivedOnAccount_PaidOut([#OPER_NUM#], [#OPER_PASS#], [#AMOUNT#], [#PRINT_AVAILABILITY#], [#TEXT#]);
+                                    {$fpStr}
                                     fpOnCashReceivedOrPaidOut();
                                 } catch(ex) {
                                     fpOnCashReceivedOrPaidOutErr(ex.message);
                                 }
-                            [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]');
+                            [#/tremol/js/FiscPrinterTplFileImportEnd.shtml#]");
         
         $this->addTplFile($jsTpl, $pRec->driverVersion);
         $this->connectToPrinter($jsTpl, $pRec, false);
@@ -509,13 +519,14 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
         } else {
             $printAvailability = 0;
         }
-        
+
         $jsTpl->replace(json_encode($operNum), 'OPER_NUM');
         $jsTpl->replace(json_encode($operPass), 'OPER_PASS');
         $jsTpl->replace(json_encode($amount), 'AMOUNT');
         $jsTpl->replace(json_encode($printAvailability), 'PRINT_AVAILABILITY');
         $jsTpl->replace(json_encode($text), 'TEXT');
-        
+        $jsTpl->replace(json_encode($defPaymentType), 'DEF_PAYMENT_TYPE');
+
         $js = $jsTpl->getContent();
         
         // Минифициране на JS
@@ -1020,12 +1031,13 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
      * @param string $text
      * @param string $actTypeVerb
      * @param null|core_Et $jsTpl
+     * @param integer $defPaymentType
      *
      * @see tremol_FiscPrinterDriverParent::getResForCashReceivedOrPaidOut()
      */
-    protected function getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl = array(), $printAvailability = false, $text = '', $actTypeVerb = '', &$jsTpl = null)
+    protected function getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl = array(), $printAvailability = false, $text = '', $actTypeVerb = '', &$jsTpl = null, $defPaymentType = 0)
     {
-        $jsFunc = $this->getJsForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $printAvailability, $text);
+        $jsFunc = $this->getJsForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $printAvailability, $text, $defPaymentType);
         
         $retUrlDecoded = toUrl($retUrl);
         

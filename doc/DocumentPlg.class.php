@@ -165,7 +165,10 @@ class doc_DocumentPlg extends core_Plugin
         if (!isset($plugins['tags_plg_Add'])) {
             $mvc->load('tags_plg_Add');
         }
-        
+
+        $mvc->load('doc_plg_TxtExportable');
+        $mvc->declareInterface('export_TxtExportIntf');
+
         if ($mvc->fetchFieldsBeforeDelete) {
             $mvc->fetchFieldsBeforeDelete .= ',';
         }
@@ -774,12 +777,16 @@ class doc_DocumentPlg extends core_Plugin
                 $mvc->addDocumentLinks[$rec->id] = $rec;
             }
 
+            // Опит за извличане на създателя
+            $mvc->getCreatedBy($rec);
+
             // ... този документ няма ключ към папка и нишка, тогава
             // извикваме метода за рутиране на документа
             if (!isset($rec->folderId) || !isset($rec->threadId)) {
                 $mvc->route($rec);
             }
-            
+
+
             // ... този документ няма ключ към контейнер, тогава
             // създаваме нов контейнер за документите от този клас
             // и записваме връзка към новия контейнер в този документ
@@ -791,7 +798,7 @@ class doc_DocumentPlg extends core_Plugin
             if (!$rec->state) {
                 $rec->state = $mvc->firstState ? $mvc->firstState : 'draft';
             }
-            
+
             // Задаваме стойностите на created полетата
             if (!isset($rec->createdBy)) {
                 $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
@@ -820,12 +827,13 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
     
-    
+
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
     public static function on_AfterSessionClose($mvc)
     {
+        core_Debug::startTimer('DOCUMENT_SAVE_FILES');
         foreach ((array)$mvc->saveFileArr as $rec) {
             try {
                 // Опитваме се да запишем файловете от документа в модела
@@ -837,6 +845,8 @@ class doc_DocumentPlg extends core_Plugin
                 $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
             }
         }
+
+        core_Debug::stopTimer('DOCUMENT_SAVE_FILES');
     }
     
     
@@ -1429,9 +1439,7 @@ class doc_DocumentPlg extends core_Plugin
             acc_Items::force($mvc->getClassId(), $rec->id, $listId);
             
             // Създаване на празен запис в кеш таблицата за разходите
-            $exRec = (object) array('containerId' => $rec->containerId);
-            doc_ExpensesSummary::save($exRec);
-            $mvc->logInAct('Документа става разходно перо', $rec);
+            $mvc->logInAct('Ръчно става разходен обект', $rec);
             $mvc->invoke('AfterForceAsExpenseItem', array($rec));
 
             if (!$res = getRetUrl()) {
@@ -1674,8 +1682,25 @@ class doc_DocumentPlg extends core_Plugin
             return false;
         }
     }
-    
-    
+
+
+    /**
+     * След като документа е форсиран като разходен обект
+     *
+     * @param $mvc
+     * @param $res
+     * @return void
+     */
+    public static function on_AfterForceAsExpenseItem($mvc, &$res)
+    {
+        doc_Threads::doUpdateThread($res->threadId);
+        doc_Containers::update_($res->containerId);
+        $exRec = (object) array('containerId' => $res->containerId);
+        doc_ExpensesSummary::save($exRec);
+        core_Statuses::newStatus("Документът е направен разходен обект|*!");
+    }
+
+
     /**
      * Метод по подразбиране за проверка дали документа съществува в източника
      * За pSingle
@@ -1899,8 +1924,10 @@ class doc_DocumentPlg extends core_Plugin
         if($attr['ef_icon'] !== false){
             $attr['ef_icon'] = $mvc->getIcon($id);
         }
-        
-        $attr['title'] .= "{$mvc->singleTitle}|* №{$rec->id}";
+
+        if(empty($attr['title'])){
+            $attr['title'] = "{$mvc->singleTitle}|* №{$rec->id}";
+        }
         
         if ($rec->state == 'rejected') {
             $attr['class'] .= ' state-rejected';
@@ -1914,7 +1941,16 @@ class doc_DocumentPlg extends core_Plugin
                 unset($attr['class'], $attr['style']);
             }
         }
-        
+
+        // Ако има урл при двоен клик - да се добави като дата атрибут
+        if(isset($attr['ef_icon'])){
+            $doubleClickUrl = $mvc->getUrlForDblClick($id, $url);
+            if(isset($doubleClickUrl)){
+                $doubleClickDataUrl = toUrl($doubleClickUrl);
+                $attr['data-doubleclick'] .= $doubleClickDataUrl;
+            }
+        }
+
         $link = ht::createLink("{$row->title}", $url, null, $attr);
     }
     
@@ -2041,9 +2077,11 @@ class doc_DocumentPlg extends core_Plugin
                     doc_Threads::requireRightFor('single', $oRec->threadId);
                 }
             }
-            
-            $rec->threadId = $oRec->threadId;
-            $rec->folderId = $oRec->folderId;
+
+            if(!($mvc->allowOriginFromDifferentFolder === true && isset($rec->folderId))){
+                $rec->threadId = $oRec->threadId;
+                $rec->folderId = $oRec->folderId;
+            }
         }
         
         if ($rec->originId || $rec->foreignId) {
@@ -3107,9 +3145,13 @@ class doc_DocumentPlg extends core_Plugin
             return;
         }
 
-//        if($data->threadCachedView === FALSE) {
         $tpl = $mvc->renderSingle($data);
-        
+
+        // Ако ще се експортира в TXT да не се показва лентата
+        if(Mode::is('renderForTxtExport')){
+            $tpl->removeBlock('header');
+        }
+
         if ($data->rec->_resending) {
             $tpl->append(tr($data->rec->_resending), '_resending');
         }
@@ -4974,5 +5016,20 @@ class doc_DocumentPlg extends core_Plugin
         if(!isset($res)){
             $res = crm_Companies::isOwnCompanyVatRegistered();
         }
+    }
+
+
+    /**
+     * Метод по подразбиране връщащ създателя на документа
+     *
+     * @param mixed $mvc
+     * @param mixed $res
+     * @param stdClass$rec
+     * @return void
+     * @throws core_exception_Break
+     */
+    public static function on_AfterGetCreatedBy($mvc, &$res, &$rec)
+    {
+
     }
 }

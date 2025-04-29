@@ -902,7 +902,8 @@ class fileman_Indexes extends core_Manager
         fileman_Data::save($dRec, 'searchKeywords');
         
         $break = false;
-        $bGet = $hGet = false;
+        $bGet = $hGet = $vGet = false;
+
         foreach ($fArr as $hnd => $fRec) {
             if (dt::now() >= $endOn) {
                 $break = true;
@@ -919,24 +920,24 @@ class fileman_Indexes extends core_Manager
                 continue;
             }
 
-            // Максимален размер за автоматично търсене на баркод
-            if ($fRec->fileLen >= fileman_Setup::get('MAX_BARCODE_AUTO_FIND')) {
-
-                continue;
-            }
 
             $ext = fileman_Files::getExt($fName);
             
             if (!$bGet) {
-                $drvInst = self::getDrvForMethod($ext, 'canGetBarcodes', $fName);
-                if ($drvInst && $drvInst->canGetBarcodes()) {
-                    try {
-                        usleep(500000);
-                        $drvInst->getBarcodes($fRec);
-                        $bGet = true;
-                    } catch (ErrorException $e) {
-                        reportException($e);
+                // Максимален размер за автоматично търсене на баркод
+                if ($fRec->fileLen < fileman_Setup::get('MAX_BARCODE_AUTO_FIND')) {
+                    $drvInst = self::getDrvForMethod($ext, 'canGetBarcodes', $fName);
+                    if ($drvInst && $drvInst->canGetBarcodes()) {
+                        try {
+                            usleep(500000);
+                            $drvInst->getBarcodes($fRec);
+                            $bGet = true;
+                        } catch (ErrorException $e) {
+                            reportException($e);
+                        }
                     }
+                } else {
+                    $bGet = true;
                 }
             }
             
@@ -952,8 +953,21 @@ class fileman_Indexes extends core_Manager
                     }
                 }
             }
+
+            if (!$vGet) {
+                $drvInst = self::getDrvForMethod($ext, 'startVideoConverting', $fName);
+                if ($drvInst) {
+                    try {
+                        usleep(500000);
+                        $drvInst->startVideoConverting($fRec);
+                        $vGet = true;
+                    } catch (ErrorException $e) {
+                        reportException($e);
+                    }
+                }
+            }
             
-            if ($hGet && $bGet) {
+            if ($hGet && $bGet && $vGet) {
                 break;
             }
         }
@@ -1008,10 +1022,11 @@ class fileman_Indexes extends core_Manager
     /**
      *
      * @param string $fh
+     * @param boolean $convertToUtf8
      *
      * @return FALSE|string
      */
-    public static function getTextForIndex($fh)
+    public static function getTextForIndex($fh, $convertToUtf8 = true)
     {
         $text = fileman_Indexes::getInfoContentByFh($fh, 'text');
         $textOcr = fileman_Indexes::getInfoContentByFh($fh, 'textOcr');
@@ -1025,7 +1040,11 @@ class fileman_Indexes extends core_Manager
         if ($textOcr !== false && is_string($textOcr)) {
             $content = $textOcr;
         }
-        
+
+        if ($convertToUtf8 && $content !== false) {
+            $content = i18n_Charset::convertToUtf8($content);
+        }
+
         return $content;
     }
     
@@ -1122,5 +1141,52 @@ class fileman_Indexes extends core_Manager
 
             return "Бяха изтрити {$res} записа от " . $this->className;
         }
+    }
+
+
+    /**
+     * Връща кратко текстово представяне на масива от файлове с ограничение до брой символи
+     *
+     * @param array $filesArr  - масив от файл хендлъри => име на файл
+     * @param int $maxLen      - максимална дължина
+     * @return string $string  - стринг
+     */
+    public static function getShortTextSummary($filesArr, $maxLen = 10000)
+    {
+        $string = '';
+        foreach ($filesArr as $fileHnd => $fileName){
+            $fileLen = fileman_Files::fetchByFh($fileHnd, 'fileLen');
+            $fileLenVerbal = core_Type::getByName('fileman_FileSize')->toVerbal($fileLen);
+            $fileLenVerbal = str_replace('&nbsp;', ' ', $fileLenVerbal);
+
+            $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
+
+            // Ако все още не е извлечен текста, форсираме извличането му
+            if ($fileTxtContent === false) {
+                $me = cls::get(get_called_class());
+                $fRec = fileman::fetchByFh($fileHnd);
+                if ($fRec && $fRec->dataId) {
+                    $fData = fileman_Data::fetch($fRec->dataId);
+                    $me->processFile($fData, dt::addSecs(120));
+                    $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
+                }
+            }
+
+            if ($fileTxtContent === false || empty(trim($fileTxtContent))) continue;
+
+            $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
+            $string .= "\n" . tr("|*& |Прикачен файл|*: {$fileName} ({$fileLenVerbal})") . "\n";
+            $string .= tr("Извлечен текст|*: ");
+            $strLen = mb_strlen($fileTxtContent);
+            if(mb_strlen($fileTxtContent) > $maxLen){
+                $rest = $strLen - $maxLen;
+                $string .= substr($fileTxtContent, 0, $maxLen);
+                $string .= tr("|* (+{$rest} |още символа|* )") . "\n";
+            } else {
+                $string .= $fileTxtContent . "\n";
+            }
+        }
+
+        return $string;
     }
 }

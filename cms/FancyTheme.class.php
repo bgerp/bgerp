@@ -53,7 +53,7 @@ class cms_FancyTheme extends core_ProtoInner
         $form->FLD('wImg7', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 7');
         $form->FLD('wImg8', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 8');
 
-        $form->FLD('menuPosition', 'enum(below=Под банера,above=Над банера)', 'caption=Меню->Позиция');
+        $form->FLD('menuPosition', 'enum(below=Под банера,above=Над банера,hidden=Без меню)', 'caption=Меню->Позиция');
 
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
@@ -63,11 +63,14 @@ class cms_FancyTheme extends core_ProtoInner
         $form->FLD('titleColor', 'color_Type', 'caption=Заглавие на сайта->Цвят');
 
         // Фон на хедъра
-        $form->FLD('headerColor', 'color_Type', 'caption=Цветове за темата->Цвят на хедъра');
+        $form->FLD('headerColor', 'color_Type', 'caption=Цветове за външната част->Цвят на хедъра');
 
         // Фон на менюто
-        $form->FLD('baseColor', 'color_Type', 'caption=Цветове за темата->Базов цвят');
-        $form->FLD('activeColor', 'color_Type', 'caption=Цветове за темата->Активен цвят');
+        $form->FLD('baseColor', 'color_Type', 'caption=Цветове за външната част->Базов цвят');
+        $form->FLD('activeColor', 'color_Type', 'caption=Цветове за външната част->Активен цвят');
+
+        // Цвят за хедъра и менютата във вътрешната част
+        $form->FLD('innerColor', 'color_Type', 'caption=Цветове за вътрешната част->Основен цвят');
     }
 
 
@@ -93,8 +96,7 @@ class cms_FancyTheme extends core_ProtoInner
 
         if($this->innerForm->menuPosition == 'above'){
             $tpl->replace($menu, 'TOP_PAGE');
-            $css .= "\n    header {border-bottom: 2px solid {$this->innerForm->baseColor} !important;}";
-        } else {
+        } else if($this->innerForm->menuPosition == 'below'){
             $tpl->replace($menu, 'MENU');
         }
         // Добавяме заглавния текст
@@ -218,17 +220,19 @@ class cms_FancyTheme extends core_ProtoInner
         $css .= "\n    #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
 
         // цветове на формите в зависимост от основния цвят
-        $css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {background-color:#{$baseColor} !important; border: 1px solid #{$bordercolor} !important}";
+        $css .= "\n    .searchBox button, .narrow .searchForm button,  .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {background-color:#{$baseColor} !important; border: 1px solid #{$bordercolor} !important}";
         $css .= "\n    .vertical .formTitle, .vertical .formMiddleCaption, .vertical .formGroup {background-color:#{$baseColor} !important; border-color:#{$bordercolor};}";
 
         $linkBorder = phpcolor_Adapter::changeColor($bgcolorActive, 'mix', 5, $bordercolor);
 
         // Цвятове за линковете и h2 заглавията
-        $css .= "\n    #cmsNavigation .nav_item a { color: #{$fontColor};}";
+        $css .= "\n    #cmsNavigation .nav_item a, .themeColor { color: #{$fontColor};}";
         $css .= "\n    .cookies a { color: #{$bgcolorActive} !important;}";
 
         $css .= "\n    #all #maincontent .richtext a:visited, #all #maincontent .articles-menu a:visited, #all #maincontent .blogm-categories a:visited{ color: #{$visitedFontColor};}";
-        $css .= "\n    #cmsNavigation .sel_page a, #cmsNavigation a:hover, .cookies .agree {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor}}";
+        $css .= "\n    .eventHub .nav_item:hover a ,#cmsNavigation .sel_page a, #cmsNavigation a:hover, .cookies .agree {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor}}";
+        $css .= "\n    .eventHub .sel_page a, .eventHub .nav_item.sel_page:hover a {background-color: #{$fontColor} !important; color: #fff !important; border: 1px solid #{$fontColor} !important}";
+
         $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a,.additionalFooter .footer-links, .additionalFooter .footer-links a{color: #{$fontColor} !important;}";
         $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
         $css .= "\n    .prevNextNav {border:dotted 1px #ccc; background-color:#eee; margin-top:10px;margin-bottom:7px; width:100%; display:table;}";
@@ -290,9 +294,9 @@ class cms_FancyTheme extends core_ProtoInner
                 $banner .= '<div class="fadein" style="overflow: hidden;">';
                 $style = '';
                 foreach ($imgs as $iHash) {
-                    $img = new thumb_Img(array($iHash, 1200, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($iHash, 1400, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                     $imageURL = $img->getUrl('forced');
-                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1200, 'height' => 220, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
+                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1400, 'height' => 220, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
                     $banner .= "\n{$hImage}";
                     $style = 'display:none;';
                 }
@@ -327,7 +331,7 @@ class cms_FancyTheme extends core_ProtoInner
 
             if ($img) {
                 if (!Mode::is('screenMode', 'narrow')) {
-                    $img = new thumb_Img(array($img, 1200, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($img, 1400, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 } else {
                     $img = new thumb_Img(array($img, 360, 104, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 }

@@ -236,7 +236,6 @@ class type_Keylist extends core_Type
             if ($suggCnt < 4) {
                 $keyListClass .= ' shrinked';
             }
-            
             $groupOpen = 0;
             $addKeylistWide = false;
             
@@ -340,8 +339,9 @@ class type_Keylist extends core_Type
                     $v = type_Varchar::escape($v);
 
                     list(, $uId) = explode('_', $key);  
-                    if ($class = $this->profileInfo[$uId]) {
-                        $v = "<span class='{$class}'>" . $v . '</span>';
+                    if ($this->profileInfo[$uId]) {
+                        $class = $this->profileInfo[$uId]['class'];
+                        $v = "<span class='{$class}'>" . $v . $this->profileInfo[$uId]['emoji'] . '</span>';
                     }
                     
                     $cb->append("<label {$labelStyle} {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$insideLabel}{$v}{$insideLabelEnd}</label>");
@@ -590,13 +590,15 @@ class type_Keylist extends core_Type
                 }
                 
                 if ($select != '*') {
-                    $this->suggestions[$rec->id] = $mvc->getVerbal($rec, $select);
+                    $name = $mvc->getVerbal($rec, $select);
+                    $name = str_replace(array('&lt;', '&amp;'), array('<', '&'), $name);
+                    $this->suggestions[$rec->id] = $name;
                 } else {
-                    $this->suggestions[$rec->id] = $mvc->getTitleById($rec->id);
+                    $this->suggestions[$rec->id] = $mvc->getTitleById($rec->id, false);
                 }
             }
         }
-        
+
         $mvc->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
         
         return $this->suggestions;
@@ -742,7 +744,7 @@ class type_Keylist extends core_Type
      * Съединяваме два keylist стринга
      *
      * @param type_Keylist $klist1
-     * @param type_Keylist $klist2
+     * @param type_Keylist|array $klist2
      *
      * @return type_Keylist $newKlist
      */
@@ -844,6 +846,47 @@ class type_Keylist extends core_Type
         
         return false;
     }
+
+
+    /**
+     * Convert string of base 36 numbers to array of keys
+     *
+     * @throws \ErrorException
+     */
+    public static function toArray36($value, $separator = ' ')
+    {
+        $result = [];
+
+        if (isset($value)) {
+            $value = explode($separator, $value);
+
+            expect(is_array($value), 'Value must be array or string', $value);
+
+            foreach ($value as $key) {
+                $id = (int) base_convert(rtrim($key, 'z'), 35, 10);
+                $result[$id] = $id;
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Convert an array of keys to string of base 36 numbers, padded to minimum four digits
+     */
+    public function fromArray36($value, $separator = ' ', $minLen = 4)
+    {
+        $result = [];
+        foreach ($value as $key) {
+            $key = (string)$key;
+            $result[$key] = str_pad(base_convert($key, 10, 35), $minLen - 1, '0', STR_PAD_LEFT) . 'z';
+        }
+        asort($result);
+
+        return implode($separator, $result);
+    }
+
     
     
     /**

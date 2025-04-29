@@ -52,7 +52,8 @@ class core_Query extends core_FieldSet
      */
     private $usedFields = array();
     
-    
+
+
     /**
      * Масив, където съхраняваме WHERE и HAVE условията
      */
@@ -69,8 +70,14 @@ class core_Query extends core_FieldSet
      * Масив, където съхраняваме ORDER BY условията
      */
     public $orderBy = array();
-    
-    
+
+
+    /**
+     * Дали да се използва UNION ALL, вместо UNION, ако има заявки с UNION
+     */
+    public $useUnionAll = false;
+
+
     /**
      * Число, което показва колко най-много резултата да извлечем
      */
@@ -314,31 +321,18 @@ class core_Query extends core_FieldSet
     
     
     /**
-     * Добавя с AND условие, посоченото поле да съдържа поне един от ключовете в keylist
-     * Алтернативна функция с Regexp
-     */
-    public function likeKeylist1($field, $keylist, $or = false)
-    {
-        $regExp = trim($keylist, '|');
-        
-        if ($regExp) {
-            $this->where("#{$field} REGEXP BINARY '\\\|({$regExp})\\\|'", $or);
-        }
-        
-        return $this;
-    }
-    
-    
-    /**
      * Преброява срещанията на всяко от изброените id-та в полето keylistName на редовете от заявката
      *
-     * @param string $keylistName името на keylist полето
-     * @param array  $ids         масив с id-та, които трябва да се изброят. Ако не се посочат - броят се всички от модела
+     * @param string $keylistName        - името на keylist полето
+     * @param array  $ids                - масив с id-та, които трябва да се изброят. Ако не се посочат - броят се всички от модела
+     * @param boolean $inSeparateQueries - дали с една заявка
      *
      * @return array масив $id => брой записи
      */
-    public function countKeylist($keylistName, $ids = null)
+    public function countKeylist($keylistName, $ids = null, $inSeparateQueries = false)
     {
+        $res = array();
+
         if ($ids === null) {
             $type = $this->getFieldType($keylistName);
             $kMvc = $type->params['mvc'];
@@ -348,19 +342,34 @@ class core_Query extends core_FieldSet
                 $ids[$kRec->id] = $kRec->id;
             }
         }
-        
+
         $mysqlKeylistName = $this->getMysqlField($keylistName);
+
+        // Ако е указано да се извличат с отделни заявки
+        if($inSeparateQueries){
+            foreach ($ids as $id) {
+
+                // Добавя се леко изчакване за да не се заключва цялата таблица за дълго
+                usleep(rand(100000, 200000));
+                $clone = clone $this;
+                $clone->XPR('gCount', 'int', "SUM(LOCATE('|" . $id . "|', ${mysqlKeylistName}) > 0)");
+                $clone->show('gCount');
+                $res[$id] = $clone->fetch()->gCount;
+            }
+
+            return $res;
+        }
+
+        // Иначе с една заявка
         foreach ($ids as $id) {
             $this->XPR($keylistName . '_cnt_' . $id, 'int', "SUM(LOCATE('|" . $id . "|', ${mysqlKeylistName}) > 0)");
         }
         $rec = $this->fetch();
-        
-        $res = array();
         foreach ($ids as $id) {
             $name = $keylistName . '_cnt_' . $id;
             $res[$id] = $rec->{$name};
         }
-        
+
         return $res;
     }
     
@@ -449,7 +458,9 @@ class core_Query extends core_FieldSet
     {
         $values = arr::make($values);
         if (!$values) {
-            
+
+            wp('Подадена празна стойност за заявка', $field, $values, $not, $or);
+
             return ;
         }
         
@@ -661,9 +672,10 @@ class core_Query extends core_FieldSet
                 $q->limit = null;
                 $q->start = null;
                 $q->where($cond);
-                
+
+                $unionStr = !$this->useUnionAll ? 'UNION' : "UNION ALL";
                 $string = ($count > 1) ? '(' . $q->buildQuery() . ')' : $q->buildQuery();
-                $query .= ($query ? "\nUNION\n" : '') . $string;
+                $query .= ($query ? "\n{$unionStr}\n" : '') . $string;
             }
             
             $query .= $this->getOrderBy(true);
@@ -1054,8 +1066,10 @@ class core_Query extends core_FieldSet
     {
         // Ако нямаме зададени полета, слагаме всички от модела,
         // без виртуалните и чуждестранните
-        if (!countR($this->show) || isset($this->show['*'])) {
+        if (isset($this->show['*'])) {
             $this->show = $this->selectFields('');
+        } else if (!countR($this->show)) {
+            $this->show = $this->selectFields('!#dbAutoselectExcluded');
         }
         
         // Добавяме използваните полета - изрази
@@ -1097,7 +1111,7 @@ class core_Query extends core_FieldSet
             $f = $this->getField($name);
             
             $this->realFields[] = $name;
-            
+
             $fields .= $fields ? ",\n   " : "\n   ";
             
             switch ($f->kind) {

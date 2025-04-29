@@ -40,7 +40,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
        
         $result = (object) array(
             'reason' => "Входяща фактура №{$rec->number}", // основанието за ордера
-            'valior' => $rec->journalDate,   // датата на ордера
+            'valior' => !empty($rec->journalDate) ? $rec->journalDate : dt::today(),   // датата на ордера
             'entries' => array(),
         );
         
@@ -73,8 +73,11 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         // Ако е ДИ или КИ се посочва към коя фактура е то
         if ($rec->type != 'invoice') {
             $type = ($rec->dealValue > 0) ? 'Дебитно известие' : 'Кредитно известие';
+
+            Mode::push('text', 'plain');
             $result->reason = "{$type} към фактура №" . $origin->getVerbal('number');
-            
+            Mode::pop('text');
+
             // Намираме оридиджана на фактурата върху която е ДИ или КИ
             $origin = $origin->getOrigin();
             
@@ -105,6 +108,19 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 'debit' => array('4531'),
                 'credit' => array('4530', array($origin->className, $origin->that)),
             );
+
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDoc->isInstanceOf('purchase_Purchases')){
+                $haveVatCredit = $firstDoc->fetchField('haveVatCreditProducts');
+                if($haveVatCredit == 'no'){
+                    $entries[] = array(
+                        'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
+                        'debit' => array('4530', array($origin->className, $origin->that)),
+                        'credit' => array('4531'),
+                        'reason' => 'Сторно начислен ДДС при покупка - Артикул БЕЗ право на Данъчен кредит',
+                    );
+                }
+            }
         }
 
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {

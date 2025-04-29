@@ -34,14 +34,16 @@ class bgfisc_plg_Sales extends core_Plugin
             $rec = $form->rec;
             
             if (!$form->gotErrors()) {
-                $registerRec = bgfisc_Register::getFiscDevice($rec->caseId);
-                if (empty($registerRec)) {
-                    $form->setError('caseId', 'Не може да се генерира УНП, защото не може да се определи ФУ');
+                if(bgfisc_Register::doRequireFiscForConto($mvc, $rec)){
+                    $registerRec = bgfisc_Register::getFiscDevice($rec->caseId);
+                    if (empty($registerRec)) {
+                        $form->setError('caseId', 'Не може да се генерира УНП, защото не може да се определи ФУ');
+                    }
                 }
                 
                 if ($rec->makeInvoice == 'no' && !in_array($rec->chargeVat, array('yes', 'separate'))) {
                     if($mvc->isOwnCompanyVatRegistered($rec)){
-                        $form->setError('makeInvoice,chargeVat', 'Не може едновременно да не се начислява ДДС и без фактуриране|*!');
+                        $form->setWarning('makeInvoice,chargeVat', 'Фирмата ни е регистрирана по ДДС, а продажбата е без начисляване на ДДС и без фактуриране|*?');
                     }
                 }
             }
@@ -61,9 +63,10 @@ class bgfisc_plg_Sales extends core_Plugin
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         if(empty($rec->id) && ($rec->_onlineSale === true || isset($rec->originId))){
-            if(!bgfisc_Register::getFiscDevice($rec->caseId, $rec->bankAccountId)){
-                
-                throw new core_exception_Expect('Не може да се генерира УНП, защото не може да се определи ФУ', 'Несъответствие');
+            if(bgfisc_Register::doRequireFiscForConto($mvc, $rec)){
+                if(!bgfisc_Register::getFiscDevice($rec->caseId)){
+                    throw new core_exception_Expect('Не може да се генерира УНП, защото не може да се определи ФУ', 'Несъответствие');
+                }
             }
         }
     }
@@ -75,7 +78,6 @@ class bgfisc_plg_Sales extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
         $regRec = bgfisc_Register::createUrn($mvc, $rec->id, true);
-        core_Statuses::newStatus("Създаване на продажба с УНП|*: '<b>{$regRec->urn}<b>'");
         
         // Добавяне на УНП-то в ключовите думи
         $rec->searchKeywords .= ' ' . plg_Search::normalizeText($regRec->urn);
@@ -108,7 +110,9 @@ class bgfisc_plg_Sales extends core_Plugin
         if($urn = bgfisc_Register::getRec($mvc, $rec->id)->urn){
             $row->cashRegNum = bgfisc_Register::getUrlLink($urn);
         } else {
-            $row->cashRegNum = ht::createHint('Стара продажба', 'Стара продажба, ще се генерира УНП, при издаване на фискален бон', 'warning', false);
+            if(core_Users::isPowerUser()){
+                $row->cashRegNum = ht::createHint('Стара продажба', 'Стара продажба, ще се генерира УНП, при издаване на фискален бон', 'warning', false);
+            }
         }
     }
     
@@ -146,27 +150,6 @@ class bgfisc_plg_Sales extends core_Plugin
     {
         $block = tr("|*<span class='quiet'>|УНП|*</span>: {$data->row->cashRegNum}");
         $tpl->replace($block, 'ADDITIONAL_BLOCK');
-    }
-    
-    
-    /**
-     * Ролбакване на транзакцията за контиране
-     */
-    public static function on_AfterRollbackConto($mvc, $res, $id)
-    {
-        if (!isset($res)) {
-            $rec = $mvc->fetchRec($id);
-            $rec->state = 'draft';
-            $rec->brState = 'active';
-            $rec->contoActions = null;
-            
-            if (acc_Journal::fetchByDoc($mvc, $rec->id)) {
-                acc_Journal::deleteTransaction($mvc, $rec->id);
-                $res = true;
-            }
-            
-            $mvc->save($rec, 'state,brState,contoActions');
-        }
     }
     
     
@@ -225,7 +208,8 @@ class bgfisc_plg_Sales extends core_Plugin
     {
         $actions = type_Set::toArray($rec->contoActions);
         if (isset($actions['pay'])) {
-            
+            if(!bgfisc_Register::doRequireFiscForConto($mvc, $rec)) return;
+
             // След плащане с продажбата редирект към екшън за печат на бележка
             Request::setProtected('hash');
             $url = toUrl(array($mvc, 'trytoprintreceipt', $rec->id, 'hash' => 'yes'));
@@ -279,10 +263,16 @@ class bgfisc_plg_Sales extends core_Plugin
                 reportException($e);
                 $errorMsg = $e->getMessage();
                 
-                $mvc->rollbackConto($rec);
-                $mvc->logWrite('Ревъртване на контировката', $rec);
+                if($mvc->rollbackConto($rec)){
+                    $mvc->logWrite('Ревъртване на контировката (1)', $rec);
+                }
+
                 $mvc->logErr($errorMsg, $id);
-                
+                $cu = core_Users::getCurrent();
+                if($cu == core_Users::ANONYMOUS_USER){
+                    wp("АНОНИМНО РЕВЪРТВАНЕ", $rec);
+                }
+
                 core_Statuses::newStatus($errorMsg, 'error');
                 bgfisc_PrintedReceipts::removeWaitingLog($mvc, $rec->id);
                 core_Locks::release("lock_{$mvc->className}_{$rec->id}");
@@ -357,11 +347,5 @@ class bgfisc_plg_Sales extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         $mvc->logWrite('Анулиране на документ', $rec->id);
-    }
-    
-    
-    public static function on_AfterGetLinkForObject($mvc, &$res, $rec)
-    {
-        bp();
     }
 }

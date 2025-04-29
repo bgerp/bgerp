@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -130,37 +130,44 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *
      * @param int $productId
      * @return array
-     *          int|null    ['name']                 - наименование
-     *          int|null    ['centerId']             - ид на център на дейност
-     *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
-     *          int|null    ['inputStores']          - ид на складове за влагане (ако е складируем)
-     *          array|null  ['fixedAssets']          - масив от ид-та на оборудвания (@see planning_AssetResources)
-     *          array|null  ['employees']            - масив от ид-та на оператори (@see planning_Hr)
-     *          int|null    ['norm']                 - норма за производство
-     *          int|null    ['normPackagingId']      - ид на опаковката/мярката на нормата
-     *          int|null    ['labelPackagingId']     - ид на опаковка за етикет
-     *          double|null ['labelQuantityInPack']  - к-во в опаковка за етикет
-     *          string|null ['labelType']            - тип на етикета
-     *          int|null    ['labelTemplate']        - шаблон за етикет
-     *          array|null  ['planningParams']       - параметри за планиране
-     *          array|null  ['actions']              - операции за планиране
-     *          string      ['isFinal']              - дали е финална
-     *          string      ['showPreviousJobField'] - дали да се изисква предходно задание
-     *          string      ['wasteProductId']       - ид на отпадък
-     *          string      ['wasteStart']           - начално количество отпадък
-     *          string      ['wastePercent']         - процент отпадък
-     *          string      ['calcWeightMode']       - изчисляване на тегло или не
-     *          string      ['mandatoryDocuments']   - задължителни документи
-     * mandatoryDocuments
+     *          int|null    ['name']                  - наименование
+     *          int|null    ['centerId']              - ид на център на дейност
+     *          int|null    ['storeIn']               - ид на склад за засклаждане (ако е складируем)
+     *          int|null    ['inputStores']           - ид на складове за влагане (ако е складируем)
+     *          array|null  ['fixedAssets']           - масив от ид-та на оборудвания (@see planning_AssetResources)
+     *          array|null  ['employees']             - масив от ид-та на оператори (@see planning_Hr)
+     *          int|null    ['norm']                  - норма за производство
+     *          int|null    ['normPackagingId']       - ид на опаковката/мярката на нормата
+     *          int|null    ['labelPackagingId']      - ид на опаковка за етикет
+     *          double|null ['labelQuantityInPack']   - к-во в опаковка за етикет
+     *          string|null ['labelType']             - тип на етикета
+     *          int|null    ['labelTemplate']         - шаблон за етикет
+     *          array|null  ['planningParams']        - параметри за планиране
+     *          array|null  ['actions']               - операции за планиране
+     *          string      ['isFinal']               - дали е финална
+     *          string      ['showPreviousJobField']  - дали да се изисква предходно задание
+     *          string      ['wasteProductId']        - ид на отпадък
+     *          string      ['wasteStart']            - начално количество отпадък
+     *          string      ['wastePercent']          - процент отпадък
+     *          string      ['calcWeightMode']        - изчисляване на тегло или не
+     *          string      ['mandatoryDocuments']    - задължителни документи
+     *          text        ['description']           - описание на операцията
+     *          int         ['supportSystemFolderId'] - папка за поддръжка
+     *          int         ['offsetAfter']           - изчакване след
+     *
      */
     public function getProductionData($productId)
     {
         $rec = planning_Steps::getRec('cat_Products', $productId);
-        $measureId = cat_Products::fetchField($productId, 'measureId');
-        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent, 'mandatoryDocuments' => $rec->mandatoryDocuments);
+        $productRec = cat_Products::fetch($productId, 'measureId,info');
+
+        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent, 'mandatoryDocuments' => $rec->mandatoryDocuments, 'offsetAfter' => $rec->offsetAfter);
+        if(!empty($productRec->info)){
+            $res['description'] = $productRec->info;
+        }
         if(!empty($rec->norm)){
             $res['norm'] = $rec->norm;
-            $res['normPackagingId'] = $measureId;
+            $res['normPackagingId'] = $productRec->measureId;
         }
 
         $res['fixedAssets'] = null;
@@ -179,6 +186,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
         $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : array();
         $res['calcWeightMode'] = ($rec->calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $rec->calcWeightMode;
+        $res['supportSystemFolderId'] = $rec->supportSystemFolderId ?? planning_Centers::fetchField($rec->centerId, 'supportSystemFolderId');
 
         if($rec->showPreviousJobField == 'auto'){
             $centerShowPreviousJobField = planning_Centers::fetchField($rec->centerId, 'showPreviousJobField');

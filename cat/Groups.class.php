@@ -31,7 +31,7 @@ class cat_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject, core_UserTranslatePlg';
+    public $loadList = 'plg_Created, plg_RowTools2, cat_Wrapper, plg_Search, plg_TreeObject, core_UserTranslatePlg, plg_SaveAndNew';
 
 
     /**
@@ -162,6 +162,7 @@ class cat_Groups extends core_Master
                                 fixedAsset=Дълготрайни активи,
         						canManifacture=Производими,generic=Генерични)', 'caption=Настройки->Свойства,columns=2,input=none');
         $this->FLD('notes', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
+
         $this->setDbUnique('sysId');
         $this->setDbIndex('parentId');
     }
@@ -174,9 +175,10 @@ class cat_Groups extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
-        $form->setField('parentId', 'caption=Настройки->В състава на');
+        $form->setField('parentId', 'caption=Настройки->В състава на,remember');
         $form->setField('orderProductBy', 'caption=Настройки->Сортиране по');
         $form->setField('parentId', 'silent,removeAndRefreshForm=defaultOverheadCostsPercent');
+        $form->FLD('addProducts', 'text(rows=2)', 'caption=Допълнително->Добави артикули,input,hint=Кодовете на артикулите трябва да са на нов ред');
 
         // На системните групи само определени полета може да се променят
         if (isset($rec->sysId)) {
@@ -228,6 +230,25 @@ class cat_Groups extends core_Master
                     }
                 }
             }
+
+            if(!empty($rec->addProducts)){
+                $errorCodes = $rec->_addProductsArr = array();
+                $addProducts = cond_type_Text::text2options($rec->addProducts);
+                foreach ($addProducts as $string){
+                    $productRec = cat_Products::getByCode($string);
+                    if(is_object($productRec)){
+                        $rec->_addProductsArr[$productRec->productId] = $productRec->productId;
+                    } else {
+                        $errorCodes[] = "<b>{$string}</b>";
+                    }
+                }
+
+                if(countR($errorCodes)){
+                    $msg = "Не са открити артикули с кодове|*: " . implode(', ', $errorCodes);
+                    $form->setError('addProducts', $msg);
+                }
+            }
+
         }
     }
 
@@ -264,13 +285,14 @@ class cat_Groups extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (cat_Products::haveRightFor('list')) {
+            $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
+            $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
+
             if ($fields['-list']) {
-                $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+                $row->productCnt = ht::createLinkRef($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
 
             if ($fields['-single']) {
-                $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
-                $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
                 $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
         }
@@ -535,11 +557,38 @@ class cat_Groups extends core_Master
 
 
     /**
-     * Обновява броячите на групите по cron
+     * Обновява броячите на всички групите по cron
      */
     public function cron_UpdateGroupsCnt()
     {
         self::updateGroupsCnt();
+    }
+
+
+    /**
+     * Обновяване на засегнатите групи по разписание
+     * @return string|void
+     */
+    public function cron_UpdateTouchedGroupsCnt()
+    {
+        $cachedGroups = core_Permanent::getLikeKey('touchedGroups');
+        if(!countR($cachedGroups)){
+            core_Debug::log('НЯМА ПРОМЕНЕНИ ГРУПИ');
+            return;
+        }
+
+        $groupsArr = array();
+        foreach ($cachedGroups as $groupKeylist){
+            $groupsArr += keylist::toArray($groupKeylist);
+        }
+
+        core_Permanent::remove('touchedGroups', true);
+
+        if(countR($groupsArr)){
+            self::updateGroupsCnt($groupsArr);
+        }
+
+        return "Обновен брой групи: " . countR($groupsArr);
     }
 
 
@@ -618,167 +667,6 @@ class cat_Groups extends core_Master
         return false;
     }
 
-    function act_Test()
-    {
-        if (!haveRole('admin')) {
-            return "Недостатъчни права";
-        }
-
-//        $gRecNO = cat_Groups::fetch("#name = 'Пликове за e-Commers с изрязани дръжки' AND #productCnt != 0");
-//        $gRecYES = cat_Groups::fetch("#name = 'Пликове за e-Commerce с изрязани дръжки'");
-//
-//        if (!$gRecNO) {
-//            return 'Липсва Пликове за e-Commers с изрязани дръжки';
-//        }
-//
-//        if (!$gRecYES) {
-//            return 'Липсва: Пликове за e-Commerce с изрязани дръжки';
-//        }
-//
-//        $q = cat_Products::getQuery();
-//        $q->where("#isPublic = 'no'");
-//        $q->like('groups', "|{$gRecNO->id}|");
-//        $q->show('id,name,groups,groupsInput');
-//
-//        while ($pRec = $q->fetch()) {
-//
-//            $sGrArr = keylist::toArray($pRec->groups);
-//            $sGrInputArr = keylist::toArray($pRec->groupsInput);
-//            unset($sGrArr[$gRecNO->id]);
-//            unset($sGrInputArr[$gRecNO->id]);
-//            if (!in_array($gRecYES->id, $sGrArr)) {
-//                $sGrArr[$gRecYES->id] = $gRecYES->id;
-//            }
-//            if (!in_array($gRecYES->id, $sGrInputArr)) {
-//                $sGrInputArr[$gRecYES->id] = $gRecYES->id;
-//            }
-//
-//            $pRec->groups = type_Keylist::fromArray($sGrArr);
-//            $pRec->groupsInput = type_Keylist::fromArray($sGrInputArr);
-//            cls::get('cat_Products')->save_($pRec, 'groups,groupsInput');
-//
-//        }
-//
-//        return 'Изпразване на групата Пликове за e-Commers с изрязани дръжки';
-
-        if (!$grRecOld = cat_Groups::fetch("#name = '03. Куриерски пликове'")) {
-            return "Липсва стара група";
-        }
-        if ($grRecOld->productCnt == 0) {
-            return "Липсват артикули в стара група";
-        }
-
-        $grRecNew = cat_Groups::fetch("#name = '03. Куриерски и онлайн пликове'");
-        if (!$grRecNew && $grRecOld) {
-
-            $grNewId = cat_Groups::forceGroup('03. Куриерски и онлайн пликове', $parentId = $grRecOld->parentId, $force = true);
-            $grRecNew = cat_Groups::fetch($grNewId);
-
-        }
-
-
-        $q = cat_Products::getQuery();
-        $q->where("#isPublic = 'no'");
-        $q->like('groups', "|{$grRecOld->id}|");
-        $q->show('id,name,groups,groupsInput');
-
-
-
-        // bp($q->fetchAll(),$grRecOld,$grRecNew,$q->count());
-
-        $logArr = array();
-
-        while ($pRec = $q->fetch()) {
-
-            $groupsArr = keylist::toArray($pRec->groups);
-            $groupsInputArr = keylist::toArray($pRec->groupsInput);
-
-            //Ако артикула го има в сарата и в новата група
-            if (key_exists($grRecNew->id, $groupsArr)) {
-                //Премахваме всички групи чийто баща е старата група от grous и groupsInput
-                foreach ($groupsArr as $gr) {
-
-                    if (cat_Groups::fetch($gr)->parentId == $grRecOld->id) {
-
-                        unset($groupsArr[$gr]);
-                        unset($groupsInputArr[$gr]);
-
-                    }
-                }
-
-                //От groups премахваме старата група и остава само новата
-                unset($groupsArr[$grRecOld->id]);
-
-            } else {
-
-                //Ако е само в старата група
-                // В groupsInput трябва да останат само тези групи чиито баща е Новата група
-                foreach ($groupsInputArr as $gr) {
-
-                    //Проверяваме, дали вече има създадена група със същото име
-                    $nameForCheck = cat_Groups::fetch($gr)->name;
-                    $queryGr = cat_Groups::getQuery();
-                    $queryGr->where("#name = '$nameForCheck' AND #id != '$gr' AND #parentId = $grRecNew->id");
-
-                    if ($queryGr->count() > 1) {
-                        return "Има повече от една група 03. Куриерски и онлайн пликове>>Куриерски пликове ";
-                    }
-
-                    if ($queryGr->count() > 0) {
-                        $newInputGrId = $queryGr->fetch()->id;
-
-                    } else {
-                        $newInputGrId = null;
-                    }
-
-                    $recGr = cat_Groups::fetch($gr);
-
-                    //Ако в groupsInput  има група , чийто баща е старата група и има вече създадена
-                    //такава група със същото име
-                    //Изтривам старата и вкарвам новата със същото име ако съществува такава
-                    if ($recGr->parentId == $grRecOld->id) {
-
-                        if ($newInputGrId) {
-                            unset($groupsInputArr[$gr]);
-                            unset($groupsArr[$gr]);
-                            $groupsInputArr[$newInputGrId] = $newInputGrId;
-                            $groupsArr[$newInputGrId] = $newInputGrId;
-
-                        } else {
-
-                            //Ако не съществува на старата само и сменяме parentId-то
-                            $recGr->parentId = $grRecNew->id;
-
-                            cls::get('cat_Groups')->save_($recGr, 'parentId');
-                        }
-
-                    }
-
-                }
-
-                unset($groupsArr[$grRecOld->id]);
-                $groupsArr[$grRecNew->id] = $grRecNew->id;
-
-            }
-
-            $logArr[$pRec->id] = $pRec->name;
-            $pRec->groups = type_Keylist::fromArray($groupsArr);
-            $pRec->groupsInput = type_Keylist::fromArray($groupsInputArr);
-
-            cls::get('cat_Products')->save_($pRec, 'groups,groupsInput');
-        }
-
-        if (!empty($logArr)) {
-            $logArr['count'] = countR($logArr);
-            wp('Артикули с коригирани групи', $logArr);
-        }
-
-        if ($grRecOld->id) {
-            $queryGr = cat_Groups::getQuery();
-            $queryGr->delete("#productCnt = 0 AND #parentId = $grRecOld->id");
-        }
-    }
-
 
     /**
      * Преди запис на перо
@@ -806,5 +694,24 @@ class cat_Groups extends core_Master
             $callOn = dt::addSecs(30);
             core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpandInput', 'cat_Products', $callOn);
         }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if(empty($rec->_addProductsArr)) return;
+
+        $count =  countR($rec->_addProductsArr);
+        foreach ($rec->_addProductsArr as $productId){
+            $pRec = cat_Products::fetch($productId);
+            $pRec->groupsInput = keylist::addKey($pRec->groupsInput, $rec->id);
+            cat_Products::save($pRec);
+        }
+
+        $mvc->cron_UpdateTouchedGroupsCnt();
+        core_Statuses::newStatus("Добавени артикули в групата|*: {$count}");
     }
 }

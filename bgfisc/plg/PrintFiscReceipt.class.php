@@ -61,7 +61,8 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             $res->append($doc);
             $res->append(ht::mixedToHtml($obj->arr));
             $res->append($obj->js, 'SCRIPTS');
-            
+            $mvc->logWrite('Дебъг печатане на касов бон', $rec->id);
+
             return false;
         }
         
@@ -71,15 +72,21 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             expect($hash = Request::get('hash', 'varchar'));
             expect(str::checkHash($hash, 4));
             expect($err = Request::get('err', 'varchar'));
-            
+            $mvc->requireRightFor('conto');
+
             $id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             bgfisc_PrintedReceipts::removeWaitingLog($mvc, $id);
-            $mvc->rollbackConto($id);
-            $mvc->logWrite('Ревъртване на контировката', $rec);
+            if($mvc->rollbackConto($id)){
+                $mvc->logWrite('Ревъртване на контировката (3)', $rec);
+            }
             $mvc->logErr($err, $id);
             core_Statuses::newStatus($err, 'error');
-            
+            $cu = core_Users::getCurrent();
+            if($cu == core_Users::ANONYMOUS_USER){
+                wp("АНОНИМНО РЕВЪРТВАНЕ", $rec);
+            }
+
             if ($mvc instanceof cash_Pko) {
                 $rec->cashRegNum = null;
                 $mvc->save_($rec, 'cashRegNum');
@@ -136,15 +143,21 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
 
         $receiptNumber = bgfisc_Register::getSaleNumber($mvc, $rec->id);
         if ($rec->isReverse == 'yes') {
-            $fiscalArr['RELATED_TO_URN'] = $receiptNumber;
             $Origin = doc_Containers::getDocument($rec->originId);
-            
             $fiscalArr['RELATED_TO_URN'] = $receiptNumber;
             $fiscalArr['IS_STORNO'] = true;
             
             $reasonCode = $Driver->getStornoReasonCode($registerRec, $rec->stornoReason);
             if (!isset($reasonCode)) {
-                throw new core_exception_Expect('Липсва код на основанието за плащане във ФУ|*', 'Несъответствие');
+                if($reasonCode == 0){
+                    $valior = $Origin->fetchField($Origin->valiorFld);
+                    $maxDateForError = bgfisc_Register::getMaxDateForStornoOperationError($valior);
+                    if(dt::today() > $maxDateForError){
+                        $maxDateForErrorVerbal = dt::mysql2verbal($maxDateForError, 'd.m.Y');
+
+                        throw new core_exception_Expect("Сторно по бележката с основание \"Операторска грешка\" не може да се издава след|*: {$maxDateForErrorVerbal}", 'Несъответствие');
+                    }
+                }
             }
             
             $fiscalArr['STORNO_REASON'] = $reasonCode;
@@ -243,7 +256,8 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
     {
         $Origin = doc_Containers::getDocument($containerId);
         $originRec = $Origin->fetchRec();
-        
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($originRec->threadId);
+
         if ($Origin->isInstanceOf('store_ShipmentOrders')) {
             $dQuery = store_ShipmentOrderDetails::getQuery();
             $dQuery->where("#shipmentId = {$originRec->id}");
@@ -262,11 +276,11 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         $res = array();
         foreach ($all as $dRec) {
             $amountWithVatNotRound = $dRec->amount;
-            $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
+            $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId, null, $vatExceptionId)->sysId;
             $amount = $dRec->amount;
             
             if (in_array($originRec->chargeVat, array('yes', 'separate'))) {
-                $vatPercent = cat_Products::getVat($dRec->productId);
+                $vatPercent = cat_Products::getVat($dRec->productId, null, $vatExceptionId);
                 $amount = round($dRec->amount + ($dRec->amount * $vatPercent), 2);
                 $amountWithVatNotRound += ($dRec->amount * $vatPercent);
                 setIfNot($vatSysId, 'B');
@@ -276,7 +290,10 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
             $vatClass = $Driver->getVatGroupCode(acc_VatGroups::getIdBySysId($vatSysId), $registerRec);
             
             $amount = round($amount, 2);
-            $arr = array('PLU_NAME' => cat_Products::getVerbal($dRec->productId, 'name'), 'QTY' => 1, 'PRICE' => $amount, 'VAT_CLASS' => $vatClass);
+            $name = cat_Products::getVerbal($dRec->productId, 'name');
+            $name = str_replace(array('&lt;', '&amp;'), array('<', '&'), $name);
+
+            $arr = array('PLU_NAME' => $name, 'QTY' => 1, 'PRICE' => $amount, 'VAT_CLASS' => $vatClass);
             $price = round($amount / $dRec->packQuantity, bgfisc_Setup::get('PRICE_FU_ROUND'));
             $arr['BEFORE_PLU_TEXT'] = "{$dRec->packQuantity} x {$price}лв";
             if (!empty($dRec->discount)) {
@@ -302,7 +319,9 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
      */
     public static function checkBeforeConto($caseId, $currencyId, &$error)
     {
-        $registerRec = bgfisc_Register::getFiscDevice($caseId);
+        $registerRec = bgfisc_Register::getFiscDevice($caseId, $serialNum);
+        if($serialNum == bgfisc_Register::WITHOUT_REG_NUM) return true;
+
         if (empty($registerRec)) {
             $error = 'Няма връзка с ФУ';
             

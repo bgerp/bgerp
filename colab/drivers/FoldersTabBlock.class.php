@@ -35,7 +35,7 @@ class colab_drivers_FoldersTabBlock extends core_BaseClass
 
     /**
      * Подготвя данните
-     * @return string
+     * @return array
      */
     public function getBlockTabUrl()
     {

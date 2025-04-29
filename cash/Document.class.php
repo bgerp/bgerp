@@ -53,7 +53,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, cash';
+    public $canList = 'ceo, cash, cashAll';
 
 
     /**
@@ -169,8 +169,14 @@ abstract class cash_Document extends deals_PaymentDocument
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'termDate,valior,issuer';
-    
-    
+
+
+    /**
+     * За коя номенклатура да не се сетва грешка при контиране ако няма стойност
+     */
+    public $ignoreListCheckOnNullWhenConto = 'cash_CaseAccRegIntf';
+
+
     /**
      * Добавяне на дефолтни полета
      *
@@ -763,6 +769,23 @@ abstract class cash_Document extends deals_PaymentDocument
         if(empty($rec->issuer)){
             $rec->issuer = deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy);
             $mvc->save_($rec, 'issuer');
+        }
+    }
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+
+        // Ако не е избрана каса, показва се бутона за контиране но с грешка
+        if (in_array($rec->state, array('draft', 'pending')) && $mvc->haveRightFor('conto')) {
+            $defaultCase = $rec->peroCase ?? $mvc->getDefaultCase($rec);
+            if(empty($defaultCase)){
+                $data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документът не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+            }
         }
     }
 }

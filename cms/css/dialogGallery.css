@@ -30,5 +30,9 @@
     display: inline-block;
     float: left;
     max-width: 190px;
-	
+
+}
+
+.tab а {
+	background-repeat: no-repeat !important;
 }

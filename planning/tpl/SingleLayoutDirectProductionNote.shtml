@@ -8,7 +8,7 @@
                         <table class="innerTable border-table paddingCells">
                             <tbody>
                                 <tr>
-                                    <td class="cell centered" rowspan='3' style='width:30%;'>
+                                    <td class="cell centered" rowspan='3'>
                                         <div class="document-title">|протокол за производство|*</div>
                                         <div class='small'>( <i> [#subTitle#] </i> )</div>
                                         <div style="padding-top:5px;">
@@ -27,7 +27,7 @@
                                         </table>
                                         <!--ET_END zoneReadiness-->
                                     </td>
-                                    <td class="cell custom-header-bg" style='width:35%;'><b>|Произведено|*</b></td>
+                                    <td class="cell custom-header-bg" style='padding-top:7px'><b>|Произведено|*</b><small> (|заприходено|*) </small><b>|в склад|*:</b>  <b style='font-size:18px;'>[#storeId#]</b></td>
                                 </tr>
                                 <tr>
                                     <td class="cell">
@@ -66,7 +66,17 @@
 
                         <div class="lines"></div>
                         <div class="details">
-                            [#planning_DirectProductNoteDetails#]
+                            <!--ET_BEGIN SUB_PRODUCTS_TABLE-->
+                            <div>[#SUB_PRODUCTS_TABLE#]</div>
+                            <div class="lines"></div>
+                            <!--ET_END SUB_PRODUCTS_TABLE-->
+                            <!--ET_BEGIN INPUTED_PRODUCTS_TABLE-->
+                            <div>[#INPUTED_PRODUCTS_TABLE#]</div>
+                            <!--ET_END INPUTED_PRODUCTS_TABLE-->
+                            <!--ET_BEGIN WASTE_PRODUCTS_TABLE-->
+                            <div class="lines"></div>
+                            <div>[#WASTE_PRODUCTS_TABLE#]</div>
+                            <!--ET_END WASTE_PRODUCTS_TABLE-->
                         </div>
                         <div class="lines"></div>
                         <table class="innerTable footer-notes paddingCells" style="width:100%">
@@ -74,13 +84,6 @@
                                 <tr>
                                     <td class="topCell first vtop" style='width:50%;'>
                                         <table>
-                                            <!--ET_BEGIN storeId-->
-                                            <tr>
-                                                <td class='quiet nowrap aright'>|В склад|*:</td>
-                                                <td>[#storeId#]</td>
-                                            </tr>
-                                            <!--ET_END storeId-->
-
                                             <!--ET_BEGIN inputStoreId-->
                                             <tr>
                                                 <td class='quiet nowrap aright'>|Влагане от|*:</td>
@@ -115,12 +118,11 @@
                                                 <td>[#expenses#]</td>
                                             </tr>
                                             <!--ET_END expenses-->
-                                            <!--ET_BEGIN note-->
-                                            <tr>
-                                                <td colspan="2">[#note#]</td>
-                                            </tr>
-                                            <!--ET_END note-->
                                         </table>
+                                        <!--ET_BEGIN note-->
+                                       	<hr>
+                                        [#note#]
+                                        <!--ET_END note-->
                                     </td>
                                     <td>
                                         <table class='centered special-borders' style='width:100%;'>

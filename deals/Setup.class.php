@@ -62,6 +62,36 @@ defIfNot('DEALS_CLOSE_UNDELIVERED_OVER', '0.99');
 
 
 /**
+ * Колко % да е отстъпката, над която да се показва предупреждение
+ */
+defIfNot('DEALS_MAX_WARNING_DISCOUNT', '0.3');
+
+
+/**
+ * Колко дни толеранс има след просрочване преди да се приеме че сделката е просрочена
+ */
+defIfNot('DEALS_ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE', '0');
+
+
+/**
+ * Каква сума на просрочване да се приема, че сделката е просрочена
+ */
+defIfNot('DEALS_OVERDUE_TOLERANCE_AMOUNT', '5');
+
+
+/**
+ * Дефолтен метод за срок на плащане при проверка за просрочията
+ */
+defIfNot('DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD', '');
+
+
+/**
+ * Да се показва ли предупреждение при повтаряне на артикул в бизнес документ
+ */
+defIfNot('DEALS_WARNING_ON_DUPLICATED_ROWS', 'yes');
+
+
+/**
  * class deals_Setup
  *
  *
@@ -91,7 +121,7 @@ class deals_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'drdata=0.1';
+    public $depends = 'drdata=0.1,cond=0.1';
     
     
     /**
@@ -113,9 +143,8 @@ class deals_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Сделката да не се показва като просрочена при салдо (неплатено)->Под,unit= от доставеното'),
-        'DEALS_ISSUER_USER' => array('user(roles=ceo|salesMaster,allowEmpty)', 'caption=Съставител на бизнес документи->Конкретен потребител'),
-        'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Или'),
+        'DEALS_ISSUER_USER' => array('user(roles=ceo|sales|saleAll,allowEmpty)', 'caption=Съставител на бизнес документи->Конкретен потребител,customizeBy=ceo|sales|purchase|invoicer'),
+        'DEALS_ISSUER' => array('enum(createdBy=Създателят,activatedBy=Активиралият)', 'caption=Съставител на бизнес документи->Или,customizeBy=ceo|sales|purchase|invoicer'),
         'DEALS_OVERDUE_PENDING_DAYS_1' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Първо след,unit=дни'),
         'DEALS_OVERDUE_PENDING_DAYS_2' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Второ след,unit=дни'),
         'DEALS_OVERDUE_PENDING_DAYS_3' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ с минал падеж/вальор->Трето след,unit=дни'),
@@ -123,6 +152,12 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_ACTIVE_FINDEALS_WITHOUT_DOCUMENTS' => array('time', 'caption=Напомняне за активни финансови сделки без нови документи->Хоризонт'),
         'DEALS_TEST_VAT_CALC' => array('enum(no=Не,yes=Да)', 'caption=Дебъг->Тестово закръгляне,autohide=any'),
         'DEALS_CLOSE_UNDELIVERED_OVER' => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
+        'DEALS_MAX_WARNING_DISCOUNT' => array('percent(min=0)', 'caption=При отстъпка над колко да показва се показва предупреждение в документите->Процент'),
+        'DEALS_BALANCE_TOLERANCE' => array('percent(min=0)', 'caption=Сделката да се показва като платена при салдо->Под'),
+        'DEALS_ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE' => array('int(min=0)', 'caption=Толеранс за просрочване на сделките->Дни'),
+        'DEALS_OVERDUE_TOLERANCE_AMOUNT' => array('int(min=0)', 'caption=Толеранс за просрочване на сделките->Сума'),
+        'DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD' => array('key(mvc=cond_PaymentMethods,select=title)', 'caption=Толеранс за просрочване на сделките->Дефолтен метод'),
+        'DEALS_WARNING_ON_DUPLICATED_ROWS' => array('enum(yes=Да,no=Не)', 'caption=Предупреждение при дублиране на ред в бизнес документи->Избор,customizeBy=powerUser'),
     );
     
     
@@ -160,6 +195,23 @@ class deals_Setup extends core_ProtoSetup
             'offset' => 120
         ),
     );
+
+
+    /**
+     * Зареждане на данните
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        $defaultPaymentMethod = core_Packs::getConfigValue('deals', 'DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD');
+        if (strlen($defaultPaymentMethod) === 0) {
+            $defMethod = cond_PaymentMethods::fetchField("#sysId = 'Net3'");
+            core_Packs::setConfig('deals', array('DEALS_OVERDUE_DEFAULT_PAYMENT_METHOD' => $defMethod));
+        }
+
+        return $res;
+    }
 
 
     /**
@@ -232,6 +284,7 @@ class deals_Setup extends core_ProtoSetup
     public function cron_CheckPendingPaymentDocuments()
     {
         $today = dt::today();
+
         $paymentClassesArr = array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments');
         foreach ($paymentClassesArr as $className){
             $Class = cls::get($className);
@@ -241,75 +294,66 @@ class deals_Setup extends core_ProtoSetup
             $dQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
             $dQuery->where("#state = 'pending'");
             $dQuery->show("{$Class->termDateFld},modifiedOn,createdBy,inCharge,contragentId,contragentClassId,amount,currencyId, threadId");
-            
             while($dRec = $dQuery->fetch()){
-                
-                // На коя дата се очаква да има направено плащане, ако не е посочена е 1 месец от създаването
+
+                // На коя дата се очаква да има направено плащане, ако не е посочена е 1 месец от промяната на документа
                 $expectedDate = empty($dRec->{$Class->termDateFld}) ? dt::addMonths(1, $dRec->modifiedOn, false) : dt::verbal2mysql($dRec->{$Class->termDateFld}, false);
-                
+
                 // Изпращане на първо/второ или трето напомняне
                 foreach (array('1' => 'първо', '2' => 'второ', '3' => 'трето') as $i => $iVerbal){
                     $days = static::get("OVERDUE_PENDING_DAYS_{$i}");
+
+                    /**
+                     * $expectedDate е срока (датата) на плащане - крайния срок за плащане
+                     * $overdueDate е датата на която трябва да се бие нотификацията
+                     * $nextWorkingDay е първия работен ден след $expectedDate (ако тя е неработна)
+                     *
+                     * ако $expectedDate е неработен ден (уикенд или официален празник)
+                     * тогава добавяме разликата $nextWorkingDay - $expectedDate към $overdueDate
+                     * ако е по-голяма от периода дни в константата
+                     */
                     $overdueDate = dt::addDays($days, $expectedDate, false);
-                    if($overdueDate == $today){
-                        
-                        // Подготовка на текста на нотификацията
-                        $amountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($dRec->amount);
-                        Mode::push('text', 'plain');
-                        $amountVerbal = currency_Currencies::decorate($amountVerbal, $dRec->currencyId);
-                        Mode::pop('text');
-                        $amountVerbal = str_replace('&nbsp;', ' ', $amountVerbal);
-                        $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
-                        $msg = "|Просрочен документ|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
-                        if($i != '1'){
-                            $msg .= " (|{$iVerbal} напомняне|*)";
+                    if(cal_Calendar::isHoliday($expectedDate)){
+                        $nextWorkingDay = cal_Calendar::nextWorkingDay($expectedDate);
+                        $dayDiff = dt::daysBetween($nextWorkingDay, $expectedDate);
+                        if($dayDiff >= $days){
+                            $overdueDate = dt::addDays($dayDiff, $overdueDate, false);
                         }
-                       
-                        // Нотифицира се създателя на документа, дилъра на сделката и отговорника на папката
-                        $usersToNotify = array($dRec->createdBy => $dRec->createdBy);
-                        $usersToNotify[$dRec->inCharge] = $dRec->inCharge;
-                        $firstDoc = doc_Threads::getFirstDocument($dRec->threadId);
+                    }
+
+                    // Ако е настанала датата за нотификация
+                    if($overdueDate != $today) continue;
+
+                    // Подготовка на текста на нотификацията
+                    $amountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($dRec->amount);
+                    Mode::push('text', 'plain');
+                    $amountVerbal = currency_Currencies::decorate($amountVerbal, $dRec->currencyId);
+                    Mode::pop('text');
+                    $amountVerbal = str_replace('&nbsp;', ' ', $amountVerbal);
+                    $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
+                    $msg = "|Просрочен документ|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
+                    if($i != '1'){
+                        $msg .= " (|{$iVerbal} напомняне|*)";
+                    }
+
+                    // Нотифицира се създателя на документа, дилъра на сделката и отговорника на папката
+                    $usersToNotify = array($dRec->createdBy => $dRec->createdBy);
+                    $usersToNotify[$dRec->inCharge] = $dRec->inCharge;
+                    $firstDoc = doc_Threads::getFirstDocument($dRec->threadId);
+                    if(is_object($firstDoc) && $firstDoc->isInstanceOf('deals_DealMaster')){
                         if($dealerId = $firstDoc->fetchField('dealerId')){
                             $usersToNotify[$dealerId] = $dealerId;
                         }
-                        
-                        foreach ($usersToNotify as $userId){
-                            bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $userId);
-                        }
-                        
-                        break;
                     }
+
+                    foreach ($usersToNotify as $userId){
+                        bgerp_Notifications::add($msg, array($Class, 'single', $dRec->id), $userId);
+                    }
+
+                    break;
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Мигрира с коя сделка е приключено
-     * 
-     * @param mixed $mvc
-     * @param mixed $ClosedDocumentMvc
-     */
-    public function updateClosedWith($mvc, $ClosedDocumentMvc)
-    {
-        $mvc = cls::get($mvc);
-        $mvc->setupMvc();
-        
-        if(!$mvc->count()) return;
-        
-        $ClosedDocumentMvc = cls::get($ClosedDocumentMvc);
-        $ClosedDocumentMvc->setupMvc();
-        
-        if(!$ClosedDocumentMvc->count()) return;
-        
-        $docIdColName = str::phpToMysqlName('docId');
-        $closeWithColName = str::phpToMysqlName('closeWith');
-        $classIdColName = str::phpToMysqlName('docClassId');
-        $stateColName = str::phpToMysqlName('state');
-        
-        $query = "UPDATE {$mvc->dbTableName},{$ClosedDocumentMvc->dbTableName} SET {$mvc->dbTableName}.{$closeWithColName} = {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} WHERE {$ClosedDocumentMvc->dbTableName}.{$docIdColName} = {$mvc->dbTableName}.id AND {$ClosedDocumentMvc->dbTableName}.{$classIdColName} = {$mvc->getClassId()} AND {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} IS NOT NULL AND {$ClosedDocumentMvc->dbTableName}.{$stateColName} = 'active'";
-        $mvc->db->query($query);
     }
 
 
@@ -334,136 +378,6 @@ class deals_Setup extends core_ProtoSetup
                 } catch(core_exception_Expect $e){
                     reportException($e);
                 }
-            }
-        }
-    }
-
-
-    /**
-     * Миграция на КИ/ДИ разбити по артикули
-     * @todo да се премахне след рилийз
-     *
-     * @param mixed $Master
-     * @param mixed $Detail
-     * @return void
-     */
-    public function migrateDcNotes($Master, $Detail)
-    {
-        $Invoices = cls::get($Master);
-        $Details = cls::get($Detail);
-
-        $dRecs = array();
-        $dQuery = $Details->getQuery();
-        $dQuery->EXT('originId', $Invoices->className, "externalName=originId,externalKey=invoiceId");
-        $dQuery->EXT('state', $Invoices->className, "externalName=state,externalKey=invoiceId");
-        $dQuery->EXT('changeAmount', $Invoices->className, "externalName=changeAmount,externalKey=invoiceId");
-        $dQuery->EXT('stateInv', $Invoices->className, "externalName=state,externalKey=invoiceId");
-        $dQuery->EXT('number', $Invoices->className, "externalName=number,externalKey=invoiceId");
-        $dQuery->EXT('type', $Invoices->className, "externalName=type,externalKey=invoiceId");
-        $dQuery->where("#clonedFromDetailId IS NULL AND #stateInv = 'active' AND #changeAmount IS NULL AND #type = 'dc_note'");
-        while($dRec = $dQuery->fetch()){
-            if(!array_key_exists($dRec->invoiceId, $dRecs)){
-                $dRecs[$dRec->invoiceId] = array('originId' => $dRec->originId, 'recs' => array());
-            }
-            $dRecs[$dRec->invoiceId]['recs'][$dRec->id] = $dRec;
-        }
-
-        $update = $notUpdated = array();
-        $iCount = $dQuery->count();
-        core_App::setTimeLimit($iCount * 0.4, false, 400);
-        foreach ($dRecs as $invoiceId => $invoiceArr){
-            ksort($invoiceArr['recs']);
-            $cached = $Invoices->getInvoiceDetailedInfo($invoiceArr['originId'], true);
-
-            foreach ($invoiceArr['recs'] as $dRec){
-                $foundArr = array_filter($cached->recWithIds, function($a) use ($dRec){
-                    return ($a['productId'] == $dRec->productId && $a['packagingId'] == $dRec->packagingId);
-                });
-
-                if(countR($foundArr) > 1){
-                    $dRec->packPrice = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
-                    $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-
-                        return ($a['price'] == round($dRec->packPrice, 5) && $a['quantity'] = $dRec->quantity);
-                    });
-                    if(!countR($foundTotal)){
-                        $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                            return ($a['price'] == round($dRec->packPrice, 5));
-                        });
-                    }
-                    if(!countR($foundTotal)){
-                        $foundTotal = array_filter($foundArr, function($a) use ($dRec){
-                            return ($a['quantity'] == $dRec->quantity);
-                        });
-                    }
-
-                    $foundKey = key($foundTotal);
-                } else {
-                    $foundKey = key($foundArr);
-                }
-
-                if(isset($foundKey)){
-                    $dRec->clonedFromDetailId = $foundKey;
-                    $update[$dRec->id] = $dRec;
-                } else {
-                    $notUpdated[$dRec->id] = array('number' => $dRec->number, 'rec' => $dRec, 'recs' => $cached, 'all' => $invoiceArr['recs']);
-                }
-            }
-        }
-
-        $Details->saveArray($update, 'id,clonedFromDetailId');
-        foreach ($dRecs as $invoiceId => $invoiceArr1){
-            $invoiceRec = $Invoices->fetch($invoiceId);
-            $invoiceRec->_notModified = true;
-            $Invoices->updateMaster($invoiceRec);
-            $Invoices->removeFromUpdateQueueOnShutdown($invoiceRec->id);
-        }
-        $Invoices->logDebug("RE_INV U:" . countR($update) . "/N:" . countR($notUpdated));
-    }
-
-
-    /**
-     * Миграция на КИ/ДИ разбити по артикули
-     * @todo да се премахне след рилийз
-     *
-     * @param mixed $class
-     * @return void
-     */
-    public function fixDcNotesModifiedOn($class)
-    {
-        $Class = cls::get($class);
-
-        $date = '2021-12-01';
-        $to = '2023-09-18';
-
-        $threads = array();
-        $cQuery = doc_Containers::getQuery();
-        $cQuery->where("#docClass = {$Class->getClassId()}");
-        $cQuery->EXT('last', 'doc_Threads', "externalName=last,externalKey=threadId");
-        $cQuery->where("#modifiedBy = " . core_Users::SYSTEM_USER);
-        $cQuery->where(array("#createdOn <= '{$date} 00:00:00'"));
-        $cQuery->where(array("#modifiedOn >= '{$to} 00:00:00'"));
-
-        $count = $cQuery->count();
-        core_App::setTimeLimit($count * 0.2, false, 300);
-
-        while ($cRec = $cQuery->fetch()) {
-            $cRec->modifiedOn = $cRec->createdOn;
-            $cRec->modifiedBy = $cRec->modifiedBy;
-            $cRec->_notModified = true;
-            doc_Containers::save($cRec, 'modifiedOn, modifiedBy');
-            $threads[$cRec->threadId] = $cRec->last;
-        }
-
-        foreach ($threads as $threadId => $threadLast) {
-            $firstDcRec = null;
-            $lastDcRec = null;
-            $lastChangeDate = null;
-
-            $tRec = doc_Threads::fetch($threadId);
-            doc_Threads::prepareDocCnt($tRec, $firstDcRec, $lastDcRec, $lastChangeDate);
-            if ($lastChangeDate != $tRec->last) {
-                doc_Threads::updateThread($tRec->id);
             }
         }
     }

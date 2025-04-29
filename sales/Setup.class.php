@@ -472,13 +472,9 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
-        'migrate::recontoDeals2520',
-        'migrate::fixDcNotesModifiedDate3823v2',
-        'migrate::migrateDpNotes3823v2',
-        'migrate::updateDeltaField2403',
-        'migrate::routesRepairSerchKeywords0824',
-        'migrate::updateSales1724',
-        'migrate::updateCategories2324',
+        'migrate::updateProformasWithoutDate2624',
+        'migrate::migrateDeltas3024v2',
+        'migrate::forceIsSaleOverdue2451',
     );
     
     
@@ -666,83 +662,37 @@ class sales_Setup extends core_ProtoSetup
 
 
     /**
-     * Рекалкулиране на валутните сделки
+     * Миграция на проформите без дата
      */
-    public function recontoDeals2520()
+    function updateProformasWithoutDate2624()
     {
-        if(core_Packs::isMigrationDone('sales', 'recalcCurrencySales1115')) return;
-        cls::get('sales_Sales')->recalcDocumentsWithDealCurrencyRate();
-    }
+        $save = array();
+        $Proformas = cls::get('sales_Proformas');
+        $query = sales_Proformas::getQuery();
+        $query->where("#date IS NULL AND #state = 'active'");
+        while($rec = $query->fetch()){
+            $rec->date = dt::verbal2mysql($rec->activatedOn, false);
+            $save[$rec->id] = $rec;
+        }
 
-
-    /**
-     * Миграция на КИ/ДИ
-     */
-    public function migrateDpNotes3823v2()
-    {
-        cls::get('deals_Setup')->migrateDcNotes('sales_Invoices', 'sales_InvoiceDetails');
-    }
-
-
-    /**
-     * Миграция на модифицираните изходящи фактури
-     */
-    public function fixDcNotesModifiedDate3823v2()
-    {
-        if(core_Packs::isMigrationDone('sales', 'migrateDpNotes3823v2')){
-            cls::get('deals_Setup')->fixDcNotesModifiedOn('sales_Invoices');
+        if(countR($save)){
+            $Proformas->saveArray($save, 'id,date');
         }
     }
 
-
-    /**
-     * Миграция на новото поле на делтите
-     */
-    public function updateDeltaField2403()
+    function migrateDeltas3024v2()
     {
-        $Deltas = cls::get('sales_PrimeCostByDocument');
-        $Deltas->setupMvc();
-
-        $colName = str::phpToMysqlName('sellCostWithOriginalDiscount');
-        $saleColName = str::phpToMysqlName('sellCost');
-        $query = "UPDATE {$Deltas->dbTableName} SET {$colName} = {$saleColName} WHERE ({$colName} IS NULL AND {$saleColName} IS NOT NULL)";
-        $Deltas->db->query($query);
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('sales_PrimeCostByDocument', 'SyncActivatedOn', null, $callOn);
     }
 
 
     /**
-     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
+     * Рекалкулиране на просроченото плащане
      */
-    public static function routesRepairSerchKeywords0824()
+    public static function forceIsSaleOverdue2451()
     {
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'sales_Routes', dt::addSecs(180));
-    }
-
-
-    /**
-     * Миграция на полето за фактуриране в продажбите
-     */
-    function updateSales1724()
-    {
-        $Sales = cls::get('sales_Sales');
-        $makeInvoiceName = str::phpToMysqlName('makeInvoice');
-        $query = "UPDATE {$Sales->dbTableName} SET {$makeInvoiceName} = 'yes' WHERE ({$makeInvoiceName} IS NULL)";
-        $Sales->db->query($query);
-    }
-
-
-    /**
-     * Миграция на категориите
-     */
-    function updateCategories2324()
-    {
-        $Details = cls::get('sales_SalesDetails');
-        $Sales = cls::get('sales_Sales');
-        $discountFieldName = str::phpToMysqlName('discount');
-        $inputFieldName = str::phpToMysqlName('inputDiscount');
-        $autoFieldName = str::phpToMysqlName('autoDiscount');
-        $query = "UPDATE {$Details->dbTableName} as t1, {$Sales->dbTableName} as t2 SET t1.{$inputFieldName} = t1.{$discountFieldName} WHERE t1.sale_id = t2.id AND t1.{$discountFieldName} IS NOT NULL AND t1.{$autoFieldName} IS NULL AND t1.{$inputFieldName} IS NULL AND (t2.state = 'active' or t2.state = 'closed')";
-
-        $Details->db->query($query);
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'IsSaleOverdue', $callOn);
     }
 }

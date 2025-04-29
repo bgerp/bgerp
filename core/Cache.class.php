@@ -85,8 +85,13 @@ class core_Cache extends core_Manager
      * Дали да се използва кеширане в хита
      */
     public static $stopCaching = false;
-    
-    
+
+    /**
+     * Неща, подлежащи на начално зареждане
+     */
+    public $loadList = 'plg_Sorting';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -223,6 +228,14 @@ class core_Cache extends core_Manager
             'all' => true,
             'ret_url' => true
         ));
+        
+        $data->toolbar->addBtn('Състояние на APCu', array(
+            $mvc,
+            'APCuCacheStatus',
+            'all' => true,
+            'ret_url' => true
+        ));
+        
         
         $data->toolbar->removeBtn('btnAdd');
         
@@ -495,5 +508,63 @@ class core_Cache extends core_Manager
         }
         
         return $res;
+    }
+
+
+    /**
+     * Състояние на APCu кеша
+     */
+    public function act_APCuCacheStatus()
+    {
+        requireRole('debug');
+
+        if (!function_exists('apcu_cache_info')) {
+            $html = "<div style='padding:0.5em'><h1>Състояние на APCu кеша</h1>";
+            $html .= "<div>APCu разширението не е инсталирано или активирано.</div>";
+            $html .= "</div>";
+            $html = $this->renderWrapping($html);
+            return $html;
+        }
+
+        $cacheInfo = apcu_cache_info();
+        $html = "<div style='padding:0.5em'><h1>Състояние на APCu кеша</h1>";
+
+        if ($cacheInfo) {
+            $html .= "<h2>Обща информация за кеша</h2>";
+            $html .= "<table class='listTable' style='margin-top:1em'>
+                          <tr style='background-color:#aaa; color:white;'>
+                            <th><strong>Параметър</strong></th>
+                            <th><strong>Стойност</strong></th>
+                          </tr>";
+
+            $cacheInfoGeneral = array(
+                'Брой слотове' => $cacheInfo['num_slots'],
+                'TTL' => $cacheInfo['ttl'],
+                'Брой хитове' => $cacheInfo['num_hits'],
+                'Брой пропуски' => $cacheInfo['num_misses'],
+                'Брой добавяния' => $cacheInfo['num_inserts'],
+                'Премахвания' => $cacheInfo['expunges'],
+                'Време на стартиране' => date('Y-m-d H:i:s', $cacheInfo['start_time']),
+                'Размер на паметта' => $cacheInfo['mem_size'] . ' байта',
+                'Брой записи' => $cacheInfo['num_entries'],
+            );
+
+            foreach ($cacheInfoGeneral as $param => $value) {
+                $html .= "<tr>
+                            <td>{$param}</td>
+                            <td>{$value}</td>
+                          </tr>";
+            }
+
+            $html .= '</table>';
+
+
+        } else {
+            $html .= '<div>Не може да се извлече информация за APCu кеша.</div>';
+        }
+
+        $html .= '</div>';
+        $html = $this->renderWrapping($html);
+        return $html;
     }
 }

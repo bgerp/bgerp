@@ -145,10 +145,8 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_PurchasesData',
         'purchase_Quotations',
         'purchase_QuotationDetails',
-        'migrate::recontoDeals2520v2',
-        'migrate::fixDcNotesModifiedDate3823v2',
-        'migrate::migrateDpNotes3823v2',
-        'migrate::updatePurchases1724',
+        'migrate::fixInvoices2824',
+        'migrate::forceIsPurchaseOverdue2451',
     );
     
     
@@ -202,7 +200,7 @@ class purchase_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'purchase_PurchaseLastPricePolicy,purchase_reports_PurchasedItems';
+    public $defClasses = 'purchase_PurchaseLastPricePolicy,purchase_reports_PurchasedItems,purchase_tpl_PurchaseWithTotalQuantity';
 
 
     /**
@@ -244,43 +242,31 @@ class purchase_Setup extends core_ProtoSetup
 
 
     /**
-     * Рекалкулиране на валутните сделки
+     * Поправка на входящите фактури без сч. дата
      */
-    public function recontoDeals2520v2()
+    public function fixInvoices2824()
     {
-        if(core_Packs::isMigrationDone('purchase', 'recalcCurrencyPurchases1115')) return;
-        cls::get('purchase_Purchases')->recalcDocumentsWithDealCurrencyRate();
-    }
+        $save = array();
+        $Invoices = cls::get('purchase_Invoices');
+        $query = $Invoices->getQuery();
+        $query->where("#state = 'active' AND #journalDate IS NULL");
+        while($rec = $query->fetch()){
+            $rec->journalDate = $Invoices->getDefaultAccDate($rec->date);
+            $save[$rec->id] = $rec;
+        }
 
-
-    /**
-     * Миграция на КИ/ДИ
-     */
-    public function migrateDpNotes3823v2()
-    {
-        cls::get('deals_Setup')->migrateDcNotes('purchase_Invoices', 'purchase_InvoiceDetails');
-    }
-
-
-    /**
-     * Миграция на модифицираните изходящи фактури
-     */
-    public function fixDcNotesModifiedDate3823v2()
-    {
-        if(core_Packs::isMigrationDone('purchase', 'migrateDpNotes3823v2')){
-            cls::get('deals_Setup')->fixDcNotesModifiedOn('purchase_Invoices');
+        if(countR($save)){
+            $Invoices->saveArray($save, 'id,journalDate');
         }
     }
 
 
     /**
-     * Миграция на полето за фактуриране в продажбите
+     * Рекалкулиране на просроченото плащане
      */
-    function updatePurchases1724()
+    public static function forceIsPurchaseOverdue2451()
     {
-        $Purchase = cls::get('purchase_Purchases');
-        $makeInvoiceName = str::phpToMysqlName('makeInvoice');
-        $query = "UPDATE {$Purchase->dbTableName} SET {$makeInvoiceName} = 'yes' WHERE ({$makeInvoiceName} IS NULL)";
-        $Purchase->db->query($query);
+        $callOn = dt::addSecs(200);
+        core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'IsPurchaseOverdue', $callOn);
     }
 }

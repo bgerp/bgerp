@@ -275,6 +275,19 @@ abstract class cat_ProductDriver extends core_BaseClass
     public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $nTpl = $Driver->renderProductDescription($data);
+        $rec = $data->rec;
+
+        // Ако режима е за показване на сравнения при клониране
+        if($data->_showDiff){
+
+            // Подготвя се изгледа на оригиналния артикул и се показват разликите спрямо него
+            $clonedRec = $Embedder->fetch($rec->clonedFromId);
+            $cloneData = (object)array('rec' => $clonedRec);
+            $Embedder->prepareSingle($cloneData);
+            $cTpl = $Driver->renderProductDescription($cloneData);
+            $nTpl = lib_Diff::getDiff($cTpl->getContent(), $nTpl->getContent());
+        }
+
         $tpl->append($nTpl, 'innerState');
     }
     
@@ -346,11 +359,11 @@ abstract class cat_ProductDriver extends core_BaseClass
                         $tpl->prepend($dhtml, $field->inlineTo);
                     } else {
                         if ($field->singleCaption == '@') {
-                            $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;vertical-align:bottom;'>" . $data->row->{$name} . " {$unit}[#${name}#]</td></tr>");
+                            $dhtml = new ET("<tr><td>&nbsp;&nbsp;</td><td colspan=2 style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#${name}#]</td></tr>");
                         } elseif ($field->singleCaption) {
                             $caption = tr($field->singleCaption);
                         } else {
-                            $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;vertical-align:bottom;'>" . $data->row->{$name} . " {$unit}[#${name}#]</td></tr>");
+                            $dhtml = new ET("<tr><td>&nbsp;-&nbsp;</td> <td> {$caption}:</td><td style='padding-left:5px; font-weight:bold;'>" . $data->row->{$name} . " {$unit}[#${name}#]</td></tr>");
                         }
                         $tpl->append($dhtml, 'INFO');
                     }
@@ -988,26 +1001,29 @@ abstract class cat_ProductDriver extends core_BaseClass
      *
      * @param int $productId
      * @return array
-     *          int|null    ['name']                 - наименование
-     *          int|null    ['centerId']             - ид на център на дейност
-     *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
-     *          int|null    ['inputStores']          - ид на складове за влагане (ако е складируем)
-     *          array|null  ['fixedAssets']          - масив от ид-та на оборудвания (@see planning_AssetResources)
-     *          array|null  ['employees']            - масив от ид-та на оператори (@see planning_Hr)
-     *          int|null    ['norm']                 - норма за производство
-     *          int|null    ['normPackagingId']      - ид на опаковката/мярката на нормата
-     *          int|null    ['labelPackagingId']     - ид на опаковка за етикет
-     *          double|null ['labelQuantityInPack']  - к-во в опаковка за етикет
-     *          string|null ['labelType']            - тип на етикета
-     *          int|null    ['labelTemplate']        - шаблон за етикет
-     *          array|null  ['planningParams']       - параметри за планиране
-     *          array|null  ['actions']              - операции за планиране
-     *          string      ['isFinal']              - дали е финална
-     *          string      ['showPreviousJobField'] - дали да се изисква предходно задание
-     *          string      ['wasteProductId']       - ид на отпадък
-     *          string      ['wasteStart']           - начално количество отпадък
-     *          string      ['wastePercent']         - процент отпадък
-     *          string      ['calcWeightMode']       - изчисляване на тегло или не
+     *          int|null    ['name']                  - наименование
+     *          int|null    ['centerId']              - ид на център на дейност
+     *          int|null    ['storeIn']               - ид на склад за засклаждане (ако е складируем)
+     *          int|null    ['inputStores']           - ид на складове за влагане (ако е складируем)
+     *          array|null  ['fixedAssets']           - масив от ид-та на оборудвания (@see planning_AssetResources)
+     *          array|null  ['employees']             - масив от ид-та на оператори (@see planning_Hr)
+     *          int|null    ['norm']                  - норма за производство
+     *          int|null    ['normPackagingId']       - ид на опаковката/мярката на нормата
+     *          int|null    ['labelPackagingId']      - ид на опаковка за етикет
+     *          double|null ['labelQuantityInPack']   - к-во в опаковка за етикет
+     *          string|null ['labelType']             - тип на етикета
+     *          int|null    ['labelTemplate']         - шаблон за етикет
+     *          array|null  ['planningParams']        - параметри за планиране
+     *          array|null  ['actions']               - операции за планиране
+     *          string      ['isFinal']               - дали е финална
+     *          string      ['showPreviousJobField']  - дали да се изисква предходно задание
+     *          string      ['wasteProductId']        - ид на отпадък
+     *          string      ['wasteStart']            - начално количество отпадък
+     *          string      ['wastePercent']          - процент отпадък
+     *          string      ['calcWeightMode']        - изчисляване на тегло или не
+     *          string      ['mandatoryDocuments']    - задължителни документи
+     *          text        ['description']           - описание на операцията
+     *          int         ['supportSystemFolderId'] - папка за поддръжка
      */
     public function getProductionData($productId)
     {
@@ -1074,5 +1090,70 @@ abstract class cat_ProductDriver extends core_BaseClass
     protected static function on_AfterDocumentInWhichIsUsedHasChangedState(cat_ProductDriver $Driver, embed_Manager $Embedder, $id, $masterMvc, $masterId, $DetailMvc, $detailId, $action)
     {
 
+    }
+
+
+    /**
+     * Преди рендиране на сингъла
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param $tpl
+     * @param $data
+     * @return void
+     * @throws core_exception_Break
+     */
+    protected static function on_BeforeRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, &$data)
+    {
+        $rec = &$data->rec;
+        $row = &$data->row;
+
+        // Ако артикулът е клониран да се показва бутон за сравнение на промените
+        if(isset($rec->clonedFromId) && !Mode::isReadOnly()) {
+            $cUrl = getCurrentUrl();
+            $showDiff = Request::get("cloneDiff{$rec->containerId}");
+            if($showDiff){
+                $data->_showDiff = true;
+                unset($cUrl["cloneDiff{$rec->containerId}"]);
+                $changeIcon = "img/16/checked-green.png";
+                $changeTitle = 'Скриване на разликите с оригинала';
+            } else {
+                unset($data->_showDiff);
+                $cUrl["cloneDiff{$rec->containerId}"] = true;
+                $changeIcon = "img/16/checked-not-green.png";
+                $changeTitle = 'Показване на разликите с оригинала';
+            }
+            $row->clonedFromId .= "&nbsp;" . ht::createLink('', $cUrl, false, "title={$changeTitle},ef_icon={$changeIcon}")->getContent();
+        }
+    }
+
+
+    /**
+     * Връща стойноста за показване на параметъра cond_type_Product
+     *
+     * @param mixed $domainClass
+     * @param mixed $domainId
+     * @param int $value
+     * @param string $showVal
+     * @return void
+     */
+    public function getProductParamValueDisplay($domainClass, $domainId, $value, $showVal)
+    {
+        if($showVal == 'info'){
+            Mode::push('text', 'plain');
+            $lg = core_Lg::getCurrent();
+            if($lg != 'bg'){
+                $valueRec = cat_Products::fetch($value);
+                if(!empty($valueRec->infoInt)){
+                    $title = core_Type::getByName('richtext')->toVerbal(trim($valueRec->infoInt));
+                }
+            }
+            if(empty($title)){
+                $title = trim(cat_Products::getVerbal($value, 'info'));
+            }
+            Mode::pop('text');
+        }
+
+        return !empty($title) ? $title : cat_Products::getTitleById($value);
     }
 }

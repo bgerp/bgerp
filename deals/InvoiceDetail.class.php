@@ -69,18 +69,20 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function setInvoiceDetailFields(&$mvc)
     {
-        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,smartCenter,input=hidden');
         $mvc->FLD('quantity', 'double', 'caption=Количество', 'tdClass=small-field,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $mvc->FLD('price', 'double', 'caption=Цена, input=none');
         $mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
-        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
+        $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
         $mvc->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
         $mvc->FLD('autoDiscount', 'percent(min=0,max=1)', 'caption=Авт. отстъпка,input=none');
         $mvc->FLD('inputDiscount', 'percent(min=0,max=1)', 'caption=Ръчна отстъпка,input=none');
+        $mvc->setFieldTypeParams('discount', array('warningMax' => deals_Setup::get('MAX_WARNING_DISCOUNT')));
+
         $mvc->setDbIndex('productId,packagingId');
     }
     
@@ -109,6 +111,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
             foreach (array('packagingId', 'notes', 'discount') as $fld) {
                 $data->form->setField($fld, 'input=none');
             }
+            if ($masterRec->state != 'draft'){
+                $data->form->setField('notes', 'input');
+            }
         }
         $data->form->setFieldTypeParams('quantity', array('min' => 0));
         $data->form->setFieldTypeParams('packPrice', array('min' => 0));
@@ -118,10 +123,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         if ($masterRec->state != 'draft' and !haveRole('no_one')) {
+
             $fields = $data->form->selectFields("#name != 'notes' AND #name != 'productId' AND #name != 'id' AND #name != 'invoiceId'");
             $data->singleTitle = 'забележка';
             $data->form->editActive = true;
-            
             foreach ($fields as $name => $fld) {
                 $data->form->setField($name, 'input=none');
             }
@@ -233,6 +238,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 price_DiscountsPerDocuments::save($tRec);
             }
         }
+
+        $this->Master->logWrite("Зареждане на артикулите от договора", $invoiceRec->id);
 
         // Редирект обратно към фактурата
         return followRetUrl(null, '|Артикулите от сделката са копирани успешно');
@@ -515,11 +522,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'edit' || $action == 'delete' || $action == 'import') && isset($rec->{$mvc->masterKey})) {
-            $hasType = $mvc->Master->getField('type', false);
-            
-            if (empty($hasType) || (isset($hasType) && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'invoice')) {
-                $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-                
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+            $invoiceType = $mvc->Master->getField('type', false) ? $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') : null;
+
+            if (empty($invoiceType) || $invoiceType == 'invoice') {
+
                 if ($masterRec->state != 'draft') {
                     $res = 'no_one';
                     
@@ -537,10 +544,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         $res = 'no_one';
                     }
                 }
-            } elseif (isset($hasType) && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'dc_note') {
-                
+            } elseif ($invoiceType == 'dc_note') {
                 // На ДИ и КИ не можем да изтриваме и добавяме
-                if ($action == 'add' || $action == 'delete') {
+                if (in_array($action, array('add', 'delete'))) {
                     $res = 'no_one';
                 }
             }
@@ -571,10 +577,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
     {
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+
         if ($form->rec->productId && $masterRec->type != 'dc_note' && $form->editActive !== true) {
-            $vat = cat_Products::getVat($rec->productId, $masterRec->date);
-            $productInfo = cat_Products::getProductInfo($rec->productId);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
             
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
@@ -586,6 +592,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 
                 if ($policyInfoLast->price != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
+                }
+            }
+
+            // Ако има такъв запис, сетваме грешка
+            $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
+            if($setWarning == 'yes'){
+                $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
+                if ($countSameProduct) {
+                    $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*!');
                 }
             }
         } else {
@@ -682,7 +697,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
             
             $rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
-
 
             if(!$form->gotErrors()){
                 // Записваме основната мярка на продукта

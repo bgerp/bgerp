@@ -35,7 +35,7 @@
               
               <td class = 'nowrap vtop' style='font-size:0.8em;text-align:left' rowspan='3'>
                   <!--ET_BEGIN paymentState-->
-                  <span style='font-weight:normal'>|Чакащо плащане|*</span>: [#paymentState#]<br>
+                  <span style='font-weight:normal'>[#paymentStateCaption#]</span>: [#paymentState#]<br>
                   <!--ET_END paymentState-->
                   <span style='font-weight:normal'>|Еднократно експедиране|*</span>: [#oneTimeDelivery#]<br>
                   <!--ET_BEGIN initiatorId-->
@@ -71,6 +71,12 @@
                   <!--ET_BEGIN courierApi-->
                   <span style='font-weight:normal'>|Куриерско API|*</span>: [#courierApi#] <!--ET_BEGIN courierApiPrice--><i style="color:#555">([#courierApiPrice#])</i><!--ET_END courierApiPrice--><br>
                   <!--ET_END courierApi-->
+                  <!--ET_BEGIN vatExceptionId-->
+                  <span style='font-weight:normal'>|ДДС изключение|*</span>: <b>[#vatExceptionId#]</b><br>
+                  <!--ET_END vatExceptionId-->
+                  <!--ET_BEGIN voucherId-->
+                  <span style='font-weight:normal'>|Ваучер|*</span>: <b>[#voucherId#]</b><br>
+                  <!--ET_END voucherId-->
               </td>
            </tr>
            <tr>

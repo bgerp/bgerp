@@ -186,7 +186,7 @@ class acc_Articles extends core_Master
         $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен,template=Шаблон,stopped=Спряно,pending=Заявка)', 'caption=Състояние,input=none');
         $this->FLD('useCloseItems', 'enum(no=Не,yes=Да)', 'caption=Използване на приключени пера->Избор,maxRadio=2,notNull,default=no,input=none');
         
-        // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
+        // Ако потребителя има роля 'accMaster', може да контира/оттегля/възстановява МО със затворени пера
         if (haveRole('accMaster,ceo')) {
             $this->canUseClosedItems = true;
         }
@@ -415,7 +415,10 @@ class acc_Articles extends core_Master
         );
         
         $journalDetailsQuery = acc_JournalDetails::getQuery();
-        $entries = $journalDetailsQuery->fetchAll("#journalId = {$journlRec->id}");
+        $journalDetailsQuery->where("#journalId = {$journlRec->id}");
+        $journalDetailsQuery->orderBy('id', 'ASC');
+
+        $entries = $journalDetailsQuery->fetchAll();
         
         if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
             $mvcRec = $mvc->fetch($journlRec->docId);
@@ -435,7 +438,7 @@ class acc_Articles extends core_Master
         // Попълваме детайлите само ако са под допустимата стойност
         if (countR($entries) <= static::$maxDefaultEntriesForReverseArticle) {
             foreach ($entries as $entry) {
-                $articleDetailRec = array(
+                $articleDetailRec = (object)array(
                     'articleId' => $articleId,
                     'debitAccId' => $entry->debitAccId,
                     'debitEnt1' => $entry->debitItem1,
@@ -451,8 +454,17 @@ class acc_Articles extends core_Master
                     'creditPrice' => $entry->creditPrice,
                     'amount' => isset($entry->amount) ? -$entry->amount : $entry->amount,
                 );
-                
-                if (!$bSuccess = acc_ArticleDetails::save((object) $articleDetailRec)) {
+
+                // Ако в редовете може да се добавят само к-ва няма да се клонриат сумите и цените
+                $accs = array('debit' => acc_Accounts::getAccountInfo($entry->debitAccId), 'credit' => acc_Accounts::getAccountInfo($entry->creditAccId),);
+                $quantityOnly = ($accs['debit']->rec->type == 'passive' && $accs['debit']->rec->strategy) || ($accs['credit']->rec->type == 'active' && $accs['credit']->rec->strategy);
+                if($quantityOnly){
+                    unset($articleDetailRec->debitPrice);
+                    unset($articleDetailRec->creditPrice);
+                    unset($articleDetailRec->amount);
+                }
+
+                if (!$bSuccess = acc_ArticleDetails::save($articleDetailRec)) {
                     break;
                 }
             }
@@ -480,10 +492,12 @@ class acc_Articles extends core_Master
         // Всички детайли на МО
         $dQuery = acc_ArticleDetails::getQuery();
         $dQuery->where("#articleId = {$id}");
-        
+        $dQuery->orderBy('id', 'ASC');
+
         // Всички детайли на променения журнал
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->where("#journalId = {$journalId}");
+        $jQuery->orderBy('id', 'ASC');
         $jRecs = $jQuery->fetchAll();
         
         $count = 0;
@@ -666,5 +680,60 @@ class acc_Articles extends core_Master
         
         // Запис
         return acc_ArticleDetails::save($rec);
+    }
+
+
+    /**
+     * След контиране на документа
+     *
+     * @param accda_Da $mvc
+     * @param stdClass $rec
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        $mvc->markUsedDocuments($rec);
+    }
+
+
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($rec->brState == 'active'){
+            $mvc->markUsedDocuments($rec, true);
+        }
+    }
+
+
+    /**
+     * Маркира използваните пера на документи
+     */
+    private function markUsedDocuments($rec, $remove = false)
+    {
+        $rec = $this->fetchRec($rec);
+        $dQuery = acc_ArticleDetails::getQuery();
+        $dQuery->where("#articleId = {$rec->id}");
+
+        while($dRec = $dQuery->fetch()){
+            foreach (array('debitEnt1', 'debitEnt2', 'debitEnt3', 'creditEnt1', 'creditEnt2', 'creditEnt3') as $fld){
+                if(!empty($dRec->{$fld})){
+                    $iRec = acc_Items::fetch($dRec->{$fld});
+                    if(cls::haveInterface('doc_DocumentIntf', $iRec->classId)){
+                        $containerId = cls::get($iRec->classId)->fetchField($iRec->objectId, 'containerId');
+                        if($remove){
+                            doclog_Used::remove($rec->containerId, $containerId);
+                        } else {
+                            doclog_Used::add($rec->containerId, $containerId);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

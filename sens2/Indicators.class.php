@@ -31,7 +31,7 @@ class sens2_Indicators extends core_Detail
     /**
      * @var int - Брой записи на страница
      */
-    public $listItemsPerPage = 20;
+    public $listItemsPerPage = 100;
 
 
     /**
@@ -106,7 +106,7 @@ class sens2_Indicators extends core_Detail
      */
     public function description()
     {
-        $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name, allowEmpty)', 'caption=Контролер, mandatory, silent,refreshForm');
+        $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name, allowEmpty, find=everywhere)', 'caption=Контролер, mandatory, silent,refreshForm');
         $this->FLD('port', 'varchar(64)', 'caption=Порт, mandatory');
         $this->FLD('name', 'varchar(64,nullIfEmpty)', 'caption=Наименование,column=none');
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4, smartRound)', 'caption=Стойност,smartCenter,input=none');
@@ -338,7 +338,7 @@ class sens2_Indicators extends core_Detail
         $title = sens2_Controllers::getVerbal($cRec, 'name') . '.';
         
         $nameVar = $rec->port . '_name';
-        
+
         if ($cRec->config->{$nameVar}) {
             $title .= $cRec->config->{$nameVar};
         } else {
@@ -374,9 +374,14 @@ class sens2_Indicators extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholder=Тип на контролера,removeAndRefreshForm=controllerId');
+        $data->listFilter->FNC('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,placeholder=Драйвер,removeAndRefreshForm=controllerId');
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'driver, controllerId, port';
+        $ctr = Request::get('Ctr');
+        if ($mvc instanceof $ctr) {
+            $data->listFilter->showFields = 'title, controllerId, driver';
+        } else {
+            $data->listFilter->showFields = 'title';
+        }
         $data->listFilter->input(null, 'silent');
 
         if (isset($data->listFilter->rec->controllerId)) {
@@ -406,8 +411,12 @@ class sens2_Indicators extends core_Detail
             $data->listFilter->getField('controllerId')->type->options = $controllerOptArr;
         }
 
-        if (strlen($data->listFilter->rec->port)) {
-            $data->query->where(array("LOWER(#port) = '[#1#]'", mb_strtolower($data->listFilter->rec->port)));
+        if (strlen($data->listFilter->rec->title)) {
+            $data->query->EXT('cName', 'sens2_Controllers', 'externalName=name,externalKey=controllerId');
+
+            $data->query->where(array("LOWER(#port) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->title)));
+            $data->query->orWhere(array("LOWER(#name) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->title)));
+            $data->query->orWhere(array("LOWER(#cName) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->title)));
         }
 
         $data->listFilter->fields['controllerId']->refreshForm = 'controllerId';
@@ -536,5 +545,9 @@ class sens2_Indicators extends core_Detail
         }
 
         $row->title = ht::createLink($row->title, $url, null, "ef_icon=img/16/{$icon}");
+
+        if ($rec->error) {
+            $row->ROW_ATTR['class'] = 'state-closed';
+        }
     }
 }

@@ -39,12 +39,12 @@ class bgerp_plg_FLB extends core_Plugin
         
         // Поле, в които се указват потребителите, които могат да избират обекта в документи
         if (!$mvc->getField($mvc->canSelectUserFld, false)) {
-            $mvc->FLD($mvc->canSelectUserFld, 'userList', "caption=Избор на текущ и използване в документи->Потребители,after={$mvc->canActivateRoleFld}");
+            $mvc->FLD($mvc->canSelectUserFld, 'userList(showClosedUsers=no)', "caption=Избор на текущ и използване в документи и филтри->Потребители,after={$mvc->canActivateRoleFld}");
         }
         
         // Поле, в които се указват ролите, които могат да избират обекта в документи
         if (!$mvc->getField($mvc->canSelectRoleFld, false)) {
-            $mvc->FLD($mvc->canSelectRoleFld, 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', "caption=Избор на текущ и използване в документи->Екипи,after={$mvc->canSelectUserFld}");
+            $mvc->FLD($mvc->canSelectRoleFld, 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', "caption=Избор на текущ и използване в документи и филтри->Екипи,after={$mvc->canSelectUserFld}");
         }
         
         // Трябва да е към корица
@@ -94,20 +94,17 @@ class bgerp_plg_FLB extends core_Plugin
     /**
      * Помощна ф-я връщаща дали потребителя може да активира корицата или да я избира
      *
-     * @param core_Master $mvc
-     * @param stdClass    $rec
-     * @param int         $userId
-     * @param string      $action
+     * @param mixed     $mvc
+     * @param stdClass  $rec
+     * @param int       $userId
+     * @param string    $action
      *
      * @return bool
      */
     public static function canUse($mvc, $rec, $userId = null, $action = 'activate')
     {
         // Инстанциране на класа при нужда
-        if (!is_object($mvc)) {
-            $mvc = cls::get($mvc);
-        }
-        
+        $mvc = cls::get($mvc);
         if($userId === null) {
             $userId = core_Users::getCurrent();
         }

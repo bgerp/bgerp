@@ -149,6 +149,8 @@ class acc_Balances extends core_Master
         $this->FLD('lastAlternationDocId', 'int', 'input=none,column=none,caption=Последно изменение->Документ ID');
         $this->FLD('lastCalculate', 'datetime(format=smartTime, defaultTime)', 'input=none,caption=Последно->Изчисляване');
         $this->FLD('lastCalculateChange', 'enum(yes,no)', 'input=none,caption=Последно->Нови ст-ти');
+        $this->setDbIndex('fromDate');
+        $this->setDbIndex('toDate');
     }
 
 
@@ -847,12 +849,12 @@ class acc_Balances extends core_Master
      * @param string|NULL $type    - кредното, дебитното или крайното салдо
      * @param string      $accFrom - сметки с които може да кореспондира
      * @params array $items - масив с пера, които трябва да са на посочените позиции
-     *
+     * @params array $ignoreClassIds - записите от кои класове да се игнорират
      * @return stdClass $res - обект със следната структура:
      *                  ->amount - крайното салдо на сметката, ако няма записи е 0
      *                  ->recs   - тази част от подадените записи, участвали в образуването на салдото
      */
-    public static function getBlAmounts($jRecs, $accs, $type = null, $accFrom = null, $items = array())
+    public static function getBlAmounts($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $ignoreClassIds = array())
     {
         $res = new stdClass();
         $res->amount = 0;
@@ -887,7 +889,11 @@ class acc_Balances extends core_Master
         // За всеки запис
         foreach ($jRecs as $rec) {
             $add = false;
-            
+
+            if(countR($ignoreClassIds)){
+                if(in_array($rec->docType, $ignoreClassIds)) continue;
+            }
+
             // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
             if (countR($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) {
                 continue;

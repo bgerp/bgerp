@@ -114,10 +114,10 @@ span.lineFeature {
 	display:inline-block;
 }
 
-.rowBlock tr:last-child td {
+.listRowsDetail .rowBlock tr:last-child td {
 	border-bottom: 3px solid #777 !important;
 }
 
-.rowBlock:last-child tr:last-child td {
+.listRowsDetail .rowBlock:last-child tr:last-child td {
 	border-bottom: 1px solid #ccc !important;
 }

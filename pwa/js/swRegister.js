@@ -17,19 +17,21 @@ function syncServiceWorker() {
             var swDate = selector.getAttribute('data-sw-date');
             var lastUpdate = localStorage.getItem('data-sw-date');
 
-            // Ще предизвика инвалидиране на кеша за този файл
-            serviceWorkerURL += '?v=' + swDate;
+            if (swDate) {
+                // Ще предизвика инвалидиране на кеша за този файл
+                serviceWorkerURL += '?v=' + swDate;
 
-            if ((lastUpdate !== null) && (lastUpdate !== 'null')) {
+                if ((lastUpdate !== null) && (lastUpdate !== 'null')) {
 
-                var lastUpdate = new Date(lastUpdate);
-                var swDate = new Date(swDate);
+                    var lastUpdate = new Date(lastUpdate);
+                    var swDate = new Date(swDate);
 
-                if (lastUpdate < swDate) {
-                    act = 'update';
+                    if (lastUpdate < swDate) {
+                        act = 'update';
+                    }
+                } else {
+                    act = 'register';
                 }
-            } else {
-                act = 'register';
             }
         }
 

@@ -40,6 +40,12 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
 
     /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -135,7 +141,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $query->show('id,measureId,code,groups');
 
         if (isset($rec->group)) {
-            $query->likeKeylist('groups', $rec->group);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
         }
 
         $productArr = $query->fetchAll();
@@ -603,6 +609,29 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         }
 
         return $res;
+    }
 
+
+    /**
+     * Връща периода на справката - ако има такъв
+     *
+     * @param stdClass $rec
+     * @return array
+     *          ['from'] - начало на период
+     *          ['to']   - край на период
+     */
+    protected function getPeriodRange($rec)
+    {
+        $from = $rec->from;
+        if(is_numeric($rec->from)){
+            $from = acc_Periods::fetch($rec->from)->start;
+        }
+
+        $to = $rec->to;
+        if(is_numeric($rec->to)){
+            $to = dt::getLastDayOfMonth(acc_Periods::fetch($rec->to)->start);
+        }
+
+        return array('from' => $from, 'to' => $to);
     }
 }

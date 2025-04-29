@@ -127,12 +127,18 @@ class crm_Profiles extends core_Master
     
     
     public $canDelete = 'no_one';
-    
-    
+
+
+    /**
+     * Кой ще може да закрива/активира състоянието на профила на лицето
+     */
+    public $canCloseprofile = 'ceo,admin,hrMaster';
+
+
     /**
      * Помощен масив за типовете дни
      */
-    public static $map = array('missing' => 'Отсъстващи','sickDay' => 'Болничен','leaveDay' => 'Отпуск', 'tripDay' => 'Командировка');
+    public static $map = array('missing' => 'Отсъстващи','sickDay' => 'Болничен','leaveDay' => 'Отпуск', 'tripDay' => 'Командировка', 'homeOffice' => 'Работа от вкъщи');
     
     
     /**
@@ -153,6 +159,8 @@ class crm_Profiles extends core_Master
         $this->FLD('stateDateFrom', 'datetime(format=smartTime, defaultTime=00:00:00)', 'caption=Статус->От,input=none');
         $this->FLD('stateDateTo', 'datetime(format=smartTime, defaultTime=23:59:59)', 'caption=Статус->До,input=none');
         $this->FLD('stateAlternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees)', 'caption=Статус->Заместници,input=none');
+        $this->FLD('stateAnswerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=Статус->Достъп до системата, input=none');
+        $this->FLD('stateEmoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix())), 'caption=Статус->Икона за ника, input=none');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
@@ -627,7 +635,7 @@ class crm_Profiles extends core_Master
         list($today, $hoursToday) = explode(' ', dt::verbal2mysql());
         list($yesterday, $hoursYesterday) = explode(' ', dt::addDays(-1));
         list($tomorrow, $hoursTomorrow) = explode(' ', dt::addDays(1));
-        
+
         $status = tr(static::$map[$type]) . ' ';
         
         if ($dateFrom == $dateTo && ($dateFrom == $yesterday || $dateFrom == $today || $dateFrom == $tomorrow)) {
@@ -739,7 +747,7 @@ class crm_Profiles extends core_Master
         
         // Нова парола и нейния производен ключ
         $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
-        $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола,input,hint={$minLenHint},width=15em");
+        $form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Нова парола,input,hint={$minLenHint},width=15em,class=checkPass colorPass");
         $form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола,input=hidden');
         
         // Повторение на новата парола
@@ -747,7 +755,7 @@ class crm_Profiles extends core_Master
         $form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', 'caption=Нова парола (пак),input,width=15em', array('hint' => $passReHint));
         
         // Подготвяме лентата с инструменти на формата
-        $form->toolbar->addSbBtn('Запис', 'change_password', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addSbBtn('Запис', 'change_password', 'ef_icon = img/16/disk.png, class=checkPassDisable');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
         
         // Потготвяме заглавието на формата
@@ -1000,6 +1008,7 @@ class crm_Profiles extends core_Master
                 
                 // За отговорник стават първия админ/ceo
                 $person->inCharge = doc_FolderPlg::getDefaultInCharge();
+                $person->access = doc_Setup::get('DEFAULT_ACCESS');
             } else {
                 
                 // Ако е powerUse Лицето става отговорник на папката си
@@ -1094,7 +1103,7 @@ class crm_Profiles extends core_Master
             $profile->_skipUserUpdate = true;
             self::save($profile, 'searchKeywords');
         }
-        
+
         core_Users::save($userRec);
     }
     
@@ -1178,11 +1187,13 @@ class crm_Profiles extends core_Master
             $profRec = self::fetch("#userId = {$userId}");
             
             $attr['class'] .= ' profile';
-            
+
+            $e = '';
             if ($profRec && $profRec->stateDateFrom) {
-                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo);
+                $attr['class'] .= ' ' . self::getAbsenceClass($profRec->stateDateFrom, $profRec->stateDateTo, (boolean) ($profRec->stateAnswerSystem != 'no'));
+                $e = hr_Leaves::getEmoji($profRec->stateEmoji, 'statusIcon', $profRec->stateDateFrom, $profRec->stateDateTo);
             }
-            
+
             $profileId = self::getProfileId($userId);
             
             if ($profileId) {
@@ -1225,10 +1236,10 @@ class crm_Profiles extends core_Master
 
                 $attr['title'] = '|*' . $userRec->names;
                 
-                $link = ht::createLink($title, $url, $warning, $attr);
+                $link = ht::createLink($title . $e, $url, $warning, $attr);
             } else {
                 $attr['style'] .= ';color:#999 !important;';
-                $link = ht::createLink($userRec->nick, null, null, $attr);
+                $link = ht::createLink($userRec->nick . $e, null, null, $attr);
             }
             
             $cacheArr[$key] = $link;
@@ -1241,7 +1252,7 @@ class crm_Profiles extends core_Master
     /**
      * Връща клас за ника, според началото на отсъствието и края му
      */
-    public static function getAbsenceClass($from, $to)
+    public static function getAbsenceClass($from, $to, $haveAccess = true)
     {
         list($dateFrom, ) = explode(' ', $from);
         list($dateTo, ) = explode(' ', $to);
@@ -1249,13 +1260,13 @@ class crm_Profiles extends core_Master
         $today = dt::now(false);
         
         $res = '';
-        
+
         if ($dateFrom <= $today && $today <= $dateTo) {
-            $res = 'profile-state';
+            $res = $haveAccess ? 'profile-state-access' : 'profile-state';
         } elseif ($dateFrom <= $nextWorkingDay && $nextWorkingDay <= $dateTo) {
             $res = 'profile-state-tomorrow';
         }
-        
+
         return $res;
     }
     
@@ -1398,7 +1409,7 @@ class crm_Profiles extends core_Master
     {
         $rec = $data->listFilter->rec;
         
-        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуск,tripDay=Командировка)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
+        $data->listFilter->FNC('leave', 'enum(,missing=Отсъстващи,sickDay=Болничен,leaveDay=Отпуск,tripDay=Командировка,homeOffice=Работа от вкъщи)', 'width=6em,caption=Статус,silent,allowEmpty,autoFilter');
         
         $data->listFilter->view = 'horizontal';
         
@@ -1415,7 +1426,7 @@ class crm_Profiles extends core_Master
             
             case 'missing':
                 
-                $data->query->where("(#stateInfo = 'sickDay') OR (#stateInfo = 'leaveDay') OR (#stateInfo = 'tripDay')");
+                $data->query->where("(#stateInfo = 'sickDay') OR (#stateInfo = 'leaveDay') OR (#stateInfo = 'tripDay')OR (#stateInfo = 'homeOffice')");
                 break;
             case 'sickDay':
                 
@@ -1430,6 +1441,11 @@ class crm_Profiles extends core_Master
             case 'tripDay':
                 
                 $data->query->where("#stateInfo = 'tripDay'");
+                break;
+                
+            case 'homeOffice':
+                
+                $data->query->where("#stateInfo = 'homeOffice'");
                 break;
         }
     }
@@ -1467,6 +1483,24 @@ class crm_Profiles extends core_Master
             if ($rec) {
                 if (!core_RoleLogs::canViewUserLog($rec->userId, $userId)) {
                     $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        // Кой може да затваря профила от визитката
+        if($action == 'closeprofile' && isset($rec)){
+            $userState = core_Users::fetchField($rec->userId, 'state');
+            if(!in_array($userState, array('active', 'closed'))){
+                $requiredRoles = 'no_one';
+            } elseif(!core_Users::haveRightFor('edit', $rec->userId)){
+                if(!crm_Persons::haveRightFor('edit', $rec->personId)){
+                    $requiredRoles = 'no_one';
+                } else {
+                    $employeeGroupId = crm_Groups::getIdFromSysId('employees');
+                    $personGroups = crm_Persons::fetchField($rec->personId, 'groupList');
+                    if(!keylist::isIn($employeeGroupId, $personGroups)){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
@@ -1594,8 +1628,9 @@ class crm_Profiles extends core_Master
             core_ObjectConfiguration::$stopInvoke = true;
             
             $packConf = core_Packs::getConfig($rec->name);
-            
+
             // Обхождаме всички полета за конфигуриране
+            $haveCustomizable = false;
             foreach ((array) $clsInst->getConfigDescription() as $field => $arguments) {
                 
                 // Коя стойност да се използва за полето
@@ -1611,7 +1646,9 @@ class crm_Profiles extends core_Master
                 if (!$params['customizeBy'] || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {
                     continue;
                 }
-                
+
+                $haveCustomizable = true;
+
                 // Ако не е зададено, заглавието на полето е неговото име
                 setIfNot($params['caption'], '|*' . $field);
                 
@@ -1669,10 +1706,18 @@ class crm_Profiles extends core_Master
                 }
                 
                 $form->setDefault($field, $fieldVal);
-                
                 $form->__defaultRec->$field = $fieldVal;
             }
-            
+
+            // Ако от пакета има поне една персонализируема константа, ще се извиква метода от сетъпа за модифициране на формата
+            if($haveCustomizable){
+                try{
+                    $clsInst->manageConfigDescriptionForm($form);
+                } catch(core_exception_Expect $e){
+                    reportException($e);
+                }
+            }
+
             core_ObjectConfiguration::$stopInvoke = $savedStopInvoke;
         }
     }
@@ -1749,5 +1794,28 @@ class crm_Profiles extends core_Master
             
             return $rec->personId;
         }
+    }
+
+
+    /**
+     * Екшън за откриване/закриване на профил
+     */
+    public function act_Closeprofile()
+    {
+        $this->requireRightFor('closeprofile');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('closeprofile', $rec);
+
+        $userRec = core_Users::fetch($rec->userId);
+        $userRec->exState = $userRec->state;
+        $userRec->state = ($userRec->state == 'closed') ? 'active' : 'closed';
+        $msg = ($userRec->state == 'closed') ? 'Профилът е закрит|*!' : 'Профилът е открит|*!';
+        $logMsg = ($userRec->state == 'closed') ? 'Профилът е закрит от визитката' : 'Профилът е открит от визитката';
+        core_Users::save($userRec, 'state,exState');
+        crm_Persons::logWrite($logMsg, $rec->personId);
+        core_Users::logWrite($logMsg, $rec->userId);
+
+        followRetUrl(null, $msg);
     }
 }

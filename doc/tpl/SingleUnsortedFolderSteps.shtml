@@ -1,0 +1,82 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <div class="info-table">
+        <h3 style='padding: 5px; color:green;' class='[#STATE_CLASS#]'><b>[#fullName#]</b></h3>
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Общи данни|*</legend>
+            <table>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        №:
+                    </td>
+                    <td>[#id#]</td>
+                </tr>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Код|*:
+                    </td>
+                    <td>[#code#]</td>
+                </tr>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Име|*:
+                    </td>
+                    <td>[#name#]</td>
+                </tr>
+                <!--ET_BEGIN saoParentId-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Под ниво на|*:
+                    </td>
+                    <td>[#saoParentId#]</td>
+                </tr>
+                <!--ET_END saoParentId-->
+
+                <!--ET_BEGIN supportUsers-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Отговорници|*:
+                    </td>
+                    <td>[#supportUsers#]</td>
+                </tr>
+                <!--ET_END supportUsers-->
+
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Създаване|*:
+                    </td>
+                    <td>[#createdOn#] |от|* [#createdBy#]</td>
+                </tr>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Промяна|*:
+                    </td>
+                    <td>[#modifiedOn#] |от|* [#modifiedBy#]</td>
+                </tr>
+                <!--ET_BEGIN lastUsedOn-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Последно|*:
+                    </td>
+                    <td>[#lastUsedOn#]</td>
+                </tr>
+                <!--ET_END lastUsedOn-->
+            </table>
+        </fieldset>
+        <!--ET_BEGIN description-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Описание|*</legend>
+            [#description#]
+        </fieldset>
+        <!--ET_END description-->
+
+        <!--ET_BEGIN productSteps-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Произв. етапи|*</legend>
+            [#productSteps#]
+        </fieldset>
+        <!--ET_END productSteps-->
+        [#DETAILS#]
+    </div>
+</div>

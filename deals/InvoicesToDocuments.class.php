@@ -112,6 +112,7 @@ class deals_InvoicesToDocuments extends core_Manager
 
                 foreach ($iData['containerId'] as $k => $v){
                     if(empty($iData['amount'][$k])){
+                        $iDoc = doc_Containers::getDocument($iData['containerId'][$k]);
                         $iRec = doc_Containers::getDocument($iData['containerId'][$k])->fetch();
                         $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
                         $totalValue = $iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount;
@@ -124,7 +125,13 @@ class deals_InvoicesToDocuments extends core_Manager
                         if($paymentData->isReverse){
                             $vAmount = abs($vAmount);
                         }
-                        $defAmount = min($paymentData->amount, $vAmount);
+
+                        if($iDoc->getInstance()->fetch("#type = 'dc_note' AND #originId = {$iData['containerId'][$k]} AND #dealValue < 0 AND #state = 'active'")){
+                            $defAmount = $vAmount;
+                        } else {
+                            $defAmount = min($paymentData->amount, $vAmount);
+                        }
+
                         $iData['amount'][$k] = $defAmount;
                     }
                 }

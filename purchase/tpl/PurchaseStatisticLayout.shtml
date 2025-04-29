@@ -22,7 +22,6 @@
              <!--ET_END INVOICE_DOWNPAYMENT_TH-->
              <td class = 'sum-th'>
                  |Информация|* [#detailOrderBy#]
-				 
              </td>
           </tr>
           <tr>
@@ -35,7 +34,7 @@
               <!--ET_END INVOICE_DOWNPAYMENT_TD-->
               <td class = 'nowrap vtop' style='font-size:0.8em;text-align:left' rowspan='3'>
                   <!--ET_BEGIN paymentState-->
-                  <span style='font-weight:normal'>|Чакащо плащане|*</span>: [#paymentState#]<br>
+                  <span style='font-weight:normal'>[#paymentStateCaption#]</span>: [#paymentState#]<br>
                   <!--ET_END paymentState-->
                   <span style='font-weight:normal'>|Еднократно получаване|*</span>: [#oneTimeDelivery#]<br>
                   <!--ET_BEGIN initiatorId-->
@@ -62,6 +61,12 @@
                   <!--ET_BEGIN clonedFromId-->
                   <span style='font-weight:normal'>|Клонирано от|*</span>: [#clonedFromId#]<br>
                   <!--ET_END clonedFromId-->
+                  <!--ET_BEGIN haveVatCreditProducts-->
+                  <span class="red" style="text-transform: uppercase;">[#haveVatCreditProducts#] </span><span style='font-weight:normal'> |на данъчен кредит|*!</span><br>
+                  <!--ET_END haveVatCreditProducts-->
+                  <!--ET_BEGIN vatExceptionId-->
+                  <span style='font-weight:normal'>|ДДС изключение|*</span>: <b>[#vatExceptionId#]</b><br>
+                  <!--ET_END vatExceptionId-->
               </td>
            </tr>
            <tr>

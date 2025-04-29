@@ -49,14 +49,6 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
     
     
     /**
-     * Какво движение на партида поражда документа в склада
-     *
-     * @param string - тип движение (излиза, влиза, стои)
-     */
-    public $batchMovementDocument = 'in';
-    
-    
-    /**
      * Кои операции от задачите ще се зареждат
      */
     public $taskActionLoad = 'production';
@@ -138,6 +130,39 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
         if(empty($data->masterRec->storeId)){
             unset($data->defaultMeta);
             $data->form->setFieldTypeParams('productId', array('hasProperties' => 'canConvert', 'hasnotProperties' => 'canStore'));
+        }
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $recs = &$data->recs;
+        if (!countR($recs)) return;
+        if($data->masterData->rec->useResourceAccounts != 'yes') return;
+        if (!in_array($data->masterData->rec->state, array('draft', 'pending'))) return;
+
+        planning_WorkInProgress::applyQuantityHintIfNegative($data->rows, $data->recs);
+    }
+
+
+    /**
+     * Метод по пдоразбиране на getRowInfo за извличане на информацията от реда
+     */
+    protected static function on_AfterGetRowInfo($mvc, &$res, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        $masterRec = $mvc->Master->fetch($rec->noteId);
+        if($masterRec->useResourceAccounts == 'yes'){
+            if($res->operation['out'] != batch_Items::WORK_IN_PROGRESS_ID){
+                $res->operation['in'] = $res->operation['out'];
+                $res->operation['out'] = batch_Items::WORK_IN_PROGRESS_ID;
+            }
+        } else {
+            unset($res->operation['out']);
+            $res->operation['in'] = $masterRec->storeId;
         }
     }
 }

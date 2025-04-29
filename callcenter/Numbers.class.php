@@ -191,9 +191,12 @@ class callcenter_Numbers extends core_Manager
      */
     public static function getCallerName($id, $userId = null)
     {
+        $name = '';
+
         // Ако не е подадено id
         if (!$id) {
-            return ;
+
+            return $name;
         }
         
         // Ако не е подадено
@@ -208,24 +211,24 @@ class callcenter_Numbers extends core_Manager
         
         // Ако няма клас или id на контрагент
         if (!$numRec->classId || !$numRec->contragentId) {
-            return ;
+
+            return $name;
         }
         
         // Инстанция на съответния клас
         $class = cls::get($numRec->classId);
         
-        // Ако нямаме права до сингъла на записа
-        if (!$class->haveRightFor('single', $numRec->contragentId, $userId)) {
-            return ;
-        }
+//        // Ако нямаме права до сингъла на записа
+//        if (!$class->haveRightFor('single', $numRec->contragentId, $userId)) {
+//
+//            return $name;
+//        }
         
         // Ако класа е инстанция на профилите
         if (($class instanceof crm_Profiles)) {
-            
             // Вземаме името от профила
             $name = $class->getVerbal($numRec->contragentId, 'userId');
         } else {
-            
             // Вербалното име
             $name = $class->getVerbal($numRec->contragentId, 'name');
         }

@@ -43,7 +43,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,plg_Clone, doc_DocumentPlg,
+    public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, deals_plg_SaveValiorOnActivation, acc_plg_Contable, cond_plg_DefaultValues,plg_Clone, doc_DocumentPlg,
 					doc_EmailCreatePlg, price_plg_TotalDiscount, bgerp_plg_Blank, plg_Printing,deals_plg_DpInvoice, 
                     doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_UsingProductVat, drdata_plg_Canonize,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export, doc_SharablePlg';
     
@@ -81,7 +81,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,purchase,acc';
+    public $canList = 'ceo,purchase,acc,invoiceAll';
     
     
     /**
@@ -255,7 +255,7 @@ class purchase_Invoices extends deals_InvoiceMaster
 
         if ($data->aggregateInfo) {
             if ($data->aggregateInfo->get('bankAccountId')) {
-                $form->rec->accountId = $data->aggregateInfo->get('bankAccountId');
+                $form->setDefault('accountId', $data->aggregateInfo->get('bankAccountId'));
             }
         }
         
@@ -409,7 +409,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-        parent::beforeInvoiceSave($rec);
+        parent::beforeInvoiceSave($mvc, $rec);
 
         if(!empty($rec->number)){
             $number = $mvc->getVerbal($rec, 'number');
@@ -550,8 +550,10 @@ class purchase_Invoices extends deals_InvoiceMaster
             if($rec->type == 'dc_note'){
                 if(!isset($rec->changeAmount)){
                     if($rec->dealValue <= 0) {
-                        $data->toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/EN.png,title=Създаване на експедиционно нареждане към дебитно известие");
-                    } elseif(store_Receipts::haveRightFor('add', array('threadId' => $rec->threadId))){
+                        if(store_ShipmentOrders::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))){
+                            $data->toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/EN.png,title=Създаване на експедиционно нареждане към дебитно известие");
+                        }
+                    } elseif(store_Receipts::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))){
                         $data->toolbar->addBtn('Засклаждане', array('store_Receipts', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/store-receipt.png,title=Създаване на складова разписка към кредитното известие");
                     }
                 }
@@ -802,16 +804,17 @@ class purchase_Invoices extends deals_InvoiceMaster
             }
             
             $detFieldPref = '_pDet_';
-            
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($pRec->threadId);
+
             // Показваме полета и за попълване/промяна на детайлите от покупката
             $dQuery = purchase_PurchasesDetails::getQuery();
             $dQuery->where(array("#requestId = '[#1#]'", $pRec->id));
             while ($dRec = $dQuery->fetch()) {
                 $productName = cat_Products::getTitleById($dRec->productId);
-                
                 $productName = str_replace('->', '-', $productName);
-                
-                $vat = cat_Products::getVat($dRec->productId, $pRec->valior);
+
+
+                $vat = cat_Products::getVat($dRec->productId, $pRec->valior, $vatExceptionId);
                 $price = deals_Helper::getDisplayPrice($dRec->price, $vat, $pRec->currencyRate, $pRec->chargeVat, 3);
                 
                 $unit = $price . ' ' . $pRec->currencyId;
@@ -1111,6 +1114,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public function getDefaultAccDate($date)
     {
+        $date = !empty($date) ? $date : dt::today();
         $today = dt::today();
         $cLastDay = dt::getLastDayOfMonth($today);
         $prevLastDay = dt::getLastDayOfMonth($today, -1);
@@ -1119,7 +1123,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         
         // Ако датата на фактурата (ДФ) е в текущия месец - СД = ДФ
         if ($day == $cLastDay) {
-            
+
             return $date;
         }
         $nDay = acc_Setup::get('DATE_FOR_INVOICE_DATE');

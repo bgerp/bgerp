@@ -40,8 +40,14 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
      * @var string
      */
     protected $newFieldsToCheck = 'docId';
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -149,8 +155,7 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
                 
                 $queryProduct = cat_Products::getQuery();
                 $queryProduct->where("#id = '{$r->productId}'");
-                $queryProduct->likeKeylist('groups', $rec->group);
-                
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryProduct, $rec->group, 'productId');
                 if ($queryProduct->fetch() == false) {
                     unset($recs[$i]);
                 }

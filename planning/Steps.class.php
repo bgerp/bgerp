@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent,mandatoryDocuments';
+    protected $extenderFields = 'centerId,name,canStore,norm,offsetAfter,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent,mandatoryDocuments,supportSystemFolderId';
 
 
     /**
@@ -107,7 +107,7 @@ class planning_Steps extends core_Extender
         $this->FLD('isFinal', 'enum(no=Междинен етап,yes=Финален етап)', 'caption=Използване в производството->Вид,notNull,value=no');
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,no=Скриване,yes=Показване)', 'caption=Използване в производството->Предходно задание,notNull,value=no');
         $this->FLD('calcWeightMode', 'enum(auto=Автоматично,no=Изключено,yes=Включено)', 'caption=Използване в производството->Въвеждане на тегло,notNull,value=auto');
-
+        $this->FLD('supportSystemFolderId', 'key2(mvc=doc_Folders,select=title,coverClasses=support_Systems,allowEmpty)', 'caption=Използване в производството->Система за сигнали,placeholder=Автоматично');
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Складове->Складируем,notNull,value=yes,silent');
         $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Складове->Влагане ОТ');
         $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Произвеждане В');
@@ -115,6 +115,7 @@ class planning_Steps extends core_Extender
         $this->FLD('planningActions', 'keylist(mvc=cat_Products,select=name,makeLink)', 'caption=Планиране на производството->Действия');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Планиране на производството->Норма');
         $this->FLD('interruptOffset', 'time', 'caption=Планиране на производството->Отместване,hint=Отместване при прекъсване в графика на оборудването');
+        $this->FLD('offsetAfter', 'time', 'caption=Планиране на производството->Изчакване след,hint=Колко време да се изчака след изпълнение на операцията за етапа');
         $this->FLD('mandatoryDocuments', 'classes(select=title)', 'caption=Планиране на производството->Задължителни,hint=Задължително изискуеми документи (поне един от всеки избран тип) за да може да бъде приключена операцията');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
@@ -123,9 +124,10 @@ class planning_Steps extends core_Extender
         $this->FLD('labelType', 'enum(print=Генериране,scan=Въвеждане,both=Комбинирано,autoPrint=Генериране и печат)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
-        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,silent,class=w100');
+        $this->FLD('wasteProductId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,silent,class=w100');
         $this->FLD('wasteStart', 'double(min=0,smartRound)', 'caption=Отпадък в производствена операция->Начален');
         $this->FLD('wastePercent', 'percent(min=0)', 'caption=Отпадък в производствена операция->Допустим');
+
 
         $this->setDbIndex('state');
     }
@@ -388,6 +390,7 @@ class planning_Steps extends core_Extender
         // Състоянието на екстендъра се синхронизира с това на мениджъра
         $rec->state = $managerRec->state;
         $mvc->save_($rec, 'state');
+        plg_Search::forceUpdateKeywords($mvc, $rec);
     }
 
 
@@ -495,6 +498,14 @@ class planning_Steps extends core_Extender
 
             if(empty($rec->labelPackagingId)){
                 unset($row->labelTransferQuantityInPack);
+            }
+
+            $systemFolderId = $rec->supportSystemFolderId ?? planning_Centers::fetchField($rec->centerId, 'supportSystemFolderId');
+            if(isset($systemFolderId)){
+                $row->supportSystemFolderId = doc_Folders::recToVerbal($systemFolderId)->title;
+                if(!$rec->supportSystemFolderId) {
+                    $row->supportSystemFolderId = ht::createHint($row->supportSystemFolderId, 'По подразбиране от центъра на дейност', 'notice', false);
+                }
             }
         }
     }
@@ -699,5 +710,40 @@ class planning_Steps extends core_Extender
         $productClassId = cat_Products::getClassId();
 
         return static::count("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
+    }
+
+
+    /**
+     * Връща масив с отместванията
+     *
+     * @param array $tasks
+     * @return array $interruptionArr
+     */
+    public static function getInterruptionArr($tasks)
+    {
+        // Какви са плануваните отмествания при прекъсване
+        $taskProductIds = arr::extractValuesFromArray($tasks, 'productId');
+        $iQuery = planning_Steps::getQuery();
+        $iQuery->where("#classId = " . cat_Products::getClassId());
+        $iQuery->show('interruptOffset,objectId');
+        if (!empty($taskProductIds)) {
+            $iQuery->in("objectId", $taskProductIds);
+        }
+
+        $interruptionArr = array();
+        while($iRec = $iQuery->fetch()){
+            $interruptionArr[$iRec->objectId] = $iRec->interruptOffset;
+        }
+
+        return $interruptionArr;
+    }
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $res = ' ' . cls::get($rec->classId)::fetchField($rec->objectId, 'searchKeywords');
     }
 }

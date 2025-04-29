@@ -155,7 +155,9 @@ class sales_ClosedDeals extends deals_ClosedDeals
         $row->DOC_NAME = tr('ПРОДАЖБА');
         
         if ($rec->closeWith) {
-            $row->closeWith = ht::createLink($row->closeWith, array('sales_Sales', 'single', $rec->closeWith));
+            $dealState = sales_Sales::fetchField($rec->closeWith, 'state');
+            $row->closeWith = ht::createLink($row->closeWith, array('sales_Sales', 'single', $rec->closeWith))->getContent();
+            $row->closeWith = "<span class= 'state-{$dealState} document-handler'>{$row->closeWith}</span>";
         }
     }
     

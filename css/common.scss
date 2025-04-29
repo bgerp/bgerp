@@ -810,7 +810,6 @@ a.button, input[type="button"], input[type="submit"], button {
     cursor: pointer;
     font-size: 0.8em;
     padding: 0.34em 0.5em;
-    font-family: Arial,sans-serif;
     display: inline-block;
     @include border-radius(3px);
     -webkit-appearance: none;	  
@@ -949,7 +948,11 @@ table .linkWithIcon {
 }
 
 .toolbar .linkWithIcon {
-	margin-bottom:0;	
+	margin-bottom:0;
+}
+
+.form-filter-btn .toolbar .linkWithIcon {
+	float: left;
 }
 
 .linkWithIcon{
@@ -1286,6 +1289,11 @@ a.profile {
 	text-decoration: underline !important;
 	text-decoration-style: dotted !important;
 }
+
+.profile-state-access {
+	text-decoration: underline !important;
+	text-decoration-style: dashed !important;
+}
 /*край на хипервръзки към профилите на потребители*/
 
 /*състояния*/
@@ -1386,7 +1394,7 @@ a.profile {
 .state-rejected {
 	td, .document th, .document td a, .document p, .document h3, .document h4,
 	.richtext, .document a, .document span:not(.state), .richtext div, .cCode, .antetka,  .row-fluid div,
-	.document ul, .document ol, .document li, .document b, .document font, .document legend {
+	.document ul, .document ol, .document li, .document b, .document font, .document legend, .small {
 		color: #999 !important;
 		text-decoration: line-through !important;
 	}
@@ -1742,6 +1750,18 @@ form .inputAdvanced {
 .inlineForm .listFilter form {
 	float: none !important;
 }
+.folder-cover .groupList .inlineForm{
+	.hFormField input {
+		height: 26px !important;
+
+	}
+	.form-filter-btn input {
+		height: 26px !important;
+		position: relative;
+		top: -1px;
+	}
+}
+
 
 .inputWarning {
     border: solid 1px blue;
@@ -2383,6 +2403,11 @@ td.keylist-group{
 	    right: 5px;
 	}
 }
+.externalPage .formGroup img {
+	right: 8px;
+	top: 9px;
+}
+
 .narrow .formGroup img {
 	top: 50%;
 	margin-top: -8px;
@@ -2433,6 +2458,16 @@ td.keylist-group{
 
 .inner-keylist .hiddenElement {
    display: none;
+}
+
+.statusIcon {
+	text-decoration: none;
+	display: inline-block;
+}
+
+.filed-sharedUsers label span.statusIcon {
+	filter: unquote('grayscale(100%)');
+	font-size: 0.95em;
 }
 /*край на стилове за показване на формите */
  
@@ -2505,7 +2540,6 @@ select.tab-control, select.tab-control option{
 }
 
 div.tab-control div.tab-row .tab {
-	font-family: arial;
 	display: inline;
 	margin: 1px -16px -1px 18px;
 	padding: 4px 5px 5px 5px;
@@ -2514,14 +2548,6 @@ div.tab-control div.tab-row .tab {
 	white-space: nowrap;
 	position: relative;
 	line-height: normal;
-	@include border-radius4(5px, 5px, 0, 0);
-	border-top: 2px solid $blue;
-	&.selected {
-		z-index: 3;
-		padding: 4px 5px 6px 5px;
-		margin: 1px -16px -3px 18px;
-		top: 0;
-	}
 }
 
 .narrow div.tab-control div.tab-row .tab.selected {
@@ -2723,47 +2749,10 @@ div.alphabet.twoRows {
 	.detail-info {
 			border: none !important;
 	}
-	div.tab-row .tab {
-		font-size: 0.8em;
-		font-family: arial;
-		@include no-shadow();
-		display: inline;
-		margin: 1px -11px -1px 10px;
-		float: left;
-		background: $gray3;
-		border: 1px solid $gray4;
-		border-bottom: 1px solid #0066ff;
-		color: #999;
-		z-index: 1;
-		white-space: nowrap;
+	div.tab-row {
+		padding-left: 10px;
 		position: relative;
-		padding:0 !important;
-		@include border-radius4(5px, 5px, 0, 0);
-		a {
-			display: inline-block;
-			color: #048;
-			padding: 4px 5px 4px 5px !important;
-			@include border-radius4(5px, 5px, 0, 0);
-		}
-		span {
-			display: inline-block;
-			padding: 4px 5px 4px 5px !important;
-		}
-		&:hover a {
-			background-color: $beige !important;
-			color: #048 !important;
-		}
-		&:hover span {
-			background-color: $gray3 !important;
-		}
-		&.selected {
-			margin: 1px -11px -1px 10px;
-			background: $history-bg !important;
-			z-index: 3;
-			padding: 0 0 1px !important;
-			top: 0;
-			font-weight: bold;
-		}	
+		top: 1px;
 	}
 }
 
@@ -2822,118 +2811,6 @@ div.alphabet.twoRows {
     }	
 }
 
-
-/*табове за поддетайли на документ*/
-div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet {
-    .tab-page {
-       border: none;
-       padding: 0;
-    }
-    .tab-row {
-        float: left;
-        margin-bottom: 10px;
-        .tab {
-            display: inline-block;
-            line-height: 1.1em;
-            padding: 4px;
-            font-size: 0.7em;
-            text-align: center;
-            margin: 0 3px 0 0;
-            @include border-radius(7px);
-            background-color: #ccc !important;
-            border: 1px solid #aaa;
-            a {
-                text-shadow: none;
-				cursor: pointer;
-            }
-            &:hover , &.selected {
-                padding: 4px;
-				top: 0 !important;
-				margin: 0 3px 0 0;
-                border: 1px solid #bbb;
-                background-color: #ffffcc !important;
-                a {
-                    color: #333;
-                }
-            }
-        }
-    }
-}
-
-
-.wide .single-thread .document .tab-top div.alphabet  .tab-row {
-    margin-bottom: 5px;
- 	.tab {
-	    font-size: 0.7em;
-	    padding: 6px 8px;
-		margin: 0 -1px 0 0;
-		cursor: pointer;
-		
-		border-top: 1px solid #bbb;
-		border-left: 1px solid #bbb;
-		border-right: 1px solid #bbb;
-		border-bottom: 1px solid #0066ff;
-		
-		font-size: 0.7em;
-		text-decoration: none;
-		white-space: nowrap;
-		color: #555 !important;
-		background-color: #ddd !important;
-		background-image: linear-gradient(top, rgba(255,255,255,1),
-						rgba(255,255,255,0)),
-		url(data:image/png;base64,iVBORw0KGg[...]QmCC) !important;
-		transition: background-color .2s ease-out !important;
-		background-clip: padding-box; /* Fix bleeding */
-		border-radius: 0px !important;
-		border-top-right-radius: 5px !important;
-		border-top-left-radius: 5px !important;
-		box-shadow: 0 0px 0 rgba(0, 0, 0, .3),
-		0 1px 0 rgba(255, 255, 255, .3) inset !important;
-		text-shadow: 0 1px 0 rgba(255,255,255, .9);
-		a {
-			color: #333 !important;
-		}
-	    &:hover {
-			background: #ffffe9 !important;
-			a {
-				color: #444 !important;
-			}
-	    }
-		&.selected {
-			box-shadow: 0 -4px 0 #0066ff !important;
-	    	border-left: 1px solid #0066ff !important;
-			border-right: 1px solid #0066ff !important;
-			border-bottom: none !important;
-			font-size: 0.8em !important;
-			
-			background: #ffffe9 !important;
-			padding: 5px 8px !important;
-			a {
-				color: #444 !important;
-			}
-		}
-	 }
-}
-
-.narrow div.tab-control.deal-history-tab, .narrow .single-thread .document .tab-top div.alphabet{
-	.tab-row {
-        float: none;
-        margin: 0px 5px;
-        clear: both;
-
-    }
-    div.tab-row {
-        .tab, .tab.selected {
-			margin: 1px 0px 1px 3px !important;
-			padding: 4px 3px 2px !important;
-			font-size: 0.65em;
-	    }
-    }
-    div.tab-page {
-        background: none;
-        padding: 5px;
-    }
-}
 
 .badge {
 	@include border-radius(9px);
@@ -3646,6 +3523,9 @@ div.statuses-message h2 {
 /*цветове*/
 .quiet {
 	color: $quiet-gray;
+	a {
+		color: $quiet-gray !important;
+	}
 }
 
 .quiet td {
@@ -3914,6 +3794,13 @@ td.leftCol, th.leftCol {
 td.centerCol {
 	white-space:nowrap;
 	text-align:center;
+	.modal-toolbar {
+		white-space: normal;
+		text-align: left;
+		.linkWithIcon {
+			display: block;
+		}
+	}
 }
 
 td.leftColImportant {

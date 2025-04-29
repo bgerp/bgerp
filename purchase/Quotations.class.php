@@ -152,7 +152,7 @@ class purchase_Quotations extends deals_QuotationMaster
     /**
      * Кои полета да са нередактируеми, ако има вече детайли
      */
-    protected $readOnlyFieldsIfHaveDetail = 'chargeVat,currencyRate,currencyId';
+    protected $readOnlyFieldsIfHaveDetail = 'chargeVat,currencyRate,currencyId,vatExceptionId';
 
 
     /**

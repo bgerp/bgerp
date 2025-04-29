@@ -61,7 +61,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,consumption,store';
+    public $canList = 'ceo,consumption,store, planningAll';
     
     
     /**
@@ -153,7 +153,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     {
         parent::setDocumentFields($this);
         $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Допълнително->Ц-р на дейност,after=receiver');
-        $this->FLD('description', 'richtext(bucket=Notes,rows=2)', 'caption=Информация за ремонта->Извършени дейности,after=departmentId,input=none');
+        $this->FLD('description', 'richtext(bucket=Notes,rows=2)', 'caption=Информация за ремонта->Извършено,after=departmentId,input=none');
         $this->FLD('sender', 'varchar', 'caption=Допълнително->Предал');
         $this->FLD('receiver', 'varchar', 'caption=Допълнително->Получил');
         $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Детайлно влагане,notNull,default=yes,maxRadio=2');
@@ -211,7 +211,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
             $mvc->setEmployeesOptions($form);
         }
 
-        if($jobRec = static::getJobFromThread($rec->threadId)){
+        if($jobRec = static::getJobRec($rec)){
             $rec->_inputStores = keylist::toArray($jobRec->inputStores);
             $selectableStores = bgerp_plg_FLB::getSelectableFromArr('store_Stores', $rec->_inputStores);
             if(countR($selectableStores) == 1){
@@ -312,41 +312,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     
     
     /**
-     * Проверка дали нов документ може да бъде добавен в посочената нишка
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     *
-     * @return bool
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Може да добавяме или към нишка в която има задание
-        if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
-
-            return true;
-        }
-        
-        // Може да добавяме или към нишка в която има задание
-        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
-
-            return true;
-        }
-
-        // Може да добавяме или към нишка в която има сигнал
-        $originId = Request::get('originId', 'int');
-        if(isset($originId)){
-            $taskSupportClassId = support_TaskType::getClassId();
-            if (cal_Tasks::fetchField("#containerId = {$originId} AND #driverClass = {$taskSupportClassId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup' || #state = 'closed' || #state = 'pending')")) {
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-    
-    
-    /**
      * Изпълнява се след създаване на нов запис
      */
     protected static function on_AfterCreate($mvc, $rec)
@@ -430,5 +395,31 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         $cQuery->in("threadId", $threadArr);
 
         return $cQuery->count() > 0;
+    }
+
+
+    /**
+     * Преди оттегляне, ако има затворени пера в транзакцията, не може да се оттегля
+     */
+    public static function on_BeforeReject($mvc, &$res, $id)
+    {
+        if(!store_Setup::canDoShippingWhenStockIsNegative()){
+            $rec = $mvc->fetchRec($id);
+            if($rec->state == 'active' && $rec->useResourceAccounts == 'yes') {
+
+                // Проверка дали оттеглянето ще доведе до отрицателни к-ва в незавършеното производство
+                $detailQuantities = array();
+                $dQuery = planning_ConsumptionNoteDetails::getQuery();
+                $dQuery->where("#noteId = {$rec->id}");
+                while($dRec = $dQuery->fetch()){
+                    $detailQuantities[$dRec->productId] += -1 * $dRec->quantity;
+                }
+
+                if ($error = planning_WorkInProgress::getContoRedirectError($detailQuantities, false)){
+                    core_Statuses::newStatus($error, 'error');
+                    return false;
+                }
+            }
+        }
     }
 }

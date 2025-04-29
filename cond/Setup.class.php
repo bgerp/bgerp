@@ -72,6 +72,7 @@ class cond_Setup extends core_ProtoSetup
         'cond_Ranges',
         'cond_Allergens',
         'cond_TariffCodes',
+        'cond_VatExceptions'
     );
     
     
@@ -94,6 +95,21 @@ class cond_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'COND_CARD_PAYMENT_METHOD_ID' => array('key(mvc=cond_Payments,select=title)', 'caption=Метод за плащане с карта->Избор'),
+    );
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'CloseExceptions',
+            'description' => 'Затваряне на невалидни изключения',
+            'controller' => 'cond_VatExceptions',
+            'action' => 'CloseExceptions',
+            'period' => 1440,
+            'offset' => 60,
+        ),
     );
 
 

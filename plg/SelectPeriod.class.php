@@ -83,7 +83,17 @@ class plg_SelectPeriod extends core_Plugin
         
         $keySel = null;
         $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}, $showFuturePeriods));
-        
+
+        if (!$form->isSubmitted() && ($form->cmd != 'refresh')) {
+            if (!$keySel) {
+                if ($data->form->rec->id && $fF && $fT) {
+                    if ((!$rec->{$fF} || !$rec->{$fT}) && ($rec->{$fF} || $rec->{$fT})) {
+                        $keySel = 'select';
+                    }
+                }
+            }
+        }
+
         if ($rec->selectPeriod && $rec->selectPeriod != 'select') {
             list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
             Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
@@ -188,7 +198,12 @@ class plg_SelectPeriod extends core_Plugin
             list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
             Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
         }
-        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}, $showFuturePeriods));
+        if ($mvc->showSelectPeriod === false) {
+            $showSelect = false;
+        } else {
+            $showSelect = true;
+        }
+        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}, $showFuturePeriods, $showSelect));
         
         if ($keySel) {
             $form->setDefault('selectPeriod', $keySel);
@@ -220,8 +235,8 @@ class plg_SelectPeriod extends core_Plugin
         if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
             $form->setField($fT, array('rowStyle' => 'display:none'));
         }
-        
-        $form->defOrder = true;
+
+        setIfNot($form->defOrder, $data->defOrder, true);
     }
     
     
@@ -388,7 +403,7 @@ class plg_SelectPeriod extends core_Plugin
     /**
      * Подготва опциите за избир на период
      */
-    public static function getOptions(&$keySel = null, $fromSel = null, $toSel = null, $showFutureOptions = false)
+    public static function getOptions(&$keySel = null, $fromSel = null, $toSel = null, $showFutureOptions = false, $showSelect = true)
     {
         $opt = array();
 
@@ -525,10 +540,12 @@ class plg_SelectPeriod extends core_Plugin
         });
         
         $opt = $first + $second;
-        
-        // Добавяме избор на производлен период
-        $opt['select'] = (object) array('title' => tr('Избор'), 'attr' => array('class' => 'out-btn multipleFiles'));
-        
+
+        if ($showSelect) {
+            // Добавяме избор на производлен период
+            $opt['select'] = (object) array('title' => tr('Избор'), 'attr' => array('class' => 'out-btn multipleFiles'));
+        }
+
         return $opt;
     }
     

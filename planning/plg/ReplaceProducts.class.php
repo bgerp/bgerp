@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -149,7 +149,7 @@ class planning_plg_ReplaceProducts extends core_Plugin
                 $exGenericProductId = isset($exRec->id) ? planning_GenericProductPerDocuments::getRec($mvc, $exRec->id) : null;
                 if ($nRec->{$mvc->replaceProductFieldName} == $exRec->{$mvc->replaceProductFieldName} && $nRec->_genericProductId == $exGenericProductId) {
 
-                    return followRetUrl(null, 'Артикулът не е подменен');
+                    followRetUrl(null, 'Артикулът не е подменен');
                 }
 
                 // Обновяваме записа
@@ -163,7 +163,7 @@ class planning_plg_ReplaceProducts extends core_Plugin
                     // Ако е подменен артикул се рекалкулират документите, които са генерирали записи спрямо този запис
                     store_StockPlanning::recalcByReff($mvc->Master, $nRec->{$mvc->masterKey});
 
-                    return followRetUrl(null, 'Артикулът е заместен успешно');
+                    followRetUrl(null, 'Артикулът е заместен успешно');
                 }
 
                 $form->setError($nFields, 'Вече съществува запис със същите данни');
@@ -197,6 +197,11 @@ class planning_plg_ReplaceProducts extends core_Plugin
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
+            $isGeneric = cat_Products::fetchField($rec->{$mvc->replaceProductFieldName}, 'generic') == 'yes';
+            if($isGeneric){
+                $row->{$mvc->replaceProductFieldName} = ht::createHint($row->{$mvc->replaceProductFieldName}, 'Артикулът е генеричен|*! Трябва да бъде заместен или премахнат, за да се контира документа|*!', 'img/16/warning-gray.png', false);
+            }
+
             // Добавяме бутона за подмяна
             if ($mvc->haveRightFor('replaceproduct', $rec)) {
                 $url = array($mvc, 'replaceproduct', $rec->id, 'ret_url' => true);
@@ -224,17 +229,31 @@ class planning_plg_ReplaceProducts extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'replaceproduct' && isset($rec)) {
+
             // Могат да се подменят само артикулите, които имат други взаимозаменямеми
             if ($requiredRoles != 'no_one' && isset($rec->{$mvc->replaceProductFieldName})) {
-
-                $options = static::getReplaceOptions($mvc, $rec->id, $rec->{$mvc->replaceProductFieldName});
-                if (!countR($options)) {
+                $state = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
+                if(in_array($state, array('closed', 'rejected'))){
                     $requiredRoles = 'no_one';
+                } else {
+                    $options = static::getReplaceOptions($mvc, $rec->id, $rec->{$mvc->replaceProductFieldName});
+                    if (!countR($options)) {
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
     }
 
+
+    /**
+     * Връща опциите за заместване
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param int $productId
+     * @return array $options
+     */
     private static function getReplaceOptions($mvc, $id, $productId)
     {
         $temp = $options = array();

@@ -329,7 +329,7 @@ class eshop_Groups extends core_Master
         cms_Content::setCurrent($data->menuId);
 
         $layout = $this->getLayout();
-        
+       
         if (($q = Request::get('q')) && $menuId > 0) {
             $layout->replace(cms_Content::renderSearchResults($menuId, $q), 'PAGE_CONTENT');
             
@@ -341,7 +341,7 @@ class eshop_Groups extends core_Master
             $this->prepareNavigation($data);
             $this->prepareAllGroups($data);
 
-            if(countR($data->links) == 1){
+            if(countR($data->links) == 1 && !strlen($q)){
                 redirect($data->links[0]->url);
             }
 
@@ -475,6 +475,9 @@ class eshop_Groups extends core_Master
      */
     public static function setOrder($query, $menuId)
     {
+        if(empty($menuId)){
+            wp($query, getCurrentUrl());
+        }
         $query->XPR('orderCalc', 'double', "IF(#menuId = {$menuId}, #saoOrder, IF(#order > 0, #order, #id+1000))");
         $query->orderBy('orderCalc');
     }
@@ -580,11 +583,11 @@ class eshop_Groups extends core_Master
                 
                 if ($rec->icon) {
                     $img = new thumb_Img($rec->icon, 600, 450, 'fileman');
-                    $tpl->replace(ht::createLink($img->createImg(), $rec->url), 'img');
+                    $tpl->replace(ht::createLink($img->createImg(), $rec->url, false, array('title' => $rec->seoTitle ? $rec->seoTitle : null)), 'img');
                 } else {
                     continue;
                 }
-                $name = ht::createLink($this->getVerbal($rec, 'name'), $rec->url);
+                $name = ht::createLink($this->getVerbal($rec, 'name', false, array('title' => $rec->seoTitle ? $rec->seoTitle : null)), $rec->url);
                 $tpl->replace($name, 'name');
                 $all->append($tpl);
             }
@@ -733,6 +736,10 @@ class eshop_Groups extends core_Master
             if ($this->haveRightFor('edit', $rec)) {
                 $l->editLink = ht::createLink($editImg, array('eshop_Groups', 'edit', $rec->id, 'ret_url' => true));
             }
+
+            if(isset($rec->seoTitle)) {
+                $l->seoTitle = $rec->seoTitle;
+            }
             
             $data->links[] = $l;
         }
@@ -748,6 +755,11 @@ class eshop_Groups extends core_Master
      */
     public static function getUrl($rec, $canonical = false)
     {
+        if (!$rec->menuId) {
+
+            return null;
+        }
+
         $mRec = cms_Content::fetch($rec->menuId);
         
         $lg = $mRec->lang;
@@ -836,9 +848,18 @@ class eshop_Groups extends core_Master
     {
         $res = array();
         $query = self::getQuery();
-        
         $query->where("#menuId = {$menuId} AND #state = 'active'");
-        
+
+        $queryG = clone($query);
+        plg_Search::applySearch($q, $queryG, null, 5, 64);
+        while($r = $queryG->fetch()) {
+            $title = tr("Група") . ' "' . self::getVerbal($r, 'name') . '"';
+            $url = self::getUrl($r);
+            $url['q'] = $q;
+            $res[toUrl($url)] = (object) array('title' => $title, 'url' => $url);
+        }
+       
+        $recs = array();
         $groups = array();
         while ($rec = $query->fetch()) {
             $groups[$rec->id] = $rec->id;
@@ -854,7 +875,6 @@ class eshop_Groups extends core_Master
             $queryM->orderBy('rating,createdOn', 'DESC');
             $queryM->limit($maxResults);
             
-            $recs = array();
             $query = clone($queryM);
             plg_Search::applySearch($q, $query, null, 5, 64);
             $recs += $query->fetchAll();

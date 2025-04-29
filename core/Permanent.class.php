@@ -136,10 +136,10 @@ class core_Permanent extends core_Manager
      *
      * @return mixed - кешираната стойност или NULL, ако не е намерена
      */
-    public static function get($key, $minCreatedOn = null)
+    public static function get($key, $minCreatedOn = null, $fullKey = false)
     {
-        $key = self::getKey($key);
-        
+        $key = ($fullKey) ? $key : self::getKey($key);
+
         // Подготовка на условието
         $where = "#key = '[#1#]'";
         if (isset($minCreatedOn)) {
@@ -230,5 +230,42 @@ class core_Permanent extends core_Manager
         if($rec->lifetime == self::FOREVER_VALUE){
             $row->lifetime = tr("Без лимит");
         }
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param bgerp_Bookmark $mvc
+     * @param object         $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
+    }
+
+
+    /**
+     * Връща всички записи с начало на подадения частичен ключ
+     *
+     * @param string $partialKey - частичен ключ
+     * @return array $res
+     */
+    public static function getLikeKey($partialKey)
+    {
+        $me = cls::get(get_called_class());
+        $parsedKey = $me->getKey($partialKey);
+        $query = $me->getQuery();
+        $query->where(array("#key LIKE '[#1#]%'", "{$parsedKey}"));
+
+        $res = array();
+        while ($rec = $query->fetch()) {
+            if($value = static::get($rec->key, null, true)){
+                $res[$rec->key] = $value;
+            }
+        }
+
+        return $res;
     }
 }

@@ -200,7 +200,8 @@ class purchase_PurchasesData extends core_Manager
         if($lastPurchaseRec = $pQuery->fetch()){
             $lastPurchaseDocument = doc_Containers::getDocument($lastPurchaseRec->containerId);
             $price = isset($lastPurchaseRec->discount) ? $lastPurchaseRec->price * (1 - $lastPurchaseRec->discount) : $lastPurchaseRec->price;
-            $vat = cat_Products::getVat($productId, $valior);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($lastPurchaseRec->threadId);
+            $vat = cat_Products::getVat($productId, $valior, $vatExceptionId);
             $lastPriceDisplayed = deals_Helper::getDisplayPrice($price, $vat, $currencyRate, $chargeVat);
 
             $unit = ($chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';

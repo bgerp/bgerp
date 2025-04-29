@@ -113,7 +113,7 @@ class sens2_Controllers extends core_Master
     public function description()
     {
         $this->FLD('name', 'identifier(64,utf8)', 'caption=Наименование, mandatory,notConfig');
-        $this->FLD('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Тип на контролера');
+        $this->FLD('driver', 'class(interface=sens2_ControllerIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Драйвер');
         $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Състояние,input=none');
         $this->FLD('persistentState', 'blob(serialize)', 'caption=Персистентно състояние,input=none,single=none,column=none');
@@ -656,11 +656,15 @@ class sens2_Controllers extends core_Master
     {
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'driver';
+        $data->listFilter->showFields = 'name, driver';
         $data->listFilter->input(null, 'silent');
 
         if (isset($data->listFilter->rec->driver)) {
             $data->query->where(array("#driver = '[#1#]'", $data->listFilter->rec->driver));
+        }
+
+        if (isset($data->listFilter->rec->name)) {
+            $data->query->where(array("LOWER(#name) LIKE '%[#1#]%'", mb_strtolower($data->listFilter->rec->name)));
         }
 
         $data->listFilter->fields['driver']->refreshForm = 'refreshForm';
@@ -707,5 +711,27 @@ class sens2_Controllers extends core_Master
         }
         
         core_App::shutdown();
+    }
+
+
+    /**
+     * Извиква се от крона. Премахва изтеклите връзки
+     */
+    public function cron_RemoveExpiredRecords()
+    {
+        // Датата към момента от когато на сетне пазим индикаторите
+        $dateToKeepIndicators = dt::addSecs(-sens2_Setup::get('TIME_TO_KEEP_INDICATORS'));
+        
+        // Изтриваме всички изтекли записи на индикаторите
+        $delInd = sens2_DataLogs::delete("#time < '{$dateToKeepIndicators}'");
+
+        // Датата към момента от която пазим логовете
+        $dateToKeepLogs = dt::addSecs(-sens2_Setup::get('TIME_TO_KEEP_LOGS'));
+
+        // Изтриваме всички изтекли записи на индикаторите
+        $delLog = sens2_script_Logs::delete("#createdOn < '{$dateToKeepLogs}'");
+
+        
+        return "Бяха изтрити {$delInd} записа на индикатори и {$delLog} записа в логовете на sens2";
     }
 }

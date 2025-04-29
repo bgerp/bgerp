@@ -68,6 +68,12 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
 
     /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -311,7 +317,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             //Филтър по група артикули
             if (isset($rec->groups)) {
-                $pQuery->likeKeylist('groups', $rec->groups);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->groups, 'productId');
             }
 
             // Синхронизира таймлимита с броя записи
@@ -323,10 +329,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             while ($pRec = $pQuery->fetch()) {
 
-                //
-                if ($master == 'planning_DirectProductionNote' && !$pRec->storeId) {
+                if ($master == 'planning_DirectProductionNote' && !$pRec->storeId && !$pRec->fromAccId) {
 
-                   // continue;   // Премахнато за да се показват услугите от бързо производство
+                    continue;
                 }
 
                 $consumedQuantity = $returnedQuantity = $pRec->quantity;

@@ -208,7 +208,7 @@ class email_Outgoings extends core_Master
      */
     public $backupDiffFields = 'modifiedOn,state,lastSendedOn';
 
-    
+
     /**
      * Описание на модела
      */
@@ -846,8 +846,8 @@ class email_Outgoings extends core_Master
         $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
         
         if (countR($docHandlesArr) > 0) {
-            $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4,formOrder=6');
-            
+            $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4,formOrder=6, translate=none');
+
             $suggestion = array();
             $setDef = array();
             
@@ -887,7 +887,7 @@ class email_Outgoings extends core_Master
         if (countR($filesArr) > 0) {
             
             // Задаваме на формата да се покажат полетата
-            $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,formOrder=7,maxCaptionLen=25');
+            $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,formOrder=7,maxCaptionLen=25, translate=none');
             $data->form->setSuggestions('attachmentsSet', $filesArr);
         }
         
@@ -1792,7 +1792,11 @@ class email_Outgoings extends core_Master
             if (!$emailTo) {
                 $recEmailsArr = email_Inboxes::removeOurEmails($recEmailsArr);
             }
-            
+
+            foreach ($recEmailsArr as &$rEmailStr) {
+                $rEmailStr = type_Email::removeBadPart($rEmailStr);
+            }
+
             if ($contragentData->replyToEmail) {
                 $removeFromGroup = $recEmailsArr;
             } else {
@@ -3043,7 +3047,7 @@ class email_Outgoings extends core_Master
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресата
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         $posting = email_Outgoings::fetch($id);
         
@@ -3069,7 +3073,7 @@ class email_Outgoings extends core_Master
             if (cls::haveInterface('doc_ContragentDataIntf', $cover->className)) {
 
                 // Вземаме груповите имейли
-                $contrData->groupEmails = $cover->getContragentData()->groupEmails;
+                $contrData->groupEmails = $cover->getContragentData($date)->groupEmails;
             }
         }
         

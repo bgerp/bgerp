@@ -34,7 +34,7 @@ class drdata_Domains extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, domain, isPublicMail, state';
+    public $listFields = 'id, domain, isPublicMail, isDisposal, state';
     
     
     /**
@@ -62,8 +62,116 @@ class drdata_Domains extends core_Manager
     {
         $this->FLD('domain', 'varchar(255)', 'caption=Домейн,mandatory');
         $this->FLD('isPublicMail', 'enum(no=Не, static=По дефиниция, cron=По данни)', 'caption=Публичност,mandatory');
-        
+        $this->FLD('isDisposal', 'enum(no=Не, yes=Да)', 'caption=Временен,mandatory');
+
         $this->setDbUnique('domain');
+    }
+
+
+    /**
+     * Проверка дали един домейн е временен имейл доставчик или не
+     *
+     * @param string $domain
+     *
+     * @return bool TRUE - временен, FALSE - не е временен
+     */
+
+    public static function isDisposal($domain)
+    {
+
+        return self::checkDomain($domain, 'isDisposal');
+    }
+
+
+    /**
+     * Проверка дали един домейн е публичен имейл доставчик или не
+     *
+     * @param string $domain
+     *
+     * @return bool TRUE - публичен, FALSE - не е публичен
+     */
+
+    public static function isPublic($domain)
+    {
+
+        return self::checkDomain($domain);
+    }
+
+
+    /**
+     * Помощна функция за проверка на временни и публични домейни
+     *
+     * @param string $domain
+     * @param string $type
+     *
+     * @return bool TRUE - публичен, FALSE - не е публичен
+     */
+    protected static function checkDomain($domain, $type = 'isPublicMail')
+    {
+        if (strpos($domain, '@')) {
+            list($left, $domain) = explode('@', $domain);
+        }
+
+        $domain = strtolower(trim($domain));
+
+        $isPublic = (boolean) static::fetch(array(
+            "#domain = '[#1#]'"
+            . " AND #state = 'active'"
+            . " AND #{$type} != 'no'"
+            . " AND #{$type} IS NOT NULL", $domain));
+
+        if ($isPublic === true) {
+
+            return true;
+        }
+
+        // Проверяваме дали няма маска
+        $key = "{$mask}|{$type}";
+        $mDomains = core_Cache::get('drdata_Domains', $key, 1000, array(get_called_class()));
+        if (!$mDomains) {
+            $q = self::getQuery();
+            $q->where("#state = 'active'");
+            if ($type == 'isPublicMail') {
+                $q->where("#isPublicMail != 'no'");
+                $q->where("#isPublicMail IS NOT NULL");
+            } elseif ($type == 'isDisposal') {
+                $q->where("#isDisposal != 'no'");
+                $q->where("#isDisposal IS NOT NULL");
+            }
+            $q->where("#domain LIKE '%*%'");
+
+            $mDomains = $q->fetchAll();
+
+            core_Cache::set('drdata_Domains', $key, $res, 1000, array(get_called_class()));
+        }
+
+        foreach ((array) $mDomains as $dRec) {
+            $quote = preg_quote($dRec->domain, '/');
+            $quote = str_replace('\*', '.*', $quote);
+            if (preg_match("/^{$quote}$/ui", $domain)) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        if ($rec->domainType == 'disposable') {
+            $rec->isDisposal = 'yes';
+        } else {
+            $rec->isDisposal = 'no';
+        }
+
+        $rec->isPublicMail = 'static';
+
+        unset($rec->domainType);
     }
     
     
@@ -78,10 +186,10 @@ class drdata_Domains extends core_Manager
         // Кои колонки ще вкарваме
         $fields = array(
             0 => 'domain',
+            1 => 'domainType',
         );
         
         $defaults = array(
-            'isPublicMail' => 'static',
             'state' => 'active',
         );
         
@@ -92,30 +200,7 @@ class drdata_Domains extends core_Manager
         // Записваме в лога вербалното представяне на резултата от импортирането
         $res .= $cntObj->html;
     }
-    
-    
-    /**
-     * Проверка дали един домейн е публичен имейл доставчик или не
-     *
-     * @param string $domain
-     *
-     * @return bool TRUE - публичен, FALSE - не е публичен
-     */
-    public static function isPublic($domain)
-    {
-        if (strpos($domain, '@')) {
-            list($left, $domain) = explode('@', $domain);
-        }
-        
-        $domain = strtolower(trim($domain));
-        
-        return (boolean) static::fetch(array(
-            "#domain = '[#1#]'"
-            . " AND #state = 'active'"
-            . " AND #isPublicMail != 'no'"
-            . ' AND #isPublicMail IS NOT NULL', $domain));
-    }
-    
+
     
     /**
      * Рее-инициализира БД-списъка с публични домейни от тип `cron`.
@@ -163,10 +248,9 @@ class drdata_Domains extends core_Manager
         $domaninKeys = array_keys($domains);
         foreach ($domaninKeys as $domain) {
             $success = static::save(
-                (object) array(
-                    'domain' => $domain,
-                    'isPublicMail' => 'cron'
-                ),
+                (object) array('domain' => $domain,
+                    'isPublicMail' => 'cron',
+                    'isDisposal' => 'no'),
                 null,
                 'IGNORE'
             );

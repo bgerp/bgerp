@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Колко време трябва да се пазат записите от индикаторите? 
+ * По подразбиране 1000 дни
+ */
+defIfNot('SENS2_TIME_TO_KEEP_INDICATORS', '86400000');
+
+/**
+ * Колко време трябва да се пазат записите в логовете? 
+ * По подразбиране 10 дни
+ */
+defIfNot('SENS2_TIME_TO_KEEP_LOGS', '864000');
 
 /**
  * class sens2_Setup
@@ -48,6 +59,20 @@ class sens2_Setup extends core_ProtoSetup
      */
     public $info = 'Мониторинг на сензори и оборудване';
     
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+                'SENS2_TIME_TO_KEEP_INDICATORS' => array(
+                    'time(uom=days)',
+                    'caption=Времена за запазване на записите->От индикаторите'
+                ),
+                'SENS2_TIME_TO_KEEP_LOGS' => array(
+                    'time(uom=days)',
+                    'caption=Времена за запазване на записите->В логовете'
+                ),
+            );
     
     /**
      * Списък с мениджърите, които съдържа пакета
@@ -58,9 +83,12 @@ class sens2_Setup extends core_ProtoSetup
         'sens2_Controllers',
         'sens2_Scripts',
         'sens2_script_Actions',
+        'sens2_Semaphores',
         'sens2_script_DefinedVars',
         'sens2_IOPorts',
+        'sens2_script_Logs',
         'migrate::changeToDot',
+        'migrate::updateScriptKeywords2443',
     );
     
     
@@ -135,6 +163,16 @@ class sens2_Setup extends core_ProtoSetup
         $rec->timeLimit = 70;
         $html .= core_Cron::addOnce($rec);
         
+        $rec = new stdClass();
+        $rec->systemId = 'sens2_DeleteExpiredData';
+        $rec->description = 'Изтрива остарелите данни';
+        $rec->controller = 'sens2_Controllers';
+        $rec->action = 'RemoveExpiredRecords';
+        $rec->period = 60 * 24;
+        $rec->offset = (int) (60 * 2.5);
+        $rec->timeLimit = 450;
+        $html .= core_Cron::addOnce($rec);
+
         return $html;
     }
     
@@ -153,6 +191,21 @@ class sens2_Setup extends core_ProtoSetup
                     $query->mvc->save($rec);
                 }
             }
+        }
+    }
+
+
+    /**
+     * Обновява ключовите думи на скриптовете
+     *
+     * @return void
+     */
+    public function updateScriptKeywords2443()
+    {
+        $Scripts = cls::get('sens2_Scripts');
+        $sQuery = $Scripts->getQuery();
+        while ($sRec = $sQuery->fetch()) {
+            plg_Search::forceUpdateKeywords($Scripts, $sRec);
         }
     }
 }

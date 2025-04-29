@@ -63,12 +63,12 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public $singleTitle = 'Запитване';
     
-    
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, plg_Clone, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, drdata_PhonePlg';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, drdata_PhonePlg, plg_HideRows';
     
     
     /**
@@ -277,6 +277,19 @@ class marketing_Inquiries2 extends embed_Manager
         $this->setDbIndex('createdOn');
         $this->setDbIndex('sourceClassId,sourceId');
     }
+    /**
+     *
+     * @param doc_Files $mvc
+     * @param stdClass  $row
+     * @param stdClass  $rec
+     */
+    public static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = null)
+    {
+        if ($fields['-list']) {
+            $mvc->setFieldTypeParams('email', array('maskVerbal' => true));
+            $mvc->setFieldTypeParams('tel', array('maskVerbal' => true));
+        }
+    }
     
     
     /**
@@ -338,7 +351,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         // Добавяме полета за количество според параметрите на продукта
         $quantityCount = &$form->rec->quantityCount;
-        
+
         if ($quantityCount > 3) {
             $quantityCount = 3;
         } elseif (isset($quantityCount) && $quantityCount == 0) {
@@ -435,7 +448,7 @@ class marketing_Inquiries2 extends embed_Manager
                 $form->setField('proto', 'input=none');
             }
         }
-        
+
         if (cls::load($form->rec->innerClass, true)) {
             if ($Driver = cls::get($form->rec->innerClass)) {
                 if ($moq = $Driver->getMoq()) {
@@ -1174,7 +1187,7 @@ class marketing_Inquiries2 extends embed_Manager
                     doc_Threads::doUpdateThread($rec->threadId);
                     $this->logWrite('Създаване от е-артикул', $id);
                     if(!empty($routerExplanation)){
-                        $this->logDebug($routerExplanation, $id, 7);
+                        $this->logWrite($routerExplanation, $id, 360, core_Users::SYSTEM_USER);
                     }
                     
                     $singleUrl = self::getSingleUrlArray($id);
@@ -1243,6 +1256,10 @@ class marketing_Inquiries2 extends embed_Manager
                 foreach (array_keys($driverFields) as $driverFld){
                     $params[$driverFld] = $rec->{$driverFld};
                 }
+                if(isset($rec->moq)){
+                    $params['manualMoq'] = $rec->moq;
+                }
+
                 $moqAfterTheParamsAreKnown = $Driver->getMoq(null, 'sell', $params);
                 if(isset($moqAfterTheParamsAreKnown)){
                     $rec->moq = $moqAfterTheParamsAreKnown;
@@ -1515,11 +1532,11 @@ class marketing_Inquiries2 extends embed_Manager
      * Връща данните за запитванията
      *
      * @param int   $id    - id' то на записа
-     * @param string $email - Имейл
+     * @param datetime|null $date - дата
      *
      * @return NULL|object
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         if (!$id) {
             

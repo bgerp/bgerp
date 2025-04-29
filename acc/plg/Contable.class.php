@@ -41,7 +41,8 @@ class acc_plg_Contable extends core_Plugin
         setIfNot($mvc->canViewpsingle, 'powerUser');
         setIfNot($mvc->moveDocToFolder, false);
         setIfNot($mvc->autoHideDoc, false); // @see doc_HiddenContainers - да не се скрива автоматично
-        
+        setIfNot($mvc->ignoreListCheckOnNullWhenConto, null);
+
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
         
@@ -83,7 +84,10 @@ class acc_plg_Contable extends core_Plugin
             } else {
                 $res = ht::wrapMixedToHtml(ht::mixedToHtml($transaction, 4));
             }
-            
+
+            $res->append("<hr />");
+            $res->append(ht::wrapMixedToHtml(ht::mixedToHtml($rec, 4)));
+
             return false;
         }
         
@@ -157,7 +161,7 @@ class acc_plg_Contable extends core_Plugin
             
             return;
         }
-        
+
         try {
             // Подсигуряваме се че записа е пълен
             $tRec = clone $rec;
@@ -168,8 +172,11 @@ class acc_plg_Contable extends core_Plugin
             
             // Дали документа може да се активира
             $canActivate = $mvc->canActivate($tRec);
+
+            Mode::push('ignoreListCheckOnNullWhenConto', $mvc->ignoreListCheckOnNullWhenConto);
             $transaction = $mvc->getValidatedTransaction($tRec);
-            
+            Mode::pop('ignoreListCheckOnNullWhenConto');
+
             // Ако има валидна транзакция
             if ($transaction !== false) {
                 
@@ -596,6 +603,7 @@ class acc_plg_Contable extends core_Plugin
                 $mvc->save_($rec, 'contoActions');
             }
 
+            $mvc->invoke('beforeContoRedirectError', array($rec, $e));
             $url = $mvc->getSingleUrlArray($rec->id);
             redirect($url, false, '|' . $e->getMessage(), 'error');
         }
@@ -716,23 +724,24 @@ class acc_plg_Contable extends core_Plugin
                 $res = false;
             } elseif (countR($mvc->details)) {
                 $hasDetail = false;
-                
+                $haveDetailsToAdd = false;
+
                 // Ако класа има поне един запис в детаил, той може да се активира
+                $ignoreDetailsToCheckWhenTryingToPost = arr::make($mvc->ignoreDetailsToCheckWhenTryingToPost, true);
                 foreach ($mvc->details as $name) {
-                    $Details = $mvc->{$name};
-                    if (!$Details->masterKey) {
-                        $hasDetail = true;
-                        continue;
-                    }
-                    
-                    if ($rec->id) {
+                    if(in_array($name, $ignoreDetailsToCheckWhenTryingToPost)) continue;
+                    $haveDetailsToAdd = true;
+                    $Details = cls::get($name);
+                    if ($rec->id && $Details->masterKey) {
                         if ($Details->fetch("#{$Details->masterKey} = {$rec->id}")) {
                             $hasDetail = true;
                             break;
                         }
                     }
                 }
-                
+                if(!$hasDetail && !$haveDetailsToAdd){
+                    $hasDetail = true;
+                }
                 $res = $hasDetail;
             } else {
                 $res = true;
@@ -985,12 +994,27 @@ class acc_plg_Contable extends core_Plugin
     {
         if(!isset($res)){
             $rec = $mvc->fetchRec($id);
-            
+
             if(acc_Journal::fetchByDoc($mvc, $rec->id)){
+                if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){
+                    if($firstDoc->isInstanceOf('deals_DealBase')){
+                        if($firstDoc->fetchField('state') == 'closed') {
+                            $res = false;
+                            return;
+                        }
+                    }
+                }
+
                 acc_Journal::deleteTransaction($mvc, $rec->id);
                 $rec->state = $rec->brState;
                 $rec->brState = 'active';
-                $mvc->save($rec, 'state,brState');
+                $rollbackFields = array('state', 'brState');
+                if($mvc instanceof deals_DealMaster){
+                    $rec->contoActions = null;
+                    $rollbackFields[] = 'contoActions';
+                }
+
+                $mvc->save($rec, $rollbackFields);
                 $res = true;
             }
         }

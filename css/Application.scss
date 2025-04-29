@@ -91,7 +91,10 @@ $orange: #f90; /*оранжево като при ховър на менюто*/
 .groupList table {
 	td{
 		vertical-align: top;
-		line-height: 1.2em;
+		line-height: 1.5em;
+		&:first-child {
+			white-space:nowrap;
+		}
 	}
 	.dt {
 	  	width: 21.5%;
@@ -221,7 +224,6 @@ tr.noHover td:hover {
 
 .menuRow {
 	color: #997;
-	font-family: Arial;
 	text-decoration: none;
 	font-weight: bold;
 }
@@ -233,8 +235,7 @@ tr.noHover td:hover {
 #mainMenu a { /*nav при wide*/
 	padding:1px; 
 	text-decoration: none; 
-	font-weight: bold; 
-	font-family: arial; 
+	font-weight: bold;
 	border: solid 1px transparent;
 }
 
@@ -1115,6 +1116,21 @@ div.mobile {
 	box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
+.versionBlock{
+	display:inline;
+	padding: 2px 5px;
+	margin-left: 3px;
+	margin-right: 3px;
+	color: blue;
+	border: solid 1px #BBB;
+	background-color: rgba(247, 240, 240, 0.8);
+	font-size: 0.8em;
+	top: -1px;
+	position: relative;
+	@include border-radius(3px);
+	box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
 .document-handler {
     font-size: 0.8em;
     border-radius:3px;
@@ -1134,7 +1150,13 @@ option.team {
 	background: black;
 	color: #fc0;
 }
-
+#Bottom-tab-planning_Centers td {
+	max-width: 260px;
+	.linkWithIcon {
+		overflow-wrap: break-word;
+		white-space: break-spaces;
+	}
+}
 /*Стилове за acc*/
 div.acc-detail {
 	font-size: 0.8em;
@@ -1522,7 +1544,10 @@ table.listTable > tbody > tr {
     }
     display: table-cell;
 }
-
+.planning.small .plus-icon {
+	top: 4px;
+	margin-top: -6px;
+}
 .narrow .portal .legend .addTask {
 	top:2px;
 }
@@ -1874,6 +1899,20 @@ a.tUnsighted {
 	&.tagType-personal {
 		border-radius: 5px;
 	}
+}
+.titleTags, .small.openModal {
+	line-height: 1.5em !important;
+}
+.titleTags .documentTags {
+	position: relative;
+	top: -2px;
+}
+
+.tags.lightBg a{
+	color: #000 !important;
+}
+.tags.darkBg a{
+	color: #fff !important;
 }
 
 .doc_Threads .listTable .documentTags .tags{
@@ -2364,7 +2403,11 @@ span, a{
     }
 }
 }
-
+.smallBtnHolder .linkWithIcon {
+	font-size: 0.65em;
+	background-size: 11px;
+	padding-left: 18px !important;
+}
 .narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
 display: inline;
 float: none;
@@ -2517,7 +2560,12 @@ width:1%;
 .small-field{
 width:1%;
 }
-
+.maxCell {
+	max-width: none !important;
+	.maxwidth {
+		text-align: left !important;
+	}
+}
 .logisticCol {
 	text-align: right;
 	max-width: 400px !important;
@@ -2530,10 +2578,23 @@ width: 200px;
 .large-field{
 width: 50%;
 }
+
+.long-field {
+	min-width: 400px !important;
+	white-space: normal !important;
+}
+
+.listAction table.listTable>tbody>tr>td.midCell {
+	max-width: 170px !important;
+	white-space: wrap;
+}
 .narrow .largeNarrowCell {
 min-width: 300px;
 }
-
+.narrow .doc_Search .listTable .nowrap {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
 .horizonCol {
 position: relative;
 top: 2px;
@@ -2684,6 +2745,13 @@ margin: 2px 0 0 0;
 		.linkWithIcon {
 			height: auto!important;
 		}
+	}
+}
+
+.taskWithStepAndResourceTd {
+	max-width: 250px;
+	a {
+		display: inline !important;
 	}
 }
 
@@ -2860,13 +2928,14 @@ max-width: 400px;
 	margin-left:5px;
 	padding: 5px 10px;
 	min-width: 110px;
-	min-height: 1.2em;
 }
 
 .nowrap {
 	white-space: nowrap;
 }
-
+.wide .wideNowrap {
+	white-space: nowrap;
+}
 .wrapText {
 	white-space: normal !important;
 }
@@ -3210,6 +3279,10 @@ div.attachments {
 	padding-top: 57%;
 }
 
+.narrow .mejs-time {
+	font-size: 10px !important;
+}
+
 .narrow .imageProcesing {
 	width: 100%;
 	height: auto;
@@ -3374,12 +3447,15 @@ table.mc-calendar {
 		font-size: 0.9em;
 	}
 }
+
 table.mc-header a {
   color: #999;
 }
 /*край на стиловете за календара в портала*/
 
-
+.narrow .leftCol.wrapText {
+	min-width: 260px;
+}
 .portal-select {
     border: none;
     position: relative;
@@ -3889,6 +3965,11 @@ fieldset.sharing-history {
 	max-height: 90px;
 	float:left;
 }
+
+.narrow .externalPage .headerImg {
+	max-width: none;
+}
+
 .narrow .externalPage {
 	position: relative;
 }
@@ -4260,6 +4341,10 @@ fieldset.sharing-history {
 	margin-left: 2%;
 	td {
 		vertical-align: top;
+		&.cardValue {
+			white-space: normal;
+			word-break: break-word;
+		}
 	}
 	.aright {
 		padding-right: 5px;
@@ -4799,6 +4884,10 @@ table .eshop-btn {
 	font-size: 0.95em;
 }
 
+.tab span.tab-title {
+	color: #999;
+}
+
 .foldertabs {
     > .tab-row {
         overflow: hidden;
@@ -5211,21 +5300,14 @@ table .eshop-btn {
 	margin-bottom: 5px
 
 }
-.toggleGroups {
-	.openBtn {
-		display: inline-block;
-		width: 20px;
-		height: 20px;
-		background: url('../img/16/toggle1.png') center bottom no-repeat;
 
-	}
-}
+
 .narrow .cms-row {
 	padding-top: 20px;
 }
 .cms-row h1 {
     margin-top: 0;
-    margin-left: 0px;
+    margin-left: 0;
 }
 
 .richtext h1, .richtext h2, .richtext h3 {
@@ -5240,7 +5322,6 @@ table .eshop-btn {
 .clear-center {
 	img {
 		max-width: 100%;
-		width: 100% \9;
 		height: auto;
 	}
 }
@@ -5485,9 +5566,26 @@ table .eshop-btn {
 .cms-last {
 	margin-right: 0;
 }
+
+.cms-row .eightcol {
+	.document {
+		min-width: auto;
+		border: none;
+		padding: 0;
+	}
+}
 /*край на grid*/
+.narrow .alphabet .row-holder {
+	overflow: auto;
+}
+.narrow .alphabet .row-holder > div {
+	display: flex;
+	flex-wrap: nowrap;
 
-
+}
+.narrow div.tab-control.alphabet div.tab-row .tab {
+	min-width: auto;
+}
 /*стилове за fileman*/
 .webdrvTabBody {
 	min-width: 800px;
@@ -5507,8 +5605,18 @@ table .eshop-btn {
 	min-height: 612px;
 }
 
+.webdrvIframeSingle {
+	min-height: 0px;
+}
+
+iframe.autoHeight {
+	width: 100%;
+	border: none;
+	overflow: hidden;
+}
+
 .wide .webdrvIframe, .wide .webdrvFieldset {
-	min-width: 880px;
+	min-width: 885px;
 }
 
 .narrow .webdrvIframe {
@@ -5586,12 +5694,7 @@ table .eshop-btn {
 .filesContainer .top-table {
 	margin-bottom: 15px;
 }
-.filesContainer {
-	div.tab-control.alphabet div.tab-row .tab.selected {
-		background: #fff !important;
-		padding-bottom: 6px !important;
-	}
- }
+
 .webdrv-preview {
 	margin-top: 5px;
 	&:first-child {
@@ -5770,7 +5873,24 @@ table .eshop-btn {
 		margin-top: 0;
 	}
 }
-
+.wide #Bottom-tab-doc_UnsortedFolders {
+	input[type=text] {
+		height: 1.85em;
+	}
+	#filter {
+		height: 25px;
+		padding-left: 22px !important
+	}
+}
+.narrow #Bottom-tab-doc_UnsortedFolders {
+	input[type=text] {
+		height: 2em !important;
+	}
+	#filter {
+		height: 30px !important;
+		padding-left: 22px !important
+	}
+}
 .planning_ProductionTaskDetails .listRowsDetail {
 	width: 100% !important;
 	overflow-x: auto !important;
@@ -6134,6 +6254,7 @@ div.location.public {
 .acc_JournalDetails {
 	margin-top: 10px;
 }
+
 .details .portal .formToolbar #filter{
 	background-color: #e5e5e5;
 	padding: 6px 4px !important;
@@ -6142,6 +6263,10 @@ div.location.public {
 	&:hover {
 		background-color: #ccc;
 	}
+}
+
+.document .details .portal .formToolbar #filter {
+	padding: 5px 4px 4px !important;
 }
 /*шаблон за журнал*/
 
@@ -6466,6 +6591,11 @@ div.location.public {
 
 .doc-negative-quantity {
 	color: red;
+	font-weight: bold;
+}
+
+.doc-positive-quantity {
+	color: green;
 	font-weight: bold;
 }
 
@@ -7104,6 +7234,10 @@ body.narrow {
 	@include cmrColor(#0082c8);
 }
 
+.row-subProduct {
+	background-color:#ece2ff;
+}
+
 @media handheld , only screen and (min-width: 1240px) {
 	.background-holder {
 	    padding: 10px 0;
@@ -7118,6 +7252,18 @@ body.narrow {
 @media handheld , only screen and (max-width: 1500px) {
 	.wide #all {
 		max-width: 1200px !important;
+	}
+}
+@media handheld , only screen and (min-width: 2100px) {
+	.listTable .ui-droppable {
+		border-width: 4px !important;
+	}
+	.listTable .rowBlock.ui-droppable-hover-top {
+		border-top:4px solid red !important;
+	}
+
+	.listTable .rowBlock.ui-droppable-hover-bottom {
+		border-bottom:4px solid red !important;
 	}
 }
 
@@ -7211,6 +7357,11 @@ body.narrow {
 @media handheld, only screen and (max-width: 950px) {
 	body {
 		-webkit-text-size-adjust: none;
+	}
+	.richtext .document {
+		min-width: 100%;
+		border: none;
+		padding: 0;
 	}
 	.cms-row, body, .cms-container {
 		width: 100%;
@@ -7612,6 +7763,14 @@ body.narrow {
 		white-space: normal;
 		max-width: 230px !important;
 	}
+	.user-profile {
+		.user-name {
+			font-size: 1.1em !important;
+		}
+		.personStatus{
+			font-size: 0.65em !important;
+		}
+	}
 }
 
 
@@ -7662,6 +7821,8 @@ body.narrow {
 		font-size: 0.8em !important;
 		padding: 3px 3px 6px 3px;
 	}
+
+
 }
 .footerDocInfo{
     padding-top: 10px;
@@ -7878,6 +8039,9 @@ body.narrow {
 }
 .qrcode {
 	height: 87px;
+}
+.narrow .qrcode {
+	height: auto;
 }
 /*стилове за принтиране*/
 @media print{
@@ -8292,7 +8456,7 @@ body.narrow {
 	tr {
 		td {
 			font-weight: normal !important;
-			font-size: 0.65em !important;
+			font-size: 13px !important;
 			border: none !important;
 			border-bottom: 1px dotted #aaa !important;
 			padding: 2px !important;
@@ -8385,7 +8549,7 @@ tr.wasteWeightPercent td {
 			font-weight: bold;
 			padding: 5px 3px;
 			vertical-align: middle !important;
-			.quiet {
+			span.quiet {
 			   color: #ccc;
 			   font-weight: normal;
 			}
@@ -8398,7 +8562,9 @@ tr.wasteWeightPercent td {
 		}
     }
 }
-
+.sale-summary .jobWorkInProgressTable table td.quantityCol {
+	color: #888888;
+}
 .sale-summary .cartStatistic .sum-th {
 	background: #c1c1c1;
 	color: #333;
@@ -8749,6 +8915,10 @@ tr.wasteWeightPercent td {
 .frontTooltip {
 	display: inline-block;
 }
+
+.taskDetailDateCol .small{
+	display: inline-block;
+}
 /* край на стилове за външната част при потребител контрактор */
 .cd-l1{
     color: green;
@@ -8811,7 +8981,16 @@ tr.wasteWeightPercent td {
 .workingTimeBlock table.typeTable {
 	width: 100%;
 }
-
+.jobWorkInProgressTable .listTable th {
+	text-align: center !important;
+}
+table.listTable>tbody>tr>td.wasteCol {
+	font-weight: bold !important;
+	background: #eee;
+	.quiet {
+		font-weight: bold !important;
+	}
+}
 .selectTaskOptions {
 	width:100%;
 }
@@ -8959,3 +9138,120 @@ table.bomProductionStepTable td{
 .eshopHiddenRow {
 	opacity:0.3;
 }
+
+.consumptionNoteBubble {
+	display:inline-block;
+	border:1px solid #bcbcbc;
+	padding-left:5px;
+	padding-right:5px;
+}
+
+.aiPromptBlock {
+	background-color: #357ABD;
+	color: white;
+	border-radius: 3px;
+	padding: 4px 7px;
+	margin:0 0 10px;
+	font-size: 0.9em;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+}
+
+.aiLastPromptCaption {
+	font-weight: bold;
+	font-size: 1em;
+}
+
+.dialogHolder .result .dump {
+	white-space: normal;
+}
+
+.contragentStatisticBlock {
+	margin: 3px 0;
+	padding: 3px 5px;
+	border-radius: 8px;
+	font-family: Arial, sans-serif;
+	font-size: 16px;
+	line-height: 1.6;
+
+	&.overdue {
+		box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.1);
+		color: white;
+		background-color: #ff4d4d;
+	}
+
+	&.sales {
+		border: 1px solid rgba(204, 204, 204, 0.5);
+	}
+
+	&.purchases {
+		border: 1px solid rgba(204, 204, 204, 0.5);
+	}
+}
+
+.jobWorkInProgressTable {
+	margin-bottom:10px;
+	font-size:0.7em
+}
+
+.jobWorkInProgressTable td {
+	font-weight:normal !important;
+}
+
+td:has(.gapList) {
+	padding: 0 !important;
+}
+
+ul.gapList {
+	padding: 0; /* Премахва падинга на списъка */
+	margin: 0;  /* Премахва марджина на списъка */
+	list-style: none; /* Премахва маркерите */
+}
+
+/* Подреждаме li елементите един под друг */
+ul.gapList li {
+	display: flex; /* Всеки елемент заема цял ред */
+	align-items: center; /* Подравнява текста по вертикала (по средата на височината) */
+	justify-content: center;
+	padding: 15px;
+	margin: 0;  /* Премахваме марджина на li */
+	border: 1px solid #ccc; /* Леки граници */
+	text-align: center; /* Центрира текстовете */
+	font-size: 14px;
+
+	&.idle {
+		background: linear-gradient(to bottom, rgba(255, 99, 71, 1), rgba(255, 69, 0, 0.7)) !important; /* Ярко червен градиент с малък контраст */
+	}
+
+	&.break {
+		background: linear-gradient(to bottom, rgba(144, 238, 144, 0.6), rgba(0, 255, 0, 0.3)) !important; /* По-нежен градиент */
+	}
+}
+
+.fullTdDiv {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+td.withFullDiv {
+	position: relative;
+	padding: 0;
+}
+
+tr.workInProgressBatchRow .workInProgressProductColName {
+	text-indent:10%;
+}
+
+tr.workInProgressBatchRow {
+	font-size:0.9em;
+}
+
+
+
+

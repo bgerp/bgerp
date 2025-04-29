@@ -87,6 +87,12 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
 
     /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -170,6 +176,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $recs = array();
 
         $receiptQuery = pos_ReceiptDetails::getQuery();
+        $receiptQuery ->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $receiptQuery->EXT('waitingOn', 'pos_Receipts', 'externalName=waitingOn,externalKey=receiptId');
         $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
         $receiptQuery->where("#waitingOn IS NOT NULL");
@@ -186,19 +193,18 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
 
         $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->from, $end));
 
+        //Филтър по група артикули
+        if (isset($rec->catGroup)) {
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $receiptQuery, $rec->catGroup, 'productId');
+        }
+
         $prodInbeginArr = $prodInEndArr = array();
 
         while ($receiptDetailRec = $receiptQuery->fetch()) {
-//if(cat_Products::fetch($receiptDetailRec->productId)->code != '16-66')continue;
             $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
 
             //Филтър по POS
             if (isset($rec->pos) && (!in_array($receiptRec->pointId, keylist::toArray($rec->pos)))) continue;
-
-            //Филтър по група артикули
-            if (isset($rec->catGroup)) {
-                if (!in_array($rec->catGroup, keylist::toArray(cat_Products::fetchField($receiptDetailRec->productId, 'groups')))) continue;
-            }
 
             //Време на продажбата
             $sellDT = DateTime::createFromFormat("Y-m-d H:i:s", "$receiptRec->waitingOn");
@@ -423,7 +429,7 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         $Hour = cls::get('type_Hour');
         $Enum = cls::get('type_Enum', array('options' => array('date' => 'Дата', 'productId' => 'Артикул')));
-
+        $data->row->title = 'aaaaaa';
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>

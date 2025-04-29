@@ -126,7 +126,7 @@ class core_Backup extends core_Mvc
         $mvcArr = core_Classes::getOptionsByInterface('core_ManagerIntf');
         $instArr = array();
         $lockTables = '';
-        
+ 
         foreach ($mvcArr as $className) {
             if (!cls::load($className, true)) {
                 self::fLog("Липсва клас `{$className}`");
@@ -174,12 +174,12 @@ class core_Backup extends core_Mvc
             $instArr[$mvc->dbTableName] = $mvc;
             $this->lmt[$mvc->dbTableName] = $lmt;
             $maxChunk = ($mvc->dbTableName == 'cat_product_tpl_cache') ? 5000000 : BACKUP_MAX_CHUNK_SIZE;
-            $this->chunks[$mvc->dbTableName] = pow(4, floor(log($maxChunk * BACKUP_MAX_CHUNK_SIZE / $size, 4)));
+            $this->chunks[$mvc->dbTableName] = pow(4, floor(log($maxChunk, 4)));
             $lockTables .= ",`{$mvc->dbTableName}` READ";
         }
- 
+
         uksort($instArr, array($this, 'compLmt'));
-        
+       
         // Правим пробно експортиране на всички таблици, без заключване
         $tables = array();
         $this->exportTables($instArr, $tables, time() - 3600);
@@ -271,7 +271,7 @@ class core_Backup extends core_Mvc
         }
         $description['appConfig'] = $file . '.zip';
         
-        // всема стойностите на някои константи
+        // Взема стойностите на някои константи
         $constArr = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
         foreach ($constArr as $const) {
             if (defined($const)) {
@@ -369,7 +369,7 @@ class core_Backup extends core_Mvc
 
         $pass = core_Setup::get('BACKUP_PASS');
         $addCrc32 = crc32(EF_SALT . $pass);
-        
+  
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
             
@@ -500,8 +500,12 @@ class core_Backup extends core_Mvc
         $app = EF_APP_NAME;
         $ctr = 'core_Backup';
         $act = 'doBackupTable';
+        
+        $phpCmd = core_Os::getPHPCmd();
 
-        core_Os::startCmd($msg = "php {$cmd} {$app} {$ctr} {$act} " . escapeshellarg($processFile));
+        $msg = "$phpCmd {$cmd} {$app} {$ctr} {$act} " . escapeshellarg($processFile);
+
+        core_Os::startCmd($msg);
         self::fLog($msg);
     }
     
@@ -510,7 +514,7 @@ class core_Backup extends core_Mvc
      * Прави бекъп файл на конкретна таблица
      */
     public static function cli_doBackupTable()
-    {
+    {  
         // Спираме логването в core_Debug
         core_Debug::$isLogging = false;
  
@@ -608,7 +612,7 @@ class core_Backup extends core_Mvc
             @fclose($out);
             @unlink($tmpCsv);
             @unlink($path);
-            die;
+            die('error');
         }
     }
     
@@ -751,6 +755,9 @@ class core_Backup extends core_Mvc
                 self::runRestoreTable($file, $sess);
                 $log[] = $msg = 'msg: Възстановяване на: ' . $file;
                 self::fLog($msg);
+                
+                // Ако сме надвишили максималния брой нишки на възстановяване изчакваме докато падне техния брой
+                // В заключващото съобщение показваме текущите таблици които възстановяваме в паралелни нишки
                 do {
                     $runned = self::getRuningProcess($tempRestoreDir);
                     $runnedCnt = countR($runned);

@@ -86,7 +86,7 @@ class cash_Cases extends core_Master
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canReports = 'ceo,cash,acc';
+    public $canReports = 'ceo,cash,acc,cashAll';
     
     
     /**
@@ -98,7 +98,7 @@ class cash_Cases extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, cash';
+    public $canList = 'ceo, cash, cashAll';
     
     
     /**
@@ -110,7 +110,7 @@ class cash_Cases extends core_Master
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,cash';
+    public $canSingle = 'ceo, cash, cashAll';
     
     
     /**
@@ -170,7 +170,7 @@ class cash_Cases extends core_Master
     public function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,mandatory');
-        $this->FLD('cashiers', 'userList(roles=cash|ceo)', 'caption=Контиране на документи->Потребители');
+        $this->FLD('cashiers', 'userList(roles=cash|ceo,showClosedUsers=no)', 'caption=Контиране на документи->Потребители');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
         $this->FLD('defaultPaymentType', 'key(mvc=cond_Payments,select=title,allowEmpty)', 'caption=Безналичен метод на плащане по подразбиране->Избор');
         
@@ -220,23 +220,25 @@ class cash_Cases extends core_Master
                 }
                 
                 // Обръщаме го във четим за хората вид
-                $Double = cls::get('type_Double');
-                $Double->params['decimals'] = 2;
-                $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . '</span>';
-                if ($rec->blAmount < 0) {
-                    $row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
-                }
+                $row->blAmount = ht::styleNumber(core_Type::getByName('double(decimals=2)')->toVerbal($rec->blAmount), $rec->blAmount);
             }
         }
     }
-    
-    
+
+
+    /**
+     * Ако няма записи не вади таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        $data->listTableMvc->FLD('blAmount', 'int');
+    }
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
-        $data->listFields['blAmount'] .= ', ' . acc_Periods::getBaseCurrencyCode();
+        $data->listFields['blAmount'] .= '|*, ' . acc_Periods::getBaseCurrencyCode();
     }
     
     

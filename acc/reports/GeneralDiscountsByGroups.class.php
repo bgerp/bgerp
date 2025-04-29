@@ -85,6 +85,11 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
      */
     protected $changeableFields;
 
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
 
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -95,7 +100,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
     {
 
         $fieldset->FLD('from', 'date', 'caption=От,refreshForm,after=title,single=none');
-        $fieldset->FLD('to', 'date', 'caption=До,refreshForm,after=from,single=none');
+        $fieldset->FLD('to', 'date', 'caption=До,refreshForm,after=from,placeholder=До днес,single=none');
 
         // $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
 
@@ -130,6 +135,9 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $form->setField('inDet', 'input');
         }
 
+        if (is_null($rec->to)) {
+            $form->setDefault('to', dt::today());
+        }
 
     }
 
@@ -173,10 +181,21 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         }
 
         $receiptQuery = pos_ReceiptDetails::getQuery();
+       // $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+
+        $receiptQuery ->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $receiptQuery->EXT('waitingOn', 'pos_Receipts', 'externalName=waitingOn,externalKey=receiptId');
+        $receiptQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+        $receiptQuery->EXT('contragentClass', 'pos_Receipts', 'externalName=contragentClass,externalKey=receiptId');
+        $receiptQuery->EXT('contragentObjectId', 'pos_Receipts', 'externalName=contragentObjectId,externalKey=receiptId');
+        $receiptQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
         $receiptQuery->where("#waitingOn IS NOT NULL");
         $receiptQuery->where("#autoDiscount IS NOT NULL");
 
+        //Филтър по състояние
+        $receiptQuery->in("state", array('waiting', 'closed'));
+
+        //Филтър по период
         if ($rec->to < substr(($rec->to), 0, 10) . ' 00:00:01') {
             $end = substr(($rec->to), 0, 10) . ' 23:59:59';
         } else {
@@ -185,18 +204,17 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
         $receiptQuery->where(array("#waitingOn>= '[#1#]' AND #waitingOn <= '[#2#]'", $rec->from, $end));
 
+        //Филтър по група артикули
+        if (isset($rec->catGroup)) {
+               plg_ExpandInput::applyExtendedInputSearch('cat_Products', $receiptQuery, $rec->catGroup, 'productId');
+        }
+
         $allCompanyDiscount = array();
 
         while ($receiptDetailRec = $receiptQuery->fetch()) {
-
             $autoDiscount = $amount = 0;
 
-            $receiptRec = pos_Receipts::fetch($receiptDetailRec->receiptId);
-
-            //Филтър по състояние
-            if (in_array($receiptRec->state, array('rejected', 'draft', 'active'))) continue;
-
-            $contragentRec = cls::get($receiptRec->contragentClass)->fetch($receiptRec->contragentObjectId);
+            $contragentRec = cls::get($receiptDetailRec->contragentClass)->fetch($receiptDetailRec->contragentObjectId);
             $folderId = $contragentRec->folderId;
 
             //Филтър по група клиенти
@@ -204,13 +222,10 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 if (!in_array($rec->crmGroup, keylist::toArray($contragentRec->groupList))) continue;
             }
 
-            //Филтър по група артикули
-            if (isset($rec->catGroup)) {
-                if (!in_array($rec->catGroup, keylist::toArray(cat_Products::fetchField($receiptDetailRec->productId, 'groups')))) continue;
-            }
+            $vagExeptionId = pos_Points::fetch($receiptDetailRec->pointId)->vatExceptionId;
 
             //ДДС на артикула
-            $prodVat = cat_Products::getVat($receiptDetailRec->productId);
+            $prodVat = cat_Products::getVat($receiptDetailRec->productId, $receiptDetailRec->waitingOn, $vagExeptionId);
 
             // Стойността намалена с отстъпките по политика $amount
             $amount = isset($receiptDetailRec->inputDiscount) ? ($receiptDetailRec->amount * (1 - $receiptDetailRec->inputDiscount)) : $receiptDetailRec->amount;
@@ -290,6 +305,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $rec->allCompanyDiscount = $allCompanyDiscount;
 
         if ((countR($recs)) && (($rec->seeBy == 'kross') || ($rec->seeBy == 'contragentName'))) {
+
             arr::sortObjects($recs, 'contragentName', 'asc');
         }
         if ((countR($recs) && ($rec->seeBy == 'date'))) {
@@ -549,6 +565,19 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                         $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
                     }
+
+                    usort($recs, function($a, $b) {
+                        // Сравняване по първото поле (price)
+                        if ($a->contragentName == $b->contragentName) {
+                            // Ако цените са еднакви, сравняваме по второто поле (quantity)
+                            return $a->waitingOn <=> $b->waitingOn;
+                        }
+                        // Иначе сравняваме по price
+                        return $a->contragentName <=> $b->contragentName;
+                    });
+
+                    return $recs;
+
                 } elseif ($rec->seeBy == 'date') {
                     $dCloneRec = clone $dRec;
                     $d = substr(dt::mysql2verbal($dRec->waitingOn), 0, 8);
@@ -560,7 +589,6 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 }
             }
         }
-
 
         return $recs;
     }

@@ -80,7 +80,7 @@ class cms_page_External extends core_page_Active
         if ($skin) {
             $skin->prepareWrapper($this);
         }
-        
+
         // Скрипт за генериране на min-height, според устройството
         jquery_Jquery::run($this, 'setMinHeightExt();');
         

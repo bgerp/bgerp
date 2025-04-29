@@ -1,0 +1,10 @@
+<div id="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <input type="text" id="datepicker" placeholder="Изберете дата" autocomplete="off">
+        <div class="comboTime formFields">[#TIME_PICKER#]</div>
+        <button id="modalSave">Запази</button>
+        <button id="modalClear">Изчисти</button>
+    </div>
+</div>

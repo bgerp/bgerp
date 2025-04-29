@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -80,13 +80,13 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'ceo, storeMaster, inventory';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,btns=Количество->Пулт,delta,charge,groupName';
+    public $listFields = 'code=Код, productId, measureId=Мярка,blQuantity, quantity=Количество->Установено,btns=Количество->Пулт,delta,charge,createdBy,groupName';
     
     
     /**
@@ -121,8 +121,26 @@ class store_InventoryNoteSummary extends doc_Detail
      * Полета, които се експортват
      */
     public $exportToMaster = 'blQuantity, quantity, delta';
-    
-    
+
+
+    /**
+     * При колко записа поне да се показва бутона за групово изтриване
+     */
+    public $addDeleteSelectedRowsMinCount = 1;
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'noteId, productId';
+
+
+    /**
+     * Кеш за инвалидиране
+     */
+    protected $invalidateNoteCache = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -256,8 +274,14 @@ class store_InventoryNoteSummary extends doc_Detail
     {
         if ($action == 'setresponsibleperson' && isset($rec)) {
             $requiredRoles = store_InventoryNotes::getRequiredRoles('edit', $rec->noteId);
-            
             if (!isset($rec->delta) || (isset($rec->delta) && $rec->delta >= 0)) {
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'delete' && isset($rec)){
+            $noteRec = store_InventoryNotes::fetch($rec->noteId);
+            if($noteRec->state != 'draft'){
                 $requiredRoles = 'no_one';
             }
         }
@@ -280,7 +304,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $blankUrl = array();
         $masterRec = $data->masterData->rec;
         if ($masterRec->state != 'rejected') {
-            if (!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf') && !Mode::is('blank')) {
+            if (!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('selectRows2Delete') && !Mode::is('pdf') && !Mode::is('blank')) {
                 if (store_InventoryNotes::haveRightFor('single', $masterRec)) {
                     $blankUrl = array('store_InventoryNotes', 'getBlankForm', $masterRec->id, 'ret_url' => true, "{$mvc->groupByField}" => $groupName);
                 }
@@ -335,6 +359,7 @@ class store_InventoryNoteSummary extends doc_Detail
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('btns', 'varchar', 'tdClass=small-field nowrap,smartCenter');
+        $data->listTableMvc->setField('createdBy', 'tdClass=small');
         $data->listTableMvc->setField('charge', 'tdClass=charge-td');
         $masterRec = $data->masterData->rec;
         $pageVar = core_Pager::getPageVar('store_InventoryNotes', $masterRec->id);
@@ -412,23 +437,23 @@ class store_InventoryNoteSummary extends doc_Detail
             }
 
             if (isset($rec)) {
-                $isNoBatchRow = $rec->isBatch && empty($rec->_batch);
+                if($rec->hasNoBatchRow !== true) {
+                    // Добавяне на бутон за редакция на реда
+                    if ($rec->productId && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
+                        $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId, $pageVar => $pageVal));
 
-                // Добавяне на бутон за редакция на реда
-                if ($rec->productId && !$isNoBatchRow && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
-                    $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId, $pageVar => $pageVal));
-
-                    // Ако се редактира сумарен ред. Маркира се в урл-то
-                    if(isset($rec->quantity) || isset($rec->_batch)){
-                        $url['packagingId'] = cat_Products::fetchField($rec->productId, 'measureId');
-                        $url['editQuantity'] = $rec->quantity;
-                        $url['editSummary'] = true;
-                        if(isset($rec->_batch)){
-                            $url['editBatch'] = $rec->_batch;
+                        // Ако се редактира сумарен ред. Маркира се в урл-то
+                        if(isset($rec->quantity) || isset($rec->_batch)){
+                            $url['packagingId'] = cat_Products::fetchField($rec->productId, 'measureId');
+                            $url['editQuantity'] = $rec->quantity;
+                            $url['editSummary'] = true;
+                            if(isset($rec->_batch)){
+                                $url['editBatch'] = $rec->_batch;
+                            }
                         }
-                    }
 
-                    $row->btns = ht::createLink('', $url, false, 'ef_icon=img/16/edit.png,title=Задаване на установено количество');
+                        $row->btns = ht::createLink('', $url, false, 'ef_icon=img/16/edit.png,title=Задаване на установено количество');
+                    }
                 }
 
                 if($rec->isBatch !== true){
@@ -477,14 +502,16 @@ class store_InventoryNoteSummary extends doc_Detail
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search';
 
-        // При активен протокол не се показват непроменяните редове
-        if($data->masterData->rec->state == 'active') {
-            $tab = Request::get($data->masterData->tabTopParam, 'varchar');
+        $tab = Request::get($data->masterData->tabTopParam, 'varchar');
 
-            if ($tab == '' || $tab == get_called_class()) {
+        if ($tab == '' || $tab == get_called_class()) {
+            $countWithChange = $mvc->count("#noteId = {$data->masterId} && #quantity IS NOT NULL");
+            $countWithoutChange = $mvc->count("#noteId = {$data->masterId}");
+            if($countWithChange != $countWithoutChange){
                 $data->listFilter->showFields .= ',filterBy';
                 $data->listFilter->FLD('filterBy', 'enum(diff=С промяна,all=Всички)');
-                $data->listFilter->setDefault('filterBy', 'diff');
+                $filterByVal = $data->masterData->rec->state == 'active' ? 'diff' : 'all';
+                $data->listFilter->setDefault('filterBy', $filterByVal);
             }
         }
 
@@ -606,6 +633,11 @@ class store_InventoryNoteSummary extends doc_Detail
             $data->listFields['blQuantity'] = 'Количество->|*<small>|Очаквано|*</small>';
             $data->listFields['delta'] = 'Количество->|*<small>|Разлика|*</small>';
             $data->listFields['btns'] = 'Количество->|*<small>|Пулт|*</small>';
+        }
+
+        if(Mode::is('selectRows2Delete')){
+            unset($data->listFields['btns']);
+            unset($data->listFields['charge']);
         }
     }
     
@@ -754,7 +786,7 @@ class store_InventoryNoteSummary extends doc_Detail
                }
             }
         }
-        
+
         // Правилна подредба
         uasort($ordered, function ($a, $b) use ($codeFld, $nameFld, $orderByField) {
              if ($a->groupName == $b->groupName) {
@@ -771,14 +803,12 @@ class store_InventoryNoteSummary extends doc_Detail
         // В $recs трябва да са останали несортираните
         $rest = $recs;
         if (countR($rest) && is_array($rest)) {
-            
             // Ще ги показваме в маркер 'Други'
+            $field = ($orderByField == 'code') ? $codeFld : $nameFld;
             foreach ($rest as &$r1) {
                 $r1->groupName = tr('Други');
             }
-            
-            // Подреждаме ги по код
-            arr::sortObjects($rest, $codeFld);
+            arr::sortObjects($rest, $field);
             
             // Добавяме ги най-накрая
             $ordered += $rest;
@@ -805,11 +835,12 @@ class store_InventoryNoteSummary extends doc_Detail
 
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
-        
+
         // Проверяваме имали кеш за $data->rows, ако потребителя е с роля дебъг - няма кеш
         $cache = null;
-        if(!haveRole('debug')){
-            $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
+        $isSelectRows2Delete = Mode::is('selectRows2Delete');
+        if(!Mode::is('selectRows2Delete') && !haveRole('debug')){
+            $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}_{$isSelectRows2Delete}", $key);
         }
 
         $cacheRows = empty($data->listFilter->rec->search);
@@ -900,6 +931,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
         cls::get('store_InventoryNoteDetails')->invoke('AfterRecalcSummary', array(&$rec));
         cls::get('store_InventoryNoteSummary')->save($rec, 'quantity,quantityHasAddedValues');
+        plg_Search::forceUpdateKeywords('store_InventoryNotes', $rec->noteId);
     }
     
     
@@ -909,7 +941,42 @@ class store_InventoryNoteSummary extends doc_Detail
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if (store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $data->masterId))) {
-            $data->toolbar->addBtn('Импорт', array('store_InventoryNoteDetails', 'import', 'noteId' => $data->masterId, 'ret_url' => true), 'title=Добавяне на артикули от група,ef_icon=img/16/cart_go.png');
+            $data->toolbar->addBtn('Импорт', array('store_InventoryNoteDetails', 'ImportGroups', 'noteId' => $data->masterId, 'ret_url' => true), 'title=Добавяне на артикули от група,ef_icon=img/16/cart_go.png');
+        }
+
+        // Кустом бутон за изтриване на редове
+        $data->toolbar->removeBtn('btnDellAll');
+        if($mvc->haveRightFor('selectrowstodelete', (object)array('noteId' => $data->masterId, '_filterFld' => 'createdBy', '_filterFldVal' => core_Users::SYSTEM_USER, '_filterFldNot' => true))){
+            $data->toolbar->addBtn('Изтриване', array($mvc, 'selectRowsToDelete', 'noteId' => $data->masterId, '_filterFld' => 'createdBy', '_filterFldVal' => core_Users::SYSTEM_USER, '_filterFldNot' => true, 'ret_url' => true), 'id=btnDellAll', 'ef_icon = img/16/deletered.png,title=Форма за избор на редове за изтриване,order=500,class=selectDeleteRowsBtn');
+        }
+    }
+
+
+    /**
+     * След изтриване на запис
+     */
+    public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            if(Mode::is("selectRowsOnDelete_{$mvc->className}")){
+                store_InventoryNoteDetails::delete("#noteId = {$rec->noteId} AND #productId = {$rec->productId}");
+                $mvc->invalidateNoteCache[$rec->noteId] = $rec->noteId;
+            }
+        }
+    }
+
+
+    /**
+     * Обновява списъците със свойства на номенклатурите от които е имало засегнати пера
+     *
+     * @param acc_Items $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(is_array($mvc->invalidateNoteCache)){
+            foreach ($mvc->invalidateNoteCache as $noteId) {
+                store_InventoryNotes::invalidateCache($noteId);
+            }
         }
     }
 }

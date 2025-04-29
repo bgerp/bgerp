@@ -118,8 +118,9 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      * @param string $text
      * @param string $actTypeVerb
      * @param null|core_Et $jsTpl
+     * @param integer $defPaymentType
      */
-    abstract protected function getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl = array(), $printAvailability = false, $text = '', $actTypeVerb = '', &$jsTpl = null);
+    abstract protected function getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl = array(), $printAvailability = false, $text = '', $actTypeVerb = '', &$jsTpl = null, $defPaymentType = 0);
     
     
     /**
@@ -178,7 +179,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         $fieldset->FLD('serverIp', 'url', 'caption=Настройки за връзка със ZFPLAB сървър->IP адрес, mandatory');
         $fieldset->FLD('serverTcpPort', 'int(Min=0, max=65535)', 'caption=Настройки за връзка със ZFPLAB сървър->TCP порт, mandatory');
         
-        $fieldset->FLD('driverVersion', 'enum(19.10.21,19.08.13)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
+        $fieldset->FLD('driverVersion', 'enum(19.10.21,19.08.13,23.08.01,24.08.08)', 'caption=Настройки на ФУ->Версия, mandatory, notNull');
         $fieldset->FLD('fpType', 'enum(cashRegister=Касов апарат, fiscalPrinter=Фискален принтер)', 'caption=Настройки на ФУ->Тип, mandatory, notNull');
         $fieldset->FLD('serialNumber', 'varchar(8)', 'caption=Настройки на ФУ->Сериен номер');
         
@@ -661,7 +662,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         $len -= $this->mLen;
         
-        $form->FLD('amount', 'double(min=0)', 'caption=Сума, mandatory');
+        $form->FLD('amount', 'double(min=0)', 'caption=Сума, mandatory, unit=лв.');
         $form->FLD('text', "varchar({$len})", 'caption=Текст');
         $form->FLD('printAvailability', 'enum(yes=Да,no=Не)', 'caption=Отпечатване на->Наличност');
         
@@ -702,8 +703,16 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             
             $actTypeVerb = $form->fields['type']->type->toVerbal($rec->type);
             $actTypeVerb = tr(mb_strtolower($actTypeVerb));
-            
-            $this->getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl, $printAvailability, $rec->text, $actTypeVerb, $jsTpl);
+
+            $defPaymentType = 0;
+            $pType = 'Лева';
+            if ($pRec->otherData['defPaymArr']) {
+                if (isset($pRec->otherData['defPaymArr'][$pType])) {
+                    $defPaymentType = $pRec->otherData['defPaymArr'][$pType];
+                }
+            }
+
+            $this->getResForCashReceivedOrPaidOut($pRec, $operator, $operPass, $amount, $retUrl, $printAvailability, $rec->text, $actTypeVerb, $jsTpl, $defPaymentType);
             
             $cancelBtn = 'Назад';
         }
@@ -968,7 +977,11 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
             } else {
                 unset($retUrl['update']);
             }
-            
+
+            if ($rec->printIn == 'PC') {
+                $retUrl = array();
+            }
+
             $this->getResForReport($pRec, $rec, $rVerb, $jsTpl, $retUrl);
             
             $closeBtnName = 'Назад';

@@ -38,6 +38,8 @@ class batch_definitions_Serial extends batch_definitions_Proto
         $fieldset->FLD('prefixHistory', 'blob', 'input=none');
         $fieldset->FLD('suffixHistory', 'blob', 'input=none');
         $fieldset->FLD('length', 'int(Min=0)', 'caption=Дължина,unit=Символа');
+        $fieldset->FLD('transferBatchOnProduction', 'enum(no=Не,yes=Да)', 'caption=Пренасяне на партиди от вложения към произвеждания артикул->Избор');
+        $fieldset->FLD('batchesInputedInJobPriority', 'enum(yes=Само от вложените по заданието в незав. произв.,no=От всички налични в незав. произв.)', 'caption=Автоматично изписване на партиди от незавършеното производство->Избор');
     }
 
 
@@ -348,5 +350,59 @@ class batch_definitions_Serial extends batch_definitions_Proto
         $res[] = (object) array('name' => 'Сериен номер', 'classId' => $this->getClassId(), 'value' => $value);
         
         return $res;
+    }
+
+
+    /**
+     * Разпределя количество към наличните партиди в даден склад към дадена дата
+     *
+     * @param array  $quantities - масив с наличните партиди и количества
+     * @param string $mvc        - клас на обект, към който да се разпределят
+     * @param string $id         - ид на обект, към който да се разпределят
+     * @param int $storeId       - ид на склад
+     *
+     * @return array $quantities - масив с филтрираните наличните партиди и количества
+     */
+    public function filterBatches($quantities, $mvc, $id, $storeId)
+    {
+        // Ако склада не е Незаръшеното производство - няма да се филтрират партидите
+        if($storeId != batch_Items::WORK_IN_PROGRESS_ID) return $quantities;
+
+        // Ако не е посочено дали да се изписват само вложените по заданието - нищо
+        $onlyInputedBatchesInJob = $this->getField('batchesInputedInJobPriority');
+        if($onlyInputedBatchesInJob != 'yes') return $quantities;
+
+        // Ако детайла не е ПВр или ПП - няма да се филтрира нищо
+        $Detail = cls::get($mvc);
+        if(!(($Detail instanceof planning_DirectProductNoteDetails) || ($Detail instanceof planning_ReturnNoteDetails))) return $quantities;
+
+        // Намира се дали документа е към някой друг
+        $masterRec = $Detail->Master->fetch($Detail->fetchRec($id, 'noteId')->noteId, 'originId,threadId');
+        $origin = isset($masterRec->originId) ? doc_Containers::getDocument($masterRec->originId) : doc_Threads::getFirstDocument($masterRec->threadId);
+
+        // Ако не е няма да се прави допълнително филтриране
+        if(!is_object($origin)) return $quantities;
+
+        // Ако е към документ се търси кое му е заданието
+        if($origin->isInstanceOf('planning_Tasks')){
+            $jobId = $origin->fetchField('originId');
+            $originJob = doc_Containers::getDocument($jobId);
+            $jobId = $originJob->that;
+        } else {
+            $jobId = $origin->that;
+        }
+
+        // Кои са засегнатите нишки на заданието
+        $threads = planning_Jobs::getJobLinkedThreads($jobId);
+
+        // Кои партиди са били вложени по това задание
+        $bQuery = batch_BatchesInDocuments::getQuery();
+        $bQuery->EXT('threadId', 'doc_Containers', "externalName=threadId,externalKey=containerId");
+        $bQuery->where("#storeId = {$storeId} AND #operation = 'in'");
+        $bQuery->in('threadId', $threads);
+        $allowedBatches = arr::extractValuesFromArray($bQuery->fetchAll(), 'batch');
+
+        // Ще се върнат само наличните от тях
+        return array_intersect_key($quantities, $allowedBatches);
     }
 }

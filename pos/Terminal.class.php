@@ -54,7 +54,7 @@ class pos_Terminal extends peripheral_Terminal
     /**
      * Кои операции са забранени за сторниращите бележки
      */
-    protected static $allowedOperationOnNonDraftReceipts = 'receipts=Бележки,revert=Сторно,payment=Плащане';
+    protected static $allowedOperationOnNonDraftReceipts = 'receipts=Бележки,revert=Сторно,payment=Плащане,contragent=Прехвърляне';
     
     
     /**
@@ -213,13 +213,13 @@ class pos_Terminal extends peripheral_Terminal
         
         $headerData = (object)array('pointId' => pos_Points::getHyperlink($rec->pointId, false),
                                     'createdBy' => core_Users::getVerbal($rec->createdBy, 'nick'),
-                                    'ID' => pos_Receipts::getVerbal($rec->id, 'id'),
+                                    'ID' => ht::createLink(pos_Receipts::getVerbal($rec->id, 'id'), pos_Receipts::getSingleUrlArray($rec->id)),
                                     'TIME' => $this->renderCurrentTime(),
                                     'valior' => pos_Receipts::getVerbal($rec->id, 'valior'),
                                     'userId' => core_Users::getVerbal(core_Users::getCurrent(), 'nick'));
 
         // Ако контрагента е лице и е потребител да се показва и аватара му
-        $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : pos_Receipts::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('blank' => true));
+        $headerData->contragentId = (!empty($rec->transferredIn)) ? sales_Sales::getLink($rec->transferredIn, 0, array('ef_icon' => false)) : pos_Receipts::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('blank' => true, 'policyId' => $rec->policyId));
        
         $img = ht::createImg(array('path' => 'img/16/bgerp.png'));
         $logoTpl = new core_ET("[#img#] [#APP_NAME#]");
@@ -229,9 +229,19 @@ class pos_Terminal extends peripheral_Terminal
         $logoLink = ht::createLink($logoTpl, array('bgerp_Portal', 'show'));
         
         $tpl->append($logoLink, 'APP_NAME');
-        $tpl->placeObject($headerData);        
+        $tpl->placeObject($headerData);
+
+        if (isDebug()) {
+            if (log_Debug::haveRightFor('list') && defined('DEBUG_FATAL_ERRORS_FILE')) {
+                $fileName = pathinfo(DEBUG_FATAL_ERRORS_FILE, PATHINFO_FILENAME) . '_x';
+                $fileName = log_Debug::getDebugLogFile('2x', $fileName, false, false);
+                $debugLink = ht::createLink('Debug', array('log_Debug', 'Default', 'debugFile' => $fileName), false, array('title' => 'Показване на debug информация', 'target' => '_blank'));
+                $tpl->append($debugLink, 'DEBUG_LINK');
+            }
+        }
+
         $Receipts->invoke('AfterRenderTerminalHeader', array(&$tpl, $rec));
-        
+
         return $tpl;
     }
     
@@ -258,10 +268,7 @@ class pos_Terminal extends peripheral_Terminal
         $enlargeObjectId = Request::get('enlargeObjectId', 'int');
         $receiptId = Request::get('id', 'int');
 
-        if(empty($enlargeClassId) || empty($enlargeObjectId)) {
-            
-            return array();
-        }
+        if(empty($enlargeClassId) || empty($enlargeObjectId)) return array();
         
         $EnlargeClass = cls::get($enlargeClassId);
         $receiptRec = pos_Receipts::fetch($receiptId);
@@ -283,10 +290,18 @@ class pos_Terminal extends peripheral_Terminal
                 $modalTpl->append($packagingTpl, 'Packagings');
                 Mode::pop();
                 $settings = pos_Points::getSettings($receiptRec->pointId);
-                $contragentPriceListId = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
-                $price = pos_ReceiptDetails::getLowerPriceObj($settings->policyId, $contragentPriceListId, $productRec->id, $productRec->measureId, 1, dt::now());
+
+                if(!empty($receiptRec->policyId)){
+                    $policy1 = $receiptRec->policyId;
+                    $policy2 = pos_Receipts::isForDefaultContragent($receiptRec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+                } else {
+                    $policy1 = $settings->policyId;
+                    $policy2 = pos_Receipts::isForDefaultContragent($receiptRec) ? null : price_ListToCustomers::getListForCustomer($receiptRec->contragentClass, $receiptRec->contragentObjectId);
+                }
+
+                $price = pos_ReceiptDetails::getLowerPriceObj($policy1, $policy2, $productRec->id, $productRec->measureId, 1, dt::now());
                 $calcedPrice = !empty($price->discount) ? $price->price * (1 - $price->discount) : $price->price;
-                $calcedPrice *= 1 + cat_Products::getVat($productRec->id);
+                $calcedPrice *= 1 + cat_Products::getVat($productRec->id, null, $settings->vatExceptionId);
                 $Double = core_Type::getByName('double(decimals=2)');
                 
                 $row = new stdClass();
@@ -910,11 +925,16 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setbatch');
             $batchTpl = new core_ET("");
 
-            $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior);
+            $batchesInStore = batch_Items::getBatchQuantitiesInStore($receiptRec->productId, $receiptRec->storeId, $rec->valior, null, array(), true, null, true);
             $cnt = 0;
+
+            // Може да се задава без парида, само ако е позволено на артикула
             if(countR($batchesInStore)){
-                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Добавяне на артикул без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
-                $batchTpl->append($btn);
+                $alwaysRequire = $Def->getField('alwaysRequire');
+                if($alwaysRequire != 'yes'){
+                    $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => 'resultBatch posBtns navigable', 'title' => 'Добавяне на артикул без партида', 'data-url' => toUrl($dataUrl, 'local')), 'Без партида', true);
+                    $batchTpl->append($btn);
+                }
             }
 
             if(!empty($string)){
@@ -950,7 +970,7 @@ class pos_Terminal extends peripheral_Terminal
                     $class .= ' current';
                 }
                 
-                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => $class, 'title' => 'Избор на партидата', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
+                $btn = ht::createElement("div", array('id' => "batch{$cnt}",'class' => $class, 'title' => 'Задаване на партидата', 'data-url' => toUrl($dataUrl, 'local')), $batchVerbal, true);
                 $batchTpl->append($btn);
             }
             
@@ -1026,7 +1046,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $btnCaption = ($discountPercent == '0') ? tr('Без отстъпка') : "{$discAmount} %";
             $discountPercent = str_replace('.', '', $discountPercent);
-            $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$class}", 'data-url' => $url), $btnCaption, true);
+            $element = ht::createElement("div", array('id' => "discount{$discountPercent}", 'class' => "navigable posBtns discountBtn {$class}", 'data-url' => $url, 'title' => 'Задаване на избраната отстъпка'), $btnCaption, true);
             $discountTpl->append($element);
         }
 
@@ -1102,10 +1122,13 @@ class pos_Terminal extends peripheral_Terminal
                 // Ако има клиентска карта с посочения номер, намира се контрагента ѝ
                 $cardInfo = crm_ext_Cards::getInfo($stringInput);
                 if($cardInfo['status'] == crm_ext_Cards::STATUS_ACTIVE){
-                    $contragents["{$cardInfo['contragentClassId']}|{$cardInfo['contragentId']}"] = (object)array('contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'title' => cls::get($cardInfo['contragentClassId'])->fetchField($cardInfo['contragentId'], 'name'));
+                    $cData  = cls::get($cardInfo['contragentClassId'])->getContragentData($cardInfo['contragentId']);
+                    $tel = !empty($cData->pTel) ? $cData->pTel : $cData->tel;
+                    $email = !empty($cData->pEmail) ? $cData->pEmail : $cData->email;
+                    $contragents["{$cardInfo['contragentClassId']}|{$cardInfo['contragentId']}"] = (object)array('contragentClassId' => $cardInfo['contragentClassId'], 'contragentId' => $cardInfo['contragentId'], 'title' => cls::get($cardInfo['contragentClassId'])->fetchField($cardInfo['contragentId'], 'name'), 'tel' => $tel, 'email' => $email);
                     $count++;
                 }
-                
+
                 // Ако има фирма с такъв данъчен или национален номер
                 $cQuery = crm_Companies::getQuery();
                 $cQuery->fetch(array("#vatId = '[#1#]' OR #uicId = '[#1#]' AND #id != {$ownCompany->id}", $stringInput));
@@ -1118,12 +1141,12 @@ class pos_Terminal extends peripheral_Terminal
                 // Ако има лице с такова егн или данъчен номер
                 $pQuery = crm_Persons::getQuery();
                 $pQuery->fetch(array("#egn = '[#1#]' OR #vatId = '[#1#]'", $stringInput));
-                $pQuery->show('id,folderId,egn,vatId,name');
+                $pQuery->show('id,folderId,egn,vatId,name,email,tel');
                 while($pRec = $pQuery->fetch()){
-                    $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => $cRec->name, 'egn' => $Varchar->toVerbal($cRec->egn), 'uicId' => $Varchar->toVerbal($cRec->uicId));
+                    $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => $cRec->name, 'egn' => $Varchar->toVerbal($cRec->egn), 'uicId' => $Varchar->toVerbal($cRec->uicId), 'email' => $cRec->email, 'tel' => $cRec->tel);
                     $count++;
                 }
-                
+
                 if($showUniqueNumberLike){
                     
                     // Ако има фирма чийто данъчен или национален номер започва с числото
@@ -1134,21 +1157,20 @@ class pos_Terminal extends peripheral_Terminal
                         $contragents["{$companyClassId}|{$cRec->id}"] = (object)array('contragentClassId' => crm_Companies::getClassId(), 'contragentId' => $cRec->id, 'title' => $cRec->name, 'vatId' => $Varchar->toVerbal($cRec->vatId), 'uicId' => $Varchar->toVerbal($cRec->uicId));
                         $count++;
                     }
-                    
+
                     // Ако има лице чието егн или национален номер започва с числото
                     $pQuery = crm_Persons::getQuery();
                     $pQuery->where(array("#vatId LIKE '[#1#]%' OR #egn LIKE '[#1#]%'", $searchString));
-                    $pQuery->show('id,folderId,egn,vatId,name');
+                    $pQuery->show('id,folderId,egn,vatId,name,email,tel');
                     while($pRec = $pQuery->fetch()){
-                        $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => $cRec->name, 'egn' => $Varchar->toVerbal($cRec->egn), 'uicId' => $Varchar->toVerbal($cRec->uicId));
+                        $contragents["{$personClassId}|{$pRec->id}"] = (object)array('contragentClassId' => crm_Persons::getClassId(), 'contragentId' => $pRec->id, 'title' => $cRec->name, 'egn' => $Varchar->toVerbal($cRec->egn), 'uicId' => $Varchar->toVerbal($cRec->uicId), 'email' => $pRec->email, 'tel' => $pRec->tel);
                         $count++;
                     }
                 }
-                
             } else {
                 $maxContragents = pos_Points::getSettings($rec->pointId, 'maxSearchContragentStart');
             }
-            
+
             foreach (array('crm_Companies', 'crm_Persons') as $ContragentClass){
                 $cQuery = $ContragentClass::getQuery();
                 $cQuery->where("#state != 'rejected' AND #state != 'closed'");
@@ -1158,7 +1180,7 @@ class pos_Terminal extends peripheral_Terminal
                     $cQuery->show('id,folderId,vatId,uicId,name');
                     $uicField = 'uicId';
                 } else {
-                    $cQuery->show('id,folderId,name,egn,vatId,name');
+                    $cQuery->show('id,folderId,name,egn,vatId,name,email,tel');
                     $uicField = 'egn';
                 }
                 
@@ -1174,7 +1196,7 @@ class pos_Terminal extends peripheral_Terminal
                     // Ако го съдържат в името си се добавят
                     if(empty($searchString) || strpos($name, $searchString) !== false){
                         if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
-                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $cRec->name, 'vatId' => $Varchar->toVerbal($cRec->vatId), "{$uicField}" => $Varchar->toVerbal($cRec->{$uicField}));
+                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $cRec->name, 'vatId' => $Varchar->toVerbal($cRec->vatId), "{$uicField}" => $Varchar->toVerbal($cRec->{$uicField}), 'email' => $cRec->email, 'tel' => $cRec->tel);
                             $count++;
                         }
                     }
@@ -1193,7 +1215,7 @@ class pos_Terminal extends peripheral_Terminal
                         $cQuery->where("#id != {$ownCompany->id}");
                         $uicField = 'uicId';
                     } else {
-                        $cQuery->show('id,folderId,name,egn,vatId');
+                        $cQuery->show('id,folderId,name,egn,vatId,email,tel');
                         $uicField = 'egn';
                     }
                     
@@ -1203,7 +1225,7 @@ class pos_Terminal extends peripheral_Terminal
                     plg_Search::applySearch($stringInput, $cQuery);
                     while($cRec = $cQuery->fetch()){
                         if(!array_key_exists("{$classId}|{$cRec->id}", $contragents)){
-                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $cRec->name, 'vatId' => $Varchar->toVerbal($cRec->vatId), "{$uicField}" => $Varchar->toVerbal($cRec->{$uicField}));
+                            $contragents["{$classId}|{$cRec->id}"] = (object)array('contragentClassId' => $ContragentClass::getClassId(), 'contragentId' => $cRec->id, 'title' => $cRec->name, 'vatId' => $Varchar->toVerbal($cRec->vatId), "{$uicField}" => $Varchar->toVerbal($cRec->{$uicField}), 'email' => $cRec->email, 'tel' => $cRec->tel);
                             $count++;
                         }
 
@@ -1314,6 +1336,8 @@ class pos_Terminal extends peripheral_Terminal
         $cnt = 0;
         $temp =  new core_ET("");
         foreach ($contragents as $obj){
+
+            $Class = cls::get($obj->contragentClassId);
             $setContragentUrl = toUrl(array('pos_Receipts', 'setcontragent', 'id' => $rec->id, 'contragentClassId' => $obj->contragentClassId, 'contragentId' => $obj->contragentId), 'local');
             $divAttr = array("id" => "contragent{$cnt}", 'class' => 'posResultContragent posBtns navigable enlargable', 'title' => "Избиране на клиента в бележката", 'data-url' => $setContragentUrl, 'data-enlarge-object-id' => $obj->contragentId, 'data-enlarge-class-id' => $obj->contragentClassId, 'data-modal-title' => strip_tags($obj->title));
             if(!$canSetContragent){
@@ -1322,31 +1346,37 @@ class pos_Terminal extends peripheral_Terminal
                 unset($divAttr['data-url']);
             }
 
-            $shortName = cls::get($obj->contragentClassId)->getVerbal($obj->contragentId, 'name');
-            $obj->title = ht::createHint(str::limitLen($shortName, 28), $obj->title);
+            $shortName = $Class->getVerbal($obj->contragentId, 'name');
+
+            $obj->title = ht::createHint(str::limitLen($shortName, 28), "{$obj->title} [{$obj->contragentId}]");
+            $subArr = array();
+            if($Class instanceof crm_Persons){
+                if(!empty($obj->email)){
+                    $subArr[] = tr("Имейл") . ": " . str::maskEmail($obj->email);
+                }
+                if(!empty($obj->tel)){
+                    $subArr[] = tr("Тел.") . ": " . str::maskString($obj->tel, 0, 3);
+                }
+            }
+
             if($showUniqueNumberLike){
-                $subArr = array();
                 if(!empty($obj->vatId)){
                     $subArr[] = tr("ДДС №") . ": {$obj->vatId}";
                 }
-                if($obj->contragentId == $personClassId){
-                    if(!empty($obj->egn)){
-                        $subArr[] = tr("ЕГН") . ": {$obj->egn}";
-                    }
-                } else {
+                if($obj->contragentId != $personClassId){
                     if(!empty($obj->uicId)){
                         $subArr[] = tr("Нац. №") . ": {$obj->uicId}";
                     }
                 }
+            }
 
-                if(countR($subArr)){
-                    $stringInputSearch = strtoupper($stringInput);
-                    array_walk($subArr, function(&$a) use ($stringInputSearch) {$a = str_replace($stringInputSearch, "<span style='color:blue'>{$stringInputSearch}</span>", $a);});
+            if(countR($subArr)){
+                $stringInputSearch = strtoupper($stringInput);
+                array_walk($subArr, function(&$a) use ($stringInputSearch) {$a = str_replace($stringInputSearch, "<span style='color:blue'>{$stringInputSearch}</span>", $a);});
 
-                    $subTitle = implode('; ', $subArr);
-                    $subTitle = "<div style='font-size:0.7em'>{$subTitle}</div>";
-                    $obj->title .= $subTitle;
-                }
+                $subTitle = implode('; ', $subArr);
+                $subTitle = "<div style='font-size:0.7em'>{$subTitle}</div>";
+                $obj->title .= $subTitle;
             }
 
             $holderDiv = ht::createElement('div', $divAttr, $obj->title, true);
@@ -1375,18 +1405,33 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function renderResultPayment($rec, $string, $selectedRec)
     {
-        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div></div>"));
+        // Ако попирнцип бележката не може да се приключи - да не може да се и прехвърля
+        core_Debug::startTimer('RES_RENDER_PAYMENTS');
+        $tpl = new core_ET(tr("|*<div class='contentHolderResults'><!--ET_BEGIN PAYMENT_ERROR--><div class='paymentErrorInfo'>[#PAYMENT_ERROR#]</div><!--ET_END PAYMENT_ERROR--><div class='grid'>[#PAYMENTS#]</div><div class='divider'>|Приключване|*</div><div class='grid'>[#CLOSE_BTNS#]</div></div>"));
+
+        $rec->_disableAllPayments = false;
         $payUrl = (pos_Receipts::haveRightFor('pay', $rec)) ? toUrl(array('pos_ReceiptDetails', 'makePayment', 'receiptId' => $rec->id), 'local') : null;
-        $disClass = ($payUrl) ? 'navigable' : 'disabledBtn';
-        
+        if(core_Packs::isInstalled('voucher')) {
+            if(!isset($rec->revertId)){
+                $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($rec->id), 'productId');
+                $errorStartStr = 'Не може да платите, докато има артикули изискващи препоръчител и няма такъв';
+                if ($error = voucher_Cards::getErrorForVoucherAndProducts($rec->voucherId, $productArr, $errorStartStr)) {
+                    $tpl->append(tr($error), 'PAYMENT_ERROR');
+                    $rec->_disableAllPayments = true;
+                }
+            }
+        }
+
+        $disClass = ($payUrl && !$rec->_disableAllPayments) ? 'navigable' : 'disabledBtn';
         $paymentArr = array();
         $paymentArr["payment-1"] = (object)array('body' => ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true), 'placeholder' => 'PAYMENTS');
         $payments = pos_Points::fetchSelected($rec->pointId);
 
         if(!isset($rec->revertId)){
             $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
+
             foreach ($payments as $paymentId => $paymentTitle){
-                $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl);
+                $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl, 'title' => 'Избор на вид плащане');
                 $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
                 if(!empty($currencyCode)){
                     $attr['class'] .= ' currencyBtn disabledBtn';
@@ -1397,6 +1442,7 @@ class pos_Terminal extends peripheral_Terminal
                 // Ако е плащане с карта и има периферия подменя се с връзка с касовия апарат
                 if($paymentId == $cardPaymentId){
                     $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+
                     if(is_object($deviceRec)){
                         $attr['id'] = 'card-payment';
                         $attr['data-onerror'] = tr('Неуспешно плащане с банковия терминал|*!');
@@ -1421,20 +1467,17 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на бутон за приключване на бележката
         cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
-        
+
         $deleteBtn = $this->renderDeleteRowBtn($rec, $selectedRec);
-        if(!$payUrl){
-            $paymentArr = array('delete' => (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS')) + $paymentArr;
-        } else {
-            $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
-        }
+        $paymentArr['delete'] = (object)array('body' => $deleteBtn, 'placeholder' => 'PAYMENTS');
 
         foreach ($paymentArr as $btnObject){
             $tpl->append($btnObject->body, $btnObject->placeholder);
         }
         
         $tpl->append("<div class='clearfix21'></div>");
-        
+        core_Debug::stopTimer('RES_RENDER_PAYMENTS');
+
         return $tpl;
     }
     
@@ -1494,7 +1537,7 @@ class pos_Terminal extends peripheral_Terminal
 
             $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($detailRec->value, $detailRec->quantity));
             $packDataName = cat_UoM::getTitleById($detailRec->value);
-            $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $detailRec->quantity, 'data-pack' => $packDataName, 'data-url' => $dataUrl), $btnCaption, true);
+            $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $detailRec->quantity, 'data-pack' => $packDataName, 'data-url' => $dataUrl, 'title' => 'Задаване на количеството'), $btnCaption, true);
         }
         
         $productRec = cat_Products::fetch($selectedRec->productId, 'canStore');
@@ -1562,10 +1605,14 @@ class pos_Terminal extends peripheral_Terminal
     private function renderDeleteRowBtn($rec, $selectedRec)
     {
         $deleteAttr = array('id' => "delete{$selectedRec->id}", 'class' => "posBtns deleteRow", 'title' => 'Изтриване на реда');
-        if(strpos($selectedRec->action, 'payment') !== false){
-            $deleteAttr['class'] .= (pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
+        if($selectedRec && !$rec->_disableAllPayments){
+            if(strpos($selectedRec->action, 'payment') !== false){
+                $deleteAttr['class'] .= (pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
+            } else {
+                $deleteAttr['class'] .= (empty($rec->paid) && pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
+            }
         } else {
-            $deleteAttr['class'] .= (empty($rec->paid) && pos_ReceiptDetails::haveRightFor('delete', $selectedRec)) ? ' navigable' : ' disabledBtn';
+            $deleteAttr['class'] .= ' disabledBtn';
         }
 
         return ht::createElement("div", $deleteAttr, tr('Изтриване'), true);
@@ -1622,7 +1669,7 @@ class pos_Terminal extends peripheral_Terminal
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
             $cnt++;
-            $buttons[$dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => 'resultPrice posBtns navigable', 'data-url' => $dataUrl), tr($btnName), true);
+            $buttons[$dRec->price] = ht::createElement("div", array('id' => "price{$cnt}",'class' => 'resultPrice posBtns navigable', 'data-url' => $dataUrl, 'title' => 'Задаване на избраната цена'), tr($btnName), true);
         }
 
         $priceTpl = new core_ET("");
@@ -1687,6 +1734,7 @@ class pos_Terminal extends peripheral_Terminal
         if($data->rec->state == 'draft'){
             unset($data->row->STATE_CLASS);
         }
+
         $tpl->placeObject($data->row);
         
         if($lastRecId = pos_ReceiptDetails::getLastRec($data->rec->id)->id){
@@ -1841,10 +1889,6 @@ class pos_Terminal extends peripheral_Terminal
     {
         $settings = pos_Points::getSettings($rec->pointId);
         $searchString = plg_Search::normalizeText($string);
-        $data = new stdClass();
-        $data->rec = $rec;
-        $data->searchString = $searchString;
-        $data->searchStringPure = $string;
         $rec->_selectedGroupId = Mode::get("currentSelectedGroup{$rec->id}");
         $rec->_selectedGroupId = (!empty($rec->_selectedGroupId)) ? $rec->_selectedGroupId : 'all';
         
@@ -1939,160 +1983,171 @@ class pos_Terminal extends peripheral_Terminal
      */
     private function prepareProductTable($rec, $searchString, $selectedRec)
     {
-        $cMin = date('i');
-        $cacheKey = "{$rec->pointId}_'{$searchString}'_{$rec->id}_{$rec->contragentClass}_{$rec->contragentObjectId}_{$rec->_selectedGroupId}_{$cMin}";
-        $result = core_Cache::get('pos_Terminal', $cacheKey);
-        
+        $priceCache = core_Permanent::get("priceListHash");
         $settings = pos_Points::getSettings($rec->pointId);
-        if(!is_array($result)){
-            core_Debug::startTimer('RES_RENDER_RESULT_FETCH_RECS');
-            $similarProducts = $this->getSuggestedProductIds($rec, $selectedRec);
-            
-            $count = 0;
-            $sellable = array();
-            $searchStringPure = plg_Search::normalizeText($searchString);
-            
-            // Заявка към продаваемите артикули с цени
-            $pQuery = pos_SellableProductsCache::getQuery();
-            $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-            $pQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
-            $pQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
-            $pQuery->EXT('canSell', 'cat_Products', 'externalName=canSell,externalKey=productId');
-            $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-            $pQuery->EXT('nameEn', 'cat_Products', 'externalName=nameEn,externalKey=productId');
-            $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-            $pQuery->where("#priceListId = {$settings->policyId}");
-            $pQuery->limit($settings->maxSearchProducts);
+        $similarProducts = $this->getSuggestedProductIds($rec, $selectedRec);
 
-            // Ако не е посочен стринг се показват най-продаваните артикули
-            if(empty($searchString)){
-                $defaultOrder = true;
+        $count = 0;
+        $sellable = array();
+        $searchStringPure = plg_Search::normalizeText($searchString);
+        core_Debug::startTimer('RES_RENDER_PREPARE_RECS');
+
+        // Заявка към продаваемите артикули с цени
+        $pQuery = pos_SellableProductsCache::getQuery();
+        $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $pQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
+        $pQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
+        $pQuery->EXT('canSell', 'cat_Products', 'externalName=canSell,externalKey=productId');
+        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $pQuery->EXT('nameEn', 'cat_Products', 'externalName=nameEn,externalKey=productId');
+        $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        $pQuery->where("#priceListId = {$settings->policyId}");
+        $pQuery->limit($settings->maxSearchProducts);
+
+        // Ако не е посочен стринг се показват най-продаваните артикули
+        if(empty($searchString)){
+            $defaultOrder = true;
+            if($rec->_selectedGroupId == 'similar'){
+                if(countR($similarProducts)){
+                    $pQuery->in('productId', $similarProducts);
+                } else {
+                    $pQuery->where("1=2");
+                }
+            } elseif(is_numeric($rec->_selectedGroupId)){
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->_selectedGroupId, 'productId');
+            } else {
+                $groupsTable = type_Table::toArray($settings->productGroups);
+                $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
+                if(countR($groups)){
+                    $i = 1;
+                    $orderByGroup = "(CASE ";
+                    foreach ($groups as $groupId){
+                        $orderByGroup .= " WHEN LOCATE('|$groupId|', #groups) THEN {$i}";
+                        $i++;
+                    }
+                    $orderByGroup .= " ELSE {$i} END)";
+                    $pQuery->XPR('orderByGroup', 'int', $orderByGroup);
+                    $defaultOrder = false;
+                    $pQuery->orderBy('orderByGroup=ASC,code=ASC');
+                }
+            }
+
+            if($defaultOrder){
+                $pQuery->orderBy('code', 'ASC');
+            }
+
+            // Добавят се към резултатите
+            while ($pRec = $pQuery->fetch()){
+                $sellable[$pRec->productId] = $pRec;
+            }
+        } else {
+            // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
+            $foundRec = cat_Products::getByCode($searchString);
+            if(isset($foundRec->productId)){
+                $cloneQuery = clone $pQuery;
+                $cloneQuery->where("#productId = {$foundRec->productId}");
+
                 if($rec->_selectedGroupId == 'similar'){
-                    if(countR($similarProducts)){
+                    if(countR($cloneQuery)){
                         $pQuery->in('productId', $similarProducts);
                     } else {
                         $pQuery->where("1=2");
                     }
                 } elseif(is_numeric($rec->_selectedGroupId)){
-                    $pQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $cloneQuery, $rec->_selectedGroupId, 'productId');
+                }
+
+                if($productRec = $cloneQuery->fetch()){
+                    $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $productRec->name, 'nameEn' => $productRec->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null);
+                    $count++;
+                }
+            }
+
+            // След това се добавят артикулите, които съдържат стринга в името и/или кода си
+            $pQuery1 = clone $pQuery;
+            $pQuery1->orderBy('code,name', 'ASC');
+            if(isset($foundRec->productId)){
+                $pQuery1->where("#productId != {$foundRec->productId}");
+            }
+
+            $searchString = plg_Search::normalizeText($searchString);
+            $pQuery1->where("LOCATE (' {$searchString}', #string)");
+            plg_Search::applySearch($searchString, $pQuery1);
+
+            if($rec->_selectedGroupId == 'similar'){
+                if(countR($similarProducts)){
+                    $pQuery1->in('productId', $similarProducts);
                 } else {
-                    $groupsTable = type_Table::toArray($settings->productGroups);
-                    $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
-                    if(countR($groups)){
-                        $i = 1;
-                        $orderByGroup = "(CASE ";
-                        foreach ($groups as $groupId){
-                            $orderByGroup .= " WHEN LOCATE('|$groupId|', #groups) THEN {$i}";
-                            $i++;
-                        }
-                        $orderByGroup .= " ELSE {$i} END)";
-                        $pQuery->XPR('orderByGroup', 'int', $orderByGroup);
-                        $defaultOrder = false;
-                        $pQuery->orderBy('orderByGroup=ASC,code=ASC');
-                    }
+                    $pQuery1->where("1=2");
                 }
+            } elseif(is_numeric($rec->_selectedGroupId)){
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery1, $rec->_selectedGroupId, 'productId');
+            }
+            $pQuery1->limit($settings->maxSearchProducts);
 
-                if($defaultOrder){
-                    $pQuery->orderBy('code', 'ASC');
-                }
+            while($pRec1 = $pQuery1->fetch()){
+                $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn);
+                $count++;
+                if($count == $settings->maxSearchProducts) break;
+            }
 
-                // Добавят се към резултатите
-                while ($pRec = $pQuery->fetch()){
-                    $sellable[$pRec->productId] = $pRec;
-                }
-            } else {
-                // Ако има артикул, чийто код отговаря точно на стринга, той е най-отгоре
-                $foundRec = cat_Products::getByCode($searchString);
-                if(isset($foundRec->productId)){
-                    $cloneQuery = clone $pQuery;
-                    $cloneQuery->where("#productId = {$foundRec->productId}");
-                    
-                    if($rec->_selectedGroupId == 'similar'){
-                        if(countR($cloneQuery)){
-                            $pQuery->in('productId', $similarProducts);
-                        } else {
-                            $pQuery->where("1=2");
-                        }
-                    } elseif(is_numeric($rec->_selectedGroupId)){
-                        $cloneQuery->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
-                    }
-                    
-                    if($productRec = $cloneQuery->fetch()){
-                        $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'code' => $productRec->code, 'packId' => isset($foundRec->packagingId) ? $foundRec->packagingId : null);
-                        $count++;
-                    }
-                }
-
-                // След това се добавят артикулите, които съдържат стринга в името и/или кода си
-                $pQuery1 = clone $pQuery;
-                $pQuery1->orderBy('code,name', 'ASC');
-                if(isset($foundRec->productId)){
-                    $pQuery1->where("#productId != {$foundRec->productId}");
-                }
-
-                $searchString = plg_Search::normalizeText($searchString);
-                $pQuery1->where("LOCATE (' {$searchString}', #string)");
-                plg_Search::applySearch($searchString, $pQuery1);
-
+            // Ако не е достигнат лимита, се добавят и артикулите с търсене в ключовите думи
+            if($count < $settings->maxSearchProducts){
+                $notInKeys = array_keys($sellable);
+                $pQuery2 = clone $pQuery;
+                $pQuery2->limit($settings->maxSearchProducts);
                 if($rec->_selectedGroupId == 'similar'){
                     if(countR($similarProducts)){
-                        $pQuery1->in('productId', $similarProducts);
+                        $pQuery2->in('productId', $similarProducts);
                     } else {
-                        $pQuery1->where("1=2");
+                        $pQuery2->where("1=2");
                     }
                 } elseif(is_numeric($rec->_selectedGroupId)){
-                    $pQuery1->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery2, $rec->_selectedGroupId, 'productId');
                 }
-                $pQuery1->limit($settings->maxSearchProducts);
-                
-                while($pRec1 = $pQuery1->fetch()){
-                    $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId);
+
+                if(empty($searchStringPure)){
+                    $pQuery2->where("1=2");
+                } else {
+                    plg_Search::applySearch($searchString, $pQuery2);
+                }
+
+                if(countR($notInKeys)){
+                    $pQuery2->notIn('productId', $notInKeys);
+                }
+
+                while($pRec2 = $pQuery2->fetch()){
+                    $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId, 'name' => $pRec2->name, 'nameEn' => $pRec2->nameEn);
                     $count++;
                     if($count == $settings->maxSearchProducts) break;
                 }
-
-                // Ако не е достигнат лимита, се добавят и артикулите с търсене в ключовите думи
-                if($count < $settings->maxSearchProducts){
-                    $notInKeys = array_keys($sellable);
-                    $pQuery2 = clone $pQuery;
-                    $pQuery2->limit($settings->maxSearchProducts);
-                    if($rec->_selectedGroupId == 'similar'){
-                        if(countR($similarProducts)){
-                            $pQuery2->in('productId', $similarProducts);
-                        } else {
-                            $pQuery2->where("1=2");
-                        }
-                    } elseif(is_numeric($rec->_selectedGroupId)){
-                        $pQuery2->where("LOCATE('|{$rec->_selectedGroupId}|', #groups)");
-                    }
-                    
-                    if(empty($searchStringPure)){
-                        $pQuery2->where("1=2");
-                    } else {
-                        plg_Search::applySearch($searchString, $pQuery2);
-                    }
-                    
-                    if(countR($notInKeys)){
-                        $pQuery2->notIn('productId', $notInKeys);
-                    }
-
-                    while($pRec2 = $pQuery2->fetch()){
-                        $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId);
-                        $count++;
-                        if($count == $settings->maxSearchProducts) break;
-                    }
-                }
             }
-            core_Debug::stopTimer('RES_RENDER_RESULT_FETCH_RECS');
-            core_Debug::log("END RES_RENDER_RESULT_FETCH_RECS " . round(core_Debug::$timers["RES_RENDER_RESULT_FETCH_RECS"]->workingTime, 6));
+        }
 
+        if(!empty($rec->policyId)){
+            $rec->_policy1 = $rec->policyId;
+            $rec->_policy2 = pos_Receipts::isForDefaultContragent($rec) ? $settings->policyId : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+        } else {
+            $rec->_policy1 = $settings->policyId;
+            $rec->_policy2 = pos_Receipts::isForDefaultContragent($rec) ? null : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+        }
+        core_Debug::stopTimer('RES_RENDER_PREPARE_RECS');
+
+        $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$priceCache}_{$rec->_selectedGroupId}_{$searchString}";
+        $result = core_Cache::get('pos_Terminal', $cacheKey);
+
+        if(!is_array($result)){
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
             $result = $this->prepareProductResultRows($sellable, $rec, $settings);
             core_Debug::stopTimer('RES_RENDER_RESULT_VERBAL');
-            core_Debug::log("END RES_RENDER_RESULT_VERBAL " . round(core_Debug::$timers["RES_RENDER_RESULT_VERBAL"]->workingTime, 6));
-            core_Cache::set('pos_Terminal', $cacheKey, $result, 2);
+            core_Cache::set('pos_Terminal', $cacheKey, $result, 180);
         }
-        
+
+        foreach ($result as &$row){
+            $row->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', (object)array('receiptId' => $rec->id))) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local') : null;
+            $row->receiptId = $rec->id;
+        }
+
         return $result;
     }
 
@@ -2109,41 +2164,45 @@ class pos_Terminal extends peripheral_Terminal
     private function prepareProductResultRows($products, $rec, $settings)
     {
         $res = array();
-        if(!countR($products)) {
-            
-            return $res;
-        }
-        
-        $defaultContragentId = pos_Points::defaultContragent($rec->pointId);
-        $defaultContragentClassId = crm_Persons::getClassId();
-        $productClassId = cat_Products::getClassId();
+        if(!countR($products)) return $res;
 
+        $productClassId = cat_Products::getClassId();
         $showExactQuantities = pos_Setup::get('SHOW_EXACT_QUANTITIES');
-        $contragentPriceListId = null;
-        if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
-            $contragentPriceListId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
+
+        $packs = array();
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->in('productId', array_keys($products));
+        $packQuery->show('productId,packagingId,quantity,isBase');
+        while ($packRec = $packQuery->fetch()){
+            $packs[$packRec->productId][$packRec->packagingId] = $packRec;
         }
 
         $now = dt::now();
+
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){
                 $packId = $pRec->packId;
             } else {
-                $packs = cat_Products::getPacks($id);
-                $packId = key($packs);
+                $productPacks = is_array($packs[$id]) ? $packs[$id] : array();
+                $foundBasePackArr = array_filter($productPacks, function($a) {return $a->isBase == 'yes';});
+                if(countR($foundBasePackArr)){
+                    $packId = key($foundBasePackArr);
+                } else {
+                    $packId = $pRec->measureId;
+                }
             }
-            
-            $packQuantity = cat_products_Packagings::getPack($id, $packId, 'quantity');
-            $perPack = (!empty($packQuantity)) ? $packQuantity : 1;
-            $priceRes = pos_ReceiptDetails::getLowerPriceObj($settings->policyId, $contragentPriceListId, $id, $packId, 1, $now);
+            $perPack = isset($packs[$id][$packId]) ? $packs[$id][$packId]->quantity : 1;
+            core_Debug::startTimer('TERMINAL_RESULT_GET_LOWER_PRICE');
+            $priceRes = pos_ReceiptDetails::getLowerPriceObj($rec->_policy1, $rec->_policy2, $id, $packId, 1, $now);
+            core_Debug::stopTimer('TERMINAL_RESULT_GET_LOWER_PRICE');
+            $productRec = (object)array('id' => $id, 'name' => $pRec->name, 'nameEn' => $pRec->nameEn, 'code' => $pRec->code);
 
             // Обръщаме реда във вербален вид
             $res[$id] = new stdClass();;
             $Double = core_Type::getByName('double(decimals=2)');
-            
             $obj = (object) array('productId' => $id, 'measureId' => $pRec->measureId, 'packagingId' => $packId);
+
             if (empty($priceRes->price)){
-                wp("POS_NO_PRICE POL_ID:{$settings->policyId} | C_LIST:({$contragentPriceListId})| P_ID: {$id}| Date: '{$now}'");
                 $res[$id]->price = "<b class='red'>n/a</b>";
             } else {
                 if(!empty($priceRes->discount)){
@@ -2152,7 +2211,7 @@ class pos_Terminal extends peripheral_Terminal
 
                 $price = $priceRes->price * $perPack;
                 if($settings->chargeVat == 'yes'){
-                    $vat = cat_Products::getVat($id);
+                    $vat = cat_Products::getVat($id, null, $settings->vatExceptionId);
                     $price *= 1 + $vat;
                 }
 
@@ -2163,10 +2222,10 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);
             $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
             $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
-            $res[$id]->productId = mb_subStr(cat_Products::getVerbal($obj->productId, 'name'), 0, 80);
+            $res[$id]->productId = mb_subStr(cat_Products::getVerbal($productRec, 'name'), 0, 80);
 
             if($settings->showProductCode == 'yes'){
-                $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
+                $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($productRec, 'code') : "Art{$obj->productId}";
             }
 
             $res[$id]->photo = $this->getPosProductPreview($obj->productId, 140, 140, $settings);
@@ -2174,16 +2233,14 @@ class pos_Terminal extends peripheral_Terminal
             if($settings->productBtnTpl == 'pictureAndText' && !$res[$id]->photo){
                 $res[$id]->CLASS .= " noPhoto";
             }
-            $res[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local') : null;
             $res[$id]->DATA_ENLARGE_OBJECT_ID = $id;
             $res[$id]->DATA_ENLARGE_CLASS_ID = $productClassId;
-            $res[$id]->DATA_MODAL_TITLE = cat_Products::getTitleById($id);
+            $res[$id]->DATA_MODAL_TITLE = cat_Products::getRecTitle($productRec);
             $res[$id]->id = $id;
-            $res[$id]->receiptId = $rec->id;
             if($pRec->canSell != 'yes'){
                 $res[$id]->CLASS .= ' notSellable';
             }
-            
+
             $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId) : null;
             if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, null,2));
@@ -2200,8 +2257,7 @@ class pos_Terminal extends peripheral_Terminal
                     $res[$id]->measureId = "<span class='notInStock'>0 {$measureId}</span>";
                 }
             }
-            
-            $res[$id]->_groups = cat_Products::fetchField($id, 'groups');
+            $res[$id]->_groups = $pRec->groups;
         }
 
         return $res;
@@ -2223,9 +2279,12 @@ class pos_Terminal extends peripheral_Terminal
         if($settings->productBtnTpl == 'pictureAndText' && empty($photo)) return;
 
         $arr = array();
+        core_Debug::startTimer('RENDER_RESULT_GET_PREVIEW_THUMB');
         $thumb = (!empty($photo)) ? new thumb_Img(array($photo, $height, $width, 'fileman')) : new thumb_Img(getFullPath('pos/img/default-image.jpg'), $width, $height, 'path');
+        $res = $thumb->createImg($arr);
+        core_Debug::stopTimer('RENDER_RESULT_GET_PREVIEW_THUMB');
 
-        return $thumb->createImg($arr);
+        return $res;
     }
     
     
@@ -2453,7 +2512,6 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'tools-holder', 'html' => $toolsTpl->getContent(), 'replace' => true);
                 core_Debug::stopTimer('RES_RENDER_COMMAND_PANEL');
-                core_Debug::log("END RES_RENDER_COMMAND_PANEL " . round(core_Debug::$timers["RES_RENDER_COMMAND_PANEL"]->workingTime, 6));
 
                 $res[] = $resObj;
             }
@@ -2466,8 +2524,6 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'receipt-table', 'html' => $receiptTpl->getContent(), 'replace' => true);
                 core_Debug::stopTimer('RES_RENDER_RECEIPT');
-                core_Debug::log("END RES_RENDER_RECEIPT " . round(core_Debug::$timers["RES_RENDER_RECEIPT"]->workingTime, 6));
-
                 $res[] = $resObj;
 
                 $resObj = new stdClass();
@@ -2488,7 +2544,6 @@ class pos_Terminal extends peripheral_Terminal
                 $resObj->func = 'html';
                 $resObj->arg = array('id' => 'result-holder', 'html' => $resultTpl->getContent(), 'replace' => true);
                 core_Debug::stopTimer('RES_RENDER_RESULT');
-                core_Debug::log("END RES_RENDER_RESULT " . round(core_Debug::$timers["RES_RENDER_RESULT"]->workingTime, 6));
 
                 $res[] = $resObj;
             } else {

@@ -49,59 +49,59 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, cond_plg_DefaultValues, cat_plg_NotifyProductOnDocumentStateChange, doc_DocumentPlg, bgerp_plg_Export,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, deals_plg_SaveValiorOnActivation, acc_plg_Contable, plg_Clone, plg_Printing, cond_plg_DefaultValues, cat_plg_NotifyProductOnDocumentStateChange, doc_DocumentPlg, bgerp_plg_Export,
 					doc_EmailCreatePlg, price_plg_TotalDiscount, recently_Plugin,deals_plg_DpInvoice,doc_plg_Sequencer2,cat_plg_UsingProductVat,
                     doc_plg_HidePrices, doc_plg_TplManager, drdata_plg_Canonize, bgerp_plg_Blank, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search,plg_LastUsedKeys';
-    
-    
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'number, date, dueDate=Срок, place, folderId, currencyId=Валута, dealValue=Общо, valueNoVat=Без ДДС, vatAmount, type';
-    
-    
+
+
     /**
      * При създаване на имейл, дали да се използва първият имейл от списъка
      */
     public $forceFirstEmail = true;
-    
-    
+
+
     /**
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
     public $filterRolesForTeam = 'ceo,salesMaster,manager';
-    
-    
+
+
     /**
      * Детайла, на модела
      */
     public $details = 'sales_InvoiceDetails';
-    
-    
+
+
     /**
      * Кой може да сторнира
      */
     public $canRevert = 'salesMaster, ceo';
-    
-    
+
+
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, invoicerSale';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,sales,acc';
-    
-    
+    public $canList = 'ceo,sales,acc,invoiceAll';
+
+
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo, invoicerSale';
-    
-    
+
+
     /**
      * Кой има право да добавя?
      */
@@ -112,38 +112,38 @@ class sales_Invoices extends deals_InvoiceMaster
      * Кой има право да експортва?
      */
     public $canExport = 'ceo, invoicerSale';
-    
-    
+
+
     /**
      * Кой може да го контира?
      */
     public $canConto = 'ceo,invoicerSale';
-    
-    
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'number, folderId, contragentName, dcReason, reason, additionalInfo';
-    
-    
+
+
     /**
      * Икона за фактура
      */
     public $singleIcon = 'img/16/invoice.png';
-    
-    
+
+
     /**
      * Групиране на документите
      */
     public $newBtnGroup = '3.3|Търговия';
-    
-    
+
+
     /**
      * Кой е основния детайл
      */
     public $mainDetail = 'sales_InvoiceDetails';
-    
-    
+
+
     /**
      * Стратегии за дефолт стойностти
      */
@@ -158,8 +158,8 @@ class sales_Invoices extends deals_InvoiceMaster
         'contragentAddress' => 'clientData|lastDocUser|lastDoc',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
-    
-    
+
+
     /**
      * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
      */
@@ -171,46 +171,46 @@ class sales_Invoices extends deals_InvoiceMaster
         'place' => 'contragentPlace',
         'address' => 'contragentAddress',
     );
-    
-    
+
+
     /**
      * Кой може да променя активирани записи
      *
      * @see change_Plugin
      */
     public $canChangerec = 'accMaster, ceo, invoicerSale';
-    
-    
+
+
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
      * @see plg_Clone
      */
     public $cloneDetails = 'sales_InvoiceDetails';
-    
-    
+
+
     /**
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, date,dueDate,vatDate,modifiedOn';
-    
-    
+
+
     /**
      * Поле за избор на диапазон на документа
-     * 
+     *
      * @see doc_plg_Sequencer2
      */
     public $rangeNumFld = 'numlimit';
-    
-    
+
+
     /**
      * Да се добавя ли номера при генериране
-     * 
+     *
      * @see doc_plg_Sequencer2
      */
     public $addNumberOnActivation = true;
-    
-    
+
+
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
@@ -236,7 +236,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         parent::setInvoiceFields($this);
 
-        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
+        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable,silent,removeAndRefreshForm=additionalConditionsInput');
         $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Допълнително->Диапазон, after=template,input=hidden,notNull,default=1');
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
@@ -271,29 +271,29 @@ class sales_Invoices extends deals_InvoiceMaster
 
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
-        
+
         // Добавяне на първия диапазон за фактурите
         cond_Ranges::add('sales_Invoices', 1, 1999999, null, 'acc', 1, false);
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Попълва дефолт данните от проформата
      */
     private function prepareFromProforma($proformaRec, &$form)
     {
         if (isset($form->rec->id)) {
-            
+
             return;
         }
-        
+
         $unsetFields = array('id', 'date', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template', 'activatedOn', 'activatedBy', 'username', 'issuerId');
         foreach ($unsetFields as $fld) {
             unset($proformaRec->{$fld});
         }
-        
+
         foreach (($proformaRec) as $k => $v) {
             $form->rec->{$k} = $v;
         }
@@ -301,8 +301,8 @@ class sales_Invoices extends deals_InvoiceMaster
             $form->rec->dpAmount = abs($form->rec->dpAmount);
         }
     }
-    
-    
+
+
     /**
      * След подготовка на формата
      */
@@ -333,7 +333,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 }
             }
         }
-        
+
         parent::prepareInvoiceForm($mvc, $data);
         if(empty($rec->id)){
             $defaultImportProducts = 'shippedNotInvoiced';
@@ -356,7 +356,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 $form->info = "<div class='formCustomInfo'><b>VIES</b>: {$vies}</div>";
             }
         }
-        
+
         $form->setField('contragentPlace', 'mandatory');
         $form->setField('contragentAddress', 'mandatory');
 
@@ -455,8 +455,8 @@ class sales_Invoices extends deals_InvoiceMaster
         // Задаваме дефолтния текст
         $form->setDefault('additionalInfo', $defInfo);
     }
-    
-    
+
+
     /**
      * След изпращане на формата
      */
@@ -464,7 +464,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $rec = $form->rec;
         parent::inputInvoiceForm($mvc, $form);
-        
+
         if ($form->isSubmitted()) {
 
             if(isset($rec->id)){
@@ -479,21 +479,28 @@ class sales_Invoices extends deals_InvoiceMaster
             if (!$mvc->isAllowedToBePosted($rec, $warning) && $rec->__isBeingChanged !== true) {
                 $form->setError('date', $warning);
             }
-            
+
             if ($rec->type != 'dc_note' && empty($rec->accountId)) {
                 if ($paymentMethodId = doc_Threads::getFirstDocument($rec->threadId)->fetchField('paymentMethodId')) {
                     $paymentPlan = cond_PaymentMethods::fetch($paymentMethodId);
                     $timeBalance = $paymentPlan->timeBalancePayment;
-                    
+
                     if ((!empty($timeBalance) && $timeBalance > 86400) || $paymentPlan->type == 'bank' || $rec->paymentType == 'bank') {
                         $form->setWarning('accountId', 'Сигурни ли сте, че не е нужно да се посочи и банкова сметка|*?');
                     }
                 }
             }
+
+            $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+            if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
+                if(!drdata_Vats::isBulstat($rec->contragentVatNo)){
+                    $form->setError('contragentVatNo', 'Невалиден български данъчен номер');
+                }
+            }
         }
     }
-    
-    
+
+
     /**
      * Валидиране на полето 'number' - номер на фактурата
      *
@@ -501,27 +508,27 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public function on_ValidateNumber(core_Mvc $mvc, $rec, core_Form $form)
     {
-        if (empty($rec->number)) {
-            
-            return;
-        }
-        
+        if (empty($rec->number)) return;
+
+        $action = Request::get('Act');
+        if($action == 'changefields') return;
+
         $prevNumber = intval($rec->number) - 1;
         if (!$mvc->fetchField("#number = {$prevNumber}")) {
             $form->setWarning('number', 'Липсва фактура с предходния номер!');
         }
     }
-    
-    
+
+
     /**
      * Преди запис в модела
      */
     public static function on_BeforeSave($mvc, $id, $rec)
     {
-        parent::beforeInvoiceSave($rec);
+        parent::beforeInvoiceSave($mvc, $rec);
     }
-    
-    
+
+
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
@@ -532,8 +539,8 @@ class sales_Invoices extends deals_InvoiceMaster
             $tpl->replace($original, 'INV_STATUS');
         }
     }
-    
-    
+
+
     /**
      * След подготовка на тулбара на единичен изглед.
      */
@@ -545,14 +552,13 @@ class sales_Invoices extends deals_InvoiceMaster
                 $data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/declarations.png, row=2, title=Създаване на декларация за съответсвие');
             }
         }
-        
+
         if ($rec->state == 'active') {
-            $minus = ($rec->type == 'dc_note') ? 0 : 0.005;
-            $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - $minus;
+            $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
             $amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
             $amount = round($amount, 2);
-            $originId = isset($rec->originId) ? $rec->originId : doc_Threads::getFirstContainerId($rec->threadId);
-            
+            $originId = $rec->originId ?? doc_Threads::getFirstContainerId($rec->threadId);
+
             if ($amount < 0) {
                 if (cash_Rko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
                     $btnRow = ($rec->paymentType != 'cash') ? 2 : 1;
@@ -576,23 +582,25 @@ class sales_Invoices extends deals_InvoiceMaster
             if($rec->type == 'dc_note'){
                 if(!isset($rec->changeAmount)){
                     if($rec->dealValue <= 0) {
-                        $data->toolbar->addBtn('Засклаждане', array('store_Receipts', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/store-receipt.png,title=Създаване на складова разписка към кредитното известие");
-                    } elseif(store_Receipts::haveRightFor('add', array('threadId' => $rec->threadId))){
+                        if(store_Receipts::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))){
+                            $data->toolbar->addBtn('Засклаждане', array('store_Receipts', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/store-receipt.png,title=Създаване на складова разписка към кредитното известие");
+                        }
+                    } elseif(store_ShipmentOrders::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))){
                         $data->toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/EN.png,title=Създаване на експедиционно нареждане към дебитно известие");
                     }
                 }
             }
         }
     }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         parent::getVerbalInvoice($mvc, $rec, $row, $fields);
-        
+
         if ($fields['-single']) {
             if ($rec->accountId) {
                 if($rec->paymentType != 'factoring'){
@@ -607,14 +615,20 @@ class sales_Invoices extends deals_InvoiceMaster
                     core_Lg::pop();
                     $row->bic = $Varchar->toVerbal($ownAcc->bic);
 
-                    if(!Mode::isReadOnly()){
-                        $accountInfo = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
-                        if($accountInfo->currencyId != currency_Currencies::getIdByCode($rec->currencyId)){
+                    if(!Mode::isReadOnly() && core_Users::isPowerUser()){
+                        $ownAccountId = bank_OwnAccounts::fetchField("#bankAccountId = {$ownAcc->id}");
+                        $ownAccountLink = bank_OwnAccounts::getSingleUrlArray($ownAccountId);
+                        if(countR($ownAccountLink)){
+                            $row->accountId = ht::createLink($row->accountId, $ownAccountLink);
+                        }
+                        if($ownAcc->currencyId != currency_Currencies::getIdByCode($rec->currencyId)){
                             $row->accountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->accountId}</span>";
                             $row->accountId = ht::createHint($row->accountId, 'Банковата сметка е във валута различна от тази на сделката|*!', 'warning');
                         }
                     }
                 }
+            } else {
+                unset($row->BANK_BLOCK_CLASS);
             }
 
             $displayRange = str::removeWhiteSpace(cond_Ranges::displayRange($rec->numlimit));
@@ -623,13 +637,13 @@ class sales_Invoices extends deals_InvoiceMaster
                 $row->number = ht::createHint($row->number, 'При активиране номерът ще бъде в този диапазон', 'notice', false);
             } else {
                 if(haveRole('debug')){
-                    $row->number = ht::createElement("span", array('title' => "ID: {$rec->id} / D: {$displayRange} [{$rec->numlimit}]"), $row->number);
+                    $row->number = ht::createElement("span", array('title' => "|*ID: {$rec->id} / D: {$displayRange} [{$rec->numlimit}]"), $row->number);
                 }
             }
         }
     }
-    
-    
+
+
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -640,8 +654,8 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         return false;
     }
-    
-    
+
+
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
@@ -649,19 +663,19 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         // Ако резултата е 'no_one' пропускане
         if ($res == 'no_one') {
-            
+
             return;
         }
-        
+
         if ($action == 'add' && isset($rec->threadId)) {
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             $docState = $firstDoc->fetchField('state');
-            
+
             if (!($firstDoc->isInstanceOf('sales_Sales') && $docState == 'active')) {
                 $res = 'no_one';
             }
         }
-        
+
         // Само ceo,sales,invoicerSale могат да възстановят фактура
         if ($action == 'restore' && isset($rec)) {
             if ($rec->brState == 'active') {
@@ -670,7 +684,7 @@ class sales_Invoices extends deals_InvoiceMaster
                 }
             }
         }
-        
+
         if ($action == 'reject' && isset($rec)) {
             if ($rec->state == 'active') {
                 if (!haveRole('ceo,accMaster', $userId)) {
@@ -680,7 +694,7 @@ class sales_Invoices extends deals_InvoiceMaster
                     $monthNow = dt::mysql2verbal($today, 'm.y');
                     $dateNow = dt::mysql2verbal($today, 'd');
                     $valiorMonthPlus1 = dt::mysql2verbal(dt::addMonths(1, $rec->date), 'm.y');
-                    
+
                     if(($valiorMonthPlus1 == $monthNow && $dayForInvoice > $dateNow) || $monthNow == $monthValior) {
                         if (!haveRole('ceo,sales,invoicerSale', $userId)) {
                             $res = 'no_one';
@@ -692,8 +706,8 @@ class sales_Invoices extends deals_InvoiceMaster
             }
         }
     }
-    
-    
+
+
     /**
      * След рендиране на копия за принтиране
      *
@@ -708,11 +722,11 @@ class sales_Invoices extends deals_InvoiceMaster
         } else {
             $inv_status = ($copyNum == '1') ?  'ORIGINAL' : 'COPY';
         }
-        
+
         $copyTpl->replace($inv_status, 'INV_STATUS');
     }
-    
-    
+
+
     /**
      * Връща сумата на ддс-то на платените в брой фактури, в основната валута
      *
@@ -726,23 +740,23 @@ class sales_Invoices extends deals_InvoiceMaster
         if (empty($to)) {
             $to = dt::today();
         }
-        
+
         $amount = 0;
         $query = static::getQuery();
-        
+
         $query->where("#paymentType = 'cash' OR (#paymentType IS NULL AND #autoPaymentType = 'cash')");
         $query->where("#state = 'active'");
         $query->between('date', $from, $to);
-        
+
         while ($rec = $query->fetch()) {
             $total = $rec->vatAmount;
             $amount += $total;
         }
-        
+
         return round($amount, 2);
     }
-    
-    
+
+
     /**
      * Може ли ф-та да бъде контирана/възстановена
      *
@@ -757,14 +771,14 @@ class sales_Invoices extends deals_InvoiceMaster
         $query = $this->getQuery();
         $query->where("#state = 'active' AND #numlimit = {$rec->numlimit}");
         $query->limit(1);
-        
+
         $rangeName = cond_Ranges::displayRange($rec->numlimit);
-        
+        $date = !empty($rec->date) ? $rec->date : dt::today();
+
         if ($restore === false) {
             $query->orderBy('date', 'DESC');
             $newDate = $query->fetch()->date;
-
-            if ($newDate > $rec->date) {
+            if ($newDate > $date) {
                 $newDate = dt::mysql2verbal($newDate, 'd.m.y');
                 $msg = "Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* [<b>{$rangeName}</b>] ({$newDate})";
                 
@@ -784,7 +798,7 @@ class sales_Invoices extends deals_InvoiceMaster
         
         $queryBefore = clone $query;
         $query->orderBy('number', 'DESC');
-        $queryBefore->where("#date < '{$rec->date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");
+        $queryBefore->where("#date < '{$date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");
         if ($iBefore = $queryBefore->fetch()) {
             $numberB = $this->recToVerbal($iBefore, 'number')->number;
             $msg = "Фактурата не може да се възстанови|* - |фактура|* №{$numberB} |е с по-голям номер и по-малка дата в диапазона|* [<b>{$rangeName}</b>]";
@@ -794,7 +808,7 @@ class sales_Invoices extends deals_InvoiceMaster
         
         $queryAfter = clone $query;
         $query->orderBy('number', 'ASC');
-        $queryAfter->where("#date > '{$rec->date}' AND #state = 'active' AND #number <= {$number} AND #id != '{$rec->id}'");
+        $queryAfter->where("#date > '{$date}' AND #state = 'active' AND #number <= {$number} AND #id != '{$rec->id}'");
         if ($iAfter = $queryAfter->fetch()) {
             $numberA = $this->recToVerbal($iAfter, 'number')->number;
             $msg = "Фактурата не може да се възстанови|* - |фактура|* №{$numberA} |е с по-малък номер и по-голяма дата в диапазона|* [<b>{$rangeName}</b>]";
@@ -828,6 +842,14 @@ class sales_Invoices extends deals_InvoiceMaster
             $res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
         } elseif (!$mvc->isAllowedToBePosted($rec, $error)) {
             $res = strip_tags($error);
+        } elseif($rec->type == 'invoice') {
+            $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+            if($rec->contragentCountryId != $bgId && drdata_Countries::isEu($rec->contragentCountryId)){
+                $vatCheckArr = cls::get('drdata_Vats')->check($rec->contragentVatNo);
+                if($vatCheckArr[0] == 'invalid'){
+                    $res = "Невалиден ДДС № на клиент от чужбина - ЕС|*!";
+                }
+            }
         }
     }
     
@@ -944,5 +966,26 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         return $res;
+    }
+
+
+    /**
+     * Какво да е предупреждението на бутона за контиране
+     *
+     * @param int $id - ид
+     * @param string $isContable - какво е действието
+     *
+     * @return NULL|string - текста на предупреждението или NULL ако няма
+     */
+    public function getContoWarning_($id, $isContable)
+    {
+        $rec = static::fetchRec($id);
+        $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
+        if($rec->contragentCountryId == $bgId){
+            $VatType = core_Type::getByName('drdata_VatType');
+            $vatCheck = $VatType->isValid($rec->contragentVatNo);
+
+            return $vatCheck['warning'] ? "Евентуален проблем при контиране на фактурата с полето|* ДДС №: |{$vatCheck['warning']}|*" : null;
+        }
     }
 }

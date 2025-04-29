@@ -61,11 +61,9 @@ class acc_Wrapper extends plg_ProtoWrapper
         $this->TAB('acc_RatesDifferences', 'Документи->Курсови разлики', 'ceo,acc');
         $this->TAB('acc_CostAllocations', 'Дебъг->Отнесени разходи', 'debug');
 
-        $PeriodsCache = cls::get('acc_ProductPricePerPeriods');
-        if ($PeriodsCache->db->tableExists($PeriodsCache->dbTableName)) {
-            $this->TAB('acc_ProductPricePerPeriods', 'Дебъг->Артикулни цени от баланса', 'debug');
-            $this->TAB(array('acc_ProductPricePerPeriods', 'filter'), 'Дебъг->Артикулни цени КЪМ дата', 'debug');
-        }
+        $this->TAB(array('acc_ProductPricePerPeriods', 'type' => 'stores'), 'Цени от баланса->Складови', 'debug');
+        $this->TAB(array('acc_ProductPricePerPeriods', 'type' => 'production'), 'Цени от баланса->Незавършено производство', 'debug');
+        $this->TAB(array('acc_ProductPricePerPeriods', 'type' => 'costs'), 'Цени от баланса->Разходи', 'debug');
 
         $this->title = 'Книги « Счетоводство';
         Mode::set('menuPage', 'Счетоводство:Книги');

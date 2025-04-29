@@ -39,9 +39,12 @@ class sens2_script_ActionSignal
     public function prepareActionForm(&$form)
     {
         $form->FLD('output', 'varchar', 'caption=Изход,mandatory');
-        $form->FLD('expr', 'text(rows=2)', 'caption=Израз,width=100%,mandatory');
-        $form->FLD('cond', 'text(rows=2)', 'caption=Условие,width=100%');
-        
+        $form->FLD('expr', 'text(rows=2,maxOptionsShowCount=20)', 'caption=Израз,width=100%,mandatory');
+        $form->FLD('cond', 'text(rows=2,maxOptionsShowCount=20)', 'caption=Условие,width=100%');
+        $form->FLD('onlyDifferent', 'enum(,no=Не,yes=Да)', 'caption=Условия за да се зададе изхода->Различна ст-ст,autohide');
+        $form->FLD('minAttempts', 'int', 'caption=Условия за да се зададе изхода->Мин. брой опити,placeholder=1,autohide');
+        $form->FLD('minInterval', 'time', 'caption=Условия за да се зададе изхода->Мин. период,autohide');
+
         $opt = self::getOutputOpts();
         
         if (!countR($opt)) {
@@ -127,12 +130,20 @@ class sens2_script_ActionSignal
             
             return 'stopped';
         }
-        
+
+        // Проверяваме дали семафора позволява да се зададе изхода
+        if(!sens2_Semaphores::check($rec->id, $value, $rec->onlyDifferent, $rec->minInterval, $rec->minAttempts)) {
+
+            return 'active';
+        }
+
         // Задаваме го на изхода
         $res = sens2_Controllers::setOutput($rec->output, $value);
         
         if (is_array($res)) {
             
+            sens2_script_Logs::add('setOut', $rec->scriptId, $rec->id, $rec->output, $value);
+
             return 'active';
         }
         

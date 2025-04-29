@@ -36,8 +36,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      * Работен кеш
      */
     private static $cache2 = array();
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    private $entriesLast = array();
+
+
     /**
      * Генериране на счетоводните транзакции, породени от покупка.
      *
@@ -75,6 +81,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     {
         $entries = array();
         $rec = $this->class->fetchRec($id);
+
+        // Ако няма вальор е СЕГА, ако няма ръчно въведен курс - ВИНАГИ се взима този към вальора
+        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
+        $newRate = !empty($rec->currencyManualRate) ? $rec->currencyManualRate : currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+        if($rec->currencyRate != $newRate){
+            $rec->_newCurrencyRate = $newRate;
+        }
+
         $actions = type_Set::toArray($rec->contoActions);
         $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
         
@@ -103,7 +117,11 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
             }
         }
-        
+
+        if (countR($this->entriesLast)) {
+            $entries = array_merge($entries, $this->entriesLast);
+        }
+
         // Проверка дали артикулите отговарят на нужните свойства
         $products = arr::extractValuesFromArray($rec->details, 'productId');
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost() && countR($products)) {
@@ -112,8 +130,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
         }
-        
-        $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
         $transaction = (object) array(
             'reason' => 'Покупка #' . $rec->id,
@@ -136,19 +152,23 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     protected function fetchPurchaseData($id)
     {
         $rec = $this->class->fetchRec($id);
-        
         $rec->details = array();
         
         if (!empty($rec->id)) {
             // Извличаме детайлите на покупката
             $detailQuery = purchase_PurchasesDetails::getQuery();
             $detailQuery->where("#requestId = '{$rec->id}'");
-            
             while ($dRec = $detailQuery->fetch()) {
+                $dRec->_revertVatPercent = null;
+                if($rec->haveVatCreditProducts == 'no') {
+                    $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+                    $dRec->_revertVatPercent = cat_Products::getVat($dRec->productId, $rec->valior, $vatExceptionId);
+                }
+
                 $rec->details[] = $dRec;
             }
         }
-        
+
         return $rec;
     }
     
@@ -166,7 +186,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         
         // Покупката съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-        
+
         foreach ($rec->details as $dRec) {
             $pInfo = cat_Products::getProductInfo($dRec->productId);
             if (isset($pInfo->meta['canStore'])) {
@@ -201,6 +221,18 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     if (countR($correctionEntries)) {
                         $entries = array_merge($entries, $correctionEntries);
                     }
+                }
+
+                if($dRec->_revertVatPercent){
+                    $this->entriesLast[] = array(
+                        'amount' => round($amountAllocated * $dRec->_revertVatPercent, 2),
+                        'debit' => array('60201',
+                            $dRec1->expenseItemId,
+                            array('cat_Products', $dRec->productId),
+                            'quantity' => 0),
+                        'credit' => array('4530', array('purchase_Purchases', $rec->id),),
+                        'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит',
+                    );
                 }
             }
         }
@@ -300,15 +332,11 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     protected function getDeliveryPart($rec)
     {
         $entries = array();
-        
-        if (empty($rec->shipmentStoreId)) {
-            
-            return;
-        }
+        if (empty($rec->shipmentStoreId)) return;
         
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId = currency_Currencies::getIdByCode($currencyCode);
-        
+
         foreach ($rec->details as $detailRec) {
             $pInfo = cat_Products::getProductInfo($detailRec->productId);
             
@@ -347,6 +375,18 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     ),
                     'reason' => 'Заскладени материални запаси',
                 );
+
+                if($detailRec->_revertVatPercent){
+                    $this->entriesLast[] = array(
+                        'amount' => round($amount * $rec->currencyRate * $detailRec->_revertVatPercent, 2),
+                        'debit' => array($debitAccId,
+                                    array('store_Stores', $rec->shipmentStoreId),
+                                    array('cat_Products', $detailRec->productId),
+                                    'quantity' => 0),
+                        'credit' => array('4530', array('purchase_Purchases', $rec->id),),
+                        'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит',
+                    );
+                }
             }
         }
         
@@ -388,7 +428,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getPaidAmount($jRecs, $rec)
     {
         // Взимаме количествата по валути
-        $quantities = acc_Balances::getBlQuantities($jRecs, '401,402', 'debit', '501,503,482');
+        $quantities = acc_Balances::getBlQuantities($jRecs, '401,402', 'debit', '501,503,482,481');
         $res = deals_Helper::convertJournalCurrencies($quantities, $rec->currencyId, $rec->valior);
         
         // К-то платено във валутата на сделката го обръщаме в основна валута за изравнявания
@@ -420,7 +460,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $itemId = acc_items::fetchItem('purchase_Purchases', $id)->id;
         
         $delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit', null, array(null, $itemId, null))->amount;
-        $delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912')->amount;
+        $delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912', array(), array(store_ShipmentOrders::getClassId()))->amount;
         
         return $delivered;
     }

@@ -29,7 +29,7 @@ class bgfisc_plg_CashRegister extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->FLD('cashRegNum', 'varchar(nullIfEmpty)', 'caption=Фискално устройство->Избор,after=name');
+        $mvc->FLD('cashRegNum', 'varchar(nullIfEmpty,maxRadio=1)', 'caption=Фискално устройство->Избор,after=name');
     }
     
     
@@ -45,7 +45,7 @@ class bgfisc_plg_CashRegister extends core_Plugin
         
         $cashRegOptions = bgfisc_Setup::getFiscDeviceOptins();
         if (count($cashRegOptions)) {
-            $form->setOptions('cashRegNum', $cashRegOptions);
+            $form->setOptions('cashRegNum', array(bgfisc_Register::WITHOUT_REG_NUM => 'Без устройство') + $cashRegOptions);
         } else {
             $form->setField('cashRegNum', 'input=none');
         }

@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class bulmar_PurchaseInvoiceExport extends core_Manager
+class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
 {
     /**
      * Интерфейси, поддържани от този мениджър
@@ -65,68 +65,10 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
      */
     public function prepareExportForm(core_Form &$form)
     {
-        if(core_Packs::isInstalled('holding')){
-            $ownCompanyOptions = holding_Companies::getOwnCompanyOptions();
-            $form->FLD('ownCompanyId', 'varchar', 'caption=Наша фирма');
-            $form->setOptions("ownCompanyId", array('' => '') + $ownCompanyOptions);
-            $form->setField("ownCompanyId", "placeholder=" . crm_Companies::getTitleById(crm_Setup::BGERP_OWN_COMPANY_ID));
-        }
+        parent::prepareExportForm($form);
 
-        $form->FLD('from', 'date', 'caption=От,mandatory');
-        $form->FLD('to', 'date', 'caption=До,mandatory');
-        
         $form->info = tr('Ще се експортират само входящите фактури за покупка от български контрагенти');
         $form->info = "<div class='richtext-message richtext-info'>{$form->info}</div>";
-    }
-    
-    
-    /**
-     * Проверява импорт формата
-     *
-     * @param core_Form $form
-     */
-    public function checkExportForm(core_Form &$form)
-    {
-        if ($form->rec->from > $form->rec->to) {
-            $form->setError('from,to', 'Началната дата трябва да е по-малка от голямата');
-        }
-    }
-    
-    
-    /**
-     * Импортиране на csv-файл в даден мениджър
-     *
-     * @param mixed $data - данни
-     *
-     * @return mixed - експортираните данни
-     */
-    public function export($filter)
-    {
-        $query = $this->Invoices->getQuery();
-        $query->where("#state = 'active'");
-        $query->between('date', $filter->from, $filter->to);
-        $query->orderBy('#number', 'ASC');
-
-        // Ако е инсталирана многофирменоста - филтър по Наша фирма
-        if(core_Packs::isInstalled('holding')){
-            if(!empty($filter->ownCompanyId)){
-                $query->where("#{$this->Invoices->ownCompanyFieldName} = $filter->ownCompanyId");
-            } else {
-                $query->where("#{$this->Invoices->ownCompanyFieldName} IS NULL");
-            }
-        }
-
-        $recs = $query->fetchAll();
-        $data = $this->prepareExportData($recs, $filter);
-        if (!countR($data->recs)) {
-            
-            return;
-        }
-        
-        $content = $this->prepareFileContent($data);
-        $content = iconv('utf-8', 'CP1251', $content);
-        
-        return $content;
     }
 
 
@@ -137,10 +79,11 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
      * @param stdClass $filter - филтър
      * @return stdClass $data - подготвените данни
      */
-    private function prepareExportData($recs, $filter)
+    protected function prepareExportData($recs, $filter)
     {
         $data = new stdClass();
         $data->static = $this->getStaticData($filter);
+
         $data->recs = array();
         
         $count = 0;
@@ -159,7 +102,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
     /**
      * Подготвя записа
      */
-    private function prepareRec($rec, $count)
+    protected function prepareRec($rec, $count)
     {
         $nRec = new stdClass();
 
@@ -220,24 +163,22 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
                 $byProducts += $dRec->amount * (1 - $dRec->discount);
             }
         }
-        
+
         if ($rec->type != 'invoice') {
             $origin = $this->Invoices->getOrigin($rec);
             $oRec = $origin->rec();
-            $number = $origin->getInstance()->recToVerbal($oRec)->number;
-            $nRec->reason = "Ф. №{$number}";
-            
+
             if($oRec->dpOperation == 'accrued'){
                 $nRec->downpaymentChanged = $rec->changeAmount;
             }
+        }
+
+        if (($byOtherService != 0  || $byTransport != 0) && $byProducts == 0) {
+            $nRec->reason = 'Услуга';
+        } elseif (($byOtherService == 0  && $byTransport == 0) && $byProducts != 0) {
+            $nRec->reason = 'Покупка на стоки';
         } else {
-            if (($byOtherService != 0  || $byTransport != 0) && $byProducts == 0) {
-                $nRec->reason = 'Услуга';
-            } elseif (($byOtherService == 0  && $byTransport == 0) && $byProducts != 0) {
-                $nRec->reason = 'Покупка на стоки';
-            } else {
-                $nRec->reason = 'Покупка на стоки';
-            }
+            $nRec->reason = 'Покупка на стоки';
         }
         
         $vat = round($rec->vatAmount, 2);
@@ -286,7 +227,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
     /**
      * Подготвя съдържанието на файла
      */
-    private function prepareFileContent(&$data)
+    protected function prepareFileContent(&$data)
     {
         $static = $data->static;
         $content = 'Text Export To BMScety V2.0' . "\r\n";
@@ -358,7 +299,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
             
             $content .= $line;
         }
-        
+
         // Няма да се импортира ако не завършва на 0
         $content .= "0\r\n";
         
@@ -372,7 +313,7 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
      * @param stdClass $filter
      * @return array $staticData
      */
-    private function getStaticData($filter)
+    protected function getStaticData($filter)
     {
         $staticData = new stdClass();
         
@@ -399,20 +340,10 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         $staticData->debitTransServiceAnal = $conf->BULMAR_PURINV_TRANS_SERVICE_ANAL;
         $staticData->debitOtherServiceAnal = $conf->BULMAR_PURINV_OTHER_SERVICE_ANAL;
 
-        $myCompany = crm_Companies::fetchOwnCompany($filter->ownCompanyId);
-        $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
-        $staticData->OWN_COMPANY_BULSTAT = $num;
+        list( , $uicId) = explode('|', $filter->ownCompanyId);
+        $staticData->OWN_COMPANY_BULSTAT = $uicId;
         
         return $staticData;
-    }
-    
-    
-    /**
-     * Може ли да се добавя към този мениджър
-     */
-    public function isApplicable($mvc)
-    {
-        return $mvc->className == self::$applyOnlyTo;
     }
     
     

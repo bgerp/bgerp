@@ -103,7 +103,25 @@ class fileman_type_Files extends type_Keylist
         foreach ($fhArr as $id) {
             $fh = fileman_Files::fetchField($id, 'fileHnd');
             if (isset($fh)) {
-                $res .= fileman_Files::getLink($fh);
+                if ($this->params['showButton']) {
+                    $fh = fileman_Files::fetchField($id, 'fileHnd');
+                    if (isset($fh)) {
+                        $fRec = fileman::fetchByFh($fh);
+                        $ext = fileman_Files::getExt($fRec->name);
+                        $icon = "fileman/icons/16/{$ext}.png";
+                        if (!is_file(getFullPath($icon))) {
+                            $icon = 'fileman/icons/16/default.png';
+                        }
+                        $url = array();
+                        if (fileman_Files::haveRightFor('single', $fRec)) {
+                            $url = array('fileman_Files', 'single', $fh);
+                        }
+
+                        $res .= ht::createBtn('|*' . core_String::limitLen($fRec->name, $this->params['showButton'], 3), $url, false, false, array('ef_icon' => $icon));
+                    }
+                } else {
+                    $res .= fileman_Files::getLink($fh);
+                }
             }
         }
         if (!$res) {

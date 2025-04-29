@@ -62,7 +62,39 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
         $this->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
         $this->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
-        $this->appendOnce("\n<meta  name=\"theme-color\" content=\"black\">", 'HEAD');
+
+        $dId = cms_Domains::getCurrent('id', false);
+        $dRec = false;
+        if ($dId) {
+            $dRec = cms_Domains::fetch($dId);
+        }
+
+        if($dRec && isset($dRec->form->innerColor)) {
+            $themeColor = $dRec->form->innerColor;
+        } elseif (isset($dRec->form->headerColor)) {
+            $themeColor = $dRec->form->headerColor;
+        } else {
+            $themeColor = '#777';
+        }
+
+        $this->appendOnce("\n<meta  name=\"theme-color\" content=\"{$themeColor}\">", 'HEAD');
+ 
+        $themeColorD30 = '#' . phpcolor_Adapter::changeColor($themeColor, 'darken', 5);
+        $themeColorD100 = '#' . phpcolor_Adapter::changeColor( $themeColor , 'darken', 15);
+
+        $css = "\n #main-container > .tab-control > .tab-row  {   background: linear-gradient(to bottom,  {$themeColor} 0%, {$themeColorD30}  30%, {$themeColorD100} 100%) !important; }";
+        $css .= "\n .inner-framecontentTop { background-color: {$themeColor} !important; }";
+        $css .= "\n :root {--theme-color: {$themeColor};}";
+
+        if(phpcolor_Adapter::checkColor($themeColor)) {
+            $css .= "\n .logoText a,  #main-container>div.tab-control>div.tab-row>.row-holder .tab a { color: #444 !important;} ";
+        }
+
+        if(phpcolor_Adapter::checkColor(phpcolor_Adapter::changeColor($themeColor, 'darken', 80, "#666"))) {
+             $css .= "\n .formTitle, .formGroup { color: #444 !important; border-color: #aaa !important} ";
+        }
+
+        $this->append($css, 'STYLES');
 
         // Добавяне на титлата на страницата
         $conf = core_Packs::getConfig('core');
@@ -152,7 +184,7 @@ class core_page_InternalModern extends core_page_Active
             
             $pinImg = str_replace('&#91;', '[', "${pinImg}");
             $pinnedImg = str_replace('&#91;', '[', "${pinnedImg}");
-            
+
             // Задаваме лейаута на страницата
             $header = "<div style='position: relative'>
                                 <a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body [#openLeftBtn#]'>". $menuImg ."</a>
@@ -394,10 +426,36 @@ class core_page_InternalModern extends core_page_Active
             $search = str_replace("'", '"', $search);
             $val = "value='{$search}'";
         }
-        
-        // Рендираме бутоните за търсене
-        $inputType = "<input {$val} class='search-input-modern' type='search' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
-        
+
+        $inputType = "<input {$val} class='search-input-modern' type='search' list = 'searchList' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
+
+        // Показване на даталист с последно търсените стрингове
+        $countDocSearch = $countFolSearch = array();
+        $rQuery = recently_Values::getQuery();
+        $rQuery->where("#createdBy = " . core_Users::getCurrent());
+        $rQuery->where("#name IN ('doc_containers.search', 'doc_folders.search')");
+        $rQuery->orderBy('createdOn', 'DESC');
+        $lastSearchedValues = array();
+        while ($rRec = $rQuery->fetch()){
+            $lastSearchedValues[$rRec->name][$rRec->value] = (object)array('value' => $rRec->value, 'createdOn' => $rRec->createdOn);
+            if($rRec->name == 'doc_containers.search'){
+                $countDocSearch++;
+                if($countDocSearch >= 10) continue;
+            } else {
+                $countFolSearch++;
+                if($countFolSearch >= 10) continue;
+            }
+        }
+
+        if(countR($lastSearchedValues)){
+            $searchVals = array();
+            array_walk($lastSearchedValues, function($a) use (&$searchVals){ $searchVals += $a;});
+            arr::sortObjects($searchVals, 'createdOn', 'DESC');
+            $searchVals = array_combine(array_keys($searchVals), array_keys($searchVals));
+            $dataList = ht::createDataList("searchList", $searchVals);
+            $tpl->append($dataList, 'SEARCH_INPUT');
+        }
+
         $tpl->replace($inputType, 'SEARCH_INPUT');
         
         $attr = array();

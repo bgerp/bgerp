@@ -25,7 +25,7 @@ class batch_plg_TaskDetails extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->FLD('batch', 'text', 'caption=Партида,before=employees,input=none');
+        $mvc->FLD('batch', 'varchar(128)', 'caption=Партида,before=employees,input=none');
     }
 
 
@@ -47,7 +47,7 @@ class batch_plg_TaskDetails extends core_Plugin
 
         if($rec->type != 'production' || $taskRec->followBatchesForFinalProduct != 'yes' || !$BatchClass) return;
 
-        $form->setField('batch', 'input,unit=|*<small>|на|* ' . cat_Products::getTitleById($jobProductId) . "</small>");
+        $form->setField('batch', 'input,unit=|*<small>|на|* ' . str_replace(',', ' ', cat_Products::getTitleById($jobProductId)) . "</small>");
         $batchClassType = $BatchClass->getBatchClassType($mvc, $rec);
 
         $form->setFieldType('batch', $batchClassType);

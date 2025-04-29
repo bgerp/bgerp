@@ -47,8 +47,17 @@ class hr_Leaves extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,personId, leaveFrom, leaveTo, leaveDays, note, paid';
-    
-    
+
+
+    /**
+     * @var array
+     */
+    protected static $emojiList = array('s1' => '🏥', 's2' => '🤒', 's3' => '💊', 's4' => '🛌',
+                                    'l1' => '⏳', 'l6' => '🏔️', 'l2' => '❄️', 'l3' => '⛷️', 'l4' => '🏖️', 'l5' => '🌴',
+                                    't1' => '✈️', 't2' => '🌍', 't3' => '🧳', 't4' => '🚗',
+                                    'h1' => '🏠', 'h2' => '💻', 'h3' => '☕', 'h4' => '🪟');
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
@@ -134,13 +143,7 @@ class hr_Leaves extends core_Master
      * Кой може да го изтрие?
      */
     public $canDelete = 'powerUser';
-    
-    
-    /**
-     * Икона за единичния изглед
-     */
-    //var $singleIcon = 'img/16/money.png';
-    
+
     
     /**
      * Единична икона
@@ -210,6 +213,7 @@ class hr_Leaves extends core_Master
         $this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
         $this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
         $this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
+        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('l'))), 'caption=Информация->Икона за ника, maxRadio=6,columns=6,notNull,value=l5');
         $this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
         $this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
         $this->FLD('note', 'richtext(rows=5, bucket=Notes, shareUsersRoles=hrLeaves|ceo)', 'caption=Информация->Бележки');
@@ -280,7 +284,77 @@ class hr_Leaves extends core_Master
             $data->query->where("#personId = '{$data->listFilter->rec->employeeId}'");
         }
     }
-    
+
+
+    /**
+     * Функция, която връща иконата за съответния емотикон
+     *
+     * @param string $emoji
+     * @param string $class
+     * @param null|string $from
+     * @param null|string $to
+     *
+     * @return string
+     */
+    public static function getEmoji($emojiType, $class = 'statusIcon', $from = null, $to = null)
+    {
+        $emoji = '';
+        if (!$emojiType) {
+
+            return $emoji;
+        }
+
+        $today = dt::now(false);
+
+        if (isset($from)) {
+            list($dateFrom, ) = explode(' ', $from);
+            if ($dateFrom > $today) {
+
+                return $emoji;
+            }
+        }
+
+        if (isset($to)) {
+            list($dateTo, ) = explode(' ', $to);
+            if ($dateTo < $today) {
+
+                return $emoji;
+            }
+        }
+
+        $emoji =  self::$emojiList[$emojiType] ? self::$emojiList[$emojiType] : '';
+        if ($class) {
+            $emoji = "<span class='{$class}'>{$emoji}</span>";
+        }
+
+        return $emoji;
+    }
+
+
+    /**
+     * Функция, която връща масив с емотиконите
+     *
+     * @param string|null $pref
+     *
+     * @return array
+     */
+    public static function getEmojiesWithPrefix($pref = null)
+    {
+        if (!isset($pref)) {
+
+            return self::$emojiList;
+        }
+
+        $emojies = array();
+        foreach (self::$emojiList as $key => $emoji) {
+            if (strpos($key, $pref) === 0) {
+                $emojies[$key] = $emoji;
+            }
+        }
+
+        return $emojies;
+    }
+
     
     /**
      * Подготовка на формата за добавяне/редактиране
@@ -371,32 +445,65 @@ class hr_Leaves extends core_Master
             if (!$form->rec->leaveDays || isset($form->rec->leaveDays) < 1) {
                 $form->setError('leaveDays', 'Броят неприсъствени дни е 0');
             }
-            
-            // правим заявка към базата
-            $query = self::getQuery();
-            
-            // търсим всички молби, които са за текущия потребител
-            $query->where("#personId='{$form->rec->personId}'");
-            
-            if ($form->rec->id) {
-                $query->where("#id != {$form->rec->id}");
-            }
-            
-            // търсим времево засичане
-            $query->where("(#leaveFrom <= '{$form->rec->leaveFrom}' AND #leaveTo >= '{$form->rec->leaveFrom}')
-            OR
-            (#leaveFrom <= '{$form->rec->leaveTo}' AND #leaveTo >= '{$form->rec->leaveTo}')");
-            
-            $query->where("#state = 'active'");
-            
+
+            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->leaveFrom, $form->rec->leaveTo, $form->rec->id, get_called_class());
             // за всяка една молба отговаряща на условията проверяваме
-            if ($recReq = $query->fetch()) {
-                $link = ht::createLink("Молба за отпуска №{$recReq->id}", array($mvc, 'single', $recReq->id, 'ret_url' => true, ''), null, 'ef_icon=img/16/leaves.png');
-                
+            if (!empty($iArr)) {
                 // и изписваме предупреждение
-                $form->setError('leaveFrom, leaveTo', "|Засичане по време с |*{$link}");
+                $form->setError('leaveFrom, leaveTo', "|Засичане по време с: |*" . implode('<br>', $iArr));
             }
         }
+    }
+
+
+    /**
+     * Връща всички пресичания на датите
+     *
+     * @return void
+     */
+    public static function getIntersections($personId, $from, $to, $ignoreId = null, $classToIgnore = null)
+    {
+        expect($from && $to);
+        expect($personId);
+
+        $resArr = array();
+
+        foreach (array('hr_Leaves', 'hr_HomeOffice', 'hr_Sickdays', 'hr_Trips') as $class) {
+            $cls = cls::get($class);
+            // правим заявка към базата
+            $query = $class::getQuery();
+
+            // търсим всички молби, които са за текущия потребител
+            $query->where(array("#personId = '[#1#]'", $personId));
+
+            if ($ignoreId) {
+                if ($class == $classToIgnore) {
+                    $query->where(array("#id != '[#1#]'", $ignoreId));
+                }
+            }
+
+            $lFiedFrom = 'startDate';
+            $lFiedTo = 'toDate';
+            if ($class == 'hr_Leaves') {
+                $lFiedFrom = 'leaveFrom';
+                $lFiedTo = 'leaveTo';
+            }
+
+            // търсим времево засичане
+            $query->where(array("(#{$lFiedFrom} <= '[#1#]' AND #{$lFiedTo} >= '{$from}')
+                OR
+                (#{$lFiedFrom} <= '[#2#]' AND #{$lFiedTo} >= '[#2#]')", $from, $to));
+            $query->where("#state = 'active'");
+
+            // за всяка една молба отговаряща на условията проверяваме
+            while ($recReq = $query->fetch()) {
+                $title = $cls->getRecTitle($recReq);
+                $url = $cls->haveRightFor('single', $recReq) ? array($cls, 'single', $recReq->id) : array();
+                $resArr[] = ht::createLink($title, $url, null, 'ef_icon=' . $cls->singleIcon);
+            }
+        }
+
+        return $resArr;
     }
     
     
@@ -438,6 +545,12 @@ class hr_Leaves extends core_Master
                             $requiredRoles = 'no_one';
                         }
                     }
+                }
+            }
+
+            if ($action == 'reject' && $rec && $rec->state == 'active' && $rec->leaveFrom <= dt::now()) {
+                if (!haveRole('hrLeaves, ceo')) {
+                    $requiredRoles = 'no_one';
                 }
             }
         }

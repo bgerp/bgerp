@@ -14,6 +14,7 @@
 	                <!--ET_BEGIN departmentId-->
 	                <div>|В състава на|*: <b>[#departmentId#]</b></div>
 	                <!--ET_END departmentId-->
+					<div>|Група на операторите|*: <b>[#hrGroupId#]</b></div>
 					<!--ET_BEGIN scheduleId-->
 					<div>|График|*: <b>[#scheduleId#]</b></div>
 					<!--ET_END scheduleId-->
@@ -27,9 +28,11 @@
 					<div>|Показване на предишно задание в ПО|*: <b>[#showPreviousJobField#]</b></div>
 					<!--ET_END showPreviousJobField-->
 					<!--ET_BEGIN showSerialWarningOnDuplication-->
-					<div>|Предупреждение при дублиране на произв. номер в ПО|*: <b>[#showSerialWarningOnDuplication#]</b></div>
+					<div>|Показване на предупреждение при дублиране на произв. номера в ПО|*: <b>[#showSerialWarningOnDuplication#]</b></div>
 					<!--ET_END showSerialWarningOnDuplication-->
-
+					<!--ET_BEGIN allowDuplicateSerialProgress-->
+					<div>|Използване на един производствен номер в различни Операции|*: <b>[#allowDuplicateSerialProgress#]</b></div>
+					<!--ET_END allowDuplicateSerialProgress-->
 					<!--ET_BEGIN useTareFromParamId-->
 					<div>|Приспадане от теглото в ПО на Тара от Параметър|*: <b>[#useTareFromParamId#]</b></div>
 					<!--ET_END useTareFromParamId-->
@@ -70,6 +73,14 @@
                     <!--ET_BEGIN ShowDocumentsAsButtons-->
                     <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
                     <!--ET_END ShowDocumentsAsButtons-->
+
+					<!--ET_BEGIN supportSystemFolderId-->
+					<div>|Система за подаване на сигнали|*: [#supportSystemFolderId#]</div>
+					<!--ET_END supportSystemFolderId-->
+
+					<!--ET_BEGIN supportUsers-->
+					<div>|Отговорници при подаване на сигнали|*: [#supportUsers#]</div>
+					<!--ET_END supportUsers-->
 	            </div>
 	        </fieldset>
 	        [#Assets#]

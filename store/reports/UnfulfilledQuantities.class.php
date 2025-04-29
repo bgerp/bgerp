@@ -24,11 +24,15 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
     protected $sortableListFields = 'saleId';
 
 
-
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,manager,store,planning,purchase';
+
+    /**
+     * По-кое поле да се групират листовите данни
+     */
+    protected $groupByField = 'saleId';
 
 
     /**
@@ -54,19 +58,27 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
 
     /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        //$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=title');
+
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
-        $fieldset->FLD('contragent', 'key(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагент,placeholder=Всички,single=none,after=to');
-        //$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,single=none,after=contragent');
-        $fieldset->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група артикули,placeholder=Всички,after=contragent,single=none');
-        $fieldset->FLD('tolerance', 'double', 'caption=Толеранс,after=group,unit = %,single=none,mandatory');
+        $fieldset->FLD('saleState', 'set(active=Активна, closed=Приключена, pending=В заявка)', 'notNull,caption=Статус на сделката,maxRadio=3,after=to,mandatory,single=none');
+        $fieldset->FLD('storable', 'enum(storable=Складируеми, nonStorable=Не складируеми, all=Всички)', 'notNull,caption=Вид на артикула,maxRadio=3,after=saleState,mandatory,single=none');
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=storable');
+        $fieldset->FLD('contragent', 'key(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагент,placeholder=Всички,single=none,after=storeId');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Група,after=contragent,placeholder=Всички,single=none');
+        $fieldset->FLD('tolerance', 'double', 'caption=Изпълнени под,after=groups,unit = %,single=none,mandatory');
     }
 
 
@@ -84,6 +96,8 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('tolerance', 5);
+        $form->setDefault('saleState', 'closed');
+        $form->setDefault('storable', 'storable');
 
         $salesQuery = sales_Sales::getQuery();
 
@@ -140,14 +154,21 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $salesThreadsIdArr = array();
         $recs = array();
 
-        //Продажби
+        // Записи на детайли на продажби затворени през този период,
+        // които не са бързи продажби и не са затворени чрез обединяване
         $querySaleDetails = sales_SalesDetails::getQuery();
 
         $querySaleDetails->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
 
+        $querySaleDetails->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+
+        $querySaleDetails->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+
         $querySaleDetails->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
 
         $querySaleDetails->EXT('closedOn', 'sales_Sales', 'externalName=closedOn,externalKey=saleId');
+
+        $querySaleDetails->EXT('activatedOn', 'sales_Sales', 'externalName=activatedOn,externalKey=saleId');
 
         $querySaleDetails->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
 
@@ -161,23 +182,50 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $querySaleDetails->EXT('closeWith', 'sales_Sales', 'externalName=closeWith,externalKey=saleId');
 
-        $querySaleDetails->where("#state = 'closed'");
+        $querySaleDetails->in('state', array('closed', 'active', 'pending'));
 
-        $querySaleDetails->where(array("#closedOn >= '[#1#]' AND #closedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
+        $or = false;
+        if (in_array('closed', explode(',', $rec->saleState))) {
+            $querySaleDetails->where(array("#state = 'closed' AND #closeWith IS NULL AND #closedOn >= '[#1#]' AND #closedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
+            $or = true;
+        }
 
-        $querySaleDetails->where("#closeWith IS NULL");
+        if (in_array('active', explode(',', $rec->saleState))) {
+            $querySaleDetails->where(array("#state = 'active' AND #activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'), $or);
+            $or = true;
+        }
 
-        $querySaleDetails->like('contoActions', 'ship', false);
+        if (in_array('pending', explode(',', $rec->saleState))) {
+            $querySaleDetails->where(array("#state = 'pending' AND #createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'), $or);
+        }
 
+        //Филтър по групи артикули
+        if (isset($rec->groups)) {
+
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $querySaleDetails, $rec->groups, 'productId');
+
+        }
+
+        $querySaleDetails->where("FIND_IN_SET('ship', REPLACE(#contoActions, ' ', '')) = 0");
+
+        //Филтър по контрагент на масива на продажбите
         if (!is_null($rec->contragent)) {
             $checkedContragents = keylist::toArray($rec->contragent);
 
             $querySaleDetails->in('folderId', $checkedContragents);
         }
 
+        //Филтър за нестандартни артикули. В справката влизат САМО СТАНДАРТНИ
         $querySaleDetails->where("#isPublic = 'yes'");
 
-        $querySaleDetails->show('id,saleId,contragentClassId,contragentId,productId,threadId,folderId,quantity,createdOn');
+        //Филтър за вид артикул
+        if ($rec->storable == 'storable') {
+            $querySaleDetails->where("#canStore = 'yes'");
+        } elseif ($rec->storable == 'nonStorable') {
+            $querySaleDetails->where("#canStore = 'no'");
+        }
+
+        $querySaleDetails->show('id,saleId,contragentClassId,contragentId,productId,threadId,folderId,quantity,createdOn,groups,state');
 
         // Синхронизира таймлимита с броя записи
         $timeLimit = $querySaleDetails->count() * 0.2;
@@ -187,10 +235,10 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         }
 
         while ($saleArt = $querySaleDetails->fetch()) {
-            $saleThreadsIds[] = $saleArt->threadId;
+
             $saleKey = $saleArt->threadId . '|' . $saleArt->productId;
 
-            // добавяме в масива
+            // добавяме в масива на артикулите от договорите през избрания период(филтрирани)
             if (!array_key_exists($saleKey, $saleDetRecs)) {
                 $saleDetRecs[$saleKey] = (object)array(
 
@@ -200,7 +248,8 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                     'contragentClassId' => $saleArt->contragentClassId,
                     'contragentId' => $saleArt->contragentId,
                     'threadId' => $saleArt->threadId,
-                    'folderId' => $saleArt->folderId
+                    'folderId' => $saleArt->folderId,
+                    'state' => $saleArt->state,
 
                 );
             } else {
@@ -209,9 +258,10 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             }
         }
 
+        //Масив с нишките в които се намират продажбите за проследяване: затворени през този период, не бързи, за стандартни артикули
         $salesThreadsIdArr = (arr::extractValuesFromArray($saleDetRecs, 'threadId'));
 
-        //Експедиционни нареждания
+        //Детайли от Експедиционни нареждания , които са в нишките на избраните продажби
         $queryShipmentOrderDetails = store_ShipmentOrderDetails::getQuery();
 
         $queryShipmentOrderDetails->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
@@ -226,6 +276,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $queryShipmentOrderDetails->where("#state = 'active'");
 
+        //Филтрираме само тези, които са от нишките на избраните артикули
         $queryShipmentOrderDetails->in('threadId', $salesThreadsIdArr);
 
         //филтър по склад
@@ -236,17 +287,18 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         //Филтър по групи артикули
         if (isset($rec->group)) {
             $queryShipmentOrderDetails->where('#groups IS NOT NULL');
-            $queryShipmentOrderDetails->likeKeylist('groups', $rec->group);
+
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $queryShipmentOrderDetails, $rec->group, 'productId');
+
         }
 
-        $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn,shipmentOrderActivatedOn');
+        $queryShipmentOrderDetails->show('id,shipmentId,productId,threadId,quantity,createdOn,shipmentOrderActivatedOn,groups');
 
         while ($shipmentDet = $queryShipmentOrderDetails->fetch()) {
-            $threadId = $shipmentDet->threadId;
 
-            $saleIdShip = doc_Threads::getFirstDocument($threadId)->that;
+            $saleIdShip = doc_Threads::getFirstDocument($shipmentDet->threadId)->that;
 
-            $firstDocumentName = doc_Threads::getFirstDocument($threadId)->className;
+            $firstDocumentName = doc_Threads::getFirstDocument($shipmentDet->threadId)->className;
 
             if ($firstDocumentName != 'sales_Sales') {
                 continue;
@@ -254,7 +306,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
             $shipKey = $shipmentDet->threadId . '|' . $shipmentDet->productId;
 
-            // добавяме в масива
+            // добавяме в масива от артикули експедирани в този период, и от нишките на избраните продажби
             if (!array_key_exists($shipKey, $shipDetRecs)) {
                 $shipDetRecs[$shipKey] = (object)array(
 
@@ -319,7 +371,8 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                             'shipedQuantity' => $shipedQuantity,
                             'requestQuantity' => $sale->requestQuantity,
                             'contragentClassId' => $sale->contragentClassId,
-                            'contragentId' => $sale->contragentId
+                            'contragentId' => $sale->contragentId,
+                            'state' => $sale->state,
                         );
                     }
                 }
@@ -327,7 +380,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         }
         if (!is_null($recs)) {
 
-                arr::sortObjects($recs, 'saleId', 'desc');
+            arr::sortObjects($recs, 'saleId', 'desc');
         }
 
 
@@ -353,19 +406,18 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
-            $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
-        }else{
+            $fld->FLD('requestQuantity', 'double(decimals=2)', 'caption=Количество->Заявено,smartCenter');
+            $fld->FLD('shipedQuantity', 'double(decimals=2)', 'caption=Количество->Експедирано,smartCenter');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
+        } else {
             $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
-            $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
-            $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
-
+            $fld->FLD('requestQuantity', 'double(decimals=2)', 'caption=Количество->Заявено');
+            $fld->FLD('shipedQuantity', 'double(decimals=2)', 'caption=Количество->Експедирано');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Неизпълнение');
 
         }
         return $fld;
@@ -391,7 +443,19 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->saleId = sales_Sales::getLinkToSingle_($dRec->saleId, 'id');
+        if ($dRec->saleId) {
+            $sRec = sales_Sales::fetch($dRec->saleId);
+            $Sale = doc_Containers::getDocument(sales_Sales::fetch($dRec->saleId)->containerId);
+
+            $handle = sales_Sales::getHandle($dRec->saleId);
+            $state = (sales_Sales::fetch($dRec->saleId)->state);
+            $singleUrl = toUrl(array($Sale->className, 'single', $dRec->saleId));
+
+            $row->saleId = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Sale->singleIcon}");
+            $row->saleId .= ' / ' . $sRec->valior;
+
+        }
+
 
         //$row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
 
@@ -404,12 +468,17 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         if (isset($dRec->measure)) {
             $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
+        $round = (cat_UoM::fetch($dRec->measure)->round) ? cat_UoM::fetch($dRec->measure)->round : 2;
 
-        $row->requestQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->requestQuantity);
+        $row->requestQuantity = core_Type::getByName("double(decimals={$round})")->toVerbal($dRec->requestQuantity);
 
-        $row->shipedQuantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->shipedQuantity);
+        $row->shipedQuantity = core_Type::getByName("double(decimals={$round})")->toVerbal($dRec->shipedQuantity);
 
-        $row->quantity = "<span class = 'red'>" . '<b>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->requestQuantity - $dRec->shipedQuantity) . '</b>' . '</span>';
+        $row->quantity = "<span class = 'red'>" . '<b>' . core_Type::getByName("double(decimals={$round})")->toVerbal($dRec->requestQuantity - $dRec->shipedQuantity) . '</b>' . '</span>';
+
+        $state = $dRec->state;
+
+        $row->ROW_ATTR['class'] = "state-{$state}";
 
         return $row;
     }
@@ -498,5 +567,10 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         if (isset($dRec->measure)) {
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
+
+        $res->quantity = $dRec->requestQuantity - $dRec->shipedQuantity;
+        $res->requestQuantity = $dRec->requestQuantity;
+
+        $res->shipedQuantity = $dRec->shipedQuantity;
     }
 }

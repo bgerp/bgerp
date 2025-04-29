@@ -52,7 +52,6 @@ class uiext_Setup extends core_ProtoSetup
     public $managers = array(
         'uiext_Labels',
         'uiext_ObjectLabels',
-        'migrate::replaceContainerId',
     );
     
     
@@ -68,32 +67,5 @@ class uiext_Setup extends core_ProtoSetup
         }
         
         return $html;
-    }
-    
-    
-    public function replaceContainerId()
-    {
-       $Class = cls::get('uiext_ObjectLabels');
-       $Class->setupMvc();
-        
-       $update = array();
-       $query = $Class->getQuery();
-       $db = $query->mvc->db;
-       if ($db->isFieldExists($query->mvc->dbTableName, 'containerId')) {
-           $query->FLD('containerId', 'key(mvc=doc_Containers)');
-           $query->where("#containerId IS NOT NULL");
-           while($rec = $query->fetch()){
-               try{
-                   $Document = doc_Containers::getDocument($rec->containerId);
-                   $update[$rec->id] = (object)array('id' => $rec->id, 'classId' => $Document->getClassId(), 'objectId' => $Document->that);
-               } catch(core_exception_Expect $e){
-                   reportException($e);
-               }
-           }
-           
-           if(countR($update)){
-               $Class->saveArray($update, 'id,classId,objectId');
-           }
-       }
     }
 }

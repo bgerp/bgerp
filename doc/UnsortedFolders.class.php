@@ -25,7 +25,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,plg_Clone,doc_FolderPlg,plg_RowTools2,plg_Search, plg_Modified, plg_Sorting';
+    public $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_plg_CanSelectSteps,plg_Clone,doc_FolderPlg,plg_RowTools2,plg_LastUsedKeys,plg_Search, plg_Modified, plg_Sorting';
     
     
     /**
@@ -73,7 +73,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Кое поле да се използва за линк към нишките на папката
      */
-    public $listFieldForFolderLink = 'folder';
+    public $listFieldForFolderLink = 'folder=Папка';
     
     
     /**
@@ -241,7 +241,9 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('description', 'richtext(rows=3, passage,bucket=Notes)', 'caption=Описание');
         $this->FLD('contragentFolderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent');
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
-        
+        $this->FLD('makeTaskCostObjects', 'enum(yes=Да, no=Не)', 'caption=Настройки на задачите в проекта->Разходни обекти,notNull,value=no');
+        $this->FLD('resourceType', 'set(assets=Оборудване,hr=Оператори)', 'caption=Видове ресурси в папката->Избор,autohide=any');
+
         $this->setDbUnique('name');
     }
     
@@ -255,7 +257,8 @@ class doc_UnsortedFolders extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
+        $rec = &$form->rec;
+
         if($data->action == 'clone'){
             $form->FNC('newStartDate', 'datetime', 'mandatory,caption=Клониране на задачи->Ново начало,input,before=taskCloneState');
             $form->FNC('taskCloneState', 'enum(draft=Чернова,active=Активно)', 'mandatory,caption=Клониране на задачи->Състояние,input,before=receiveEmail,unit=след клониране');
@@ -324,7 +327,6 @@ class doc_UnsortedFolders extends core_Master
     public static function recToVerbal_($rec, &$fields = array())
     {
         $row = parent::recToVerbal_($rec, $fields);
-        $row->folder = 'Папка';
         if(isset($rec->contragentFolderId)){
             $row->contragentFolderId = doc_Folders::recToVerbal($rec->contragentFolderId)->title;
         }
@@ -413,45 +415,9 @@ class doc_UnsortedFolders extends core_Master
         $tpl->replace($form->renderHtml(), 'FILTER');
         
         // слагаме бутони на къстам тулбара
-        $btns = ht::createBtn(
-            'Редакция',
-            array(
-                $mvc,
-                'edit',
-                $data->id
-            ),
-            null,
-            null,
-                    'ef_icon = img/16/edit-icon.png'
-        );
-        $btns .= ht::createBtn(
-            'Папка',
-            array(
-                'doc_Threads',
-                'list',
-                'folderId' => $data->folderId
-            ),
-            null,
-            null,
-                    'ef_icon = img/16/folder-y.png'
-        );
-        
-        $btns .= ht::createBtn(
-            
-            'Корица',
-            
-            array(
-                $mvc,
-                'single',
-                $data->id
-            ),
-            
-            null,
-            
-            null,
-                    'ef_icon = img/16/project-archive.png'
-        
-        );
+        $btns = ht::createBtn('Редакция', array(get_called_class(), 'edit', $data->id), null, null, 'ef_icon = img/16/edit-icon.png');
+        $btns .= ht::createBtn('Папка', array('doc_Threads', 'list', 'folderId' => $data->folderId), null, null, 'ef_icon = img/16/folder-y.png');
+        $btns .= ht::createBtn('Корица', array(get_called_class(), 'single', $data->id), null, null, 'ef_icon = img/16/project-archive.png');
         
         // иконата за пред името на проекта
         $icon = sbf('img/24/barchart-multicolor-24.png', '', '');
@@ -467,7 +433,7 @@ class doc_UnsortedFolders extends core_Master
         $tpl->replace('state-'.$data->state, 'STATE_CLASS_GANTT');
         $tpl->replace("<img alt='' src='{$icon}'>", 'SingleIconGantt');
         $tpl->replace($data->name, 'nameGantt');
-        $tpl->append($listFilter, 'FILTER');
+        $tpl->append($data->listFilter, 'FILTER');
         $tpl->replace($chart, 'Gantt');
         
         
@@ -898,7 +864,7 @@ class doc_UnsortedFolders extends core_Master
             $data->rows[$rec->id]->created = $data->rows[$rec->id]->createdOn . " " . tr('от') . " " . $data->rows[$rec->id]->createdBy;
         }
 
-        if(doc_UnsortedFolders::haveRightFor('add')){
+        if(doc_UnsortedFolders::haveRightFor('add') && !Mode::isReadOnly()){
             $data->addBtn = ht::createLink('', array('doc_UnsortedFolders', 'add', 'contragentFolderId' => $folderId), false, 'ef_icon=img/16/add.png,caption=Добавяне на нов проект към контрагента');
         }
     }
@@ -936,34 +902,18 @@ class doc_UnsortedFolders extends core_Master
         
         return $tpl;
     }
+
+
     /**
-     * Връща данните на получателя
-     * return object
+     * Интерфейсен метод
      *
-     * $obj->company    - Името на компанията
-     * $obj->companyId  - Id' то на компанията - key(mvc=crm_Companies)
-     * $obj->country    - Името на държавата
-     * $obj->countryId  - Id' то на
-     * $obj->vatNo      - ДДС номер на компанията
-     * $obj->uicId      - Национален номер на компанията
-     * $obj->pCode      - код
-     * $obj->place      -
-     * $obj->email      - Имейл
-     * $obj->tel        - Телефон
-     * $obj->fax        - Факс
-     * $obj->address    - Адрес
+     * @param int $id
+     * @param date|null $date
+     * @return object
      *
-     * $obj->name       - Име на физическо лице
-     * $obj->personId   - ИД на лице - key(mvc=crm_Persons)
-     * $obj->pTel       - Персонален телефон
-     * $obj->pMobile    - Мобилен
-     * $obj->pFax       - Персонален
-     * $obj->pAddress   - Персонален адрес
-     * $obj->pEmail     - Персонален имейл
-     * 
      * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         $contragentData = null;
         
@@ -995,16 +945,20 @@ class doc_UnsortedFolders extends core_Master
         
         return null;
     }
-    
-    
+
+
     /**
-     * Връща дали на контрагента се начислява ДДС
-     * 
-     * @see doc_ContragentDataIntf
+     * Дали на лицето се начислява ДДС:
+     * Начисляваме винаги ако е в ЕУ (ако е регистриран по ДДС)
+     *
+     * @param int $id                - id' то на записа
+     * @param mixed $class           - за кой клас
+     * @param int|null $ownCompanyId - ид на "Моята фирма"
+     *
+     * @return bool TRUE/FALSE
      */
-    public function shouldChargeVat($id)
+    public function shouldChargeVat($id, $class, $ownCompanyId = null)
     {
-        
         return null;
     }
     
@@ -1033,5 +987,60 @@ class doc_UnsortedFolders extends core_Master
     public function canCloneFolderSettings_($rec)
     {
         return $rec->cloneFolderSettings == 'yes';
+    }
+
+    /**
+     * Какви видове ресурси може да се добавят към модела
+     *
+     * @param stdClass $rec
+     *
+     * @return array - празен масив ако няма позволени ресурси
+     *               ['assets'] - оборудване
+     *               ['hr']     - служители
+     */
+    public function getResourceTypeArray_($rec)
+    {
+        $rec = $this->fetchRec($rec);
+
+        return arr::make($rec->resourceType, true);
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+
+        if($form->isSubmitted()) {
+            if(isset($rec->id)) {
+
+                // При опит за отмаркирване на ресурсите да се спира - ако има вече избрани ресурси
+                if(isset($rec->folderId)) {
+                    $assetErrorMsgArr = array();
+                    $resourceTypes = type_Set::toArray($rec->resourceType);
+
+                    if(empty($resourceTypes['assets'])) {
+                        $assetClassId = planning_AssetResources::getClassId();
+                        $resourceCount = planning_AssetResourceFolders::count("#classId = {$assetClassId} AND #folderId = {$rec->folderId}");
+                        if($resourceCount) {
+                            $assetErrorMsgArr[] = "В проекта има вече свързани оборудвания";
+                        }
+                    }
+                    if(empty($resourceTypes['hr'])) {
+                        $hrClassId = planning_Hr::getClassId();
+                        $resourceCount = planning_AssetResourceFolders::count("#classId = {$hrClassId} AND #folderId = {$rec->folderId}");
+                        if($resourceCount) {
+                            $assetErrorMsgArr[] = "В проекта има вече свързани оператори";
+                        }
+                    }
+
+                    if(countR($assetErrorMsgArr)) {
+                        $form->setError('resourceType', implode('. ', $assetErrorMsgArr));
+                    }
+                }
+            }
+        }
     }
 }

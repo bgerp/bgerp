@@ -193,6 +193,14 @@ class trans_Lines extends core_Master
 
 
     /**
+     * Дали в лист изгледа да се показва полето за филтър по състояние
+     * @param bool
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterAllowState = false;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

@@ -36,7 +36,7 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $valiorToBe = $mvc->getFieldType($mvc->valiorFld)->toVerbal(dt::today());
-        $data->form->setField($mvc->valiorFld, "placeholder={$valiorToBe}");
+        $data->form->setField($mvc->valiorFld, "placeholder=|*{$valiorToBe}");
     }
     
     
@@ -46,7 +46,7 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $valiorToBe = $mvc->getFieldType($mvc->valiorFld)->toVerbal(dt::today());
-        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? $row->{$mvc->valiorFld} : ((Mode::is('printing') || Mode::is('text', 'xhtml')) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
+        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? $row->{$mvc->valiorFld} : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
     }
     
     

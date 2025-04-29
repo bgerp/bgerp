@@ -2,6 +2,12 @@
 
 
 /**
+ * Колко време след последната редакция да се записва запис в историята->Време
+ */
+defIfNot('CHANGE_LOG_VERSION_AFTER_LAST', '7200');
+
+
+/**
  * Клас 'change_Setup' -
  *
  * @category  vendors
@@ -37,12 +43,21 @@ class change_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Съхранение на стари версии на документи и обекти';
-    
-    
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'CHANGE_LOG_VERSION_AFTER_LAST' => array('time', 'caption=Колко време след последната редакция да се записва запис в историята->Време'),
+    );
+
+
     /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
         'change_Log',
+        'change_History'
     );
 }

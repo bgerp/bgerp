@@ -50,7 +50,13 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from, to, duration, compare, compareStart, seeCrmGroup, seeGroup, group, groups, groupBy, orderBy, consumed, groupsMat, dealers, contragent, crmGroup, articleType, orderBy, grouping, updateDays, updateTime';
+    protected $changeableFields = 'from, to, duration, compare, compareStart, seeCrmGroup, seeGroup, group, groups, centre, storeId, groupBy, orderBy, consumed, groupsMat, dealers, contragent, crmGroup, articleType, orderBy, grouping, updateDays, updateTime';
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
 
 
     /**
@@ -68,17 +74,19 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fieldset->FLD('accProd', 'enum(yes=ДА, no=НЕ)', 'caption=Справка по accProd,after=to,removeAndRefreshForm,silent,single=none');
 
 
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Произведени артикули->Групи артикули,after=accProd,removeAndRefreshForm,placeholder=Всички,silent,single=none');
-
+        //Филтри
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтър по->Групи артикули,after=accProd,removeAndRefreshForm,placeholder=Всички,silent,single=none');
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Филтър по->Центрове,placeholder=Всички,after=groups');
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Филтър по->Склад,placeholder=Всички,after=centre');
 
         //Групиране на резултата
-        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=groups');
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=storeId,single=none');
 
 
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
+        $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy,single=none');
 
-        $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Вложени материали->Показване,removeAndRefreshForm,after=orderBy,silent');
+        $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Вложени материали->Показване,removeAndRefreshForm,after=orderBy,silent,single=none');
         $fieldset->FLD('consumedFrom', 'enum(protocols= протоколи, boms= рецепти)', 'caption=Вложени материали->Вложени по,removeAndRefreshForm,after=consumed,input=hidden,silent,single=none');
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
@@ -172,7 +180,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         //Произведени артикули
         $planningQuery = planning_DirectProductionNote::getQuery();
 
-        $planningQuery->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $planningQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $planningQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $planningQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
 
@@ -186,7 +194,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         //Филтър по групи артикули
         if ($rec->groups) {
 
-            $planningQuery->likeKeylist('groupMat', $rec->groups);
+            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $planningQuery, $rec->groups, 'productId');
 
         }
 
@@ -197,6 +205,8 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $amountTotal = array();
 
         while ($planningRec = $planningQuery->fetch()) {
+
+            $departmentId = $storeId = null;
 
             $month = substr($planningRec->valior, 0, 7);
             if (!in_array($month, $montArr)) {
@@ -221,11 +231,21 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             //Център на дейност
             $departmentId = $className::fetch($Document->that)->department;
 
+            //Филтър по център на дейност
+            if (isset($rec->centre) && !is_null($departmentId)) {
+                if (!in_array($departmentId, keylist::toArray($rec->centre))) continue;
+            }
+
             //Склад на заприхождаване
             $storeId = $planningRec->storeId;
 
+            //Филтър по склад
+            if (isset($rec->storeId) && !is_null($storeId)) {
+                if (!in_array($storeId, keylist::toArray($rec->storeId))) continue;
+            }
+
             //Вложени материали
-            //     if ($rec->consumed == 'yes') {
+
             $dpRecDetArr = array();
 
             //Ако е избрана опция за вложените материали по ПРОТОКОЛИ за производство
@@ -237,7 +257,6 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
                 while ($dpRecDet = $dpQuery->fetch()) {
                     unset($amount, $quantity, $matRec, $matItemRec, $matClassName);
-
                     if ($dpRecDet->creditItem2) {
                         $matItemRec = acc_Items::fetch($dpRecDet->creditItem2);
                         $matClassName = core_Classes::fetch($matItemRec->classId)->name;
@@ -358,8 +377,6 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
             }
 
-            //     }
-
             unset($secondPartKey);
             if ($rec->groupBy) {
                 switch ($rec->groupBy) {
@@ -409,7 +426,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
                 //Параметър accProd
                 list($a, $accProd) = explode('.', $prodParamsArr[$accProdParamId]);
-                //$accProd = trim($a);
+
                 $accProd = $prodParamsArr[$accProdParamId];
 
                 //Определяне на теглото
@@ -450,7 +467,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
 
                     'monthQuantity' => $monthQuantityArr[$planningRec->productId],
-                    'group' => $planningRec->groupMat,                               // В кои групи е включен артикула
+                    'group' => $planningRec->groups,                               // В кои групи е включен артикула
                     'month' => '',                                                   // месец на производство
                     'consumedType' => 'prod'
 
@@ -520,7 +537,6 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $rec->totalConsumed = array_sum($amountTotal);
         }
 
-        //   bp($recs);
         return $recs;
     }
 

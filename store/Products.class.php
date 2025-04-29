@@ -42,7 +42,7 @@ class store_Products extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, store_Wrapper, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals2, plg_State';
+    public $loadList = 'plg_Created, store_Wrapper, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals2, plg_State, plg_SelectPeriod';
     
     
     /**
@@ -54,7 +54,7 @@ class store_Products extends core_Detail
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,sales,storeWorker';
+    public $canList = 'ceo,sales,storeWorker,storeAll';
     
     
     /**
@@ -97,6 +97,12 @@ class store_Products extends core_Detail
      * По колко максимум документа да се показват в хинта за запазващите документи
      */
     const SHOW_DOCUMENTS_IN_PLANNED_STOCK_HINT = 15;
+
+
+    /**
+     * Кои полета да може да се скриват в хоризонталния лист филтър
+     */
+    public $toggableFieldsInVerticalListFilter = 'productId,horizon,inventory';
 
 
     /**
@@ -202,7 +208,7 @@ class store_Products extends core_Detail
      * @param stdClass $data
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
+    {;
         if($data->masterMvc instanceof cat_Products){
             $data->query->EXT('storeName', 'store_Stores', 'externalName=name,externalKey=storeId');
             
@@ -215,7 +221,8 @@ class store_Products extends core_Detail
             } else {
                 $data->query->orderBy('storeName', 'ASC');
             }
-            
+
+            unset($data->listFilter->showFields);
             return;
         }
 
@@ -226,6 +233,10 @@ class store_Products extends core_Detail
         $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input,class=w30');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         $data->listFilter->FNC('setting', 'enum(productMeasureId=Основна мярка,basePack=Основна опаковка)', 'caption=Настройка,input,silent,recently');
+        $data->listFilter->FNC('inventory', 'enum(all=Всички,inventory=Инвентаризирани,notInventory=Неинвентаризирани)', 'caption=Инвентаризация,input,silent,autoFilter');
+        $data->listFilter->FNC('from', 'date', 'caption=От');
+        $data->listFilter->FNC('to', 'date', 'caption=До');
+
         $data->query->XPR('free', 'double', 'ROUND(COALESCE(#quantity, 0) - COALESCE(#reservedQuantity, 0), 2)');
         $data->listFilter->view = 'horizontal';
 
@@ -263,14 +274,22 @@ class store_Products extends core_Detail
         $data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
 
         if (isset($data->masterMvc)) {
-            $data->listFilter->showFields = 'horizon,search,groupId';
+            $showFieldsArr = arr::make('horizon,search,groupId', true);
+
+            $data->listFilter->showFields = implode(',', $showFieldsArr);
             if($data->masterMvc instanceof store_Stores){
                 $data->listFilter->setDefault('setting', $data->masterData->rec->displayStockMeasure);
             }
         } else {
+            $data->listFilter->defOrder = false;
+            $showFieldsArr = arr::make('search,productId,storeId,filters,groupId,horizon,setting,inventory,selectPeriod,from,to', 2);
+            if($mvc instanceof rack_Products){
+                unset($showFieldsArr['horizon']);
+                unset($showFieldsArr['inventory']);
+            }
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('filters', 'active');
-            $data->listFilter->showFields = 'search,productId,storeId,filters,groupId,horizon,setting';
+            $data->listFilter->showFields = implode(',', $showFieldsArr);
             unset($data->listFilter->view);
 
             $sKey = "stockSettingFilter" . core_Users::getCurrent();
@@ -278,11 +297,60 @@ class store_Products extends core_Detail
                 $data->listFilter->setDefault('setting', $lastHorizon);
             }
         }
+        $data->listFilter->setDefault('inventory', 'all');
         $data->listFilter->setDefault('setting', 'productMeasureId');
-        $data->listFilter->input('horizon,productId,storeId,filters,groupId,search,setting', 'silent');
+        $data->listFilter->input('horizon,productId,storeId,filters,groupId,search,setting,inventory,selectPeriod,from,to', 'silent');
 
         // Ако има филтър
         if ($rec = $data->listFilter->rec) {
+
+            if(isset($rec->inventory)){
+                if($rec->inventory == 'all'){
+                    unset($showFieldsArr['selectPeriod']);
+                    unset($showFieldsArr['from']);
+                    unset($showFieldsArr['to']);
+                    $data->listFilter->showFields = implode(',', $showFieldsArr);
+                } else {
+
+                    // Ако ще се филтрират инвентаризираните намират се последните инвентаризации
+                    $iQuery = store_InventoryNoteSummary::getQuery();
+                    $iQuery->EXT('state', 'store_InventoryNotes', 'externalName=state,externalKey=noteId');
+                    $iQuery->EXT('valior', 'store_InventoryNotes', 'externalName=valior,externalKey=noteId');
+                    $iQuery->EXT('storeId', 'store_InventoryNotes', 'externalName=storeId,externalKey=noteId');
+                    $iQuery->where("#quantity IS NOT NULL AND #state = 'active'");
+                    $iQuery->show('productId,storeId,valior,noteId');
+                    if(isset($rec->from)){
+                        $iQuery->where("#valior >= '{$rec->from}'");
+                    }
+                    if(isset($rec->to)){
+                        $iQuery->where("#valior <= '{$rec->to}'");
+                    }
+                    if(isset($rec->storeId)){
+                        $iQuery->where("#storeId = {$rec->storeId}");
+                    }
+                    $iRecs = $inventoryProductIds = array();
+                    while($iRec = $iQuery->fetch()) {
+                        $inventoryProductIds[$iRec->productId] = $iRec->productId;
+                        $iRecs["{$iRec->productId}|{$iRec->storeId}"][$iRec->id] = $iRec;
+                    }
+
+                    // Ако ще се показват неинвентаризираните ще се игнорират артикулите с инвентаризация
+                    if($rec->inventory == 'notInventory'){
+                        $data->query->notIn('productId', $inventoryProductIds);
+                    } else {
+
+                        // Ако ще са само инвентаризираните се показват само те
+                        $data->inventoryRecs = $iRecs;
+                        if(countR($inventoryProductIds)){
+                            $data->query->XPR('key', 'varchar', "CONCAT(#productId, '|', #storeId)");
+                            $data->query->in('key', array_keys($iRecs));
+                        } else {
+                            $data->query->where("1=2");
+                        }
+                    }
+                }
+            }
+
             if(isset($rec->productId)){
                 $data->query->where("#productId = {$rec->productId}");
             }
@@ -342,7 +410,7 @@ class store_Products extends core_Detail
             
             // Филтър по групи на артикула
             if (!empty($rec->groupId)) {
-                $data->query->where("LOCATE('|{$rec->groupId}|', #groups)");
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $data->query, $rec->groupId, 'productId');
             }
 
             $filterCaption = isset($data->masterMvc) ? '' : 'Филтрирай';
@@ -545,8 +613,11 @@ class store_Products extends core_Detail
         $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
         $data->listTableMvc->setField('lastUpdated', 'tdClass=small');
-
         if (!countR($data->rows)) return;
+
+        if(is_array($data->inventoryRecs)){
+            $data->listFields['inventory'] = 'Инвентар.';
+        }
 
         $today = dt::today();
         foreach ($data->rows as $id => &$row) {
@@ -580,6 +651,17 @@ class store_Products extends core_Detail
             $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
             $date = dt::mysql2verbal($dateMin, 'd.m.Y');
             $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
+
+            // Ако се показва колонка за последно инвентаризиране - да се покаже последния документ
+            if(is_array($data->inventoryRecs)){
+                $key = "{$rec->productId}|{$rec->storeId}";
+                if(is_array($data->inventoryRecs[$key])){
+                    krsort($data->inventoryRecs[$key]);
+                    $lastInvRec = $data->inventoryRecs[$key][key($data->inventoryRecs[$key])];
+                    $lastInvVerbal = dt::mysql2verbal($lastInvRec->valior, 'd.m.y');
+                    $row->inventory = store_InventoryNotes::getLink($lastInvRec->noteId, 0) . " <small>[{$lastInvVerbal}]</small>";
+                }
+            }
         }
     }
     
@@ -977,7 +1059,6 @@ class store_Products extends core_Detail
     function remote_getStocks($authorizationId, $args)
     {
         expect(remote_Authorizations::fetchRec($authorizationId));
-        expect(store_Stores::fetchRec($authorizationId));
 
         // Кои са стандартните артикули в посочените складове
         $res = $measureSysIds = array();

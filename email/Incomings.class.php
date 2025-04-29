@@ -143,6 +143,12 @@ class email_Incomings extends core_Master
      * Кой има право да го чете?
      */
     public $canSingle = 'powerUser';
+
+
+    /**
+     * Кой има право да го чете?
+     */
+    public $canChangeshowtype = 'powerUser';
     
     
     /**
@@ -150,9 +156,17 @@ class email_Incomings extends core_Master
      */
     public $loadList = 'email_Wrapper, doc_DocumentPlg, 
     				plg_RowTools2, plg_Printing, email_plg_Document, 
-    				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank';
-    
-    
+    				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank, plg_HideRows';
+
+
+    /**
+     * Кои полета да се скриват
+     *
+     * @see plg_HideRows
+     */
+    public $hideRows = 'fromIp=debug';
+
+
     /**
      * Сортиране по подразбиране по низходяща дата
      */
@@ -199,6 +213,13 @@ class email_Incomings extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'subject, fromEml, fromName, textPart, files';
+
+
+    /**
+     * Дали да се проверяват правописните грешки
+     * @see spcheck_Plugin
+     */
+    public $checkSpell = false;
     
     
     /**
@@ -724,6 +745,10 @@ class email_Incomings extends core_Master
         // Записваме (и автоматично рутираме) писмото
         $saved = $this->save($rec);
 
+        if ($saved && $rec->fromEml) {
+            email_AddressesInfo::addEmail($rec->fromEml);
+        }
+
         // Ако са зададени хедъри, по които да сваля имейла
         if (defined('EMAIL_DUPLICATE_INCOMING_HEADERS')) {
             $isFirstDoc = true;
@@ -1202,25 +1227,101 @@ class email_Incomings extends core_Master
             unset($row->ip);
         }
 
+        if ($mvc->getShowType($rec) == 'html') {
+            if ($rec->htmlFile) {
+                $fRec = fileman::fetch($rec->htmlFile);
+                if ($fRec) {
+                    try {
+                        $htmlPartArr = fileman_webdrv_Html::getHtmlPart($fRec);
+                        $htmlPart = fileman_webdrv_Html::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path'],
+                            array('webdrvTabBody' => 'webdrvTabBodySingle',
+                                'webdrvFieldset' => 'webdrvFieldsetSingle',
+                                'webdrvIframe' => 'webdrvIframeSingle webdrvIframe autoHeight'));
+                        $htmlPart = "<script>function sendHeight() { 
+                                      const height = document.body.scrollHeight;
+                                      window.parent.postMessage(height, '*');
+                                    }
+                                    
+                                    window.addEventListener('load', sendHeight);
+                                    window.addEventListener('resize', sendHeight); </script>" . $htmlPart;
+                        $row->textPart = $htmlPart;
+                    } catch (core_exception_Expect $exp) {
+                        reportException($exp);
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Екшън за промяна на състоянието на показването на имейла
+     *
+     * @return void
+     * @throws core_exception_Break
+     */
+    function act_changeShowType()
+    {
+        $this->requireRightFor('changeshowtype');
+        $id = Request::get('id', 'int');
+
+        $rec = $this->fetch($id);
+        expect($rec);
+
+        $this->requireRightFor('changeshowtype', $rec);
+
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array($this, 'single', $id);
+        }
+
+        $showType = $this->getShowType($rec);
+        $showType = $showType == 'text' ? 'html' : 'text';
+        email_IncomingsShowTypes::setCurrentState($rec->id, $showType);
+
+        doc_DocumentCache::cacheInvalidation($rec->containerId);
+
+        return new Redirect($retUrl);
+    }
+
+
+    /**
+     * Помощна функция, която показва типа на показване на съответният имейл
+     *
+     * @param stdClass $rec
+     *
+     * @return string - 'text' или 'html'
+     */
+    protected static function getShowType($rec)
+    {
+        if (!$rec->htmlFile) {
+
+            return 'text';
+        }
+
+        if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf') || Mode::is('text', 'plain')) {
+
+            return 'text';
+        }
+
+        if ($showType = email_IncomingsShowTypes::getCurrentState($rec->id)) {
+
+            return $showType;
+        }
+
+        $showType = 'text';
         if (email_Setup::get('SHOW_HTML_IN_SINGLE') == 'yes') {
             if (!(Mode::is('text', 'xhtml') && !Mode::is('printing')) && !Mode::is('text', 'plain')) {
                 if ($rec->htmlFile) {
                     $fRec = fileman::fetch($rec->htmlFile);
                     if ($fRec) {
-                        try {
-                            $htmlPartArr = fileman_webdrv_Html::getHtmlPart($fRec);
-                            $htmlPart = fileman_webdrv_Html::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path'],
-                                array('webdrvTabBody' => 'webdrvTabBodySingle',
-                                    'webdrvFieldset' => 'webdrvFieldsetSingle',
-                                    'webdrvIframe' => 'webdrvIframeSingle webdrvIframe'));
-                            $row->textPart = $htmlPart;
-                        } catch (core_exception_Expect $exp) {
-                            reportException($exp);
-                        }
+                        $showType = 'html';
                     }
                 }
             }
         }
+
+        return $showType;
     }
     
     
@@ -2981,7 +3082,7 @@ class email_Incomings extends core_Master
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресата
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         //Данните за имейл-а
         $msg = email_Incomings::fetch($id);
@@ -2998,8 +3099,28 @@ class email_Incomings extends core_Master
         $footer = email_Outgoings::getFooter();
         
         $avoid = array('html') + array_filter(explode("\n", str_replace(array('Тел.:', 'Факс:', 'Tel.:', 'Fax:'), array('', '', '', ''), trim($footer))));
-        
-        $contragentData = $addrParse->extractContact($textPart, array('email' => $msg->fromEml, 'lg' => $msg->lg, 'country' => $msg->country), $avoid);
+
+        $deepExtract = false;
+        if ($msg->folderId) {
+            $fRec = doc_Folders::fetch($msg->folderId);
+            $Cover = doc_Folders::getCover($msg->folderId);
+            $folder = $Cover->className;
+
+            if (($folder == 'doc_UnsortedFolders') || ($folder == 'email_Inboxes')) {
+                $iQuery = self::getQuery();
+                $iQuery->where(array("#threadId = '[#1#]'", $msg->threadId));
+                $iQuery->limit(2);
+                $iQuery->show('id');
+                if ($iQuery->count() < 2) {
+                    if (!email_Salutations::fetch(array("#toEmail = '[#1#]'", $msg->fromEml))) {
+                        $deepExtract = true;
+                    }
+                }
+            }
+        }
+
+        $contragentData = $addrParse->extractContact($textPart, array('email' => $msg->fromEml, 'lg' => $msg->lg,
+                                                    'country' => $msg->country, 'deepExtract' => $deepExtract), $avoid);
         
         $headersArr = array();
         
@@ -3234,24 +3355,33 @@ class email_Incomings extends core_Master
         // Ако имаме права за single
         if ($mvc->haveRightFor('single', $data->rec)) {
             if (($data->rec->emlFile) && fileman_Files::haveRightFor('single', $data->rec->emlFile)) {
-                
-                // Име на бутона
-                if ($data->rec->htmlFile) {
-                    $buttonName = 'Изглед';
-                } else {
-                    $buttonName = 'Детайли';
-                }
-                
                 // Добавяме бутон за разглеждане не EML файла
                 $data->toolbar->addBtn(
-                    $buttonName,
+                    'Детайли',
                     array(
                         'fileman_Files',
                         'single',
                         'id' => fileman_Files::fetchField($data->rec->emlFile, 'fileHnd'),
                     ),
                     null,
-                array('order' => '21', 'ef_icon' => 'img/16/file_extension_eml.png', 'title' => 'Преглед на различните части на имейла')
+                    array('order' => '1', 'row' => 2, 'ef_icon' => 'img/16/file_extension_eml.png', 'title' => 'Преглед на различните части на имейла')
+                );
+            }
+
+
+            if ($mvc->haveRightFor('changeshowtype', $data->rec)) {
+                $showType = $mvc->getShowType($data->rec);
+                $btnName = $showType == 'text' ? 'HTML' : 'Текст';
+                $btnIcon = $showType == 'text' ? 'email_open_image.png' : 'email_open.png';
+                $data->toolbar->addBtn(
+                    $btnName,
+                    array(
+                        $mvc,
+                        'changeShowType',
+                        'id' => $data->rec->id
+                    ),
+                    null,
+                    array('order' => '21', 'ef_icon' => "img/16/{$btnIcon}", 'title' => 'Смяна на изгледа на имейла')
                 );
             }
             
@@ -3326,7 +3456,7 @@ class email_Incomings extends core_Master
         if (email_AddressesInfo::haveRightFor('powerUser')) {
             if ($uLink = $mvc->getUnsubscribeLink($data->rec)) {
                 $uLink = urldecode($uLink);
-
+                $uLink = str_replace(array("\n", "\r"), array('', ''), $uLink);
                 // Автоматично оттегля документа, ако е само един в нишката и има права за папката
                 $onClickArr = array();
                 if ($data->rec->state != 'rejected' && $data->rec->folderId && $data->rec->threadId && $data->rec->containerId) {
@@ -3371,48 +3501,48 @@ class email_Incomings extends core_Master
             return $res;
         }
 
-        if ($rec->headers['list-unsubscribe']) {
-            $uData = $rec->headers['list-unsubscribe'][0];
-            if (preg_match(type_Richtext::URL_PATTERN, $uData, $matches)) {
+        $content = '';
+        if ($rec->htmlFile) {
+            $htmlFRec = fileman::fetch($rec->htmlFile);
+            $content = fileman_Files::getContent($htmlFRec->fileHnd);
+        }
 
-                $res = $matches[0];
+        if (!$content && $rec->emlFile) {
+            // Инстанция на класа
+            $mime = cls::get('email_Mime');
+
+            $fRec = fileman::fetch($rec->emlFile);
+
+            // Вземаме съдържанието на eml файла
+            $source = fileman::getContent($fRec->fileHnd);
+
+            $mime->parseAll($source);
+
+            $content = $mime->getJustTextPart();
+        }
+
+        if ($content) {
+            $content = str::utf2ascii($content);
+            $content = preg_replace('/\s+/ui', ' ', $content);
+
+            // Стрингове за отписване
+            $unsStr = 'Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
+            $unsStr = str::utf2ascii($unsStr);
+            $unsStr = preg_replace('/\s+/ui', ' ', $unsStr);
+
+            if (preg_match("/<a[^>]*>([^>]*({$unsStr})+[^>]*)<\/a>/iu", $content, $matches)) {
+                if (preg_match(type_Richtext::URL_PATTERN, $matches[0], $lMatches)) {
+                    $res = $lMatches[0];
+                }
             }
         }
 
         if (!$res) {
-            $content = '';
-            if ($rec->htmlFile) {
-                $htmlFRec = fileman::fetch($rec->htmlFile);
-                $content = fileman_Files::getContent($htmlFRec->fileHnd);
-            }
+            if ($rec->headers['list-unsubscribe']) {
+                $uData = $rec->headers['list-unsubscribe'][0];
+                if (preg_match(type_Richtext::URL_PATTERN, $uData, $matches)) {
 
-            if (!$content && $rec->emlFile) {
-                // Инстанция на класа
-                $mime = cls::get('email_Mime');
-
-                $fRec = fileman::fetch($rec->emlFile);
-
-                // Вземаме съдържанието на eml файла
-                $source = fileman::getContent($fRec->fileHnd);
-
-                $mime->parseAll($source);
-
-                $content = $mime->getJustTextPart();
-            }
-
-            if ($content) {
-                $content = str::utf2ascii($content);
-                $content = preg_replace('/\s+/ui', ' ', $content);
-
-                // Стрингове за отписване
-                $unsStr = 'Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
-                $unsStr = str::utf2ascii($unsStr);
-                $unsStr = preg_replace('/\s+/ui', ' ', $unsStr);
-
-                if (preg_match("/<a[^>]*>([^>]*({$unsStr})+[^>]*)<\/a>/iu", $content, $matches)) {
-                    if (preg_match(type_Richtext::URL_PATTERN, $matches[0], $lMatches)) {
-                        $res = $lMatches[0];
-                    }
+                    $res = $matches[0];
                 }
             }
         }
@@ -3567,6 +3697,8 @@ class email_Incomings extends core_Master
      */
     public function getLinkedFiles($rec)
     {
+        $onlyAttached = Mode::is('ONLY_ATTACHED_FILES');
+
         // Ако не е обект
         if (!is_object($rec)) {
             
@@ -3586,11 +3718,17 @@ class email_Incomings extends core_Master
         // Ако има HTML файл, добавяме го към файловете
         if ($cRec->htmlFile) {
             $filesArr[$cRec->htmlFile] = $cRec->htmlFile;
+            if ($onlyAttached) {
+                unset($filesArr[$cRec->htmlFile]);
+            }
         }
         
         // Ако има, добавяме EML файла, към файловете
         if ($cRec->emlFile) {
             $filesArr[$cRec->emlFile] = $cRec->emlFile;
+            if ($onlyAttached) {
+                unset($filesArr[$cRec->emlFile]);
+            }
         }
         
         $fhArr = array();
@@ -3654,6 +3792,33 @@ class email_Incomings extends core_Master
         }
         
         return $query;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * Забранява изтриването на вече използвани сметки
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'changeshowtype') {
+            if ($requiredRoles != 'no_one') {
+                $requiredRoles = $mvc->getRequiredRoles('single', $rec, $userId);
+            }
+
+            if ($requiredRoles != 'no_one') {
+                if ($rec && !$rec->htmlFile) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     

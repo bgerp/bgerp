@@ -25,6 +25,8 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     {
         $mvc->FLD('fromContainerId', 'int', 'caption=Към,input=hidden,silent');
         setIfNot($mvc->canSelectOnlyOneInvoice, false);
+        setIfNot($mvc->ignoreDetailsToCheckWhenTryingToPost, 'deals_InvoicesToDocuments');
+
         $mvc->setDbIndex('fromContainerId');
     }
 
@@ -89,8 +91,10 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+        // Ако няма детайл ще се връзва към документа след създаване
         if(!isset($mvc->mainDetail)){
             if(isset($rec->fromContainerId)){
+
                 static::saveIfFromContainer($mvc, $rec);
             }
         }
@@ -102,9 +106,13 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
-        if(isset($rec->fromContainerId)){
+        $rec = $mvc->fetchRec($id);
+        if(isset($rec->fromContainerId) && isset($mvc->mainDetail)){
             $rec = $mvc->fetchRec($id);
-            static::saveIfFromContainer($mvc, $rec);
+
+            if (!deals_InvoicesToDocuments::fetch("#documentContainerId = {$rec->containerId} AND #containerId = {$rec->fromContainerId}")) {
+                static::saveIfFromContainer($mvc, $rec);
+            }
         }
     }
 

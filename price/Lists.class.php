@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2024 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -147,8 +147,14 @@ class price_Lists extends core_Master
      * Да се забрани ли кеширането на документа
      */
     public $preventCache = true;
-    
-    
+
+
+    /**
+     * Дали се очаква в документа да има файлове
+     */
+    public $expectFiles = false;
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -159,6 +165,7 @@ class price_Lists extends core_Master
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен,input=none');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС');
+        $this->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=ДДС изключение');
 
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
@@ -170,9 +177,10 @@ class price_Lists extends core_Master
         $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка / Отстъпка по подразбиране->Процент', "unit= |(със знак минус за Отстъпка)");
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
-
-        $this->FLD('discountClassPeriod', 'enum(default=За продажба,daily=За ден,monthly=За текущ месец)', 'caption=Автоматични отстъпки->Сума за отстъпки,autohide,notNull,value=default');
+        $this->FLD('discountClassPeriod', 'enum(default=За продажба,daily=За ден,monthly=За текущ месец,hourly=В рамките на 1 час)', 'caption=Автоматични отстъпки->Сума за отстъпки,autohide,notNull,value=default');
         $this->FLD('haveBasicDiscounts', 'enum(no=Няма,yes=Има)', 'caption=Автоматични отстъпки->Има ли,notNull,value=no,input=none');
+        $this->FLD('orderGroupRules', 'enum(validFrom=Валидност (низходящ),name=Наименование (възходящ))', 'caption=Подредба на груповите правила->Избор,autohide,notNull,value=validFrom');
+
         $this->setDbUnique('title');
         $this->setDbIndex('cId,cClass');
     }
@@ -879,6 +887,16 @@ class price_Lists extends core_Master
         $query->show('maxModifiedOn');
         $keys[] = $query->fetch()->maxModifiedOn;
 
+        $query = cond_VatExceptions::getQuery();
+        $query->XPR('maxModifiedOn', 'datetime', 'MAX(#modifiedOn)');
+        $query->show('maxModifiedOn');
+        $keys[] = $query->fetch()->maxModifiedOn;
+
+        $query = cat_products_VatGroups::getQuery();
+        $query->XPR('maxCreatedOn', 'datetime', 'MAX(#createdOn)');
+        $query->show('maxCreatedOn');
+        $keys[] = $query->fetch()->maxCreatedOn;
+
         $hash = md5(implode('|', $keys));
         $pricelistHash = core_Permanent::get("priceListHash");
 
@@ -921,8 +939,10 @@ class price_Lists extends core_Master
         $clone = clone $masterRec;
         if($Master instanceof sales_Sales){
             $listId = $clone->priceListId ?? price_ListToCustomers::getListForCustomer($clone->contragentClassId, $clone->contragentId, $clone->valior);
-        } else {
-            $listId = pos_Receipts::isForDefaultContragent($clone) ? pos_Points::getSettings($clone->pointId)->policyId : price_ListToCustomers::getListForCustomer($clone->contragentClass, $clone->contragentObjectId);
+        } elseif($Master instanceof eshop_Carts) {
+            $listId = eshop_Carts::getCartListId($masterRec);
+        }  else {
+            $listId = $masterRec->policyId ? $masterRec->policyId : (pos_Receipts::isForDefaultContragent($clone) ? pos_Points::getSettings($clone->pointId)->policyId : price_ListToCustomers::getListForCustomer($clone->contragentClass, $clone->contragentObjectId));
         }
 
         // Обикаля се тази политика+бащите ѝ дали има поне една с общи отстъпки

@@ -37,7 +37,7 @@ class plg_Search extends core_Plugin
     {
         // Добавя поле за ключовите думи към обекта
         if (!isset($mvc->fields['searchKeywords'])) {
-            $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none,single=none,input=none');
+            $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none,single=none,input=none,dbAutoselectExcluded');
         }
         
         $fType = $mvc->getFieldType('searchKeywords');
@@ -113,6 +113,8 @@ class plg_Search extends core_Plugin
             }
             
             foreach ($fieldsArr as $field => $fieldObj) {
+                // Дали това поле даващо ключови думи е дефинирано?
+                expect(is_object($fieldObj), $field);
                 if (get_class($fieldObj->type) == 'type_Text') {
                     $searchKeywords .= ' ' . static::normalizeText($cRec->{$field});
                 } else {
@@ -742,8 +744,24 @@ class plg_Search extends core_Plugin
     {
         $searchFieldsArr = arr::make($mvc->searchFields);
     }
-    
-    
+
+
+    /**
+     * Функция за проверка на свалените имейли
+     * Ако хеша го няма - предизвиква сваляне
+     *
+     * @param string $emlStatus
+     *
+     * @deprecated
+     * @see callback_repairSearchKeywords
+     */
+    public static function callback_repairSerchKeywords($clsName)
+    {
+
+        return self::callback_repairSearchKeywords($clsName);
+    }
+
+
     /**
      * Функция за проверка на свалените имейли
      * Ако хеша го няма - предизвиква сваляне
@@ -805,9 +823,9 @@ class plg_Search extends core_Plugin
 
         $Containers = cls::get('doc_Containers');
 
+        $query->show('*');
         try {
             while ($rec = $query->fetch()) {
-                
                 if (dt::now() >= $maxTime) {
                     break;
                 }
@@ -821,9 +839,9 @@ class plg_Search extends core_Plugin
                 
                 try {
                     $generatedKeywords = $clsInst->getSearchKeywords($rec);
-                    if ($generatedKeywords != $rec->searchKeywords) {
+                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
 
-                        $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+                    if ($generatedKeywords != $rec->searchKeywords) {
 
                         $rec->searchKeywords = $generatedKeywords;
 
@@ -831,9 +849,10 @@ class plg_Search extends core_Plugin
                     }
 
                     // Обновяваме и ключовите думи в контейнерите, дори и да няма промяна в модела
-                    if ($rec->containerId) {
+                    if ($rec->containerId && cls::haveInterface('doc_DocumentIntf', $clsInst)) {
                         $cRec = $Containers->fetch($rec->containerId);
-                        if ($cRec) {
+
+                        if ($cRec && ($cRec->docClass == $clsInst->getClassId())) {
                             if ($generatedKeywords != $cRec->searchKeywords) {
                                 $cRec->searchKeywords = $generatedKeywords;
                                 $Containers->save_($cRec, 'searchKeywords');

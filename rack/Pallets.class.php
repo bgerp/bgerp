@@ -128,7 +128,7 @@ class rack_Pallets extends core_Manager
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell,silent');
         $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,silent');
-        $this->FLD('batch', 'text', 'caption=Партида,tdClass=small');
+        $this->FLD('batch', 'varchar(128)', 'caption=Партида,tdClass=small');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none,notNull,value=active');
@@ -376,7 +376,8 @@ class rack_Pallets extends core_Manager
             $storeId = store_Stores::getCurrent();
         }
         
-        list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
+        list($unusable, $reserved, $reservedSoft) = rack_RackDetails::getunUsableAndReserved();
+        $reserved += $reservedSoft;
         list(, $movedTo) = rack_Movements::getExpected();
 
         // Ако намерим палет с този продукт и свободно място към края на стелажа - вземаме него
@@ -1191,6 +1192,8 @@ class rack_Pallets extends core_Manager
      */
     public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null, $containerId = null)
     {
+        if(!$storeId) return;
+
         if(!store_Stores::haveRightFor('select', $storeId) || core_Mode::isReadOnly()) return false;
         if (!rack_Movements::haveRightFor('add', (object) array('productId' => $productId))) return false;
         if(!rack_Racks::count("#storeId={$storeId}")) return false;

@@ -93,8 +93,9 @@ class sales_TransportValues extends core_Manager
         $this->FLD('fee', 'double', 'mandatory,caption=Сума на транспорта');
         $this->FLD('deliveryTime', 'time', 'mandatory,caption=Срок на доставка');
         $this->FLD('explain', 'varchar(265)', 'mandatory,caption=Обяснение');
-        
+
         $this->setDbUnique('docClassId,docId,recId');
+        $this->setDbIndex('recId');
         $this->setDbIndex('docClassId,docId');
     }
     
@@ -762,7 +763,7 @@ class sales_TransportValues extends core_Manager
                     $newFee = $feeArr['totalFee'] / $rec->{$map['quantity']};
                     $newFee = $newFee / $masterRec->{$map['currencyRate']};
                     if ($masterRec->{$map['chargeVat']} == 'yes') {
-                        $vat = cat_Products::getVat($rec->productId, $masterRec->{$map['valior']});
+                        $vat = cat_Products::getVat($rec->productId, $masterRec->{$map['valior']}, $masterRec->vatExceptionId);
                         $newFee = $newFee * (1 + $vat);
                     }
                     
@@ -793,7 +794,7 @@ class sales_TransportValues extends core_Manager
                     if ($amount < round($rec->fee, 2)) {
                         $fee = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->fee / $masterRec->{$map['currencyRate']});
                         $form->setWarning('packPrice', "Сумата на артикула без ДДС е по-малка от сумата на скрития транспорт|* <b>{$fee}</b> {$masterRec->{$map['currencyId']}}, |без ДДС|*");
-                        $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
+                        $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']}, $masterRec->vatExceptionId);
                         $rec->{$map['packPrice']} = deals_Helper::getDisplayPrice($rec->{$map['packPrice']}, $vat, $masterRec->{$map['currencyRate']}, $masterRec->{$map['chargeVat']});
                     }
                 }

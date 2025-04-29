@@ -26,8 +26,14 @@ class bgfisc_reports_DetailedPurchasesData extends frame2_driver_TableData
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'acc,purchase,ceo';
-    
-    
+
+
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -93,7 +99,7 @@ class bgfisc_reports_DetailedPurchasesData extends frame2_driver_TableData
         while ($purDetailRec = $query -> fetch()) {
             $classesArr = array('purchase_Purchases');
             
-            $firstDoc = doc_Threads::getFirstDocument($purDetailRec -> threadId);
+            $firstDoc = doc_Threads::getFirstDocument($purDetailRec->threadId);
             
             if (!in_array($firstDoc->className, $classesArr)) {
                 continue;
@@ -130,7 +136,8 @@ class bgfisc_reports_DetailedPurchasesData extends frame2_driver_TableData
             
             
             //ДДС - сума
-            $vatSum = $purDetailRec->amount * cat_Products::getVat($purDetailRec->productId);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($purDetailRec->threadId);
+            $vatSum = $purDetailRec->amount * cat_Products::getVat($purDetailRec->productId, null, $vatExceptionId);
             
             //Обща сума на продажбата - без ДДС
             $amountSum = $purDetailRec->amount;

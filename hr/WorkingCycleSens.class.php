@@ -27,8 +27,8 @@ class hr_WorkingCycleSens extends sens2_ProtoDriver
      * Входове на контролера
      */
     public $inputs = array(
-        'workingAfter' => array('caption' => 'Минимална', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
-        'nonWorkingAfter' => array('caption' => 'Средна', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
+        'workingAfter' => array('caption' => 'Начало след', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
+        'nonWorkingAfter' => array('caption' => 'Спиране след', 'uom' => 'min', 'logPeriod' => 0, 'readPeriod' => 60),
     );
 
 
@@ -50,10 +50,18 @@ class hr_WorkingCycleSens extends sens2_ProtoDriver
      */
     public function readInputs($inputs, $config, &$persistentState)
     {
+        $maxDays = 10;
         $resArr = array();
         $now = dt::now();
-        $to = dt::addDays(10, $now);
+        $to = dt::addDays($maxDays, $now);
         $Interval = hr_Schedules::getWorkingIntervals($config->schedule, $now, $to, true);
+
+        foreach ($inputs as $input) {
+            $resArr[$input] = 0;
+            if ($input == 'workingAfter') {
+                $resArr[$input] = $maxDays * 24 * 60 * 60;
+            }
+        }
 
         if (!$Interval) {
 

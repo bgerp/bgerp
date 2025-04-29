@@ -57,14 +57,17 @@ class support_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'support';
+    public $roles = array(
+        array('support'),
+        array('supportMaster', 'support'),
+    );
 
 
     /**
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(2.14, 'Обслужване', 'Поддръжка', 'support_Tasks', 'default', 'support, admin, ceo'),
+        array(2.14, 'Обслужване', 'Поддръжка', 'cal_Tasks', 'listsupporttasks', 'support, admin, ceo'),
     );
 
 

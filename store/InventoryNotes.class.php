@@ -81,7 +81,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Икона на единичния изглед
      */
-    public $singleIcon = 'img/16/invertory.png';
+    public $singleIcon = 'img/16/inventory.png';
     
     
     /**
@@ -95,7 +95,7 @@ class store_InventoryNotes extends core_Master
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, store_Wrapper,plg_Clone,acc_plg_Contable,
                         doc_DocumentPlg,purchase_plg_ExtractPurchasesData,
-                        plg_Printing, acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation, plg_Search,bgerp_plg_Blank';
+                        plg_Printing, acc_plg_DocumentSummary, plg_Search,bgerp_plg_Blank';
     
     
     /**
@@ -197,7 +197,9 @@ class store_InventoryNotes extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date', 'caption=Вальор');
+        $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
+        $this->FLD('instockTo', 'enum(dayBefore=Вальора - 1 ден,valior=Вальора)', 'caption=Наличности към, notNull, value=dayBefore');
+        $this->FLD('quantitiesFilter', 'enum(all=Всички,positive=Само положителните,negative=Само отрицателните,zero=Само нулевите)', 'caption=Очаквани к-ва,notNull,value=all');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
         $this->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Подгрупи,columns=2,single=none,notNull,value=no');
@@ -279,14 +281,21 @@ class store_InventoryNotes extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
+        $rec = $form->rec;
+
         $form->setDefault('storeId', doc_Folders::fetchCoverId($form->rec->folderId));
         $form->setReadOnly('storeId');
         $form->setDefault('hideOthers', 'no');
         $form->setDefault('expandGroups', 'no');
-        
+
         if (isset($form->rec->id)) {
             $form->setReadOnly('storeId');
+
+            if(store_InventoryNoteDetails::count("#noteId = {$rec->id}")){
+                $form->setReadOnly('valior');
+                $form->setReadOnly('instockTo');
+                $form->info = tr("|*<div class='richtext-message richtext-warning'>|Има вече въведено установено к-во и вальора не може да се променя|*</div>");
+            }
         }
 
         if(!core_Packs::isInstalled('batch')){
@@ -305,7 +314,16 @@ class store_InventoryNotes extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
+            if($rec->instockTo == 'valior'){
+                $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+                $endWorkingTime = trans_Setup::get('END_WORK_TIME');
+                $endOfWorkingDayOfValior = "{$valior} {$endWorkingTime}";
+                if($endOfWorkingDayOfValior > dt::now()){
+                    $form->setError('instockTo', "Опцията \"Наличност към вальора\" е допустима за всеки вальор в миналото, а при вальор \"днес\" - само след|* <b>{$endWorkingTime}</b> |часа (края на работния ден от пакета|* <b>trans</b>)!");
+                }
+            }
+
             // Проверка имали избрани вложени групи
             if (cat_Groups::checkForNestedGroups($rec->groups)) {
                 $form->setError('groups', 'Избрани са вложени групи');
@@ -470,10 +488,12 @@ class store_InventoryNotes extends core_Master
         $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, null, null);
         $row = (object) ((array) $row + (array) $headerInfo);
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-        
-        $toDate = dt::addDays(-1, $rec->valior);
-        $toDate = dt::verbal2mysql($toDate, false);
-        $row->toDate = $mvc->getFieldType('valior')->toVerbal($toDate);
+
+        if($rec->instockTo == 'dayBefore'){
+            $toDate = dt::addDays(-1, $rec->valior);
+            $toDate = dt::verbal2mysql($toDate, false);
+            $row->toDate = $mvc->getFieldType('valior')->toVerbal($toDate);
+        }
         
         if ($storeLocationId = store_Stores::fetchField($data->rec->storeId, 'locationId')) {
             $row->storeAddress = crm_Locations::getAddress($storeLocationId);
@@ -575,12 +595,11 @@ class store_InventoryNotes extends core_Master
         $Summary = cls::get('store_InventoryNoteSummary');
         
         // Търсим артикулите от два месеца назад
-        $to = dt::addDays(-1, $rec->valior);
+        $to = $rec->instockTo == 'valior' ? $rec->valior : dt::addDays(-1, $rec->valior);
         $to = dt::verbal2mysql($to, false);
-        
         $from = dt::addMonths(-2, $to);
         $from = dt::verbal2mysql($from, false);
-        
+
         $now = dt::now();
         
         // Изчисляваме баланс за подадения период за склада
@@ -664,7 +683,17 @@ class store_InventoryNotes extends core_Master
         
         // Извличаме артикулите от баланса
         $balanceArr = $this->getProductsFromBalance($rec);
-        
+
+        if($rec->quantitiesFilter != 'all'){
+            $balanceArr = array_filter($balanceArr, function($a) use ($rec){
+                if($rec->quantitiesFilter == 'negative' && $a->blQuantity < 0) return true;
+                if($rec->quantitiesFilter == 'positive' && $a->blQuantity > 0) return true;
+                if($rec->quantitiesFilter == 'zero' && empty($a->blQuantity)) return true;
+
+                return false;
+            });
+        }
+
         // Извличаме текущите записи
         $currentArr = $this->getCurrentProducts($rec);
         
@@ -747,11 +776,16 @@ class store_InventoryNotes extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+
         // Синхронизираме данните само в чернова
         if ($rec->state == 'draft' && $rec->_isClone !== true) {
             $mvc->sync($rec);
-        } elseif ($rec->state == 'active' || ($rec->state == 'rejected' && $rec->brState == 'active')) {
-            cls::get('store_InventoryNoteDetails')->invoke('AfterContoOrReject', array($rec));
+        } elseif ($rec->state == 'active' && ($rec->brState == 'stopped' || Mode::is('recontoMovement'))) {
+            cls::get('store_InventoryNoteDetails')->invoke('AfterStartDocument', array($rec));
+        } elseif($rec->state == 'stopped' && $rec->brState != 'stopped') {
+            if (core_Packs::isInstalled('batch')) {
+                batch_Movements::removeMovement('store_InventoryNotes', $rec);
+            }
         }
         
         static::invalidateCache($rec);
@@ -776,13 +810,14 @@ class store_InventoryNotes extends core_Master
     /**
      * Връща ключа за кеширане на данните
      *
-     * @param stdClass $rec - запис
+     * @param stdClass|int $rec - запис
      *
      * @return string $key  - уникален ключ
      */
     public static function getCacheKey($rec)
     {
         // Подготвяме ключа за кеширане
+        $rec = static::fetchRec($rec);
         $cu = core_Users::getCurrent();
         $lg = core_Lg::getCurrent();
         $isNarrow = (Mode::is('screenMode', 'narrow')) ? true : false;
@@ -904,8 +939,18 @@ class store_InventoryNotes extends core_Master
             $this->save($rec, 'isContable');
         }
     }
-    
-    
+
+
+    /**
+     * След дебъг реконтиране
+     */
+    public static function on_AfterDebugReconto($mvc, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        cls::get('store_InventoryNoteDetails')->invoke('AfterContoMaster', array($rec));
+    }
+
+
     /**
      * Ре-контиране на счетоводен документ
      */
@@ -1047,15 +1092,39 @@ class store_InventoryNotes extends core_Master
         $this->requireRightFor('fillreport', $rec);
 
         $summaryQuery = store_InventoryNoteSummary::getQuery();
-        $summaryQuery->where("#noteId = {$rec->id} AND #quantity IS NULL");
+        $summaryQuery->where("#noteId = {$rec->id}");
+        $summaryQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId', 'caption=Сметка->№');
+        $summaryQuery->show('productId,quantity,measureId');
 
+        $exRecs = array();
+        $dQuery = store_InventoryNoteDetails::getQuery();
+        $dQuery->where("#noteId = {$rec->id}");
+        $dQuery->show('productId,batch');
+        while ($dRec = $dQuery->fetch()){
+            $exRecs[$dRec->productId][$dRec->batch] = true;
+        }
+
+        $count = $summaryQuery->count();
+        core_App::setTimeLimit(0.3 * $count, false, 300);
+
+        $cu = core_Users::getCurrent();
+        $now = dt::now();
+        $saveArr = $productIds = array();
         while ($summaryRec = $summaryQuery->fetch()) {
-            $packagingId = cat_Products::fetchField($summaryRec->productId, 'measureId');
+            $obj = (object) array('noteId' => $id,
+                                  'productId' => $summaryRec->productId,
+                                  'quantityInPack' => 1,
+                                  'quantity' => 0,
+                                  'createdOn' => $now,
+                                  'modifiedOn' => $now,
+                                  'createdBy' => $cu,
+                                  'modifiedBy' => $cu,
+                                  'packagingId' => $summaryRec->measureId);
+            $save = true;
 
             if(core_Packs::isInstalled('batch')){
-                $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $rec->storeId, $rec->valior, null, array(), true);
+                $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $rec->storeId, $rec->valior, null, array('store_InventoryNotes', $rec->id), true, null, false, true);
 
-                $save = true;
                 if(countR($batchQuantities)){
                     $noBatchQuantity = $summaryRec->blQuantity - array_sum($batchQuantities);
                     if(isset($noBatchQuantity)){
@@ -1064,27 +1133,28 @@ class store_InventoryNotes extends core_Master
                     }
 
                     foreach ($batchQuantities as $batch => $batchQuantity){
-                        if(store_InventoryNoteDetails::fetchField(array("#noteId = {$id} AND #productId = {$summaryRec->productId} AND #batch = '[#1#]'", $batch))) continue;
+                        if($exRecs[$summaryRec->productId][$batch] === true) continue;
+                        $productIds[$summaryRec->productId] = $summaryRec->productId;
 
-                        $dRec = (object) array('noteId' => $id,
-                            'productId' => $summaryRec->productId,
-                            'quantityInPack' => 1,
-                            'quantity' => 0,
-                            'batch' => $batch,
-                            'packagingId' => $packagingId);
-
-                        store_InventoryNoteDetails::save($dRec);
+                        $dRec = clone $obj;
+                        $dRec->batch = $batch;
+                        $saveArr[] = $dRec;
                     }
                 }
+            }
 
-                if($save){
-                    $dRec = (object) array('noteId' => $id, 'productId' => $summaryRec->productId, 'quantityInPack' => 1, 'packagingId' => $packagingId);
-                    $dRec->quantity = 0;
-                    store_InventoryNoteDetails::save($dRec);
-                }
+            if($save){
+                if(array_key_exists($summaryRec->productId, $exRecs)) continue;
+                $productIds[$summaryRec->productId] = $summaryRec->productId;
+                $dRec = clone $obj;
+                $dRec->quantity = 0;
+                $saveArr[] = $dRec;
             }
         }
 
+        $Details = cls::get('store_InventoryNoteDetails');
+        $Details->saveArray($saveArr);
+        cls::get('store_InventoryNoteDetails')->recalcOnShutDown[$rec->id] = $productIds;
         $this->logInAct('Нулиране на невъведените артикули', $id);
         
         followRetUrl('|Всички артикули с невъведени количества са нулирани');
@@ -1102,5 +1172,33 @@ class store_InventoryNotes extends core_Master
         $title = "{$handle} / " . store_Stores::getTitleById($rec->storeId, false);
          
         return $title;
+    }
+
+
+    /**
+     * Добавя ключовио думи за държавата и на bg и на en
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        if(isset($rec->id)){
+            $detailKeywords = array();
+            $dQuery = store_InventoryNoteDetails::getQuery();
+            $dQuery->where("#noteId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                if(!array_key_exists($dRec->productId, $detailKeywords)){
+                    $detailKeywords[$dRec->productId] = array();
+                }
+
+                // Добавят се ключовите думи от експлицитно въведените детайли
+                $currentKeywords = explode(' ', $dRec->searchKeywords);
+                $currentKeywords = array_combine($currentKeywords, $currentKeywords);
+                $detailKeywords[$dRec->productId] += array_diff_key($currentKeywords, $detailKeywords[$dRec->productId]);
+            }
+
+            foreach ($detailKeywords as $keywordArr){
+                $keywords = implode(' ', $keywordArr);
+                $res .= ' ' . $keywords;
+            }
+        }
     }
 }

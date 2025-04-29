@@ -25,7 +25,7 @@ class colab_FolderToPartners extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, doc_Wrapper, plg_RowTools2';
+    public $loadList = 'plg_Created, doc_Wrapper, plg_RowTools2, plg_Sorting';
     
     
     /**
@@ -417,8 +417,8 @@ class colab_FolderToPartners extends core_Manager
     {
         $data->toolbar->removeBtn('btnAdd');
     }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -426,7 +426,7 @@ class colab_FolderToPartners extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $names = core_Users::getVerbal($rec->contractorId, 'names');
         $nick = crm_Profiles::createLink($rec->contractorId);
@@ -440,6 +440,11 @@ class colab_FolderToPartners extends core_Manager
                     $row->_rowTools->addLink('Възстановяване', array('crm_Profiles', 'restore', $pId, 'ret_url' => true), "warning=Наистина ли желаете да възстановите потребителя|*?,ef_icon = img/16/restore.png,title=Възстановяване на профила на споделен партньор,id=rst{$rec->id}");
                 }
             }
+        }
+
+        if(isset($fields['-list'])){
+            $row->contractorId = crm_Profiles::createLink($rec->contractorId);
+            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
         }
     }
     
@@ -822,6 +827,10 @@ class colab_FolderToPartners extends core_Manager
             if (!core_Users::checkNames($form->rec->names)) {
                 $form->setError('names', 'Напишете поне две имена разделени с интервал');
             }
+
+            if (drdata_Domains::isDisposal($form->rec->email)) {
+                $form->setError('email', 'Не може да се използват временни имейли за регистрация!');
+            }
             
             $errorMsg = null;
             if (core_Users::isForbiddenNick($form->rec->nick, $errorMsg)) {
@@ -886,6 +895,7 @@ class colab_FolderToPartners extends core_Manager
                 $personRec->country = $form->rec->country;
                 $inChargeState = core_Users::fetchField($contragentRec->inCharge, 'state');
                 $personRec->inCharge = in_array($inChargeState, array('active', 'blocked')) ? $contragentRec->inCharge : doc_FolderPlg::getDefaultInCharge();
+                $personRec->access = doc_Setup::get('DEFAULT_ACCESS');
 
                 // Имейлът да е бизнес имейла му
                 $buzEmailsArr = type_Emails::toArray($personRec->buzEmail);

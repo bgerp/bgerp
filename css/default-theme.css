@@ -65,8 +65,7 @@ form[method="post"] input[type="submit"] {
 
 .vertical .formTitle {
   color: white;
-  background-color: #9999ff;
-  border: solid 1px #8888ee; }
+  background-color: #9999ff; }
 
 .vertical .formGroup {
   color: white;
@@ -82,28 +81,6 @@ td.keylist-group > div {
     background-color: #eeeeee; }
   a.pager.pagerSelected {
     border: solid 1px #aaaaaa;
-    background-color: #ffffcc; }
-
-div.tab-control div.tab-row .tab {
-  background: #dddddd;
-  border-left: 1px solid #bbbbbb;
-  border-right: 1px solid #bbbbbb;
-  border-top: 2px solid #004488; }
-  div.tab-control div.tab-row .tab.selected {
-    background: white;
-    border-left: 1px solid #bbbbbb;
-    border-right: 1px solid #bbbbbb;
-    border-top: 2px solid #004488; }
-
-div.tab-control.alphabet div.tab-row .tab {
-  background: #dddddd;
-  border: 1px solid #aaaaaa; }
-  div.tab-control.alphabet div.tab-row .tab:hover a {
-    color: red !important; }
-  div.tab-control.alphabet div.tab-row .tab.selected {
-    background: #ffffcc !important;
-    border: 1px solid #aaaaaa; }
-  div.tab-control.alphabet div.tab-row .tab:hover {
     background-color: #ffffcc; }
 
 div.tab-control div.tab-page {

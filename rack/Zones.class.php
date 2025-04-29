@@ -611,7 +611,7 @@ class rack_Zones extends core_Master
         $form = cls::get('core_Form');
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
         $form->info = tr('Склад|*: ') . store_Stores::getHyperlink($storeId, true);
-        $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона');
+        $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name,allowEmpty)', 'caption=Зона');
         $form->FLD('defaultUserId', 'user(roles=rack|ceo, rolesForAll=ceo|rackZoneSelect, rolesForTeams=ceo|rack|rackZoneSelect, allowEmpty)', 'caption=Изпълнител,placeholder=Няма');
         $zoneOptions = rack_Zones::getZones($storeId, true);
         $zoneRec = rack_Zones::fetch("#containerId = {$containerId}");
@@ -724,8 +724,8 @@ class rack_Zones extends core_Master
         if($remove){
 
             // Ако документа се премахва от зоната, изтриват се чакащите движения към тях
-            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending'");
-            rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}'");
+            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending' AND #modifiedBy = -1");
+            rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}' NOT MODIFIED BY USER");
         }
 
         // Обновяване на информацията в зоната
@@ -1072,6 +1072,9 @@ class rack_Zones extends core_Master
 
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$userId}");
+        if($userId == core_Users::SYSTEM_USER){
+            $mQuery->where("#modifiedBy = {$userId}");
+        }
         if(countR($productIds)){
             $mQuery->in('productId', $productIds);
         }
@@ -1199,7 +1202,7 @@ class rack_Zones extends core_Master
                 if(!array_key_exists($pRec->productId, static::$cache)){
                     $packQuery = cat_products_Packagings::getQuery();
                     $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-                    $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging'");
+                    $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging' AND #state != 'closed'");
                     $packQuery->show('quantity,packagingId');
                     $packagings = array();
                     while($packRec = $packQuery->fetch()) {

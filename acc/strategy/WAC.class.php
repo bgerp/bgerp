@@ -46,12 +46,12 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     public function feed($quantity, $amount)
     {
         // Ако сумата или к-то са отрицателни не захранваме стратегията
-        if(empty($this->quantity) && empty($this->amount)){
-            if($quantity < 0 && $amount < 0){
-                $quantity = abs($quantity);
-                $amount = abs($amount);
-            }
-        }
+        //if(empty($this->quantity) && empty($this->amount)){
+        //    if($quantity < 0 && $amount < 0){
+        //        $quantity = abs($quantity);
+        //        $amount = abs($amount);
+        //    }
+        //}
 
         $this->quantity += $quantity;
         $this->amount += $amount;
@@ -101,7 +101,6 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     {
         // Увеличаваме брояча
         $currentTry++;
-
 
         // Изчисляваме начална и крайна дата, която ще извличаме
         $from = dt::mysql2timestamp($date);

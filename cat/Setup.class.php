@@ -55,12 +55,6 @@ defIfNot('CAT_DEFAULT_META_IN_SUPPLIER_FOLDER', 'canBuy,canConvert,canStore');
 
 
 /**
- * При търсене на складова себестойност до колко месеца на зад да се търси
- */
-defIfNot('CAT_WAC_PRICE_PERIOD_LIMIT', 36);
-
-
-/**
  * Ценова политика по подразбиране
  */
 defIfNot('CAT_DEFAULT_PRICELIST', price_ListRules::PRICE_LIST_CATALOG);
@@ -220,6 +214,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_PackParams',
         'cat_ParamFormulaVersions',
         'migrate::repairSearchKeywords2434',
+        'migrate::calcExpand36Field2445v2',
     );
     
     
@@ -255,13 +250,12 @@ class cat_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'CAT_PRODUCT_CODE_TYPE' => array('enum(default=Букви (латиница) + цифри + тире + интервал + долна черта,all=Букви (латиница и кирилица) + цифри + тире + интервал + долна черта,alphanumeric=Букви (латиница) и цифри,numbers=Само цифри)', 'caption=Код на артикула позволени символи->Допустими'),
+        'CAT_PRODUCT_CODE_TYPE' => array('enum(default=Букви (латиница) + цифри + тире + интервал + долна черта,all=Букви (латиница и кирилица) + цифри + тире + интервал + долна черта,alphanumeric=Букви (латиница) и цифри,numbers=Само цифри,allExtended=Букви (латиница и кирилица) + цифри + тире + интервал + долна черта + наклонена + точка)', 'caption=Код на артикула позволени символи->Допустими'),
         'CAT_BOM_REMEMBERED_RESOURCES' => array('int', 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
         'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
         'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
         'CAT_DEFAULT_MEASURE_ID' => array('key(mvc=cat_UoM,select=name,allowEmpty)', 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на артикулите->Мярка'),
         'CAT_BOM_MAX_COMPONENTS_LEVEL' => array('int(min=0)', 'caption=Вложени рецепти - нива с показване на компонентите->Макс. брой'),
-        'CAT_WAC_PRICE_PERIOD_LIMIT' => array('int(min=1)', array('caption' => 'До колко периода назад да се търси складова себестойност, ако няма->Брой')),
         'CAT_DEFAULT_PRICELIST' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика по подразбиране->Избор,mandatory'),
         'CAT_AUTO_LIST_PRODUCT_COUNT' => array('int(min=1)', 'caption=Списъци от последно продавани артикули->Брой,customizeBy=label'),
         'CAT_AUTO_LIST_ALLOWED_GROUPS' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Списъци от последно продавани артикули->Групи'),
@@ -316,7 +310,15 @@ class cat_Setup extends core_ProtoSetup
             'offset' => 1327,
             'timeLimit' => 20
         ),
-    
+        array(
+            'systemId' => 'Update Touched Groups Cnt',
+            'description' => 'Обновяване на брояча на последно използваните групи',
+            'controller' => 'cat_Groups',
+            'action' => 'UpdateTouchedGroupsCnt',
+            'period' => 60,
+            'offset' => 10,
+            'timeLimit' => 300
+        ),
     );
     
     
@@ -329,7 +331,7 @@ class cat_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg,png,bmp,gif,image/*,webp', '3MB', 'user', 'every_one');
         
         return $html;
     }
@@ -343,11 +345,15 @@ class cat_Setup extends core_ProtoSetup
      */
     public function manageConfigDescriptionForm(&$configForm)
     {
-        $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
-        $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
+        if($configForm->getField('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', false)) {
+            $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
+            $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
+        }
 
-        $packSuggestions = cat_UoM::getPackagingOptions();
-        $configForm->setSuggestions('CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC', $packSuggestions);
+        if($configForm->getField('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', false)) {
+            $packSuggestions = cat_UoM::getPackagingOptions();
+            $configForm->setSuggestions('CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC', $packSuggestions);
+        }
     }
 
 
@@ -377,6 +383,12 @@ class cat_Setup extends core_ProtoSetup
             case 'all':
                 if (preg_match('/[^0-9a-zа-я\- _]/iu', $code)) {
                     $msg = 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта|*!';
+                    $res = false;
+                }
+                break;
+            case 'allExtended':
+                if (preg_match( '/[^0-9a-zа-я\- _\/\.]/iu', $code)) {
+                    $msg = 'Полето може да съдържа само букви, цифри, тирета, интервали, долна черта, наклонена и точка|*!';
                     $res = false;
                 }
                 break;
@@ -435,5 +447,16 @@ class cat_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'cat_Products', $callOn);
+    }
+
+
+    /**
+     * Рекалкулиране на групите във вид за лесно търсене
+     */
+    public static function calcExpand36Field2445v2()
+    {
+        $newData = (object)array('mvc' => 'cat_Products', 'lastId' => null);
+        $callOn = dt::addSecs(60);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
     }
 }

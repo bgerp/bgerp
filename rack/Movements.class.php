@@ -218,7 +218,7 @@ class rack_Movements extends rack_MovementAbstract
             if($measureId == $pcsId || $measureId == $thPcsId){
                 $pQuery = cat_products_Packagings::getQuery();
                 $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-                $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
+                $pQuery->where("#productId = {$productId} AND #type = 'packaging' AND #state != 'closed'");
                 $pQuery->show('quantity,packagingId');
                 while($pRec = $pQuery->fetch()){
                     $packagings[] = array('id' => $pRec->id, 'packagingId' => $pRec->packagingId, 'quantity' => $pRec->quantity);
@@ -1258,13 +1258,22 @@ class rack_Movements extends rack_MovementAbstract
                 
                 return $res;
             }
-            
+
             // Ако Към позицията е запазена за друг артикул
             if (array_key_exists($transaction->to, $unusableAndReserved[1])) {
                 if ($transaction->productId != $unusableAndReserved[1][$transaction->to]) {
                     $res->errors = "|*<b>{$transaction->to}</b> |е запазена за|*: <b>" . cat_Products::getTitleById($unusableAndReserved[1][$transaction->to], false) . '</b>';
                     $res->errorFields[] = 'positionTo';
                     
+                    return $res;
+                }
+            }
+
+            if (array_key_exists($transaction->to, $unusableAndReserved[2])) {
+                if ($transaction->productId != $unusableAndReserved[2][$transaction->to]) {
+                    $res->warnings[] = "|*<b>{$transaction->to}</b> |е запазена за|*: <b>" . cat_Products::getTitleById($unusableAndReserved[2][$transaction->to], false) . '</b>';
+                    $res->warningFields[] = 'positionTo';
+
                     return $res;
                 }
             }

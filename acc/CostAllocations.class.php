@@ -273,7 +273,7 @@ class acc_CostAllocations extends core_Manager
         
         // Колко има още за разпределяне
         $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
-        $toAllocate = $maxQuantity - $allocatedQuantity;
+        $toAllocate = round($maxQuantity - $allocatedQuantity, 6);
         $form->setDefault('quantity', $toAllocate);
         
         // Показване на к-то
@@ -317,10 +317,13 @@ class acc_CostAllocations extends core_Manager
      * Проверява има ли проблем с избраното перо на разходния обект
      *
      * @param int $expenseItemId
-     * @param null|string $error
+     * @param string $allocationFilter
+     * @param mixed $mvc
+     * @param int $id
+     * @param string|null $error
      * @return bool
      */
-    public static function checkSelectedExpenseItem($expenseItemId, &$error)
+    public static function checkSelectedExpenseItem($expenseItemId, $allocationFilter, $mvc, $id, &$error)
     {
         $itemRec = acc_Items::fetch($expenseItemId);
         $Source = cls::get($itemRec->classId);
@@ -329,6 +332,23 @@ class acc_CostAllocations extends core_Manager
                 if($closedWithItemId = acc_Items::fetchItem($Source, $closedWithId)){
                     $newItemId = acc_Items::getVerbal($closedWithItemId, 'titleLink');
                     $error = "Сделката е затворена и е обединена с:|* {$newItemId}";
+
+                    return false;
+                }
+            }
+        }
+
+        if($allocationFilter == 'all' && isset($id)){
+            $mvc = cls::get($mvc);
+            if($mvc instanceof core_Detail){
+                $documentItemRec = acc_Items::fetchItem($mvc->Master, $mvc->fetchField($id, $mvc->masterKey));
+            } else {
+                $documentItemRec = acc_Items::fetchItem($mvc, $id);
+            }
+
+            if(isset($documentItemRec)){
+                if($documentItemRec->id == $expenseItemId){
+                    $error = "Ако с документа се разпределя разход върху същия документ, то не може да е върху всички артикули|*!";
 
                     return false;
                 }
@@ -352,7 +372,7 @@ class acc_CostAllocations extends core_Manager
 
         if (isset($rec->expenseItemId)) {
             $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
-            
+
             if (cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)) {
                 if (isset($rec->allocationBy) && !in_array($rec->allocationBy, array('auto', 'no'))) {
                     $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
@@ -360,12 +380,11 @@ class acc_CostAllocations extends core_Manager
                     acc_ValueCorrections::addProductsFromOriginToForm($form, $origin, $Detail->Master);
                 }
             }
-
         }
         
         if ($form->isSubmitted()) {
             $expenseItemError = null;
-            if(!static::checkSelectedExpenseItem($rec->expenseItemId, $expenseItemError)){
+            if(!static::checkSelectedExpenseItem($rec->expenseItemId, $rec->allocationFilter, $rec->detailClassId, $rec->detailRecId,$expenseItemError)){
                 $form->setError('expenseItemId', $expenseItemError);
             }
 
@@ -376,8 +395,7 @@ class acc_CostAllocations extends core_Manager
             
             // Проверка дали ще се разпределя повече от допустимото количество
             $maxQuantity = $Detail->getMaxQuantity($rec->detailRecId);
-            
-            if ($allocatedQuantity > $maxQuantity) {
+            if (round($allocatedQuantity, 5) > round($maxQuantity, 5)) {
                 $maxQuantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($maxQuantity);
                 $shortUom = cat_UoM::getShortName($uomId);
                 $form->setError('quantity', "Разпределяне над допустимото количество от|* <b>{$maxQuantity}</b> {$shortUom}");
@@ -450,7 +468,9 @@ class acc_CostAllocations extends core_Manager
         }
 
         if(!Mode::isReadOnly()){
-            $row->quantity = ht::createHint($row->quantity, "Разпределяне|*: {$row->allocationBy} / {$row->allocationFilter}");
+            $hint = "Разпределяне|*: {$row->allocationBy}";
+            $hint .= !empty($row->allocationFilter) ? " [ {$row->allocationFilter} ]" : '';
+            $row->quantity = ht::createHint($row->quantity, $hint);
         }
 
         if ($isPercent === false) {
@@ -665,8 +685,6 @@ class acc_CostAllocations extends core_Manager
                 $allocatedByFar = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId);
                 if ($allocatedByFar >= $maxQuantity) {
                     $requiredRoles = 'no_one';
-                    
-                    return;
                 }
             }
         }

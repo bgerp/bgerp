@@ -43,7 +43,7 @@ class ztm_StatMonitoring extends sens2_ProtoDriver
      */
     public function prepareConfigForm($form)
     {
-        $form->FNC('ztmDevice', 'keylist(mvc=ztm_Devices, select=name)', 'caption=Контролери, input, mandatory');
+        $form->FNC('ztmDevice', 'keylist(mvc=ztm_Devices, select=name, find=everywhere)', 'caption=Контролери, input, mandatory');
         $form->FNC('registerId', 'key(mvc=ztm_Registers, select=name, where=#type \\= \\\'float\\\' OR #type \\= \\\'int\\\')', 'caption=Регистър, input, mandatory');
     }
 

@@ -3,7 +3,7 @@
     <div class='folder-cover [#STATE_CLASS#]'>
         <div class='inner-folder'>
             <div class='block_title [#STATE_CLASS#] special-title'>[#SingleIcon#] |Проект|* « [#name#] »</div>
-             <!--ET_BEGIN detailBlock-->
+            <!--ET_BEGIN detailBlock-->
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Детайли|*</legend>
                 [#detailBlock#]
@@ -45,6 +45,24 @@
                             <td>[#clonedFromId#]</td>
                         </tr>
                         <!--ET_END clonedFromId-->
+                        <!--ET_BEGIN makeTaskCostObjects-->
+                        <tr>
+                            <td class='dt'>|Задачите да са разходни обекти|*:</td>
+                            <td>[#makeTaskCostObjects#]</td>
+                        </tr>
+                        <!--ET_END makeTaskCostObjects-->
+                        <!--ET_BEGIN resourceType-->
+                        <tr>
+                            <td class='dt'>|Избор на ресурси|*:</td>
+                            <td>[#resourceType#]</td>
+                        </tr>
+                        <!--ET_END resourceType-->
+                        <!--ET_BEGIN steps-->
+                        <tr>
+                            <td class='dt'>|Етапи|*:</td>
+                            <td>[#steps#]</td>
+                        </tr>
+                        <!--ET_END steps-->
                     </table>
                 </div>
             </fieldset>

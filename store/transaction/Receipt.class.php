@@ -147,7 +147,9 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
     {
         $entries = array();
         $sign = ($reverse) ? -1 : 1;
-        
+
+        $hasDifferentReverseEntries = $reverse && !cls::get('store_ShipmentOrders')->isDocForReturnFromDocument($rec);
+
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         $currencyRate = $rec->currencyRate;
         currency_CurrencyRates::checkRateAndRedirect($currencyRate);
@@ -155,6 +157,12 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $currencyId = currency_Currencies::getIdByCode($currencyCode);
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
         $dClass = ($reverse) ? 'store_ShipmentOrderDetails' : 'store_ReceiptDetails';
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $firstRec = $firstDoc->fetch();
+
+        // Ако документа е с включено/отделно ддс и към покупка - ще се прави контировка за артикултие с данъчен кредит
+        $checkVatCredit = $firstDoc->isInstanceOf('purchase_Purchases') && $firstRec->haveVatCreditProducts == 'no';
+        $entriesLast = array();
 
         foreach ($rec->details as $detailRec) {
             if (empty($detailRec->quantity) && Mode::get('saveTransaction')) {
@@ -165,6 +173,9 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             $amount = round($amount, 2);
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
+            $revertVatPercent = ($checkVatCredit) ? cat_Products::getVat($detailRec->productId, $rec->valior, $vatExceptionId) : null;
+            $reason = $reverse ? ($hasDifferentReverseEntries ? 'Експедиране (връщане без ограничения) на Артикули към Доставчик' : "Връщане на Артикули към Доставчик - в месеца и от склада на доставката им") : null;
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
@@ -174,13 +185,17 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 foreach ($splitRecs as $dRec1) {
                     $amount = $dRec1->amount;
                     $amountAllocated = $amount * $rec->currencyRate;
-                    
+
+                    $debitArr = array('60201', $dRec1->expenseItemId, array('cat_Products', $dRec1->productId), 'quantity' => $sign * $dRec1->quantity);
+                    if($hasDifferentReverseEntries){
+                        $reverseCredit = $debitArr;
+                        $reverseCredit['quantity'] = abs($reverseCredit['quantity']);
+                        $debitArr = array('6912', array($rec->contragentClassId, $rec->contragentId), array($origin->className, $origin->that));
+                    }
+
                     $entries[] = array(
                         'amount' => $sign * $amountAllocated, // В основна валута
-                        'debit' => array('60201',
-                            $dRec1->expenseItemId,
-                            array('cat_Products', $dRec1->productId),
-                            'quantity' => $sign * $dRec1->quantity),
+                        'debit' => $debitArr,
                         'credit' => array($rec->accountId,
                             array($rec->contragentClassId, $rec->contragentId),
                             array($origin->className, $origin->that),
@@ -189,6 +204,14 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                         ),
                         'reason' => $dRec1->reason,
                     );
+
+                    if($hasDifferentReverseEntries){
+                        $entries[] = array(
+                            'debit' => $debitArr,
+                            'credit' => $reverseCredit,
+                            'reason' => $reason,
+                        );
+                    }
                     
                     // Корекция на стойности при нужда
                     if (isset($dRec1->correctProducts) && countR($dRec1->correctProducts)) {
@@ -197,10 +220,20 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                             $entries = array_merge($entries, $correctionEntries);
                         }
                     }
+
+                    if($revertVatPercent){
+                        $entriesLast[] = array(
+                            'amount' => $sign * round($amountAllocated * $revertVatPercent, 2),
+                            'debit' => array('60201',
+                                            $dRec1->expenseItemId,
+                                            array('cat_Products', $dRec1->productId),
+                                            'quantity' => 0),
+                            'credit' => array('4530', array($origin->className, $origin->that)),
+                            'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит');
+                    }
                 }
             } else {
                 $debitAccId = '321';
-
                 $debit = array(
                     $debitAccId,
                     array('store_Stores', $rec->storeId), // Перо 1 - Склад
@@ -210,12 +243,12 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
 
                 $cQuantity = $sign * $amount;
                 $amount = $sign * $amount * $rec->currencyRate;
+                $amountPure = $amount;
 
-                if($reverse){
-                    $amountInStore = cat_Products::getWacAmountInStore($detailRec->quantity, $detailRec->productId, $rec->valior, $rec->storeId);
-                    if(isset($amountInStore)){
-                        $amount = $sign * $amountInStore;
-                    }
+                if($hasDifferentReverseEntries){
+                    $reverseCredit = $debit;
+                    $reverseCredit['quantity'] = abs($reverseCredit['quantity']);
+                    $debit = array('6912', array($rec->contragentClassId, $rec->contragentId), array($origin->className, $origin->that));
                 }
 
                 $entries[] = array(
@@ -228,7 +261,27 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                         array('currency_Currencies', $currencyId),          // Перо 3 - Валута
                         'quantity' => $cQuantity, // "брой пари" във валутата на покупката
                     ),
+                    'reason' => $reason,
                 );
+
+                if($hasDifferentReverseEntries){
+                    $entries[] = array(
+                        'debit' => $debit,
+                        'credit' => $reverseCredit,
+                        'reason' => $reason,
+                    );
+                }
+
+                if($revertVatPercent && !$reverse){
+                    $entriesLast[] = array(
+                        'amount' => round($amountPure * $revertVatPercent, 2),
+                        'debit' => array($debitAccId,
+                                   array('store_Stores', $rec->storeId),
+                                   array('cat_Products', $detailRec->productId),
+                                            'quantity' => 0),
+                        'credit' => array('4530', array($origin->className, $origin->that)),
+                        'reason' => 'Сторно ДДС за начисляване при покупка - сделка БЕЗ право на Данъчен кредит');
+                }
             }
         }
         
@@ -258,7 +311,11 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         if (countR($entries2)) {
             $entries = array_merge($entries, $entries2);
         }
-        
+
+        if(countR($entriesLast)){
+            $entries = array_merge($entries, $entriesLast);
+        }
+
         return $entries;
     }
     

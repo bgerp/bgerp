@@ -141,7 +141,7 @@ class eshop_Products extends core_Master
      */
     public function description()
     {
-        $this->FLD('code', 'varchar(10)', 'caption=Код');
+        $this->FLD('code', 'varchar(20)', 'caption=Код');
         $this->FLD('name', 'varchar(100)', 'caption=Артикул, mandatory,width=100%');
         
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация (1),hint=препоръчително квадрат поне 600х600px');
@@ -841,12 +841,12 @@ class eshop_Products extends core_Master
         }
         $url = self::getUrl($rec);
 
-        $row->name = ht::createLink($row->name, $url);
+        $row->name = ht::createLink($row->name, $url, false, array('title' => $rec->seoTitle ? $rec->seoTitle : null));
         if($url['groupId'] < 0){
             unset($url['groupId']);
         }
 
-        $row->image = ht::createLink($row->image, $url, false, 'class=eshopLink');
+        $row->image = ht::createLink($row->image, $url, false, array('class' => 'eshopLink', 'title' => $rec->seoTitle ? $rec->seoTitle : null)); 
 
         $pTpl->placeObject($row);
         $pTpl->removeBlocksAndPlaces();
@@ -945,6 +945,7 @@ class eshop_Products extends core_Master
                 $data->groups->groupId = $groupId;
             }
         }
+        expect($data->groups->groupId, $data->groups, $data);
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
 
         $settings = cms_Domains::getSettings();

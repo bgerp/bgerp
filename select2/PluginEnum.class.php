@@ -94,8 +94,9 @@ class select2_PluginEnum extends core_Plugin
         }
 
         $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
+        $matchOnlyStartsWith = $this->params['find'] == 'everywhere' ? false : true;
 
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen'], $minimumResultsForSearch);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen'], $minimumResultsForSearch, $matchOnlyStartsWith);
     }
 }

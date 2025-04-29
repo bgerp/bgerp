@@ -3,7 +3,7 @@
     <div class="folder-cover [#STATE_CLASS#]">
         <div class="inner-folder">
             <div class="block_title [#STATE_CLASS#] special-title">
-                [#SingleIcon#] [#title#] [#titleNumber#]
+                [#SingleIcon#] [#title#] [#titleNumber#] <!--ET_BEGIN VERSION_STRING--><div class="versionBlock" title="[#VERSION_STRING_HINT#]"><small>|v|* </small>[#VERSION_STRING#]</div><!--ET_END VERSION_STRING--> <!--ET_BEGIN VALID_TO_HINT--><div style="float:right">[#VALID_TO_HINT#]</div><!--ET_END VALID_TO_HINT-->
             </div>
             <!--ET_BEGIN image-->
             <div class="crmImage">
@@ -115,18 +115,19 @@
                 <legend class="groupTitle">|Друга информация|*</legend>
                 <div class="groupList">
                     [#info#]
-                    <div style="margin: 10px 0 3px; border: 1px solid #ccc; padding: 3px 5px;border-radius: 3px;">
-                        [#crm/tpl/ContragentInfoBlock.shtml#]
+                    <!--ET_BEGIN CONTRAGENT_INFO_BLOCK-->
+                    [#CONTRAGENT_INFO_BLOCK#]
+                    <div>
                         <!--ET_BEGIN CloseTime-->
                         <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
                         <!--ET_END CloseTime-->
                         <!--ET_BEGIN ShowDocumentsAsButtons-->
                         <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
                         <!--ET_END ShowDocumentsAsButtons-->
+                        [#crm/tpl/ContragentInfoBlock.shtml#]
                     </div>
+                    <!--ET_END CONTRAGENT_INFO_BLOCK-->
                 </div>
-
-
             </fieldset>
             <!--ET_END info-->
             <div class="clearfix21"></div>

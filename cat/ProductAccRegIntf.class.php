@@ -333,4 +333,19 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
         return $this->class->getLinkedFiles($id);
     }
+
+
+    /**
+     * Връща стойноста за показване на параметъра cond_type_Product
+     *
+     * @param mixed $domainClass
+     * @param mixed $domainId
+     * @param int $value
+     * @param string $showVal
+     * @return void
+     */
+    public function getProductParamValueDisplay($domainClass, $domainId, $value, $showVal)
+    {
+        return $this->class->getProductParamValueDisplay($domainClass, $domainId, $value, $showVal);
+    }
 }

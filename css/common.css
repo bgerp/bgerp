@@ -806,7 +806,6 @@ button {
   cursor: pointer;
   font-size: 0.8em;
   padding: 0.34em 0.5em;
-  font-family: Arial, sans-serif;
   display: inline-block;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
@@ -944,6 +943,9 @@ table .linkWithIcon {
 
 .toolbar .linkWithIcon {
   margin-bottom: 0; }
+
+.form-filter-btn .toolbar .linkWithIcon {
+  float: left; }
 
 .linkWithIcon {
   padding-left: 25px !important;
@@ -1217,6 +1219,10 @@ a.profile {
   text-decoration: underline !important;
   text-decoration-style: dotted !important; }
 
+.profile-state-access {
+  text-decoration: underline !important;
+  text-decoration-style: dashed !important; }
+
 /*
  * край на хипервръзки към профилите на потребители
  */
@@ -1320,7 +1326,8 @@ a.profile {
   .state-rejected .document li,
   .state-rejected .document b,
   .state-rejected .document font,
-  .state-rejected .document legend {
+  .state-rejected .document legend,
+  .state-rejected .small {
     color: #999999 !important;
     text-decoration: line-through !important; }
   .state-rejected .tagColumn {
@@ -1642,6 +1649,13 @@ form .inputAdvanced {
 
 .inlineForm .listFilter form {
   float: none !important; }
+
+  .folder-cover .groupList .inlineForm .hFormField input {
+    height: 26px !important; }
+  .folder-cover .groupList .inlineForm .form-filter-btn input {
+    height: 26px !important;
+    position: relative;
+    top: -1px; }
 
 .inputWarning {
   border: solid 1px blue; }
@@ -2184,6 +2198,10 @@ td.keylist-group {
     top: 7px;
     right: 5px; }
 
+.externalPage .formGroup img {
+  right: 8px;
+  top: 9px; }
+
 .narrow .formGroup img {
   top: 50%;
   margin-top: -8px; }
@@ -2216,6 +2234,14 @@ td.keylist-group {
 
 .inner-keylist .hiddenElement {
   display: none; }
+
+.statusIcon {
+  text-decoration: none;
+  display: inline-block; }
+
+.filed-sharedUsers label span.statusIcon {
+  filter: grayscale(100%);
+  font-size: 0.95em; }
 
 /*
  * край на стилове за показване на формите
@@ -2299,7 +2325,6 @@ select.tab-control option {
   background-color: #dddddd; }
 
 div.tab-control div.tab-row .tab {
-  font-family: arial;
   display: inline;
   margin: 1px -16px -1px 18px;
   padding: 4px 5px 5px 5px;
@@ -2307,16 +2332,7 @@ div.tab-control div.tab-row .tab {
   z-index: 1;
   white-space: nowrap;
   position: relative;
-  line-height: normal;
-  -moz-border-radius: 5px 5px 0 0;
-  -webkit-border-radius: 5px 5px 0 0;
-  border-radius: 5px 5px 0 0;
-  border-top: 2px solid #004488; }
-  div.tab-control div.tab-row .tab.selected {
-    z-index: 3;
-    padding: 4px 5px 6px 5px;
-    margin: 1px -16px -3px 18px;
-    top: 0; }
+  line-height: normal; }
 
 .narrow div.tab-control div.tab-row .tab.selected {
   padding: 4px 5px 6px 5px; }
@@ -2490,48 +2506,10 @@ div.alphabet.twoRows {
         border-right: 1px solid #bbbbbb; }
   .single-thread .document .docStatistic div.alphabet .detail-info {
     border: none !important; }
-  .single-thread .document .docStatistic div.alphabet div.tab-row .tab {
-    font-size: 0.8em;
-    font-family: arial;
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
-    box-shadow: none;
-    display: inline;
-    margin: 1px -11px -1px 10px;
-    float: left;
-    background: #dddddd;
-    border: 1px solid #bbbbbb;
-    border-bottom: 1px solid #0066ff;
-    color: #999999;
-    z-index: 1;
-    white-space: nowrap;
+  .single-thread .document .docStatistic div.alphabet div.tab-row {
+    padding-left: 10px;
     position: relative;
-    padding: 0 !important;
-    -moz-border-radius: 5px 5px 0 0;
-    -webkit-border-radius: 5px 5px 0 0;
-    border-radius: 5px 5px 0 0; }
-    .single-thread .document .docStatistic div.alphabet div.tab-row .tab a {
-      display: inline-block;
-      color: #004488;
-      padding: 4px 5px 4px 5px !important;
-      -moz-border-radius: 5px 5px 0 0;
-      -webkit-border-radius: 5px 5px 0 0;
-      border-radius: 5px 5px 0 0; }
-    .single-thread .document .docStatistic div.alphabet div.tab-row .tab span {
-      display: inline-block;
-      padding: 4px 5px 4px 5px !important; }
-    .single-thread .document .docStatistic div.alphabet div.tab-row .tab:hover a {
-      background-color: #ffffcc !important;
-      color: #004488 !important; }
-    .single-thread .document .docStatistic div.alphabet div.tab-row .tab:hover span {
-      background-color: #dddddd !important; }
-    .single-thread .document .docStatistic div.alphabet div.tab-row .tab.selected {
-      margin: 1px -11px -1px 10px;
-      background: #fefec2 !important;
-      z-index: 3;
-      padding: 0 0 1px !important;
-      top: 0;
-      font-weight: bold; }
+    top: 1px; }
 
 .thread-opened div.alphabet .tab.selected {
   background-color: #e0ffe0 !important; }
@@ -2575,111 +2553,6 @@ div.alphabet.twoRows {
       font-weight: bold; }
       .top-tab-content .detail-info .table-title a img {
         vertical-align: middle; }
-
-/*
- * табове за поддетайли на документ
- */
-  div.tab-control.deal-history-tab .tab-page,
-  .single-thread .document .tab-top div.alphabet .tab-page {
-    border: none;
-    padding: 0; }
-  div.tab-control.deal-history-tab .tab-row,
-  .single-thread .document .tab-top div.alphabet .tab-row {
-    float: left;
-    margin-bottom: 10px; }
-    div.tab-control.deal-history-tab .tab-row .tab,
-    .single-thread .document .tab-top div.alphabet .tab-row .tab {
-      display: inline-block;
-      line-height: 1.1em;
-      padding: 4px;
-      font-size: 0.7em;
-      text-align: center;
-      margin: 0 3px 0 0;
-      -moz-border-radius: 7px;
-      -webkit-border-radius: 7px;
-      -ms-border-radius: 7px;
-      border-radius: 7px;
-      background-color: #cccccc !important;
-      border: 1px solid #aaaaaa; }
-      div.tab-control.deal-history-tab .tab-row .tab a,
-      .single-thread .document .tab-top div.alphabet .tab-row .tab a {
-        text-shadow: none;
-        cursor: pointer; }
-      div.tab-control.deal-history-tab .tab-row .tab:hover,
-      .single-thread .document .tab-top div.alphabet .tab-row .tab:hover,
-      div.tab-control.deal-history-tab .tab-row .tab.selected,
-      .single-thread .document .tab-top div.alphabet .tab-row .tab.selected {
-        padding: 4px;
-        top: 0 !important;
-        margin: 0 3px 0 0;
-        border: 1px solid #bbbbbb;
-        background-color: #ffffcc !important; }
-        div.tab-control.deal-history-tab .tab-row .tab:hover a,
-        .single-thread .document .tab-top div.alphabet .tab-row .tab:hover a,
-        div.tab-control.deal-history-tab .tab-row .tab.selected a,
-        .single-thread .document .tab-top div.alphabet .tab-row .tab.selected a {
-          color: #333333; }
-
-.wide .single-thread .document .tab-top div.alphabet  .tab-row {
-  margin-bottom: 5px; }
-  .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
-    font-size: 0.7em;
-    padding: 6px 8px;
-    margin: 0 -1px 0 0;
-    cursor: pointer;
-    border-top: 1px solid #bbbbbb;
-    border-left: 1px solid #bbbbbb;
-    border-right: 1px solid #bbbbbb;
-    border-bottom: 1px solid #0066ff;
-    font-size: 0.7em;
-    text-decoration: none;
-    white-space: nowrap;
-    color: #555555 !important;
-    background-color: #dddddd !important;
-    background-image: linear-gradient(top, white, rgba(255, 255, 255, 0)), ();
-    transition: background-color 0.2s ease-out !important;
-    background-clip: padding-box;
-        /*
-     * Fix bleeding
-     */
-    border-radius: 0px !important;
-    border-top-right-radius: 5px !important;
-    border-top-left-radius: 5px !important;
-    box-shadow: 0 0px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset !important;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9); }
-    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab a {
-      color: #333333 !important; }
-    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover {
-      background: #ffffe9 !important; }
-      .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover a {
-        color: #444444 !important; }
-    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
-      box-shadow: 0 -4px 0 #0066ff !important;
-      border-left: 1px solid #0066ff !important;
-      border-right: 1px solid #0066ff !important;
-      border-bottom: none !important;
-      font-size: 0.8em !important;
-      background: #ffffe9 !important;
-      padding: 5px 8px !important; }
-      .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected a {
-        color: #444444 !important; }
-
-  .narrow div.tab-control.deal-history-tab .tab-row,
-  .narrow .single-thread .document .tab-top div.alphabet .tab-row {
-    float: none;
-    margin: 0px 5px;
-    clear: both; }
-    .narrow div.tab-control.deal-history-tab div.tab-row .tab,
-    .narrow div.tab-control.deal-history-tab div.tab-row .tab.selected,
-    .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab,
-    .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab.selected {
-      margin: 1px 0px 1px 3px !important;
-      padding: 4px 3px 2px !important;
-      font-size: 0.65em; }
-  .narrow div.tab-control.deal-history-tab div.tab-page,
-  .narrow .single-thread .document .tab-top div.alphabet div.tab-page {
-    background: none;
-    padding: 5px; }
 
 .badge {
   -moz-border-radius: 9px;
@@ -3327,6 +3200,8 @@ div.statuses-message h2 {
  */
 .quiet {
   color: #888888; }
+  .quiet a {
+    color: #888888 !important; }
 
 .quiet td {
   border-top-width: 0;
@@ -3556,6 +3431,11 @@ th.leftCol {
 td.centerCol {
   white-space: nowrap;
   text-align: center; }
+  td.centerCol .modal-toolbar {
+    white-space: normal;
+    text-align: left; }
+    td.centerCol .modal-toolbar .linkWithIcon {
+      display: block; }
 
 td.leftColImportant {
   white-space: nowrap;

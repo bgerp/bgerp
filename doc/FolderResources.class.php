@@ -110,8 +110,16 @@ class doc_FolderResources extends core_Manager
         if ($DetailName == 'planning_Hr') {
             $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
             $query->EXT('name', 'crm_Persons', 'externalName=name,externalKey=personId');
+
+            $employeeId = crm_Groups::getIdFromSysId('employees');
+            $query->EXT('groups', 'crm_Persons', 'externalName=groupList,externalKey=personId');
+            $query->EXT('groupList36', 'crm_Persons', 'externalName=groupList36,externalKey=personId');
+            $query->where("#state NOT IN ('closed', 'rejected')");
+            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $employeeId, 'personId');
+        } else {
+            $query->where("#state = 'active'");
         }
-        $query->orderBy('name=ASC,state=ASC');
+        $query->orderBy('code=ASC,state=ASC');
         
         // Подготовка на пейджъра
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
@@ -130,7 +138,7 @@ class doc_FolderResources extends core_Manager
             
             $data->rows[$dRec->id] = $row;
         }
-        
+
         // Подготовка на полетата за показване
         $listFields = ($DetailName == 'planning_Hr') ? 'code=Код,personId=Оператор,users=Потребители,created=Създаване' : 'code=Код,name=Оборудване,groupId=Група,users=Потребители,created=Създаване';
         $data->listFields = arr::make($listFields, true);
@@ -272,39 +280,74 @@ class doc_FolderResources extends core_Manager
         
         // При събмит на формата
         if ($form->isSubmitted()) {
+            $Cover = doc_Folders::getCover($folderId);
+            $crmGroupId = $Cover->isInstanceOf('planning_Centers') ? $Cover->syncCrmGroup() : null;
             $selected = keylist::toArray($form->rec->select);
-            $removeArr = array_diff_key($default, $selected);
-            
             $Folders = cls::get('planning_AssetResourceFolders');
-            
+            $hrSyncPersons = array();
+
             // Избраните се обновява департамента им
+            $toSave = $error = array();
             foreach ($selected as $id => $name) {
                 $r = (object) array('classId' => $classId, 'objectId' => $id, 'folderId' => $folderId);
                 if ($type != 'asset') {
                     $hId = planning_Hr::fetchField("#personId = {$id}");
                     if (empty($hId)) {
-                        $hId = planning_Hr::save((object) array('personId' => $id, 'code' => planning_Hr::getDefaultCode($id)));
+                        $hrRec = (object) array('personId' => $id, 'code' => planning_Hr::getDefaultCode($id));
+                        $hId = planning_Hr::save($hrRec);
                     }
                     $r->objectId = $hId;
+
+                    // Ако има група за добавяне на визитката - ще се добави в нея
+                    if(isset($crmGroupId)){
+                        if(!keylist::isIn($crmGroupId, $hrSyncPersons[$id]->groupListInput)){
+                            $hrSyncPersons[$id] = crm_Persons::fetch($id);
+                            $hrSyncPersons[$id]->groupListInput = keylist::addKey($hrSyncPersons[$id]->groupListInput, $crmGroupId);
+                        }
+                    }
+                } else {
+                    if(!planning_AssetResources::canAssetBeAddedToFolder($id, $folderId)){
+                        $error[] = "<b>" . planning_AssetResources::getTitleById($id) . "</b>";
+                    }
                 }
-                
-                if ($Folders->isUnique($r, $fields)) {
-                    $Folders->save($r);
+
+                $toSave[] = $r;
+            }
+
+            if(countR($error)){
+                $form->setError('select', "Следните материални оборудвания не може да са в повече от един център|*: " . implode(', ', $error));
+            } else {
+                foreach ($toSave as $sRec){
+                    $fields = array();
+                    if ($Folders->isUnique($sRec, $fields)) {
+                        $Folders->save($sRec);
+                    }
                 }
             }
-            
-            // Махане на съществуващите
-            $removeArr = array_diff_key($default, $selected);
-            foreach ($removeArr as $rId => $rName) {
-                $delId = $rId;
-                if ($type != 'asset') {
-                    $delId = planning_Hr::fetchField("#personId = {$rId}");
+
+            if(!$form->gotErrors()){
+
+                // Махане на съществуващите
+                $removeArr = array_diff_key($default, $selected);
+                foreach ($removeArr as $rId => $rName) {
+                    $delId = $rId;
+                    if ($type != 'asset') {
+                        $delId = planning_Hr::fetchField("#personId = {$rId}");
+                        $hrSyncPersons[$rId] = crm_Persons::fetch($rId);
+                        $hrSyncPersons[$rId]->groupListInput = keylist::removeKey($hrSyncPersons[$rId]->groupListInput, $crmGroupId);
+                    }
+
+                    planning_AssetResourceFolders::delete("#classId = {$classId} AND #objectId = {$delId} AND #folderId = {$folderId}");
                 }
-                
-                planning_AssetResourceFolders::delete("#classId = {$classId} AND #objectId = {$delId} AND #folderId = {$folderId}");
+
+                // Обновяване на групите на лицата
+                $Persons = cls::get('crm_Persons');
+                foreach ($hrSyncPersons as $personRec){
+                    $Persons->save($personRec, 'groupListInput,groupList');
+                }
+
+                followRetUrl(null, '|Информацията е обновена успешно');
             }
-            
-            followRetUrl(null, '|Информацията е обновена успешно');
         }
         
         // Бутони
@@ -328,12 +371,8 @@ class doc_FolderResources extends core_Manager
                 $Cover = doc_Folders::getCover($rec->folderId);
                 if (!$Cover->haveRightFor('edit') && $Cover->fetchField('createdBy') != core_Users::SYSTEM_USER) {
                     $requiredRoles = 'no_one';
-                } elseif ($rec->type == 'asset') {
-                    if (!planning_AssetResources::haveRightFor('add')) {
-                        $requiredRoles = 'no_one';
-                    }
-                } elseif ($rec->type == 'employee') {
-                    if (!planning_Hr::haveRightFor('edit')) {
+                } elseif($Cover->isInstanceOf('support_Systems')){
+                    if(!haveRole('supportMaster,ceo', $userId)){
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -367,16 +406,15 @@ class doc_FolderResources extends core_Manager
             $sQuery->show('folderId');
             $suggestions += arr::extractValuesFromArray($sQuery->fetchAll(), 'folderId');
         }
-        
+
         // Твърдо забитите папки с ресурси
-        $fQuery = planning_FoldersWithResources::getQuery();
-        $fQuery->where('#folderId IS NOT NULL');
+        $uQuery = doc_UnsortedFolders::getQuery();
+        $uQuery->where('#resourceType IS NOT NULL');
         if (!is_null($forType)) {
-            $fQuery->where("LOCATE('{$forType}', #type)");
+            $uQuery->where("LOCATE('{$forType}', #resourceType)");
         }
-        
-        $fQuery->show('folderId');
-        $suggestions += arr::extractValuesFromArray($fQuery->fetchAll(), 'folderId');
+        $uQuery->show('folderId');
+        $suggestions += arr::extractValuesFromArray($uQuery->fetchAll(), 'folderId');
         
         // Намиране на имената на папките
         foreach ($suggestions as $key => &$v) {
@@ -387,7 +425,9 @@ class doc_FolderResources extends core_Manager
             $coverClassName = core_Classes::fetchField($fRec->coverClass, 'title');
             $v = "{$fRec->title} (${coverClassName})";
         }
-        
+
+        asort($suggestions);
+
         // Върнатите предложение
         return $suggestions;
     }

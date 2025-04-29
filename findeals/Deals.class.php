@@ -39,7 +39,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, acc_plg_Contable, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone, doc_plg_Prototype, doc_plg_SelectFolder';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_plg_Tabs, acc_plg_Contable, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_Close, cond_plg_DefaultValues, plg_Clone, doc_plg_Prototype, doc_plg_SelectFolder';
     
     
     /**
@@ -218,6 +218,8 @@ class findeals_Deals extends deals_DealBase
         $this->FNC('contragentItemId', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Втори контрагент,input');
 
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,silent,removeAndRefreshForm=currencyRate');
+        $this->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=ДДС изключение');
+
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
 
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
@@ -229,11 +231,11 @@ class findeals_Deals extends deals_DealBase
         
         $this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
         $this->FLD('secondContragentId', 'int', 'input=none');
-        
-        $this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=currencyId');
+
+        $this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=vatExceptionId');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен,stopped=Спряно,template=Шаблон)', 'caption=Състояние, input=none');
         $this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
-        
+
         // Индекс
         $this->setDbIndex('dealManId');
     }

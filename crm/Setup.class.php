@@ -161,8 +161,9 @@ class crm_Setup extends core_ProtoSetup
         'crm_ext_Cards',
         'migrate::updateGroupsCountry2123',
         'migrate::fixCountryGroupsInput21233',
-        'migrate::companiesRepairSerchKeywords2124',
-        'migrate::updateCards',
+        'migrate::updateGroups2524',
+        'migrate::calcExpand36Field2445v3',
+        'migrate::forceGatherCron2451v3',
     );
     
     
@@ -192,10 +193,12 @@ class crm_Setup extends core_ProtoSetup
      */
     public function manageConfigDescriptionForm(&$configForm)
     {
+        if(!$configForm->getField('CRM_CONNECTED_COMPANIES', false)) return;
+
         $companyOptions = array();
         $companyQuery = crm_Companies::getQuery();
         $groupId = crm_Groups::getIdFromSysId('related');
-        $companyQuery->where("LOCATE('|{$groupId}|', #groupList)");
+        plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $companyQuery, $groupId);
         while($cRec = $companyQuery->fetch()){
             $companyOptions[$cRec->id] = crm_Companies::getRecTitle($cRec, false);
         }
@@ -213,10 +216,10 @@ class crm_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg,image/jpeg,png,heic', '3MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg,image/jpeg,png,heic,webp', '3MB', 'user', 'every_one');
         
         // Кофа за снимки
-        $html .= $Bucket->createBucket('location_Images', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('location_Images', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png,webp', '6MB', 'user', 'every_one');
         
         // Кофа за crm файлове
         $html .= $Bucket->createBucket('crmFiles', 'CRM Файлове', null, '300 MB', 'user', 'user');
@@ -318,34 +321,55 @@ class crm_Setup extends core_ProtoSetup
 
 
     /**
-     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
+     * Миграция на старите клиентски карти
      */
-    public static function companiesRepairSerchKeywords2124()
+    public function updateGroups2524()
     {
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'crm_Companies', dt::addSecs(180));
+        $Groups = cls::get('crm_Groups');
+        $Groups->setupMvc();
+
+        $sysIdColName = str::phpToMysqlName('sysId');
+        $query = "UPDATE {$Groups->dbTableName} SET {$sysIdColName} = 'quotationsClients' WHERE ({$sysIdColName} = 'quotationsClient')";
+        $Groups->db->query($query);
     }
 
 
     /**
-     * Миграция на старите клиентски карти
+     * Рекалкулиране на групите във вид за лесно търсене
      */
-    public function updateCards()
+    public static function calcExpand36Field2445v3()
     {
-        if(!crm_ext_Cards::count()) return;
+        $newData = (object)array('mvc' => 'crm_Companies', 'lastId' => null);
+        $callOn = dt::addSecs(60);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
 
-        $companyClassId = crm_Companies::getClassId();
-        $query = crm_ext_Cards::getQuery();
-        $query->FLD('contragentId', 'varchar');
-        $query->FLD('contragentClassId', 'varchar');
-        $query->where("#contragentClassId IS NOT NULL");
-        while($rec = $query->fetch()){
-            if($rec->contragentClassId == $companyClassId){
-                crm_ext_Cards::delete($rec->id);
-            } else {
-                $rec->type = 'personal';
-                $rec->personId = $rec->contragentId;
-                crm_ext_Cards::save($rec);
-            }
-        }
+        $newData = (object)array('mvc' => 'crm_Persons', 'lastId' => null);
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+    }
+
+
+    /**
+     * Рекалкулиране на групите във вид за лесно търсене
+     */
+    public static function calcExpand36Field2445v2223()
+    {
+        $newData = (object)array('mvc' => 'crm_Companies', 'lastId' => null);
+        $callOn = dt::addSecs(60);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+
+        $newData = (object)array('mvc' => 'crm_Persons', 'lastId' => null);
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+    }
+
+
+    /**
+     * Рекалкулиране на групите във вид за лесно търсене
+     */
+    public static function forceGatherCron2451v3()
+    {
+        $callOn = dt::addSecs(480);
+        core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'Gather_contragent_info', $callOn);
     }
 }

@@ -25,7 +25,7 @@ class sens2_Scripts extends core_Master
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper';
+    public $loadList = 'plg_Created, plg_Rejected, plg_RowTools2, plg_State2, plg_Rejected, sens2_Wrapper, plg_Search';
     
     
     /**
@@ -92,7 +92,13 @@ class sens2_Scripts extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'order,name,state,lastRun';
-    
+
+
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'name, state';
+
     
     /**
      * Описание на модела
@@ -202,18 +208,15 @@ class sens2_Scripts extends core_Master
     /**
      * Изчислкяване на числов израз. Могат да участват индикаторите и променливите от даден скрипт
      */
-    public static function calcExpr($expr, $scriptId)
+    public static function calcExpr($expr, $scriptId, &$error = null)
     {
         // Вземаме контекста
         $context = self::getContext($scriptId);
         
-        // Заместваме променливите и индикаторите
-        $expr = strtr($expr, $context);
-        
-        if (str::prepareMathExpr($expr) === false) {
+        if (($expr = str::prepareMathExpr($expr, $context)) === false) {
             $res = self::CALC_ERROR;
         } else {
-            $res = str::calcMathExpr($expr, $success);
+            $res = str::calcMathExpr($expr, $success, $error, true);
             
             if ($success === false) {
                 $res = self::CALC_ERROR;
@@ -251,7 +254,7 @@ class sens2_Scripts extends core_Master
             }
         }
         
-        $value = self::calcExpr($expr, $scriptId);
+        $value = self::calcExpr($expr, $scriptId, $error);
         
         if ($value === self::CALC_ERROR) {
             $style = 'border-bottom:dashed 1px red;';
@@ -260,7 +263,11 @@ class sens2_Scripts extends core_Master
         }
         
         $expr = strtr($expr, $opts[$scriptId]);
-        
+
+        if($error) {
+            $value .= ' ' . $error;
+        }
+
         $expr = "<span style='{$style}' title='{$value}'>{$expr}</span>";
         
         return $expr;
@@ -291,6 +298,58 @@ class sens2_Scripts extends core_Master
             $url = array($mvc, 'single', $data->rec->id, 'order' => Request::get('order', 'int'));
  
             bgerp_Notifications::clear($url);
+        }
+    }
+
+
+    /**
+     * Малко манипулации след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        if (!isset($res)) {
+            $res = plg_Search::getKeywords($mvc, $rec);
+        }
+
+        foreach ($mvc->details as $det) {
+            $detInst = cls::get($det);
+            $dQuery = $detInst::getQuery();
+            $dQuery->where("#{$detInst->masterKey} = '{$rec->id}'");
+            while ($dRec = $dQuery->fetch()) {
+
+                $res .= ' ' . $detInst->getSearchKeywords($dRec);
+            }
+        }
+    }
+
+
+    /**
+     *
+     *
+     * @param $mvc
+     * @param $res
+     * @param $id
+     * @return void
+     * @throws core_exception_Break
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+        if ($id) {
+            $rec = $mvc->fetchRec($id);
+
+            plg_Search::forceUpdateKeywords($mvc, $rec);
         }
     }
 }

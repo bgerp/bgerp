@@ -1,55 +1,56 @@
 <div class="singleView email-class">
-[#SingleToolbar#]
-<h3>
-    <div style="padding:5px;" class=" [#STATE_CLASS#]">|Шаблон|* <b style="color:green">[#name#]</b></div>
-</h3>
-<div class='scrolling-holder' style='margin-bottom: 20px'>
-    <table class="styled-table" style='width:99%'>
-        <tr>
-            <td class="title-style" style='width:150px'>№</td>
-            <td> [#id#]</td>
-        </tr>
-        <tr>
-            <td class="title-style">|Име|*</td>
-            <td>[#name#]</td>
-        </tr>
-        <tr>
-            <td class="title-style">|Документ|*</td>
-            <td>[#docClassId#]</td>
-        </tr>
-        <tr>
-            <td class="title-style" style='width:150px'>|Език|*</td>
-            <td> [#lang#]</td>
-        </tr>
-        <!--ET_BEGIN printCount-->
-        <tr>
-            <td class="title-style" style='width:150px'>|Копия при печат|*</td>
-            <td> [#printCount#]</td>
-        </tr>
-        <!--ET_END printCount-->
-        <!--ET_BEGIN path-->
-        <tr>
-            <td class="title-style" style='width:150px'>|Файл|*</td>
-            <td> [#path#]</td>
-        </tr>
-        <!--ET_END path-->
-        <!--ET_BEGIN handler-->
-        <tr>
-            <td class="title-style" style='width:150px'>|Обработвач|*</td>
-            <td> [#handler#]</td>
-        </tr>
-        <!--ET_END handler-->
-        <tr>
-            <td class="title-style" style='width:150px'>|Видимост|*</td>
-            <td> [#state#]</td>
-        </tr>
-        <!--ET_BEGIN originId-->
-        <tr>
-            <td class="title-style" style='width:150px'>|Клонирано от|*</td>
-            <td> [#originId#]</td>
-        </tr>
-        <!--ET_END originId-->
-    </table>
+    [#SingleToolbar#]
+    <h3>
+        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Шаблон|* <b style="color:green">[#name#]</b></div>
+    </h3>
+    <div class='scrolling-holder' style='margin-bottom: 20px'>
+        <table class="styled-table" style='width:99%'>
+            <tr>
+                <td class="title-style" style='width:150px'>№</td>
+                <td> [#id#]</td>
+            </tr>
+            <tr>
+                <td class="title-style">|Име|*</td>
+                <td>[#name#]</td>
+            </tr>
+            <tr>
+                <td class="title-style">|Документ|*</td>
+                <td>[#docClassId#]</td>
+            </tr>
+            <tr>
+                <td class="title-style" style='width:150px'>|Език|*</td>
+                <td> [#lang#]</td>
+            </tr>
+            <!--ET_BEGIN printCount-->
+            <tr>
+                <td class="title-style" style='width:150px'>|Копия при печат|*</td>
+                <td> [#printCount#]</td>
+            </tr>
+            <!--ET_END printCount-->
+            <!--ET_BEGIN path-->
+            <tr>
+                <td class="title-style" style='width:150px'>|Файл|*</td>
+                <td> [#path#]</td>
+            </tr>
+            <!--ET_END path-->
+            <!--ET_BEGIN handler-->
+            <tr>
+                <td class="title-style" style='width:150px'>|Обработвач|*</td>
+                <td> [#handler#]</td>
+            </tr>
+            <!--ET_END handler-->
+            <tr>
+                <td class="title-style" style='width:150px'>|Видимост|*</td>
+                <td> [#state#]</td>
+            </tr>
+            <!--ET_BEGIN originId-->
+            <tr>
+                <td class="title-style" style='width:150px'>|Клонирано от|*</td>
+                <td> [#originId#]</td>
+            </tr>
+            <!--ET_END originId-->
+        </table>
+    </div>
 </div>
 <div class='scrolling-holder' style = 'padding:10px;background-color:lightgrey'>
     [#content#]

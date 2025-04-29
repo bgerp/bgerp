@@ -23,9 +23,12 @@ class core_Html
     public static function createElement($name, $attributes = array(), $body = null, $closeTag = false, $translate = true)
     {
         $attrStr = '';
-        
+
+        $isTitleTranslated = false;
         if ($attributes['title'] && $translate && ($attributes['translate'] != 'no')) {
             $attributes['title'] = tr($attributes['title']);
+            $isTitleTranslated = true;
+            $attributes['title'] = str_replace(array("\""), array("&quot;"), $attributes['title']);
         }
         
         if ($name == 'img') {
@@ -42,19 +45,16 @@ class core_Html
                 foreach ($attributes as $atr => $content) {
                     // Смятаме, че всички атрибути с имена, започващи със '#'
                     // са вътрешни и поради това не ги показваме в елемента
-                    if ($atr[0] == '#') {
-                        continue;
-                    }
-                    
-                    
+                    if ($atr[0] == '#') continue;
+
                     if (is_string($content)) {
-                        // $content = htmlspecialchars($content, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                         /**
                          * Необходимо ли е да се ескейпва символи различни от двойни кавички
                          * в стойностите на HTML атрибутите?
-                         *
                          */
-                        $content = self::escapeAttr($content);
+                        if($atr != 'title' || !$isTitleTranslated){
+                            $content = self::escapeAttr($content);
+                        }
                     }
                     
                     $attrStr .= ' ' . $atr . '="' . $content . '"';
@@ -382,9 +382,9 @@ class core_Html
         
         // Очакваме да има поне една опция
         expect($optionsCnt > 0, "Липсват опции за '{$name}'");
-        
+
         // Когато имаме само една опция, правим readOnly <input>
-        if ($optionsCnt == 1) {
+        if ($optionsCnt == 1 && (!$attr['_isAllowEmpty'] || array_key_exists('', $options))) {
             foreach ($options as $id => $opt) {
                 if (is_object($opt) && $opt->group) {
                     continue;
@@ -424,7 +424,8 @@ class core_Html
                     $value = '&nbsp;';
                 }
             }
-            
+
+            unset($attr['_isAllowEmpty']);
             $input = self::createElement('select', $attr, "<option>${value}</option>", true);
             
             $input->append(self::createElement('input', array(
@@ -432,11 +433,19 @@ class core_Html
                 'name' => $name,
                 'value' => $id
             )));
+
         } elseif ($optionsCnt <= $maxRadio) {
+            $keyListClass = '';
             if ($optionsCnt < 4) {
-                $keyListClass .= 'shrinked';
+                $keyListClass = ' shrinked';
             }
-            
+
+            // Ако има празна опция, да може да се изчиства и да не се показва тази опция
+            if (isset($options['']) && !isset($attr['_isAllowEmpty'])) {
+                unset($options['']);
+                $attr['_isAllowEmpty'] = true;
+            }
+
             // Когато броя на опциите са по-малко
             
             // Определяме броя на колоните, ако не са зададени.
@@ -449,7 +458,11 @@ class core_Html
                     round(sqrt(max(0, $optionsCnt + 1)))
                 );
             }
-            
+            if ($options && is_array($options)) {
+                $col = min(countR($options), $col);
+            } else {
+                $col = 0;
+            }
             if ($col > 1) {
                 $tpl = "<table class='keylist {$keyListClass}'><tr>";
                 
@@ -464,7 +477,7 @@ class core_Html
             }
             
             $i = 0;
-            
+
             foreach ($options as $id => $opt) {
                 $input = new ET();
                 
@@ -508,9 +521,17 @@ class core_Html
             
             // Добавка (временна) за да не се свиват радио бутоните от w25 - w75
             $attr['style'] .= 'width:100%';
-            
+
+            if(isset($attr['_isAllowEmpty'])){
+                $attr['class'] .= ' allowEmptyRadioHolder';
+                unset($attr['_isAllowEmpty']);
+            } else {
+                $attr['class'] .= ' notAllowEmptyRadioHolder';
+            }
+
             $input = self::createElement('div', $attr, $tpl);
         } else {
+            unset($attr['_isAllowEmpty']);
             $input = self::createSelect($name, $options, $value, $attr);
         }
         
@@ -1498,5 +1519,62 @@ class core_Html
         }
         
         return self::styleIfNegative($verbal, $notVerbal);
+    }
+
+
+    /**
+     * Рендира видео таг за пускане на виде (Само в новите браузъри)
+     *
+     * @param string $fileHnd    - файл хендлър
+     * @param array $params      - параметри за видеото
+     *     bool 'controls' - контрол над видеото
+     *     bool 'autoplay' - автоматично стартиране
+     *     bool 'loop',    - повтаряне
+     *     bool 'muted'    - дали да е без звук
+     *     string 'poster' - постер
+     *     string 'preload' - auto, metadata, none
+     *     int  'width'     - ширина (в пиксели)
+     *     int  'height'    - височина (в пиксели)
+     *     string 'class'   - CSS класове
+     * @param string $sourceType - тип на видеото
+     *
+     * @return core_ET
+     * @throws core_exception_Expect
+     */
+    public static function createVideo($fileHnd, $params = array(), $sourceType = 'video/mp4')
+    {
+        // Получаваме URL на видеото
+        $src = fileman_Download::getDownloadUrl($fileHnd);
+        expect($src);
+
+        // Стартиране на видео тага
+        $videoTag = '<video';
+
+        // Разрешени параметри за видео тага
+        $allowedParams = array('controls', 'autoplay',  'loop', 'muted', 'poster', 'preload', 'width', 'height', 'class');
+
+        // Обработване на зададените параметри
+        foreach ($allowedParams as $key) {
+            if (isset($params[$key])) {
+                $value = $params[$key];
+                if ($key === 'class') {
+                    $videoTag .= ' class="' . htmlspecialchars($value) . '"';
+                } elseif ($value === true) {
+                    $videoTag .= ' ' . $key;
+                } elseif (!is_bool($value)) {
+                    $videoTag .= ' ' . $key . '="' . htmlspecialchars($value) . '"';
+                }
+            }
+        }
+        $videoTag .= '>';
+
+        // Добавяне на source таг с подадения тип
+        $videoTag .= '<source src="' . htmlspecialchars($src) . '" type="' . htmlspecialchars($sourceType) . '">';
+
+        // Добавяне на fallback текст
+        $videoTag .= tr('Браузърът не поддържа видео тага');
+        $videoTag .= '</video>';
+
+        return new core_ET($videoTag);
     }
 }

@@ -81,9 +81,9 @@ class cal_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'cal_TaskType, cal_Progresses';
-    
-    
+    public $defClasses = 'cal_TaskType, cal_Progresses, cal_TasksResourceCycleSens';
+
+
     /**
      * Описание на конфигурационните константи
      */

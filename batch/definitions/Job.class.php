@@ -105,18 +105,19 @@ class batch_definitions_Job extends batch_definitions_Proto
     {
         return false;
     }
-    
-    
+
+
     /**
      * Разпределя количество към наличните партиди в даден склад към дадена дата
      *
      * @param array  $quantities - масив с наличните партиди и количества
      * @param string $mvc        - клас на обект, към който да се разпределят
      * @param string $id         - ид на обект, към който да се разпределят
+     * @param int $storeId       - ид на склад
      *
      * @return array $quantities - масив с филтрираните наличните партиди и количества
      */
-    public function filterBatches($quantities, $mvc, $id)
+    public function filterBatches($quantities, $mvc, $id, $storeId)
     {
         $Detail = cls::get($mvc);
         if(($Detail instanceof planning_DirectProductNoteDetails) || ($Detail instanceof planning_ConsumptionNoteDetails)){

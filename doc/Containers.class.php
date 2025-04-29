@@ -133,7 +133,7 @@ class doc_Containers extends core_Manager
         // Документ
         $this->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ->Клас');
         $this->FLD('docId', 'int', 'caption=Документ->Обект');
-        $this->FLD('searchKeywords', 'text(collate=ascii_bin)', 'notNull,column=none,input=none');
+        $this->FLD('searchKeywords', 'text(collate=ascii_bin)', 'notNull,column=none,input=none,dbAutoselectExcluded');
         
         // Кой е активирал документа?
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
@@ -373,11 +373,12 @@ class doc_Containers extends core_Manager
                 try {
                     // Ако новите ключови думи не отговарят на старите, записваме ги
                     $generatedKeywords = $clsInst->getSearchKeywords($cRec);
-                    
+                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+
                     if (!$force && ($generatedKeywords == $cRec->searchKeywords)) {
                         continue;
                     }
-                    $generatedKeywords = plg_Search::purifyKeywods($generatedKeywords);
+
                     $cRec->searchKeywords = $generatedKeywords;
                     $clsInst->save_($cRec, 'searchKeywords');
                     

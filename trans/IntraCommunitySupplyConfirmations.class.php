@@ -176,9 +176,10 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
             $logisticData = $Document->getLogisticData();
 
             // Данните за контрагента
-            $contragentData = cls::get($documentRec->contragentClassId)->getContragentData($documentRec->contragentId);
             core_Lg::push('en');
-            $contragentName = transliterate(tr(cls::get($documentRec->contragentClassId)->fetchField($documentRec->contragentId, 'name')));
+            $contragentData = cls::get($documentRec->contragentClassId)->getContragentData($documentRec->contragentId);
+            $contragentName = $contragentData->companyVerb;
+            $contragentName = str_replace(array('&lt;', '&amp;'), array('<', '&'), $contragentName);
             $form->setDefault('contragentName', $contragentName);
             core_Lg::pop();
             $form->setDefault('contragentVatNo', $contragentData->vatNo);
@@ -281,7 +282,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $ownCompanyId = core_Packs::isInstalled('holding') ? holding_plg_DealDocument::getOwnCompanyIdFromThread($rec) : null;
-        $ourCompany = crm_Companies::fetchOurCompany('*', $ownCompanyId);
+        $ourCompany = crm_Companies::fetchOurCompany('*', $ownCompanyId, $rec->activatedOn);
 
         // Данните на моята фирма
         $row->ourCompanyName = $ourCompany->name;

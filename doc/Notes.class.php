@@ -131,7 +131,7 @@ class doc_Notes extends core_Master
      */
     public $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
     
-    
+
     /**
      * Кой може да променя активирани записи
      */
@@ -171,8 +171,8 @@ class doc_Notes extends core_Master
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn,state';
-    
-    
+
+
     /**
      * Описание на модела
      */
@@ -245,6 +245,28 @@ class doc_Notes extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $row->handle = $mvc->getHandle($rec->id);
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if ($key = Request::get('key')) {
+            $kVal = core_Cache::get('pwa_Share', $key);
+
+            if ($kVal['body']) {
+                $data->form->setDefault('body', $kVal['body']);
+            }
+
+            if ($kVal['subject']) {
+                $data->form->setDefault('subject', $kVal['subject']);
+            }
+        }
     }
     
     

@@ -50,7 +50,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, cat_plg_NotifyProductOnDocumentStateChange, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation,price_plg_TotalDiscount, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg,cat_plg_UsingProductVat, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Tabs, cat_plg_UsingProductVat, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
     
     /**
@@ -62,7 +62,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery,courierApi,detailOrderBy';
+    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery,courierApi,detailOrderBy,makeInvoice';
     
     
     /**
@@ -226,12 +226,6 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Огледален клас за обратната операция
-     */
-    public $reverseClassName = 'store_Receipts';
-    
-    
-    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -329,7 +323,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кои роли може да променят активна продажбата
      */
-    public $canChangerec = 'ceo,salesMaster';
+    public $canChangerec = 'ceo,sales';
 
 
     /**
@@ -343,7 +337,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'expectedTransportCost,valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
+    public $fieldsNotToClone = 'expectedTransportCost,valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,currencyManualRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions,voucherId';
 
 
     /**
@@ -352,10 +346,10 @@ class sales_Sales extends deals_DealMaster
     public function description()
     {
         parent::setDealFields($this);
-        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
+        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty,maxRadio=1)', 'caption=Плащане->Банкова с-ка,after=currencyManualRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Артикули->Цени,before=detailOrderBy,notChangeableByContractor');
-        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId');
+        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId,silent');
         $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'input=hidden,caption=Доставка->Куриерско Api,after=deliveryCalcTransport,notChangeableIfHidden,placeholder=Автоматично');
         $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
@@ -363,6 +357,11 @@ class sales_Sales extends deals_DealMaster
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,silent,removeAndRefreshForm=caseId|paymentType');
         $this->setField('chargeVat', 'salecondSysId=saleChargeVat');
         $this->setField('oneTimeDelivery', 'salecondSysId=salesOneTimeDelivery');
+
+        if (core_Packs::isInstalled('voucher')) {
+            $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=id,allowEmpty)', 'caption=Ваучер,input=none');
+            $this->setDbIndex('voucherId');
+        }
     }
     
     
@@ -505,7 +504,7 @@ class sales_Sales extends deals_DealMaster
         
         $hideRate = core_Packs::getConfigValue('sales', 'SALES_USE_RATE_IN_CONTRACTS');
         if ($hideRate == 'yes' && !haveRole('partner')) {
-            $form->setField('currencyRate', 'input');
+            $form->setField('currencyManualRate', 'input');
         }
         
         if (empty($rec->id)) {
@@ -677,7 +676,7 @@ class sales_Sales extends deals_DealMaster
             }
             $pInfo = cat_Products::getProductInfo($dRec->productId);
             $nRec->measure = ($dRec->packagingId) ? cat_UoM::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
-            $nRec->vat = cat_Products::getVat($dRec->productId, $rec->valior);
+            $nRec->vat = cat_Products::getVat($dRec->productId, $rec->valior, $rec->vatExceptionId);
             if ($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate') {
                 $nRec->vat = 0;
             }
@@ -788,7 +787,7 @@ class sales_Sales extends deals_DealMaster
             if (empty($deliveredAmount)) {
                 $expectedPayment = $expectedPayment - $paidAmount;
             }
-            
+            $expectedPayment = round($expectedPayment, 2);
             if ($expectedPayment > 0) {
                 $result->set('expectedPayment', $expectedPayment);
             }
@@ -1037,6 +1036,7 @@ class sales_Sales extends deals_DealMaster
     {
         core_App::setTimeLimit(300);
         $overdueDelay = sales_Setup::get('OVERDUE_CHECK_DELAY');
+        core_Debug::$isLogging = false;
         $this->checkPayments($overdueDelay);
         
         // Изпращане на нотификации, за нефактурирани продажби
@@ -1044,6 +1044,7 @@ class sales_Sales extends deals_DealMaster
         if(!empty($lateTime)){
             $this->sendNotificationIfInvoiceIsTooLate($lateTime);
         }
+        core_Debug::$isLogging = true;
     }
     
     
@@ -1434,7 +1435,7 @@ class sales_Sales extends deals_DealMaster
         
         core_Lg::push($rec->tplLang);
         
-        if (isset($rec->bankAccountId)) {
+        if (!empty($rec->bankAccountId)) {
             if (!Mode::isReadOnly()) {
                 
                 // Линк към нашата банкова сметка
@@ -1449,7 +1450,7 @@ class sales_Sales extends deals_DealMaster
                     }
                 }
             }
-            
+
             if ($bic = bank_Accounts::getVerbal($rec->bankAccountId, 'bic')) {
                 $row->bic = $bic;
             }
@@ -1479,6 +1480,10 @@ class sales_Sales extends deals_DealMaster
         }
         
         if (isset($fields['-single'])) {
+            if(isset($rec->voucherId)){
+                $row->voucherId = voucher_Cards::getVerbal($rec->voucherId, 'number');
+            }
+
             if(!empty($rec->courierApiPrice)){
                 $row->courierApiPrice = currency_Currencies::decorate($rec->courierApiPrice);
             }
@@ -1543,12 +1548,12 @@ class sales_Sales extends deals_DealMaster
         // Ако не е избрана сметка, от дефолтните
         if ($rec->bankAccountId && !Mode::isReadOnly() && haveRole('powerUser')) {
             $errorStr = null;
-            
+
+            $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
             if(in_array($ownBankRec->state, array('closed', 'rejected'))){
                 $errorStr = 'Банковата сметка е закрита|*!';
             }
-			
-            $ownBankRec = bank_OwnAccounts::fetch(array("#bankAccountId = '[#1#]'", $rec->bankAccountId));
+
             if(in_array($rec->state, array('draft', 'pending'))){
                 $cData = doc_Folders::getContragentData($rec->folderId);
                 $defBankId = null;
@@ -1571,8 +1576,10 @@ class sales_Sales extends deals_DealMaster
                 $errorStr = (!empty($errorStr) ? "{$errorStr} " : "") . '|Банковата сметка е в различна валута от тази на сделката|*!';
             }
             if(!empty($errorStr) && $rec->paymentType != 'cash'){
-                $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
-                $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
+                if(core_Users::isPowerUser()){
+                    $row->bankAccountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->bankAccountId}</span>";
+                    $row->bankAccountId = ht::createHint($row->bankAccountId, $errorStr, 'warning');
+                }
             }
         }
 
@@ -1630,7 +1637,7 @@ class sales_Sales extends deals_DealMaster
         $products = $query->fetchAll();
         
         $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, null, null, $rec->deliveryLocationId ? $rec->deliveryLocationId : $rec->deliveryAdress);
-        $ourCompany = crm_Companies::fetchOurCompany();
+        $ourCompany = crm_Companies::fetchOurCompany('*', null, $rec->activatedOn);
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         if ($rec->deliveryData) {
             $params += $rec->deliveryData;
@@ -2008,6 +2015,13 @@ class sales_Sales extends deals_DealMaster
         }
         
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
+
+        // Маркиране на ваучера че е използван
+        if(core_Packs::isInstalled('voucher')){
+            if(isset($rec->voucherId)){
+                voucher_Cards::mark($rec->voucherId, true, $mvc->getClassId(), $rec->id, true);
+            }
+        }
     }
     
     
@@ -2113,11 +2127,12 @@ class sales_Sales extends deals_DealMaster
      * Интерфейсен метод
      *
      * @param int $id
+     * @param datetime|int $id
      * @return object
      *
-     * @see doc_ContragentDataIntf
+     * @see doc_ContragentDataIntfstatic function getContragentData(
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         if (core_Packs::isInstalled('eshop') && ($rec = self::fetchRec($id))) {
             if ($cartRec = eshop_Carts::fetch("#saleId = {$id}")) {
@@ -2127,7 +2142,7 @@ class sales_Sales extends deals_DealMaster
                     $Cover = doc_Folders::getCover($rec->folderId);
                     
                     if ($Cover->haveInterface('doc_ContragentDataIntf')) {
-                        $cData = $Cover->getContragentData($Cover->that);
+                        $cData = $Cover->getContragentData($date);
                         
                         if ($cData->company) {
                             $contrData->company = $cData->company;
@@ -2172,6 +2187,10 @@ class sales_Sales extends deals_DealMaster
         if (core_Packs::isInstalled('eshop')) {
             $res['onlineSale'] = 'Онлайн продажби';
         }
+
+        if (core_Packs::isInstalled('voucher')) {
+            $res['voucher'] = 'С ваучери';
+        }
     }
     
     
@@ -2183,6 +2202,9 @@ class sales_Sales extends deals_DealMaster
         if ($option == 'onlineSale') {
             $query->EXT('cartId', 'eshop_Carts', 'externalName=id,remoteKey=saleId');
             $query->where('#cartId IS NOT NULL');
+        }
+        if ($option == 'voucher') {
+            $query->where('#voucherId IS NOT NULL');
         }
     }
     
@@ -2198,10 +2220,24 @@ class sales_Sales extends deals_DealMaster
         if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)) {
             $rec->contoActions = '';
             $mvc->save_($rec, 'contoActions');
-            
             core_Statuses::newStatus($errorMsg, 'error');
             
             return false;
+        }
+
+        // Ако е инсталир пакета за ваучери проверка дали може да се контира
+        if(core_Packs::isInstalled('voucher')){
+            $dQuery = sales_SalesDetails::getQuery();
+            $dQuery->where("#saleId = {$rec->id}");
+            $dQuery->show('productId');
+            $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+            if($error = voucher_Cards::getContoErrors($rec->voucherId, $productIds, $mvc->getClassId(), $rec->id)){
+                $rec->contoActions = '';
+                $mvc->save_($rec, 'contoActions');
+                core_Statuses::newStatus($error, 'error');
+
+                return false;
+            }
         }
     }
     
@@ -2323,5 +2359,49 @@ class sales_Sales extends deals_DealMaster
         if(countR($save)){
             $Detail->saveArray($save, 'id,autoDiscount');
         }
+    }
+
+
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if(core_Packs::isInstalled('voucher') && isset($rec->voucherId)){
+            voucher_Cards::mark($rec->voucherId, false);
+        }
+    }
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        // Проверка дали ваучерът е вече свободен
+        if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
+            if($error = voucher_Cards::getRestoreError($rec->voucherId)){
+                core_Statuses::newStatus($error, 'error');
+
+                return false;
+            }
+        }
+    }
+
+
+    /**
+     * Връща класа на обратния документ
+     */
+    public function getDocumentReverseClass($rec)
+    {
+        $class = 'store_Receipts';
+
+        return cls::get($class);
     }
 }

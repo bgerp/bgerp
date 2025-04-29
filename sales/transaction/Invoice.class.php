@@ -39,7 +39,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
 
         $result = (object) array(
             'reason' => "Фактура №{$rec->id}", // основанието за ордера
-            'valior' => $rec->date,   // датата на ордера
+            'valior' => !empty($rec->date) ? $rec->date : dt::today(),   // датата на ордера
             'entries' => array(),
         );
 
@@ -54,8 +54,8 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             }
         }
 
+        $productArr = array();
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
-            $productArr = array();
             $error = null;
             if (!$this->class->isAllowedToBePosted($rec, $error, true)) {
                 acc_journal_RejectRedirect::expect(false, $error);
@@ -138,8 +138,11 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
                 
                 return $result;
             }
+
+            Mode::push('text', 'plain');
             $result->reason = "{$type} към фактура №" . $origin->getVerbal('number');
-            
+            Mode::pop('text');
+
             // Намираме оридиджана на фактурата върху която е ДИ или КИ
             $origin = $origin->getOrigin();
             

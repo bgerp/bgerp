@@ -18,7 +18,7 @@
  * @package   bgerp
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -167,13 +167,16 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         }
 
                         if (!$form->gotErrors()) {
+                            $onDuplicate = $form->rec->onDuplicate == 'yes';
                             if($mvc instanceof sales_QuotationsDetails){
                                 array_walk($rows, function($a) use ($form){ $a->optional = $form->rec->optional;});
                             }
 
                             // Импортиране на данните от масива в зададените полета
+                            Mode::push('onDuplicate', $onDuplicate);
                             $msg = self::importRows($mvc, $rec->{$mvc->masterKey}, $rows, $fields);
-                            
+                            Mode::pop('onDuplicate');
+
                             self::cacheImportParams($mvc, $rec);
                             $mvc->Master->logWrite('Импортиране на артикули', $rec->{$mvc->masterKey});
                             
@@ -371,8 +374,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if ($pRec) {
                     $obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
                     if (!$obj->quantity) {
-                        if(!$mvc->hasPlugin('store_plg_RequestDetail')){
-                            $err[$i][] = $obj->code . '|Невалидно количество|*';
+                        if(!$mvc->hasPlugin('store_plg_RequestDetail') && !($mvc instanceof store_InventoryNoteDetails)){
+                            $err[$i][] = $obj->code . ' |Невалидно количество|*';
                         }
                     } else {
                         $packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
@@ -387,10 +390,14 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             // Ако е инсталиран пакета за партидност и има партида
             if ($batchInstalled && isset($obj->batch, $pRec->productId)) {
                 if ($batchDef = batch_Defs::getBatchDef($pRec->productId)) {
+                    if($mvc instanceof store_InventoryNoteDetails){
+                        $batchDef->params['allowZero'] = true;
+                    }
+
                     $batchType = $batchDef->getBatchClassType($mvc, (object)array($mvc->masterKey => $masterId));
                     $obj->batch = $batchType->fromVerbal($obj->batch);
                     $r = $batchType->isValid($obj->batch);
-                    
+
                     if (!$obj->batch || !empty($r['error'])) {
                         $error = !empty($r['error']) ? $r['error'] : $batchType->error;
                         $err[$i][] = $obj->batch . " |{$error}|*";
@@ -418,16 +425,62 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
         return $err;
     }
-    
-    
+
     /**
      * Импортиране на записите ред по ред от мениджъра
      */
     private static function importRows($mvc, $masterId, $rows, $fields)
     {
         $added = $failed = 0;
+
+        // Ако е избрано да се дублират, да се сумират редовете преди това
+        $onDuplicate = Mode::get('onDuplicate');
+        if($onDuplicate){
+
+            $total = array();
+            foreach ($rows as $row){
+                $key = "{$row->code}|{$row->pack}|{$row->batch}";
+                if($mvc->allowPriceImport){
+                    $key .= "|{$row->price}";
+                }
+
+                if(!array_key_exists($key, $total)){
+                    $clone = clone $row;
+                    $clone->quantity = 0;
+                    $total[$key] = $clone;
+                }
+
+                $total[$key]->quantity += $row->quantity;
+            }
+
+            $rows = $total;
+        }
+
+        // Ако е указвано да се групират по партиди при импорт да се прави
+        if($mvc->combineImportRecs){
+            $total = array();
+            foreach ($rows as $row) {
+                $key = "{$row->code}|{$row->pack}";
+                if ($mvc->allowPriceImport) {
+                    $key .= "|{$row->price}";
+                }
+
+                if (!array_key_exists($key, $total)) {
+                    $clone = clone $row;
+                    $clone->quantity = 0;
+                    $total[$key] = $clone;
+                }
+                if (isset($row->batch)) {
+                    $total[$key]->batches[$row->batch] += $row->quantity;
+                }
+
+                $total[$key]->quantity += $row->quantity;
+            }
+            $rows = $total;
+        }
+
         foreach ($rows as $row) {
-         
+
             // Опитваме се да импортираме записа
             try {
                 if ($mvc->import($masterId, $row)) {
@@ -470,6 +523,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             'firstRow' => $rec->firstRow,
             'codecol' => $rec->codecol,
             'quantitycol' => $rec->quantitycol,
+            'onDuplicate' => $rec->onDuplicate,
             'pricecol' => $rec->pricecol);
         
         
@@ -532,6 +586,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $isFromClipboard = true;
         }
 
+
+
         $unit = '';
         $type = 'enum()';
         if (!$isFromClipboard) {
@@ -550,7 +606,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $type = 'int';
         }
 
-
+        if($mvc->allowImportReplacement){
+            $form->FLD('onDuplicate', 'enum(no=Всяко на нов ред,yes=Заместване)', 'width=100%,caption=Настройки->При дублиране,maxRadio=5');
+            $form->setDefault('onDuplicate', 'no');
+        }
 
         // Съответстващи колонки на полета
         $form->FLD('codecol', $type, "caption=Съответствие в данните->Код{$unit},mandatory");
@@ -629,7 +688,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $error = '';
         if ($mvc->haveRightFor('import', (object) array("{$mvc->masterKey}" => $masterRec->id))) {
             $data->toolbar->addBtn(
-                'Импортиране (CSV)',
+                'Импорт|* (CSV)',
                 array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => true),
             "id=btnAdd-import,title=Импортиране на артикули от CSV",
                 "ef_icon = img/16/import.png,order=15,{$error}"

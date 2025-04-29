@@ -3,7 +3,7 @@
 <div>
 	<div class="folder-cover [#STATE_CLASS#]">
 		<div class="inner-folder">
-			<div class="block_title state-active special-title">[#SingleIcon#] [#name#]</div>
+			<div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] [#name#]</div>
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Информация|*</legend>
 				<div class="groupList">
@@ -34,6 +34,12 @@
 								<td class='dt'>|Режим на ДДС|*:</td>
 								<td>[#chargeVat#]</td>
 							</tr>
+							<!--ET_BEGIN vatExceptionId-->
+							<tr>
+								<td class='dt'>|ДДС изключение|*:</td>
+								<td>[#vatExceptionId#]</td>
+							</tr>
+							<!--ET_END vatExceptionId-->
 							<!--ET_BEGIN discountPolicyId-->
 							<tr>
 								<td class='dt'>|Политика за отстъпки|*:</td>
@@ -46,7 +52,7 @@
 							</tr>
 							
 							<tr>
-								<td class='dt'>|Плащания|*:</td>
+								<td class='dt'>|Безналични плащания|*:</td>
 								<td>[#payments#]</td>
 							</tr>
 							

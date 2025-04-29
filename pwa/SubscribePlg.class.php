@@ -33,7 +33,7 @@ class pwa_SubscribePlg extends core_Plugin
                 }
             }
 
-            $canUse = pwa_Manifest::canUse();
+            $canUse = pwa_Settings::canUse();
 
             if ($canUse != 'yes') {
 
@@ -51,7 +51,7 @@ class pwa_SubscribePlg extends core_Plugin
             core_Permanent::set('pwa_firstLogin_' . $brid, dt::mysql2timestamp(dt::now()), 1000000);
             Mode::setPermanent('pwaSubscribe', false);
 
-            if ($pRec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]'", $brid))) {
+            if ($pRec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]' AND #state = 'active'", $brid))) {
                 $rArr = $defRedirect;
                 if ($cu = core_Users::getCurrent()) {
                     if ($cu == $pRec->userId) {
@@ -115,13 +115,30 @@ class pwa_SubscribePlg extends core_Plugin
 
             $tpl = $form->renderHtml();
 
+            if (Request::get('forceSubscribe')) {
+                $appendJS = true;
+                $retUrl = getRetUrl();
+                if (!empty($retUrl)) {
+                    unset($retUrl['isPwa']);
+                    $redirectUrl = toUrl($retUrl, 'local');
+                    $subscribeUrl = ht::createLink('oтписване',
+                        array('pwa_PushSubscriptions', 'stop', pwa_PushSubscriptions::fetchField(array("#brid = '[#1#]'", $brid)), 'ret_url' => toUrl($retUrl, 'local')), null,
+                    'ef_icon=img/16/deletered.png');
+                    $infoLink = ht::createLink('информация', 'https://bgerp.com/Bg/PWA-prilozhenie#Instalirane-na-prilozhenieto-ot-potrebitelite', null, 'target=_blank, ef_icon=img/16/bgerp.png');
+                    $deniedText = tr("<div>|Грешка при подновяване на абонамента за нотификации.|*</div><div>|Може да се отпишете от |*{$subscribeUrl}</div><div>|Или да активирате в настройките на браузъра|* - {$infoLink}</div>");
+
+                    $tpl->appendOnce("const redirectUrl = '{$redirectUrl}';", 'SCRIPTS');
+                    $tpl->appendOnce("const deniedText = '{$deniedText}';", 'SCRIPTS');
+                }
+            }
+
             if ($appendJS) {
                 $tpl->appendOnce("const applicationServerKey = '{$key}';", 'SCRIPTS');
                 $pwaSubscriptionUrl = toUrl(array('pwa_PushSubscriptions', 'Subscribe'), 'local');
                 $pwaSubscriptionUrl = urlencode($pwaSubscriptionUrl);
 
-                $tpl->appendOnce("const pwaSubsctiptionUrl = '{$pwaSubscriptionUrl}';", 'SCRIPTS');
-                $tpl->appendOnce("const forceSubscibe = 'yes';", 'SCRIPTS');
+                $tpl->appendOnce("const pwaSubscriptionUrl = '{$pwaSubscriptionUrl}';", 'SCRIPTS');
+                $tpl->appendOnce("const forceSubscribe = 'yes';", 'SCRIPTS');
 
                 if ($form->rec->subscribe == 'yesWorking') {
                     $redirectUrl = toUrl($defRedirect, 'local');
@@ -146,7 +163,6 @@ class pwa_SubscribePlg extends core_Plugin
 
         // Ако няма абонамет и е първо логване, препраща към екшъна за бързо абониране
         if (Request::get('isPwa') == 'yes') {
-
             $brid = log_Browsers::getBrid();
             $rec = pwa_PushSubscriptions::fetch(array("#brid = '[#1#]'", $brid));
 
@@ -163,6 +179,16 @@ class pwa_SubscribePlg extends core_Plugin
                 }
             } else {
                 core_Permanent::set('pwa_firstLogin_' . $brid, dt::mysql2timestamp(dt::now()), 1000000);
+            }
+
+            if (!Request::get('ajax_mode')) {
+                // Ако е спрян абонамента, дава възможност за ново абониране
+                $pState = pwa_PushSubscriptions::fetchField(array("#brid = '[#1#]'", $brid), 'state');
+                if ($pState == 'stopped') {
+                    $res = new Redirect(array($mvc, 'pwaSubscribe', 'forceSubscribe' => 'yes', 'ret_url' => true));
+
+                    return false;
+                }
             }
         }
     }

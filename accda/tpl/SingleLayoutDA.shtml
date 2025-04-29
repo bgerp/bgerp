@@ -85,14 +85,13 @@
     <!--ET_BEGIN ASSETS-->
     [#ASSETS#]
     <fieldset style='margin-top:10px'>
-    <legend class='groupTitle'>|Оборудване|*</legend>
+    <legend class='groupTitle'>|Оборудване|* [#hint#] [#btns#]</legend>
     	<table class='simpleTable'>
-	    <!--ET_BEGIN assetId-->
+	    <!--ET_BEGIN assets-->
         <tr>
-            <td class='quiet nowrap'>|Име|*:</td>
-            <td>[#assetId#]</td>
+            <td colspan="2">[#assets#]</td>
         </tr>
-        <!--ET_END assetId-->
+        <!--ET_END assets-->
 	    
 	    
         <!--ET_BEGIN assetCode-->
@@ -109,7 +108,7 @@
         <!--ET_END assetGroupId-->
         <!--ET_BEGIN assetResourceFolderId-->
         <tr>
-            <td class='quiet nowrap'>|Папка|*:</td>
+            <td class='quiet nowrap'>|Ц-р на дейност|*:</td>
             <td>[#assetResourceFolderId#]</td>
         </tr>
         <!--ET_END assetResourceFolderId-->

@@ -74,8 +74,14 @@ class bgfisc_Register extends core_Manager
      * Сериен номер, който да се задава на стари продажби
      */
     const OLD_SALE_NUM = '0000000';
-    
-    
+
+
+    /**
+     * Константа за без касов ордер
+     */
+    const WITHOUT_REG_NUM = -1;
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -258,8 +264,9 @@ class bgfisc_Register extends core_Manager
         $Class = cls::get($class);
         $classId = $Class->getClassId();
         $rec = (object) array('classId' => $classId, 'objectId' => $objectId);
-        
+
         // Ако е платежен документ
+        $serialNum = null;
         if ($Class instanceof cash_Document) {
             
             // Форсира се УНП-то на продажбата му
@@ -271,12 +278,16 @@ class bgfisc_Register extends core_Manager
         } else {
             if ($Class instanceof sales_Sales) {
                 $saleRec = $Class->fetch($objectId, 'bankAccountId,caseId');
-                $deviceRec = bgfisc_Register::getFiscDevice($saleRec->caseId, $saleRec->bankAccountId);
+                $deviceRec = bgfisc_Register::getFiscDevice($saleRec->caseId, $serialNum);
             } else {
                 $caseId = pos_Points::fetchField($Class->fetchField($objectId, 'pointId'), 'caseId');
-                $deviceRec = bgfisc_Register::getFiscDevice($caseId);
+                $deviceRec = bgfisc_Register::getFiscDevice($caseId, $serialNum);
             }
-            
+
+            if($serialNum == static::WITHOUT_REG_NUM){
+                $createNewUrn = false;
+            }
+
             // Генериране на данните за УНП-то
             if($createNewUrn === true){
                 if(empty($deviceRec)){
@@ -304,9 +315,7 @@ class bgfisc_Register extends core_Manager
         }
         
         self::save($rec);
-        
-        
-        
+
         return $rec;
     }
     
@@ -382,12 +391,11 @@ class bgfisc_Register extends core_Manager
      * Връща текущото дефолтното Фискално устройство
      *
      * @param int         $caseId
-     * @param string|null $brid
-     * @param string|null $ip
+     * @param string|null $serialNum
      *
      * @return stdClass|null $res
      */
-    public static function getFiscDevice($caseId = null, $brid = null, $ip = null)
+    public static function getFiscDevice($caseId = null, &$serialNum = null)
     {
         $serialNum = null;
         
@@ -395,7 +403,9 @@ class bgfisc_Register extends core_Manager
         if (isset($caseId)) {
             $serialNum = cash_Cases::fetchField($caseId, 'cashRegNum');
         }
-        
+
+        if($serialNum == bgfisc_Register::WITHOUT_REG_NUM) return;
+
         // Ако не е определено ФУ взима се някое от дефолтните
         if (empty($serialNum)) {
             $serialNum = null;
@@ -428,19 +438,24 @@ class bgfisc_Register extends core_Manager
                 $makeHint = true;
             }
         }
-        
-        $fuRec = peripheral_Devices::getDevice('peripheral_FiscPrinterIntf', false, array('serialNumber' => $serial));
-        if (!empty($fuRec)) {
-            $link = ($short === true) ? $fuRec->serialNumber : "{$fuRec->name} ( {$fuRec->serialNumber} )";
-            $link = ht::createLink($link, peripheral_Devices::getSingleUrlArray($fuRec->id));
-            if ($makeHint === true) {
-                $link = ht::createHint($link, 'Фискално устройство по подразбиране', 'notice', false);
-            }
+
+        if($serial == bgfisc_Register::WITHOUT_REG_NUM){
+
+            return "<i style='color:blue;'>" . tr('Без') . "</i>";
         } else {
-            $link = ht::createHint("<span class='red'></span>", 'Няма избрано фискално устройство', 'error');
+            $fuRec = peripheral_Devices::getDevice('peripheral_FiscPrinterIntf', false, array('serialNumber' => $serial));
+            if (!empty($fuRec)) {
+                $link = ($short === true) ? $fuRec->serialNumber : "{$fuRec->name} ( {$fuRec->serialNumber} )";
+                $link = ht::createLink($link, peripheral_Devices::getSingleUrlArray($fuRec->id));
+                if ($makeHint === true) {
+                    $link = ht::createHint($link, 'Фискално устройство по подразбиране', 'notice', false);
+                }
+            } else {
+                $link = ht::createHint("<span class='red'></span>", 'Няма избрано фискално устройство', 'error');
+            }
+
+            return $link;
         }
-        
-        return $link;
     }
     
     
@@ -459,5 +474,30 @@ class bgfisc_Register extends core_Manager
         }
         
         return $res;
+    }
+
+
+    public static function doRequireFiscForConto($mvc, $rec)
+    {
+        $serialNum = null;
+        $caseId = ($mvc instanceof sales_Sales) ? $rec->caseId : (($rec->peroCase) ? $rec->peroCase : $mvc->getDefaultCase($rec));
+        bgfisc_Register::getFiscDevice($caseId, $serialNum);
+
+        return $serialNum != bgfisc_Register::WITHOUT_REG_NUM;
+    }
+
+
+    /**
+     * До коя дата може да се издава КБ за сторно с основание Операторска грешка
+     *
+     * @param datetime $valior
+     * @return false|string
+     */
+    public static function getMaxDateForStornoOperationError($valior)
+    {
+        $dayBefore = bgfisc_Setup::get('REVERT_OPERATION_ERROR_ALLOWED_BEFORE');
+        $dayBeforePadded = str_pad($dayBefore, 2, '0', STR_PAD_LEFT);
+
+        return date("Y-m-{$dayBeforePadded}", strtotime(dt::addMonths(1, $valior)));
     }
 }

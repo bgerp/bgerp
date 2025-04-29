@@ -85,6 +85,7 @@ class batch_Setup extends core_ProtoSetup
         'batch_Templates',
         'batch_BatchesInDocuments',
         'batch_ManufacturersPerProducts',
+        'migrate::updateCategoryDefinitions2502',
     );
     
     
@@ -195,5 +196,29 @@ class batch_Setup extends core_ProtoSetup
         }
         
         return $html;
+    }
+
+
+    /**
+     * Мигриране на партидните дефиниции
+     */
+    public function updateCategoryDefinitions2502()
+    {
+        $CategoryDef = cls::get('batch_CategoryDefinitions');
+        $query = $CategoryDef->getQuery();
+        $query->FLD('driverClass', 'int');
+        $query->FLD('driverRec', 'blob(1000000, serialize, compress)');
+        $query->where("#templateId IS NULL");
+
+        while($rec = $query->fetch()){
+            $o = array('driverClass' => $rec->driverClass) + (array) $rec->driverRec;
+            $templateId = batch_Templates::force($o);
+            if($templateId){
+                $rec->templateId = $templateId;
+                $CategoryDef->save($rec, 'templateId');
+            } else {
+                $CategoryDef->delete($rec->id);
+            }
+        }
     }
 }

@@ -32,6 +32,7 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
         'hotWater' => array('caption' => 'Топла вода', 'uom' => 'm³', 'logPeriod' => 3600),
 //        'airTempLower' => array('caption' => 'Температура долу', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
         'airTempCent' => array('caption' => 'Температура център', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
+        'timeSinceLastConnection' => array('caption' => 'Последно свързване', 'uom' => 'sec', 'logPeriod' => 3600, 'readPeriod' => 60),
 //        'airTempUpper' => array('caption' => 'Температура горе', 'uom' => 'ºC', 'logPeriod' => 3600, 'readPeriod' => 60),
 //        'ventLowerFan' => array('caption' => 'Вентилатор долу', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
 //        'ventUpperFan' => array('caption' => 'Вентилатор горе', 'uom' => '%', 'logPeriod' => 0, 'readPeriod' => 60),
@@ -109,7 +110,7 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
                         }
 
                         if (empty($valArr)) {
-                            ztm_RegisterValues::logDebug('В регистъра се очаква попълнен масив', $rRec);
+//                            ztm_RegisterValues::logDebug('В регистъра се очаква попълнен масив', $rRec);
 
                             continue;
                         }
@@ -134,6 +135,17 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
                         $res[$input] = $val;
                     }
                 }
+            }
+        }
+
+        $query = ztm_RegisterValues::getQuery();
+        $query->orderBy("updatedOn", 'DESC');
+        $query->limit(1);
+        $query->show('updatedOn');
+        if ($rec = $query->fetch()) {
+            $res['timeSinceLastConnection'] = time() - strtotime($rec->updatedOn);
+            if ($res['timeSinceLastConnection'] < 0) {
+                $res['timeSinceLastConnection'] = null;
             }
         }
 
@@ -172,9 +184,12 @@ class ztm_SensMonitoring extends sens2_ProtoDriver
             }
             expect($rKey);
 
+            $dName = $this->driverRec->name;
+            $dId = ztm_Devices::fetchField(array("#name = '[#1#]'", $dName));
+
             $regId = ztm_Registers::fetchField(array("#name = '[#1#]'", $rKey));
             if ($regId) {
-                ztm_RegisterValues::forceSync($regId, $oVal);
+                ztm_RegisterValues::forceSync($regId, $oVal, $dId);
 
                 $resArr[$rKey] = $oVal;
             }

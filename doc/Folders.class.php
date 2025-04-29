@@ -152,6 +152,7 @@ class doc_Folders extends core_Master
         $this->setDbUnique('coverId,coverClass');
 
         $this->setDbIndex('last');
+        $this->setDbIndex('createdOn');
     }
     
     
@@ -164,6 +165,17 @@ class doc_Folders extends core_Master
         
         return new Redirect(array('doc_Threads', 'list', 'folderId' => $id));
     }
+
+
+    /**
+     * Листване
+     */
+    public function act_List()
+    {
+        $this->forceProxy($this->className);
+
+        return parent::act_List();
+    }
     
     
     /**
@@ -173,7 +185,6 @@ class doc_Folders extends core_Master
     {
         $rec = static::fetch($id);
         $haveRight = static::haveRightFor('single', $rec);
-        
         $iconStyle = 'background-image:url(' . static::getIconImg($rec, $haveRight) . ');';
         
         if ($attr['url']) {
@@ -202,7 +213,13 @@ class doc_Folders extends core_Master
         if ($url) {
             unset($attr['url']);
         }
-        
+
+        $Cover = doc_Folders::getCover($rec->id);
+        $doubleClickUrl = $Cover->getUrlForDblClick($url, true);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+        }
         $link = ht::createLink($title, $url, null, $attr);
         
         return $link;
@@ -304,17 +321,17 @@ class doc_Folders extends core_Master
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,autoFilter');
-        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно", inCharge=Без споделените)', 'caption=Подредба,input,silent,autoFilter');
+        $data->listFilter->FNC('order', 'enum(pending=Първо отворените,last=Сортиране по "последно", inCharge=Без споделените)', 'caption=Подредба,input,silent,autoFilter');
+        $data->listFilter->FNC('docType', 'class(interface=doc_FolderIntf,select=title,allowEmpty)', 'caption=Тип папка,input,silent,autoFilter');
+
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        // Показваме само това поле. Иначе и другите полета
-        // на модела ще се появят
-        $data->listFilter->showFields = 'search,users,order';
-        $data->listFilter->input('search,users,order', 'silent');
+        // Показваме само това поле. Иначе и другите полета на модела ще се появят
+        $data->listFilter->showFields = 'search,users,order,docType';
+        $data->listFilter->input('search,users,order,docType', 'silent');
 
         $cu = core_Users::getCurrent();
-
         if (!$data->listFilter->rec->users) {
             $data->listFilter->rec->users = '|' . $cu . '|';
         }
@@ -330,7 +347,11 @@ class doc_Folders extends core_Master
             $data->title = 'Търсене на папки отговарящи на |*<span class="green">"' .
             $data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
         }
-        
+
+        if ($data->listFilter->rec->docType) {
+            $data->query->where("#coverClass={$data->listFilter->rec->docType}");
+        }
+
         switch ($data->listFilter->rec->order) {
             case 'inCharge':
             case 'last':
@@ -480,6 +501,7 @@ class doc_Folders extends core_Master
             $attr['style'] = 'background-image:url(' . sbf($signleIcon) . ');';
             
             $singleTitle = $typeMvc->getSingleTitle($rec->coverId);
+
             if ($typeMvc->haveRightFor('single', $rec->coverId)) {
                 $row->type = ht::createLink($singleTitle, array($typeMvc, 'single', $rec->coverId), null, $attr);
             } else {
@@ -510,14 +532,10 @@ class doc_Folders extends core_Master
     public static function getFolderTitle($rec, $title = null, $limitLen = null)
     {
         $mvc = cls::get('doc_Folders');
-        
-        if (is_numeric($rec)) {
-            $rec = $mvc->fetch($rec);
-        }
+        $rec = $mvc->fetchRec($rec);
         
         $attr = array();
         $attr['class'] = 'linkWithIcon';
-
         if ($title === null) {
             $title = $mvc->getVerbal($rec, 'title');
         }
@@ -550,6 +568,13 @@ class doc_Folders extends core_Master
 
         if ($rec->last > bgerp_Recently::getLastFolderSee($rec->id)) {
             $attr['class'] .= ' tUnsighted';
+        }
+
+        $Cover = doc_Folders::getCover($rec->id);
+        $doubleClickUrl = $Cover->getUrlForDblClick($link, true);
+        if(isset($doubleClickUrl)){
+            $doubleClickDataUrl = toUrl($doubleClickUrl);
+            $attr['data-doubleclick'] .= $doubleClickDataUrl;
         }
 
         if ($haveRight) {
@@ -923,13 +948,16 @@ class doc_Folders extends core_Master
      */
     public static function updateByCover($id)
     {
-        $rec = doc_Folders::fetch($id);
+        $q = doc_Folders::getQuery();
+        $q->show('*');
+        $q->limit(1);
+        $rec = $q->fetch($id);
         
         if (!$rec) {
             
             return;
         }
-        
+
         $coverMvc = cls::get($rec->coverClass);
         
         if (!$rec->coverId) {
@@ -941,12 +969,10 @@ class doc_Folders extends core_Master
         }
         
         $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, false);
-        
         $isRevert = ($rec->state == 'rejected' && $coverRec->state != 'rejected');
         $isReject = ($rec->state != 'rejected' && $coverRec->state == 'rejected');
         $isClosed = ($rec->state != 'closed' && $coverRec->state == 'closed');
-        $isActivated = ($rec->state == 'closed' && $coverRec->state == 'active');
-        
+        $isActivated = ($rec->state == 'closed' && in_array($coverRec->state, array('active', 'draft')));
         $fields = 'title,inCharge,access,shared';
         
         foreach (arr::make($fields) as $field) {
@@ -2174,8 +2200,12 @@ class doc_Folders extends core_Master
         if ($params['excludeArr']) {
             $query->notIn('id', $params['excludeArr']);
         }
-        
-        $query->orderBy('last=DESC');
+
+        if ($params['orderBy']) {
+            $query->orderBy($params['orderBy']);
+        } else {
+            $query->orderBy('last=DESC');
+        }
         
         // Ако има зададен интерфейс за кориците, взимат се само тези папки, чиито корици имат интерфейса
         if (isset($params['coverInterface'])) {
@@ -2190,10 +2220,9 @@ class doc_Folders extends core_Master
             $exceptCoverClasses = explode('|', $params['coverClasses']);
             if (is_array($exceptCoverClasses)) {
                 foreach ($exceptCoverClasses as $cName) {
-                    $skipCoverClasses[] = $cName::getClassId();
+                    $skipCoverClasses[] = cls::get($cName)->getClassId();
                 }
             }
-            
             $query->in('coverClass', $skipCoverClasses);
         }
 
@@ -2293,7 +2322,7 @@ class doc_Folders extends core_Master
         $query->show("id,searchFieldXpr,class, {$titleFld}");
         
         $res = array();
-        
+
         while ($rec = $query->fetch()) {
             $res[$rec->id] = trim($rec->{$titleFld}) . ' (' . $rec->class . ')';
         }

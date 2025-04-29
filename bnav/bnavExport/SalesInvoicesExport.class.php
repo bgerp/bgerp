@@ -59,6 +59,11 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
      */
     protected $changeableFields;
 
+    /**
+     * Кои полета са за избор на период
+     */
+    protected $periodFields = 'from,to';
+
 
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -70,7 +75,10 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FNC('dealType', 'int', 'caption=Тип сделка,after=to,input=none,single=none,mandatory');
+        $fieldset->FLD('currencyType', 'set(yes = )', 'caption=Експорт във валута,after=to,input,single=none');
+
+
+        $fieldset->FNC('dealType', 'int', 'caption=Тип сделка,after=currencyType,input=none,single=none,mandatory');
     }
 
 
@@ -86,6 +94,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        $form->setDefault('currencyType', null);
     }
 
 
@@ -120,6 +130,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+        $currencyType = 1;
 
         //Ако има регистрирана "ОСНОВНА ГРУПА", вадим групите, които са едно ниво под нея
         if (core_Packs::getConfig('bnav')->BASE_GROUP != '') {
@@ -127,7 +138,13 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $baseGroupId = (trim(core_Packs::getConfig('bnav')->BASE_GROUP, '|'));
             $gQuery = cat_Groups::getQuery();
             $gQuery->where("#parentId = $baseGroupId");
-            expect($gQuery->count(), 'Липсват регистрирани групи в основната група');
+            if (!$gQuery->count()) {
+                cat_Products::logErr("Липсват регистрирани групи в основната група");
+                followRetUrl(null, "Липсват регистрирани групи в основната група", 'error');
+
+            }
+
+            //    expect($gQuery->count(), 'Липсват регистрирани групи в основната група');
 
             //масив с групи, които са едно ниво под основната
             $flGroups = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
@@ -186,10 +203,16 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $paymentType = $sRec->paymentType;
 
             //Банкова сметка
-            $bankAccount = $sRec->accountId;
+            $bankAccount = ($paymentType == 'bank') ? $sRec->accountId : null;
 
             $rec->dealType = self::getDealType($sRec);
             $rec->docType = self::getDocType($sRec);
+
+            if ($rec->currencyType == 'yes') {
+                $currencyType = $sRec->rate;
+            } else {
+                $currencyType = 1;
+            }
 
             //Ако има авансово начисляване на суми по цялата фактура
             if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {
@@ -207,14 +230,14 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                         'contragentName' => $contragentName,
                         'paymentType' => $paymentType,
                         'accountId' => $bankAccount,
-                        'accItem' => '',
+                        'accItem' => core_Packs::getConfig('bnav')->FSD_ADVANCE,
                         'currencyId' => $sRec->currencyId,
                         'rate' => $sRec->rate,
-                        'dealValue' => $dealValue,
-                        'detAmount' => $dealValue,
+                        'dealValue' => $dealValue / $currencyType,
+                        'detAmount' => $dealValue / $currencyType,
                         'dpOperation' => $sRec->dpOperation,
-                        'dpAmount' => $sRec->dpAmount,
-                        'changeAmount' => $sRec->changeAmount,
+                        'dpAmount' => $sRec->dpAmount / $currencyType,
+                        'changeAmount' => $sRec->changeAmount / $currencyType,
                         'state' => $state,
                         'brState' => $brState,
 
@@ -230,6 +253,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'dealType' => $rec->dealType,
                     'number' => $number,
                     'date' => $sRec->date,
+                    'threadId' => $sRec->threadId,
                     'contragentVatNo' => $contragentVatNo,
                     'contragentNo' => $contragentNo,
                     'contragentName' => $contragentName,
@@ -238,12 +262,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'accItem' => '',
                     'currencyId' => $sRec->currencyId,
                     'rate' => $sRec->rate,
-                    'dealValue' => $sRec->dealValue,
+                    'dealValue' => $sRec->dealValue / $currencyType,
                     'state' => $state,
                     'brState' => $brState,
                     'dpOperation' => $sRec->dpOperation,
-                    'dpAmount' => $sRec->dpAmount,
-                    'changeAmount' => $sRec->changeAmount,
+                    'dpAmount' => $sRec->dpAmount * $sRec->rate,
+                    'changeAmount' => $sRec->changeAmount * $sRec->rate,
 
                 );
             }
@@ -253,6 +277,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         if (empty($invArr)) {
             return $recs;
         }
+
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->in('invoiceId', $invArr);
 
@@ -279,11 +304,64 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         }
 
         foreach ($details as $dRec) {
+            //река на артикула от детайла
+            $pRec = cat_Products::fetch($dRec->productId);
+
+            //Извличане на счетоводна сметка и код на артикула
+            $accItem = null;
+
+            $confBnav = core_Packs::getConfig('bnav');
+
+            if ($pRec->bnavCode && $confBnav->SYCODE_PRODCODE == 'yes') {
+
+                $bnavCodeMarker = null;
+
+                //Проверяваме дали продулта е складируем или услуга
+                $const = ($pRec->canStore == 'yes') ? 'FSD_SALES' : 'FSD_SALES_SERVICES';
+                //todo
+                $accItem = core_Packs::getConfig('bnav')->$const;
+                $startPos = $endPos = false;
+                $startPos = strpos($pRec->bnavCode, '[') + 1;
+                $endPos = strpos($pRec->bnavCode, ']');
+
+                if (strpos($pRec->bnavCode, '[') === false && $endPos === false ){
+
+                    cat_Products::logErr("Некоректен bnavcode за артикул: $pRec->name");
+                    $url = toUrl(array('cat_Products', 'single', $pRec->id));
+                    $link = ht::createLink($pRec->name, $url);
+                    followRetUrl($url, "Некоректен bnavcode за артикул $link", 'error');
+                    $bnavCodeMarker = 1;
+                }
+
+                $subAccItem = substr($pRec->bnavCode, $startPos, $endPos - $startPos);
+
+                $charToFind = '&';
+
+                $position = strpos($subAccItem, $charToFind);
+                if ($position !== false) {
+                    $accItem = substr($subAccItem, $position + 1);
+                } else {
+                    $accItem .= $subAccItem;
+                }
+
+                $prodCode = substr($pRec->bnavCode, $endPos + 1);  // +1, за да пропуснем самата скоба
+
+            }
+
             $id = $dRec->id;
 
             //Ако има авансово приспадане на суми
             if ($invoices[$dRec->invoiceId]->dpOperation == 'deducted') {
+
+                $accItem = core_Packs::getConfig('bnav')->FSD_ADVANCE;
+
                 $id = $invoices[$dRec->invoiceId]->number;
+
+                if ($rec->currencyType == 'yes') {
+                    $currencyType = $invoices[$dRec->invoiceId]->rate;
+                } else {
+                    $currencyType = 1;
+                }
 
                 $recs[$id] = (object)array(
                     'type' => $invoices[$dRec->invoiceId]->type,
@@ -295,13 +373,14 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'contragentName' => $invoices[$dRec->invoiceId]->contragentName,
                     'paymentType' => $invoices[$dRec->invoiceId]->paymentType,
                     'accountId' => $invoices[$dRec->invoiceId]->bankAccount,
-                    'accItem' => '',
+                    'accItem' => $accItem,
                     'currencyId' => $invoices[$dRec->invoiceId]->currencyId,
                     'rate' => $invoices[$dRec->invoiceId]->rate,
-                    'dealValue' => $invoices[$dRec->invoiceId]->dealValue,
+                    'dealValue' => $invoices[$dRec->invoiceId]->dealValue / $currencyType,
                     'state' => $invoices[$dRec->invoiceId]->state,
                     'brState' => $invoices[$dRec->invoiceId]->brState,
-                    'detAmount' => $invoices[$dRec->invoiceId]->dpAmount,
+                    'detAmount' => $invoices[$dRec->invoiceId]->dpAmount / $currencyType,
+                    'bnavCodeMarker' => $bnavCodeMarker,
 
                 );
                 $id = $dRec->id;
@@ -314,8 +393,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     continue;
                 }
             }
-
-            $pRec = cat_Products::fetch($dRec->productId);
 
             //Ако има регистрирана "ОСНОВНА ГРУПА", определяме група на артикула спрямо нея
             if (core_Packs::getConfig('bnav')->BASE_GROUP != '') {
@@ -336,28 +413,33 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 }
 
             }
-            $erpCode = $pRec->code ? $pRec->code : 'Art' . $pRec->id;
-            $prodCode = $pRec->bnavCode ? $pRec->bnavCode : $erpCode;
-            $measure = cat_UoM::getShortName($pRec->measureId);
+
+            if ($confBnav->SYCODE_PRODCODE == 'no') {
+
+                 $erpCode = $pRec->code ? $pRec->code : 'Art' . $pRec->id;
+                 $prodCode = $pRec->bnavCode ? $pRec->bnavCode : $erpCode;
+            }
+
+            $measure = cat_UoM::getShortName($dRec->packagingId);
             $detAmount = $dRec->amount;
 
             // Запис в масива
-
             if (!array_key_exists($id, $recs)) {
-
 
                 $recs[$id] = (object)array(
                     'invoice' => $invoices[$dRec->invoiceId],
                     'number' => $invoices[$dRec->invoiceId]->number,
+                    'accItem' => $accItem,
                     'prodCode' => $prodCode,
                     'group' => $group,
                     'quantity' => $dRec->quantity,
-                    'price' => $dRec->price,
-                    'detAmount' => $detAmount,
+                    'price' => ($dRec->price * $dRec->quantityInPack) / $currencyType,
+                    'detAmount' => $detAmount / $currencyType,
                     'vatAmount' => '',
                     'measure' => $measure,
-                    'vat' => cat_Products::getVat($pRec->id) * 100,
+                    'vat' => cat_Products::getVat($pRec->id, $invoices[$dRec->invoiceId]->date, $invoices[$dRec->invoiceId]->threadId) * 100,
                     'accText' => '',
+                    'bnavCodeMarker' => $bnavCodeMarker,
                 );
 
             }
@@ -445,7 +527,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $row->contragentName = $dRec->invoice->contragentName;
             $row->contragentVatNo = $dRec->invoice->contragentVatNo;
             $row->contragentNo = $dRec->invoice->contragentNo;
-            $row->accItem = $dRec->invoice->accItem;
+            $row->accItem = $dRec->accItem;
             $row->currencyId = $dRec->invoice->currencyId;
             $row->rate = core_Type::getByName('double(decimals=4)')->toVerbal($dRec->invoice->rate);
             $row->dealValue = $Double->toVerbal($dRec->invoice->dealValue);
@@ -457,6 +539,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $row->measure = $dRec->measure;
             $row->vat = $dRec->vat;
             $row->paymentType = $dRec->invoice->paymentType;
+            if (isset($dRec->invoice->accountId)) {
+                $row->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
+            }
             $row->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
         } else {
             
@@ -485,7 +570,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $row->measure = $dRec->measure;
             $row->vat = $dRec->vat;
             $row->paymentType = $dRec->paymentType;
-            $row->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
+            if (isset($dRec->invoice->accountId)) {
+                $row->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
+            }
         }
         
         return $row;
@@ -524,7 +611,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $res->contragentName = $dRec->invoice->contragentName;
             $res->contragentVatNo = $dRec->invoice->contragentVatNo;
             $res->contragentNo = $dRec->invoice->contragentNo;
-            $res->accItem = $dRec->invoice->accItem;
+            $res->accItem = $dRec->accItem;
             $res->currencyId = $dRec->invoice->currencyId;
             $res->rate = ($dRec->invoice->rate);
             $res->dealValue = ($dRec->invoice->dealValue);
@@ -536,14 +623,17 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $res->measure = $dRec->measure;
             $res->vat = $dRec->vat;
             $res->paymentType = $dRec->invoice->paymentType;
-            $res->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
+            if (isset($dRec->invoice->accountId)) {
+                $res->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
+            }
         } else {
             //нулираме стойностите на анулираните фактури
             if ($dRec->state == 'rejected') {
                 $dRec->dealValue = $dRec->quantity = $dRec->price = $dRec->detAmount = $dRec->vat = 0;
             }
-
-            $res->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
+            if (isset($dRec->invoice->accountId)) {
+                $res->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
+            }
         }
     }
 
@@ -610,7 +700,8 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $this->kgId = cat_UoM::fetchBySinonim('kg')->id;
 
         if ($rec->type == 'dc_note') {
-            if ($rec->dpAmount > 0 || $rec->changeAmount) {
+            //if ($rec->dpAmount > 0 || $rec->changeAmount) {
+            if ($rec->dealValue > 0) {
                 $docType = $this->confCache->FSD_DOC_DEBIT_NOTE_TYPE;
             } else {
                 $docType = $this->confCache->FSD_DOC_CREDIT_NOTE_TYPE;

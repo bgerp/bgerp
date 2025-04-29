@@ -62,7 +62,7 @@ class store_Stores extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,storeWorker';
+    public $canList = 'ceo,storeWorker,storeAll';
     
     
     /**
@@ -203,10 +203,10 @@ class store_Stores extends core_Master
         $this->FLD('displayStockMeasure', 'enum(productMeasureId=От артикула,basePack=Избраната за "основна")', 'caption=Мярка,notNull,value=productMeasureId', "unit= (|за показване на наличностите|*)");
         $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди Експедиция->Време');
 
-        $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители');
+        $this->FLD('chiefs', 'userList(roles=store|ceo|production,showClosedUsers=no)', 'caption=Контиране на документи->Потребители');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
         $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Допълнително->Продуктови групи');
-        $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
+        $this->FLD('workersIds', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Допълнително->Товарачи');
         
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,notNull,default=active,input=none');
@@ -233,7 +233,7 @@ class store_Stores extends core_Master
         
         if ($rec->state != 'rejected') {
             if (store_InventoryNotes::haveRightFor('add', (object) array('folderId' => $rec->folderId))) {
-                $data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'ef_icon=img/16/invertory.png,title = Създаване на протокол за инвентаризация');
+                $data->toolbar->addBtn('Инвентаризация', array('store_InventoryNotes', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'ef_icon=img/16/inventory.png,title = Създаване на протокол за инвентаризация');
             }
         }
     }

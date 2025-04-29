@@ -136,7 +136,7 @@ $.fn.alternativeFind = function(selector) {
  * 
  * @returns
  */
-function modelMatcher (params, data)
+function modelMatcher(params, data, onlyStartsWith = true)
 {
     data.parentText = data.parentText || "";
     
@@ -162,7 +162,7 @@ function modelMatcher (params, data)
 			
 			child.parentText += data.parentText + " " + data.text;
 			
-			var matches = modelMatcher(params, child);
+			var matches = modelMatcher(params, child, onlyStartsWith);
 			
 			// If there wasn't a match, remove the object in the array
 			if (matches == null) {
@@ -177,7 +177,7 @@ function modelMatcher (params, data)
 		}
 		
 		// If there were no matching children, check just the plain object
-		return modelMatcher(params, match);
+		return modelMatcher(params, match, onlyStartsWith);
 	}
 
     // If the typed-in term matches the text of this term, or the text from any
@@ -186,15 +186,19 @@ function modelMatcher (params, data)
     var term = params.term.toUpperCase();
     
     have = true;
-    
+
+	var regExpBegin = "[^a-zа-я0-9]";
+	if (!onlyStartsWith) {
+		regExpBegin = "[a-zа-я0-9]*";
+	}
+
     // Търсене във всяка дума
     var termArr = term.split(" ");
     termArr.forEach(function(element) {
     	if (!element || !element.length) return true;
     	
-    	var regExpStr = "[^a-zа-я0-9]" + escapeRegExp(element);
+    	var regExpStr = regExpBegin + escapeRegExp(element);
     	var regExp = new RegExp(regExpStr, "gi");
-    	
     	if (!original.match(regExp)) {
     		have = false;
     	}
@@ -208,7 +212,7 @@ function modelMatcher (params, data)
         	
         	if (!element || !element.length) return true;
         	
-        	var regExpStr = "[^a-zа-я0-9]" + escapeRegExp(element);
+        	var regExpStr = regExpBegin + escapeRegExp(element);
         	var regExp = new RegExp(regExpStr, "gi");
         	
         	if (original.match(regExp)) {
@@ -224,4 +228,38 @@ function modelMatcher (params, data)
     
     // If it doesn't contain the term, don't return anything
     return null;
+}
+
+
+/**
+ *
+ *
+ * @param params
+ * @param data
+ *
+ * @see https://github.com/select2/select2/issues/3034
+ *
+ * @returns
+ */
+function modelMatcherStartWith(params, data)
+{
+
+	return modelMatcher(params, data, true);
+}
+
+
+/**
+ *
+ *
+ * @param params
+ * @param data
+ *
+ * @see https://github.com/select2/select2/issues/3034
+ *
+ * @returns
+ */
+function modelMatcherEverywhere(params, data)
+{
+
+	return modelMatcher(params, data, false);
 }

@@ -90,7 +90,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
             $threads += arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
         }
 
-        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
+        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), acc_ValueCorrections::getClassId());
         $query = doc_Containers::getQuery();
         $query->where("#state = 'active'");
         $query->in('docClass', $paymentIds);
@@ -222,7 +222,9 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
         foreach ($documents as $d) {
             $Doc = doc_Containers::getDocument($d->id);
             $docRec = $Doc->fetch();
+            $finalAmount = null;
 
+            $reverseDebit = false;
             if($Doc->isInstanceOf('deals_PaymentDocument')){
 
                 $sign = ($docRec->isReverse == 'yes') ? -1 : 1;
@@ -251,22 +253,55 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
                 $diffRate = $rate - $strategyRate;
                 $finalAmount = round($diffRate * $sign * $docRec->amountDeal, 2);
-                if($finalAmount){
-                    $totalAmount += $finalAmount;
-                    $data[$docRec->containerId] = $finalAmount;
+                $quantity = round($docRec->amountDeal, 2);
 
-                    $entries[] = array('amount' => $finalAmount,
-                        'credit' => array($creditAccId,
-                            array($dealRec->contragentClassId, $dealRec->contragentId),
-                            array('sales_Sales', $dealRec->id),
-                            array('currency_Currencies', $currencyId),
-                            'quantity' => $sign * round($docRec->amountDeal, 2)),
-                        'debit' => array('481',
-                            array('currency_Currencies', $currencyId),
-                            'quantity' => $sign * round($docRec->amountDeal, 2)),
+            } elseif($Doc->isInstanceOf('acc_ValueCorrections')){
+                $sign = ($docRec->action == 'increase') ? -1 : 1;
+                $diffRate = round($docRec->rate - $rate, 5);
+
+                $amount = $docRec->amount;
+                if (in_array($dealRec->chargeVat, array('yes', 'separate'))) {
+                    $averageRate = $Doc->getInstance()->getAverageVatRate($docRec->productsData, $docRec);
+                    $amount = $amount * (1 + $averageRate);
+                }
+
+                $finalAmount = round($diffRate * $sign * ($amount / $docRec->rate), 2);
+                $quantity = round($amount / $docRec->rate, 2);
+                $creditAccId = 411;
+                $currencyId = currency_Currencies::getIdByCode($docRec->currencyId);
+                $reverseDebit = true;
+            } else {
+                continue;
+            }
+
+            if(!$finalAmount) continue;
+
+            $totalAmount += $finalAmount;
+            $data[$docRec->containerId] = $finalAmount;
+
+            if($reverseDebit){
+                $entries[] = array('amount' => $finalAmount,
+                    'debit' => array($creditAccId,
+                        array($dealRec->contragentClassId, $dealRec->contragentId),
+                        array('sales_Sales', $dealRec->id),
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * $quantity),
+                    'credit' => array('481',
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * $quantity),
+                    'reason' => "Валутни разлики");
+            } else {
+                $entries[] = array('amount' => $finalAmount,
+                    'credit' => array($creditAccId,
+                        array($dealRec->contragentClassId, $dealRec->contragentId),
+                        array('sales_Sales', $dealRec->id),
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * $quantity),
+                    'debit' => array('481',
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * $quantity),
                         'reason' => "Валутни разлики");
                 }
-            }
         }
 
         return $entries;
@@ -335,11 +370,16 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
 
                 $currencyItemId = acc_Items::fetchItem('currency_Currencies', $docRec->currencyId)->id;
 
-                // Търси се кредитната цена от журнала/от очакваната по стратегия/от курса
-                $strategyRate = self::getJournalCurrencyPrice('credit', $creditAccId, $currencyItemId, $Doc);
+                if($docRec->isReverse == 'yes' && in_array($docRec->operationSysId, array('supplier2caseRet', 'supplier2bankRet', 'supplierAdvance2caseRet', 'supplierAdvance2bankRet'))){
+                    $strategyRate = self::getJournalCurrencyPrice('debit', $creditAccId, $currencyItemId, $Doc);
+                } else {
+                    $strategyRate = self::getJournalCurrencyPrice('credit', $creditAccId, $currencyItemId, $Doc);
+                }
+
                 if(empty($strategyRate)){
                     $strategyRate = acc_strategy_WAC::getAmount(1, $valior, $creditAccId, $item1Id, $currencyItemId, null);
                 }
+
                 if(empty($strategyRate)){
                     $strategyRate = currency_CurrencyRates::getRate($valior, currency_Currencies::getCodeById($docRec->currencyId), null);
                 }
@@ -379,7 +419,33 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
                 $totalAmount += $finalAmount;
 
                 $debitQuantity = ($docRec->amountDeal / $rate);
-                $creditQuantity = $debitQuantity;
+            } elseif($Doc->isInstanceOf('acc_ValueCorrections')) {
+                $sign = ($docRec->action == 'increase') ? -1 : 1;
+                $currencyId = currency_Currencies::getIdByCode($docRec->currencyId);
+                $diffRate = round($docRec->rate - $rate, 5);
+
+                $amount = $docRec->amount;
+                if (in_array($dealRec->chargeVat, array('yes', 'separate'))) {
+                    $averageRate = $Doc->getInstance()->getAverageVatRate($docRec->productsData, $docRec);
+                    $amount = $amount * (1 + $averageRate);
+                }
+
+                $finalAmount = round($diffRate * $sign * ($amount / $docRec->rate), 2);
+                $debitQuantity = ($amount / $docRec->rate);
+                $totalAmount += $finalAmount;
+
+                $data[$docRec->containerId] = $finalAmount;
+                $entries[] = array('amount' => $finalAmount,
+                    'credit' => array('401',
+                        array($dealRec->contragentClassId, $dealRec->contragentId),
+                        array('purchase_Purchases', $dealRec->id),
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * round($debitQuantity, 2)),
+                    'debit' => array('481',
+                        array('currency_Currencies', $currencyId),
+                        'quantity' => $sign * round($debitQuantity, 2)),
+                    'reason' => "Валутни разлики");
+                continue;
             } else {
                 continue;
             }

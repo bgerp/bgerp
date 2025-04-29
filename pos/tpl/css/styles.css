@@ -47,6 +47,9 @@
     .result-content .disabledBtn.current {
       background: #53a163 !important; }
 
+.resultBatch {
+  font-size: 1.1em !important; }
+
 .tools-content {
   padding: 20px 15px;
   box-sizing: border-box; }
@@ -1127,6 +1130,15 @@ td.revertCaption {
   position: relative;
   top: -1px; }
 
+.paymentErrorInfo {
+  padding: 5px;
+  font-size: 1.4em;
+  background-color: #fdfdc0;
+  border: solid 1px #cccccc;
+  color: #666666;
+  border-radius: 5px;
+  margin-bottom: 3px; }
+
 .actionBtn {
   height: 40px;
   cursor: pointer;
@@ -1439,4 +1451,7 @@ only screen and (max-width: 320px) {
     background: white !important; }
   .printing .receiptHeader {
     text-align: center !important; }
+
+.reportTotal {
+  background-color: #cff3ff; }
 

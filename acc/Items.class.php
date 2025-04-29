@@ -162,6 +162,10 @@ class acc_Items extends core_Manager
         
         $this->setDbUnique('objectId,classId');
         $this->setDbIndex('earliestUsedOn');
+        $this->setDbIndex('lastUseOn');
+        $this->setDbIndex('state');
+        $this->setDbIndex('closedOn');
+        $this->setDbIndex('title');
     }
     
     
@@ -520,14 +524,14 @@ class acc_Items extends core_Manager
     /**
      * Помощен метод за извличане на перо със зададени регистър и ключ в регистъра
      *
-     * @param int  $class
+     * @param mixed  $class
      * @param int  $objectId
      */
     public static function fetchItem($class, $objectId)
     {
         $Class = cls::get($class);
-        $objectId = $Class->fetchRec($objectId)->id;
-        
+        $objectId = is_numeric($objectId) ? $objectId : $Class->fetchRec($objectId)->id;
+
         return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
     }
     
@@ -712,6 +716,7 @@ class acc_Items extends core_Manager
             $items = keylist::toArray($form->rec->objects);
             if (countR($items)) {
                 foreach ($items as $id) {
+                    $Class->logWrite('Ръчен импорт като счетоводно перо', $id);
                     acc_Lists::addItem($listId, $Class->className, $id);
                     $count++;
                 }
@@ -725,7 +730,7 @@ class acc_Items extends core_Manager
                 
                 $this->logWrite('Добавяне на обекти, като пера', $rec->id);
                 
-                return followRetUrl(null, "|Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
+                followRetUrl(null, "|Добавяне на|* {$count} |{$title}|* |в номенклатура|* '{$listName}'");
             }
         }
         

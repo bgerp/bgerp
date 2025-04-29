@@ -111,7 +111,7 @@ class batch_Defs extends core_Manager
     {
         $data->listFilter->FLD('type', 'class(interface=batch_BatchTypeIntf,select=title,allowEmpty)', 'caption=Тип,silent');
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'search,type';
+        $data->listFilter->showFields = 'search,templateId,type';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         
@@ -119,6 +119,10 @@ class batch_Defs extends core_Manager
             if ($type = $data->listFilter->rec->type) {
                 $data->query->EXT('driverClass', 'batch_Templates', 'externalName=driverClass,externalKey=templateId');
                 $data->query->where("#driverClass = {$type}");
+            }
+
+            if ($templateId = $data->listFilter->rec->templateId) {
+                $data->query->where("#templateId = {$templateId}");
             }
         }
         
@@ -309,10 +313,8 @@ class batch_Defs extends core_Manager
             $folderClassName = doc_Folders::fetchCoverClassName($productRec->folderId);
             if ($folderClassName == 'cat_Categories') {
                 $folderObjectId = doc_Folders::fetchCoverId($productRec->folderId);
-                if ($categoryDefRec = batch_CategoryDefinitions::fetch("#categoryId = {$folderObjectId}")) {
-                    $o = array('driverClass' => $categoryDefRec->driverClass) + (array) $categoryDefRec->driverRec;
-                    $templateId = batch_Templates::force($o);
-                    $nRec = (object) array('productId' => $productRec->id, 'templateId' => $templateId);
+                if ($categoryTemplateId = batch_CategoryDefinitions::fetchField("#categoryId = {$folderObjectId}", 'templateId')) {
+                    $nRec = (object) array('productId' => $productRec->id, 'templateId' => $categoryTemplateId);
                 }
             }
         }

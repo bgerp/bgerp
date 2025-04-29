@@ -143,7 +143,7 @@ class transsrv_Import extends core_BaseClass
         $cloneQuery = clone $query;
         
         $supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
-        $query->likeKeylist('groupList', $supplierGroupId);
+        plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $query, $supplierGroupId);
         
         // С приоритет е папката на фирма в група доставчици със същото име
         if ($companyRec = $query->fetch()) {

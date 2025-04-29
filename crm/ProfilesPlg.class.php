@@ -32,7 +32,11 @@ class crm_ProfilesPlg extends core_Plugin
             
             return;
         }
-        
+
+        if (is_object($fields)) {
+            $fields = (array) $fields;
+        }
+
         expect(is_array($fields));
         $fieldsCnt = countR($fields);
         

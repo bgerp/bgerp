@@ -116,6 +116,12 @@ defIfNot('PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS', 'yes');
 
 
 /**
+ * Използване на един производствен номер в различни Операции
+ */
+defIfNot('PLANNING_ALLOW_SERIAL_IN_DIFF_TASKS', 'yes');
+
+
+/**
  * Показване на статус при разминаване на нетото в ПО->Предупреждение
  */
 defIfNot('PLANNING_TASK_NET_WEIGHT_WARNING', 0.05);
@@ -188,6 +194,42 @@ defIfNot('PLANNING_AUTO_CREATE_TASK_STATE', 'pending');
 
 
 /**
+ * Подредба на колонки в листа на операциите->Падредба
+ */
+defIfNot('PLANNING_ORDER_TASK_PARAMS_IN_LIST', '');
+
+
+/**
+ * Подредба на колонки в листа на операциите->Скриване
+ */
+defIfNot('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', '');
+
+
+/**
+ * Колко да е изчакването между предходни операции->В една локация
+ */
+defIfNot('PLANNING_TASK_OFFSET_IN_SAME_LOCATION', '7200');
+
+
+/**
+ * Колко да е изчакването между предходни операции->В различна локация
+ */
+defIfNot('PLANNING_TASK_OFFSET_IN_OTHER_LOCATION', '86400');
+
+
+/**
+ * Минимално време между задачите смятащо се за дупка
+ */
+defIfNot('PLANNING_MIN_TIME_FOR_GAP', 3600);
+
+
+/**
+ * Изтриване на редове от ПП с очаквано количество по рецепта/за влагане->Избор
+ */
+defIfNot('PLANNING_PRODUCTION_DELETE_SYSTEM_DETAILS', 'no');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -195,7 +237,7 @@ defIfNot('PLANNING_AUTO_CREATE_TASK_STATE', 'pending');
  * @package   planning
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -255,7 +297,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
         'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
         'PLANNING_TASK_PRODUCTION_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се произведе ДРУГ артикул->Време'),
-        'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предупреждение при дублиране на произв. номера в ПО->Избор'),
+        'PLANNING_WARNING_DUPLICATE_TASK_PROGRESS_SERIALS' => array('enum(yes=Разрешено - с предупреждение,no=Разрешено - без предупреждение)', 'caption=Повторение на един производствен номер в рамките на една Операция->Избор'),
+        'PLANNING_ALLOW_SERIAL_IN_DIFF_TASKS' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Използване на един производствен номер в различни Операции->Избор'),
         'PLANNING_TASK_NET_WEIGHT_WARNING' => array('percent(Min=0,Max=1)', 'caption=Показване на статус при разминаване на нетото в ПО->Предупреждение'),
         'PLANNING_TASK_PROGRESS_MAX_BRUT_WEIGHT' => array('int(Min=0)', 'caption=Максимално допустимо бруто тегло в прогреса на ПО->Максимално до,unit=кг'),
         'PLANNING_SHOW_SALE_IN_TASK_LIST' => array('enum(yes=Да,no=Не)', 'caption=Показване на продажбата в списъка на ПО->Избор'),
@@ -266,7 +309,37 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_SHOW_SENDER_AND_RECEIVER_SETTINGS' => array('enum(no=Скриване,yes=Показване,yesDefault=Показване с дефолт)', 'caption=Полета за получил/предал в Протоколите за влагане/връщане->Избор'),
         'PLANNING_SPARE_PARTS_HORIZON_IN_LIST' => array('int(Min=0)', 'caption=Планирани наличности на резервните части->Месеци напред'),
         'PLANNING_AUTO_CREATE_TASK_STATE' => array('enum(pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние'),
+        'PLANNING_ORDER_TASK_PARAMS_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Показване в ред,customizeBy=taskSee|ceo'),
+        'PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST' => array('table(columns=paramId,captions=Параметър)', 'caption=Подредба на колонки в листа на операциите->Скриване,customizeBy=taskSee|ceo'),
+        'PLANNING_TASK_OFFSET_IN_SAME_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В една локация'),
+        'PLANNING_TASK_OFFSET_IN_OTHER_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В различна локация'),
+        'PLANNING_MIN_TIME_FOR_GAP' => array('time', 'caption=Минимално време между ПО на една машина приемащо се за дупка->Време'),
+        'PLANNING_PRODUCTION_DELETE_SYSTEM_DETAILS' => array('enum(yes=Да,no=Не)', array('caption' => 'Изтриване на редове от ПП с очаквано количество по рецепта/за влагане->Избор')),
     );
+
+
+    /**
+     * Менижиране на формата формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        $options = array();
+        $params = cat_Params::getTaskParamOptions();
+        foreach ($params as $paramId => $name){
+            $options["param_{$paramId}"] = $name;
+        }
+
+        $additionalFields = arr::make('dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=След. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),notes=Забележка,folderId=Папка', true);
+        foreach ($additionalFields as $fld => $caption){
+            $options[$fld] =  'Списък->' . tr($caption);
+        }
+
+        $configForm->setFieldTypeParams('PLANNING_ORDER_TASK_PARAMS_IN_LIST', array('paramId_opt' => array('' => '') + $options + array('_rest_' => 'Списък->Всички')));
+        $configForm->setFieldTypeParams('PLANNING_ORDER_TASK_PARAMS_HIDE_IN_LIST', array('paramId_opt' => array('' => '') + $options));
+    }
 
 
     /**
@@ -278,8 +351,26 @@ class planning_Setup extends core_ProtoSetup
             'description' => 'Преизчисляване на началото на производствени операции',
             'controller' => 'planning_AssetResources',
             'action' => 'RecalcTaskTimes',
-            'period' => 2,
-            'timeLimit' => 30,
+            'period' => 5,
+            'timeLimit' => 60,
+        ),
+
+        array(
+            'systemId' => 'Recalc Task Durations',
+            'description' => 'Преизчисляване на продължителноста на производствените операции',
+            'controller' => 'planning_TaskConstraints',
+            'action' => 'RecalcTaskDuration',
+            'period' => 30,
+            'timeLimit' => 60,
+        ),
+
+        array(
+            'systemId' => 'Recalc Task Constraints',
+            'description' => 'Преизчисляване на ограниченията на производствените операции',
+            'controller' => 'planning_TaskConstraints',
+            'action' => 'RecalcTaskConstraints',
+            'period' => 5,
+            'timeLimit' => 60,
         ),
     );
 
@@ -305,7 +396,6 @@ class planning_Setup extends core_ProtoSetup
         'planning_AssetResourcesNorms',
         'planning_Centers',
         'planning_Hr',
-        'planning_FoldersWithResources',
         'planning_WorkCards',
         'planning_Points',
         'planning_GenericMapper',
@@ -314,18 +404,18 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkInProgress',
         'planning_AssetGroupIssueTemplates',
         'planning_AssetSparePartsDetail',
-        'migrate::updateLabelType',
-        'migrate::deletePoints',
-        'migrate::changeCentreFieldToKeylistInWorkflows',
-        'migrate::removeOldRoles',
-        'migrate::updateLastChangedOnState',
-        'migrate::updateTasks1',
-        'migrate::updateCenters2244',
-        'migrate::cleanClosedTasks2250',
-        'migrate::updateTasks1520',
-        'migrate::updateMigratedTasks1620',
-        'migrate::taskDetailsRepairSerchKeywords2341',
-        'migrate::tasksRepairSerchKeywords2346v5',
+        'planning_TaskConstraints',
+        'planning_TaskManualOrderPerAssets',
+        'planning_AssetScheduleBreaks',
+        'migrate::repairSearchKeywords2524',
+        'migrate::renameResourceFields2624v2',
+        'migrate::removeCachedAssetModified4124v2',
+        'migrate::repairSearchKeywords2442',
+        'migrate::calcTaskLastProgress2504v2',
+        'migrate::syncOperatorsWithGroups2504v2',
+        'migrate::migrateTaskActualTime2505',
+        'migrate::migrateCenterSchedules2506',
+        'migrate::repairSearchKeywords2508',
     );
 
 
@@ -350,7 +440,7 @@ class planning_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.21, 'Производство', 'Планиране', 'planning_Centers', 'dispatch', 'ceo,planning,production,jobSee'),
+        array(3.21, 'Производство', 'Планиране', 'planning_Centers', 'dispatch', 'ceo,planning,production,jobSee,planningAll'),
     );
 
 
@@ -360,7 +450,8 @@ class planning_Setup extends core_ProtoSetup
     public $defClasses = 'planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
                           planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,
                           planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning,
-                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep,planning_interface_ImportFromConsignmentProtocol';
+                          planning_interface_ImportFromPreviousTasks,planning_interface_TopologicalOrderTasksInJob,planning_interface_ImportStep,
+                          planning_interface_ImportFromConsignmentProtocol,planning_reports_WasteAndScrapByJobs, planning_reports_WasteAndScrapByTasks';
 
 
     /**
@@ -371,8 +462,8 @@ class planning_Setup extends core_ProtoSetup
         $html = parent::install();
 
         // Кофа за снимки
-        $html .= fileman_Buckets::createBucket('planningImages', 'Илюстрации в производство', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'every_one', 'powerUser');
-        $html .= fileman_Buckets::createBucket('workCards', 'Работни карти', 'pdf,jpg,jpeg,png', '200MB', 'powerUser', 'powerUser');
+        $html .= fileman_Buckets::createBucket('planningImages', 'Илюстрации в производство', 'jpg,jpeg,png,bmp,gif,image/*,webp', '10MB', 'every_one', 'powerUser');
+        $html .= fileman_Buckets::createBucket('workCards', 'Работни карти', 'pdf,jpg,jpeg,png,webp', '200MB', 'powerUser', 'powerUser');
 
         $Plugins = cls::get('core_Plugins');
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
@@ -424,29 +515,11 @@ class planning_Setup extends core_ProtoSetup
         }
     }
 
-    /**
-     * Мигриране на етикетирането
-     */
-    function updateLabelType()
-    {
-        $Tasks = cls::get('planning_Tasks');
-        $Tasks->setupMvc();
-
-        $labelTypeColName = str::phpToMysqlName('labelType');
-        $query = "UPDATE {$Tasks->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
-        $Tasks->db->query($query);
-
-        $Steps = cls::get('planning_Steps');
-        $Steps->setupMvc();
-
-        $query = "UPDATE {$Steps->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
-        $Steps->db->query($query);
-    }
 
     /**
-     * Миграция за поправка на centre полето от key на keylist
+     * Миграция за регенериране на ключовите думи
      */
-    function changeCentreFieldToKeylistInWorkflows()
+    public static function repairSearchKeywords2524()
     {
         $callOn = dt::addSecs(1200);
         core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_ConsumptionNotes', $callOn);
@@ -455,251 +528,159 @@ class planning_Setup extends core_ProtoSetup
 
 
     /**
-     * Изтриване на старите поризводствени точки
+     * Миграция на ресурсите
      */
-    function deletePoints()
+    public function renameResourceFields2624v2()
     {
-        planning_Points::truncate();
-    }
+        $Resources = cls::get('planning_AssetResources');
+        $Resources->setupMvc();
+        $query = $Resources->getQuery();
+        $protocolIdField = str::phpToMysqlName('protocolId');
+        if ($Resources->db->isFieldExists($Resources->dbTableName, $protocolIdField)) {
+            $query->FNC('protocolId', 'int');
+        }
 
-
-    /**
-     * Премахва стари роли
-     */
-    function removeOldRoles()
-    {
-        $remRoleId = core_Roles::fetchByName('taskPlanning');
-        if (!$remRoleId) return;
-
-        core_Roles::removeRoles(array($remRoleId));
-        core_Users::rebuildRoles();
-    }
-
-
-    /**
-     * Задаване на стойности на полетата за последна промяна на състоянията
-     */
-    function updateLastChangedOnState()
-    {
-        foreach (array('planning_Jobs', 'planning_Tasks') as $class) {
-            $Class = cls::get($class);
-            $Class->setupMvc();
-            if ($Class->count()) {
-                $tableName = $Class->dbTableName;
-                $lastChangeStateOnColName = str::phpToMysqlName('lastChangeStateOn');
-                $modifiedOnColName = str::phpToMysqlName('modifiedOn');
-
-                $lastChangeStateByColName = str::phpToMysqlName('lastChangeStateBy');
-                $modifiedByColName = str::phpToMysqlName('modifiedBy');
-
-                $query = "UPDATE {$tableName} SET {$lastChangeStateOnColName} = {$modifiedOnColName}, {$lastChangeStateByColName} = {$modifiedByColName}";
-                $Class->db->query($query);
+        $save = array();
+        while($rec = $query->fetch()){
+            if(is_numeric($rec->protocols)){
+                $rec->protocols = keylist::addKey('', $rec->protocols);
+                $save[] = $rec;
+            } elseif(!empty($rec->protocolId) && empty($rec->protocols)){
+                $rec->protocols = keylist::addKey('', $rec->protocolId);
+                $save[] = $rec;
             }
+        }
+
+        if(countR($save)){
+            $Resources->saveArray($save, 'id,protocols');
         }
     }
 
 
     /**
-     * Миграция на ПО
+     * Изтриване на кеш да се преизчислят продължителноста на времената
      */
-    public function updateTasks1()
+    public function removeCachedAssetModified4124v2()
     {
-        $Tasks = cls::get('planning_Tasks');
-        if (!$Tasks->count()) return;
-
-        $colName = str::phpToMysqlName('showadditionalUom');
-        $query = "UPDATE {$Tasks->dbTableName} SET {$colName} = 'yes' WHERE {$colName} = 'mandatory'";
-        $Tasks->db->query($query);
+        $query = planning_AssetResources::getQuery();
+        $query->show('id');
+        while ($rec = $query->fetch()){
+            core_Permanent::remove("assetTaskOrder|{$rec->id}");
+        }
     }
 
 
     /**
-     * Миграция на центровете на дейност
+     * Миграция за регенериране на ключовите думи
      */
-    public function updateCenters2244()
+    public static function repairSearchKeywords2442()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_Steps', $callOn);
+    }
+
+
+    /**
+     * Миграция на последните прогреси
+     */
+    public function calcTaskLastProgress2504v2()
+    {
+        planning_Tasks::recalcTaskLastProgress(null, 'active,wakeup,stopped', 90);
+    }
+
+
+    /**
+     * Миграция групите на операторите в центрове на дейност
+     */
+    public function syncOperatorsWithGroups2504v2()
+    {
+        $employeesGroupId = crm_Groups::getIdFromSysId('employees');
+        $groupRec = (object)array('name' => 'Център на дейност', 'sysId' => 'activityCenters', 'parentId' => $employeesGroupId);
+        crm_Groups::forceGroup($groupRec);
+
+        $centerGroups = array();
+        $query = planning_Centers::getQuery();
+        $query->where("#state != 'rejected'");
+        while($rec = $query->fetch()){
+            $centerGroups[$rec->folderId] = planning_Centers::syncCrmGroup($rec);
+        }
+
+        $personArr = array();
+        $hrClassId = planning_Hr::getClassId();
+        $folderQuery = planning_AssetResourceFolders::getQuery();
+        $folderQuery->EXT('personId', "planning_Hr", "externalName=personId,externalKey=objectId");
+        $folderQuery->where("#classId = {$hrClassId}");
+        $folderQuery->in('folderId', array_keys($centerGroups));
+        while ($fRec = $folderQuery->fetch()){
+            $personArr[$fRec->personId][$fRec->folderId] = $fRec->folderId;
+        }
+
+        $personCount  = count($personArr);
+        if(!$personCount) return;
+
+        core_App::setTimeLimit(0.3 * $personCount, false, 200);
+        $personQuery = crm_Persons::getQuery();
+        $personQuery->in('id', array_keys($personArr));
+
+        $Persons = cls::get('crm_Persons');
+        while ($pRec = $personQuery->fetch()){
+            $centers = $personArr[$pRec->id];
+            $addGroups = array_intersect_key($centerGroups, $centers);
+            $addGroups = array_combine($addGroups, $addGroups);
+
+            $pRec->groupListInput = keylist::removeKey($pRec->groupListInput, $employeesGroupId);
+            $pRec->groupListInput = keylist::merge($pRec->groupListInput, $addGroups);
+            $Persons->save($pRec, 'groupListInput,groupList');
+        }
+
+        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+    }
+
+
+    /**
+     * Миграция на фактическото начало на операциите
+     */
+    public function migrateTaskActualTime2505()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+
+        $save = array();
+        $query = planning_Tasks::getQuery();
+        $query->where("#state IN ('active', 'wakeup', 'stopped')");
+        $query->where("#actualStart IS NULL");
+        $query->show('state,lastChangeStateOn,activatedOn');
+        while($sRec = $query->fetch()){
+            $sRec->actualStart = ($sRec->state == 'wakeup') ? $sRec->lastChangeStateOn : $sRec->activatedOn;
+            $save[$sRec->id] = $sRec;
+        }
+
+        if(countR($save)){
+            $Tasks->saveArray($save, 'id,actualStart');
+        }
+    }
+
+
+    /**
+     * Миграция на дефолтния график на центровете на дейност
+     */
+    public function migrateCenterSchedules2506()
     {
         $Centers = cls::get('planning_Centers');
-        if (!$Centers->count()) return;
 
-        $colName = str::phpToMysqlName('mandatoryOperatorsInTasks');
-        $query = "UPDATE {$Centers->dbTableName} SET {$colName} = 'lastAndMandatory' WHERE {$colName} = 'yes'";
+        $defaultScheduleId = hr_Schedules::getDefaultScheduleId();
+        $scheduleIdColName = str::phpToMysqlName('scheduleId');
+        $query = "UPDATE {$Centers->dbTableName} SET {$scheduleIdColName} = {$defaultScheduleId} WHERE {$scheduleIdColName} IS NULL";
         $Centers->db->query($query);
     }
 
 
     /**
-     * Миграция на замърсените ПО
+     * Миграция за регенериране на ключовите думи
      */
-    public function cleanClosedTasks2250()
+    public static function repairSearchKeywords2508()
     {
-        core_App::setTimeLimit(300);
-        $assets = $saveRecs = array();
-
-        // Зануляване на приключените ПО в подредбата
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#state = 'closed' AND #orderByAssetId IS NOT NULL AND #assetId IS NOT NULL");
-        $tQuery->show('id,assetId,orderByAssetId');
-
-        while($tRec = $tQuery->fetch()){
-            $tRec->orderByAssetId = null;
-            $saveRecs[$tRec->id] = $tRec;
-            $assets[$tRec->assetId] = $tRec->assetId;
-        }
-
-        if(countR($saveRecs)){
-            cls::get('planning_Tasks')->saveArray($saveRecs, 'id,orderByAssetId');
-        }
-
-        // За всяка засегната машина
-        if(countR($assets)){
-            foreach ($assets as $assetId){
-
-                // нулира се кеша ѝ за да може да се преизчисли наново
-                core_Permanent::remove("assetTaskOrder|{$assetId}");
-            }
-        }
-    }
-
-
-    /**
-     * Миграция на създадените ПО без данни дали са финални или не
-     */
-    public function updateTasks1520()
-    {
-        $query = planning_Tasks::getQuery();
-        $query->where('#isFinal IS NULL AND #state != "rejected"');
-
-        $taskRecs = $query->fetchAll();
-        $productIds = arr::extractValuesFromArray($taskRecs, 'productId');
-
-        if(countR($productIds)){
-            $steps = array();
-            $classId = cat_Products::getClassId();
-            $sQuery = planning_Steps::getQuery();
-            $sQuery->in('objectId', $productIds);
-            $sQuery->where("#classId = {$classId}");
-            $sQuery->show('isFinal, objectId');
-            while($sRec = $sQuery->fetch()){
-                $steps[$sRec->objectId] = $sRec->isFinal;
-            }
-
-            $count = countR($steps);
-            if($count){
-                core_App::setTimeLimit($count * 0.6, false, 300);
-                $Tasks = cls::get('planning_Tasks');
-                foreach ($taskRecs as $taskRec){
-                    $taskRec->isFinal = $steps[$taskRec->productId];
-                    if($steps[$taskRec->productId] == 'yes'){
-                        $Tasks->save($taskRec);
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
-     * Миграция на миграцията
-     */
-    public function updateMigratedTasks1620()
-    {
-        core_App::setTimeLimit(300);
-
-        $query = planning_Tasks::getQuery();
-        $query->where("#isFinal = 'yes'");
-        $finalTaskRecs = $query->fetchAll();
-        $finalTaskIds = arr::extractValuesFromArray($finalTaskRecs, 'id');
-        $originIds = arr::extractValuesFromArray($finalTaskRecs, 'originId');
-        if(!countR($finalTaskIds)) return;
-
-        $res = $jobs = array();
-        $pQuery = planning_ProductionTaskProducts::getQuery();
-        $pQuery->where("#type = 'production' OR #type = ''");
-        $pQuery->in("taskId", $finalTaskIds);
-        while($pRec = $pQuery->fetch()){
-            $res[$pRec->taskId][$pRec->productId] = $pRec->productId;
-        }
-
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->in("containerId", $originIds);
-        $jQuery->show('containerId,productId');
-        while($jRec = $jQuery->fetch()){
-            $jobs[$jRec->containerId] = $jRec->productId;
-        }
-
-        $Products = cls::get('planning_ProductionTaskProducts');
-        foreach ($finalTaskRecs as $finalTaskRec){
-            $originProductId = $jobs[$finalTaskRec->originId];
-
-            $add = false;
-            if(isset($res[$finalTaskRec->id])){
-                if(!array_key_exists($originProductId, $res[$finalTaskRec->id])){
-                    $add = true;
-                }
-            } else {
-                $add = true;
-            }
-
-            if($add){
-                $nRec = new stdClass();
-                $nRec->taskId = $finalTaskRec->id;
-                $nRec->productId = $originProductId;
-                $nRec->type = 'production';
-                $fields = $exRec = null;
-                if (!$Products->isUnique($nRec, $fields, $exRec)) {
-                    $nRec->id = $exRec->id;
-                }
-                $Products->save($nRec);
-            }
-        }
-
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("#innerClass=" . planning_interface_StepProductDriver::getClassId());
-        $pQuery->show('id, innerClass');
-
-        $stepIds = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
-        if(!countR($stepIds)) return;
-
-        $dQuery = planning_ProductionTaskDetails::getQuery();
-        $dQuery->EXT('isFinal', 'planning_Tasks', "externalName=isFinal,externalKey=taskId");
-        $dQuery->EXT('taskProductId', 'planning_Tasks', "externalName=productId,externalKey=taskId");
-        $dQuery->EXT('originId', 'planning_Tasks', "externalName=originId,externalKey=taskId");
-        $dQuery->where("#isFinal = 'yes' AND #productId = #taskProductId");
-        $dQuery->in("taskProductId", $stepIds);
-        $dRecs = $dQuery->fetchAll();
-
-        $jobProductIds = array();
-        $jobContainerIds = arr::extractValuesFromArray($dRecs, 'originId');
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->in('containerId', $jobContainerIds);
-        $jQuery->show('containerId,productId');
-        while($jRec = $jQuery->fetch()){
-            $jobProductIds[$jRec->containerId] = $jRec->productId;
-        }
-
-        foreach ($dRecs as $dRec){
-            if(isset($jobProductIds[$dRec->originId])){
-                $dRec->productId = $jobProductIds[$dRec->originId];
-                planning_ProductionTaskDetails::save($dRec);
-            }
-        }
-    }
-
-
-    /**
-     * Форсира регенерирането на ключовите думи за planning_ProductionTaskDetails
-     */
-    public static function taskDetailsRepairSerchKeywords2341()
-    {
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_ProductionTaskDetails', dt::addSecs(120));
-    }
-
-
-    /**
-     * Форсира регенерирането на ключовите думи за planning_Tasks
-     */
-    public static function tasksRepairSerchKeywords2346v5()
-    {
-        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'planning_Tasks', dt::addSecs(120));
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'planning_AssetGroups', $callOn);
     }
 }

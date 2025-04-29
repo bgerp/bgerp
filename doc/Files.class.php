@@ -550,7 +550,6 @@ class doc_Files extends core_Manager
             $data->query->orWhere("#show = 'isSearch'");
         }
 
-        $until = null;
         if ($filter->range) {
             if ($filter->range == $folderPrefix . 'allFolders') {
                 $minLen = 3;
@@ -567,8 +566,6 @@ class doc_Files extends core_Manager
 
                         return ;
                     }
-
-                    $until = dt::addMonths(-3);
                 }
             }
         }
@@ -599,10 +596,6 @@ class doc_Files extends core_Manager
                     // Подреждаме по последно модифициране на контейнера
                     $data->query->EXT('cModifiedOn', 'doc_Containers', 'externalKey=containerId, externalName=modifiedOn');
                     $data->query->orderBy('cModifiedOn', 'DESC');
-
-                    if (isset($until)) {
-                        $data->query->where(array("#cModifiedOn >= '[#1#]'", $until));
-                    }
                 } else {
                     // Търсене по мои файлове
                     $usersArr = array(core_Users::getCurrent());

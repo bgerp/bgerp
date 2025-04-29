@@ -161,6 +161,12 @@ class sales_SalesDetails extends deals_DealDetail
 
 
     /**
+     * Дали артикула ще произвежда при експедиране артикулите с моментна рецепта
+     */
+    public $manifactureProductsOnShipment = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -215,14 +221,11 @@ class sales_SalesDetails extends deals_DealDetail
 
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
-            $pInfo = cat_Products::getProductInfo($rec->productId);
 
             $row->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
-            if (isset($pInfo->meta['canStore'])) {
-                $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
-                deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
-            }
-            
+            $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
+
             if (core_Users::haveRole('ceo,seePriceSale') && isset($row->packPrice)) {
                $hintField = isset($data->listFields['packPrice']) ? 'packPrice' : 'amount';
                $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
@@ -258,7 +261,7 @@ class sales_SalesDetails extends deals_DealDetail
             
             // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
             $fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
-            $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+            $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $masterRec->vatExceptionId);
             if(doc_plg_HidePrices::canSeePriceFields($mvc->Master, $masterRec)){
                 $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
             }
@@ -292,7 +295,7 @@ class sales_SalesDetails extends deals_DealDetail
 
             // Ако има нова цена подменя се
             $rec->price = $policyInfo->price;
-            $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
+            $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior, $masterRec->vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
             $rec->discount = $policyInfo->discount;
         } else {;
             $rec->discount = $oldRec->inputDiscount;

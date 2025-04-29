@@ -146,8 +146,9 @@ class core_Manager extends core_Mvc
         if (defined('SEARCH_DB_HOST')) {
             $error = core_App::isReplicationOK();
             if (!empty($error)) {
-                if (rand(1, 100)%99 == 0) {
-                    $this->logNotice($error);
+                if (false === core_Cache::get($this->title, 'Report_Replica')) {
+                    $this->logNotice("Replica: " . $error);
+                    core_Cache::set($this->title, 'Report_Replica', $error, 10);
                     // todo: да праща signal msg на админа
                 }
             } else {
@@ -219,9 +220,13 @@ class core_Manager extends core_Mvc
         $data->action = 'list';
         
         $data->ListId = Request::get('id', 'int');
-        
-        // Създаваме заявката
-        $data->query = $this->getQuery();
+
+        // Ако има зададен прокси клас за листа - да се използва той
+        if(isset($this->listFilterProxyTable)){
+            $data->query = cls::get($this->listFilterProxyTable)->getQuery();
+        } else {
+            $data->query = $this->getQuery();
+        }
         
         // Подготвяме полетата за показване
         $this->prepareListFields($data);
@@ -425,11 +430,12 @@ class core_Manager extends core_Mvc
         
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
+        $this->invoke('AfterRenderPrepareEditForm', array($tpl, $data->form));
         core_Form::preventDoubleSubmission($tpl, $data->form);
         
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
-        
+
         return $tpl;
     }
     
@@ -514,7 +520,22 @@ class core_Manager extends core_Mvc
         }
         
         if (countR($data->listFields)) {
-            
+            if (haveRole('debug') && haveRole('admin')) {
+                if (Request::get('debugSearchKeywords')) {
+                    $data->listFields['searchKeywords'] = 'Ключови думи';
+                }
+
+                if (Request::get('debugShowAll')) {
+                    // Използваме за колони, всички полета, които не са означени с column = 'none'
+                    $fields = $this->selectFields();
+                    if (countR($fields)) {
+                        foreach ($fields as $name => $fld) {
+                            $data->listFields[$name] = $fld->caption;
+                        }
+                    }
+                }
+            }
+
             // Ако титлата съвпада с името на полето, вадим името от caption
             foreach ($data->listFields as $field => $caption) {
                 if (($field == $caption) && $this->fields[$field]->caption) {
@@ -550,8 +571,73 @@ class core_Manager extends core_Mvc
         
         return $data;
     }
-    
-    
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_BeforeRenderListFilter($mvc, &$res, &$data)
+    {
+        // Най-накрая ще се премахват от лист филтъра полетата от тип енум/кей/кейлист/сет
+        // без опции или с налични само една
+        if(isset($data->listFilter)){
+            core_Debug::startTimer('HIDE_EMPTY_OPTIONS');
+            $showFields = arr::make($data->listFilter->showFields, true);
+
+            foreach ($showFields as $name) {
+                $Type = $data->listFilter->getField($name);
+                $options = array();
+
+                if (in_array($Type->input, array('hidden', 'none')) || $Type->alwaysShowInListFilter) continue;
+
+                try {
+                    // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
+                    $skip = true;
+                    if ($Type->type instanceof type_Enum || $Type->type instanceof type_Key) {
+                        if (method_exists($Type->type, 'prepareOptions')) {
+                            $options = $Type->type->prepareOptions();
+                        } else {
+                            $options = $Type->type->options;
+                        }
+                        $skip = false;
+                    } elseif ($Type->type instanceof type_Keylist) {
+                        $options = $Type->type->getSuggestions();
+                        $skip = false;
+                    } elseif ($Type->type instanceof type_Set) {
+                        $options = $Type->type->suggestions;
+                        $skip = false;
+                    }
+                } catch (Exception $t) {
+                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                } catch (Error $t) {
+                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                } catch (Throwable $t) {
+                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                }
+
+                if ($skip) continue;
+                unset($options[''], $options[' ']);
+
+                // Ако има само една опция или няма - няма да се показва полето във филтъра
+                $count = countR($options);
+                if ($count == 1) {
+                    unset($showFields[$name]);
+                    $data->listFilter->setField($name, 'input=hidden');
+                } elseif ($count == 0) {
+                    unset($showFields[$name]);
+                    $data->listFilter->setField($name, 'input=none');
+                }
+            }
+
+            $data->listFilter->showFields = implode(',', $showFields);
+            core_Debug::stopTimer('HIDE_EMPTY_OPTIONS');
+        }
+    }
+
+
     /**
      * Рендира заявката за създаване на резюме
      */
@@ -863,7 +949,8 @@ class core_Manager extends core_Mvc
         if ($data->listScroll) {
             $listLayout->replace('narrow-scroll', 'NARROWSCROLL');
         }
-        
+        jquery_Jquery::run( $listLayout, 'toggleListFilter();', true);
+
         return $listLayout;
     }
     
@@ -884,14 +971,47 @@ class core_Manager extends core_Mvc
      */
     public function renderListFilter_($data)
     {
-        if (!isset($data->listFilter)) {
-            return;
+        $listFilter = &$data->listFilter;
+        if (!isset($listFilter)) return;
+
+        // Ако лист филтъра не е хоризонтален
+        if($listFilter->view != 'horizontal'){
+
+            // И има посочени полета за скриване да им се добавя клас, че може да се скриват
+            $toggableFieldsCount = 0;
+            setIfNot($data->toggableFieldsInVerticalListFilter, $this->toggableFieldsInVerticalListFilter);
+
+            $toggableFields = arr::make($listFilter->mvc->toggableFieldsInVerticalListFilter, true);
+            foreach ($toggableFields as $toggableField){
+                if($listFilter->getField($toggableField, false)){
+
+                    // Добавяне на клас на полетата, които могат да се скриват
+                    $toggableFieldsCount++;
+                    $toggableClass = $listFilter->getFieldParam($toggableField, 'class');
+                    $listFilter->setField($toggableField, array('class' => "{$toggableClass} toggable", 'toggable' => 'toggable'));
+
+                    // Ако полетата са с празна стойност или е избрано "Всички" ще се скриват първоначално
+                    if(empty($listFilter->rec->{$toggableField}) || $listFilter->rec->{$toggableField} == 'all'){
+                        $toggableRowStyle = $listFilter->getFieldParam($toggableField, 'rowStyle');
+                        $listFilter->setField($toggableField, array('rowStyle' => "{$toggableRowStyle};"));
+                    }
+                }
+            }
+
+            // Ако има скрити полета се добавя бутон за показване/скриване
+            if($toggableFieldsCount){
+                $listFilter->toolbar->addFnBtn(tr("Още филтри"), null, array('class' => 'toggleListFilterBtn', 'ef_icon' => "img/16/toggle2.png", 'data-open' => tr("Още филтри"), 'data-close' => tr("По-малко филтри"), 'data-plus'=> sbf("img/16/toggle1.png"), 'data-minus' => sbf("img/16/toggle2.png") ));
+            }
         }
-        
-        $data->listFilter->showFields = isset($data->listFilter->showFields) ? arr::make($data->listFilter->showFields, true) : array();
-        if (countR($data->listFilter->showFields)) {
-            $tpl = new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(null, $data->listFilter->rec));
-            core_Form::preventDoubleSubmission($tpl, $data->listFilter);
+
+        $listFilter->formAttr['data-mvc'] = "listFilter_" . $listFilter->mvc->className;
+        $listFilter->showFields = isset($listFilter->showFields) ? arr::make($listFilter->showFields, true) : array();
+
+        if (countR($listFilter->showFields)) {
+            if($listFilter->hide === true) return new core_ET("");
+
+            $tpl = new ET("<div class='listFilter'>[#1#]</div>", $listFilter->renderHtml(null, $listFilter->rec));
+            core_Form::preventDoubleSubmission($tpl, $listFilter);
             
             return $tpl;
         }

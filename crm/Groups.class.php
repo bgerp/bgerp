@@ -166,7 +166,7 @@ class crm_Groups extends core_Master
      */
     public function description()
     {
-        $this->FLD('sysId', 'varchar(16)', 'caption=СисИД,input=none,column=none');
+        $this->FLD('sysId', 'varchar(32)', 'caption=СисИД,input=none,column=none');
         $this->FLD('name', 'varchar(128,ci)', 'caption=Група,mandatory, translate=user|tr|transliterate');
         $this->FLD('allow', 'enum(companies_and_persons=Фирми и лица,companies=Само фирми,persons=Само лица)', 'caption=Съдържание,notNull');
         $this->FLD('companiesCnt', 'int', 'caption=Брой->Фирми,input=none,smartCenter');
@@ -225,10 +225,11 @@ class crm_Groups extends core_Master
             
             return ;
         }
-        
+
         $query = $clsName::getQuery();
+        $query->where("#state != 'rejected'");
         $gCntArr = $query->countKeylist('groupList');
-        
+
         if (!empty($gCntArr)) {
             ksort($gCntArr);
         }
@@ -496,6 +497,10 @@ class crm_Groups extends core_Master
         if ($flagChange) {
             $res .= "<li class='debug-new'>Обновени са {$nUpdated} групи.</li>";
         }
+
+        $employeesGroupId = crm_Groups::getIdFromSysId('employees');
+        $groupRec = (object)array('name' => 'Център на дейност', 'sysId' => 'activityCenters', 'parentId' => $employeesGroupId);
+        crm_Groups::forceGroup($groupRec);
     }
 
 
@@ -512,6 +517,7 @@ class crm_Groups extends core_Master
     public static function forceGroup($gRec)
     {
         $rec = self::fetch("#sysId = '{$gRec->sysId}'");
+
         if ($rec) {
             if(strtolower($rec->name) != strtolower($gRec->name)){
                 $rec->name = $gRec->name;
@@ -525,25 +531,27 @@ class crm_Groups extends core_Master
                 $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}') AND #parentId IS NULL");
             }
         }
-        
+
         if (!$rec) {
             $rec = $gRec;
-            
+
             setIfNot($rec->inCharge, core_Users::getCurrent());
             setIfNot($rec->allow, 'companies_and_persons');
             $rec->companiesCnt = 0;
             $rec->personsCnt = 0;
             setIfNot($rec->state, 'active');
             $rec->name = str::mbUcfirst($rec->name);
-            
+
+            core_Users::forceSystemUser();
             self::save($rec);
+            core_Users::cancelSystemUser();
         } elseif(empty($rec->sysId) && !empty($gRec->sysId)){
             if(!self::fetch("#sysId = '{$gRec->sysId}'", '*', false)){
                 $rec->sysId = $gRec->sysId;
                 self::save($rec, 'sysId');
             }
         }
-        
+
         return $rec->id;
     }
     
@@ -801,8 +809,7 @@ class crm_Groups extends core_Master
         // Вземаме всички записи за класовете и ги добавяме в съответните полета
         foreach ($allClass as $class => $fArr) {
             $query = $class::getQuery();
-            $query->likeKeylist('groupList', $id);
-            
+            plg_ExpandInput::applyExtendedInputSearch($class, $query, $id);
             if ($limit) {
                 $query->limit($limit);
             }
@@ -857,6 +864,21 @@ class crm_Groups extends core_Master
         }
         
         return $title;
+    }
+
+
+    /**
+     * Връща вербално представяне на събщението на дадения източник за персонализирани данни
+     *
+     * @param int  $id
+     * @param bool $verbal
+     *
+     * @return string
+     */
+    public function getPersonalizationBody($id, $verbal = false)
+    {
+
+        return '';
     }
     
     
@@ -1114,7 +1136,7 @@ class crm_Groups extends core_Master
         $classes = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf');
         foreach ($classes as $className){
             $query = $className::getQuery();
-            $query->likeKeylist('groupList', $keylist);
+            plg_ExpandInput::applyExtendedInputSearch($className, $query, $keylist);
             $query->where("#folderId IS NOT NULL AND #state != 'rejected'");
             $query->show('folderId');
             $res += arr::extractValuesFromArray($query->fetchAll(), 'folderId');

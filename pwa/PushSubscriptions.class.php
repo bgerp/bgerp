@@ -25,6 +25,12 @@ class pwa_PushSubscriptions extends core_Manager
 
 
     /**
+     * Кой има права да се абонира в модела?
+     */
+    public $canStop = 'user';
+
+
+    /**
      * Заглавие на мениджъра
      */
     public $title = 'Абонаменти за известяване';
@@ -33,7 +39,15 @@ class pwa_PushSubscriptions extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, crm_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_Modified, pwa_Wrapper, plg_State';
+
+
+    /**
+     * Стойност по подразбиране на състоянието
+     *
+     * @see plg_State
+     */
+    public $defaultState = 'active';
 
 
     /**
@@ -134,8 +148,6 @@ class pwa_PushSubscriptions extends core_Manager
         $this->FLD('forceNotify', 'enum(no=Не, yes=Да (Само при промяна на съобщението), yesAll=Да (Винаги при обновяване))', 'caption=Неотворените известия да продължат да се обновяват при промяна->Избор');
 
         $this->setDbUnique('brid');
-
-        $this->currentTab = 'Профили';
     }
 
 
@@ -188,6 +200,7 @@ class pwa_PushSubscriptions extends core_Manager
 
         $query = self::getQuery();
         $query->where(array("#userId = '[#1#]'", $userId));
+        $query->where("#state = 'active'");
 
         if (isset($brid)) {
             $query->where(array("#brid = '[#1#]'", $brid));
@@ -283,12 +296,43 @@ class pwa_PushSubscriptions extends core_Manager
 
             if (!$statusData->isSuccess) {
                 self::logDebug("Грешка при изпращане на PUSH известие - '{$reason}'", $rec->id, 7);
+
+                $rec->state = 'stopped';
+
+                pwa_PushSubscriptions::save($rec, 'state');
             } else {
                 self::logDebug("Успешно изпратено PUSH известие - '{$data->text}'", $rec->id, 3);
             }
         }
 
         return $resArr;
+    }
+
+
+    /**
+     * Екшън за спиране на абонамент
+     *
+     * @return void
+     * @throws core_exception_Expect
+     */
+    public function act_Stop()
+    {
+        $this->requireRightFor('stop');
+
+        $id = Request::get('id', 'int');
+        expect($id && ($rec = $this->fetch($id)));
+
+        expect(core_Users::getCurrent() == $rec->userId);
+
+        $brid = log_Browsers::getBrid();
+
+        expect($brid && $rec->brid == $brid);
+
+        $rec->state = 'closed';
+
+        $this->save($rec, 'state');
+
+        return new Redirect(getRetUrl());
     }
 
 
@@ -314,7 +358,7 @@ class pwa_PushSubscriptions extends core_Manager
                 return array($statusObj);
             }
         }
-        
+
         $action = Request::get('action');
         expect($action == 'subscribe' || $action == 'unsubscribe', $action);
 
@@ -335,8 +379,15 @@ class pwa_PushSubscriptions extends core_Manager
         }
 
         if ($action == 'unsubscribe') {
-            $this->delete(array("#publicKey = '[#1#]' AND #authToken = '[#2#]'", $publicKey, $authToken));
-            $this->delete(array("#brid = '[#1#]'", $brid));
+            $query = $this->getQuery();
+            $query->where(array("#publicKey = '[#1#]' AND #authToken = '[#2#]'", $publicKey, $authToken));
+            $query->orWhere(array("#brid = '[#1#]'", $brid));
+            while ($rec = $query->fetch()) {
+                if ($rec->userId == $cu) {
+                    $rec->state = 'closed';
+                    $this->save($rec, 'state');
+                }
+            }
 
             status_Messages::newStatus('Премахване на Push абонамент за получаване на известия');
 
@@ -345,7 +396,14 @@ class pwa_PushSubscriptions extends core_Manager
             $statusObj->arg = array('url' => toUrl($retUrl));
             return array($statusObj);
         } else {
+            $oRec = $this->fetch(array("#brid = '[#1#]'", $brid));
+
             $rec = new stdClass();
+
+            if ($oRec) {
+                $rec->id = $oRec->id;
+            }
+
             $rec->userId = $cu;
             $rec->brid = $brid;
             $rec->authToken = $authToken;
@@ -354,23 +412,26 @@ class pwa_PushSubscriptions extends core_Manager
             $rec->contentEncoding = $contentEncoding;
             $rec->endpoint = $endpoint;
             $rec->data = (object) array('authToken' => $authToken, 'publicKey' => $publicKey, 'endpoint' => $endpoint, 'contentEncoding' => $contentEncoding);
+            $rec->state = 'active';
 
-            $this->save($rec, null, 'REPLACE');
+            $this->save($rec, NULL, 'REPLACE');
 
+            // При подновяване показваме известие само
             if ($rec->id) {
+                if (!$oRec || ($oRec->state == 'closed')) {
+                    // При успешно абониране, показваме PUSH известие
+                    $msgTitle = "Абониране за PUSH известия в " . core_Setup::get('EF_APP_TITLE', true);
+                    $msg = 'Добавен е Push абонамент за получване на известия в "' . core_Setup::get('EF_APP_TITLE', true) . '"';
 
-                // При успешно абониране, показваме PUSH известие
-                $msgTitle = "Абониране за PUSH известия в " . core_Setup::get('EF_APP_TITLE', true);
-                $msg = 'Добавен е Push абонамент за получване на известия в "' . core_Setup::get('EF_APP_TITLE', true) . '"';
+                    $isSendArr = $this->sendAlert($rec->userId, tr($msgTitle),tr($msg),
+                        array('pwa_PushSubscriptions', 'edit', $rec->id, 'ret_url' => array('Portal', 'Show')), null, null, null, $rec->brid);
 
-                $isSendArr = $this->sendAlert($rec->userId, tr($msgTitle),tr($msg),
-                            array('pwa_PushSubscriptions', 'edit', $rec->id, 'ret_url' => array('Portal', 'Show')), null, null, null, $rec->brid);
+                    foreach ($isSendArr as $iVal) {
+                        if (!$iVal->isSuccess) {
+                            status_Messages::newStatus('Добавен е Push абонамент за получване на известия');
 
-                foreach ($isSendArr as $iVal) {
-                    if (!$iVal->isSuccess) {
-                        status_Messages::newStatus('Добавен е Push абонамент за получване на известия');
-
-                        break;
+                            break;
+                        }
                     }
                 }
 
@@ -451,7 +512,7 @@ class pwa_PushSubscriptions extends core_Manager
 
         $pwaSubscriptionUrl = toUrl(array('pwa_PushSubscriptions', 'Subscribe'), 'local');
         $pwaSubscriptionUrl = urlencode($pwaSubscriptionUrl);
-        $tpl->appendOnce("const pwaSubsctiptionUrl = '{$pwaSubscriptionUrl}';", 'SCRIPTS');
+        $tpl->appendOnce("const pwaSubscriptionUrl = '{$pwaSubscriptionUrl}';", 'SCRIPTS');
     }
 
 

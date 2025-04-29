@@ -279,12 +279,6 @@ class cat_Products extends embed_Manager
     
     
     /**
-     * Групи, които са засегнати и трябва да им се опресни броя
-     */
-    public $updateGroupsCount = array();
-    
-    
-    /**
      * Кеширана информация за артикулите
      */
     protected static $productInfos = array();
@@ -343,6 +337,12 @@ class cat_Products extends embed_Manager
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn,state';
+
+
+    /**
+     * Прокси клас, който да се използва за търсенето в листа
+     */
+    public $listFilterProxyTable = 'cat_ProductsProxy';
 
 
     /**
@@ -1019,7 +1019,7 @@ class cat_Products extends embed_Manager
             }
 
             if (!empty($filterRec->groupId)) {
-                $data->query->where("LOCATE('|{$filterRec->groupId}|', #groups)");
+                plg_ExpandInput::applyExtendedInputSearch($mvc, $data->query, $filterRec->groupId);
             }
 
             static::applyAdditionalListFilters($filtersArr, $data->query);
@@ -1102,9 +1102,9 @@ class cat_Products extends embed_Manager
             $productWithVat = cat_products_VatGroups::getByVatPercent(0);
             if(countR($productWithVat)){
                 $productWithVatStr = implode(',', $productWithVat);
-                $wherePartFour = "#{$productIdFld} IN ({$productWithVatStr})";
+                $wherePartFour .= "#{$productIdFld} IN ({$productWithVatStr})";
             } else {
-                $wherePartFour = "1=2";
+                $wherePartFour .= "1=2";
             }
         }
 
@@ -1118,13 +1118,11 @@ class cat_Products extends embed_Manager
             }
         }
 
-        if(isset($filtersArr['vat20'])) {
+        if (isset($filtersArr['vat20'])) {
             $productWithWith0And9Vat = cat_products_VatGroups::getByVatPercent(0) + cat_products_VatGroups::getByVatPercent(0.09);
             if(countR($productWithWith0And9Vat)){
                 $productWithVatStr = implode(',', $productWithWith0And9Vat);
-                $wherePartFour = "#{$productIdFld} NOT IN ({$productWithVatStr})";
-            } else {
-                $wherePartFour = "1=2";
+                $wherePartFour .= (!empty($wherePartFour) ? ' OR ' : '') . "#{$productIdFld} NOT IN ({$productWithVatStr})";
             }
         }
 
@@ -1384,7 +1382,7 @@ class cat_Products extends embed_Manager
             'measureId' => $productRec->measureId,
             'code' => $productRec->code,);
         
-        $res->isPublic = ($productRec->isPublic == 'yes') ? true : false;
+        $res->isPublic = $productRec->isPublic == 'yes';
         
         if ($grRec = cat_products_VatGroups::getCurrentGroup($productId)) {
             $res->productRec->vatGroup = $grRec->title;
@@ -1465,25 +1463,28 @@ class cat_Products extends embed_Manager
         return $res;
     }
     
-    
+    function act_love()
+    {
+        static::getVat(5);
+    }
+
     /**
      * Връща ДДС на даден продукт
      *
-     * @param int        - $productId - Ид на продукт
-     * @param date $date - dата към която начисляваме ДДС-то
-     *
-     * @return double $vat - ДДС-то на артикула kym datata
-     *
+     * @param int        $productId   - ид на артикул
+     * @param null|date  $date        - към коя дата
+     * @param int        $exceptionId - ДДС изключение
+     * @return double                 - ДДС-то на артикула към датата
      */
-    public static function getVat($productId, $date = null)
+    public static function getVat($productId, $date = null, $exceptionId = null)
     {
-        expect(static::fetchField($productId), 'Няма такъв артикул');
+        expect($productId, 'Няма артикул');
         if (!$date) {
             $date = dt::today();
         }
 
         // Ако има валидна ДДС група към датата - нея
-        if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date)) {
+        if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date, $exceptionId)) {
             return $groupRec->vat;
         }
 
@@ -1502,11 +1503,17 @@ class cat_Products extends embed_Manager
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        $touchedGroups = '';
         if(isset($rec->_oldGroups)){
-            $mvc->updateGroupsCount += keylist::toArray(keylist::diff($rec->_oldGroups, $rec->groups));
-            $mvc->updateGroupsCount += keylist::toArray(keylist::diff($rec->groups, $rec->_oldGroups));
+            $touchedGroups = keylist::diff($rec->_oldGroups, $rec->groups);
+            $touchedGroups = keylist::merge($touchedGroups, keylist::diff($rec->groups, $rec->_oldGroups));
         } elseif($rec->_isCreated){
-            $mvc->updateGroupsCount += keylist::toArray($rec->groups);
+            $touchedGroups = $rec->groups;
+        }
+
+        // Записване в перманентния кеш докоснатите групи
+        if(!empty($touchedGroups)){
+            core_Permanent::set("touchedGroups|{$touchedGroups}", $touchedGroups, 120);
         }
 
         if ($rec->groups) {
@@ -1567,18 +1574,13 @@ class cat_Products extends embed_Manager
         
         return $isPublic == 'yes';
     }
-    
-    
+
+
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
     public static function on_Shutdown($mvc)
     {
-        // Обновяваме дефиринциално групите
-        if (countR($mvc->updateGroupsCount)) {
-            cat_Groups::updateGroupsCnt($mvc->updateGroupsCount);
-        }
-        
         // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
         if (countR($mvc->createdProducts)) {
             foreach ($mvc->createdProducts as $rec) {
@@ -1681,14 +1683,12 @@ class cat_Products extends embed_Manager
             }
 
             self::filterQueryByMeta($query, $params['hasProperties'], $params['hasnotProperties'], $params['orHasProperties']);
-
             if (isset($params['groups'])) {
-                $groups = (keylist::isKeylist($params['groups'])) ? $params['groups'] : keylist::fromArray(arr::make($params['groups'], true));
-                $query->likeKeylist('groups', $groups);
+               plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $params['groups']);
             }
 
             if (isset($params['notInGroups'])) {
-                $query->notLikeKeylist('groups', $params['notInGroups']);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $params['notInGroups'], null, true);
             }
 
             // Филтър само за артикули, които могат да бъдат Производствени етапи
@@ -1789,6 +1789,7 @@ class cat_Products extends embed_Manager
         }
         $query->show($showFields);
 
+        core_Debug::startTimer('PRODUCT_GET_FETCH_ALL');
         if($defaultSearch){
 
             $alwaysIds = array();
@@ -1824,6 +1825,7 @@ class cat_Products extends embed_Manager
         } else {
             $foundRecs = $query->fetchAll();
         }
+        core_Debug::stopTimer('PRODUCT_GET_FETCH_ALL');
 
         foreach ($foundRecs as $rec) {
             $title = null;
@@ -1837,19 +1839,24 @@ class cat_Products extends embed_Manager
             }
 
             if(empty($title)){
+                core_Debug::startTimer('PRODUCT_GET_REC_TITLE');
                 $title = static::getRecTitle($rec, false);
                 if(!empty($rec->reff)){
                     $title = "[{$rec->reff}]  {$title}";
                 }
+                core_Debug::stopTimer('PRODUCT_GET_REC_TITLE');
 
                 // За стандартните артикули ще се показва и еденичната цена е указано да се показват и цени
                 $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');
                 if(!is_numeric($onlyIds)){
                     if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
-                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
+                        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], 1, 'no', $params['priceData']['listId']);
                         if(isset($policyInfo->price)){
                             $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
-                            $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
+                            $vatExceptionId = cond_VatExceptions::getFromThreadId($params['priceData']['threadId']);
+                            $vat = cat_Products::getVat($rec->id, $params['priceData']['valior'], $vatExceptionId);
+                            $price = deals_Helper::getDisplayPrice($price, $vat, $params['priceData']['rate'], $params['priceData']['chargeVat']);
+                            $listId = $params['priceData']['listId'] ?? price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
                             $measureId = $rec->measureId;
 
                             if($showPrices == 'basePack'){
@@ -2468,6 +2475,10 @@ class cat_Products extends embed_Manager
                 $row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
             }
 
+            if (isset($rec->clonedFromId)) {
+                $row->clonedFromId = $mvc->getHyperlink($rec->clonedFromId);
+            }
+
             if (isset($rec->proto)) {
                 $row->proto = core_Users::isContractor() ? $mvc->getTitleById($rec->proto) : $mvc->getHyperlink($rec->proto);
             }
@@ -2557,7 +2568,9 @@ class cat_Products extends embed_Manager
             if ($originalName == $part) {
                 $part = core_Lg::transliterate($part);
             }
-            $part = type_Varchar::escape($part);
+            if (!Mode::is('forSearch')) {
+                $part = type_Varchar::escape($part);
+            }
 
             return false;
         } elseif ($field == 'code') {
@@ -3219,12 +3232,10 @@ class cat_Products extends embed_Manager
     public static function getWacAmountInStore($quantity, $productId, $date, $stores = array(), $maxTry = null)
     {
         $item2 = acc_Items::fetchItem('cat_Products', $productId)->id;
-        if (!$item2) {
-            return;
-        }
-        
-        
-        $item1 = '*';
+        if (!$item2) return;
+
+        core_Debug::startTimer('WAC_AMOUNT');
+        $item1 = null;
         if (is_array($stores) && countR($stores)) {
             $item1 = array();
             foreach ($stores as $storeId) {
@@ -3232,17 +3243,31 @@ class cat_Products extends embed_Manager
                 $item1[$storeItemId] = $storeItemId;
             }
         }
-        
-        // Намираме сумата която струва к-то от артикула в склада
-        $maxTry = isset($maxTry) ? $maxTry : core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
-        $amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, null, $maxTry);
-        
-        if (isset($amount)) {
-            return round($amount, 4);
+
+        core_Debug::startTimer('WAC_AMOUNT_FROM_CACHE');
+        $date = dt::getLastDayOfMonth($date);
+        $pricesArr = acc_ProductPricePerPeriods::getPricesToDate($date, $item2, $item1);
+        $countPricesBefore = countR($pricesArr);
+
+        if($countPricesBefore){
+            $priceSum = arr::sumValuesArray($pricesArr, 'price');
+            core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
+            core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime, 6));
+
+            core_Debug::stopTimer('WAC_AMOUNT');
+            core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+
+            return round($quantity * ($priceSum / $countPricesBefore), 4);
         }
-        
+
+        core_Debug::stopTimer('WAC_AMOUNT_FROM_CACHE');
+        core_Debug::log("END WAC_AMOUNT_FROM_CACHE " . round(core_Debug::$timers["WAC_AMOUNT_FROM_CACHE"]->workingTime, 6));
+
+        core_Debug::stopTimer('WAC_AMOUNT');
+        core_Debug::log("END GET_WAC_AMOUNT " . round(core_Debug::$timers["WAC_AMOUNT"]->workingTime, 6));
+
         // Връщаме сумата
-        return $amount;
+        return null;
     }
     
     
@@ -4041,6 +4066,7 @@ class cat_Products extends embed_Manager
     {
         expect($mRec);
 
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($mRec->threadId);
         $canSeePrice = haveRole('seePrice,ceo', $activatedBy);
         $pStrName = 'price';
 
@@ -4254,14 +4280,14 @@ class cat_Products extends embed_Manager
                     }
                 }
 
-                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld});
+                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld}, $vatExceptionId);
 
                 // За добавяне на бачовете
                 if ($allFFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
                     if ($recs[$dRec->id] && isset($recs[$dRec->id]->packQuantity) && $Def) {
                         if (!$csvFields->fields['batch']) {
-                            $csvFields->FLD('batch', 'text', 'caption=Партида');
+                            $csvFields->FLD('batch', 'varchar(128)', 'caption=Партида');
                         }
 
                         $bQuery = batch_BatchesInDocuments::getQuery();
@@ -4358,7 +4384,7 @@ class cat_Products extends embed_Manager
                     }
 
                     if($chargeVat == 'yes'){
-                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $mRec->{$masterMvc->valiorFld}), $rate, $chargeVat);
+                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $mRec->{$masterMvc->valiorFld}, $vType), $rate, $chargeVat);
                         $rec->chargeVat = tr('с ДДС');
                     } else {
                         $rec->chargeVat = tr('без ДДС');
@@ -4370,7 +4396,7 @@ class cat_Products extends embed_Manager
             $csvFields->FLD('chargeVat', 'varchar', 'caption=ДДС');
             $csvFields->FLD('currency', 'varchar', 'caption=Валута');
             if (core_Packs::isInstalled('batch') && !$csvFields->fields['batch']) {
-                $csvFields->FLD('batch', 'text', 'caption=Партида');
+                $csvFields->FLD('batch', 'varchar(128)', 'caption=Партида');
             }
         }
 
@@ -4482,7 +4508,7 @@ class cat_Products extends embed_Manager
         // Извличане на мерките от същата група, като на $toUomId
         $sameTypeMeasures = cat_UoM::getSameTypeMeasures($toUomId);
         unset($sameTypeMeasures['']);
-        
+
         // Ако основната мярка е от същата група, конвертира се към $toUomId
         if (array_key_exists($measureId, $sameTypeMeasures)) {
             $res = cat_UoM::convertValue(1, $measureId, $toUomId);
@@ -4513,17 +4539,18 @@ class cat_Products extends embed_Manager
         // Ако търсената мярка е от групата на килограмите
         $kgUom = cat_UoM::fetchBySysId('kg')->id;
         $kgUoms = cat_UoM::getSameTypeMeasures($kgUom);
-        
+
         // Взима се стойност от параметрите на артикула
         if (array_key_exists($toUomId, $kgUoms)) {
             $paramValue = self::getParams($productId, 'weight');
             if (isset($paramValue)) {
                 $res = cat_UoM::convertValue($paramValue, 'gr', $toUomId);
-                
-                return $res;
+
+                return !is_nan($res) ? $res : null;
             } else {
                 $paramValue = self::getParams($productId, 'weightKg');
-                if (isset($paramValue)) return $paramValue;
+
+                return !is_nan($paramValue) ? $paramValue : null;
             }
         }
     }
@@ -4694,5 +4721,17 @@ class cat_Products extends embed_Manager
         $rec = static::fetchRec($rec);
 
         return self::getDisplayName($rec);
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_AfterSessionClose($mvc)
+    {
+        // Ако има импортирани артикули - да се изпълни веднага крон процеса за засегнатите групи
+        if(isset($mvc->_haveImportedRecs)){
+            cls::get('cat_Groups')->cron_UpdateTouchedGroupsCnt();
+        }
     }
 }

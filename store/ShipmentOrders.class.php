@@ -228,12 +228,6 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
-     * Огледален клас за обратната операция
-     */
-    public $reverseClassName = 'store_Receipts';
-
-
-    /**
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, deliveryTime, shipmentOn, deliveryOn';
@@ -314,7 +308,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             if ($rec->state != 'pending') {
                 unset($row->storeReadiness);
             } else {
-                $row->storeReadiness = isset($row->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
+                $row->storeReadiness = $row->storeReadiness ?? "<b class='quiet'>N/A</b>";
             }
 
             if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
@@ -340,6 +334,22 @@ class store_ShipmentOrders extends store_DocumentMaster
                     if(isset($cond)){
                         $row->note .= "\n" . $cond;
                     }
+                }
+            }
+
+            if ($rec->isReverse == 'yes') {
+                $row->operationSysId = $mvc->isDocForReturnFromDocument($rec) ? tr('Връщане на артикули') : tr('Експедиране на артикули');
+                if(isset($rec->reverseContainerId)){
+                    $row->operationSysId .= tr("|* |от|* ") . doc_Containers::getDocument($rec->reverseContainerId)->getLink(0, array('ef_icon' => false));
+                }
+            }
+
+            // Ако ще се печата в изглед за ДН - да се показва уебсайта на клиента ако има такъв
+            if(Request::get('asClient')){
+                $webSite = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'website');
+                $websiteUrls = type_Urls::toArray($webSite);
+                if(countR($websiteUrls)){
+                    $row->asClientQrCodeString = $websiteUrls[0];
                 }
             }
         }
@@ -383,34 +393,29 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         if ($rec->isReverse == 'no') {
 
-            // Кои са фактурите в нишката
-            $invoiceArr = deals_Helper::getInvoicesInThread($rec->threadId);
-            if (countR($invoiceArr)) {
-                $dQuery = store_ShipmentOrderDetails::getQuery();
-                $dQuery->where("#shipmentId = {$rec->id}");
-                $dQuery->show('productId');
-                $products = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+            // Ако има ф-ри към ЕН-то да излизат линкнати
+            $selectedInvoices = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+            $selectedInvoicesCount = countR($selectedInvoices);
 
-                $invoiceArr = array_keys($invoiceArr);
-                foreach ($invoiceArr as $invoiceContainerId) {
-                    $InvoiceRef = doc_Containers::getDocument($invoiceContainerId);
-                    $InvoiceDetail = cls::get($InvoiceRef->mainDetail);
-                    $iQuery = $InvoiceDetail->getQuery();
-                    $iQuery->where("#{$InvoiceDetail->masterKey} = {$InvoiceRef->that}");
-                    $iQuery->show('productId');
-                    $invoiceProducts = arr::extractValuesFromArray($iQuery->fetchAll(), 'productId');
-
-                    // Ако има фактура със същите артикули, като ЕН-то ще се покаже към имейла
-                    $diff1 = countR(array_diff_key($products, $invoiceProducts));
-                    $diff2 = countR(array_diff_key($invoiceProducts, $products));
-
-                    if (empty($diff1) && empty($diff2)) {
-                        $iTpl = new ET(tr("|*\n|Моля, запознайте се с приложената фактура") . ': #[#handle#]');
-                        $iTpl->replace($InvoiceRef->getHandle(), 'handle');
-                        $tpl->append($iTpl);
-                        break;
-                    }
+            // Ако ЕН-то е обвързано с ф-ри - ще се показват те, ако не но има само една ф-ра в нишката - нея
+            $handles = array();
+            if($selectedInvoicesCount){
+                foreach ($selectedInvoices as $invoiceRec){
+                    $handles[] = "#" . doc_Containers::getDocument($invoiceRec->containerId)->getHandle();
                 }
+            } elseif($this->count("#threadId = {$rec->threadId} AND #state = 'active'") == 1){
+                $invoicesInThread = deals_Helper::getInvoicesInThread($rec->threadId);
+                if(countR($invoicesInThread) == 1){
+                    $handles[] = "#" . doc_Containers::getDocument(key($invoicesInThread))->getHandle();
+                }
+            }
+
+            $countInvoices = countR($handles);
+            if($countInvoices){
+                $caption = ($countInvoices == 1) ? 'приложената фактура' : 'приложените фактури';
+                $iTpl = new ET(tr("|*\n|Моля, запознайте се с {$caption}|*") . ': [#handles#]');
+                $iTpl->replace(implode(', ', $handles), 'handles');
+                $tpl->append($iTpl);
             }
         }
 
@@ -455,19 +460,19 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Интерфейсен метод
      *
      * @param int $id
-     *
+     * @param datetime|int $date
      * @return object
      *
      * @see doc_ContragentDataIntf
      */
-    public static function getContragentData($id)
+    public static function getContragentData($id, $date = null)
     {
         $rec = self::fetchRec($id);
 
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if ($firstDoc->isInstanceOf('sales_Sales')) {
 
-            return $firstDoc->getContragentData($firstDoc->that);
+            return $firstDoc->getContragentData($date);
         }
     }
 
@@ -543,6 +548,20 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $ignoreContainerId = ($action != 'clonerec') ? $rec->containerId : null;
                 if (!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)) {
                     $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        // Обратна ЕН ако не е към документ да може да се създава от потребители с по-високи права
+        if($action == 'add' && isset($rec->threadId)){
+            $fromSource = (isset($rec->fromContainerId) || isset($rec->reverseContainerId));
+
+            if(!$fromSource){
+                $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+                if($firstDoc->isInstanceOf('purchase_Purchases')) {
+                    if(!haveRole('revertShipmentDocs,ceo')){
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
@@ -944,5 +963,43 @@ class store_ShipmentOrders extends store_DocumentMaster
         }
 
         return null;
+    }
+
+
+    /**
+     * Дали ЕН-то е за връщане към доставчик
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public function isDocForReturnFromDocument($rec)
+    {
+        $rec = static::fetchRec($rec);
+
+        // Ако ЕН-то е обратно и е създадено към конкретен документ и е в същия месец - значи е за връщане (иначе е за експедиране)
+        if(!($rec->isReverse == 'yes' && isset($rec->reverseContainerId))) return false;
+
+        $ReverseDoc = doc_Containers::getDocument($rec->reverseContainerId);
+        $reverseRec = $ReverseDoc->fetch();
+
+        $cDate = $rec->{$this->valiorFld} ?? dt::today();
+        $cDateMonth = dt::mysql2verbal($cDate, 'm.Y');
+        $revDateMonth = dt::mysql2verbal($reverseRec->{$ReverseDoc->valiorFld}, 'm.Y');
+        if ($cDateMonth == $revDateMonth) {
+            if ($rec->storeId == $reverseRec->{$ReverseDoc->storeFieldName}) return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Връща класа на обратния документ
+     */
+    public function getDocumentReverseClass($rec)
+    {
+        $class = 'store_Receipts';
+
+        return cls::get($class);
     }
 }

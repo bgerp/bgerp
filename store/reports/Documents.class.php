@@ -198,8 +198,8 @@ class store_reports_Documents extends frame2_driver_TableData
         
         if (empty($rec->{$documentFld}) || ($rec->{$documentFld} == planning_DirectProductionNote::getClassId())) {
             $pQuery = planning_DirectProductionNote::getQuery();
-            $pQuery->where('#deadline IS NOT NULL');
             self::applyFilters($pQuery, $storeIds, 'planning_DirectProductionNote', $rec, 'deadline');
+
             while ($pRec = $pQuery->fetch()) {
                 $recs[$pRec->containerId] = (object) array('containerId' => $pRec->containerId,
                     'stores' => array($pRec->storeId),
@@ -289,7 +289,8 @@ class store_reports_Documents extends frame2_driver_TableData
         
         if (!empty($rec->horizon)) {
             $horizon = dt::addSecs($rec->horizon, dt::today(), false);
-            $query->where("(#{$termDateField} IS NOT NULL AND #{$termDateField} <= '{$horizon} 23:59:59') OR #{$termDateField} IS NULL");
+            $query->setUnion("#{$termDateField} IS NOT NULL AND #{$termDateField} <= '{$horizon} 23:59:59'");
+            $query->setUnion("#{$termDateField} IS NULL");
         }
     }
     
@@ -545,14 +546,16 @@ class store_reports_Documents extends frame2_driver_TableData
      */
     public function getNextRefreshDates($rec)
     {
-        $date = new DateTime(dt::now());
-        $date->add(new DateInterval('P0DT0H5M0S'));
+        $date = new DateTime();
+        $date->add(new DateInterval('PT15M'));
         $d1 = $date->format('Y-m-d H:i:s');
-        $date->add(new DateInterval('P0DT0H5M0S'));
+
+        $date->add(new DateInterval('PT15M'));
         $d2 = $date->format('Y-m-d H:i:s');
-        $date->add(new DateInterval('P0DT0H5M0S'));
+
+        $date->add(new DateInterval('PT15M'));
         $d3 = $date->format('Y-m-d H:i:s');
-        
+
         return array($d1, $d2, $d3);
     }
 

@@ -154,7 +154,7 @@ class sales_Quotations extends deals_QuotationMaster
     /**
      * Кои полета да са нередактируеми, ако има вече детайли
      */
-    protected $readOnlyFieldsIfHaveDetail = 'chargeVat,currencyRate,currencyId,deliveryTermId,deliveryPlaceId,deliveryAdress,deliveryCalcTransport';
+    protected $readOnlyFieldsIfHaveDetail = 'chargeVat,currencyRate,currencyId,deliveryTermId,deliveryPlaceId,deliveryAdress,deliveryCalcTransport,vatExceptionId';
 
 
     /**
@@ -283,7 +283,7 @@ class sales_Quotations extends deals_QuotationMaster
             $origin = doc_Containers::getDocument($rec->originId);
             if ($origin && cls::haveInterface('cat_ProductAccRegIntf', $origin->instance)) {
                 $originRec = $origin->fetch('id,measureId');
-                $vat = cat_Products::getVat($origin->that, $rec->date);
+                $vat = cat_Products::getVat($origin->that, $rec->date, $rec->vatExceptionId);
                 
                 // Ако в река има 1 от 3 к-ва
                 foreach (range(1, 3) as $i) {
@@ -395,8 +395,15 @@ class sales_Quotations extends deals_QuotationMaster
             if (isset($rec->bankAccountId)) {
                 $ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
                 $row->bankAccountId = $ownAccount->iban;
-                if(!Mode::isReadOnly()){
+                if(!Mode::isReadOnly() && !Mode::is('text', 'plain')){
                     $row->bankAccountId = ht::createLink($ownAccount->iban, bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId));
+                }
+            }
+
+            if(empty($row->deliveryError)){
+                $errorFeeCount = sales_TransportValues::count("#docClassId = {$mvc->getClassId()} AND #docId = {$rec->id} AND #fee < 0");
+                if($errorFeeCount){
+                    $row->deliveryError = tr('Възникна проблем при изготвяне на офертата и не можем да гарантираме коректността на изчислените/показаните цени! Моля, свържете се с нас!');
                 }
             }
         }
@@ -441,7 +448,7 @@ class sales_Quotations extends deals_QuotationMaster
         }
         $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
         
-        $ourCompany = crm_Companies::fetchOurCompany();
+        $ourCompany = crm_Companies::fetchOurCompany('*', null, $rec->activatedOn);
         $params = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         
         // Изчисляване на общото тегло на офертата
@@ -555,7 +562,7 @@ class sales_Quotations extends deals_QuotationMaster
         $tpl->append($handle, 'handle');
         
         if($rec->chargeVat == 'separate'){
-            $tpl->append("\n\n" . tr("Обърнете внимание, че цените в тази оферта са [b]без ДДС[/b]. В договора ДДС ще е на отделен ред."));
+            $tpl->append("\n\n" . tr("Обърнете внимание, че цените в тази оферта са| [b]|без ДДС|*[/b]. |В договора ДДС ще е на отделен ред|*."));
         }
         
         return $tpl->getContent();
@@ -715,42 +722,42 @@ class sales_Quotations extends deals_QuotationMaster
      */
     public function getDefaultEmailSubject($id, $isForwarding = false)
     {
-        $res = '';
+        $res = tr('Оферта') . " {$this->getHandle($id)} / ";
         $rec = $this->fetchRec($id);
-        
+
         if ($rec->reff) {
-            $res = $rec->reff . ' ';
+            $res .= $rec->reff;
+        } else {
+            $dQuery = sales_QuotationsDetails::getQuery();
+            $dQuery->where(array("#quotationId = '[#1#]'", $id));
+
+            // Показваме кода на продукта с най високата сума
+            $maxAmount = null;
+            $pCnt = $productId = 0;
+            while ($dRec = $dQuery->fetch()) {
+                $amount = $dRec->price * $dRec->quantity;
+
+                if ($dRec->discount) {
+                    $amount = $amount * (1 - $dRec->discount);
+                }
+
+                if (!isset($maxAmount) || ($amount > $maxAmount)) {
+                    $maxAmount = $amount;
+                    $productId = $dRec->productId;
+                }
+
+                $pCnt++;
+            }
+
+            $pCnt--;
+            if ($productId) {
+                $res .= cat_Products::getTitleById($productId);
+                if ($pCnt > 0) {
+                    $res .= ' ' . tr('и още') . '...';
+                }
+            }
         }
 
-        $dQuery = sales_QuotationsDetails::getQuery();
-        $dQuery->where(array("#quotationId = '[#1#]'", $id));
-        
-        // Показваме кода на продукта с най високата сума
-        $maxAmount = null;
-        $pCnt = $productId = 0;
-        while ($dRec = $dQuery->fetch()) {
-            $amount = $dRec->price * $dRec->quantity;
-            
-            if ($dRec->discount) {
-                $amount = $amount * (1 - $dRec->discount);
-            }
-            
-            if (!isset($maxAmount) || ($amount > $maxAmount)) {
-                $maxAmount = $amount;
-                $productId = $dRec->productId;
-            }
-            
-            $pCnt++;
-        }
-        
-        $pCnt--;
-        if ($productId) {
-            $res .= cat_Products::getTitleById($productId);
-            if ($pCnt > 0) {
-                $res .= ' ' . tr('и още') . '...';
-            }
-        }
-        
         return $res;
     }
 

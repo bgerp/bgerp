@@ -58,7 +58,13 @@ class hr_Sickdays extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     //public $searchFields = 'description';
-    
+	
+	
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'startDate,toDate,fitNoteFile,fitNoteNum,fitNoteDate,paidByEmployer,paidByHI,note';
+
     
     /**
      * За плъгина acc_plg_DocumentSummary
@@ -88,7 +94,7 @@ class hr_Sickdays extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, hrMaster, hrSickdays';
+    public $canEdit = 'powerUser';
     
     
     /**
@@ -122,7 +128,7 @@ class hr_Sickdays extends core_Master
     
     
     /**
-     * Кой има право да прави начисления
+     * Кой има право да променя активиран болничен
      */
     public $canChangerec = 'ceo, hrMaster, hrSickdays';
     
@@ -186,8 +192,8 @@ class hr_Sickdays extends core_Master
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,mandatory');
         $this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
         $this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
-        $this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година, input=none, changable');
-        $this->FLD('fitNoteDate', 'date', 'caption=Болничен лист->Издаден на, input=none, changable');
+        $this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година, changable');
+        $this->FLD('fitNoteDate', 'date', 'caption=Болничен лист->Издаден на, changable');
         $this->FLD('fitNoteFile', 'fileman_FileType(bucket=humanResources)', 'caption=Болничен лист->Файл');
         $this->FLD('reason', 'enum(1=Майчинство до 15 дни,
 				   2=Майчинство до 410 дни,
@@ -200,6 +206,7 @@ class hr_Sickdays extends core_Master
 				   9=Бащинство до 410 дни,
 				   10=Гледа дете до 18 години,
 				   12=Карантина)', 'caption=Информация->Причина');
+        $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('s'))), 'caption=Информация->Икона за ника, maxRadio=4,columns=4,notNull,value=s2');
         $this->FLD('note', 'richtext(rows=5,bucket=Notes)', 'caption=Информация->Бележки');
         $this->FLD('icdCode', 'varchar(5)', 'caption=Информация->MKB код, hint=Международна класификация на болестите');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
@@ -232,7 +239,7 @@ class hr_Sickdays extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent,before=selectPeriod');
+        $data->listFilter->FLD('employeeId', 'key(mvc=crm_Persons,select=name,allowEmpty,group=employees)', 'caption=Служител,silent,before=selectPeriod');
         $data->listFilter->showFields = $data->listFilter->showFields . ',employeeId';
         $data->listFilter->input('employeeId', 'silent');
         
@@ -286,11 +293,11 @@ class hr_Sickdays extends core_Master
         
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
-            if ($form->rec->startDate > $now) {
-                
-                // Добавяме съобщение за грешка
-                $form->setError('startDate', "Началната дата трябва да е преди|* <b>{$now}</b>");
-            }
+        //  if ($form->rec->startDate > $now) {
+        //       
+                // Добавяме съобщение за грешка  (закоментирано - за да може да се въвеждат предварително планувани болнични)
+        //      $form->setError('startDate', "Началната дата трябва да е преди|* <b>{$now}</b>");
+        //  }
             
             if ($form->rec->toDate < $form->rec->startDate) {
                 $form->setError('toDate', "Крайната дата трябва да е след|*  <b>{$form->rec->startDate}</b>");
@@ -300,10 +307,17 @@ class hr_Sickdays extends core_Master
             if (isset($form->rec->startDate, $form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) {
                 $form->setError('startDate, toDate', 'Началната дата трябва да е по-малка от крайната');
             }
+
+            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id, get_called_class());
+            // за всяка една молба отговаряща на условията проверяваме
+            if (!empty($iArr)) {
+                // и изписваме предупреждение
+                $form->setError('startDate, toDate', "|Засичане по време с: |*" . implode('<br>', $iArr));
+            }
         }
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -315,6 +329,13 @@ class hr_Sickdays extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
+        if ($rec->id) {
+            if ($action == 'reject' && $rec && $rec->state == 'active' && $rec->startDate <= dt::now()) {
+                if (!haveRole('hrSickdays, ceo')) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -440,8 +461,8 @@ class hr_Sickdays extends core_Master
 
             return ;
         }
-        
-        while ($curDate < $rec->toDate) {
+  
+        while ($curDate <= $rec->toDate) {
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && ($rec->state == 'active' || $rec->state == 'rejected')) {
                 $calRec = new stdClass();
@@ -477,11 +498,11 @@ class hr_Sickdays extends core_Master
                 
                 $events[] = $calRec;
             }
-            $curDate = dt::addDays(1, $curDate);
+            $curDate = strstr(dt::addDays(1, $curDate),' ',true);
         }
 
         $onlyDel = $rec->state == 'rejected' ? true : false;
-        
+       
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
     }
     

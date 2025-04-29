@@ -202,10 +202,7 @@ class pos_Setup extends core_ProtoSetup
         'pos_ReceiptDetails',
         'pos_Reports',
         'pos_SellableProductsCache',
-        'migrate::resyncSearchStrings2350',
-        'migrate::updateInputPercent2403',
-        'migrate::updateWrongReceipts2414',
-        'migrate::updatePointChargeVat1724',
+        'migrate::updateNonCashPayments3024',
     );
 
 
@@ -222,7 +219,7 @@ class pos_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.1, 'Търговия', 'POS', 'pos_Points', 'default', 'ceo, pos, admin'),
+        array(3.2, 'Търговия', 'POS', 'pos_Points', 'default', 'ceo, pos, admin'),
     );
     
     
@@ -274,7 +271,7 @@ class pos_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png,webp', '6MB', 'user', 'every_one');
 
         return $html;
     }
@@ -290,62 +287,23 @@ class pos_Setup extends core_ProtoSetup
 
 
     /**
-     * Ресинхронизира ключовите думи
+     * Миграция на безналичните начини на плащане в точкитте на продажба
      */
-    public function resyncSearchStrings2350()
+    public function updateNonCashPayments3024()
     {
-        cls::get('pos_SellableProductsCache')->sync(true);
-    }
+        $pointQuery = pos_Points::getQUery();
+        $pointQuery->where("#payments IS NULL AND #prototypeId IS NULL");
 
+        $paymentQuery = cond_Payments::getQuery();
+        $paymentQuery->where("#state = 'active'");
+        $payments = arr::extractValuesFromArray($paymentQuery->fetchAll(), 'id');
 
-    /**
-     * Миграция на новото поле на делтите
-     */
-    public function updateInputPercent2403()
-    {
-        $Receipts = cls::get('pos_ReceiptDetails');
-        $Receipts->setupMvc();
-
-        $inputDiscColName = str::phpToMysqlName('inputDiscount');
-        $discColName = str::phpToMysqlName('discountPercent');
-        $query = "UPDATE {$Receipts->dbTableName} SET {$inputDiscColName} = {$discColName} WHERE {$discColName} IS NOT NULL";
-        $Receipts->db->query($query);
-    }
-
-
-    /**
-     * Изтриване на грешни бележки
-     */
-    public function updateWrongReceipts2414()
-    {
-        $save = array();
-        $Receipts = cls::get('pos_Receipts');
-        $query = pos_Receipts::getQuery();
-        $query->where("#contragentClass IS NULL AND #contragentObjectId IS NULL");
-        while($rec = $query->fetch()){
-            $rec->contragentName = 'Анонимен Клиент';
-            $rec->contragentClass = core_Classes::getId('crm_Persons');
-            $rec->contragentObjectId = pos_Points::defaultContragent($posId);
-            $save[$rec->id] = $rec;
+        $pointQuery = pos_Points::getQUery();
+        $pointQuery->where("#payments IS NULL AND #prototypeId IS NULL");
+        while($posRec = $pointQuery->fetch()){
+            $posRec->payments = keylist::fromArray($payments);
+            pos_Points::save($posRec, 'payments');
         }
-
-        if(countR($save)){
-            $Receipts->saveArray($save);
-        }
-    }
-
-
-    /**
-     * Миграция на ДДС режима на ПОС-бележките
-     */
-    public function updatePointChargeVat1724()
-    {
-        if(crm_Companies::isOwnCompanyVatRegistered()) return;
-
-        $Points = cls::get('pos_Points');
-        $chargeVatColName = str::phpToMysqlName('chargeVat');
-        $query = "UPDATE {$Points->dbTableName} SET {$chargeVatColName} = 'no' WHERE ({$chargeVatColName} = 'yes'";
-        $Points->db->query($query);
     }
 }
 

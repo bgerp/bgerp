@@ -693,7 +693,7 @@ class core_Array
             $value = is_array($a) ? $a[$field] : $a->{$field};
             
             if($emptyAsZero === false){
-                expect(isset($value), "Няма поле: {$field}");
+                expect(isset($value), "Няма поле: {$field}", $a);
             }
             
             $sum += $value;
@@ -749,5 +749,77 @@ class core_Array
                  self::getPerms($newItems, $res, $newPerms);
              }
         }
+    }
+
+
+    /**
+     * Проверка дали максималната дължина на опциите е под зададената
+     *
+     * @param array $options   - масив с опции
+     * @param bool $allowedLen - разрешената дължина, null за дефолтната
+     * @return bool
+     */
+    public static function isOptionsTotalLenBellowAllowed($options, $allowedLen = null)
+    {
+        if (!isset($options)) {
+
+            return false;
+        }
+
+        $allowedLen = $allowed ?? bgerp_Setup::get('VERTICAL_FORM_DEFAULT_MAX_RADIO_LENGTH');
+
+        $count = $totalLen = 0;
+        array_walk($options, function ($v) use (&$count, &$totalLen){
+            $str = is_object($v) ? $v->title : $v;
+
+            if(!empty($str)){
+                $count++;
+                $totalLen += mb_strlen($str);
+            }
+        });
+
+       // броя на опциите * 3 + броя на символите на всичките < уеб константата
+        $res = $count * 3 + $totalLen;
+
+        return $res < $allowedLen;
+    }
+
+
+    /**
+     * Подредба на масив по ключовете му спрямо подредбата в друг масив
+     * Първо се подреждат ключовете в реда от втория масив, а после останалите
+     * в оригиналния си ред
+     *
+     * @param array $arr
+     * @param array $orderedKeys
+     * @param array $priorityKeysIfNotGiven
+     * @return array $res
+     */
+    public static function reorderArrayByOrderedKeys($arr, $orderedKeys, $priorityKeysIfNotGiven = array())
+    {
+        $res = array();
+
+        // Добавяме елементите от $priorityKeysIfNotGiven, които присъстват в $arr, но не са в $orderedKeys
+        foreach ($priorityKeysIfNotGiven as $key) {
+            if (array_key_exists($key, $arr) && !in_array($key, $orderedKeys)) {
+                $res[$key] = $arr[$key];
+            }
+        }
+
+        // Добавяме елементите от $orderedKeys, които присъстват в $arr
+        foreach ($orderedKeys as $key) {
+            if (array_key_exists($key, $arr)) {
+                $res[$key] = $arr[$key];
+            }
+        }
+
+        // Добавяме останалите елементи, които не са нито в $priorityKeysIfNotGiven, нито в $orderedKeys, в оригиналния ред
+        foreach ($arr as $key => $value) {
+            if (!in_array($key, $priorityKeysIfNotGiven) && !in_array($key, $orderedKeys)) {
+                $res[$key] = $value;
+            }
+        }
+
+        return $res;
     }
 }

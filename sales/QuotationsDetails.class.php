@@ -105,7 +105,7 @@ class sales_QuotationsDetails extends deals_QuotationDetails
         
         if (isset($policyInfo->price)) {
             $rec->price = $policyInfo->price;
-            $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $rec->date), $masterRec->currencyRate, $masterRec->chargeVat);
+            $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $rec->date, $masterRec->vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
             
             // Добавяне на транспортните разходи, ако има
             $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id)->fee;

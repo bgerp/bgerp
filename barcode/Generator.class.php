@@ -174,13 +174,32 @@ class barcode_Generator extends core_Manager
         
         // Създаваме GD изображението
         $im = imagecreatetruecolor($width, $height);
-        
-        // Цвета на баркода - черен
-        $black = ImageColorAllocate($im, 0x00, 0x00, 0x00);
-        
-        // Фона на баркода - бял цвят
-        $white = ImageColorAllocate($im, 0xff, 0xff, 0xff);
-        
+
+        $colorArr = $params['colorArr'];
+
+        setIfNot($colorArr['opacity'], 0);
+        setIfNot($colorArr['color'], '0|0|0');
+        setIfNot($colorArr['bgOpacity'], 0);
+        setIfNot($colorArr['bgColor'], '255|255|255');
+        $colorArr['color'] = explode('|', $colorArr['color']);
+        $colorArr['bgColor'] = explode('|', $colorArr['bgColor']);
+
+        if ($colorArr['bgOpacity'] !== 0) {
+            $opacity = (int) ($colorArr['bgOpacity'] * 127);
+            $opacity = min($opacity, 127);
+            $white = ImageColorAllocatealpha($im, $colorArr['bgColor'][0], $colorArr['bgColor'][1], $colorArr['bgColor'][2], $opacity);
+        } else {
+            $white = ImageColorAllocate($im, $colorArr['bgColor'][0], $colorArr['bgColor'][1], $colorArr['bgColor'][2]);
+        }
+
+        if ($colorArr['opacity'] !== 0) {
+            $opacity = (int) ($colorArr['opacity'] * 127);
+            $opacity = min($opacity, 127);
+            $black = ImageColorAllocatealpha($im, $colorArr['color'][0],$colorArr['color'][1],$colorArr['color'][2], $opacity);
+        } else {
+            $black = ImageColorAllocate($im, $colorArr['color'][0], $colorArr['color'][1], $colorArr['color'][2]);
+        }
+
         // Боядисваме изображението в цвета на фона
         imagefilledrectangle($im, 0, 0, $width, $height, $white);
         

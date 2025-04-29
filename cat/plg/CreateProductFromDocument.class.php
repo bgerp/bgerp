@@ -83,6 +83,8 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
             $mvc->requireRightFor('createproduct');
             expect($masterId = Request::get($mvc->masterKey, 'int'));
             expect($masterRec = $mvc->Master->fetch($masterId));
+
+            $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
             $cloneId = Request::get('cloneId', 'int');
             if ($cloneId) {
                 $cloneRec = $mvc->fetch($cloneId);
@@ -388,7 +390,17 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                         }
                     }
                 }
-                
+
+                if(!($mvc instanceof store_InternalDocumentDetail)){
+                    // Сетване на предупреждение ако реда се дублира
+                    $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
+                    if($setWarning == 'yes' && isset($productId)){
+                        if($mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #productId = {$productId}")){
+                            $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*!');
+                        }
+                    }
+                }
+
                 if (!$form->gotErrors()) {
                     // Създаване на нов артикул само при нужда
                     if (!empty($productId) && $mvc instanceof sales_QuotationsDetails) {
@@ -436,7 +448,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                             }
                             
                             if(empty($masterRec->chargeVat)){
-                                $masterRec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
+                                $masterRec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId, $mvc)) ? 'yes' : 'no';
                             }
                             
                             if($mvc instanceof store_InternalDocumentDetail){
@@ -454,7 +466,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                             if($mvc instanceof store_InternalDocumentDetail){
                                 $dRec->packPrice = $price;
                             } else {
-                                $price = deals_Helper::getPurePrice($price, cat_Products::getVat($productId, $masterRec->valior), $masterRec->currencyRate, $masterRec->chargeVat);
+                                $price = deals_Helper::getPurePrice($price, cat_Products::getVat($productId, $masterRec->valior, $vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
                                 $dRec->price = $price;
                             }
                         }
@@ -467,7 +479,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     }
 
                     if (!$dRec->autoPrice && $action != 'cloneRecInDocument') {
-                        $vat = cat_Products::getVat($productId, $masterRec->valior);
+                        $vat = cat_Products::getVat($productId, $masterRec->valior, $vatExceptionId);
                         if ($masterRec->chargeVat == 'yes') {
                             $dRec->price = $dRec->price / (1 + $vat);
                         }

@@ -127,6 +127,7 @@ class price_ListRules extends core_Detail
         $this->setDbIndex('listId,productId');
         $this->setDbIndex('priority');
         $this->setDbIndex('validFrom');
+        $this->setDbIndex('validUntil');
         $this->setDbIndex('productId');
         $this->setDbIndex('groupId');
     }
@@ -298,7 +299,6 @@ class price_ListRules extends core_Detail
         $data->listFilter->input(null, 'silent');
         
         $data->listFilter->input();
-        
         $data->query->orderBy('#validFrom,#id', 'DESC');
         
         if ($rec = $data->listFilter->rec) {
@@ -353,12 +353,12 @@ class price_ListRules extends core_Detail
             $query->limit(1);
 
             $rec = $query->fetch();
-            $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
+            $listRec = price_Lists::fetch($listId, 'title,parent,vat,vatExceptionId,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
 
             if ($rec) {
                 if ($rec->type == 'value') {
-                    $vat = cat_Products::getVat($productId, $datetime);
+                    $vat = cat_Products::getVat($productId, $datetime, $listRec->vatExceptionId);
                     $price = self::normalizePrice($rec, $vat, $datetime);
                     if(!empty($rec->discount)){
                         // От цената се приспада отстъпката
@@ -403,7 +403,7 @@ class price_ListRules extends core_Detail
                 $vat = 1;
                 if($isFirstCall) {
                     if ($listRec->vat == 'yes') {
-                         $vat = 1 + cat_Products::getVat($productId, $datetime);
+                         $vat = 1 + cat_Products::getVat($productId, $datetime, $listRec->vatExceptionId);
                     }
 
                     $cRate = currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
@@ -588,7 +588,7 @@ class price_ListRules extends core_Detail
                         
                         // Начисляваме VAT, ако политиката е с начисляване
                         if ($listRec->vat == 'yes') {
-                            $vat = cat_Products::getVat($rec->productId, $rec->validFrom);
+                            $vat = cat_Products::getVat($rec->productId, $rec->validFrom, $listRec->vatExceptionId);
                             $parentPrice = $parentPrice * (1 + $vat);
                         }
                         
@@ -877,11 +877,37 @@ class price_ListRules extends core_Detail
             // Извличаме записите само с този приоритет
             $query = clone $data->query;
             $query->where("#priority = {$priority}");
-            $pager->setLimit($query);
-            
+            $recs = $query->fetchAll();
+            $pager->itemsCount = countR($recs);
+
+            if($priority != 1) {
+                if($data->masterData->rec->orderGroupRules == 'validFrom') {
+                    arr::sortObjects($recs, 'validFrom', 'DESC');
+                } else {
+                    $groups = array();
+                    $gQuery = cat_Groups::getQuery();
+                    $gQuery->in('id', arr::extractValuesFromArray($recs, 'groupId'));
+                    while($gRec = $gQuery->fetch()) {
+                        $groups[$gRec->id] = cat_Groups::getVerbal($gRec, 'name');
+                    }
+                    foreach ($recs as $r1) {
+                        $r1->_title = $groups[$r1->groupId];
+                    }
+
+                    usort($recs, function ($a, $b) {
+                        if ($a->_title === $b->_title) {
+                            return ($a->validFrom > $b->validFrom) ? -1 : 1;
+                        }
+                        return strnatcasecmp($a->_title, $b->_title);
+                    });
+                }
+            }
+
             // Вербализираме ги
-            while ($rec = $query->fetch()) {
+           foreach($recs as $rec) {
                 $data->{"recs{$priority}"}[$rec->id] = $rec;
+                if (!$pager->isOnPage())  continue;
+
                 $data->{"rows{$priority}"}[$rec->id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
                 if (is_object($data->{"rows{$priority}"}[$rec->id]->_rowTools)) {
                     $data->{"rows{$priority}"}[$rec->id]->_rowTools = $data->{"rows{$priority}"}[$rec->id]->_rowTools->renderHtml();
@@ -915,7 +941,7 @@ class price_ListRules extends core_Detail
             $img = ht::createElement('img', array('src' => sbf('img/16/tools.png', '')));
             $data->listFields = arr::combine(array('_rowTools' => '|*' . $img->getContent()), arr::make($data->listFields, true));
         }
-        
+
         $tpl->append($this->renderListFilter($data), 'ListFilter');
         $retUrl = getRetUrl();
 
@@ -992,7 +1018,6 @@ class price_ListRules extends core_Detail
             // Рендираме тулбара
             $block->append($toolbar->renderHtml(), 'TABLE_TOOLBAR');
             $block->removeBlocks();
-            
             $tpl->append($block, 'TABLES');
         }
         
@@ -1048,7 +1073,7 @@ class price_ListRules extends core_Detail
             
             // Ако има подадени групи се филтрира по тях
             if (!empty($params['groups'])) {
-                $pQuery->likeKeylist('groups', $params['groups']);
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $params['groups']);
             }
         }
 

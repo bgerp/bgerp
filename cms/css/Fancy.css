@@ -1,17 +1,31 @@
 body{
     background-color:#fff;
-    height: 100%;
-    width: 100%;
-    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+    margin: 0;
+    padding-bottom: 38px; /* Височина на футъра */
 }
 
-html {
-    height: 99.9%;
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .externalPage {
-    position: relative;
-    min-height: 100%;
+    min-height: 100vh;
+    position: relative; /* За да работи абсолютното позициониране на футъра правилно */
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.narrow .externalPage {
+    min-height: 100dvh;
+}
+
+.mainContent {
+    flex: 1; /* Запълва цялото останало пространство */
 }
 .cms-last {
     margin: 0 !important;
@@ -22,7 +36,7 @@ html {
 
 .wide .narrowCenter {
     text-align: center;
-    width: 1200px;
+    width: 1400px;
     height: 220px;
     margin: 0 auto;
     position: relative;
@@ -38,23 +52,30 @@ html {
 
 .wide  .headerImg{
     height:auto;
-    max-width: 1200px;
+    max-width: 1400px;
     float: none;
 
 }
 #cmsBottom {
     position: absolute;
     bottom: 0;
+    left: 0;
     width: 100%;
+    height: 38px; /* Фиксирана височина */
+    background: #333;
+    color: white;
+    text-align: center;
 }
 
 #maincontent {
     background-color:white;
     padding-top: 0 !important;
 }
+
 .wide #maincontent {
-    padding-bottom: 38px !important
+    padding-bottom: 80px !important
 }
+
 #cmsNavigation .nav_item a {
     color:#336;
 }
@@ -126,6 +147,14 @@ html {
     bottom: -40px;
 }
 
+ .narrow .footer-links {
+     margin-top: 4px;
+ }
+@media handheld, only screen and (min-width: 1800px) {
+    .centerContent {
+        width: 1400px !important;
+    }
+}
 @media handheld, only screen and (max-width: 1200px) {
     .wide .app-name {
         font-size: 4.1em;
@@ -203,7 +232,7 @@ header img {
     height: auto;
 }
 .foorterAdd {
-    top: -2px !important;
+    top: -4px !important;
 }
 .narrow header {
     min-height: 90px;
@@ -221,9 +250,13 @@ header img {
 .soc-following {
     padding: 7px 7px 7px 2px;
 }
+
+.externalPage:has(.additionalFooter) {
+    padding-bottom: 50px;
+}
 .narrow .additionalFooter {
     position: absolute;
-    bottom: 0;
+    bottom: 38px;
     width: 100%;
 }
 

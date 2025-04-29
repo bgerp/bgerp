@@ -50,17 +50,21 @@ class acc_plg_Registry extends core_Plugin
     public static function on_AfterSave($mvc, &$id, &$rec, $fieldList = null)
     {
         $added = false;
-        
+
         // Ако е зададено да се добави в номенклатура при активиране
         if (!empty($mvc->addToListOnActivation)) {
             if ($rec->state == 'active') {
-                
+
                 // Ако документа става перо при активиране, добавяме го като перо, ако вече не е
                 if ($mvc->canAddToListOnActivation($rec)) {
                     if (!acc_Items::isItemInList($mvc, $rec->id, $mvc->addToListOnActivation)) {
                         $listId = acc_Lists::fetchBySystemId($mvc->addToListOnActivation)->id;
                         if (acc_Items::force($mvc->getClassId(), $rec->id, $listId)) {
                             $added = true;
+                            if($mvc->addToListOnActivation == 'costObjects'){
+                                $mvc->logWrite("Автоматично става разходен обект", $rec->id);
+                                $mvc->invoke('AfterForceAsExpenseItem', array($rec));
+                            }
                         }
                     }
                 }

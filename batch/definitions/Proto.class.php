@@ -129,6 +129,18 @@ abstract class batch_definitions_Proto extends core_BaseClass
 
 
     /**
+     * Връша поле от записа
+     *
+     * @param string $field
+     * @return mixed
+     */
+    public function getField($field)
+    {
+       return $this->rec->{$field};
+    }
+
+
+    /**
      * Проверява дали стойността е невалидна
      *
      * @param mixed $class
@@ -285,40 +297,39 @@ abstract class batch_definitions_Proto extends core_BaseClass
 
         $date = (isset($date)) ? $date : dt::today();
         $quantities = batch_Items::getBatchQuantitiesInStore($this->rec->productId, $storeId, $date);
-        $mvc = cls::get($mvc);
-        if($mvc instanceof core_Detail){
-            $masterId = $mvc->fetchField($id, $mvc->masterKey);
-            $containerId = $mvc->Master->fetchField($masterId, 'containerId');
 
-            // Приспадане на вече разпределените партиди ако документа е чернова
-            $bQuery = batch_BatchesInDocuments::getQuery();
-            $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
-            $bQuery->where("#state = 'draft' AND #containerId = {$containerId} AND #productId = {$this->rec->productId} AND #storeId = {$storeId}");
-            $bQuery->where("#detailClassId = '{$mvc->getClassId()}' AND #detailRecId != {$id}");
-            while($bRec = $bQuery->fetch()){
-                if(array_key_exists($bRec->batch, $quantities)){
-                    $quantities[$bRec->batch] -= $bRec->quantity;
-                }
+        $mvc = cls::get($mvc);
+        $containerId = ($mvc instanceof core_Detail) ? $mvc->Master->fetchField($mvc->fetchField($id, $mvc->masterKey), 'containerId') : $mvc->fetchField($id, 'containerId');
+
+        // Приспадане на вече разпределените партиди ако документа е чернова
+        $bQuery = batch_BatchesInDocuments::getQuery();
+        $bQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
+        $bQuery->where("#containerId = {$containerId} AND #productId = {$this->rec->productId} AND #operation = 'out' AND #storeId = {$storeId}");
+
+        while($bRec = $bQuery->fetch()){
+            if(array_key_exists($bRec->batch, $quantities)){
+                $quantities[$bRec->batch] -= $bRec->quantity;
             }
         }
 
-        $quantities = $this->filterBatches($quantities, $mvc, $id);
+        $quantities = $this->filterBatches($quantities, $mvc, $id, $storeId);
         $batches = batch_Items::allocateQuantity($quantities, $quantity);
         
         return $batches;
     }
-    
-    
+
+
     /**
      * Разпределя количество към наличните партиди в даден склад към дадена дата
      *
      * @param array  $quantities - масив с наличните партиди и количества
      * @param string $mvc        - клас на обект, към който да се разпределят
      * @param string $id         - ид на обект, към който да се разпределят
+     * @param int $storeId       - ид на склад
      *
      * @return array $quantities - масив с филтрираните наличните партиди и количества
      */
-    public function filterBatches($quantities, $mvc, $id)
+    public function filterBatches($quantities, $mvc, $id, $storeId)
     {
         return $quantities;
     }

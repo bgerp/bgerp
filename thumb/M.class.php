@@ -62,7 +62,7 @@ class thumb_M extends core_Mvc
      */
     public static function addTypeHeader($ext)
     {
-        $typeByExt = array('jpg' => 'jpeg', 'jpeg' => 'jpeg', 'gif' => 'gif', 'bmp' => 'bmp', 'png' => 'png');
+        $typeByExt = array('jpg' => 'jpeg', 'jpeg' => 'jpeg', 'gif' => 'gif', 'bmp' => 'bmp', 'png' => 'png', 'webp' => 'webp');
         if ($type = $typeByExt[strtolower($ext)]) {
             header("Content-Type: image/{$type}");
         }

@@ -112,8 +112,8 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteDetails',
         'store_StockPlanning',
         'store_ShipmentOrderTariffCodeSummary',
-        'migrate::updateShipmentNegativeRoles231311',
-        'migrate::updateNegativeQuantityRole'
+        'migrate::repairSearchKeywords2505',
+        'migrate::repairSearchKeywordsNotes2505',
     );
     
     
@@ -126,6 +126,7 @@ class store_Setup extends core_ProtoSetup
         array('inventory'),
         array('store', 'storeWorker'),
         array('storeMaster', 'store'),
+        array('revertShipmentDocs'),
     );
     
     
@@ -133,7 +134,7 @@ class store_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.2, 'Логистика', 'Склад', 'store_Products', 'default', 'storeWorker,ceo'),
+        array(3.2, 'Логистика', 'Склад', 'store_Products', 'default', 'storeWorker,ceo,storeAll'),
     );
     
     
@@ -158,7 +159,7 @@ class store_Setup extends core_ProtoSetup
                           store_reports_ArticlesDepended,store_reports_ProductsInStock,store_reports_UnrealisticPricesAndWeights,
                           store_reports_ProductAvailableQuantity1,store_reports_JobsHorizons,store_tpl_SingleLayoutPackagingListGrouped,
                           store_tpl_SingleLayoutShipmentOrderEuro,store_iface_ShipmentWithBomPriceTplHandler,store_iface_OpeningBalanceImportImpl,
-                          store_reports_NonPublicItems';
+                          store_reports_NonPublicItems,store_reports_ReportConsignmentProtocols';
     
     
     /**
@@ -264,41 +265,6 @@ class store_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция на ролите за изписване от склада на минус
-     */
-    public function updateShipmentNegativeRoles231311()
-    {
-        $config = core_Packs::getConfig('store');
-        if(isset($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'])){
-            if($config->_data['STORE_ALLOW_NEGATIVE_SHIPMENT'] !== 'no'){
-                core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
-            }
-        } else {
-            core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('powerUser')));
-        }
-    }
-
-
-    /**
-     * Изтриване на кеш
-     */
-    public function truncateCacheProducts1()
-    {
-        try {
-            if (cls::load('store_Products', true)) {
-                $Products = cls::get('store_Products');
-                
-                if ($Products->db->tableExists($Products->dbTableName)) {
-                    store_Products::truncate();
-                }
-            }
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-        }
-    }
-
-
-    /**
      * Обновяване по разписание
      */
     function cron_RecalcShipmentDates()
@@ -337,11 +303,21 @@ class store_Setup extends core_ProtoSetup
 
 
     /**
-     * Задаване на нова роля за изписване на наличности на минус от склада
+     * Миграция за регенериране на ключовите думи на ПОП
      */
-    function updateNegativeQuantityRole()
+    public static function repairSearchKeywords2505()
     {
-        core_Roles::addOnce('contoNegativeQuantities');
-        core_Packs::setConfig('store', array('STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => core_Roles::getRolesAsKeylist('contoNegativeQuantities')));
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'store_ConsignmentProtocols', $callOn);
+    }
+
+
+    /**
+     * Миграция за регенериране на ключовите думи на инвентаризацията
+     */
+    public static function repairSearchKeywordsNotes2505()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'store_InventoryNotes', $callOn);
     }
 }

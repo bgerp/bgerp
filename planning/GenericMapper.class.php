@@ -87,8 +87,8 @@ class planning_GenericMapper extends core_Manager
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canConvert,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'caption=Замества,mandatory,silent,tdClass=leftCol,class=w100');
-        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'caption=Генеричен артикул,mandatory,silent,tdClass=leftCol,class=w100');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canConvert,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'caption=Замества,mandatory,silent,tdClass=leftCol wrapText ,class=w100');
+        $this->FLD('genericProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'caption=Генеричен артикул,mandatory,silent,tdClass=leftCol wrapText,class=w100');
         $this->FNC('fromGeneric', 'int', 'silent,input=hidden');
         
         $this->setDbUnique('productId,genericProductId');
@@ -402,15 +402,16 @@ class planning_GenericMapper extends core_Manager
         // Ако не е складируем взимаме среднопритеглената му цена в производството
         $item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
         if (isset($item1)) {
-            // Намираме сумата която струва к-то от артикула в склада
-            $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
-            $selfValue = acc_strategy_WAC::getAmount($quantity, $date, '61101', $item1, null, null, $maxTry);
-            if ($selfValue) {
-                $selfValue = round($selfValue, 4);
+            $pricesArr = acc_ProductPricePerPeriods::getPricesToDate($date, $item1, null, 'production');
+            $countPricesBefore = countR($pricesArr);
+            if($countPricesBefore){
+                $priceSum = arr::sumValuesArray($pricesArr, 'price');
+
+                return round($quantity * ($priceSum / $countPricesBefore), 4);
             }
         }
-        
-        return $selfValue;
+
+        return null;
     }
 
 
@@ -427,19 +428,18 @@ class planning_GenericMapper extends core_Manager
     public static function getWacAmountInAllCostsAcc($quantity, $objectId, $date, $costObjectItemId = null)
     {
         // Ако не е складируем взимаме среднопритеглената му цена в производството
-        $item = acc_Items::fetchItem('cat_Products', $objectId)->id;
-        if (isset($item)) {
-            // Намираме сумата която струва к-то от артикула в склада
-            $costItemId = isset($costObjectItemId) ? $costObjectItemId : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
-            $maxTry = core_Packs::getConfigValue('cat', 'CAT_WAC_PRICE_PERIOD_LIMIT');
-            $selfValue = acc_strategy_WAC::getAmount($quantity, $date, '60201', $costItemId, $item, null, $maxTry);
+        $item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
+        if (isset($item1)) {
+            $pricesArr = acc_ProductPricePerPeriods::getPricesToDate($date, $item1, $costObjectItemId, 'costs');
+            $countPricesBefore = countR($pricesArr);
+            if($countPricesBefore){
+                $priceSum = arr::sumValuesArray($pricesArr, 'price');
 
-            if ($selfValue) {
-                $selfValue = round($selfValue, 4);
+                return round($quantity * ($priceSum / $countPricesBefore), 4);
             }
         }
 
-        return $selfValue;
+        return null;
     }
 
 

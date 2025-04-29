@@ -1,0 +1,85 @@
+<div>
+    <style>
+        .grid {
+            display: grid;
+            align-items: center;
+            text-align: center;
+            margin: 30px 0;
+            grid-template-columns: repeat(auto-fill,minmax(162px,1fr));
+            gap:7px;
+        }
+        .grid .gridPhoto {
+            overflow: hidden;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        .priceListFoodImage {
+            width: 100%;
+            height: auto;
+            max-width: 162px;
+            max-height: 162px;
+        }
+
+        .product {
+            display: flex;
+            justify-content: space-between;
+            padding:5px 5px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .product b {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .productName {
+            color: #000;
+        }
+        .priceListHolder {
+            column-count: 2;
+        }
+        @media handheld, only screen and (max-width: 800px) {
+            .priceListHolder {
+                column-count: 1;
+            }
+        }
+    </style>
+    <!--ET_BEGIN MASTER_BLOCK-->
+    [#MASTER_BLOCK#]
+    <fieldset class='detail-info'>
+        <legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+        <div class='small'>
+            <div>|Политика|*</span>: <b>[#policyId#]</b></div>
+            <!--ET_BEGIN variationId--><div>|Вариация|*</span>: <b>[#variationId#]</b></div><!--ET_END variationId-->
+            <div>|Цени към|*</span>: <b>[#date#]</b></div>
+            <!--ET_BEGIN period--><div>|Изменени за|*: [#period#] (|от|* [#periodDate#])</div><!--ET_END period-->
+            <div>|Групи|*: [#productGroups#]</div>
+            <!--ET_BEGIN notInGroups--><div>|С изключение на|*: [#notInGroups#]</div><!--ET_END notInGroups-->
+            <div>|Опаковки|*: [#packagings#]</div>
+        </div>
+    </fieldset>
+    <!--ET_END MASTER_BLOCK-->
+    <h2 style="padding: 10px 5px; background: #fff; margin-top: 5px;line-height: 120%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); text-align: center">Меню за [#currentDate#]</h2>
+    <!--ET_BEGIN DETAIL_BLOCK-->
+    <div class="elementHolder priceListHolder">
+        [#DETAIL_BLOCK#]
+    </div>
+    <!--ET_END DETAIL_BLOCK-->
+
+    <!--ET_BEGIN DETAIL_ROW-->
+    [#DETAIL_ROW#]
+    <div class="product" >
+        <span>[#productId#]</span> <b class="nowrap" style="align-items: end; padding-left: 5px">[#price#]</b>
+    </div>
+    <!--ET_END DETAIL_ROW-->
+    <div class="grid">
+        [#GRID#]
+        <!--ET_BEGIN DETAIL_ROW_WITH_PHOTO-->
+        [#DETAIL_ROW_WITH_PHOTO#]
+        [#photo#]
+        <!--ET_END DETAIL_ROW_WITH_PHOTO-->
+    </div>
+</div>
