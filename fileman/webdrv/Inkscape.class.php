@@ -77,6 +77,23 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
 
         return self::convertTo($file, 'jpg', $type, $name, false, $otherParam);
     }
+
+
+    /**
+     * Преобразува подадения файл в картинка
+     *
+     * @param string $file
+     * @param string $type
+     * @param string $name
+     * @param array  $otherParam
+     *
+     * @return string|NULL - Манипулатора на PNG файла
+     */
+    public static function toSvgConvert($file, $type = 'auto', $name = '', $otherParam = array())
+    {
+
+        return self::convertTo($file, 'svg', $type, $name, false, $otherParam);
+    }
     
     
     /**
@@ -98,7 +115,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             return ;
         }
         
-        expect(in_array($to, array('pdf', 'png', 'jpg', 'jpeg')));
+        expect(in_array($to, array('pdf', 'png', 'jpg', 'jpeg', 'svg')));
         
         $lineExec = 'inkscape [#INPUTF#]  --export-text-to-path  --export-pdf=[#OUTPUTF#] --export-area-page';
 
@@ -125,6 +142,10 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             }
 
 //            $lineExec = "inkscape [#INPUTF#] --export-filename=[#OUTPUTF#] --export-dpi=96 --export-background=white --export-area-drawing";
+        }
+
+        if ($to == 'svg') {
+            $lineExec = 'inkscape [#INPUTF#] --export-text-to-path --export-plain-svg=[#OUTPUTF#] --export-area-page';
         }
         
         cls::load('fileman_Files');
