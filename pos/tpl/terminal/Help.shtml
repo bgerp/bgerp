@@ -1,5 +1,4 @@
 <html>
-
 <body>
 <div class="half" >
     <table>
@@ -125,6 +124,14 @@
         <tr>
             <td class="shortcuts"><span>20*</span></td>
             <td class="textShortcut"> - |Промяна на количеството|*</td>
+        </tr>
+        <tr>
+            <td class="shortcuts"><span>+20</span></td>
+            <td class="textShortcut"> - |Добавяне към количеството|*</td>
+        </tr>
+        <tr>
+            <td class="shortcuts"><span>-20</span></td>
+            <td class="textShortcut"> - |Приспадане от количеството|*</td>
         </tr>
         <tr class="[#priceHintTrClass#]">
             <td class="shortcuts"><span>*1.54 </span></td>

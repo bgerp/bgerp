@@ -1076,19 +1076,22 @@ function submitInputString(){
 // Дали подадения стринг е операция за задаване на количество
 function isMicroformat(string) {
 	var string = $.trim(string);
-	
+
 	// Ако има въведен непразен стринг
 	if(string){
 		// и той завършва с *
-		if(string.endsWith("*") || string.startsWith("*")){
-			
+		if(string.endsWith("*") || string.startsWith("*") || string.startsWith("+") || string.startsWith("-")){
+
 			// Премахваме * да остане чист стринг
-			var quantity = string.replace("*", "");
+			let quantity = string.replace("*", "");
+			quantity = quantity.replace("+", "");
+			quantity = quantity.replace("-", "");
 			quantity = quantity.replace(",", ".");
-			
+			console.log("NUM: '" + string + "' Q:" + quantity);
 			// Ако останалата част от стринга е положително число
 			if($.isNumeric(quantity) && quantity > 0){
 				if(string.startsWith("*")){
+
 					var split = quantity.split(".");
 					var cnt = (split[1]) ? split[1].length : 0;
 					if(cnt == 2){
@@ -1107,8 +1110,8 @@ function isMicroformat(string) {
 			if($.isNumeric(quantity)){
 				if(string.startsWith("%")){
 					
-					var split = quantity.split(".");
-					var cnt = (split[1]) ? split[1].length : 0;
+					let split = quantity.split(".");
+					let cnt = (split[1]) ? split[1].length : 0;
 					if(cnt == 2){
 						return true;
 					}
