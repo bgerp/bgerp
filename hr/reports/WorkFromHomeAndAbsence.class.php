@@ -106,8 +106,6 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
 
         $typeOfAbsent = explode(',', $rec->type);
 
-        bp(dt::mysql2verbal($rec->from, 'dmy'));
-
         //Болнични за периода
         $sickdaysQuery = hr_Sickdays::getQuery();
 
