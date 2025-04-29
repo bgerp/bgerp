@@ -634,7 +634,7 @@ class sales_Routes extends core_Manager
     public static function getRouteOptions($locationId, $inDays = null, $type = null)
     {
         $today = dt::today();
-        
+
         $routeOptions = array();
         $rQuery = static::getQuery();
         $rQuery->where("#locationId = '{$locationId}' AND #nextVisit > '{$today}' AND #state != 'rejected'");
@@ -653,11 +653,22 @@ class sales_Routes extends core_Manager
 
         $rQuery->show('id,nextVisit');
         $rQuery->orderBy('id', "ASC");
-        
+        $nextWorkingDay = cal_Calendar::nextWorkingDay();
+
+        // Ако сме след зададения час се пропускат маршрутите, чието следващо посещение е следващия работен ден
+        $skipNextWorkingDay = false;
+        $eshopHours = eshop_Setup::get('TOMORROW_DELIVERY_DEADLINE');
+        $hours = dt::mysql2verbal(null,'H:i');
+        if($hours > $eshopHours){
+            $skipNextWorkingDay = true;
+        }
+
         while($rRec = $rQuery->fetch()){
+            if($skipNextWorkingDay && $rRec->nextVisit == $nextWorkingDay) continue;
+
             $routeOptions[$rRec->id] = sales_Routes::getSmartTitle($rRec);
         }
-        
+
         return $routeOptions;
     }
 

@@ -158,6 +158,12 @@ defIfNot('ESHOP_SHOW_ROUTES_IN_NEXT_DAYS', '7');
 
 
 /**
+ * До колко часа преди края на работния ден да не може да се избират маршрути за утрешния ден
+ */
+defIfNot('ESHOP_TOMORROW_DELIVERY_DEADLINE', '15:00');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -261,6 +267,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES' => array('enum(yes=Да,no=Не)', 'caption=Показване на колоната за опаковката в Е-маг ако са само услуги->Избор'),
         'ESHOP_PRODUCT_IMG_LOGIC' => array('enum(rotation=Ротация на илюстрациите,first=Първата илюстрация)', 'caption=Как се определя основната илюстрация на артикула при показване в Е-маг->Избор'),
         'ESHOP_SHOW_ROUTES_IN_NEXT_DAYS' => array('int(min=0)', 'caption=Показване на маршрутите за доставка за следващите->Дни'),
+        'ESHOP_TOMORROW_DELIVERY_DEADLINE' => array('hour', 'caption=До кога да се приемат заявки за доставка по маршрути за следващия работен ден->Час'),
     );
     
     
@@ -333,8 +340,8 @@ class eshop_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
+
+
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
