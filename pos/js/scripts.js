@@ -1137,7 +1137,7 @@ function openModal(title, heightModal) {
 	
 	// Изчистване на предишното съдържание на модала, да не се визуализира, докато се зареди новото
 	$("#modalContent").html("");
-	var height = (heightModal == "smallHeight" ) ?  500 : 700;
+	var height = (heightModal == "smallHeight" ) ?  500 : 740;
 	var width = ($(window).width() > 1200) ?  1000 : parseInt($(window).width()) - 40;
 
 	dialog = $("#modalContent").dialog({
