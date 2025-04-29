@@ -19,7 +19,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,hr,acc,powerUser';
+    public $canSelectDriver = 'debug';
 
     /**
      * Брой записи на страница
@@ -105,8 +105,6 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays = 0;
 
         $typeOfAbsent = explode(',', $rec->type);
-
-        bp(dt::mysql2verbal($rec->from, 'dmy'));
 
         //Болнични за периода
         $sickdaysQuery = hr_Sickdays::getQuery();
@@ -290,7 +288,6 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         $pRecs = array();
 
         $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays = 0;
-        bp();
 
         foreach ($recs as $key => $val) {
 
@@ -390,6 +387,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
             $row->employee = crm_Persons::getContragentData($dRec->personId)->person;
         }
 
+        $totalAbs = 0;
         foreach ($periodsArr as $key => $val) {
 
             $startPeriods = explode(',', $dRec->startPeriod);
@@ -404,7 +402,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
 
                     $row->$val = $Int->toVerbal($absencesDaysArr[$key1]);
 
-                    $totalAbs += $absencesDaysArr[$key1];
+                    $totalAbs += (int) $absencesDaysArr[$key1];
 
                 }
             }

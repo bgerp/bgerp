@@ -168,9 +168,9 @@ class sens2_Setup extends core_ProtoSetup
         $rec->description = 'Изтрива остарелите данни';
         $rec->controller = 'sens2_Controllers';
         $rec->action = 'RemoveExpiredRecords';
-        $rec->period = 3600 * 24;
-        $rec->offset = (int) (3600 * 2.5);
-        $rec->timeLimit = 170;
+        $rec->period = 60 * 24;
+        $rec->offset = (int) (60 * 2.5);
+        $rec->timeLimit = 450;
         $html .= core_Cron::addOnce($rec);
 
         return $html;
