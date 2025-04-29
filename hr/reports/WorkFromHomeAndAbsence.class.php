@@ -387,6 +387,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
             $row->employee = crm_Persons::getContragentData($dRec->personId)->person;
         }
 
+        $totalAbs = 0;
         foreach ($periodsArr as $key => $val) {
 
             $startPeriods = explode(',', $dRec->startPeriod);
@@ -401,7 +402,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
 
                     $row->$val = $Int->toVerbal($absencesDaysArr[$key1]);
 
-                    $totalAbs += $absencesDaysArr[$key1];
+                    $totalAbs += (int) $absencesDaysArr[$key1];
 
                 }
             }
