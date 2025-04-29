@@ -288,7 +288,6 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
         $pRecs = array();
 
         $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays = 0;
-        bp();
 
         foreach ($recs as $key => $val) {
 
