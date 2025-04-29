@@ -19,7 +19,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,hr,acc,powerUser';
+    public $canSelectDriver = 'debug';
 
     /**
      * Брой записи на страница
