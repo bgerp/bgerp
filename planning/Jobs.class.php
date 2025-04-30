@@ -1910,6 +1910,7 @@ class planning_Jobs extends core_Master
                 // Кои са материалите и
                 $receiptClassId = cat_Boms::getClassId();
                 $materialArr = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity);
+
                 if(countR($materialArr)){
 
                     // Какви количества има вложени по заданието
@@ -1936,6 +1937,7 @@ class planning_Jobs extends core_Master
 
                     // За всеки материал от рецептата, ще се проверява, колко остава да се запази
                     foreach($materialArr as $materialRec){
+                        $materialRec->quantity *= $materialRec->quantityInPack;
                         $materialProductRec = cat_Products::fetch($materialRec->productId, 'generic,canConvert');
 
                         // Ако материала е генеричен
