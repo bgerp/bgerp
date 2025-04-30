@@ -22,6 +22,15 @@ defIfNot('VOUCHER_BLAST_DEFAULT_EMAIL_BODY', "Здравейте, [#person#],\n\
  */
 class voucher_Setup extends core_ProtoSetup
 {
+
+
+    /**
+     * Пакет без инсталация
+     * @deprecated
+     */
+    public $noInstall = true;
+
+
     /**
      * Версия на пакета
      */
