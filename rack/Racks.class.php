@@ -494,7 +494,7 @@ class rack_Racks extends core_Master
                         $attrA['class'] = 'cd-l3';
                     }
 
-                    $attrA['title'] = $prodTitle;
+                    $attrA['title'] = trim($prodTitle);
 
                     $color = self::getColor($prodTitle, 0, 110);
                     $bgColor = self::getColor($prodTitle, 130, 240);
@@ -563,7 +563,7 @@ class rack_Racks extends core_Master
                 
                 $attr['nowrap'] = 'nowrap';
                 $attr['style'] .= "font-size:0.8em;{$tdBackground};padding:3px;";
-                
+
                 if ($hint) {
                     $attr['title'] = "{$hint}";
                 }
