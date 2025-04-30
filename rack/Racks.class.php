@@ -478,14 +478,13 @@ class rack_Racks extends core_Master
                         $BatchDef = batch_Defs::getBatchDef($productId);
                         $pName = cat_Products::getTitleById($productId);
                         $bgColorAll .= ',#' . self::getColor($pName, 130, 240);
-
                         if($BatchDef && is_array($batches)){
                             foreach ($batches as $batch){
                                 $bName = !empty($batch) ? $batch : tr('без партида');
-                                $prodTitle .= "\n" . "{$pName} / {$bName}";
+                                $prodTitle .= (!empty($prodTitle) ? "\n" : '') . "{$pName} / {$bName}";
                             }
                         } else {
-                            $prodTitle .= "\n" . "{$pName}";
+                            $prodTitle .= (!empty($prodTitle) ? "\n" : '') . "{$pName}";
                         }
                     }
 
@@ -494,7 +493,7 @@ class rack_Racks extends core_Master
                         $attrA['class'] = 'cd-l3';
                     }
 
-                    $attrA['title'] = trim($prodTitle);
+                    $attrA['title'] = $prodTitle;
 
                     $color = self::getColor($prodTitle, 0, 110);
                     $bgColor = self::getColor($prodTitle, 130, 240);
