@@ -75,15 +75,19 @@ class sync_Companies extends sync_Helper
         
         while ($rec = $cQuery->fetch()) {
             sync_Map::exportRec('crm_Companies', $rec->id, $res, $this);
-            
+            $haveListing = cond_Parameters::getParameter('crm_Companies', $rec->id, 'salesList');
             if ($rec->folderId) {
-                $lQuery = cat_Listings::getQuery();
-                $lQuery->where(array("#state = 'active' AND #folderId = [#1#]", $rec->folderId));
-                while ($lRec = $lQuery->fetch()) {
-                    $lRec->_companyId = $rec->id;
-                    sync_Map::exportRec('cat_Listings', $lRec, $res, $this);
+
+                // Ако няма търговско условие за листинги само тогава да се експортират листите в папката
+                if(!$haveListing){
+                    $lQuery = cat_Listings::getQuery();
+                    $lQuery->where(array("#state = 'active' AND #folderId = [#1#]", $rec->folderId));
+                    while ($lRec = $lQuery->fetch()) {
+                        $lRec->_companyId = $rec->id;
+                        sync_Map::exportRec('cat_Listings', $lRec, $res, $this);
+                    }
                 }
-                
+
                 if (core_Packs::isInstalled('colab')) {
                     $pQuery = colab_FolderToPartners::getQuery();
                     $pQuery->where(array("#folderId = [#1#]", $rec->folderId));
