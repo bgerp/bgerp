@@ -1548,6 +1548,11 @@ table.listTable > tbody > tr {
 	top: 4px;
 	margin-top: -6px;
 }
+
+.planning.small .listTable td {
+	vertical-align: middle !important;
+}
+
 .narrow .portal .legend .addTask {
 	top:2px;
 }
