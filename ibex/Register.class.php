@@ -9,7 +9,7 @@
  * @package   ibex
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -44,7 +44,7 @@ class ibex_Register extends core_Manager
     /**
      * Кой има право да го изтрие?
      */
-    protected $canDelete = 'admin';
+    protected $canDelete = 'no_one';
     
     
     /**
@@ -56,7 +56,7 @@ class ibex_Register extends core_Manager
     /**
      * Плъгините и враперите, които ще се използват
      */
-    public $loadList = 'plg_Created,plg_Sorting,plg_RowTools2';
+    public $loadList = 'plg_Created,plg_Sorting,plg_RowTools2,plg_ExportCsv,ibex_Wrapper';
 
 
     /**
@@ -64,9 +64,9 @@ class ibex_Register extends core_Manager
      */
     public function description()
     {
-        $this->FLD('date', 'date', 'caption=Дата');
-        $this->FLD('kind', 'varchar(32)', 'caption=Вид,smartCenter');
-        $this->FLD('price', 'double(decimals=2)', 'caption=Стойност');
+        $this->FLD('date', 'date', 'caption=Дата,export');
+        $this->FLD('kind', 'varchar(32)', 'caption=Вид,smartCenter,export');
+        $this->FLD('price', 'double(decimals=2)', 'caption=Стойност,export');
 
         $this->setDbIndex('date,kind');
     }
@@ -94,6 +94,27 @@ class ibex_Register extends core_Manager
     {
         // Подготовка на филтъра
         $data->query->orderBy('#date=DESC,#kind=DESC');
+
+
+        $data->listFilter->FLD('from', 'date', 'caption=От, silent');
+        $data->listFilter->FLD('to', 'date', 'caption=До, silent');
+
+        $data->listFilter->showFields = 'from,to';
+
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input();
+
+        if ($rec = $data->listFilter->rec) {
+            if (!empty($rec->from)) {
+                $data->query->where("#date >= '{$rec->from}'");
+            }
+
+            if (!empty($rec->to)) {
+                $data->query->where("#date >= '{$rec->from}'");
+            }
+        }
+
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 
 
