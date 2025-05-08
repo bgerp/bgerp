@@ -245,11 +245,11 @@ class trans_plg_LinesPlugin extends core_Plugin
                 }
 
                 if(cls::haveInterface('store_iface_DocumentIntf', $mvc)) {
-                    $lineDateFields = $mvc->getShipmentDateFields($form->rec);
                     $clone = clone $rec;
                     foreach ($form->rec as $f => $v) {
                         $clone->{$f} = $v;
                     }
+                    $lineDateFields = $mvc->getShipmentDateFields($clone);
                     $deliveryOn = !empty($form->rec->deliveryTime) ? $form->rec->deliveryTime : $lineDateFields['deliveryTime']['placeholder'];
 
                     if($lineRec->start < $deliveryOn) {
