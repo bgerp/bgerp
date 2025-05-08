@@ -395,14 +395,14 @@ class bank_InternalMoneyTransfer extends core_Master
                 $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
             }
             
-            $row->creditBank = bank_OwnAccounts::getHyperLink($rec->creditBank, true);
+            $row->creditBank = tr('Банкова сметка|*: ') . bank_OwnAccounts::getHyperLink($rec->creditBank);
             
             if ($rec->debitCase) {
-                $row->creditBank .= " » " . cash_Cases::getHyperLink($rec->debitCase, true);
+                $row->creditBank .= " <span class='quiet'>»</span> ". tr('Каса|*: ') . cash_Cases::getHyperLink($rec->debitCase);
             }
             
             if ($rec->debitBank) {
-                $row->creditBank .= " » " . bank_OwnAccounts::getHyperLink($rec->debitBank, true);
+                $row->creditBank .= " <span class='quiet'>»</span> " . tr('Банкова сметка|*: ') . bank_OwnAccounts::getHyperLink($rec->debitBank);
             }
         }
     }

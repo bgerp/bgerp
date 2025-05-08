@@ -286,12 +286,13 @@ class cash_ExchangeDocument extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         
-        if ($fields['-single']) {
+        if(isset($fields['-single'])) {
             $rate = ($rec->creditPrice) ? round($rec->debitPrice / $rec->creditPrice, 5) : 0;
             $row->rate = $mvc->getFieldType('rate')->toVerbal($rate);
             $row->rateUnit = "<span class='cCode'>{$row->creditCurrency}</span> / <span class='cCode'>{$row->debitCurrency}</span>";
-            $row->peroTo = cash_Cases::getHyperLink($rec->peroTo, true);
-            $row->peroFrom = cash_Cases::getHyperLink($rec->peroFrom, true);
+            $row->type = tr('каса');
+            $row->peroTo = cash_Cases::getHyperLink($rec->peroTo);
+            $row->peroFrom = cash_Cases::getHyperLink($rec->peroFrom);
         }
     }
     

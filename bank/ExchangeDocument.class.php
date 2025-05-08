@@ -285,13 +285,14 @@ class bank_ExchangeDocument extends core_Master
         $debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
         $row->creditCurrency = currency_Currencies::getCodeById($creditAccInfo->currencyId);
         $row->debitCurrency = currency_Currencies::getCodeById($debitAccInfo->currencyId);
-        
-        if ($fields['-single']) {
+
+        if (isset($fields['-single'])) {
             $rate = ($rec->creditPrice) ? round($rec->debitPrice / $rec->creditPrice, 5) : 0;
             $row->rate = $mvc->getFieldType('rate')->toVerbal($rate);
             $row->rateUnit = "<span class='cCode'>{$row->creditCurrency}</span> / <span class='cCode'>{$row->debitCurrency}</span>";
-            $row->peroTo = bank_OwnAccounts::getHyperLink($rec->peroTo, true);
-            $row->peroFrom = bank_OwnAccounts::getHyperLink($rec->peroFrom, true);
+            $row->type = tr('банкова сметка');
+            $row->peroTo = bank_OwnAccounts::getHyperLink($rec->peroTo);
+            $row->peroFrom = bank_OwnAccounts::getHyperLink($rec->peroFrom);
         }
     }
     

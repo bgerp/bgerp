@@ -444,21 +444,21 @@ class cash_InternalMoneyTransfer extends core_Master
                 $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
             }
             
-            $row->creditCase = cash_Cases::getHyperLink($rec->creditCase, true);
+            $row->creditCase = tr('Каса|*: ') . cash_Cases::getHyperLink($rec->creditCase);
             if(isset($rec->paymentId)){
                 $row->creditCase .= " ({$row->paymentId})";
             }
             
             if ($rec->debitCase) {
-                $row->creditCase .= " » " . cash_Cases::getHyperLink($rec->debitCase, true);
-            
+                $row->creditCase .= " <span class='quiet'>»</span> " . tr('Каса|*: ') . cash_Cases::getHyperLink($rec->debitCase);
+
                 if(isset($rec->paymentDebitId)){
                     $row->creditCase .= " ({$row->paymentDebitId})";
                 }
             }
             
             if ($rec->debitBank) {
-                $row->creditCase .= " » " . bank_OwnAccounts::getHyperLink($rec->debitBank, true);
+                $row->creditCase .= " <span class='quiet'>»</span> " . tr('Банкова сметка|*: ') . bank_OwnAccounts::getHyperLink($rec->debitBank);
             }
             
             if(isset($rec->sourceId)){
