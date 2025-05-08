@@ -138,12 +138,12 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
                 $entry[] = $entry1;
             } else {
                 $entry1 = array('amount' => $sign * round($amount, 2),
-                    'debit' => array($rec->creditAccount,
+                    'debit' => array($rec->debitAccount,
                         array('cash_Cases', $rec->peroCase),
                         array('currency_Currencies', $rec->currencyId),
                         'quantity' => $sign * round($rec->amount, 2)),
 
-                    'credit' => array($rec->creditAccId,
+                    'credit' => array($rec->creditAccount,
                         array($rec->contragentClassId, $rec->contragentId),
                         array($origin->className, $origin->that),
                         array('currency_Currencies', $rec->dealCurrencyId),
