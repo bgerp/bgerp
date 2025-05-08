@@ -323,14 +323,14 @@ class cash_InternalMoneyTransfer extends core_Master
                 $form->setDefault('debitCase', cash_Cases::getCurrent());
                 break;
             case 'case2bank':
-                $form->setField('debitBank', 'input');
+                $form->setField('debitBank', 'input,mandatory');
                 $form->setOptions('debitBank', bank_OwnAccounts::getOwnAccounts());
                 break;
             case 'nonecash2bank':
                 $form->setField('paymentId', 'input');
                 $form->setField('currencyId', 'input=hidden');
                 
-                $form->setField('debitBank', 'input');
+                $form->setField('debitBank', 'input,mandatory');
                 $form->setOptions('debitBank', bank_OwnAccounts::getOwnAccounts());
                 break;
             case 'noncash2noncash':
@@ -391,8 +391,7 @@ class cash_InternalMoneyTransfer extends core_Master
             case 'case2case':
                 $caseRec = cash_Cases::fetch($rec->debitCase);
                 if ($caseRec->autoShare == 'yes') {
-                    $rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
-                    $rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+                    $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($caseRec->cashiers, core_Users::getCurrent()));
                 }
                 
                 // Двете Каси трябва да са различни
@@ -403,9 +402,9 @@ class cash_InternalMoneyTransfer extends core_Master
             case 'case2bank':
                 $bankRec = bank_OwnAccounts::fetch($rec->debitBank);
                 if ($bankRec->autoShare == 'yes') {
-                    $rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
+                    $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($bankRec->operators, core_Users::getCurrent()));
                 }
-                
+
                 $debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
                 if ($debitInfo->currencyId != $rec->currencyId) {
                     $form->setError('debitBank', 'Банковата сметка е в друга валута|*!');
@@ -445,21 +444,21 @@ class cash_InternalMoneyTransfer extends core_Master
                 $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
             }
             
-            $row->creditCase = cash_Cases::getHyperLink($rec->creditCase, true);
+            $row->creditCase = tr('Каса|*: ') . cash_Cases::getHyperLink($rec->creditCase);
             if(isset($rec->paymentId)){
                 $row->creditCase .= " ({$row->paymentId})";
             }
             
             if ($rec->debitCase) {
-                $row->creditCase .= " » " . cash_Cases::getHyperLink($rec->debitCase, true);
-            
+                $row->creditCase .= " <span class='quiet'>»</span> " . tr('Каса|*: ') . cash_Cases::getHyperLink($rec->debitCase);
+
                 if(isset($rec->paymentDebitId)){
                     $row->creditCase .= " ({$row->paymentDebitId})";
                 }
             }
             
             if ($rec->debitBank) {
-                $row->creditCase .= " » " . bank_OwnAccounts::getHyperLink($rec->debitBank, true);
+                $row->creditCase .= " <span class='quiet'>»</span> " . tr('Банкова сметка|*: ') . bank_OwnAccounts::getHyperLink($rec->debitBank);
             }
             
             if(isset($rec->sourceId)){

@@ -90,7 +90,7 @@ class acc_transaction_RateDifferences extends acc_DocumentTransactionSource
             $threads += arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
         }
 
-        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), cash_Pko::getClassId(), cash_Rko::getClassId(), acc_ValueCorrections::getClassId());
+        $paymentIds = array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), acc_ValueCorrections::getClassId());
         $query = doc_Containers::getQuery();
         $query->where("#state = 'active'");
         $query->in('docClass', $paymentIds);

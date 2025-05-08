@@ -279,6 +279,8 @@ class pos_ReceiptDetails extends core_Detail
             switch($operation){
                 case 'setquantity':
                     expect($quantity = core_Type::getByName('double')->fromVerbal(str_replace('*', '', $firstValue)), 'Не е зададено количество');
+                    $firstChar = substr($firstValue, 0, 1);
+
                     if(str::endsWith($firstValue, '*')){
                         if($quantity < 0){
                             $quantity = $rec->quantity + $quantity;
@@ -291,7 +293,17 @@ class pos_ReceiptDetails extends core_Detail
                             }
                         }
                     } else {
-                        expect($quantity > 0, 'Количеството трябва да е положително');
+                        if($firstChar == '+'){
+                            expect($quantity > 0, 'Количеството трябва да е положително');
+                            $quantity = $rec->quantity + $quantity;
+                        } elseif($firstChar == '-'){
+                            $quantity = $rec->quantity + $quantity;
+                            if($quantity <= 0){
+                                core_Statuses::newStatus('Редът беше изтрит защото количеството стана отрицателно|*!');
+
+                                return Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'DeleteRec', 'id' => $rec->id));
+                            }
+                        }
                     }
 
                     $errorQuantity = null;
@@ -463,15 +475,17 @@ class pos_ReceiptDetails extends core_Detail
         $string = Request::get('string', 'varchar');
         $recId = Request::get('recId', 'varchar');
 
-        if(substr($string, 0, 1) == "%" || substr($string, -1, 1) == '%'){
+        $firstChar = substr($string, 0, 1);
+        $lastChar = substr($string, -1, 1);
+        if($firstChar == "%" || $lastChar == '%'){
 
             // Ако се съдържа "%" значи се задава отстъпка/надценка
             $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'updaterec', 'receiptId' => $receiptId, 'action' => 'setdiscount', 'recId' => $recId));
-        } elseif(substr($string, 0, 1) == "*"){
+        } elseif($firstChar == "*"){
 
             // Ако се започва с "*" значи се задава цена
             $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'updaterec', 'receiptId' => $receiptId, 'action' => 'setprice', 'recId' => $recId));
-        } elseif(str::endsWith($string, '*')){
+        } elseif(str::endsWith($string, '*') || $firstChar == "+" || $firstChar == "-"){
 
             // Ако завършва с "*" значи се задава количество
             $res = Request::forward(array('Ctr' => 'pos_ReceiptDetails', 'Act' => 'updaterec', 'receiptId' => $receiptId, 'action' => 'setquantity', 'recId' => $recId));

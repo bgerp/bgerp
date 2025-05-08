@@ -247,7 +247,9 @@ class rack_Zones extends core_Master
             }
         }
 
-        $row->readiness = "<div class='block-readiness'>{$row->readiness}</div>";
+        $readiness = isset($rec->readiness) ? $row->readiness : 'none';
+        $row->readiness = "<div class='block-readiness'>{$readiness}</div>";
+
         $row->num = $mvc->getHyperlink($rec->id);
         if (isset($fields['-list'])) {
             $rec->_isSingle = false;
@@ -843,23 +845,42 @@ class rack_Zones extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-        $ready = $count = 0;
+        $isStarted = false;
 
+        $dRecs = array();
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->where("#zoneId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
-            if (!empty($dRec->documentQuantity) && round($dRec->documentQuantity, 4) == round($dRec->movementQuantity, 4)) {
-                $ready++;
+            if(!empty($dRec->movementQuantity)){
+                $isStarted = true;
             }
 
-            if (!empty(round($dRec->documentQuantity, 4)) || !empty(round($dRec->movementQuantity, 4))) {
-                $count++;
+            if(!empty($dRec->documentQuantity)){
+                $dRecs[] = $dRec;
             }
         }
 
+        /**
+         * Готовността се изчислява така
+         * (% изпълнение на ред 1) х [ 1 / (брой редове в документа) ] + (% изпълнение на ред 2) х [ 1 /
+         * (брой редове в документа) ] + ...
+         */
+        $readiness = 0;
+        $count = countR($dRecs);
+        foreach ($dRecs as $dRec) {
+            $dReadiness = ($dRec->movementQuantity / $dRec->documentQuantity);
+            $readiness += $dReadiness / $count;
+        }
+
         // Запомняне на старата готовност и изчисляване на новата
-        $oldReadiness = $rec->readiness;
-        $rec->readiness = ($count) ? $ready / $count : null;
+        $oldReadiness = null;
+        if($isStarted){
+            $oldReadiness = $rec->readiness;
+            $rec->readiness = $readiness;
+        } else {
+            $rec->readiness = null;
+        }
+
         $this->save($rec, 'readiness');
 
         // Ако готовността е току що станала на 100% или от 100% е паднала

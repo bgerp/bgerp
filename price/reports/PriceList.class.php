@@ -102,8 +102,11 @@ class price_reports_PriceList extends frame2_driver_TableData
      */
     public function getTitle($rec, $isPlain = false)
     {
-        $policyName = price_Lists::getTitleById($rec->policyId);
-        $title = "Ценоразпис \"{$policyName}\"";
+        $title = $rec->title;
+        if(empty($title)) {
+            $policyName = price_Lists::getTitleById($rec->policyId);
+            $title = "Ценоразпис \"{$policyName}\"";
+        }
         
         return $title;
     }

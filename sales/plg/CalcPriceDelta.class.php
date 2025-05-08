@@ -77,8 +77,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
     public static function on_AfterGetDeltaRecs($mvc, &$res, $rec)
     {
         if(is_array($res)) return $res;
-        
-        $res = array();
+
         $onlySelfValue = false;
         $dPercent = sales_Setup::get('DELTA_MIN_PERCENT_PRIME_COST');
         
@@ -94,12 +93,13 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             // Ако не е продажба но документа НЕ е в нишка на продажба, не се записва нищо
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if (!$firstDoc->isInstanceOf('sales_Sales')) {
-                
+
                 return;
             }
         }
         
         // По коя политика ще се изчислява делтата
+        $res = array();
         $Cover = doc_Folders::getCover($rec->folderId);
         $deltaListId = cond_Parameters::getParameter($Cover->getClassId(), $Cover->that, 'deltaList');
         

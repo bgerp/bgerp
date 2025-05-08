@@ -1,5 +1,4 @@
 <html>
-
 <body>
 <div class="half" >
     <table>
@@ -84,6 +83,10 @@
             <td class="shortcuts"><span>Ctrl + Q </span></td>
             <td class="textShortcut"> - |Изход от терминала|*</td>
         </tr>
+        <tr>
+            <td class="shortcuts" colspan="2"><span>Ctrl + DEL </span></td>
+            <td class="textShortcut"> - |Изтриване на избрания ред от бележката|*</td>
+        </tr>
     </table>
 </div>
 <div class="half">
@@ -91,10 +94,7 @@
         <tr>
             <td></td><td></td>
         </tr>
-        <tr>
-            <td class="shortcuts"><span>Ctrl + DEL </span></td>
-            <td class="textShortcut"> - |Изтриване на избрания ред от бележката|*</td>
-        </tr>
+
         <tr>
             <td class="shortcuts"><span>Ctrl + HOME </span></td>
             <td class="textShortcut"> - |Скролира до началото на страницата|*</td>
@@ -125,6 +125,14 @@
         <tr>
             <td class="shortcuts"><span>20*</span></td>
             <td class="textShortcut"> - |Промяна на количеството|*</td>
+        </tr>
+        <tr>
+            <td class="shortcuts"><span>+20</span></td>
+            <td class="textShortcut"> - |Добавяне към количеството|*</td>
+        </tr>
+        <tr>
+            <td class="shortcuts"><span>-20</span></td>
+            <td class="textShortcut"> - |Приспадане от количеството|*</td>
         </tr>
         <tr class="[#priceHintTrClass#]">
             <td class="shortcuts"><span>*1.54 </span></td>

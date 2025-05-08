@@ -511,21 +511,22 @@ class rack_Racks extends core_Master
                 
                 // Ако е неизползваемо
                 if (!isset($title) && $unusable[$posFull]) {
+                    $hint = $posFull . " " . tr('е неизползваемо|*!');
                     $title = 'X';
                     $attr['style'] = 'text-align:center;color:#7c7c7c;';
                     $tdBackground = "background-color:#d3d3d35c;";
-                    $hint = tr('Мястото е неизползваемо|*!');
                 }
                 
                 // Ако е резервирано за нещо
                 if (!isset($title) && ($pId = $reserved[$posFull])) {
                     $title = $pos;
-                    $attr['style'] = 'color:#ff6699;';
+                    $attr['style'] = 'color:#ffe666;';
                     $hint = tr('Запазено място');
                     
                     if ($pId > 0) {
                         $prodTitle = cat_Products::getTitleById($pId);
                         $hint = tr('Запазено място за') . ': ' . $prodTitle;
+                        $tdBackground = "background-color:#000b80c7;";
                     }
                 }
                 
