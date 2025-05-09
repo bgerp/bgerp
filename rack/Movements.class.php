@@ -207,7 +207,7 @@ class rack_Movements extends rack_MovementAbstract
      * @param int $productId
      * @return array
      */
-    private function getCurrentPackagings($productId)
+    public function getCurrentPackagings($productId)
     {
         if(!array_key_exists($productId, $this->packCache)){
             $measureId = cat_Products::fetchField($productId, 'measureId');

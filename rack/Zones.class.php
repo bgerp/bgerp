@@ -942,7 +942,7 @@ class rack_Zones extends core_Master
      * @param string $filter
      * @return array $res
      */
-    public static function getCurrentMovementRecs($zoneId, $filter)
+    public static function getCurrentMovementRecs($zoneId, $filter = null)
     {
         if (!isset(self::$movementCache[$zoneId])) {
             $zoneRec = rack_Zones::fetch($zoneId);
