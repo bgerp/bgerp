@@ -323,6 +323,7 @@ class rack_plg_Shipments extends core_Plugin
 
             $res->append($mvc->getHandle($rec), 'containerId');
             $res->append($details, 'DETAILS');
+            $mvc->logWrite('Печат на палетни движения', $rec->id);
 
             return false;
         }
@@ -337,21 +338,25 @@ class rack_plg_Shipments extends core_Plugin
      */
     private static function preparePrintMovements(&$data)
     {
-        $movementRecs = rack_Zones::getCurrentMovementRecs($data->zoneId);
+        $movementRecs = rack_Zones::getCurrentMovementRecs($data->zoneId, 'pendingAndWaiting');
         arr::sortObjects($movementRecs, 'id', 'ASC');
 
-        foreach ($movementRecs as $movementRec){
-            $key = "{$movementRec->productId}|{$movementRec->packagingId}|{$movementRec->batch}";
-            if(!array_key_exists($key, $data->recs)){
-                $data->recs[$key] = (object)array('productId' => $movementRec->productId,
-                    'packagingId' => $movementRec->packagingId,
-                    'batch' => $movementRec->batch,
-                    'positions' => array(),
-                    'quantity' => 0);
-            }
 
-            $data->recs[$key]->positions[$movementRec->position] += $movementRec->quantity;
-            $data->recs[$key]->quantity += $movementRec->quantity;
+        $zDetail = rack_ZoneDetails::getQuery();
+        $zDetail->where("#zoneId = {$data->zoneId}");
+        $zDetail->orderBy('id', 'ASC');
+        while($zRec = $zDetail->fetch()){
+            $data->recs[$zRec->id] = (object)array('productId'   => $zRec->productId,
+                                                   'packagingId' => $zRec->packagingId,
+                                                   'batch'       => $zRec->batch,
+                                                   'positions'   => array(),
+                                                   'quantity'    => $zRec->documentQuantity);
+
+            foreach ($movementRecs as $mRec){
+                if($mRec->productId == $zRec->productId && $mRec->packagingId == $zRec->packagingId && $mRec->batch == $zRec->batch){
+                    $data->recs[$zRec->id]->positions[$mRec->position] += $mRec->quantity;
+                }
+            }
         }
 
         // Вербализиране на движенията
@@ -375,8 +380,7 @@ class rack_plg_Shipments extends core_Plugin
                 $convertedQuantity = rack_Movements::getSmartPackagings($moveRec->productId, $packs, $quantity, $moveRec->packagingId);
                 $positionArr[] = "<b>{$position}</b> ({$convertedQuantity})";
             }
-            $row->positions = implode(', ', $positionArr);
-
+            $row->positions = implode('<br/> ', $positionArr);
             $data->rows[$k] = $row;
         }
     }

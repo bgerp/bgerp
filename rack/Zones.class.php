@@ -959,7 +959,10 @@ class rack_Zones extends core_Master
                 $mQuery->where("#state = 'pending'");
             } elseif($filter == 'notClosed'){
                 $mQuery->where("#state != 'closed'");
+            } elseif($filter == 'pendingAndWaiting'){
+                $mQuery->where("#state IN ('pending', 'waiting')");
             }
+
             $mQuery->orderBy('id', 'DESC');
 
             $where = (!$zoneRec->containerId) ? "(#documents IS NULL OR #documents = '')" : "LOCATE('|{$zoneRec->containerId}|', #documents)";
