@@ -1132,7 +1132,7 @@ class rack_Movements extends rack_MovementAbstract
      *
      * @return stdClass $res
      */
-    private function validateTransaction($transaction)
+    public function validateTransaction($transaction)
     {
         $res = (object) array('transaction' => $transaction, 'errors' => array(), 'errorFields' => array(), 'warnings' => array(), 'warningFields' => array());
         
@@ -1142,21 +1142,21 @@ class rack_Movements extends rack_MovementAbstract
             
             return $res;
         }
-        
+
         if (empty($transaction->from) && empty($transaction->to) && empty($transaction->zonesQuantityTotal)) {
             $res->errors = 'Не може да се направи празно движение';
             $res->errorFields = 'positionTo,zones';
             
             return $res;
         }
-       
+
         if (countR($transaction->zonesQuantityArr) && !empty($transaction->quantity) && abs(round($transaction->quantity, 4)) < abs(round($transaction->zonesQuantityTotal, 4)) && $transaction->zonesQuantityTotal > 0) {
             $res->errors = 'Недостатъчно количество за оставяне в зоните';
             $res->errorFields = 'packQuantity,zones';
             
             return $res;
         }
-        
+
         if (empty($transaction->quantity) && empty($transaction->zonesQuantityTotal)) {
             $res->errors = 'Не може да се направи празно движение';
             $res->errorFields = 'positionTo,zones';
@@ -1372,7 +1372,7 @@ class rack_Movements extends rack_MovementAbstract
      *                  o $zonesQuantityTotal   - всичкото оставено в зоните количество
      *
      */
-    private function getTransaction($rec, $reverse = false)
+    public function getTransaction($rec, $reverse = false)
     {
         $sign = ($reverse === true) ? -1 : 1;
         

@@ -29,6 +29,7 @@ class rack_plg_Shipments extends core_Plugin
         setIfNot($mvc->rackStoreFieldName, $mvc->storeFieldName);
         setIfNot($mvc->detailToPlaceInZones, $mvc->mainDetail);
         setIfNot($mvc->canPrintzonemovements, 'no_one');
+        setIfNot($mvc->canCompleteallmovements, 'no_one');
     }
     
     
@@ -97,7 +98,11 @@ class rack_plg_Shipments extends core_Plugin
         }
 
         if ($mvc->haveRightFor('printzonemovements', $rec)){
-            $data->toolbar->addBtn('Печат (Движ.)', array($mvc, 'printzonemovements', 'id' => $rec->id, 'Printing' => 'yes'), 'title=Печат на движенията към зоната в документа,ef_icon=img/16/printer.png,target=_blank');
+            $data->toolbar->addBtn('Печат (Движ.)', array($mvc, 'printzonemovements', 'id' => $rec->id, 'Printing' => 'yes'), 'title=Печат на движенията към зоната в документа,ef_icon=img/16/printer.png,target=_blank,row=2');
+        }
+
+        if ($mvc->haveRightFor('completeallmovements', $rec)){
+            $data->toolbar->addBtn('Движения (Прикл.)', array($mvc, 'completeallmovements', 'id' => $rec->id, 'ret_url' => true), 'title=Приключване на всички движения,ef_icon=img/16/gray-close.png,row=2');
         }
     }
     
@@ -281,9 +286,20 @@ class rack_plg_Shipments extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if($action == 'printzonemovements' && isset($rec)){
-            if(!rack_Zones::fetch("#containerId = {$rec->containerId}")){
+        if(in_array($action, array('completeallmovements', 'printzonemovements')) && isset($rec)){
+            if(!rack_Zones::fetchField("#containerId = {$rec->containerId}")){
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        // Ако има неприключени движения да се появява бутона за приключване на всички
+        if($action == 'completeallmovements' && isset($rec)){
+            if($requiredRoles != 'no_one'){
+                $zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}");
+                $ready = rack_Movements::count("LOCATE('|{$zoneId}|', #zoneList) AND #state IN ('pending', 'waiting', 'active')");
+                if(!$ready){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -327,6 +343,60 @@ class rack_plg_Shipments extends core_Plugin
 
             return false;
         }
+
+        // Екшън за масово приключване на движения
+        if($action == 'completeallmovements'){
+            $mvc->requireRightFor('completeallmovements');
+            expect($id = Request::get('id', 'int'));
+            expect($rec = $mvc->fetch($id));
+            $mvc->requireRightFor('completeallmovements', $rec);
+
+            expect($zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}"));
+            $movementRecs = rack_Zones::getCurrentMovementRecs($zoneId, 'notClosed');
+
+            $ok = 0;
+            $errors = $closeRecs = array();
+            $Movements = cls::get('rack_Movements');
+
+            // Първо се проверяват дали всичките може да се приключат
+            foreach ($movementRecs as $mRec){
+                $transaction = $Movements->getTransaction($mRec);
+                $transaction = $Movements->validateTransaction($transaction);
+                if (!empty($transaction->errors)) {
+                    $errors[] = "[{$mRec->id}] " . $transaction->errors;
+                } else {
+                    if(rack_Movements::haveRightFor('done', $mRec)){
+                        $closeRecs[] = $mRec;
+                    }
+                }
+            }
+
+            if(countR($errors)){
+                $msg = "Не може групово да приключоте всички движения" . implode(',', $errors);
+                $msgType = 'error';
+            } else {
+
+                // Ако има такива дето може се приключват
+                foreach ($closeRecs as $mRec){
+                    if (!core_Locks::get("movement{$mRec->id}", 120, 0)) {
+                        continue;
+                    }
+
+                    $mRec->workerId = core_Users::getCurrent();
+                    $mRec->state = 'closed';
+                    $mRec->brState = 'active';
+                    $Movements->save($mRec, 'state,brState,packagings,workerId,modifiedOn,modifiedBy');
+                    $ok++;
+
+                    core_Locks::release("movement{$mRec->id}");
+                }
+
+                $msgType = 'notice';
+                $msg = "Приключени са|*: {$ok}";
+            }
+
+            followRetUrl(null, $msg, $msgType);
+        }
     }
 
 
@@ -340,7 +410,6 @@ class rack_plg_Shipments extends core_Plugin
     {
         $movementRecs = rack_Zones::getCurrentMovementRecs($data->zoneId, 'pendingAndWaiting');
         arr::sortObjects($movementRecs, 'id', 'ASC');
-
 
         $zDetail = rack_ZoneDetails::getQuery();
         $zDetail->where("#zoneId = {$data->zoneId}");
