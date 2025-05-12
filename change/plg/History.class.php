@@ -368,7 +368,7 @@ class change_plg_History extends core_Plugin
         $clone = clone $rec;
         $versionRec = ($versionId == change_History::CURRENT_VERSION_ID) ? $rec : change_History::fetch($versionId);
         foreach ($fields as $fld){
-            $clone->{$fld} = ($versionId == change_History::CURRENT_VERSION_ID) ? $versionRec->{$fld} : (property_exists($versionRec->data, $fld) ? $versionRec->data->{$fld} : $versionRec->{$fld});
+            $clone->{$fld} = ($versionId == change_History::CURRENT_VERSION_ID) ? $versionRec->{$fld} : (is_object($versionRec->data) && property_exists($versionRec->data, $fld) ? $versionRec->data->{$fld} : $versionRec->{$fld});
         }
 
         return $clone;
