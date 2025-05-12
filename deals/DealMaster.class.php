@@ -341,6 +341,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $form->setDefault('shipmentStoreId', $mvc->getDefaultShipmentStoreId($rec));
 
         if(!$mvc->isOwnCompanyVatRegistered($rec)) {
+            $form->setField('chargeVat', 'hint="Моята фирма" не е регистрирана по ДДС');
             $form->rec->chargeVat = 'no';
             $form->setReadOnly('chargeVat');
         }

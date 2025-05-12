@@ -300,7 +300,10 @@ class change_History extends core_Manager
         $rec = $Class->fetchRec($id);
 
         $res = clone $rec;
-        $historyRec = self::fetch("#classId = {$Class->getClassId()} AND #objectId = {$rec->id} AND #validFrom <= '{$date}' AND ('{$date}' < #validTo OR #validTo IS NULL)");
+        $historyQuery = self::getQuery();
+        $historyQuery->where("#classId = {$Class->getClassId()} AND #objectId = {$rec->id} AND #validFrom <= '{$date}' AND ('{$date}' < #validTo OR #validTo IS NULL) AND #state = 'active'");
+        $historyQuery->orderBy("validFrom", 'DESC');
+        $historyRec = $historyQuery->fetch();
 
         // Ако има запис в историята - ще се заместят текущите данни с кешираните
         if(is_object($historyRec)){
