@@ -28,6 +28,8 @@ class rack_plg_Shipments extends core_Plugin
         setIfNot($mvc->storeFieldName, 'storeId');
         setIfNot($mvc->rackStoreFieldName, $mvc->storeFieldName);
         setIfNot($mvc->detailToPlaceInZones, $mvc->mainDetail);
+        setIfNot($mvc->canPrintzonemovements, 'no_one');
+        setIfNot($mvc->canCompleteallmovements, 'no_one');
     }
     
     
@@ -93,6 +95,14 @@ class rack_plg_Shipments extends core_Plugin
             }
 
             $data->toolbar->addBtn('Зона', $url, null, $attr);
+        }
+
+        if ($mvc->haveRightFor('printzonemovements', $rec)){
+            $data->toolbar->addBtn('Печат (Движ.)', array($mvc, 'printzonemovements', 'id' => $rec->id, 'Printing' => 'yes'), 'title=Печат на движенията към зоната в документа,ef_icon=img/16/printer.png,target=_blank,row=2');
+        }
+
+        if ($mvc->haveRightFor('completeallmovements', $rec)){
+            $data->toolbar->addBtn('Движения (Прикл.)', array($mvc, 'completeallmovements', 'id' => $rec->id, 'ret_url' => true), 'title=Приключване на всички движения,ef_icon=img/16/gray-close.png,row=2');
         }
     }
     
@@ -267,6 +277,180 @@ class rack_plg_Shipments extends core_Plugin
         if(rack_Zones::hasRackMovements($rec->containerId)){
             core_Statuses::newStatus('Документа не може да се оттегли, докато има нагласени количества в зоната', 'error');
             return false;
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if(in_array($action, array('completeallmovements', 'printzonemovements')) && isset($rec)){
+            if(!rack_Zones::fetchField("#containerId = {$rec->containerId}")){
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        // Ако има неприключени движения да се появява бутона за приключване на всички
+        if($action == 'completeallmovements' && isset($rec)){
+            if($requiredRoles != 'no_one'){
+                $zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}");
+                $ready = rack_Movements::count("LOCATE('|{$zoneId}|', #zoneList) AND #state IN ('pending', 'waiting', 'active')");
+                if(!$ready){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Извиква се преди изпълняването на екшън
+     */
+    public static function on_BeforeAction($mvc, &$res, $action)
+    {
+        if($action == 'printzonemovements'){
+            $mvc->requireRightFor('printzonemovements');
+            expect($id = Request::get('id', 'int'));
+            expect($rec = $mvc->fetch($id));
+            $mvc->requireRightFor('printzonemovements', $rec);
+
+            $res = getTplFromFile('rack/tpl/ZoneMovementPrintLayout.shtml');
+
+            expect($zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}"));
+
+            $data = (object)array('recs' => array(), 'rows' => array(), 'zoneId' => $zoneId);
+            static::preparePrintMovements($data);
+
+            $fieldset = new core_FieldSet();
+            $fieldset->FLD('batch', 'varchar');
+            $fieldset->FLD('quantity', 'double');
+            $table = cls::get('core_TableView', array('mvc' => $fieldset));
+            $fields = arr::make('code=Код,productId=Артикул,packagingId=Опаковка,batch=Партида,quantity=Общо,positions=Позиции');
+
+            $details = $table->get($data->rows, $fields);
+
+            if($mvc->lineFieldName){
+                if($rec->{$mvc->lineFieldName}){
+                    $res->append(trans_Lines::getTitleById($rec->{$mvc->lineFieldName}), 'lineId');
+                }
+            }
+
+            $res->append($mvc->getHandle($rec), 'containerId');
+            $res->append($details, 'DETAILS');
+            $mvc->logWrite('Печат на палетни движения', $rec->id);
+
+            return false;
+        }
+
+        // Екшън за масово приключване на движения
+        if($action == 'completeallmovements'){
+            $mvc->requireRightFor('completeallmovements');
+            expect($id = Request::get('id', 'int'));
+            expect($rec = $mvc->fetch($id));
+            $mvc->requireRightFor('completeallmovements', $rec);
+
+            expect($zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}"));
+            $movementRecs = rack_Zones::getCurrentMovementRecs($zoneId, 'notClosed');
+
+            $ok = 0;
+            $errors = $closeRecs = array();
+            $Movements = cls::get('rack_Movements');
+
+            // Първо се проверяват дали всичките може да се приключат
+            foreach ($movementRecs as $mRec){
+                $transaction = $Movements->getTransaction($mRec);
+                $transaction = $Movements->validateTransaction($transaction);
+                if (!empty($transaction->errors)) {
+                    $errors[] = "[{$mRec->id}] " . $transaction->errors;
+                } else {
+                    if(rack_Movements::haveRightFor('done', $mRec)){
+                        $closeRecs[] = $mRec;
+                    }
+                }
+            }
+
+            if(countR($errors)){
+                $msg = "Не може групово да приключоте всички движения" . implode(',', $errors);
+                $msgType = 'error';
+            } else {
+
+                // Ако има такива дето може се приключват
+                foreach ($closeRecs as $mRec){
+                    if (!core_Locks::get("movement{$mRec->id}", 120, 0)) {
+                        continue;
+                    }
+
+                    $mRec->workerId = core_Users::getCurrent();
+                    $mRec->state = 'closed';
+                    $mRec->brState = 'active';
+                    $Movements->save($mRec, 'state,brState,packagings,workerId,modifiedOn,modifiedBy');
+                    $ok++;
+
+                    core_Locks::release("movement{$mRec->id}");
+                }
+
+                $msgType = 'notice';
+                $msg = "Приключени са|*: {$ok}";
+            }
+
+            followRetUrl(null, $msg, $msgType);
+        }
+    }
+
+
+    /**
+     * Подготовка на данните за печата на движенията от документа
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    private static function preparePrintMovements(&$data)
+    {
+        $movementRecs = rack_Zones::getCurrentMovementRecs($data->zoneId, 'pendingAndWaiting');
+        arr::sortObjects($movementRecs, 'id', 'ASC');
+
+        $zDetail = rack_ZoneDetails::getQuery();
+        $zDetail->where("#zoneId = {$data->zoneId}");
+        $zDetail->orderBy('id', 'ASC');
+        while($zRec = $zDetail->fetch()){
+            $data->recs[$zRec->id] = (object)array('productId'   => $zRec->productId,
+                                                   'packagingId' => $zRec->packagingId,
+                                                   'batch'       => $zRec->batch,
+                                                   'positions'   => array(),
+                                                   'quantity'    => $zRec->documentQuantity);
+
+            foreach ($movementRecs as $mRec){
+                if($mRec->productId == $zRec->productId && $mRec->packagingId == $zRec->packagingId && $mRec->batch == $zRec->batch){
+                    $data->recs[$zRec->id]->positions[$mRec->position] += $mRec->quantity;
+                }
+            }
+        }
+
+        // Вербализиране на движенията
+        foreach ($data->recs as $k => $moveRec){
+            $packs = cls::get('rack_Movements')->getCurrentPackagings($moveRec->productId);
+            $pRec = cat_Products::fetch($moveRec->productId, 'name,nameEn,isPublic,id,code');
+            $row = new stdClass();
+            $row->code = !empty($pRec->code) ? cat_Products::getVerbal($pRec, 'code') : "Art{$pRec->id}";
+            $row->quantity = core_Type::getByName('double(smartRound)')->toVerbal($moveRec->quantity);
+            $row->productId = cat_Products::getVerbal($pRec, 'name');
+            $row->packagingId = cat_UoM::getVerbal($moveRec->packagingId, 'name');
+            $row->batch = null;
+            if($Def = batch_Defs::getBatchDef($moveRec->productId)){
+                $row->batch = strlen($moveRec->batch) ? $Def->toVerbal($moveRec->batch) : tr('Без партида');
+            }
+
+            // В една колонка ще се показват всички позиции от, които ще се взимат
+            $positionArr = array();
+            foreach ($moveRec->positions as $position => $quantity){
+                $position = $position == rack_PositionType::FLOOR ? 'Под' : $position;
+                $convertedQuantity = rack_Movements::getSmartPackagings($moveRec->productId, $packs, $quantity, $moveRec->packagingId);
+                $positionArr[] = "<b>{$position}</b> ({$convertedQuantity})";
+            }
+            $row->positions = implode('<br/> ', $positionArr);
+            $data->rows[$k] = $row;
         }
     }
 }

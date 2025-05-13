@@ -942,7 +942,7 @@ class rack_Zones extends core_Master
      * @param string $filter
      * @return array $res
      */
-    public static function getCurrentMovementRecs($zoneId, $filter)
+    public static function getCurrentMovementRecs($zoneId, $filter = null)
     {
         if (!isset(self::$movementCache[$zoneId])) {
             $zoneRec = rack_Zones::fetch($zoneId);
@@ -959,7 +959,10 @@ class rack_Zones extends core_Master
                 $mQuery->where("#state = 'pending'");
             } elseif($filter == 'notClosed'){
                 $mQuery->where("#state != 'closed'");
+            } elseif($filter == 'pendingAndWaiting'){
+                $mQuery->where("#state IN ('pending', 'waiting')");
             }
+
             $mQuery->orderBy('id', 'DESC');
 
             $where = (!$zoneRec->containerId) ? "(#documents IS NULL OR #documents = '')" : "LOCATE('|{$zoneRec->containerId}|', #documents)";

@@ -83,19 +83,23 @@ class bgfisc_plg_Rko extends core_Plugin
         
         $Origin = doc_Containers::getDocument($rec->originId);
         $amountOrigin = $Origin->fetchField('amountDeal');
-        
-        if (empty($rec->fromContainerId) && round($amountOrigin, 2) != round($rec->amountDeal, 2) && !empty($amountOrigin) && !empty($rec->amountDeal)) {
-            $action = Request::get('Act');
-            
-            if($action != 'hardconto'){
-                
-                throw new core_exception_Expect('Трябва да е посочено Кредитно известие/Складова разписка за да контирате документа, или той да е точно за сумата на сторнирания документ|*!', 'Несъответствие');
+
+        $caseId = ($rec->peroCase) ? $rec->peroCase : $mvc->getDefaultCase($rec);
+        bgfisc_Register::getFiscDevice($caseId, $serialNum);
+        if($serialNum != bgfisc_Register::WITHOUT_REG_NUM) {
+            if (empty($rec->fromContainerId) && round($amountOrigin, 2) != round($rec->amountDeal, 2) && !empty($amountOrigin) && !empty($rec->amountDeal)) {
+                $action = Request::get('Act');
+
+                if($action != 'hardconto'){
+
+                    throw new core_exception_Expect('Трябва да е посочено Кредитно известие/Складова разписка за да контирате документа, или той да е точно за сумата на сторнирания документ|*!', 'Несъответствие');
+                }
             }
-        }
-        
-        if (empty($rec->stornoReason)) {
-           
-            throw new core_exception_Expect('Трябва да е посочено основание за сторниране|*', 'Несъответствие');
+
+            if (empty($rec->stornoReason)) {
+
+                throw new core_exception_Expect('Трябва да е посочено основание за сторниране|*', 'Несъответствие');
+            }
         }
     }
     

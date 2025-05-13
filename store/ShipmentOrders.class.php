@@ -118,6 +118,18 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
+     * Кой може да печата движенията?
+     */
+    public $canPrintzonemovements = 'ceo,rack';
+
+
+    /**
+     * Кой може да приключва всички движения?
+     */
+    public $canCompleteallmovements = 'ceo,rack';
+
+
+    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';

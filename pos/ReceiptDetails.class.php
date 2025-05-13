@@ -120,6 +120,7 @@ class pos_ReceiptDetails extends core_Detail
         $this->FLD('batch', 'varchar', 'caption=Партида,input=none');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,input=none');
         $this->FLD('revertRecId', 'int', 'caption=Сторнира ред, input=none');
+        $this->FLD('transferedIn', 'int', 'caption=Прехвърлена в, input=none');
 
         $this->setDbIndex('action');
         $this->setDbIndex('productId');
