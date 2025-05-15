@@ -250,7 +250,7 @@ class deals_plg_DpInvoice extends core_Plugin
         $rate = ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
         
         $dpAmount /= $rate;
-        $dpAmount = core_Math::roundNumber($dpAmount);
+        $dpAmount = round($dpAmount, 6);
         $expectAdvanceForeignerDp = null;
 
         $isForeignCountryId = $form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'");
@@ -284,7 +284,7 @@ class deals_plg_DpInvoice extends core_Plugin
                 }
                 break;
             case 'deducted':
-                if ($dpAmount) {
+                if ($dpAmount > 0) {
                     $form->setDefault('amountDeducted', $dpAmount);
                 }
                 break;
