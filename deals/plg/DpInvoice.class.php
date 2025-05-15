@@ -650,8 +650,8 @@ class deals_plg_DpInvoice extends core_Plugin
         if (!isset($masterRec->dpAmount)) return;
 
         $dpVatGroupId = $masterRec->dpVatGroupId;
-        if($masterRec->type != 'invoice'){
-            $originInv = doc_Containers::getDocument($masterRec->containerId);
+        if($masterRec->type == 'dc_note'){
+            $originInv = doc_Containers::getDocument($masterRec->originId);
             $dpVatGroupId = $originInv->fetchField('dpVatGroupId');
         }
 
