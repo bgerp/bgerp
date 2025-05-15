@@ -104,11 +104,13 @@ class deals_plg_DpInvoice extends core_Plugin
             
             $dpAmount += $dpAmount * $vat;
             $dpAmount = round($dpAmount, 2);
-            
-            if ($rec->dpOperation == 'accrued') {
-                $form->setDefault('amountAccrued', $dpAmount);
-            } elseif ($rec->dpOperation == 'deducted') {
-                $form->setDefault('amountDeducted', $dpAmount);
+
+            if($dpAmount){
+                if ($rec->dpOperation == 'accrued') {
+                    $form->setDefault('amountAccrued', $dpAmount);
+                } elseif ($rec->dpOperation == 'deducted') {
+                    $form->setDefault('amountDeducted', $dpAmount);
+                }
             }
         }
         
