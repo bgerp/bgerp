@@ -482,25 +482,13 @@ class deals_plg_DpInvoice extends core_Plugin
     public static function on_AfterPrepareDetail($mvc, &$res, &$data)
     {
         $masterRec = $data->masterData->rec;
-        
-        // Ако е ДИ или КИ не правим нищо
-        if (!($mvc instanceof sales_ProformaDetails) && $masterRec->type != 'invoice') {
-            
-            return;
-        }
-        
+
         // Ако има сума на авансовото плащане и тя не е "0"
         if ($masterRec->dpAmount) {
             
             // Сумата се обръща в валутата на фактурата
             $dpAmount = currency_Currencies::round($masterRec->dpAmount / $masterRec->rate);
-            
-            // Обръщане на сумата във вербален вид
-            $Double = cls::get('type_Double');
-            $Double->params['decimals'] = 2;
-            $dpAmount = $Double->toVerbal($dpAmount);
-            
-            // Записване в $data
+            $dpAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dpAmount);
             $data->dpInfo = (object) array('dpAmount' => $dpAmount, 'dpOperation' => $masterRec->dpOperation);
         }
     }
@@ -543,10 +531,11 @@ class deals_plg_DpInvoice extends core_Plugin
             $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
-            
+            $deductCaption = $data->masterData->rec->type == 'invoice' ? tr('Приспадане на авансово плащане') : tr('Промяна на приспаднат аванс');
+
             $colspan = countR($fields) - 1;
             $colspan = isset($fields['reff']) ? $colspan - 1 : $colspan;
-            $lastRow = new ET("<tr><td colspan='{$colspan}'>" . tr('Приспадане на авансово плащане') . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+            $lastRow = new ET("<tr><td colspan='{$colspan}'>" . $deductCaption . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         }
 
         if(!doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $data->masterData->rec)){
@@ -658,10 +647,14 @@ class deals_plg_DpInvoice extends core_Plugin
      */
     public static function on_AfterCalculateAmount($mvc, &$res, &$recs, &$masterRec)
     {
-        if (!isset($masterRec->dpAmount)) {
-            
-            return;
+        if (!isset($masterRec->dpAmount)) return;
+
+        $dpVatGroupId = $masterRec->dpVatGroupId;
+        if($masterRec->type != 'invoice'){
+            $originInv = doc_Containers::getDocument($masterRec->containerId);
+            $dpVatGroupId = $originInv->fetchField('dpVatGroupId');
         }
+
         $total = &$mvc->Master->_total;
 
         // Ако няма детайли, инстанцираме обекта
@@ -671,8 +664,8 @@ class deals_plg_DpInvoice extends core_Plugin
         
         // Колко е ддс-то
         $vat = acc_Periods::fetchByDate($masterRec->date)->vatRate;
-        if(isset($masterRec->dpVatGroupId)){
-            $vat = acc_VatGroups::fetchField($masterRec->dpVatGroupId, 'vat');
+        if(isset($dpVatGroupId)){
+            $vat = acc_VatGroups::fetchField($dpVatGroupId, 'vat');
         }
 
         if ($masterRec->vatRate != 'yes' && $masterRec->vatRate != 'separate') {
@@ -688,10 +681,10 @@ class deals_plg_DpInvoice extends core_Plugin
         $total->amount += $dpAmount;
 
         if(!isset($total->vats["{$vat}"])){
-            $total->vats["{$vat}"] = (object) array('amount' => $dpVat, 'sum' => $masterRec->dpAmount / $masterRec->rate);
+            $total->vats["{$vat}"] = (object) array('amount' => $dpVat, 'sum' => $dpAmount);
         } else {
             $total->vats["{$vat}"]->amount += $dpVat;
-            $total->vats["{$vat}"]->sum += $masterRec->dpAmount / $masterRec->rate;
+            $total->vats["{$vat}"]->sum += $dpAmount;
         }
     }
 

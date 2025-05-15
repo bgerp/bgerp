@@ -160,7 +160,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address,silent');
         $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         $mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
-        $mvc->FLD('dcReason', 'richtext(rows=2)', 'input=none');
+        $mvc->FLD('dcReason', 'richtext(rows=2)', 'input=none,after=dcReason');
         $mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
         
         $mvc->FLD('dueTime', 'time(suggestions=3 дена|5 дена|7 дена|14 дена|30 дена|45 дена|60 дена)', 'caption=Плащане->Срок');
@@ -428,18 +428,26 @@ abstract class deals_InvoiceMaster extends core_Master
             if (countR($cache->vats) == 1) {
                 $form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
                 $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
-                $form->setField('dcReason', 'input,caption=Задаване на увеличение/намаление на фактура->Пояснение');
 
                 $min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
                 $min = round($min, 2);
                 $form->rec->changeAmountVat = key($cache->vats);
                 $form->setFieldTypeParams('changeAmount', array('min' => -1 * $min));
+              ;
                 if ($invArr['dpOperation'] == 'accrued') {
                     // Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
                     $form->setField('dcReason', 'input');
                     $form->setField('changeAmount', 'caption=Промяна на авансово плащане|*->|Аванс|*,mandatory');
                     $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение');
+                } elseif($invArr['dpOperation'] == 'deducted') {
+                    $form->setDefault('dcChangeAmountDeducted', $form->rec->dpAmount);
+                    $form->FLD('dcChangeAmountDeducted', 'double', "input,unit={$invArr['currencyId']} без ДДС,caption=Задаване на увеличение/намаление на фактура->|Приспаднат аванс|*,after=changeAmount");
+                    $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение,after=changeAmountDownpayment');
+                    $unsetArr[] = 'dcChangeAmountDeducted';
                 }
+
+                $form->setField('dcReason', 'input,caption=Задаване на увеличение/намаление на фактура->Пояснение');
+
             } else {
                 $form->info = tr("|*<div class='richtext-message richtext-warning'>|В оригиналната фактура има артикули с различни ставки на ДДС. Сумата на известието трябва да се отрази за съответните артикули|*Ф-р</div>");
             }
@@ -587,9 +595,9 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
-        if ($rec->type == 'dc_note' && isset($rec->changeAmount)) {
+        if ($rec->type == 'dc_note' && (isset($rec->changeAmount) || isset($rec->dpAmount))) {
             $res = true;
-            return ;
+            return;
         }
         
         // Ако няма ид, не може да се активира документа
@@ -601,7 +609,6 @@ abstract class deals_InvoiceMaster extends core_Master
         // Ако има Авансово плащане може да се активира
         if (isset($rec->dpAmount)) {
             $res = !((round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)));
-            return;
         }
     }
     
@@ -1056,6 +1063,10 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setError('changeAmount,dcReason', 'Не може да се зададе основание за увеличение/намаление ако не е посочена сума');
                 }
 
+                if(!empty($rec->changeAmount) && !empty($rec->dcChangeAmountDeducted)){
+                    $form->setError('changeAmount,dcChangeAmountDeducted', 'Не може едновременно да се променя приспаднат аванс и да се задава обща сума');
+                }
+
                 $origin = doc_Containers::getDocument($rec->originId);
                 $originRec = $origin->fetch('dpAmount,dpOperation,dealValue,date,dpVatGroupId');
 
@@ -1177,6 +1188,14 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function beforeInvoiceSave($mvc, $rec)
     {
+        if ($rec->type == 'dc_note') {
+            if(!empty($rec->dcChangeAmountDeducted)){
+                $rec->dpAmount = $rec->dcChangeAmountDeducted;
+                $rec->dpOperation = 'deducted';
+            }
+        }
+
+
         if (!empty($rec->folderId)) {
             if (empty($rec->contragentClassId)) {
                 $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
@@ -1185,7 +1204,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
             }
         }
-        
+
         if ($rec->state == 'active') {
             if (empty($rec->dueDate)) {
 
@@ -1576,7 +1595,7 @@ abstract class deals_InvoiceMaster extends core_Master
             if(isset($rec->dpVatGroupId)){
                 $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
             }
-            $dpVatId = isset($rec->dpVatGroupId) ? $rec->dpVatGroupId : acc_VatGroups::getDefaultIdByDate($rec->date);
+            $dpVatId = $rec->dpVatGroupId ?? acc_VatGroups::getDefaultIdByDate($rec->date);
             if ($rec->dpOperation == 'accrued') {
                 $aggregator->sum('downpaymentInvoiced', $totalInDealRate);
 
@@ -1584,7 +1603,7 @@ abstract class deals_InvoiceMaster extends core_Master
             } elseif ($rec->dpOperation == 'deducted') {
 
                 // Колко е приспаднатото плащане с ддс
-                $deducted = abs($rec->dpAmount);
+                $deducted = $rec->type == 'dc_note' ? $rec->dpAmount : abs($rec->dpAmount);
                 $vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($deducted) * $vat : 0;
                 $aggregator->sum('downpaymentDeducted', $deducted + $vatAmount);
                 $aggregator->sumByArrIndex('downpaymentDeductedByVats', $deducted + $vatAmount, $dpVatId);
@@ -1597,7 +1616,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
                 if ($originRec->dpOperation == 'accrued') {
                     $aggregator->sum('downpaymentInvoiced', $totalInDealRate);
-                    $dpVatId = isset($originRec->dpVatGroupId) ? $originRec->dpVatGroupId : acc_VatGroups::getDefaultIdByDate($originRec->date);
+                    $dpVatId = $originRec->dpVatGroupId ?? acc_VatGroups::getDefaultIdByDate($originRec->date);
                     $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealRate, $dpVatId);
                 }
             }
