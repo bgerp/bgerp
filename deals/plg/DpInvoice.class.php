@@ -487,12 +487,13 @@ class deals_plg_DpInvoice extends core_Plugin
 
         // Ако има сума на авансовото плащане и тя не е "0"
         if ($masterRec->dpAmount) {
-            
+
             // Сумата се обръща в валутата на фактурата
             $dpAmount = currency_Currencies::round($masterRec->dpAmount / $masterRec->rate);
-            $dpAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dpAmount);
             $sign = $masterRec->type == 'dc_note' ? -1 : 1;
-            $data->dpInfo = (object) array('dpAmount' => $sign * $dpAmount, 'dpOperation' => $masterRec->dpOperation);
+            $dpAmount = $sign * $dpAmount;
+            $dpAmountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($dpAmount);
+            $data->dpInfo = (object) array('dpAmount' => $dpAmount, 'dpOperation' => $masterRec->dpOperation, 'dpAmountVerbal' => $dpAmountVerbal);
         }
     }
     
@@ -518,7 +519,7 @@ class deals_plg_DpInvoice extends core_Plugin
             
             return;
         }
-        
+
         // Ако няма записи, да не се показва реда "няма записи"
         if (empty($data->rows)) {
             $tpl->removeBlock('NO_ROWS');
@@ -540,11 +541,10 @@ class deals_plg_DpInvoice extends core_Plugin
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
             $deductCaption = $data->masterData->rec->type == 'invoice' ? tr('Приспадане на авансово плащане') : ($data->masterData->rec->dealValue > 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
-            $verbalDpAmount = core_Type::getByName('double(decimals=2)')->toVerbal($data->dpInfo->dpAmount);
             if ($data->dpInfo->dpAmount < 0) {
-                $data->dpInfo->dpAmount = "<span style='color:red'>{$verbalDpAmount}</span>";
+                $data->dpInfo->dpAmount = "<span style='color:red'>{$data->dpInfo->dpAmountVerbal}</span>";
             } elseif ($data->dpInfo->dpAmount > 0) {
-                $data->dpInfo->dpAmount = "<span style='color:green'>+{$verbalDpAmount}</span>";
+                $data->dpInfo->dpAmount = "<span style='color:green'>+{$data->dpInfo->dpAmountVerbal}</span>";
             }
 
             $colspan = countR($fields) - 1;
