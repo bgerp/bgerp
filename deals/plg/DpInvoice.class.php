@@ -526,11 +526,6 @@ class deals_plg_DpInvoice extends core_Plugin
         }
 
         $RichText = core_Type::getByName('richtext');
-
-        if($data->masterData->rec->id == 2253) {
-            //bp($data->masterData->rec);
-        }
-
         $dpReason = (!empty($data->masterData->rec->dpReason)) ? $RichText->toVerbal($data->masterData->rec->dpReason) : $RichText->toVerbal(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation));
         $reason = (!empty($data->masterData->rec->dpReason)) ? $dpReason : ht::createHint($dpReason, 'Основанието ще бъде записано при контиране', 'notice', false);
         $reason = !empty($reason) ? "</br>" . $reason : '';
