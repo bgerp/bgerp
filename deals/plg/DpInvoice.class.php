@@ -491,7 +491,8 @@ class deals_plg_DpInvoice extends core_Plugin
             // Сумата се обръща в валутата на фактурата
             $dpAmount = currency_Currencies::round($masterRec->dpAmount / $masterRec->rate);
             $dpAmount = core_Type::getByName('double(decimals=2)')->toVerbal($dpAmount);
-            $data->dpInfo = (object) array('dpAmount' => $dpAmount, 'dpOperation' => $masterRec->dpOperation);
+            $sign = $masterRec->type == 'dc_note' ? -1 : 1;
+            $data->dpInfo = (object) array('dpAmount' => $sign * $dpAmount, 'dpOperation' => $masterRec->dpOperation);
         }
     }
     
@@ -533,7 +534,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
-            $deductCaption = $data->masterData->rec->type == 'invoice' ? tr('Приспадане на авансово плащане') : tr('Промяна на приспаднат аванс');
+            $deductCaption = $data->masterData->rec->type == 'invoice' ? tr('Приспадане на авансово плащане') : ($data->masterData->rec->dealValue > 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
 
             $colspan = countR($fields) - 1;
             $colspan = isset($fields['reff']) ? $colspan - 1 : $colspan;
@@ -651,10 +652,15 @@ class deals_plg_DpInvoice extends core_Plugin
     {
         if (!isset($masterRec->dpAmount)) return;
 
+
+        $dpAmount = $masterRec->dpAmount;
         $dpVatGroupId = $masterRec->dpVatGroupId;
         if($masterRec->type == 'dc_note'){
             $originInv = doc_Containers::getDocument($masterRec->originId);
             $dpVatGroupId = $originInv->fetchField('dpVatGroupId');
+            if($masterRec->dpOperation == 'deducted'){
+                $dpAmount = -1 * $dpAmount;
+            }
         }
 
         $total = &$mvc->Master->_total;
@@ -675,8 +681,8 @@ class deals_plg_DpInvoice extends core_Plugin
         }
 
         // Закръгляне на сумите
-        $dpVat = $masterRec->dpAmount * $vat / $masterRec->rate;
-        $dpAmount = $masterRec->dpAmount / $masterRec->rate;
+        $dpVat = $dpAmount * $vat / $masterRec->rate;
+        $dpAmount = $dpAmount / $masterRec->rate;
         
         // Добавяне на авансовите данни в тотала
         $total->vat += $dpVat;
