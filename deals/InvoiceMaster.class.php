@@ -1059,7 +1059,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     }
                 }
                 
-                if (empty($rec->changeAmount) && !empty($rec->dcReason)) {
+                if ((empty($rec->changeAmount) && empty($rec->dcChangeAmountDeducted)) && !empty($rec->dcReason)) {
                     $form->setError('changeAmount,dcReason', 'Не може да се зададе основание за увеличение/намаление ако не е посочена сума');
                 }
 

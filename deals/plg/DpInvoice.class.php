@@ -525,17 +525,18 @@ class deals_plg_DpInvoice extends core_Plugin
             $tpl->removeBlock('NO_ROWS');
         }
 
+        $masterRec = $data->masterData->rec;
         $RichText = core_Type::getByName('richtext');
-        $dpReason = (!empty($data->masterData->rec->dpReason)) ? $RichText->toVerbal($data->masterData->rec->dpReason) : $RichText->toVerbal(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation));
-        $reason = (!empty($data->masterData->rec->dpReason)) ? $dpReason : ht::createHint($dpReason, 'Основанието ще бъде записано при контиране', 'notice', false);
+        $dpReason = (!empty($masterRec->dpReason)) ? $RichText->toVerbal($masterRec->dpReason) : $RichText->toVerbal(self::getReasonText($masterRec, $data->dpInfo->dpOperation));
+        $reason = (!empty($masterRec->dpReason)) ? $dpReason : ht::createHint($dpReason, 'Основанието ще бъде записано при контиране', 'notice', false);
         $reason = !empty($reason) ? "</br>" . $reason : '';
-        
+
         if ($data->dpInfo->dpOperation == 'accrued') {
             $colspan = countR($data->listFields) - 1;
             $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
-            $deductCaption = $data->masterData->rec->type == 'invoice' ? tr('Приспадане на авансово плащане') : ($data->dpInfo->dpAmount < 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
+            $deductCaption = $masterRec->type == 'invoice' ? tr('Приспадане на авансово плащане') : ($data->dpInfo->dpAmount < 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
             if ($data->dpInfo->dpAmount < 0) {
                 $data->dpInfo->dpAmount = "<span style='color:red'>{$data->dpInfo->dpAmountVerbal}</span>";
             } elseif ($data->dpInfo->dpAmount > 0) {
@@ -547,7 +548,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . $deductCaption . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         }
 
-        if(!doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $data->masterData->rec)){
+        if(!doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec)){
             $data->dpInfo->dpAmount = doc_plg_HidePrices::getBuriedElement();
         }
 
@@ -571,6 +572,7 @@ class deals_plg_DpInvoice extends core_Plugin
 
         if($masterRec->type == 'dc_note') {
             $origin = doc_Containers::getDocument($masterRec->originId);
+            if(!empty($masterRec->dcReason)) return $masterRec->dcReason;
 
             return tr("по фактура|* №") . $origin->recToVerbal()->number;
         }
