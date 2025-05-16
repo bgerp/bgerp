@@ -442,6 +442,21 @@ class rack_plg_Shipments extends core_Plugin
             }
         }
 
+        // Еднократно извличане на последните ЦД където е произвеждан артикула
+        $lastTasks = array();
+        foreach ($data->recs as $moveRec1){
+            if(!array_key_exists($moveRec1->productId, $lastTasks)){
+                $tQuery = planning_Tasks::getQuery();
+                $tQuery->where("#state NOT IN ('draft', 'rejected') AND #isFinal='yes'");
+                $tQuery->orderBy('id', 'DESC');
+                $tQuery->EXT('jProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
+                $tQuery->where("#jProductId = {$moveRec1->productId}");
+                $tQuery->show('folderId');
+                $lastTaskRec = $tQuery->fetch();
+                $lastTasks[$moveRec1->productId] = is_object($lastTaskRec) ? doc_Folders::getTitleById($lastTaskRec->folderId) : null;
+            }
+        }
+
         // Вербализиране на движенията
         foreach ($data->recs as $k => $moveRec){
             $packs = cls::get('rack_Movements')->getCurrentPackagings($moveRec->productId);
@@ -459,9 +474,16 @@ class rack_plg_Shipments extends core_Plugin
             // В една колонка ще се показват всички позиции от, които ще се взимат
             $positionArr = array();
             foreach ($moveRec->positions as $position => $quantity){
-                $position = $position == rack_PositionType::FLOOR ? 'Под' : $position;
+                $positionStr = $position == rack_PositionType::FLOOR ? 'Под' : $position;
                 $convertedQuantity = rack_Movements::getSmartPackagings($moveRec->productId, $packs, $quantity, $moveRec->packagingId);
-                $positionArr[] = "<b>{$position}</b> ({$convertedQuantity})";
+                $positionStr = "<b>{$positionStr}</b> ({$convertedQuantity})";
+                if($position == rack_PositionType::FLOOR){
+                    if(isset($lastTasks[$moveRec->productId])){
+                        $positionStr .= " (" . $lastTasks[$moveRec->productId] . ")";
+                    }
+                }
+
+                $positionArr[] = $positionStr;
             }
             $row->positions = implode('<br/> ', $positionArr);
             $data->rows[$k] = $row;
