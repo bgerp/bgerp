@@ -525,6 +525,11 @@ class deals_plg_DpInvoice extends core_Plugin
         }
 
         $RichText = core_Type::getByName('richtext');
+
+        if($data->masterData->rec->id == 2253) {
+            //bp($data->masterData->rec);
+        }
+
         $dpReason = (!empty($data->masterData->rec->dpReason)) ? $RichText->toVerbal($data->masterData->rec->dpReason) : $RichText->toVerbal(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation));
         $reason = (!empty($data->masterData->rec->dpReason)) ? $dpReason : ht::createHint($dpReason, 'Основанието ще бъде записано при контиране', 'notice', false);
         $reason = !empty($reason) ? "</br>" . $reason : '';
@@ -568,7 +573,13 @@ class deals_plg_DpInvoice extends core_Plugin
     {
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
         $valior = $firstDoc->getVerbal('valior');
-        
+
+        if($masterRec->type == 'dc_note') {
+            $origin = doc_Containers::getDocument($masterRec->originId);
+
+            return tr("по фактура|* №") . $origin->recToVerbal()->number;
+        }
+
         $deals = array();
         if ($firstDoc->isInstanceOf('deals_DealMaster')) {
             $closedDeals = $firstDoc->fetchField('closedDocuments');
@@ -620,7 +631,7 @@ class deals_plg_DpInvoice extends core_Plugin
         } else {
             $misc = tr("по {$caption}|* ") . implode(', ', $deals);
         }
-        
+
         return $misc;
     }
     

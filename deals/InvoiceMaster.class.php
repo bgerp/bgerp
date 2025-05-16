@@ -420,7 +420,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // Трябва фактурата основание да не е ДИ или КИ
         expect($invArr['type'] == 'invoice');
-        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible', 'numlimit', 'username', 'issuerId');
+        $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible', 'numlimit', 'username', 'issuerId', 'dpReason');
 
         if ($invArr['type'] != 'dc_note') {
             $cache = $this->getInvoiceDetailedInfo($form->rec->originId);
