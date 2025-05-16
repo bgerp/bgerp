@@ -535,7 +535,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
-            $deductCaption = $data->masterData->rec->type == 'invoice' ? tr('Приспадане на авансово плащане') : ($data->masterData->rec->dealValue > 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
+            $deductCaption = $data->masterData->rec->type == 'invoice' ? tr('Приспадане на авансово плащане') : ($data->dpInfo->dpAmount > 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
             if ($data->dpInfo->dpAmount < 0) {
                 $data->dpInfo->dpAmount = "<span style='color:red'>{$data->dpInfo->dpAmountVerbal}</span>";
             } elseif ($data->dpInfo->dpAmount > 0) {
