@@ -535,10 +535,16 @@ class deals_plg_DpInvoice extends core_Plugin
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
             $deductCaption = $data->masterData->rec->type == 'invoice' ? tr('Приспадане на авансово плащане') : ($data->masterData->rec->dealValue > 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
+            $verbalDpAmount = core_Type::getByName('double(decimals=2)')->toVerbal($data->dpInfo->dpAmount);
+            if ($data->dpInfo->dpAmount < 0) {
+                $data->dpInfo->dpAmount = "<span style='color:red'>{$verbalDpAmount}</span>";
+            } elseif ($data->dpInfo->dpAmount > 0) {
+                $data->dpInfo->dpAmount = "<span style='color:green'>+{$verbalDpAmount}</span>";
+            }
 
             $colspan = countR($fields) - 1;
             $colspan = isset($fields['reff']) ? $colspan - 1 : $colspan;
-            $lastRow = new ET("<tr><td colspan='{$colspan}'>" . $deductCaption . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . $deductCaption . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         }
 
         if(!doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $data->masterData->rec)){
