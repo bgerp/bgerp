@@ -126,7 +126,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Кой може да приключва всички движения?
      */
-    public $canCompleteallmovements = 'ceo,rack';
+    public $canDoallmovements = 'ceo,rack';
 
 
     /**
