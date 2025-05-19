@@ -221,6 +221,21 @@ class acc_BalanceDetails extends core_Detail
                 }
                 $count++;
             }
+
+            // Ако к-та и сумите са еднакви - да не се показва едната колонка
+            foreach (array('base', 'debit', 'credit', 'bl') as $fieldPart) {
+                $haveSame = true;
+                foreach ($data->recs as $id => $r) {
+                    if(round($r->{"{$fieldPart}Quantity"}, 2) != round($r->{"{$fieldPart}Amount"}, 2)){
+                        $haveSame = false;
+                        break;
+                    }
+                }
+
+                if($haveSame) {
+                    unset($data->listFields["{$fieldPart}Quantity"]);
+                }
+            }
         }
     }
     
@@ -663,7 +678,7 @@ class acc_BalanceDetails extends core_Detail
             $bShowQuantities = $bShowQuantities || ($listRec->isDimensional == 'yes');
             $data->listFields["ent{$i}Id"] = '|*' . acc_Lists::getVerbal($listRec, 'name');
         }
-        
+
         if ($bShowQuantities) {
             $data->listFields += array(
                 'baseQuantity' => 'Начално салдо->ДК->К-во',
