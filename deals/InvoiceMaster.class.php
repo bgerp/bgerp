@@ -440,7 +440,9 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setField('changeAmount', 'caption=Промяна на авансово плащане|*->|Аванс|*,mandatory');
                     $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение');
                 } elseif($invArr['dpOperation'] == 'deducted') {
-                    $form->setDefault('dcChangeAmountDeducted', $form->rec->dpAmount);
+                    if(isset($form->rec->dpAmount)){
+                        $form->setDefault('dcChangeAmountDeducted', round($form->rec->dpAmount / $form->rec->rate, 4));
+                    }
                     $form->FLD('dcChangeAmountDeducted', 'double', "input,unit={$invArr['currencyId']} без ДДС,caption=Задаване на увеличение/намаление на фактура->|Приспаднат аванс|*,after=changeAmount");
                     $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение,after=changeAmountDownpayment');
                     $unsetArr[] = 'dcChangeAmountDeducted';
@@ -1190,11 +1192,13 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         if ($rec->type == 'dc_note') {
             if(!empty($rec->dcChangeAmountDeducted)){
-                $rec->dpAmount = $rec->dcChangeAmountDeducted;
+                $rec->dpAmount = $rec->dcChangeAmountDeducted * $rec->rate;
                 $rec->dpOperation = 'deducted';
+            } elseif(isset($rec->changeAmount)) {
+                $rec->dpAmount = null;
+                $rec->dpOperation = 'none';
             }
         }
-
 
         if (!empty($rec->folderId)) {
             if (empty($rec->contragentClassId)) {
