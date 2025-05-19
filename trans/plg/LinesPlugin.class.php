@@ -232,7 +232,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         if ($form->isSubmitted()) {
             $formRec = $form->rec;
             if (isset($formRec->lineId)) {
-                $lineRec = trans_Lines::fetchField("#id = {$formRec->lineId}");
+                $lineRec = trans_Lines::fetch("#id = {$formRec->lineId}");
                 
                 // Ако има избрана линия, проверка трябва ли задължително да има МОЛ
                 $firstDocument = doc_Threads::getFirstDocument($rec->threadId);

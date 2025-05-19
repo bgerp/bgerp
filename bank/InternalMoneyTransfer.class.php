@@ -338,7 +338,7 @@ class bank_InternalMoneyTransfer extends core_Master
         if ($rec->operationSysId == 'bank2bank') {
             $bankRec = bank_OwnAccounts::fetch($rec->debitBank);
             if ($bankRec->autoShare == 'yes') {
-                $rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
+                $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($bankRec->operators, core_Users::getCurrent()));
             }
             
             // Двете банкови сметки трябва да са различни

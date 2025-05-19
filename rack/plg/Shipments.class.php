@@ -29,7 +29,7 @@ class rack_plg_Shipments extends core_Plugin
         setIfNot($mvc->rackStoreFieldName, $mvc->storeFieldName);
         setIfNot($mvc->detailToPlaceInZones, $mvc->mainDetail);
         setIfNot($mvc->canPrintzonemovements, 'no_one');
-        setIfNot($mvc->canCompleteallmovements, 'no_one');
+        setIfNot($mvc->canDoallmovements, 'no_one');
     }
     
     
@@ -101,8 +101,9 @@ class rack_plg_Shipments extends core_Plugin
             $data->toolbar->addBtn('Печат (Движ.)', array($mvc, 'printzonemovements', 'id' => $rec->id, 'Printing' => 'yes'), 'title=Печат на движенията към зоната в документа,ef_icon=img/16/printer.png,target=_blank,row=2');
         }
 
-        if ($mvc->haveRightFor('completeallmovements', $rec)){
-            $data->toolbar->addBtn('Движения (Прикл.)', array($mvc, 'completeallmovements', 'id' => $rec->id, 'ret_url' => true), 'title=Приключване на всички движения,ef_icon=img/16/gray-close.png,row=2');
+        if ($mvc->haveRightFor('doallmovements', $rec)){
+            $data->toolbar->addBtn('Движ. (Прикл.)', array($mvc, 'doallmovements', 'do' => 'close', 'id' => $rec->id, 'ret_url' => true), 'title=Приключване на всички движения,ef_icon=img/16/gray-close.png,row=2');
+            $data->toolbar->addBtn('Движ. (Започв.)', array($mvc, 'doallmovements', 'do' => 'start', 'id' => $rec->id, 'ret_url' => true), 'title=Започване на всички движения,ef_icon=img/16/control_play.png,row=2');
         }
     }
     
@@ -286,14 +287,14 @@ class rack_plg_Shipments extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if(in_array($action, array('completeallmovements', 'printzonemovements')) && isset($rec)){
+        if(in_array($action, array('doallmovements', 'printzonemovements')) && isset($rec)){
             if(!rack_Zones::fetchField("#containerId = {$rec->containerId}")){
                 $requiredRoles = 'no_one';
             }
         }
 
         // Ако има неприключени движения да се появява бутона за приключване на всички
-        if($action == 'completeallmovements' && isset($rec)){
+        if($action == 'doallmovements' && isset($rec)){
             if($requiredRoles != 'no_one'){
                 $zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}");
                 $ready = rack_Movements::count("LOCATE('|{$zoneId}|', #zoneList) AND #state IN ('pending', 'waiting', 'active')");
@@ -345,11 +346,12 @@ class rack_plg_Shipments extends core_Plugin
         }
 
         // Екшън за масово приключване на движения
-        if($action == 'completeallmovements'){
-            $mvc->requireRightFor('completeallmovements');
+        if($action == 'doallmovements'){
+            $mvc->requireRightFor('doallmovements');
             expect($id = Request::get('id', 'int'));
+            expect($do = Request::get('do', 'enum(start,close)'));
             expect($rec = $mvc->fetch($id));
-            $mvc->requireRightFor('completeallmovements', $rec);
+            $mvc->requireRightFor('doallmovements', $rec);
 
             expect($zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}"));
             $movementRecs = rack_Zones::getCurrentMovementRecs($zoneId, 'notClosed');
@@ -360,10 +362,14 @@ class rack_plg_Shipments extends core_Plugin
 
             // Първо се проверяват дали всичките може да се приключат
             foreach ($movementRecs as $mRec){
-                $transaction = $Movements->getTransaction($mRec);
-                $transaction = $Movements->validateTransaction($transaction);
-                if (!empty($transaction->errors)) {
-                    $errors[] = "[{$mRec->id}] " . $transaction->errors;
+                if($do == 'start'){
+                    $transaction = $Movements->getTransaction($mRec);
+                    $transaction = $Movements->validateTransaction($transaction);
+                    if (!empty($transaction->errors)) {
+                        $errors[] = "[{$mRec->id}] " . $transaction->errors;
+                    } elseif(rack_Movements::haveRightFor('start', $mRec)){
+                        $closeRecs[] = $mRec;
+                    }
                 } else {
                     if(rack_Movements::haveRightFor('done', $mRec)){
                         $closeRecs[] = $mRec;
@@ -372,7 +378,7 @@ class rack_plg_Shipments extends core_Plugin
             }
 
             if(countR($errors)){
-                $msg = "Не може групово да приключоте всички движения" . implode(',', $errors);
+                $msg = "Не може групово да стартирате всички движения" . implode(',', $errors);
                 $msgType = 'error';
             } else {
 
@@ -383,8 +389,15 @@ class rack_plg_Shipments extends core_Plugin
                     }
 
                     $mRec->workerId = core_Users::getCurrent();
-                    $mRec->state = 'closed';
-                    $mRec->brState = 'active';
+
+                    if($do == 'start'){
+                        $mRec->brState = $rec->state;
+                        $mRec->state = 'active';
+                    } else {
+                        $mRec->state = 'closed';
+                        $mRec->brState = 'active';
+                    }
+
                     $Movements->save($mRec, 'state,brState,packagings,workerId,modifiedOn,modifiedBy');
                     $ok++;
 
@@ -392,7 +405,8 @@ class rack_plg_Shipments extends core_Plugin
                 }
 
                 $msgType = 'notice';
-                $msg = "Приключени са|*: {$ok}";
+                $msg = $do == 'start' ? 'Стартирани са' : 'Приключени са';
+                $msg = "{$msg}|*: {$ok}";
             }
 
             followRetUrl(null, $msg, $msgType);
@@ -428,6 +442,21 @@ class rack_plg_Shipments extends core_Plugin
             }
         }
 
+        // Еднократно извличане на последните ЦД където е произвеждан артикула
+        $lastTasks = array();
+        foreach ($data->recs as $moveRec1){
+            if(!array_key_exists($moveRec1->productId, $lastTasks)){
+                $tQuery = planning_Tasks::getQuery();
+                $tQuery->where("#state NOT IN ('draft', 'rejected') AND #isFinal='yes'");
+                $tQuery->orderBy('id', 'DESC');
+                $tQuery->EXT('jProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
+                $tQuery->where("#jProductId = {$moveRec1->productId}");
+                $tQuery->show('folderId');
+                $lastTaskRec = $tQuery->fetch();
+                $lastTasks[$moveRec1->productId] = is_object($lastTaskRec) ? doc_Folders::getTitleById($lastTaskRec->folderId) : null;
+            }
+        }
+
         // Вербализиране на движенията
         foreach ($data->recs as $k => $moveRec){
             $packs = cls::get('rack_Movements')->getCurrentPackagings($moveRec->productId);
@@ -445,9 +474,16 @@ class rack_plg_Shipments extends core_Plugin
             // В една колонка ще се показват всички позиции от, които ще се взимат
             $positionArr = array();
             foreach ($moveRec->positions as $position => $quantity){
-                $position = $position == rack_PositionType::FLOOR ? 'Под' : $position;
+                $positionStr = $position == rack_PositionType::FLOOR ? 'Под' : $position;
                 $convertedQuantity = rack_Movements::getSmartPackagings($moveRec->productId, $packs, $quantity, $moveRec->packagingId);
-                $positionArr[] = "<b>{$position}</b> ({$convertedQuantity})";
+                $positionStr = "<b>{$positionStr}</b> ({$convertedQuantity})";
+                if($position == rack_PositionType::FLOOR){
+                    if(isset($lastTasks[$moveRec->productId])){
+                        $positionStr .= " (" . $lastTasks[$moveRec->productId] . ")";
+                    }
+                }
+
+                $positionArr[] = $positionStr;
             }
             $row->positions = implode('<br/> ', $positionArr);
             $data->rows[$k] = $row;
