@@ -444,6 +444,7 @@ abstract class deals_InvoiceMaster extends core_Master
                         $form->setDefault('dcChangeAmountDeducted', round($form->rec->dpAmount / $form->rec->rate, 4));
                     }
                     $form->FLD('dcChangeAmountDeducted', 'double', "input,unit={$invArr['currencyId']} без ДДС,caption=Задаване на увеличение/намаление на фактура->|Приспаднат аванс|*,after=changeAmount");
+                    $form->setFieldTypeParams('dcChangeAmountDeducted', array('min' => $invArr['dpAmount']));
                     $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение,after=changeAmountDownpayment');
                     $unsetArr[] = 'dcChangeAmountDeducted';
                 }
