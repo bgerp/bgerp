@@ -533,7 +533,7 @@ class deals_plg_DpInvoice extends core_Plugin
 
         if ($data->dpInfo->dpOperation == 'accrued') {
             $colspan = countR($data->listFields) - 1;
-            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmountVerbal#]</td></td></tr>");
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
             $deductCaption = $masterRec->type == 'invoice' ? tr('Приспадане на авансово плащане') : ($data->dpInfo->dpAmount < 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
@@ -574,7 +574,9 @@ class deals_plg_DpInvoice extends core_Plugin
             $origin = doc_Containers::getDocument($masterRec->originId);
             if(!empty($masterRec->dcReason)) return $masterRec->dcReason;
 
-            return tr("по фактура|* №") . $origin->recToVerbal()->number;
+            $number = str_pad($origin->fetchField('number'), 10, "0", STR_PAD_LEFT);
+
+            return tr("по фактура|* №") . $number;
         }
 
         $deals = array();
@@ -603,7 +605,9 @@ class deals_plg_DpInvoice extends core_Plugin
         
         $pArr = $invArr = array();
         while ($iRec = $iQuery->fetch()) {
-            $invArr[$iRec->id] = '№' . sales_Invoices::recToVerbal($iRec)->number;
+            $number = str_pad($iRec->number, 10, "0", STR_PAD_LEFT);
+
+            $invArr[$iRec->id] = "№{$number}";
         }
         
         $pQuery = sales_Proformas::getQuery();
@@ -611,7 +615,9 @@ class deals_plg_DpInvoice extends core_Plugin
         $pQuery->where("#threadId = '{$firstDoc->fetchField('threadId')}'");
         
         while ($pRec = $pQuery->fetch()) {
-            $pArr[$pRec->id] = '№' . sales_Invoices::recToVerbal($pRec)->number;
+            $number = str_pad($pRec->number, 10, "0", STR_PAD_LEFT);
+
+            $pArr[$pRec->id] = "№{$number}";
         }
         
         $handleArr = countR($invArr) ? $invArr : $pArr;
@@ -626,7 +632,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $docTitle = countR($invArr) ? 'по фактури' : 'по проформи';
             $misc = tr($docTitle) . " {$handleString}";
         } else {
-            $misc = tr("по {$caption}|* ") . implode(', ', $deals);
+            $misc = tr("по {$caption}|*sss ") . implode(', ', $deals);
         }
 
         return $misc;

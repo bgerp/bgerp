@@ -964,6 +964,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec->_isCreated = true;
 
         $details = $mvc->getDefaultDetails($rec);
+
         if(countR($details)) {
             $consignmentProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($rec->threadId, false);
 
@@ -995,8 +996,24 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 planning_DirectProductNoteDetails::save($dRec);
+
+                // От вложените партиди остават само толкова колкото са нужни за крайното к-во
                 if(is_array($dRec->batches)){
-                    batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $dRec->id, $dRec->batches, true);
+                    $neededQty = $dRec->quantity;
+                    $neededBatches = array();
+                    foreach ($dRec->batches as $batch => $qty) {
+                        if ($neededQty <= 0) break;
+
+                        if ($qty <= $neededQty) {
+                            $neededBatches[$batch] = $qty;
+                            $neededQty -= $qty;
+                        } else {
+                            $neededBatches[$batch] = $neededQty;
+                            break;
+                        }
+                    }
+
+                    batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $dRec->id, $neededBatches, true);
                 }
             }
         }

@@ -83,7 +83,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
             
             // Ако е Ди или Ки без промяна не може да се контира
             if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
-                if (!$rec->dealValue) {
+                if (!$rec->dealValue && empty($rec->dpAmount)) {
                     acc_journal_RejectRedirect::expect(false, 'Дебитното/кредитното известие не може да бъде контирано, докато сумата е нула');
                 }
             }
