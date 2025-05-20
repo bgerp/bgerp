@@ -1000,7 +1000,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
 
-            if(isset($rec->id) && isset($rec->displayRate)){
+            if(isset($rec->id) && isset($rec->displayRate) && $rec->type != 'dc_note'){
                 // Предупреждение ако вальора е сменен, но курса е различен от очаквания
                 $expectedRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if(round($expectedRate, 5) != round($rec->displayRate, 5)){
