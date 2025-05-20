@@ -1728,11 +1728,18 @@ class eshop_Carts extends core_Master
         $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
         $deliveryNoVat = ($rec->freeDelivery != 'no') ? 0 : currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
         $vatAmount = $total - $totalNoVat - $deliveryNoVat;
-        
+
+        $isBgnDisplayed = ($settings->currencyId == 'BGN');
         $amountWithoutDelivery = (static::calcChargeVat($rec) == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
         $row->total = currency_Currencies::decorate($row->total, $settings->currencyId);
-        
+
+        if($isBgnDisplayed){
+            $totalEuro = currency_CurrencyRates::convertAmount($total, null, null, "EUR");
+            $priceEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($totalEuro);
+            $row->total .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR');
+        }
+
         // Ако има доставка се показва и нея
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
             $row->deliveryCaption = tr('Доставка||Shipping');
@@ -1756,6 +1763,13 @@ class eshop_Carts extends core_Master
                 $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
                 $deliveryAmountV = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
                 $deliveryAmountV = currency_Currencies::decorate($deliveryAmountV, $settings->currencyId);
+
+                if($isBgnDisplayed) {
+                    $deliveryAmountEuro = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, "EUR");
+                    $deliveryAmountEuro = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmountEuro);
+                    $deliveryAmountV .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($deliveryAmountEuro, 'EUR');
+                }
+
                 $row->deliveryAmount = $deliveryAmountV;
             }
         }
@@ -1763,12 +1777,26 @@ class eshop_Carts extends core_Master
         if(round($rec->total, 4) != round($amountWithoutDelivery, 4) || $rec->freeDelivery == 'yes'){
             $row->amount = $Double->toVerbal($amountWithoutDelivery);
             $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
+
+            if($isBgnDisplayed) {
+                $amountWithoutDeliveryEuro = currency_CurrencyRates::convertAmount($amountWithoutDelivery, null, null, "EUR");
+                $amountWithoutDeliveryEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDeliveryEuro);
+                $row->amount .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($amountWithoutDeliveryEuroVerbal, 'EUR');
+            }
+
             $row->amountCurrencyId = $row->currencyId;
         }
         
         if (eshop_Carts::calcChargeVat($rec) == 'separate') {
             $row->totalVat = $Double->toVerbal($vatAmount);
             $row->totalVat = currency_Currencies::decorate($row->totalVat, $settings->currencyId);
+
+            if($isBgnDisplayed) {
+                $totalVatEuro = currency_CurrencyRates::convertAmount($vatAmount, null, null, "EUR");
+                $totalVatEuro = core_Type::getByName('double(decimals=2)')->toVerbal($totalVatEuro);
+                $row->totalVat .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($totalVatEuro, 'EUR');
+            }
+
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));

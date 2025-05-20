@@ -225,12 +225,17 @@ class eshop_ProductDetails extends core_Detail
                     $price *= 1 + cat_Products::getVat($productId, null, $settings->vatExceptionId);
                 }
                 $price = currency_CurrencyRates::convertAmount($price, null, null, $settings->currencyId);
-                
+
                 $res->price = round($price, 5);
+                if($settings->currencyId == 'BGN'){
+                    $priceEuro = currency_CurrencyRates::convertAmount($price, null, $settings->currencyId, 'EUR');
+                    $res->priceEuro = round($priceEuro, 5);
+                }
+
                 if (!empty($priceObject->discount)) {
                     $res->discount = $priceObject->discount;
                 }
-                
+
                 return $res;
             }
         }
@@ -448,13 +453,19 @@ class eshop_ProductDetails extends core_Detail
         
         if($showPrice){
             $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
+
             if(isset($catalogPriceInfo->price)){
                 $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
                 if($catalogPriceInfo->price == 0){
                     $row->catalogPrice = "<span class='green'>" . tr('Безплатно') . "</span>";
+                } else {
+                    $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId);
+                    if(isset($catalogPriceInfo->priceEuro)){
+                        $priceEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->priceEuro);
+                        $row->catalogPrice .= " <span style='font-weight:normal;'>/ " . currency_Currencies::decorate($priceEuroVerbal, 'EUR') . "</span>";
+                    }
                 }
-                
-                $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId);
+
                 $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
             } else {
                 $showCartBtn = $showPrice = false;
