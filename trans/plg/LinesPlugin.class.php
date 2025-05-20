@@ -166,6 +166,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $form->setField($dateField, "placeholder={$placeholder}");
                 }
             }
+            $mvc->recalcAutoDates[$rec->id] = $rec;
         }
 
         $form->input(null, 'silent');
@@ -231,7 +232,8 @@ class trans_plg_LinesPlugin extends core_Plugin
         if ($form->isSubmitted()) {
             $formRec = $form->rec;
             if (isset($formRec->lineId)) {
-
+                $lineRec = trans_Lines::fetch("#id = {$formRec->lineId}");
+                
                 // Ако има избрана линия, проверка трябва ли задължително да има МОЛ
                 $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
                 if ($firstDocument && $firstDocument->isInstanceOf('deals_DealMaster')) {
@@ -239,6 +241,20 @@ class trans_plg_LinesPlugin extends core_Plugin
                         if (cond_PaymentMethods::isCOD($methodId) && !trans_Lines::fetchField("#id = {$formRec->lineId} AND #forwarderPersonId IS NOT NULL")) {
                             $form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице|*!');
                         }
+                    }
+                }
+
+                if(cls::haveInterface('store_iface_DocumentIntf', $mvc)) {
+                    $clone = clone $rec;
+                    foreach ($form->rec as $f => $v) {
+                        $clone->{$f} = $v;
+                    }
+                    $lineDateFields = $mvc->getShipmentDateFields($clone);
+                    $deliveryOn = !empty($form->rec->deliveryTime) ? $form->rec->deliveryTime : $lineDateFields['deliveryTime']['placeholder'];
+
+                    if($lineRec->start < $deliveryOn) {
+                        $deliveryOn = dt::mysql2verbal($deliveryOn);
+                        $form->setWarning('lineId', "Началото на линията е преди очакваната дата на товарене|*: {$deliveryOn}!");
                     }
                 }
             }
@@ -926,6 +942,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Извличат се изчислените дати
         $shippedDates = $mvc->getShipmentDateFields($rec);
+
         foreach ($shippedDates as $dateFld => $obj){
 
             // Ако има лайв изчислена записва се в река

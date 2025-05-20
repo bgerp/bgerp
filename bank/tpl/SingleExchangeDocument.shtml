@@ -13,11 +13,11 @@
                     <td><b>[#valior#]</b></td>
                 </tr>
                 <tr>
-                    <td class="quiet aright">|От|*:</td>
+                    <td class="quiet aright">|От|* [#type#]:</td>
                     <td>[#peroFrom#]</td>
                 </tr>
                 <tr>
-                    <td class="quiet aright">|Към|*:</td>
+                    <td class="quiet aright">|Към|* [#type#]:</td>
                     <td>[#peroTo#]</td>
                 </tr>
                 <tr>

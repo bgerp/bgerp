@@ -432,7 +432,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public static function on_AfterPrepareListRows($mvc, &$data)
     {
         $masterRec = $data->masterData->rec;
-        
+
         if (isset($masterRec->type)) {
             if ($masterRec->type == 'debit_note' || $masterRec->type == 'credit_note' || ($masterRec->type == 'dc_note' && isset($masterRec->changeAmount) && !countR($data->rows))) {
                 // При дебитни и кредитни известия показваме основанието

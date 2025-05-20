@@ -532,10 +532,8 @@ class frame2_Reports extends embed_Manager
 
             // Ако името на драйвера не се съдържа в името на справката - да се показва
             $subTitle = core_Classes::fetchField("#id = {$Driver->getClassId()}", 'title');
-            $subTitle = explode(' » ', $subTitle);
-            $subTitle = (countR($subTitle) == 2) ? $subTitle[1] : $subTitle[0];
             if(strpos($row->title, $subTitle) === false){
-                $row->subTitle = $subTitle;
+                $row->subTitle = "Справка \"{$subTitle}\"";
             }
         }
         
@@ -543,7 +541,6 @@ class frame2_Reports extends embed_Manager
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
 
-        
         return $row;
     }
     
