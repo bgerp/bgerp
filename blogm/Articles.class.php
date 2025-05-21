@@ -184,9 +184,59 @@ class blogm_Articles extends core_Master
         if(blogm_Setup::get('TYPE') == 'news'){
             unset($row->author);
         }
+
+        // Ако се рендира статия във външната част
+        if ($fields['-article']) {
+            $categories = keylist::toArray($rec->categories);
+            $Category = cls::get('blogm_Categories');
+
+            $cMenuId = Request::get('cMenuId', 'int');
+            if(empty($cMenuId)){
+                $cMenuId = static::getDefaultMenuId($rec);
+            }
+
+            // Показва се и навигацията във всичките категории дето е включена
+            $navigationArr = $Category->getNestedTree($categories);
+            $pathArr = $mvc->flattenNavPaths($navigationArr, $cMenuId);
+            $row->articleNavBar = '';
+            foreach ($pathArr as $path) {
+                $row->articleNavBar .= "<div>{$path}</div>";
+            }
+        }
     }
-    
-    
+
+
+    /**
+     * Вербализира пътя към навигацията
+     *
+     * @param array $navigation
+     * @param int $menuId
+     * @param array $prefix
+     *
+     * @return array $result
+     */
+    private function flattenNavPaths($navigation, $menuId, $prefix = array())
+    {
+        $result = array();
+
+        foreach ($navigation as $id => $children) {
+            $url = ht::createLink(blogm_Categories::getTitleById($id),  array('blogm_Articles', 'browse', 'cMenuId' => $menuId, 'category' => $id));
+            $newPath = array_merge($prefix, [$url]);
+
+            if (empty($children)) {
+                // Стигнахме листо – запазваме целия път
+                $result[] = implode(' » ', $newPath);
+            } else {
+                // Продължаваме надолу
+                $childPaths = $this->flattenNavPaths($children, $menuId, $newPath);
+                $result = array_merge($result, $childPaths);
+            }
+        }
+
+        return $result;
+    }
+
+
     /**
      * Изпълнява се преди всеки запис
      */
