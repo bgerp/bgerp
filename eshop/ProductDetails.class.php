@@ -539,7 +539,6 @@ class eshop_ProductDetails extends core_Detail
                 Request::setProtected('classId,objectId,customizeProtoOpt');
                 $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'customizeProtoOpt' => $customizeProto, 'ret_url' => true));
                 Request::removeProtected('classId,objectId,customizeProtoOpt');
-                
                 $row->btnInquiry = ht::createBtn('Запитване', $url, false, false, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
             }
         }
