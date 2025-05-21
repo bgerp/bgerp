@@ -201,8 +201,12 @@ class blogm_Categories extends core_Manager
             $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
             $tpl->replace($toggleLink, 'TOGGLE_BTN');
         }
-        
-        
+
+        $showRoot = blogm_Setup::get('SHOW_CATEGORIES_ROOT');
+        if($showRoot == 'yes'){
+            $tpl->append(tr('Категории'), 'CATEGORY_CAPTION');
+        }
+
         // Връщаме вече рендираният шаблон
         return $tpl;
     }

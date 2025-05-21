@@ -131,7 +131,10 @@ class blogm_Articles extends core_Master
         $rec->body = trim($rec->body);
         
         if ($fields['-browse']) {
-            $row->annotation = ($rec->seoDescription ? $rec->seoDescription : cms_Content::getSeoDescription($rec->body, 350, 450)) . ' ' .
+
+            $minLen = blogm_Setup::get('ARTICLE_ANNOTATION_MIN_LENGTH');
+            $maxLen = blogm_Setup::get('ARTICLE_ANNOTATION_MAX_LENGTH');
+            $row->annotation = ($rec->seoDescription ? $rec->seoDescription : cms_Content::getSeoDescription($rec->body, $minLen, $maxLen)) . ' ' .
                 ht::createLink('...', self::getUrl($rec), null, array('title' => tr('Виж цялата статия')));
             
             $thumb = $rec->seoThumb;
@@ -758,7 +761,10 @@ class blogm_Articles extends core_Master
                 $data->descr .= "<p><b style='color:#666;'>" . tr($str) . '</b></p>';
             }
         } else {
-            $data->title = tr(blogm_Setup::get('ALL_ARTICLES_IN_PAGE_TITLE'));
+            $showRoot = blogm_Setup::get('SHOW_ALL_ARTICLE_CAPTION');
+            if($showRoot == 'yes'){
+                $data->title = tr(blogm_Setup::get('ALL_ARTICLES_IN_PAGE_TITLE'));
+            }
             if (!countR($data->rows)) {
                 $str = ($blogType == 'blog') ? 'Няма статии в този блог' : 'Няма новини в този блог';
                 $data->descr .= "<p><b style='color:#666;'>" . tr($str) . '</b></p>';
