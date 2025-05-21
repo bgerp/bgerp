@@ -1223,7 +1223,7 @@ class acc_Journal extends core_Master
             $query->where("#{$fld} = '{$value}'");
         }
         $query->orderBy('id', 'ASC');
-        $query->limit(10);
+        $query->limit(150);
 
         $recs = $query->fetchAll();
         $count = countR($recs);
