@@ -1194,4 +1194,57 @@ class acc_Journal extends core_Master
 
         return $tpl;
     }
+
+
+    /**
+     * Репликираща миграция реконтиране на активни документи, който да може да се вика по разписание
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    public function callback_recontoActiveDocuments($data)
+    {
+        // Взимат се записите от документа с вальор след последния затворен период
+        $lastClosedPeriod = acc_Periods::getLastClosed();
+        $Class = cls::get($data->class);
+        $query = $Class->getQuery();
+        if(is_object($lastClosedPeriod)){
+            $query->where("#{$Class->valiorFld} > '{$lastClosedPeriod->end}'");
+        }
+
+        // Ако е стигнато до определено ид - да се продължи след него
+        if(isset($data->lastId)){
+            $query->where("#id > '{$data->lastId}'");
+        }
+
+        // Само активните документи отговарящи на условията
+        $query->where("#state = 'active'");
+        foreach ($data->fields as $fld => $value){
+            $query->where("#{$fld} = '{$value}'");
+        }
+        $query->orderBy('id', 'ASC');
+        $query->limit(10);
+
+        $recs = $query->fetchAll();
+        $count = countR($recs);
+        core_App::setTimeLimit($count * 0.4, false, 300);
+
+        // Реконтиране
+        $data->lastId = null;
+        foreach ($recs as $rec){
+            try{
+                acc_Journal::reconto($rec->containerId);
+                $Class->logWrite('Реконтиране от миграция', $rec->id);
+            } catch(core_exception_Expect $e){
+                reportException($e);
+            }
+            $data->lastId = $rec->id;
+        }
+
+        // Само репликиране на миграцията ако има все пак поне едно обходено ид
+        if(isset($data->lastId)){
+            $callOn = dt::addSecs(120);
+            core_CallOnTime::setCall('acc_Journal', 'recontoActiveDocuments', $data, $callOn);
+        }
+    }
 }
