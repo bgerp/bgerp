@@ -85,7 +85,7 @@ class cat_Products extends embed_Manager
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '321,323,3231,3232,61101,60201';
+    public $balanceRefAccounts = '321,323,3230,3231,3232,61101,60201';
     
     
     /**
