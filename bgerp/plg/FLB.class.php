@@ -301,7 +301,7 @@ class bgerp_plg_FLB extends core_Plugin
         }
 
         if($mvc->getField('state', false)){
-            $cond = "(#state != 'rejected' AND #state != 'closed') AND ($cond)";
+            $cond = "(#state != 'rejected' AND #state != 'closed')" . (!empty($cond) ? " AND ($cond)" : '');
         }
 
         $query->where($cond);

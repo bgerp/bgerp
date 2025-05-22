@@ -36,6 +36,12 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 
 
     /**
+     * Полета свързани с цени
+     */
+    public $priceFields = 'price, amount, discount, packPrice';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     protected function setFields($mvc)

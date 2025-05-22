@@ -490,7 +490,7 @@ class pos_Receipts extends core_Master
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
 
-            $products[] = (object)array('productId' => $rec->productId,
+            $products[$rec->id] = (object)array('productId' => $rec->productId,
                 'price' => $rec->price / $quantityInPack,
                 'packagingId' => $rec->value,
                 'text' => $rec->text,
@@ -498,6 +498,7 @@ class pos_Receipts extends core_Master
                 'discount' => $rec->discountPercent,
                 'autoDiscount' => $rec->autoDiscount,
                 'batch' => $rec->batch,
+                'id' => $rec->id,
                 'quantity' => $rec->quantity);
         }
 
@@ -803,24 +804,25 @@ class pos_Receipts extends core_Master
             $fields['note'] = tr("Ваучер") . ": *{$endVoucher}";
         }
 
+        // Намираме продуктите на бележката (трябва да има поне един)
+        $products = $this->getProducts($rec->id);
+
         // Опитваме се да създадем чернова на нова продажба породена от бележката
         if ($sId = sales_Sales::createNewDraft($contragentClassId, $contragentId, $fields)) {
             if($hasVoucher){
                 voucher_Cards::mark($rec->voucherId, true, sales_Sales::getClassId(), $sId);
             }
+
             sales_Sales::logWrite('Прехвърлена от POS продажба', $sId);
 
-            // Намираме продуктите на бележката (трябва да има поне един)
-            $products = $this->getProducts($rec->id);
-
             // Всеки продукт се прехвърля едно към 1
-            foreach ($products as $product) {
+            foreach ($products as &$product) {
                 if ($product->discount < 0) {
                     $product->price *= (1 + abs($product->discount));
                     $product->discount = null;
                 }
 
-                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text, $product->batch, $product->autoDiscount);
+                $product->transferedIn = sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text, $product->batch, $product->autoDiscount);
             }
         }
 
@@ -831,6 +833,10 @@ class pos_Receipts extends core_Master
 
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
+        if(countR($products)){
+            cls::get('pos_ReceiptDetails')->saveArray($products, 'id,transferedIn');
+        }
+
         if ($exState == 'draft') {
             Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->flushUpdateQueue($sId);

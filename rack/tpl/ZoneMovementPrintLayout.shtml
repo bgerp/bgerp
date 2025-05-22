@@ -1,0 +1,19 @@
+<div>
+   <table>
+       <tr>
+           <td>|Документ|*:</td>
+           <td>[#containerId#]</td>
+       </tr>
+       <!--ET_BEGIN lineId-->
+       <tr>
+           <td>|Транспорт|*:</td>
+           <td>[#lineId#]</td>
+       </tr>
+       <!--ET_END lineId-->
+   </table>
+    <table>
+        <tr>
+            [#DETAILS#]
+        </tr>
+    </table>
+</div>

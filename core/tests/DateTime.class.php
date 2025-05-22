@@ -476,9 +476,9 @@ class core_tests_DateTime extends unit_Class
      *
      * @return string
      */
-    public static function now($full = true)
+    public static function now($full = true, $useTimeZone = false)
     {
-        return self::verbal2mysql('', $full);
+        return self::verbal2mysql('', $full, $useTimeZone);
     }
     
     

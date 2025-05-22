@@ -307,6 +307,10 @@ abstract class batch_definitions_Proto extends core_BaseClass
         $bQuery->where("#containerId = {$containerId} AND #productId = {$this->rec->productId} AND #operation = 'out' AND #storeId = {$storeId}");
 
         while($bRec = $bQuery->fetch()){
+            // Разпределеното от същия ред се игнорира
+            if($bRec->detailClassId == $mvc->getClassId() && $bRec->detailRecId == $id) continue;
+
+            // Вече разпределеното от други редове в същия документ се приспада, като неналично
             if(array_key_exists($bRec->batch, $quantities)){
                 $quantities[$bRec->batch] -= $bRec->quantity;
             }

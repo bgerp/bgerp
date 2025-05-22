@@ -118,6 +118,18 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
+     * Кой може да печата движенията?
+     */
+    public $canPrintzonemovements = 'ceo,rack';
+
+
+    /**
+     * Кой може да приключва всички движения?
+     */
+    public $canDoallmovements = 'ceo,rack';
+
+
+    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';
@@ -849,9 +861,10 @@ class store_ShipmentOrders extends store_DocumentMaster
                      'deliveryOn' => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => false));
 
         if (isset($rec)) {
-            $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn);
+            $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn, $rec->deliveryTime);
+            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : $rec->deliveryTimeCalc;
             $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
-            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn, $loadingOn);
         }
 
         return $res;

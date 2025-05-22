@@ -445,7 +445,7 @@ abstract class rack_MovementAbstract extends core_Manager
      * @param int|null $preferPackagingIdIFThereAreSimilar
      * @return string|null $string
      */
-    protected static function getSmartPackagings($productId, $packagingArr, $quantity, $preferPackagingIdIFThereAreSimilar = null)
+    public static function getSmartPackagings($productId, $packagingArr, $quantity, $preferPackagingIdIFThereAreSimilar = null)
     {
         $sign = ($quantity < 0) ? -1 : 1;
         $quantity = abs($quantity);

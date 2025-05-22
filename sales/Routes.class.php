@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'contragent=Контрагент,locationId,nextVisit=Посещения->Следващо,dateFld=Посещения->Начало,repeat=Посещения->Период,salesmanId,state,createdOn,createdBy';
+    public $listFields = 'contragent=Контрагент,locationId,nextVisit=Посещения->Следващо,dateFld=Посещения->Начало,holidays,repeat=Посещения->Период,salesmanId,type,state,createdOn,createdBy';
     
     
     /**
@@ -93,13 +93,15 @@ class sales_Routes extends core_Manager
      */
     public function description()
     {
-        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,mandatory,silent');
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,mandatory,silent,tdClass=nowrap');
         $this->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Търговец,mandatory');
-        $this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
+        $this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory,smartCenter');
+        $this->FLD('type', 'enum(visit=Посещение,delivery=Доставка,mixed=Посещение и доставка)', 'caption=Посещения->Вид,mandatory,notNull,default=visit');
         $this->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|4 седмици|1 месец)', 'caption=Посещения->Период, hint=на какъв период да е повторението на маршрута');
-        
+        $this->FLD('holidays', 'enum(include=Включително, skip=Пропускане,nextWorkDay=Следващ раб. ден,prevWorkDay=Предишен раб. ден)', 'caption=Посещения->Почивни дни,notNull,value=include');
+
         // Изчислимо поле за кога е следващото посещение
-        $this->FLD('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо,input=none');
+        $this->FLD('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо,input=none,smartCenter');
         
         $this->setDbIndex('locationId,dateFld');
         $this->setDbIndex('locationId');
@@ -235,27 +237,39 @@ class sales_Routes extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('user', 'user(roles=sales|ceo)', 'input,caption=Търговец,placeholder=Търговец,silent,autoFilter');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
+        $data->listFilter->setFieldType('type', "enum(all=Вид,visit=Посещение,delivery=Доставка,mixed=Посещение и доставка)");
+
         if(haveRole('officer')){
             $data->listFilter->setFieldTypeParams('user', array('allowEmpty' => 'allowEmpty'));
         } elseif(haveRole('sales')) {
             $data->listFilter->setDefault('user', core_Users::getCurrent());
         }
-        $data->listFilter->showFields = 'search,user,date';
+        $data->listFilter->setDefault('type', 'all');
+        $data->listFilter->showFields = 'search,user,type,date';
         $data->listFilter->input();
         $data->query->orderBy('#nextVisit', 'ASC');
         
         // Филтриране по дата
-        if ($data->listFilter->rec->date) {
-            $data->query->where("#nextVisit = '{$data->listFilter->rec->date}'");
-            $data->query->XPR('dif', 'int', "DATEDIFF (#dateFld , '{$data->listFilter->rec->date}')");
+        $filterRec = $data->listFilter->rec;
+        if ($filterRec->date) {
+            $data->query->where("#nextVisit = '{$filterRec->date}'");
+            $data->query->XPR('dif', 'int', "DATEDIFF (#dateFld , '{$filterRec->date}')");
             $data->query->orWhere('MOD(#dif, round(#repeat / 86400 )) = 0');
         }
         
         // Филтриране по продавач
-        if ($data->listFilter->rec->user) {
-            $data->query->where(array('#salesmanId = [#1#]', $data->listFilter->rec->user));
+        if ($filterRec->user) {
+            $data->query->where(array('#salesmanId = [#1#]', $filterRec->user));
         }
-        
+
+        if ($filterRec->type == 'mixed') {
+            $data->query->where("#type = 'mixed'");
+        } elseif ($filterRec->type == 'visit') {
+            $data->query->where("#type IN ('visit', 'mixed')");
+        } elseif ($filterRec->type == 'delivery') {
+            $data->query->where("#type IN ('delivery', 'mixed')");
+        }
+
         if (Mode::isReadOnly()) {
             unset($data->listFields['state']);
             unset($data->listFields['createdOn']);
@@ -320,49 +334,83 @@ class sales_Routes extends core_Manager
             $data->addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => true);
         }
     }
-    
-    
+
+
     /**
-     * Изчислява кога е следващото посещение на обекта
+     * Кога е следващото посещение по маршрута
      *
-     * @param stdClass $rec - запис от модела
-     *
-     * @return string $date - вербално име на следващата дата
+     * @param stdClass $rec
+     * @return false|string
      */
     public function getNextVisit($rec)
     {
         $nowTs = dt::mysql2timestamp(dt::now());
-        $interval = 24 * 60 * 60 * 7;
-        
+        $interval = 24 * 60 * 60 * 5;
+
         if (!$rec->dateFld) {
-            
             return false;
         }
-        
+
         $startTs = dt::mysql2timestamp($rec->dateFld);
-        $diff = $nowTs - $startTs;
+        $diff    = $nowTs - $startTs;
+
+        // Ако още не е дошъл първия път
         if ($diff < 0) {
-            $nextStartTimeTs = $startTs;
+            $nextTs = $startTs;
         } else {
+            // Ако няма повторения
             if (!$rec->repeat) {
+                // Ако е точно днес
                 if ($rec->dateFld == date('Y-m-d')) {
-                    
                     return $rec->dateFld;
                 }
-                
                 return false;
             }
-            
-            $repeat = $rec->repeat / (60 * 60 * 24 * 7);
+
+            // Изчисляваме колко седмици да прибавим
+            $repeat   = $rec->repeat / (60 * 60 * 24 * 7);
             $interval = $interval * $repeat;
-            $nextStartTimeTs = (floor(($diff) / $interval) + 1) * $interval;
-            $nextStartTimeTs = $startTs + $nextStartTimeTs;
+            $steps    = floor($diff / $interval) + 1;
+            $nextTs   = $startTs + $steps * $interval;
         }
-        
-        $date = dt::timestamp2mysql($nextStartTimeTs + 10 * 60 * 60);
+
+        // Връщаме mysql-формат
+        $date = dt::timestamp2mysql($nextTs + 10 * 60 * 60);
         $date = dt::verbal2mysql($date, false);
-        
-        return  $date;
+
+        // Ако няма holiday-режим, просто даваме датата
+        if (empty($rec->holidays) || $rec->holidays === 'include') return $date;
+
+        // В противен случай влизаме в обработка на празниците
+        while (cal_Calendar::isHoliday($date)) {
+            switch ($rec->holidays) {
+                case 'skip':
+
+                    // Добавяме още един интервал и проверяваме пак
+                    $nextTs = dt::mysql2timestamp($date) + $interval;
+                    $date   = dt::timestamp2mysql($nextTs);
+
+                    break;
+                case 'nextWorkDay':
+                    // Ако се иска следващия работен ден след празника - него
+                    $nextWorkDay = cal_Calendar::nextWorkingDay($date, null, 1);
+
+                    return dt::verbal2mysql($nextWorkDay, false);
+
+                case 'prevWorkDay':
+                    // Ако се иска предишния работен ден преди празника - него
+                    $prevWorkDay = cal_Calendar::nextWorkingDay($date, null, -1);
+
+                    return dt::verbal2mysql($prevWorkDay, false);
+                default:
+                    return dt::verbal2mysql($date, false);
+            }
+        }
+
+        // Ако се стигне до тук значи не е празник
+        $date = dt::verbal2mysql($date, false);
+
+        return $date;
     }
     
     
@@ -373,7 +421,7 @@ class sales_Routes extends core_Manager
     {
         $tpl = getTplFromFile('sales/tpl/SingleLayoutRoutes.shtml');
         $title = tr($this->title);
-        $listFields = arr::make('salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение');
+        $listFields = arr::make('salesmanId=Търговец,repeat=Период,holidays=Почивни дни,nextVisit=Следващо посещение,type=Вид');
         
         if ($data->addUrl && !Mode::isReadOnly()) {
             $title .= ht::createLink('', $data->addUrl, null, array('ef_icon' => 'img/16/add.png', 'class' => 'addRoute', 'title' => 'Създаване на нов търговски маршрут'));
@@ -490,8 +538,8 @@ class sales_Routes extends core_Manager
         // Връщаме най-новия запис с най-малка разлика
         return $salesmanId;
     }
-    
-    
+
+
     /**
      * Изчисляване на следващото посещение по разписание
      */
@@ -511,7 +559,7 @@ class sales_Routes extends core_Manager
         // Дигане на тайм лимита
         $count = $query->count();
         core_App::setTimeLimit(0.7 * $count);
-        
+
         // За всеки запис
         while ($rec = $query->fetch()) {
             if (empty($rec->repeat) && $rec->dateFld < $before) {
@@ -579,13 +627,14 @@ class sales_Routes extends core_Manager
      * Кои марршрути са допустими за избор
      *
      * @param int $locationId  - към коя локация
-     * @param int $inDays - в следващите колко дни? null за без ограничение
+     * @param int $inDays      - в следващите колко дни? null за без ограничение
+     * @param string $type     - вид посещение
      * @return string[] $routeOptions - опции от маршрути
      */
-    public static function getRouteOptions($locationId, $inDays = null)
+    public static function getRouteOptions($locationId, $inDays = null, $type = null)
     {
         $today = dt::today();
-        
+
         $routeOptions = array();
         $rQuery = static::getQuery();
         $rQuery->where("#locationId = '{$locationId}' AND #nextVisit > '{$today}' AND #state != 'rejected'");
@@ -593,14 +642,33 @@ class sales_Routes extends core_Manager
             $inDays = dt::addDays($inDays, $today, false);
             $rQuery->where("#nextVisit <= '{$inDays}'");
         }
-        
+
+        if ($type == 'mixed') {
+            $rQuery->where("#type = 'mixed'");
+        } elseif ($type == 'visit') {
+            $rQuery->where("#type IN ('visit', 'mixed')");
+        } elseif ($type == 'delivery') {
+            $rQuery->where("#type IN ('delivery', 'mixed')");
+        }
+
         $rQuery->show('id,nextVisit');
         $rQuery->orderBy('id', "ASC");
-        
+        $nextWorkingDay = cal_Calendar::nextWorkingDay();
+
+        // Ако сме след зададения час се пропускат маршрутите, чието следващо посещение е следващия работен ден
+        $skipNextWorkingDay = false;
+        $eshopHours = eshop_Setup::get('TOMORROW_DELIVERY_DEADLINE');
+        $hours = dt::mysql2verbal(null,'H:i');
+        if($hours > $eshopHours){
+            $skipNextWorkingDay = true;
+        }
+
         while($rRec = $rQuery->fetch()){
+            if($skipNextWorkingDay && $rRec->nextVisit == $nextWorkingDay) continue;
+
             $routeOptions[$rRec->id] = sales_Routes::getSmartTitle($rRec);
         }
-        
+
         return $routeOptions;
     }
 
@@ -612,6 +680,7 @@ class sales_Routes extends core_Manager
     {
         $filteredDate = $data->listFilter->rec->date;
         if(!empty($filteredDate)){
+            $data->listTableMvc->FLD('plannedDate', 'date', 'smartCenter');
             arr::placeInAssocArray($data->listFields, array('plannedDate' => 'Посещения->Планувано'), 'nextVisit');
         }
 
@@ -649,9 +718,33 @@ class sales_Routes extends core_Manager
             // За всяка активна локация се гледа има ли повече от 1 посещение за въпросната дата
             $dateFld = 'nextVisit';
             if(!empty($filteredDate)){
+
+                $hint = null;
                 $dateFld = 'plannedDate';
-                $rec->plannedDate = $filteredDate;
+                if(cal_Calendar::isHoliday($filteredDate)){
+                    switch($rec->holidays) {
+                        case 'skip';
+                            $hint = 'Планираният ден е почивен. Маршрутът няма да се изпълнява!';
+                            break;
+                        case 'prevWorkDay';
+                            $prevDate = cal_Calendar::nextWorkingDay($filteredDate, null, -1);
+                            $prevDateVerbal = $mvc->getFieldType('nextVisit')->toVerbal($prevDate);
+                            $hint = "Планираният ден е почивен. Маршрутът ще се изпълнява на предишния работен ден|* {$prevDateVerbal}!";
+                            break;
+                        case 'nextWorkDay';
+                            $nextDate = cal_Calendar::nextWorkingDay($filteredDate);
+                            $nextDateVerbal = $mvc->getFieldType('nextVisit')->toVerbal($nextDate);
+                            $hint = "Планираният ден е почивен. Маршрутът ще се изпълнява на следващия работен ден|* {$nextDateVerbal}!";
+                            break;
+                    }
+                }
+
                 $row->plannedDate = $mvc->getFieldType('nextVisit')->toVerbal($filteredDate);
+                if(!empty($hint)){
+                    $row->plannedDate = ht::createElement('span', array('style' => 'color:#1a6d00'),$row->plannedDate);
+                    $row->plannedDate = ht::createHint($row->plannedDate, $hint, 'warning', false);
+                }
+                $rec->plannedDate = $filteredDate;
             }
 
             if($rec->state == 'active' && array_key_exists("{$rec->locationId}|{$rec->{$dateFld}}", $routesByLocation)){

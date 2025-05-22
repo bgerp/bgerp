@@ -558,6 +558,10 @@ class purchase_Invoices extends deals_InvoiceMaster
                     }
                 }
             }
+
+            if(purchase_SparePartsProtocols::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+                $data->toolbar->addBtn('Пр. рез. части', array('purchase_SparePartsProtocols', 'add', 'originId' => $rec->containerId, 'threadId' => $rec->threadId, 'ret_url' => true), "ef_icon = img/16/document_accept.png, title=Създаване на протокол за резервни части,row=2");
+            }
         }
     }
     
