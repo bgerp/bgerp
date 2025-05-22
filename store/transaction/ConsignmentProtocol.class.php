@@ -136,11 +136,20 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
                     array($rec->contragentClassId, $rec->contragentId),
                     array('cat_Products', $sendRec->productId),
                     'quantity' => $sendRec->quantity),
-                'credit' => array('321',
-                    array('store_Stores', $rec->storeId),
-                    array('cat_Products', $sendRec->productId),
-                    'quantity' => $sendRec->quantity),
             );
+
+            if($rec->productType == 'ours'){
+                $entry['credit'] = array('321',
+                                        array('store_Stores', $rec->storeId),
+                                        array('cat_Products', $sendRec->productId),
+                                        'quantity' => $sendRec->quantity);
+            } else {
+                $entry['credit'] = array('3230',
+                                        array('store_Stores', $rec->storeId),
+                                        array($rec->contragentClassId, $rec->contragentId),
+                                        array('cat_Products', $sendRec->productId),
+                                        'quantity' => $sendRec->quantity);
+            }
 
             if($debitAccId == '3232'){
                 $amount = round($sendRec->amount * $rate, 2);
@@ -156,16 +165,25 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             $creditAccId = ($rec->productType == 'ours') ? '3231' : '3232';
 
             $entry = array(
-                'debit' => array('321',
-                    array('store_Stores', $rec->storeId),
-                    array('cat_Products', $recRec->productId),
-                    'quantity' => $recRec->quantity),
                 'credit' => array($creditAccId,
                     array($rec->contragentClassId, $rec->contragentId),
                     array('cat_Products', $recRec->productId),
                     'quantity' => $recRec->quantity),
             
             );
+
+            if($rec->productType == 'ours'){
+                $entry['debit'] = array('321',
+                                    array('store_Stores', $rec->storeId),
+                                    array('cat_Products', $recRec->productId),
+                                'quantity' => $recRec->quantity);
+            } else {
+                $entry['debit'] = array('3230',
+                                    array('store_Stores', $rec->storeId),
+                                    array($rec->contragentClassId, $rec->contragentId),
+                                    array('cat_Products', $recRec->productId),
+                                    'quantity' => $recRec->quantity);
+            }
 
             if($creditAccId == '3232'){
                 $amount = round($recRec->amount * $rate, 2);

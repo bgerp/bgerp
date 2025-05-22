@@ -105,10 +105,6 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         $masterRec = $data->masterRec;
         $params = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasnotProperties' => 'generic');
         $params['hasProperties'] = $mvc->getExpectedProductMetaProperties($masterRec->productType, 'send');
-        if($masterRec->productType == 'other'){
-            $params['isPublic'] = 'no';
-        }
-
         $data->form->setFieldTypeParams('productId', $params);
     }
 
