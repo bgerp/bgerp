@@ -72,6 +72,12 @@ defIfNot('BLOGM_SHOW_EXPANDED_CATEGORIES_IN_NAV', 'no');
 
 
 /**
+ *  До колко пътища в категориите на блог статията да се показват->Брой
+ */
+defIfNot('BLOGM_ARTICLE_NAVIGATION_MAX_PATH', '0');
+
+
+/**
  * class blogm_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -133,6 +139,7 @@ class blogm_Setup extends core_ProtoSetup
         'BLOGM_ARTICLE_ANNOTATION_MIN_LENGTH' => array('int', 'caption=Дължина на краткото описание на статиите в списъка->Минимално'),
         'BLOGM_ARTICLE_ANNOTATION_MAX_LENGTH' => array('int', 'caption=Дължина на краткото описание на статиите в списъка->Максимално'),
         'BLOGM_SHOW_EXPANDED_CATEGORIES_IN_NAV' => array('enum(yes=Да,no=Не)', 'caption=Показване винаги разпънати категориите в навигацията->Избор'),
+        'BLOGM_ARTICLE_NAVIGATION_MAX_PATH' => array('int(min=0)', 'caption=До колко пътища в категориите на блог статията да се показват->Брой'),
     );
     
     

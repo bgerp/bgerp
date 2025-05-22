@@ -195,12 +195,28 @@ class blogm_Articles extends core_Master
                 $cMenuId = static::getDefaultMenuId($rec);
             }
 
-            // Показва се и навигацията във всичките категории дето е включена
-            $navigationArr = $Category->getNestedTree($categories);
-            $pathArr = $mvc->flattenNavPaths($navigationArr, $cMenuId);
-            $row->articleNavBar = '';
-            foreach ($pathArr as $path) {
-                $row->articleNavBar .= "<div>{$path}</div>";
+            $maxPath = blogm_Setup::get('ARTICLE_NAVIGATION_MAX_PATH');
+            if($maxPath){
+                // Показва се и навигацията във всичките категории дето е включена
+                $navigationArr = $Category->getNestedTree($categories);
+                $pathArr = $mvc->flattenNavPaths($navigationArr, $cMenuId);
+
+                $leftPath = array();
+                $count = 0;
+                foreach ($pathArr as $element) {
+                    if (strpos($element, ' » ') !== false) {
+                        $leftPath[] = $element;
+                        $count++;
+                        if ($count >= $maxPath) {
+                            break;
+                        }
+                    }
+                }
+
+                $row->articleNavBar = '';
+                foreach ($leftPath as $path) {
+                    $row->articleNavBar .= "<div>{$path}</div>";
+                }
             }
         }
     }
