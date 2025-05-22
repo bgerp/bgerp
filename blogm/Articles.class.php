@@ -416,7 +416,9 @@ class blogm_Articles extends core_Master
         $data->menuId = $cMenuId;
         $data->category = $categoryId;
         $data->menuRec = cms_Content::fetch($data->menuId);
-        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->category);
+
+        $showAll = blogm_Setup::get('SHOW_EXPANDED_CATEGORIES_IN_NAV') == 'yes';
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->category, $showAll);
         $data->rec = $rec;
 
         cms_Content::setCurrent($cMenuId);
@@ -666,7 +668,9 @@ class blogm_Articles extends core_Master
         $data->query = $this->getQuery();
         $data->category = Request::get('category', 'int');
 
-        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->categoryId);
+        $showAll = blogm_Setup::get('SHOW_EXPANDED_CATEGORIES_IN_NAV') == 'yes';
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->categoryId, $showAll);
+
         $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
         $data->q = Request::get('q');
 

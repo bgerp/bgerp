@@ -981,7 +981,7 @@ class eshop_Products extends core_Master
         // Подготвяме SEO данните
         $rec = clone($data->rec);
         cms_Content::prepareSeo($rec, array('seoDescription' => $rec->info, 'seoTitle' => $rec->name, 'seoThumb' => $rec->image));
-        
+
         eshop_Groups::prepareNavigation($data->groups);
         
         $tpl = eshop_Groups::getLayout();

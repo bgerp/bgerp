@@ -66,6 +66,12 @@ defIfNot('BLOGM_ARTICLE_ANNOTATION_MAX_LENGTH', '450');
 
 
 /**
+ *  Показване винаги разпънати категориите в навигацията->Избор
+ */
+defIfNot('BLOGM_SHOW_EXPANDED_CATEGORIES_IN_NAV', 'no');
+
+
+/**
  * class blogm_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -126,6 +132,7 @@ class blogm_Setup extends core_ProtoSetup
         'BLOGM_SHOW_CATEGORIES_ROOT' => array('enum(yes=Да,no=Не)', 'caption=Показване на "Категории" над списъка с категории->Избор'),
         'BLOGM_ARTICLE_ANNOTATION_MIN_LENGTH' => array('int', 'caption=Дължина на краткото описание на статиите в списъка->Минимално'),
         'BLOGM_ARTICLE_ANNOTATION_MAX_LENGTH' => array('int', 'caption=Дължина на краткото описание на статиите в списъка->Максимално'),
+        'BLOGM_SHOW_EXPANDED_CATEGORIES_IN_NAV' => array('enum(yes=Да,no=Не)', 'caption=Показване винаги разпънати категориите в навигацията->Избор'),
     );
     
     
