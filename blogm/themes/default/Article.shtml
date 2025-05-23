@@ -1,4 +1,9 @@
 <div class='blogm-article-title'>[#title#]</div>
+<!--ET_BEGIN articleNavBar-->
+<div class="articleNavBar">
+    [#articleNavBar#]
+</div>
+<!--ET_END articleNavBar-->
 <div class='blogm-article-info'>
     <span class='blogm-comments-cnt linkWithIcon' title="|Брой коментари|*">[#commentsCnt#]</span>
     [#publishedOn#], [#author#] |в|* [#categories#] 

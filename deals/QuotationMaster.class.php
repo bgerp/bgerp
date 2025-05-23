@@ -805,8 +805,10 @@ abstract class deals_QuotationMaster extends core_Master
         expect($rec = static::fetch($id), 'Няма такава оферта');
         expect($rec->state == 'draft', 'Офертата трябва да е чернова');
         expect($productId, 'Трябва да е подаден артикул');
-        expect($productRec = cat_Products::fetch($productId, 'id,canSell,measureId'), 'Няма такъв артикул');
-        expect($productRec->canSell == 'yes', 'Артикулът не е продаваем');
+
+        $metaFld = ($Detail instanceof purchase_QuotationDetails) ? 'canBuy' : 'canSell';
+        expect($productRec = cat_Products::fetch($productId, "id,{$metaFld},measureId"), 'Няма такъв артикул');
+        expect($productRec->{$metaFld} == 'yes', 'Артикулът не е продаваем');
         expect($packQuantity = cls::get('type_Double')->fromVerbal($packQuantity), 'Невалидно количество');
 
         // Подготовка на записа
