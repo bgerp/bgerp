@@ -18,7 +18,7 @@ class cash_NonCashPaymentDetails extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'no_one';
+    public $canList = 'debug';
 
 
     /**
@@ -48,13 +48,19 @@ class cash_NonCashPaymentDetails extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'cash_Wrapper';
+    public $loadList = 'cash_Wrapper,plg_Sorting';
 
 
     /**
      * Заглавие
      */
-    public $title = 'Начин на плащане';
+    public $title = 'Безналични начини на плащане';
+
+
+    /**
+     * Полета в листовия изглед
+     */
+    public $listFields = 'objectId=Обект,paymentId,amount,param';
 
 
     /**
@@ -62,13 +68,14 @@ class cash_NonCashPaymentDetails extends core_Manager
      */
     public function description()
     {
-        $this->FLD('documentId', 'key(mvc=cash_Pko)', 'input=hidden,mandatory,silent');
-        $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title)', 'caption=Метод');
+        $this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
+        $this->FLD('objectId', 'int', 'input=hidden,mandatory,silent,oldFieldName=documentId,tdClass=leftCol,caption=Обект');
+        $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title,allowEmpty)', 'caption=Метод');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
         $this->FLD('param', 'varchar', 'caption=Параметър,input=none');
 
-        $this->setDbIndex('documentId');
-        $this->setDbUnique('documentId,paymentId');
+        $this->setDbIndex('classId,objectId');
+        $this->setDbUnique('classId,objectId,paymentId');
     }
 
 
@@ -79,8 +86,9 @@ class cash_NonCashPaymentDetails extends core_Manager
      */
     public function prepareDetail_($data)
     {
+        $masterClassId = $data->masterMvc->getClassId();
         $query = $this->getQuery();
-        $query->where("#documentId = {$data->masterId}");
+        $query->where("#classId = {$masterClassId} AND #objectId = {$data->masterId}");
         $restAmount = $data->masterData->rec->amount;
         $toCurrencyCode = currency_Currencies::getCodeById($data->masterData->rec->currencyId);
         $canSeePrices = doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $data->masterData->rec);
@@ -99,7 +107,7 @@ class cash_NonCashPaymentDetails extends core_Manager
         }
 
         if ($restAmount > 0 && countR($data->recs)) {
-            $r = (object)array('documentId' => $data->masterId, 'amount' => $restAmount, 'paymentId' => -1);
+            $r = (object)array('classId' => $masterClassId, 'objectId' => $data->masterId, 'amount' => $restAmount, 'paymentId' => -1);
             $data->recs[] = $r;
             $row = $this->recToVerbal($r);
             $row->paymentId .= ", {$toCurrencyCode}";
@@ -129,17 +137,16 @@ class cash_NonCashPaymentDetails extends core_Manager
         }
 
         // Ако е избрано безналично плащане към активно ПКО
-        $pkoRec = cash_Pko::fetch($rec->documentId);
-
-        if ($pkoRec->state == 'active' && $rec->paymentId != -1) {
-            $cashFolderId = cash_Cases::fetchField($pkoRec->peroCase, "folderId");
+        $docRec = cls::get($rec->classId)->fetch($rec->objectId);
+        if ($docRec->state == 'active' && $rec->paymentId != -1) {
+            $cashFolderId = cash_Cases::fetchField($docRec->peroCase, "folderId");
 
             // И потребителя може да прави вътрешнокасов трансфер
             if (cash_InternalMoneyTransfer::haveRightFor("add", (object)array('folderId' => $cashFolderId))) {
                 $currencyCode = cond_Payments::fetchField($rec->paymentId, 'currencyCode');
                 $currencyId = !empty($currencyCode) ? currency_Currencies::getIdByCode($currencyCode) : acc_Periods::getBaseCurrencyId();
 
-                $url = array('cash_InternalMoneyTransfer', 'add', 'folderId' => $cashFolderId, 'operationSysId' => 'nonecash2case', 'amount' => $rec->amount, 'creditCase' => $pkoRec->peroCase, 'paymentId' => $rec->paymentId, 'currencyId' => $currencyId, 'sourceId' => $pkoRec->containerId, 'foreignId' => $pkoRec->containerId, 'ret_url' => true);
+                $url = array('cash_InternalMoneyTransfer', 'add', 'folderId' => $cashFolderId, 'operationSysId' => 'nonecash2case', 'amount' => $rec->amount, 'creditCase' => $docRec->peroCase, 'paymentId' => $rec->paymentId, 'currencyId' => $currencyId, 'sourceId' => $docRec->containerId, 'foreignId' => $docRec->containerId, 'ret_url' => true);
                 $toolbar = new core_RowToolbar();
                 $toolbar->addLink('Инкасиране(Каса)', $url, "ef_icon = img/16/safe-icon.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по каса");
 
@@ -157,6 +164,10 @@ class cash_NonCashPaymentDetails extends core_Manager
             }
         }
 
+        $Class = cls::get($rec->classId);
+        $objectRec = $Class->fetch($rec->objectId);
+        $link = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
+        $row->objectId = "<span class= 'state-{$objectRec->state} document-handler'>{$link}</span>";
     }
 
 
@@ -198,7 +209,7 @@ class cash_NonCashPaymentDetails extends core_Manager
         // Взимане на методите за плащане към самия документ
         $query = self::getQuery();
         if (isset($documentId)) {
-            $query->where("#documentId = {$documentId}");
+            $query->where("#classId = {$documentClassId} AND #objectId = {$documentId}");
             while ($rec = $query->fetch()) {
                 $res['paymentId'][] = $rec->paymentId;
                 $res['amount'][] = $rec->amount;
@@ -284,6 +295,37 @@ class cash_NonCashPaymentDetails extends core_Manager
         $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
         if(empty($cardPaymentId)) return;
 
-        return cash_NonCashPaymentDetails::fetch("#paymentId = {$cardPaymentId} AND #documentId = {$pkoId}");
+        $cashClassId = cash_Cases::getClassId();
+
+        return cash_NonCashPaymentDetails::fetch("#classId = {$cashClassId} AND #objectId = {$pkoId} AND #paymentId = {$cardPaymentId}");
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->setField('objectId', 'input');
+        $data->listFilter->showFields = 'objectId,paymentId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input('objectId,paymentId', 'silent');
+
+        // Сортиране на записите по num
+        $data->query->orderBy('id', 'DESC');
+
+        if($filter = $data->listFilter->rec) {
+            if(isset($filter->paymentId)){
+                $data->query->where("#paymentId = {$filter->paymentId}");
+            }
+
+            if(isset($filter->objectId)){
+                $data->query->where("#objectId = {$filter->objectId}");
+            }
+        }
     }
 }

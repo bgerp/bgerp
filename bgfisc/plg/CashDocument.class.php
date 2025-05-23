@@ -398,7 +398,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
             
             if ($mvc instanceof cash_Pko) {
                 $dQuery = cash_NonCashPaymentDetails::getQuery();
-                $dQuery->where("#documentId = '{$rec->id}'");
+                $dQuery->where("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'");
                 while ($dRec = $dQuery->fetch()) {
                     if (!$paymentCode = $Driver->getPaymentCode($registerRec, $dRec->paymentId)) {
                         $title = cond_Payments::getTitleById($dRec->paymentId);
