@@ -263,10 +263,15 @@ class email_UserInboxPlg extends core_Plugin
 
             return false;
         }
-        
-        
+
+        $inCharge = doc_Folders::fetchField(array("#title = '[#1#]'", $folderTitle), 'inCharge');
+        if (isset($inCharge)) {
+
+            return $inCharge;
+        }
+
         //Вземаме id' то на потребителя, който е inCharge
-        return $inCharge = doc_Folders::fetchField(array("#title = '[#1#]'", $folderTitle), 'inCharge');
+        return false;
     }
     
     
