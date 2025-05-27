@@ -322,7 +322,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                         }
                         
                         $nonCashQuery = cash_NonCashPaymentDetails::getQuery();
-                        $nonCashQuery -> where("#documentId = {$prntRcpt->objectId}");
+                        $nonCashQuery -> where("#classId = {$prntRcpt->classId} AND #objectId = {$prntRcpt->objectId}");
                         
                         $amountPaidArr = array();
                         

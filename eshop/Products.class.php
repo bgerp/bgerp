@@ -353,7 +353,8 @@ class eshop_Products extends core_Master
         } else {
             $row->coMoq = null;
         }
-        
+
+        $haveInquiryBtn = false;
         if ($rec->coDriver) {
             if (marketing_Inquiries2::haveRightFor('new')) {
                 if (cls::load($rec->coDriver, true)) {
@@ -362,6 +363,7 @@ class eshop_Products extends core_Master
                     $url = array('marketing_Inquiries2', 'new', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => true);
                     $row->coInquiry = ht::createLink(tr('Запитване'), $url, null, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
                     Request::removeProtected('classId,objectId');
+                    $haveInquiryBtn = true;
                 }
             }
         }
@@ -369,7 +371,22 @@ class eshop_Products extends core_Master
         if (isset($rec->coDriver) && !cls::load($rec->coDriver, true)) {
             $row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . '</span>';
         }
-        
+
+        // Ако няма бутон за запитване - гледа се дали има само един детайл за запитване и се показва и този бутон
+        if(!$haveInquiryBtn){
+            $dQuery = eshop_ProductDetails::getQuery();
+            $dQuery->where("#eshopProductId = {$rec->id} AND #action IN ('inquiry', 'both')");
+            if($dQuery->count() == 1){
+                $dRec = $dQuery->fetch();
+                $dRec->recId = $dRec->id;
+                $dRow = eshop_ProductDetails::getExternalRow($dRec);
+
+                if($dRow->btnInquiry instanceof core_ET){
+                    $row->coInquiry = $dRow->btnInquiry;
+                }
+            }
+        }
+
         if (isset($fields['-single'])) {
             $row->orderByParam = ($rec->orderByParam == '_code') ? tr('Код') : (($rec->orderByParam == '_title') ? tr('Заглавие') : (($rec->orderByParam == '_createdOn') ? tr('Създаване') : cat_Params::getVerbal($rec->orderByParam, 'typeExt')));
             
@@ -964,7 +981,7 @@ class eshop_Products extends core_Master
         // Подготвяме SEO данните
         $rec = clone($data->rec);
         cms_Content::prepareSeo($rec, array('seoDescription' => $rec->info, 'seoTitle' => $rec->name, 'seoThumb' => $rec->image));
-        
+
         eshop_Groups::prepareNavigation($data->groups);
         
         $tpl = eshop_Groups::getLayout();

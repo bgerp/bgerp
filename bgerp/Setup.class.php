@@ -115,6 +115,7 @@ defIfNot(
 Заявка,Request = Z
 Активиране,Activation,Контиране = K
 Conto,Реконтиране = K
+Приключване,Complete = C
 Отказ,Cancel = C
 Връзка,Link = L
 Редакция,Edit = O

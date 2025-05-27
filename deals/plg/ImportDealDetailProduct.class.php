@@ -113,11 +113,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     }
 
                     $fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol, 'pack' => $rec->packcol);
-                    
-                    if (core_Packs::isInstalled('batch') && !($mvc instanceof sales_QuotationsDetails)) {
+
+                    if (core_Packs::isInstalled('batch') && !($mvc instanceof deals_QuotationDetails)) {
                         $fields['batch'] = $rec->batchcol;
                     }
-                    
                     if (!countR($rows)) {
                         $form->setError('csvData,csvFile,fromClipboard', 'Не са открити данни за импорт');
                     }
@@ -426,6 +425,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         return $err;
     }
 
+
     /**
      * Импортиране на записите ред по ред от мениджъра
      */
@@ -480,7 +480,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         }
 
         foreach ($rows as $row) {
-
             // Опитваме се да импортираме записа
             try {
                 if ($mvc->import($masterId, $row)) {
@@ -622,7 +621,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $fields[] = 'pricecol';
         }
         
-        if (core_Packs::isInstalled('batch') && !($mvc instanceof sales_QuotationsDetails)) {
+        if (core_Packs::isInstalled('batch') && !($mvc instanceof deals_QuotationDetails)) {
             $form->FLD('batchcol', $type, "caption=Съответствие в данните->Партида{$unit}");
             $fields[] = 'batchcol';
         }

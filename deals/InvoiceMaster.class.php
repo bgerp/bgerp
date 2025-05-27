@@ -444,6 +444,7 @@ abstract class deals_InvoiceMaster extends core_Master
                         $form->setDefault('dcChangeAmountDeducted', round($form->rec->dpAmount / $form->rec->rate, 4));
                     }
                     $form->FLD('dcChangeAmountDeducted', 'double', "input,unit={$invArr['currencyId']} без ДДС,caption=Задаване на увеличение/намаление на фактура->|Приспаднат аванс|*,after=changeAmount");
+                    $form->setFieldTypeParams('dcChangeAmountDeducted', array('min' => $invArr['dpAmount']));
                     $form->setField('dcReason', 'input,caption=Промяна на авансово плащане|*->Пояснение,after=changeAmountDownpayment');
                     $unsetArr[] = 'dcChangeAmountDeducted';
                 }
@@ -999,7 +1000,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
 
-            if(isset($rec->id) && isset($rec->displayRate)){
+            if(isset($rec->id) && isset($rec->displayRate) && $rec->type != 'dc_note'){
                 // Предупреждение ако вальора е сменен, но курса е различен от очаквания
                 $expectedRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if(round($expectedRate, 5) != round($rec->displayRate, 5)){
