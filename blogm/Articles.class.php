@@ -204,12 +204,10 @@ class blogm_Articles extends core_Master
                 $leftPath = array();
                 $count = 0;
                 foreach ($pathArr as $element) {
-                    if (strpos($element, ' » ') !== false) {
-                        $leftPath[] = $element;
-                        $count++;
-                        if ($count >= $maxPath) {
-                            break;
-                        }
+                    $leftPath[] = $element;
+                    $count++;
+                    if ($count >= $maxPath) {
+                        break;
                     }
                 }
 

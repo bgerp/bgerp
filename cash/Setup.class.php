@@ -59,6 +59,7 @@ class cash_Setup extends core_ProtoSetup
         'cash_InternalMoneyTransfer',
         'cash_ExchangeDocument',
         'cash_NonCashPaymentDetails',
+        'migrate::updateNonCashDetails2521'
     );
     
     
@@ -83,4 +84,19 @@ class cash_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.3, 'Финанси', 'Каси', 'cash_Cases', 'default', 'cash, ceo, cashAll'),
     );
+
+
+    /**
+     * Миграция на модела за безкасовите плащания към ПКО
+     */
+    public function updateNonCashDetails2521()
+    {
+        $NonCash = cls::get('cash_NonCashPaymentDetails');
+        $NonCash->setupMvc();
+
+        $pkoClassId = cls::get('cash_Pko')->getClassId();
+        $classIdColName = str::phpToMysqlName('classId');
+        $query = "UPDATE {$NonCash->dbTableName} SET {$classIdColName} = $pkoClassId  WHERE {$classIdColName} IS NULL";
+        $NonCash->db->query($query);
+    }
 }

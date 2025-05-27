@@ -151,6 +151,32 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 
                 $entry[] = $entry1;
             }
+
+            if ($reverse === false) {
+                $dQuery = cash_NonCashPaymentDetails::getQuery();
+                $dQuery->where("#classId = {$this->class->getClassId()} AND #objectId = '{$rec->id}'");
+
+                while ($dRec = $dQuery->fetch()) {
+                    $baseAmount = $dRec->amount;
+                    $dRec->amount = cond_Payments::toBaseCurrency($dRec->paymentId, $baseAmount, $rec->valior);
+                    $dRec->amount /= $rec->rate;
+                    $amount = round($dRec->amount * $rec->rate, 2);
+
+                    $type = cond_Payments::getTitleById($dRec->paymentId);
+
+                    $entry[] = array('amount' => $sign * $amount,
+                        'debit' => array('502',
+                            array('cash_Cases', $rec->peroCase),
+                            array('cond_Payments', $dRec->paymentId),
+                            'quantity' => $sign * round($baseAmount, 2)),
+                        'credit' => array($rec->debitAccount,
+                            array('cash_Cases', $rec->peroCase),
+                            array('currency_Currencies', $rec->currencyId),
+                            'quantity' => $sign * round($dRec->amount, 2)),
+                        'reason' => "Плащане с '{$type}'");
+                }
+            }
+
         }
 
         return $entry;
