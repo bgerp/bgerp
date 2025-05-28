@@ -60,7 +60,7 @@ class cash_NonCashPaymentDetails extends core_Manager
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'objectId=Обект,paymentId,amount,param';
+    public $listFields = 'objectId=Обект,paymentId,amount,param,deviceId';
 
 
     /**
@@ -73,6 +73,7 @@ class cash_NonCashPaymentDetails extends core_Manager
         $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title,allowEmpty)', 'caption=Метод');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
         $this->FLD('param', 'varchar', 'caption=Параметър,input=none');
+        $this->FLD('deviceId', 'key(mvc=peripheral_Devices,select=name)', 'caption=Периферия,input=none');
 
         $this->setDbIndex('classId,objectId');
         $this->setDbUnique('classId,objectId,paymentId');
@@ -92,12 +93,15 @@ class cash_NonCashPaymentDetails extends core_Manager
         $restAmount = $data->masterData->rec->amount;
         $toCurrencyCode = currency_Currencies::getCodeById($data->masterData->rec->currencyId);
         $canSeePrices = doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $data->masterData->rec);
+        $fields = $this->selectFields('');
+        $fields['-detail'] = true;
 
         // Извличане на записите
         $data->recs = $data->rows = array();
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = $this->recToVerbal($rec);
+            $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
+
             if (!$canSeePrices) {
                 $data->rows[$rec->id]->amount = doc_plg_HidePrices::getBuriedElement();
             }
@@ -158,8 +162,20 @@ class cash_NonCashPaymentDetails extends core_Manager
 
         $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
         if ($rec->paymentId == $cardPaymentId) {
+
+            // Показване на БПТ с който е платено
+            $deviceId = $rec->deviceId;
+            if($rec->classId == cash_Pko::getClassId()) {
+                $deviceId = cash_Pko::fetchField($rec->objectId, 'bankPeripheralDeviceId');
+            }
+            if(isset($deviceId)){
+                $deviceRec = peripheral_Devices::fetch($deviceId);
+                $row->deviceId = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+            }
+
+            // Показване как е платено
             if (!empty($rec->param) && !Mode::isReadOnly()) {
-                $paramString = ($rec->param == 'card') ? "<span style='color:blue;'>" . tr('потвърдено') . "</span>" : "<span style='color:red;'>" . tr('ръчно') . "</span>";
+                $paramString = ($rec->param == 'card') ? "<span style='color:blue;'>" . tr('потв.') . "</span>" : "<span style='color:red;'>" . tr('ръчно') . "</span>";
                 $row->paymentId .= " ({$paramString})";
             }
         }
@@ -295,7 +311,7 @@ class cash_NonCashPaymentDetails extends core_Manager
         $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
         if(empty($cardPaymentId)) return;
 
-        $cashClassId = cash_Cases::getClassId();
+        $cashClassId = cash_Pko::getClassId();
 
         return cash_NonCashPaymentDetails::fetch("#classId = {$cashClassId} AND #objectId = {$pkoId} AND #paymentId = {$cardPaymentId}");
     }
