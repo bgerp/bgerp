@@ -102,8 +102,8 @@ class rack_plg_Shipments extends core_Plugin
         }
 
         if ($mvc->haveRightFor('doallmovements', $rec)){
-            $data->toolbar->addBtn('Движ. (Прикл.)', array($mvc, 'doallmovements', 'do' => 'close', 'id' => $rec->id, 'ret_url' => true), 'title=Приключване на всички движения,ef_icon=img/16/gray-close.png,row=2');
             $data->toolbar->addBtn('Движ. (Започв.)', array($mvc, 'doallmovements', 'do' => 'start', 'id' => $rec->id, 'ret_url' => true), 'title=Започване на всички движения,ef_icon=img/16/control_play.png,row=2');
+            $data->toolbar->addBtn('Движ. (Прикл.)', array($mvc, 'doallmovements', 'do' => 'close', 'id' => $rec->id, 'ret_url' => true), 'title=Приключване на всички движения,ef_icon=img/16/gray-close.png,row=2');
         }
     }
     

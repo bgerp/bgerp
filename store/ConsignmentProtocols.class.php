@@ -1111,8 +1111,10 @@ class store_ConsignmentProtocols extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FLD('type', 'enum(all=Всички,send=Предаване,receive=Получаване)', 'caption=Действие,silent');
-        $data->listFilter->showFields .= ',type';
+        $data->listFilter->FLD('pType', 'enum(all=Всички,ours=Наши артикули,other=Чужди артикули)', 'input,caption=Вид,silent');
+        $data->listFilter->showFields .= ',type,pType';
         $data->listFilter->setDefault('type', 'all');
+        $data->listFilter->setDefault('pType', 'all');
         $data->listFilter->input();
 
         if ($filter = $data->listFilter->rec) {
@@ -1140,6 +1142,10 @@ class store_ConsignmentProtocols extends core_Master
                         $data->query->where("1=2");
                     }
                 }
+            }
+
+            if($filter->pType != 'all'){
+                $data->query->where("#productType = '{$filter->pType}'");
             }
         }
     }

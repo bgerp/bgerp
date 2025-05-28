@@ -154,7 +154,7 @@ class cash_Pko extends cash_Document
         $update = $notDelete = array();
         foreach ($payments as $obj) {
             $amount = core_Type::getByName('double')->fromVerbal($obj->amount);
-            $update[$obj->paymentId] = (object) array('documentId' => $rec->id, 'paymentId' => $obj->paymentId, 'amount' => $amount);
+            $update[$obj->paymentId] = (object) array('classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'paymentId' => $obj->paymentId, 'amount' => $amount);
             $paymentId = $obj->paymentId;
             $notDelete[$paymentId] = $paymentId;
             

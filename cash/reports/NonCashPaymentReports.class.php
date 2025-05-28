@@ -132,19 +132,20 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $recs = array();
         setIfNot($rec->to, dt::addDays(0, null, false));
         $nonCashQuery = cash_NonCashPaymentDetails::getQuery();
-
+        $pkoClassId = cash_Pko::getClassId();
+        $nonCashQuery->where("#classId = {$pkoClassId}");
         //Масив с id-та на ПКО-та по които има избрани безналични методи на плащане
-        $pkoWitnNonCashPaymentsArr = arr::extractValuesFromArray($nonCashQuery->fetchAll(), 'documentId');
+        $pkoWitnNonCashPaymentsArr = arr::extractValuesFromArray($nonCashQuery->fetchAll(), 'objectId');
         
         
         $pkoNonCashAmount = array();
         while ($nonRec = $nonCashQuery->fetch()) {
-            if (! array_key_exists($nonRec->documentId, $pkoNonCashAmount)) {
-                $pkoNonCashAmount[$nonRec->documentId] = (object) array('nonCashPaymentAmount' => $nonRec->amount,
+            if (! array_key_exists($nonRec->objectId, $pkoNonCashAmount)) {
+                $pkoNonCashAmount[$nonRec->objectId] = (object) array('nonCashPaymentAmount' => $nonRec->amount,
                                                                         'nonCashPaymentId' => $nonRec->paymentId
                                                                         );
                                                                         } else {
-                                                                            $obj = & $pkoNonCashAmount[$nonRec->documentId];
+                                                                            $obj = & $pkoNonCashAmount[$nonRec->objectId];
                                                                             $obj->nonCashPaymentAmount += $nonRec->amount;
                                                                         }
         }
