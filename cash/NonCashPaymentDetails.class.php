@@ -102,6 +102,8 @@ class cash_NonCashPaymentDetails extends core_Manager
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
 
+
+
             if (!$canSeePrices) {
                 $data->rows[$rec->id]->amount = doc_plg_HidePrices::getBuriedElement();
             }
@@ -168,9 +170,14 @@ class cash_NonCashPaymentDetails extends core_Manager
             if($rec->classId == cash_Pko::getClassId()) {
                 $deviceId = cash_Pko::fetchField($rec->objectId, 'bankPeripheralDeviceId');
             }
+
             if(isset($deviceId)){
                 $deviceRec = peripheral_Devices::fetch($deviceId);
                 $row->deviceId = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+            }
+
+            if($fields['-detail']) {
+                $row->paymentId = $row->deviceId;
             }
 
             // Показване как е платено
