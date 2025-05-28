@@ -259,6 +259,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $quantities = store_Products::getQuantities($productId, $recProduct->storeId, $date);
             $freeQuantity = $quantities->free;
             $reservedQuantity = $quantities->reserved;
+            $expectedQuantity = $quantities->expected;
 
             // Изваждаме наличното количество
             $avQuantity = $recProduct->quantity;
@@ -284,6 +285,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             if ($obj = &$recs[$productId]) {
                 $obj->quantity += $quantity;
+                $obj->expectedQuantity = $expectedQuantity;
             } else {
 
                 if (!in_array($productId, array_keys($artLimitsArr))) {
@@ -308,6 +310,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                     'productId' => $productId,
                     'storesQuatity' => 0,
                     'quantity' => $quantity,
+                    'expectedQuantity' => $expectedQuantity,
                     'minQuantity' => $minQuantity,
                     'maxQuantity' => $maxQuantity,
                     'orderMeasure' => $orderMeasure,
@@ -409,6 +412,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'varchar', 'caption=Количество,smartCenter');
+            if ($rec->typeOfQuantity == 'diff') {
+                $fld->FLD('expectedQuantity', 'double(smartRound,decimals=3)', 'caption=Очаквано,smartCenter');
+            }
 
 
             if ($rec->limits == 'yes') {
@@ -417,6 +423,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
                 $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
             }
+
             if (haveRole('debug')) {
 //                $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
 //                $fld->FLD('minOrder', 'varchar', 'caption=За поръчка->Мин опаковки,smartCenter');
@@ -482,6 +489,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if (isset($dRec->minOrder)) {
             $row->minOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->minOrder);
 
+        }
+
+        if ($rec->typeOfQuantity == 'diff') {
+
+            $row->expectedQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->expectedQuantity);
         }
 
         $orderArr = self::getPacksForOrder($dRec, $rec);
