@@ -10,7 +10,8 @@
     [#TOP_PAGE#]
     <header>
 
-        <div class="narrowCenter">[#HEADER_IMG#]
+        <div class="narrowCenter">
+            <a href="/"> [#HEADER_IMG#]</a>
             <!--ET_BEGIN CORE_APP_NAME-->
 
             <div class='app-name'>[#CORE_APP_NAME#]</div>

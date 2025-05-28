@@ -312,11 +312,23 @@ class pos_Reports extends core_Master
 
                 ksort($statRow->payments);
 
+                $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 foreach ($statRow->payments as $paymentRec){
                     $paymentBlocks = clone $operatorBlock->getBlock('PAYMENT_ROW');
 
                     $paymentName = ($paymentRec->value == '-1') ? 'В брой' : cond_Payments::getTitleById($paymentRec->value);
-                    $paymentBlocks->append(tr($paymentName), 'paymentId');
+                    $paymentName = tr($paymentName);
+                    if($paymentRec->value == $cardPaymentId){
+                        if(isset($paymentRec->deviceId)){
+                            $deviceRec = peripheral_Devices::fetch($paymentRec->deviceId);
+                            $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                            $paymentName = "<div style='text-indent:30px'>- {$deviceName}</div>";
+                        } else {
+                            $paymentName .= " (" . tr('Всички') . ")";
+                        }
+                    }
+
+                    $paymentBlocks->append($paymentName, 'paymentId');
                     $paymentAmountRow = core_Type::getByName('double(decimals=2)')->toVerbal($paymentRec->amount);
                     $paymentAmountRow = ht::styleNumber($paymentAmountRow, $paymentRec->amount);
                     $paymentAmountRow = currency_Currencies::decorate($paymentAmountRow, $data->row->baseCurrency);
@@ -360,6 +372,7 @@ class pos_Reports extends core_Master
             $rQuery->where("1=2");
         }
 
+        $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
         $totalArr = (object)array('receiptBy' => tr('Общо'), 'payments' => array());
         while($rRec = $rQuery->fetch()){
             $action = explode('|', $rRec->action);
@@ -375,9 +388,17 @@ class pos_Reports extends core_Master
             }
 
             if (!array_key_exists($action[1], $totalArr->payments)) {
-                $totalArr->payments[$action[1]] = (object)array('value' => $action[1], 'amount' => 0);
+                $totalArr->payments[$action[1]] = (object)array('value' => $action[1], 'amount' => 0, 'deviceId' => null);
             }
 
+            if($action[1] == $cardPaymentId){
+                if($rRec->deviceId){
+                    if (!array_key_exists("{$action[1]}|{$rRec->deviceId}", $data->statisticArr[$rRec->calcedUser]->payments)) {
+                        $data->statisticArr[$rRec->calcedUser]->payments["{$action[1]}|{$rRec->deviceId}"] = (object)array('value' => $action[1], 'amount' => 0, 'deviceId' => $rRec->deviceId);
+                    }
+                    $data->statisticArr[$rRec->calcedUser]->payments["{$action[1]}|{$rRec->deviceId}"]->amount += $rRec->amount;
+                }
+            }
             $data->statisticArr[$rRec->calcedUser]->receiptTotal += $rRec->amount;
             $data->statisticArr[$rRec->calcedUser]->payments[$action[1]]->amount += $rRec->amount;
             $totalArr->payments[$action[1]]->amount += $rRec->amount;

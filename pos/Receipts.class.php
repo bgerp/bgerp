@@ -450,6 +450,12 @@ class pos_Receipts extends core_Master
         if ($mvc->haveRightFor('manualpending', $data->rec)) {
             $data->toolbar->addBtn('Чакащо (Ръчно)', array($mvc, 'manualpending', 'id' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/tick-circle-frame.png,warning=Наистина ли желаете ръчно да направите бележката чакаща|*?');
         }
+
+        if(cash_NonCashPaymentDetails::haveRightFor('list')){
+            if(cash_NonCashPaymentDetails::count("#classId = {$mvc->getClassId()} AND #objectId = {$data->rec->id}")){
+                $data->toolbar->addBtn('Безналични', array('cash_NonCashPaymentDetails', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $data->rec->id), "ef_icon=img/16/bug.png,title=Безналичните плащания към документа,row=2");
+            }
+        }
     }
 
 
@@ -596,12 +602,19 @@ class pos_Receipts extends core_Master
         $pQuery = cond_Payments::getQuery();
         $pQuery->where("#state = 'active'");
         $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
+
+        $devices = peripheral_Devices::getDevices('bank_interface_POS', false);
         while ($pRec = $pQuery->fetch()) {
             $paymentName = cond_Payments::getTitleById($pRec->id, false);
             $paymentOptions[$pRec->id] = $paymentName;
             if ($pRec->id == $cardPaymentId) {
-                $paymentOptions["{$pRec->id}|card"] = "{$paymentName} [Потв.]";
-                $paymentOptions["{$pRec->id}|manual"] = "{$paymentName} [Ръчно потв.]";
+                $paymentOptions["{$pRec->id}|card|"] = "Карта [Потв.]";
+                $paymentOptions["{$pRec->id}|manual|"] = "Карта [Ръчно потв.]";
+                foreach ($devices as $deviceRec) {
+                    $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                    $paymentOptions["{$pRec->id}|card|{$deviceRec->id}"] = "{$deviceName} [Потв.]";
+                    $paymentOptions["{$pRec->id}|manual|{$deviceRec->id}"] = "{$deviceName} [Ръчно потв.]";
+                }
             }
         }
         $data->listFilter->FLD('payment', 'varchar', 'caption=Плащане');
@@ -630,8 +643,11 @@ class pos_Receipts extends core_Master
                     if (is_numeric($filter->payment)) {
                         $dQuery->where("#action = 'payment|{$filter->payment}'");
                     } else {
-                        list($paymentId, $paymentParam) = explode('|', $filter->payment);
+                        list($paymentId, $paymentParam, $deviceId) = explode('|', $filter->payment);
                         $dQuery->where("#action = 'payment|{$paymentId}' AND #param = '{$paymentParam}'");
+                        if(isset($deviceId)){
+                            $dQuery->where("#deviceId = '{$deviceId}'");
+                        }
                     }
                     $dQuery->in("receiptId", $foundIds);
                     $dQuery->show('receiptId');
@@ -1044,6 +1060,23 @@ class pos_Receipts extends core_Master
 
             cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent,inputDiscount');
             $this->logInAct('Приключване на бележка', $rec->id);
+
+            // Записване и на безналичните плащания в другия модел регистър
+            $nonCashPayments = array();
+            $dQuery = $Details->getQuery();
+            $dQuery->where("#receiptId = {$rec->id} AND #action  LIKE '%payment%'");
+            while ($dRec = $dQuery->fetch()) {
+                list(, $paymentId) = explode('|', $dRec->action);
+                if($paymentId > 0){
+                    $key = "{$paymentId}|{$dRec->deviceId}|{$dRec->param}";
+                    if(!array_key_exists($key, $nonCashPayments)){
+                        $nonCashPayments[$key] = (object)array('classId' => $this->getClassId(), 'objectId' => $rec->id, 'paymentId' => $paymentId, 'amount' => 0, 'deviceId' => $dRec->deviceId, 'param' => $dRec->param);
+                    }
+                    $nonCashPayments[$key]->amount += $dRec->amount;
+                }
+            }
+
+            cls::get('cash_NonCashPaymentDetails')->saveArray($nonCashPayments);
 
             // Нотифициране на драйвера на артикулите, че той е включен в чакаща бележка
             $Products = cls::get('cat_Products');

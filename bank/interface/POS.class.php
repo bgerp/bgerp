@@ -59,4 +59,16 @@ class bank_interface_POS extends peripheral_DeviceIntf
 
         return md5("{$classId}|{$objectId}|{$cu}|" . static::SALT);
     }
+
+
+    /**
+     * Заглавие на бутона за плащане
+     *
+     * @param stdClass $pRec
+     * @return string
+     */
+    public function getBtnName($pRec)
+    {
+        return $this->class->getBtnName($pRec);
+    }
 }

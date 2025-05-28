@@ -10,7 +10,11 @@
         [#BROWSE_DESCR#]
     </div>
     <!--ET_END BROWSE_DESCR-->
-
+    <!--ET_BEGIN navigationBar-->
+    <div class = 'articleNavBar'>
+        [#navigationBar#]
+    </div>
+    <!--ET_END navigationBar-->
     <!--ET_BEGIN ROW-->
     <div class='blogm-browse-article'>
         <!--ET_BEGIN articleBrowse-->

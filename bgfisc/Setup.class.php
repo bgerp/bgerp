@@ -38,6 +38,12 @@ defIfNot('BGFISC_REVERT_OPERATION_ERROR_ALLOWED_BEFORE', '7');
 
 
 /**
+ *  Да се показва ли банковия терминал на картовото плащане в бележката->Избор
+ */
+defIfNot('BGFISC_SHOW_BPT_IN_RECEIPT', 'no');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с печатане на касови бележки
  *
@@ -108,6 +114,7 @@ class bgfisc_Setup extends core_ProtoSetup
         'BGFISC_CHECK_SERIAL_NUMBER' => array('enum(yes=Включено,no=Изключено)', 'caption=Разпечатване на фискален бон от ФУ->Проверка на сер. номер'),
         'BGFISC_PRINT_VAT_GROUPS'  => array('enum(yes=Включено,no=Изключено)', 'caption=Разпечатване на фискален бон от ФУ->Разбивка по ДДС'),
         'BGFISC_REVERT_OPERATION_ERROR_ALLOWED_BEFORE'  => array('int(min=1)', 'caption=До кое число на месеца след бележката да може да се сторнира с основание "Операторска грешка"->Ден'),
+        'BGFISC_SHOW_BPT_IN_RECEIPT'  => array('enum(yes=Включено,no=Изключено)', 'caption=Да се показва ли банковия терминал на картовото плащане в бележката->Избор'),
     );
     
     

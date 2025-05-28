@@ -86,13 +86,15 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
 
                 // Ако ще се занулява отрицателно к-во винаги ще е със складовата себестойност към момента
                 $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
+
                 if (!isset($amount)) {
                     $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
+
                     if (!isset($amount)) {
                         $errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }
 
-                    $amount = round($amount, 2);
+                    $amount = round($amount * $dRec->delta, 2);
                 }
                 $total += $amount;
 
