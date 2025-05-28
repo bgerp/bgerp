@@ -68,7 +68,7 @@ class cash_NonCashPaymentDetails extends core_Manager
      */
     public function description()
     {
-        $this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
+        $this->FLD('classId', 'key(mvc=core_Classes)', 'input=none,caption=Клас');
         $this->FLD('objectId', 'int', 'input=hidden,mandatory,silent,oldFieldName=documentId,tdClass=leftCol,caption=Обект');
         $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title,allowEmpty)', 'caption=Метод');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
@@ -325,11 +325,14 @@ class cash_NonCashPaymentDetails extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->setField('objectId', 'input');
-        $data->listFilter->showFields = 'objectId,paymentId';
+        $data->listFilter->setField('objectId', 'input,silent');
+        $data->listFilter->setField('classId', 'input,silent');
+        $data->listFilter->setFieldTypeParams('classId', 'allowEmpty');
+
+        $data->listFilter->showFields = 'classId,objectId,paymentId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->input('objectId,paymentId', 'silent');
+        $data->listFilter->input('classId,objectId,paymentId', 'silent');
 
         // Сортиране на записите по num
         $data->query->orderBy('id', 'DESC');
@@ -341,6 +344,10 @@ class cash_NonCashPaymentDetails extends core_Manager
 
             if(isset($filter->objectId)){
                 $data->query->where("#objectId = {$filter->objectId}");
+            }
+
+            if(isset($filter->classId)){
+                $data->query->where("#classId = {$filter->classId}");
             }
         }
     }

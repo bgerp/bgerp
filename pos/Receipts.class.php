@@ -450,6 +450,12 @@ class pos_Receipts extends core_Master
         if ($mvc->haveRightFor('manualpending', $data->rec)) {
             $data->toolbar->addBtn('Чакащо (Ръчно)', array($mvc, 'manualpending', 'id' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/tick-circle-frame.png,warning=Наистина ли желаете ръчно да направите бележката чакаща|*?');
         }
+
+        if(cash_NonCashPaymentDetails::haveRightFor('list')){
+            if(cash_NonCashPaymentDetails::count("#classId = {$mvc->getClassId()} AND #objectId = {$data->rec->id}")){
+                $data->toolbar->addBtn('Безналични', array('cash_NonCashPaymentDetails', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $data->rec->id), "ef_icon=img/16/bug.png,title=Безналичните плащания към документа,row=2");
+            }
+        }
     }
 
 

@@ -235,6 +235,12 @@ class cash_Pko extends cash_Document
     {
         $rec = $data->rec;
 
+        if(cash_NonCashPaymentDetails::haveRightFor('list')){
+            if(cash_NonCashPaymentDetails::count("#classId = {$mvc->getClassId()} AND #objectId = {$data->rec->id}")) {
+                $data->toolbar->addBtn('Безналични', array('cash_NonCashPaymentDetails', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id), "ef_icon=img/16/bug.png,title=Безналичните плащания към документа,row=2");
+            }
+        }
+
         if(isset($data->toolbar->buttons['btnConto'])){
 
             // Ако има направено безналично плащане с карта и има периферия за банковия терминал
@@ -308,18 +314,19 @@ class cash_Pko extends cash_Document
             $cardPaymentRec->deviceId = $deviceId;
             cash_NonCashPaymentDetails::save($cardPaymentRec);
 
-            if($param == 'card'){
-                $this->logWrite('Авт. потвърдено картово плащане', $id);
-            } else {
-                $this->logWrite('Ръчно потвърдено картово плащане', $id);
-            }
-
             $deviceName = '';
             if(isset($deviceId)){
                 $deviceRec = peripheral_Devices::fetch($deviceId);
                 $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
             }
-            core_Statuses::newStatus("Успешно плащане с карта на: {$deviceName}");
+
+            if($param == 'card'){
+                $this->logWrite('Авт. потвърдено картово плащане', $id);
+                core_Statuses::newStatus("Успешно плащане с карта на: {$deviceName}");
+            } else {
+                $this->logWrite('Ръчно потвърдено картово плащане', $id);
+                core_Statuses::newStatus("Ръчно потвърдено плащане с карта на: {$deviceName}");
+            }
 
             $resObj = new stdClass();
             $resObj->func = 'successfullCardPayment';
