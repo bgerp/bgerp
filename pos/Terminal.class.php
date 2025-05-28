@@ -1450,6 +1450,7 @@ class pos_Terminal extends peripheral_Terminal
                     if(countR($selectedDevices)){
                         foreach ($selectedDevices as $deviceRec){
                             $attr['id'] = 'card-payment';
+                            $attr['data-diffamount'] = tr("Има разминаване при отчетено плащане|*: {$deviceRec->name}!");
                             $attr['data-onerror'] = tr("Неуспешно плащане с банковия терминал|*: {$deviceRec->name}!");
                             $attr['data-oncancel'] = tr("Отказвано плащане с банков терминал|*: {$deviceRec->name}!");
                             $diff = abs($rec->paid - $rec->total);
