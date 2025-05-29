@@ -11,7 +11,10 @@ function cashActions() {
         $(".fullScreenCardPayment").css("display", "block");
 
         sessionStorage.setItem('pressed', element.attr('id'));
-        getAmount(amount);
+        let deviceUrl = element.attr("data-deviceUrl");
+        let deviceComPort = element.attr("data-deviceComPort");
+
+        getAmount(amount, deviceUrl, deviceComPort);
     });
 
     // При натискане на бутона за банково плащане
@@ -31,12 +34,11 @@ function cashActions() {
         let successUrl = element.attr("data-successUrl");
         let returnUrl = element.attr("data-returnUrl");
 
-
         let resObj = new Object();
         resObj['url'] = successUrl;
 
         // Директно обръщане към успешното плащане - без да се чака отговор от терминала
-        let params = {param:'manual',redirectUrl:returnUrl};
+        let params = {param:'manual', redirectUrl:returnUrl};
         console.log("MANUAL CALL TO: " + successUrl);
         getEfae().process(resObj, params);
         $(".fullScreenCardPayment").css("display", "none");
@@ -73,7 +75,7 @@ function getAmountRes(res)
         let resObj = new Object();
         resObj['url'] = successUrl;
 
-        let params = {param:'card',redirectUrl:returnUrl};
+        let params = {param:'card', redirectUrl:returnUrl};
         console.log("SUCCESS CALL TO: " + successUrl);
         console.log(params);
         getEfae().process(resObj, params);

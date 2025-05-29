@@ -98,6 +98,7 @@ class cash_Pko extends cash_Document
         // Зареждаме полетата от бащата
         parent::getFields($this);
         $this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
+        $this->FLD('bankPeripheralDeviceId', "key(mvc=peripheral_Devices,select=name)", "input=hidden,caption=Безналично плащане->БПТ,before=contragentName,hint=Банков паричен терминал");
     }
     
     
@@ -114,6 +115,19 @@ class cash_Pko extends cash_Document
         // Добавяне на таблица за избор на безналични плащания
         $rec->exPayments = cash_NonCashPaymentDetails::getPaymentsTableArr($rec->id, $mvc->getClassId());
         $form->FLD('payments', "table(columns=paymentId|amount,captions=Плащане|Сума,validate=cash_NonCashPaymentDetails::validatePayments)", "caption=Безналично плащане->Избор,before=contragentName");
+
+        $bankPeripheralOptions = array();
+        $bankPeripherals = peripheral_Devices::getDevices('bank_interface_POS');
+        foreach ($bankPeripherals as $id => $dRec) {
+            $bankPeripheralOptions[$id] = cls::get($dRec->driverClass)->getBtnName($dRec);
+        }
+
+        if(countR($bankPeripheralOptions)){
+            $form->setField('bankPeripheralDeviceId', 'input');
+            $form->setOptions('bankPeripheralDeviceId', $bankPeripheralOptions);
+            $form->setDefault('bankPeripheralDeviceId', key($bankPeripheralOptions));
+        }
+
         $form->setFieldTypeParams('payments', array('paymentId_opt' => array('' => '') + $paymentSuggestions));
         $form->setDefault('payments', $rec->exPayments);
         $rec->exPayments = type_Table::toArray($rec->exPayments);
@@ -221,30 +235,42 @@ class cash_Pko extends cash_Document
     {
         $rec = $data->rec;
 
+        if(cash_NonCashPaymentDetails::haveRightFor('list')){
+            if(cash_NonCashPaymentDetails::count("#classId = {$mvc->getClassId()} AND #objectId = {$data->rec->id}")) {
+                $data->toolbar->addBtn('Безналични', array('cash_NonCashPaymentDetails', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id), "ef_icon=img/16/bug.png,title=Безналичните плащания към документа,row=2");
+            }
+        }
+
         if(isset($data->toolbar->buttons['btnConto'])){
 
             // Ако има направено безналично плащане с карта и има периферия за банковия терминал
             $cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id);
+
             if(!is_object($cardPaymentRec)) return;
             $amount = round($cardPaymentRec->amount * $rec->rate, 2);
 
-            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
+            // Има ли избрано устройство
+            $deviceRec = $rec->bankPeripheralDeviceId ? peripheral_Devices::fetch($rec->bankPeripheralDeviceId) : peripheral_Devices::getDevice('bank_interface_POS')->id;
             if(!is_object($deviceRec)) return;
 
             $data->toolbar->removeBtn('btnConto');
             $warning = $mvc->getContoWarning($rec, $rec->isContable);
             $errorUrl = toUrl($mvc->getSingleUrlArray($rec), 'local');
-            $data->_enableCardPayment = true;
+            $data->_deviceRec = $deviceRec;
 
             // Подмяна на бутона за контиране с такъв за обръщане към банковия терминал
+            $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
             $hash = bank_interface_POS::getPaymentHash($mvc->getClassId(), $rec->id);
-            $successUrl = toUrl(array($mvc, 'successfullcardpayment', $rec->id, 'hash' => $hash), 'local');
+            $successUrl = toUrl(array($mvc, 'successfullcardpayment', $rec->id, 'hash' => $hash, 'deviceId' => $deviceRec->id), 'local');
             $btnAttr = array('id' => "btnConto{$rec->containerId}", 'warning' => $warning, 'data-amount' => $amount, 'data-errorUrl' => $errorUrl, 'class' => 'cardPaymentBtn', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Контиране на документа');
             $btnAttr['data-successUrl'] = $successUrl;
             $btnAttr['data-returnUrl'] = core_Packs::isInstalled('bgfisc') ? toUrl(array($mvc, 'contocash', $rec->id), 'local') : toUrl($mvc->getContoUrl($rec->id));
-            $btnAttr['data-onerror'] = tr('Неуспешно плащане с банковия терминал|*!');
-            $btnAttr['data-oncancel'] = tr('Отказвано плащане с банков терминал|*!');
+            $btnAttr['data-onerror'] = tr("Неуспешно плащане с банковия терминал|*: {$deviceName}!");
+            $btnAttr['data-oncancel'] = tr("Отказвано плащане с банков терминал|*!: {$deviceName}");
 
+            $btnAttr['data-deviceName'] = $deviceName;
+            $btnAttr['data-deviceUrl'] = "{$deviceRec->protocol}://{$deviceRec->hostName}:{$deviceRec->port}";
+            $btnAttr['data-deviceComPort'] = $deviceRec->comPort;
             $data->toolbar->addFnBtn('Контиране', '', $btnAttr);
         }
     }
@@ -282,16 +308,25 @@ class cash_Pko extends cash_Document
 
             // Записване на допълнителната информация за банковото плащане
             $param = Request::get('param', 'enum(manual,card)');
+            $deviceId = Request::get('deviceId', 'int');
             $cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id);
             $cardPaymentRec->param = $param;
+            $cardPaymentRec->deviceId = $deviceId;
             cash_NonCashPaymentDetails::save($cardPaymentRec);
+
+            $deviceName = '';
+            if(isset($deviceId)){
+                $deviceRec = peripheral_Devices::fetch($deviceId);
+                $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+            }
 
             if($param == 'card'){
                 $this->logWrite('Авт. потвърдено картово плащане', $id);
+                core_Statuses::newStatus("Успешно плащане с карта на: {$deviceName}");
             } else {
                 $this->logWrite('Ръчно потвърдено картово плащане', $id);
+                core_Statuses::newStatus("Ръчно потвърдено плащане с карта на: {$deviceName}");
             }
-            core_Statuses::newStatus('Успешно плащане с карта');
 
             $resObj = new stdClass();
             $resObj->func = 'successfullCardPayment';
@@ -315,14 +350,10 @@ class cash_Pko extends cash_Document
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         if (Mode::isReadOnly()) return;
-        if(!$data->_enableCardPayment) return;
+        if(!$data->_deviceRec) return;
 
-        // Ако ще се плаща директно с банковия терминал
-        $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
-        if(!is_object($deviceRec)) return;
-
-        $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
-        $tpl->append($intf->getJS($deviceRec), 'SCRIPTS');
+        $intf = cls::getInterface('bank_interface_POS', $data->_deviceRec->driverClass);
+        $tpl->append($intf->getJS($data->_deviceRec), 'SCRIPTS');
 
         $tpl->push('cash/js/scripts.js', 'JS');
         jquery_Jquery::run($tpl, 'cashActions();');
@@ -330,7 +361,8 @@ class cash_Pko extends cash_Document
         $manualConfirmBtn = ht::createFnBtn('Ръчно потвърждение', '', '', array('class' => 'modalBtn confirmPayment disabledBtn'));
         $manualCancelBtn = ht::createFnBtn('Назад', '', '', array('class' => 'closePaymentModal modalBtn disabledBtn'));
 
-        $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') .' ...<br> ' . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
+        $deviceName = isset($deviceId) ?$intf->getBtnName($data->_deviceRec) : '';
+        $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') . " {$deviceName}...<br> " . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
         $tpl->append($modalTpl);
     }
 

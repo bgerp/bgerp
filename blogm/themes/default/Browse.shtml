@@ -1,4 +1,9 @@
 <div class='blogm-browse'>
+    <!--ET_BEGIN navigationBar-->
+    <div class = 'path' style="margin-bottom: 20px">
+        [#navigationBar#]
+    </div>
+    <!--ET_END navigationBar-->
     <!--ET_BEGIN BROWSE_HEADER-->
     <h1>
         [#BROWSE_HEADER#]

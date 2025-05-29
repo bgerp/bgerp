@@ -4761,9 +4761,11 @@ fieldset.sharing-history {
 	}
 }
 
-.eshop-product-navigation {
-	margin-bottom: 20px;
+.path {
 	font-size: 0.9em;
+	& a:hover {
+		text-decoration: underline;
+	}
 }
 
 table .eshop-btn {

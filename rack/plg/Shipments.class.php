@@ -63,6 +63,7 @@ class rack_plg_Shipments extends core_Plugin
             if ($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}")){
                 $row->zoneId = rack_Zones::getDisplayZone($zoneRec, true);
                 $row->zoneReadiness = rack_Zones::getVerbal($zoneRec, 'readiness');
+                $row->zoneReadiness = isset($zoneRec->readiness) ? $row->zoneReadiness : 'none';
             }
         }
     }
