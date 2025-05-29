@@ -256,7 +256,7 @@ class cash_Pko extends cash_Document
             $data->toolbar->removeBtn('btnConto');
             $warning = $mvc->getContoWarning($rec, $rec->isContable);
             $errorUrl = toUrl($mvc->getSingleUrlArray($rec), 'local');
-            $data->_enableCardPayment = true;
+            $data->_deviceRec = $deviceRec;
 
             // Подмяна на бутона за контиране с такъв за обръщане към банковия терминал
             $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
@@ -350,14 +350,10 @@ class cash_Pko extends cash_Document
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         if (Mode::isReadOnly()) return;
-        if(!$data->_enableCardPayment) return;
+        if(!$data->_deviceRec) return;
 
-        // Ако ще се плаща директно с банковия терминал
-        $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
-        if(!is_object($deviceRec)) return;
-
-        $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
-        $tpl->append($intf->getJS($deviceRec), 'SCRIPTS');
+        $intf = cls::getInterface('bank_interface_POS', $data->_deviceRec->driverClass);
+        $tpl->append($intf->getJS($data->_deviceRec), 'SCRIPTS');
 
         $tpl->push('cash/js/scripts.js', 'JS');
         jquery_Jquery::run($tpl, 'cashActions();');
@@ -365,8 +361,7 @@ class cash_Pko extends cash_Document
         $manualConfirmBtn = ht::createFnBtn('Ръчно потвърждение', '', '', array('class' => 'modalBtn confirmPayment disabledBtn'));
         $manualCancelBtn = ht::createFnBtn('Назад', '', '', array('class' => 'closePaymentModal modalBtn disabledBtn'));
 
-        $deviceId = $data->masterData->rec->bankPeripheralDeviceId;
-        $deviceName = isset($deviceId) ? cls::get($deviceRec->driverClass)->getBtnName($deviceRec) : '';
+        $deviceName = isset($deviceId) ?$intf->getBtnName($data->_deviceRec) : '';
         $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') . " {$deviceName}...<br> " . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
         $tpl->append($modalTpl);
     }
