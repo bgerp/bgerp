@@ -4061,9 +4061,10 @@ span.sharing-history-title {
   .narrow .optionsTable td {
     padding: 4px 10px; }
 
-.eshop-product-navigation {
-  margin-bottom: 20px;
+.path {
   font-size: 0.9em; }
+  .path a:hover {
+    text-decoration: underline; }
 
 table .eshop-btn {
   margin-right: 0 !important; }

@@ -213,7 +213,7 @@ class blogm_Articles extends core_Master
 
                 $row->articleNavBar = '';
                 foreach ($leftPath as $path) {
-                    $row->articleNavBar .= "<div>{$path}</div>";
+                    $row->articleNavBar .= "<div class='pathRow'>{$path}</div>";
                 }
             }
         }
