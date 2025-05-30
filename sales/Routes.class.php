@@ -367,11 +367,8 @@ class sales_Routes extends core_Manager
                 return false;
             }
 
-            // Изчисляваме колко седмици да прибавим
-            $repeat   = $rec->repeat / (60 * 60 * 24 * 7);
-            $interval = $interval * $repeat;
-            $steps    = floor($diff / $interval) + 1;
-            $nextTs   = $startTs + $steps * $interval;
+            $steps  = floor($diff / $rec->repeat) + 1;
+            $nextTs = $startTs + $steps * $rec->repeat;
         }
 
         // Връщаме mysql-формат
