@@ -102,7 +102,7 @@ class cash_InternalMoneyTransferDetails extends core_Detail
     public function renderDetail_($data)
     {
         $tpl = new core_ET('');
-        if($data->masterData->rec->operationSysId == 'nonecash2bank') {
+        if($data->masterData->rec->operationSysId == 'nonecash2bank' && countR($data->recs)) {
             $tpl = parent::renderDetail_($data);
         }
 
