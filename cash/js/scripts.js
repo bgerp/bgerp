@@ -96,7 +96,7 @@ function getAmountRes(res, sendAmount)
             getEfae().process(resObj, params);
         } else {
             console.log("DIFF AMOUNT");
-            let error = pressedCardPayment.attr("data-diffamount");
+            let error = element.attr("data-diffamount");
             error += " " + resAmount;
             render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
         }
