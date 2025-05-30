@@ -906,7 +906,7 @@ class core_Users extends core_Manager
         $currentUserRec = Mode::get('currentUserRec');
         $retUrl = getRetUrl();
         $form = $this->getForm(array(
-            'title' => '|*<img src=' . sbf('img/signin.png') . ">&nbsp;|Вход в|* " . $conf->EF_APP_TITLE,
+            'title' => '|*<img alt="sign in" src=' . sbf('img/signin.png') . ">&nbsp;|Вход в|* " . $conf->EF_APP_TITLE,
             'name' => 'login'
         ));
         
