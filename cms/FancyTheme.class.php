@@ -220,7 +220,7 @@ class cms_FancyTheme extends core_ProtoInner
         $css .= "\n    #cmsMenu {border-top:1px solid #{$bordercolor} !important; border-bottom:1px solid #{$bordercolor} !important;}";
 
         // цветове на формите в зависимост от основния цвят
-        $css .= "\n    .searchBox button, .narrow .searchForm button,  .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {background-color:#{$baseColor} !important; border: 1px solid #{$bordercolor} !important}";
+        $css .= "\n    .narrow .searchForm button,  .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {background-color:#{$baseColor} !important; border: 1px solid #{$bordercolor} !important}";
         $css .= "\n    .vertical .formTitle, .vertical .formMiddleCaption, .vertical .formGroup {background-color:#{$baseColor} !important; border-color:#{$bordercolor};}";
 
         $linkBorder = phpcolor_Adapter::changeColor($bgcolorActive, 'mix', 5, $bordercolor);
@@ -230,8 +230,6 @@ class cms_FancyTheme extends core_ProtoInner
         $css .= "\n    .cookies a { color: #{$bgcolorActive} !important;}";
 
         $css .= "\n    #all #maincontent .richtext a:visited, #all #maincontent .articles-menu a:visited, #all #maincontent .blogm-categories a:visited{ color: #{$visitedFontColor};}";
-        $css .= "\n    .eventHub .nav_item:hover a ,#cmsNavigation .sel_page a, #cmsNavigation a:hover, .cookies .agree {background-color: #{$bgcolorActive} !important; border: 1px solid #{$linkBorder} !important; color: #{$fontColor}}";
-        $css .= "\n    .eventHub .sel_page a, .eventHub .nav_item.sel_page:hover a {background-color: #{$fontColor} !important; color: #fff !important; border: 1px solid #{$fontColor} !important}";
 
         $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a,.additionalFooter .footer-links, .additionalFooter .footer-links a{color: #{$fontColor} !important;}";
         $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
