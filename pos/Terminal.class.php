@@ -1468,8 +1468,6 @@ class pos_Terminal extends peripheral_Terminal
                             $paymentArr["payment{$paymentId}|{$deviceRec->id}"] = (object)array('body' => ht::createElement("div", $attr, $cardCaption, true), 'placeholder' => 'PAYMENTS');
                         }
                     } else {
-                        $attr['class'] .= ' disabledBtn';
-                        $attr['title'] = tr("Няма избран банков терминал за картово плащане");
                         $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
                     }
                 } else {
