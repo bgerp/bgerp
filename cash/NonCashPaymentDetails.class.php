@@ -60,7 +60,7 @@ class cash_NonCashPaymentDetails extends core_Manager
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'objectId=Обект,paymentId,amount,param,deviceId';
+    public $listFields = 'id,objectId=Обект,paymentId,amount,param,deviceId,transferredContainerId';
 
 
     /**
@@ -74,6 +74,7 @@ class cash_NonCashPaymentDetails extends core_Manager
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
         $this->FLD('param', 'varchar', 'caption=Параметър,input=none');
         $this->FLD('deviceId', 'key(mvc=peripheral_Devices,select=name)', 'caption=Периферия,input=none');
+        $this->FLD('transferredContainerId', 'key(mvc=doc_Containers,select=id)', 'caption=Инкасиране,input=none');
 
         $this->setDbIndex('classId,objectId');
         $this->setDbUnique('classId,objectId,paymentId');
@@ -156,6 +157,14 @@ class cash_NonCashPaymentDetails extends core_Manager
                 $toolbar = new core_RowToolbar();
                 $toolbar->addLink('Инкасиране(Каса)', $url, "ef_icon = img/16/safe-icon.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по каса");
 
+                // Ако има периферия с избрана б.сметка да се подава тя
+                if(isset($rec->deviceId)){
+                    $deviceRec = peripheral_Devices::fetch($rec->deviceId);
+                    if(isset($deviceRec->accountId)){
+                        $url['debitBank'] = $deviceRec->accountId;
+                    }
+                }
+
                 $url['operationSysId'] = 'nonecash2bank';
                 $toolbar->addLink('Инкасиране(Банка)', $url, "ef_icon = img/16/own-bank.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по банка");
                 $row->buttons = $toolbar->renderHtml(2);
@@ -191,6 +200,12 @@ class cash_NonCashPaymentDetails extends core_Manager
         $objectRec = $Class->fetch($rec->objectId);
         $link = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
         $row->objectId = "<span class= 'state-{$objectRec->state} document-handler'>{$link}</span>";
+
+        if(isset($rec->transferredContainerId)){
+            $Document = doc_Containers::getDocument($rec->transferredContainerId);
+            $row->transferredContainerId = $Document->getLink(0);
+            $row->transferredContainerId = "<span class= 'state-{$Document->fetchField('state')} document-handler'>{$row->transferredContainerId}</span>";
+        }
     }
 
 
@@ -357,5 +372,52 @@ class cash_NonCashPaymentDetails extends core_Manager
                 $data->query->where("#classId = {$filter->classId}");
             }
         }
+    }
+
+
+    /**
+     * Кои са неинкасираните плащания за този безналичен метод
+     *
+     * @param int $paymentId     - ид на безналично плащане
+     * @param int $caseId        - ид на каса
+     * @param int $bankAccountId - ид на наша б.сметка
+     * @return array
+     */
+    public static function getNotCollectedRecs($paymentId, $caseId, $bankAccountId)
+    {
+        $peripheralsWithBankId = array();
+        $devices = peripheral_Devices::getDevices('bank_interface_POS', false);
+        foreach ($devices as $deviceRec) {
+            if($deviceRec->accountId == $bankAccountId) {
+                $peripheralsWithBankId[$deviceRec->id] = $deviceRec->id;
+            }
+        }
+        if(!countR($peripheralsWithBankId)) return array();
+
+        // Извличат се всички безналични плащания отговарящи на условията, които не са прехвърлени
+        $query = self::getQuery();
+        $query->where("#transferredContainerId IS NULL AND #paymentId = {$paymentId}");
+        $query->in("deviceId", $peripheralsWithBankId);
+        $query->orderBy('id', 'ASC');
+
+        $res = array();
+        while($rec = $query->fetch()){
+            $Class = cls::get($rec->classId);
+            $objectRec = $Class->fetch($rec->objectId);
+            if($Class instanceof cash_Pko){
+                $state = $objectRec->state;
+                $objectCaseId = $objectRec->peroCase;
+            } else {
+                $state = $objectRec->state;
+                $objectCaseId = pos_Points::fetchField($objectRec->pointId, 'caseId');
+            }
+
+            if(in_array($state, array('draft', 'rejected'))) continue;
+            if($objectCaseId != $caseId) continue;
+
+            $res[$rec->id] = $rec;
+        }
+
+        return $res;
     }
 }
