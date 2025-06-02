@@ -196,6 +196,24 @@ defIfNot('DOC_DEFAULT_ACCESS', 'private');
 
 
 /**
+ * Дефолт за "Подреждане по" в документи->Сделки
+ */
+defIfNot('DOC_ORDER_BY_DEFAULT_DEAL_DOCS', 'creation');
+
+
+/**
+ * Дефолт за "Подреждане по" в документи->Складови
+ */
+defIfNot('DOC_ORDER_BY_DEFAULT_STORE_DOCS', 'creation');
+
+
+/**
+ * Дефолт за "Подреждане по" в документи->Фактури
+ */
+defIfNot('DOC_ORDER_BY_DEFAULT_INVOICE_DOCS', 'creation');
+
+
+/**
  * Да се показват ли сумите с ДДС в съмърито на лист изгледа
  */
 defIfNot('DOC_SHOW_LIST_SUMMARY_VAT', 'no');
@@ -290,6 +308,10 @@ class doc_Setup extends core_ProtoSetup
         'DOC_SHOW_LAST_VISITED_AS_PROTOTYPES' => array('int(Min=0)', 'caption=Показване на последно посетените документи за избор на Шаблони->Брой, customizeBy=powerUser'),
         'DOC_OPEN_FOLDER_AFTER_REJECT' => array('enum(yes=Да,no=Не)', 'canView=no_one, caption=Пренасочване към папката|*&#44; | след оттегляне на първия документ в нишката->Избор, customizeBy=debug'),
         'DOC_SHOW_LIST_SUMMARY_VAT' => array('enum(yes=С ДДС,no=Без ДДС)', 'caption=Показване на статистиката в лист изгледите->ДДС, customizeBy=powerUser'),
+
+        'DOC_ORDER_BY_DEFAULT_DEAL_DOCS' => array('enum(creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Дефолт за "Подреждане по" в документи->Сделки, customizeBy=powerUser'),
+        'DOC_ORDER_BY_DEFAULT_STORE_DOCS' => array('enum(creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Дефолт за "Подреждане по" в документи->Складови, customizeBy=powerUser'),
+        'DOC_ORDER_BY_DEFAULT_INVOICE_DOCS' => array('enum(creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Дефолт за "Подреждане по" в документи->Фактури, customizeBy=powerUser'),
     );
 
     // Инсталиране на мениджърите

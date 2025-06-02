@@ -75,6 +75,11 @@ class cat_plg_ShowCodes extends core_Plugin
             if(!empty($sortRequest) && in_array($sortRequest, array("{$mvc->productFld}|up", "{$mvc->productFld}|down"))) return;
 
             $detailOrderBy = $data->masterData->rec->{$mvc->Master->detailOrderByField};
+            if($detailOrderBy == 'auto'){
+                $const = ($mvc instanceof deals_InvoiceDetail) ? 'ORDER_BY_DEFAULT_INVOICE_DOCS' : (($mvc instanceof deals_DealDetail) ? 'ORDER_BY_DEFAULT_DEAL_DOCS' : 'ORDER_BY_DEFAULT_STORE_DOCS');
+                $detailOrderBy = doc_Setup::get($const);
+            }
+
             if($detailOrderBy == 'code'){
                 arr::sortObjects($data->rows, 'code', 'ASC', 'natural');
             } elseif($detailOrderBy == 'reff' && isset($listId)){

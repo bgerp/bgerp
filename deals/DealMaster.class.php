@@ -280,7 +280,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         
         // Артикули
-		$mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
+		$mvc->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         		
 		// Доставка
         $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor,removeAndRefreshForm=deliveryLocationId|deliveryAdress|deliveryData|deliveryCalcTransport|courierApi,silent');
@@ -378,8 +378,6 @@ abstract class deals_DealMaster extends deals_DealBase
                     $form->setReadOnly($fld, $rec->{$fld} ?? $readOnlyVal);
                 }
             }
-        } else {
-            $form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
         }
         
         $form->setField('sharedUsers', 'input=none');
@@ -554,10 +552,6 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if(isset($rec->deliveryTermId)){
             cond_DeliveryTerms::inputDocumentForm($rec->deliveryTermId, $form, $mvc);
-        }
-
-        if(empty($rec->id)){
-            core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy, core_Permanent::FOREVER_VALUE);
         }
 
         if(empty($rec->id)) {
