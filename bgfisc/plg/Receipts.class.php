@@ -433,6 +433,18 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $fiscalArr['END_TEXT'][] = "Ваучер: *{$endVoucher}";
                 }
 
+                $showPosDevice = bgfisc_Setup::get('SHOW_BPT_IN_RECEIPT') == 'yes';
+                if($showPosDevice){
+                    $dQuery = pos_ReceiptDetails::getQuery();
+                    $dQuery->where("#receiptId = {$rec->id} AND #deviceId IS NOT NULL");
+                    $deviceIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'deviceId');
+                    foreach ($deviceIds as $deviceId) {
+                        $deviceRec = peripheral_Devices::fetch($deviceId);
+                        $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                        $fiscalArr['END_TEXT'][] = "Платено през: {$deviceName}";
+                    }
+                }
+
                 if (cls::haveInterface('peripheral_FiscPrinterWeb', $Driver)) {
                     $interface = core_Cls::getInterface('peripheral_FiscPrinterWeb', $lRec->driverClass);
 

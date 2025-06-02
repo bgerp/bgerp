@@ -213,7 +213,7 @@ class blogm_Articles extends core_Master
 
                 $row->articleNavBar = '';
                 foreach ($leftPath as $path) {
-                    $row->articleNavBar .= "<div>{$path}</div>";
+                    $row->articleNavBar .= "<div class='pathRow'>{$path}</div>";
                 }
             }
         }
@@ -853,6 +853,13 @@ class blogm_Articles extends core_Master
     {
         $layout = $data->ThemeClass->getBrowseLayout();
 
+        // Показва се и навигацията във всичките категории дето е включена
+        $navigationArr = cls::get('blogm_Categories')->getNestedTree($data->categoryId);
+        if(countR($navigationArr)){
+            $pathArr = $this->flattenNavPaths($navigationArr, $data->menuId);
+            $layout->replace($pathArr[key($pathArr)], 'navigationBar');
+        }
+
         if (countR($data->rows)) {
             foreach ($data->rows as $row) {
                 $rowTpl = $layout->getBlock('ROW');
@@ -860,8 +867,7 @@ class blogm_Articles extends core_Master
                 $rowTpl->append2master();
             }
         }
-        
-        
+
         $layout->replace($data->title, 'BROWSE_HEADER');
         $layout->replace($data->descr, 'BROWSE_DESCR');
         $layout->append($data->pager->getPrevNext('« по-стари', 'по-нови »'));

@@ -55,7 +55,14 @@
 								<td class='dt'>|Безналични плащания|*:</td>
 								<td>[#payments#]</td>
 							</tr>
-							
+
+							<!--ET_BEGIN bankPeripherals-->
+							<tr>
+								<td class='dt'>|Банкови терминали|*:</td>
+								<td>[#bankPeripherals#]</td>
+							</tr>
+							<!--ET_END bankPeripherals-->
+
 							<tr>
 								<td class='dt'>|Тема|*:</td>
 								<td>[#theme#]</td>

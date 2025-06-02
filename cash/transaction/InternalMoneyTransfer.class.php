@@ -44,6 +44,7 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
         $item2Arr = ($rec->paymentDebitId) ? array('cond_Payments', $rec->paymentDebitId) : array('currency_Currencies', $rec->currencyId);
         
         $creditArr = array($rec->creditAccId, array('cash_Cases', $rec->creditCase), array('currency_Currencies', $rec->currencyId), 'quantity' => $rec->amount);
+        $rec->amount = $rec->amount ?? 0;
 
         if ($rec->operationSysId == 'nonecash2bank' || $rec->operationSysId == 'nonecash2case' || $rec->operationSysId == 'noncash2noncash') {
             $creditArr = array($rec->creditAccId,
