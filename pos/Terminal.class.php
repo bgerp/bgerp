@@ -1434,11 +1434,6 @@ class pos_Terminal extends peripheral_Terminal
 
             foreach ($payments as $paymentId => $paymentTitle){
                 $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl, 'title' => 'Избор на вид плащане');
-                $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
-                if(!empty($currencyCode)){
-                    $attr['class'] .= ' currencyBtn disabledBtn';
-                }
-
                 $attr['data-sendamount'] = null;
 
                 // Ако е плащане с карта и има периферия подменя се с връзка с касовия апарат
