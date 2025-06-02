@@ -236,7 +236,7 @@ class eshop_ProductDetails extends core_Detail
                 if (!empty($priceObject->discount)) {
                     $res->discount = $priceObject->discount;
                 }
-               // bp($res);
+
                 return $res;
             }
         }

@@ -911,7 +911,7 @@ class acc_plg_Contable extends core_Plugin
      * @param string $action
      * @param int|null $userId
      */
-    private static function sendActionNotifications($users, $mvc, $rec, $action, $userId = null)
+    public static function sendActionNotifications($users, $mvc, $rec, $action, $userId = null)
     {
         if(!isset($userId)){
             $userId = core_Users::getCurrent();
@@ -924,7 +924,7 @@ class acc_plg_Contable extends core_Plugin
         $docTitle = $docRow->title;
         
         $folderTitle = doc_Threads::getThreadTitle($rec->threadId);
-        $actionVerbal = ($action == 'reject') ? 'оттегли' : 'контира';
+        $actionVerbal = ($action == 'reject') ? 'оттегли' : ($action == 'stop' ? 'спря' : 'контира');
         $message = "{$currUserNick} |{$actionVerbal}|* \"|{$docTitle}|*\" |в нишка|* \"{$folderTitle}\"";
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $url = ($firstDoc->fetchField('state') == 'rejected') ? array('doc_Containers', 'list', "threadId" => $rec->threadId) : array($mvc, 'single', $rec->id);
