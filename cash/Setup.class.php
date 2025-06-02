@@ -59,6 +59,7 @@ class cash_Setup extends core_ProtoSetup
         'cash_InternalMoneyTransfer',
         'cash_ExchangeDocument',
         'cash_NonCashPaymentDetails',
+        'cash_InternalMoneyTransferDetails',
         'migrate::updateNonCashDetails2521'
     );
     

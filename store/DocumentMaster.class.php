@@ -118,7 +118,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
-        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
 		$mvc->FLD('note', 'richtext(bucket=Notes,passage,rows=6)', 'caption=Допълнително->Бележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -220,8 +220,6 @@ abstract class store_DocumentMaster extends core_Master
         } else {
             $data->form->setField('prevShipment', 'input=none');
         }
-
-        $form->setDefault('detailOrderBy', $dealInfo->get('detailOrderBy'));
     }
     
     

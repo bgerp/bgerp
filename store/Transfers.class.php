@@ -262,7 +262,7 @@ class store_Transfers extends core_Master
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
 
         // Допълнително
-        $this->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
+        $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Състояние, input=none');
 
@@ -379,8 +379,6 @@ class store_Transfers extends core_Master
             $data->form->setDefault('toStore', $Cover->that);
         }
 
-        $data->form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
-
         if (!trans_Lines::count("#state = 'active'")) {
             $data->form->setField('lineId', 'input=none');
         }
@@ -408,10 +406,6 @@ class store_Transfers extends core_Master
 
             if ($rec->fromStore == $rec->toStore) {
                 $form->setError('toStore', 'Складовете трябва да са различни');
-            }
-
-            if(empty($rec->id)){
-                core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy, core_Permanent::FOREVER_VALUE);
             }
 
             $rec->folderId = store_Stores::forceCoverAndFolder($rec->toStore);

@@ -49,7 +49,7 @@
     <!--ET_END FOOTER_CENTER_NARROW-->
     [#BEFORE_FOOTER#]
     <!--ET_BEGIN FOOTER_CENTER_NARROW-->
-    <div class="additionalFooter" style="background-color: red !important;">
+    <div class="additionalFooter" style="background-color: #eee !important;">
         <div class='footer-links'>[#FOOTER_CENTER_NARROW#]</div>
     </div>
     <!--ET_END FOOTER_CENTER_NARROW-->

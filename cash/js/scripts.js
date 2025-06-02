@@ -63,22 +63,43 @@ function getPressedContoBtn()
  *
  * @param res
  */
-function getAmountRes(res)
+function getAmountRes(res, sendAmount)
 {
     let element = getPressedContoBtn();
     let successUrl = element.attr("data-successUrl");
 
-    if(res == 'OK'){
+    console.log("RES: " + res + " S " + sendAmount);
+    let resString = String(res);
+    if (resString.startsWith("OK")) {
+
         let returnUrl = element.attr("data-returnUrl");
         console.log("RES IS OK");
 
-        let resObj = new Object();
-        resObj['url'] = successUrl;
+        let parts = resString.split("|");
+        let rightPart = parts.slice(1).join("|"); // всичко след първото "|"
+        console.log("RIGHT PART: " + rightPart);
 
-        let params = {param:'card', redirectUrl:returnUrl};
-        console.log("SUCCESS CALL TO: " + successUrl);
-        console.log(params);
-        getEfae().process(resObj, params);
+        // Вземаме само първия елемент от rightPart, ако има няколко
+        let firstNumberStr = rightPart.split("|")[0];
+
+        // Парсираме като число и форматираме до 2 дес. знака
+        let resAmount = parseFloat(firstNumberStr).toFixed(2);
+        let sendAmountFormatted = parseFloat(sendAmount).toFixed(2);
+
+        if(resAmount === sendAmountFormatted){
+            let resObj = new Object();
+            resObj['url'] = successUrl;
+
+            let params = {param:'card', redirectUrl:returnUrl};
+            console.log("SUCCESS CALL TO: " + successUrl);
+            console.log(params);
+            getEfae().process(resObj, params);
+        } else {
+            console.log("DIFF AMOUNT");
+            let error = element.attr("data-diffamount");
+            error += " " + resAmount;
+            render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+        }
     } else {
         let error = element.attr("data-onerror");
         render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});

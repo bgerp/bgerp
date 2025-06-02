@@ -263,6 +263,7 @@ class cash_Pko extends cash_Document
             $hash = bank_interface_POS::getPaymentHash($mvc->getClassId(), $rec->id);
             $successUrl = toUrl(array($mvc, 'successfullcardpayment', $rec->id, 'hash' => $hash, 'deviceId' => $deviceRec->id), 'local');
             $btnAttr = array('id' => "btnConto{$rec->containerId}", 'warning' => $warning, 'data-amount' => $amount, 'data-errorUrl' => $errorUrl, 'class' => 'cardPaymentBtn', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Контиране на документа');
+            $btnAttr['data-diffamount'] = tr("Има разминаване при отчетено плащане|*: {$deviceName}!");
             $btnAttr['data-successUrl'] = $successUrl;
             $btnAttr['data-returnUrl'] = core_Packs::isInstalled('bgfisc') ? toUrl(array($mvc, 'contocash', $rec->id), 'local') : toUrl($mvc->getContoUrl($rec->id));
             $btnAttr['data-onerror'] = tr("Неуспешно плащане с банковия терминал|*: {$deviceName}!");

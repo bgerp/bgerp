@@ -4485,6 +4485,9 @@ table .eshop-btn {
   .productBox:hover {
     -webkit-transform: scale(1.15);
     transform: scale(1.15); }
+    .productBox:hover a {
+      background-size: 4px 50px;
+      color: white !important; }
   .productBox .productImage {
     width: 100%;
     height: 180px;
@@ -4505,9 +4508,6 @@ table .eshop-btn {
     -webkit-transition: all 0.2s;
     transition: all 0.2s;
     padding: 0 2px; }
-    .productBox .productName:hover {
-      background-size: 4px 50px;
-      color: white !important; }
 
   .smallThumbs .productImage {
     height: 120px;
@@ -4516,7 +4516,7 @@ table .eshop-btn {
       max-width: 110px;
       height: auto; }
   .smallThumbs .productName {
-    font-size: 0.9em !important; }
+    font-size: 0.9rem !important; }
 
 .narrow .results ul {
   padding-left: 0; }
