@@ -6078,6 +6078,9 @@ div.location.public {
 .eshop-product-labels > a {
   font-weight: bold; }
 
+#addToFavouritesBtn a {
+  background-color: rgba(0, 0, 0, 0) !important; }
+
 .narrow .eshop-group-button-title {
   margin-top: 2px; }
 
