@@ -181,8 +181,7 @@ class cash_NonCashPaymentDetails extends core_Manager
             }
 
             if(isset($deviceId)){
-                $deviceRec = peripheral_Devices::fetch($deviceId);
-                $row->deviceId = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                $row->deviceId = self::getCardPaymentBtnName($deviceId);
             }
 
             if($fields['-detail'] && !empty($row->deviceId)) {
@@ -205,6 +204,25 @@ class cash_NonCashPaymentDetails extends core_Manager
             $Document = doc_Containers::getDocument($rec->transferredContainerId);
             $row->transferredContainerId = $Document->getLink(0);
             $row->transferredContainerId = "<span class= 'state-{$Document->fetchField('state')} document-handler'>{$row->transferredContainerId}</span>";
+        }
+    }
+
+
+    /**
+     * Показва кепшъна на бутона за картово плащане
+     *
+     * @param int|stdClass $deviceId
+     * @return string
+     */
+    public static function getCardPaymentBtnName($deviceId)
+    {
+        $deviceRec = peripheral_Devices::fetchRec($deviceId);
+        try{
+            $Int = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
+
+            return $Int->getBtnName($deviceRec);
+        } catch(core_exception_Expect $e){
+            return tr('Карта');
         }
     }
 

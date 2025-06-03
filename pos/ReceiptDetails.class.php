@@ -915,8 +915,7 @@ class pos_ReceiptDetails extends core_Detail
                 $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if($action->value == $cardPaymentId){
                     if(!empty($rec->deviceId)){
-                        $deviceRec = peripheral_Devices::fetch($rec->deviceId);
-                        $row->actionValue = cls::get($deviceRec->driverClass)->getBtnName($rec->deviceId);
+                        $row->actionValue = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
                     }
 
                     if(!empty($rec->param)){

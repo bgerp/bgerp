@@ -320,8 +320,7 @@ class pos_Reports extends core_Master
                     $paymentName = tr($paymentName);
                     if($paymentRec->value == $cardPaymentId){
                         if(isset($paymentRec->deviceId)){
-                            $deviceRec = peripheral_Devices::fetch($paymentRec->deviceId);
-                            $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                            $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($paymentRec->deviceId);
                             $paymentName = "<div style='text-indent:30px'>- {$deviceName}</div>";
                         } else {
                             $paymentName .= " (" . tr('Всички') . ")";

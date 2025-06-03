@@ -439,8 +439,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $dQuery->where("#receiptId = {$rec->id} AND #deviceId IS NOT NULL");
                     $deviceIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'deviceId');
                     foreach ($deviceIds as $deviceId) {
-                        $deviceRec = peripheral_Devices::fetch($deviceId);
-                        $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                        $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceId);
                         $fiscalArr['END_TEXT'][$deviceName] = "Платено през: {$deviceName}";
                     }
                 }

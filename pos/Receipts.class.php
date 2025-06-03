@@ -611,7 +611,7 @@ class pos_Receipts extends core_Master
                 $paymentOptions["{$pRec->id}|card|"] = "Карта [Потв.]";
                 $paymentOptions["{$pRec->id}|manual|"] = "Карта [Ръчно потв.]";
                 foreach ($devices as $deviceRec) {
-                    $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                    $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
                     $paymentOptions["{$pRec->id}|card|{$deviceRec->id}"] = "{$deviceName} [Потв.]";
                     $paymentOptions["{$pRec->id}|manual|{$deviceRec->id}"] = "{$deviceName} [Ръчно потв.]";
                 }
