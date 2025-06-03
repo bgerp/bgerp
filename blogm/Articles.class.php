@@ -204,6 +204,8 @@ class blogm_Articles extends core_Master
                 $leftPath = array();
                 $count = 0;
                 foreach ($pathArr as $element) {
+                    $element .= " » " . strip_tags($row->title);
+
                     $leftPath[] = $element;
                     $count++;
                     if ($count >= $maxPath) {
@@ -857,6 +859,7 @@ class blogm_Articles extends core_Master
         $navigationArr = cls::get('blogm_Categories')->getNestedTree($data->categoryId);
         if(countR($navigationArr)){
             $pathArr = $this->flattenNavPaths($navigationArr, $data->menuId);
+            $pathArr[0] .= " » " . strip_tags($data->title);
             $layout->replace($pathArr[key($pathArr)], 'navigationBar');
         }
 
