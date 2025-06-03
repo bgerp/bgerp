@@ -119,7 +119,7 @@ class cash_Pko extends cash_Document
         $bankPeripheralOptions = array();
         $bankPeripherals = peripheral_Devices::getDevices('bank_interface_POS');
         foreach ($bankPeripherals as $id => $dRec) {
-            $bankPeripheralOptions[$id] = cls::get($dRec->driverClass)->getBtnName($dRec);
+            $bankPeripheralOptions[$id] = cash_NonCashPaymentDetails::getCardPaymentBtnName($dRec);
         }
 
         if(countR($bankPeripheralOptions)){
@@ -259,7 +259,7 @@ class cash_Pko extends cash_Document
             $data->_deviceRec = $deviceRec;
 
             // Подмяна на бутона за контиране с такъв за обръщане към банковия терминал
-            $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+            $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
             $hash = bank_interface_POS::getPaymentHash($mvc->getClassId(), $rec->id);
             $successUrl = toUrl(array($mvc, 'successfullcardpayment', $rec->id, 'hash' => $hash, 'deviceId' => $deviceRec->id), 'local');
             $btnAttr = array('id' => "btnConto{$rec->containerId}", 'warning' => $warning, 'data-amount' => $amount, 'data-errorUrl' => $errorUrl, 'class' => 'cardPaymentBtn', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Контиране на документа');
@@ -317,8 +317,7 @@ class cash_Pko extends cash_Document
 
             $deviceName = '';
             if(isset($deviceId)){
-                $deviceRec = peripheral_Devices::fetch($deviceId);
-                $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceId);
             }
 
             if($param == 'card'){
@@ -362,7 +361,7 @@ class cash_Pko extends cash_Document
         $manualConfirmBtn = ht::createFnBtn('Ръчно потвърждение', '', '', array('class' => 'modalBtn confirmPayment disabledBtn'));
         $manualCancelBtn = ht::createFnBtn('Назад', '', '', array('class' => 'closePaymentModal modalBtn disabledBtn'));
 
-        $deviceName = isset($deviceId) ?$intf->getBtnName($data->_deviceRec) : '';
+        $deviceName = isset($deviceId) ? $intf->getBtnName($data->_deviceRec) : '';
         $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') . " {$deviceName}...<br> " . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
         $tpl->append($modalTpl);
     }

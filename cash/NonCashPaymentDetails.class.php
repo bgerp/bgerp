@@ -181,8 +181,7 @@ class cash_NonCashPaymentDetails extends core_Manager
             }
 
             if(isset($deviceId)){
-                $deviceRec = peripheral_Devices::fetch($deviceId);
-                $row->deviceId = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                $row->deviceId = self::getCardPaymentBtnName($deviceId);
             }
 
             if($fields['-detail'] && !empty($row->deviceId)) {
@@ -205,6 +204,25 @@ class cash_NonCashPaymentDetails extends core_Manager
             $Document = doc_Containers::getDocument($rec->transferredContainerId);
             $row->transferredContainerId = $Document->getLink(0);
             $row->transferredContainerId = "<span class= 'state-{$Document->fetchField('state')} document-handler'>{$row->transferredContainerId}</span>";
+        }
+    }
+
+
+    /**
+     * Показва кепшъна на бутона за картово плащане
+     *
+     * @param int|stdClass $deviceId
+     * @return string
+     */
+    public static function getCardPaymentBtnName($deviceId)
+    {
+        $deviceRec = peripheral_Devices::fetchRec($deviceId);
+        try{
+            $Int = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
+
+            return $Int->getBtnName($deviceRec);
+        } catch(core_exception_Expect $e){
+            return tr('Карта');
         }
     }
 
@@ -381,9 +399,10 @@ class cash_NonCashPaymentDetails extends core_Manager
      * @param int $paymentId     - ид на безналично плащане
      * @param int $caseId        - ид на каса
      * @param int $bankAccountId - ид на наша б.сметка
+     * @param int $originId      - ид на контейнер на източник
      * @return array
      */
-    public static function getNotCollectedRecs($paymentId, $caseId, $bankAccountId)
+    public static function getNotCollectedRecs($paymentId, $caseId, $bankAccountId, $originId = null)
     {
         $peripheralsWithBankId = array();
         $devices = peripheral_Devices::getDevices('bank_interface_POS', false);
@@ -397,7 +416,12 @@ class cash_NonCashPaymentDetails extends core_Manager
         // Извличат се всички безналични плащания отговарящи на условията, които не са прехвърлени
         $query = self::getQuery();
         $query->where("#transferredContainerId IS NULL AND #paymentId = {$paymentId}");
-        $query->in("deviceId", $peripheralsWithBankId);
+        if(isset($originId)) {
+            $document = doc_Containers::getDocument($originId);
+            $query->where("#classId = {$document->getClassId()} AND #objectId = {$document->that}");
+        } else {
+            $query->in("deviceId", $peripheralsWithBankId);
+        }
         $query->orderBy('id', 'ASC');
 
         $res = array();
