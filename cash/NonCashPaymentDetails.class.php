@@ -399,9 +399,10 @@ class cash_NonCashPaymentDetails extends core_Manager
      * @param int $paymentId     - ид на безналично плащане
      * @param int $caseId        - ид на каса
      * @param int $bankAccountId - ид на наша б.сметка
+     * @param int $originId      - ид на контейнер на източник
      * @return array
      */
-    public static function getNotCollectedRecs($paymentId, $caseId, $bankAccountId)
+    public static function getNotCollectedRecs($paymentId, $caseId, $bankAccountId, $originId = null)
     {
         $peripheralsWithBankId = array();
         $devices = peripheral_Devices::getDevices('bank_interface_POS', false);
@@ -415,7 +416,12 @@ class cash_NonCashPaymentDetails extends core_Manager
         // Извличат се всички безналични плащания отговарящи на условията, които не са прехвърлени
         $query = self::getQuery();
         $query->where("#transferredContainerId IS NULL AND #paymentId = {$paymentId}");
-        $query->in("deviceId", $peripheralsWithBankId);
+        if(isset($originId)) {
+            $document = doc_Containers::getDocument($originId);
+            $query->where("#classId = {$document->getClassId()} AND #objectId = {$document->that}");
+        } else {
+            $query->in("deviceId", $peripheralsWithBankId);
+        }
         $query->orderBy('id', 'ASC');
 
         $res = array();

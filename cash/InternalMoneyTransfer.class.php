@@ -617,7 +617,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $dQuery = cash_InternalMoneyTransferDetails::getQuery();
         $dQuery->where("#transferId = {$rec->id}");
         $alreadyCollected = arr::extractValuesFromArray($dQuery->fetchAll(), 'recId');
-        $notCollected = cash_NonCashPaymentDetails::getNotCollectedRecs($rec->paymentId, $rec->creditCase, $rec->debitBank);
+        $notCollected = cash_NonCashPaymentDetails::getNotCollectedRecs($rec->paymentId, $rec->creditCase, $rec->debitBank, $rec->sourceId);
         $toAdd = array_diff_key($notCollected, $alreadyCollected);
 
         // Записват се в модела
