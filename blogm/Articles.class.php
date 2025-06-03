@@ -859,7 +859,7 @@ class blogm_Articles extends core_Master
         $navigationArr = cls::get('blogm_Categories')->getNestedTree($data->categoryId);
         if(countR($navigationArr)){
             $pathArr = $this->flattenNavPaths($navigationArr, $data->menuId);
-            $pathArr[0] .= " » " . strip_tags($data->title);
+            $pathArr[0] .= " » <span>" . strip_tags($data->title) . "</span>";
             $layout->replace($pathArr[key($pathArr)], 'navigationBar');
         }
 

@@ -1080,7 +1080,7 @@ class eshop_Products extends core_Master
         }
         
         // Навигация до артикула
-        $data->row->productPath = $menuLink . ' » ' . $groupLink . " » " . $data->row->name;
+        $data->row->productPath = $menuLink . ' » ' . $groupLink . " » <span>" . $data->row->name . "</span>";
         $uniqueProductsArr = arr::extractValuesFromArray($data->detailData->recs, 'productId');
 
         if(haveRole('debug') && $data->hideProductIfItIsWithoutPrices){
