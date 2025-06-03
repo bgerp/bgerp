@@ -4504,7 +4504,7 @@ fieldset.sharing-history {
 	color: #222;
 	min-width: 320px;
 	width: 100%;
-    font-size: 0.95em;
+    font-size: 0.9em;
 	th {
 		text-align: center;
 		padding: 7px 5px;
@@ -6946,7 +6946,9 @@ div.location.public {
 .eshop-product-labels > a {
 	font-weight:bold;
 }
-
+#addToFavouritesBtn a {
+	background-color: transparent !important;
+}
 .narrow .eshop-group-button-title {
 	  margin-top: 2px;
 }
