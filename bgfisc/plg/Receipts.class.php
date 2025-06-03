@@ -441,7 +441,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     foreach ($deviceIds as $deviceId) {
                         $deviceRec = peripheral_Devices::fetch($deviceId);
                         $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
-                        $fiscalArr['END_TEXT'][] = "Платено през: {$deviceName}";
+                        $fiscalArr['END_TEXT'][$deviceName] = "Платено през: {$deviceName}";
                     }
                 }
 

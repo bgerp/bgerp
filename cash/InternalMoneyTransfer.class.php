@@ -363,6 +363,15 @@ class cash_InternalMoneyTransfer extends core_Master
                 $form->setField('debitBank', 'input,mandatory');
                 $form->input('debitBank', 'silent');
                 $form->setOptions('debitBank', bank_OwnAccounts::getOwnAccounts());
+
+                if(isset($form->rec->id)){
+                    if(cash_InternalMoneyTransferDetails::count("#transferId = '{$form->rec->id}'")){
+                        $form->setReadOnly('creditCase');
+                        $form->setReadOnly('debitBank');
+                        $form->setReadOnly('paymentId');
+                    }
+                }
+
                 break;
             case 'noncash2noncash':
                 $form->setField('amount', 'mandatory');

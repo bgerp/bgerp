@@ -185,7 +185,7 @@ class cash_NonCashPaymentDetails extends core_Manager
                 $row->deviceId = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
             }
 
-            if($fields['-detail']) {
+            if($fields['-detail'] && !empty($row->deviceId)) {
                 $row->paymentId = $row->deviceId;
             }
 
