@@ -10,6 +10,24 @@
            <td>[#lineId#]</td>
        </tr>
        <!--ET_END lineId-->
+       <!--ET_BEGIN vehicle-->
+       <tr>
+           <td>|МПС|*:</td>
+           <td>[#vehicle#]</td>
+       </tr>
+       <!--ET_END vehicle-->
+       <!--ET_BEGIN deliveryTo-->
+       <tr>
+           <td>|Доставка|*:</td>
+           <td>[#deliveryTo#]</td>
+       </tr>
+       <!--ET_END deliveryTo-->
+       <!--ET_BEGIN logisticInfo-->
+       <tr>
+           <td>|Логистика|*:</td>
+           <td>[#logisticInfo#]</td>
+       </tr>
+       <!--ET_END logisticInfo-->
    </table>
     <table>
         <tr>
