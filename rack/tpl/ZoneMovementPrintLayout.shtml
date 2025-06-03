@@ -1,4 +1,4 @@
-<div>
+<div class="document">
    <table>
        <tr>
            <td>|Документ|*:</td>
@@ -29,7 +29,7 @@
        </tr>
        <!--ET_END logisticInfo-->
    </table>
-    <table>
+    <table class="listTable" style="margin-top: 20px;">
         <tr>
             [#DETAILS#]
         </tr>
