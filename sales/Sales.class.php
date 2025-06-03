@@ -1481,7 +1481,7 @@ class sales_Sales extends deals_DealMaster
         }
         
         if (isset($fields['-single'])) {
-            if(isset($rec->voucherId)){
+            if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
                 $row->voucherId = voucher_Cards::getVerbal($rec->voucherId, 'number');
             }
 

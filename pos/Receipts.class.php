@@ -341,7 +341,7 @@ class pos_Receipts extends core_Master
             $row->returnedCurrency = $row->currency;
         }
         $row->contragentId = static::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('link' => true, 'icon' => true, 'policyId' => $rec->policyId));
-        if (isset($rec->voucherId)) {
+        if (isset($rec->voucherId) && core_Packs::isInstalled('voucher')) {
             $row->voucherId = voucher_Cards::getVerbal($rec->voucherId, 'number');
         }
 
@@ -376,7 +376,7 @@ class pos_Receipts extends core_Master
                 $row->voucherCaption = tr('Ваучер');
             }
         } else {
-            if (!empty($rec->voucherId)) {
+            if (!empty($rec->voucherId) && core_Packs::isInstalled('voucher')) {
                 $voucherRec = voucher_Cards::fetch($rec->voucherId);
                 if(isset($voucherRec->referrer)){
                     $row->voucherId = ht::createHint($row->voucherId, "Препоръчител|*: " . crm_Persons::getTitleById($voucherRec->referrer));
@@ -1085,7 +1085,7 @@ class pos_Receipts extends core_Master
                 $Driver->invoke('AfterDocumentInWhichIsUsedHasChangedState', array($Products, $dRec1->productId, $this, $rec->id, $Details, $dRec1->id, 'waiting'));
             }
 
-            if(isset($rec->voucherId)){
+            if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
 
                 // Ако е сторно ваучерът се освобождава, ако не е се маркира като използван
                 if(isset($rec->revertId)){
