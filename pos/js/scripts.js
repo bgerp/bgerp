@@ -1027,9 +1027,10 @@ function getAmountRes(res, sendAmount)
 	let url = element.attr("data-url");
 	console.log("ANSWER FROM: " + url);
 	$('.select-input-pos').prop("disabled", false);
+
 	console.log("RES: " + res + " S " + sendAmount);
 	let resString = String(res);
-	if (resString.startsWith("OK")) {
+	if (resString.startsWith("OK") || res == 'OK') {
 
 		let parts = resString.split("|");
 		let rightPart = parts.slice(1).join("|"); // всичко след първото "|"
@@ -1042,7 +1043,7 @@ function getAmountRes(res, sendAmount)
 		let resAmount = parseFloat(firstNumberStr).toFixed(2);
 		let sendAmountFormatted = parseFloat(sendAmount).toFixed(2);
 
-		if(resAmount === sendAmountFormatted){
+		if(!rightPart || resAmount === sendAmountFormatted){
 			let deviceId = pressedCardPayment.attr("data-deviceId");
 			let type = element.attr("data-type");
 			console.log("RES IS OK");
