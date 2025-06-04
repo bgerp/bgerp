@@ -327,8 +327,8 @@ class rack_plg_Shipments extends core_Plugin
 
             $fieldset = new core_FieldSet();
             $fieldset->FLD('batch', 'varchar');
-            $fieldset->FLD('quantity', 'double', 'tdClass=centered');
-            $fieldset->FLD('positions', 'varchar', 'tdClass=centered');
+            $fieldset->FLD('quantity', 'double', 'smartCenter');
+            $fieldset->FLD('positions', 'varchar', 'smartCenter');
             $fieldset->FLD('code', 'varchar','tdClass=small');
             $table = cls::get('core_TableView', array('mvc' => $fieldset));
             $fields = arr::make('code=Код,productId=Артикул,batch=Партида,quantity=Общо,positions=Позиции');
