@@ -90,7 +90,6 @@ class purchase_QuotationDetails extends deals_QuotationDetails
     {
         $this->FLD('quotationId', 'key(mvc=purchase_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
         parent::addDetailFields($this);
-        $this->setField('packPrice', 'mandatory');
     }
 
 
