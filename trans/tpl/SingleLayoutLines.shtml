@@ -14,6 +14,10 @@
 				<!--ET_BEGIN repeat-->
 				<div style='margin-top: 5px;'>[#repeat#]</div>
 				<!--ET_END repeat-->
+				<!--ET_BEGIN shipmentOn-->
+				<div style='margin-top: 5px;'><span class="quiet">|Експедиране|*:</span> <b>[#shipmentOn#]</b></div>
+				<!--ET_END shipmentOn-->
+
 				<!--ET_BEGIN state-->
 				<div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
 				<!--ET_END state-->

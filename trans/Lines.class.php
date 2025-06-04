@@ -103,7 +103,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'start, handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, folderId, state, createdOn, createdBy';
+    public $listFields = 'start,shipmentOn, handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, folderId, state, createdOn, createdBy';
 
 
     /**
@@ -159,7 +159,7 @@ class trans_Lines extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title,start,repeat,countStoreDocuments,countActiveDocuments,countReadyDocuments,cases,stores, countries';
+    public $fieldsNotToClone = 'title,start,shipmentOn,repeat,countStoreDocuments,countActiveDocuments,countReadyDocuments,cases,stores, countries';
 
 
     /**
@@ -171,7 +171,7 @@ class trans_Lines extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'start,createdOn';
+    public $filterDateField = 'start,shipmentOn,createdOn';
 
 
     /**
@@ -207,6 +207,8 @@ class trans_Lines extends core_Master
     {
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory');
         $this->FLD('start', 'datetime', 'caption=Начало, mandatory');
+        $this->FLD('shipmentOn', 'datetime', 'caption=Експедиране, mandatory');
+
         $this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици)', 'caption=Повторение');
         $this->FLD('state', 'enum(draft=Чернова,,pending=Заявка,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
         $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,unit=(по подразбиране)');
