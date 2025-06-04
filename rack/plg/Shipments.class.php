@@ -338,12 +338,12 @@ class rack_plg_Shipments extends core_Plugin
             $singleFields['-single'] = true;
 
             $rec->template = key(doc_TplManager::getTemplates($mvc, 'bg'));
-
             Mode::push('text', 'plain');
             $documentRow = $mvc->recToVerbal($rec, $singleFields);
             Mode::pop('text');
 
-            $res->append($documentRow->deliveryTo, 'deliveryTo');
+            $delivery = !empty($documentRow->deliveryTo) ? $documentRow->deliveryTo : $documentRow->inlineContragentAddress;
+            $res->append($delivery, 'deliveryTo');
             if(!empty($documentRow->logisticInfo)){
                 $res->append($documentRow->logisticInfo, 'logisticInfo');
             }
