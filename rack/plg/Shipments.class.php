@@ -327,7 +327,8 @@ class rack_plg_Shipments extends core_Plugin
 
             $fieldset = new core_FieldSet();
             $fieldset->FLD('batch', 'varchar');
-            $fieldset->FLD('quantity', 'double');
+            $fieldset->FLD('quantity', 'double', 'tdClass=centered');
+            $fieldset->FLD('positions', 'varchar', 'tdClass=centered');
             $fieldset->FLD('code', 'varchar','tdClass=small');
             $table = cls::get('core_TableView', array('mvc' => $fieldset));
             $fields = arr::make('code=Код,productId=Артикул,batch=Партида,quantity=Общо,positions=Позиции');
@@ -335,9 +336,13 @@ class rack_plg_Shipments extends core_Plugin
             $details = $table->get($data->rows, $fields);
             $singleFields = $mvc->selectFields();
             $singleFields['-single'] = true;
+
+            $rec->template = key(doc_TplManager::getTemplates($mvc, 'bg'));
+
             Mode::push('text', 'plain');
             $documentRow = $mvc->recToVerbal($rec, $singleFields);
             Mode::pop('text');
+
             $res->append($documentRow->deliveryTo, 'deliveryTo');
             if(!empty($documentRow->logisticInfo)){
                 $res->append($documentRow->logisticInfo, 'logisticInfo');

@@ -86,7 +86,7 @@ function getAmountRes(res, sendAmount)
         let resAmount = parseFloat(firstNumberStr).toFixed(2);
         let sendAmountFormatted = parseFloat(sendAmount).toFixed(2);
 
-        if(resAmount === sendAmountFormatted){
+        if(!rightPart || resAmount === sendAmountFormatted){
             let resObj = new Object();
             resObj['url'] = successUrl;
 
