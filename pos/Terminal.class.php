@@ -1454,7 +1454,7 @@ class pos_Terminal extends peripheral_Terminal
                             $attr['data-notnumericmsg'] = tr('Невалидна сума за плащане|*!');
                             $attr['data-sendamount'] = 'yes';
 
-                            $deviceBtnName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                            $deviceBtnName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
                             $attr['data-deviceUrl'] = "{$deviceRec->protocol}://{$deviceRec->hostName}:{$deviceRec->port}";
                             $attr['data-deviceComPort'] = $deviceRec->comPort;
                             $attr['data-deviceName'] = $deviceBtnName;

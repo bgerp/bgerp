@@ -328,14 +328,28 @@ class rack_plg_Shipments extends core_Plugin
             $fieldset = new core_FieldSet();
             $fieldset->FLD('batch', 'varchar');
             $fieldset->FLD('quantity', 'double');
+            $fieldset->FLD('code', 'varchar','tdClass=small');
             $table = cls::get('core_TableView', array('mvc' => $fieldset));
-            $fields = arr::make('code=Код,productId=Артикул,packagingId=Опаковка,batch=Партида,quantity=Общо,positions=Позиции');
-
+            $fields = arr::make('code=Код,productId=Артикул,batch=Партида,quantity=Общо,positions=Позиции');
+            $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'batch');
             $details = $table->get($data->rows, $fields);
+            $singleFields = $mvc->selectFields();
+            $singleFields['-single'] = true;
+            Mode::push('text', 'plain');
+            $documentRow = $mvc->recToVerbal($rec, $singleFields);
+            Mode::pop('text');
+            $res->append($documentRow->deliveryTo, 'deliveryTo');
+            if(!empty($documentRow->logisticInfo)){
+                $res->append($documentRow->logisticInfo, 'logisticInfo');
+            }
 
             if($mvc->lineFieldName){
                 if($rec->{$mvc->lineFieldName}){
+                    $lineRow = trans_Lines::recToVerbal($rec->{$mvc->lineFieldName});
                     $res->append(trans_Lines::getTitleById($rec->{$mvc->lineFieldName}), 'lineId');
+                    if(!empty($lineRow->vehicle)){
+                        $res->append($lineRow->vehicle, 'vehicle');
+                    }
                 }
             }
 
@@ -465,8 +479,9 @@ class rack_plg_Shipments extends core_Plugin
             $row = new stdClass();
             $row->code = !empty($pRec->code) ? cat_Products::getVerbal($pRec, 'code') : "Art{$pRec->id}";
             $row->quantity = core_Type::getByName('double(smartRound)')->toVerbal($moveRec->quantity);
+            $row->quantity .= " " . cat_UoM::getSmartName($moveRec->packagingId, $moveRec->quantity);
+
             $row->productId = cat_Products::getVerbal($pRec, 'name');
-            $row->packagingId = cat_UoM::getVerbal($moveRec->packagingId, 'name');
             $row->batch = null;
             if($Def = batch_Defs::getBatchDef($moveRec->productId)){
                 $row->batch = strlen($moveRec->batch) ? $Def->toVerbal($moveRec->batch) : tr('Без партида');

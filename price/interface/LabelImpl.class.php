@@ -47,10 +47,16 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
         $placeholders['PRICE_CAPTION'] = (object) array('type' => 'text', 'hidden' => true);
 
         if (isset($objId)) {
+            $rec = frame2_Reports::fetch($objId);
+            $showPriceInEuro = $rec->currencyId == 'BGN';
+            if($showPriceInEuro){
+                $placeholders['CATALOG_PRICE_EURO'] = (object) array('type' => 'text', 'hidden' => true);
+                $placeholders['CATALOG_PRICE_EURO_CODE'] = (object) array('type' => 'text', 'hidden' => true);
+            }
 
             // Показване обединението на множеството от плейсхолдърите на артикулите, които ще им се печата етикет
             $allergenSysId = cat_Params::fetchIdBySysId('allergens');
-            $rec = frame2_Reports::fetch($objId);
+
             $printableRecs = $this->getPrintableRecs($rec, $rec->data->recs);
             $combinedParams = array();
             foreach ($printableRecs as $dRec){
@@ -95,12 +101,15 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
         $priceCaption = ($rec->vat == 'yes') ? tr('цена с ДДС') : tr('цена без ДДС');
         $allergenPramId = cat_Params::fetchIdBySysId('allergens');
 
+        $showPriceInEuro = $rec->currencyId == 'BGN';
+        $date = !empty($rec->date) ? $rec->date : dt::now();
         if(is_array($recs)){
             // От редовете, ще останат САМО тези, които ще могат да се печатат на етикети
             $printableRecs = $this->getPrintableRecs($rec, $recs);
 
             $date = dt::mysql2verbal(dt::today(), 'd.m.Y');
             foreach ($printableRecs as $pRec){
+
                 $ean = '';
                 if($onlyPreview === true){
                     $ean = '0000000000000';
@@ -122,6 +131,12 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
 
                 if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
                     $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'PRICE_CAPTION' => $priceCaption);
+                    if($showPriceInEuro){
+                        $priceInEuro = currency_CurrencyRates::convertAmount($pRec->price, $date, 'BGN', 'EUR');
+                        $res['CATALOG_PRICE_EURO'] = core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro);
+                        $res['CATALOG_PRICE_EURO_CODE'] = 'EUR';
+                    }
+
                     if (countR($params)) {
                         $res = array_merge($res, $params);
                     }

@@ -4064,7 +4064,10 @@ span.sharing-history-title {
 .path {
   font-size: 0.9em; }
   .path a:hover {
-    text-decoration: underline; }
+    text-decoration: underline;
+    color: #004488 !important; }
+  .path span {
+    color: #888888; }
 
 table .eshop-btn {
   margin-right: 0 !important; }

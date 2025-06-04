@@ -94,6 +94,7 @@
             </td>
 <td valign="middle" align="center" class="top-descr  no-border-left " >
     [#PRICE_CAPTION#]: <span class="code"><b>[#CATALOG_PRICE#]</b></span> [#CATALOG_CURRENCY#]
+    <span class="code"><b>[#CATALOG_PRICE_EURO#] </b></span>[#CATALOG_PRICE_EURO_CODE#]
 </td>
 </tr>
     </table>

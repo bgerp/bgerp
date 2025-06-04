@@ -429,8 +429,10 @@ class bgfisc_plg_Receipts extends core_Plugin
                 }
 
                 if($rec->voucherId){
-                    $endVoucher = substr(voucher_Cards::getVerbal($rec->voucherId, 'number'), 12, 4);
-                    $fiscalArr['END_TEXT'][] = "Ваучер: *{$endVoucher}";
+                    if(core_Packs::isInstalled('voucher')){
+                        $endVoucher = substr(voucher_Cards::getVerbal($rec->voucherId, 'number'), 12, 4);
+                        $fiscalArr['END_TEXT'][] = "Ваучер: *{$endVoucher}";
+                    }
                 }
 
                 $showPosDevice = bgfisc_Setup::get('SHOW_BPT_IN_RECEIPT') == 'yes';
@@ -439,8 +441,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $dQuery->where("#receiptId = {$rec->id} AND #deviceId IS NOT NULL");
                     $deviceIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'deviceId');
                     foreach ($deviceIds as $deviceId) {
-                        $deviceRec = peripheral_Devices::fetch($deviceId);
-                        $deviceName = cls::get($deviceRec->driverClass)->getBtnName($deviceRec);
+                        $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceId);
                         $fiscalArr['END_TEXT'][$deviceName] = "Платено през: {$deviceName}";
                     }
                 }
