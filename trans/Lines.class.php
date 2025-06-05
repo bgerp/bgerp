@@ -287,7 +287,7 @@ class trans_Lines extends core_Master
 
         if(countR($storesByLocations)){
             $storeOptions = array("s" => (object) array('title' => tr('Складове'), 'group' => true)) + $storeOptions;
-            $storeOptions += array("p" => (object) array('title' => tr('Градове'), 'group' => true,)) + $locationOptions;
+            $storeOptions += array("p" => (object) array('title' => tr('В градове'), 'group' => true,)) + $locationOptions;
         }
 
         $data->listFilter->setOptions('storesByLocation', array('' => '') + $storeOptions);
