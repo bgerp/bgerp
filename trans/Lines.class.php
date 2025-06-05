@@ -274,7 +274,7 @@ class trans_Lines extends core_Master
         $sQuery = store_Stores::getQuery();
         $sQuery->where("#state != 'rejected'");
         while($sRec = $sQuery->fetch()) {
-            $storeOptions[keylist::addKey('0', $sRec->id)] = store_Stores::getTitleById($sRec->id);
+            $storeOptions[keylist::addKey('-1', $sRec->id)] = store_Stores::getTitleById($sRec->id);
             if(isset($sRec->locationId)){
                 $place = crm_Locations::fetchField($sRec->locationId, 'place');
                 if(!empty($place)){
