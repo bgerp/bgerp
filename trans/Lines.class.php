@@ -272,8 +272,9 @@ class trans_Lines extends core_Master
         // Опция за избор на складове по градове
         $storesByLocations = $storeOptions = $locationOptions = array();
         $sQuery = store_Stores::getQuery();
+        $sQuery->where("#state != 'rejected'");
         while($sRec = $sQuery->fetch()) {
-            $storeOptions[keylist::addKey('', $sRec->id)] = store_Stores::getTitleById($sRec->id);
+            $storeOptions[keylist::addKey('0', $sRec->id)] = store_Stores::getTitleById($sRec->id);
             if(isset($sRec->locationId)){
                 $place = crm_Locations::fetchField($sRec->locationId, 'place');
                 if(!empty($place)){
@@ -281,6 +282,7 @@ class trans_Lines extends core_Master
                 }
             }
         }
+
         foreach ($storesByLocations as $key => $storeIds){
             $locationOptions[keylist::fromArray($storeIds)] = tr($key);
         }
