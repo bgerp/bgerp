@@ -208,6 +208,15 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $row->document = "#{$handle}";
         if (!Mode::isReadOnly()) {
             $row->document = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->singleIcon}");
+            if($Document->isInstanceOf('sales_Sales')){
+                $documentRec = $Document->fetch();
+                $documentRow = $Document->getInstance()->recToVerbal($documentRec);
+                $amountDealVerbal = currency_Currencies::decorate($documentRow->amountDeal, $documentRec->currencyId);
+                $amountPaidVerbal = currency_Currencies::decorate($documentRow->amountPaid, $documentRec->currencyId);
+                $str = tr("|* <small class='nowrap'>|Пор|*: {$amountDealVerbal} / |Плат|*: {$amountPaidVerbal}</small>");
+                $row->document .= $str;
+            }
+
             $dTable = $this->getSaleDetailTable($Document->that);
             if (!empty($dTable)) {
                 $row->document .= $dTable;
