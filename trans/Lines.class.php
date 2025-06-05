@@ -270,9 +270,10 @@ class trans_Lines extends core_Master
         $data->listFilter->setDefault('groupByShippedOn', 'no');
 
         // Опция за избор на складове по градове
-        $storesByLocations = $storeOptions = array();
+        $storesByLocations = $storeOptions = $locationOptions = array();
         $sQuery = store_Stores::getQuery();
         while($sRec = $sQuery->fetch()) {
+            $storeOptions[keylist::addKey('', $sRec->id)] = store_Stores::getTitleById($sRec->id);
             if(isset($sRec->locationId)){
                 $place = crm_Locations::fetchField($sRec->locationId, 'place');
                 if(!empty($place)){
@@ -281,8 +282,14 @@ class trans_Lines extends core_Master
             }
         }
         foreach ($storesByLocations as $key => $storeIds){
-            $storeOptions[keylist::fromArray($storeIds)] = tr($key);
+            $locationOptions[keylist::fromArray($storeIds)] = tr($key);
         }
+
+        if(countR($storesByLocations)){
+            $storeOptions = array("s" => (object) array('title' => tr('Складове'), 'group' => true)) + $storeOptions;
+            $storeOptions += array("p" => (object) array('title' => tr('Градове'), 'group' => true,)) + $locationOptions;
+        }
+
         $data->listFilter->setOptions('storesByLocation', array('' => '') + $storeOptions);
 
         $data->listFilter->showFields .= ',lineState,countryId,search,storesByLocation,groupByShippedOn';
