@@ -48,6 +48,20 @@
                 <td class='summary-cell aright'><b>[#baseQuantity#]</b></td>
                 <td class='summary-cell aright'><b>[#baseAmount#]</b></td>
             </tr>
+            <!--ET_BEGIN minBlQuantity-->
+            <tr>
+                <td class='aright'>|Минимално|*</td>
+                <td class='summary-cell aright'><b>[#minBlQuantity#]</b></td>
+                <td class='summary-cell aright'></td>
+            </tr>
+            <!--ET_END minBlQuantity-->
+            <!--ET_BEGIN maxBlQuantity-->
+            <tr>
+                <td class='aright'>|Максимално|*</td>
+                <td class='summary-cell aright'><b>[#maxBlQuantity#]</b></td>
+                <td class='summary-cell aright'></td>
+            </tr>
+            <!--ET_END maxBlQuantity-->
         </table>
     </div>
     <div class='clearfix21'></div>
