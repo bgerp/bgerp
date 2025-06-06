@@ -103,7 +103,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'shipmentOnCalc=Експедиране,handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, destinations=Дестинации,countries,places, folderId, created=Създаване';
+    public $listFields = 'start=Начало,shipmentOnCalc=Експедиране,handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, destinations=Дестинации,countries,places, folderId, created=Създаване';
 
 
     /**
