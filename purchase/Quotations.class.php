@@ -273,11 +273,19 @@ class purchase_Quotations extends deals_QuotationMaster
         $rec = $mvc->fetch($res->id);
         $dQuery = purchase_QuotationDetails::getQuery();
         $dQuery->where("#quotationId = {$rec->id}");
-        $dQuery->show('productId');
-        $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
-
+        $dQuery->show('productId,price');
+        $dRecs = $dQuery->fetchAll();
+        $productIds = arr::extractValuesFromArray($dRecs, 'productId');
         if($redirectError = deals_Helper::getContoRedirectError($productIds, 'canBuy', 'generic', 'вече не са купуваеми или са генерични')){
             core_Statuses::newStatus($redirectError, 'error');
+
+            return false;
+        }
+
+        $haveWithoutPrice = false;
+        array_walk($dRecs, function($a) use (&$haveWithoutPrice) { if(!isset($a->price)) { $haveWithoutPrice = true;}});
+        if($haveWithoutPrice){
+            core_Statuses::newStatus('Офертата не може да се активира, докато има ред без цена!', 'error');
 
             return false;
         }
