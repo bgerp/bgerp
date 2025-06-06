@@ -103,7 +103,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'start,shipmentOn,shipmentOnCalc=Експедиране,handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици,countries, folderId, created=Създаване';
+    public $listFields = 'shipmentOnCalc=Експедиране,handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, destinations=Дестинации,countries,places, folderId, created=Създаване';
 
 
     /**
@@ -457,16 +457,19 @@ class trans_Lines extends core_Master
                     trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
                 }
             }
+        }
 
-            $countries = keylist::toArray($rec->countries);
-            if(countR($countries) != 1){
-                unset($row->places);
-            } else {
-                $onlyCountryId = key($countries);
-                if($onlyCountryId == drdata_Countries::getIdByName('Bulgaria') && !empty($rec->places)){
-                    unset($row->countries);
-                }
+        $row->destinations = $row->countries;
+        $countries = keylist::toArray($rec->countries);
+        if(countR($countries) == 1){
+            $onlyCountryId = key($countries);
+            if($onlyCountryId == drdata_Countries::getIdByName('Bulgaria') && !empty($rec->places)){
+                $row->destinations = $row->places;
             }
+        }
+
+        if(empty($rec->shipmentOn)){
+            $row->shipmentOnCalc = ht::createHint($row->shipmentOnCalc, 'Използва се началото, защото няма конкретно въведена дата за експедиране|*!', 'notice', false);
         }
 
         // Показване на готовността
@@ -1001,5 +1004,7 @@ class trans_Lines extends core_Master
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->listTableMvc->FLD('created', 'varchar', 'tdClass=centered small');
+        unset($data->listFields['countries']);
+        unset($data->listFields['places']);
     }
 }

@@ -116,12 +116,9 @@
 						<!--ET_BEGIN stores-->
 						<span style='font-weight:normal' class="quiet">|Складове|*</span>: [#stores#]<br>
 						<!--ET_END stores-->
-						<!--ET_BEGIN countries-->
-						<span style='font-weight:normal' class="quiet">|Държави|*</span>: [#countries#]<br>
-						<!--ET_END countries-->
-						<!--ET_BEGIN places-->
-						<span style='font-weight:normal' class="quiet">|Населени места|*</span>: [#places#]<br>
-						<!--ET_END places-->
+						<!--ET_BEGIN destinations-->
+						<span style='font-weight:normal' class="quiet">|Дестинации|*</span>: [#destinations#]<br>
+						<!--ET_END destinations-->
 					</td>
 				</tr>
 			</table>
