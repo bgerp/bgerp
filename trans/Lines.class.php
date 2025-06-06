@@ -643,6 +643,14 @@ class trans_Lines extends core_Master
     }
 
 
+    function act_Test()
+    {
+        requireRole('debug');
+        Mode::push('test', true);
+        $id = Request::get('lineId', 'int');
+        $this->updateMaster($id);
+        Mode::pop('test');
+    }
     /**
      * Обновява данни в мастъра
      *
@@ -666,8 +674,13 @@ class trans_Lines extends core_Master
                 $this->cacheLineInfo[$dRec->containerId] = $Doc->getTransportLineInfo($rec->id);
             }
             $lineInfo = $this->cacheLineInfo[$dRec->containerId];
+
             if (!empty($lineInfo['place'])) {
                 $places[$lineInfo['place']] = bglocal_Address::canonizePlace($lineInfo['place']);
+            }
+
+            if(Mode::is('test')){
+                bp($lineInfo, $places);
             }
 
             if (!empty($lineInfo['countryId'])) {
