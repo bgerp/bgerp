@@ -467,14 +467,15 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             }
         } else {
 
-            $quantityStr = '<b>' . 'Общо: ' . $Double->toVerbal($dRec->quantity) . '</b>' . "</br>";
-            $row->quantity .= ht::styleIfNegative($quantityStr, $dRec->quantity);
+            $quantityStr = ht::styleIfNegative($Double->toVerbal($dRec->quantity), $dRec->quantity);
+            $row->quantity .= '<b>' . 'Общо: ' .$quantityStr . '</b>' . "</br>";
+
             foreach ($dRec->storesQuatity as $val) {
 
                 list($storeId, $stQuantity) = explode('|', $val);
 
-                $quantityStr = store_Stores::getTitleById($storeId) . ': ' .$Double->toVerbal($stQuantity) . "</br>";
-                $row->quantity .= ht::styleIfNegative($quantityStr, $stQuantity);
+                $quantityStr = ht::styleIfNegative($Double->toVerbal($stQuantity), $stQuantity) ;
+                $row->quantity .= store_Stores::getTitleById($storeId) . ': ' .$quantityStr. "</br>";
             }
         }
 
@@ -738,7 +739,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $rec = frame2_Reports::fetch($recId);
 
         $details = $rec->artLimits;
-
         $minVal = $details[$productId]['minQuantity'];
         $maxVal = $details[$productId]['maxQuantity'];
         $orderMeasure = $details[$productId]['orderMeasure'];
