@@ -112,7 +112,7 @@ class sales_DeliveryData extends core_Manager
      * @return void
      */
     function cron_CacheDeliveryData()
-    {$this->truncate();
+    {
         $containers = $toSave = array();
         $salesClassId = sales_Sales::getClassId();
         $shipmentClassId = store_ShipmentOrders::getClassId();
