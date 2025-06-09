@@ -112,7 +112,7 @@ class sales_DeliveryData extends core_Manager
      * @return void
      */
     function cron_CacheDeliveryData()
-    {
+    {$this->truncate();
         $containers = $toSave = array();
         $salesClassId = sales_Sales::getClassId();
         $shipmentClassId = store_ShipmentOrders::getClassId();
@@ -126,18 +126,17 @@ class sales_DeliveryData extends core_Manager
         $fullRecs = array();
         $sQuery = sales_Sales::getQuery();
         $sQuery->in("containerId", $containers[$salesClassId]);
-        $sQuery->show('id,folderId,shipmentStoreId,deliveryLocationId,deliveryAdress');
-        while($sRec = $cQuery->fetch()){
+        while($sRec = $sQuery->fetch()){
             $sRec->_classId = $salesClassId;
             $fullRecs[$sRec->containerId] = $sRec;
         }
 
-        $sQuery = store_ShipmentOrders::getQuery();
-        $sQuery->where("#state = 'pending'");
-        $sQuery->in("containerId", $containers[$shipmentClassId]);
-        while($sRec = $sQuery->fetch()){
-            $sRec->_classId = $shipmentClassId;
-            $fullRecs[$sRec->containerId] = $sRec;
+        $shQuery = store_ShipmentOrders::getQuery();
+        $shQuery->where("#state = 'pending'");
+        $shQuery->in("containerId", $containers[$shipmentClassId]);
+        while($shRec = $shQuery->fetch()){
+            $shRec->_classId = $shipmentClassId;
+            $fullRecs[$shRec->containerId] = $shRec;
         }
         $docCount = countR($fullRecs);
 
@@ -145,9 +144,9 @@ class sales_DeliveryData extends core_Manager
         core_App::setTimeLimit(0.2 * $docCount, false, 300);
         $countryIds = array();
         foreach ($fullRecs as $rec){
+            echo "<li>{$rec->_classId}-{$rec->id}";
 
-            try{
-                $Class = cls::get($rec->_classId);
+            $Class = cls::get($rec->_classId);
 
                 core_Debug::startTimer('GET_LOGISTIC_DATA');
                 $logisticData = $Class->getLogisticData($rec);
@@ -162,11 +161,10 @@ class sales_DeliveryData extends core_Manager
                 $newRec->place = $logisticData['toPlace'];
                 $newRec->pCode = $logisticData['toPCode'];
                 $newRec->address = $logisticData['toAddress'];
-                $newRec->containerId = $rec->id;
-                $toSave[$rec->id] = $newRec;
-            } catch (core_exception_Expect $e) {
+                $newRec->containerId = $rec->containerId;
+                $newRec->classId = $rec->_classId;
+                $toSave[$rec->containerId] = $newRec;
 
-            }
         }
 
         // Синхронизиране на съществуващите записи с новите

@@ -107,6 +107,11 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public $detailOrderByField = 'detailOrderBy';
 
+    /**
+     * Работен кеш
+     */
+    protected static $logisticDataCache = array('cData' => array(), 'locationId' => array(), 'countryId' => array());
+
 
     /**
      * Извиква се след описанието на модела
@@ -2627,24 +2632,40 @@ abstract class deals_DealMaster extends deals_DealBase
         $ownCountryId = $ownCompany->country;
 
         $res = array();
-        $contragentData = doc_Folders::getContragentData($rec->folderId);
+        if(!array_key_exists($rec->folderId, self::$logisticDataCache['cData'])){
+            self::$logisticDataCache['cData'][$rec->folderId] = doc_Folders::getContragentData($rec->folderId);
+        }
+        $contragentData = self::$logisticDataCache['cData'][$rec->folderId];
         $contragentCountryId = $contragentData->countryId;
         
         if (isset($rec->shipmentStoreId)) {
             if ($locationId = store_Stores::fetchField($rec->shipmentStoreId, 'locationId')) {
-                $storeLocation = crm_Locations::fetch($locationId);
+                if(!array_key_exists($locationId, self::$logisticDataCache['locationId'])) {
+                    self::$logisticDataCache['locationId'][$locationId] = crm_Locations::fetch($locationId);
+                }
+                $storeLocation = self::$logisticDataCache['locationId'][$locationId];
                 $ownCountryId = $storeLocation->countryId;
             }
         }
         
         if (isset($rec->deliveryLocationId)) {
-            $contragentLocation = crm_Locations::fetch($rec->deliveryLocationId);
+            if(!array_key_exists($rec->deliveryLocationId, self::$logisticDataCache['locationId'])) {
+                self::$logisticDataCache['locationId'][$rec->deliveryLocationId] = crm_Locations::fetch($rec->deliveryLocationId);
+            }
+            $contragentLocation = self::$logisticDataCache['locationId'][$rec->deliveryLocationId];
             $contragentCountryId = $contragentLocation->countryId;
         }
-        
-        $ownCountry = drdata_Countries::fetchField($ownCountryId, 'commonName');
-        $contragentCountry = drdata_Countries::fetchField($contragentCountryId, 'commonName');
-        
+
+        if(!array_key_exists($ownCountryId, self::$logisticDataCache['countryId'])) {
+            self::$logisticDataCache['countryId'][$ownCountryId] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+        }
+        $ownCountry = self::$logisticDataCache['countryId'][$ownCountryId];
+
+        if(!array_key_exists($contragentCountryId, self::$logisticDataCache['countryId'])) {
+            self::$logisticDataCache['countryId'][$contragentCountryId] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
+        }
+        $contragentCountry = self::$logisticDataCache['countryId'][$contragentCountryId];
+
         $ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
         $contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
 
