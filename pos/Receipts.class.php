@@ -612,8 +612,7 @@ class pos_Receipts extends core_Master
                 $paymentOptions["{$pRec->id}|manual|"] = "Карта [Ръчно потв.]";
                 foreach ($devices as $deviceRec) {
                     $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
-                    $paymentOptions["{$pRec->id}|card|{$deviceRec->id}"] = "{$deviceName} [Потв.]";
-                    $paymentOptions["{$pRec->id}|manual|{$deviceRec->id}"] = "{$deviceName} [Ръчно потв.]";
+                    $paymentOptions["{$pRec->id}||{$deviceRec->id}"] = "{$deviceName}";
                 }
             }
         }
@@ -644,8 +643,12 @@ class pos_Receipts extends core_Master
                         $dQuery->where("#action = 'payment|{$filter->payment}'");
                     } else {
                         list($paymentId, $paymentParam, $deviceId) = explode('|', $filter->payment);
-                        $dQuery->where("#action = 'payment|{$paymentId}' AND #param = '{$paymentParam}'");
-                        if(isset($deviceId)){
+                        $dQuery->where("#action = 'payment|{$paymentId}'");
+                        if(!empty($paymentParam)){
+                            $dQuery->where("#param = '{$paymentParam}'");
+                        }
+
+                        if(!empty($deviceId)){
                             $dQuery->where("#deviceId = '{$deviceId}'");
                         }
                     }
