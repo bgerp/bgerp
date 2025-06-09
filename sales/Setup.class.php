@@ -476,6 +476,7 @@ class sales_Setup extends core_ProtoSetup
         'migrate::updateProformasWithoutDate2624',
         'migrate::migrateDeltas3024v2',
         'migrate::forceIsSaleOverdue2451',
+        'migrate::forceCalcDeliveryData2524',
 
     );
     
