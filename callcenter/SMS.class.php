@@ -457,7 +457,17 @@ class callcenter_SMS extends core_Master
             // Вземаме текущото време
             $rec->receivedTime = dt::verbal2mysql();
         }
-        
+
+        $sArr = array('received' => 'Получен', 'sended' => 'Изпратен', 'receiveError' => 'Грешка при получаване', 'sendError' => 'Грешка при изпращане', 'pending' => 'Чакащо');
+        if (!$sArr[$status]) {
+            wp('Грешен статус при получаване на разписка за изпращане на SMS: ' . $status, $rec, $sArr, $service, $uid);
+        }
+
+        if ($rec->receivedTime > dt::now()) {
+            wp('Времето на получаване е в бъдещето', $rec, $rec->receivedTime, $status, $service, $uid);
+            $rec->receivedTime = dt::verbal2mysql();
+        }
+
         // Ъпдейтваме записите
         self::save($rec, null, 'UPDATE');
     }
