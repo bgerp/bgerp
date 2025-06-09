@@ -113,26 +113,46 @@ class sales_DeliveryData extends core_Manager
      */
     function cron_CacheDeliveryData()
     {
+        $containers = $toSave = array();
         $salesClassId = sales_Sales::getClassId();
         $shipmentClassId = store_ShipmentOrders::getClassId();
-        $query = doc_Containers::getQuery();
-        $query->where("#docClass IN ({$salesClassId}, {$shipmentClassId}) AND #state IN ('active', 'pending')");
-        $query->show('id, folderId, state');
-        $query->limit(100000);
-        $toSave = array();
-        $docRecs = $query->fetchAll();
-        $docCount = countR($docRecs);
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#docClass IN ({$salesClassId}, {$shipmentClassId}) AND #state IN ('active', 'pending')");
+        $cQuery->show('id, folderId, state, docClass');
+        while($rec = $cQuery->fetch()){
+            $containers[$rec->docClass][$rec->id] = $rec->id;
+        }
+
+        $fullRecs = array();
+        $sQuery = sales_Sales::getQuery();
+        $sQuery->in("containerId", $containers[$salesClassId]);
+        $sQuery->show('id,folderId,shipmentStoreId,deliveryLocationId,deliveryAdress');
+        while($sRec = $cQuery->fetch()){
+            $sRec->_classId = $salesClassId;
+            $fullRecs[$sRec->containerId] = $sRec;
+        }
+
+        $sQuery = store_ShipmentOrders::getQuery();
+        $sQuery->where("#state = 'pending'");
+        $sQuery->in("containerId", $containers[$shipmentClassId]);
+        while($sRec = $sQuery->fetch()){
+            $sRec->_classId = $shipmentClassId;
+            $fullRecs[$sRec->containerId] = $sRec;
+        }
+        $docCount = countR($fullRecs);
 
         // Извличане на данните за доставка
-        core_App::setTimeLimit(0.4 * $docCount, false, 300);
+        core_App::setTimeLimit(0.2 * $docCount, false, 300);
         $countryIds = array();
-        foreach ($docRecs as $rec){
+        foreach ($fullRecs as $rec){
+
             try{
-                $Document = doc_Containers::getDocument($rec->id);
+                $Class = cls::get($rec->_classId);
 
                 core_Debug::startTimer('GET_LOGISTIC_DATA');
-                $logisticData = $Document->getLogisticData();
+                $logisticData = $Class->getLogisticData($rec);
                 core_Debug::stopTimer('GET_LOGISTIC_DATA');
+
                 if(!array_key_exists($logisticData['toCountry'], $countryIds)){
                     $countryIds[$logisticData['toCountry']] = drdata_Countries::getIdByName($logisticData['toCountry']);
                 }
