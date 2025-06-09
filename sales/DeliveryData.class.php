@@ -117,19 +117,22 @@ class sales_DeliveryData extends core_Manager
         $shipmentClassId = store_ShipmentOrders::getClassId();
         $query = doc_Containers::getQuery();
         $query->where("#docClass IN ({$salesClassId}, {$shipmentClassId}) AND #state IN ('active', 'pending')");
-        $query->show('id, folderId');
-
+        $query->show('id, folderId, state');
+        $query->limit(100000);
         $toSave = array();
         $docRecs = $query->fetchAll();
         $docCount = countR($docRecs);
-        bp($docCount);
+
         // Извличане на данните за доставка
-        core_App::setTimeLimit(0.3 * $docCount, false, 300);
+        core_App::setTimeLimit(0.4 * $docCount, false, 300);
         $countryIds = array();
         foreach ($docRecs as $rec){
             try{
                 $Document = doc_Containers::getDocument($rec->id);
+
+                core_Debug::startTimer('GET_LOGISTIC_DATA');
                 $logisticData = $Document->getLogisticData();
+                core_Debug::stopTimer('GET_LOGISTIC_DATA');
                 if(!array_key_exists($logisticData['toCountry'], $countryIds)){
                     $countryIds[$logisticData['toCountry']] = drdata_Countries::getIdByName($logisticData['toCountry']);
                 }
@@ -150,6 +153,8 @@ class sales_DeliveryData extends core_Manager
         $eQuery = self::getQuery();
         $exRecs = $eQuery->fetchAll();
         $sync = arr::syncArrays($toSave, $exRecs, 'containerId', 'countryId,place,pCode,address');
+
+        core_Debug::log("GET GET_LOGISTIC_DATA " . round(core_Debug::$timers["GET_LOGISTIC_DATA"]->workingTime, 6));
 
         if(countR($sync['insert'])){
             $this->saveArray($sync['insert']);

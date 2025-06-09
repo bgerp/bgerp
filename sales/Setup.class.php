@@ -544,7 +544,7 @@ class sales_Setup extends core_ProtoSetup
             'action' => 'CalcRating',
             'offset' => 190,
             'period' => 1440,
-            'timeLimit' => 500
+            'timeLimit' => 1000
         ),
         array(
             'systemId' => 'CacheSalesDeliveryData',
