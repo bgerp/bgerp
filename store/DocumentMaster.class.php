@@ -97,6 +97,12 @@ abstract class store_DocumentMaster extends core_Master
 
 
     /**
+     * Работен кеш
+     */
+    protected static $logisticDataCache = array('cData' => array(), 'locationId' => array(), 'countryId' => array());
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
@@ -907,11 +913,17 @@ abstract class store_DocumentMaster extends core_Master
         $ownCountryId = $ownCompany->country;
 
         if ($locationId = store_Stores::fetchField($rec->storeId, 'locationId')) {
-            $storeLocation = crm_Locations::fetch($locationId);
+            if(!array_key_exists($locationId, static::$logisticDataCache['locationId'])){
+                static::$logisticDataCache['locationId'][$locationId] = crm_Locations::fetch($locationId);
+            }
+            $storeLocation = static::$logisticDataCache['locationId'][$locationId];
             $ownCountryId = $storeLocation->countryId;
         }
-        
-        $contragentData = doc_Folders::getContragentData($rec->folderId);
+
+        if(!array_key_exists($rec->folderId, static::$logisticDataCache['cData'])){
+            static::$logisticDataCache['cData'][$rec->folderId] = doc_Folders::getContragentData($rec->folderId);
+        }
+        $contragentData = static::$logisticDataCache['cData'][$rec->folderId];
         $contragentCountryId = $contragentData->countryId;
         
         if (isset($rec->locationId)) {
@@ -924,7 +936,11 @@ abstract class store_DocumentMaster extends core_Master
         
         // Подготвяне на данните за разтоварване
         $res = array();
-        $res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+        if(!array_key_exists($ownCountryId, static::$logisticDataCache['countryId'])){
+            static::$logisticDataCache['countryId'][$ownCountryId] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+        }
+
+        $res["{$ownPart}Country"] = static::$logisticDataCache['countryId'][$ownCountryId];
         
         if (isset($storeLocation)) {
             $res["{$ownPart}PCode"] = !empty($storeLocation->pCode) ? $storeLocation->pCode : null;

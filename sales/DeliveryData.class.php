@@ -144,27 +144,24 @@ class sales_DeliveryData extends core_Manager
         core_App::setTimeLimit(0.2 * $docCount, false, 300);
         $countryIds = array();
         foreach ($fullRecs as $rec){
-            echo "<li>{$rec->_classId}-{$rec->id}";
-
             $Class = cls::get($rec->_classId);
 
-                core_Debug::startTimer('GET_LOGISTIC_DATA');
-                $logisticData = $Class->getLogisticData($rec);
-                core_Debug::stopTimer('GET_LOGISTIC_DATA');
+            core_Debug::startTimer('GET_LOGISTIC_DATA');
+            $logisticData = $Class->getLogisticData($rec);
+            core_Debug::stopTimer('GET_LOGISTIC_DATA');
 
-                if(!array_key_exists($logisticData['toCountry'], $countryIds)){
-                    $countryIds[$logisticData['toCountry']] = drdata_Countries::getIdByName($logisticData['toCountry']);
-                }
+            if(!array_key_exists($logisticData['toCountry'], $countryIds)){
+                $countryIds[$logisticData['toCountry']] = drdata_Countries::getIdByName($logisticData['toCountry']);
+            }
 
-                $newRec = new stdClass();
-                $newRec->countryId = $countryIds[$logisticData['toCountry']];
-                $newRec->place = $logisticData['toPlace'];
-                $newRec->pCode = $logisticData['toPCode'];
-                $newRec->address = $logisticData['toAddress'];
-                $newRec->containerId = $rec->containerId;
-                $newRec->classId = $rec->_classId;
-                $toSave[$rec->containerId] = $newRec;
-
+            $newRec = new stdClass();
+            $newRec->countryId = $countryIds[$logisticData['toCountry']];
+            $newRec->place = $logisticData['toPlace'];
+            $newRec->pCode = $logisticData['toPCode'];
+            $newRec->address = $logisticData['toAddress'];
+            $newRec->containerId = $rec->containerId;
+            $newRec->classId = $rec->_classId;
+            $toSave[$rec->containerId] = $newRec;
         }
 
         // Синхронизиране на съществуващите записи с новите

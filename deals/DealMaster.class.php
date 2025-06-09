@@ -107,6 +107,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public $detailOrderByField = 'detailOrderBy';
 
+
     /**
      * Работен кеш
      */
@@ -2665,7 +2666,6 @@ abstract class deals_DealMaster extends deals_DealBase
             self::$logisticDataCache['countryId'][$contragentCountryId] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
         }
         $contragentCountry = self::$logisticDataCache['countryId'][$contragentCountryId];
-
         $ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
         $contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
 
