@@ -146,9 +146,11 @@ class sales_DeliveryData extends core_Manager
         foreach ($fullRecs as $rec){
             $Class = cls::get($rec->_classId);
 
+            Mode::push('calcOnlyDeliveryPart', true);
             core_Debug::startTimer('GET_LOGISTIC_DATA');
             $logisticData = $Class->getLogisticData($rec);
             core_Debug::stopTimer('GET_LOGISTIC_DATA');
+            Mode::pop('calcOnlyDeliveryPart');
 
             if(!array_key_exists($logisticData['toCountry'], $countryIds)){
                 $countryIds[$logisticData['toCountry']] = drdata_Countries::getIdByName($logisticData['toCountry']);

@@ -955,17 +955,19 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$ownPart}Place"] = !empty($ownCompany->place) ? $ownCompany->place : null;
             $res["{$ownPart}Address"] = !empty($ownCompany->address) ? $ownCompany->address : null;
         }
-        
-        $res["{$ownPart}Company"] = $ownCompany->name;
-        $toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-        $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
 
-        if($res["{$ownPart}Person"]){
-            $personId = crm_Profiles::getPersonByUser($toPersonId);
-            if(isset($personId)){
-                $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
-                if(!empty($buzPhones)){
-                    $res["{$ownPart}PersonPhones"] = $buzPhones;
+        if(!Mode::is('calcOnlyDeliveryPart')){
+            $res["{$ownPart}Company"] = $ownCompany->name;
+            $toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+            $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
+
+            if($res["{$ownPart}Person"]){
+                $personId = crm_Profiles::getPersonByUser($toPersonId);
+                if(isset($personId)){
+                    $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+                    if(!empty($buzPhones)){
+                        $res["{$ownPart}PersonPhones"] = $buzPhones;
+                    }
                 }
             }
         }
@@ -1022,11 +1024,13 @@ abstract class store_DocumentMaster extends core_Master
         }
         
         $res['deliveryTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : ($rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY'));
-        $res['ourReff'] = '#' . $this->getHandle($rec);
 
-        $totalInfo = $this->getTotalTransportInfo($rec);
-        $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $totalInfo->weight;
-        $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $totalInfo->volume;
+        if(!Mode::is('calcOnlyDeliveryPart')){
+            $res['ourReff'] = '#' . $this->getHandle($rec);
+            $totalInfo = $this->getTotalTransportInfo($rec);
+            $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $totalInfo->weight;
+            $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $totalInfo->volume;
+        }
 
         if(!empty($rec->addressInfo)){
             $res["{$contrPart}AddressInfo"] = $rec->addressInfo;
