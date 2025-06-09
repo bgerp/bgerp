@@ -462,8 +462,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if ($rec->seeByStores != 'yes') {
             if (isset($dRec->quantity)) {
 
-                $quantityStr = $Double->toVerbal($dRec->quantity);
-                $row->quantity .= ht::styleIfNegative($quantityStr, $dRec->quantity);
+                $quantityStr = ht::styleIfNegative($Double->toVerbal($dRec->quantity), $dRec->quantity);
+                $row->quantity .= $quantityStr;
             }
         } else {
 
