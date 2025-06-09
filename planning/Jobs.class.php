@@ -2359,7 +2359,14 @@ class planning_Jobs extends core_Master
 
                 // Редиректва се към същата форма за пускане на задание за следващия артикул
                 $saleRec = sales_Sales::fetch($data->form->rec->saleId, 'id,threadId,containerId');
-                $data->retUrl = $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $saleRec->id, 'threadId' => $saleRec->threadId, 'foreignId' => $saleRec->containerId, 'ret_url' => getRetUrl());
+                $url = array('planning_Jobs', 'add', 'saleId' => $saleRec->id, 'foreignId' => $saleRec->containerId, 'ret_url' => getRetUrl());
+                if(doc_Threads::haveRightFor('single', $saleRec->threadId)){
+                    $url['threadId'] = $saleRec->threadId;
+                } else {
+                    $url['folderId'] = $data->form->rec->folderId;
+                }
+
+                $data->retUrl = $data->addJobUrl = $url;
             }
         }
     }

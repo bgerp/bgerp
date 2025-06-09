@@ -472,9 +472,12 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
+        'sales_DeliveryData',
         'migrate::updateProformasWithoutDate2624',
         'migrate::migrateDeltas3024v2',
         'migrate::forceIsSaleOverdue2451',
+        'migrate::forceCalcDeliveryData2524',
+
     );
     
     
@@ -540,11 +543,21 @@ class sales_Setup extends core_ProtoSetup
             'action' => 'CalcRating',
             'offset' => 190,
             'period' => 1440,
+            'timeLimit' => 1000
+        ),
+        array(
+            'systemId' => 'CacheSalesDeliveryData',
+            'description' => 'Кеширане на данните за доставка на Продажба и ЕН',
+            'controller' => 'sales_DeliveryData',
+            'action' => 'CacheDeliveryData',
+            'offset' => 190,
+            'period' => 1440,
             'timeLimit' => 500
         ),
+
     );
-    
-    
+
+
     /**
      * Роли за достъп до модула
      */
@@ -693,5 +706,15 @@ class sales_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'IsSaleOverdue', $callOn);
+    }
+
+
+    /**
+     * Рекалкулиране на просроченото плащане
+     */
+    public static function forceCalcDeliveryData2524()
+    {
+        $callOn = dt::addSecs(200);
+        core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'CacheSalesDeliveryData', $callOn);
     }
 }
