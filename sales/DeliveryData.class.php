@@ -122,7 +122,7 @@ class sales_DeliveryData extends core_Manager
         $toSave = array();
         $docRecs = $query->fetchAll();
         $docCount = countR($docRecs);
-
+        bp($docCount);
         // Извличане на данните за доставка
         core_App::setTimeLimit(0.3 * $docCount, false, 300);
         $countryIds = array();
