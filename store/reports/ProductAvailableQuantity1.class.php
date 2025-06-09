@@ -454,11 +454,19 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $Int = cls::get('type_Int');
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 3;
+        $Double->params['decimals'] = 2;
         $Double->params['smartRound'] = 'smartRound';
 
         $row = new stdClass();
+        $mRound = null;
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
+
+        $mRound = cat_UoM::getMaxRound($dRec->measure);
+
+        if ($mRound !== null) {
+            $Double->params['decimals'] = $mRound;
+        }
+
         if ($rec->seeByStores != 'yes') {
             if (isset($dRec->quantity)) {
 
