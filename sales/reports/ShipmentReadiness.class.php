@@ -21,48 +21,48 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, store, sales, admin, purchase';
-    
-    
+
+
     /**
      * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *
      * @var string
      */
     protected $newFieldsToCheck = 'containerId';
-    
-    
+
+
     /**
      * Нормализираните имена на папките
      *
      * @var array
      */
     private static $folderNames = array();
-    
-    
+
+
     /**
      * Имената на контрагентите
      *
      * @var array
      */
     private static $contragentNames = array();
-    
-    
+
+
     /**
      * Дилърите
      *
      * @var array
      */
     private static $dealers = array();
-    
-    
+
+
     /**
      * Полета от таблицата за скриване, ако са празни
      *
      * @var int
      */
     protected $filterEmptyListFields = 'dueDates';
-    
-    
+
+
     /**
      * Полета за хеширане на таговете
      *
@@ -71,22 +71,22 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      * @var string
      */
     protected $hashField = 'containerId';
-    
-    
+
+
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'dealers,countries,precision,horizon,orderBy';
-    
-    
+
+
     /**
      * Кои полета от листовия изглед да може да се сортират
      *
      * @var int
      */
     protected $sortableListFields = 'readiness,dueDates,execDate,contragentName,dealerId';
-    
-    
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -102,78 +102,78 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
         $fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Клиенти,execDate=Срок за изпълнение,dueDate=Дата на падеж)', 'caption=Подредба,after=horizon');
     }
-    
-    
+
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver   $Driver
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
+     * @param frame2_driver_Proto $Driver $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
-        
+
         // Всички активни потебители
         $uQuery = core_Users::getQuery();
         $uQuery->where("#state = 'active'");
         $uQuery->orderBy('#names', 'ASC');
         $uQuery->show('id');
-        
+
         // Които са търговци
         $roles = core_Roles::getRolesAsKeylist('ceo,sales');
         $uQuery->likeKeylist('roles', $roles);
         $allDealers = arr::extractValuesFromArray($uQuery->fetchAll(), 'id');
-        
+
         // Към тях се добавят и вече избраните търговци
         if (isset($form->rec->dealers)) {
             $dealers = keylist::toArray($form->rec->dealers);
             $allDealers = array_merge($allDealers, $dealers);
         }
-        
+
         // Вербализират се
         $suggestions = array();
         foreach ($allDealers as $dealerId) {
             $suggestions[$dealerId] = core_Users::fetchField($dealerId, 'nick');
         }
-        
+
         // Задават се като предложение
         $form->setSuggestions('dealers', $suggestions);
         $form->setSuggestions('horizon', explode('|', '1 ден|2 дни|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни|60 дни|90 дни|120 дни'));
-        
+
         // Ако текущия потребител е търговец добавя се като избран по дефолт
         if (haveRole('sales') && empty($form->rec->id)) {
             $form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
         }
     }
-    
-    
+
+
     /**
      * При събмитване на формата
      *
-     * @param frame2_driver_Proto $Driver   $Driver
-     * @param embed_Manager       $Embedder
-     * @param core_Form           $form
+     * @param frame2_driver_Proto $Driver $Driver
+     * @param embed_Manager $Embedder
+     * @param core_Form $form
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if (!$form->isSubmitted()) {
-            
+
             return;
         }
         $rec = &$form->rec;
-        
+
         if ($rec->ignore == 'yes' && empty($rec->countries)) {
             $form->setError('countries,ignore', 'Трябва да има избрани държави, за изключване');
         }
-        
+
         if (empty($rec->dealers) && !empty($rec->dealerType)) {
             $form->setError('dealers,dealerType', 'Не са избрани потребители, за да е посочен тип');
         }
     }
-    
-    
+
+
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
@@ -184,6 +184,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+        $sameLocationDocuments = sales_DeliveryData::findDealsWithSameLocation($dRec->containerId);
         $row = new stdClass();
         $Document = doc_Containers::getDocument($dRec->containerId);
         
@@ -204,10 +205,20 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         // Линк към документа
         $singleUrl = $Document->getSingleUrlArray();
         $handle = $Document->getHandle();
-        
+
         $row->document = "#{$handle}";
         if (!Mode::isReadOnly()) {
             $row->document = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->singleIcon}");
+
+            // Показване на информация за доставките до същата локация
+            if(countR($sameLocationDocuments)){
+                $tooltipUrl = toUrl(array('sales_DeliveryData', 'showDeliveryInfo', 'containerId' => $dRec->containerId, 'replaceField' => "sh{$dRec->containerId}"), 'local');
+                $arrowImg = ht::createElement('img', array('height' => 12, 'width' => 12, 'src' => sbf('img/32/dialog_warning.png', '')));
+                $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'Има други поръчки за същата / близка дестинация! (клик за подробности)'), $arrowImg, true);
+                $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='sh{$dRec->containerId}'></span>{$arrow}</span>";
+                $row->document->append($arrow);
+            }
+
             if($Document->isInstanceOf('sales_Sales')){
                 $documentRec = $Document->fetch();
                 $documentRow = $Document->getInstance()->recToVerbal($documentRec);
