@@ -39,20 +39,20 @@
 <div class="label-holder">
     <table>
         <tr>
-            <td class="top-descr no-border-left no-border-top" >
+            <td class="top-descr no-border-left no-border-top centered" >
                 <div class='left'>код: <span class="code bold">[#CODE#]</span></div>
             </td>
-            <td   class="top-descr no-border-left no-border-top nowrap" >
+            <td   class="top-descr no-border-left no-border-top nowrap centered" >
                  <div class='right'>мярка: <span class="code"><b>[#MEASURE_ID#]</b></span> [#QUANTITY#]</div>
             </td>
         </tr>
         <tr>
-            <td colspan=2 class="top-descr no-border-left bold center" style='font-size: 15px;'>
+            <td colspan=2 class="top-descr no-border-left bold centered" style='font-size: 15px;'>
                 [#NAME#]
             </td>
         </tr>
         <tr>
-            <td class="top-descr  no-border-left center" colspan="2">
+            <td class="top-descr  no-border-left centered" colspan="2">
                 <span class="code bold">[#CATALOG_PRICE#] лв / [#CATALOG_PRICE_EURO#] €</span>
             </td>
         </tr>
