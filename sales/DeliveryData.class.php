@@ -236,7 +236,10 @@ class sales_DeliveryData extends core_Manager
             self::$cacheRecs['bgCountryId'] = drdata_Countries::getIdByName('Bulgaria');
             $dQuery = sales_DeliveryData::getQuery();
             $dQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
+            $dQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
             $dQuery->in('state', array('pending', 'active'));
+            $dQuery->where("#docClass =" . sales_Sales::getClassId());
+
             while($d1 = $dQuery->fetch()){
                 self::$cacheRecs['recs'][$d1->containerId] = $d1;
             }
