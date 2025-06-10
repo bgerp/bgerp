@@ -213,7 +213,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 $documentRow = $Document->getInstance()->recToVerbal($documentRec);
                 $amountDealVerbal = currency_Currencies::decorate($documentRow->amountDeal, $documentRec->currencyId);
                 $amountPaidVerbal = currency_Currencies::decorate($documentRow->amountPaid, $documentRec->currencyId);
-                $str = tr("|* <span class='nowrap' style='border: 1px solid #ccc; border-radius:3px; padding: 0 2px; font-size: 0.75em; color: #333; box-shadow: inset 0 0 2px #fff; position: relative; top: -2px;'>|Пор|*: {$amountDealVerbal} / |Плат|*: {$amountPaidVerbal}</span>");
+                $str = tr("|* <span class='nowrap' style='border: 1px solid #ccc; border-radius:3px; padding: 0 2px; font-size: 0.75em; color: #333; box-shadow: inset 0 0 2px #fff; position: relative; top: -2px;background: rgba(240,250,250, 0.3)'>|Пор|*: {$amountDealVerbal} / |Плат|*: {$amountPaidVerbal}</span>");
                 $row->document .= $str;
             }
 
