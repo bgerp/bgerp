@@ -6515,7 +6515,7 @@ function copyPlaceholderAsValOnClick()
 function toggleListFilter()
 {
     var formId = $('form').data('mvc'); // ID на формата
-    #C73289    var hiddenItems = JSON.parse(localStorage.getItem(formId)); // Зареждаме скритите редове
+    var hiddenItems = JSON.parse(localStorage.getItem(formId)); // Зареждаме скритите редове
 
     if (!hiddenItems || hiddenItems.length == 0) {
         // Ако няма скрити редове в localStorage, скриваме всички с класа
