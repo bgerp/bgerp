@@ -93,8 +93,7 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
         $resArr = array();
         $rec = frame2_Reports::fetchRec($id);
         $recs = $rec->data->recs;
-        $round = isset($rec->round) ? $rec->round : price_reports_PriceList::DEFAULT_ROUND;
-        $Double = core_Type::getByName("double(decimals={$round})");
+        $Double = core_Type::getByName("double(decimals=2)");
 
         $currentCount = 0;
         Mode::push('text', 'plain');
@@ -150,6 +149,12 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
                     $ean = !empty($packRec->eanCode) ? $packRec->eanCode : null;
                     $packName = cat_UoM::getShortName($packRec->packagingId);
                     $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($packRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "({$packRec->quantity} {$measureId})", 'PRICE_CAPTION' => $priceCaption);
+                    if($showPriceInEuro){
+                        $priceInEuro = currency_CurrencyRates::convertAmount($packRec->price, $date, 'BGN', 'EUR');
+                        $res['CATALOG_PRICE_EURO'] = core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro);
+                        $res['CATALOG_PRICE_EURO_CODE'] = 'EUR';
+                    }
+
                     if (countR($params)) {
                         $res = array_merge($res, $params);
                     }

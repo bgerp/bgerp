@@ -204,7 +204,7 @@ class blogm_Articles extends core_Master
                 $leftPath = array();
                 $count = 0;
                 foreach ($pathArr as $element) {
-                    $element .= " » " . strip_tags($row->title);
+                    $element .= " » " . "<span>" . strip_tags($row->title) . "</span>";
 
                     $leftPath[] = $element;
                     $count++;

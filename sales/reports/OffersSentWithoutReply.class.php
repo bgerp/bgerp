@@ -205,25 +205,27 @@ class sales_reports_OffersSentWithoutReply extends frame2_driver_TableData
         // които са с по голяма дата от последния входящ имей в същата папка
 
         foreach ($lastOutEmails as $outMailKey => $outMail){
+            list($deal, $outFolder) = explode('|', $outMailKey);
 
-            list($deal,$outFolder) = explode('|',$outMailKey);
-            if (in_array($outFolder,array_keys($incomingMailsArr))){
+            $shouldAdd = false;
 
-                //Ако изходящия имейл е с по-голяма дата от последния входящ, и съдържа оферта
-                if($outMail->createdOn > $incomingMailsArr[$outFolder]->createdOn){
-                    //Попъваме масива
-
-                    $id = $deal.'|'.$outFolder;
-
-                    $recs[$id] = (object)array(
-                        'folderId' => $outFolder,
-                        'outMail' => $outMail,
-                        'dealer' => $deal,
-                    );
-
-                }
+            if (!array_key_exists($outFolder, $incomingMailsArr)) {
+                // Няма входящ имейл — включваме офертата
+                $shouldAdd = true;
+            } elseif ($outMail->createdOn > $incomingMailsArr[$outFolder]->createdOn) {
+                // Има входящ имейл, но офертата е по-късна — също я включваме
+                $shouldAdd = true;
             }
 
+            if ($shouldAdd) {
+                $id = $deal . '|' . $outFolder;
+
+                $recs[$id] = (object)[
+                    'folderId' => $outFolder,
+                    'outMail' => $outMail,
+                    'dealer' => $deal,
+                ];
+            }
         }
 
         return $recs;

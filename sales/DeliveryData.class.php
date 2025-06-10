@@ -57,6 +57,13 @@ class sales_DeliveryData extends core_Manager
      */
     public $listFields = 'id,containerId,countryId,place,pCode,address';
 
+
+    /**
+     * Работен кеш?
+     */
+    private static $cacheRecs = array('recs' => array(), 'bgCountryId' => null);
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -126,18 +133,17 @@ class sales_DeliveryData extends core_Manager
         $fullRecs = array();
         $sQuery = sales_Sales::getQuery();
         $sQuery->in("containerId", $containers[$salesClassId]);
-        $sQuery->show('id,folderId,shipmentStoreId,deliveryLocationId,deliveryAdress');
-        while($sRec = $cQuery->fetch()){
+        while($sRec = $sQuery->fetch()){
             $sRec->_classId = $salesClassId;
             $fullRecs[$sRec->containerId] = $sRec;
         }
 
-        $sQuery = store_ShipmentOrders::getQuery();
-        $sQuery->where("#state = 'pending'");
-        $sQuery->in("containerId", $containers[$shipmentClassId]);
-        while($sRec = $sQuery->fetch()){
-            $sRec->_classId = $shipmentClassId;
-            $fullRecs[$sRec->containerId] = $sRec;
+        $shQuery = store_ShipmentOrders::getQuery();
+        $shQuery->where("#state = 'pending'");
+        $shQuery->in("containerId", $containers[$shipmentClassId]);
+        while($shRec = $shQuery->fetch()){
+            $shRec->_classId = $shipmentClassId;
+            $fullRecs[$shRec->containerId] = $shRec;
         }
         $docCount = countR($fullRecs);
 
@@ -145,28 +151,26 @@ class sales_DeliveryData extends core_Manager
         core_App::setTimeLimit(0.2 * $docCount, false, 300);
         $countryIds = array();
         foreach ($fullRecs as $rec){
+            $Class = cls::get($rec->_classId);
 
-            try{
-                $Class = cls::get($rec->_classId);
+            Mode::push('calcOnlyDeliveryPart', true);
+            core_Debug::startTimer('GET_LOGISTIC_DATA');
+            $logisticData = $Class->getLogisticData($rec);
+            core_Debug::stopTimer('GET_LOGISTIC_DATA');
+            Mode::pop('calcOnlyDeliveryPart');
 
-                core_Debug::startTimer('GET_LOGISTIC_DATA');
-                $logisticData = $Class->getLogisticData($rec);
-                core_Debug::stopTimer('GET_LOGISTIC_DATA');
-
-                if(!array_key_exists($logisticData['toCountry'], $countryIds)){
-                    $countryIds[$logisticData['toCountry']] = drdata_Countries::getIdByName($logisticData['toCountry']);
-                }
-
-                $newRec = new stdClass();
-                $newRec->countryId = $countryIds[$logisticData['toCountry']];
-                $newRec->place = $logisticData['toPlace'];
-                $newRec->pCode = $logisticData['toPCode'];
-                $newRec->address = $logisticData['toAddress'];
-                $newRec->containerId = $rec->id;
-                $toSave[$rec->id] = $newRec;
-            } catch (core_exception_Expect $e) {
-
+            if(!array_key_exists($logisticData['toCountry'], $countryIds)){
+                $countryIds[$logisticData['toCountry']] = drdata_Countries::getIdByName($logisticData['toCountry']);
             }
+
+            $newRec = new stdClass();
+            $newRec->countryId = $countryIds[$logisticData['toCountry']];
+            $newRec->place = $logisticData['toPlace'];
+            $newRec->pCode = $logisticData['toPCode'];
+            $newRec->address = $logisticData['toAddress'];
+            $newRec->containerId = $rec->containerId;
+            $newRec->classId = $rec->_classId;
+            $toSave[$rec->containerId] = $newRec;
         }
 
         // Синхронизиране на съществуващите записи с новите
@@ -214,5 +218,93 @@ class sales_DeliveryData extends core_Manager
                 $data->query->where("#folderId = {$rec->folder}");
             }
         }
+    }
+
+
+
+
+
+    /**
+     * Връща другите активни и чакащи договори за същата локация на доставка
+     *
+     * @param int $containerId
+     * @return array
+     */
+    public static function findDealsWithSameLocation($containerId)
+    {
+        if(!countR(self::$cacheRecs['recs'])){
+            self::$cacheRecs['bgCountryId'] = drdata_Countries::getIdByName('Bulgaria');
+            $dQuery = sales_DeliveryData::getQuery();
+            $dQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
+            $dQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
+            $dQuery->in('state', array('pending', 'active'));
+            $dQuery->where("#docClass =" . sales_Sales::getClassId());
+
+            while($d1 = $dQuery->fetch()){
+                self::$cacheRecs['recs'][$d1->containerId] = $d1;
+            }
+        }
+
+        $res = array();
+        $thisLocationRec = self::$cacheRecs['recs'][$containerId];
+        foreach (self::$cacheRecs['recs'] as $locationRec){
+            if ($containerId == $locationRec->containerId) continue;
+
+            if ($thisLocationRec->countryId == self::$cacheRecs['bgCountryId']) {
+                if ($locationRec->place === $thisLocationRec->place) {
+                    $res[$locationRec->id] = $locationRec->id;
+                }
+            } else {
+                // Иначе проверяваме дали countryId съвпада
+                if ($locationRec->countryId === $thisLocationRec->countryId) {
+                    $res[$locationRec->id] = $locationRec->id;
+                }
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Показва информация за резервираните количества
+     */
+    public function act_showDeliveryInfo()
+    {
+        requireRole('powerUser');
+        expect($containerId = Request::get('containerId', 'int'));
+        expect($replaceField = Request::get('replaceField', 'varchar'));
+
+        $similarLocations = self::findDealsWithSameLocation($containerId);
+        $links = '';
+        $query = self::getQuery();
+        $query->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
+        $query->in('id', $similarLocations);
+        while($rec = $query->fetch()){
+            try{
+                $row = self::recToVerbal($rec);
+                $Document = doc_Containers::getDocument($rec->containerId);
+
+                $row->address = "{$row->countryId}, {$row->pCode} {$row->place}";
+                $row->link = "<span class='state-{$rec->state} document-handler'>{$Document->getLink(0)} <small>{$row->address}</small></span>";
+
+                $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;'>[#link#]</div>");
+                $link->placeObject($row);
+                $links .= $link->getContent();
+            } catch(core_exception_Expect $e){
+            }
+        }
+
+        $tpl = new core_ET($links);
+
+        if (Request::get('ajax_mode')) {
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id' => $replaceField, 'html' => $tpl->getContent(), 'replace' => true);
+
+            return array($resObj);
+        }
+
+        return $tpl;
     }
 }

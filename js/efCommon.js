@@ -6515,15 +6515,14 @@ function copyPlaceholderAsValOnClick()
 function toggleListFilter()
 {
     var formId = $('form').data('mvc'); // ID на формата
-    //localStorage.removeItem(formId);
     var hiddenItems = JSON.parse(localStorage.getItem(formId)); // Зареждаме скритите редове
 
-    if (!hiddenItems) {
+    if (!hiddenItems || hiddenItems.length == 0) {
         // Ако няма скрити редове в localStorage, скриваме всички с класа
         $('.listFilter tr.toggable').hide();
         hiddenItems = []; // Инициализираме празен масив, за да не е null
         $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
-        $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('close'));
+        $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('open'));
     } else if(hiddenItems.length) {
         // Скриваме редовете, които са били записани като скрити
         $('.listFilter tr.toggable').each(function() {
