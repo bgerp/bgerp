@@ -284,10 +284,11 @@ class sales_DeliveryData extends core_Manager
             try{
                 $row = self::recToVerbal($rec);
                 $Document = doc_Containers::getDocument($rec->containerId);
-                $row->link = "<span class='state-{$rec->state} document-handler'>{$Document->getLink(0)}</span>";
 
                 $row->address = "{$row->countryId}, {$row->pCode} {$row->place}, {$row->address}";
-                $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;'>[#link#]: <small>[#address#]</small></div></br>");
+                $row->link = "<span class='state-{$rec->state} document-handler'>{$Document->getLink(0)} <small>{$row->address}</small></span>";
+
+                $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;'>[#link#]</div>");
                 $link->placeObject($row);
                 $links .= $link->getContent();
             } catch(core_exception_Expect $e){
