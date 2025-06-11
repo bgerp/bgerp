@@ -767,10 +767,20 @@ class sales_Routes extends core_Manager
      */
     protected static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
-        $data->listSummary->query->XPR('cnt', 'int', 'COUNT(#id)');
-        $cnt = $data->listSummary->query->fetch()->cnt;
+        $sQuery = clone $data->listSummary->query;
+        $sQuery->XPR('cnt', 'int', 'COUNT(#id)');
+        $sQuery->where("#state != 'rejected'");
+        $cnt = $sQuery->fetch()->cnt;
         $cnt = (!empty($cnt)) ? $cnt : 0;
-        $data->listSummary->summary = (object) array('cntRec' => $cnt, 'sumRow' => core_Type::getByName('int')->toVerbal($cnt));
+
+        $aQuery = clone $data->listSummary->query;
+        $aQuery->XPR('cnt', 'int', 'COUNT(#id)');
+        $aQuery->where("#state = 'active'");
+        $active = $aQuery->fetch()->cnt;
+        $active = (!empty($active)) ? $active : 0;
+
+        $data->listSummary->summary = (object) array('sumRow' => core_Type::getByName('int')->toVerbal($cnt),
+            'activeRow' => core_Type::getByName('int')->toVerbal($active));
     }
 
 
@@ -781,8 +791,16 @@ class sales_Routes extends core_Manager
     {
         if (isset($data->listSummary->summary)) {
             $tpl = new ET(tr('|*' . getFileContent('acc/plg/tpl/Summary.shtml')));
-            $tpl->append(tr('Общо'), 'caption');
-            $tpl->append($data->listSummary->summary->sumRow, 'quantity');
+            $clone = $tpl->getBlock('ROW');
+
+            foreach (array('sumRow' => 'Общо', 'activeRow' => 'Активни') as $rName => $rRow) {
+                $dTpl = clone $clone;
+                $dTpl->append(tr($rRow), 'caption');
+                $dTpl->append($data->listSummary->summary->{$rName}, 'quantity');
+
+                $dTpl->removeBlocks();
+                $dTpl->append2Master();
+            }
         }
     }
 }
