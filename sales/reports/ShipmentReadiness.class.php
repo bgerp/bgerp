@@ -717,13 +717,39 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         
         $totalAmount = 0;
         $readyAmount = null;
-        
+
+        $productIds = arr::extractValuesFromArray($agreedProducts, 'productId');
+
+        $pQuery = cat_Products::getQuery();
+        $pQuery->show('canStore,isPublic');
+        if(countR($productIds)){
+            $pQuery->in('id', $productIds);
+        } else {
+            $pQuery->where("1=2");
+        }
+        $pRecs = $pQuery->fetchAll();
+        $notPublicIds = array_filter($pRecs, function($pRec) {
+            return $pRec->isPublic == 'no';
+        });
+
+        $aJobQuery = planning_Jobs::getQuery();
+        $aJobQuery->where("#saleId = {$saleRec->id}");
+        $aJobQuery->in("state", array('active', 'stopped', 'wakeup'));
+        $aJobQuery->show('id,productId');
+        if(countR($notPublicIds)){
+            $aJobQuery->in('productId', array_keys($notPublicIds));
+        } else {
+            $aJobQuery->where("1=2");
+        }
+        $activeJobArr = array();
+        while($aRec = $aJobQuery->fetch()) {
+            $activeJobArr[$aRec->productId] = $aRec->id;
+        }
+
         // За всеки договорен артикул
         foreach ($agreedProducts as $pId => $pRec) {
-            $productRec = cat_Products::fetch($pId, 'canStore,isPublic');
-            if ($productRec->canStore != 'yes') {
-                continue;
-            }
+            $productRec = $pRecs[$pId];
+            if ($productRec->canStore != 'yes') continue;
             
             $price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
             $amount = null;
@@ -747,8 +773,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 $closedJobQuery->show('totalQuantity,totalQuantityProduced');
                 $closedJobCount = $closedJobQuery->count();
                 $closedJobRec = $closedJobQuery->fetch();
-
-                $activeJobId = planning_Jobs::fetchField("#productId = {$pId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #saleId = {$saleRec->id}");
+                $activeJobId = $activeJobArr[$pId];
 
                 // Ако има приключени задания и няма други активни, се приема че е готово
                 if ($closedJobCount && !$activeJobId) {
@@ -809,7 +834,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         if ($readiness > 1) {
             $readiness = 1;
         }
-        
+
         // Връщане на изчислената готовност или NULL ако не може да се изчисли
         return $readiness;
     }
