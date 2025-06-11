@@ -1287,7 +1287,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
               //  $row->invoiceNo .= "<span class='quiet'>" . '<br>' . $type . '</span>';
 
                 $row->documentType = $type;
-                $row->ROW_ATTR['class'] = "state-$statecolor";
+                $row->ROW_ATTR['class'] = "state-{$statecolor}";
 
             }else{
                 $type = 'Ф';
