@@ -147,7 +147,13 @@ class core_Manager extends core_Mvc
             $error = core_App::isReplicationOK();
             if (!empty($error)) {
                 if (false === core_Cache::get($this->title, 'Report_Replica')) {
-                    $this->logNotice("Replica: " . $error);
+                    // Ако започва с 4151 да е logNotice
+                    if (strpos($error, '4151') === 0) {
+                        $this->logNotice("Replica: " . $error);
+                    } else {
+                        $this->logWarning("Replica: " . $error);
+                    }
+
                     core_Cache::set($this->title, 'Report_Replica', $error, 10);
                     // todo: да праща signal msg на админа
                 }
