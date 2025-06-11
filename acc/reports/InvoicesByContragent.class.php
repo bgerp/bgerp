@@ -1061,6 +1061,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         if ($export === false) {
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,smartCenter');
+            // Добавяме нова колона "Документ" преди колоната за номера
+            $fld->FLD('documentType', 'varchar', 'caption=Документ,after=contragentId');
             $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
 
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
@@ -1265,18 +1267,31 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         );
         if ($rec->unpaid == 'all') {
+            $type = '';
             if ($dRec->type != 'invoice') {
 
                 if ($dRec->className == 'sales_Proformas') {
-                    $type = 'Проформа фактура';
+                    $type = 'ПФ';
                 } else {
-                    $type = $dRec->invoiceValue < 0 ? 'Кредитно известие' : 'Дебитно известие';
+                    if($dRec->invoiceValue < 0){
+                        $type = 'КИ';
+                        $statecollor = 'active';
+                    }else{
+                        $type = 'ДИ';
+                        $statecollor = 'pending';
+                    }
                 }
 
                 $dcMark = $dRec->invoiceValue < 0 ? -1 : 1;
 
-                $row->invoiceNo .= "<span class='quiet'>" . '<br>' . $type . '</span>';
+              //  $row->invoiceNo .= "<span class='quiet'>" . '<br>' . $type . '</span>';
 
+                $row->documentType = $type;
+                $row->ROW_ATTR['class'] = 'state-'."$statecollor";
+
+            }else{
+                $type = 'Ф-ра';
+                $row->documentType = $type;
             }
 
             $allCurrency = ($dRec->totalInvoiceValue) ? $dRec->currencyId : '';

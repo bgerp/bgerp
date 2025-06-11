@@ -120,19 +120,19 @@ class sales_DeliveryData extends core_Manager
      */
     function cron_CacheDeliveryData()
     {
-        $containers = $toSave = array();
+        $toSave = array();
         $salesClassId = sales_Sales::getClassId();
         $shipmentClassId = store_ShipmentOrders::getClassId();
-        $cQuery = doc_Containers::getQuery();
-        $cQuery->where("#docClass IN ({$salesClassId}, {$shipmentClassId}) AND #state IN ('active', 'pending')");
-        $cQuery->show('id, folderId, state, docClass');
-        while($rec = $cQuery->fetch()){
-            $containers[$rec->docClass][$rec->id] = $rec->id;
+
+        $countries = array();
+        $cQuery = drdata_Countries::getQuery();
+        while ($cRec = $cQuery->fetch()) {
+            $countries[$cRec->commonName] = $cRec->id;
         }
 
         $fullRecs = array();
         $sQuery = sales_Sales::getQuery();
-        $sQuery->in("containerId", $containers[$salesClassId]);
+        $sQuery->in("state", array('active', 'pending'));
         while($sRec = $sQuery->fetch()){
             $sRec->_classId = $salesClassId;
             $fullRecs[$sRec->containerId] = $sRec;
@@ -140,7 +140,6 @@ class sales_DeliveryData extends core_Manager
 
         $shQuery = store_ShipmentOrders::getQuery();
         $shQuery->where("#state = 'pending'");
-        $shQuery->in("containerId", $containers[$shipmentClassId]);
         while($shRec = $shQuery->fetch()){
             $shRec->_classId = $shipmentClassId;
             $fullRecs[$shRec->containerId] = $shRec;
@@ -158,10 +157,7 @@ class sales_DeliveryData extends core_Manager
             $logisticData = $Class->getLogisticData($rec);
             core_Debug::stopTimer('GET_LOGISTIC_DATA');
             Mode::pop('calcOnlyDeliveryPart');
-
-            if(!array_key_exists($logisticData['toCountry'], $countryIds)){
-                $countryIds[$logisticData['toCountry']] = drdata_Countries::getIdByName($logisticData['toCountry']);
-            }
+            $countryIds[$logisticData['toCountry']] = $countries[$logisticData['toCountry']];
 
             $newRec = new stdClass();
             $newRec->countryId = $countryIds[$logisticData['toCountry']];

@@ -693,8 +693,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      *
      * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
      */
-    private static function calcSaleReadiness($saleRec)
+    public static function calcSaleReadiness($saleRec)
     {
+
         // На не чакащите и не активни не се изчислява готовността
         if ($saleRec->state != 'pending' && $saleRec->state != 'active') {
             
