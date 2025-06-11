@@ -358,7 +358,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     if ($rec->unpaid == 'all') {
 
                         // масив от фактури в тази нишка //
-                        $invoicePayments = deals_Helper::getInvoicePayments($salesInvoice->threadId, $checkDate);
+                        $invoicePayments = deals_Helper::getInvoicePayments($salesInvoice->threadId, $checkDate, true);
 
                         $paydocs = $invoicePayments[$salesInvoice->containerId];
 
@@ -455,7 +455,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
                     // масив от фактури в тази нишка //
-                    $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
+                    $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate, true));
 
                     if (is_array($invoicePayments)) {
 
@@ -684,7 +684,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
 
                     // масив от фактури в тази нишка //
-                    $invoicePayments = (deals_Helper::getInvoicePayments($purchaseInvoices->threadId, $checkDate));
+                    $invoicePayments = (deals_Helper::getInvoicePayments($purchaseInvoices->threadId, $checkDate,true));
 
                     $paydocs = $invoicePayments[$purchaseInvoices->containerId];
 
@@ -788,7 +788,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
                     // масив от фактури в тази нишка //
-                    $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $checkDate));
+                    $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $checkDate, true));
 
                     if ((is_array($pInvoicePayments))) {
 
@@ -1287,7 +1287,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
               //  $row->invoiceNo .= "<span class='quiet'>" . '<br>' . $type . '</span>';
 
                 $row->documentType = $type;
-                $row->ROW_ATTR['class'] = "state-$statecolor";
+                $row->ROW_ATTR['class'] = "state-{$statecolor}";
 
             }else{
                 $type = 'Ф';
@@ -1687,7 +1687,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $fDocRec = $FirstDoc->fetch();                                              // Rec-a на договора
 
                 // масив от фактури в тази нишка към избраната дата
-                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
+                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate, true));
 
                 if (is_array($invoicePayments) && !empty($invoicePayments)) {
 
