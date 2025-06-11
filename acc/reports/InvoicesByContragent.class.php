@@ -1062,7 +1062,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,smartCenter');
             // Добавяме нова колона "Документ" преди колоната за номера
-            $fld->FLD('documentType', 'varchar', 'caption=Документ,after=contragentId');
+            $fld->FLD('documentType', 'varchar', 'caption=Документ,after=contragentId,tdClass=centered');
             $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
 
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
@@ -1275,10 +1275,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 } else {
                     if($dRec->invoiceValue < 0){
                         $type = 'КИ';
-                        $statecollor = 'active';
+                        $statecolor = 'credit';
                     }else{
                         $type = 'ДИ';
-                        $statecollor = 'pending';
+                        $statecolor = 'debit';
                     }
                 }
 
@@ -1287,10 +1287,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
               //  $row->invoiceNo .= "<span class='quiet'>" . '<br>' . $type . '</span>';
 
                 $row->documentType = $type;
-                $row->ROW_ATTR['class'] = 'state-'."$statecollor";
+                $row->ROW_ATTR['class'] = "state-$statecolor";
 
             }else{
-                $type = 'Ф-ра';
+                $type = 'Ф';
                 $row->documentType = $type;
             }
 
