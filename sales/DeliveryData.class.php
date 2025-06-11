@@ -161,11 +161,10 @@ class sales_DeliveryData extends core_Manager
             Mode::pop('calcOnlyDeliveryPart');
 
             if($Class instanceof sales_Sales){
-                core_Debug::startTimer('GET_READY_PERCENTAGE');
-                sales_reports_ShipmentReadiness::calcSaleReadiness($rec);
-                core_Debug::stopTimer('GET_READY_PERCENTAGE');
+                //core_Debug::startTimer('GET_READY_PERCENTAGE');
+                //sales_reports_ShipmentReadiness::calcSaleReadiness($rec);
+                //core_Debug::stopTimer('GET_READY_PERCENTAGE');
             }
-
 
             $countryIds[$logisticData['toCountry']] = $countries[$logisticData['toCountry']];
 
