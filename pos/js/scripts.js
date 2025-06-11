@@ -952,7 +952,8 @@ function pressNavigable(element)
 			$('.select-input-pos').prop("disabled", true);
 			$("#modalTitleSpan").text(" " + deviceName);
 
-			getAmount(amount, deviceUrl, comPort);
+			let fncName = element.attr("data-sendfunction");
+			window[fncName](amount, deviceUrl, comPort);
 			return;
 		} else {
 			type = (!type) ? '-1' : type;

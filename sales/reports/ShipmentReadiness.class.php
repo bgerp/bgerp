@@ -421,7 +421,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         
         // Всички чакащи и активни продажби на избраните дилъри
         $sQuery = sales_Sales::getQuery();
-        $sQuery->where("#state = 'pending' || #state = 'active'");
+        $sQuery->in("state", array('pending', 'active'));
         $sQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
         if (countR($dealers)) {
             $dealers = implode(',', $dealers);
@@ -437,21 +437,26 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                     break;
             }
         }
-        
+
+        $saleRecs = $sQuery->fetchAll();
+        $deliveryData = array();
+        $dQuery = sales_DeliveryData::getQuery();
+        $dQuery->in('containerId', arr::extractValuesFromArray($saleRecs, 'containerId'));
+        $dQuery->show('countryId,containerId');
+        while($dRec = $dQuery->fetch()){
+            $deliveryData[$dRec->containerId] = $dRec->countryId;
+        }
+
         // За всяка
-        while ($sRec = $sQuery->fetch()) {
+        foreach ($saleRecs as $sRec) {
             
             // Ако има филтър по държава
             if ($cCount) {
-                $contragentCountryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
+                $contragentCountryId = $deliveryData[$sRec->containerId];
                 if ($rec->ignore == 'yes') {
-                    if (array_key_exists($contragentCountryId, $countries)) {
-                        continue;
-                    }
+                    if (array_key_exists($contragentCountryId, $countries)) continue;
                 } else {
-                    if (!array_key_exists($contragentCountryId, $countries)) {
-                        continue;
-                    }
+                    if (!array_key_exists($contragentCountryId, $countries)) continue;
                 }
             }
             
