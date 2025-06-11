@@ -4,7 +4,7 @@
 /**
  * Неинкасираните плащания до колко време назад да се обират от ВКТ->Време
  */
-defIfNot('CASH_COLLECT_NOT_TRANSFERRED_IN_LAST', 5 * 60 * 60 * 24);
+defIfNot('CASH_COLLECT_NOT_TRANSFERRED_IN_LAST', 5);
 
 
 /**
@@ -97,7 +97,7 @@ class cash_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'CASH_COLLECT_NOT_TRANSFERRED_IN_LAST' => array('time', 'caption=Неинкасираните плащания до колко време назад да се обират от ВКТ->Време'),
+        'CASH_COLLECT_NOT_TRANSFERRED_IN_LAST' => array('int(Min=0)', 'caption=Неинкасираните плащания до колко време назад да се обират от ВКТ->Време'),
     );
 
 
