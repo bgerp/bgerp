@@ -166,11 +166,11 @@ class sales_DeliveryData extends core_Manager
 
             if($Class instanceof sales_Sales){
                 core_Debug::startTimer('GET_READY_SALE_PERCENTAGE');
-                $newRec->readiness = sales_reports_ShipmentReadiness::calcSaleReadiness($rec);
+                $newRec->readiness = self::calcSaleReadiness($rec);
                 core_Debug::stopTimer('GET_READY_SALE_PERCENTAGE');
             } elseif($Class instanceof store_ShipmentOrders){
                 core_Debug::startTimer('GET_READY_EXP_PERCENTAGE');
-                $newRec->readiness = sales_reports_ShipmentReadiness::calcSoReadiness($rec);
+                $newRec->readiness = self::calcSoReadiness($rec);
                 core_Debug::stopTimer('GET_READY_EXP_PERCENTAGE');
             }
 
@@ -192,13 +192,14 @@ class sales_DeliveryData extends core_Manager
         core_Debug::log("GET GET_LOGISTIC_DATA " . round(core_Debug::$timers["GET_LOGISTIC_DATA"]->workingTime, 6));
         core_Debug::log("GET GET_READY_SALE_PERCENTAGE " . round(core_Debug::$timers["GET_READY_SALE_PERCENTAGE"]->workingTime, 6));
         core_Debug::log("GET GET_READY_EXP_PERCENTAGE " . round(core_Debug::$timers["GET_READY_EXP_PERCENTAGE"]->workingTime, 6));
+        core_Debug::log("GET GET_DEAL_DATA " . round(core_Debug::$timers["GET_DEAL_DATA"]->workingTime, 6));
 
         if(countR($sync['insert'])){
             $this->saveArray($sync['insert']);
         }
 
         if(countR($sync['update'])){
-            $this->saveArray($sync['update'], 'id,countryId,place,pCode,address');
+            $this->saveArray($sync['update'], 'id,countryId,place,pCode,address,readiness');
         }
     }
 
@@ -319,5 +320,218 @@ class sales_DeliveryData extends core_Manager
         }
 
         return $tpl;
+    }
+
+
+    /**
+     * Изчислява готовността на продажбата
+     *
+     * @param stdClass $saleRec - запис на продажба
+     *
+     * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
+     */
+    private static function calcSaleReadiness($saleRec)
+    {
+
+        // На не чакащите и не активни не се изчислява готовността
+        if ($saleRec->state != 'pending' && $saleRec->state != 'active') {
+
+            return;
+        }
+
+        // На бързите продажби също не се изчислява
+        if (strpos($saleRec->contoActions, 'ship') !== false) {
+
+            return;
+        }
+
+        // Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
+        $Sales = sales_Sales::getSingleton();
+        core_Debug::startTimer('GET_DEAL_DATA');
+        $dealInfo = $Sales->getAggregateDealInfo($saleRec);
+        core_Debug::stopTimer('GET_DEAL_DATA');
+
+        $agreedProducts = $dealInfo->get('products');
+        $shippedProducts = $dealInfo->get('shippedProducts');
+
+        $totalAmount = 0;
+        $readyAmount = null;
+
+        $productIds = arr::extractValuesFromArray($agreedProducts, 'productId');
+
+        $pQuery = cat_Products::getQuery();
+        $pQuery->show('canStore,isPublic');
+        if(countR($productIds)){
+            $pQuery->in('id', $productIds);
+        } else {
+            $pQuery->where("1=2");
+        }
+        $pRecs = $pQuery->fetchAll();
+        $notPublicIds = array_filter($pRecs, function($pRec) {
+            return $pRec->isPublic == 'no';
+        });
+
+        $aJobQuery = planning_Jobs::getQuery();
+        $aJobQuery->where("#saleId = {$saleRec->id}");
+        $aJobQuery->in("state", array('active', 'stopped', 'wakeup'));
+        $aJobQuery->show('id,productId');
+        if(countR($notPublicIds)){
+            $aJobQuery->in('productId', array_keys($notPublicIds));
+        } else {
+            $aJobQuery->where("1=2");
+        }
+        $activeJobArr = array();
+        while($aRec = $aJobQuery->fetch()) {
+            $activeJobArr[$aRec->productId] = $aRec->id;
+        }
+
+        // За всеки договорен артикул
+        foreach ($agreedProducts as $pId => $pRec) {
+            $productRec = $pRecs[$pId];
+            if ($productRec->canStore != 'yes') continue;
+
+            $price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
+            $amount = null;
+
+            // Ако няма цена се гледа мениджърската себестойност за да не е 0
+            if(empty($price)){
+                $price = cat_Products::getPrimeCost($pId, $pRec->packagingId, 1, $saleRec->valior);
+            }
+
+            // Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея
+            $q = $pRec->quantity;
+
+            $ignore = false;
+            if ($productRec->isPublic == 'no') {
+
+                // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
+                $closedJobQuery = planning_Jobs::getQuery();
+                $closedJobQuery->where("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
+                $closedJobQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+                $closedJobQuery->XPR('totalQuantityProduced', 'double', 'SUM(COALESCE(#quantityProduced, 0))');
+                $closedJobQuery->show('totalQuantity,totalQuantityProduced');
+                $closedJobCount = $closedJobQuery->count();
+                $closedJobRec = $closedJobQuery->fetch();
+                $activeJobId = $activeJobArr[$pId];
+
+                // Ако има приключени задания и няма други активни, се приема че е готово
+                if ($closedJobCount && !$activeJobId) {
+
+                    $q = $closedJobRec->totalQuantity;
+                    $amount = $q * $price;
+
+                    // Ако има експедирано и то е над 90% от заскалденото, ще се маха продажбата
+                    if (isset($shippedProducts[$pId])) {
+                        $produced = $closedJobRec->totalQuantityProduced;
+                        if ($shippedProducts[$pId]->quantity >= ($produced * 0.9)) {
+                            $quantityInStore = store_Products::getQuantities($productRec->id)->quantity;
+                            if ($quantityInStore <= 1) {
+                                $ignore = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Количеството е неекспедираното
+            if ($ignore === true) {
+                $quantity = 0;
+            } else {
+                if (isset($shippedProducts[$pId])) {
+                    $quantity = $q - $shippedProducts[$pId]->quantity;
+                } else {
+                    $quantity = $q;
+                }
+            }
+
+            // Ако всичко е експедирано се пропуска реда
+            if ($quantity <= 0) {
+                continue;
+            }
+
+            $totalAmount += $quantity * $price;
+
+            if (is_null($amount)) {
+
+                // Изчислява се колко от сумата на артикула може да се изпълни
+                $quantityInStock = store_Products::getQuantities($pId, $saleRec->shipmentStoreId)->quantity;
+                $quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
+
+                $amount = $quantityInStock * $price;
+            }
+
+            // Събиране на изпълнената сума за всеки ред
+            if (isset($amount)) {
+                $readyAmount += $amount;
+            }
+        }
+
+        // Готовността е процента на изпълнената сума от общата
+        $readiness = (isset($readyAmount) && !empty($totalAmount)) ? @round($readyAmount / $totalAmount, 2) : null;
+
+        // Подсигуряване че процента не е над 100%
+        if ($readiness > 1) {
+            $readiness = 1;
+        }
+
+        // Връщане на изчислената готовност или NULL ако не може да се изчисли
+        return $readiness;
+    }
+
+
+
+
+    /**
+     * Изчислява готовността на експедиционното нареждане
+     *
+     * @param stdClass $soRec - запис на ЕН
+     *
+     * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
+     */
+    private static function calcSoReadiness($soRec)
+    {
+        // На не чакащите не се изчислява готовност
+        if ($soRec->state != 'pending') {
+
+            return;
+        }
+
+        // Намират се детайлите на ЕН-то
+        $dQuery = store_ShipmentOrderDetails::getQuery();
+        $dQuery->where("#shipmentId = {$soRec->id}");
+        $dQuery->show('shipmentId,productId,packagingId,quantity,quantityInPack,price,discount,showMode');
+
+        // Детайлите се сумират по артикул
+        $all = deals_Helper::normalizeProducts(array($dQuery->fetchAll()));
+
+        $totalAmount = 0;
+        $readyAmount = null;
+
+        // За всеки се определя колко % може да се изпълни
+        foreach ($all as $pId => $pRec) {
+            $price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
+            if(empty($price)){
+                $price = cat_Products::getPrimeCost($pId, $pRec->packagingId, 1, $soRec->valior);
+            }
+
+
+            $totalAmount += $pRec->quantity * $price;
+
+            // Определя се каква сума може да се изпълни
+            $quantityInStock = store_Products::getQuantities($pId, $soRec->storeId)->quantity;
+            $quantityInStock = ($quantityInStock > $pRec->quantity) ? $pRec->quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
+
+            $amount = $quantityInStock * $price;
+
+            if (isset($amount)) {
+                $readyAmount += $amount;
+            }
+        }
+
+        // Готовността е процент на изпълнената сума от общата
+        $readiness = (isset($readyAmount)) ? @round($readyAmount / $totalAmount, 2) : null;
+
+        // Връщане на изчислената готовност или NULL ако не може да се изчисли
+        return $readiness;
     }
 }
