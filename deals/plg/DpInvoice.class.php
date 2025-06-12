@@ -633,7 +633,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $docTitle = countR($invArr) ? 'по фактури' : 'по проформи';
             $misc = tr($docTitle) . " {$handleString}";
         } else {
-            $misc = tr("по {$caption}|*sss ") . implode(', ', $deals);
+            $misc = tr("по {$caption}|* ") . implode(', ', $deals);
         }
 
         return $misc;

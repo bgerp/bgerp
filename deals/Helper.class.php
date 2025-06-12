@@ -1853,7 +1853,7 @@ abstract class deals_Helper
      *
      * @return array         $paid - масив с разпределените плащания
      */
-    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false, $applyNotesToTheInvoice = true)
+    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = true, $applyNotesToTheInvoice = true)
     {
         // Всички ф-ри в посочената нишка/нишки
         $threads = static::getCombinedThreads($threadId);

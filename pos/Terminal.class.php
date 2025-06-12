@@ -1444,6 +1444,8 @@ class pos_Terminal extends peripheral_Terminal
 
                     if(countR($selectedDevices)){
                         foreach ($selectedDevices as $deviceRec){
+                            $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
+
                             $attr['id'] = 'card-payment';
                             $attr['data-diffamount'] = tr("Има разминаване при отчетено плащане|*: {$deviceRec->name}!");
                             $attr['data-onerror'] = tr("Неуспешно плащане с банковия терминал|*: {$deviceRec->name}!");
@@ -1453,6 +1455,7 @@ class pos_Terminal extends peripheral_Terminal
                             $attr['data-amountoverallowed'] = tr('Не може да платите повече отколкото се дължи по сметката|*!');
                             $attr['data-notnumericmsg'] = tr('Невалидна сума за плащане|*!');
                             $attr['data-sendamount'] = 'yes';
+                            $attr['data-sendfunction'] = $intf->getSendAmountFncName($deviceRec);
 
                             $deviceBtnName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
                             $attr['data-deviceUrl'] = "{$deviceRec->protocol}://{$deviceRec->hostName}:{$deviceRec->port}";
@@ -1782,12 +1785,17 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->push('pos/tpl/css/no-sass.css', 'CSS');
         
         if (!Mode::is('printing')) {
+            $pointRec = pos_Points::fetch($rec->pointId);
 
             // За всяко банково устроство се добавя неговия джаваскрипт
             $bankDevices = peripheral_Devices::getDevices('bank_interface_POS');
-            foreach ($bankDevices as $deviceRec){
+            $peripheralIds = keylist::toArray($pointRec->bankPeripherals);
+            $selectedDevices = array_intersect_key($bankDevices, $peripheralIds);
+
+            foreach ($selectedDevices as $deviceRec){
                 $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
-                $tpl->appendOnce($intf->getJS($deviceRec), 'SCRIPTS');
+                $fncName = $intf->getSendAmountFncName($deviceRec);
+                $tpl->appendOnce($intf->getJS($deviceRec, $fncName), 'SCRIPTS');
             }
 
             $tpl->push('pos/js/scripts.js', 'JS');

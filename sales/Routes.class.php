@@ -233,11 +233,14 @@ class sales_Routes extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->view = 'horizontal';
+        $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
+
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('user', 'user(roles=sales|ceo)', 'input,caption=Търговец,placeholder=Търговец,silent,autoFilter');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
         $data->listFilter->setFieldType('type', "enum(all=Вид,visit=Посещение,delivery=Доставка,mixed=Посещение и доставка)");
+
+        $data->listFilter->fields['type']->caption = 'Посещение';
 
         if(haveRole('officer')){
             $data->listFilter->setFieldTypeParams('user', array('allowEmpty' => 'allowEmpty'));
@@ -754,6 +757,49 @@ class sales_Routes extends core_Manager
                     $msg = tr("Има {$word} на тази дата от|*: ") . implode(', ', $ids);
                     $row->{$dateFld} = ht::createHint($row->{$dateFld}, $msg, 'warning', false);
                 }
+            }
+        }
+    }
+
+
+    /**
+     * След подготовка на записите
+     */
+    protected static function on_AfterPrepareListSummary($mvc, &$res, &$data)
+    {
+        $sQuery = clone $data->listSummary->query;
+        $sQuery->XPR('cnt', 'int', 'COUNT(#id)');
+        $sQuery->where("#state != 'rejected'");
+        $cnt = $sQuery->fetch()->cnt;
+        $cnt = (!empty($cnt)) ? $cnt : 0;
+
+        $aQuery = clone $data->listSummary->query;
+        $aQuery->XPR('cnt', 'int', 'COUNT(#id)');
+        $aQuery->where("#state = 'active'");
+        $active = $aQuery->fetch()->cnt;
+        $active = (!empty($active)) ? $active : 0;
+
+        $data->listSummary->summary = (object) array('sumRow' => core_Type::getByName('int')->toVerbal($cnt),
+            'activeRow' => core_Type::getByName('int')->toVerbal($active));
+    }
+
+
+    /**
+     * След рендиране на List Summary-то
+     */
+    protected static function on_AfterRenderListSummary($mvc, &$tpl, $data)
+    {
+        if (isset($data->listSummary->summary)) {
+            $tpl = new ET(tr('|*' . getFileContent('acc/plg/tpl/Summary.shtml')));
+            $clone = $tpl->getBlock('ROW');
+
+            foreach (array('sumRow' => 'Общо', 'activeRow' => 'Активни') as $rName => $rRow) {
+                $dTpl = clone $clone;
+                $dTpl->append(tr($rRow), 'caption');
+                $dTpl->append($data->listSummary->summary->{$rName}, 'quantity');
+
+                $dTpl->removeBlocks();
+                $dTpl->append2Master();
             }
         }
     }

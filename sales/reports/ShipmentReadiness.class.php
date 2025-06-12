@@ -21,48 +21,48 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, store, sales, admin, purchase';
-    
-    
+
+
     /**
      * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *
      * @var string
      */
     protected $newFieldsToCheck = 'containerId';
-    
-    
+
+
     /**
      * Нормализираните имена на папките
      *
      * @var array
      */
     private static $folderNames = array();
-    
-    
+
+
     /**
      * Имената на контрагентите
      *
      * @var array
      */
     private static $contragentNames = array();
-    
-    
+
+
     /**
      * Дилърите
      *
      * @var array
      */
     private static $dealers = array();
-    
-    
+
+
     /**
      * Полета от таблицата за скриване, ако са празни
      *
      * @var int
      */
     protected $filterEmptyListFields = 'dueDates';
-    
-    
+
+
     /**
      * Полета за хеширане на таговете
      *
@@ -71,22 +71,22 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      * @var string
      */
     protected $hashField = 'containerId';
-    
-    
+
+
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'dealers,countries,precision,horizon,orderBy';
-    
-    
+
+
     /**
      * Кои полета от листовия изглед да може да се сортират
      *
      * @var int
      */
     protected $sortableListFields = 'readiness,dueDates,execDate,contragentName,dealerId';
-    
-    
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -102,78 +102,78 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
         $fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Клиенти,execDate=Срок за изпълнение,dueDate=Дата на падеж)', 'caption=Подредба,after=horizon');
     }
-    
-    
+
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver   $Driver
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
+     * @param frame2_driver_Proto $Driver $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
-        
+
         // Всички активни потебители
         $uQuery = core_Users::getQuery();
         $uQuery->where("#state = 'active'");
         $uQuery->orderBy('#names', 'ASC');
         $uQuery->show('id');
-        
+
         // Които са търговци
         $roles = core_Roles::getRolesAsKeylist('ceo,sales');
         $uQuery->likeKeylist('roles', $roles);
         $allDealers = arr::extractValuesFromArray($uQuery->fetchAll(), 'id');
-        
+
         // Към тях се добавят и вече избраните търговци
         if (isset($form->rec->dealers)) {
             $dealers = keylist::toArray($form->rec->dealers);
             $allDealers = array_merge($allDealers, $dealers);
         }
-        
+
         // Вербализират се
         $suggestions = array();
         foreach ($allDealers as $dealerId) {
             $suggestions[$dealerId] = core_Users::fetchField($dealerId, 'nick');
         }
-        
+
         // Задават се като предложение
         $form->setSuggestions('dealers', $suggestions);
         $form->setSuggestions('horizon', explode('|', '1 ден|2 дни|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни|60 дни|90 дни|120 дни'));
-        
+
         // Ако текущия потребител е търговец добавя се като избран по дефолт
         if (haveRole('sales') && empty($form->rec->id)) {
             $form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
         }
     }
-    
-    
+
+
     /**
      * При събмитване на формата
      *
-     * @param frame2_driver_Proto $Driver   $Driver
-     * @param embed_Manager       $Embedder
-     * @param core_Form           $form
+     * @param frame2_driver_Proto $Driver $Driver
+     * @param embed_Manager $Embedder
+     * @param core_Form $form
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if (!$form->isSubmitted()) {
-            
+
             return;
         }
         $rec = &$form->rec;
-        
+
         if ($rec->ignore == 'yes' && empty($rec->countries)) {
             $form->setError('countries,ignore', 'Трябва да има избрани държави, за изключване');
         }
-        
+
         if (empty($rec->dealers) && !empty($rec->dealerType)) {
             $form->setError('dealers,dealerType', 'Не са избрани потребители, за да е посочен тип');
         }
     }
-    
-    
+
+
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
@@ -184,6 +184,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+        $sameLocationDocuments = sales_DeliveryData::findDealsWithSameLocation($dRec->containerId);
         $row = new stdClass();
         $Document = doc_Containers::getDocument($dRec->containerId);
         
@@ -204,16 +205,26 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         // Линк към документа
         $singleUrl = $Document->getSingleUrlArray();
         $handle = $Document->getHandle();
-        
+
         $row->document = "#{$handle}";
         if (!Mode::isReadOnly()) {
             $row->document = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->singleIcon}");
+
+            // Показване на информация за доставките до същата локация
+            if(countR($sameLocationDocuments)){
+                $tooltipUrl = toUrl(array('sales_DeliveryData', 'showDeliveryInfo', 'containerId' => $dRec->containerId, 'replaceField' => "sh{$dRec->containerId}"), 'local');
+                $arrowImg = ht::createElement('img', array('height' => 12, 'width' => 12, 'src' => sbf('img/32/dialog_warning.png', '')));
+                $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'Има други поръчки за същата / близка дестинация! (клик за подробности)'), $arrowImg, true);
+                $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='sh{$dRec->containerId}'></span>{$arrow}</span>";
+                $row->document->append($arrow);
+            }
+
             if($Document->isInstanceOf('sales_Sales')){
                 $documentRec = $Document->fetch();
                 $documentRow = $Document->getInstance()->recToVerbal($documentRec);
                 $amountDealVerbal = currency_Currencies::decorate($documentRow->amountDeal, $documentRec->currencyId);
                 $amountPaidVerbal = currency_Currencies::decorate($documentRow->amountPaid, $documentRec->currencyId);
-                $str = tr("|* <small class='nowrap'>|Пор|*: {$amountDealVerbal} / |Плат|*: {$amountPaidVerbal}</small>");
+                $str = tr("|* <span class='nowrap' style='border: 1px solid #ccc; border-radius:3px; padding: 0 2px; font-size: 0.75em; color: #333; box-shadow: inset 0 0 2px #fff; position: relative; top: -2px;background: rgba(240,250,250, 0.3)'>|Пор|*: {$amountDealVerbal} / |Плат|*: {$amountPaidVerbal}</span>");
                 $row->document .= $str;
             }
 
@@ -410,7 +421,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         
         // Всички чакащи и активни продажби на избраните дилъри
         $sQuery = sales_Sales::getQuery();
-        $sQuery->where("#state = 'pending' || #state = 'active'");
+        $sQuery->in("state", array('pending', 'active'));
         $sQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
         if (countR($dealers)) {
             $dealers = implode(',', $dealers);
@@ -426,21 +437,26 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                     break;
             }
         }
-        
+
+        $saleRecs = $sQuery->fetchAll();
+        $deliveryData = array();
+        $dQuery = sales_DeliveryData::getQuery();
+        $dQuery->in('containerId', arr::extractValuesFromArray($saleRecs, 'containerId'));
+        $dQuery->show('countryId,containerId');
+        while($dRec = $dQuery->fetch()){
+            $deliveryData[$dRec->containerId] = $dRec->countryId;
+        }
+
         // За всяка
-        while ($sRec = $sQuery->fetch()) {
+        foreach ($saleRecs as $sRec) {
             
             // Ако има филтър по държава
             if ($cCount) {
-                $contragentCountryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
+                $contragentCountryId = $deliveryData[$sRec->containerId];
                 if ($rec->ignore == 'yes') {
-                    if (array_key_exists($contragentCountryId, $countries)) {
-                        continue;
-                    }
+                    if (array_key_exists($contragentCountryId, $countries)) continue;
                 } else {
-                    if (!array_key_exists($contragentCountryId, $countries)) {
-                        continue;
-                    }
+                    if (!array_key_exists($contragentCountryId, $countries)) continue;
                 }
             }
             
@@ -677,8 +693,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      *
      * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
      */
-    private static function calcSaleReadiness($saleRec)
+    public static function calcSaleReadiness($saleRec)
     {
+
         // На не чакащите и не активни не се изчислява готовността
         if ($saleRec->state != 'pending' && $saleRec->state != 'active') {
             
@@ -700,13 +717,39 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         
         $totalAmount = 0;
         $readyAmount = null;
-        
+
+        $productIds = arr::extractValuesFromArray($agreedProducts, 'productId');
+
+        $pQuery = cat_Products::getQuery();
+        $pQuery->show('canStore,isPublic');
+        if(countR($productIds)){
+            $pQuery->in('id', $productIds);
+        } else {
+            $pQuery->where("1=2");
+        }
+        $pRecs = $pQuery->fetchAll();
+        $notPublicIds = array_filter($pRecs, function($pRec) {
+            return $pRec->isPublic == 'no';
+        });
+
+        $aJobQuery = planning_Jobs::getQuery();
+        $aJobQuery->where("#saleId = {$saleRec->id}");
+        $aJobQuery->in("state", array('active', 'stopped', 'wakeup'));
+        $aJobQuery->show('id,productId');
+        if(countR($notPublicIds)){
+            $aJobQuery->in('productId', array_keys($notPublicIds));
+        } else {
+            $aJobQuery->where("1=2");
+        }
+        $activeJobArr = array();
+        while($aRec = $aJobQuery->fetch()) {
+            $activeJobArr[$aRec->productId] = $aRec->id;
+        }
+
         // За всеки договорен артикул
         foreach ($agreedProducts as $pId => $pRec) {
-            $productRec = cat_Products::fetch($pId, 'canStore,isPublic');
-            if ($productRec->canStore != 'yes') {
-                continue;
-            }
+            $productRec = $pRecs[$pId];
+            if ($productRec->canStore != 'yes') continue;
             
             $price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
             $amount = null;
@@ -730,8 +773,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 $closedJobQuery->show('totalQuantity,totalQuantityProduced');
                 $closedJobCount = $closedJobQuery->count();
                 $closedJobRec = $closedJobQuery->fetch();
-
-                $activeJobId = planning_Jobs::fetchField("#productId = {$pId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #saleId = {$saleRec->id}");
+                $activeJobId = $activeJobArr[$pId];
 
                 // Ако има приключени задания и няма други активни, се приема че е готово
                 if ($closedJobCount && !$activeJobId) {
@@ -792,7 +834,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         if ($readiness > 1) {
             $readiness = 1;
         }
-        
+
         // Връщане на изчислената готовност или NULL ако не може да се изчисли
         return $readiness;
     }

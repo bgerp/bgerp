@@ -43,6 +43,7 @@ class sales_Wrapper extends plg_ProtoWrapper
         $this->TAB('sales_ProductRelations', 'Дебъг->Сходни продукти', 'debug');
         $this->TAB('sales_ProductRatings', 'Дебъг->Продуктови рейтинги', 'debug');
         $this->TAB('sales_LastSaleByContragents', 'Дебъг->Последни продажби', 'debug');
+        $this->TAB('sales_DeliveryData', 'Дебъг->Доставки', 'debug');
 
         $this->title = 'Продажби « Търговия';
         Mode::set('menuPage', 'Търговия:Продажби');

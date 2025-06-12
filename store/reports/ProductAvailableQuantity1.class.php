@@ -101,7 +101,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('condFilter', 'set(1|под Мин.=Под минимум,3|над Макс.=Над максимум, 2|Отриц.=Отрицателни, 4|ок=ОК)', 'caption=Филтър->По състояние,columns=4,after=filters,input=none,silent');
 
-        $fieldset->FLD('seeByStores', 'set(yes = )', 'caption=Настройки->Детайли по склад,after=condFilter,single=none');
+        $fieldset->FLD('seeByStores', 'enum(no=Не, yes=Да)', 'caption=Настройки->Детайли по склад,after=condFilter,single=none');
 
         $fieldset->FLD('artLimits', 'blob(serialize)', 'after=seeByStores,input=none,single=none');
 
@@ -454,28 +454,38 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $Int = cls::get('type_Int');
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 3;
-        $Double->params['smartRound'] = 'smartRound';
+        $Double->params['decimals'] = 2;
 
         $row = new stdClass();
+        $mRound = null;
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
+
+        $mRound = cat_UoM::getMaxRound($dRec->measure);
+
+        if ($mRound !== null) {
+            $Double->params['decimals'] = $mRound;
+        }
+
         if ($rec->seeByStores != 'yes') {
             if (isset($dRec->quantity)) {
 
-                $quantityStr = $Double->toVerbal($dRec->quantity);
-                $row->quantity .= ht::styleIfNegative($quantityStr, $dRec->quantity);
+                $quantityStr = ht::styleIfNegative($Double->toVerbal($dRec->quantity), $dRec->quantity);
+                $row->quantity .= $quantityStr;
             }
         } else {
 
-            $quantityStr = '<b>' . 'Общо: ' . $Double->toVerbal($dRec->quantity) . '</b>' . "</br>";
-            $row->quantity .= ht::styleIfNegative($quantityStr, $dRec->quantity);
-            foreach ($dRec->storesQuatity as $val) {
+            $quantityStr = ht::styleIfNegative($Double->toVerbal($dRec->quantity), $dRec->quantity);
+            $row->quantity .= '<table class="no-border full-width"><tr><th style="font-size: 1.05em; border-bottom: 1px solid #ccc !important;">Общо: </th><th style="font-size: 1em;border-bottom: 1px solid #ccc  !important;;">' .$quantityStr . '</th></tr>';
 
+            foreach ($dRec->storesQuatity as $val) {
+                $row->quantity .= "<tr>";
                 list($storeId, $stQuantity) = explode('|', $val);
 
-                $quantityStr = store_Stores::getTitleById($storeId) . ': ' .$Double->toVerbal($stQuantity) . "</br>";
-                $row->quantity .= ht::styleIfNegative($quantityStr, $stQuantity);
+                $quantityStr = ht::styleIfNegative($Double->toVerbal($stQuantity), $stQuantity) ;
+                $row->quantity .= "<td>" . store_Stores::getTitleById($storeId) . ":</td><td style='width: 100px'>" .$quantityStr. "</td>";
+                $row->quantity .= "</tr>";
             }
+            $row->quantity .= '</table>';
         }
 
         if (isset($dRec->measure)) {
@@ -738,7 +748,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $rec = frame2_Reports::fetch($recId);
 
         $details = $rec->artLimits;
-
         $minVal = $details[$productId]['minQuantity'];
         $maxVal = $details[$productId]['maxQuantity'];
         $orderMeasure = $details[$productId]['orderMeasure'];

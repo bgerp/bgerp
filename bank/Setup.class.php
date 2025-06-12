@@ -50,6 +50,12 @@ class bank_Setup extends core_ProtoSetup
 
 
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'bank_interface_PosDummy';
+
+
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(

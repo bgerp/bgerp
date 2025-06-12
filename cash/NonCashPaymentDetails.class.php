@@ -423,11 +423,15 @@ class cash_NonCashPaymentDetails extends core_Manager
             $query->in("deviceId", $peripheralsWithBankId);
         }
         $query->orderBy('id', 'ASC');
+        $daysBefore = cash_Setup::get('COLLECT_NOT_TRANSFERRED_IN_LAST');
+        $afterDate = dt::addDays(-1 * $daysBefore);
 
         $res = array();
         while($rec = $query->fetch()){
             $Class = cls::get($rec->classId);
             $objectRec = $Class->fetch($rec->objectId);
+            if($objectRec->createdOn < $afterDate) continue;
+
             if($Class instanceof cash_Pko){
                 $state = $objectRec->state;
                 $objectCaseId = $objectRec->peroCase;

@@ -1015,4 +1015,15 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         return cls::get($class);
     }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if(in_array($rec->state, array('active', 'pending'))){
+            sales_DeliveryData::sync($rec->containerId);
+        }
+    }
 }
