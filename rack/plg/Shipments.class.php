@@ -469,6 +469,7 @@ class rack_plg_Shipments extends core_Plugin
                                                    'positions'   => array(),
                                                    'transUnitId' => $details["{$zRec->productId}|{$zRec->packagingId}"],
                                                    'quantity'    => $zRec->documentQuantity);
+            unset($details["{$zRec->productId}|{$zRec->packagingId}"]);
 
             foreach ($movementRecs as $mRec){
                 if($mRec->productId == $zRec->productId && $mRec->packagingId == $zRec->packagingId && $mRec->batch == $zRec->batch){
