@@ -386,10 +386,28 @@ class sales_DeliveryData extends core_Manager
         } else {
             $aJobQuery->where("1=2");
         }
-        $activeJobArr = array();
+        $activeJobArr = $closedJobArr = array();
         while($aRec = $aJobQuery->fetch()) {
             $activeJobArr[$aRec->productId] = $aRec->id;
         }
+
+        core_Debug::startTimer('GET_JOB_DATA');
+        $cJobQuery = planning_Jobs::getQuery();
+        $cJobQuery->where("#state = 'closed' AND #saleId = {$saleRec->id}");
+        $cJobQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+        $cJobQuery->XPR('totalQuantityProduced', 'double', 'SUM(COALESCE(#quantityProduced, 0))');
+        $cJobQuery->XPR('totalCount', 'double', 'COUNT(#id)');
+        $cJobQuery->show('productId,totalQuantity,totalQuantityProduced,totalCount');
+        $cJobQuery->groupBy('productId');
+        if(countR($notPublicIds)){
+            $cJobQuery->in('productId', array_keys($notPublicIds));
+        } else {
+            $cJobQuery->where("1=2");
+        }
+        while($cRec = $cJobQuery->fetch()) {
+            $closedJobArr[$cRec->productId] = $cRec;
+        }
+        core_Debug::stopTimer('GET_JOB_DATA');
 
         // За всеки договорен артикул
         foreach ($agreedProducts as $pId => $pRec) {
@@ -411,19 +429,11 @@ class sales_DeliveryData extends core_Manager
             if ($productRec->isPublic == 'no') {
 
                 // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
-                core_Debug::startTimer('GET_JOB_DATA');
-                $closedJobQuery = planning_Jobs::getQuery();
-                $closedJobQuery->where("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
-                $closedJobQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-                $closedJobQuery->XPR('totalQuantityProduced', 'double', 'SUM(COALESCE(#quantityProduced, 0))');
-                $closedJobQuery->show('totalQuantity,totalQuantityProduced');
-                $closedJobCount = $closedJobQuery->count();
-                $closedJobRec = $closedJobQuery->fetch();
+                $closedJobRec = $closedJobArr[$pId];
                 $activeJobId = $activeJobArr[$pId];
-                core_Debug::stopTimer('GET_JOB_DATA');
 
                 // Ако има приключени задания и няма други активни, се приема че е готово
-                if ($closedJobCount && !$activeJobId) {
+                if ($closedJobRec->totalCount && !$activeJobId) {
 
                     $q = $closedJobRec->totalQuantity;
                     $amount = $q * $price;
