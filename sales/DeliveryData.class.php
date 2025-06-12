@@ -149,6 +149,8 @@ class sales_DeliveryData extends core_Manager
         // Извличане на данните за доставка
         core_App::setTimeLimit(0.2 * $docCount, false, 300);
         $countryIds = array();
+
+        core_Debug::$isLogging = false;
         foreach ($fullRecs as $rec){
             $Class = cls::get($rec->_classId);
 
@@ -157,6 +159,13 @@ class sales_DeliveryData extends core_Manager
             $logisticData = $Class->getLogisticData($rec);
             core_Debug::stopTimer('GET_LOGISTIC_DATA');
             Mode::pop('calcOnlyDeliveryPart');
+
+            if($Class instanceof sales_Sales){
+                //core_Debug::startTimer('GET_READY_PERCENTAGE');
+                //sales_reports_ShipmentReadiness::calcSaleReadiness($rec);
+                //core_Debug::stopTimer('GET_READY_PERCENTAGE');
+            }
+
             $countryIds[$logisticData['toCountry']] = $countries[$logisticData['toCountry']];
 
             $newRec = new stdClass();
@@ -168,6 +177,7 @@ class sales_DeliveryData extends core_Manager
             $newRec->classId = $rec->_classId;
             $toSave[$rec->containerId] = $newRec;
         }
+        core_Debug::$isLogging = true;
 
         // Синхронизиране на съществуващите записи с новите
         $eQuery = self::getQuery();
@@ -175,6 +185,7 @@ class sales_DeliveryData extends core_Manager
         $sync = arr::syncArrays($toSave, $exRecs, 'containerId', 'countryId,place,pCode,address');
 
         core_Debug::log("GET GET_LOGISTIC_DATA " . round(core_Debug::$timers["GET_LOGISTIC_DATA"]->workingTime, 6));
+        core_Debug::log("GET GET_READY_PERCENTAGE " . round(core_Debug::$timers["GET_READY_PERCENTAGE"]->workingTime, 6));
 
         if(countR($sync['insert'])){
             $this->saveArray($sync['insert']);

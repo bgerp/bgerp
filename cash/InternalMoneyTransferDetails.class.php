@@ -69,7 +69,6 @@ class cash_InternalMoneyTransferDetails extends core_Detail
     public $fetchFieldsBeforeDelete = 'id,transferId,recId';
 
 
-
     /**
      * Описание на модела
      */
@@ -77,6 +76,8 @@ class cash_InternalMoneyTransferDetails extends core_Detail
     {
         $this->FLD('transferId', 'key(mvc=cash_InternalMoneyTransfer)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('recId', 'key(mvc=cash_NonCashPaymentDetails)', 'input=hidden,mandatory,silent,tdClass=leftCol,caption=Запис');
+
+        $this->EXT('amount', 'cash_NonCashPaymentDetails', 'externalName=amount,externalKey=recId');
 
         $this->setDbIndex('transferId,recId');
     }
@@ -87,7 +88,8 @@ class cash_InternalMoneyTransferDetails extends core_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        $data->listTableMvc->FLD('amount', 'double');
+
+
         $data->listTableMvc->FLD('paymentId', 'int', 'smartCenter');
     }
 
