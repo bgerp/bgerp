@@ -330,7 +330,7 @@ class sales_DeliveryData extends core_Manager
      *
      * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
      */
-    private static function calcSaleReadiness($saleRec)
+    public static function calcSaleReadiness($saleRec)
     {
 
         // На не чакащите и не активни не се изчислява готовността
@@ -490,7 +490,7 @@ class sales_DeliveryData extends core_Manager
      *
      * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
      */
-    private static function calcSoReadiness($soRec)
+    public static function calcSoReadiness($soRec)
     {
         // На не чакащите не се изчислява готовност
         if ($soRec->state != 'pending') {

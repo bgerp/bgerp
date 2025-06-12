@@ -442,9 +442,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $deliveryData = array();
         $dQuery = sales_DeliveryData::getQuery();
         $dQuery->in('containerId', arr::extractValuesFromArray($saleRecs, 'containerId'));
-        $dQuery->show('countryId,containerId');
+        $dQuery->show('countryId,containerId,readiness');
         while($dRec = $dQuery->fetch()){
-            $deliveryData[$dRec->containerId] = $dRec->countryId;
+            $deliveryData[$dRec->containerId] = $dRec;
         }
 
         // За всяка
@@ -452,7 +452,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             
             // Ако има филтър по държава
             if ($cCount) {
-                $contragentCountryId = $deliveryData[$sRec->containerId];
+                $contragentCountryId = $deliveryData[$sRec->containerId]->countryId;
                 if ($rec->ignore == 'yes') {
                     if (array_key_exists($contragentCountryId, $countries)) continue;
                 } else {
@@ -461,12 +461,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             }
             
             // Изчислява се готовността
-            $readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
-           
-            if ($readiness === false) {
-                $readiness = sales_DeliveryData::calcSaleReadiness($sRec);
-                core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
-            }
+            $readiness = $deliveryData[$sRec->containerId]->readiness;
             
             $delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : null);
             if (empty($delTime)) {
@@ -482,14 +477,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $shipQuery->where("#threadId = {$sRec->threadId}");
             while ($soRec = $shipQuery->fetch()) {
                 $deliveryTime = !empty($soRec->deliveryTime) ? $soRec->deliveryTime : $soRec->valior;
-                
+
                 // Изчислява им се готовността
-                $readiness1 = core_Cache::get('sales_reports_ShipmentReadiness', "c{$soRec->containerId}");
-                if ($readiness1 === false) {
-                    $readiness1 = sales_DeliveryData::calcSoReadiness($soRec);
-                    core_Cache::set('sales_reports_ShipmentReadiness', "c{$soRec->containerId}", $readiness1, 58);
-                }
-                
+                $readiness1 = $deliveryData[$soRec->containerId]->readiness;
                 $max = max($max, $readiness1);
                 
                 if (isset($deliveryTime)) {
@@ -502,7 +492,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             if ($max === false || is_null($max)) {
                 continue;
             }
-            
+
             if (!isset($rec->precision) || (isset($rec->precision) && $max >= $rec->precision)) {
                 $dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
                 
@@ -515,7 +505,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 $add = true;
                 if (isset($rec->horizon)) {
                     $horizon = dt::addSecs($rec->horizon);
-                    $compareDate = isset($dueDates['min']) ? $dueDates['min'] : (isset($dueDates['max']) ? $dueDates['max'] : (isset($minDel) ? $minDel : null));
+                    $compareDate = $dueDates['min'] ?? ($dueDates['max'] ?? ($minDel ?? null));
                     if (!empty($compareDate) && $compareDate > $horizon) {
                         $add = false;
                     }
