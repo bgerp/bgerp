@@ -156,12 +156,12 @@ class fileman_Upload extends core_Manager
                 if ($files[$inputName]['error'][$id]) {
                     // Ако са възникнали грешки при качването - записваме ги в променливата $err
                     switch ($files[$inputName]['error'][$id]) {
-                        case 1: $err[] = tr('Достигнато е ограничението за размер на файла в "php.ini"'); break;
-                        case 2: $err[] = tr('Размерът на файла е над "MAX_FILE_SIZE"'); break;
-                        case 3: $err[] = tr('Не е качен целия файл'); break;
+                        case 1: $err[] = tr('Размерът на файла надвишава ограничението, зададено в "php.ini"'); break;
+                        case 2: $err[] = tr('Размерът на файла надвишава стойността на "MAX_FILE_SIZE" от формуляра'); break;
+                        case 3: $err[] = tr('Файлът беше качен само частично'); break;
                         case 4: $err[] = tr('Не е качен файл'); break;
-                        case 6: $err[] = tr('Не може да се намери временната директория'); break;
-                        case 7: $err[] = tr('Грешка при записване на файла'); break;
+                        case 6: $err[] = tr('Временната директория не може да бъде намерена'); break;
+                        case 7: $err[] = tr('Грешка при записване на файла на диска'); break;
                     }
                 }
                 
