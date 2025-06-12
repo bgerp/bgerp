@@ -758,18 +758,18 @@ class sales_Sales extends deals_DealMaster
         
         sales_transaction_Sale::clearCache();
         $entries = sales_transaction_Sale::getEntries($rec->id);
-        $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries, $rec->id);
-        $paidAmount = sales_transaction_Sale::getPaidAmount($entries, $rec);
-        
-        $result->set('agreedDownpayment', $downPayment);
-        $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
-        $result->set('amountPaid', $paidAmount);
-        $result->set('deliveryAmount', $deliveredAmount);
-        $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries, $rec->id));
-        
+
+        if(!Mode::is('onlySimpleDealInfo')){
+            $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries, $rec->id);
+            $paidAmount = sales_transaction_Sale::getPaidAmount($entries, $rec);
+            $result->set('agreedDownpayment', $downPayment);
+            $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
+            $result->set('amountPaid', $paidAmount);
+            $result->set('deliveryAmount', $deliveredAmount);
+            $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries, $rec->id));
+        }
+
         // Опитваме се да намерим очакваното плащане
-        $expectedPayment = null;
-        
         // Ако доставеното > платено това е разликата
         if ($deliveredAmount > $paidAmount) {
             $expectedPayment = $deliveredAmount - $paidAmount;
@@ -883,7 +883,7 @@ class sales_Sales extends deals_DealMaster
         $shippedProducts = sales_transaction_Sale::getShippedProducts($entries);
 
         // Ако има експедирани артикули и е инсталиран пакета за партиди
-        if(core_Packs::isInstalled('batch') && countR($shippedProducts)){
+        if(core_Packs::isInstalled('batch') && countR($shippedProducts) && !Mode::is('onlySimpleDealInfo')){
             $threads = deals_Helper::getCombinedThreads($rec->threadId);
 
             // Извличане на движенията по ЕН и Продажби
