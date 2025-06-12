@@ -411,7 +411,7 @@ class sales_DeliveryData extends core_Manager
             if ($productRec->isPublic == 'no') {
 
                 // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
-                core_Debug::startTimer('GET_LOGISTIC_DATA');
+                core_Debug::startTimer('GET_JOB_DATA');
                 $closedJobQuery = planning_Jobs::getQuery();
                 $closedJobQuery->where("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
                 $closedJobQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
