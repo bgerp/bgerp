@@ -315,7 +315,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if ($maxTimeLimit > 300) {
                     core_App::setTimeLimit($maxTimeLimit);
                 }
-
+          //      bp($invQuery->count(),$invQuery->fetchAll());
                 while ($salesInvoice = $invQuery->fetch()) {
 
                     //Ако към проформата НЯМА изрично насочени плащания, НЕ Я ВКЛЮЧВАМЕ в справката
@@ -358,7 +358,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     if ($rec->unpaid == 'all') {
 
                         // масив от фактури в тази нишка //
-                        $invoicePayments = deals_Helper::getInvoicePayments($salesInvoice->threadId, $checkDate, true);
+                        $invoicePayments = deals_Helper::getInvoicePayments($salesInvoice->threadId, $checkDate, false,false);
 
                         $paydocs = $invoicePayments[$salesInvoice->containerId];
 
@@ -455,7 +455,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
                     // масив от фактури в тази нишка //
-                    $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate, true));
+                    $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate, false,false));
 
                     if (is_array($invoicePayments)) {
 
@@ -684,7 +684,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
 
                     // масив от фактури в тази нишка //
-                    $invoicePayments = (deals_Helper::getInvoicePayments($purchaseInvoices->threadId, $checkDate,true));
+                    $invoicePayments = (deals_Helper::getInvoicePayments($purchaseInvoices->threadId, $checkDate,false,false));
 
                     $paydocs = $invoicePayments[$purchaseInvoices->containerId];
 
@@ -788,7 +788,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
                     // масив от фактури в тази нишка //
-                    $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $checkDate, true));
+                    $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $checkDate, false,false));
 
                     if ((is_array($pInvoicePayments))) {
 
@@ -1300,22 +1300,22 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
             }
 
-            if ($dRec->type != 'invoice') {
-                foreach ((array)$dRec->dcPay as $k => $val) {
-                    $row->paidAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($val->amount * $dcMark) . "</br>";
-                }
-            } else {
+         //   if ($dRec->type != 'invoice') {
+         //       foreach ((array)$dRec->dcPay as $k => $val) {
+                  //  $row->paidAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($val->amount * $dcMark) . "</br>";
+          //      }
+        //   } else {
                 $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
-            }
+      //      }
 
 
-            if ($dRec->type != 'invoice') {
-                foreach ((array)$dRec->dcPay as $k => $val) {
-                    $row->paidDates .= "<span class= 'small'>" . $Date->toVerbal($val->payDate) . '</span>' . "</br>";
-                }
-            } else {
+//            if ($dRec->type != 'invoice') {
+//                foreach ((array)$dRec->dcPay as $k => $val) {
+//                    $row->paidDates .= "<span class= 'small'>" . $Date->toVerbal($val->payDate) . '</span>' . "</br>";
+//                }
+//            } else {
                 $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
-            }
+//            }
 
         }
 
@@ -1687,7 +1687,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $fDocRec = $FirstDoc->fetch();                                              // Rec-a на договора
 
                 // масив от фактури в тази нишка към избраната дата
-                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate, true));
+                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate, false,false));
 
                 if (is_array($invoicePayments) && !empty($invoicePayments)) {
 
