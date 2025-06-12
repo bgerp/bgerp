@@ -299,9 +299,9 @@ class sales_DeliveryData extends core_Manager
                 $Document = doc_Containers::getDocument($rec->containerId);
 
                 $row->address = "{$row->countryId}, {$row->pCode} {$row->place}";
-                $row->link = "<span class='state-{$rec->state} document-handler'>{$Document->getLink(0)} <small class='nowrap'>{$row->address}</small></span>";
+                $row->link = "<span class='state-{$rec->state} document-handler'>{$Document->getLink(0)} <small>{$row->address}</small></span>";
 
-                $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;'>[#link#]</div>");
+                $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;' class='nowrap'>[#link#]</div>");
                 $link->placeObject($row);
                 $links .= $link->getContent();
             } catch(core_exception_Expect $e){
