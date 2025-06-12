@@ -2,7 +2,7 @@
 
 
 /**
- * Модел за продуктови рейтинги
+ * Помощен модел за данните за доставка на договора
  *
  *
  * @category  bgerp
@@ -155,6 +155,7 @@ class sales_DeliveryData extends core_Manager
         foreach ($fullRecs as $rec){
             $Class = cls::get($rec->_classId);
 
+            // Изчисляване на логистичната информация
             Mode::push('calcOnlyDeliveryPart', true);
             core_Debug::startTimer('GET_LOGISTIC_DATA');
             $logisticData = $Class->getLogisticData($rec);
@@ -164,6 +165,7 @@ class sales_DeliveryData extends core_Manager
 
             $newRec = new stdClass();
 
+            // Изчисляване на готовността за експедиция
             if($Class instanceof sales_Sales){
                 core_Debug::startTimer('GET_READY_SALE_PERCENTAGE');
                 $newRec->readiness = self::calcSaleReadiness($rec);
@@ -194,10 +196,16 @@ class sales_DeliveryData extends core_Manager
         core_Debug::log("GET GET_READY_EXP_PERCENTAGE " . round(core_Debug::$timers["GET_READY_EXP_PERCENTAGE"]->workingTime, 6));
         core_Debug::log("GET GET_DEAL_DATA " . round(core_Debug::$timers["GET_DEAL_DATA"]->workingTime, 6));
 
+        core_Debug::log("GET GET_JOB_DATA " . round(core_Debug::$timers["GET_JOB_DATA"]->workingTime, 6));
+        core_Debug::log("GET GET_SALE_DETAIL_DATA " . round(core_Debug::$timers["GET_SALE_DETAIL_DATA"]->workingTime, 6));
+        core_Debug::log("GET GET_SALE_ENTRIES " . round(core_Debug::$timers["GET_SALE_ENTRIES"]->workingTime, 6));
+
+        // Добавят се новите записи
         if(countR($sync['insert'])){
             $this->saveArray($sync['insert']);
         }
 
+        // Обновяват се старите записи
         if(countR($sync['update'])){
             $this->saveArray($sync['update'], 'id,countryId,place,pCode,address,readiness');
         }
@@ -217,7 +225,6 @@ class sales_DeliveryData extends core_Manager
         $data->query->orderBy('containerId', 'DESC');
 
         if ($rec = $data->listFilter->rec) {
-
             if (!empty($rec->documentId)) {
 
                 // Търсене и на последващите документи
@@ -233,9 +240,6 @@ class sales_DeliveryData extends core_Manager
             }
         }
     }
-
-
-
 
 
     /**
@@ -262,17 +266,30 @@ class sales_DeliveryData extends core_Manager
         $res = array();
         $thisLocationRec = self::$cacheRecs['recs'][$containerId];
         foreach (self::$cacheRecs['recs'] as $locationRec){
-            if ($containerId == $locationRec->containerId) continue;
 
+            // Ако е за същата локация или няма готовност - няма да се гледат
+            if ($containerId == $locationRec->containerId) continue;
+            if(!isset($locationRec->readiness)) continue;
+
+            // Остават тези, чиято готовност е до +/- 20% от тази на договора
+            $minReadiness = max(0, $thisLocationRec->readiness - 0.2);
+            $maxReadiness = min(1, $thisLocationRec->readiness + 0.2);
+            if($locationRec->readiness < $minReadiness || $locationRec->readiness > $maxReadiness) continue;
+
+            $isSimilar = false;
             if ($thisLocationRec->countryId == self::$cacheRecs['bgCountryId']) {
                 if ($locationRec->place === $thisLocationRec->place) {
-                    $res[$locationRec->id] = $locationRec->id;
+                    $isSimilar = true;
                 }
             } else {
                 // Иначе проверяваме дали countryId съвпада
                 if ($locationRec->countryId === $thisLocationRec->countryId) {
-                    $res[$locationRec->id] = $locationRec->id;
+                    $isSimilar = true;
                 }
+            }
+
+            if($isSimilar){
+                $res[$locationRec->id] = (object)array('locationId' => $locationRec->id, 'readiness' => $locationRec->readiness, 'locationName' => $locationRec->locationName);
             }
         }
 
@@ -293,14 +310,14 @@ class sales_DeliveryData extends core_Manager
         $links = '';
         $query = self::getQuery();
         $query->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        $query->in('id', $similarLocations);
+        $query->in('id', array_keys($similarLocations));
         while($rec = $query->fetch()){
             try{
                 $row = self::recToVerbal($rec);
                 $Document = doc_Containers::getDocument($rec->containerId);
 
                 $row->address = "{$row->countryId}, {$row->pCode} {$row->place}";
-                $row->link = "<span class='state-{$rec->state} document-handler'>{$Document->getLink(0)} <small>{$row->address}</small></span>";
+                $row->link = "<span class='state-{$rec->state} document-handler'>{$Document->getLink(0)} <small>{$row->address}</small></span> <small>{$row->readiness}</small>";
 
                 $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;' class='nowrap'>[#link#]</div>");
                 $link->placeObject($row);
@@ -334,16 +351,10 @@ class sales_DeliveryData extends core_Manager
     {
 
         // На не чакащите и не активни не се изчислява готовността
-        if ($saleRec->state != 'pending' && $saleRec->state != 'active') {
-
-            return;
-        }
+        if ($saleRec->state != 'pending' && $saleRec->state != 'active') return;
 
         // На бързите продажби също не се изчислява
-        if (strpos($saleRec->contoActions, 'ship') !== false) {
-
-            return;
-        }
+        if (strpos($saleRec->contoActions, 'ship') !== false) return;
 
         // Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
         $Sales = sales_Sales::getSingleton();
@@ -382,10 +393,28 @@ class sales_DeliveryData extends core_Manager
         } else {
             $aJobQuery->where("1=2");
         }
-        $activeJobArr = array();
+        $activeJobArr = $closedJobArr = array();
         while($aRec = $aJobQuery->fetch()) {
             $activeJobArr[$aRec->productId] = $aRec->id;
         }
+
+        core_Debug::startTimer('GET_JOB_DATA');
+        $cJobQuery = planning_Jobs::getQuery();
+        $cJobQuery->where("#state = 'closed' AND #saleId = {$saleRec->id}");
+        $cJobQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+        $cJobQuery->XPR('totalQuantityProduced', 'double', 'SUM(COALESCE(#quantityProduced, 0))');
+        $cJobQuery->XPR('totalCount', 'double', 'COUNT(#id)');
+        $cJobQuery->show('productId,totalQuantity,totalQuantityProduced,totalCount');
+        $cJobQuery->groupBy('productId');
+        if(countR($notPublicIds)){
+            $cJobQuery->in('productId', array_keys($notPublicIds));
+        } else {
+            $cJobQuery->where("1=2");
+        }
+        while($cRec = $cJobQuery->fetch()) {
+            $closedJobArr[$cRec->productId] = $cRec;
+        }
+        core_Debug::stopTimer('GET_JOB_DATA');
 
         // За всеки договорен артикул
         foreach ($agreedProducts as $pId => $pRec) {
@@ -407,17 +436,11 @@ class sales_DeliveryData extends core_Manager
             if ($productRec->isPublic == 'no') {
 
                 // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
-                $closedJobQuery = planning_Jobs::getQuery();
-                $closedJobQuery->where("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
-                $closedJobQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-                $closedJobQuery->XPR('totalQuantityProduced', 'double', 'SUM(COALESCE(#quantityProduced, 0))');
-                $closedJobQuery->show('totalQuantity,totalQuantityProduced');
-                $closedJobCount = $closedJobQuery->count();
-                $closedJobRec = $closedJobQuery->fetch();
+                $closedJobRec = $closedJobArr[$pId];
                 $activeJobId = $activeJobArr[$pId];
 
                 // Ако има приключени задания и няма други активни, се приема че е готово
-                if ($closedJobCount && !$activeJobId) {
+                if ($closedJobRec->totalCount && !$activeJobId) {
 
                     $q = $closedJobRec->totalQuantity;
                     $amount = $q * $price;
@@ -535,5 +558,18 @@ class sales_DeliveryData extends core_Manager
 
         // Връщане на изчислената готовност или NULL ако не може да се изчисли
         return $readiness;
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        if (haveRole('debug')) {
+            $cronRec = core_Cron::getRecForSystemId('CacheSalesDeliveryData');
+            $url = array('core_Cron', 'ProcessRun', str::addHash($cronRec->id), 'forced' => 'yes');
+            $data->toolbar->addBtn('Обновяване', $url, 'title=Обновяване на модела,ef_icon=img/16/arrow_refresh.png,target=cronjob');
+        }
     }
 }

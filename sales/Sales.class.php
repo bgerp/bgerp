@@ -721,11 +721,13 @@ class sales_Sales extends deals_DealMaster
         $detailId = sales_SalesDetails::getClassId();
         
         // Извличаме продуктите на продажбата
+        core_Debug::startTimer('GET_SALE_DETAIL_DATA');
         $dQuery = sales_SalesDetails::getQuery();
         $dQuery->where("#saleId = {$rec->id}");
         $dQuery->orderBy('id', 'ASC');
         $detailRecs = $dQuery->fetchAll();
-        
+        core_Debug::stopTimer('GET_SALE_DETAIL_DATA');
+
         $downPayment = null;
         if (cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)) {
             // Колко е очакваното авансово плащане
@@ -757,7 +759,9 @@ class sales_Sales extends deals_DealMaster
         $result->setIfNot('priceListId', $rec->priceListId);
         
         sales_transaction_Sale::clearCache();
+        core_Debug::startTimer('GET_SALE_ENTRIES');
         $entries = sales_transaction_Sale::getEntries($rec->id);
+        core_Debug::stopTimer('GET_SALE_ENTRIES');
 
         if(!Mode::is('onlySimpleDealInfo')){
             $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries, $rec->id);
@@ -834,7 +838,7 @@ class sales_Sales extends deals_DealMaster
                 }
             }
 
-            if (core_Packs::isInstalled('batch')) {
+            if (core_Packs::isInstalled('batch') && !Mode::is('onlySimpleDealInfo')) {
                 $bQuery = batch_BatchesInDocuments::getQuery();
                 $bQuery->where("#detailClassId = {$detailId}");
                 $bQuery->where("#detailRecId = {$dRec->id}");
@@ -844,12 +848,14 @@ class sales_Sales extends deals_DealMaster
                     $p->batches[$bRec->batch] = $bRec->quantity;
                 }
             }
-            
-            if ($tRec = sales_TransportValues::get(sales_Sales::getClassId(), $rec->id, $dRec->id)) {
-                if ($tRec->fee > 0) {
-                    $p->fee = $tRec->fee;
-                    $p->deliveryTimeFromFee = $tRec->deliveryTime;
-                    $p->syncFee = true;
+
+            if(!Mode::is('onlySimpleDealInfo')){
+                if ($tRec = sales_TransportValues::get(sales_Sales::getClassId(), $rec->id, $dRec->id)) {
+                    if ($tRec->fee > 0) {
+                        $p->fee = $tRec->fee;
+                        $p->deliveryTimeFromFee = $tRec->deliveryTime;
+                        $p->syncFee = true;
+                    }
                 }
             }
             
