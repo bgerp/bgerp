@@ -2658,12 +2658,16 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         if(!array_key_exists($ownCountryId, self::$logisticDataCache['countryId'])) {
-            self::$logisticDataCache['countryId'][$ownCountryId] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+            if($ownCountryId) {
+                self::$logisticDataCache['countryId'][$ownCountryId] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+            }
         }
         $ownCountry = self::$logisticDataCache['countryId'][$ownCountryId];
 
         if(!array_key_exists($contragentCountryId, self::$logisticDataCache['countryId'])) {
-            self::$logisticDataCache['countryId'][$contragentCountryId] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
+            if($contragentCountryId) {
+                self::$logisticDataCache['countryId'][$contragentCountryId] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
+            }
         }
         $contragentCountry = self::$logisticDataCache['countryId'][$contragentCountryId];
         $ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
