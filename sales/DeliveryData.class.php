@@ -348,7 +348,9 @@ class sales_DeliveryData extends core_Manager
         // Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
         $Sales = sales_Sales::getSingleton();
         core_Debug::startTimer('GET_DEAL_DATA');
+        Mode::push('onlySimpleDealInfo', true);
         $dealInfo = $Sales->getAggregateDealInfo($saleRec);
+        Mode::pop('onlySimpleDealInfo');
         core_Debug::stopTimer('GET_DEAL_DATA');
 
         $agreedProducts = $dealInfo->get('products');

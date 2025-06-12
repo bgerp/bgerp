@@ -133,6 +133,8 @@ abstract class deals_DealBase extends core_Master
         // Извличаме dealInfo от самата сделка
         $this->pushDealInfo($dealRec->id, $aggregateInfo);
 
+        if(Mode::is('onlySimpleDealInfo')) return $aggregateInfo;
+
         if (!empty($dealRec->closedDocuments)) {
             $combinedThreads = deals_Helper::getCombinedThreads($dealRec->threadId);
             unset($combinedThreads[$dealRec->threadId]);
