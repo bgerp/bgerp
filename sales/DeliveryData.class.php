@@ -55,7 +55,7 @@ class sales_DeliveryData extends core_Manager
     /**
      * Полета, които се виждат
      */
-    public $listFields = 'id,containerId,countryId,place,pCode,address';
+    public $listFields = 'id,containerId,countryId,place,pCode,address,readiness';
 
 
     /**
@@ -73,7 +73,8 @@ class sales_DeliveryData extends core_Manager
         $this->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,default=Bg)', 'caption=Държава,remember,class=contactData,silent,export=Csv');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,export=Csv');
         $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData,hint=Населено място: град или село и община,export=Csv');
-        $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData,export=Csv');
+        $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
+        $this->FLD('readiness', 'percent', 'caption=Готовност,recently,class=pCode');
 
         $this->setDbUnique('containerId');
     }
@@ -159,16 +160,20 @@ class sales_DeliveryData extends core_Manager
             $logisticData = $Class->getLogisticData($rec);
             core_Debug::stopTimer('GET_LOGISTIC_DATA');
             Mode::pop('calcOnlyDeliveryPart');
-
-            if($Class instanceof sales_Sales){
-                //core_Debug::startTimer('GET_READY_PERCENTAGE');
-                //sales_reports_ShipmentReadiness::calcSaleReadiness($rec);
-                //core_Debug::stopTimer('GET_READY_PERCENTAGE');
-            }
-
             $countryIds[$logisticData['toCountry']] = $countries[$logisticData['toCountry']];
 
             $newRec = new stdClass();
+
+            if($Class instanceof sales_Sales){
+                core_Debug::startTimer('GET_READY_SALE_PERCENTAGE');
+                $newRec->readiness = sales_reports_ShipmentReadiness::calcSaleReadiness($rec);
+                core_Debug::stopTimer('GET_READY_SALE_PERCENTAGE');
+            } elseif($Class instanceof store_ShipmentOrders){
+                core_Debug::startTimer('GET_READY_EXP_PERCENTAGE');
+                $newRec->readiness = sales_reports_ShipmentReadiness::calcSoReadiness($rec);
+                core_Debug::stopTimer('GET_READY_EXP_PERCENTAGE');
+            }
+
             $newRec->countryId = $countryIds[$logisticData['toCountry']];
             $newRec->place = $logisticData['toPlace'];
             $newRec->pCode = $logisticData['toPCode'];
@@ -182,10 +187,11 @@ class sales_DeliveryData extends core_Manager
         // Синхронизиране на съществуващите записи с новите
         $eQuery = self::getQuery();
         $exRecs = $eQuery->fetchAll();
-        $sync = arr::syncArrays($toSave, $exRecs, 'containerId', 'countryId,place,pCode,address');
+        $sync = arr::syncArrays($toSave, $exRecs, 'containerId', 'countryId,place,pCode,address,readiness');
 
         core_Debug::log("GET GET_LOGISTIC_DATA " . round(core_Debug::$timers["GET_LOGISTIC_DATA"]->workingTime, 6));
-        core_Debug::log("GET GET_READY_PERCENTAGE " . round(core_Debug::$timers["GET_READY_PERCENTAGE"]->workingTime, 6));
+        core_Debug::log("GET GET_READY_SALE_PERCENTAGE " . round(core_Debug::$timers["GET_READY_SALE_PERCENTAGE"]->workingTime, 6));
+        core_Debug::log("GET GET_READY_EXP_PERCENTAGE " . round(core_Debug::$timers["GET_READY_EXP_PERCENTAGE"]->workingTime, 6));
 
         if(countR($sync['insert'])){
             $this->saveArray($sync['insert']);

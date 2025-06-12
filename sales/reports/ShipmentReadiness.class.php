@@ -847,7 +847,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      *
      * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
      */
-    private static function calcSoReadiness($soRec)
+    public static function calcSoReadiness($soRec)
     {
         // На не чакащите не се изчислява готовност
         if ($soRec->state != 'pending') {
