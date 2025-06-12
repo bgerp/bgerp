@@ -194,6 +194,10 @@ class sales_DeliveryData extends core_Manager
         core_Debug::log("GET GET_READY_EXP_PERCENTAGE " . round(core_Debug::$timers["GET_READY_EXP_PERCENTAGE"]->workingTime, 6));
         core_Debug::log("GET GET_DEAL_DATA " . round(core_Debug::$timers["GET_DEAL_DATA"]->workingTime, 6));
 
+        core_Debug::log("GET GET_JOB_DATA " . round(core_Debug::$timers["GET_JOB_DATA"]->workingTime, 6));
+        core_Debug::log("GET GET_SALE_DETAIL_DATA " . round(core_Debug::$timers["GET_SALE_DETAIL_DATA"]->workingTime, 6));
+        core_Debug::log("GET GET_SALE_ENTRIES " . round(core_Debug::$timers["GET_SALE_ENTRIES"]->workingTime, 6));
+
         if(countR($sync['insert'])){
             $this->saveArray($sync['insert']);
         }
@@ -407,6 +411,7 @@ class sales_DeliveryData extends core_Manager
             if ($productRec->isPublic == 'no') {
 
                 // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
+                core_Debug::startTimer('GET_LOGISTIC_DATA');
                 $closedJobQuery = planning_Jobs::getQuery();
                 $closedJobQuery->where("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
                 $closedJobQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
@@ -415,6 +420,7 @@ class sales_DeliveryData extends core_Manager
                 $closedJobCount = $closedJobQuery->count();
                 $closedJobRec = $closedJobQuery->fetch();
                 $activeJobId = $activeJobArr[$pId];
+                core_Debug::stopTimer('GET_JOB_DATA');
 
                 // Ако има приключени задания и няма други активни, се приема че е готово
                 if ($closedJobCount && !$activeJobId) {
