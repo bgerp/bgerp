@@ -355,9 +355,7 @@ class sales_DeliveryData extends core_Manager
 
         $agreedProducts = $dealInfo->get('products');
         $shippedProducts = $dealInfo->get('shippedProducts');
-        if(countR($shippedProducts)){
-            bp($dealInfo);
-        }
+
         $totalAmount = 0;
         $readyAmount = null;
 
