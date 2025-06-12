@@ -256,7 +256,7 @@ class sales_DeliveryData extends core_Manager
             $dQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
             $dQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
             $dQuery->in('state', array('pending', 'active'));
-            $dQuery->where("#docClass =" . sales_Sales::getClassId());
+            $dQuery->where("#readiness IS NOT NULL AND #docClass =" . sales_Sales::getClassId());
 
             while($d1 = $dQuery->fetch()){
                 self::$cacheRecs['recs'][$d1->containerId] = $d1;
@@ -269,7 +269,6 @@ class sales_DeliveryData extends core_Manager
 
             // Ако е за същата локация или няма готовност - няма да се гледат
             if ($containerId == $locationRec->containerId) continue;
-            if(!isset($locationRec->readiness)) continue;
 
             // Остават тези, чиято готовност е до +/- 20% от тази на договора
             $minReadiness = max(0, $thisLocationRec->readiness - 0.2);
