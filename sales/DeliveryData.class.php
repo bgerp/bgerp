@@ -266,17 +266,29 @@ class sales_DeliveryData extends core_Manager
         $res = array();
         $thisLocationRec = self::$cacheRecs['recs'][$containerId];
         foreach (self::$cacheRecs['recs'] as $locationRec){
-            if ($containerId == $locationRec->containerId) continue;
 
+            // Ако е за същата локация или няма готовност - няма да се гледат
+            if ($containerId == $locationRec->containerId) continue;
+            if(!isset($locationRec->readiness)) continue;
+
+            $minReadiness = max(0, $thisLocationRec->readiness - 0.2);
+            $maxReadiness = min(1, $thisLocationRec->readiness + 0.2);
+            if($locationRec->readiness < $minReadiness || $locationRec->readiness > $maxReadiness) continue;
+
+            $isSimilar = false;
             if ($thisLocationRec->countryId == self::$cacheRecs['bgCountryId']) {
                 if ($locationRec->place === $thisLocationRec->place) {
-                    $res[$locationRec->id] = $locationRec->id;
+                    $isSimilar = true;
                 }
             } else {
                 // Иначе проверяваме дали countryId съвпада
                 if ($locationRec->countryId === $thisLocationRec->countryId) {
-                    $res[$locationRec->id] = $locationRec->id;
+                    $isSimilar = true;
                 }
+            }
+
+            if($isSimilar){
+                $res[$locationRec->id] = (object)array('locationId' => $locationRec->id, 'readiness' => $locationRec->readiness, 'locationName' => $locationRec->locationName);
             }
         }
 
@@ -297,14 +309,14 @@ class sales_DeliveryData extends core_Manager
         $links = '';
         $query = self::getQuery();
         $query->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
-        $query->in('id', $similarLocations);
+        $query->in('id', array_keys($similarLocations));
         while($rec = $query->fetch()){
             try{
                 $row = self::recToVerbal($rec);
                 $Document = doc_Containers::getDocument($rec->containerId);
 
                 $row->address = "{$row->countryId}, {$row->pCode} {$row->place}";
-                $row->link = "<span class='state-{$rec->state} document-handler'>{$Document->getLink(0)} <small>{$row->address}</small></span>";
+                $row->link = "<span class='state-{$rec->state} document-handler'>{$Document->getLink(0)} <small>{$row->address}</small></span> <small>{$row->readiness}</small>";
 
                 $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;' class='nowrap'>[#link#]</div>");
                 $link->placeObject($row);
