@@ -158,12 +158,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
-        if (!$form->isSubmitted()) {
+        if (!$form->isSubmitted()) return;
 
-            return;
-        }
         $rec = &$form->rec;
-
         if ($rec->ignore == 'yes' && empty($rec->countries)) {
             $form->setError('countries,ignore', 'Трябва да има избрани държави, за изключване');
         }
@@ -224,6 +221,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 $documentRow = $Document->getInstance()->recToVerbal($documentRec);
                 $amountDealVerbal = currency_Currencies::decorate($documentRow->amountDeal, $documentRec->currencyId);
                 $amountPaidVerbal = currency_Currencies::decorate($documentRow->amountPaid, $documentRec->currencyId);
+                if($documentRec->amountPaid > 0){
+                    $amountPaidVerbal = "<span style='color:green;'>{$amountPaidVerbal}</span>";
+                }
                 $str = tr("|* <span class='nowrap' style='border: 1px solid #ccc; border-radius:3px; padding: 0 2px; font-size: 0.75em; color: #333; box-shadow: inset 0 0 2px #fff; position: relative; top: -2px;background: rgba(240,250,250, 0.3)'>|Пор|*: {$amountDealVerbal} / |Плат|*: {$amountPaidVerbal}</span>");
                 $row->document .= $str;
             }

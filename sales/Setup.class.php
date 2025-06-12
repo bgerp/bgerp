@@ -551,8 +551,8 @@ class sales_Setup extends core_ProtoSetup
             'description' => 'Кеширане на данните за доставка на Продажба и ЕН',
             'controller' => 'sales_DeliveryData',
             'action' => 'CacheDeliveryData',
-            'offset' => 190,
-            'period' => 1440,
+            'offset' => 10,
+            'period' => 30,
             'timeLimit' => 500
         ),
 

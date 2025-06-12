@@ -2,7 +2,7 @@
 
 
 /**
- * Модел за продуктови рейтинги
+ * Помощен модел за данните за доставка на договора
  *
  *
  * @category  bgerp
@@ -155,6 +155,7 @@ class sales_DeliveryData extends core_Manager
         foreach ($fullRecs as $rec){
             $Class = cls::get($rec->_classId);
 
+            // Изчисляване на логистичната информация
             Mode::push('calcOnlyDeliveryPart', true);
             core_Debug::startTimer('GET_LOGISTIC_DATA');
             $logisticData = $Class->getLogisticData($rec);
@@ -164,6 +165,7 @@ class sales_DeliveryData extends core_Manager
 
             $newRec = new stdClass();
 
+            // Изчисляване на готовността за експедиция
             if($Class instanceof sales_Sales){
                 core_Debug::startTimer('GET_READY_SALE_PERCENTAGE');
                 $newRec->readiness = self::calcSaleReadiness($rec);
@@ -198,10 +200,12 @@ class sales_DeliveryData extends core_Manager
         core_Debug::log("GET GET_SALE_DETAIL_DATA " . round(core_Debug::$timers["GET_SALE_DETAIL_DATA"]->workingTime, 6));
         core_Debug::log("GET GET_SALE_ENTRIES " . round(core_Debug::$timers["GET_SALE_ENTRIES"]->workingTime, 6));
 
+        // Добавят се новите записи
         if(countR($sync['insert'])){
             $this->saveArray($sync['insert']);
         }
 
+        // Обновяват се старите записи
         if(countR($sync['update'])){
             $this->saveArray($sync['update'], 'id,countryId,place,pCode,address,readiness');
         }
@@ -221,7 +225,6 @@ class sales_DeliveryData extends core_Manager
         $data->query->orderBy('containerId', 'DESC');
 
         if ($rec = $data->listFilter->rec) {
-
             if (!empty($rec->documentId)) {
 
                 // Търсене и на последващите документи
@@ -237,9 +240,6 @@ class sales_DeliveryData extends core_Manager
             }
         }
     }
-
-
-
 
 
     /**
@@ -271,6 +271,7 @@ class sales_DeliveryData extends core_Manager
             if ($containerId == $locationRec->containerId) continue;
             if(!isset($locationRec->readiness)) continue;
 
+            // Остават тези, чиято готовност е до +/- 20% от тази на договора
             $minReadiness = max(0, $thisLocationRec->readiness - 0.2);
             $maxReadiness = min(1, $thisLocationRec->readiness + 0.2);
             if($locationRec->readiness < $minReadiness || $locationRec->readiness > $maxReadiness) continue;
@@ -350,16 +351,10 @@ class sales_DeliveryData extends core_Manager
     {
 
         // На не чакащите и не активни не се изчислява готовността
-        if ($saleRec->state != 'pending' && $saleRec->state != 'active') {
-
-            return;
-        }
+        if ($saleRec->state != 'pending' && $saleRec->state != 'active') return;
 
         // На бързите продажби също не се изчислява
-        if (strpos($saleRec->contoActions, 'ship') !== false) {
-
-            return;
-        }
+        if (strpos($saleRec->contoActions, 'ship') !== false) return;
 
         // Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
         $Sales = sales_Sales::getSingleton();
@@ -563,5 +558,18 @@ class sales_DeliveryData extends core_Manager
 
         // Връщане на изчислената готовност или NULL ако не може да се изчисли
         return $readiness;
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        if (haveRole('debug')) {
+            $cronRec = core_Cron::getRecForSystemId('CacheSalesDeliveryData');
+            $url = array('core_Cron', 'ProcessRun', str::addHash($cronRec->id), 'forced' => 'yes');
+            $data->toolbar->addBtn('Обновяване', $url, 'title=Обновяване на модела,ef_icon=img/16/arrow_refresh.png,target=cronjob');
+        }
     }
 }
