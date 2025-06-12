@@ -804,6 +804,7 @@ class blogm_Articles extends core_Master
         
         // Определяне на титлата
         // Ако е посочено заглавие по-което се търси
+        $showRoot = blogm_Setup::get('SHOW_ALL_ARTICLE_CAPTION');
         if (isset($data->q)) {
             $domainId = cms_Domains::getPublicDomain('id');
             $clsId = core_Classes::getId('blogm_Articles');
@@ -823,15 +824,17 @@ class blogm_Articles extends core_Master
                 error('404 Липсваща категория', array("Липсва категория:  {$data->category}"));
             }
 
-            $str = $blogType ? 'Статии в' : 'Новини в';
-            $data->title = tr($str) .  ' "<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
+            if($showRoot == 'yes'){
+                $str = $blogType ? 'Статии в' : 'Новини в';
+                $data->title = tr($str) .  ' "<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
+            }
+
             $data->descr = blogm_Categories::getVerbal($catRec, 'description');
             if (!countR($data->rows)) {
                 $str = (blogm_Setup::get('TYPE') == 'blog') ? 'Няма статии в тази категория' : 'Няма новини в тази категория';
                 $data->descr .= "<p><b style='color:#666;'>" . tr($str) . '</b></p>';
             }
         } else {
-            $showRoot = blogm_Setup::get('SHOW_ALL_ARTICLE_CAPTION');
             if($showRoot == 'yes'){
                 $data->title = tr(blogm_Setup::get('ALL_ARTICLES_IN_PAGE_TITLE'));
             }
