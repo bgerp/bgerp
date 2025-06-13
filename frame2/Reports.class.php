@@ -713,9 +713,6 @@ class frame2_Reports extends embed_Manager
 
                 $rec->lastRefreshed = dt::now();
                 $rec->lastRefreshDuration = round(core_Debug::$timers["PREPARE_DATA_TIMER_{$rec->id}"]->workingTime, 6);
-                if($rec->lastRefreshDuration > 120){
-                    wp('БАВНА СПРАВКА', $rec);
-                }
                 $me->save_($rec, 'data,lastRefreshed,lastRefreshDuration');
 
                 // Ако е оказано ще се проверява за изпращане на нотификация след всяко обновяване, дори и да няма промяна
