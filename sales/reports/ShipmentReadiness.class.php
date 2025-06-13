@@ -214,7 +214,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 $tooltipUrl = toUrl(array('sales_DeliveryData', 'showDeliveryInfo', 'containerId' => $dRec->containerId, 'replaceField' => "sh{$dRec->containerId}"), 'local');
                 $arrowImg = ht::createElement('img', array('height' => 12, 'width' => 12, 'src' => sbf('img/32/dialog_warning.png', '')));
                 $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'Има други поръчки за същата / близка дестинация! (клик за подробности)'), $arrowImg, true);
-                $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='sh{$dRec->containerId}'></span>{$arrow}</span>";
+                $arrow = "<span class='additionalInfo-holder shipmentReadiness'><span class='additionalInfo' id='sh{$dRec->containerId}'></span>{$arrow}</span>";
                 $row->document->append($arrow);
             }
 
