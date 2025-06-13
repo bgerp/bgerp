@@ -986,7 +986,9 @@ class frame2_Reports extends embed_Manager
         
         if (isset($rec->lastRefreshed)) {
             if(!Mode::is('text', 'xhtml') && !empty($rec->lastRefreshDuration)){
-                $row->lastRefreshed = ht::createHint($row->lastRefreshed, "Време за изпълнение|*: {$row->lastRefreshDuration}", 'notice', false);
+                if(haveRole('debug')){
+                    $row->lastRefreshed = ht::createHint($row->lastRefreshed, "Време за изпълнение|*: {$row->lastRefreshDuration} |сек|*", 'img/16/bug.png', false);
+                }
             }
 
             $resArr['lastRefreshed'] = array('name' => $lastRefreshedHeaderName, 'val' => $row->lastRefreshed);
