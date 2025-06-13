@@ -127,12 +127,13 @@ abstract class deals_DealBase extends core_Master
     {
         $dealRec = $this->fetchRec($id);
 
-        $dealDocuments = $this->getDescendants($dealRec->id);
-        $aggregateInfo = new bgerp_iface_DealAggregator;
-
         // Извличаме dealInfo от самата сделка
+        $aggregateInfo = new bgerp_iface_DealAggregator;
         $this->pushDealInfo($dealRec->id, $aggregateInfo);
 
+        if(Mode::is('onlySimpleDealInfo')) return $aggregateInfo;
+
+        $dealDocuments = $this->getDescendants($dealRec->id);
         if (!empty($dealRec->closedDocuments)) {
             $combinedThreads = deals_Helper::getCombinedThreads($dealRec->threadId);
             unset($combinedThreads[$dealRec->threadId]);

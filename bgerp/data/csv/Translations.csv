@@ -3269,3 +3269,9 @@ en,Основни,Main
 en,най-често поради използването на акаунта на две различни устройства едновременно,most often due to using the account on two different devices at the same time
 en,"За да се отблокирате, моля последвайте този линк","To unblock, please follow this link"
 en,Линкът ще изтече на,The link will expire on
+en,"Размерът на файла надвишава ограничението, зададено в ""php.ini""","The file size exceeds the limit specified in ""php.ini"""
+en,"Размерът на файла надвишава стойността на ""MAX_FILE_SIZE"" от формуляра","The file size exceeds the ""MAX_FILE_SIZE"" directive specified in the form"
+en,Файлът беше качен само частично,The file was only partially uploaded
+en,Не е качен файл,No file was uploaded
+en,Временната директория не може да бъде намерена,The temporary folder cannot be found
+en,Грешка при записване на файла на диска,Error writing file to disk
