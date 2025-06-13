@@ -419,6 +419,8 @@ class sens2_Controllers extends core_Master
         
         $ports = $Driver->getInputPorts($rec->config);
         
+        $offset = (int)$rec->config->offset;
+        
         $nowMinutes = round(time() / 60);
         
         $inputs = $force;
@@ -427,6 +429,7 @@ class sens2_Controllers extends core_Master
         
         if (is_array($ports)) {
             foreach ($ports as $port => $params) {
+                $params->readPeriod += $offset;
                 $updateMinutes = abs(round($params->readPeriod / 60));
                 if ($updateMinutes && ($nowMinutes % $updateMinutes) == 0) {
                     $inputs[$port] = $port;
