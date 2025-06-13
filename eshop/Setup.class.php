@@ -170,7 +170,7 @@ defIfNot('ESHOP_SHOW_EXPANDED_GROUPS_IN_NAV', 'no');
 
 
 /**
- * В рамките на какво време да се показва "Очаква се доставка" в онлайн магазина->Избор
+ * "Очаква се доставка" в онлайн магазина се показва само ако очакваното кол-во е в рамките на->Избор
  */
 defIfNot('ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME', 60 * 60 * 24 * 3);
 
@@ -281,7 +281,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_SHOW_ROUTES_IN_NEXT_DAYS' => array('int(min=0)', 'caption=Показване на маршрутите за доставка за следващите->Дни'),
         'ESHOP_TOMORROW_DELIVERY_DEADLINE' => array('hour', 'caption=До кога да се приемат заявки за доставка по маршрути за следващия работен ден->Час'),
         'ESHOP_SHOW_EXPANDED_GROUPS_IN_NAV' => array('enum(yes=Да,no=Не)', 'caption=Показване винаги разпънати групи в навигацията->Избор'),
-        'ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME' => array('time', 'caption=В рамките на какво време да се показва "Очаква се доставка" в онлайн магазина->Избор'),
+        'ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME' => array('time', 'caption="Очаква се доставка" в онлайн магазина се показва само ако очакваното кол-во е в рамките на->Избор'),
     );
     
     
