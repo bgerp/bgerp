@@ -420,7 +420,7 @@ class eshop_CartDetails extends core_Detail
             $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
 
             if (is_null($maxQuantity) && $maxQuantity <= 0) {
-                // Ако няма наличност, но се очаква доставка към подададената датаЕШ
+                // Ако няма наличност, но се очаква доставка към подададената дата
                 $deliveryTime = !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME');
                 $horizon = dt::addSecs($deliveryTime, null,false);
 

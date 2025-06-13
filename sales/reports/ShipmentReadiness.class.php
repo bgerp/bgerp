@@ -97,8 +97,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,after=title,single=none');
         $fieldset->FLD('dealerType', 'enum(,dealer=Търговец,inCharge=Отговорник на папка)', 'caption=Потребителят е,after=dealers,single=none,placeholder=Търговец или отговорник');
         $fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealerType,single=none');
-        $fieldset->FLD('ignore', 'enum(,yes=Да)', 'caption=Без избраните,after=countries,single=none');
-        $fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=ignore');
+        $fieldset->FLD('ignore', 'enum(,yes=Без избраните държави)', 'caption=Игнориране,after=countries,single=none');
+        $fieldset->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка,placeholder=Всички условия,after=ignore');
+        $fieldset->FLD('termsIgnore', 'enum(,yes=Без избраните условия)', 'caption=Игнориране,after=terms');
+        $fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=termsIgnore');
         $fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
         $fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Клиенти,execDate=Срок за изпълнение,dueDate=Дата на падеж)', 'caption=Подредба,after=horizon');
     }
@@ -208,7 +210,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $row->document = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->singleIcon}");
 
             // Показване на информация за доставките до същата локация
-            if(countR($sameLocationDocuments)){
+            if(countR($sameLocationDocuments) && $dRec->readiness != 0){
                 $tooltipUrl = toUrl(array('sales_DeliveryData', 'showDeliveryInfo', 'containerId' => $dRec->containerId, 'replaceField' => "sh{$dRec->containerId}"), 'local');
                 $arrowImg = ht::createElement('img', array('height' => 12, 'width' => 12, 'src' => sbf('img/32/dialog_warning.png', '')));
                 $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'Има други поръчки за същата / близка дестинация! (клик за подробности)'), $arrowImg, true);
@@ -336,6 +338,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         if (isset($rec->countries)) {
             $row->countries = core_Type::getByName('keylist(mvc=drdata_Countries,select=commonNameBg)')->toVerbal($rec->countries);
         }
+
+        if (isset($rec->terms)) {
+            $row->terms = core_Type::getByName('keylist(mvc=cond_DeliveryTerms,select=codeName)')->toVerbal($rec->terms);
+        }
     }
     
     
@@ -354,6 +360,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 							        <div class='small'>
                                         <!--ET_BEGIN dealers--><div>[#CAPTION_DEALERS#]: <b>[#dealers#]</b></div><!--ET_END dealers-->
                                         <!--ET_BEGIN countries--><div>[#COUNTRY_CAPTION#]: <b>[#countries#]</b></div><!--ET_END countries-->
+                                        <!--ET_BEGIN terms--><div>[#DELIVERY_CAPTION#]: <b>[#terms#]</b></div><!--ET_END terms-->
                                         <!--ET_BEGIN horizon--><div>|Падиращи до|*: <b>[#horizon#]</b><!--ET_END horizon-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
@@ -363,7 +370,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $fieldTpl->append('Потребители', 'CAPTION_DEALERS');
         }
         
-        foreach (array('dealers', 'countries', 'horizon') as $fld) {
+        foreach (array('dealers', 'countries', 'horizon', 'terms') as $fld) {
             if (!empty($data->row->{$fld})) {
                 $fieldTpl->append($data->row->{$fld}, $fld);
             }
@@ -378,7 +385,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $countryCaption = ($data->rec->ignore == 'yes') ? tr('Без държави') : tr('Държави');
             $fieldTpl->append($countryCaption, 'COUNTRY_CAPTION');
         }
-        
+
+        if (isset($data->rec->terms)) {
+            $deliveryCaption = ($data->rec->termsIgnore == 'yes') ? tr('Без условия на доставка') : tr('Условия на доставка');
+            $fieldTpl->append($deliveryCaption, 'DELIVERY_CAPTION');
+        }
+
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
@@ -416,13 +428,18 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $Sales = cls::get('sales_Sales');
         
         $dealers = keylist::toArray($rec->dealers);
+        $termArr = keylist::toArray($rec->terms);
         $countries = keylist::toArray($rec->countries);
         $cCount = countR($countries);
-        
+
         // Всички чакащи и активни продажби на избраните дилъри
         $sQuery = sales_Sales::getQuery();
         $sQuery->in("state", array('pending', 'active'));
         $sQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
+        if (countR($termArr)) {
+            $fnc = $rec->termsIgnore == 'yes' ? 'notIn' : 'in';
+            $sQuery->{$fnc}('deliveryTermId', $termArr);
+        }
         if (countR($dealers)) {
             $dealers = implode(',', $dealers);
             switch ($rec->dealerType) {
