@@ -332,7 +332,7 @@ class rack_plg_Shipments extends core_Plugin
             $fieldset->FLD('transUnitId', 'varchar', 'tdClass=centered');
             $fieldset->FLD('code', 'varchar','tdClass=small');
             $table = cls::get('core_TableView', array('mvc' => $fieldset));
-            $fields = arr::make('code=Код,productId=Артикул,batch=Партида,quantity=Общо,positions=Позиции,transUnitId=ЛЕ');
+            $fields = arr::make('code=Код,productId=Артикул,batch=Партида,quantity=Общо,transUnitId=ЛЕ,positions=Позиции');
             $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'batch');
             $details = $table->get($data->rows, $fields);
             $singleFields = $mvc->selectFields();
