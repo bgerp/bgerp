@@ -450,14 +450,14 @@ class sens2_Controllers extends core_Master
             }
             
             $cached = array();
- 
-            // Проверка дали стойностите не са налични в кеша
-            foreach($inputs as $port) {
-                $key = 'SenZ' . $id . '_' . $port;
-                $success = null;
-                if (function_exists('apcu_fetch')) {
+            
+            if (function_exists('apcu_fetch')) {
+                // Проверка дали стойностите не са налични в кеша
+                foreach ($inputs as $port) {
+                    $key = 'SenZ' . $id . '_' . $port;
+                    $success = null;
                     $res = @apcu_fetch($key, $success);
-                    if($success) {
+                    if ($success) {
                         $cached[$port] = $res;
                         //log_System::add(get_called_class(), "Извлечен индикатор: $key => $res");
                         unset($inputs[$port]);
@@ -473,13 +473,15 @@ class sens2_Controllers extends core_Master
                 }
             }
 
-            // Дали имаме нови стойности, които трябва да кешираме? Ако да - кешираме ги
-            foreach($inputs as $port) {
-                if(!isset($cached[$port]) && isset($values[$port]) && ($values[$port] != 0)) {
-                    $key = 'SenZ' . $id . '_' . $port;
-                    $uomPart = $port . '_uom';
-                    $uom = $rec->config->{$uomPart};
-                    @apcu_store($key, $values[$port], ($uom == 'ºC' || $uom == '%RH') ? 100 : 10);
+            if (function_exists('apcu_store')) {
+                // Дали имаме нови стойности, които трябва да кешираме? Ако да - кешираме ги
+                foreach($inputs as $port) {
+                    if(!isset($cached[$port]) && isset($values[$port]) && ($values[$port] != 0)) {
+                        $key = 'SenZ' . $id . '_' . $port;
+                        $uomPart = $port . '_uom';
+                        $uom = $rec->config->{$uomPart};
+                        @apcu_store($key, $values[$port], ($uom == 'ºC' || $uom == '%RH') ? 100 : 10);
+                    }
                 }
             }
 
