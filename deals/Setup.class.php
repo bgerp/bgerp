@@ -331,7 +331,9 @@ class deals_Setup extends core_ProtoSetup
                     Mode::pop('text');
                     $amountVerbal = str_replace('&nbsp;', ' ', $amountVerbal);
                     $contragentName = cls::get($dRec->contragentClassId)->getVerbal($dRec->contragentId, 'name');
-                    $msg = "|Просрочен документ|* #{$Class->getHandle($dRec->id)} |от|* {$contragentName} |за|* {$amountVerbal}";
+
+                    $preposition = in_array($className, array('cash_Pko', 'bank_IncomeDocuments')) ? tr('от') : tr('към');
+                    $msg = "|Просрочен документ|* #{$Class->getHandle($dRec->id)} {$preposition} {$contragentName} |за|* {$amountVerbal}";
                     if($i != '1'){
                         $msg .= " (|{$iVerbal} напомняне|*)";
                     }

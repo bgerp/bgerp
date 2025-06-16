@@ -1548,6 +1548,11 @@ table.listTable > tbody > tr {
 	top: 4px;
 	margin-top: -6px;
 }
+
+.planning.small .listTable td {
+	vertical-align: middle !important;
+}
+
 .narrow .portal .legend .addTask {
 	top:2px;
 }
@@ -4499,7 +4504,7 @@ fieldset.sharing-history {
 	color: #222;
 	min-width: 320px;
 	width: 100%;
-    font-size: 0.95em;
+    font-size: 0.9em;
 	th {
 		text-align: center;
 		padding: 7px 5px;
@@ -4756,9 +4761,15 @@ fieldset.sharing-history {
 	}
 }
 
-.eshop-product-navigation {
-	margin-bottom: 20px;
+.path {
 	font-size: 0.9em;
+	& a:hover {
+		text-decoration: underline;
+		color: #048 !important;
+	}
+	span {
+		color: #888;
+	}
 }
 
 table .eshop-btn {
@@ -5229,6 +5240,10 @@ table .eshop-btn {
 	&:hover {
 		-webkit-transform: scale(1.15);
 		transform: scale(1.15);
+		a {
+			background-size: 4px 50px;
+			color: #fff !important;
+		}
 	}
 	.productImage {
 		width: 100%;
@@ -5254,10 +5269,6 @@ table .eshop-btn {
 		-webkit-transition: all .2s;
 		transition: all .2s;
 		padding: 0 2px;
-		&:hover {
-			background-size: 4px 50px;
-			color: #fff !important;
-		}
 	}
 }
 .smallThumbs {
@@ -5270,7 +5281,7 @@ table .eshop-btn {
 		}
 	}
 	.productName {
-		font-size: 0.9em !important;
+		font-size: 0.9rem !important;
 	}
 }
 .narrow .results ul {
@@ -6939,7 +6950,9 @@ div.location.public {
 .eshop-product-labels > a {
 	font-weight:bold;
 }
-
+#addToFavouritesBtn a {
+	background-color: transparent !important;
+}
 .narrow .eshop-group-button-title {
 	  margin-top: 2px;
 }

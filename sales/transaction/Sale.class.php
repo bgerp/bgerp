@@ -316,25 +316,63 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         }
         
         $quantityAmount += $amountBase;
-        
-        $entries[] = array(
-            'amount' => $amountBase * $rec->currencyRate, // В основна валута
-            
-            'debit' => array(
-                '501', // Сметка "501. Каси"
-                array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
-                array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
-            ),
-            
-            'credit' => array(
-                '411', // Сметка "411. Вземания от клиенти"
-                array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
-                array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-                'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
-            ),
-        );
+
+        // Ако има ръчно въведен курс
+        if(!empty($rec->currencyManualRate) && round($rec->currencyManualRate, 4) != round($rec->rate, 4)){
+            $entries[] = array(
+                'amount' => $amountBase * $rec->currencyManualRate, // В основна валута към ръчно въведения курс
+                'debit' => array(
+                    '481', // Сметка "501. Каси"
+                    array('currency_Currencies', $currencyId), // Перо 2 - Валута
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
+                ),
+
+                'credit' => array(
+                    '411', // Сметка "411. Вземания от клиенти"
+                    array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                    array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
+                    array('currency_Currencies', $currencyId),          // Перо 3 - Валута
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
+                ),
+            );
+
+            // Плащането ще постъпи към курса за деня
+            $actualRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            $entries[] = array(
+                'amount' => $amountBase * $actualRate, // В основна валута
+                'debit' => array(
+                    '501', // Сметка "501. Каси"
+                    array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
+                    array('currency_Currencies', $currencyId), // Перо 2 - Валута
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
+                ),
+                'credit' => array(
+                    '481',
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,
+                ),
+            );
+
+        } else {
+            $entries[] = array(
+                'amount' => $amountBase * $rec->currencyRate, // В основна валута
+
+                'debit' => array(
+                    '501', // Сметка "501. Каси"
+                    array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
+                    array('currency_Currencies', $currencyId), // Перо 2 - Валута
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
+                ),
+
+                'credit' => array(
+                    '411', // Сметка "411. Вземания от клиенти"
+                    array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                    array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
+                    array('currency_Currencies', $currencyId),          // Перо 3 - Валута
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
+                ),
+            );
+        }
         
         return $entries;
     }

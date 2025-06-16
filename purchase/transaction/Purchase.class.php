@@ -300,19 +300,44 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         }
         
         $quantityAmount += $amountBase;
-        
-        $entries[] = array('amount' => $amountBase * $rec->currencyRate,
-            'debit' => array('401',
-                array($rec->contragentClassId, $rec->contragentId),
-                array('purchase_Purchases', $rec->id),
-                array('currency_Currencies', $currencyId),
-                'quantity' => $quantityAmount,),
-            'credit' => array('501',
-                array('cash_Cases', $rec->caseId),
-                array('currency_Currencies', $currencyId),
-                'quantity' => $quantityAmount,),
-            'reason' => 'Плащане към доставчик');
-        
+
+        // Ако има ръчно въведен курс
+        if(!empty($rec->currencyManualRate) && round($rec->currencyManualRate, 4) != round($rec->rate, 4)){
+            $entries[] = array('amount' => $amountBase * $rec->currencyRate,
+                'debit' => array('401',
+                    array($rec->contragentClassId, $rec->contragentId),
+                    array('purchase_Purchases', $rec->id),
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'credit' => array('481',
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'reason' => 'Плащане към доставчик');
+
+            $actualRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            $entries[] = array('amount' => $amountBase * $actualRate,
+                'debit' => array('481',
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'credit' => array('501',
+                    array('cash_Cases', $rec->caseId),
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'reason' => 'Плащане към доставчик');
+        } else {
+            $entries[] = array('amount' => $amountBase * $rec->currencyRate,
+                'debit' => array('401',
+                    array($rec->contragentClassId, $rec->contragentId),
+                    array('purchase_Purchases', $rec->id),
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'credit' => array('501',
+                    array('cash_Cases', $rec->caseId),
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'reason' => 'Плащане към доставчик');
+        }
+
         return $entries;
     }
     

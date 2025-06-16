@@ -1910,6 +1910,7 @@ class planning_Jobs extends core_Master
                 // Кои са материалите и
                 $receiptClassId = cat_Boms::getClassId();
                 $materialArr = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity);
+
                 if(countR($materialArr)){
 
                     // Какви количества има вложени по заданието
@@ -1936,6 +1937,7 @@ class planning_Jobs extends core_Master
 
                     // За всеки материал от рецептата, ще се проверява, колко остава да се запази
                     foreach($materialArr as $materialRec){
+                        $materialRec->quantity *= $materialRec->quantityInPack;
                         $materialProductRec = cat_Products::fetch($materialRec->productId, 'generic,canConvert');
 
                         // Ако материала е генеричен
@@ -2357,7 +2359,14 @@ class planning_Jobs extends core_Master
 
                 // Редиректва се към същата форма за пускане на задание за следващия артикул
                 $saleRec = sales_Sales::fetch($data->form->rec->saleId, 'id,threadId,containerId');
-                $data->retUrl = $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $saleRec->id, 'threadId' => $saleRec->threadId, 'foreignId' => $saleRec->containerId, 'ret_url' => getRetUrl());
+                $url = array('planning_Jobs', 'add', 'saleId' => $saleRec->id, 'foreignId' => $saleRec->containerId, 'ret_url' => getRetUrl());
+                if(doc_Threads::haveRightFor('single', $saleRec->threadId)){
+                    $url['threadId'] = $saleRec->threadId;
+                } else {
+                    $url['folderId'] = $data->form->rec->folderId;
+                }
+
+                $data->retUrl = $data->addJobUrl = $url;
             }
         }
     }

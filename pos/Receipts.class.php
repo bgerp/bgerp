@@ -341,7 +341,7 @@ class pos_Receipts extends core_Master
             $row->returnedCurrency = $row->currency;
         }
         $row->contragentId = static::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('link' => true, 'icon' => true, 'policyId' => $rec->policyId));
-        if (isset($rec->voucherId)) {
+        if (isset($rec->voucherId) && core_Packs::isInstalled('voucher')) {
             $row->voucherId = voucher_Cards::getVerbal($rec->voucherId, 'number');
         }
 
@@ -376,7 +376,7 @@ class pos_Receipts extends core_Master
                 $row->voucherCaption = tr('Ваучер');
             }
         } else {
-            if (!empty($rec->voucherId)) {
+            if (!empty($rec->voucherId) && core_Packs::isInstalled('voucher')) {
                 $voucherRec = voucher_Cards::fetch($rec->voucherId);
                 if(isset($voucherRec->referrer)){
                     $row->voucherId = ht::createHint($row->voucherId, "Препоръчител|*: " . crm_Persons::getTitleById($voucherRec->referrer));
@@ -450,6 +450,12 @@ class pos_Receipts extends core_Master
         if ($mvc->haveRightFor('manualpending', $data->rec)) {
             $data->toolbar->addBtn('Чакащо (Ръчно)', array($mvc, 'manualpending', 'id' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/tick-circle-frame.png,warning=Наистина ли желаете ръчно да направите бележката чакаща|*?');
         }
+
+        if(cash_NonCashPaymentDetails::haveRightFor('list')){
+            if(cash_NonCashPaymentDetails::count("#classId = {$mvc->getClassId()} AND #objectId = {$data->rec->id}")){
+                $data->toolbar->addBtn('Безналични', array('cash_NonCashPaymentDetails', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $data->rec->id), "ef_icon=img/16/bug.png,title=Безналичните плащания към документа,row=2");
+            }
+        }
     }
 
 
@@ -490,7 +496,7 @@ class pos_Receipts extends core_Master
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
 
-            $products[] = (object)array('productId' => $rec->productId,
+            $products[$rec->id] = (object)array('productId' => $rec->productId,
                 'price' => $rec->price / $quantityInPack,
                 'packagingId' => $rec->value,
                 'text' => $rec->text,
@@ -498,6 +504,7 @@ class pos_Receipts extends core_Master
                 'discount' => $rec->discountPercent,
                 'autoDiscount' => $rec->autoDiscount,
                 'batch' => $rec->batch,
+                'id' => $rec->id,
                 'quantity' => $rec->quantity);
         }
 
@@ -595,12 +602,18 @@ class pos_Receipts extends core_Master
         $pQuery = cond_Payments::getQuery();
         $pQuery->where("#state = 'active'");
         $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
+
+        $devices = peripheral_Devices::getDevices('bank_interface_POS', false);
         while ($pRec = $pQuery->fetch()) {
             $paymentName = cond_Payments::getTitleById($pRec->id, false);
             $paymentOptions[$pRec->id] = $paymentName;
             if ($pRec->id == $cardPaymentId) {
-                $paymentOptions["{$pRec->id}|card"] = "{$paymentName} [Потв.]";
-                $paymentOptions["{$pRec->id}|manual"] = "{$paymentName} [Ръчно потв.]";
+                $paymentOptions["{$pRec->id}|card|"] = "Карта [Потв.]";
+                $paymentOptions["{$pRec->id}|manual|"] = "Карта [Ръчно потв.]";
+                foreach ($devices as $deviceRec) {
+                    $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
+                    $paymentOptions["{$pRec->id}||{$deviceRec->id}"] = "{$deviceName}";
+                }
             }
         }
         $data->listFilter->FLD('payment', 'varchar', 'caption=Плащане');
@@ -629,8 +642,15 @@ class pos_Receipts extends core_Master
                     if (is_numeric($filter->payment)) {
                         $dQuery->where("#action = 'payment|{$filter->payment}'");
                     } else {
-                        list($paymentId, $paymentParam) = explode('|', $filter->payment);
-                        $dQuery->where("#action = 'payment|{$paymentId}' AND #param = '{$paymentParam}'");
+                        list($paymentId, $paymentParam, $deviceId) = explode('|', $filter->payment);
+                        $dQuery->where("#action = 'payment|{$paymentId}'");
+                        if(!empty($paymentParam)){
+                            $dQuery->where("#param = '{$paymentParam}'");
+                        }
+
+                        if(!empty($deviceId)){
+                            $dQuery->where("#deviceId = '{$deviceId}'");
+                        }
                     }
                     $dQuery->in("receiptId", $foundIds);
                     $dQuery->show('receiptId');
@@ -803,24 +823,25 @@ class pos_Receipts extends core_Master
             $fields['note'] = tr("Ваучер") . ": *{$endVoucher}";
         }
 
+        // Намираме продуктите на бележката (трябва да има поне един)
+        $products = $this->getProducts($rec->id);
+
         // Опитваме се да създадем чернова на нова продажба породена от бележката
         if ($sId = sales_Sales::createNewDraft($contragentClassId, $contragentId, $fields)) {
             if($hasVoucher){
                 voucher_Cards::mark($rec->voucherId, true, sales_Sales::getClassId(), $sId);
             }
+
             sales_Sales::logWrite('Прехвърлена от POS продажба', $sId);
 
-            // Намираме продуктите на бележката (трябва да има поне един)
-            $products = $this->getProducts($rec->id);
-
             // Всеки продукт се прехвърля едно към 1
-            foreach ($products as $product) {
+            foreach ($products as &$product) {
                 if ($product->discount < 0) {
                     $product->price *= (1 + abs($product->discount));
                     $product->discount = null;
                 }
 
-                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text, $product->batch, $product->autoDiscount);
+                $product->transferedIn = sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text, $product->batch, $product->autoDiscount);
             }
         }
 
@@ -831,6 +852,10 @@ class pos_Receipts extends core_Master
 
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
+        if(countR($products)){
+            cls::get('pos_ReceiptDetails')->saveArray($products, 'id,transferedIn');
+        }
+
         if ($exState == 'draft') {
             Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->flushUpdateQueue($sId);
@@ -1039,6 +1064,23 @@ class pos_Receipts extends core_Master
             cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent,inputDiscount');
             $this->logInAct('Приключване на бележка', $rec->id);
 
+            // Записване и на безналичните плащания в другия модел регистър
+            $nonCashPayments = array();
+            $dQuery = $Details->getQuery();
+            $dQuery->where("#receiptId = {$rec->id} AND #action  LIKE '%payment%'");
+            while ($dRec = $dQuery->fetch()) {
+                list(, $paymentId) = explode('|', $dRec->action);
+                if($paymentId > 0){
+                    $key = "{$paymentId}|{$dRec->deviceId}|{$dRec->param}";
+                    if(!array_key_exists($key, $nonCashPayments)){
+                        $nonCashPayments[$key] = (object)array('classId' => $this->getClassId(), 'objectId' => $rec->id, 'paymentId' => $paymentId, 'amount' => 0, 'deviceId' => $dRec->deviceId, 'param' => $dRec->param);
+                    }
+                    $nonCashPayments[$key]->amount += $dRec->amount;
+                }
+            }
+
+            cls::get('cash_NonCashPaymentDetails')->saveArray($nonCashPayments);
+
             // Нотифициране на драйвера на артикулите, че той е включен в чакаща бележка
             $Products = cls::get('cat_Products');
             foreach ($dRecs as $dRec1) {
@@ -1046,7 +1088,7 @@ class pos_Receipts extends core_Master
                 $Driver->invoke('AfterDocumentInWhichIsUsedHasChangedState', array($Products, $dRec1->productId, $this, $rec->id, $Details, $dRec1->id, 'waiting'));
             }
 
-            if(isset($rec->voucherId)){
+            if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
 
                 // Ако е сторно ваучерът се освобождава, ако не е се маркира като използван
                 if(isset($rec->revertId)){

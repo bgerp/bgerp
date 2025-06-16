@@ -101,7 +101,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('condFilter', 'set(1|под Мин.=Под минимум,3|над Макс.=Над максимум, 2|Отриц.=Отрицателни, 4|ок=ОК)', 'caption=Филтър->По състояние,columns=4,after=filters,input=none,silent');
 
-        $fieldset->FLD('seeByStores', 'set(yes = )', 'caption=Настройки->Детайли по склад,after=condFilter,single=none');
+        $fieldset->FLD('seeByStores', 'enum(no=Не, yes=Да)', 'caption=Настройки->Детайли по склад,after=condFilter,single=none');
 
         $fieldset->FLD('artLimits', 'blob(serialize)', 'after=seeByStores,input=none,single=none');
 
@@ -259,6 +259,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $quantities = store_Products::getQuantities($productId, $recProduct->storeId, $date);
             $freeQuantity = $quantities->free;
             $reservedQuantity = $quantities->reserved;
+            $expectedQuantity = $quantities->expected;
 
             // Изваждаме наличното количество
             $avQuantity = $recProduct->quantity;
@@ -284,6 +285,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             if ($obj = &$recs[$productId]) {
                 $obj->quantity += $quantity;
+                $obj->expectedQuantity = $expectedQuantity;
             } else {
 
                 if (!in_array($productId, array_keys($artLimitsArr))) {
@@ -308,6 +310,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                     'productId' => $productId,
                     'storesQuatity' => 0,
                     'quantity' => $quantity,
+                    'expectedQuantity' => $expectedQuantity,
                     'minQuantity' => $minQuantity,
                     'maxQuantity' => $maxQuantity,
                     'orderMeasure' => $orderMeasure,
@@ -409,6 +412,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'varchar', 'caption=Количество,smartCenter');
+            if ($rec->typeOfQuantity == 'diff') {
+                $fld->FLD('expectedQuantity', 'double(smartRound,decimals=3)', 'caption=Очаквано,smartCenter');
+            }
 
 
             if ($rec->limits == 'yes') {
@@ -417,6 +423,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
                 $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
             }
+
             if (haveRole('debug')) {
 //                $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
 //                $fld->FLD('minOrder', 'varchar', 'caption=За поръчка->Мин опаковки,smartCenter');
@@ -447,28 +454,38 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $Int = cls::get('type_Int');
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 3;
-        $Double->params['smartRound'] = 'smartRound';
+        $Double->params['decimals'] = 2;
 
         $row = new stdClass();
+        $mRound = null;
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
+
+        $mRound = cat_UoM::getMaxRound($dRec->measure);
+
+        if ($mRound !== null) {
+            $Double->params['decimals'] = $mRound;
+        }
+
         if ($rec->seeByStores != 'yes') {
             if (isset($dRec->quantity)) {
 
-                $quantityStr = $Double->toVerbal($dRec->quantity);
-                $row->quantity .= ht::styleIfNegative($quantityStr, $dRec->quantity);
+                $quantityStr = ht::styleIfNegative($Double->toVerbal($dRec->quantity), $dRec->quantity);
+                $row->quantity .= $quantityStr;
             }
         } else {
 
-            $quantityStr = '<b>' . 'Общо: ' . $Double->toVerbal($dRec->quantity) . '</b>' . "</br>";
-            $row->quantity .= ht::styleIfNegative($quantityStr, $dRec->quantity);
-            foreach ($dRec->storesQuatity as $val) {
+            $quantityStr = ht::styleIfNegative($Double->toVerbal($dRec->quantity), $dRec->quantity);
+            $row->quantity .= '<table class="no-border full-width"><tr><th style="font-size: 1.05em; border-bottom: 1px solid #ccc !important;">Общо: </th><th style="font-size: 1em;border-bottom: 1px solid #ccc  !important;;">' .$quantityStr . '</th></tr>';
 
+            foreach ($dRec->storesQuatity as $val) {
+                $row->quantity .= "<tr>";
                 list($storeId, $stQuantity) = explode('|', $val);
 
-                $quantityStr = store_Stores::getTitleById($storeId) . ': ' .$Double->toVerbal($stQuantity) . "</br>";
-                $row->quantity .= ht::styleIfNegative($quantityStr, $stQuantity);
+                $quantityStr = ht::styleIfNegative($Double->toVerbal($stQuantity), $stQuantity) ;
+                $row->quantity .= "<td>" . store_Stores::getTitleById($storeId) . ":</td><td style='width: 100px'>" .$quantityStr. "</td>";
+                $row->quantity .= "</tr>";
             }
+            $row->quantity .= '</table>';
         }
 
         if (isset($dRec->measure)) {
@@ -482,6 +499,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if (isset($dRec->minOrder)) {
             $row->minOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->minOrder);
 
+        }
+
+        if ($rec->typeOfQuantity == 'diff') {
+
+            $row->expectedQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->expectedQuantity);
         }
 
         $orderArr = self::getPacksForOrder($dRec, $rec);
@@ -726,7 +748,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $rec = frame2_Reports::fetch($recId);
 
         $details = $rec->artLimits;
-
         $minVal = $details[$productId]['minQuantity'];
         $maxVal = $details[$productId]['maxQuantity'];
         $orderMeasure = $details[$productId]['orderMeasure'];

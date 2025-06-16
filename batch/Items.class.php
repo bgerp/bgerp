@@ -581,7 +581,7 @@ class batch_Items extends core_Master
             }
 
             $withoutBatch = round($storeRec->quantity - $onBatches, 4);
-            if($withoutBatch > 0){
+            if($withoutBatch != 0){
                 $filtered["-{$storeRec->storeId}nobatch"] = (object)array('storeId' => $storeRec->storeId,
                     'productId' => $data->masterId,
                     'quantity' => $withoutBatch,

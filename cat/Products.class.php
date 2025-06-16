@@ -85,7 +85,7 @@ class cat_Products extends embed_Manager
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '321,323,3231,3232,61101,60201';
+    public $balanceRefAccounts = '321,323,3230,3231,3232,61101,60201';
     
     
     /**
@@ -2188,13 +2188,16 @@ class cat_Products extends embed_Manager
     public static function getPacks($productId, $exPackId = null, $onlyMeasures = false, $secondMeasureId = false)
     {
         $options = array();
-        expect($productRec = cat_Products::fetch($productId, 'measureId,canStore'));
+        expect($productRec = cat_Products::fetch($productId, 'measureId,canStore,groups'));
 
         // Определяме основната мярка
         $baseId = $productRec->measureId;
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-        if($productRec->canStore != 'yes' || $onlyMeasures){
+
+        // Ако е услуга (която не е консуматив) или се изискват само мерки - да се отсеят само мерките
+        $consumableGroupId = cat_Groups::fetchField("#sysId = 'consumables'");
+        if(($productRec->canStore != 'yes' && !keylist::isIn($consumableGroupId, $productRec->groups)) || $onlyMeasures){
             $packQuery->where("#type = 'uom'");
         }
         $packQuery->where("#productId = {$productRec->id}");

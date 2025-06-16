@@ -417,7 +417,6 @@ class batch_BatchesInDocuments extends core_Manager
     {
         expect($detailClassId = Request::get('detailClassId', 'class'));
         expect($detailRecId = Request::get('detailRecId', 'int'));
-        expect($storeId = Request::get('storeId', 'key(mvc=store_Stores)'));
         $retUrl = getRetUrl();
 
         // Проверка на права

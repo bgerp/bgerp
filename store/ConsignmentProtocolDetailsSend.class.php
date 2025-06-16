@@ -80,12 +80,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId=Предадено на Клиент/Доставчик, packagingId, packQuantity=К-во, weight=Тегло,volume=Обем,packPrice, amount,transUnitId=ЛЕ';
-    
-    
-    /**
-     * Полета свързани с цени
-     */
-    public $priceFields = 'price, amount, discount, packPrice';
+
 
     /**
      * Описание на модела (таблицата)

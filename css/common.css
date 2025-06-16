@@ -1303,6 +1303,16 @@ a.profile {
   background-color: #cef763;
   background-color: rgba(210, 255, 120, 0.6); }
 
+.state-debit {
+  background-color: #d4edda; }
+  .state-debit:hover {
+    background-color: #c3e6cb !important; }
+
+.state-credit {
+  background-color: #f8d7da; }
+  .state-credit:hover {
+    background-color: #f5c6cb !important; }
+
 .state-removed {
   background-color: #dddddd;
   color: #888888;

@@ -10,7 +10,9 @@
 <!--ET_END SEARCH_FORM-->
 <!--ET_BEGIN CATEGORIES-->
 <div class='blogm-categories'>
-    <div class='nav_item  level1'>|Категории|*</div>
+    <!--ET_BEGIN CATEGORY_CAPTION-->
+    <div class='nav_item  level1'>[#CATEGORY_CAPTION#]</div>
+    <!--ET_END CATEGORY_CAPTION-->
     [#CATEGORIES#]
 </div>
 <!--ET_END CATEGORIES-->

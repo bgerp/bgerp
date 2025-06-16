@@ -25,7 +25,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_AlignDecimals2, plg_State2';
+    public $loadList = 'eshop_Wrapper, plg_Created, plg_Modified, plg_SaveAndNew, plg_RowTools2, plg_AlignDecimals2, plg_State2, plg_Sorting';
     
     
     /**
@@ -217,20 +217,26 @@ class eshop_ProductDetails extends core_Detail
         $now = dt::now();
         if (isset($listId)) {
             $price = price_ListRules::getPrice($listId, $productId, $packagingId, $now);
+
             if (isset($price)) {
                 $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $productId, $packagingId, $quantityInPack, $now);
-                
+
                 $price *= $quantityInPack;
                 if ($settings->chargeVat == 'yes') {
                     $price *= 1 + cat_Products::getVat($productId, null, $settings->vatExceptionId);
                 }
                 $price = currency_CurrencyRates::convertAmount($price, null, null, $settings->currencyId);
-                
-                $res->price = round($price, 5);
+
+                $res->price = price_Lists::roundPrice($listId, $price);
+                if($settings->currencyId == 'BGN'){
+                    $priceEuro = currency_CurrencyRates::convertAmount($price, null, $settings->currencyId, 'EUR');
+                    $res->priceEuro = price_Lists::roundPrice($listId, $priceEuro);
+                }
+
                 if (!empty($priceObject->discount)) {
                     $res->discount = $priceObject->discount;
                 }
-                
+
                 return $res;
             }
         }
@@ -448,13 +454,19 @@ class eshop_ProductDetails extends core_Detail
         
         if($showPrice){
             $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
+
             if(isset($catalogPriceInfo->price)){
                 $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
                 if($catalogPriceInfo->price == 0){
                     $row->catalogPrice = "<span class='green'>" . tr('Безплатно') . "</span>";
+                } else {
+                    $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId);
+                    if(isset($catalogPriceInfo->priceEuro)){
+                        $priceEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->priceEuro);
+                        $row->catalogPrice .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR');
+                    }
                 }
-                
-                $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId);
+
                 $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
             } else {
                 $showCartBtn = $showPrice = false;
@@ -528,7 +540,6 @@ class eshop_ProductDetails extends core_Detail
                 Request::setProtected('classId,objectId,customizeProtoOpt');
                 $url = toUrl(array('marketing_Inquiries2', 'new', 'classId' => $me->getClassId(), 'objectId' => $rec->recId, 'customizeProtoOpt' => $customizeProto, 'ret_url' => true));
                 Request::removeProtected('classId,objectId,customizeProtoOpt');
-                
                 $row->btnInquiry = ht::createBtn('Запитване', $url, false, false, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
             }
         }
@@ -575,10 +586,16 @@ class eshop_ProductDetails extends core_Detail
             }
             $totalQuantity = $quantity + $quantityInRemote;
 
+            $deliveryTime = !empty($rec->deliveryTime) ? $rec->deliveryTime : eshop_Setup::get('ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME');
+
             if ($totalQuantity < $rec->quantityInPack) {
-                if(!empty($rec->deliveryTime)){
+
+                // Ако няма наличност, но се очаква доставка към подададената дата
+                $horizon = dt::addSecs($deliveryTime, null,false);
+                $quantityExpected = store_Products::getQuantities($rec->productId, $settings->inStockStores, $horizon)->free;
+                if($quantityExpected >= $rec->quantityInPack){
                     $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
-                } else {
+                }else {
                     $notInStock = !empty($settings->notInStockText) ? tr($settings->notInStockText) : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
                     $notInStockVerbal = core_Type::getByName('varchar')->toVerbal($notInStock);
                     $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$notInStockVerbal}</span>";

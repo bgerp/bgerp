@@ -465,9 +465,16 @@ class cat_products_Packagings extends core_Detail
     {
         // Извличаме мерките и опаковките
         $uomArr = cat_UoM::getUomOptions();
-        $canStore = cat_Products::fetchField($productId, 'canStore');
-        $packArr = ($canStore == 'yes') ? cat_UoM::getPackagingOptions() : array();
+        $pRec = cat_Products::fetch($productId, 'canStore,groups');
 
+        $consumableGroupId = cat_Groups::fetchField("#sysId = 'consumables'");
+        $packArr = ($pRec->canStore == 'yes' || keylist::isIn($consumableGroupId, $pRec->groups)) ? cat_UoM::getPackagingOptions() : array();
+        if (isset($id)) {
+            $pId = static::fetchField($id, 'packagingId');
+            if(!array_key_exists($pId, $packArr)){
+                $packArr[$pId] = cat_UoM::getTitleById($pId);
+            }
+        }
         // Отсяваме тези, които вече са избрани за артикула
         $query = self::getQuery();
         $query->where("#productId = {$productId}");
@@ -505,11 +512,11 @@ class cat_products_Packagings extends core_Detail
         $rec = &$form->rec;
         $options = self::getRemainingOptions($rec->productId, $rec->id);
         $form->setOptions('packagingId', array('' => '') + $options);
-        
+
         // Ако има дефолтни опаковки от драйвера
         if ($Driver = cat_Products::getDriver($rec->productId)) {
             $defaults = $Driver->getDefaultPackagings($rec);
-            
+
             if (countR($defaults)) {
                 foreach ($defaults as $def) {
                     if (isset($options[$def->packagingId])) {

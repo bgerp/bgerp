@@ -21,48 +21,48 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo, store, sales, admin, purchase';
-    
-    
+
+
     /**
      * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *
      * @var string
      */
     protected $newFieldsToCheck = 'containerId';
-    
-    
+
+
     /**
      * Нормализираните имена на папките
      *
      * @var array
      */
     private static $folderNames = array();
-    
-    
+
+
     /**
      * Имената на контрагентите
      *
      * @var array
      */
     private static $contragentNames = array();
-    
-    
+
+
     /**
      * Дилърите
      *
      * @var array
      */
     private static $dealers = array();
-    
-    
+
+
     /**
      * Полета от таблицата за скриване, ако са празни
      *
      * @var int
      */
     protected $filterEmptyListFields = 'dueDates';
-    
-    
+
+
     /**
      * Полета за хеширане на таговете
      *
@@ -71,22 +71,22 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      * @var string
      */
     protected $hashField = 'containerId';
-    
-    
+
+
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'dealers,countries,precision,horizon,orderBy';
-    
-    
+
+
     /**
      * Кои полета от листовия изглед да може да се сортират
      *
      * @var int
      */
     protected $sortableListFields = 'readiness,dueDates,execDate,contragentName,dealerId';
-    
-    
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -97,83 +97,82 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,after=title,single=none');
         $fieldset->FLD('dealerType', 'enum(,dealer=Търговец,inCharge=Отговорник на папка)', 'caption=Потребителят е,after=dealers,single=none,placeholder=Търговец или отговорник');
         $fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealerType,single=none');
-        $fieldset->FLD('ignore', 'enum(,yes=Да)', 'caption=Без избраните,after=countries,single=none');
-        $fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=ignore');
+        $fieldset->FLD('ignore', 'enum(,yes=Без избраните държави)', 'caption=Игнориране,after=countries,single=none');
+        $fieldset->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка,placeholder=Всички условия,after=ignore');
+        $fieldset->FLD('termsIgnore', 'enum(,yes=Без избраните условия)', 'caption=Игнориране,after=terms');
+        $fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=termsIgnore');
         $fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
         $fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Клиенти,execDate=Срок за изпълнение,dueDate=Дата на падеж)', 'caption=Подредба,after=horizon');
     }
-    
-    
+
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver   $Driver
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
+     * @param frame2_driver_Proto $Driver $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
-        
+
         // Всички активни потебители
         $uQuery = core_Users::getQuery();
         $uQuery->where("#state = 'active'");
         $uQuery->orderBy('#names', 'ASC');
         $uQuery->show('id');
-        
+
         // Които са търговци
         $roles = core_Roles::getRolesAsKeylist('ceo,sales');
         $uQuery->likeKeylist('roles', $roles);
         $allDealers = arr::extractValuesFromArray($uQuery->fetchAll(), 'id');
-        
+
         // Към тях се добавят и вече избраните търговци
         if (isset($form->rec->dealers)) {
             $dealers = keylist::toArray($form->rec->dealers);
             $allDealers = array_merge($allDealers, $dealers);
         }
-        
+
         // Вербализират се
         $suggestions = array();
         foreach ($allDealers as $dealerId) {
             $suggestions[$dealerId] = core_Users::fetchField($dealerId, 'nick');
         }
-        
+
         // Задават се като предложение
         $form->setSuggestions('dealers', $suggestions);
         $form->setSuggestions('horizon', explode('|', '1 ден|2 дни|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни|60 дни|90 дни|120 дни'));
-        
+
         // Ако текущия потребител е търговец добавя се като избран по дефолт
         if (haveRole('sales') && empty($form->rec->id)) {
             $form->setDefault('dealers', keylist::addKey('', core_Users::getCurrent()));
         }
     }
-    
-    
+
+
     /**
      * При събмитване на формата
      *
-     * @param frame2_driver_Proto $Driver   $Driver
-     * @param embed_Manager       $Embedder
-     * @param core_Form           $form
+     * @param frame2_driver_Proto $Driver $Driver
+     * @param embed_Manager $Embedder
+     * @param core_Form $form
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
-        if (!$form->isSubmitted()) {
-            
-            return;
-        }
+        if (!$form->isSubmitted()) return;
+
         $rec = &$form->rec;
-        
         if ($rec->ignore == 'yes' && empty($rec->countries)) {
             $form->setError('countries,ignore', 'Трябва да има избрани държави, за изключване');
         }
-        
+
         if (empty($rec->dealers) && !empty($rec->dealerType)) {
             $form->setError('dealers,dealerType', 'Не са избрани потребители, за да е посочен тип');
         }
     }
-    
-    
+
+
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
@@ -184,6 +183,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+        $sameLocationDocuments = sales_DeliveryData::findDealsWithSameLocation($dRec->containerId);
         $row = new stdClass();
         $Document = doc_Containers::getDocument($dRec->containerId);
         
@@ -204,10 +204,32 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         // Линк към документа
         $singleUrl = $Document->getSingleUrlArray();
         $handle = $Document->getHandle();
-        
+
         $row->document = "#{$handle}";
         if (!Mode::isReadOnly()) {
             $row->document = ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Document->singleIcon}");
+
+            // Показване на информация за доставките до същата локация
+            if(countR($sameLocationDocuments) && $dRec->readiness != 0){
+                $tooltipUrl = toUrl(array('sales_DeliveryData', 'showDeliveryInfo', 'containerId' => $dRec->containerId, 'replaceField' => "sh{$dRec->containerId}"), 'local');
+                $arrowImg = ht::createElement('img', array('height' => 12, 'width' => 12, 'src' => sbf('img/32/dialog_warning.png', '')));
+                $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'Има други поръчки за същата / близка дестинация! (клик за подробности)'), $arrowImg, true);
+                $arrow = "<span class='additionalInfo-holder shipmentReadiness'><span class='additionalInfo' id='sh{$dRec->containerId}'></span>{$arrow}</span>";
+                $row->document->append($arrow);
+            }
+
+            if($Document->isInstanceOf('sales_Sales')){
+                $documentRec = $Document->fetch();
+                $documentRow = $Document->getInstance()->recToVerbal($documentRec);
+                $amountDealVerbal = currency_Currencies::decorate($documentRow->amountDeal, $documentRec->currencyId);
+                $amountPaidVerbal = currency_Currencies::decorate($documentRow->amountPaid, $documentRec->currencyId);
+                if($documentRec->amountPaid > 0){
+                    $amountPaidVerbal = "<span style='color:green;'>{$amountPaidVerbal}</span>";
+                }
+                $str = tr("|* <span class='nowrap' style='border: 1px solid #ccc; border-radius:3px; padding: 0 2px; font-size: 0.75em; color: #333; box-shadow: inset 0 0 2px #fff; position: relative; top: -2px;background: rgba(240,250,250, 0.3)'>|Пор|*: {$amountDealVerbal} / |Плат|*: {$amountPaidVerbal}</span>");
+                $row->document .= $str;
+            }
+
             $dTable = $this->getSaleDetailTable($Document->that);
             if (!empty($dTable)) {
                 $row->document .= $dTable;
@@ -316,6 +338,10 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         if (isset($rec->countries)) {
             $row->countries = core_Type::getByName('keylist(mvc=drdata_Countries,select=commonNameBg)')->toVerbal($rec->countries);
         }
+
+        if (isset($rec->terms)) {
+            $row->terms = core_Type::getByName('keylist(mvc=cond_DeliveryTerms,select=codeName)')->toVerbal($rec->terms);
+        }
     }
     
     
@@ -334,6 +360,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
 							        <div class='small'>
                                         <!--ET_BEGIN dealers--><div>[#CAPTION_DEALERS#]: <b>[#dealers#]</b></div><!--ET_END dealers-->
                                         <!--ET_BEGIN countries--><div>[#COUNTRY_CAPTION#]: <b>[#countries#]</b></div><!--ET_END countries-->
+                                        <!--ET_BEGIN terms--><div>[#DELIVERY_CAPTION#]: <b>[#terms#]</b></div><!--ET_END terms-->
                                         <!--ET_BEGIN horizon--><div>|Падиращи до|*: <b>[#horizon#]</b><!--ET_END horizon-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
@@ -343,7 +370,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $fieldTpl->append('Потребители', 'CAPTION_DEALERS');
         }
         
-        foreach (array('dealers', 'countries', 'horizon') as $fld) {
+        foreach (array('dealers', 'countries', 'horizon', 'terms') as $fld) {
             if (!empty($data->row->{$fld})) {
                 $fieldTpl->append($data->row->{$fld}, $fld);
             }
@@ -358,7 +385,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $countryCaption = ($data->rec->ignore == 'yes') ? tr('Без държави') : tr('Държави');
             $fieldTpl->append($countryCaption, 'COUNTRY_CAPTION');
         }
-        
+
+        if (isset($data->rec->terms)) {
+            $deliveryCaption = ($data->rec->termsIgnore == 'yes') ? tr('Без условия на доставка') : tr('Условия на доставка');
+            $fieldTpl->append($deliveryCaption, 'DELIVERY_CAPTION');
+        }
+
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
     
@@ -396,13 +428,18 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $Sales = cls::get('sales_Sales');
         
         $dealers = keylist::toArray($rec->dealers);
+        $termArr = keylist::toArray($rec->terms);
         $countries = keylist::toArray($rec->countries);
         $cCount = countR($countries);
-        
+
         // Всички чакащи и активни продажби на избраните дилъри
         $sQuery = sales_Sales::getQuery();
-        $sQuery->where("#state = 'pending' || #state = 'active'");
+        $sQuery->in("state", array('pending', 'active'));
         $sQuery->EXT('inCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
+        if (countR($termArr)) {
+            $fnc = $rec->termsIgnore == 'yes' ? 'notIn' : 'in';
+            $sQuery->{$fnc}('deliveryTermId', $termArr);
+        }
         if (countR($dealers)) {
             $dealers = implode(',', $dealers);
             switch ($rec->dealerType) {
@@ -417,31 +454,31 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                     break;
             }
         }
-        
+
+        $saleRecs = $sQuery->fetchAll();
+        $deliveryData = array();
+        $dQuery = sales_DeliveryData::getQuery();
+        $dQuery->in('containerId', arr::extractValuesFromArray($saleRecs, 'containerId'));
+        $dQuery->show('countryId,containerId,readiness');
+        while($dRec = $dQuery->fetch()){
+            $deliveryData[$dRec->containerId] = $dRec;
+        }
+
         // За всяка
-        while ($sRec = $sQuery->fetch()) {
+        foreach ($saleRecs as $sRec) {
             
             // Ако има филтър по държава
             if ($cCount) {
-                $contragentCountryId = cls::get($sRec->contragentClassId)->fetchField($sRec->contragentId, 'country');
+                $contragentCountryId = $deliveryData[$sRec->containerId]->countryId;
                 if ($rec->ignore == 'yes') {
-                    if (array_key_exists($contragentCountryId, $countries)) {
-                        continue;
-                    }
+                    if (array_key_exists($contragentCountryId, $countries)) continue;
                 } else {
-                    if (!array_key_exists($contragentCountryId, $countries)) {
-                        continue;
-                    }
+                    if (!array_key_exists($contragentCountryId, $countries)) continue;
                 }
             }
             
             // Изчислява се готовността
-            $readiness = core_Cache::get('sales_reports_ShipmentReadiness', "c{$sRec->containerId}");
-           
-            if ($readiness === false) {
-                $readiness = self::calcSaleReadiness($sRec);
-                core_Cache::set('sales_reports_ShipmentReadiness', "c{$sRec->containerId}", $readiness, 58);
-            }
+            $readiness = $deliveryData[$sRec->containerId]->readiness;
             
             $delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : null);
             if (empty($delTime)) {
@@ -457,14 +494,9 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $shipQuery->where("#threadId = {$sRec->threadId}");
             while ($soRec = $shipQuery->fetch()) {
                 $deliveryTime = !empty($soRec->deliveryTime) ? $soRec->deliveryTime : $soRec->valior;
-                
+
                 // Изчислява им се готовността
-                $readiness1 = core_Cache::get('sales_reports_ShipmentReadiness', "c{$soRec->containerId}");
-                if ($readiness1 === false) {
-                    $readiness1 = self::calcSoReadiness($soRec);
-                    core_Cache::set('sales_reports_ShipmentReadiness', "c{$soRec->containerId}", $readiness1, 58);
-                }
-                
+                $readiness1 = $deliveryData[$soRec->containerId]->readiness;
                 $max = max($max, $readiness1);
                 
                 if (isset($deliveryTime)) {
@@ -477,7 +509,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             if ($max === false || is_null($max)) {
                 continue;
             }
-            
+
             if (!isset($rec->precision) || (isset($rec->precision) && $max >= $rec->precision)) {
                 $dealerId = ($sRec->dealerId) ? $sRec->dealerId : (($sRec->activatedBy) ? $sRec->activatedBy : $sRec->createdBy);
                 
@@ -490,7 +522,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                 $add = true;
                 if (isset($rec->horizon)) {
                     $horizon = dt::addSecs($rec->horizon);
-                    $compareDate = isset($dueDates['min']) ? $dueDates['min'] : (isset($dueDates['max']) ? $dueDates['max'] : (isset($minDel) ? $minDel : null));
+                    $compareDate = $dueDates['min'] ?? ($dueDates['max'] ?? ($minDel ?? null));
                     if (!empty($compareDate) && $compareDate > $horizon) {
                         $add = false;
                     }
@@ -658,188 +690,5 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         }
         
         return $dates;
-    }
-    
-    
-    /**
-     * Изчислява готовността на продажбата
-     *
-     * @param stdClass $saleRec - запис на продажба
-     *
-     * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
-     */
-    private static function calcSaleReadiness($saleRec)
-    {
-        // На не чакащите и не активни не се изчислява готовността
-        if ($saleRec->state != 'pending' && $saleRec->state != 'active') {
-            
-            return;
-        }
-        
-        // На бързите продажби също не се изчислява
-        if (strpos($saleRec->contoActions, 'ship') !== false) {
-            
-            return;
-        }
-        
-        // Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
-        $Sales = sales_Sales::getSingleton();
-        $dealInfo = $Sales->getAggregateDealInfo($saleRec);
-        
-        $agreedProducts = $dealInfo->get('products');
-        $shippedProducts = $dealInfo->get('shippedProducts');
-        
-        $totalAmount = 0;
-        $readyAmount = null;
-        
-        // За всеки договорен артикул
-        foreach ($agreedProducts as $pId => $pRec) {
-            $productRec = cat_Products::fetch($pId, 'canStore,isPublic');
-            if ($productRec->canStore != 'yes') {
-                continue;
-            }
-            
-            $price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
-            $amount = null;
-            
-            // Ако няма цена се гледа мениджърската себестойност за да не е 0
-            if(empty($price)){
-                $price = cat_Products::getPrimeCost($pId, $pRec->packagingId, 1, $saleRec->valior);
-            }
-            
-            // Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея
-            $q = $pRec->quantity;
-            
-            $ignore = false;
-            if ($productRec->isPublic == 'no') {
-
-                // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
-                $closedJobQuery = planning_Jobs::getQuery();
-                $closedJobQuery->where("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
-                $closedJobQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-                $closedJobQuery->XPR('totalQuantityProduced', 'double', 'SUM(COALESCE(#quantityProduced, 0))');
-                $closedJobQuery->show('totalQuantity,totalQuantityProduced');
-                $closedJobCount = $closedJobQuery->count();
-                $closedJobRec = $closedJobQuery->fetch();
-
-                $activeJobId = planning_Jobs::fetchField("#productId = {$pId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #saleId = {$saleRec->id}");
-
-                // Ако има приключени задания и няма други активни, се приема че е готово
-                if ($closedJobCount && !$activeJobId) {
-
-                    $q = $closedJobRec->totalQuantity;
-                    $amount = $q * $price;
-
-                    // Ако има експедирано и то е над 90% от заскалденото, ще се маха продажбата
-                    if (isset($shippedProducts[$pId])) {
-                        $produced = $closedJobRec->totalQuantityProduced;
-                        if ($shippedProducts[$pId]->quantity >= ($produced * 0.9)) {
-                            $quantityInStore = store_Products::getQuantities($productRec->id)->quantity;
-                            if ($quantityInStore <= 1) {
-                                $ignore = true;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Количеството е неекспедираното
-            if ($ignore === true) {
-                $quantity = 0;
-            } else {
-                if (isset($shippedProducts[$pId])) {
-                    $quantity = $q - $shippedProducts[$pId]->quantity;
-                } else {
-                    $quantity = $q;
-                }
-            }
-            
-            // Ако всичко е експедирано се пропуска реда
-            if ($quantity <= 0) {
-                continue;
-            }
-            
-            $totalAmount += $quantity * $price;
-            
-            if (is_null($amount)) {
-                
-                // Изчислява се колко от сумата на артикула може да се изпълни
-                $quantityInStock = store_Products::getQuantities($pId, $saleRec->shipmentStoreId)->quantity;
-                $quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
-                
-                $amount = $quantityInStock * $price;
-            }
-            
-            // Събиране на изпълнената сума за всеки ред
-            if (isset($amount)) {
-                $readyAmount += $amount;
-            }
-        }
-        
-        // Готовността е процента на изпълнената сума от общата
-        $readiness = (isset($readyAmount) && !empty($totalAmount)) ? @round($readyAmount / $totalAmount, 2) : null;
-        
-        // Подсигуряване че процента не е над 100%
-        if ($readiness > 1) {
-            $readiness = 1;
-        }
-        
-        // Връщане на изчислената готовност или NULL ако не може да се изчисли
-        return $readiness;
-    }
-    
-    
-    /**
-     * Изчислява готовността на експедиционното нареждане
-     *
-     * @param stdClass $soRec - запис на ЕН
-     *
-     * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
-     */
-    private static function calcSoReadiness($soRec)
-    {
-        // На не чакащите не се изчислява готовност
-        if ($soRec->state != 'pending') {
-            
-            return;
-        }
-        
-        // Намират се детайлите на ЕН-то
-        $dQuery = store_ShipmentOrderDetails::getQuery();
-        $dQuery->where("#shipmentId = {$soRec->id}");
-        $dQuery->show('shipmentId,productId,packagingId,quantity,quantityInPack,price,discount,showMode');
-        
-        // Детайлите се сумират по артикул
-        $all = deals_Helper::normalizeProducts(array($dQuery->fetchAll()));
-        
-        $totalAmount = 0;
-        $readyAmount = null;
-        
-        // За всеки се определя колко % може да се изпълни
-        foreach ($all as $pId => $pRec) {
-            $price = (isset($pRec->discount)) ? ($pRec->price - ($pRec->discount * $pRec->price)) : $pRec->price;
-            if(empty($price)){
-                $price = cat_Products::getPrimeCost($pId, $pRec->packagingId, 1, $soRec->valior);
-            }
-            
-            
-            $totalAmount += $pRec->quantity * $price;
-            
-            // Определя се каква сума може да се изпълни
-            $quantityInStock = store_Products::getQuantities($pId, $soRec->storeId)->quantity;
-            $quantityInStock = ($quantityInStock > $pRec->quantity) ? $pRec->quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
-            
-            $amount = $quantityInStock * $price;
-            
-            if (isset($amount)) {
-                $readyAmount += $amount;
-            }
-        }
-        
-        // Готовността е процент на изпълнената сума от общата
-        $readiness = (isset($readyAmount)) ? @round($readyAmount / $totalAmount, 2) : null;
-        
-        // Връщане на изчислената готовност или NULL ако не може да се изчисли
-        return $readiness;
     }
 }

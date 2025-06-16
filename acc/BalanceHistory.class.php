@@ -481,7 +481,7 @@ class acc_BalanceHistory extends core_Manager
         if (round($rec->baseQuantity, 4) < 0) {
             $row->baseQuantity = "<span style='color:red'>{$row->baseQuantity}</span>";
         }
-        
+
         // Нулевия ред е винаги началното салдо
         $zeroRec = array('docId' => 'Начален баланс',
             'valior' => $data->fromDate,
@@ -586,12 +586,21 @@ class acc_BalanceHistory extends core_Manager
         
         $tmpArray = array();
         $quantity = $amount = 0;
-        
+
         // Създаваме масив с ключ вальора на документа, така имаме списък с
         // последните записи за всяка дата
         if (countR($recs)) {
-            foreach ($recs as $rec) {
-                
+
+            foreach ($recs as $k => $rec) {
+                if(is_numeric($k)){
+                    $data->rec->maxBlQuantity = max($rec['blQuantity'], $data->rec->maxBlQuantity);
+                    if(!isset($data->rec->minBlQuantity)){
+                        $data->rec->minBlQuantity = $rec['blQuantity'];
+                    } else {
+                        $data->rec->minBlQuantity = min($rec['blQuantity'], $data->rec->minBlQuantity);
+                    }
+                }
+
                 // Ако няма друг запис за тази дата добавяме го
                 if (empty($tmpArray[$rec['valior']])) {
                     $tmpArray[$rec['valior']] = $rec;
@@ -633,16 +642,16 @@ class acc_BalanceHistory extends core_Manager
         
         // Колко са дните в избрания период
         $daysInPeriod = dt::daysBetween($data->toDate, $data->fromDate) + 1;
-        
+
         // Средното салдо е събраната сума върху дните в периода
         $data->rec->midQuantity = $quantity / $daysInPeriod;
         $data->rec->midAmount = $amount / $daysInPeriod;
-
         // Вербално представяне на средното салдо
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
+        $Double = core_Type::getByName('double(decimals=2)');
         $data->row->midQuantity = $Double->toVerbal($data->rec->midQuantity);
         $data->row->midAmount = $Double->toVerbal($data->rec->midAmount);
+        $data->row->maxBlQuantity = $Double->toVerbal($data->rec->maxBlQuantity);
+        $data->row->minBlQuantity = $Double->toVerbal($data->rec->minBlQuantity);
     }
     
     
@@ -710,7 +719,7 @@ class acc_BalanceHistory extends core_Manager
 
         // Ако сумите на крайното салдо са отрицателни - оцветяваме ги
         $details = $table->get($data->rows, $data->listFields);
-        foreach (array('blQuantity', 'blAmount', 'midQuantity', 'midAmount') as $fld) {
+        foreach (array('blQuantity', 'blAmount', 'midQuantity', 'midAmount', 'maxBlQuantity', 'minBlQuantity') as $fld) {
             if ($data->rec->{$fld} < 0) {
                 $data->row->{$fld} = "<span style='color:red'>{$data->row->{$fld}}</span>";
             }

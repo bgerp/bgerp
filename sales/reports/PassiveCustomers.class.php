@@ -128,6 +128,7 @@ class sales_reports_PassiveCustomers extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        core_App::setTimeLimit(250);
 
         $recs = $shipmentActivContragents = $shipmentPassActivContragents = $incomingMailsCount = $outgoingMailsCount = array();
 

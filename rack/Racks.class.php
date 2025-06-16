@@ -478,14 +478,13 @@ class rack_Racks extends core_Master
                         $BatchDef = batch_Defs::getBatchDef($productId);
                         $pName = cat_Products::getTitleById($productId);
                         $bgColorAll .= ',#' . self::getColor($pName, 130, 240);
-
                         if($BatchDef && is_array($batches)){
                             foreach ($batches as $batch){
                                 $bName = !empty($batch) ? $batch : tr('без партида');
-                                $prodTitle .= "\n" . "{$pName} / {$bName}";
+                                $prodTitle .= (!empty($prodTitle) ? "\n" : '') . "{$pName} / {$bName}";
                             }
                         } else {
-                            $prodTitle .= "\n" . "{$pName}";
+                            $prodTitle .= (!empty($prodTitle) ? "\n" : '') . "{$pName}";
                         }
                     }
 
@@ -512,21 +511,22 @@ class rack_Racks extends core_Master
                 
                 // Ако е неизползваемо
                 if (!isset($title) && $unusable[$posFull]) {
+                    $hint = $posFull . " " . tr('е неизползваемо|*!');
                     $title = 'X';
                     $attr['style'] = 'text-align:center;color:#7c7c7c;';
                     $tdBackground = "background-color:#d3d3d35c;";
-                    $hint = tr('Мястото е неизползваемо|*!');
                 }
                 
                 // Ако е резервирано за нещо
                 if (!isset($title) && ($pId = $reserved[$posFull])) {
                     $title = $pos;
-                    $attr['style'] = 'color:#ff6699;';
+                    $attr['style'] = 'color:#ffe666;';
                     $hint = tr('Запазено място');
                     
                     if ($pId > 0) {
                         $prodTitle = cat_Products::getTitleById($pId);
                         $hint = tr('Запазено място за') . ': ' . $prodTitle;
+                        $tdBackground = "background-color:#000b80c7;";
                     }
                 }
                 
@@ -563,7 +563,7 @@ class rack_Racks extends core_Master
                 
                 $attr['nowrap'] = 'nowrap';
                 $attr['style'] .= "font-size:0.8em;{$tdBackground};padding:3px;";
-                
+
                 if ($hint) {
                     $attr['title'] = "{$hint}";
                 }

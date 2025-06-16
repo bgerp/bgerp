@@ -170,8 +170,15 @@ class store_StockPlanning extends core_Manager
             $threadId = $sourceRec->threadId;
         }
 
+        // Ако очакваното време е в миналото - да се подмени със сега + посоченото време в константа
+        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
         $cu = core_Users::getCurrent();
-        array_walk($array, function($a) use ($now, $classId, $threadId, $id, $cu) {$a->createdOn = $now; $a->createdBy = $cu; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId;});
+        array_walk($array, function($a) use ($now, $classId, $threadId, $id, $cu, $horizonAdd) {
+            $a->createdOn = $now; $a->createdBy = $cu; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId;
+            if($a->date <= $now){
+                $a->date = dt::addSecs($horizonAdd, $now);
+            }
+        });
     }
 
 

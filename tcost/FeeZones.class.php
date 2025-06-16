@@ -468,6 +468,11 @@ class tcost_FeeZones extends core_Master
             } else {
                 $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
                 $cartRow->freeDelivery = currency_Currencies::decorate($cartRow->freeDelivery, $settings->currencyId);
+                if($settings->currencyId == 'BGN') {
+                    $deliveryEuroAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, "EUR");
+                    $deliveryEuroAmountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryEuroAmount);
+                    $cartRow->freeDelivery .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($deliveryEuroAmountVerbal, 'EUR');
+                }
                 $block->append($cartRow->freeDelivery, 'freeDelivery');
                 $tpl->append($block, 'CART_FOOTER');
             }

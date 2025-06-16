@@ -52,4 +52,9 @@
             </div>
         </div>
     </div>
+<!--ET_BEGIN cash_InternalMoneyTransferDetails-->
+<div>
+    [#cash_InternalMoneyTransferDetails#]
+</div>
+<!--ET_END cash_InternalMoneyTransferDetails-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

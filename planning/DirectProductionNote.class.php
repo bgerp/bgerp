@@ -231,7 +231,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->setField('storeId', 'caption=Произвеждане (заприхождаване на произведеното)->В склад,silent,removeAndRefreshForm');
         $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->ОТ склад'),'input,silent,removeAndRefreshForm=inputServicesFrom,placeholder=Незавършено производство,after=storeId');
         $this->FLD('inputServicesFrom', 'enum(unfinished=Незавършено производство,all=Разходи за услуги (без влагане))', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->Услуги от'),'maxRadio=2');
-        $this->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->Подреждане по'), 'notNull,value=auto');
+        $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->Подреждане по'), 'notNull,value=auto');
 		
         $this->setField('deadline', 'caption=Информация->Срок до');
         $this->FLD('debitAmount', 'double(decimals=2)', 'input=none');
@@ -964,6 +964,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec->_isCreated = true;
 
         $details = $mvc->getDefaultDetails($rec);
+
         if(countR($details)) {
             $consignmentProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($rec->threadId, false);
 
@@ -995,8 +996,24 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 planning_DirectProductNoteDetails::save($dRec);
+
+                // От вложените партиди остават само толкова колкото са нужни за крайното к-во
                 if(is_array($dRec->batches)){
-                    batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $dRec->id, $dRec->batches, true);
+                    $neededQty = $dRec->quantity;
+                    $neededBatches = array();
+                    foreach ($dRec->batches as $batch => $qty) {
+                        if ($neededQty <= 0) break;
+
+                        if ($qty <= $neededQty) {
+                            $neededBatches[$batch] = $qty;
+                            $neededQty -= $qty;
+                        } else {
+                            $neededBatches[$batch] = $neededQty;
+                            break;
+                        }
+                    }
+
+                    batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $dRec->id, $neededBatches, true);
                 }
             }
         }

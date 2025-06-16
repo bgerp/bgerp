@@ -829,7 +829,9 @@ class store_ConsignmentProtocols extends core_Master
         if(isset($rec)){
             $res['deliveryTime']['placeholder'] = store_Stores::calcLoadingDate($rec->storeId, $rec->deliveryOn);
             $res['readyOn']['placeholder'] = ($cache) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
-            $res['shipmentOn']['placeholder'] = ($cache) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+
+            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : $rec->deliveryTimeCalc;
+            $res['shipmentOn']['placeholder'] = ($cache) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn, $rec->deliveryTime, $loadingOn);
         }
 
         return $res;
@@ -1110,8 +1112,10 @@ class store_ConsignmentProtocols extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FLD('type', 'enum(all=Всички,send=Предаване,receive=Получаване)', 'caption=Действие,silent');
-        $data->listFilter->showFields .= ',type';
+        $data->listFilter->FLD('pType', 'enum(all=Всички,ours=Наши артикули,other=Чужди артикули)', 'input,caption=Вид,silent');
+        $data->listFilter->showFields .= ',type,pType';
         $data->listFilter->setDefault('type', 'all');
+        $data->listFilter->setDefault('pType', 'all');
         $data->listFilter->input();
 
         if ($filter = $data->listFilter->rec) {
@@ -1139,6 +1143,10 @@ class store_ConsignmentProtocols extends core_Master
                         $data->query->where("1=2");
                     }
                 }
+            }
+
+            if($filter->pType != 'all'){
+                $data->query->where("#productType = '{$filter->pType}'");
             }
         }
     }

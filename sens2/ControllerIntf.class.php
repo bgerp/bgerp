@@ -134,7 +134,7 @@ class sens2_ControllerIntf
      *
      * @return string|null
      */
-    public static function getPicture($config)
+    public function getPicture($config)
     {
         return $this->class->getPicture($config);
     }

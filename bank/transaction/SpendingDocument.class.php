@@ -127,6 +127,8 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                         array('currency_Currencies', $rec->currencyId),
                         'quantity' => $sign * round($rec->amount, 2))
                 );
+
+               // bp($entry);
             } else {
                 $entry[] = array('amount' => $sign * round($amount, 2),
                     'debit' => array($rec->debitAccId,

@@ -560,12 +560,12 @@ class deals_QuotationDetails extends doc_Detail
         $Master = $this->Master;
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
-        $meta = cat_Products::fetchField($pRec->productId, 'canSell');
-
-        $vatExceptionId = cond_VatExceptions::getFromThreadId($Master->fetchField($masterId, 'threadId'));
+        $metaFld = ($this instanceof purchase_QuotationDetails) ? 'canBuy' : 'canSell';
+        $meta = cat_Products::fetchField($pRec->productId, $metaFld);
         if($meta != 'yes') return;
 
         $price = null;
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($Master->fetchField($masterId, 'threadId'));
 
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
         if ($row->price) {

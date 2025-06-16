@@ -557,4 +557,56 @@ class plg_StructureAndOrder extends core_Plugin
             }
         }
     }
+
+
+    /**
+     * Връща многомерен масив с цялото дърво на подадените ид-та на обекта
+     *
+     * @param $mvc
+     * @param $res
+     * @param $arr
+     * @return void
+     */
+    public static function on_AfterGetNestedTree($mvc, &$res, $arr)
+    {
+        if(isset($res)) return $res;
+
+        $items = $tree = array();
+        $arr = arr::make($arr, true);
+
+        // Събират се всички необходими записи нагоре по веригата
+        foreach ($arr as $id) {
+            $currentId = $id;
+            while ($currentId && !isset($items[$currentId])) {
+                $rec = $mvc->fetchRec($currentId);
+                $items[$currentId] = [
+                    'id' => $currentId,
+                    'parent_id' => $rec->saoParentId,
+                    'children' => []
+                ];
+                $currentId = $rec->saoParentId;
+            }
+        }
+
+        // Свързване на децата с родителите чрез референции
+        foreach ($items as $id => &$item) {
+            $parentId = $item['parent_id'];
+            if ($parentId && isset($items[$parentId])) {
+                $items[$parentId]['children'][$id] = &$item;
+            } else {
+                $tree[$id] = &$item; // коренен елемент
+            }
+        }
+
+        // Рекурсивно почистване: остават само вложени ID-та
+        $cleanTree = function ($node) use (&$cleanTree) {
+            $res = array();
+            foreach ($node as $id => $entry) {
+                $res[$id] = $cleanTree($entry['children']);
+            }
+            return $res;
+        };
+
+        $res = $cleanTree($tree);
+    }
 }

@@ -190,7 +190,7 @@ class pos_Terminal extends peripheral_Terminal
 
         // Вкарване на css и js файлове
         $this->pushTerminalFiles($tpl, $rec);
-        $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') .' ...<br> ' . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
+        $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') .'<span id="modalTitleSpan"></span> ...<br> ' . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
         $tpl->append($modalTpl);
         $this->renderWrapping($tpl);
 
@@ -1427,35 +1427,50 @@ class pos_Terminal extends peripheral_Terminal
         $paymentArr["payment-1"] = (object)array('body' => ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true), 'placeholder' => 'PAYMENTS');
         $payments = pos_Points::fetchSelected($rec->pointId);
 
+        $pointRec = pos_Points::fetch($rec->pointId);
+        $peripheralIds = keylist::toArray($pointRec->bankPeripherals);
         if(!isset($rec->revertId)){
             $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
 
             foreach ($payments as $paymentId => $paymentTitle){
                 $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl, 'title' => 'Избор на вид плащане');
-                $currencyCode = cond_Payments::fetchField($paymentId, 'currencyCode');
-                if(!empty($currencyCode)){
-                    $attr['class'] .= ' currencyBtn disabledBtn';
-                }
-
                 $attr['data-sendamount'] = null;
 
                 // Ако е плащане с карта и има периферия подменя се с връзка с касовия апарат
                 if($paymentId == $cardPaymentId){
-                    $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
 
-                    if(is_object($deviceRec)){
-                        $attr['id'] = 'card-payment';
-                        $attr['data-onerror'] = tr('Неуспешно плащане с банковия терминал|*!');
-                        $attr['data-oncancel'] = tr('Отказвано плащане с банков терминал|*!');
-                        $diff = abs($rec->paid - $rec->total);
-                        $attr['data-maxamount'] = $diff;
-                        $attr['data-amountoverallowed'] = tr('Не може да платите повече отколкото се дължи по сметката|*!');
-                        $attr['data-notnumericmsg'] = tr('Невалидна сума за плащане|*!');
-                        $attr['data-sendamount'] = 'yes';
+                    $devices = peripheral_Devices::getDevices('bank_interface_POS');
+                    $selectedDevices = array_intersect_key($devices, $peripheralIds);
+
+                    if(countR($selectedDevices)){
+                        foreach ($selectedDevices as $deviceRec){
+                            $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
+
+                            $attr['id'] = 'card-payment';
+                            $attr['data-diffamount'] = tr("Има разминаване при отчетено плащане|*: {$deviceRec->name}!");
+                            $attr['data-onerror'] = tr("Неуспешно плащане с банковия терминал|*: {$deviceRec->name}!");
+                            $attr['data-oncancel'] = tr("Отказвано плащане с банков терминал|*: {$deviceRec->name}!");
+                            $diff = abs($rec->paid - $rec->total);
+                            $attr['data-maxamount'] = $diff;
+                            $attr['data-amountoverallowed'] = tr('Не може да платите повече отколкото се дължи по сметката|*!');
+                            $attr['data-notnumericmsg'] = tr('Невалидна сума за плащане|*!');
+                            $attr['data-sendamount'] = 'yes';
+                            $attr['data-sendfunction'] = $intf->getSendAmountFncName($deviceRec);
+
+                            $deviceBtnName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
+                            $attr['data-deviceUrl'] = "{$deviceRec->protocol}://{$deviceRec->hostName}:{$deviceRec->port}";
+                            $attr['data-deviceComPort'] = $deviceRec->comPort;
+                            $attr['data-deviceName'] = $deviceBtnName;
+                            $attr['data-deviceId'] = $deviceRec->id;
+                            $cardCaption = "{$deviceBtnName} [" . tr($paymentTitle) . "]";
+                            $paymentArr["payment{$paymentId}|{$deviceRec->id}"] = (object)array('body' => ht::createElement("div", $attr, $cardCaption, true), 'placeholder' => 'PAYMENTS');
+                        }
+                    } else {
+                        $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
                     }
+                } else {
+                    $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
                 }
-
-                $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
             }
         }
         
@@ -1770,10 +1785,17 @@ class pos_Terminal extends peripheral_Terminal
         $tpl->push('pos/tpl/css/no-sass.css', 'CSS');
         
         if (!Mode::is('printing')) {
-            $deviceRec = peripheral_Devices::getDevice('bank_interface_POS');
-            if(is_object($deviceRec)){
+            $pointRec = pos_Points::fetch($rec->pointId);
+
+            // За всяко банково устроство се добавя неговия джаваскрипт
+            $bankDevices = peripheral_Devices::getDevices('bank_interface_POS');
+            $peripheralIds = keylist::toArray($pointRec->bankPeripherals);
+            $selectedDevices = array_intersect_key($bankDevices, $peripheralIds);
+
+            foreach ($selectedDevices as $deviceRec){
                 $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
-                $tpl->append($intf->getJS($deviceRec), 'SCRIPTS');
+                $fncName = $intf->getSendAmountFncName($deviceRec);
+                $tpl->appendOnce($intf->getJS($deviceRec, $fncName), 'SCRIPTS');
             }
 
             $tpl->push('pos/js/scripts.js', 'JS');

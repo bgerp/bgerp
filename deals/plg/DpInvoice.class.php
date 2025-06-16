@@ -104,11 +104,13 @@ class deals_plg_DpInvoice extends core_Plugin
             
             $dpAmount += $dpAmount * $vat;
             $dpAmount = round($dpAmount, 2);
-            
-            if ($rec->dpOperation == 'accrued') {
-                $form->setDefault('amountAccrued', $dpAmount);
-            } elseif ($rec->dpOperation == 'deducted') {
-                $form->setDefault('amountDeducted', $dpAmount);
+
+            if($dpAmount){
+                if ($rec->dpOperation == 'accrued') {
+                    $form->setDefault('amountAccrued', $dpAmount);
+                } elseif ($rec->dpOperation == 'deducted') {
+                    $form->setDefault('amountDeducted', $dpAmount);
+                }
             }
         }
         
@@ -248,7 +250,7 @@ class deals_plg_DpInvoice extends core_Plugin
         $rate = ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
         
         $dpAmount /= $rate;
-        $dpAmount = core_Math::roundNumber($dpAmount);
+        $dpAmount = round($dpAmount, 6);
         $expectAdvanceForeignerDp = null;
 
         $isForeignCountryId = $form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'");
@@ -282,7 +284,7 @@ class deals_plg_DpInvoice extends core_Plugin
                 }
                 break;
             case 'deducted':
-                if ($dpAmount) {
+                if ($dpAmount > 0) {
                     $form->setDefault('amountDeducted', $dpAmount);
                 }
                 break;
@@ -482,26 +484,16 @@ class deals_plg_DpInvoice extends core_Plugin
     public static function on_AfterPrepareDetail($mvc, &$res, &$data)
     {
         $masterRec = $data->masterData->rec;
-        
-        // Ако е ДИ или КИ не правим нищо
-        if (!($mvc instanceof sales_ProformaDetails) && $masterRec->type != 'invoice') {
-            
-            return;
-        }
-        
+
         // Ако има сума на авансовото плащане и тя не е "0"
         if ($masterRec->dpAmount) {
-            
+
             // Сумата се обръща в валутата на фактурата
             $dpAmount = currency_Currencies::round($masterRec->dpAmount / $masterRec->rate);
-            
-            // Обръщане на сумата във вербален вид
-            $Double = cls::get('type_Double');
-            $Double->params['decimals'] = 2;
-            $dpAmount = $Double->toVerbal($dpAmount);
-            
-            // Записване в $data
-            $data->dpInfo = (object) array('dpAmount' => $dpAmount, 'dpOperation' => $masterRec->dpOperation);
+            $sign = $masterRec->type == 'dc_note' ? -1 : 1;
+            $dpAmount = $sign * $dpAmount;
+            $dpAmountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($dpAmount);
+            $data->dpInfo = (object) array('dpAmount' => $dpAmount, 'dpOperation' => $masterRec->dpOperation, 'dpAmountVerbal' => $dpAmountVerbal);
         }
     }
     
@@ -527,29 +519,37 @@ class deals_plg_DpInvoice extends core_Plugin
             
             return;
         }
-        
+
         // Ако няма записи, да не се показва реда "няма записи"
         if (empty($data->rows)) {
             $tpl->removeBlock('NO_ROWS');
         }
 
+        $masterRec = $data->masterData->rec;
         $RichText = core_Type::getByName('richtext');
-        $dpReason = (!empty($data->masterData->rec->dpReason)) ? $RichText->toVerbal($data->masterData->rec->dpReason) : $RichText->toVerbal(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation));
-        $reason = (!empty($data->masterData->rec->dpReason)) ? $dpReason : ht::createHint($dpReason, 'Основанието ще бъде записано при контиране', 'notice', false);
+        $dpReason = (!empty($masterRec->dpReason)) ? $RichText->toVerbal($masterRec->dpReason) : $RichText->toVerbal(self::getReasonText($masterRec, $data->dpInfo->dpOperation));
+        $reason = (!empty($masterRec->dpReason)) ? $dpReason : ht::createHint($dpReason, 'Основанието ще бъде записано при контиране', 'notice', false);
         $reason = !empty($reason) ? "</br>" . $reason : '';
-        
+
         if ($data->dpInfo->dpOperation == 'accrued') {
             $colspan = countR($data->listFields) - 1;
-            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . ' <span' . $reason . "<td style='text-align:right'>[#dpAmountVerbal#]</td></td></tr>");
         } else {
             $fields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $mvc->hideListFieldsIfEmpty);
-            
+
+            $deductCaption = ($masterRec->type == 'invoice' || !isset($masterRec->type)) ? tr('Приспадане на авансово плащане') : ($data->dpInfo->dpAmount < 0 ? tr('Увеличаване на приспаднат аванс') : tr('Намаляване на приспаднат аванс'));
+            if ($data->dpInfo->dpAmount < 0) {
+                $data->dpInfo->dpAmount = "<span style='color:red'>{$data->dpInfo->dpAmountVerbal}</span>";
+            } elseif ($data->dpInfo->dpAmount > 0) {
+                $data->dpInfo->dpAmount = "<span style='color:green'>+{$data->dpInfo->dpAmountVerbal}</span>";
+            }
+
             $colspan = countR($fields) - 1;
             $colspan = isset($fields['reff']) ? $colspan - 1 : $colspan;
-            $lastRow = new ET("<tr><td colspan='{$colspan}'>" . tr('Приспадане на авансово плащане') . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+            $lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . $deductCaption . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         }
 
-        if(!doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $data->masterData->rec)){
+        if(!doc_plg_HidePrices::canSeePriceFields($data->masterMvc, $masterRec)){
             $data->dpInfo->dpAmount = doc_plg_HidePrices::getBuriedElement();
         }
 
@@ -570,7 +570,16 @@ class deals_plg_DpInvoice extends core_Plugin
     {
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
         $valior = $firstDoc->getVerbal('valior');
-        
+
+        if($masterRec->type == 'dc_note') {
+            $origin = doc_Containers::getDocument($masterRec->originId);
+            if(!empty($masterRec->dcReason)) return $masterRec->dcReason;
+
+            $number = str_pad($origin->fetchField('number'), 10, "0", STR_PAD_LEFT);
+
+            return tr("по фактура|* №") . $number;
+        }
+
         $deals = array();
         if ($firstDoc->isInstanceOf('deals_DealMaster')) {
             $closedDeals = $firstDoc->fetchField('closedDocuments');
@@ -597,7 +606,9 @@ class deals_plg_DpInvoice extends core_Plugin
         
         $pArr = $invArr = array();
         while ($iRec = $iQuery->fetch()) {
-            $invArr[$iRec->id] = '№' . sales_Invoices::recToVerbal($iRec)->number;
+            $number = str_pad($iRec->number, 10, "0", STR_PAD_LEFT);
+
+            $invArr[$iRec->id] = "№{$number}";
         }
         
         $pQuery = sales_Proformas::getQuery();
@@ -605,7 +616,9 @@ class deals_plg_DpInvoice extends core_Plugin
         $pQuery->where("#threadId = '{$firstDoc->fetchField('threadId')}'");
         
         while ($pRec = $pQuery->fetch()) {
-            $pArr[$pRec->id] = '№' . sales_Invoices::recToVerbal($pRec)->number;
+            $number = str_pad($pRec->number, 10, "0", STR_PAD_LEFT);
+
+            $pArr[$pRec->id] = "№{$number}";
         }
         
         $handleArr = countR($invArr) ? $invArr : $pArr;
@@ -622,7 +635,7 @@ class deals_plg_DpInvoice extends core_Plugin
         } else {
             $misc = tr("по {$caption}|* ") . implode(', ', $deals);
         }
-        
+
         return $misc;
     }
     
@@ -658,10 +671,19 @@ class deals_plg_DpInvoice extends core_Plugin
      */
     public static function on_AfterCalculateAmount($mvc, &$res, &$recs, &$masterRec)
     {
-        if (!isset($masterRec->dpAmount)) {
-            
-            return;
+        if (!isset($masterRec->dpAmount)) return;
+
+
+        $dpAmount = $masterRec->dpAmount;
+        $dpVatGroupId = $masterRec->dpVatGroupId;
+        if($masterRec->type == 'dc_note'){
+            $originInv = doc_Containers::getDocument($masterRec->originId);
+            $dpVatGroupId = $originInv->fetchField('dpVatGroupId');
+            if($masterRec->dpOperation == 'deducted'){
+                $dpAmount = -1 * $dpAmount;
+            }
         }
+
         $total = &$mvc->Master->_total;
 
         // Ако няма детайли, инстанцираме обекта
@@ -671,8 +693,8 @@ class deals_plg_DpInvoice extends core_Plugin
         
         // Колко е ддс-то
         $vat = acc_Periods::fetchByDate($masterRec->date)->vatRate;
-        if(isset($masterRec->dpVatGroupId)){
-            $vat = acc_VatGroups::fetchField($masterRec->dpVatGroupId, 'vat');
+        if(isset($dpVatGroupId)){
+            $vat = acc_VatGroups::fetchField($dpVatGroupId, 'vat');
         }
 
         if ($masterRec->vatRate != 'yes' && $masterRec->vatRate != 'separate') {
@@ -680,18 +702,18 @@ class deals_plg_DpInvoice extends core_Plugin
         }
 
         // Закръгляне на сумите
-        $dpVat = $masterRec->dpAmount * $vat / $masterRec->rate;
-        $dpAmount = $masterRec->dpAmount / $masterRec->rate;
+        $dpVat = $dpAmount * $vat / $masterRec->rate;
+        $dpAmount = $dpAmount / $masterRec->rate;
         
         // Добавяне на авансовите данни в тотала
         $total->vat += $dpVat;
         $total->amount += $dpAmount;
 
         if(!isset($total->vats["{$vat}"])){
-            $total->vats["{$vat}"] = (object) array('amount' => $dpVat, 'sum' => $masterRec->dpAmount / $masterRec->rate);
+            $total->vats["{$vat}"] = (object) array('amount' => $dpVat, 'sum' => $dpAmount);
         } else {
             $total->vats["{$vat}"]->amount += $dpVat;
-            $total->vats["{$vat}"]->sum += $masterRec->dpAmount / $masterRec->rate;
+            $total->vats["{$vat}"]->sum += $dpAmount;
         }
     }
 

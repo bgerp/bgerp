@@ -97,6 +97,12 @@ abstract class store_DocumentMaster extends core_Master
 
 
     /**
+     * Работен кеш
+     */
+    protected static $logisticDataCache = array('cData' => array(), 'locationId' => array(), 'countryId' => array());
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
@@ -118,7 +124,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
-        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
 		$mvc->FLD('note', 'richtext(bucket=Notes,passage,rows=6)', 'caption=Допълнително->Бележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -220,8 +226,6 @@ abstract class store_DocumentMaster extends core_Master
         } else {
             $data->form->setField('prevShipment', 'input=none');
         }
-
-        $form->setDefault('detailOrderBy', $dealInfo->get('detailOrderBy'));
     }
     
     
@@ -909,11 +913,17 @@ abstract class store_DocumentMaster extends core_Master
         $ownCountryId = $ownCompany->country;
 
         if ($locationId = store_Stores::fetchField($rec->storeId, 'locationId')) {
-            $storeLocation = crm_Locations::fetch($locationId);
+            if(!array_key_exists($locationId, static::$logisticDataCache['locationId'])){
+                static::$logisticDataCache['locationId'][$locationId] = crm_Locations::fetch($locationId);
+            }
+            $storeLocation = static::$logisticDataCache['locationId'][$locationId];
             $ownCountryId = $storeLocation->countryId;
         }
-        
-        $contragentData = doc_Folders::getContragentData($rec->folderId);
+
+        if(!array_key_exists($rec->folderId, static::$logisticDataCache['cData'])){
+            static::$logisticDataCache['cData'][$rec->folderId] = doc_Folders::getContragentData($rec->folderId);
+        }
+        $contragentData = static::$logisticDataCache['cData'][$rec->folderId];
         $contragentCountryId = $contragentData->countryId;
         
         if (isset($rec->locationId)) {
@@ -926,7 +936,11 @@ abstract class store_DocumentMaster extends core_Master
         
         // Подготвяне на данните за разтоварване
         $res = array();
-        $res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+        if(!array_key_exists($ownCountryId, static::$logisticDataCache['countryId'])){
+            static::$logisticDataCache['countryId'][$ownCountryId] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+        }
+
+        $res["{$ownPart}Country"] = static::$logisticDataCache['countryId'][$ownCountryId];
         
         if (isset($storeLocation)) {
             $res["{$ownPart}PCode"] = !empty($storeLocation->pCode) ? $storeLocation->pCode : null;
@@ -941,17 +955,19 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$ownPart}Place"] = !empty($ownCompany->place) ? $ownCompany->place : null;
             $res["{$ownPart}Address"] = !empty($ownCompany->address) ? $ownCompany->address : null;
         }
-        
-        $res["{$ownPart}Company"] = $ownCompany->name;
-        $toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-        $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
 
-        if($res["{$ownPart}Person"]){
-            $personId = crm_Profiles::getPersonByUser($toPersonId);
-            if(isset($personId)){
-                $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
-                if(!empty($buzPhones)){
-                    $res["{$ownPart}PersonPhones"] = $buzPhones;
+        if(!Mode::is('calcOnlyDeliveryPart')){
+            $res["{$ownPart}Company"] = $ownCompany->name;
+            $toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+            $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
+
+            if($res["{$ownPart}Person"]){
+                $personId = crm_Profiles::getPersonByUser($toPersonId);
+                if(isset($personId)){
+                    $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+                    if(!empty($buzPhones)){
+                        $res["{$ownPart}PersonPhones"] = $buzPhones;
+                    }
                 }
             }
         }
@@ -1008,11 +1024,13 @@ abstract class store_DocumentMaster extends core_Master
         }
         
         $res['deliveryTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : ($rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY'));
-        $res['ourReff'] = '#' . $this->getHandle($rec);
 
-        $totalInfo = $this->getTotalTransportInfo($rec);
-        $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $totalInfo->weight;
-        $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $totalInfo->volume;
+        if(!Mode::is('calcOnlyDeliveryPart')){
+            $res['ourReff'] = '#' . $this->getHandle($rec);
+            $totalInfo = $this->getTotalTransportInfo($rec);
+            $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $totalInfo->weight;
+            $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $totalInfo->volume;
+        }
 
         if(!empty($rec->addressInfo)){
             $res["{$contrPart}AddressInfo"] = $rec->addressInfo;

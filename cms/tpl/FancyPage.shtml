@@ -10,7 +10,8 @@
     [#TOP_PAGE#]
     <header>
 
-        <div class="narrowCenter">[#HEADER_IMG#]
+        <div class="narrowCenter">
+            <a href="/"> [#HEADER_IMG#]</a>
             <!--ET_BEGIN CORE_APP_NAME-->
 
             <div class='app-name'>[#CORE_APP_NAME#]</div>
@@ -48,7 +49,7 @@
     <!--ET_END FOOTER_CENTER_NARROW-->
     [#BEFORE_FOOTER#]
     <!--ET_BEGIN FOOTER_CENTER_NARROW-->
-    <div class="additionalFooter" style="background-color: red !important;">
+    <div class="additionalFooter" style="background-color: #eee !important;">
         <div class='footer-links'>[#FOOTER_CENTER_NARROW#]</div>
     </div>
     <!--ET_END FOOTER_CENTER_NARROW-->
