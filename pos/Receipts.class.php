@@ -907,11 +907,7 @@ class pos_Receipts extends core_Master
     public static function checkQuantity($rec, &$error, &$warning = null)
     {
         // Ако е забранено продаването на неналични артикули да се проверява
-        $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
-        if ($notInStockChosen == 'yes') {
-
-            return true;
-        }
+        if (store_Setup::canDoShippingWhenStockIsNegative()) return true;
 
         $today = dt::today();
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
