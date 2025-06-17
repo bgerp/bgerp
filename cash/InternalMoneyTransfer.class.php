@@ -692,7 +692,6 @@ class cash_InternalMoneyTransfer extends core_Master
         // Изчисляване на сумата на база събраните плащания за инкасиране
         $amount = 0;
         $dQuery = cash_InternalMoneyTransferDetails::getQuery();
-        $dQuery->EXT('amount', 'cash_NonCashPaymentDetails', 'externalName=amount,externalKey=recId');
         $dQuery->EXT('paymentId', 'cash_NonCashPaymentDetails', 'externalName=paymentId,externalKey=recId');
         $dQuery->where("#transferId = {$rec->id}");
         while($dRec = $dQuery->fetch()) {
