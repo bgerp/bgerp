@@ -998,22 +998,24 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 planning_DirectProductNoteDetails::save($dRec);
 
                 // От вложените партиди остават само толкова колкото са нужни за крайното к-во
-                if(is_array($dRec->batches)){
-                    $neededQty = $dRec->quantity;
-                    $neededBatches = array();
-                    foreach ($dRec->batches as $batch => $qty) {
-                        if ($neededQty <= 0) break;
+                if(core_Packs::isInstalled('batches')){
+                    if(is_array($dRec->batches)){
+                        $neededQty = $dRec->quantity;
+                        $neededBatches = array();
+                        foreach ($dRec->batches as $batch => $qty) {
+                            if ($neededQty <= 0) break;
 
-                        if ($qty <= $neededQty) {
-                            $neededBatches[$batch] = $qty;
-                            $neededQty -= $qty;
-                        } else {
-                            $neededBatches[$batch] = $neededQty;
-                            break;
+                            if ($qty <= $neededQty) {
+                                $neededBatches[$batch] = $qty;
+                                $neededQty -= $qty;
+                            } else {
+                                $neededBatches[$batch] = $neededQty;
+                                break;
+                            }
                         }
-                    }
 
-                    batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $dRec->id, $neededBatches, true);
+                        batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $dRec->id, $neededBatches, true);
+                    }
                 }
             }
         }
