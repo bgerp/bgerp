@@ -980,10 +980,7 @@ class batch_BatchesInDocuments extends core_Manager
      */
     public static function saveBatches($detailClassId, $detailRecId, $batchesArr, $sync = false, $increment = false)
     {
-        if (!is_array($batchesArr)) {
-            
-            return;
-        }
+        if (!is_array($batchesArr)) return;
 
         $Detail = cls::get($detailClassId);
         $recInfo = $Detail->getRowInfo($detailRecId);
