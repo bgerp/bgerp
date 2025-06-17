@@ -953,7 +953,7 @@ class pos_Receipts extends core_Master
 
         if ($freeQuantity < 0) {
             $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity);
-            $warning = "|* {$pName}: Количеството e над минималното разполагаемото|* {$originalFreeQuantityVerbal} |в склад|*: " . store_Stores::getTitleById($rec->storeId);
+            $error = "|* {$pName}: Количеството e над минималното разполагаемото|* {$originalFreeQuantityVerbal} |в склад|*: " . store_Stores::getTitleById($rec->storeId);
 
             return false;
         }
