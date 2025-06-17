@@ -102,16 +102,10 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
             'caption=Хоризонт,after=documentType'
         );
 
-        // ===============================
-        // Поле: Групиране по контрагент
-        // Тип: enum със стойности "yes" и "no"
-        // Представено като радио бутон (maxRadio=2)
-        // По подразбиране: да
-        // ===============================
         $fieldset->FLD(
-            'groupByContragent',
-            'enum(yes=Да,no=Не)',
-            'caption=Групиране->по контрагент,input=radio,maxRadio=2,after=horizon'
+            'payDateOffset',
+            'int',
+            'caption=Отместване на падежа (дни),after=horizon,default=14'
         );
 
     }
@@ -129,8 +123,8 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     {
         $form = &$data->form;
 
-        if (!isset($form->rec->groupByContragent)) {
-            $form->rec->groupByContragent = 'yes';
+        if (!isset($form->rec->payDateOffset)) {
+            $form->rec->payDateOffset = 14;
         }
 
         $accounts = self::getContableAccounts($form->rec);
@@ -211,37 +205,18 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     {
         $docClasses = $caseRecs = $bankRecs = $recs = array();
 
-        // Взимаме избраните банкови сметки или всички, ако не са избрани
-        $accountsId = isset($rec->accountId)
-            ? keylist::toArray($rec->accountId)
-            : array_keys(self::getContableAccounts($rec));
+        $accountsId = isset($rec->accountId) ? keylist::toArray($rec->accountId) : array_keys(self::getContableAccounts($rec));
+        $casesId = isset($rec->caseId) ? keylist::toArray($rec->caseId) : array_keys(self::getContableCases($rec));
 
-        // Взимаме избраните каси или всички, ако не са избрани
-        $casesId = isset($rec->caseId)
-            ? keylist::toArray($rec->caseId)
-            : array_keys(self::getContableCases($rec));
-
-        // Поле за филтриране по вид документ
         $documentFld = ($rec->documentType) ? 'documentType' : 'document';
+
         $docClasses = keylist::toArray($rec->documentType);
 
-        // Дали са избрани и каса, и сметка
         $both = (!isset($rec->accountId) && !isset($rec->caseId)) || (isset($rec->accountId, $rec->caseId));
 
-        // ➕ Активиране на групиране по контрагент, ако е избрано от формата
-        if ($rec->groupByContragent === 'yes') {
-            if (!is_object($data)) {
-                $data = (object)[];
-            }
-            $data->groupByField = 'contragentName';
-        }
-
-        // ======================
-        // Обработка на банкови документи
-        // ======================
+        // Банкови платежни документи
         if ($both || isset($rec->accountId)) {
             foreach (array('bank_SpendingDocuments', 'bank_IncomeDocuments') as $pDoc) {
-                // Филтриране по вид документ (ако е избран)
                 if (empty($docClasses) || in_array($pDoc::getClassId(), $docClasses)) {
                     $cQuery = $pDoc::getQuery();
                     $cQuery->in('ownAccount', $accountsId);
@@ -250,17 +225,14 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                     $cQuery->orderBy('termDate', 'ASC');
 
                     while ($cRec = $cQuery->fetch()) {
-                        // Проверка за хоризонт – пропускаме записи след хоризонта
-                        $payDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
+                        $baseDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
+                        $payDate = dt::addDays($rec->payDateOffset, $baseDate);
 
-                        if (!empty($rec->horizon)) {
-                            $horizon = dt::addSecs($rec->horizon, dt::today(), false);
-                            if ($payDate && ($payDate > $horizon)) {
-                                continue;
-                            }
+                        $horizon = dt::addSecs($rec->horizon, dt::today(), false);
+                        if (!empty($rec->horizon) && $payDate > $horizon) {
+                            continue;
                         }
 
-                        // Проверка на права за достъп до документа
                         $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
 
                         if (core_Users::getCurrent() != $cRec->createdBy) {
@@ -270,32 +242,29 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                             }
                         }
 
-                        // Събиране на резултат
-                        $bankRecs[$cRec->containerId] = (object)[
-                            'containerId'     => $cRec->containerId,
-                            'amountDeal'      => $cRec->amountDeal,
-                            'totalSumContr'   => array(),
-                            'className'       => $className,
-                            'payDate'         => $payDate,
-                            'termDate'        => $cRec->termDate,
-                            'valior'          => $cRec->valior,
-                            'currencyId'      => $cRec->currencyId,
-                            'documentId'      => $cRec->id,
-                            'folderId'        => $cRec->folderId,
-                            'createdOn'       => $cRec->createdOn,
-                            'createdBy'       => $cRec->createdBy,
-                            'ownAccount'      => $cRec->ownAccount,
-                            'peroCase'        => $cRec->peroCase,
-                            'contragentName'  => $cRec->contragentName,
-                        ];
+                        $bankRecs[$cRec->containerId] = (object)array(
+                            'containerId' => $cRec->containerId,
+                            'amountDeal' => $cRec->amountDeal,
+                            'totalSumContr' => array(),
+                            'className' => $className,
+                            'payDate' => $payDate,
+                            'termDate' => $cRec->termDate,
+                            'valior' => $cRec->valior,
+                            'currencyId' => $cRec->currencyId,
+                            'documentId' => $cRec->id,
+                            'folderId' => $cRec->folderId,
+                            'createdOn' => $cRec->createdOn,
+                            'createdBy' => $cRec->createdBy,
+                            'ownAccount' => $cRec->ownAccount,
+                            'peroCase' => $cRec->peroCase,
+                            'contragentName' => $cRec->contragentName,
+                        );
                     }
                 }
             }
         }
 
-        // ======================
-        // Обработка на касови документи
-        // ======================
+        // Касови платежни документи
         if ($both || isset($rec->caseId)) {
             foreach (array('cash_Rko', 'cash_Pko') as $pDoc) {
                 if (empty($docClasses) || in_array($pDoc::getClassId(), $docClasses)) {
@@ -306,13 +275,12 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                     $cQuery->orderBy('termDate', 'ASC');
 
                     while ($cRec = $cQuery->fetch()) {
-                        $payDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
+                        $baseDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
+                        $payDate = dt::addDays($rec->payDateOffset, $baseDate);
 
-                        if (!empty($rec->horizon)) {
-                            $horizon = dt::addSecs($rec->horizon, dt::today(), false);
-                            if ($payDate && ($payDate > $horizon)) {
-                                continue;
-                            }
+                        $horizon = dt::addSecs($rec->horizon, dt::today(), false);
+                        if (!empty($rec->horizon) && $payDate > $horizon) {
+                            continue;
                         }
 
                         $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
@@ -324,63 +292,55 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                             }
                         }
 
-                        $caseRecs[$cRec->containerId] = (object)[
-                            'containerId'     => $cRec->containerId,
-                            'amountDeal'      => $cRec->amountDeal,
-                            'totalSumContr'   => array(),
-                            'className'       => $className,
-                            'payDate'         => $payDate,
-                            'termDate'        => $cRec->termDate,
-                            'valior'          => $cRec->valior,
-                            'currencyId'      => $cRec->currencyId,
-                            'documentId'      => $cRec->id,
-                            'folderId'        => $cRec->folderId,
-                            'createdOn'       => $cRec->createdOn,
-                            'createdBy'       => $cRec->createdBy,
-                            'ownAccount'      => $cRec->ownAccount,
-                            'peroCase'        => $cRec->peroCase,
-                            'contragentName'  => $cRec->contragentName,
-                        ];
+                        $caseRecs[$cRec->containerId] = (object)array(
+                            'containerId' => $cRec->containerId,
+                            'amountDeal' => $cRec->amountDeal,
+                            'totalSumContr' => array(),
+                            'className' => $className,
+                            'payDate' => $payDate,
+                            'termDate' => $cRec->termDate,
+                            'valior' => $cRec->valior,
+                            'currencyId' => $cRec->currencyId,
+                            'documentId' => $cRec->id,
+                            'folderId' => $cRec->folderId,
+                            'createdOn' => $cRec->createdOn,
+                            'createdBy' => $cRec->createdBy,
+                            'ownAccount' => $cRec->ownAccount,
+                            'peroCase' => $cRec->peroCase,
+                            'contragentName' => $cRec->contragentName,
+                        );
                     }
                 }
             }
         }
 
-        // Обединяване на резултатите от двете групи документи
         $recs = $bankRecs + $caseRecs;
 
-        // ======================
-        // Групиране по контрагент (обща сума по folderId)
-        // ======================
-        $totalContragentaSumArr = [];
-
+        // Изчисляване на общите суми по контрагент и валута
+        $totalContragentaSumArr = array();
         foreach ($recs as $r) {
             $m = 1;
             $DoocClass = cls::get($r->className);
-
-            // Приходни документи: положителна сума
-            if (!in_array($DoocClass->abbr, ['Pbd', 'Pko'])) {
-                $m = -1; // разход → отрицателна
+            if (!in_array($DoocClass->abbr, array('Pbd', 'Pko'))) {
+                $m = -1;
             }
 
-            // Сумиране по folderId (контрагент)
-            if (!array_key_exists($r->folderId, $totalContragentaSumArr)) {
-                $totalContragentaSumArr[$r->folderId] = $r->amountDeal * $m;
-            } else {
-                $totalContragentaSumArr[$r->folderId] += $r->amountDeal * $m;
+            $curCode = currency_Currencies::getCodeById($r->currencyId);
+            if (!isset($totalContragentaSumArr[$r->folderId])) {
+                $totalContragentaSumArr[$r->folderId] = array();
             }
+            if (!isset($totalContragentaSumArr[$r->folderId][$curCode])) {
+                $totalContragentaSumArr[$r->folderId][$curCode] = 0;
+            }
+            $totalContragentaSumArr[$r->folderId][$curCode] += $r->amountDeal * $m;
 
-            // Запазваме референция към сумата, за визуализиране
             $r->totalSumContr = $totalContragentaSumArr;
         }
 
-        // Финално сортиране по дата на плащане
-        usort($recs, [$this, 'orderByPayDate']);
+        usort($recs, array($this, 'orderByPayDate'));
 
         return $recs;
     }
-
-
 
     public function orderByPayDate($a, $b)
     {
@@ -426,92 +386,72 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        // Зареждане на типове за форматиране
+        // Зареждаме типове за форматиране
         $Int = cls::get('type_Int');
         $Double = core_Type::getByName('double(smartRound)');
         $Date = cls::get('type_Date');
 
-        // Инициализиране на резултатния обект
         $row = new stdClass();
 
-        // Визуализиране на документа (линк към него)
+        // Връзка към документа
         $DoocClass = cls::get($dRec->className);
         $row->documentId = $DoocClass->getLink($dRec->documentId, 0);
 
-        // --- ПОЛЕ: Контрагент (възможно групиране) ---
-
-        // Проверка дали е групирано по контрагент чрез наличието на totalSumContr
-        if (!isset($dRec->totalSumContr) || empty($dRec->totalSumContr)) {
-            // Няма групиране → показваме само името на контрагента
+        // Име на контрагента
+        if (!$rec->data->groupByField) {
+            // Без групиране – само името
             $row->contragentName = $dRec->contragentName;
         } else {
-            // Групирано → добавяме обща сума с оцветяване
+            // С групиране – обобщена сума по валута
+            $sums = array();
 
-            $sum = $dRec->totalSumContr[$dRec->folderId];
-            $verbalSum = core_Type::getByName('double(decimals=2)')->toVerbal($sum);
-            $currencyCode = currency_Currencies::getCodeById($dRec->currencyId);
+            if (isset($dRec->totalSumContr[$dRec->folderId])) {
+                foreach ($dRec->totalSumContr[$dRec->folderId] as $cur => $val) {
+                    $absVal = abs($val);
+                    $verbalVal = $Double->toVerbal($absVal);
 
-            if ($sum >= 0) {
-                // Положителна сума → зелено
-                $row->contragentName = $dRec->contragentName .
-                    '<span style="color: green" class="fright">' .
-                    $verbalSum .
-                    '<span class="cCode" style="position:relative; top: -2px; margin-left: 2px;">' .
-                    $currencyCode . '</span>';
-            } else {
-                // Отрицателна сума → червено
-                $row->contragentName = $dRec->contragentName .
-                    '<span style="color: red" class="fright">' .
-                    $verbalSum .
-                    '<span class="cCode" style="position:relative; top: -2px; margin-left: 2px;">' .
-                    $currencyCode . '</span>';
+                    // Добавяме знака ръчно, ако е отрицателна стойност
+                    $displayVal = ($val < 0) ? '-' . $verbalVal : $verbalVal;
+
+                    // Оцветяване със styleIfNegative
+                    $styledVal = ht::styleIfNegative($displayVal, $val);
+
+                    $sums[] = "<span class='fright'>{$styledVal} <span class='cCode' style='position:relative; top: -2px; margin-left: 2px;'>{$cur}</span></span>";
+                }
             }
+
+            $row->contragentName = $dRec->contragentName . implode('', $sums);
         }
 
-        // --- ПОЛЕ: Автор и дата на създаване ---
-
+        // Данни за създаване
         if (isset($dRec->createdBy)) {
-            // Създал документ – показваме като линк
             $row->createdBy = crm_Profiles::createLink($dRec->createdBy);
-
-            // Дата на създаване
             $row->createdOn = $Date->toVerbal($dRec->createdOn);
         }
 
-        // Сглобяване на поле "Създадено"
         $row->created = $row->createdOn . ' от ' . $row->createdBy;
 
-        // --- ПОЛЕ: Сума ---
+        // Сума по документа
+        $val = $dRec->amountDeal;
+        $absVal = abs($val);
+        $verbalVal = $Double->toVerbal($absVal);
+        $displayVal = ($val < 0) ? '-' . $verbalVal : $verbalVal;
+        $styledAmount = ht::styleIfNegative($displayVal, $val);
 
-        // Подсказка с банковата сметка или каса
+        // Tooltip за сметка или каса
         $hint = ($dRec->ownAccount)
             ? bank_OwnAccounts::getTitleById($dRec->ownAccount)
             : cash_Cases::getTitleById($dRec->peroCase);
+        $hint = $hint ?: 'не посочена';
 
-        $hint = $hint ?: 'не посочена'; // ако няма стойност
+        $row->amountDeal = ht::createHint($styledAmount, $hint, 'notice');
 
-        // Цветово разграничение: зелено за приход, червено за разход
-        if (in_array($DoocClass->abbr, array('Pbd', 'Pko'))) {
-            // Приход
-            $amountHtml = '<span style="color: green">' .
-                core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal) .
-                '</span>';
-        } else {
-            // Разход
-            $amountHtml = '<span style="color: red">' .
-                core_Type::getByName('double(decimals=2)')->toVerbal($dRec->amountDeal) .
-                '</span>';
-        }
-
-        // Добавяне на hint
-        $row->amountDeal = ht::createHint($amountHtml, $hint, 'notice');
-
-        // --- ПОЛЕ: Дата за плащане ---
+        // Дата на плащане
         $row->payDate = ($dRec->payDate)
             ? $Date->toVerbal($dRec->payDate)
             : tr('|*<span class="quiet">|не е посочен|*</span>');
 
-        // --- ПОЛЕ: Валута ---
+        // Код на валутата
         if (isset($dRec->currencyId)) {
             $row->currencyId = currency_Currencies::getCodeById($dRec->currencyId);
         }
@@ -560,7 +500,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         $toolbar = cls::get('core_Toolbar');
 
-        //$toolbar->addBtn('Групирай по контрагент', toUrl($artUrl1));
+        $toolbar->addBtn('Групирай по контрагент', toUrl($artUrl1));
         $toolbar->addBtn('Избери контрагент', toUrl($artUrl));
 
         $fieldTpl->append('<b>' . $toolbar->renderHtml() . '</b>', 'button');
