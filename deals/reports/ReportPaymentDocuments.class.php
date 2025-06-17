@@ -42,7 +42,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField;
+    protected $groupByField = 'contragentName';
 
 
     /**
@@ -52,64 +52,29 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
 
     /**
-     * Добавя полетата на драйвъра към формата на справката
+     * Добавя полетата на драйвера към формата за справката
      *
-     * @param core_Fieldset $fieldset - обект за добавяне на формови полета
+     * @param core_Fieldset $fieldset - обектът на формата, към който се добавят полета
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        // ===============================
-        // Поле: Банкова сметка
-        // Тип: keylist към модел bank_OwnAccounts
-        // Позволява избор на една или повече банкови сметки
-        // ===============================
-        $fieldset->FLD(
-            'accountId',
-            'keylist(mvc=bank_OwnAccounts,select=title,allowEmpty)',
-            'caption=Банкова сметка,placeholder=Всички,after=title'
-        );
+        // Филтър по банкови сметки (взема се от bank_OwnAccounts)
+        $fieldset->FLD('accountId', 'keylist(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Банкова сметка,placeholder=Всички,after=title');
 
-        // ===============================
-        // Поле: Каса
-        // Тип: keylist към модел cash_Cases
-        // Позволява избор на една или повече каси
-        // ===============================
-        $fieldset->FLD(
-            'caseId',
-            'keylist(mvc=cash_Cases,select=name,allowEmpty)',
-            'caption=Каса,placeholder=Всички,after=accountId'
-        );
+        // Филтър по каси (взема се от cash_Cases)
+        $fieldset->FLD('caseId', 'keylist(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,placeholder=Всички,after=accountId');
 
-        // ===============================
-        // Поле: Вид на документа
-        // Тип: keylist към core_Classes
-        // Позволява избор на вид документ (напр. приходен, разходен)
-        // ===============================
-        $fieldset->FLD(
-            'documentType',
-            'keylist(mvc=core_Classes,select=title)',
-            'caption=Документи,placeholder=Всички,after=caseId'
-        );
+        // Филтър по тип документ (взема се от core_Classes)
+        $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,placeholder=Всички,after=caseId');
 
-        // ===============================
-        // Поле: Хоризонт
-        // Тип: време (брой секунди)
-        // Определя времевия период, в който да се търсят документи
-        // ===============================
-        $fieldset->FLD(
-            'horizon',
-            'time',
-            'caption=Хоризонт,after=documentType'
-        );
+        // Хоризонт от време (в сек.)
+        $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
 
-        $fieldset->FLD(
-            'payDateOffset',
-            'int',
-            'caption=Отместване на падежа (дни),after=horizon,default=14'
-        );
-
+        // Отклонение от посочената дата на плащане в дни (или от "днес", ако липсва)
+        $fieldset->FLD('payDateOffset', 'int', 'caption=Падеж + дни,after=horizon');
+        // Поле за избор на посока на сортиране на записите по дата на плащане (payDate).
+        $fieldset->FLD('sortDirection', 'enum(asc=По-стари първо,desc=По-нови първо)', 'caption=Сортиране->Дата,after=payDateOffset');
     }
-
 
 
     /**
@@ -123,10 +88,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     {
         $form = &$data->form;
 
-        if (!isset($form->rec->payDateOffset)) {
-            $form->rec->payDateOffset = 14;
-        }
-
+        // Съществуващ код за предложения
         $accounts = self::getContableAccounts($form->rec);
         $form->setSuggestions('accountId', array('' => '') + $accounts);
 
@@ -134,15 +96,31 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $form->setSuggestions('caseId', array('' => '') + $casses);
 
         $documents = array('cash_Pko', 'cash_Rko', 'bank_SpendingDocuments', 'bank_IncomeDocuments');
-
         $docOptions = array();
-
         foreach ($documents as $className) {
             $classId = $className::getClassId();
             $docOptions[$classId] = core_Classes::getTitleById($classId, false);
         }
-
         $form->setSuggestions('documentType', $docOptions);
+
+        // По подразбиране: групиране по контрагент
+        if (!isset($form->rec->data)) {
+            $form->rec->data = (object)[];
+        }
+        if (!isset($form->rec->data->groupByField)) {
+            $form->rec->data->groupByField = 'contragentName';
+        }
+
+        // По подразбиране: посока на сортиране
+        if (!isset($form->rec->sortDirection)) {
+            $form->rec->sortDirection = 'desc';
+        }
+
+        // По подразбиране: отместване на срока за плащане
+        if (!isset($form->rec->payDateOffset)) {
+            $form->rec->payDateOffset = 14;
+        }
+
     }
 
 
@@ -337,14 +315,13 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
             $r->totalSumContr = $totalContragentaSumArr;
         }
 
-        usort($recs, array($this, 'orderByPayDate'));
+        // Подреждане по дата на плащане според избраната посока
+        $order = ($rec->sortDirection == 'asc') ? 1 : -1;
+        usort($recs, function ($a, $b) use ($order) {
+            return ($a->payDate <=> $b->payDate) * $order;
+        });
 
         return $recs;
-    }
-
-    public function orderByPayDate($a, $b)
-    {
-        return $a->payDate > $b->payDate;
     }
 
 
@@ -397,29 +374,32 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $DoocClass = cls::get($dRec->className);
         $row->documentId = $DoocClass->getLink($dRec->documentId, 0);
 
-        // Име на контрагента
+        // Контрагент (групиране или не)
         if (!$rec->data->groupByField) {
-            // Без групиране – само името
+            // Без групиране – просто името
             $row->contragentName = $dRec->contragentName;
         } else {
-            // С групиране – обобщена сума по валута
+            // С групиране – показване на сумите във всички валути
             $sums = array();
 
             if (isset($dRec->totalSumContr[$dRec->folderId])) {
                 foreach ($dRec->totalSumContr[$dRec->folderId] as $cur => $val) {
                     $absVal = abs($val);
                     $verbalVal = $Double->toVerbal($absVal);
-
-                    // Добавяме знака ръчно, ако е отрицателна стойност
                     $displayVal = ($val < 0) ? '-' . $verbalVal : $verbalVal;
 
-                    // Оцветяване със styleIfNegative
-                    $styledVal = ht::styleIfNegative($displayVal, $val);
+                    // Стил според знака
+                    if ($val < 0) {
+                        $styledVal = "<span style='color: red'>{$displayVal}</span>";
+                    } else {
+                        $styledVal = "<span style='color: green'>{$displayVal}</span>";
+                    }
 
                     $sums[] = "<span class='fright'>{$styledVal} <span class='cCode' style='position:relative; top: -2px; margin-left: 2px;'>{$cur}</span></span>";
                 }
             }
 
+            // Добавяне на името и сборовете
             $row->contragentName = $dRec->contragentName . implode('', $sums);
         }
 
@@ -431,14 +411,20 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         $row->created = $row->createdOn . ' от ' . $row->createdBy;
 
-        // Сума по документа
+        // Сума на документа (оцветена и с tooltip)
         $val = $dRec->amountDeal;
         $absVal = abs($val);
         $verbalVal = $Double->toVerbal($absVal);
         $displayVal = ($val < 0) ? '-' . $verbalVal : $verbalVal;
-        $styledAmount = ht::styleIfNegative($displayVal, $val);
 
-        // Tooltip за сметка или каса
+        // Оцветяване на документа
+        if ($val < 0) {
+            $styledAmount = "<span style='color: red'>{$displayVal}</span>";
+        } else {
+            $styledAmount = "<span style='color: green'>{$displayVal}</span>";
+        }
+
+        // Tooltip със сметка/каса
         $hint = ($dRec->ownAccount)
             ? bank_OwnAccounts::getTitleById($dRec->ownAccount)
             : cash_Cases::getTitleById($dRec->peroCase);
@@ -451,7 +437,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
             ? $Date->toVerbal($dRec->payDate)
             : tr('|*<span class="quiet">|не е посочен|*</span>');
 
-        // Код на валутата
+        // Валутен код
         if (isset($dRec->currencyId)) {
             $row->currencyId = currency_Currencies::getCodeById($dRec->currencyId);
         }
@@ -500,7 +486,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         $toolbar = cls::get('core_Toolbar');
 
-        $toolbar->addBtn('Групирай по контрагент', toUrl($artUrl1));
+       // $toolbar->addBtn('Групирай по контрагент', toUrl($artUrl1));
         $toolbar->addBtn('Избери контрагент', toUrl($artUrl));
 
         $fieldTpl->append('<b>' . $toolbar->renderHtml() . '</b>', 'button');
@@ -556,6 +542,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                 }
             }
 
+            $rec->data->groupByField = 'contragentName';
             frame2_Reports::save($rec);
             return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'contragentFilter' => $form->rec->contragentFilter, 'ret_url' => true));
 
