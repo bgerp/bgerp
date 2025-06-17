@@ -768,15 +768,13 @@ class sales_Routes extends core_Manager
     protected static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
         $sQuery = clone $data->listSummary->query;
-        $sQuery->XPR('cnt', 'int', 'COUNT(#id)');
         $sQuery->where("#state != 'rejected'");
-        $cnt = $sQuery->fetch()->cnt;
+        $cnt = $sQuery->count();
         $cnt = (!empty($cnt)) ? $cnt : 0;
 
         $aQuery = clone $data->listSummary->query;
-        $aQuery->XPR('cnt', 'int', 'COUNT(#id)');
         $aQuery->where("#state = 'active'");
-        $active = $aQuery->fetch()->cnt;
+        $active = $aQuery->count();
         $active = (!empty($active)) ? $active : 0;
 
         $data->listSummary->summary = (object) array('sumRow' => core_Type::getByName('int')->toVerbal($cnt),
