@@ -270,30 +270,41 @@ class trans_Lines extends core_Master
         $data->listFilter->setDefault('groupByShippedOn', 'no');
 
         // Опция за избор на складове по градове
-        $storesByLocations = $storeOptions = $locationOptions = array();
+        $storesByLocations = $storeOptions = $locationOptions =  $storesByPCode = $storesByPCodeOptions = array();
         $sQuery = store_Stores::getQuery();
         $sQuery->where("#state != 'rejected'");
         while($sRec = $sQuery->fetch()) {
             $storeOptions[keylist::addKey('-1', $sRec->id)] = store_Stores::getTitleById($sRec->id);
             if(isset($sRec->locationId)){
-                $place = crm_Locations::fetchField($sRec->locationId, 'place');
-                if(!empty($place)){
-                    $storesByLocations[$place][$sRec->id] = $sRec->id;
+                $locationRec = crm_Locations::fetch($sRec->locationId);
+                if(!empty($locationRec->pCode)){
+                    $visiblePart = substr($locationRec->pCode, 0, 2) . "XX";
+                    $storesByPCode["Всички от ПК| {$visiblePart}"][$sRec->id] = $sRec->id;
+                }
+                if(!empty($locationRec->place)){
+                    $storesByLocations[$locationRec->place][$sRec->id] = $sRec->id;
                 }
             }
         }
 
+        foreach ($storesByPCode as $key => $storeIds){
+            $storesByPCodeOptions["p|" . keylist::fromArray($storeIds)] = tr($key);
+        }
         foreach ($storesByLocations as $key => $storeIds){
-            $locationOptions[keylist::fromArray($storeIds)] = tr($key);
+            $locationOptions["l|" . keylist::fromArray($storeIds)] = tr($key);
         }
 
-        if(countR($storesByLocations)){
+        if(countR($storesByLocations) || countR($storesByPCodeOptions)){
             $storeOptions = array("s" => (object) array('title' => tr('Складове'), 'group' => true)) + $storeOptions;
-            $storeOptions += array("p" => (object) array('title' => tr('В градове'), 'group' => true,)) + $locationOptions;
+            if(countR($locationOptions)){
+                $storeOptions += array("p" => (object) array('title' => tr('В градове'), 'group' => true,)) + $locationOptions;
+            }
+            if(countR($storesByPCodeOptions)){
+                $storeOptions += array("c" => (object) array('title' => tr('Пощенски код'), 'group' => true,)) + $storesByPCodeOptions;
+            }
         }
 
         $data->listFilter->setOptions('storesByLocation', array('' => '') + $storeOptions);
-
         $data->listFilter->showFields .= ',lineState,countryId,search,storesByLocation,groupByShippedOn';
         $showFields = arr::make($data->listFilter->showFields, true);
         $data->query->orderBy('shipmentOnCalc', 'ASC');
@@ -315,13 +326,14 @@ class trans_Lines extends core_Master
                     $data->query->where("#state = '{$filterRec->lineState}'");
                 }
             }
-
             if (isset($filterRec->countryId)) {
                 $data->query->where("LOCATE('|{$filterRec->countryId}|', #countries)");
             }
 
             if (isset($filterRec->storesByLocation)) {
-                $data->query->likeKeylist("stores", $filterRec->storesByLocation);
+                $storeIds = str_replace('p|', '', $filterRec->storesByLocation);
+                $storeIds = str_replace('l|', '', $storeIds);
+                $data->query->likeKeylist("stores", $storeIds);
             }
         }
     }

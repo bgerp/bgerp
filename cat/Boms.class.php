@@ -1193,10 +1193,11 @@ class cat_Boms extends core_Master
             $nRec->productId = $toProductRec->id;
             $nRec->originId = $toProductRec->containerId;
             $nRec->state = 'draft';
-            foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId') as $fld) {
+            $nRec->clonedFromId = $activeBom->id;
+            foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId', 'prototypeId') as $fld) {
                 unset($nRec->{$fld});
             }
-            
+
             if (static::save($nRec)) {
                 cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
             } else {

@@ -580,13 +580,17 @@ class eshop_Carts extends core_Master
                 $rec->totalNoVat += round($sum, 4);
                 $rec->total += round($sum * (1 + $dRec->vat), 4);
             }
-            
+
             // Дигане на флаг ако има артикули очакващи доставка
             if($rec->haveProductsWithExpectedDelivery != 'yes' && countR($settings->inStockStores) && $dRec->canStore == 'yes'){
                 $quantityInStore = store_Products::getQuantities($dRec->productId, $settings->inStockStores)->free;
                 if($quantityInStore < $dRec->quantity){
                     $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
-                    if(!empty($eshopProductRec->deliveryTime)){
+
+                    $deliveryTime = !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME');
+                    $horizon = dt::addSecs($deliveryTime, null,false);
+                    $quantityExpected = store_Products::getQuantities($dRec->productId, $settings->inStockStores, $horizon)->free;
+                    if($quantityExpected >= $dRec->quantity){
                         $rec->haveProductsWithExpectedDelivery = 'yes';
                     }
                 }

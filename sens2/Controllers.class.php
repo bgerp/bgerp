@@ -419,9 +419,11 @@ class sens2_Controllers extends core_Master
         
         $ports = $Driver->getInputPorts($rec->config);
         
-        $nowMinutes = round(time() / 60);
+        $nowMinutes = round(time() / 60) + $id;
         
         $inputs = $force;
+
+        $log = array();
         
         $updatedCnt = 0;
         
@@ -447,13 +449,46 @@ class sens2_Controllers extends core_Master
                 $hash = md5(serialize($rec->persistentState));
             }
             
-            // Извличане на входовете
-            $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
+            $cached = array();
             
+            if (function_exists('apcu_fetch')) {
+                // Проверка дали стойностите не са налични в кеша
+                foreach ($inputs as $port) {
+                    $key = 'SenZ' . $id . '_' . $port;
+                    $success = null;
+                    $res = @apcu_fetch($key, $success);
+                    if ($success) {
+                        $cached[$port] = $res;
+                        //log_System::add(get_called_class(), "Извлечен индикатор: $key => $res");
+                        unset($inputs[$port]);
+                    }
+                }
+            }
+
+            // Извличане на кешираните входове 
+            $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
+            if(count($cached)) {
+                foreach($cached as $port => $v) {
+                    $values[$port] = $v;
+                }
+            }
+
+            if (function_exists('apcu_store')) {
+                // Дали имаме нови стойности, които трябва да кешираме? Ако да - кешираме ги
+                foreach($inputs as $port) {
+                    if(!isset($cached[$port]) && isset($values[$port]) && ($values[$port] != 0)) {
+                        $key = 'SenZ' . $id . '_' . $port;
+                        $uomPart = $port . '_uom';
+                        $uom = $rec->config->{$uomPart};
+                        @apcu_store($key, $values[$port], ($uom == 'ºC' || $uom == '%RH') ? 100 : 10);
+                    }
+                }
+            }
+
+            // Ако перманентното състояние е променено - записва го
             if ($rec->persistentState && ($hash != md5(serialize($rec->persistentState)))) {
                 self::save($rec, 'persistentState');
             }
-            
             
             foreach ($inputs as $port) {
                 
@@ -583,13 +618,14 @@ class sens2_Controllers extends core_Master
         $query = self::getQuery();
         $query->where("#state = 'active'");
         $cnt = $query->count();
-        
+        $mustSleep = false;
+
         if (!$cnt) {
             
             return ;
         }
         
-        $sleepNanoSec = round(min(0.5, 25 / $cnt) * 1000000000);
+        $sleepNanoSec = round(min(0.5, 35 / $cnt) * 1000_000_000);
         
         
         while ($rec = $query->fetch("#state = 'active'")) {
