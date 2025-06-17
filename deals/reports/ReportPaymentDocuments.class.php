@@ -560,7 +560,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         $toolbar = cls::get('core_Toolbar');
 
-        $toolbar->addBtn('Групирай по контрагент', toUrl($artUrl1));
+        //$toolbar->addBtn('Групирай по контрагент', toUrl($artUrl1));
         $toolbar->addBtn('Избери контрагент', toUrl($artUrl));
 
         $fieldTpl->append('<b>' . $toolbar->renderHtml() . '</b>', 'button');
