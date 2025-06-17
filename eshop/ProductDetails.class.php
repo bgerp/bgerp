@@ -586,7 +586,7 @@ class eshop_ProductDetails extends core_Detail
             }
             $totalQuantity = $quantity + $quantityInRemote;
 
-            $deliveryTime = !empty($rec->deliveryTime) ? $rec->deliveryTime : eshop_Setup::get('ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME');
+            $deliveryTime = !empty($rec->deliveryTime) ? $rec->deliveryTime : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
 
             if ($totalQuantity < $rec->quantityInPack) {
 
