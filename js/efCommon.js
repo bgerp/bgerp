@@ -135,11 +135,11 @@ function showTooltip() {
                 $(element).css('overflow-y', 'auto');
                 var holderOffset = $(element).closest('.overflow-scroll').offset().top;
                 var parentOffset = $(element).parent().offset().top;
-                if (parentOffset - 500 < holderOffset) {
+                if (parentOffset - 500 < holderOffset || $(element).parent().get(0).getBoundingClientRect().top < 500) {
                     $(element).addClass('bottom');
                     $(element).css('max-height',  parseInt(window.innerHeight - $(element).parent().get(0).getBoundingClientRect().bottom - 10));
                 } else {
-                    $(element).css('max-height', parseInt(parentOffset - holderOffset - 25));
+                    $(element).css('max-height', Math.min(parseInt(parentOffset - holderOffset - 25), 600));
                 }
             }
 
