@@ -75,19 +75,15 @@ class sync_Companies extends sync_Helper
         
         while ($rec = $cQuery->fetch()) {
             sync_Map::exportRec('crm_Companies', $rec->id, $res, $this);
-            $haveListing = cond_Parameters::getParameter('crm_Companies', $rec->id, 'salesList');
+            
             if ($rec->folderId) {
-
-                // Ако няма търговско условие за листинги само тогава да се експортират листите в папката
-                if(!$haveListing){
-                    $lQuery = cat_Listings::getQuery();
-                    $lQuery->where(array("#state = 'active' AND #folderId = [#1#]", $rec->folderId));
-                    while ($lRec = $lQuery->fetch()) {
-                        $lRec->_companyId = $rec->id;
-                        sync_Map::exportRec('cat_Listings', $lRec, $res, $this);
-                    }
+                $lQuery = cat_Listings::getQuery();
+                $lQuery->where(array("#state = 'active' AND #folderId = [#1#]", $rec->folderId));
+                while ($lRec = $lQuery->fetch()) {
+                    $lRec->_companyId = $rec->id;
+                    sync_Map::exportRec('cat_Listings', $lRec, $res, $this);
                 }
-
+                
                 if (core_Packs::isInstalled('colab')) {
                     $pQuery = colab_FolderToPartners::getQuery();
                     $pQuery->where(array("#folderId = [#1#]", $rec->folderId));
@@ -126,6 +122,41 @@ class sync_Companies extends sync_Helper
                     
                     // Полето ЕАН да е уникално
                     $class->dbIndexes['uicId'] = (object) array('fields' => 'uicId', 'type' => 'UNIQUE');
+                }
+
+                // Ако има списък в приемника, не го импортираме
+                $haveListing = false;
+                if  ($class == 'cat_ListingDetails') {
+                    foreach ((array) $resArr['cat_Listings'] as $cDetKey => $cDetArr) {
+                        if ($cDetKey == $rec->listId) {
+                            $cId = sync_Map::importRec('crm_Companies', $cDetArr->_companyId, $resArr, $me, $update);
+                            $haveListing = cond_Parameters::getParameter('crm_Companies', $cId, 'salesList');
+                            if ($haveListing) {
+                                unset($resArr['cat_Listings'][$cDetKey]);
+                                unset($resArr['cat_ListingDetails'][$id]);
+                            }
+                        }
+                    }
+                }
+                if ($class == 'cat_Listings') {
+                    if ($rec->_companyId) {
+                        $cId = sync_Map::importRec('crm_Companies', $rec->_companyId, $resArr, $me, $update);
+                        $haveListing = cond_Parameters::getParameter('crm_Companies', $cId, 'salesList');
+                        if ($haveListing) {
+                            foreach ((array) $resArr['cat_ListingDetails'] as $cDetKey => $cDetArr) {
+                                if ($cDetArr->listId == $id) {
+                                    unset($resArr['cat_ListingDetails'][$cDetKey]);
+                                }
+                            }
+
+                            unset($resArr['cat_Listings'][$id]);
+                        }
+                    }
+                }
+
+                if ($haveListing) {
+
+                    continue;
                 }
                 
                 sync_Map::importRec($class, $id, $resArr, $me, $update);
