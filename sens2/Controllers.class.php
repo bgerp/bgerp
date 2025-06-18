@@ -625,7 +625,7 @@ class sens2_Controllers extends core_Master
             return ;
         }
         
-        $sleepNanoSec = round(min(0.5, 35 / $cnt) * 1000_000_000);
+        $sleepNanoSec = round(min(0.5, 35 / $cnt) * 1000000000); // 1000_000_000
         
         
         while ($rec = $query->fetch("#state = 'active'")) {
