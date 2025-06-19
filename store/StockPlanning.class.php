@@ -182,8 +182,11 @@ class store_StockPlanning extends core_Manager
             $a->sourceId = $id;
             $a->threadId = $threadId;
 
+            // Ако датата е в миналото, но има очаквано к-во да се добави времето към сега
             if($a->date < $today){
-                $a->date = dt::addSecs($horizonAdd, $now);
+                if($a->quantityIn){
+                    $a->date = dt::addSecs($horizonAdd, $now);
+                }
             }
         }
     }
