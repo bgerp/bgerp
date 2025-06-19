@@ -128,7 +128,7 @@ class sync_Companies extends sync_Helper
                 $haveListing = false;
                 if  ($class == 'cat_ListingDetails') {
                     foreach ((array) $resArr['cat_Listings'] as $cDetKey => $cDetArr) {
-                        if ($cDetKey == $rec->listId) {
+                        if (($cDetKey == $rec->listId) && $cDetArr->_companyId) {
                             $cId = sync_Map::importRec('crm_Companies', $cDetArr->_companyId, $resArr, $me, $update);
                             $haveListing = cond_Parameters::getParameter('crm_Companies', $cId, 'salesList');
                             if ($haveListing) {
