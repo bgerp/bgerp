@@ -3203,9 +3203,9 @@ class planning_Tasks extends core_Master
             $row->ROW_ATTR['data-id'] = $rec->id;
 
             if($haveDiffProductIds || isset($data->masterMvc)){
-                $stepTitle = str::limitLen($mvc->getStepTitle($rec->productId), 32);
+                $stepTitle = str::limitLen($mvc->getStepTitle($rec->productId), 44);
                 if (!empty($rec->subTitle)) {
-                    $stepTitle .= " - {$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
+                    $stepTitle .= " - <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
                 }
                 $row->title = "{$rec->id} - {$stepTitle}";
             } else {
