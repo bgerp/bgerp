@@ -83,6 +83,7 @@ class sens2_script_Logs extends core_Manager
         $this->FLD('type', 'enum(setVar=Задаване на променлива,setOut=Задаване на изход)', 'caption=Тип,column=none');
         $this->FLD('name', 'varchar(64,ci)', 'caption=Var/Out,column=none');
         $this->FLD('value', 'double', 'caption=Стойност,column=none');
+        $this->FLD('error', 'varchar', 'caption=Грешка,column');
         $this->FNC('action', 'varchar', 'caption=Действие,column');
 
         $this->setDbIndex('scriptId');        
@@ -93,13 +94,14 @@ class sens2_script_Logs extends core_Manager
     /**
      * Добавя един запис в лога
      */
-    public static function add($type, $scriptId, $actionId, $name, $value) {
+    public static function add($type, $scriptId, $actionId, $name, $value, $err = null) {
         $rec = (object) array(
                  'type' => $type,
                  'scriptId' =>  $scriptId,
                  'actionId' => $actionId,
                  'name' => $name,
                  'value' => $value,
+                 'error' => $err,
             );
  
         return self::save($rec);
@@ -148,5 +150,9 @@ class sens2_script_Logs extends core_Manager
             $actionRec = sens2_script_Actions::fetch($rec->actionId);
             $row->actionId = ht::createLink($row->actionId, array('sens2_Scripts', 'Single', $rec->scriptId, 'order' => $actionRec->order)); 
         }
+        if($rec->error) {
+            $row->ROW_ATTR = array('style' => 'background-color:#faa;');
+        }
+
     }
 }
