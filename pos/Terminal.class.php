@@ -678,7 +678,7 @@ class pos_Terminal extends peripheral_Terminal
             
             $block->append($btn, 'BTNS');
         }
-        
+
         // Добавяне на полето за търсене и клавиатурата
         $input = ht::createElement('input', $params);
         $reset = ht::createElement('span', array("class" => "close-icon"), "&#10006;", true);
@@ -1798,6 +1798,17 @@ class pos_Terminal extends peripheral_Terminal
                 $tpl->appendOnce($intf->getJS($deviceRec, $fncName), 'SCRIPTS');
             }
 
+            // Добавяне на джаваскрипт за везна
+            $scaleDevice = peripheral_Devices::getDevice('wscales_intf_Scales');
+            if($scaleDevice){
+                $interface = core_Cls::getInterface('wscales_intf_Scales', $scaleDevice->driverClass);
+                $js = $interface->getJs($scaleDevice);
+                $tpl->appendOnce($js, 'SCRIPTS');
+                header('Access-Control-Allow-Origin: *');
+                header('Vary: Origin');
+                jquery_Jquery::run($tpl, 'readWeightScale();');
+            }
+
             $tpl->push('pos/js/scripts.js', 'JS');
             $tpl->push('pos/js/jquery.keynav.js', 'JS');
             $tpl->push('pos/js/shortcutkeys.js', 'JS');
@@ -2156,7 +2167,7 @@ class pos_Terminal extends peripheral_Terminal
         core_Debug::stopTimer('RES_RENDER_PREPARE_RECS');
 
         $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$priceCache}_{$rec->_selectedGroupId}_{$searchString}";
-        $result = core_Cache::get('pos_Terminal', $cacheKey);
+        $result = null;core_Cache::get('pos_Terminal', $cacheKey);
 
         if(!is_array($result)){
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
@@ -2264,6 +2275,10 @@ class pos_Terminal extends peripheral_Terminal
             }
 
             $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId) : null;
+            if(cat_UoM::isWeightMeasure($packId, true)){
+                $res[$id]->weightMeasure = cat_UoM::fetchField($packId, 'sysId');
+            }
+
             if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, null,2));
             }
