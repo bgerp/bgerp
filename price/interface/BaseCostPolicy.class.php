@@ -229,7 +229,9 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
                 }
                 $iQuery->in('id', $itemsWithMovement);
                 $iQuery->show('id,objectId');
-                $iQuery->notIn('objectId', $res);
+                if(countR($res)){
+                    $iQuery->notIn('objectId', $res);
+                }
                 $res = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
             }
             
