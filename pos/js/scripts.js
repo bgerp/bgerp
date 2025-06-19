@@ -1321,7 +1321,8 @@ function setInputPlaceholder() {
 	if(scroll) {
 		$('#result-holder.fixedPosition .withTabs').scrollTop(scroll)
 	}
-	$("input[name=ean]").attr("placeholder", placeholder);	
+	$("input[name=ean]").attr("placeholder", placeholder);
+	$("input[name=ean]").attr("data-original-placeholder", placeholder);
 }
 
 
@@ -1332,6 +1333,10 @@ function afterload() {
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
 	disableOrEnableCurrencyBtn();
+
+	if (typeof readWeightScale === 'function') {
+		readWeightScale();
+	}
 }
 
 
@@ -1402,11 +1407,13 @@ function addProduct(el) {
 	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
 	clearTimeout(timeout);
 
-	var elemRow = $(el).closest('.receiptRow');
+	let elemRow = $(el).closest('.receiptRow');
 	$(elemRow).addClass('highlighted');
-	var url = $(el).attr("data-url");
-	var productId = $(el).attr("data-productId");
-	var data = {productId:productId};
+	let url = $(el).attr("data-url");
+	let productId = $(el).attr("data-productId");
+	let data = {productId:productId};
+
+	let weightSysId = $(el).attr("data-weight-measure-sys-id");
 
 	// При добавяне на артикул ако в инпута има написано число или число и * да го третира като число
 	var quantity = $("input[name=ean]").val();
@@ -1418,8 +1425,19 @@ function addProduct(el) {
 				data.string = quantity;
 			}
 		}
+	} else {
+		if (typeof readWeightScale === 'function' && weightSysId) {
+			let scaleVal =  document.querySelector("input[name=ean]").getAttribute("placeholder")
+			if($.isNumeric(scaleVal)){
+				if(weightSysId == 'g'){
+					scaleVal = parseFloat(scaleVal) * 1000;
+				}
+				data.string = scaleVal;
+			}
+		}
 	}
-
+	console.log("url: "+ url);
+	console.log("data: "+ data.string);
 	data.recId = getSelectedRowId();
 	processUrl(url, data);
 
@@ -1501,9 +1519,11 @@ function doOperation(operation, selectedRecId, forceSubmit) {
 
 	$("input[name=ean]").val("");
 
+
 	sessionStorage.setItem('operationClicked', true);
 	var data = {operation:operation,recId:selectedRecId};
 	processUrl(url, data);
+
 
 	activeInput = false;
 	scrollToHighlight();

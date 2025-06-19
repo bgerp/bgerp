@@ -722,14 +722,16 @@ class cat_UoM extends core_Manager
     /**
      * Дали мярката е тегловна (грам, килограм, тон и т.н.)
      *
-     * @param int $uomId
+     * @param int $uomId    - ид на мярка
+     * @param bool $showAll - дали да проверява от всички мерки или само активните
      *
      * @return bool
      */
-    public static function isWeightMeasure($uomId)
+    public static function isWeightMeasure($uomId, $showAll = false)
     {
-        $kgUoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
-        
+        $skipClosed = !$showAll;
+        $kgUoms = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id, false, $skipClosed);
+
         return array_key_exists($uomId, $kgUoms);
     }
 
