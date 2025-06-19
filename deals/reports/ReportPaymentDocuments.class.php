@@ -42,7 +42,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField = 'contragentName';
+    protected $groupByField;
 
 
     /**
@@ -58,22 +58,29 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        // Филтър по банкови сметки (взема се от bank_OwnAccounts)
-        $fieldset->FLD('accountId', 'keylist(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Банкова сметка,placeholder=Всички,after=title');
+        // Поле за избор на банкови сметки
+        $fieldset->FLD('accountId', 'keylist(mvc=bank_OwnAccounts,select=title,allowEmpty)',
+            'caption=Банкова сметка,placeholder=Всички,after=title');
 
-        // Филтър по каси (взема се от cash_Cases)
-        $fieldset->FLD('caseId', 'keylist(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,placeholder=Всички,after=accountId');
+        // Поле за избор на каси
+        $fieldset->FLD('caseId', 'keylist(mvc=cash_Cases,select=name,allowEmpty)',
+            'caption=Каса,placeholder=Всички,after=accountId');
 
-        // Филтър по тип документ (взема се от core_Classes)
-        $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,placeholder=Всички,after=caseId');
+        // Поле за избор на типове документи
+        $fieldset->FLD('documentType', 'keylist(mvc=core_Classes,select=title)',
+            'caption=Документи,placeholder=Всички,after=caseId');
 
-        // Хоризонт от време (в сек.)
-        $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
+        // Поле за хоризонт
+        $fieldset->FLD('horizon', 'time',
+            'caption=Хоризонт,after=documentType');
 
-        // Отклонение от посочената дата на плащане в дни (или от "днес", ако липсва)
-        $fieldset->FLD('payDateOffset', 'int', 'caption=Падеж + дни,after=horizon');
-        // Поле за избор на посока на сортиране на записите по дата на плащане (payDate).
-        $fieldset->FLD('sortDirection', 'enum(asc=По-стари първо,desc=По-нови първо)', 'caption=Сортиране->Дата,after=payDateOffset');
+        // Поле за посока на сортиране
+        $fieldset->FLD('sortDirection', 'enum(desc=Низходящо,asc=Възходящо)',
+            'caption=Сортиране->Подреждане,after=horizon,maxRadio=2');
+
+        // Поле за групиране
+        $fieldset->FLD('groupBy', 'enum(yes=Групирано,no=Без групиране)',
+            'caption=Сортиране->Групиране,after=sortDirection,maxRadio=2');
     }
 
 
@@ -88,12 +95,12 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     {
         $form = &$data->form;
 
-        // Съществуващ код за предложения
+        // Зареждаме сметките, касите и документите както досега
         $accounts = self::getContableAccounts($form->rec);
         $form->setSuggestions('accountId', array('' => '') + $accounts);
 
-        $casses = self::getContableCases($form->rec);
-        $form->setSuggestions('caseId', array('' => '') + $casses);
+        $cases = self::getContableCases($form->rec);
+        $form->setSuggestions('caseId', array('' => '') + $cases);
 
         $documents = array('cash_Pko', 'cash_Rko', 'bank_SpendingDocuments', 'bank_IncomeDocuments');
         $docOptions = array();
@@ -103,24 +110,11 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         }
         $form->setSuggestions('documentType', $docOptions);
 
-        // По подразбиране: групиране по контрагент
-        if (!isset($form->rec->data)) {
-            $form->rec->data = (object)[];
+        // Дефолтни стойности при първоначално създаване
+        if (!$form->rec->id) {
+            $form->setDefault('sortDirection', 'desc');
+            $form->setDefault('groupBy', 'yes');
         }
-        if (!isset($form->rec->data->groupByField)) {
-            $form->rec->data->groupByField = 'contragentName';
-        }
-
-        // По подразбиране: посока на сортиране
-        if (!isset($form->rec->sortDirection)) {
-            $form->rec->sortDirection = 'desc';
-        }
-
-        // По подразбиране: отместване на срока за плащане
-        if (!isset($form->rec->payDateOffset)) {
-            $form->rec->payDateOffset = 14;
-        }
-
     }
 
 
@@ -183,16 +177,20 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
     {
         $docClasses = $caseRecs = $bankRecs = $recs = array();
 
+        // Управление на групирането
+        if ($rec->groupBy == 'yes') {
+            $this->groupByField = 'contragentName';
+        } else {
+            $this->groupByField = null;
+        }
+
         $accountsId = isset($rec->accountId) ? keylist::toArray($rec->accountId) : array_keys(self::getContableAccounts($rec));
         $casesId = isset($rec->caseId) ? keylist::toArray($rec->caseId) : array_keys(self::getContableCases($rec));
 
-        $documentFld = ($rec->documentType) ? 'documentType' : 'document';
-
         $docClasses = keylist::toArray($rec->documentType);
-
         $both = (!isset($rec->accountId) && !isset($rec->caseId)) || (isset($rec->accountId, $rec->caseId));
 
-        // Банкови платежни документи
+        // Банкови документи
         if ($both || isset($rec->accountId)) {
             foreach (array('bank_SpendingDocuments', 'bank_IncomeDocuments') as $pDoc) {
                 if (empty($docClasses) || in_array($pDoc::getClassId(), $docClasses)) {
@@ -203,12 +201,16 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                     $cQuery->orderBy('termDate', 'ASC');
 
                     while ($cRec = $cQuery->fetch()) {
-                        $baseDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
-                        $payDate = dt::addDays($rec->payDateOffset, $baseDate);
 
-                        $horizon = dt::addSecs($rec->horizon, dt::today(), false);
-                        if (!empty($rec->horizon) && $payDate > $horizon) {
-                            continue;
+                        // Определяме payDate според зададената нова логика:
+                        $payDate = null;
+
+                        if (!empty($cRec->termDate)) {
+                            $payDate = $cRec->termDate; // 1. Ако има срок (дата на плащане)
+                        } elseif (!empty($cRec->valior)) {
+                            $payDate = $cRec->valior;   // 2. Ако има валидностен валор
+                        } else {
+                            $payDate = $cRec->createdOn; // 3. В краен случай дата на създаване
                         }
 
                         $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
@@ -242,7 +244,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
             }
         }
 
-        // Касови платежни документи
+        // Касови документи
         if ($both || isset($rec->caseId)) {
             foreach (array('cash_Rko', 'cash_Pko') as $pDoc) {
                 if (empty($docClasses) || in_array($pDoc::getClassId(), $docClasses)) {
@@ -253,12 +255,16 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                     $cQuery->orderBy('termDate', 'ASC');
 
                     while ($cRec = $cQuery->fetch()) {
-                        $baseDate = ($cRec->termDate) ? $cRec->termDate : $cRec->valior;
-                        $payDate = dt::addDays($rec->payDateOffset, $baseDate);
 
-                        $horizon = dt::addSecs($rec->horizon, dt::today(), false);
-                        if (!empty($rec->horizon) && $payDate > $horizon) {
-                            continue;
+                        // Определяме payDate според същата логика:
+                        $payDate = null;
+
+                        if (!empty($cRec->termDate)) {
+                            $payDate = $cRec->termDate;
+                        } elseif (!empty($cRec->valior)) {
+                            $payDate = $cRec->valior;
+                        } else {
+                            $payDate = $cRec->createdOn;
                         }
 
                         $className = core_Classes::getName(doc_Containers::fetch($cRec->containerId)->docClass);
@@ -294,7 +300,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
 
         $recs = $bankRecs + $caseRecs;
 
-        // Изчисляване на общите суми по контрагент и валута
+        // Сумиране по контрагент и валута
         $totalContragentaSumArr = array();
         foreach ($recs as $r) {
             $m = 1;
@@ -302,7 +308,6 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
             if (!in_array($DoocClass->abbr, array('Pbd', 'Pko'))) {
                 $m = -1;
             }
-
             $curCode = currency_Currencies::getCodeById($r->currencyId);
             if (!isset($totalContragentaSumArr[$r->folderId])) {
                 $totalContragentaSumArr[$r->folderId] = array();
@@ -315,7 +320,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
             $r->totalSumContr = $totalContragentaSumArr;
         }
 
-        // Подреждане по дата на плащане според избраната посока
+        // Сортиране според избраната посока
         $order = ($rec->sortDirection == 'asc') ? 1 : -1;
         usort($recs, function ($a, $b) use ($order) {
             return ($a->payDate <=> $b->payDate) * $order;
