@@ -942,25 +942,24 @@ class pos_Receipts extends core_Master
         $originalFreeQuantity = $freeQuantity;
 
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
-        $quantityInStock -= round($rec->quantity * $quantityInPack, 2);
-        $freeQuantity -= round($rec->quantity * $quantityInPack, 2);
-        $freeQuantityNow -= round($rec->quantity * $quantityInPack, 2);
+        $freeQuantity -= round($rec->quantity * $quantityInPack, 3);
+        $freeQuantityNow -= round($rec->quantity * $quantityInPack, 3);
 
-        $freeQuantityNow = round($freeQuantityNow, 2);
-        $freeQuantity = round($freeQuantity, 2);
-        $Double = core_Type::getByName('double(decimals=2)');
+        $freeQuantityNow = round($freeQuantityNow, 3);
+        $freeQuantity = round($freeQuantity, 3);
+        $Double = core_Type::getByName('double(smartRound)');
         $pName = cat_Products::getTitleById($rec->productId);
 
         if ($freeQuantity < 0) {
-            $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity);
-            $error = "|* {$pName}: Количеството e над минималното разполагаемото|* {$originalFreeQuantityVerbal} |в склад|*: " . store_Stores::getTitleById($rec->storeId);
+            $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity / $quantityInPack);
+            $error = "|* {$pName}: Количеството e над минималното разполагаемото|* <b>{$originalFreeQuantityVerbal}</b> |в склад|*: " . store_Stores::getTitleById($rec->storeId);
 
             return false;
         }
 
         if ($freeQuantityNow < 0) {
             $originalFreeQuantityNowVerbal = $Double->toVerbal($originalFreeQuantityNow);
-            $warning = "|* {$pName}: Количеството e над разполагаемото|* {$originalFreeQuantityNowVerbal} |днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
+            $warning = "|* {$pName}: Количеството e над разполагаемото|* <b>{$originalFreeQuantityNowVerbal}</b> |днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
 
             return true;
         }
