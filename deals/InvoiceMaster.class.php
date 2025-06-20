@@ -158,7 +158,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode,silent');
         $mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place,silent');
         $mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address,silent');
-        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         $mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
         $mvc->FLD('dcReason', 'richtext(rows=2)', 'input=none,after=dcReason');
         $mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
@@ -456,8 +456,13 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
+        $dateFromWhichToGetName = !empty($docRec->date) ? $docRec->date : dt::now();
+        $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
+        $cData = cls::get($form->rec->contragentClassId)->getContragentData($form->rec->contragentId, $dateFromWhichToGetName);
+        $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
+
         if($form->rec->type == 'dc_note') {
-            if(empty($originRec->displayContragentId)){
+            if(empty($originRec->displayContragentId) && $cName == $originRec->contragentName){
                 $unsetArr += arr::make('contragentName,contragentPCode,contragentPlace,contragentAddress,uicNo,contragentEori,contragentVatNo,contragentCountryId', true);
             }
         }
@@ -493,7 +498,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $form->setField('deliveryPlaceId', 'input=none');
         $form->setField('displayRate', 'input=hidden');
 
-        $readOnlyContragentData = ($form->rec->type == 'dc_note' && empty($originRec->displayContragentId));
+        $readOnlyContragentData = ($form->rec->type == 'dc_note' && empty($originRec->displayContragentId) && $cName == $originRec->contragentName);
         if($readOnlyContragentData){
             foreach (array('contragentName', 'contragentEori', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'displayContragentClassId', 'displayContragentId') as $name) {
                 if ($form->rec->{$name}) {

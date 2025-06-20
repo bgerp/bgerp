@@ -180,6 +180,9 @@ html, body {
     .wide .app-subtitle {
         font-size: 1.1em;
     }
+    .wide  .headerImg{
+        text-align: center;
+    }
 }
 @media handheld, only screen and (max-width: 600px) {
     .wide .app-name {
@@ -269,6 +272,9 @@ header img {
         height: auto !important;
         position: relative;
         display: block;
+    }
+    .wide .narrowCenter {
+        height: auto !important;
     }
     .wide .fadein {
         display: block;

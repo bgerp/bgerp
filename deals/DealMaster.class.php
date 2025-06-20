@@ -109,6 +109,12 @@ abstract class deals_DealMaster extends deals_DealBase
 
 
     /**
+     * Работен кеш
+     */
+    protected static $logisticDataCache = array('cData' => array(), 'locationId' => array(), 'countryId' => array());
+
+
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -280,7 +286,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         
         // Артикули
-		$mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
+		$mvc->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
         		
 		// Доставка
         $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor,removeAndRefreshForm=deliveryLocationId|deliveryAdress|deliveryData|deliveryCalcTransport|courierApi,silent');
@@ -378,8 +384,6 @@ abstract class deals_DealMaster extends deals_DealBase
                     $form->setReadOnly($fld, $rec->{$fld} ?? $readOnlyVal);
                 }
             }
-        } else {
-            $form->setDefault('detailOrderBy', core_Permanent::get("{$mvc->className}_detailOrderBy"));
         }
         
         $form->setField('sharedUsers', 'input=none');
@@ -554,10 +558,6 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if(isset($rec->deliveryTermId)){
             cond_DeliveryTerms::inputDocumentForm($rec->deliveryTermId, $form, $mvc);
-        }
-
-        if(empty($rec->id)){
-            core_Permanent::set("{$mvc->className}_detailOrderBy", $rec->detailOrderBy, core_Permanent::FOREVER_VALUE);
         }
 
         if(empty($rec->id)) {
@@ -2633,24 +2633,43 @@ abstract class deals_DealMaster extends deals_DealBase
         $ownCountryId = $ownCompany->country;
 
         $res = array();
-        $contragentData = doc_Folders::getContragentData($rec->folderId);
+        if(!array_key_exists($rec->folderId, self::$logisticDataCache['cData'])){
+            self::$logisticDataCache['cData'][$rec->folderId] = doc_Folders::getContragentData($rec->folderId);
+        }
+        $contragentData = self::$logisticDataCache['cData'][$rec->folderId];
         $contragentCountryId = $contragentData->countryId;
         
         if (isset($rec->shipmentStoreId)) {
             if ($locationId = store_Stores::fetchField($rec->shipmentStoreId, 'locationId')) {
-                $storeLocation = crm_Locations::fetch($locationId);
+                if(!array_key_exists($locationId, self::$logisticDataCache['locationId'])) {
+                    self::$logisticDataCache['locationId'][$locationId] = crm_Locations::fetch($locationId);
+                }
+                $storeLocation = self::$logisticDataCache['locationId'][$locationId];
                 $ownCountryId = $storeLocation->countryId;
             }
         }
         
         if (isset($rec->deliveryLocationId)) {
-            $contragentLocation = crm_Locations::fetch($rec->deliveryLocationId);
+            if(!array_key_exists($rec->deliveryLocationId, self::$logisticDataCache['locationId'])) {
+                self::$logisticDataCache['locationId'][$rec->deliveryLocationId] = crm_Locations::fetch($rec->deliveryLocationId);
+            }
+            $contragentLocation = self::$logisticDataCache['locationId'][$rec->deliveryLocationId];
             $contragentCountryId = $contragentLocation->countryId;
         }
-        
-        $ownCountry = drdata_Countries::fetchField($ownCountryId, 'commonName');
-        $contragentCountry = drdata_Countries::fetchField($contragentCountryId, 'commonName');
-        
+
+        if(!array_key_exists($ownCountryId, self::$logisticDataCache['countryId'])) {
+            if($ownCountryId) {
+                self::$logisticDataCache['countryId'][$ownCountryId] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+            }
+        }
+        $ownCountry = self::$logisticDataCache['countryId'][$ownCountryId];
+
+        if(!array_key_exists($contragentCountryId, self::$logisticDataCache['countryId'])) {
+            if($contragentCountryId) {
+                self::$logisticDataCache['countryId'][$contragentCountryId] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
+            }
+        }
+        $contragentCountry = self::$logisticDataCache['countryId'][$contragentCountryId];
         $ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
         $contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
 
@@ -2668,15 +2687,18 @@ abstract class deals_DealMaster extends deals_DealBase
             $res["{$ownPart}Place"] = !empty($ownCompany->place) ? $ownCompany->place : null;
             $res["{$ownPart}Address"] = !empty($ownCompany->address) ? $ownCompany->address : null;
         }
-        $res["{$ownPart}Company"] = $ownCompany->name;
-        $personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
-        $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($personId, 'names');
-        if($res["{$ownPart}Person"]){
-            $personId = crm_Profiles::getPersonByUser($personId);
-            if(isset($personId)){
-                $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
-                if(!empty($buzPhones)){
-                    $res["{$ownPart}PersonPhones"] = $buzPhones;
+
+        if(!Mode::is('calcOnlyDeliveryPart')) {
+            $res["{$ownPart}Company"] = $ownCompany->name;
+            $personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
+            $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($personId, 'names');
+            if($res["{$ownPart}Person"]){
+                $personId = crm_Profiles::getPersonByUser($personId);
+                if(isset($personId)){
+                    $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+                    if(!empty($buzPhones)){
+                        $res["{$ownPart}PersonPhones"] = $buzPhones;
+                    }
                 }
             }
         }

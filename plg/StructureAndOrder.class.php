@@ -572,6 +572,7 @@ class plg_StructureAndOrder extends core_Plugin
         if(isset($res)) return $res;
 
         $items = $tree = array();
+        $arr = arr::make($arr, true);
 
         // Събират се всички необходими записи нагоре по веригата
         foreach ($arr as $id) {

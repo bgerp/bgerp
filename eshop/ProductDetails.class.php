@@ -217,19 +217,20 @@ class eshop_ProductDetails extends core_Detail
         $now = dt::now();
         if (isset($listId)) {
             $price = price_ListRules::getPrice($listId, $productId, $packagingId, $now);
+
             if (isset($price)) {
                 $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $productId, $packagingId, $quantityInPack, $now);
-                
+
                 $price *= $quantityInPack;
                 if ($settings->chargeVat == 'yes') {
                     $price *= 1 + cat_Products::getVat($productId, null, $settings->vatExceptionId);
                 }
                 $price = currency_CurrencyRates::convertAmount($price, null, null, $settings->currencyId);
 
-                $res->price = round($price, 5);
+                $res->price = price_Lists::roundPrice($listId, $price);
                 if($settings->currencyId == 'BGN'){
                     $priceEuro = currency_CurrencyRates::convertAmount($price, null, $settings->currencyId, 'EUR');
-                    $res->priceEuro = round($priceEuro, 5);
+                    $res->priceEuro = price_Lists::roundPrice($listId, $priceEuro);
                 }
 
                 if (!empty($priceObject->discount)) {

@@ -121,6 +121,7 @@ class pos_ReceiptDetails extends core_Detail
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад,input=none');
         $this->FLD('revertRecId', 'int', 'caption=Сторнира ред, input=none');
         $this->FLD('transferedIn', 'int', 'caption=Прехвърлена в, input=none');
+        $this->FLD('deviceId', 'key(mvc=peripheral_Devices,select=id)', 'caption=Устройство,width=7em,input=none');
 
         $this->setDbIndex('action');
         $this->setDbIndex('productId');
@@ -137,6 +138,8 @@ class pos_ReceiptDetails extends core_Detail
         expect($receiptId = Request::get('receiptId', 'int'));
         expect($receiptRec = pos_Receipts::fetch($receiptId));
         $param = Request::get('param', 'varchar');
+        $deviceId = Request::get('deviceId', 'int');
+
         $success = true;
         $rec = null;
         $autoFiscPrintIfPossible = false;
@@ -204,10 +207,15 @@ class pos_ReceiptDetails extends core_Detail
                 // Подготвяме записа на плащането
                 $rec = (object)array('receiptId' => $receiptRec->id, 'action' => "payment|{$type}", 'amount' => $amount);
 
+                $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if(!empty($param)){
-                    $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                     if($type == $cardPaymentId){
                         $rec->param = $param;
+                    }
+                }
+                if(!empty($deviceId)){
+                    if($type == $cardPaymentId){
+                        $rec->deviceId = $deviceId;
                     }
                 }
 
@@ -906,6 +914,10 @@ class pos_ReceiptDetails extends core_Detail
 
                 $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if($action->value == $cardPaymentId){
+                    if(!empty($rec->deviceId)){
+                        $row->actionValue = cash_NonCashPaymentDetails::getCardPaymentBtnName($rec->deviceId);
+                    }
+
                     if(!empty($rec->param)){
                         $paramVal = ($rec->param == 'card') ? tr('Потв.') : tr('Ръчно потв.');
                         $row->actionValue .= " [{$paramVal}]";

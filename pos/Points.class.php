@@ -111,7 +111,7 @@ class pos_Points extends core_Master
      *
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,payments,chargeVat,setDiscounts,productBtnTpl,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups,showProductCode,discountPolicyId,vatExceptionId';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,payments,chargeVat,setDiscounts,productBtnTpl,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups,showProductCode,discountPolicyId,vatExceptionId,bankPeripherals';
 
 
     /**
@@ -148,6 +148,7 @@ class pos_Points extends core_Master
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts,discount_class=leftCell)', 'caption=Ръчно задаване->Използвани отстъпки');
+        $this->FLD('bankPeripherals', 'keylist(mvc=peripheral_Devices, select=name, allowEmpty)', 'caption=Настройки->Банкови устр.');
 
         $this->FLD('maxSearchProducts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Артикули');
         $this->FLD('maxSearchProductRelations', 'int(min=0)', 'caption=Максимален брой резултати в "Избор"->Свързани артикули');
@@ -337,6 +338,18 @@ class pos_Points extends core_Master
 
         $productGroupOptions = array('' => '') + cls::get('cat_Groups')->makeArray4Select('name');
         $form->setFieldTypeParams('productGroups', array('groupId_opt' => $productGroupOptions));
+
+        // Добавяне на опции за избор на банков терминал
+        $bankPeripheralOptions = array();
+        $bankPeripherals = peripheral_Devices::getDevices('bank_interface_POS', false);
+        foreach ($bankPeripherals as $id => $dRec) {
+            $bankPeripheralOptions[$id] = $dRec->name;
+        }
+        if(countR($bankPeripheralOptions)){
+            $form->setSuggestions('bankPeripherals', array('' => '') + $bankPeripheralOptions);
+        } else {
+            $form->setField('bankPeripherals', 'input=none');
+        }
     }
 
 

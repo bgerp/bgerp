@@ -63,6 +63,7 @@ class rack_plg_Shipments extends core_Plugin
             if ($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}")){
                 $row->zoneId = rack_Zones::getDisplayZone($zoneRec, true);
                 $row->zoneReadiness = rack_Zones::getVerbal($zoneRec, 'readiness');
+                $row->zoneReadiness = isset($zoneRec->readiness) ? $row->zoneReadiness : 'none';
             }
         }
     }
@@ -321,20 +322,40 @@ class rack_plg_Shipments extends core_Plugin
 
             expect($zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}"));
 
-            $data = (object)array('recs' => array(), 'rows' => array(), 'zoneId' => $zoneId);
+            $data = (object)array('recs' => array(), 'rows' => array(), 'zoneId' => $zoneId, 'mvc' => $mvc, 'rec' => $rec);
             static::preparePrintMovements($data);
 
             $fieldset = new core_FieldSet();
             $fieldset->FLD('batch', 'varchar');
-            $fieldset->FLD('quantity', 'double');
+            $fieldset->FLD('quantity', 'double', 'smartCenter');
+            $fieldset->FLD('positions', 'varchar', 'smartCenter');
+            $fieldset->FLD('transUnitId', 'varchar', 'tdClass=centered');
+            $fieldset->FLD('code', 'varchar','tdClass=small');
             $table = cls::get('core_TableView', array('mvc' => $fieldset));
-            $fields = arr::make('code=Код,productId=Артикул,packagingId=Опаковка,batch=Партида,quantity=Общо,positions=Позиции');
-
+            $fields = arr::make('code=Код,productId=Артикул,batch=Партида,quantity=Общо,positions=Позиции,transUnitId=ЛЕ');
+            $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'batch');
             $details = $table->get($data->rows, $fields);
+            $singleFields = $mvc->selectFields();
+            $singleFields['-single'] = true;
+
+            $rec->template = key(doc_TplManager::getTemplates($mvc, 'bg'));
+            Mode::push('text', 'plain');
+            $documentRow = $mvc->recToVerbal($rec, $singleFields);
+            Mode::pop('text');
+
+            $delivery = !empty($documentRow->deliveryTo) ? $documentRow->deliveryTo : $documentRow->inlineContragentAddress;
+            $res->append($delivery, 'deliveryTo');
+            if(!empty($documentRow->logisticInfo)){
+                $res->append($documentRow->logisticInfo, 'logisticInfo');
+            }
 
             if($mvc->lineFieldName){
                 if($rec->{$mvc->lineFieldName}){
+                    $lineRow = trans_Lines::recToVerbal($rec->{$mvc->lineFieldName});
                     $res->append(trans_Lines::getTitleById($rec->{$mvc->lineFieldName}), 'lineId');
+                    if(!empty($lineRow->vehicle)){
+                        $res->append($lineRow->vehicle, 'vehicle');
+                    }
                 }
             }
 
@@ -428,12 +449,27 @@ class rack_plg_Shipments extends core_Plugin
         $zDetail = rack_ZoneDetails::getQuery();
         $zDetail->where("#zoneId = {$data->zoneId}");
         $zDetail->orderBy('id', 'ASC');
+
+        $details = array();
+        $Detail = cls::get($data->mvc->mainDetail);
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$data->rec->id}");
+        while($dRec = $dQuery->fetch()){
+            $dRow = $Detail->recToVerbal($dRec);
+            $transUnit = ($dRow->transUnitId instanceof core_ET) ? strip_tags($dRow->transUnitId->getContent()) : $dRow->transUnitId;
+            if(!empty($transUnit)){
+                $details["{$dRec->productId}|{$dRec->packagingId}"][] = $transUnit;
+            }
+        }
+
         while($zRec = $zDetail->fetch()){
             $data->recs[$zRec->id] = (object)array('productId'   => $zRec->productId,
                                                    'packagingId' => $zRec->packagingId,
                                                    'batch'       => $zRec->batch,
                                                    'positions'   => array(),
+                                                   'transUnitId' => $details["{$zRec->productId}|{$zRec->packagingId}"],
                                                    'quantity'    => $zRec->documentQuantity);
+            unset($details["{$zRec->productId}|{$zRec->packagingId}"]);
 
             foreach ($movementRecs as $mRec){
                 if($mRec->productId == $zRec->productId && $mRec->packagingId == $zRec->packagingId && $mRec->batch == $zRec->batch){
@@ -464,8 +500,11 @@ class rack_plg_Shipments extends core_Plugin
             $row = new stdClass();
             $row->code = !empty($pRec->code) ? cat_Products::getVerbal($pRec, 'code') : "Art{$pRec->id}";
             $row->quantity = core_Type::getByName('double(smartRound)')->toVerbal($moveRec->quantity);
+            $row->quantity .= " " . cat_UoM::getSmartName($moveRec->packagingId, $moveRec->quantity);
+            if(is_array($moveRec->transUnitId)){
+                $row->transUnitId = implode('<br />', $moveRec->transUnitId);
+            }
             $row->productId = cat_Products::getVerbal($pRec, 'name');
-            $row->packagingId = cat_UoM::getVerbal($moveRec->packagingId, 'name');
             $row->batch = null;
             if($Def = batch_Defs::getBatchDef($moveRec->productId)){
                 $row->batch = strlen($moveRec->batch) ? $Def->toVerbal($moveRec->batch) : tr('Без партида');

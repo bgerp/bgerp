@@ -31,7 +31,7 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_GroupByField, plg_Clone, doc_DocumentPlg, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
 
 
     /**
@@ -103,7 +103,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'start, handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, folderId, state, createdOn, createdBy';
+    public $listFields = 'start=Начало,shipmentOnCalc=Експедиране,handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, destinations=Дестинации,countries,places, folderId, created=Създаване';
 
 
     /**
@@ -159,7 +159,7 @@ class trans_Lines extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title,start,repeat,countStoreDocuments,countActiveDocuments,countReadyDocuments,cases,stores, countries';
+    public $fieldsNotToClone = 'title,start,shipmentOn,repeat,countStoreDocuments,countActiveDocuments,countReadyDocuments,cases,stores, countries';
 
 
     /**
@@ -171,7 +171,7 @@ class trans_Lines extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'start,createdOn';
+    public $filterDateField = 'shipmentOnCalc,start,createdOn';
 
 
     /**
@@ -207,6 +207,8 @@ class trans_Lines extends core_Master
     {
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory');
         $this->FLD('start', 'datetime', 'caption=Начало, mandatory');
+        $this->FLD('shipmentOn', 'datetime', 'caption=Експедиране');
+
         $this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици)', 'caption=Повторение');
         $this->FLD('state', 'enum(draft=Чернова,,pending=Заявка,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
         $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,unit=(по подразбиране)');
@@ -223,6 +225,8 @@ class trans_Lines extends core_Master
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'input=none,caption=Държави');
         $this->FLD('transUnitsTotal', 'blob(serialize, compress)', 'input=none,caption=Логистична информация');
         $this->FLD('places', 'varchar(255)', 'caption=Населени места,input=none');
+
+        $this->XPR('shipmentOnCalc', 'date', "COALESCE(#shipmentOn, #start)", 'caption=Експедиране');
     }
 
 
@@ -260,20 +264,50 @@ class trans_Lines extends core_Master
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => trans_Lines::getClassId()));
         $data->listFilter->FLD('lineState', 'enum(pendingAndActive=Заявка+Активни,all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Затворен)', 'caption=Състояние');
-        $data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $data->listFilter->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава');
-        $data->listFilter->showFields .= ',lineState,storeId,countryId,search';
-        $showFields = arr::make($data->listFilter->showFields, true);
-        unset($showFields['filterDateField']);
-        $data->listFilter->showFields = implode(',', $showFields);
-        if ($selectedStore = core_Permanent::get('storeFilter' . core_Users::getCurrent())) {
-            $data->listFilter->setDefault('storeId', $selectedStore);
+        $data->listFilter->FLD('groupByShippedOn', 'enum(no=Без,yes=По експедиране)', 'caption=Групиране,autoFilter,silent');
+        $data->listFilter->FLD('storesByLocation', 'varchar', 'caption=Складове,placeholder=Всички');
+        $data->listFilter->setDefault('groupByShippedOn', 'no');
+
+        // Опция за избор на складове по градове
+        $storesByLocations = $storeOptions = $locationOptions = array();
+        $sQuery = store_Stores::getQuery();
+        $sQuery->where("#state != 'rejected'");
+        while($sRec = $sQuery->fetch()) {
+            $storeOptions[keylist::addKey('-1', $sRec->id)] = store_Stores::getTitleById($sRec->id);
+            if(isset($sRec->locationId)){
+                $place = crm_Locations::fetchField($sRec->locationId, 'place');
+                if(!empty($place)){
+                    $storesByLocations[$place][$sRec->id] = $sRec->id;
+                }
+            }
         }
 
+        foreach ($storesByLocations as $key => $storeIds){
+            $locationOptions[keylist::fromArray($storeIds)] = tr($key);
+        }
+
+        if(countR($storesByLocations)){
+            $storeOptions = array("s" => (object) array('title' => tr('Складове'), 'group' => true)) + $storeOptions;
+            $storeOptions += array("p" => (object) array('title' => tr('В градове'), 'group' => true,)) + $locationOptions;
+        }
+
+        $data->listFilter->setOptions('storesByLocation', array('' => '') + $storeOptions);
+
+        $data->listFilter->showFields .= ',lineState,countryId,search,storesByLocation,groupByShippedOn';
+        $showFields = arr::make($data->listFilter->showFields, true);
+        $data->query->orderBy('shipmentOnCalc', 'ASC');
+        $data->listFilter->defOrder = false;
+
+        $data->listFilter->showFields = implode(',', $showFields);
         $data->listFilter->setDefault('lineState', 'pendingAndActive');
         $data->listFilter->input();
 
         if ($filterRec = $data->listFilter->rec) {
+            if($filterRec->groupByShippedOn == 'yes'){
+                $data->groupByField = 'shipmentOnCalc';
+            }
+
             if (isset($filterRec->lineState) && $filterRec->lineState != 'all') {
                 if ($filterRec->lineState == 'pendingAndActive') {
                     $data->query->where("#state = 'pending' OR #state = 'active'");
@@ -286,11 +320,8 @@ class trans_Lines extends core_Master
                 $data->query->where("LOCATE('|{$filterRec->countryId}|', #countries)");
             }
 
-            if (isset($filterRec->storeId)) {
-                $data->query->where("LOCATE('|{$filterRec->storeId}|', #stores)");
-                core_Permanent::set('storeFilter' . core_Users::getCurrent(), $filterRec->storeId, 24 * 60 * 100);
-            } else {
-                core_Permanent::remove('storeFilter' . core_Users::getCurrent());
+            if (isset($filterRec->storesByLocation)) {
+                $data->query->likeKeylist("stores", $filterRec->storesByLocation);
             }
         }
     }
@@ -426,19 +457,23 @@ class trans_Lines extends core_Master
                     trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
                 }
             }
+        }
 
-            $countries = keylist::toArray($rec->countries);
-            if(countR($countries) != 1){
-                unset($row->places);
-            } else {
-                $onlyCountryId = key($countries);
-                if($onlyCountryId == drdata_Countries::getIdByName('Bulgaria') && !empty($rec->places)){
-                    unset($row->countries);
-                }
+        $row->destinations = $row->countries;
+        $countries = keylist::toArray($rec->countries);
+        if(countR($countries) == 1){
+            $onlyCountryId = key($countries);
+            if($onlyCountryId == drdata_Countries::getIdByName('Bulgaria') && !empty($rec->places)){
+                $row->destinations = $row->places;
             }
         }
 
+        if(empty($rec->shipmentOn)){
+            $row->shipmentOnCalc = ht::createHint($row->shipmentOnCalc, 'Използва се началото, защото няма конкретно въведена дата за експедиране|*!', 'notice', false);
+        }
+
         // Показване на готовността
+        $row->created = "{$mvc->getVerbal($rec, 'createdOn')}</br>" . tr('от') . "" . crm_Profiles::createLink($rec->createdBy);
         $row->countStoreDocuments = $mvc->getVerbal($rec, 'countStoreDocuments');
         $row->countStoreDocuments = ht::createHint($row->countStoreDocuments, 'Брой складови документи', 'noicon', false);
         $row->countActiveDocuments = $mvc->getVerbal($rec, 'countActiveDocuments');
@@ -579,7 +614,7 @@ class trans_Lines extends core_Master
      * Връща броя на документите в посочената линия
      *
      * @param int $id                         - ид на линия
-     * @param array $states                   - състояния, за които да се следи
+     * @param mixed $states                   - състояния, за които да се следи
      * @param null|string $interface          - интерфейс на документи
      * @param null|mixed $skipDocumentClasses - класове, които да се пропуснат
      * @return int                            - брой документи в линията, отговарящи на условията
@@ -631,6 +666,7 @@ class trans_Lines extends core_Master
                 $this->cacheLineInfo[$dRec->containerId] = $Doc->getTransportLineInfo($rec->id);
             }
             $lineInfo = $this->cacheLineInfo[$dRec->containerId];
+
             if (!empty($lineInfo['place'])) {
                 $places[$lineInfo['place']] = bglocal_Address::canonizePlace($lineInfo['place']);
             }
@@ -960,5 +996,16 @@ class trans_Lines extends core_Master
         $options = $Type->getOptions(null);
 
         return $options;
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $data->listTableMvc->FLD('created', 'varchar', 'tdClass=centered small');
+        unset($data->listFields['countries']);
+        unset($data->listFields['places']);
     }
 }

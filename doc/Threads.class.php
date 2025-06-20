@@ -2149,6 +2149,13 @@ class doc_Threads extends core_Manager
 
             $Class->logWrite("Спиране на документа", $docRec);
             $Class->save($docRec, 'state,brState');
+
+            $users = array();
+            if(isset($docRec->activatedBy)){
+                $users[$docRec->activatedBy] = $docRec->activatedBy;
+            }
+            $users[$docRec->createdBy] = $docRec->createdBy;
+            acc_plg_Contable::sendActionNotifications($users, $Class, $docRec, 'stop');
         }
     }
     

@@ -299,9 +299,10 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
                 $totalContragentaSumArr[$r->folderId] += $r->amountDeal*$m;
             }
 
-            $r->totalSumContr = $totalContragentaSumArr;
         }
-
+        foreach ($recs as $r) {
+            $r->totalSumContr = $totalContragentaSumArr[$r->folderId];
+        }
 
         usort($recs, array($this, 'orderByPayDate'));
 
@@ -365,12 +366,11 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
             $row->contragentName = $dRec->contragentName;
         }else{
             if($dRec->totalSumContr[$dRec->folderId] >= 0){
-                $row->contragentName = $dRec->contragentName .'<span style="color: green" class="fright">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSumContr[$dRec->folderId]) . '<span class="cCode" style="position:relative; top: -2px; margin-left: 2px;">' . currency_Currencies::getCodeById($dRec->currencyId). '</span>';
+                $row->contragentName = $dRec->contragentName .'<span style="color: green" class="fright">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSumContr) . '<span class="cCode" style="position:relative; top: -2px; margin-left: 2px;">' . currency_Currencies::getCodeById($dRec->currencyId). '</span>';
             }else{
-                $row->contragentName = $dRec->contragentName.'<span style="color: red" class="fright">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSumContr[$dRec->folderId]) . '<span class="cCode" style="position:relative; top: -2px; margin-left: 2px;">' . currency_Currencies::getCodeById($dRec->currencyId). '</span>';
+                $row->contragentName = $dRec->contragentName.'<span style="color: red" class="fright">' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalSumContr) . '<span class="cCode" style="position:relative; top: -2px; margin-left: 2px;">' . currency_Currencies::getCodeById($dRec->currencyId). '</span>';
             }
         }
-
         if (isset($dRec->createdBy)) {
             $row->createdBy = crm_Profiles::createLink($dRec->createdBy);
             $row->createdOn = $Date->toVerbal($dRec->createdOn);
@@ -431,7 +431,7 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-                                        <!--ET_BEGIN button--><div>|Филтри |*: [#button#]</div><!--ET_END button-->
+                                        <!--ET_BEGIN button--><div>| |* [#button#]</div><!--ET_END button-->
                                     </div>
                                 
                                  </fieldset><!--ET_END BLOCK-->"));
@@ -519,7 +519,9 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         frame2_Reports::refresh($rec);
 
         $rec->data->groupByField = 'contragentName';
+
         frame2_Reports::save($rec);
+
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'contragentGroup' => $form->rec->contragentFilter, 'ret_url' => true));
 
         return $form->renderHtml();

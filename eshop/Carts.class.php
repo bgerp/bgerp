@@ -2349,7 +2349,7 @@ class eshop_Carts extends core_Master
             $voucherAddedStatus = false;
             $oldVoucherId = $rec->voucherId;
 
-            if(!empty($rec->voucherNo)){
+            if(!empty($rec->voucherNo) && core_Packs::isInstalled('voucher')){
                 $vInfo = voucher_Cards::getByNumber($rec->voucherNo, array('classId' => $this->getClassId(), 'objectId' => $rec->id));
                 if(!$vInfo){
                     $form->setError('voucherNo', 'Невалиден ваучер');
@@ -3293,7 +3293,7 @@ class eshop_Carts extends core_Master
                 $res = ' ' . $res . ' ' . $detailsKeywords;
             }
 
-            if(isset($rec->voucherId)){
+            if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
                 $res = ' ' . $res . ' ' . plg_Search::normalizeText(voucher_Cards::fetchField($rec->voucherId, 'number'));
             }
         }

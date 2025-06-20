@@ -5,6 +5,7 @@ var timeoutRemoveDisabled;
 var timeoutPageNavigation;
 var searchTimeout;
 var addedProduct;
+let pressedCardPayment;
 
 function posActions() {
 	setOpenedReceiptQueue();
@@ -38,17 +39,18 @@ function posActions() {
 
 	$(document.body).on('click', ".closePaymentModal", function(e){
 		$(".fullScreenCardPayment").css("display", "none");
-		var element = $("#card-payment");
-		var msg = element.attr("data-oncancel");
+		let msg = pressedCardPayment.attr("data-oncancel");
+		$("#modalTitleSpan").text('');
+
 		render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
 	});
 
 	$(document.body).on('click', ".confirmPayment", function(e){
-		var element = $("#card-payment");
-		var url = element.attr("data-url");
+		let url = pressedCardPayment.attr("data-url");
+		let type = pressedCardPayment.attr("data-type");
+		let deviceId = pressedCardPayment.attr("data-deviceId");
 
-		var type = element.attr("data-type");
-		doPayment(url, type, 'manual');
+		doPayment(url, type, 'manual', deviceId);
 		$(".fullScreenCardPayment").css("display", "none");
 	});
 
@@ -649,7 +651,7 @@ function calculateWidth(){
 }
 
 // Направа на плащане
-function doPayment(url, type, value){
+function doPayment(url, type, value, deviceId){
 
 	if(!url || !type) return;
 
@@ -662,7 +664,11 @@ function doPayment(url, type, value){
 	if(value){
 		data.param = value;
 	}
+	if(deviceId){
+		data.deviceId = deviceId;
+	}
 
+	console.log(data);
 	processUrl(url, data);
 }
 
@@ -928,20 +934,30 @@ function pressNavigable(element)
 			}
 
 			amount = parseFloat(amount).toFixed(2);
-			if(amount > maxamount){
+
+			if(parseFloat(amount) > parseFloat(maxamount)){
+				console.log("AM " + amount + ' MAX ' + maxamount);
 				var msg = element.attr("data-amountoverallowed");
 				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
 				return;
 			}
 
-			console.log('SEND:' + amount);
+			pressedCardPayment = element;
+
+			let deviceUrl = element.attr("data-deviceUrl");
+			let comPort = element.attr("data-deviceComPort");
+			let deviceName = element.attr("data-deviceName");
+			console.log('SEND:' + amount + " TO " + deviceUrl + "/ cPort " + comPort);
 			$(".fullScreenCardPayment").css("display", "block");
 			$('.select-input-pos').prop("disabled", true);
-			getAmount(amount);
+			$("#modalTitleSpan").text(" " + deviceName);
+
+			let fncName = element.attr("data-sendfunction");
+			window[fncName](amount, deviceUrl, comPort);
 			return;
 		} else {
 			type = (!type) ? '-1' : type;
-			doPayment(url, type, null);
+			doPayment(url, type, null, null);
 			return;
 		}
 	} else if(element.hasClass('contragentRedirectBtn')){
@@ -997,7 +1013,7 @@ function pressNavigable(element)
 
 function showPaymentErrorStatus()
 {
-	var error = $("#card-payment").attr("data-onerror");
+	var error = pressedCardPayment.attr("data-onerror");
 	render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
 }
 
@@ -1006,20 +1022,42 @@ function showPaymentErrorStatus()
  *
  * @param res
  */
-function getAmountRes(res)
+function getAmountRes(res, sendAmount)
 {
-	var element = $("#card-payment");
-	var url = element.attr("data-url");
+	let element = pressedCardPayment;
+	let url = element.attr("data-url");
 	console.log("ANSWER FROM: " + url);
 	$('.select-input-pos').prop("disabled", false);
 
-	if(res == 'OK'){
-		var type = element.attr("data-type");
-		console.log("RES IS OK");
-		doPayment(url, type, 'card');
+	console.log("RES: " + res + " S " + sendAmount);
+	let resString = String(res);
+	if (resString.startsWith("OK") || res == 'OK') {
+
+		let parts = resString.split("|");
+		let rightPart = parts.slice(1).join("|"); // всичко след първото "|"
+		console.log("RIGHT PART: " + rightPart);
+
+		// Вземаме само първия елемент от rightPart, ако има няколко
+		let firstNumberStr = rightPart.split("|")[0];
+
+		// Парсираме като число и форматираме до 2 дес. знака
+		let resAmount = parseFloat(firstNumberStr).toFixed(2);
+		let sendAmountFormatted = parseFloat(sendAmount).toFixed(2);
+
+		if(!rightPart || resAmount === sendAmountFormatted){
+			let deviceId = pressedCardPayment.attr("data-deviceId");
+			let type = element.attr("data-type");
+			console.log("RES IS OK");
+			doPayment(url, type, 'card', deviceId);
+		} else {
+			console.log("DIFF AMOUNT");
+			let error = pressedCardPayment.attr("data-diffamount");
+			error += " " + resAmount;
+			render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+		}
 	} else {
 		showPaymentErrorStatus();
-		console.log("RES ERROR/" + res + "/");
+		console.log("RES ERROR /" + res + "/");
 	}
 
 	$(".fullScreenCardPayment").css("display", "none");
@@ -1035,9 +1073,12 @@ function getAmountError(err)
 {
 	$(".fullScreenCardPayment").css("display", "none");
 	$('.select-input-pos').prop("disabled", false);
+	$("#modalTitleSpan").text('');
 
 	showPaymentErrorStatus();
 	console.log("ERR:" + err);
+
+	pressedCardPayment = null;
 }
 
 
