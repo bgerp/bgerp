@@ -264,7 +264,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         parent::prepareEditForm_($data);
         $form = &$data->form;
         $rec = $form->rec;
-        $form->setDefault('valior', dt::today());
+
+        if(empty($rec->id)){
+            $form->setDefault('valior', dt::today());
+        }
 
         $originDoc = doc_Containers::getDocument($form->rec->originId);
         $originRec = $originDoc->rec();
