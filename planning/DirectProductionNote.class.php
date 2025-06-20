@@ -998,7 +998,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 planning_DirectProductNoteDetails::save($dRec);
 
                 // От вложените партиди остават само толкова колкото са нужни за крайното к-во
-                if(core_Packs::isInstalled('batches')){
+                if(core_Packs::isInstalled('batch')){
                     if(is_array($dRec->batches)){
                         $neededQty = $dRec->quantity;
                         $neededBatches = array();
