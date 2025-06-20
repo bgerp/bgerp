@@ -419,6 +419,16 @@ function posActions() {
 	$(document.body).on('click',  function(e){
 		hideHints();
 	})
+
+	$(document.body).on('dblclick', 'input[name="ean"]', function () {
+		var operation = getSelectedOperation();
+		if(operation != 'add') return;
+
+		var ph = $.trim($(this).attr('placeholder'));   // placeholder-ът като текст
+		if (!ph || !$.isNumeric(ph.replace(',', '.'))) return;
+
+		$(this).val(ph + '*');           // записваме стойност + звездичка
+	});
 }
 
 
@@ -1436,14 +1446,12 @@ function addProduct(el) {
 			}
 		}
 	}
-	console.log("url: "+ url);
-	console.log("data: "+ data.string);
+
 	data.recId = getSelectedRowId();
 	processUrl(url, data);
 
 	activeInput = false;
 }
-
 
 /**
  * Извиква подаденото урл с параметри
