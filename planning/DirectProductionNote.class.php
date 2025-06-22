@@ -264,7 +264,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         parent::prepareEditForm_($data);
         $form = &$data->form;
         $rec = $form->rec;
-        $form->setDefault('valior', dt::today());
+
+        if(empty($rec->id)){
+            $form->setDefault('valior', dt::today());
+        }
 
         $originDoc = doc_Containers::getDocument($form->rec->originId);
         $originRec = $originDoc->rec();
@@ -998,7 +1001,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 planning_DirectProductNoteDetails::save($dRec);
 
                 // От вложените партиди остават само толкова колкото са нужни за крайното к-во
-                if(core_Packs::isInstalled('batches')){
+                if(core_Packs::isInstalled('batch')){
                     if(is_array($dRec->batches)){
                         $neededQty = $dRec->quantity;
                         $neededBatches = array();

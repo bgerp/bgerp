@@ -616,7 +616,7 @@ class sens2_Controllers extends core_Master
         $value = true;
         
         // Връщаме грешка, ако има
-        if(isset($res[$portName]) {
+        if (!isset($res[$portName])) {
             $value = "Output setting error";
         } elseif (($res[$portName] !== true && $res[$portName] !== 1)) {
             $value = $res[$portName];

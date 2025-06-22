@@ -17,8 +17,19 @@
  */
 class batch_definitions_Job extends batch_definitions_Proto
 {
-    
-    
+
+
+    /**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+        $fieldset->FLD('autoAllocateInOtherDocuments', 'enum(no=Забранено,yes=Разрешено)', 'caption=Използване извън същото задание->Избор');
+    }
+
+
     /**
      * Връща автоматичния партиден номер според класа
      *
@@ -119,6 +130,8 @@ class batch_definitions_Job extends batch_definitions_Proto
      */
     public function filterBatches($quantities, $mvc, $id, $storeId)
     {
+        if($this->rec->autoAllocateInOtherDocuments == 'yes') return $quantities;
+
         $Detail = cls::get($mvc);
         if(($Detail instanceof planning_DirectProductNoteDetails) || ($Detail instanceof planning_ConsumptionNoteDetails)){
             $masterRec = $Detail->Master->fetch($Detail->fetchRec($id, 'noteId')->noteId, 'originId,threadId');
