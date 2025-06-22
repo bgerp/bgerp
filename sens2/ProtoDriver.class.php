@@ -271,4 +271,18 @@ class sens2_ProtoDriver extends core_BaseClass
     {
         return 1;
     }
+
+
+    /**
+     * Връща масив, като на всеки порт записва съобщението за грешка
+     */
+    public static function setErrors($ports, $errMsg)
+    {
+        $res = array();
+        foreach($ports as $port => $dummy) {
+            $res[$port] = $errMsg;
+        }
+
+        return $res;
+    }
 }
