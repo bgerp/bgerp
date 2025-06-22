@@ -112,7 +112,7 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
         // Ако не сме получили xml - връщаме грешка
         if (empty($xml) || !$xml) {
             
-            return "Грешка при четене от {$config->ip}:{$config->port}";
+            return self::setErrors($inputs, "Грешка при четене от {$config->ip}");
         }
         
         log_System::add(get_called_class(), 'url: ' . $url);
@@ -126,7 +126,7 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
         // Ако реазултата не е коректен
         if (!countR($result)) {
             
-            return "Грешка при парсиране на XML от {$config->ip}:{$config->port}";
+            return self::setErrors($inputs, "Грешка при парсиране на XML от {$config->ip}:{$config->port}");
         }
         
         // Извличаме състоянията на входовете от парсирания XML
@@ -198,7 +198,11 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             $ch = curl_init("${cmd}");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-            $res[$out] = curl_exec($ch);
+            if(curl_exec($ch) !== false) {
+                $res[$out] = (int) $outputs[$out];
+            } else {
+                $res[$out] = "Error saving the output";
+            }
             curl_close($ch);
         }
         
