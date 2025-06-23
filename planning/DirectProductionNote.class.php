@@ -264,7 +264,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         parent::prepareEditForm_($data);
         $form = &$data->form;
         $rec = $form->rec;
-        $form->setDefault('valior', dt::today());
+
+        if(empty($rec->id)){
+            $form->setDefault('valior', dt::today());
+        }
 
         $originDoc = doc_Containers::getDocument($form->rec->originId);
         $originRec = $originDoc->rec();
@@ -898,7 +901,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     protected function getDefaultDetailsFromBom($rec)
     {
         $details = array();
+        $Document = doc_Containers::getDocument($rec->originId);
         $originRec = doc_Containers::getDocument($rec->originId)->rec();
+        $jobRec = $originRec;
+        if($Document->isInstanceOf('planning_Tasks')) {
+            $jobRec = doc_Containers::getDocument($Document->fetchField('originId'))->fetch();
+        }
 
         // Ако артикула има активна рецепта
         $bomId = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')->id;
@@ -914,9 +922,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $now = dt::now();
         $bomInfo1 = array();
         if($quantityProduced){
-            $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, $now);
+            $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, $now, $jobRec->quantity);
         }
-        $bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, $now);
+        $bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, $now, $jobRec->quantity);
 
         // За всеки ресурс
         foreach ($bomInfo2['resources'] as $index => $resource) {
@@ -998,7 +1006,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 planning_DirectProductNoteDetails::save($dRec);
 
                 // От вложените партиди остават само толкова колкото са нужни за крайното к-во
-                if(core_Packs::isInstalled('batches')){
+                if(core_Packs::isInstalled('batch')){
                     if(is_array($dRec->batches)){
                         $neededQty = $dRec->quantity;
                         $neededBatches = array();

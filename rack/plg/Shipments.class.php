@@ -454,9 +454,9 @@ class rack_plg_Shipments extends core_Plugin
         $Detail = cls::get($data->mvc->mainDetail);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$data->rec->id}");
+
         while($dRec = $dQuery->fetch()){
-            $dRow = $Detail->recToVerbal($dRec);
-            $transUnit = ($dRow->transUnitId instanceof core_ET) ? strip_tags($dRow->transUnitId->getContent()) : $dRow->transUnitId;
+            $transUnit = deals_Helper::getTransUnitRow($dRec->productId, $dRec->packagingId, $dRec->quantity, $data->rec->state, $dRec->transUnitId, $dRec->transUnitQuantity);
             if(!empty($transUnit)){
                 $details["{$dRec->productId}|{$dRec->packagingId}"][] = $transUnit;
             }

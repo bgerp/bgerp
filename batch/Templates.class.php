@@ -208,7 +208,7 @@ class batch_Templates extends embed_Manager
         if ($rec->createdBy == core_Users::SYSTEM_USER && isset($rec->id)) {
             $fields = array_keys($form->selectFields("#input != 'none' AND #input != 'hidden'"));
             foreach ($fields as $name) {
-                if (in_array($name, array('autoAllocate', 'uniqueProduct', 'alwaysRequire', 'onlyExistingBatches'))) {
+                if (in_array($name, array('autoAllocate', 'uniqueProduct', 'alwaysRequire', 'onlyExistingBatches', 'autoAllocateInOtherDocuments'))) {
                     continue;
                 }
                 $form->setReadOnly($name);

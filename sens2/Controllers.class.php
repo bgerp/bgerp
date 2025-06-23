@@ -466,7 +466,19 @@ class sens2_Controllers extends core_Master
             }
 
             // Извличане на кешираните входове 
-            $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
+            // Вземаме лок, ако е IP
+            $lockKey = self::getLockKey($rec);
+            if($lockKey) {
+                    if(core_Locks::get($lockKey, 3, 5)) {
+                        $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
+                        core_Locks::release($lockKey);
+                    } else {
+                        $values = self::setLockError($inputs);
+                    }
+            } else {
+               $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
+            }
+            
             if(count($cached)) {
                 foreach($cached as $port => $v) {
                     $values[$port] = $v;
@@ -530,6 +542,20 @@ class sens2_Controllers extends core_Master
         return $updatedCnt;
     }
     
+    /**
+     * Връща масив с грешки, поради невъзможност за заключване
+     */
+    public static function setErrorLock($inputs)
+    {
+        $values = array();
+        foreach($inputs as $port => $dummy)
+        {
+            $values[$port] = "#Unable to obtine a lock for $lockKey";
+        }
+
+        return $values;
+    }
+    
     
     /**
      * Задава стойност на физически изход. Те се записва и в модела.
@@ -565,15 +591,35 @@ class sens2_Controllers extends core_Master
                 if ($rec->persistentState) {
                     $hash = md5(serialize($rec->persistentState));
                 }
-                $res = $drv->writeOutputs($sets, $rec->config, $rec->persistentState);
+
+                // Вземаме лок, ако е IP
+                $lockKey = self::getLockKey($rec);
+                
+                if($lockKey) {
+                    if(core_Locks::get($lockKey, 3, 5)) {
+                        $res = $drv->writeOutputs($sets, $rec->config, $rec->persistentState);
+                        core_Locks::release($lockKey);
+                    } else {
+
+                        return "Unable to get lock for {$lockKey}";
+                    }
+                } else {
+                    $res = $drv->writeOutputs($sets, $rec->config, $rec->persistentState);
+                }
+
                 if ($rec->persistentState && $hash != md5(serialize($rec->persistentState))) {
                     self::save($rec, 'persistentState');
                 }
             }
         }
 
+        $value = true;
+        
+        // Връщаме грешка, ако има
         if (!isset($res[$portName])) {
-            $value = 'Грешка при запис';
+            $value = "Output setting error";
+        } elseif (($res[$portName] !== true && $res[$portName] !== 1)) {
+            $value = $res[$portName];
         }
         
         // Записване стойността в индикаторите
@@ -581,7 +627,21 @@ class sens2_Controllers extends core_Master
             sens2_Indicators::setValue($rec->id, $portName, $value, dt::verbal2mysql());
         }
         
-        return $res;
+        return $value;
+    }
+
+    /**
+     * Взема клуча за заключване, ако е дефинирано ИП
+     */
+    public static function getLockKey($rec)
+    {
+        $lockKey = null;
+
+        if(isset($rec->config->ip)) {
+            $lockKey = 'IP:' . $rec->config->ip;
+        }
+
+        return $lockKey;
     }
     
     
