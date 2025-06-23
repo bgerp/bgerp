@@ -409,7 +409,7 @@ class sales_Proformas extends deals_InvoiceMaster
         
         if ($rec->state == 'active') {
             $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
-            $amount /= $rec->rate;
+            $amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
             $amount = round($amount, 2);
             $originId = isset($rec->originId) ? $rec->originId : doc_Threads::getFirstContainerId($rec->threadId);
             
