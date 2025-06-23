@@ -463,7 +463,7 @@ class eshop_ProductDetails extends core_Detail
                     $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId);
                     if(isset($catalogPriceInfo->priceEuro)){
                         $priceEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->priceEuro);
-                        $row->catalogPrice .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR');
+                        $row->catalogPrice .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
                     }
                 }
 

@@ -1741,7 +1741,7 @@ class eshop_Carts extends core_Master
         if($isBgnDisplayed){
             $totalEuro = currency_CurrencyRates::convertAmount($total, null, null, "EUR");
             $priceEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($totalEuro);
-            $row->total .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR');
+            $row->total .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
         }
 
         // Ако има доставка се показва и нея
@@ -1771,7 +1771,7 @@ class eshop_Carts extends core_Master
                 if($isBgnDisplayed) {
                     $deliveryAmountEuro = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, "EUR");
                     $deliveryAmountEuro = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmountEuro);
-                    $deliveryAmountV .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($deliveryAmountEuro, 'EUR');
+                    $deliveryAmountV .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($deliveryAmountEuro, 'EUR', true);
                 }
 
                 $row->deliveryAmount = $deliveryAmountV;
@@ -1785,7 +1785,7 @@ class eshop_Carts extends core_Master
             if($isBgnDisplayed) {
                 $amountWithoutDeliveryEuro = currency_CurrencyRates::convertAmount($amountWithoutDelivery, null, null, "EUR");
                 $amountWithoutDeliveryEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDeliveryEuro);
-                $row->amount .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($amountWithoutDeliveryEuroVerbal, 'EUR');
+                $row->amount .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($amountWithoutDeliveryEuroVerbal, 'EUR', true);
             }
 
             $row->amountCurrencyId = $row->currencyId;
@@ -1798,7 +1798,7 @@ class eshop_Carts extends core_Master
             if($isBgnDisplayed) {
                 $totalVatEuro = currency_CurrencyRates::convertAmount($vatAmount, null, null, "EUR");
                 $totalVatEuro = core_Type::getByName('double(decimals=2)')->toVerbal($totalVatEuro);
-                $row->totalVat .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($totalVatEuro, 'EUR');
+                $row->totalVat .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($totalVatEuro, 'EUR', true);
             }
 
         }
