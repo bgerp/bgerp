@@ -24,7 +24,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
      */
     public static function on_BeforeRecToVerbal($mvc, &$row, &$rec)
     {
-        if ($rec->id) {
+        if ($rec->id && $rec->{$mvc->masterKey}) {
             $template = $mvc->Master->getTemplate($rec->{$mvc->masterKey});
             $rec->tplLang = $mvc->Master->pushTemplateLg($template);
         }
