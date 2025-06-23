@@ -355,7 +355,7 @@ class planning_WorkInProgress extends core_Manager
         // Ако има рецепта - колко е планирано по нея
         $bomRec = cat_Products::getLastActiveBom($jobRec->productId, 'production,instant,sales');
         if(is_object($bomRec)){
-            $materials = cat_Boms::getBomMaterials($bomRec, $jobRec->quantity, null, false);
+            $materials = cat_Boms::getBomMaterials($bomRec, $jobRec->quantity, null, false, array(), $jobRec->quantity);
             foreach ($materials as $materialRec){
                 $productArr[$materialRec->productId][''] = (object)array('productId' => $materialRec->productId, 'bomQuantity' => $materialRec->quantity, 'consumpedDetailed' => 0, 'returnedInput' => 0, 'consumped' => 0, 'inputed' => 0, 'returned' => 0);
             }

@@ -1933,7 +1933,7 @@ class planning_Jobs extends core_Master
 
                 // Кои са материалите и
                 $receiptClassId = cat_Boms::getClassId();
-                $materialArr = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity);
+                $materialArr = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity, null, true, array(), $rec->quantity);
 
                 if(countR($materialArr)){
 
