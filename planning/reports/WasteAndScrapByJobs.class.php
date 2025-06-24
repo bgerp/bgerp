@@ -459,7 +459,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $recs = $tempArr;
             // подменяме групирането да е по група артикули
             if ($rec->groupBy == 'articleGroup') {
-                $this->groupByField = 'group';
+                //$this->groupByField = 'group';
             }
         }
 
@@ -483,34 +483,35 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
+
         if ($export === false) {
 
-            if ($rec->type == 'job') {
-                $fld->FLD('jobId', 'varchar', 'caption=Задание');
-                if ($rec->groupBy == 'article') {
-                    $fld->FLD('jobArt', 'varchar', 'caption=Артикул');
-                }
-                if ($rec->groupBy == 'articleGroup') {
-                    $fld->FLD('group', 'varchar', 'caption=Група артикули');
-                }
+            if ($rec->groupBy == 'articleGroup') {
+                // Когато групираме по групи артикули:
+                $fld->FLD('group', 'varchar', 'caption=Група артикули');
+                $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
+                $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
             } else {
-                $fld->FLD('taskId', 'varchar', 'caption=Операция');
-                $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
-                $fld->FLD('employees', 'varchar', 'caption=Служители');
+                // Всички останали случаи (досегашното поведение)
+                if ($rec->type == 'job') {
+                    $fld->FLD('jobId', 'varchar', 'caption=Задание');
+                    if ($rec->groupBy == 'article') {
+                        $fld->FLD('jobArt', 'varchar', 'caption=Артикул');
+                    }
+                    if ($rec->groupBy == 'articleGroup') {
+                        $fld->FLD('group', 'varchar', 'caption=Група артикули');
+                    }
+                } else {
+                    $fld->FLD('taskId', 'varchar', 'caption=Операция');
+                    $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
+                    $fld->FLD('employees', 'varchar', 'caption=Служители');
+                }
+                $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+                $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
+                $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
             }
-            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
-            $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
-            //todo
-            if ($rec->type == 'job') {
-                //     $fld->FLD('positiveAvDev', 'double(decimals=2)', 'caption=Средно отклонение в количества -> Положително,tdClass=centered');
-                //      $fld->FLD('negativeAvDev', 'double(decimals=2)', 'caption=Средно отклонение в количества -> Отрицателно,tdClass=centered');
-            }
-
-        } else {
-
-
         }
+
         return $fld;
     }
 
@@ -532,29 +533,47 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         $row = new stdClass();
 
+        // Когато сме в групиране по групи артикули
+        if ($rec->groupBy == 'articleGroup') {
+
+            // Хиперлинк на групата
+            $row->group = cat_Groups::getHyperlink($dRec->group);
+
+            // Показваме сумираните количества брак и отпадък
+            $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeightGroup);
+            $row->wasteWeight = $Double->toVerbal($dRec->wasteWeightGroup);
+
+            return $row;
+        }
+
+        // При нормалните (негрупирани) случаи:
+
         if (isset($dRec->jobId)) {
             $row->jobId = planning_Jobs::getHyperlink($dRec->jobId);
         }
-        if (isset($dRec->jobArt)) {
-            $row->jobArt = cat_Products::getHyperlink($dRec->jobArt);
-        }
-
-        if (isset($dRec->group)) {
-            // Заглавие на групата с линк
-            $groupTitle = cat_Groups::getHyperlink($dRec->group);
-
-            // Вербализация на сумите
-            $scrapSum = $Double->toVerbal($dRec->scrappedWeightGroup);
-            $wasteSum = $Double->toVerbal($dRec->wasteWeightGroup);
-
-            // Обединен текст
-            $row->group = "{$groupTitle} <span style='float:right;'>(Брак: {$scrapSum} / Отпадък: {$wasteSum})</span>";
-        }
-
 
         if (isset($dRec->taskId)) {
             $row->taskId = planning_Tasks::getHyperlink($dRec->taskId);
         }
+
+        if (isset($dRec->jobArt)) {
+            $row->jobArt = cat_Products::getHyperlink($dRec->jobArt);
+        }
+
+        if (isset($dRec->assetResources)) {
+            $row->assetResources = planning_AssetResources::getHyperlink($dRec->assetResources);
+        }
+
+        if (isset($dRec->employees)) {
+            $employeesArr = keylist::toArray($dRec->employees);
+            $row->employees = '';
+            foreach ($employeesArr as $personId) {
+                $row->employees .= crm_Persons::getTitleById($personId) . "<br>";
+            }
+        }
+
+        // Стандартно показване на брак и отпадък
+        $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeight);
 
         if (isset($dRec->wasteProdWeigth)) {
             $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
@@ -565,29 +584,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $row->wasteWeight = '?';
         }
 
-        if (isset($dRec->scrappedWeight)) {
-            $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeight);
-
-        } else {
-            $row->scrappedWeight = '?';
-        }
-
-
-        if (isset($dRec->assetResources)) {
-            $row->assetResources = planning_AssetResources::getHyperlink($dRec->assetResources);
-        }
-
-        if (isset($dRec->employees)) {
-            $row->employees = '';
-            foreach (keylist::toArray($dRec->employees) as $val) {
-
-                //$row->employees .= crm_Persons::getTitleById(($val)) . ' - ' . planning_Hr::getCodeLink($val) . ',' . "</br>";
-                $row->employees .= crm_Persons::getTitleById(($val)) . "</br>";
-            }
-
-
-        }
-
+        // Мярка (винаги "кг" в твоя случай)
         $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
         $row->measure = cat_UoM::getShortName($kgMeasureId);
 
