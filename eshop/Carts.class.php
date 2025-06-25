@@ -1770,6 +1770,7 @@ class eshop_Carts extends core_Master
                 $deliveryAmountV = currency_Currencies::decorate($deliveryAmountV, $settings->currencyId);
 
                 if($isBgnDisplayed) {
+                    $deliveryAmount = round($deliveryAmount, 2);
                     $deliveryAmountEuro = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, "EUR");
                     $deliveryAmountEuro = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmountEuro);
                     $deliveryAmountV .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($deliveryAmountEuro, 'EUR', true);
