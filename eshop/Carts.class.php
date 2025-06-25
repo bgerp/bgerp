@@ -1739,6 +1739,7 @@ class eshop_Carts extends core_Master
         $row->total = currency_Currencies::decorate($row->total, $settings->currencyId);
 
         if($isBgnDisplayed){
+            $total = round($total, 2);
             $totalEuro = currency_CurrencyRates::convertAmount($total, null, null, "EUR");
             $priceEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($totalEuro);
             $row->total .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
