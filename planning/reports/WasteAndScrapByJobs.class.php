@@ -81,47 +81,62 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        //Период
-        $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
-        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
+        // Период на справката
+        $fieldset->FLD('from', 'date',
+            'caption=От,after=title,single=none,mandatory');
+        $fieldset->FLD('to', 'date',
+            'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FLD('type', 'enum(job=По задание, task=По операции)', 'notNull,caption=Покажи->Артикули,maxRadio=1,after=to,single=none,silent,removeAndRefreshForm=orderBy');
+        // Избор на тип справка – по задание или по операции
+        $fieldset->FLD('type', 'enum(job=По задание, task=По операции)',
+            'notNull,caption=Покажи->Артикули,maxRadio=1,after=to,single=none,silent,removeAndRefreshForm=orderBy');
 
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи артикули,after=type,placeholder=Всички,silent,single=none');
+        // Филтриране по групи артикули
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)',
+            'caption=Групи артикули,after=type,placeholder=Всички,silent,single=none');
 
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Дилър,single=none,after=groups');
+        // Филтър по дилъри (потребители с определени роли)
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)',
+            'caption=Дилър,single=none,after=groups');
 
-        $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)', 'caption=Работници,placeholder=Всички,after=dealers');
+        // Филтър по работници
+        $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)',
+            'caption=Работници,placeholder=Всички,after=dealers');
 
-        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Машини,placeholder=Всички,after=employees,single=none');
+        // Филтър по машини (активи)
+        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)',
+            'caption=Машини,placeholder=Всички,after=employees,single=none');
 
-        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,placeholder=Всички,after=assetResources,single=none');
+        // Филтър по центрове
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)',
+            'caption=Центрове,placeholder=Всички,after=assetResources,single=none');
 
+        // Сортиране по показател (напр. по брак или отпадък)
+        $fieldset->FLD('orderBy', 'enum(jobId=Задание, taskId=Операция, scrappedWeight=Брак, wasteWeight=Отпадък)',
+            'caption=Подреждане на резултата->Показател,maxRadio=4,columns=3,silent,after=centre');
 
-        //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(jobId=Задание, taskId=Операция, scrappedWeight=Брак, wasteWeight=Отпадък)', 'caption=Подреждане на резултата->Показател,maxRadio=4,columns=3,silent,after=centre');
-        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
-        // Дали да бъде групирана справката по контрагент
-        $fieldset->FLD(
-            'groupBy',
-            'enum(no=Без групиране,article=Артикули,articleGroup=Групи артикули)',
-            'caption=Подреждане на резултата->Групиране,after=order,columns=3,maxRadio=3'
-        );
+        // Ред на сортиране – низходящ или възходящ
+        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)',
+            'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
 
-        $fieldset->FLD('pasive', 'enum( yes=Активно, no=Пасивно)', 'caption=Подреждане на резултата->Режим,after=groupBy,single=none,removeAndRefreshForm,silent');
+        // Групиране на резултата – по артикули, по групи, или без
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране,article=Артикули,articleGroup=Групи артикули)',
+            'caption=Подреждане на резултата->Групиране,after=order,columns=3,maxRadio=3');
 
-        $fieldset->FLD(
-            'GrFill',
+        // Режим на зареждане – пасивно или активно
+        $fieldset->FLD('pasive', 'enum( yes=Активно, no=Пасивно)',
+            'caption=Подреждане на резултата->Режим,after=groupBy,single=none,removeAndRefreshForm,silent');
+
+        // Таблично поле за въвеждане на данни за групи (тегло, брак, отпадък)
+        $fieldset->FLD('GrFill',
             "table(
-      columns=grp|wght|scrpWeight|wstWeight,
-      captions=Група|Тегло|Брак|Отпадък,
-      widths=30em|5em|5em|5em,
-      suggestions[grp]=cat_Groups::suggestions()
-   )",
+            columns=grp|wght|scrpWeight|wstWeight,
+            captions=Група|Тегло|Брак|Отпадък,
+            widths=30em|5em|5em|5em,
+            suggestions[grp]=cat_Groups::suggestions()
+        )",
             'caption=Зареждане на групи||Extras->Зареди||Additional,autohide,advanced,after=groupBy,export=Csv,single=none,silent,input=none'
         );
-
-
     }
 
 
@@ -613,7 +628,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         // СПЕЦИАЛЕН СЛУЧАЙ
         if (!is_null($rec->GrFill)) {
 
-            $row->group = ($dRec->group);
+            $row->group = cat_Groups::getHyperlink($dRec->group);
             $row->weight = $Double->toVerbal($dRec->weight);
             $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeight);
             $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
@@ -846,39 +861,38 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
      *                   ...
      *               ]
      */
+    // Връща масив със записи от табличното поле GrFill, използвайки ID на група, вместо име
     protected function prepareRecsFromGrFill($rec)
     {
-        $recs = [];
+        $recs = array();
 
-        // Проверяваме дали има попълнено поле GrFill
-        if (!is_null($rec->GrFill)) {
-            // Преобразуваме JSON-а в асоциативен масив
-            $grFillData = is_string($rec->GrFill) ? json_decode($rec->GrFill, true) : (array)$rec->GrFill;
+        // Преобразуваме JSON форматираното поле в масив
+        $grFillData = (array) json_decode($rec->GrFill, true);
 
-            // Проверяваме дали имаме масив с групи
-            if (!empty($grFillData['grp'])) {
-                foreach ($grFillData['grp'] as $i => $groupId) {
-                    $weight = (float)$grFillData['wght'][$i];
-                    $scrapped = (float)$grFillData['scrpWeight'][$i];
-                    $waste = (float)$grFillData['wstWeight'][$i];
+        // Обхождаме всяка група по индекс
+        foreach ($grFillData['grp'] as $i => $groupName) {
+            // Тегло, брак и отпадък от съответната колона
+            $weight = (float) $grFillData['wght'][$i];
+            $scrapped = (float) $grFillData['scrpWeight'][$i];
+            $waste = (float) $grFillData['wstWeight'][$i];
 
-                    // Пропускаме реда, ако всички стойности са 0
-                    if ($weight == 0 && $scrapped == 0 && $waste == 0) {
-                        continue;
-                    }
-
-                    // Добавяме към резултатите
-                    $recs[$groupId] = (object)[
-                        'group' => $groupId,
-                        'weight' => $weight,
-                        'scrappedWeight' => $scrapped,
-                        'wasteWeight' => $waste,
-                    ];
-                }
+            // Пропускаме празни редове (всичко 0)
+            if ($weight == 0 && $scrapped == 0 && $waste == 0) {
+                continue;
             }
+
+            // Взимаме ID на групата по име
+            $groupId = cat_Groups::fetchField("#name = '{$groupName}'", 'id');
+
+            // Добавяме в резултата
+            $recs[$groupId] = (object) [
+                'groupId' => $groupId,
+                'weight' => $weight,
+                'scrappedWeight' => $scrapped,
+                'wasteWeight' => $waste
+            ];
         }
 
         return $recs;
     }
-
 }
