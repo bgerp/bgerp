@@ -147,7 +147,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $overdueToleranceAmount = deals_Setup::get('OVERDUE_TOLERANCE_AMOUNT');
 
         // Ако имаме фактури към сделката
-        $invoices = deals_Helper::getInvoicePayments($rec->threadId);
+        $invoices = deals_Helper::getInvoicePayments($rec->threadId, null, false);
+
         if (countR($invoices)) {
             $overdueAmount = $overdueAmountPerDays = 0;
             $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');

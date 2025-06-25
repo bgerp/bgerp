@@ -384,6 +384,8 @@ class pos_ReceiptDetails extends core_Detail
                    if(!empty($firstValue)){
                        $firstValue = str_replace('*', '', $firstValue);
                        expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Неразпозната цена');
+                       expect($price >= 0, 'Невалидна цена|*!');
+
                        $price /= 1 + $rec->param;
                        $rec->price = $price;
                        $rec->amount = $rec->price * $rec->quantity;

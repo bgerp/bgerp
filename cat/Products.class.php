@@ -3683,7 +3683,7 @@ class cat_Products extends embed_Manager
         if (!empty($ProductDriver)) {
             $defaultTasks = $ProductDriver->getDefaultProductionTasks($jobRec, $quantity);
         }
-        
+
         // Ако няма дефолтни задачи
         if (!countR($defaultTasks)) {
             

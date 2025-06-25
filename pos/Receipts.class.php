@@ -907,11 +907,7 @@ class pos_Receipts extends core_Master
     public static function checkQuantity($rec, &$error, &$warning = null)
     {
         // Ако е забранено продаването на неналични артикули да се проверява
-        $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
-        if ($notInStockChosen == 'yes') {
-
-            return true;
-        }
+        if (store_Setup::canDoShippingWhenStockIsNegative()) return true;
 
         $today = dt::today();
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
@@ -942,39 +938,30 @@ class pos_Receipts extends core_Master
             }
         }
 
-        $originalQuantityInStock = $quantityInStock;
         $originalFreeQuantityNow = $freeQuantityNow;
         $originalFreeQuantity = $freeQuantity;
 
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
-        $quantityInStock -= round($rec->quantity * $quantityInPack, 2);
-        $freeQuantity -= round($rec->quantity * $quantityInPack, 2);
-        $freeQuantityNow -= round($rec->quantity * $quantityInPack, 2);
+        $freeQuantity -= round($rec->quantity * $quantityInPack, 3);
+        $freeQuantityNow -= round($rec->quantity * $quantityInPack, 3);
 
-        $freeQuantityNow = round($freeQuantityNow, 2);
-        $freeQuantity = round($freeQuantity, 2);
-        $quantityInStock = round($quantityInStock, 2);
-        $Double = core_Type::getByName('double(decimals=2)');
+        $freeQuantityNow = round($freeQuantityNow, 3);
+        $freeQuantity = round($freeQuantity, 3);
+        $Double = core_Type::getByName('double(smartRound)');
         $pName = cat_Products::getTitleById($rec->productId);
 
-        if ($quantityInStock < 0) {
-            $originalQuantityInStockVerbal = $Double->toVerbal($originalQuantityInStock);
-            $error = "|* {$pName}: |Количеството не е налично в склад|*: " . store_Stores::getTitleById($rec->storeId);
-            $error .= ". |Налично в момента|* {$originalQuantityInStockVerbal}";
+        if ($freeQuantity < 0) {
+            $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity / $quantityInPack);
+            $error = "|* {$pName}: Количеството e над минималното разполагаемото|* <b>{$originalFreeQuantityVerbal}</b> |в склад|*: " . store_Stores::getTitleById($rec->storeId);
 
             return false;
         }
 
         if ($freeQuantityNow < 0) {
             $originalFreeQuantityNowVerbal = $Double->toVerbal($originalFreeQuantityNow);
-            $warning = "|* {$pName}: Количеството e над разполагаемото|* {$originalFreeQuantityNowVerbal} |днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
+            $warning = "|* {$pName}: Количеството e над разполагаемото|* <b>{$originalFreeQuantityNowVerbal}</b> |днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
 
             return true;
-        }
-
-        if ($freeQuantity < 0) {
-            $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity);
-            $warning = "|* {$pName}: Количеството e над минималното разполагаемото|* {$originalFreeQuantityVerbal} |в склад|*: " . store_Stores::getTitleById($rec->storeId);
         }
 
         return true;

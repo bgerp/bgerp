@@ -560,6 +560,94 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
+        $plannedByAssets = $notPlanned = array();
+
+        $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
+        if($manualPlanning == 'no'){
+            $debugRes .= self::smartPlanning($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
+        } else {
+            $debugRes .= self::manualPlanning($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
+        }
+
+        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'assets' => $assets, 'intervals' => $intervals, 'debug' => $debugRes);
+    }
+
+    /**
+     * Умно планиране на операциите на машините
+     *
+     * @param array $plannedByAssets
+     * @param array $notPlanned
+     * @param array $intervals
+     * @param array $assets
+     * @param array $tasks
+     * @param datetime $now
+     * @param array $previousTasks
+     * @return string
+     */
+    private static function manualPlanning(&$plannedByAssets, &$notPlanned, $intervals, $assets, $tasks, $now, $previousTasks)
+    {
+        $planned = array();
+
+        $debugRes = "<hr />РЪЧНО ПЛАНИРАНЕ<hr / >";
+        $assetsWithIntervals = array_keys($intervals);
+        $taskLinks = $tasksWithIntervals = $tasksByAssets = array();
+        foreach ($tasks as $task) {
+            if (in_array($task->assetId, $assetsWithIntervals)) {
+                $taskLinks[$task->id] = ht::createLink("Opr{$task->id}", array('planning_Tasks', 'single', $task->id), false, 'target=_blank')->getContent();
+                $tasksWithIntervals[$task->id] = $task;
+                $tasksByAssets[$task->assetId][$task->id] = $task;
+            }
+        }
+        $interruptionArr = planning_Steps::getInterruptionArr($tasks);
+
+        foreach ($assets as $assetRec){
+            $tasksInAsset = $tasksByAssets[$assetRec->id];
+            arr::sortObjects($tasksInAsset, 'dueDate', 'ASC');
+            $debugRes .= "<hr />Слагане на задачи на <b>{$assets[$assetRec->id]->code} [{$assets[$assetRec->id]->scheduleName}]</b><br />";
+
+
+            if(is_array($assets[$assetRec->id]->manualOrder)){
+                $debugRes .=  "<hr />Приложена ръчна подредба: " . countR($assets[$assetRec->id]->manualOrder);
+                $tasksInAsset = arr::reorderArrayByOrderedKeys($tasksInAsset, $assets[$assetRec->id]->manualOrder);
+            } else {
+                $debugRes .=  "<hr />НЯМА ръчна подредба";
+            }
+
+            foreach ($tasksInAsset as $taskRec1){
+                $begin = max($taskRec1->modifiedOn, $now);
+                if(!$taskRec1->calcedCurrentDuration){
+                    $taskRec1->calcedCurrentDuration  = 1;
+                }
+
+                // Захранват се графиците със задачите с фактическо начало
+                if ($Interval = $intervals[$taskRec1->assetId]) {
+                    $interruptOffset = array_key_exists($taskRec1->productId, $interruptionArr) ? $interruptionArr[$taskRec1->productId] : null;
+                    $debugRes .= "<hr />{$taskLinks[$taskRec1->id]} храни <b>[{$assets[$taskRec1->assetId]->code}]($taskRec1->assetId)</b> с начало {$begin} / прод. {$taskRec1->calcedCurrentDuration} ";
+                    $debugRes .= static::feedToInterval($taskRec1, $begin, $interruptOffset, $Interval, $planned);
+                    $plannedByAssets[$taskRec1->assetId][$taskRec1->id] = $planned[$taskRec1->id];
+                }
+            }
+        }
+
+        return $debugRes;
+    }
+
+    /**
+     * Умно планиране на операциите на машините
+     *
+     * @param array $plannedByAssets
+     * @param array $notPlanned
+     * @param array $intervals
+     * @param array $assets
+     * @param array $tasks
+     * @param datetime $now
+     * @param array $previousTasks
+     * @return string
+     */
+    private static function smartPlanning(&$plannedByAssets, &$notPlanned, $intervals, $assets, $tasks, $now, $previousTasks)
+    {
+        $planned = array();
+
         // От операциите остават само тези, които са на машини с закачени графици
         // Попринцип не би трябвало да има машина без график, но за всеки случай
         $tasksWithActualStart = $tasksWithoutActualStartByAssetId = array();
@@ -587,12 +675,11 @@ class planning_TaskConstraints extends core_Master
         arr::sortObjects($tasksWithActualStart, 'actualStart', 'ASC');
 
         // Първо ще се наместят в графика тези с фактическо начало
-        $debugRes .= "<hr>Без графици:" . countR($withoutIntervals);
+        $debugRes = "<hr />УМНО ПЛАНИРАНЕ<hr / >Без графици:" . countR($withoutIntervals);
         $debugRes .= "<hr />ВСИЧКИ: " . countR($tasks);
         $debugRes .= "<hr />1. Разполагане на тези с ФАКТИЧЕСКО начало <b>" . countR($tasksWithActualStart) . "</b> <hr />";
 
         core_Debug::startTimer('START_CYCLE');
-        $planned = $plannedByAssets = array();
 
         foreach ($tasksWithActualStart as $taskRec1) {
             $begin = max($taskRec1->actualStart, $now);
@@ -761,7 +848,7 @@ class planning_TaskConstraints extends core_Master
         core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
         core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers["SCHEDULE_CALC_TIMES"]->workingTime, 6));
 
-        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'assets' => $assets, 'intervals' => $intervals, 'debug' => $debugRes);
+        return $debugRes;
     }
 
 

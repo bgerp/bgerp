@@ -724,7 +724,9 @@ class cat_products_Params extends doc_Detail
             }
 
             if($class instanceof planning_Tasks){
-                $prevRecValues = planning_Tasks::getPrevParamValues($form->rec->originId, $params);
+                if(countR($params)){
+                    $prevRecValues = planning_Tasks::getPrevParamValues($form->rec->originId, $params);
+                }
             }
         }
 

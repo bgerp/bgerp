@@ -332,7 +332,7 @@ class rack_plg_Shipments extends core_Plugin
             $fieldset->FLD('transUnitId', 'varchar', 'tdClass=centered');
             $fieldset->FLD('code', 'varchar','tdClass=small');
             $table = cls::get('core_TableView', array('mvc' => $fieldset));
-            $fields = arr::make('code=Код,productId=Артикул,batch=Партида,quantity=Общо,positions=Позиции,transUnitId=ЛЕ');
+            $fields = arr::make('code=Код,productId=Артикул,batch=Партида,quantity=Общо,transUnitId=ЛЕ,positions=Позиции');
             $fields = core_TableView::filterEmptyColumns($data->rows, $fields, 'batch');
             $details = $table->get($data->rows, $fields);
             $singleFields = $mvc->selectFields();
@@ -454,9 +454,9 @@ class rack_plg_Shipments extends core_Plugin
         $Detail = cls::get($data->mvc->mainDetail);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$data->rec->id}");
+
         while($dRec = $dQuery->fetch()){
-            $dRow = $Detail->recToVerbal($dRec);
-            $transUnit = ($dRow->transUnitId instanceof core_ET) ? strip_tags($dRow->transUnitId->getContent()) : $dRow->transUnitId;
+            $transUnit = deals_Helper::getTransUnitRow($dRec->productId, $dRec->packagingId, $dRec->quantity, $data->rec->state, $dRec->transUnitId, $dRec->transUnitQuantity);
             if(!empty($transUnit)){
                 $details["{$dRec->productId}|{$dRec->packagingId}"][] = $transUnit;
             }

@@ -700,6 +700,14 @@ class store_ConsignmentProtocols extends core_Master
             if(!empty($locationRec->features)){
                 $res['features'] = keylist::toArray($locationRec->features);
             }
+
+            if(!empty($locationRec->mol)){
+                $res['address'] .= ", {$locationRec->mol}";
+            }
+
+            if(!empty($locationRec->tel)){
+                $res['address'] .= " {$locationRec->tel}";
+            }
         } else {
             $res['address'] = str_replace('<br>', '', $row->contragentAddress);
         }

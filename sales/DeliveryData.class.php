@@ -256,7 +256,7 @@ class sales_DeliveryData extends core_Manager
             $dQuery->EXT('state', 'doc_Containers', 'externalName=state,externalKey=containerId');
             $dQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
             $dQuery->in('state', array('pending', 'active'));
-            $dQuery->where("#readiness IS NOT NULL AND #docClass =" . sales_Sales::getClassId());
+            $dQuery->where("#readiness IS NOT NULL AND #readiness > 0 AND #docClass =" . sales_Sales::getClassId());
 
             while($d1 = $dQuery->fetch()){
                 self::$cacheRecs['recs'][$d1->containerId] = $d1;

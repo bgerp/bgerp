@@ -3001,6 +3001,7 @@ class planning_Tasks extends core_Master
         }
 
         // Ако има избрано оборудване добавят се параметрите от него и от групата му
+        $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
         if (isset($data->listFilter->rec->assetId)) {
             $assetRec = planning_AssetResources::fetch($data->listFilter->rec->assetId, 'planningParams,groupId');
             $plannedParams += keylist::toArray($assetRec->planningParams);
@@ -3202,9 +3203,9 @@ class planning_Tasks extends core_Master
             $row->ROW_ATTR['data-id'] = $rec->id;
 
             if($haveDiffProductIds || isset($data->masterMvc)){
-                $stepTitle = str::limitLen($mvc->getStepTitle($rec->productId), 32);
+                $stepTitle = str::limitLen($mvc->getStepTitle($rec->productId), 44);
                 if (!empty($rec->subTitle)) {
-                    $stepTitle .= " - {$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}";
+                    $stepTitle .= " - <i>{$mvc->getFieldType('subTitle')->toVerbal($rec->subTitle)}</i>";
                 }
                 $row->title = "{$rec->id} - {$stepTitle}";
             } else {
@@ -3225,7 +3226,7 @@ class planning_Tasks extends core_Master
                 $rowNoteAttr = array('class' => 'notesHolder', 'id' => "notesHolder{$rec->id}", 'data-prompt-text' => tr('Забележка на|*: ') . $mvc->getRecTitle($rec));
                 $rowNoteAttr['data-url'] = $mvc->haveRightFor('edit', $rec) ? toUrl(array($mvc, 'editnotes', $rec->id), 'local') : null;
                 $row->notes = ht::createElement("span", $rowNoteAttr, $row->notes, true);
-                if (!empty($rec->actualStart)) {
+                if (!empty($rec->actualStart) && $manualPlanning == 'no') {
                     $row->ROW_ATTR['data-dragging'] = "false";
                     $row->ROW_ATTR['class'] .= " state-forbidden";
                     $row->ROW_ATTR['style'] = 'opacity:0.7';
@@ -4451,7 +4452,10 @@ class planning_Tasks extends core_Master
 
             $taskOptions = array();
             $taskAssets = planning_AssetResources::getAssetTaskOptions($rec->newAssetId, true);
-            $orderedTaskAssets = planning_TaskManualOrderPerAssets::getOrderedRecs($rec->newAssetId, $taskAssets);
+
+            $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
+            $placeWithActualStartFirst = ($manualPlanning == 'no');
+            $orderedTaskAssets = planning_TaskManualOrderPerAssets::getOrderedRecs($rec->newAssetId, $taskAssets, $placeWithActualStartFirst);
             foreach ($orderedTaskAssets as $tRec){
                 $taskOptions[$tRec->id] = $this->getAlternativeTitle($tRec);
             }
@@ -4544,6 +4548,8 @@ class planning_Tasks extends core_Master
     {
         if(!Mode::is('isReorder') || !countR($data->recs)) return;
 
-        $data->recs = planning_TaskManualOrderPerAssets::getOrderedRecs($data->listFilter->rec->assetId, $data->recs);
+        $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
+        $placeWithActualStartFirst = ($manualPlanning == 'no');
+        $data->recs = planning_TaskManualOrderPerAssets::getOrderedRecs($data->listFilter->rec->assetId, $data->recs, $placeWithActualStartFirst);
     }
 }

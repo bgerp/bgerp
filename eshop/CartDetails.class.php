@@ -378,8 +378,10 @@ class eshop_CartDetails extends core_Detail
                     $finalPrice *= (1 - $rec->autoDiscount);
                 }
 
-                $finalPriceVerbal = currency_CurrencyRates::convertAmount($finalPrice, null, $rec->currencyId, $settings->currencyId);
-                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPriceVerbal);
+                $finalPrice = currency_CurrencyRates::convertAmount($finalPrice, null, $rec->currencyId, $settings->currencyId);
+                $finalPrice = price_Lists::roundPrice($settings->listId, $finalPrice);
+
+                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
                 $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId);
                 
                 if ($rec->oldPrice) {
@@ -418,9 +420,14 @@ class eshop_CartDetails extends core_Detail
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
         if (countR($settings->inStockStores) && $productRec->canStore == 'yes') {
             $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
-            
+
             if (is_null($maxQuantity) && $maxQuantity <= 0) {
-                if(!empty($eshopProductRec->deliveryTime)){
+                // Ако няма наличност, но се очаква доставка към подададената дата
+                $deliveryTime = !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME');
+                $horizon = dt::addSecs($deliveryTime, null,false);
+
+                $quantityExpected = store_Products::getQuantities($rec->productId, $settings->inStockStores, $horizon)->free;
+                if(!empty($quantityExpected)){
                     $row->productId .= "<br><span  class='option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
                 }
             }
