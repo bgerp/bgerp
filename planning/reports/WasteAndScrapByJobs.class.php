@@ -108,7 +108,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             'caption=Подреждане на резултата->Групиране,after=order,columns=3,maxRadio=3'
         );
 
-      //  $fieldset->FLD('pasive', 'enum( yes=Активно, no=Пасивно)', 'caption=Подреждане на резултата->Режим,after=groupBy,single=none,removeAndRefreshForm,silent');
+        $fieldset->FLD('pasive', 'enum( yes=Активно, no=Пасивно)', 'caption=Подреждане на резултата->Режим,after=groupBy,single=none,removeAndRefreshForm,silent');
 
         $fieldset->FLD(
             'GrFill',
@@ -118,7 +118,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
       widths=30em|5em|5em|5em,
       suggestions[grp]=cat_Groups::suggestions()
    )",
-            'caption=Зареждане на групи||Extras->Зареди||Additional,autohide,advanced,after=groupBy,export=Csv,single=none'
+            'caption=Зареждане на групи||Extras->Зареди||Additional,autohide,advanced,after=groupBy,export=Csv,single=none,silent'
         );
 
 
@@ -135,6 +135,35 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        $rec = &$form->rec;
+
+        // Само при рефреш на формата
+        if ($form->cmd == 'refresh') {
+
+            $details = array();
+
+            if ($rec->pasive == 'no') {
+                $groupsQuery = cat_Groups::getQuery();
+
+                // Филтрирай по избрани групи, ако е нужно
+                if ($rec->groups) {
+                    $groupIds = keylist::toArray($rec->groups);
+                    $groupsQuery->in('id', $groupIds);
+                }
+
+                $i = 0;
+                while ($gRec = $groupsQuery->fetch()) {
+                    $details['grp'][$i] = $gRec->name;
+                    $details['wght'][$i] = 0;
+                    $details['scrpWeight'][$i] = 0;
+                    $details['wstWeight'][$i] = 0;
+                    $i++;
+                }
+            }
+
+            $jDetails = json_encode($details);
+            $form->rec->GrFill = $jDetails;
+        }
 
 
         if ($form->isSubmitted()) {
@@ -199,37 +228,6 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         asort($suggestions);
         $form->setSuggestions('employees', $suggestions);
 
-        // ТУК ЗАПОЧВА НОВОТО — зареждане на всички групи в GrFill
-        $details = array();
-
-        $i = 0;
-        $groupsQuery = cat_Groups::getQuery();
-        $groupsQuery->limit(100);
-// Вземаме избраните групи от keylist
-//        if (!empty($rec->groups)) {
-//            $groupsArr = keylist::toArray($rec->groups);
-//            $groupsQuery->in('id', $groupsArr);
-//        } else {
-//            // Ако няма избрани, примерно може да не връщаме нищо
-//            $groupsQuery->where('0');
-//        }
-
-
-        while ($gRec = $groupsQuery->fetch()) {
-            $details['grp'][$i] = $gRec->name;
-            $details['wght'][$i] = 0;
-            $details['scrpWeight'][$i] = 0;
-            $details['wstWeight'][$i] = 0;
-            $i++;
-        }
-//            if ($rec->pasive == 'no'){
-        $details = array();
-
-//            }
-
-        $jDetails = json_encode($details);
-
-        $form->rec->GrFill = $jDetails;
     }
 
 
@@ -824,31 +822,55 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         return false;
     }
 
+    /**
+     * Подготвя записи от данните в полето GrFill.
+     *
+     * Методът обхожда масива GrFill, който е сериализиран в JSON и съдържа теглови данни за групи.
+     * Връща само онези записи, при които поне една от стойностите (тегло, брак, отпадък) е различна от 0.
+     * Името на групата се съхранява като ID, за по-лесна вербализация при извеждане.
+     *
+     * @param stdClass $rec Записът от формата, който съдържа полето GrFill
+     * @return array Масив от обекти със следната структура:
+     *               [
+     *                   groupId => (object)[
+     *                       'group' => int,              // ID на групата (ще се вербализира по-късно)
+     *                       'weight' => float,           // Тегло
+     *                       'scrappedWeight' => float,   // Брак
+     *                       'wasteWeight' => float       // Отпадък
+     *                   ],
+     *                   ...
+     *               ]
+     */
     protected function prepareRecsFromGrFill($rec)
     {
-        $recs = array();
+        $recs = [];
 
-        // Преобразуваме GrFill от JSON към масив
-        if (is_string($rec->GrFill)) {
-            $grFillData = json_decode($rec->GrFill, true);
-        } else {
-            $grFillData = (array)$rec->GrFill;
-        }
+        // Проверяваме дали има попълнено поле GrFill
+        if (!is_null($rec->GrFill)) {
+            // Преобразуваме JSON-а в асоциативен масив
+            $grFillData = is_string($rec->GrFill) ? json_decode($rec->GrFill, true) : (array)$rec->GrFill;
 
-        if (empty($grFillData['grp'])) {
-            return $recs;  // Ако няма записи - връщаме празен масив
-        }
+            // Проверяваме дали имаме масив с групи
+            if (!empty($grFillData['grp'])) {
+                foreach ($grFillData['grp'] as $i => $groupId) {
+                    $weight = (float)$grFillData['wght'][$i];
+                    $scrapped = (float)$grFillData['scrpWeight'][$i];
+                    $waste = (float)$grFillData['wstWeight'][$i];
 
-        foreach ($grFillData['grp'] as $i => $groupName) {
+                    // Пропускаме реда, ако всички стойности са 0
+                    if ($weight == 0 && $scrapped == 0 && $waste == 0) {
+                        continue;
+                    }
 
-            $id = $i;  // Можеш да го замениш и с самото groupName ако искаш
-
-            $recs[$id] = (object)array(
-                'group' => $groupName,
-                'weight' => $grFillData['wght'][$i],
-                'scrappedWeight' => $grFillData['scrpWeight'][$i],
-                'wasteWeight' => $grFillData['wstWeight'][$i],
-            );
+                    // Добавяме към резултатите
+                    $recs[$groupId] = (object)[
+                        'group' => $groupId,
+                        'weight' => $weight,
+                        'scrappedWeight' => $scrapped,
+                        'wasteWeight' => $waste,
+                    ];
+                }
+            }
         }
 
         return $recs;
