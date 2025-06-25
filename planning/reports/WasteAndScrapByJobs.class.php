@@ -223,7 +223,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $i++;
         }
 //            if ($rec->pasive == 'no'){
-   //     $details = array();
+        $details = array();
 
 //            }
 
