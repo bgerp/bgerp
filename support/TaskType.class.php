@@ -736,6 +736,9 @@ class support_TaskType extends core_Mvc
         $query->orderBy('createdOn=DESC,id=DESC');
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
         $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
+        if ($data->_itemsPerPage) {
+            $data->Pager->itemsPerPage = $data->_itemsPerPage;
+        }
         $data->Pager->setLimit($query);
 
         // Вербализиране
@@ -791,6 +794,7 @@ class support_TaskType extends core_Mvc
             $data->masterId = $data->rec->assetResourceId;
             $data->_statesArr = array('active', 'waiting', 'pending');
             $data->_ignoreId = $data->rec->id;
+            $data->_itemsPerPage = 5;
             $Driver->prepareAssetSupport($data);
             $tpl->append($Driver->renderAssetSupport($data), 'DETAILS');
         }
