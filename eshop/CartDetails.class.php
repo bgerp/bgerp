@@ -378,8 +378,10 @@ class eshop_CartDetails extends core_Detail
                     $finalPrice *= (1 - $rec->autoDiscount);
                 }
 
-                $finalPriceVerbal = currency_CurrencyRates::convertAmount($finalPrice, null, $rec->currencyId, $settings->currencyId);
-                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPriceVerbal);
+                $finalPrice = currency_CurrencyRates::convertAmount($finalPrice, null, $rec->currencyId, $settings->currencyId);
+                $finalPrice = price_Lists::roundPrice($settings->listId, $finalPrice);
+
+                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
                 $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId);
                 
                 if ($rec->oldPrice) {
