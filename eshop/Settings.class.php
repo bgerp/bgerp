@@ -127,7 +127,7 @@ class eshop_Settings extends core_Master
     /**
      * Колко секунди преди изтриване да се изпраща нотифициращ имейл
      */
-    const DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION = 86400;
+    const DEFAULT_SEND_NOTIFICATION_BEFORE_DELETION = 86400;
     
     /**
      * Колко секунди да е живота на забравените празни колички
@@ -492,7 +492,7 @@ class eshop_Settings extends core_Master
         $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
         $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
         $form->setField('lifetimeForEmptyDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS));
-        $form->setField('timeBeforeDelete', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION));
+        $form->setField('timeBeforeDelete', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_SEND_NOTIFICATION_BEFORE_DELETION));
 
         $form->setDefault('mandatoryEcartContactFields', 'auto');
         $form->setDefault('mandatoryInquiryContactFields', 'auto');
@@ -581,7 +581,7 @@ class eshop_Settings extends core_Master
             }
             
             if (empty($settingRec->timeBeforeDelete)) {
-                $settingRec->timeBeforeDelete = self::DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION;
+                $settingRec->timeBeforeDelete = self::DEFAULT_SEND_NOTIFICATION_BEFORE_DELETION;
             }
             
             if (empty($settingRec->addToCartBtn)) {
