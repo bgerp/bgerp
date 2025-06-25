@@ -118,7 +118,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
       widths=30em|5em|5em|5em,
       suggestions[grp]=cat_Groups::suggestions()
    )",
-            'caption=Зареждане на групи||Extras->Зареди||Additional,autohide,advanced,after=groupBy,export=Csv,single=none,silent'
+            'caption=Зареждане на групи||Extras->Зареди||Additional,autohide,advanced,after=groupBy,export=Csv,single=none,silent,input=none'
         );
 
 
@@ -188,7 +188,12 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('type', 'task');
-        //  $form->setDefault('pasive', 'yes');
+
+        if ($rec->pasive == 'no') {
+            $form->setField('GrFill', 'input');
+        }
+
+          $form->setDefault('pasive', 'yes');
 
         if ($rec->type == 'job') {
             $form->setField('employees', 'input=none');
