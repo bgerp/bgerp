@@ -1573,4 +1573,21 @@ class core_String
 
         return $exist;
     }
+
+
+    /**
+     * Ескейпване на регулярен израз, за да е безопасен за използване в SQL заявка
+     *
+     * @param string $input
+     * @return string $input
+     */
+    public static function escapeRegexForMySQL($input)
+    {
+        $specials = ['\\', '.', '^', '$', '*', '+', '?', '[', ']', '{', '}', '(', ')', '|'];
+        foreach ($specials as $char) {
+            $input = str_replace($char, '\\' . $char, $input);
+        }
+
+        return $input;
+    }
 }
