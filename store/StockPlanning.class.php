@@ -183,7 +183,7 @@ class store_StockPlanning extends core_Manager
             $a->threadId = $threadId;
 
             // Ако датата е в миналото, но има очаквано к-во да се добави времето към сега
-            if($a->date < $today){
+            if(dt::verbal2mysql($a->date, false) <= $today){
                 if($a->quantityIn){
                     $a->date = dt::addSecs($horizonAdd, $now);
                 }

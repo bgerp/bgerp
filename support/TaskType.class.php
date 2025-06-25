@@ -723,11 +723,22 @@ class support_TaskType extends core_Mvc
         $data->recs = $data->rows = array();
         $me = cls::get(get_called_class());
         $query = $Tasks->getQuery();
-        $query->where("#driverClass = {$me->getClassId()} AND #state != 'rejected'");
+        $query->where("#driverClass = {$me->getClassId()}");
+        if ($data->_statesArr) {
+            $query->orWhereArr('state', $data->_statesArr);
+        } else {
+            $query->where("#state != 'rejected'");
+        }
+        if ($data->_ignoreId) {
+            $query->where("#id != {$data->_ignoreId}");
+        }
         $query->where("#assetResourceId = {$data->masterId}");
         $query->orderBy('createdOn=DESC,id=DESC');
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
         $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
+        if ($data->_itemsPerPage) {
+            $data->Pager->itemsPerPage = $data->_itemsPerPage;
+        }
         $data->Pager->setLimit($query);
 
         // Вербализиране
@@ -766,6 +777,29 @@ class support_TaskType extends core_Mvc
 
         return $tpl;
     }
+
+
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param core_ET           $tpl
+     * @param stdClass          $data
+     */
+    protected static function on_AfterRenderSingle($Driver, embed_Manager $Embedder, &$tpl, $data)
+    {
+        if ($data->rec->assetResourceId) {
+
+            $data->masterId = $data->rec->assetResourceId;
+            $data->_statesArr = array('active', 'waiting', 'pending');
+            $data->_ignoreId = $data->rec->id;
+            $data->_itemsPerPage = 5;
+            $Driver->prepareAssetSupport($data);
+            $tpl->append($Driver->renderAssetSupport($data), 'DETAILS');
+        }
+    }
+
 
 
     /**

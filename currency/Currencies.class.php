@@ -165,9 +165,11 @@ class currency_Currencies extends core_Master
      * 
      * @param string $amount - сума
      * @param mixed $currency - ид или код на валута
+     * @param mixed $isOurCurrency - дали е наша валута
+     *
      * @return string $amount - декорираната сума
      */
-    public static function decorate($amount, $currency = null)
+    public static function decorate($amount, $currency = null, $isOurCurrency = false)
     {
         if(is_numeric($currency)) {
             $currency = self::getCodeById($currency);
@@ -186,7 +188,7 @@ class currency_Currencies extends core_Master
                 $amount = "\$&nbsp;{$amount}";
                 break;
             case "EUR":
-                $amount = "€&nbsp;{$amount}";
+                $amount = ($isOurCurrency) ? "{$amount}&nbsp;€" : "€&nbsp;{$amount}";
                 break;
             default: 
                 $amount .= '&nbsp;<span class="cCode">' . $currency . '</span>';

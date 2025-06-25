@@ -4453,7 +4453,10 @@ class planning_Tasks extends core_Master
 
             $taskOptions = array();
             $taskAssets = planning_AssetResources::getAssetTaskOptions($rec->newAssetId, true);
-            $orderedTaskAssets = planning_TaskManualOrderPerAssets::getOrderedRecs($rec->newAssetId, $taskAssets);
+
+            $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
+            $placeWithActualStartFirst = ($manualPlanning == 'no');
+            $orderedTaskAssets = planning_TaskManualOrderPerAssets::getOrderedRecs($rec->newAssetId, $taskAssets, $placeWithActualStartFirst);
             foreach ($orderedTaskAssets as $tRec){
                 $taskOptions[$tRec->id] = $this->getAlternativeTitle($tRec);
             }
@@ -4546,6 +4549,8 @@ class planning_Tasks extends core_Master
     {
         if(!Mode::is('isReorder') || !countR($data->recs)) return;
 
-        $data->recs = planning_TaskManualOrderPerAssets::getOrderedRecs($data->listFilter->rec->assetId, $data->recs);
+        $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
+        $placeWithActualStartFirst = ($manualPlanning == 'no');
+        $data->recs = planning_TaskManualOrderPerAssets::getOrderedRecs($data->listFilter->rec->assetId, $data->recs, $placeWithActualStartFirst);
     }
 }
