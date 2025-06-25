@@ -262,11 +262,9 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     {
 
         $recs = $jobsArr = array();
-
-        if (($rec->pasive == 'no') && ($rec->type == 'job')) {
-
+        //СПЕЦИАЛЕН СЛУЧАЙ
+        if (($rec->pasive == 'no')) {
             $recs = $this->prepareRecsFromGrFill($rec);
-
             return $recs;
         }
 
@@ -566,7 +564,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         if ($export === false) {
 
             // СПЕЦИАЛЕН СЛУЧАЙ
-            if (($rec->pasive == 'no') && ($rec->type == 'job')) {
+            if (($rec->pasive == 'no')) {
 
                 $fld->FLD('group', 'varchar', 'caption=Група артикули');
                 $fld->FLD('weight', 'double(decimals=2)', 'caption=Тегло');
@@ -627,7 +625,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         // СПЕЦИАЛЕН СЛУЧАЙ
        // if (!is_null($rec->GrFill)) {
-        if (($rec->pasive == 'no') && ($rec->type == 'job')) {
+        if (($rec->pasive == 'no')) {
 
             $row->group = cat_Groups::getHyperlink($dRec->group);
             $row->weight = $Double->toVerbal($dRec->weight);
