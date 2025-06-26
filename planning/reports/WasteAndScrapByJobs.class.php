@@ -20,7 +20,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, debug';
+    public $canSelectDriver = 'ceo, асс, planning, debug';
 
 
     /**
@@ -131,7 +131,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $fieldset->FLD('GrFill',
             "table(
             columns=grp|wght|scrpWeight|wstWeight,
-            captions=Група|Тегло|Брак|Отпадък,
+            captions=Група|Произведено количество  кг|Отпадък  кг|%|
             widths=30em|5em|5em|5em,
             suggestions[grp]=cat_Groups::suggestions()
         )",
@@ -563,9 +563,9 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             if (($rec->pasive == 'no')) {
 
                 $fld->FLD('group', 'varchar', 'caption=Група артикули');
-                $fld->FLD('weight', 'double(decimals=2)', 'caption=Тегло');
-                $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
-                $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
+                $fld->FLD('weight', 'double(decimals=2)', 'caption=Произведено количество [кг]');
+                $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Отпадък [кг]');
+                $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=%');
 
                 return $fld;
             }
