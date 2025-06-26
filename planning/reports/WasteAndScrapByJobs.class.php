@@ -159,21 +159,17 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             if ($rec->pasive == 'no') {
                 $groupsQuery = cat_Groups::getQuery();
-                $groupsQuery->limit(200);
 
-                $i = 0;
                 while ($gRec = $groupsQuery->fetch()) {
-                    $details['grp'][$i] = $gRec->name;
-                    $details['wght'][$i] = 0;
-                    $details['scrpWeight'][$i] = 0;
-                    $details['wstWeight'][$i] = 0;
-                    $i++;
+
+                    $details[$gRec->id] = $gRec->name;
+
                 }
             }
 
-            $jDetails = json_encode($details);
+            // $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
+            $form->setFieldTypeParams('GrFill', array('grp_sgt' => $details));
 
-            $form->rec->GrFill = $jDetails;
         }
 
 
@@ -182,7 +178,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
-            if (is_null($form->rec->groups) &&$form->rec->groupBy == 'articleGroup') {
+            if (is_null($form->rec->groups) && $form->rec->groupBy == 'articleGroup') {
                 $form->setError('groups', 'Когато групирането е по групи, трябва да има избрана поне една група');
             }
         }
@@ -207,7 +203,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $form->setField('GrFill', 'input');
         }
 
-          $form->setDefault('pasive', 'yes');
+        $form->setDefault('pasive', 'yes');
 
         if ($rec->type == 'job') {
             $form->setField('employees', 'input=none');
@@ -535,7 +531,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $recs = $tempArr;
             // подменяме групирането да е по група артикули
             if ($rec->groupBy == 'articleGroup') {
-                //$this->groupByField = 'group';
+
                 $this->summaryListFields = 'scrappedWeight,wasteWeight';
             }
         }
@@ -578,28 +574,28 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             if ($rec->groupBy == 'articleGroup') {
                 // Когато групираме по групи артикули:
                 $fld->FLD('group', 'varchar', 'caption=Група артикули');
-              //  $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
-              //  $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
+                //  $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
+                //  $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
             }
-           // if ($rec->groupBy == 'no') {
-                // Всички останали случаи (досегашното поведение)
-                if ($rec->type == 'job') {
-                    $fld->FLD('jobId', 'varchar', 'caption=Задание');
-                    if ($rec->groupBy == 'article') {
-                        $fld->FLD('jobArt', 'varchar', 'caption=Артикул');
-                    }
-                    if ($rec->groupBy == 'articleGroup') {
-                      //  $fld->FLD('group', 'varchar', 'caption=Група артикули');
-                    }
-                } else {
-                    $fld->FLD('taskId', 'varchar', 'caption=Операция');
-                    $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
-                    $fld->FLD('employees', 'varchar', 'caption=Служители');
+            // if ($rec->groupBy == 'no') {
+            // Всички останали случаи (досегашното поведение)
+            if ($rec->type == 'job') {
+                $fld->FLD('jobId', 'varchar', 'caption=Задание');
+                if ($rec->groupBy == 'article') {
+                    $fld->FLD('jobArt', 'varchar', 'caption=Артикул');
                 }
-              //  $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-                $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак [kg]');
-                $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък [kg]');
-          //  }
+                if ($rec->groupBy == 'articleGroup') {
+                    //  $fld->FLD('group', 'varchar', 'caption=Група артикули');
+                }
+            } else {
+                $fld->FLD('taskId', 'varchar', 'caption=Операция');
+                $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
+                $fld->FLD('employees', 'varchar', 'caption=Служители');
+            }
+            //  $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак [kg]');
+            $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък [kg]');
+            //  }
         }
 
         return $fld;
@@ -624,7 +620,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $row = new stdClass();
 
         // СПЕЦИАЛЕН СЛУЧАЙ
-       // if (!is_null($rec->GrFill)) {
+        // if (!is_null($rec->GrFill)) {
         if (($rec->pasive == 'no')) {
 
             $row->group = cat_Groups::getHyperlink($dRec->group);
@@ -866,14 +862,14 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $recs = array();
 
         // Преобразуваме JSON форматираното поле в масив
-        $grFillData = (array) json_decode($rec->GrFill, true);
+        $grFillData = (array)json_decode($rec->GrFill, true);
 
         // Обхождаме всяка група по индекс
         foreach ($grFillData['grp'] as $i => $groupName) {
             // Тегло, брак и отпадък от съответната колона
-            $weight = (float) $grFillData['wght'][$i];
-            $scrapped = (float) $grFillData['scrpWeight'][$i];
-            $waste = (float) $grFillData['wstWeight'][$i];
+            $weight = (float)$grFillData['wght'][$i];
+            $scrapped = (float)$grFillData['scrpWeight'][$i];
+            $waste = (float)$grFillData['wstWeight'][$i];
 
             // Пропускаме празни редове (всичко 0)
             if ($weight == 0 && $scrapped == 0 && $waste == 0) {
@@ -884,7 +880,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $groupId = cat_Groups::fetchField("#name = '{$groupName}'", 'id');
 
             // Добавяме в резултата
-            $recs[$groupId] = (object) [
+            $recs[$groupId] = (object)[
                 'group' => $groupId,
                 'weight' => $weight,
                 'scrappedWeight' => $scrapped,
