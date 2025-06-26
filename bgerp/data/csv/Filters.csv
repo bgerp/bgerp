@@ -30,4 +30,5 @@ closedProducts,Закрити артикули,Артикули (Състоян�
 withBom,С рецепта,Производство,"cat_Products,store_Products,planning_WorkInProgress",
 withoutBom,Без рецепта,Производство,"cat_Products,store_Products,planning_WorkInProgress",
 replacementsWithoutAsset,Резервни части без машина,Производство,"cat_Products",
+numberCode,Цифров код,,"cat_Products,store_Products,planning_WorkInProgress",,"^[0-9]+$", "code","ASC"
 

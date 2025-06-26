@@ -215,6 +215,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_ParamFormulaVersions',
         'migrate::repairSearchKeywords2434',
         'migrate::calcExpand36Field2445v2',
+        'migrate::updateFiltersCreatedBy2625',
     );
     
     
@@ -458,5 +459,20 @@ class cat_Setup extends core_ProtoSetup
         $newData = (object)array('mvc' => 'cat_Products', 'lastId' => null);
         $callOn = dt::addSecs(60);
         core_CallOnTime::setOnce('plg_ExpandInput', 'recalcExpand36Input', $newData, $callOn);
+    }
+
+
+    /**
+     * Изтриване на тестови филтри
+     */
+    public function updateFiltersCreatedBy2625()
+    {
+        $Filters = cls::get('bgerp_Filters');
+        $Filters->setupMvc();
+
+        $createdByColName = str::phpToMysqlName('createdBy');
+        $systemUserId = core_Users::SYSTEM_USER;
+        $query = "UPDATE {$Filters->dbTableName} SET {$createdByColName} = {$systemUserId} WHERE {$createdByColName} IS NULL OR {$createdByColName} = 0";
+        $Filters->db->query($query);
     }
 }
