@@ -480,7 +480,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         // Създаваме празен масив, в който ще събираме агрегираните резултати по групи
         $tempArr = array();
-//bp($recs);
+
 // Проверяваме дали сме в режим на групиране по артикули групи
         if ($rec->groupBy == 'articleGroup' && !is_null($rec->groups)) {
 
@@ -578,10 +578,10 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             if ($rec->groupBy == 'articleGroup') {
                 // Когато групираме по групи артикули:
                 $fld->FLD('group', 'varchar', 'caption=Група артикули');
-                $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
-                $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
+              //  $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
+              //  $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
             }
-            if ($rec->groupBy == 'no') {
+           // if ($rec->groupBy == 'no') {
                 // Всички останали случаи (досегашното поведение)
                 if ($rec->type == 'job') {
                     $fld->FLD('jobId', 'varchar', 'caption=Задание');
@@ -589,17 +589,17 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                         $fld->FLD('jobArt', 'varchar', 'caption=Артикул');
                     }
                     if ($rec->groupBy == 'articleGroup') {
-                        $fld->FLD('group', 'varchar', 'caption=Група артикули');
+                      //  $fld->FLD('group', 'varchar', 'caption=Група артикули');
                     }
                 } else {
                     $fld->FLD('taskId', 'varchar', 'caption=Операция');
                     $fld->FLD('assetResources', 'varchar', 'caption=Оборудване');
                     $fld->FLD('employees', 'varchar', 'caption=Служители');
                 }
-                $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-                $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
-                $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
-            }
+              //  $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+                $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак [kg]');
+                $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък [kg]');
+          //  }
         }
 
         return $fld;
