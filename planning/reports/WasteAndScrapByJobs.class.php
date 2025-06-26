@@ -621,7 +621,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         // if (!is_null($rec->GrFill)) {
         if (($rec->pasive == 'no')) {
 
-            $row->group = cat_Groups::getHyperlink($dRec->group);
+            $row->group = ($dRec->group);
             $row->weight = $Double->toVerbal($dRec->weight);
             $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeight);
             $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
@@ -879,7 +879,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             // Добавяме в резултата
             $recs[$groupId] = (object)[
-                'group' => $groupId,
+                'group' => $groupName,
                 'weight' => $weight,
                 'scrappedWeight' => $scrapped,
                 'wasteWeight' => $waste
@@ -892,6 +892,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                 unset($recs[$id]);
             }
         }
+
 
         return $recs;
     }
