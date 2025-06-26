@@ -152,26 +152,21 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     {
         $rec = &$form->rec;
 
-        // Само при рефреш на формата
-        if ($form->cmd == 'refresh') {
 
-            $details = array();
+        $details = array();
 
-            if ($rec->pasive == 'no') {
-                $groupsQuery = cat_Groups::getQuery();
+        if ($rec->pasive == 'no') {
+            $groupsQuery = cat_Groups::getQuery();
 
-                while ($gRec = $groupsQuery->fetch()) {
+            while ($gRec = $groupsQuery->fetch()) {
 
-                    $details[$gRec->id] = $gRec->name;
+                $details[$gRec->id] = $gRec->name;
 
-                }
             }
-
-            // $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
-            $form->setFieldTypeParams('GrFill', array('grp_sgt' => $details));
-
         }
 
+        // $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
+        $form->setFieldTypeParams('GrFill', array('grp_sgt' => $details));
 
         if ($form->isSubmitted()) {
             // Проверка на периоди
@@ -204,6 +199,8 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         }
 
         $form->setDefault('pasive', 'yes');
+        $form->setDefault('from', '1970-01-01');
+        $form->setDefault('to', dt::today().'23:59:59');
 
         if ($rec->type == 'job') {
             $form->setField('employees', 'input=none');
@@ -226,7 +223,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         $jQuery = planning_Tasks::getQuery();
         $jQuery->in('state', $stateArr);
-        $jQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . ' 23:59:59'));
+        $jQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from, $rec->to . '23:59:59'));
         $jQuery->show('employees,assetId');
 
         while ($jRec = $jQuery->fetch()) {
@@ -268,6 +265,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         if ($rec->groupBy == 'article') {
             $this->groupByField = 'jobArt';
         }
+
 
         $stateArr = array('active', 'wakeup', 'closed');
 
@@ -540,7 +538,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         if (!empty(($recs) && $rec->groupBy != 'articleGroup')) {
             arr::sortObjects($recs, $rec->orderBy, $rec->order);
         }
-        //bp($recs);
+
         return $recs;
     }
 
