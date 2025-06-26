@@ -81,33 +81,62 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        //Период
-        $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
-        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
+        // Период на справката
+        $fieldset->FLD('from', 'date',
+            'caption=От,after=title,single=none,mandatory');
+        $fieldset->FLD('to', 'date',
+            'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FLD('type', 'enum(job=По задание, task=По операции)', 'notNull,caption=Покажи->Артикули,maxRadio=1,after=to,single=none,silent,removeAndRefreshForm=orderBy');
+        // Избор на тип справка – по задание или по операции
+        $fieldset->FLD('type', 'enum(job=По задание, task=По операции)',
+            'notNull,caption=Покажи->Артикули,maxRadio=1,after=to,single=none,silent,removeAndRefreshForm=orderBy');
 
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи артикули,after=type,placeholder=Всички,silent,single=none');
+        // Филтриране по групи артикули
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)',
+            'caption=Групи артикули,after=type,placeholder=Всички,silent,single=none');
 
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Дилър,single=none,after=groups');
+        // Филтър по дилъри (потребители с определени роли)
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)',
+            'caption=Дилър,single=none,after=groups');
 
-        $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)', 'caption=Работници,placeholder=Всички,after=dealers');
+        // Филтър по работници
+        $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,select=name,group=employees,allowEmpty=true)',
+            'caption=Работници,placeholder=Всички,after=dealers');
 
-        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)', 'caption=Машини,placeholder=Всички,after=employees,single=none');
+        // Филтър по машини (активи)
+        $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,select=name)',
+            'caption=Машини,placeholder=Всички,after=employees,single=none');
 
-        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,placeholder=Всички,after=assetResources,single=none');
+        // Филтър по центрове
+        $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)',
+            'caption=Центрове,placeholder=Всички,after=assetResources,single=none');
 
+        // Сортиране по показател (напр. по брак или отпадък)
+        $fieldset->FLD('orderBy', 'enum(jobId=Задание, taskId=Операция, scrappedWeight=Брак, wasteWeight=Отпадък)',
+            'caption=Подреждане на резултата->Показател,maxRadio=4,columns=3,silent,after=centre');
 
-        //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(jobId=Задание, taskId=Операция, scrappedWeight=Брак, wasteWeight=Отпадък)', 'caption=Подреждане на резултата->Показател,maxRadio=4,columns=3,silent,after=centre');
-        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
-        // Дали да бъде групирана справката по контрагент
-        $fieldset->FLD(
-            'groupBy',
-            'enum(no=Без групиране,article=Артикули,articleGroup=Групи артикули)',
-            'caption=Подреждане на резултата->Групиране,after=order,columns=3,maxRadio=3'
+        // Ред на сортиране – низходящ или възходящ
+        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)',
+            'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
+
+        // Групиране на резултата – по артикули, по групи, или без
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране,article=Артикули,articleGroup=Групи артикули)',
+            'caption=Подреждане на резултата->Групиране,after=order,columns=3,maxRadio=3');
+
+        // Режим на зареждане – пасивно или активно
+        $fieldset->FLD('pasive', 'enum( yes=Активно, no=Пасивно)',
+            'caption=Подреждане на резултата->Режим,after=groupBy,single=none,removeAndRefreshForm,silent');
+
+        // Таблично поле за въвеждане на данни за групи (тегло, брак, отпадък)
+        $fieldset->FLD('GrFill',
+            "table(
+            columns=grp|wght|scrpWeight|wstWeight,
+            captions=Група|Тегло|Брак|Отпадък,
+            widths=30em|5em|5em|5em,
+            suggestions[grp]=cat_Groups::suggestions()
+        )",
+            'caption=Зареждане на групи||Extras->Зареди||Additional,autohide,advanced,after=groupBy,export=Csv,single=none,silent,input=none'
         );
-
     }
 
 
@@ -121,10 +150,40 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
      */
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
+        $rec = &$form->rec;
+
+        // Само при рефреш на формата
+        if ($form->cmd == 'refresh') {
+
+            $details = array();
+
+            if ($rec->pasive == 'no') {
+                $groupsQuery = cat_Groups::getQuery();
+
+
+                $i = 0;
+                while ($gRec = $groupsQuery->fetch()) {
+                    $details['grp'][$i] = $gRec->name;
+                    $details['wght'][$i] = 0;
+                    $details['scrpWeight'][$i] = 0;
+                    $details['wstWeight'][$i] = 0;
+                    $i++;
+                }
+            }
+
+            $jDetails = json_encode($details);
+
+            $form->rec->GrFill = $jDetails;
+        }
+
+
         if ($form->isSubmitted()) {
             // Проверка на периоди
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
+            }
+            if (is_null($form->rec->groups) &&$form->rec->groupBy == 'articleGroup') {
+                $form->setError('groups', 'Когато групирането е по групи, трябва да има избрана поне една група');
             }
         }
     }
@@ -143,6 +202,12 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('type', 'task');
+
+        if ($rec->pasive == 'no') {
+            $form->setField('GrFill', 'input');
+        }
+
+          $form->setDefault('pasive', 'yes');
 
         if ($rec->type == 'job') {
             $form->setField('employees', 'input=none');
@@ -181,6 +246,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         asort($suggestions);
         $form->setSuggestions('employees', $suggestions);
+
     }
 
 
@@ -196,6 +262,11 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
     {
 
         $recs = $jobsArr = array();
+        //СПЕЦИАЛЕН СЛУЧАЙ
+        if (($rec->pasive == 'no')) {
+            $recs = $this->prepareRecsFromGrFill($rec);
+            return $recs;
+        }
 
         // ЗАДАВАМЕ ГРУПИРАНЕТО СПОРЕД ИЗБОРА ОТ ФОРМАТА
         if ($rec->groupBy == 'article') {
@@ -430,7 +501,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
                         // Ако все още не сме добавили тази група в $tempArr — създаваме нов запис
                         if (!isset($tempArr[$groupId])) {
-                            $tempArr[$groupId] = (object) array(
+                            $tempArr[$groupId] = (object)array(
                                 'group' => $groupId,
                                 // Копираме част от полетата от текущия запис (взимаме ги от първото срещане)
                                 'jobId' => $rval->jobId,
@@ -442,8 +513,8 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                                 'wasteWeightGroup' => 0,
 
                                 // Запазваме и оригиналните стойности за справка (ако ти трябват)
-                                'scrappedWeight' => $rval->scrappedWeight,
-                                'wasteWeight' => $rval->wasteWeight,
+                                'scrappedWeight' => 0,
+                                'wasteWeight' => 0,
                                 'prodWeight' => $rval->prodWeight,
                                 'wasteWeightNullMark' => $rval->wasteWeightNullMark,
                             );
@@ -452,6 +523,11 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                         // Сумираме количествата брак и отпадък в новите агрегационни полета
                         $tempArr[$groupId]->scrappedWeightGroup += $rval->scrappedWeight;
                         $tempArr[$groupId]->wasteWeightGroup += $rval->wasteWeight;
+
+                        $tempArr[$groupId]->scrappedWeight += $rval->scrappedWeight;
+                        $tempArr[$groupId]->wasteWeight += $rval->wasteWeight;
+
+
                     }
                 }
             }
@@ -460,6 +536,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             // подменяме групирането да е по група артикули
             if ($rec->groupBy == 'articleGroup') {
                 //$this->groupByField = 'group';
+                $this->summaryListFields = 'scrappedWeight,wasteWeight';
             }
         }
 
@@ -486,12 +563,25 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         if ($export === false) {
 
+            // СПЕЦИАЛЕН СЛУЧАЙ
+            if (($rec->pasive == 'no')) {
+
+                $fld->FLD('group', 'varchar', 'caption=Група артикули');
+                $fld->FLD('weight', 'double(decimals=2)', 'caption=Тегло');
+                $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
+                $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
+
+                return $fld;
+            }
+
+
             if ($rec->groupBy == 'articleGroup') {
                 // Когато групираме по групи артикули:
                 $fld->FLD('group', 'varchar', 'caption=Група артикули');
                 $fld->FLD('scrappedWeight', 'double(decimals=2)', 'caption=Брак');
                 $fld->FLD('wasteWeight', 'double(decimals=2)', 'caption=Отпадък');
-            } else {
+            }
+            if ($rec->groupBy == 'no') {
                 // Всички останали случаи (досегашното поведение)
                 if ($rec->type == 'job') {
                     $fld->FLD('jobId', 'varchar', 'caption=Задание');
@@ -532,6 +622,19 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $Double->params['decimals'] = 3;
 
         $row = new stdClass();
+
+        // СПЕЦИАЛЕН СЛУЧАЙ
+       // if (!is_null($rec->GrFill)) {
+        if (($rec->pasive == 'no')) {
+
+            $row->group = cat_Groups::getHyperlink($dRec->group);
+            $row->weight = $Double->toVerbal($dRec->weight);
+            $row->scrappedWeight = $Double->toVerbal($dRec->scrappedWeight);
+            $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
+
+            return $row;
+        }
+
 
         // Когато сме в групиране по групи артикули
         if ($rec->groupBy == 'articleGroup') {
@@ -738,4 +841,57 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         return false;
     }
 
+    /**
+     * Подготвя записи от данните в полето GrFill.
+     *
+     * Методът обхожда масива GrFill, който е сериализиран в JSON и съдържа теглови данни за групи.
+     * Връща само онези записи, при които поне една от стойностите (тегло, брак, отпадък) е различна от 0.
+     * Името на групата се съхранява като ID, за по-лесна вербализация при извеждане.
+     *
+     * @param stdClass $rec Записът от формата, който съдържа полето GrFill
+     * @return array Масив от обекти със следната структура:
+     *               [
+     *                   groupId => (object)[
+     *                       'group' => int,              // ID на групата (ще се вербализира по-късно)
+     *                       'weight' => float,           // Тегло
+     *                       'scrappedWeight' => float,   // Брак
+     *                       'wasteWeight' => float       // Отпадък
+     *                   ],
+     *                   ...
+     *               ]
+     */
+    // Връща масив със записи от табличното поле GrFill, използвайки ID на група, вместо име
+    protected function prepareRecsFromGrFill($rec)
+    {
+        $recs = array();
+
+        // Преобразуваме JSON форматираното поле в масив
+        $grFillData = (array) json_decode($rec->GrFill, true);
+
+        // Обхождаме всяка група по индекс
+        foreach ($grFillData['grp'] as $i => $groupName) {
+            // Тегло, брак и отпадък от съответната колона
+            $weight = (float) $grFillData['wght'][$i];
+            $scrapped = (float) $grFillData['scrpWeight'][$i];
+            $waste = (float) $grFillData['wstWeight'][$i];
+
+            // Пропускаме празни редове (всичко 0)
+            if ($weight == 0 && $scrapped == 0 && $waste == 0) {
+                continue;
+            }
+
+            // Взимаме ID на групата по име
+            $groupId = cat_Groups::fetchField("#name = '{$groupName}'", 'id');
+
+            // Добавяме в резултата
+            $recs[$groupId] = (object) [
+                'group' => $groupId,
+                'weight' => $weight,
+                'scrappedWeight' => $scrapped,
+                'wasteWeight' => $waste
+            ];
+        }
+
+        return $recs;
+    }
 }
