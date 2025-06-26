@@ -153,7 +153,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         $rec = &$form->rec;
 
         // Само при рефреш на формата
-        if ($form->cmd == 'refresh') {
+       // if ($form->cmd == 'refresh') {
 
             $details = array();
 
@@ -170,7 +170,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             // $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
             $form->setFieldTypeParams('GrFill', array('grp_sgt' => $details));
 
-        }
+   //     }
 
 
         if ($form->isSubmitted()) {
@@ -268,6 +268,13 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         if ($rec->groupBy == 'article') {
             $this->groupByField = 'jobArt';
         }
+
+        // Осигуряваме коректни стойности на датите, за да не гърми при празни from/to
+        $from = !empty($rec->from) ? $rec->from : '1970-01-01';
+        $to = !empty($rec->to) ? $rec->to : dt::verbal2mysql(dt::now(), false); // текуща дата без час
+
+// Добавяме край на деня към to
+        $to .= ' 23:59:59';
 
         $stateArr = array('active', 'wakeup', 'closed');
 
@@ -540,7 +547,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         if (!empty(($recs) && $rec->groupBy != 'articleGroup')) {
             arr::sortObjects($recs, $rec->orderBy, $rec->order);
         }
-        //bp($recs);
+
         return $recs;
     }
 
